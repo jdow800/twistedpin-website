@@ -1,0 +1,369 @@
+---
+/**
+ * /snap-test/ — POC for mobile snap-scroll pattern.
+ *
+ * Mobile (≤1024): the <main> container becomes the scroll container,
+ *   100dvh tall, with `scroll-snap-type: y mandatory` + `scroll-snap-stop: always`.
+ *   Each section is 100dvh tall with `scroll-snap-align: start`.
+ *
+ * Desktop (≥1025): no snap. <main> is normal block flow; sections collapse to
+ *   their content height (or 100dvh if the section says so). Pure POC of mobile
+ *   gesture, not desktop.
+ *
+ * StickyCTABar hidden on this route (the sections are the conversion surface).
+ *
+ * NOT linked from anywhere. Standalone proof-of-concept.
+ */
+import Base from "../layouts/Base.astro";
+import Hero from "../components/Hero.astro";
+---
+<Base
+  title="Snap-scroll POC — Twisted Pin"
+  description="Internal POC. Three full-screen sections with mobile scroll-snap."
+  hideStickyCTA={true}
+>
+  <main class="snap">
+    {/* Section 1 — existing hero, reused as-is. */}
+    <Hero />
+
+    {/* Section 2 — coupon signup. Dark indigo, single phone field. */}
+    <section class="snap-section section-coupon" aria-labelledby="coupon-h1">
+      <div class="section-inner">
+        <p class="t-eyebrow eyebrow">Text club</p>
+        <h1 class="t-display coupon-h1" id="coupon-h1">$10&nbsp;off your first&nbsp;visit</h1>
+        <p class="coupon-sub">Sign up for the text club. We'll send the code now.</p>
+
+        <form class="coupon-form" data-coupon-form novalidate>
+          <label class="visually-hidden" for="coupon-phone">Phone number</label>
+          <input
+            id="coupon-phone"
+            class="coupon-input"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            placeholder="(555) 555-5555"
+            required
+            pattern="[\d\s().+\-]{7,}"
+            aria-describedby="coupon-disclaimer"
+          />
+          <button type="submit" class="btn btn-solid coupon-submit">
+            Send the code
+          </button>
+        </form>
+
+        <p class="coupon-disclaimer" id="coupon-disclaimer">
+          Standard message rates apply. Reply STOP to opt out.
+        </p>
+
+        <div class="coupon-success" data-coupon-success aria-live="polite" hidden>
+          <p class="t-display success-h">Code sent. See you Friday.</p>
+          <p class="success-sub">Check your messages — code expires in 30 days.</p>
+        </div>
+      </div>
+    </section>
+
+    {/* Section 3 — 28 taps. POC placeholder backdrop (CSS gradient + texture).
+        Real tap-wall photo/video lives in Context/pictures or Context/videos,
+        which are gitignored — swap in the source media once available. */}
+    <section class="snap-section section-tapwall" aria-labelledby="tapwall-h1">
+      <div class="tapwall-backdrop" aria-hidden="true"></div>
+      <div class="tapwall-scrim" aria-hidden="true"></div>
+      <div class="section-inner">
+        <p class="t-eyebrow eyebrow">The wall</p>
+        <h1 class="t-display tapwall-h1" id="tapwall-h1">28&nbsp;taps. Pour your&nbsp;own.</h1>
+        <p class="tapwall-sub">The only self-serve wall in the area.</p>
+        <a class="tapwall-link" href="/craft-bar/">
+          Learn more <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<script>
+  /* Coupon form — POC only. No network call.
+     Validates a minimal phone shape, swaps form for success state.
+     iOS keyboard summon while this is the snapped section is the
+     interesting behavior to observe — see report. */
+  const form = document.querySelector<HTMLFormElement>("[data-coupon-form]");
+  const success = document.querySelector<HTMLElement>("[data-coupon-success]");
+  const disclaimer = document.querySelector<HTMLElement>("#coupon-disclaimer");
+
+  form?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = form.querySelector<HTMLInputElement>("#coupon-phone");
+    if (!input) return;
+
+    // Minimal validation — must contain at least 10 digits.
+    const digits = (input.value.match(/\d/g) ?? []).length;
+    if (digits < 10) {
+      input.setCustomValidity("Enter a 10-digit phone number.");
+      input.reportValidity();
+      input.addEventListener("input", () => input.setCustomValidity(""), { once: true });
+      return;
+    }
+
+    // Drop focus before swapping — keeps iOS keyboard from re-summoning.
+    input.blur();
+    form.hidden = true;
+    if (disclaimer) disclaimer.hidden = true;
+    if (success) success.hidden = false;
+  });
+</script>
+
+<style>
+  /* ---------- snap container ----------
+     Mobile-only: the <main> is the scroll container.
+     Desktop: drop snap entirely; main flows normally inside body scroll. */
+  .snap {
+    /* Default (desktop) is normal block layout. */
+  }
+
+  @media (max-width: 1024px) {
+    /* Mobile: take over the viewport as the snap scroller. */
+    .snap {
+      height: 100dvh;
+      /* Fallback for browsers without dvh (Safari < 15.4). 100vh is too tall
+         under the iOS address bar but better than nothing. */
+      height: 100vh;
+      height: 100dvh;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      scroll-snap-type: y mandatory;
+      /* Smoothing for iOS momentum scroll. */
+      -webkit-overflow-scrolling: touch;
+      /* Don't let the browser try to restore a non-snapped scroll position. */
+      overscroll-behavior-y: contain;
+    }
+
+    /* Every direct child becomes a snap stop.
+       Hero is `<section class="hero">` — target it via direct child selector
+       so we don't have to add a class to it. `:global` is required because
+       Astro scopes `.hero` to the Hero component; without it, the selector
+       misses the hero and section 1 has snap-align:none, which causes the
+       browser to land on section 2 on first paint (mandatory snap aligns
+       to the nearest valid snap target). */
+    .snap > :global(.hero),
+    .snap > .snap-section {
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
+
+  /* ---------- shared section chrome ---------- */
+  .snap-section {
+    position: relative;
+    width: 100%;
+    min-height: 100dvh;
+    /* Belt + suspenders for older WebKit. */
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .section-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 22px;
+    color: var(--warm-white);
+  }
+
+  @media (min-width: 1025px) {
+    .section-inner { padding: 0 64px; max-width: 880px; margin: 0; }
+  }
+
+  .eyebrow {
+    margin-bottom: 18px;
+  }
+
+  /* ---------- section 2 — coupon ---------- */
+  .section-coupon {
+    background:
+      radial-gradient(120% 80% at 20% 10%, rgba(42, 27, 102, 0.55), transparent 60%),
+      radial-gradient(120% 80% at 90% 95%, rgba(216, 139, 92, 0.18), transparent 55%),
+      var(--indigo-deep);
+  }
+
+  .coupon-h1 {
+    color: var(--warm-white);
+    font-size: clamp(40px, 12vw, 88px);
+    letter-spacing: -0.015em;
+    line-height: 0.92;
+    margin-bottom: 14px;
+  }
+  @media (min-width: 1025px) {
+    .coupon-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
+  }
+
+  .coupon-sub {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.45;
+    color: #ece6d6;
+    max-width: 28em;
+    margin-bottom: 28px;
+  }
+  @media (min-width: 1025px) {
+    .coupon-sub { font-size: 19px; line-height: 1.5; margin-bottom: 36px; }
+  }
+
+  .coupon-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 420px;
+  }
+
+  .coupon-input {
+    width: 100%;
+    padding: 16px 18px;
+    font: inherit;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 16px; /* 16px+ prevents iOS zoom-on-focus */
+    letter-spacing: 0.02em;
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.06);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    border-radius: var(--radius-button);
+    outline: none;
+    transition: border-color 150ms ease-out, background-color 150ms ease-out;
+  }
+  .coupon-input::placeholder { color: var(--warm-dim); }
+  .coupon-input:focus {
+    border-color: var(--glow);
+    background: rgba(244, 239, 227, 0.10);
+  }
+  .coupon-input:invalid:not(:placeholder-shown) {
+    border-color: rgba(216, 139, 92, 0.7);
+  }
+
+  .coupon-submit {
+    width: 100%;
+    padding: 16px 22px;
+    font-size: 12.5px;
+  }
+
+  .coupon-disclaimer {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+    max-width: 32em;
+  }
+
+  .coupon-success {
+    max-width: 480px;
+  }
+  .success-h {
+    color: var(--glow);
+    font-size: clamp(32px, 9vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.96;
+    margin-bottom: 12px;
+  }
+  .success-sub {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.45;
+    color: #ece6d6;
+  }
+
+  /* ---------- section 3 — tap wall ---------- */
+  .section-tapwall {
+    background: #1a0f0a;
+  }
+
+  /* POC backdrop: copper-gradient + diagonal stripe pattern stands in for
+     the eventual tap-wall photo/video. Replace once Context/videos has the
+     real shot — section keeps the same dimensions either way. */
+  .tapwall-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(140% 90% at 50% 0%, rgba(216, 139, 92, 0.25), transparent 60%),
+      radial-gradient(120% 80% at 50% 100%, rgba(78, 236, 196, 0.12), transparent 55%),
+      repeating-linear-gradient(
+        100deg,
+        rgba(216, 139, 92, 0.12) 0,
+        rgba(216, 139, 92, 0.12) 2px,
+        transparent 2px,
+        transparent 28px
+      ),
+      linear-gradient(180deg, #2a1408 0%, #150704 100%);
+  }
+  .tapwall-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(180deg,
+        rgba(14, 10, 31, 0.55) 0%,
+        rgba(14, 10, 31, 0.10) 30%,
+        rgba(14, 10, 31, 0.10) 60%,
+        rgba(14, 10, 31, 0.85) 100%);
+  }
+
+  .tapwall-h1 {
+    color: var(--warm-white);
+    font-size: clamp(40px, 12vw, 88px);
+    letter-spacing: -0.015em;
+    line-height: 0.92;
+    margin-bottom: 14px;
+  }
+  @media (min-width: 1025px) {
+    .tapwall-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
+  }
+
+  .tapwall-sub {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.45;
+    color: #ece6d6;
+    max-width: 26em;
+    margin-bottom: 22px;
+  }
+  @media (min-width: 1025px) {
+    .tapwall-sub { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
+  }
+
+  .tapwall-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glow);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(78, 236, 196, 0.4);
+    transition: color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+  }
+  .tapwall-link:hover {
+    color: var(--warm-white);
+    border-bottom-color: var(--warm-white);
+    transform: translateX(2px);
+  }
+
+  /* ---------- a11y helper ---------- */
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
