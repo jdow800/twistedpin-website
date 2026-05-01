@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Twisted Pin — Visual Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&family=Roboto+Slab:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* ----- proposed system colors (4) ----- */
+    --indigo:        #200F53;  /* primary background, full-bleed */
+    --indigo-deep:   #0E0A1F;  /* mood floor / behind hero */
+    --warm-white:    #F4EFE3;  /* primary text on dark */
+    --glow:          #4EECC4;  /* accent #1 — interaction (CTAs, link underlines) */
+    --copper:        #D88B5C;  /* accent #2 — bar/cocktail moments, subtle warmth */
+
+    /* ----- supporting tones (pulled from photography, not codified) ----- */
+    --teal:          #1B4D5A;
+    --wood:          #6B4A2E;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--indigo-deep); color: var(--warm-white);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 120px;
+  }
+
+  /* ====== Page chrome / structure ====== */
+  .page-note {
+    background: #1a1530; border-bottom: 1px solid #2a1b66;
+    padding: 14px 24px; font-size: 13px; color: #a89eb6;
+  }
+  .page-note strong { color: var(--warm-white); }
+
+  .section { padding: 56px 24px; max-width: 1200px; margin: 0 auto; }
+  .section-label {
+    font-weight: 600; font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--glow); margin-bottom: 16px;
+  }
+  .section-h {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(28px, 5vw, 44px); line-height: 1; letter-spacing: 0;
+    text-transform: uppercase; margin-bottom: 36px;
+  }
+  .section-body {
+    font-family: 'Roboto Slab', serif; font-size: 16px; line-height: 1.6;
+    color: #d8d2c4; max-width: 56em;
+  }
+
+  /* ====== Color swatches ====== */
+  .swatches {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .swatch {
+    aspect-ratio: 4/3;
+    padding: 22px; display: flex; flex-direction: column; justify-content: space-between;
+    border-radius: 4px; position: relative;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .swatch .role { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.85; }
+  .swatch .name { font-family: 'Anton', sans-serif; font-size: 28px; line-height: 1; text-transform: uppercase; }
+  .swatch .hex { font-family: 'Inter', monospace; font-size: 13px; font-weight: 500; opacity: 0.95; }
+  .swatch .pct { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+
+  .s-indigo      { background: var(--indigo);      color: var(--warm-white); }
+  .s-indigo-deep { background: var(--indigo-deep); color: var(--warm-white); }
+  .s-warm-white  { background: var(--warm-white);  color: var(--indigo-deep); }
+  .s-glow        { background: var(--glow);        color: var(--indigo-deep); }
+  .s-copper      { background: var(--copper);      color: var(--indigo-deep); }
+
+  /* ====== Type specimens ====== */
+  .type-grid {
+    display: grid; grid-template-columns: 1fr; gap: 56px;
+  }
+  .specimen { border-top: 1px solid #2a1b66; padding-top: 28px; }
+  .specimen .meta { font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--glow); margin-bottom: 18px; }
+  .specimen .meta span { color: #8a8197; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 12px; }
+
+  .display-xl {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(56px, 12vw, 128px); line-height: 0.92; text-transform: uppercase;
+    letter-spacing: -0.005em;
+  }
+  .display-md {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(34px, 6vw, 56px); line-height: 0.98; text-transform: uppercase;
+  }
+  .body-slab {
+    font-family: 'Roboto Slab', serif; font-weight: 400;
+    font-size: 18px; line-height: 1.6; max-width: 38em; color: #d8d2c4;
+  }
+  .ui-sans {
+    font-family: 'Inter', sans-serif; font-weight: 500; font-size: 16px;
+    line-height: 1.5; max-width: 38em; color: #d8d2c4;
+  }
+  .eyebrow {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--glow);
+  }
+
+  /* ====== Hero compositions ====== */
+  .heroes {
+    display: grid; grid-template-columns: 1fr; gap: 48px;
+  }
+  @media (min-width: 1024px) {
+    .heroes { grid-template-columns: 1fr 1fr; }
+  }
+
+  .hero-card {
+    background: var(--indigo-deep);
+    border: 1px solid #2a1b66; border-radius: 4px; overflow: hidden;
+  }
+  .hero-card .hero-meta {
+    padding: 14px 18px; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--glow); border-bottom: 1px solid #2a1b66;
+    background: #1a1530;
+  }
+  .hero-card .hero-meta span { color: #8a8197; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 10px; }
+
+  .hero-stage {
+    position: relative; aspect-ratio: 9/16;
+    background: #000; overflow: hidden;
+  }
+  .hero-stage img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+  }
+  .hero-stage .scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg, rgba(14,10,31,0.5) 0%, rgba(14,10,31,0) 30%, rgba(14,10,31,0) 55%, rgba(14,10,31,0.92) 100%);
+  }
+  .hero-stage .copy {
+    position: absolute; left: 24px; right: 24px; bottom: 28px;
+    color: var(--warm-white);
+  }
+  .hero-stage .copy .e { display: block; margin-bottom: 14px; }
+  .hero-stage .copy h1 {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(40px, 9vw, 64px); line-height: 0.95;
+    text-transform: uppercase; letter-spacing: -0.005em;
+    margin-bottom: 14px;
+  }
+  .hero-stage .copy .sub {
+    font-family: 'Roboto Slab', serif; font-size: 16px; line-height: 1.45;
+    color: #e8e2d2; max-width: 22em; margin-bottom: 22px;
+  }
+  .hero-stage .copy .cta {
+    display: inline-block; padding: 14px 22px;
+    background: var(--glow); color: var(--indigo-deep);
+    font-family: 'Inter', sans-serif; font-weight: 700;
+    text-transform: uppercase; font-size: 12px; letter-spacing: 0.14em;
+    text-decoration: none; border-radius: 2px;
+  }
+
+  /* desktop hero composition */
+  .desktop-hero {
+    margin-top: 64px;
+    background: var(--indigo-deep);
+    border: 1px solid #2a1b66; border-radius: 4px; overflow: hidden;
+  }
+  .desktop-hero .hero-meta {
+    padding: 14px 18px; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--glow); border-bottom: 1px solid #2a1b66;
+    background: #1a1530;
+  }
+  .desktop-hero .hero-meta span { color: #8a8197; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: 10px; }
+  .dh-stage {
+    position: relative; aspect-ratio: 16/9;
+    background: #000; overflow: hidden;
+  }
+  .dh-stage img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .dh-stage .scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(90deg, rgba(14,10,31,0.85) 0%, rgba(14,10,31,0.55) 35%, rgba(14,10,31,0.1) 65%, rgba(14,10,31,0) 100%);
+  }
+  .dh-stage .copy {
+    position: absolute; left: 64px; bottom: 56px; max-width: 540px;
+  }
+  .dh-stage .copy .e {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--glow); margin-bottom: 18px; display: block;
+  }
+  .dh-stage .copy h1 {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(56px, 6.5vw, 96px); line-height: 0.95;
+    text-transform: uppercase; letter-spacing: -0.005em;
+    color: var(--warm-white); margin-bottom: 22px;
+  }
+  .dh-stage .copy .sub {
+    font-family: 'Roboto Slab', serif; font-size: 19px; line-height: 1.5;
+    color: #e8e2d2; max-width: 32em; margin-bottom: 28px;
+  }
+  .dh-stage .copy .cta {
+    display: inline-block; padding: 16px 28px;
+    background: var(--glow); color: var(--indigo-deep);
+    font-family: 'Inter', sans-serif; font-weight: 700;
+    text-transform: uppercase; font-size: 13px; letter-spacing: 0.14em;
+    text-decoration: none; border-radius: 2px;
+    margin-right: 12px;
+  }
+  .dh-stage .copy .cta.ghost {
+    background: transparent; color: var(--warm-white);
+    border: 1px solid var(--warm-white);
+  }
+
+  /* footnote */
+  .footnote {
+    margin: 24px auto 0; padding: 0 24px; max-width: 1200px;
+    font-size: 13px; color: #8a8197; line-height: 1.55;
+  }
+  .footnote code { background: #1a1530; padding: 2px 6px; border-radius: 3px; color: var(--warm-white); }
+  .footnote strong { color: var(--warm-white); }
+</style>
+</head>
+<body>
+
+<div class="page-note">
+  <strong>Composed reference — color + type + hero crops.</strong>
+  Demo uses Google Fonts equivalents — <em>Anton</em> for display (≈ Proxima Nova Extra Condensed Black) and <em>Roboto Slab</em> for body (≈ Yorkten Slab) and <em>Inter</em> for UI (≈ Proxima Nova). Production swaps to the real Adobe Fonts. Photos pulled from <code>Context/pictures/</code>.
+</div>
+
+<!-- ============== Color system ============== -->
+<section class="section">
+  <p class="section-label">Color system — 4 codified + 1 utility accent</p>
+  <h2 class="section-h">The palette, re-balanced.</h2>
+  <p class="section-body" style="margin-bottom: 28px;">
+    Foundation is dark indigo, near-black behind the hero, warm off-white for type. <strong>Glow</strong> is the single interaction color — it's where the brand spark lives. <strong>Copper</strong> is an optional warm accent reserved for bar/cocktail moments and editorial divider lines (matches the BEER HELPS signage in the venue). The fuchsia / orange / yellow accents from the original palette are not in the system — they appear only on dedicated sub-pages (arcade, special events) where they're earned.
+  </p>
+  <div class="swatches">
+    <div class="swatch s-indigo">
+      <div class="role">Background — primary</div>
+      <div>
+        <div class="name">Midnight Indigo</div>
+        <div class="hex">#200F53</div>
+        <div class="pct">~50% of every page</div>
+      </div>
+    </div>
+    <div class="swatch s-indigo-deep">
+      <div class="role">Background — mood floor</div>
+      <div>
+        <div class="name">Indigo Deep</div>
+        <div class="hex">#0E0A1F</div>
+        <div class="pct">behind hero, photo sections</div>
+      </div>
+    </div>
+    <div class="swatch s-warm-white">
+      <div class="role">Text — primary on dark</div>
+      <div>
+        <div class="name">Warm White</div>
+        <div class="hex">#F4EFE3</div>
+        <div class="pct">all body, all headings</div>
+      </div>
+    </div>
+    <div class="swatch s-glow">
+      <div class="role">Accent #1 — interaction</div>
+      <div>
+        <div class="name">Glow</div>
+        <div class="hex">#4EECC4</div>
+        <div class="pct">CTAs, links, eyebrows</div>
+      </div>
+    </div>
+    <div class="swatch s-copper">
+      <div class="role">Accent #2 — bar warmth</div>
+      <div>
+        <div class="name">Copper</div>
+        <div class="hex">#D88B5C</div>
+        <div class="pct">cocktail moments, dividers</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Typography ============== -->
+<section class="section">
+  <p class="section-label">Typography — 2 typefaces (3 in production)</p>
+  <h2 class="section-h">Type as architecture.</h2>
+  <p class="section-body" style="margin-bottom: 32px;">
+    <strong>Proxima Nova</strong> for display and UI. <strong>Yorkten Slab</strong> for body. Both are brand-spec, both via Adobe Fonts. Sized large enough to read as architecture (Pints &amp; Paddle / Swingers / Flight Club all do this). Display weight is <em>Extra Condensed Black</em> — heavy, condensed, signage-feeling. Body is regular slab — gives editorial weight without feeling stuffy. Reasoning: two typefaces holds the moody/confident thesis; a third would push us into Flowfest-collage territory.
+  </p>
+
+  <div class="type-grid">
+    <div class="specimen">
+      <p class="meta">Display XL <span>· Proxima Nova Extra Condensed Black · 56–128px · headlines, hero</span></p>
+      <div class="display-xl">Built for adults.<br/>Kids will come.</div>
+    </div>
+    <div class="specimen">
+      <p class="meta">Display MD <span>· same family · 34–56px · section headlines</span></p>
+      <div class="display-md">The mixologist behind<br/>Thomas Keller's Per Se<br/>built our bar.</div>
+    </div>
+    <div class="specimen">
+      <p class="meta">Body slab <span>· Yorkten Slab Regular · 16–18px · paragraph copy</span></p>
+      <p class="body-slab">Twenty-eight self-serve taps. Pay by the ounce. Beer and wine. Six-lane VIP suite for groups up to eighty, with its own pour and a giant LED wall. Everything you'd expect from a bowling night, except for the bowling-night part.</p>
+    </div>
+    <div class="specimen">
+      <p class="meta">Eyebrow / metadata <span>· Inter Bold · 11–13px · uppercased, tracked</span></p>
+      <p class="eyebrow">VIP Suite · Up to 80 Guests · Plainfield, IL</p>
+    </div>
+    <div class="specimen">
+      <p class="meta">UI sans <span>· Inter Medium · 14–16px · navigation, forms, secondary text</span></p>
+      <p class="ui-sans">Reserve a lane · Plan an event · Inquire about the VIP suite · See the cocktail menu · Find us — 15610 S Joliet Rd, Plainfield, IL</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Hero compositions ============== -->
+<section class="section">
+  <p class="section-label">Mobile hero — two cornerstone subjects</p>
+  <h2 class="section-h">Cocktails and the tap wall.<br/>Equal weight.</h2>
+  <p class="section-body" style="margin-bottom: 36px;">
+    Both compositions use the same color system, same type system, same CTA pattern. They are interchangeable hero options — and the site can rotate or A/B between them without rebuilding. <strong>The bowling shot doesn't appear in the hero region.</strong> When bowling shows up, it's the VIP suite, lower on the page.
+  </p>
+
+  <div class="heroes">
+
+    <div class="hero-card">
+      <div class="hero-meta">Mobile hero — option A · cocktail<span>· crop of <code>AIV01592.jpg</code></span></div>
+      <div class="hero-stage">
+        <img src="../Context/pictures/AIV01592.jpg" alt="Cherry-garnished old fashioned" />
+        <div class="scrim"></div>
+        <div class="copy">
+          <span class="e eyebrow">Plainfield, IL</span>
+          <h1>The bar that bowls.</h1>
+          <p class="sub">A Brian Van Flandern cocktail program — Michelin three-star, Per Se. The lanes are the bonus.</p>
+          <a href="#" class="cta">Reserve a lane</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-card">
+      <div class="hero-meta">Mobile hero — option B · tap wall<span>· crop of <code>AIV01452.jpg</code></span></div>
+      <div class="hero-stage">
+        <img src="../Context/pictures/AIV01452.jpg" alt="28-tap self-serve beer wall — BEER HELPS signage" />
+        <div class="scrim"></div>
+        <div class="copy">
+          <span class="e eyebrow">Twenty-eight taps · Pay by the ounce</span>
+          <h1>Beer helps.</h1>
+          <p class="sub">The only self-serve beer &amp; wine wall in the area. Pour a flight. Pour a pint. Don't ask permission.</p>
+          <a href="#" class="cta">Tap into the night</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- desktop hero -->
+  <div class="desktop-hero">
+    <div class="hero-meta">Desktop hero · 16:9 · hero photograph (NOT vertical video letterboxed)<span>· crop of <code>AIV01579.jpg</code></span></div>
+    <div class="dh-stage">
+      <img src="../Context/pictures/AIV01579.jpg" alt="Bartender pouring a cocktail through a copper strainer" />
+      <div class="scrim"></div>
+      <div class="copy">
+        <span class="e">Plainfield, IL · Cocktails · 28 Taps · 6-Lane VIP Suite</span>
+        <h1>Built for adults.<br/>Kids will come.</h1>
+        <p class="sub">A craft cocktail program by Brian Van Flandern. A 28-tap self-serve wall. Six private lanes for the people you actually want to spend a night with.</p>
+        <a href="#" class="cta">Reserve a lane</a>
+        <a href="#" class="cta ghost">Plan an event</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<p class="footnote">
+  <strong>What to react to.</strong> The color balance (dark dominates, glow is the spark, copper is rare). The type personality (Anton stand-in for Proxima Nova Extra Condensed Black — the production version is more refined, but the size/weight/posture is correct). The two cornerstone hero subjects sharing weight. Whether the hero copy ("The bar that bowls" / "Beer helps") lands or pushes too hard. Whether the mobile-vs-desktop split feels right.
+  <br/><br/>
+  <strong>Production swaps.</strong> Anton → Proxima Nova Extra Condensed Black. Roboto Slab → Yorkten Slab. Inter → Proxima Nova. All via Adobe Fonts (already brand-licensed). Mobile hero gets the recut <code>Best Things To Order</code> video instead of the static cocktail photo.
+  <br/><br/>
+  <strong>Open question.</strong> "Tap wall" vs "wine wall" framing — your refined thesis named it the *wine wall*, but the actual asset is a 28-tap *beer &amp; wine* wall. I've used "tap wall" / "beer &amp; wine wall" in the mockup copy because dropping "beer" loses one of the two SKUs the wall actually serves. Happy to lean fully into the wine framing if you want — it's a positioning call, not a literal one. Flagged for your decision.
+</p>
+
+</body>
+</html>

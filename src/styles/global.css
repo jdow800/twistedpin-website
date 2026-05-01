@@ -1,0 +1,136 @@
+/* ============================================================
+   Twisted Pin — global styles
+   Substitute fonts (Barlow Cond / Montserrat / Roboto Slab) — Adobe Fonts swap deferred
+   ============================================================ */
+
+@import "@fontsource/barlow-condensed/900.css";
+@import "@fontsource/montserrat/600.css";
+@import "@fontsource/montserrat/700.css";
+@import "@fontsource/roboto-slab/400.css";
+/* Roboto Slab ships no italic — browser synthesizes italics for <em>. Production swap to Yorkten Slab will need to verify italic availability. */
+
+:root {
+  /* palette */
+  --indigo:        #200F53;
+  --indigo-deep:   #0E0A1F;
+  --indigo-lift:   #2A1B66;
+  --warm-white:    #F4EFE3;
+  --warm-mid:      #d8d2c4;
+  --warm-dim:      #a89eb6;
+  --glow:          #4EECC4;
+  --glow-dim:      #3dd4af;
+  --copper:        #D88B5C;
+
+  /* type stack — substitutes; production swap is just these three vars */
+  --font-display:  'Barlow Condensed', 'Proxima Nova Extra Condensed', 'Arial Narrow', sans-serif;
+  --font-ui:       'Montserrat', 'Proxima Nova', system-ui, sans-serif;
+  --font-body:     'Roboto Slab', 'Yorkten Slab', Georgia, serif;
+
+  /* layout tokens */
+  --radius-button: 7px;
+  --radius-surface: 6px;
+  --bar-height: 64px;
+  --header-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top:    env(safe-area-inset-top, 0px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--indigo-deep);
+  color: var(--warm-white);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Reserve space at the bottom of the viewport on mobile for the sticky CTA bar
+     so it never overlaps the closing band when the page eventually scrolls. */
+  --bar-pad: calc(var(--bar-height) + var(--safe-bottom));
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
+img, video, svg { display: block; max-width: 100%; }
+
+/* ============================================================
+   Type primitives
+   ============================================================ */
+
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.92;
+  letter-spacing: 0.005em;
+}
+.t-ui {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.t-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+}
+
+.t-eyebrow {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--warm-white);
+  opacity: 0.85;
+}
+
+/* ============================================================
+   Buttons (global) — solid + outlined treatments
+   ============================================================ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 12px;
+  padding: 14px 22px;
+  border-radius: var(--radius-button);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  will-change: transform;
+}
+.btn-solid {
+  background: var(--glow);
+  color: var(--indigo-deep);
+}
+.btn-solid:hover { background: var(--glow-dim); transform: scale(1.02); }
+.btn-outline {
+  background: transparent;
+  color: var(--warm-white);
+  border: 1px solid var(--warm-white);
+}
+.btn-outline:hover { background: rgba(244, 239, 227, 0.08); transform: scale(1.02); }
+
+/* ============================================================
+   Reduced motion — disable transforms, keep instant fade
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .btn:hover { transform: none !important; }
+}
+
+/* ============================================================
+   Body scroll lock — when nav drawer is open
+   ============================================================ */
+body.no-scroll { overflow: hidden; }

@@ -1,0 +1,212 @@
+---
+/**
+ * Global navigation drawer — hamburger button (top-right of viewport) + slide-in overlay.
+ *
+ * Drawer header: "The works." (locked).
+ * Drawer body: placeholder section links — these routes don't exist yet,
+ * but the structure is sketched so the drawer reads as real chrome, not a stub.
+ */
+
+const sections = [
+  { href: "/craft-bar/",  label: "Craft Bar" },
+  { href: "/vip-suite/",  label: "VIP Suite" },
+  { href: "/events/",     label: "Events" },
+  { href: "/menu/",       label: "Menu" },
+  { href: "/find-us/",    label: "Find Us" },
+];
+---
+<button
+  type="button"
+  class="nav-toggle"
+  data-nav-toggle
+  aria-controls="nav-drawer"
+  aria-expanded="false"
+  aria-label="Open menu"
+>
+  <span class="bar" aria-hidden="true"></span>
+  <span class="bar" aria-hidden="true"></span>
+</button>
+
+<div class="nav-backdrop" data-nav-backdrop aria-hidden="true"></div>
+
+<aside
+  class="nav-drawer"
+  id="nav-drawer"
+  data-nav-drawer
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="nav-drawer-title"
+  aria-hidden="true"
+>
+  <div class="nav-drawer-head">
+    <h2 class="t-display" id="nav-drawer-title">The works.</h2>
+    <button
+      type="button"
+      class="nav-close"
+      data-nav-close
+      aria-label="Close menu"
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none" stroke-width="1.6" stroke-linecap="round">
+        <line x1="6" y1="6" x2="18" y2="18" />
+        <line x1="18" y1="6" x2="6" y2="18" />
+      </svg>
+    </button>
+  </div>
+
+  <nav class="nav-drawer-list" aria-label="Site sections">
+    <ul>
+      {sections.map(s => (
+        <li><a href={s.href}>{s.label}</a></li>
+      ))}
+    </ul>
+  </nav>
+
+  <div class="nav-drawer-foot">
+    <p class="nav-meta">15610 S Joliet Rd · Plainfield, IL</p>
+  </div>
+</aside>
+
+<style>
+  /* ---------- hamburger toggle ---------- */
+  .nav-toggle {
+    position: fixed;
+    z-index: 40;
+    top: calc(16px + var(--safe-top));
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(14, 10, 31, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: var(--radius-button);
+    transition: background-color 150ms ease-out;
+  }
+  .nav-toggle:hover { background: rgba(14, 10, 31, 0.75); }
+  .nav-toggle .bar {
+    display: block;
+    width: 22px;
+    height: 1.6px;
+    background: var(--warm-white);
+    border-radius: 1px;
+  }
+
+  /* On desktop, the sticky CTA bar lives top-right too — push the hamburger left of it. */
+  @media (min-width: 1025px) {
+    .nav-toggle {
+      /* sticky CTA bar width varies with content; offset is generous */
+      right: 360px;
+      top: calc(20px + var(--safe-top));
+    }
+  }
+
+  /* ---------- backdrop + drawer ---------- */
+  .nav-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: rgba(14, 10, 31, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease-out;
+  }
+
+  .nav-drawer {
+    position: fixed;
+    z-index: 60;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: min(420px, 92vw);
+    background: var(--indigo-deep);
+    border-left: 1px solid var(--indigo-lift);
+    box-shadow: -24px 0 60px rgba(0, 0, 0, 0.5);
+    transform: translateX(100%);
+    transition: transform 250ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    padding: calc(24px + var(--safe-top)) 28px calc(24px + var(--safe-bottom));
+  }
+
+  body.nav-open .nav-backdrop {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  body.nav-open .nav-drawer {
+    transform: translateX(0);
+  }
+
+  /* ---------- drawer chrome ---------- */
+  .nav-drawer-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+  }
+  .nav-drawer-head h2 {
+    font-size: clamp(40px, 8vw, 56px);
+    line-height: 0.95;
+    color: var(--warm-white);
+  }
+  .nav-close {
+    width: 40px;
+    height: 40px;
+    color: var(--warm-mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-button);
+    transition: color 150ms ease-out, background-color 150ms ease-out;
+  }
+  .nav-close:hover {
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.06);
+  }
+
+  .nav-drawer-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+  .nav-drawer-list ul { list-style: none; }
+  .nav-drawer-list li + li { margin-top: 4px; }
+  .nav-drawer-list a {
+    display: block;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--indigo-lift);
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(28px, 5vw, 36px);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--warm-white);
+    transition: color 150ms ease-out;
+  }
+  .nav-drawer-list a:hover { color: var(--glow); }
+
+  .nav-drawer-foot {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--indigo-lift);
+  }
+  .nav-meta {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-drawer { transition: opacity 100ms ease-out; }
+    body.nav-open .nav-drawer { transform: translateX(0); }
+  }
+</style>

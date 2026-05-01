@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Twisted Pin — Mobile Hero A · Brand Font Render</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!--
+  PRODUCTION fonts (Adobe Fonts, requires kit ID — not yet wired):
+    Display: Proxima Nova Extra Condensed Black
+    UI sans: Proxima Nova (Regular / Bold / Black)
+    Body:    Yorkten Slab Regular
+
+  SUBSTITUTES rendered below (closest free equivalents — meaningfully
+  closer to production than the Anton / Inter / Roboto Slab used in
+  visual-reference.html):
+    Display → Barlow Condensed 900 (humanist condensed sans, closer to
+              Proxima's family than Anton's gothic-condensed silhouette)
+    UI sans → Montserrat (geometric humanist — widely cited closest
+              free Proxima Nova substitute)
+    Body    → Roboto Slab (no meaningfully closer free Yorkten alt)
+-->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@800;900&family=Montserrat:wght@500;600;700;800&family=Roboto+Slab:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo:        #200F53;
+    --indigo-deep:   #0E0A1F;
+    --warm-white:    #F4EFE3;
+    --glow:          #4EECC4;
+    --copper:        #D88B5C;
+
+    --display:       'Barlow Condensed', 'Proxima Nova Extra Condensed', sans-serif;
+    --ui:            'Montserrat', 'Proxima Nova', system-ui, sans-serif;
+    --body:          'Roboto Slab', 'Yorkten Slab', Georgia, serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--indigo-deep); color: var(--warm-white);
+    font-family: var(--ui);
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+
+  .page-note {
+    background: #1a1530; border-bottom: 1px solid #2a1b66;
+    padding: 14px 24px; font-size: 13px; color: #a89eb6;
+    font-family: var(--ui);
+  }
+  .page-note strong { color: var(--warm-white); }
+  .page-note code { background: #0e0a1f; padding: 2px 6px; border-radius: 3px; color: var(--warm-white); font-size: 12px; }
+
+  .stage-wrap {
+    padding: 56px 24px 24px;
+    display: flex; flex-direction: column; align-items: center; gap: 32px;
+  }
+
+  .meta-row {
+    width: 100%; max-width: 980px;
+    display: flex; flex-wrap: wrap; gap: 24px 40px;
+    font-family: var(--ui); font-size: 12px; color: #a89eb6;
+    border-bottom: 1px solid #2a1b66; padding-bottom: 18px;
+  }
+  .meta-row .k { font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--glow); display: block; margin-bottom: 4px; font-size: 10px; }
+
+  /* ======= the mobile hero device ======= */
+  .device {
+    width: 100%; max-width: 412px;
+    border-radius: 36px;
+    background: #000;
+    padding: 10px;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.06) inset,
+      0 30px 60px rgba(0,0,0,0.55),
+      0 0 0 1px #1a1530;
+  }
+  .stage {
+    position: relative; aspect-ratio: 9/16;
+    background: #000; overflow: hidden; border-radius: 28px;
+  }
+  .stage img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    /* small composition nudge — old fashioned sits centre-right */
+    object-position: 55% 45%;
+  }
+  .stage .scrim {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(180deg,
+        rgba(14,10,31,0.55) 0%,
+        rgba(14,10,31,0.05) 22%,
+        rgba(14,10,31,0.05) 50%,
+        rgba(14,10,31,0.92) 95%,
+        rgba(14,10,31,1) 100%);
+  }
+  .stage .top {
+    position: absolute; left: 22px; right: 22px; top: 22px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--warm-white);
+  }
+  .stage .top .brand {
+    font-family: var(--display); font-weight: 900;
+    font-size: 18px; line-height: 1; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .stage .top .nav {
+    font-family: var(--ui); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .stage .copy {
+    position: absolute; left: 22px; right: 22px; bottom: 26px;
+    color: var(--warm-white);
+  }
+  .stage .copy .e {
+    font-family: var(--ui); font-weight: 700;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--glow);
+    display: block; margin-bottom: 14px;
+  }
+  .stage .copy h1 {
+    font-family: var(--display); font-weight: 900;
+    font-size: 64px; line-height: 0.9;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .stage .copy .sub {
+    font-family: var(--body); font-weight: 400;
+    font-size: 15px; line-height: 1.45;
+    color: #ece6d6; max-width: 22em; margin-bottom: 22px;
+  }
+  .stage .copy .sub b { font-weight: 500; color: var(--warm-white); }
+  .stage .copy .cta {
+    display: inline-block; padding: 14px 22px;
+    background: var(--glow); color: var(--indigo-deep);
+    font-family: var(--ui); font-weight: 700;
+    text-transform: uppercase; font-size: 12px; letter-spacing: 0.16em;
+    text-decoration: none; border-radius: 2px;
+  }
+
+  /* ======= side specimens (pull display + body out of context for evaluation) ======= */
+  .side-by-side {
+    width: 100%; max-width: 980px;
+    display: grid; grid-template-columns: 1fr;
+    gap: 24px;
+    margin-top: 16px;
+  }
+  @media (min-width: 760px) {
+    .side-by-side { grid-template-columns: 1fr 1fr; }
+  }
+  .specimen {
+    background: var(--indigo);
+    border: 1px solid #2a1b66; border-radius: 4px;
+    padding: 28px 24px;
+  }
+  .specimen .meta {
+    font-family: var(--ui); font-weight: 700;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--glow); margin-bottom: 14px;
+  }
+  .specimen .meta span { color: #a89eb6; font-weight: 500; letter-spacing: 0; text-transform: none; margin-left: 10px; }
+
+  .display-h1 {
+    font-family: var(--display); font-weight: 900;
+    font-size: clamp(56px, 11vw, 96px); line-height: 0.9;
+    letter-spacing: 0.005em; text-transform: uppercase;
+    color: var(--warm-white);
+  }
+  .body-slab {
+    font-family: var(--body); font-weight: 400;
+    font-size: 17px; line-height: 1.55;
+    color: #d8d2c4; max-width: 28em;
+  }
+  .ui-eyebrow {
+    font-family: var(--ui); font-weight: 700;
+    font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--glow);
+  }
+
+  .footnote {
+    margin: 32px auto 0; padding: 0 24px; max-width: 980px;
+    font-family: var(--ui); font-size: 13px; color: #8a8197; line-height: 1.55;
+  }
+  .footnote strong { color: var(--warm-white); }
+  .footnote code { background: #1a1530; padding: 2px 6px; border-radius: 3px; color: var(--warm-white); }
+  .footnote ul { margin: 8px 0 0 18px; }
+  .footnote li { margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="page-note">
+  <strong>Mobile Hero A · brand-font render.</strong>
+  Production fonts (Proxima Nova Extra Condensed Black + Proxima Nova + Yorkten Slab) live on Adobe Fonts and need a kit ID to embed. Rendered below with the closest free substitutes — <code>Barlow Condensed 900</code> for display, <code>Montserrat</code> for UI, <code>Roboto Slab</code> for body — meaningfully closer to production than the <code>Anton</code> set in <code>visual-reference.html</code>. Production swap is one stylesheet line.
+</div>
+
+<div class="stage-wrap">
+
+  <div class="meta-row">
+    <div><span class="k">Composition</span> Mobile A · cocktail · "the bar that bowls"</div>
+    <div><span class="k">Photo</span> AIV01592.jpg</div>
+    <div><span class="k">Aspect</span> 9:16 · 412pt frame</div>
+    <div><span class="k">Type stack</span> Display 900 · UI 700 · Body 400</div>
+  </div>
+
+  <div class="device">
+    <div class="stage">
+      <img src="../Context/pictures/AIV01592.jpg" alt="Cherry-garnished old fashioned with bokeh background" />
+      <div class="scrim"></div>
+
+      <div class="top">
+        <span class="brand">Twisted Pin</span>
+        <span class="nav">Menu</span>
+      </div>
+
+      <div class="copy">
+        <span class="e">Plainfield, IL</span>
+        <h1>The bar<br/>that bowls.</h1>
+        <p class="sub">A <b>Brian Van Flandern</b> cocktail program — Michelin three-star, Per&nbsp;Se. The lanes are the bonus.</p>
+        <a href="#" class="cta">Reserve a lane</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="side-by-side">
+    <div class="specimen">
+      <p class="meta">Display H1 <span>· Barlow Condensed 900 · ~96px</span></p>
+      <div class="display-h1">The bar<br/>that bowls.</div>
+    </div>
+    <div class="specimen" style="display: flex; flex-direction: column; gap: 18px; justify-content: space-between;">
+      <div>
+        <p class="meta">Eyebrow <span>· Montserrat 700 · 12px · 0.22em tracking</span></p>
+        <p class="ui-eyebrow">Plainfield, IL · Cocktails · 28 Taps</p>
+      </div>
+      <div>
+        <p class="meta">Body slab <span>· Roboto Slab 400 · 17px / 1.55</span></p>
+        <p class="body-slab">A craft cocktail program built by Brian Van Flandern — Michelin three-star mixologist, former head mixologist at Thomas Keller's Per Se. The bowling is here. It's not the headline.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<p class="footnote">
+  <strong>What's different from <code>visual-reference.html</code> Mobile A.</strong>
+  <ul>
+    <li>Display swapped from <code>Anton</code> (gothic, single-weight, Bebas-family) to <code>Barlow Condensed 900</code> — humanist condensed, closer Proxima silhouette. Counters are squarer, terminals less aggressive, weight reads slightly heavier at the same px.</li>
+    <li>UI swapped from <code>Inter</code> (neo-grotesque, screen-optimised) to <code>Montserrat</code> (geometric humanist) — closer Proxima Nova proportion, especially on the eyebrow tracking.</li>
+    <li>Body kept on <code>Roboto Slab</code> — no meaningfully closer free Yorkten alt. Production swap is the obvious lift.</li>
+    <li>Added a phone-frame shell and small top-row chrome (brand mark + Menu) so it reads as a screen instead of a swatch — closer to how the hero will actually feel in the first viewport.</li>
+  </ul>
+  <strong>What to react to.</strong> Display personality (does Barlow Black at 64px in the hero feel like signage the way you want, or too narrow / too wide?). The eyebrow tracking on Montserrat. Whether <em>"The bar that bowls."</em> at this size + this face still lands as confident-not-shouty. The headline-to-subhead size ratio (64 / 15) — currently aggressive, can dial down.
+  <br/><br/>
+  <strong>Production swap.</strong> Replace the <code>&lt;link&gt;</code> tag with the Adobe Fonts kit URL and change three CSS variables (<code>--display</code>, <code>--ui</code>, <code>--body</code>). Nothing else needs to move.
+</p>
+
+</body>
+</html>

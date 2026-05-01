@@ -1,0 +1,234 @@
+# Twisted Pin — Brand & Voice
+
+A reference for web design copy, headlines, CTAs, and any customer-facing language.
+
+---
+
+## Who We Are (in one line)
+
+The premier all-in-one entertainment destination for adults — luxury bowling, craft cocktails, gourmet food, state-of-the-art arcade, and a 28-tap self-serve beer & wine wall. Not your average bowling alley.
+
+## Brand Archetype: The Outlaw
+
+We challenge the status quo of what a bowling and entertainment venue is supposed to be. Family-friendly, greasy food, dated decor — that's the old game. We rewrote it for adults who expect more.
+
+Tagline guiding principle: **"Built for adults, kids will come."**
+
+---
+
+## Voice & Tone
+
+**Confident. Sophisticatedly playful. Slightly edgy.**
+
+Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish rebel inviting you to a better night out. We are premium without being stuffy, fun without being childish, and edgy without being aggressive.
+
+### Tone Sliders
+
+| Dial up | Dial down |
+|---|---|
+| Confident | Apologetic / hedging |
+| Playful | Stiff / corporate |
+| Edgy | Crude / vulgar |
+| Sophisticated | Pretentious / snobby |
+| Inviting | Exclusionary |
+| Direct | Wordy / hype-y |
+
+### How it should feel
+- Like being invited into a sharper, more grown-up version of a night you already know.
+- Like a confident friend who knows the spot and isn't going to oversell it.
+- Like an escape from the ordinary — never the ordinary itself.
+
+---
+
+## Words to Use
+
+### Core vocabulary
+- Elevated, premium, luxurious, upscale, sophisticated
+- Crafted, curated, signature, gourmet, chef-inspired, artisanal
+- Vibrant, spirited, lively, dynamic
+- Unforgettable, unrivaled, unparalleled, ultimate
+- Escape, break, unleash, redefine, reimagine, disrupt
+- Adults, grown-up, social hub, destination
+- VIP, exclusive, private
+
+### Action verbs (good for CTAs and headlines)
+- Unleash, Elevate, Discover, Reserve, Claim, Conquer, Tap into
+- Plan, Book, Secure, Experience, Indulge, Savor
+- Break free, Break the routine, Score, Twist
+
+### Phrases that capture the brand
+- "Eat. Play. Unwind."
+- "Game. Bowl. Eat. Drink."
+- "Playtime, elevated."
+- "A new spin on a night out."
+- "Get a little twisted."
+- "Break free from the ordinary."
+- "This isn't your parents' bowling alley."
+- "Built for adults."
+
+---
+
+## Words to Avoid
+
+### Generic / flat
+- "Fun for the whole family" (we lead adults-first)
+- "Affordable", "cheap", "budget-friendly", "value", "deals", "cheap eats"
+- "Bowling alley" as the primary descriptor — we are an entertainment destination
+- "Just" (as in "just bowling", "just come here") — undersells everything
+- "Ultimate dining destination" (misleading — we are way more than dining)
+
+### Off-brand emotional register
+- Saccharine: "magical", "memories you'll cherish forever", "wholesome"
+- Corporate-stiff: "leverage", "synergy", "solutions", "best-in-class"
+- Try-hard hype: "INSANE", "EPIC" (in all caps), "you won't BELIEVE", excessive exclamation points
+- Crude or aggressive: anything that crosses from edgy into rude or alienating
+
+### Phrases to retire
+- "Your Ultimate Dining Destination" (current site headline — undersells the bowling, arcade, VIP)
+- "Just COME HERE" (weak, unprofessional CTA)
+- Anything that reads as a typical greasy bowling alley ad
+
+---
+
+## How We Talk About Ourselves
+
+### Lead with the differentiators, not the category
+- ✅ "Luxury bowling, craft cocktails, and a 28-tap self-serve wall."
+- ❌ "A bowling alley with a bar."
+
+### Name the specifics — they do the heavy lifting
+- **17 traditional lanes + a 6-lane VIP suite** (canonical phrasing — traditional first, VIP as the upgrade. Use this exact construction)
+- 6-lane VIP suite (only one in the immediate area)
+- 28-tap self-serve beer & wine wall (only one in the immediate area)
+- State-of-the-art arcade
+- Cocktail program — see "Cocktail Credibility" below for credential framing
+- Chef-inspired food
+
+---
+
+## Cocktail Credibility — Brian Van Flandern
+
+Our bar program was set up by **Brian Van Flandern** as a consultant, and he's back to retrain the team this summer (2026). He's not staff, not an owner, not a daily presence. The relationship is real and ownable — almost no entertainment venue in the country has it — but the framing matters: he's an external authority who designed the program, not part of the house.
+
+### Who he is (in a sentence)
+Brian Van Flandern is named *"America's Top Mixologist"* by Food Network, with cocktails served in 40+ countries.
+
+### The credential we lead with — and what we retired
+**Lead credential (website primary positioning):** *America's Top Mixologist* (Food Network). That's how he positions himself on his own site (mymixologist.com), it has broader recognition with the target audience than fine-dining names, and it reads as a clear external credential — which reduces any implication that he's on staff or owns the bar.
+
+**Retired for the website:** the Per Se / Thomas Keller / Michelin three-star framing. Reasons:
+1. It borrows more prestige than the consulting relationship warrants.
+2. It pulls the brand toward *fine-dining-with-bowling*, which is not the locked thesis (the thesis is *bar-program-led entertainment venue*).
+3. The Food Network credential does the same conversion job with less risk.
+
+The Per Se anchor may still appear in long-form `/craft-bar/` body copy where there's room to give backstory and the framing can be set carefully. It does not appear in primary positioning, headlines, hero subheads, or short-form anywhere.
+
+### How to use the name in copy
+Lead with the credential, not the personality. Direct, factual, slightly understated reads stronger than clever. Avoid "cute" framings (drink-as-device, wink phrasing) — they undercut the credential.
+
+When citing the Food Network credential as a self-applied label, the *"(Their words, not ours.)"* parenthetical does double duty: it disclaims the boast on our behalf, and it sources the line to him without naming him. Use sparingly — once per page max.
+
+✅ Approved homepage / craft-bar lines (primary positioning)
+- *"Built by America's Top Mixologist. (Their words, not ours.)"* — current hero subhead
+- *"A craft cocktail program designed by America's Top Mixologist."*
+- *"The bar program was built by the guy Food Network calls America's Top Mixologist."*
+- *"Cocktails this serious aren't supposed to live at bowling alleys."* — reserved for cocktail/bar section header (does not name him; carries the contradiction)
+
+✅ Long-form only (/craft-bar/ body copy)
+The full résumé — Per Se, Thomas Keller, Michelin three-star, 40+ countries — may appear in body paragraphs that have room to set the context. Never in headlines, hero copy, or any short-form slot.
+
+❌ Retired / off-brand
+- *"The mixologist behind Thomas Keller's Per Se built our bar."* (Per Se framing retired for primary positioning — pulls toward fine-dining, overstates the relationship)
+- *"Cocktails by Brian Van Flandern — Michelin three-star mixologist, Per Se."* (same)
+- *"Your old fashioned, by way of Per Se."* (drink-as-device wink + Per Se framing — both retired)
+- *"The famous Brian Van Flandern!"* (undersells the credential, reads as celebrity-chef gimmick)
+
+❌ Avoid
+- Name-dropping him in non-cocktail copy
+- Implying he's staff, on-site daily, an owner, or part of the house
+- Burying the credential — the credential does the heavy lifting, not the name
+
+### Where he belongs
+- **Homepage** — once, in a bar/cocktail spot. Hero subhead carries the credential ("America's Top Mixologist") in the locked line; he's not named in the hero itself.
+- **/craft-bar/** — anchor credential of the page. Long-form context here can include the full résumé.
+- **/vip-suite/** — mention as part of *"the bar program in the VIP suite is the same one designed by…"*
+- **Cocktail menu / drink descriptions** — sparingly; let the menu itself carry the design
+- **Press / about** — the long version
+
+### Where he does *not* belong
+- Bowling, arcade, food, events copy (unless it's a cocktail-tasting event specifically)
+- Service-area pages (unless the angle is specifically the cocktail bar)
+- Generic taglines
+
+### Adults-first, group-friendly, family-welcome (in that order)
+We're built for the adult who's tired of bad food at entertainment venues. Families and corporate groups come because the adults are happy.
+
+---
+
+## Audience We're Writing For
+
+**The Experience-Seeking Socializer** — 28–45, $100k+ household income, urban/affluent suburban. They are the planner of the group. They've done dinner-and-a-movie too many times. They research on Google and Instagram, book in advance, and pay for quality.
+
+What they want to hear:
+- This solves the "where do we go that everyone will like?" problem
+- The food and drinks are actually good
+- It's premium, but not stuffy or intimidating
+- Booking is easy
+
+What turns them off:
+- Anything that screams kids' birthday party
+- Cheap-looking deals and discount-driven copy
+- Generic "fun for everyone" language that says nothing
+
+---
+
+## CTAs — Style Guide
+
+**Strong CTAs for us:**
+- Reserve a Lane / Reserve Your Night
+- Plan an Event / Plan Your Escape
+- Book Your Experience
+- Inquire About Events
+- Tap Into the Night
+
+**CTAs to avoid:**
+- "Click here", "Learn more" (lazy)
+- "Just come in", "Stop by sometime" (weak)
+- Anything begging or apologetic
+
+Pair a CTA with a benefit or hook when possible: *"Reserve the VIP suite — only one in the area."*
+
+---
+
+## Locked Lines (Approved)
+
+These have been approved for use in their specified slots. Use as-written.
+
+| Slot | Line |
+|---|---|
+| Hero eyebrow (homepage) | *PLAINFIELD, IL* |
+| Hero headline (homepage, two lines) | *Built for adults.* / *Fine, bring the kids.* |
+| Hero subhead (homepage) | *Built by America's Top Mixologist. (Their words, not ours.)* |
+| Hero CTA (primary) | *Reserve a lane* |
+| Cocktail/bar section header (reserved) | *Cocktails this serious aren't supposed to live at bowling alleys.* |
+| Closing band (homepage, before footer) | *You can keep doing dinner-and-a-movie. Or you can do this.* |
+
+The closing-band line carries the spiciest attitude on the site — confident, slightly dry, indicts the alternative without punching down. Don't dilute it. The hero headline carries the second spiciest — *"Fine, bring the kids."* is the concessive punchline; never water down the second line.
+
+The reserved cocktail/bar section header is held for the cocktail/bar block further down the homepage — not the hero. Don't pre-spend it elsewhere.
+
+### Deprecated copy (do not use)
+- *"The bar that bowls."* — retired. Reads as a tagline competing with the headline; not in use.
+- *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
+
+For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.
+
+---
+
+## Quick Copy Test
+
+Before publishing any line, ask:
+1. Would the Experience-Seeking Socializer read this and think *yes, that's for me*?
+2. Does it sound confident — not desperate, not corporate, not childish?
+3. Does it lead with what makes us different (premium, adult-first, all-in-one) — not the generic category?
+4. Could a Main Event or Lucky Strike write the exact same line? If yes, rewrite it.

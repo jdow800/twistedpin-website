@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Twisted Pin — Scribble Art Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&family=Roboto+Slab:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --indigo: #200F53;
+    --indigo-deep: #0E0A1F;
+    --indigo-lift: #2A1B66;
+    --warm-white: #F4EFE3;
+    --glow: #4EECC4;
+    --copper: #D88B5C;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--indigo-deep); color: var(--warm-white); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { padding: 0 0 80px; }
+
+  .page-note {
+    background: #1a1530; border-bottom: 1px solid #2a1b66;
+    padding: 14px 24px; font-size: 13px; color: #a89eb6;
+    font-family: 'Inter', sans-serif;
+  }
+  .page-note strong { color: var(--warm-white); }
+
+  .label {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--glow); padding: 0 24px; margin-top: 56px;
+  }
+
+  /* ============== USE 1 — section divider ============== */
+  .section { padding: 80px 24px; }
+  .section h2 {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(38px, 8vw, 72px); line-height: 0.95;
+    letter-spacing: -0.005em; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .section .body {
+    font-family: 'Roboto Slab', serif; font-size: 17px; line-height: 1.6;
+    max-width: 38em; color: #d8d2c4;
+  }
+
+  /* divider in use */
+  .divider {
+    margin: 64px 0 64px;
+    display: flex; align-items: center; gap: 20px;
+    color: var(--copper);
+  }
+  .divider .line { height: 1px; background: #3a2a78; flex: 1; }
+  .divider svg { width: 92px; height: 36px; flex-shrink: 0; }
+
+  /* ============== USE 2 — watermark / background ============== */
+  .watermark-section {
+    position: relative; overflow: hidden;
+    padding: 120px 24px;
+    background: var(--indigo);
+  }
+  .watermark-section .watermark {
+    position: absolute; top: -40px; right: -80px;
+    width: 720px; height: 480px;
+    color: #2e1d6e; /* very subtle — just lifted from the indigo */
+    pointer-events: none;
+    opacity: 1;
+  }
+  .watermark-section .content {
+    position: relative; z-index: 1; max-width: 760px;
+  }
+  .watermark-section .eyebrow {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--glow); margin-bottom: 18px;
+  }
+  .watermark-section h3 {
+    font-family: 'Anton', sans-serif; font-weight: 400;
+    font-size: clamp(34px, 7vw, 64px); line-height: 0.95;
+    letter-spacing: -0.005em; text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .watermark-section .body { font-family: 'Roboto Slab', serif; font-size: 17px; line-height: 1.6; color: #d8d2c4; max-width: 36em; }
+
+  .cta {
+    display: inline-block; margin-top: 32px;
+    font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: 0.12em;
+    text-transform: uppercase; font-size: 13px;
+    color: var(--indigo-deep); background: var(--glow);
+    padding: 16px 28px; text-decoration: none;
+    border-radius: 2px;
+  }
+
+  .footnote {
+    margin-top: 80px; padding: 0 24px;
+    font-family: 'Inter', sans-serif; font-size: 13px; color: #8a8197; max-width: 60em;
+  }
+  .footnote code { background: #1a1530; padding: 2px 6px; border-radius: 3px; color: var(--warm-white); }
+</style>
+</head>
+<body>
+
+<div class="page-note">
+  <strong>Mockup — scribble art treatment.</strong> Two proposed uses on a placeholder page so you can react to the direction before we bake it in. The SVG below is a quick approximation of the venue's hand-drawn scribble (the looped script-like line painted on the lane walls and bar wall) — the production version would be traced from a high-res photo of the actual wall art.
+</div>
+
+<div class="label">Use 1 — Section divider</div>
+<section class="section">
+  <h2>Cocktails first.<br/>Lanes second.</h2>
+  <p class="body">A craft cocktail program built by Brian Van Flandern — Michelin three-star mixologist, former head mixologist at Thomas Keller's Per Se. The bowling is here. It's not the headline.</p>
+
+  <div class="divider" aria-hidden="true">
+    <span class="line"></span>
+    <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 50 C 25 20, 50 20, 60 45 C 70 70, 95 65, 100 40 C 105 15, 130 12, 140 38 C 148 60, 168 62, 178 42 C 184 30, 175 20, 165 25 C 152 32, 158 50, 175 52 C 188 53, 195 42, 192 32" />
+      <circle cx="192" cy="32" r="2.5" fill="currentColor" />
+    </svg>
+    <span class="line"></span>
+  </div>
+
+  <h2>The 28-tap wall.</h2>
+  <p class="body">Self-serve beer and wine. Pay by the ounce. The only one in the immediate area. Beer helps.</p>
+</section>
+
+<div class="label">Use 2 — Watermark / background</div>
+<section class="watermark-section">
+  <svg class="watermark" viewBox="0 0 720 480" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M40 240
+             C 80 120, 200 100, 240 220
+             C 280 340, 420 340, 460 220
+             C 500 100, 640 100, 680 240
+             C 700 320, 600 360, 540 320
+             C 480 280, 520 200, 600 220
+             C 660 235, 660 290, 600 295
+             C 520 302, 470 240, 510 180
+             C 540 135, 620 135, 640 180" />
+    <path d="M120 320
+             C 180 380, 280 380, 340 320
+             C 400 260, 320 200, 260 240
+             C 200 280, 240 350, 320 340" opacity="0.6"/>
+    <circle cx="640" cy="180" r="6" fill="currentColor" />
+  </svg>
+
+  <div class="content">
+    <p class="eyebrow">VIP Suite · Up to 80 Guests</p>
+    <h3>The room behind the room.</h3>
+    <p class="body">Six private lanes. A dedicated bar pour. A giant LED wall. Booth seating. The only six-lane VIP suite in the immediate area — and the easiest "yes" you'll get from your team.</p>
+    <a href="#" class="cta">Reserve the suite</a>
+  </div>
+</section>
+
+<p class="footnote">
+  <strong>What you're looking at.</strong> Use 1 places the scribble between two thin divider lines as a small section transition — works as a recurring pattern down the page. Use 2 places a much larger version as a near-tonal background watermark behind a content block, so it reads as wall art (the way it appears in the actual venue) rather than as graphic ornament.
+  <br/><br/>
+  <strong>Production caveats.</strong> The SVG path is a sketch — the real venue scribble has more rhythm and we'd trace it from <code>Context/pictures/DSC_0203.jpg</code> or <code>20240129_154237.jpg</code>. Color treatments shown here use copper for the divider (matches the BEER HELPS signage) and a near-tonal lifted indigo for the watermark (subtle enough to read as architecture, not decoration).
+  <br/><br/>
+  <strong>Decision.</strong> If the direction reads — we trace the actual scribble and use it broadly (dividers between sections, watermark behind one or two key content blocks, possibly a small inline mark next to "Twisted Pin" in headings). If it doesn't — we walk back to a simpler design language (thin copper rule lines as dividers, no watermark).
+</p>
+
+</body>
+</html>

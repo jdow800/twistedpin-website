@@ -1,0 +1,58 @@
+---
+import "../styles/global.css";
+import StickyCTABar from "../components/StickyCTABar.astro";
+import NavDrawer from "../components/NavDrawer.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Hide the global sticky CTA bar (e.g. on the booking flow). */
+  hideStickyCTA?: boolean;
+}
+
+const {
+  title = "Twisted Pin — Plainfield, IL",
+  description = "Cocktails, 28 self-serve taps, and a 6-lane VIP suite. Built for adults. Plainfield, IL.",
+  hideStickyCTA = false,
+} = Astro.props;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0E0A1F" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+
+    {/* Hero LCP preloads — poster image is the LCP element, not the video. */}
+    <link
+      rel="preload"
+      as="image"
+      href="/hero/hero-poster.webp"
+      type="image/webp"
+      fetchpriority="high"
+      media="(max-width: 1024px)"
+    />
+    <link
+      rel="preload"
+      as="image"
+      href="/hero/hero-desktop-1280.webp"
+      type="image/webp"
+      fetchpriority="high"
+      media="(min-width: 1025px)"
+    />
+  </head>
+  <body>
+    <slot />
+    <NavDrawer />
+    {!hideStickyCTA && <StickyCTABar />}
+
+    <script>
+      import { initMotion } from "../scripts/motion.client.ts";
+      initMotion();
+    </script>
+  </body>
+</html>
