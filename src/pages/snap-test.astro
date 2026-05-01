@@ -10,7 +10,9 @@
  *   their content height (or 100dvh if the section says so). Pure POC of mobile
  *   gesture, not desktop.
  *
- * StickyCTABar hidden on this route (the sections are the conversion surface).
+ * StickyCTABar is ON for this route — sits over the bottom of every snapped
+ *   section (position:fixed). Sections include extra bottom padding so the
+ *   bar doesn't crash into call-to-action content (form button, link).
  *
  * NOT linked from anywhere. Standalone proof-of-concept.
  */
@@ -20,14 +22,34 @@ import Hero from "../components/Hero.astro";
 <Base
   title="Snap-scroll POC — Twisted Pin"
   description="Internal POC. Three full-screen sections with mobile scroll-snap."
-  hideStickyCTA={true}
 >
   <main class="snap">
     {/* Section 1 — existing hero, reused as-is. */}
     <Hero />
 
-    {/* Section 2 — coupon signup. Dark indigo, single phone field. */}
+    {/* Section 2 — coupon signup. Bar liquor-wall photo backdrop + dark scrim. */}
     <section class="snap-section section-coupon" aria-labelledby="coupon-h1">
+      {/* Backdrop image — loading="lazy" defers fetch until near viewport.
+          Source: Bar - liquor wall.jpg via scripts/build-snap-images.mjs. */}
+      <picture class="coupon-bg" aria-hidden="true">
+        <source
+          type="image/webp"
+          srcset="/snap/coupon-bg-540.webp 540w, /snap/coupon-bg-1080.webp 1080w, /snap/coupon-bg-1280.webp 1280w"
+          sizes="100vw"
+        />
+        <img
+          src="/snap/coupon-bg-1080.jpg"
+          srcset="/snap/coupon-bg-540.jpg 540w, /snap/coupon-bg-1080.jpg 1080w, /snap/coupon-bg-1280.jpg 1280w"
+          sizes="100vw"
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="1080"
+          height="1350"
+        />
+      </picture>
+      <div class="coupon-scrim" aria-hidden="true"></div>
+
       <div class="section-inner">
         <p class="t-eyebrow eyebrow">Text club</p>
         <h1 class="t-display coupon-h1" id="coupon-h1">$10&nbsp;off your first&nbsp;visit</h1>
@@ -62,12 +84,26 @@ import Hero from "../components/Hero.astro";
       </div>
     </section>
 
-    {/* Section 3 — 28 taps. POC placeholder backdrop (CSS gradient + texture).
-        Real tap-wall photo/video lives in Context/pictures or Context/videos,
-        which are gitignored — swap in the source media once available. */}
-    <section class="snap-section section-tapwall" aria-labelledby="tapwall-h1">
-      <div class="tapwall-backdrop" aria-hidden="true"></div>
+    {/* Section 3 — 28 taps, real beer-wall video.
+        Lazy: <video preload="none">; IntersectionObserver below calls .load()
+        when section 3 enters the rootMargin window, then .play() on full
+        intersect. Poster shows during the buffer window. */}
+    <section class="snap-section section-tapwall" data-tapwall-section aria-labelledby="tapwall-h1">
+      <video
+        class="tapwall-video"
+        data-tapwall-video
+        preload="none"
+        muted
+        loop
+        playsinline
+        poster="/snap/beerwall-poster.webp"
+        aria-hidden="true"
+      >
+        <source data-src="/snap/beerwall-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
+      </video>
       <div class="tapwall-scrim" aria-hidden="true"></div>
+
       <div class="section-inner">
         <p class="t-eyebrow eyebrow">The wall</p>
         <h1 class="t-display tapwall-h1" id="tapwall-h1">28&nbsp;taps. Pour your&nbsp;own.</h1>
@@ -81,10 +117,7 @@ import Hero from "../components/Hero.astro";
 </Base>
 
 <script>
-  /* Coupon form — POC only. No network call.
-     Validates a minimal phone shape, swaps form for success state.
-     iOS keyboard summon while this is the snapped section is the
-     interesting behavior to observe — see report. */
+  /* ---------- Coupon form (POC, no network) ---------- */
   const form = document.querySelector<HTMLFormElement>("[data-coupon-form]");
   const success = document.querySelector<HTMLElement>("[data-coupon-success]");
   const disclaimer = document.querySelector<HTMLElement>("#coupon-disclaimer");
@@ -94,7 +127,6 @@ import Hero from "../components/Hero.astro";
     const input = form.querySelector<HTMLInputElement>("#coupon-phone");
     if (!input) return;
 
-    // Minimal validation — must contain at least 10 digits.
     const digits = (input.value.match(/\d/g) ?? []).length;
     if (digits < 10) {
       input.setCustomValidity("Enter a 10-digit phone number.");
@@ -103,46 +135,109 @@ import Hero from "../components/Hero.astro";
       return;
     }
 
-    // Drop focus before swapping — keeps iOS keyboard from re-summoning.
     input.blur();
     form.hidden = true;
     if (disclaimer) disclaimer.hidden = true;
     if (success) success.hidden = false;
   });
+
+  /* ---------- Beer-wall video lazy load ----------
+     Pattern: <source data-src="…">. We don't promote to `src` until
+     IntersectionObserver fires. That keeps every byte off the wire on first
+     paint — the section's poster is the only image fetched (lazy itself).
+     Once promoted: video.load() materializes the element, then .play() once
+     the section is fully visible. Reduced-motion users get the poster only,
+     no autoplay. */
+  const tapwallSection = document.querySelector<HTMLElement>("[data-tapwall-section]");
+  const tapwallVideo = document.querySelector<HTMLVideoElement>("[data-tapwall-video]");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (tapwallSection && tapwallVideo && !reducedMotion) {
+    let promoted = false;
+    const promoteSources = () => {
+      if (promoted) return;
+      promoted = true;
+      tapwallVideo.querySelectorAll<HTMLSourceElement>("source[data-src]").forEach((s) => {
+        const src = s.getAttribute("data-src");
+        if (src) s.setAttribute("src", src);
+      });
+      tapwallVideo.load();
+    };
+
+    const tryPlay = () => {
+      promoteSources();
+      tapwallVideo.play().catch(() => { /* autoplay blocked; poster stays */ });
+    };
+
+    if ("IntersectionObserver" in window) {
+      // Stage 1: promote sources when the section is within ~1 viewport.
+      const preloadObs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) {
+              promoteSources();
+              preloadObs.disconnect();
+            }
+          }
+        },
+        { rootMargin: "100% 0px 100% 0px", threshold: 0.01 },
+      );
+      preloadObs.observe(tapwallSection);
+
+      // Stage 2: autoplay when fully in view, pause when it leaves.
+      const playObs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) tryPlay();
+            else tapwallVideo.pause();
+          }
+        },
+        { threshold: 0.6 },
+      );
+      playObs.observe(tapwallSection);
+    }
+
+    // Fallback: scroll listener on the snap container. Belt + suspenders for
+    // browsers (or environments) where IO doesn't fire reliably on
+    // sub-scroller intersection. Cheap — only inspects rect, no work per tick.
+    const snapEl = document.querySelector<HTMLElement>(".snap");
+    if (snapEl) {
+      const onScroll = () => {
+        const rect = tapwallSection.getBoundingClientRect();
+        const vh = window.innerHeight;
+        // within 1 viewport of being visible -> promote
+        if (rect.top < vh * 2 && rect.bottom > -vh) promoteSources();
+        // mostly-visible -> play
+        if (rect.top < vh * 0.4 && rect.bottom > vh * 0.6) tryPlay();
+      };
+      snapEl.addEventListener("scroll", onScroll, { passive: true });
+      // First tick in case the page loads already scrolled to section 3.
+      onScroll();
+    }
+  }
 </script>
 
 <style>
-  /* ---------- snap container ----------
-     Mobile-only: the <main> is the scroll container.
-     Desktop: drop snap entirely; main flows normally inside body scroll. */
+  /* ---------- snap container ---------- */
   .snap {
-    /* Default (desktop) is normal block layout. */
+    /* desktop default: normal block layout */
   }
 
   @media (max-width: 1024px) {
-    /* Mobile: take over the viewport as the snap scroller. */
     .snap {
       height: 100dvh;
-      /* Fallback for browsers without dvh (Safari < 15.4). 100vh is too tall
-         under the iOS address bar but better than nothing. */
       height: 100vh;
       height: 100dvh;
       overflow-y: scroll;
       overflow-x: hidden;
       scroll-snap-type: y mandatory;
-      /* Smoothing for iOS momentum scroll. */
       -webkit-overflow-scrolling: touch;
-      /* Don't let the browser try to restore a non-snapped scroll position. */
       overscroll-behavior-y: contain;
     }
-
-    /* Every direct child becomes a snap stop.
-       Hero is `<section class="hero">` — target it via direct child selector
-       so we don't have to add a class to it. `:global` is required because
-       Astro scopes `.hero` to the Hero component; without it, the selector
-       misses the hero and section 1 has snap-align:none, which causes the
-       browser to land on section 2 on first paint (mandatory snap aligns
-       to the nearest valid snap target). */
+    /* :global(.hero) needed because Astro scopes the .hero class to the Hero
+       component — without it, section 1 has snap-align:none and the browser
+       lands on section 2 on first paint (mandatory snap aligns to the
+       nearest valid snap target). */
     .snap > :global(.hero),
     .snap > .snap-section {
       scroll-snap-align: start;
@@ -155,12 +250,18 @@ import Hero from "../components/Hero.astro";
     position: relative;
     width: 100%;
     min-height: 100dvh;
-    /* Belt + suspenders for older WebKit. */
     min-height: 100vh;
     min-height: 100dvh;
     display: flex;
     align-items: center;
     overflow: hidden;
+    /* Reserve breathing room at the bottom so the sticky CTA bar doesn't
+       crash into the form button / Learn-more link. --bar-pad already
+       accounts for var(--bar-height) + safe-area inset. */
+    padding-bottom: calc(var(--bar-pad) + 32px);
+  }
+  @media (min-width: 1025px) {
+    .snap-section { padding-bottom: 0; }
   }
 
   .section-inner {
@@ -177,16 +278,34 @@ import Hero from "../components/Hero.astro";
     .section-inner { padding: 0 64px; max-width: 880px; margin: 0; }
   }
 
-  .eyebrow {
-    margin-bottom: 18px;
+  .eyebrow { margin-bottom: 18px; }
+
+  /* ---------- section 2 — coupon, with bar-photo backdrop ---------- */
+  .section-coupon { background: #100912; }
+
+  .coupon-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .coupon-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
 
-  /* ---------- section 2 — coupon ---------- */
-  .section-coupon {
+  .coupon-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     background:
-      radial-gradient(120% 80% at 20% 10%, rgba(42, 27, 102, 0.55), transparent 60%),
-      radial-gradient(120% 80% at 90% 95%, rgba(216, 139, 92, 0.18), transparent 55%),
-      var(--indigo-deep);
+      linear-gradient(180deg,
+        rgba(14, 10, 31, 0.55) 0%,
+        rgba(14, 10, 31, 0.28) 30%,
+        rgba(14, 10, 31, 0.55) 60%,
+        rgba(14, 10, 31, 0.92) 100%);
   }
 
   .coupon-h1 {
@@ -195,6 +314,7 @@ import Hero from "../components/Hero.astro";
     letter-spacing: -0.015em;
     line-height: 0.92;
     margin-bottom: 14px;
+    text-shadow: 0 2px 12px rgba(14, 10, 31, 0.45);
   }
   @media (min-width: 1025px) {
     .coupon-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
@@ -228,16 +348,18 @@ import Hero from "../components/Hero.astro";
     font-size: 16px; /* 16px+ prevents iOS zoom-on-focus */
     letter-spacing: 0.02em;
     color: var(--warm-white);
-    background: rgba(244, 239, 227, 0.06);
-    border: 1px solid rgba(244, 239, 227, 0.18);
+    background: rgba(14, 10, 31, 0.55);
+    border: 1px solid rgba(244, 239, 227, 0.22);
     border-radius: var(--radius-button);
     outline: none;
+    backdrop-filter: blur(6px) saturate(120%);
+    -webkit-backdrop-filter: blur(6px) saturate(120%);
     transition: border-color 150ms ease-out, background-color 150ms ease-out;
   }
   .coupon-input::placeholder { color: var(--warm-dim); }
   .coupon-input:focus {
     border-color: var(--glow);
-    background: rgba(244, 239, 227, 0.10);
+    background: rgba(14, 10, 31, 0.7);
   }
   .coupon-input:invalid:not(:placeholder-shown) {
     border-color: rgba(216, 139, 92, 0.7);
@@ -260,9 +382,7 @@ import Hero from "../components/Hero.astro";
     max-width: 32em;
   }
 
-  .coupon-success {
-    max-width: 480px;
-  }
+  .coupon-success { max-width: 480px; }
   .success-h {
     color: var(--glow);
     font-size: clamp(32px, 9vw, 64px);
@@ -277,29 +397,17 @@ import Hero from "../components/Hero.astro";
     color: #ece6d6;
   }
 
-  /* ---------- section 3 — tap wall ---------- */
-  .section-tapwall {
-    background: #1a0f0a;
-  }
+  /* ---------- section 3 — beer wall video ---------- */
+  .section-tapwall { background: #0a0604; }
 
-  /* POC backdrop: copper-gradient + diagonal stripe pattern stands in for
-     the eventual tap-wall photo/video. Replace once Context/videos has the
-     real shot — section keeps the same dimensions either way. */
-  .tapwall-backdrop {
+  .tapwall-video {
     position: absolute;
     inset: 0;
     z-index: 0;
-    background:
-      radial-gradient(140% 90% at 50% 0%, rgba(216, 139, 92, 0.25), transparent 60%),
-      radial-gradient(120% 80% at 50% 100%, rgba(78, 236, 196, 0.12), transparent 55%),
-      repeating-linear-gradient(
-        100deg,
-        rgba(216, 139, 92, 0.12) 0,
-        rgba(216, 139, 92, 0.12) 2px,
-        transparent 2px,
-        transparent 28px
-      ),
-      linear-gradient(180deg, #2a1408 0%, #150704 100%);
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
   .tapwall-scrim {
     position: absolute;
@@ -307,10 +415,10 @@ import Hero from "../components/Hero.astro";
     z-index: 1;
     background:
       linear-gradient(180deg,
-        rgba(14, 10, 31, 0.55) 0%,
-        rgba(14, 10, 31, 0.10) 30%,
-        rgba(14, 10, 31, 0.10) 60%,
-        rgba(14, 10, 31, 0.85) 100%);
+        rgba(14, 10, 31, 0.45) 0%,
+        rgba(14, 10, 31, 0.10) 28%,
+        rgba(14, 10, 31, 0.10) 55%,
+        rgba(14, 10, 31, 0.92) 100%);
   }
 
   .tapwall-h1 {
@@ -319,6 +427,7 @@ import Hero from "../components/Hero.astro";
     letter-spacing: -0.015em;
     line-height: 0.92;
     margin-bottom: 14px;
+    text-shadow: 0 2px 12px rgba(14, 10, 31, 0.45);
   }
   @media (min-width: 1025px) {
     .tapwall-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
