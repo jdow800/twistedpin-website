@@ -1,0 +1,121 @@
+---
+/**
+ * SnapStub — solid Midnight Indigo placeholder snap.
+ *
+ * Used for snaps 2, 4, 5, 6, 7 in the /snap-test/ architecture (Events,
+ * Cocktails, Food, Bowl, Arcade) until those snaps get real visuals.
+ *
+ * Layout: bottom-anchored, centered text. Title in UI font (substitute for
+ * Proxima Nova Bold), subhead in body font, "Learn more →" Glow link.
+ *
+ * Sized to fit inside a 100dvh snap section that already supplies its own
+ * `.snap-section` wrapper. This component renders the inner content only.
+ */
+interface Props {
+  /** Section title — shown all-caps. e.g. "EVENTS / SUITE LIFE" */
+  title: string;
+  /** One-line stub subhead. */
+  subhead: string;
+  /** Learn-more href; "#" while routes don't exist. */
+  href?: string;
+  /** Optional aria-label override for the section. */
+  label?: string;
+}
+const { title, subhead, href = "#", label } = Astro.props;
+const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
+---
+<section
+  class="snap-section snap-stub"
+  aria-labelledby={ariaId}
+  aria-label={label}
+>
+  <div class="stub-inner">
+    <h2 class="stub-title" id={ariaId}>{title}</h2>
+    <p class="stub-sub">{subhead}</p>
+    <a class="stub-learn" href={href}>
+      Learn more <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</section>
+
+<style>
+  /* Inherit .snap-section sizing/snap behavior from the parent page.
+     This component only owns the inner block + visual treatment. */
+
+  .snap-stub {
+    background: var(--indigo);
+    /* Subtle vertical gradient gives the solid background a touch of
+       atmosphere without competing with future real visuals. */
+    background-image: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.025) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.25) 100%);
+  }
+
+  .stub-inner {
+    /* Bottom-anchored, horizontally centered, text-centered. */
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    margin-top: auto; /* push down inside the flex parent */
+    padding: 0 22px;
+    text-align: center;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .stub-inner { max-width: 880px; padding: 0 64px; }
+  }
+
+  /* Snap title — UI font (Proxima Nova Bold substitute = Montserrat 700).
+     Deliberately distinct from the hero's display-font headline so the
+     section labels read as section labels, not competing headlines. */
+  .stub-title {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    font-size: clamp(34px, 9vw, 60px);
+    letter-spacing: 0.02em;
+    line-height: 1.0;
+    margin-bottom: 14px;
+  }
+  @media (min-width: 1025px) {
+    .stub-title { font-size: clamp(48px, 5.5vw, 72px); }
+  }
+
+  .stub-sub {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.45;
+    color: #ece6d6;
+    max-width: 32em;
+    margin: 0 auto 22px;
+  }
+  @media (min-width: 1025px) {
+    .stub-sub { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
+  }
+
+  .stub-learn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glow);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(78, 236, 196, 0.4);
+    transition: color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+  }
+  .stub-learn:hover {
+    color: var(--warm-white);
+    border-bottom-color: var(--warm-white);
+    transform: translateX(2px);
+  }
+</style>

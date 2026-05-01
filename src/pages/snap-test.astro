@@ -1,94 +1,116 @@
 ---
 /**
- * /snap-test/ — POC for mobile snap-scroll pattern.
+ * /snap-test/ — staging route for the 8-snap homepage architecture.
  *
- * Mobile (≤1024): the <main> container becomes the scroll container,
- *   100dvh tall, with `scroll-snap-type: y mandatory` + `scroll-snap-stop: always`.
- *   Each section is 100dvh tall with `scroll-snap-align: start`.
+ * Snap order (locked in the architecture brief):
+ *   1. Hero (revised: no eyebrow, no stat bar, new subhead)
+ *   2. Events / Suite Life       (stub — solid Midnight Indigo)
+ *   3. Tap Wall                  (real beer-wall video, lazy-loaded)
+ *   4. Craft Cocktails           (stub)
+ *   5. Food                      (stub)
+ *   6. Bowl                      (stub)
+ *   7. Arcade                    (stub)
+ *   8. Hours / Location / Footer (sticky CTA bar hidden here)
  *
- * Desktop (≥1025): no snap. <main> is normal block flow; sections collapse to
- *   their content height (or 100dvh if the section says so). Pure POC of mobile
- *   gesture, not desktop.
+ * Snap mechanic: container-driven scroll-snap on mobile (≤1024), normal
+ *   long-scroll on desktop. See the .snap CSS block for specifics.
  *
- * StickyCTABar is ON for this route — sits over the bottom of every snapped
- *   section (position:fixed). Sections include extra bottom padding so the
- *   bar doesn't crash into call-to-action content (form button, link).
+ * Hero is INLINED (not the shared <Hero /> component) because the brief's
+ *   revisions — drop eyebrow + stat bar, new subhead, bottom-only scrim —
+ *   would change the live homepage if applied to the shared component.
+ *   Promotion to / happens after staging review.
  *
- * NOT linked from anywhere. Standalone proof-of-concept.
+ * Sticky CTA bar (rendered by Base) stays visible on snaps 1–7; the
+ *   page-level scroll watcher toggles `body.snap-cta-hidden` when snap 8
+ *   is in view, fading the bar out.
  */
 import Base from "../layouts/Base.astro";
-import Hero from "../components/Hero.astro";
+import SnapStub from "../components/snap/SnapStub.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
 ---
 <Base
-  title="Snap-scroll POC — Twisted Pin"
-  description="Internal POC. Three full-screen sections with mobile scroll-snap."
+  title="Snap-scroll architecture POC — Twisted Pin"
+  description="Staging route for the 8-snap homepage architecture."
 >
   <main class="snap">
-    {/* Section 1 — existing hero, reused as-is. */}
-    <Hero />
-
-    {/* Section 2 — coupon signup. Bar liquor-wall photo backdrop + dark scrim. */}
-    <section class="snap-section section-coupon" aria-labelledby="coupon-h1">
-      {/* Backdrop image — loading="lazy" defers fetch until near viewport.
-          Source: Bar - liquor wall.jpg via scripts/build-snap-images.mjs. */}
-      <picture class="coupon-bg" aria-hidden="true">
-        <source
-          type="image/webp"
-          srcset="/snap/coupon-bg-540.webp 540w, /snap/coupon-bg-1080.webp 1080w, /snap/coupon-bg-1280.webp 1280w"
-          sizes="100vw"
-        />
-        <img
-          src="/snap/coupon-bg-1080.jpg"
-          srcset="/snap/coupon-bg-540.jpg 540w, /snap/coupon-bg-1080.jpg 1080w, /snap/coupon-bg-1280.jpg 1280w"
-          sizes="100vw"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          width="1080"
-          height="1350"
-        />
-      </picture>
-      <div class="coupon-scrim" aria-hidden="true"></div>
-
-      <div class="section-inner">
-        <p class="t-eyebrow eyebrow">Text club</p>
-        <h1 class="t-display coupon-h1" id="coupon-h1">$10&nbsp;off your first&nbsp;visit</h1>
-        <p class="coupon-sub">Sign up for the text club. We'll send the code now.</p>
-
-        <form class="coupon-form" data-coupon-form novalidate>
-          <label class="visually-hidden" for="coupon-phone">Phone number</label>
-          <input
-            id="coupon-phone"
-            class="coupon-input"
-            type="tel"
-            inputmode="tel"
-            autocomplete="tel"
-            placeholder="(555) 555-5555"
-            required
-            pattern="[\d\s().+\-]{7,}"
-            aria-describedby="coupon-disclaimer"
+    {/* ================================================
+        SNAP 1 — HERO (revised per brief)
+        Inlined: shared <Hero /> stays untouched until staging review.
+        ================================================ */}
+    <section class="snap-section snap-hero" data-hero aria-labelledby="hero-h1">
+      <a class="hero-brand" href="/" aria-label="Twisted Pin home">
+        <picture>
+          <source type="image/webp" srcset="/logo/twisted-pin-horizontal-white.webp" />
+          <img
+            src="/logo/twisted-pin-horizontal-white.png"
+            alt="Twisted Pin"
+            width="298"
+            height="128"
+            decoding="async"
+            fetchpriority="high"
           />
-          <button type="submit" class="btn btn-solid coupon-submit">
-            Send the code
-          </button>
-        </form>
+        </picture>
+      </a>
 
-        <p class="coupon-disclaimer" id="coupon-disclaimer">
-          Standard message rates apply. Reply STOP to opt out.
+      {/* Mobile vertical 9:16 video — same source as the live hero. */}
+      <video
+        class="hero-video hero-video-mobile"
+        preload="metadata"
+        muted
+        autoplay
+        loop
+        playsinline
+        poster="/hero/hero-poster.webp"
+        aria-hidden="true"
+      >
+        <source src="/hero/hero-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+      </video>
+
+      {/* Desktop 16:9 video. */}
+      <video
+        class="hero-video hero-video-desktop"
+        preload="metadata"
+        muted
+        autoplay
+        loop
+        playsinline
+        poster="/hero/hero-desktop-poster.webp"
+        aria-hidden="true"
+      >
+        <source src="/hero/hero-desktop-av1.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source src="/hero/hero-desktop-h264.mp4" type="video/mp4" />
+      </video>
+
+      {/* Bottom-only scrim — dark fade up from the bottom. */}
+      <div class="hero-scrim" aria-hidden="true"></div>
+
+      <div class="hero-copy">
+        <h1 class="t-display hero-headline" id="hero-h1">
+          <span class="hero-headline-line hero-fade" data-delay-ms="0">Built&nbsp;for&nbsp;adults.</span>
+          <span class="hero-headline-line hero-fade" data-delay-ms="300">Fine,&nbsp;bring&nbsp;the&nbsp;kids.</span>
+        </h1>
+        <p class="hero-sub hero-fade" data-delay-ms="380">
+          Plainfield's premier night out. Bowling optional.
         </p>
-
-        <div class="coupon-success" data-coupon-success aria-live="polite" hidden>
-          <p class="t-display success-h">Code sent. See you Friday.</p>
-          <p class="success-sub">Check your messages — code expires in 30 days.</p>
-        </div>
       </div>
     </section>
 
-    {/* Section 3 — 28 taps, real beer-wall video.
-        Lazy: <video preload="none">; IntersectionObserver below calls .load()
-        when section 3 enters the rootMargin window, then .play() on full
-        intersect. Poster shows during the buffer window. */}
-    <section class="snap-section section-tapwall" data-tapwall-section aria-labelledby="tapwall-h1">
+    {/* ================================================
+        SNAP 2 — EVENTS / SUITE LIFE  (stub)
+        ================================================ */}
+    <SnapStub
+      title="Events / Suite Life"
+      subhead="Privatize the suite. Run the night your way."
+      href="#"
+    />
+
+    {/* ================================================
+        SNAP 3 — THE TAP WALL  (real beer-wall video, lazy-loaded)
+        ================================================ */}
+    <section class="snap-section snap-tapwall" data-tapwall-section aria-labelledby="tapwall-h1">
+      {/* Lazy: <video preload="none">; sources held in data-src until the
+          page-level lazy-loader promotes them on near-viewport entry. */}
       <video
         class="tapwall-video"
         data-tapwall-video
@@ -104,50 +126,64 @@ import Hero from "../components/Hero.astro";
       </video>
       <div class="tapwall-scrim" aria-hidden="true"></div>
 
-      <div class="section-inner">
-        <p class="t-eyebrow eyebrow">The wall</p>
-        <h1 class="t-display tapwall-h1" id="tapwall-h1">28&nbsp;taps. Pour your&nbsp;own.</h1>
-        <p class="tapwall-sub">The only self-serve wall in the area.</p>
-        <a class="tapwall-link" href="/craft-bar/">
-          Learn more <span aria-hidden="true">→</span>
-        </a>
+      <div class="tapwall-inner">
+        <h2 class="tapwall-title" id="tapwall-h1">The tap wall</h2>
+        <p class="tapwall-sub">28 self-serve taps. The only wall like it in the area.</p>
+        <a class="stub-learn" href="#">Learn more <span aria-hidden="true">→</span></a>
       </div>
     </section>
+
+    {/* ================================================
+        SNAP 4 — CRAFT COCKTAILS  (stub; reserved-copy subhead)
+        ================================================ */}
+    <SnapStub
+      title="Craft Cocktails"
+      subhead="Built by America's Top Mixologist. (Their words, not ours.)"
+      href="#"
+    />
+
+    {/* ================================================
+        SNAP 5 — FOOD  (stub)
+        ================================================ */}
+    <SnapStub
+      title="Food"
+      subhead="A chef-inspired menu. From the bar program out."
+      href="#"
+    />
+
+    {/* ================================================
+        SNAP 6 — BOWL  (stub; uses locked lane phrasing)
+        ================================================ */}
+    <SnapStub
+      title="Bowl"
+      subhead="17 traditional lanes plus a 6-lane VIP suite."
+      href="#"
+    />
+
+    {/* ================================================
+        SNAP 7 — ARCADE  (stub)
+        ================================================ */}
+    <SnapStub
+      title="Arcade"
+      subhead="Skee-ball, redemption, and the jackpot machine you came for."
+      href="#"
+    />
+
+    {/* ================================================
+        SNAP 8 — HOURS / LOCATION / FOOTER
+        Sticky CTA bar fades out when this snap is in view.
+        ================================================ */}
+    <SnapFooter />
   </main>
 </Base>
 
 <script>
-  /* ---------- Coupon form (POC, no network) ---------- */
-  const form = document.querySelector<HTMLFormElement>("[data-coupon-form]");
-  const success = document.querySelector<HTMLElement>("[data-coupon-success]");
-  const disclaimer = document.querySelector<HTMLElement>("#coupon-disclaimer");
-
-  form?.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const input = form.querySelector<HTMLInputElement>("#coupon-phone");
-    if (!input) return;
-
-    const digits = (input.value.match(/\d/g) ?? []).length;
-    if (digits < 10) {
-      input.setCustomValidity("Enter a 10-digit phone number.");
-      input.reportValidity();
-      input.addEventListener("input", () => input.setCustomValidity(""), { once: true });
-      return;
-    }
-
-    input.blur();
-    form.hidden = true;
-    if (disclaimer) disclaimer.hidden = true;
-    if (success) success.hidden = false;
-  });
-
-  /* ---------- Beer-wall video lazy load ----------
-     Pattern: <source data-src="…">. We don't promote to `src` until
-     IntersectionObserver fires. That keeps every byte off the wire on first
-     paint — the section's poster is the only image fetched (lazy itself).
-     Once promoted: video.load() materializes the element, then .play() once
-     the section is fully visible. Reduced-motion users get the poster only,
-     no autoplay. */
+  /* ============================================================
+     Beer-wall video lazy-load (snap 3). Same pattern as before:
+     <source data-src="…"> until IntersectionObserver promotes to src.
+     Scroll-listener fallback covers environments where IO doesn't
+     fire reliably for sub-scroller intersections.
+     ============================================================ */
   const tapwallSection = document.querySelector<HTMLElement>("[data-tapwall-section]");
   const tapwallVideo = document.querySelector<HTMLVideoElement>("[data-tapwall-video]");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -163,14 +199,12 @@ import Hero from "../components/Hero.astro";
       });
       tapwallVideo.load();
     };
-
     const tryPlay = () => {
       promoteSources();
       tapwallVideo.play().catch(() => { /* autoplay blocked; poster stays */ });
     };
 
     if ("IntersectionObserver" in window) {
-      // Stage 1: promote sources when the section is within ~1 viewport.
       const preloadObs = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
@@ -184,7 +218,6 @@ import Hero from "../components/Hero.astro";
       );
       preloadObs.observe(tapwallSection);
 
-      // Stage 2: autoplay when fully in view, pause when it leaves.
       const playObs = new IntersectionObserver(
         (entries) => {
           for (const e of entries) {
@@ -197,32 +230,84 @@ import Hero from "../components/Hero.astro";
       playObs.observe(tapwallSection);
     }
 
-    // Fallback: scroll listener on the snap container. Belt + suspenders for
-    // browsers (or environments) where IO doesn't fire reliably on
-    // sub-scroller intersection. Cheap — only inspects rect, no work per tick.
     const snapEl = document.querySelector<HTMLElement>(".snap");
     if (snapEl) {
       const onScroll = () => {
         const rect = tapwallSection.getBoundingClientRect();
         const vh = window.innerHeight;
-        // within 1 viewport of being visible -> promote
         if (rect.top < vh * 2 && rect.bottom > -vh) promoteSources();
-        // mostly-visible -> play
         if (rect.top < vh * 0.4 && rect.bottom > vh * 0.6) tryPlay();
       };
       snapEl.addEventListener("scroll", onScroll, { passive: true });
-      // First tick in case the page loads already scrolled to section 3.
+      onScroll();
+    }
+  }
+
+  /* ============================================================
+     Sticky-CTA hide on snap 8.
+     Toggles `body.snap-cta-hidden` while the footer snap is the
+     dominant section in view (>50% intersection). The CSS in the
+     <style is:global> block below fades the bar out smoothly.
+     ============================================================ */
+  const footer = document.querySelector<HTMLElement>(".snap-footer");
+  if (footer) {
+    const toggleHide = (hide: boolean) => {
+      document.body.classList.toggle("snap-cta-hidden", hide);
+    };
+
+    if ("IntersectionObserver" in window) {
+      const footerObs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) toggleHide(e.intersectionRatio > 0.5);
+        },
+        { threshold: [0, 0.25, 0.5, 0.75, 1] },
+      );
+      footerObs.observe(footer);
+    }
+
+    // Scroll-listener fallback (same reasoning as beer-wall lazy-load).
+    const snapEl = document.querySelector<HTMLElement>(".snap");
+    if (snapEl) {
+      const onScroll = () => {
+        const rect = footer.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const visible = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+        toggleHide(visible / vh > 0.5);
+      };
+      snapEl.addEventListener("scroll", onScroll, { passive: true });
       onScroll();
     }
   }
 </script>
 
+<style is:global>
+  /* Sticky CTA hide-on-snap-8. Lives in a global block because the bar
+     is rendered by Base.astro's <StickyCTABar /> — outside this page's
+     scoped styles.
+
+     `!important` is necessary on opacity/transform because Motion One
+     writes inline styles on the bar after its entry animation — inline
+     styles win specificity over a regular stylesheet rule. The
+     transition itself is also marked important so the un-hide path
+     animates back smoothly. */
+  body.snap-cta-hidden [data-cta-bar] {
+    opacity: 0 !important;
+    transform: translateY(120%) !important;
+    pointer-events: none;
+    transition:
+      opacity 280ms ease-out,
+      transform 280ms ease-out !important;
+  }
+</style>
+
 <style>
-  /* ---------- snap container ---------- */
+  /* ============================================================
+     Snap container. Mobile (≤1024) takes over the viewport as the
+     scroll surface; desktop falls back to normal page flow.
+     ============================================================ */
   .snap {
     /* desktop default: normal block layout */
   }
-
   @media (max-width: 1024px) {
     .snap {
       height: 100dvh;
@@ -234,19 +319,20 @@ import Hero from "../components/Hero.astro";
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
     }
-    /* :global(.hero) needed because Astro scopes the .hero class to the Hero
-       component — without it, section 1 has snap-align:none and the browser
-       lands on section 2 on first paint (mandatory snap aligns to the
-       nearest valid snap target). */
-    .snap > :global(.hero),
-    .snap > .snap-section {
+    /* Direct children become snap stops. `:global(.snap-section)` is needed
+       because SnapStub and SnapFooter are child components — Astro scopes
+       their `.snap-section` differently from this page's, so the unscoped
+       selector misses them. (Same Astro-scoping gotcha as the live homepage
+       Hero used in earlier rounds — see CLAUDE.md decisions log.) */
+    .snap > :global(.snap-section) {
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
   }
 
-  /* ---------- shared section chrome ---------- */
-  .snap-section {
+  /* Shared section chrome — wrapped in :global so the rule matches both
+     this page's inline sections AND component-rendered ones. */
+  :global(.snap-section) {
     position: relative;
     width: 100%;
     min-height: 100dvh;
@@ -255,150 +341,133 @@ import Hero from "../components/Hero.astro";
     display: flex;
     align-items: center;
     overflow: hidden;
-    /* Reserve breathing room at the bottom so the sticky CTA bar doesn't
-       crash into the form button / Learn-more link. --bar-pad already
-       accounts for var(--bar-height) + safe-area inset. */
+    /* Reserve room for the sticky CTA bar so its glass face doesn't crash
+       into bottom-anchored copy. SnapFooter overrides this back to 0. */
     padding-bottom: calc(var(--bar-pad) + 32px);
   }
   @media (min-width: 1025px) {
-    .snap-section { padding-bottom: 0; }
+    :global(.snap-section) { padding-bottom: 0; }
   }
 
-  .section-inner {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    max-width: 640px;
-    margin: 0 auto;
-    padding: 0 22px;
-    color: var(--warm-white);
+  /* ============================================================
+     SNAP 1 — HERO
+     ============================================================ */
+  .snap-hero {
+    background: #000;
   }
 
+  .hero-brand {
+    position: absolute;
+    z-index: 4;
+    top: calc(20px + var(--safe-top));
+    left: 22px;
+    line-height: 0;
+    filter: drop-shadow(0 1px 6px rgba(14, 10, 31, 0.5));
+  }
+  .hero-brand img {
+    height: 41px;
+    width: auto;
+    display: block;
+  }
   @media (min-width: 1025px) {
-    .section-inner { padding: 0 64px; max-width: 880px; margin: 0; }
+    .hero-brand { top: calc(28px + var(--safe-top)); left: 40px; }
+    .hero-brand img { height: 56px; }
   }
 
-  .eyebrow { margin-bottom: 18px; }
-
-  /* ---------- section 2 — coupon, with bar-photo backdrop ---------- */
-  .section-coupon { background: #100912; }
-
-  .coupon-bg {
+  .hero-video {
     position: absolute;
     inset: 0;
-    z-index: 0;
-    pointer-events: none;
-  }
-  .coupon-bg img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center;
+  }
+  .hero-video-mobile  { display: block; }
+  .hero-video-desktop { display: none; }
+  @media (min-width: 1025px) {
+    .hero-video-mobile  { display: none; }
+    .hero-video-desktop { display: block; }
   }
 
-  .coupon-scrim {
+  /* Bottom-only scrim per the brief. Stronger near the bottom so headline
+     reads against any video frame. */
+  .hero-scrim {
     position: absolute;
     inset: 0;
     z-index: 1;
-    background:
-      linear-gradient(180deg,
-        rgba(14, 10, 31, 0.55) 0%,
-        rgba(14, 10, 31, 0.28) 30%,
-        rgba(14, 10, 31, 0.55) 60%,
-        rgba(14, 10, 31, 0.92) 100%);
+    background: linear-gradient(180deg,
+      rgba(14, 10, 31, 0)    0%,
+      rgba(14, 10, 31, 0)    35%,
+      rgba(14, 10, 31, 0.55) 70%,
+      rgba(14, 10, 31, 0.95) 100%);
+  }
+  @media (min-width: 1025px) {
+    /* Desktop: keep a left-side fade as well so copy on the lower-left has
+       its own backstop. Same bottom emphasis. */
+    .hero-scrim {
+      background:
+        linear-gradient(90deg,
+          rgba(14, 10, 31, 0.65) 0%,
+          rgba(14, 10, 31, 0.20) 40%,
+          rgba(14, 10, 31, 0)    70%),
+        linear-gradient(180deg,
+          rgba(14, 10, 31, 0)    0%,
+          rgba(14, 10, 31, 0)    45%,
+          rgba(14, 10, 31, 0.55) 75%,
+          rgba(14, 10, 31, 0.95) 100%);
+    }
   }
 
-  .coupon-h1 {
+  .hero-copy {
+    position: absolute;
+    z-index: 2;
+    left: 22px;
+    right: 22px;
+    bottom: calc(var(--bar-pad) + 24px);
     color: var(--warm-white);
-    font-size: clamp(40px, 12vw, 88px);
+  }
+  @media (min-width: 1025px) {
+    .hero-copy {
+      left: 64px;
+      right: auto;
+      bottom: 88px;
+      max-width: 640px;
+    }
+  }
+
+  .hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 11vw, 80px);
     letter-spacing: -0.015em;
     line-height: 0.92;
-    margin-bottom: 14px;
-    text-shadow: 0 2px 12px rgba(14, 10, 31, 0.45);
   }
+  .hero-headline-line { display: block; }
+  .hero-headline-line + .hero-headline-line { margin-top: 2px; }
   @media (min-width: 1025px) {
-    .coupon-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
+    .hero-headline { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
   }
 
-  .coupon-sub {
+  .hero-sub {
+    margin-top: 16px;
     font-family: var(--font-body);
-    font-size: 16px;
+    font-weight: 400;
+    font-size: 17px;
     line-height: 1.45;
     color: #ece6d6;
-    max-width: 28em;
-    margin-bottom: 28px;
+    max-width: 24em;
   }
   @media (min-width: 1025px) {
-    .coupon-sub { font-size: 19px; line-height: 1.5; margin-bottom: 36px; }
+    .hero-sub { margin-top: 22px; font-size: 20px; line-height: 1.5; max-width: 30em; }
   }
 
-  .coupon-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    max-width: 420px;
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
   }
 
-  .coupon-input {
-    width: 100%;
-    padding: 16px 18px;
-    font: inherit;
-    font-family: var(--font-ui);
-    font-weight: 600;
-    font-size: 16px; /* 16px+ prevents iOS zoom-on-focus */
-    letter-spacing: 0.02em;
-    color: var(--warm-white);
-    background: rgba(14, 10, 31, 0.55);
-    border: 1px solid rgba(244, 239, 227, 0.22);
-    border-radius: var(--radius-button);
-    outline: none;
-    backdrop-filter: blur(6px) saturate(120%);
-    -webkit-backdrop-filter: blur(6px) saturate(120%);
-    transition: border-color 150ms ease-out, background-color 150ms ease-out;
-  }
-  .coupon-input::placeholder { color: var(--warm-dim); }
-  .coupon-input:focus {
-    border-color: var(--glow);
-    background: rgba(14, 10, 31, 0.7);
-  }
-  .coupon-input:invalid:not(:placeholder-shown) {
-    border-color: rgba(216, 139, 92, 0.7);
-  }
-
-  .coupon-submit {
-    width: 100%;
-    padding: 16px 22px;
-    font-size: 12.5px;
-  }
-
-  .coupon-disclaimer {
-    margin-top: 14px;
-    font-family: var(--font-ui);
-    font-weight: 600;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
-    max-width: 32em;
-  }
-
-  .coupon-success { max-width: 480px; }
-  .success-h {
-    color: var(--glow);
-    font-size: clamp(32px, 9vw, 64px);
-    letter-spacing: -0.01em;
-    line-height: 0.96;
-    margin-bottom: 12px;
-  }
-  .success-sub {
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.45;
-    color: #ece6d6;
-  }
-
-  /* ---------- section 3 — beer wall video ---------- */
-  .section-tapwall { background: #0a0604; }
+  /* ============================================================
+     SNAP 3 — TAP WALL
+     ============================================================ */
+  .snap-tapwall { background: #0a0604; }
 
   .tapwall-video {
     position: absolute;
@@ -413,39 +482,61 @@ import Hero from "../components/Hero.astro";
     position: absolute;
     inset: 0;
     z-index: 1;
-    background:
-      linear-gradient(180deg,
-        rgba(14, 10, 31, 0.45) 0%,
-        rgba(14, 10, 31, 0.10) 28%,
-        rgba(14, 10, 31, 0.10) 55%,
-        rgba(14, 10, 31, 0.92) 100%);
+    background: linear-gradient(180deg,
+      rgba(14, 10, 31, 0)    0%,
+      rgba(14, 10, 31, 0)    35%,
+      rgba(14, 10, 31, 0.55) 70%,
+      rgba(14, 10, 31, 0.95) 100%);
+  }
+  .tapwall-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    margin-top: auto;
+    padding: 0 22px;
+    text-align: center;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .tapwall-inner { max-width: 880px; padding: 0 64px; }
   }
 
-  .tapwall-h1 {
+  /* Use the same UI-font title treatment as SnapStub so all snap titles
+     beyond the hero share one rhythm. (Snap 3 is the one section with a
+     real video; everything else about its title type matches the stubs.) */
+  .tapwall-title {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    text-transform: uppercase;
     color: var(--warm-white);
-    font-size: clamp(40px, 12vw, 88px);
-    letter-spacing: -0.015em;
-    line-height: 0.92;
+    font-size: clamp(34px, 9vw, 60px);
+    letter-spacing: 0.02em;
+    line-height: 1.0;
     margin-bottom: 14px;
     text-shadow: 0 2px 12px rgba(14, 10, 31, 0.45);
   }
   @media (min-width: 1025px) {
-    .tapwall-h1 { font-size: clamp(72px, 7vw, 110px); letter-spacing: 0.005em; }
+    .tapwall-title { font-size: clamp(48px, 5.5vw, 72px); }
   }
 
   .tapwall-sub {
     font-family: var(--font-body);
+    font-weight: 400;
     font-size: 16px;
     line-height: 1.45;
     color: #ece6d6;
-    max-width: 26em;
-    margin-bottom: 22px;
+    max-width: 32em;
+    margin: 0 auto 22px;
   }
   @media (min-width: 1025px) {
     .tapwall-sub { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
   }
 
-  .tapwall-link {
+  /* Shared learn-more chip — also used inline by snap 3.
+     SnapStub defines its own copy of these styles in its scoped block. */
+  .stub-learn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -459,20 +550,9 @@ import Hero from "../components/Hero.astro";
     border-bottom: 1px solid rgba(78, 236, 196, 0.4);
     transition: color 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
   }
-  .tapwall-link:hover {
+  .stub-learn:hover {
     color: var(--warm-white);
     border-bottom-color: var(--warm-white);
     transform: translateX(2px);
-  }
-
-  /* ---------- a11y helper ---------- */
-  .visually-hidden {
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
   }
 </style>
