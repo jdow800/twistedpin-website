@@ -39,7 +39,18 @@ const sections = [
   aria-hidden="true"
 >
   <div class="nav-drawer-head">
-    <h2 class="t-display" id="nav-drawer-title">The works.</h2>
+    <a class="nav-drawer-brand" href="/" aria-label="Twisted Pin home" id="nav-drawer-title">
+      <picture>
+        <source type="image/webp" srcset="/logo/twisted-pin-horizontal-glow.webp" />
+        <img
+          src="/logo/twisted-pin-horizontal-glow.png"
+          alt="Twisted Pin"
+          width="373"
+          height="160"
+          decoding="async"
+        />
+      </picture>
+    </a>
     <button
       type="button"
       class="nav-close"
@@ -148,12 +159,23 @@ const sections = [
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 16px;
     margin-bottom: 36px;
   }
-  .nav-drawer-head h2 {
-    font-size: clamp(40px, 8vw, 56px);
-    line-height: 0.95;
-    color: var(--warm-white);
+  .nav-drawer-brand {
+    line-height: 0;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  .nav-drawer-brand img {
+    height: 56px;
+    width: auto;
+    display: block;
+    /* Glow logo on dark indigo — slight drop shadow keeps it from feeling flat. */
+    filter: drop-shadow(0 1px 0 rgba(78, 236, 196, 0.18));
+  }
+  @media (min-width: 1025px) {
+    .nav-drawer-brand img { height: 64px; }
   }
   .nav-close {
     width: 40px;
