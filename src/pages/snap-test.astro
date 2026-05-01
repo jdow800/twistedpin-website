@@ -97,10 +97,10 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </section>
 
     {/* ================================================
-        SNAP 2 — EVENTS / SUITE LIFE  (stub)
+        SNAP 2 — EVENTS THAT DON'T SUCK  (stub)
         ================================================ */}
     <SnapStub
-      title="Events / Suite Life"
+      title="Events That Don't Suck"
       subhead="Privatize the suite. Run the night your way."
       href="#"
     />
@@ -128,26 +128,33 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 
       <div class="tapwall-inner">
         <h2 class="tapwall-title" id="tapwall-h1">The tap wall</h2>
-        <p class="tapwall-sub">28 self-serve taps. The only wall like it in the area.</p>
+        <p class="tapwall-sub">
+          <span class="tapwall-sub-main">28 self-serve taps</span>
+          <span class="tapwall-sub-paren">(only wall in the area)</span>
+        </p>
         <a class="stub-learn" href="#">Learn more <span aria-hidden="true">→</span></a>
       </div>
     </section>
 
     {/* ================================================
-        SNAP 4 — CRAFT COCKTAILS  (stub; reserved-copy subhead)
+        SNAP 4 — CRAFT COCKTAILS  (stub; reserved-copy subhead, line-break form)
+        Title-case "Top Mixologist" preserved per voice.md locked copy —
+        worth confirming if you wanted strict sentence-case here.
         ================================================ */}
     <SnapStub
       title="Craft Cocktails"
-      subhead="Built by America's Top Mixologist. (Their words, not ours.)"
+      subhead="Built by America's Top Mixologist."
+      subheadParen="their words, not ours"
       href="#"
     />
 
     {/* ================================================
-        SNAP 5 — FOOD  (stub)
+        SNAP 5 — FOOD  (stub; food-focused copy, no bar reference)
         ================================================ */}
     <SnapStub
       title="Food"
-      subhead="A chef-inspired menu. From the bar program out."
+      subhead="Chef-inspired menu."
+      subheadParen="built to share"
       href="#"
     />
 
@@ -165,7 +172,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         ================================================ */}
     <SnapStub
       title="Arcade"
-      subhead="Skee-ball, redemption, and the jackpot machine you came for."
+      subhead="Tickets, prizes, bragging rights."
       href="#"
     />
 
@@ -530,8 +537,18 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     max-width: 32em;
     margin: 0 auto 22px;
   }
+  /* Same two-line pattern as SnapStub. Spans become block so the line break
+     is structural — easier to reason about than relying on whitespace. */
+  .tapwall-sub-main,
+  .tapwall-sub-paren { display: block; }
+  .tapwall-sub-paren {
+    color: var(--warm-dim);
+    margin-top: 4px;
+    font-size: 0.9em;
+  }
   @media (min-width: 1025px) {
     .tapwall-sub { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
+    .tapwall-sub-paren { margin-top: 6px; }
   }
 
   /* Shared learn-more chip — also used inline by snap 3.

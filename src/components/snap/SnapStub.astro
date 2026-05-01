@@ -12,16 +12,19 @@
  * `.snap-section` wrapper. This component renders the inner content only.
  */
 interface Props {
-  /** Section title — shown all-caps. e.g. "EVENTS / SUITE LIFE" */
+  /** Section title — shown all-caps. e.g. "EVENTS THAT DON'T SUCK" */
   title: string;
-  /** One-line stub subhead. */
+  /** Subhead main line. */
   subhead: string;
+  /** Optional aside — rendered on a second line wrapped in parens, dimmer.
+   *  Use for the "(their words, not ours)" pattern. */
+  subheadParen?: string;
   /** Learn-more href; "#" while routes don't exist. */
   href?: string;
   /** Optional aria-label override for the section. */
   label?: string;
 }
-const { title, subhead, href = "#", label } = Astro.props;
+const { title, subhead, subheadParen, href = "#", label } = Astro.props;
 const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
 ---
 <section
@@ -31,7 +34,12 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
 >
   <div class="stub-inner">
     <h2 class="stub-title" id={ariaId}>{title}</h2>
-    <p class="stub-sub">{subhead}</p>
+    <p class="stub-sub">
+      <span class="stub-sub-main">{subhead}</span>
+      {subheadParen && (
+        <span class="stub-sub-paren">({subheadParen})</span>
+      )}
+    </p>
     <a class="stub-learn" href={href}>
       Learn more <span aria-hidden="true">→</span>
     </a>
@@ -95,8 +103,18 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
     max-width: 32em;
     margin: 0 auto 22px;
   }
+  /* Two-line pattern: main statement + parenthetical aside on its own line.
+     Both spans become block so the line break is structural, not whitespace. */
+  .stub-sub-main,
+  .stub-sub-paren { display: block; }
+  .stub-sub-paren {
+    color: var(--warm-dim);
+    margin-top: 4px;
+    font-size: 0.9em;
+  }
   @media (min-width: 1025px) {
     .stub-sub { font-size: 19px; line-height: 1.5; margin-bottom: 28px; }
+    .stub-sub-paren { margin-top: 6px; }
   }
 
   .stub-learn {
