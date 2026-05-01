@@ -6,13 +6,15 @@
  */
 import { animate } from "motion";
 
-const reducedMotion = () =>
+const reducedMotion = (): boolean =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* -----------------------------------------------------------
-   Hero entry stagger — eyebrow → headline → subhead → CTA.
-   Fires when the hero media has settled (poster paint or video metadata).
+   Hero entry — sequential per-element fade-up.
+   Each .hero-fade carries a `data-delay-ms` attribute (absolute, ms).
+   Headline lines fire on a deliberate beat: line 1 with the eyebrow,
+   line 2 a beat later, subhead settles after.
    ----------------------------------------------------------- */
 function heroEntry(): void {
   const hero = document.querySelector("[data-hero]");
@@ -20,17 +22,15 @@ function heroEntry(): void {
   const fades = Array.from(hero.querySelectorAll<HTMLElement>(".hero-fade"));
   if (fades.length === 0) return;
 
-  fades.sort((a, b) => Number(a.dataset.fadeOrder ?? 0) - Number(b.dataset.fadeOrder ?? 0));
-
   const reduced = reducedMotion();
-  const stagger = reduced ? 0 : 0.08;
-  const duration = reduced ? 0.001 : 0.45;
+  const duration = reduced ? 0.001 : 0.5;
 
-  fades.forEach((el, i) => {
+  fades.forEach((el) => {
+    const delaySec = reduced ? 0 : Number(el.dataset.delayMs ?? 0) / 1000;
     animate(
       el,
       { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
-      { duration, delay: i * stagger, ease: [0.22, 0.61, 0.36, 1] },
+      { duration, delay: delaySec, ease: [0.22, 0.61, 0.36, 1] },
     );
   });
 }
@@ -45,7 +45,7 @@ function stickyCTAEntry(): void {
   animate(
     bar,
     { opacity: [0, 1], transform: ["translateY(120%)", "translateY(0%)"] },
-    { duration: reduced ? 0.001 : 0.32, delay: reduced ? 0 : 0.45, ease: [0.22, 0.61, 0.36, 1] },
+    { duration: reduced ? 0.001 : 0.32, delay: reduced ? 0 : 0.55, ease: [0.22, 0.61, 0.36, 1] },
   );
 }
 
@@ -60,13 +60,13 @@ function navDrawer(): void {
   const closeBtn = document.querySelector<HTMLButtonElement>("[data-nav-close]");
   if (!toggle || !drawer || !backdrop || !closeBtn) return;
 
-  const open = () => {
+  const open = (): void => {
     document.body.classList.add("nav-open", "no-scroll");
     drawer.setAttribute("aria-hidden", "false");
     toggle.setAttribute("aria-expanded", "true");
     closeBtn.focus({ preventScroll: true });
   };
-  const close = () => {
+  const close = (): void => {
     document.body.classList.remove("nav-open", "no-scroll");
     drawer.setAttribute("aria-hidden", "true");
     toggle.setAttribute("aria-expanded", "false");
@@ -86,12 +86,7 @@ function navDrawer(): void {
    ----------------------------------------------------------- */
 export function initMotion(): void {
   if (typeof window === "undefined") return;
-
-  // Wire interactions immediately.
   navDrawer();
-
-  // Defer hero/CTA entry until the layout is painted so the stagger fires
-  // on top of a stable first frame, not a layout-shift one.
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       heroEntry();

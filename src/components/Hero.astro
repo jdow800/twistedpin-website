@@ -3,20 +3,33 @@
  * Homepage hero.
  *
  * Mobile (≤1024): vertical 9:16 video, poster as LCP, copy stack at bottom.
- * Desktop (≥1025): cocktail-pour photograph (placeholder), copy stack lower-left.
+ * Desktop (≥1025): 16:9 video, copy stack lower-left.
+ *
+ * Brand mark only — primary conversion lives in the global StickyCTABar.
  *
  * Copy is locked — see Context/voice.md "Locked Lines (Approved)".
  */
 ---
 <section class="hero" data-hero>
   {/* Brand mark — top-left, on top of media */}
-  <a class="hero-brand" href="/" aria-label="Twisted Pin home">Twisted&nbsp;Pin</a>
+  <a class="hero-brand" href="/" aria-label="Twisted Pin home">
+    <picture>
+      <source type="image/webp" srcset="/logo/twisted-pin-horizontal-white.webp" />
+      <img
+        src="/logo/twisted-pin-horizontal-white.png"
+        alt="Twisted Pin"
+        width="298"
+        height="128"
+        decoding="async"
+        fetchpriority="high"
+      />
+    </picture>
+  </a>
 
   {/* MOBILE — vertical video.
-      poster is preloaded in Base.astro <head>; preload="metadata" defers byte-fetch.
-      muted + autoplay + playsinline keeps mobile autoplay legal. */}
+      poster preloaded in Base.astro <head>; preload="metadata" defers byte-fetch. */}
   <video
-    class="hero-video"
+    class="hero-video hero-video-mobile"
     preload="metadata"
     muted
     autoplay
@@ -29,39 +42,34 @@
     <source src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
   </video>
 
-  {/* DESKTOP — cocktail-pour photograph (placeholder until final shot is selected). */}
-  <picture class="hero-photo" aria-hidden="true">
-    <source
-      type="image/webp"
-      srcset="/hero/hero-desktop-960.webp 960w, /hero/hero-desktop-1280.webp 1280w, /hero/hero-desktop-1920.webp 1920w"
-      sizes="100vw"
-    />
-    <img
-      src="/hero/hero-desktop-1280.jpg"
-      srcset="/hero/hero-desktop-960.jpg 960w, /hero/hero-desktop-1280.jpg 1280w, /hero/hero-desktop-1920.jpg 1920w"
-      sizes="100vw"
-      alt=""
-      loading="eager"
-      fetchpriority="high"
-      decoding="async"
-    />
-  </picture>
+  {/* DESKTOP — 16:9 video (placeholder until final clip is shot). */}
+  <video
+    class="hero-video hero-video-desktop"
+    preload="metadata"
+    muted
+    autoplay
+    loop
+    playsinline
+    poster="/hero/hero-desktop-poster.webp"
+    aria-hidden="true"
+  >
+    <source src="/hero/hero-desktop-av1.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+    <source src="/hero/hero-desktop-h264.mp4" type="video/mp4" />
+  </video>
 
-  {/* Scrim — gradient ensures legibility of the bottom-anchored copy stack. */}
+  {/* Scrim for legibility */}
   <div class="hero-scrim" aria-hidden="true"></div>
 
-  {/* Copy stack */}
+  {/* Copy stack — eyebrow, two-line headline, subhead. No CTA in hero. */}
   <div class="hero-copy">
-    <p class="t-eyebrow hero-fade" data-fade-order="0">Plainfield, IL</p>
-    <h1 class="t-display hero-headline hero-fade" data-fade-order="1">
-      Built&nbsp;for&nbsp;adults.<br />Fine,&nbsp;bring&nbsp;the&nbsp;kids.
+    <p class="t-eyebrow hero-eyebrow hero-fade" data-delay-ms="0">Plainfield, IL</p>
+    <h1 class="t-display hero-headline">
+      <span class="hero-headline-line hero-fade" data-delay-ms="0">Built&nbsp;for&nbsp;adults.</span>
+      <span class="hero-headline-line hero-fade" data-delay-ms="300">Fine,&nbsp;bring&nbsp;the&nbsp;kids.</span>
     </h1>
-    <p class="hero-sub hero-fade" data-fade-order="2">
+    <p class="hero-sub hero-fade" data-delay-ms="380">
       Built by America's Top Mixologist. <em>(Their words, not ours.)</em>
     </p>
-    <a href="/reserve" class="btn btn-solid hero-cta hero-fade" data-fade-order="3">
-      Reserve a lane
-    </a>
   </div>
 </section>
 
@@ -70,53 +78,48 @@
     position: relative;
     width: 100%;
     height: 100vh;
-    height: 100svh; /* small-viewport unit — accounts for mobile browser chrome */
+    height: 100svh;
     min-height: 560px;
     overflow: hidden;
     background: #000;
   }
 
+  /* ---------- brand mark ---------- */
   .hero-brand {
     position: absolute;
+    z-index: 4;
     top: calc(20px + var(--safe-top));
     left: 22px;
-    z-index: 4;
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: 18px;
-    line-height: 1;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--warm-white);
-    /* Subtle text shadow so the mark is legible over busy hero photography */
-    text-shadow: 0 1px 8px rgba(14, 10, 31, 0.4);
+    /* Wrap a fixed-height image — width auto-scales via the image's aspect ratio. */
+    line-height: 0;
+    filter: drop-shadow(0 1px 6px rgba(14, 10, 31, 0.5));
+  }
+  .hero-brand img {
+    height: 28px;
+    width: auto;
+    display: block;
+  }
+  @media (min-width: 1025px) {
+    .hero-brand { top: calc(24px + var(--safe-top)); left: 32px; }
+    .hero-brand img { height: 32px; }
   }
 
-  /* ----- media ----- */
-  .hero-video,
-  .hero-photo {
+  /* ---------- media ---------- */
+  .hero-video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
-  .hero-photo img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  /* default: show video (mobile-first), hide photo */
-  .hero-video { display: block; }
-  .hero-photo { display: none; }
-
+  .hero-video-mobile  { display: block; }
+  .hero-video-desktop { display: none; }
   @media (min-width: 1025px) {
-    .hero-video { display: none; }
-    .hero-photo { display: block; }
+    .hero-video-mobile  { display: none; }
+    .hero-video-desktop { display: block; }
   }
 
+  /* ---------- scrim ---------- */
   .hero-scrim {
     position: absolute;
     inset: 0;
@@ -140,13 +143,12 @@
     }
   }
 
-  /* ----- copy stack ----- */
+  /* ---------- copy stack ---------- */
   .hero-copy {
     position: absolute;
     z-index: 2;
     left: 22px;
     right: 22px;
-    /* Anchor above the sticky CTA bar so they don't fight for the same pixels. */
     bottom: calc(var(--bar-pad) + 24px);
     color: var(--warm-white);
   }
@@ -159,20 +161,42 @@
     }
   }
 
-  .hero-copy > * + * { margin-top: 14px; }
+  /* ---------- eyebrow ----------
+     No left-alignment compensator needed: at 360 / 390 / 412 the eyebrow's
+     block left and the headline's block left both compute to 22px (verified
+     in dev tools). letter-spacing only adds space *after* each character, so
+     the first character ("P") sits flush against the block edge — same as the
+     headline's "B". */
 
+  /* Tight 12px gap from eyebrow to headline (was 14px from the generic > * + * rule). */
   .hero-headline {
+    margin-top: 12px;
     color: var(--warm-white);
-    font-size: clamp(48px, 13vw, 80px);
-    margin-top: 14px;
+    /* Mobile: 11vw + -0.015em fits "FINE, BRING THE KIDS." inside the
+       container at 360 / 390 / 412 with a small margin (verified via
+       Range glyph-width measurement, not block width). Floor 34px catches
+       sub-320 viewports. */
+    font-size: clamp(34px, 11vw, 80px);
+    letter-spacing: -0.015em;
   }
+  .hero-headline-line {
+    display: block;
+  }
+  .hero-headline-line + .hero-headline-line {
+    /* Inter-line spacing inside the headline — visually tight, deliberate. */
+    margin-top: 2px;
+  }
+
   @media (min-width: 1025px) {
     .hero-headline {
       font-size: clamp(72px, 7vw, 110px);
+      letter-spacing: 0.005em;
     }
   }
 
+  /* Subhead sits 16px under the headline — slightly more breathing room than 14px. */
   .hero-sub {
+    margin-top: 16px;
     font-family: var(--font-body);
     font-weight: 400;
     font-size: 16px;
@@ -186,17 +210,14 @@
   }
   @media (min-width: 1025px) {
     .hero-sub {
+      margin-top: 22px;
       font-size: 19px;
       line-height: 1.5;
       max-width: 32em;
     }
   }
 
-  .hero-cta {
-    margin-top: 22px;
-  }
-
-  /* ----- entry-stagger initial state. Motion One animates these in. ----- */
+  /* ---------- entry-stagger initial state ---------- */
   .hero-fade {
     opacity: 0;
     transform: translateY(12px);

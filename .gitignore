@@ -23,3 +23,14 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# ============================================================
+# Source assets — too large for git, live outside the repo.
+# Encoded/optimized derivatives live in public/hero/ and ARE committed.
+# Pipeline: scripts/build-hero-video.sh + scripts/build-hero-image.mjs
+# ============================================================
+Context/videos/
+Context/pictures/
+
+
+.vercel
