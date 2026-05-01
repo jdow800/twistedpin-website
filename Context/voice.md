@@ -206,13 +206,36 @@ These have been approved for use in their specified slots. Use as-written.
 
 | Slot | Line |
 |---|---|
-| Hero eyebrow (homepage) | *PLAINFIELD, IL* |
+| Hero eyebrow (homepage `/`) | *PLAINFIELD, IL* |
 | Hero headline (homepage, two lines) | *Built for adults.* / *Fine, bring the kids.* |
-| Hero subhead (homepage) | *28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu* (4th item drops below 600px) |
+| Hero subhead (homepage `/`) | *28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu* (4th item drops below 600px) |
 | Hero CTA (primary) | None — sticky bar carries all hero conversion (*Reserve a lane* + *Plan an event*) |
 | Closing band (homepage, before footer) | *You can keep doing dinner-and-a-movie. Or you can do this.* |
 
 The closing-band line carries the spiciest attitude on the site — confident, slightly dry, indicts the alternative without punching down. Don't dilute it. The hero headline carries the second spiciest — *"Fine, bring the kids."* is the concessive punchline; never water down the second line.
+
+### 8-snap homepage architecture (staging — `/snap-test/`)
+
+Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion to `/` happens after staging review.
+
+| # | Title | Subhead (statement) | Aside (parenthetical) |
+|---|---|---|---|
+| 1 | (Hero — see below) | *Plainfield's premier night out. Bowling optional.* | — |
+| 2 | *Events That Don't Suck* | *Privatize the suite. Run the night your way.* | — |
+| 3 | *The Tap Wall* | *28 self-serve taps* | *(only wall in the area)* |
+| 4 | *Craft Cocktails* | *Built by America's Top Mixologist.* | *(their words, not ours)* |
+| 5 | *Food* | *Chef-inspired menu.* | *(built to share)* |
+| 6 | *Bowl* | *17 traditional lanes plus a 6-lane VIP suite.* | *(yes, you can take it over)* |
+| 7 | *Arcade* | *Skee-ball, redemption, jackpot.* | *(don't pretend you don't want the giant bear)* |
+| 8 | *Find Us* | (utility footer — hours, address, contact, social, copyright) | — |
+
+**Snap 1 hero on `/snap-test/`** uses a simplified subhead — *"Plainfield's premier night out. Bowling optional."* — and drops both the *PLAINFIELD, IL* eyebrow and the stat-trio. The live homepage hero (`/`) keeps the locked eyebrow + stat-trio subhead until snap-test is reviewed and promoted.
+
+**Snap 4** uses what was previously *reserved copy* for the cocktail/bar section H2 — that line is no longer reserved; it's in use on snap 4 as the staging implementation.
+
+**Pattern (snaps 3–7) — "statement / (aside)":** the statement is a confident one-liner; the aside is a smaller, dimmer parenthetical that adds attitude or specificity. Visually, the aside is one drop below the statement (warm-dim color, ~0.9em). Implemented via the `subheadParen` prop on the SnapStub component. The aside is voicy-by-design — it carries the playful register; the statement carries the data.
+
+**Snap 6 lane phrasing**: keeps the canonical *"17 traditional lanes + a 6-lane VIP suite"* construction in the statement (*"17 traditional lanes plus a 6-lane VIP suite."*). The aside *(yes, you can take it over)* foreshadows the "Privatize the suite" beat from snap 2.
 
 ### Reserved copy (held for specific future slots)
 
@@ -220,15 +243,16 @@ These lines are written, approved, and waiting for their slot to be built. **Don
 
 | Slot | Line |
 |---|---|
-| Cocktail/bar section H2 (homepage, future) — short variant | *Built by America's Top Mixologist. (Their words, not ours.)* |
-| Cocktail/bar section H2 (homepage, future) — full variant | *Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist.* |
+| Cocktail/bar section H2 (homepage `/`, future) — full variant | *Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist.* |
 
-Both variants lead with the program, drop the credential as the closer (per the inverted-structure rule). Pick one when the cocktail/bar section is built; the longer one carries more attitude and reads better with room to breathe, the shorter one fits a tighter section header.
+The full variant is reserved for a future cocktail/bar section on `/` that has more room to breathe than the snap-test stub. The short variant — *"Built by America's Top Mixologist. (Their words, not ours.)"* — was promoted from reserved into use on `/snap-test/` snap 4 (see 8-snap table above), in the statement / aside split form.
 
 ### Deprecated copy (do not use)
 - *"The bar that bowls."* — retired. Reads as a tagline competing with the headline.
 - *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
 - *"Built by America's Top Mixologist. (Their words, not ours.)"* in the **hero subhead slot** — retired from the hero. Reason: the hero headline starts with "Built for adults." and the subhead repeating "Built by…" misimplied the mixologist built the venue itself, not just the bar program. The line lives on as reserved copy for the cocktail/bar section H2 (see above) where the context makes the credential unambiguous.
+- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Food) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. Replaced by *"Chef-inspired menu. (built to share)"* — food-focused, no bar reference.
+- *"Skee-ball, redemption, and the jackpot machine you came for."* — drafted and discarded as the snap 7 subhead. Specific machine claims weren't verified. Replaced by *"Skee-ball, redemption, jackpot. (don't pretend you don't want the giant bear)"* — three-beat statement + voicy aside.
 
 For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.
 

@@ -125,7 +125,15 @@ const ICON_PATHS: Record<IconKey, string> = {
 </aside>
 
 <style>
-  /* ---------- hamburger toggle ---------- */
+  /* ---------- hamburger toggle ----------
+     One static treatment that has to read on every background type the
+     site puts behind it: video frames (bright + busy), solid Midnight
+     Indigo (snap-test stubs), and the indigo-deep footer. The combination:
+       1. Translucent dark fill (works against video and lighter solids)
+       2. Subtle warm-white border (defines the shape against same-color
+          dark backgrounds — fixes the snap-8 invisibility we saw)
+       3. Backdrop blur (legibility over busy video frames)
+     Same recipe as the back-to-top button so the corners share a vocabulary. */
   .nav-toggle {
     position: fixed;
     z-index: 40;
@@ -138,13 +146,17 @@ const ICON_PATHS: Record<IconKey, string> = {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: rgba(14, 10, 31, 0.55);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(14, 10, 31, 0.62);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
     border-radius: var(--radius-button);
-    transition: background-color 150ms ease-out;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out;
   }
-  .nav-toggle:hover { background: rgba(14, 10, 31, 0.75); }
+  .nav-toggle:hover {
+    background: rgba(14, 10, 31, 0.82);
+    border-color: rgba(244, 239, 227, 0.32);
+  }
   .nav-toggle .bar {
     display: block;
     width: 22px;

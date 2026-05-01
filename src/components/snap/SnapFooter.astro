@@ -167,10 +167,14 @@ const UTILITY_LINKS = [
     align-items: stretch;
   }
 
-  /* ---------- back-to-top, top-right corner ---------- */
+  /* ---------- back-to-top, bottom-right corner ----------
+     Bottom-right is the standard spot for back-to-top buttons. On snap 8
+     the sticky CTA bar is hidden, so the corner is free. Lifted slightly
+     above the safe-area inset so it doesn't sit flush with the iOS home
+     indicator. */
   .back-to-top {
     position: absolute;
-    top: calc(20px + var(--safe-top));
+    bottom: calc(20px + var(--safe-bottom));
     right: 22px;
     z-index: 3;
     width: 44px;
@@ -194,7 +198,7 @@ const UTILITY_LINKS = [
     transform: translateY(-1px);
   }
   @media (min-width: 1025px) {
-    .back-to-top { top: calc(28px + var(--safe-top)); right: 40px; }
+    .back-to-top { bottom: calc(28px + var(--safe-bottom)); right: 40px; }
   }
 
   /* ---------- inner layout ---------- */
@@ -223,12 +227,8 @@ const UTILITY_LINKS = [
     display: flex;
     flex-direction: column;
     gap: 14px;
-    /* Reserve space on the right for the absolutely-positioned back-to-top
-       so the title doesn't visually collide with it on narrow viewports. */
-    padding-right: 56px;
-  }
-  @media (min-width: 1025px) {
-    .footer-top { padding-right: 64px; }
+    /* Top block has no corner-button conflict any more — back-to-top moved
+       to the bottom-right. Title can extend full-width. */
   }
 
   /* Snap title — matches the SnapStub treatment so the rhythm carries
@@ -369,6 +369,9 @@ const UTILITY_LINKS = [
     text-transform: uppercase;
     color: var(--warm-dim);
     padding-top: 14px;
+    /* Reserve right-padding so the copyright doesn't crash into the
+       absolutely-positioned back-to-top button in the bottom-right. */
+    padding-right: 56px;
     border-top: 1px solid rgba(244, 239, 227, 0.10);
     margin-top: 4px;
   }
