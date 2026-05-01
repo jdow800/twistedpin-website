@@ -1,0 +1,14 @@
+# Files Vercel doesn't need to upload — Vercel installs deps server-side
+# and re-builds from sources. Source-asset directories are too large.
+
+node_modules
+.astro
+dist
+.vercel
+
+# Source assets — derivatives live in public/hero/ and ARE deployed
+Context/videos
+Context/pictures
+
+# Mockups are local-only static HTML, not part of the deploy
+mockups
