@@ -59,33 +59,39 @@ Supporting assets:
 | Decision | Locked value |
 |---|---|
 | Lane phrasing (canonical) | *"17 traditional lanes + a 6-lane VIP suite"* — traditional first, VIP as upgrade |
-| Mobile hero source | `Context/videos/Best Things To Order.mov`, recut 0–4s, hold first frame ~0.4s extra |
-| Desktop hero | Hero photograph (not vertical video). Placeholder: `AIV01579.jpg` (cocktail pour). Final selection still pending. |
+| Mobile hero source | Splice direction locked: pour (`Bank Vs Stories.mp4`) → tap wall (`Beer Wall.mov`) → cocktail (`Best Things To Order.mov`). Total ≤4–5s at current CRF. **Specific window timestamps pending user.** Currently live: Bank Vs Stories 0–4s, single shot. |
+| Desktop hero | Video placeholder (`After Social Highlight…_v2.mp4`, 8s recut). Final desktop hero (photo or video) still pending shoot. |
 | Hero eyebrow | *PLAINFIELD, IL* — warm-white at 85% opacity, no Glow |
 | Hero headline | *"Built for adults."* / *"Fine, bring the kids."* — two lines, all caps, Barlow Cond Black 900 |
-| Hero subhead | *"Built by America's Top Mixologist. (Their words, not ours.)"* — Roboto Slab Regular, parenthetical italicized |
-| Hero CTA (primary) | *Reserve a lane* — Glow background, 7px radius, only Glow element in first viewport |
+| Hero subhead | *"28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu"* — stats trio + menu beat. Roboto Slab Regular, no italics, narrative "A" articles. 4th item drops below 600px viewport. |
+| Hero CTA | **None in the hero.** Sticky bar carries all conversion (*Reserve a lane* solid Glow + *Plan an event* outlined). |
 | Closing band (homepage) | *"You can keep doing dinner-and-a-movie. Or you can do this."* |
 | Cocktail credential (primary) | *America's Top Mixologist* (Food Network). Per Se / Keller / Michelin three-star framing **retired for the website** — long-form `/craft-bar/` body copy only. |
 | Type stack (substitutes) | Display: Barlow Condensed 900 · UI: Montserrat 700 · Body: Roboto Slab 400. Production swap to Adobe Fonts (Proxima Nova Extra Cond Black + Proxima Nova + Yorkten Slab) deferred until kit ID is provided. One CSS-variable change. |
+| Headline scale | `clamp(34px, 11vw, 80px)` mobile + `letter-spacing: -0.015em`. Verified glyph fits at 360 / 390 / 412 with ≥8px slack. |
 | Eyebrow color rule | Warm-white only. Glow is reserved for the primary CTA in the first viewport. |
 | Button radius | 7px on all buttons (not pill, not sharp) |
+| Brand mark (hero, top-left) | Logo image (`LogoGBED_Horizontal_White`). Mobile 41px / desktop 56px. Round-4 sizes. |
+| Drawer header | Logo image (`Logo_Horizontal_GlowInTheDark`, no GBED tagline). Mobile 73px / desktop 84px. Replaces the retired *"The works."* text. |
+| Drawer rows | Lucide line icons right-aligned, 24px, `currentColor` (Glow on hover): martini / bowling-pin / calendar / utensils-crossed / map-pin. Bowling pin hand-drawn in matching Lucide stroke style — Lucide doesn't ship one. |
 | Sticky CTA bar (mobile) | Always-visible bottom bar, two equal-weight buttons: *Reserve a lane* (solid Glow) + *Plan an event* (outlined warm-white). Lives in layout, not Hero. |
-| Sticky header (desktop) | Same two CTAs top-right of a sticky header. |
-| Drawer header | *"The works."* — when hamburger drawer opens (hero menu icon, no text label) |
+| Sticky header (desktop) | Same two CTAs top-right of a sticky header. **Placement under review** — overlap with hamburger flagged; top-middle proposed, awaiting approval. |
 | Visual mood | Moody/neutral, dark backgrounds, warm wood + copper accents, photo-led, bold display type. *Not* neon. |
 | Bowling positioning | VIP suite is the bowling shot on the homepage. Traditional lanes acknowledged lower. |
-| Reserved copy (cocktail/bar section header) | *"Cocktails this serious aren't supposed to live at bowling alleys."* — held for the cocktail/bar block lower on the homepage. Don't pre-spend. |
-| Deprecated copy | *"The bar that bowls."* (retired) · *"Built for adults. Kids will come."* (superseded by *"Fine, bring the kids."*) |
+| Reserved copy (cocktail/bar section H2) | Short: *"Built by America's Top Mixologist. (Their words, not ours.)"* · Full: *"Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist."* — held for the future cocktail/bar block. Don't pre-spend. |
+| Deprecated copy | *"The bar that bowls."* (retired) · *"Built for adults. Kids will come."* (superseded by *"Fine, bring the kids."*) · *"Built by America's Top Mixologist. (Their words, not ours.)"* in **hero subhead slot** (retired — moved to reserved-copy for cocktail/bar H2; "built by" carried through from headline and misimplied the mixologist built the venue). |
+| Workflow | Direct-to-main pushes after one-time `feat/hero-round-2` round. Vercel auto-deploys on push. |
 
 ---
 
 ## In Progress
 
-- **Live hero shipping to Vercel preview** (current deliverable, 2026-04-30) — Astro + Motion One, mobile-first, with global sticky CTA bar
-- Ornamental comparison (deliverable #3) — Formation arrows / Pin mark / clean-minimal / scribble-watermark, rendered as section dividers against the live hero. Queued behind the preview ship.
-- Homepage structure planning — queued after ornamental decision lands
-- Adobe Fonts kit ID — pending; substitutes (Barlow Cond / Montserrat / Roboto Slab) ship in their place
+- **Hero is live** (2026-04-30) at https://twistedpin-website.vercel.app — main-tip auto-deploys from each push.
+- **Ornamental comparison (deliverable #3)** — next up. Formation arrows / Pin mark / clean-minimal / scribble-watermark, rendered as section dividers between the live hero and a placeholder second section.
+- **Homepage structure planning (deliverable #4)** — queued after the ornamental decision lands.
+- **Mobile hero video splice** — direction approved (3 sources), specific window timestamps pending user.
+- **Desktop sticky CTA placement** — proposal pending approval (top-middle vs. bottom-middle vs. proper sticky header).
+- **Adobe Fonts kit ID** — pending; substitutes ship in their place.
 
 ---
 
@@ -107,3 +113,11 @@ Supporting assets:
 - **2026-04-30 — Sticky CTA bar always-visible on mobile** (vs. hide-on-scroll). Primary conversion element; ~64px is small relative to viewport. Hide-on-scroll can be A/B'd later.
 - **2026-04-30 — Self-hosted fonts via `@fontsource`** (vs. Google CDN). LCP-critical: removes second-origin DNS+TLS, enables explicit preload control.
 - **2026-04-30 — Vercel deploy via GitHub integration** (vs. CLI direct). Auto-deploys per branch from day one per the established workflow.
+- **2026-04-30 — Hero subhead changed from credential to stats trio + menu beat.** New copy: *"28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu"*. Reason: the old subhead *"Built by America's Top Mixologist…"* started with "Built by", which carried through from the headline *"Built for adults. Fine, bring the kids."* — readers were misimplying the mixologist had built the venue itself, not just the bar program. The credential lines moved to reserved-copy for the future cocktail/bar section H2 (see voice.md).
+- **2026-04-30 — In-hero CTA killed.** *"Reserve a lane"* button removed from Hero. The global sticky bar (always-visible bottom on mobile, top-right on desktop) carries 100% of hero conversion now.
+- **2026-04-30 — Headline overflow on narrow viewports fixed.** Settled on `clamp(34px, 11vw, 80px)` + `letter-spacing: -0.015em`. Verified glyph fit (not block fit) at 360 / 390 / 412 with 8.78 / 13.09 / 16.31 px slack via Range API.
+- **2026-04-30 — Brand mark wired as image.** `LogoGBED_Horizontal_White` for the hero (mobile 41px / desktop 56px after two rounds of size bumps). `Logo_Horizontal_GlowInTheDark` (no GBED tagline) for the drawer header (mobile 73px / desktop 84px).
+- **2026-04-30 — Drawer header *"The works."* retired.** Replaced with the GlowInTheDark logo per the Pints & Paddle / Swingers pattern.
+- **2026-04-30 — Drawer rows get Lucide line icons.** Right-aligned, 24px, `currentColor`. 4 directly from Lucide; bowling pin hand-drawn in matching stroke style (Lucide doesn't ship one).
+- **2026-04-30 — Mobile hero video splice direction locked.** Three sources: pour (Bank Vs Stories) → tap wall (Beer Wall) → cocktail (Best Things To Order). Specific window timestamps pending user. Currently live: Bank Vs Stories single 4s shot.
+- **2026-04-30 — Workflow returned to direct-to-main pushes.** One-time `feat/hero-round-2` feature-branch round complete; iteration cadence too fast for ongoing branch ceremony. Vercel auto-deploys on every push to main.
