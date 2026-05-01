@@ -208,18 +208,27 @@ These have been approved for use in their specified slots. Use as-written.
 |---|---|
 | Hero eyebrow (homepage) | *PLAINFIELD, IL* |
 | Hero headline (homepage, two lines) | *Built for adults.* / *Fine, bring the kids.* |
-| Hero subhead (homepage) | *Built by America's Top Mixologist. (Their words, not ours.)* |
-| Hero CTA (primary) | *Reserve a lane* |
-| Cocktail/bar section header (reserved) | *Cocktails this serious aren't supposed to live at bowling alleys.* |
+| Hero subhead (homepage) | *28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu* (4th item drops below 600px) |
+| Hero CTA (primary) | None — sticky bar carries all hero conversion (*Reserve a lane* + *Plan an event*) |
 | Closing band (homepage, before footer) | *You can keep doing dinner-and-a-movie. Or you can do this.* |
 
 The closing-band line carries the spiciest attitude on the site — confident, slightly dry, indicts the alternative without punching down. Don't dilute it. The hero headline carries the second spiciest — *"Fine, bring the kids."* is the concessive punchline; never water down the second line.
 
-The reserved cocktail/bar section header is held for the cocktail/bar block further down the homepage — not the hero. Don't pre-spend it elsewhere.
+### Reserved copy (held for specific future slots)
+
+These lines are written, approved, and waiting for their slot to be built. **Don't pre-spend them elsewhere.**
+
+| Slot | Line |
+|---|---|
+| Cocktail/bar section H2 (homepage, future) — short variant | *Built by America's Top Mixologist. (Their words, not ours.)* |
+| Cocktail/bar section H2 (homepage, future) — full variant | *Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist.* |
+
+Both variants lead with the program, drop the credential as the closer (per the inverted-structure rule). Pick one when the cocktail/bar section is built; the longer one carries more attitude and reads better with room to breathe, the shorter one fits a tighter section header.
 
 ### Deprecated copy (do not use)
-- *"The bar that bowls."* — retired. Reads as a tagline competing with the headline; not in use.
+- *"The bar that bowls."* — retired. Reads as a tagline competing with the headline.
 - *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
+- *"Built by America's Top Mixologist. (Their words, not ours.)"* in the **hero subhead slot** — retired from the hero. Reason: the hero headline starts with "Built for adults." and the subhead repeating "Built by…" misimplied the mixologist built the venue itself, not just the bar program. The line lives on as reserved copy for the cocktail/bar section H2 (see above) where the context makes the credential unambiguous.
 
 For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.
 

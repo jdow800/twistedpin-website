@@ -67,8 +67,13 @@
       <span class="hero-headline-line hero-fade" data-delay-ms="0">Built&nbsp;for&nbsp;adults.</span>
       <span class="hero-headline-line hero-fade" data-delay-ms="300">Fine,&nbsp;bring&nbsp;the&nbsp;kids.</span>
     </h1>
+    {/* Stats trio + menu beat. nbsp inside each item locks wrap to dots only.
+        At ≤600px the 4th item is dropped per the locked fallback (surfaced
+        in handoff): 4 items wrap to 3 lines on a 360px viewport because
+        line 2 can't fit "17 traditional lanes · A chef-inspired menu"
+        (~336px) inside the 316px container. */}
     <p class="hero-sub hero-fade" data-delay-ms="380">
-      Built by America's Top Mixologist. <em>(Their words, not ours.)</em>
+      28&nbsp;self-serve&nbsp;taps <span class="dot">·</span>&nbsp;A&nbsp;6-lane&nbsp;VIP&nbsp;suite <span class="dot">·</span>&nbsp;17&nbsp;traditional&nbsp;lanes<span class="wide-only"> <span class="dot">·</span>&nbsp;A&nbsp;chef-inspired&nbsp;menu</span>
     </p>
   </div>
 </section>
@@ -206,9 +211,16 @@
     color: #ece6d6;
     max-width: 22em;
   }
-  .hero-sub em {
-    font-style: italic;
-    color: var(--warm-mid);
+  /* Generous spacing around each middle-dot separator + a dimmer color
+     than the surrounding text so the dots read as rhythm, not punctuation. */
+  .hero-sub .dot {
+    color: var(--warm-dim);
+    margin: 0 0.35em;
+  }
+  /* 4th item shows ≥600px; on narrow viewports the trio fits cleanly. */
+  .hero-sub .wide-only { display: none; }
+  @media (min-width: 600px) {
+    .hero-sub .wide-only { display: inline; }
   }
   @media (min-width: 1025px) {
     .hero-sub {
