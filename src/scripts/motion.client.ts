@@ -36,15 +36,22 @@ function heroEntry(): void {
 }
 
 /* -----------------------------------------------------------
-   Sticky CTA bar entry — slide up from below on first paint.
+   Sticky CTA bar entry — direction depends on viewport.
+   Mobile (≤1024): slide up from below (bottom-fixed bar).
+   Desktop (≥1025): slide down from above (top-fixed bar).
+   The CSS initial state matches the from-keyframe per viewport, so
+   pre-Motion paint also shows the bar in the right starting position.
    ----------------------------------------------------------- */
 function stickyCTAEntry(): void {
   const bar = document.querySelector<HTMLElement>("[data-cta-bar]");
   if (!bar) return;
   const reduced = reducedMotion();
+  const isDesktop = typeof window !== "undefined" &&
+    window.matchMedia("(min-width: 1025px)").matches;
+  const fromY = isDesktop ? "-120%" : "120%";
   animate(
     bar,
-    { opacity: [0, 1], transform: ["translateY(120%)", "translateY(0%)"] },
+    { opacity: [0, 1], transform: [`translateY(${fromY})`, "translateY(0%)"] },
     { duration: reduced ? 0.001 : 0.32, delay: reduced ? 0 : 0.55, ease: [0.22, 0.61, 0.36, 1] },
   );
 }

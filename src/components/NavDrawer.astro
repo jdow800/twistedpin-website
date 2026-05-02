@@ -165,11 +165,12 @@ const ICON_PATHS: Record<IconKey, string> = {
     border-radius: 1px;
   }
 
-  /* On desktop, the sticky CTA bar lives top-right too — push the hamburger left of it. */
+  /* Hamburger stays at top-right on every viewport — the desktop CTA bar
+     has been moved to top-center (see StickyCTABar.astro), so the right
+     corner is free. The earlier brittle `right: 360px` desktop override
+     broke when the bar grew wider than 336px; not coming back. */
   @media (min-width: 1025px) {
     .nav-toggle {
-      /* sticky CTA bar width varies with content; offset is generous */
-      right: 360px;
       top: calc(20px + var(--safe-top));
     }
   }

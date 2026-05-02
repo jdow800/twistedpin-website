@@ -300,7 +300,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      writes inline styles on the bar after its entry animation — inline
      styles win specificity over a regular stylesheet rule. The
      transition itself is also marked important so the un-hide path
-     animates back smoothly. */
+     animates back smoothly.
+
+     Direction matches the entry direction: mobile bar slides DOWN to
+     hide (it lives at the bottom), desktop bar slides UP to hide (it
+     lives at the top-center). */
   body.snap-cta-hidden [data-cta-bar] {
     opacity: 0 !important;
     transform: translateY(120%) !important;
@@ -308,6 +312,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     transition:
       opacity 280ms ease-out,
       transform 280ms ease-out !important;
+  }
+  @media (min-width: 1025px) {
+    body.snap-cta-hidden [data-cta-bar] {
+      transform: translateY(-120%) !important;
+    }
   }
 </style>
 

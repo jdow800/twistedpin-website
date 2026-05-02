@@ -33,22 +33,31 @@
     border: 1px solid rgba(244, 239, 227, 0.10);
     box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
 
-    /* entry state — Motion One slides this up on first paint */
+    /* mobile entry state — Motion One slides this up from below on first paint */
     transform: translateY(120%);
     opacity: 0;
   }
   .cta-bar .btn { flex: 1; padding: 14px 16px; font-size: 11.5px; }
 
   @media (min-width: 1025px) {
-    /* Desktop: become a top-right sticky header. */
+    /* Desktop: floating top-center bar.
+       Auto-centers via the fixed-position + symmetric-edges + auto-margins
+       trick. `width: fit-content` keeps it from filling the viewport.
+       Decision rationale (see CLAUDE.md desktop CTA placement): top-center
+       clears the hamburger (top-right) and the brand logo (top-left, hero
+       only) without forcing brittle horizontal offsets on either side. */
     .cta-bar {
       top: calc(16px + var(--safe-top));
-      right: 24px;
-      left: auto;
       bottom: auto;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: fit-content;
       padding: 8px;
       gap: 8px;
       border-radius: var(--radius-button);
+      /* Slide DOWN from above on desktop — top-bar entry direction. */
+      transform: translateY(-120%);
     }
     .cta-bar .btn { flex: 0 0 auto; padding: 12px 20px; font-size: 12px; }
   }
