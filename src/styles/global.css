@@ -110,6 +110,18 @@ img, video, svg { display: block; max-width: 100%; }
   color: var(--indigo-deep);
 }
 .btn-solid:hover { background: var(--glow-dim); transform: scale(1.02); }
+
+/* Copper-solid CTA — second primary button.
+   Documented exception to the "Glow only on the primary CTA" rule:
+   Reserve a Lane and Plan an Event are co-equal primaries for two
+   different audiences. Copper #D88B5C with Indigo Deep #0E0A1F text
+   measures ~6.9:1 contrast — passes WCAG AA at 4.5:1. */
+.btn-copper {
+  background: var(--copper);
+  color: var(--indigo-deep);
+}
+.btn-copper:hover { background: #c47547; transform: scale(1.02); }
+
 .btn-outline {
   background: transparent;
   color: var(--warm-white);

@@ -1,0 +1,62 @@
+---
+/**
+ * NavToggle — the hamburger button only.
+ *
+ * Extracted from NavDrawer so it can live inside the persistent SiteHeader
+ * flex flow (mobile-only). NavDrawer keeps the slide-in overlay.
+ *
+ * Wiring: motion.client.ts navDrawer() queries `[data-nav-toggle]` regardless
+ * of where the toggle lives in the DOM, so opening/closing keeps working.
+ *
+ * Visual recipe matches the prior fixed-position version: translucent dark
+ * fill + warm-white border + backdrop blur. Reads on video, on solid Midnight
+ * Indigo, and on Indigo Deep — see CLAUDE.md decisions for the rationale.
+ */
+---
+<button
+  type="button"
+  class="nav-toggle"
+  data-nav-toggle
+  aria-controls="nav-drawer"
+  aria-expanded="false"
+  aria-label="Open menu"
+>
+  <span class="bar" aria-hidden="true"></span>
+  <span class="bar" aria-hidden="true"></span>
+</button>
+
+<style>
+  .nav-toggle {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(14, 10, 31, 0.62);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    border-radius: var(--radius-button);
+    cursor: pointer;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out;
+  }
+  .nav-toggle:hover {
+    background: rgba(14, 10, 31, 0.82);
+    border-color: rgba(244, 239, 227, 0.32);
+  }
+  .nav-toggle .bar {
+    display: block;
+    width: 22px;
+    height: 1.6px;
+    background: var(--warm-white);
+    border-radius: 1px;
+  }
+
+  /* Mobile-only — desktop uses inline nav in SiteHeader. Lives here (not in
+     SiteHeader's `:global` selector) so the scoped specificity wins. */
+  @media (min-width: 1025px) {
+    .nav-toggle { display: none; }
+  }
+</style>

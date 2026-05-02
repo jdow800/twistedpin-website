@@ -2,18 +2,23 @@
 import "../styles/global.css";
 import StickyCTABar from "../components/StickyCTABar.astro";
 import NavDrawer from "../components/NavDrawer.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import CouponBanner from "../components/CouponBanner.astro";
 
 interface Props {
   title?: string;
   description?: string;
   /** Hide the global sticky CTA bar (e.g. on the booking flow). */
   hideStickyCTA?: boolean;
+  /** Hide the persistent header (rare — full-bleed campaign pages). */
+  hideHeader?: boolean;
 }
 
 const {
   title = "Twisted Pin — Plainfield, IL",
   description = "Cocktails, 28 self-serve taps, and a 6-lane VIP suite. Built for adults. Plainfield, IL.",
   hideStickyCTA = false,
+  hideHeader = false,
 } = Astro.props;
 ---
 <!doctype html>
@@ -46,7 +51,19 @@ const {
     />
   </head>
   <body>
+    {/* Persistent chrome — fixed to the top of the viewport.
+        CouponBanner sits above SiteHeader; when the banner collapses, the
+        header naturally rises into the freed space (document flow within
+        the fixed wrapper). */}
+    {!hideHeader && (
+      <div class="site-chrome">
+        <CouponBanner />
+        <SiteHeader />
+      </div>
+    )}
+
     <slot />
+
     <NavDrawer />
     {!hideStickyCTA && <StickyCTABar />}
 
@@ -54,5 +71,17 @@ const {
       import { initMotion } from "../scripts/motion.client.ts";
       initMotion();
     </script>
+
+    <style is:global>
+      /* The fixed chrome wrapper. Children flow normally inside it; banner
+         collapse animates height → 0 and the header rises naturally. */
+      .site-chrome {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 20;
+      }
+    </style>
   </body>
 </html>

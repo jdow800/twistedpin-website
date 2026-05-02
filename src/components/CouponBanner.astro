@@ -1,0 +1,177 @@
+---
+/**
+ * CouponBanner — slim promotional strip above the persistent header.
+ *
+ * Visible on desktop only (≥1025px). Mobile gets the coupon via hamburger
+ * + footer routes (locked decision, intentional desktop/mobile divergence).
+ *
+ * Mechanic:
+ *   - Default: visible on initial paint
+ *   - Auto-hide: collapses on scroll past the hero (IntersectionObserver
+ *     watching [data-hero]; one-shot, doesn't return on scroll-up)
+ *   - Manual dismiss: × click sets sessionStorage flag and collapses
+ *   - sessionStorage flag persists across page loads in the same session;
+ *     on subsequent loads the banner renders pre-collapsed (no animation)
+ *   - Collapse: max-height 36 → 0, opacity 1 → 0, padding to 0, smooth 280ms
+ *
+ * Document flow: when collapsed, height drops to 0 and the SiteHeader
+ * naturally rises into the freed space. No `top` math required.
+ */
+---
+<aside
+  class="coupon-banner"
+  data-coupon-banner
+  aria-label="Promotional offer"
+>
+  <a class="coupon-banner-link" href="/free-10/">
+    Sign up for $10 off coupon
+    <span class="arrow" aria-hidden="true">→</span>
+  </a>
+  <button
+    type="button"
+    class="coupon-banner-dismiss"
+    data-coupon-dismiss
+    aria-label="Dismiss promotional banner"
+  >
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <line x1="6" y1="6" x2="18" y2="18" />
+      <line x1="18" y1="6" x2="6" y2="18" />
+    </svg>
+  </button>
+</aside>
+
+<script>
+  const banner = document.querySelector<HTMLElement>("[data-coupon-banner]");
+  if (banner) {
+    const STORAGE_KEY = "coupon-banner-dismissed";
+
+    /* Pre-render collapsed if dismissed earlier this session.
+       No-transition class skips the animation on initial paint. */
+    if (sessionStorage.getItem(STORAGE_KEY) === "1") {
+      banner.classList.add("collapsed", "no-transition");
+      // Drop the no-transition flag after first paint so future state
+      // changes still animate (defensive — nothing should re-open it).
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => banner.classList.remove("no-transition"));
+      });
+    }
+
+    const collapse = (persist: boolean) => {
+      if (banner.classList.contains("collapsed")) return;
+      banner.classList.add("collapsed");
+      if (persist) sessionStorage.setItem(STORAGE_KEY, "1");
+    };
+
+    /* Manual dismiss button. */
+    document.querySelector("[data-coupon-dismiss]")
+      ?.addEventListener("click", () => collapse(true));
+
+    /* Auto-hide on scroll past hero. IntersectionObserver watches the
+       hero section; once it's no longer intersecting (scrolled past),
+       we collapse. One-shot — no return on scroll-up by design. */
+    const hero = document.querySelector<HTMLElement>("[data-hero]");
+    if (hero && "IntersectionObserver" in window) {
+      const obs = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) {
+              collapse(false);
+              obs.disconnect();
+            }
+          }
+        },
+        { threshold: 0 },
+      );
+      obs.observe(hero);
+    }
+
+    /* Scroll-listener fallback for environments where IO doesn't fire
+       reliably (we hit this in the headless preview). Cheap rect read. */
+    if (hero) {
+      const onScroll = () => {
+        if (banner.classList.contains("collapsed")) return;
+        const rect = hero.getBoundingClientRect();
+        if (rect.bottom <= 0) collapse(false);
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      // Also listen on .snap (mobile snap container is the actual scrollport
+      // on /snap-test/). No-op on routes without a .snap element.
+      const snap = document.querySelector<HTMLElement>(".snap");
+      snap?.addEventListener("scroll", onScroll, { passive: true });
+    }
+  }
+</script>
+
+<style>
+  .coupon-banner {
+    /* Mobile: not rendered (locked decision). */
+    display: none;
+    background: var(--indigo);
+    color: var(--warm-white);
+    text-align: center;
+    padding: 8px 48px 8px 16px; /* room for the dismiss button on the right */
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+    /* Constrains the visible band so the collapse can animate smoothly. */
+    max-height: 36px;
+    transition:
+      max-height 280ms ease-out,
+      opacity 280ms ease-out,
+      padding-top 280ms ease-out,
+      padding-bottom 280ms ease-out;
+  }
+  @media (min-width: 1025px) {
+    .coupon-banner { display: block; }
+  }
+
+  .coupon-banner.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .coupon-banner.no-transition { transition: none; }
+
+  .coupon-banner-link {
+    color: inherit;
+    text-decoration: none;
+    transition: color 150ms ease-out;
+  }
+  .coupon-banner-link:hover { color: var(--glow); }
+  .coupon-banner-link .arrow {
+    margin-left: 6px;
+    display: inline-block;
+    transition: transform 150ms ease-out;
+  }
+  .coupon-banner-link:hover .arrow { transform: translateX(2px); }
+
+  .coupon-banner-dismiss {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warm-mid);
+    background: transparent;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: color 150ms ease-out, background-color 150ms ease-out;
+  }
+  .coupon-banner-dismiss:hover {
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.08);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .coupon-banner { transition: none; }
+  }
+</style>

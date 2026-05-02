@@ -1,0 +1,302 @@
+---
+/**
+ * SiteHeader — persistent top header. Rendered globally by Base.astro,
+ * lives inside the .site-chrome wrapper alongside CouponBanner.
+ *
+ * Desktop (≥1025px):
+ *   [Logo] [BAR EAT BOWL GAME EVENTS MORE▼]   [Reserve] [Plan]
+ * Mobile (≤1024px):
+ *   [Logo]                                                [☰]
+ *
+ * Active-page indicator: 1px Glow underline below the active link only —
+ * NOT applied on hover. Per locked decision (Phase 1 build spec round).
+ *
+ * MORE dropdown is click-only (no hover-open). Reasons logged in build spec:
+ * hover dropdowns are unreliable on touch devices in 1024–1279px, click-only
+ * is the accessibility default, and the ▼ caret is sufficient discoverability.
+ *
+ * Background: light translucent scrim + backdrop blur. One static recipe
+ * that has to read on hero video, on Midnight Indigo solids, and on the
+ * Indigo Deep footer — same pattern as the hamburger button.
+ */
+import NavToggle from "./NavToggle.astro";
+
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+interface NavItem { href: string; label: string }
+
+const navItems: NavItem[] = [
+  { href: "/bar/",    label: "Bar"    },
+  { href: "/eat/",    label: "Eat"    },
+  { href: "/bowl/",   label: "Bowl"   },
+  { href: "/game/",   label: "Game"   },
+  { href: "/events/", label: "Events" },
+];
+
+const moreItems: NavItem[] = [
+  { href: "/upcoming-events/", label: "Upcoming Events" },
+  { href: "/leagues/",         label: "Leagues"         },
+  { href: "/rewards/",         label: "Rewards"         },
+  { href: "/gift-cards/",      label: "Gift Cards"      },
+  { href: "/faq/",             label: "FAQ"             },
+  { href: "/contact/",         label: "Contact"         },
+  { href: "/careers/",         label: "Careers"         },
+];
+
+const isActive = (href: string) =>
+  currentPath === href.replace(/\/$/, "");
+---
+<header class="site-header" data-site-header>
+  {/* Left group: logo + (desktop) inline nav */}
+  <div class="header-left">
+    <a class="site-logo" href="/" aria-label="Twisted Pin home">
+      <picture>
+        <source type="image/webp" srcset="/logo/twisted-pin-horizontal-white.webp" />
+        <img
+          src="/logo/twisted-pin-horizontal-white.png"
+          alt="Twisted Pin"
+          width="298"
+          height="128"
+          decoding="async"
+          fetchpriority="high"
+        />
+      </picture>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      <ul>
+        {navItems.map(item => (
+          <li>
+            <a
+              href={item.href}
+              class={isActive(item.href) ? "active" : ""}
+              aria-current={isActive(item.href) ? "page" : undefined}
+            >{item.label}</a>
+          </li>
+        ))}
+        <li class="has-dropdown">
+          <button
+            type="button"
+            class="more-toggle"
+            data-more-toggle
+            aria-expanded="false"
+            aria-haspopup="menu"
+            aria-controls="site-more-menu"
+          >
+            More
+            <span class="caret" aria-hidden="true">▼</span>
+          </button>
+          <ul
+            id="site-more-menu"
+            class="more-dropdown"
+            data-more-menu
+            role="menu"
+            hidden
+          >
+            {moreItems.map(item => (
+              <li role="none">
+                <a
+                  role="menuitem"
+                  href={item.href}
+                  class={isActive(item.href) ? "active" : ""}
+                >{item.label}</a>
+              </li>
+            ))}
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  {/* Right group: (desktop) two CTAs + (mobile) hamburger */}
+  <div class="header-right">
+    <div class="site-cta-cluster">
+      <a class="btn btn-solid" href="/reserve">Reserve a lane</a>
+      <a class="btn btn-copper" href="/events">Plan an event</a>
+    </div>
+    <NavToggle />
+  </div>
+</header>
+
+<script>
+  /* MORE dropdown — click-only per locked decision.
+     - Click toggle: opens/closes
+     - Click outside: closes
+     - Escape: closes and returns focus to the toggle */
+  const moreToggle = document.querySelector<HTMLButtonElement>("[data-more-toggle]");
+  const moreMenu = document.querySelector<HTMLElement>("[data-more-menu]");
+
+  if (moreToggle && moreMenu) {
+    const setOpen = (open: boolean) => {
+      moreToggle.setAttribute("aria-expanded", String(open));
+      if (open) moreMenu.removeAttribute("hidden");
+      else moreMenu.setAttribute("hidden", "");
+    };
+
+    moreToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(moreToggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    document.addEventListener("click", (e) => {
+      const t = e.target as Element | null;
+      if (!t?.closest(".has-dropdown")) setOpen(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && moreToggle.getAttribute("aria-expanded") === "true") {
+        setOpen(false);
+        moreToggle.focus();
+      }
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 10px 22px;
+    /* Light scrim so the header reads on video, on Midnight Indigo, and on
+       Indigo Deep without ever feeling like a heavy clubhouse band. */
+    background: rgba(14, 10, 31, 0.40);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  @media (min-width: 1025px) {
+    .site-header { padding: 10px 40px; }
+  }
+
+  .header-left,
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  @media (min-width: 1025px) {
+    .header-left { gap: 32px; }
+    .header-right { gap: 16px; }
+  }
+
+  /* ---------- logo ---------- */
+  .site-logo {
+    line-height: 0;
+    display: inline-flex;
+    flex: 0 0 auto;
+    filter: drop-shadow(0 1px 6px rgba(14, 10, 31, 0.5));
+  }
+  .site-logo img {
+    height: 41px;
+    width: auto;
+    display: block;
+  }
+  @media (min-width: 1025px) {
+    .site-logo img { height: 56px; }
+  }
+
+  /* ---------- inline nav (desktop only) ---------- */
+  .site-nav { display: none; }
+  @media (min-width: 1025px) { .site-nav { display: block; } }
+
+  .site-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .site-nav a,
+  .more-toggle {
+    display: inline-block;
+    position: relative;
+    padding: 10px 12px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    transition: color 150ms ease-out;
+  }
+  .site-nav a:hover,
+  .more-toggle:hover { color: var(--glow); }
+
+  /* Active-page underline — applies ONLY to the current page, never on
+     hover. Per locked decision. The ::after sits 4px below the text,
+     padded to the link's text edges (matches the link's horizontal padding). */
+  .site-nav a.active { color: var(--warm-white); }
+  .site-nav a.active::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 4px;
+    height: 1px;
+    background: var(--glow);
+  }
+
+  .more-toggle .caret {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 0.7em;
+    transition: transform 150ms ease-out;
+  }
+  .more-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
+  .more-toggle[aria-expanded="true"] { color: var(--warm-white); }
+
+  /* ---------- MORE dropdown panel ---------- */
+  .has-dropdown { position: relative; }
+  .more-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 220px;
+    list-style: none;
+    margin: 0;
+    padding: 8px 0;
+    background: rgba(14, 10, 31, 0.95);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-radius: var(--radius-button);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
+    z-index: 25;
+  }
+  .more-dropdown a {
+    display: block;
+    padding: 10px 18px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    transition: color 150ms ease-out, background-color 150ms ease-out;
+  }
+  .more-dropdown a:hover {
+    color: var(--glow);
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .more-dropdown a.active { color: var(--warm-white); }
+
+  /* ---------- CTA cluster (desktop only) ---------- */
+  .site-cta-cluster {
+    display: none;
+    align-items: center;
+    gap: 8px;
+  }
+  @media (min-width: 1025px) {
+    .site-cta-cluster { display: inline-flex; }
+  }
+  .site-cta-cluster .btn { padding: 12px 18px; font-size: 12px; }
+
+  /* nav toggle responsive visibility lives in NavToggle.astro
+     (scoped specificity beats `:global` from this component). */
+</style>

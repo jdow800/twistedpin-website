@@ -1,6 +1,9 @@
 ---
 /**
- * Global navigation drawer — hamburger button (top-right of viewport) + slide-in overlay.
+ * Global navigation drawer — slide-in overlay only.
+ *
+ * The hamburger button extracted to NavToggle.astro (mounted inside SiteHeader's
+ * flex flow). This component renders the backdrop + drawer panel + content.
  *
  * Drawer header: Logo_Horizontal_GlowInTheDark image (replaces the earlier "The works." text).
  * Drawer body: placeholder section links with Lucide-style line icons, right-aligned.
@@ -45,18 +48,6 @@ const ICON_PATHS: Record<IconKey, string> = {
   'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
 };
 ---
-<button
-  type="button"
-  class="nav-toggle"
-  data-nav-toggle
-  aria-controls="nav-drawer"
-  aria-expanded="false"
-  aria-label="Open menu"
->
-  <span class="bar" aria-hidden="true"></span>
-  <span class="bar" aria-hidden="true"></span>
-</button>
-
 <div class="nav-backdrop" data-nav-backdrop aria-hidden="true"></div>
 
 <aside
@@ -125,55 +116,8 @@ const ICON_PATHS: Record<IconKey, string> = {
 </aside>
 
 <style>
-  /* ---------- hamburger toggle ----------
-     One static treatment that has to read on every background type the
-     site puts behind it: video frames (bright + busy), solid Midnight
-     Indigo (snap-test stubs), and the indigo-deep footer. The combination:
-       1. Translucent dark fill (works against video and lighter solids)
-       2. Subtle warm-white border (defines the shape against same-color
-          dark backgrounds — fixes the snap-8 invisibility we saw)
-       3. Backdrop blur (legibility over busy video frames)
-     Same recipe as the back-to-top button so the corners share a vocabulary. */
-  .nav-toggle {
-    position: fixed;
-    z-index: 40;
-    top: calc(16px + var(--safe-top));
-    right: 16px;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: rgba(14, 10, 31, 0.62);
-    border: 1px solid rgba(244, 239, 227, 0.18);
-    backdrop-filter: blur(10px) saturate(140%);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
-    border-radius: var(--radius-button);
-    transition: background-color 150ms ease-out, border-color 150ms ease-out;
-  }
-  .nav-toggle:hover {
-    background: rgba(14, 10, 31, 0.82);
-    border-color: rgba(244, 239, 227, 0.32);
-  }
-  .nav-toggle .bar {
-    display: block;
-    width: 22px;
-    height: 1.6px;
-    background: var(--warm-white);
-    border-radius: 1px;
-  }
-
-  /* Hamburger stays at top-right on every viewport — the desktop CTA bar
-     has been moved to top-center (see StickyCTABar.astro), so the right
-     corner is free. The earlier brittle `right: 360px` desktop override
-     broke when the bar grew wider than 336px; not coming back. */
-  @media (min-width: 1025px) {
-    .nav-toggle {
-      top: calc(20px + var(--safe-top));
-    }
-  }
+  /* Hamburger toggle styles live in NavToggle.astro — extracted because the
+     button is now a flex child of SiteHeader, not a fixed-position element. */
 
   /* ---------- backdrop + drawer ---------- */
   .nav-backdrop {

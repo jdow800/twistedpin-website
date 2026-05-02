@@ -11,20 +11,8 @@
  */
 ---
 <section class="hero" data-hero>
-  {/* Brand mark — top-left, on top of media */}
-  <a class="hero-brand" href="/" aria-label="Twisted Pin home">
-    <picture>
-      <source type="image/webp" srcset="/logo/twisted-pin-horizontal-white.webp" />
-      <img
-        src="/logo/twisted-pin-horizontal-white.png"
-        alt="Twisted Pin"
-        width="298"
-        height="128"
-        decoding="async"
-        fetchpriority="high"
-      />
-    </picture>
-  </a>
+  {/* Brand mark lives in the persistent SiteHeader — not duplicated here.
+      The header sits over the hero with a translucent dark scrim. */}
 
   {/* MOBILE — vertical video.
       poster preloaded in Base.astro <head>; preload="metadata" defers byte-fetch. */}
@@ -87,28 +75,6 @@
     min-height: 560px;
     overflow: hidden;
     background: #000;
-  }
-
-  /* ---------- brand mark ---------- */
-  .hero-brand {
-    position: absolute;
-    z-index: 4;
-    top: calc(20px + var(--safe-top));
-    left: 22px;
-    /* Wrap a fixed-height image — width auto-scales via the image's aspect ratio. */
-    line-height: 0;
-    filter: drop-shadow(0 1px 6px rgba(14, 10, 31, 0.5));
-  }
-  .hero-brand img {
-    /* +20% from round-3's 34px (round-2 was 28px). Still reading small to
-       the design eye — bump first, evaluate full-bleed after. */
-    height: 41px;
-    width: auto;
-    display: block;
-  }
-  @media (min-width: 1025px) {
-    .hero-brand { top: calc(28px + var(--safe-top)); left: 40px; }
-    .hero-brand img { height: 56px; }
   }
 
   /* ---------- media ---------- */
