@@ -105,29 +105,33 @@ img, video, svg { display: block; max-width: 100%; }
   transition: transform 150ms ease-out, background-color 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
   will-change: transform;
 }
+/* ---------- Primary / alternate CTA hierarchy ----------
+   Reserve a Lane = primary (highest volume action, most impulsive intent)
+     → Glow solid, Indigo Deep text. Loudest button on the page.
+
+   Plan an Event = deliberate alternate (lower volume, higher LTV; the
+   motivated user finds the quieter button)
+     → Indigo Deep solid, warm-white outlined border, warm-white text.
+       Restraint-as-confidence pattern, not a demotion.
+
+   Reverses the earlier "two co-equal primaries / Glow + Copper" decision
+   (deployed treatment competed visually and undermined premium positioning).
+   See CLAUDE.md decisions log 2026-05-01. */
 .btn-solid {
   background: var(--glow);
   color: var(--indigo-deep);
 }
 .btn-solid:hover { background: var(--glow-dim); transform: scale(1.02); }
 
-/* Copper-solid CTA — second primary button.
-   Documented exception to the "Glow only on the primary CTA" rule:
-   Reserve a Lane and Plan an Event are co-equal primaries for two
-   different audiences. Copper #D88B5C with Indigo Deep #0E0A1F text
-   measures ~6.9:1 contrast — passes WCAG AA at 4.5:1. */
-.btn-copper {
-  background: var(--copper);
-  color: var(--indigo-deep);
-}
-.btn-copper:hover { background: #c47547; transform: scale(1.02); }
-
 .btn-outline {
-  background: transparent;
+  background: var(--indigo-deep);
   color: var(--warm-white);
   border: 1px solid var(--warm-white);
 }
-.btn-outline:hover { background: rgba(244, 239, 227, 0.08); transform: scale(1.02); }
+.btn-outline:hover {
+  background: var(--indigo);
+  transform: scale(1.02);
+}
 
 /* ============================================================
    Reduced motion — disable transforms, keep instant fade

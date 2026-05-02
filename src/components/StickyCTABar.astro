@@ -5,15 +5,16 @@
  * Desktop CTAs moved into the persistent SiteHeader (Phase 1 build). This
  * component is mobile-only — display: none on ≥1025.
  *
- * Brand-consistency: both buttons use the locked solid treatment that the
- * desktop header uses — Glow + Copper. The earlier outlined treatment for
- * "Plan an event" undersold the second primary; both CTAs are equal-weight
- * primaries per the locked decision (see CLAUDE.md decisions log).
+ * CTA hierarchy mirrors the desktop header: Reserve a Lane is primary
+ * (Glow solid), Plan an Event is the deliberate alternate (Indigo Deep
+ * solid + warm-white outlined). Restraint-as-confidence pattern.
+ * See CLAUDE.md decisions log 2026-05-01 for the reversal of the earlier
+ * "two co-equal primaries / Glow + Copper" treatment.
  */
 ---
 <aside class="cta-bar" data-cta-bar aria-label="Site actions">
   <a href="/reserve" class="btn btn-solid">Reserve a lane</a>
-  <a href="/events" class="btn btn-copper">Plan an event</a>
+  <a href="/events" class="btn btn-outline">Plan an event</a>
 </aside>
 
 <style>
