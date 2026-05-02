@@ -277,20 +277,29 @@ const isActive = (href: string) =>
     margin: 0;
     padding: 8px 0;
 
-    /* Picks up the header chrome vocabulary — translucent dark fill +
-       backdrop blur + subtle warm-white border + layered drop shadow.
-       Bumped opacity from 0.95 (flat) to 0.78 (premium glass) so the
-       blur actually shows through. Header itself is more translucent
-       (0.40) but a dropdown contains text that has to read cleanly,
-       so it sits between header chrome and a fully opaque panel. */
-    background: rgba(14, 10, 31, 0.78);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border: 1px solid rgba(244, 239, 227, 0.14);
+    /* Premium glass — picks up the header chrome but earns its own
+       visual presence as a floating panel. The inset top highlight
+       (1px warm-white at low opacity inside the box-shadow stack)
+       simulates light catching the panel's top edge — the move that
+       actually makes glass read as glass instead of as a flat tinted
+       rectangle. Bg dropped to 0.55 so the blur clearly shows through
+       (0.78 was still reading too solid against video). Stronger blur
+       and saturate so the colors behind the panel come through with
+       more life. */
+    background: rgba(14, 10, 31, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(244, 239, 227, 0.18);
     border-radius: var(--radius-button);
     box-shadow:
-      0 8px 16px rgba(0, 0, 0, 0.30),
-      0 24px 48px rgba(0, 0, 0, 0.45);
+      /* inset top: lit edge — the move */
+      inset 0 1px 0 rgba(244, 239, 227, 0.14),
+      /* close: anchor against immediate background */
+      0 4px 8px rgba(0, 0, 0, 0.20),
+      /* mid: floating depth */
+      0 12px 24px rgba(0, 0, 0, 0.30),
+      /* far: lift off the surface */
+      0 32px 64px rgba(0, 0, 0, 0.50);
     z-index: 25;
   }
   /* Hide when the trigger is closed — `[hidden]` from the HTML attribute
