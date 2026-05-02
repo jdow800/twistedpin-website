@@ -48,20 +48,16 @@
   {/* Scrim for legibility */}
   <div class="hero-scrim" aria-hidden="true"></div>
 
-  {/* Copy stack — eyebrow, two-line headline, subhead. No CTA in hero. */}
+  {/* Copy stack — two-line headline + subhead. No eyebrow, no in-hero CTA.
+      Promoted to match the /snap-test/ hero (eyebrow + stat trio retired
+      from the live hero in favor of the simpler positioning line). */}
   <div class="hero-copy">
-    <p class="t-eyebrow hero-eyebrow hero-fade" data-delay-ms="0">Plainfield, IL</p>
     <h1 class="t-display hero-headline">
       <span class="hero-headline-line hero-fade" data-delay-ms="0">Built&nbsp;for&nbsp;adults.</span>
       <span class="hero-headline-line hero-fade" data-delay-ms="300">Fine,&nbsp;bring&nbsp;the&nbsp;kids.</span>
     </h1>
-    {/* Stats trio + menu beat. nbsp inside each item locks wrap to dots only.
-        At ≤600px the 4th item is dropped per the locked fallback (surfaced
-        in handoff): 4 items wrap to 3 lines on a 360px viewport because
-        line 2 can't fit "17 traditional lanes · A chef-inspired menu"
-        (~336px) inside the 316px container. */}
     <p class="hero-sub hero-fade" data-delay-ms="380">
-      28&nbsp;self-serve&nbsp;taps <span class="dot">·</span>&nbsp;A&nbsp;6-lane&nbsp;VIP&nbsp;suite <span class="dot">·</span>&nbsp;17&nbsp;traditional&nbsp;lanes<span class="wide-only"> <span class="dot">·</span>&nbsp;A&nbsp;chef-inspired&nbsp;menu</span>
+      Plainfield's premier night out. Bowling optional.
     </p>
   </div>
 </section>
@@ -134,16 +130,8 @@
     }
   }
 
-  /* ---------- eyebrow ----------
-     No left-alignment compensator needed: at 360 / 390 / 412 the eyebrow's
-     block left and the headline's block left both compute to 22px (verified
-     in dev tools). letter-spacing only adds space *after* each character, so
-     the first character ("P") sits flush against the block edge — same as the
-     headline's "B". */
-
-  /* Tight 12px gap from eyebrow to headline (was 14px from the generic > * + * rule). */
+  /* Headline sits at the top of the copy stack (no eyebrow above it). */
   .hero-headline {
-    margin-top: 12px;
     color: var(--warm-white);
     /* Mobile: 11vw + -0.015em fits "FINE, BRING THE KIDS." inside the
        container at 360 / 390 / 412 with a small margin (verified via
@@ -172,28 +160,17 @@
     margin-top: 16px;
     font-family: var(--font-body);
     font-weight: 400;
-    font-size: 16px;
+    font-size: 17px;
     line-height: 1.45;
     color: #ece6d6;
-    max-width: 22em;
-  }
-  /* Generous spacing around each middle-dot separator + a dimmer color
-     than the surrounding text so the dots read as rhythm, not punctuation. */
-  .hero-sub .dot {
-    color: var(--warm-dim);
-    margin: 0 0.35em;
-  }
-  /* 4th item shows ≥600px; on narrow viewports the trio fits cleanly. */
-  .hero-sub .wide-only { display: none; }
-  @media (min-width: 600px) {
-    .hero-sub .wide-only { display: inline; }
+    max-width: 24em;
   }
   @media (min-width: 1025px) {
     .hero-sub {
       margin-top: 22px;
-      font-size: 19px;
+      font-size: 20px;
       line-height: 1.5;
-      max-width: 32em;
+      max-width: 30em;
     }
   }
 

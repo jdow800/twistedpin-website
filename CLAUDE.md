@@ -74,8 +74,10 @@ Supporting assets:
 | Brand mark (hero, top-left) | Logo image (`LogoGBED_Horizontal_White`). Mobile 41px / desktop 56px. Round-4 sizes. |
 | Drawer header | Logo image (`Logo_Horizontal_GlowInTheDark`, no GBED tagline). Mobile 73px / desktop 84px. Replaces the retired *"The works."* text. |
 | Drawer rows | Lucide line icons right-aligned, 24px, `currentColor` (Glow on hover): martini / bowling-pin / calendar / utensils-crossed / map-pin. Bowling pin hand-drawn in matching Lucide stroke style — Lucide doesn't ship one. |
-| Sticky CTA bar (mobile) | Always-visible bottom bar, two equal-weight buttons: *Reserve a lane* (solid Glow) + *Plan an event* (outlined warm-white). Lives in layout, not Hero. |
-| Sticky header (desktop) | Same two CTAs top-right of a sticky header. **Placement under review** — overlap with hamburger flagged; top-middle proposed, awaiting approval. |
+| Sticky CTA bar (mobile) | Always-visible bottom bar, two equal-weight solid buttons: *Reserve a lane* (Glow) + *Plan an event* (Copper). Lives in layout, not Hero. |
+| Persistent header (desktop) | `SiteHeader` global component. Logo (left) + inline nav BAR · EAT · BOWL · GAME · EVENTS · MORE ▼ (center) + Reserve / Plan CTAs (right). Light translucent scrim + backdrop blur. MORE dropdown click-only. Active-page underline (Glow, 1px) on current page only. |
+| Persistent header (mobile) | Logo (left) + hamburger (right). Inline nav + CTAs hidden; CTAs live in the bottom sticky bar. |
+| Coupon banner | Retired (built and removed same-day). Coupon reaches users via MORE dropdown (`/free-10/`) + footer. |
 | Visual mood | Moody/neutral, dark backgrounds, warm wood + copper accents, photo-led, bold display type. *Not* neon. |
 | Bowling positioning | VIP suite is the bowling shot on the homepage. Traditional lanes acknowledged lower. |
 | Reserved copy (cocktail/bar section H2) | Short: *"Built by America's Top Mixologist. (Their words, not ours.)"* · Full: *"Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist."* — held for the future cocktail/bar block. Don't pre-spend. |
@@ -90,8 +92,9 @@ Supporting assets:
 - **Ornamental comparison (deliverable #3)** — next up. Formation arrows / Pin mark / clean-minimal / scribble-watermark, rendered as section dividers between the live hero and a placeholder second section.
 - **Homepage structure planning (deliverable #4)** — queued after the ornamental decision lands.
 - **Mobile hero video splice** — direction approved (3 sources), specific window timestamps pending user.
-- **Desktop sticky CTA placement** — proposal pending approval (top-middle vs. bottom-middle vs. proper sticky header).
 - **Adobe Fonts kit ID** — pending; substitutes ship in their place.
+- **Phase 2 desktop architecture** — 6-section weighted-height structure spec'd and approved; held pending Phase 1 review.
+- **API batch round** — Hours sync (Google Places), real phone, social URLs, footer route hrefs, real cocktail video. Bundled rather than one-at-a-time.
 
 ---
 
@@ -121,3 +124,9 @@ Supporting assets:
 - **2026-04-30 — Drawer rows get Lucide line icons.** Right-aligned, 24px, `currentColor`. 4 directly from Lucide; bowling pin hand-drawn in matching stroke style (Lucide doesn't ship one).
 - **2026-04-30 — Mobile hero video splice direction locked.** Three sources: pour (Bank Vs Stories) → tap wall (Beer Wall) → cocktail (Best Things To Order). Specific window timestamps pending user. Currently live: Bank Vs Stories single 4s shot.
 - **2026-04-30 — Workflow returned to direct-to-main pushes.** One-time `feat/hero-round-2` feature-branch round complete; iteration cadence too fast for ongoing branch ceremony. Vercel auto-deploys on every push to main.
+- **2026-05-01 — Persistent SiteHeader shipped (Phase 1 of desktop architecture).** Logo + inline nav (BAR · EAT · BOWL · GAME · EVENTS · MORE ▼) + two solid CTAs (Reserve = Glow, Plan = Copper) on desktop; logo + hamburger on mobile. Resolves the long-standing desktop CTA placement question — both elements now share a single header bar. Active-page indicator: 1px Glow underline, current page only, never on hover. MORE dropdown click-only (no hover-open) for accessibility + touch reliability in 1024–1279px range.
+- **2026-05-01 — Live hero copy promoted to match `/snap-test/`.** Eyebrow *PLAINFIELD, IL* and stat-trio subhead retired from `/`. New subhead: *"Plainfield's premier night out. Bowling optional."* Same headline. Brings the live hero in line with the snap-test staging hero — was reading stale on the deployed desktop.
+- **2026-05-01 — Coupon banner removed from desktop chrome.** Built and shipped in Phase 1, then killed after review of the deployed treatment. Reasons: (1) didn't earn its space — read promo-y, undercut premium positioning; (2) auto-hides on scroll past hero anyway, so impact was limited; (3) coupon stays reachable via MORE dropdown (`/free-10/`) and footer — those surfaces are sufficient for the audience that wants it. Component file retained at `src/components/CouponBanner.astro` in case it returns; import commented out in `Base.astro`.
+- **2026-05-01 — `.btn-copper` added globally.** Documented exception to the "Glow only on the primary CTA" rule. Reserve a Lane (Glow) and Plan an Event (Copper) are co-equal primaries for two different audiences. Contrast verified: Copper #D88B5C with Indigo Deep #0E0A1F text computes to ~6.9:1 (passes WCAG AA at 4.5:1). Mobile sticky CTA's "Plan an event" switched from outlined to copper-solid for brand consistency.
+- **2026-05-01 — MORE dropdown overflow fix.** Initial build had `.site-nav ul { display: flex }` which inadvertently selected the dropdown's inner UL too — turned the dropdown into a 663px-wide horizontal flex row that overflowed off the left edge of the viewport. Scoped to `.site-nav > ul` and added explicit `display: block` on `.more-dropdown` for safety.
+- **2026-05-01 — Mobile hero logo retired.** `.hero-brand` removed from `Hero.astro` (live `/`) and from the `/snap-test/` snap 1 inline hero. The persistent SiteHeader's logo is now the only logo across all routes. Resolves the mobile-hero-logo redundancy flagged in the desktop architecture brief.

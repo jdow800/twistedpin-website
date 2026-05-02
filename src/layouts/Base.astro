@@ -3,7 +3,11 @@ import "../styles/global.css";
 import StickyCTABar from "../components/StickyCTABar.astro";
 import NavDrawer from "../components/NavDrawer.astro";
 import SiteHeader from "../components/SiteHeader.astro";
-import CouponBanner from "../components/CouponBanner.astro";
+// CouponBanner removed from desktop chrome — see CLAUDE.md decisions log.
+// Component file retained at src/components/CouponBanner.astro in case the
+// banner is reinstated later. Coupon stays reachable via MORE dropdown
+// (/free-10/) and the footer.
+// import CouponBanner from "../components/CouponBanner.astro";
 
 interface Props {
   title?: string;
@@ -52,12 +56,10 @@ const {
   </head>
   <body>
     {/* Persistent chrome — fixed to the top of the viewport.
-        CouponBanner sits above SiteHeader; when the banner collapses, the
-        header naturally rises into the freed space (document flow within
-        the fixed wrapper). */}
+        CouponBanner removed from the chrome stack (locked decision —
+        coupon lives in MORE dropdown + footer only). */}
     {!hideHeader && (
       <div class="site-chrome">
-        <CouponBanner />
         <SiteHeader />
       </div>
     )}

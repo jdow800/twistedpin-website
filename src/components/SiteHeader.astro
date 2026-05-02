@@ -201,7 +201,11 @@ const isActive = (href: string) =>
   .site-nav { display: none; }
   @media (min-width: 1025px) { .site-nav { display: block; } }
 
-  .site-nav ul {
+  /* Direct-child scope on the outer nav UL is critical — without `>`, this
+     rule matches the MORE dropdown's inner UL too, turning the dropdown
+     into a horizontal flex row that blows past 600px wide. (Verified via
+     real overflow on the deploy.) */
+  .site-nav > ul {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -209,7 +213,10 @@ const isActive = (href: string) =>
     align-items: center;
     gap: 4px;
   }
-  .site-nav a,
+
+  /* Inline nav-link styling — scoped to direct children of the outer UL
+     so the same rule doesn't bleed into dropdown anchors. */
+  .site-nav > ul > li > a,
   .more-toggle {
     display: inline-block;
     position: relative;
@@ -225,14 +232,14 @@ const isActive = (href: string) =>
     cursor: pointer;
     transition: color 150ms ease-out;
   }
-  .site-nav a:hover,
+  .site-nav > ul > li > a:hover,
   .more-toggle:hover { color: var(--glow); }
 
   /* Active-page underline — applies ONLY to the current page, never on
      hover. Per locked decision. The ::after sits 4px below the text,
      padded to the link's text edges (matches the link's horizontal padding). */
-  .site-nav a.active { color: var(--warm-white); }
-  .site-nav a.active::after {
+  .site-nav > ul > li > a.active { color: var(--warm-white); }
+  .site-nav > ul > li > a.active::after {
     content: "";
     position: absolute;
     left: 12px;
@@ -256,7 +263,15 @@ const isActive = (href: string) =>
   .more-dropdown {
     position: absolute;
     top: calc(100% + 6px);
+    /* Anchor to the right edge of the MORE button and extend leftward.
+       Width is content-driven (min-width 220px floor); fits inside the
+       viewport at ≥1280px because the MORE button itself sits in the
+       middle of the header. */
     right: 0;
+    /* Explicit display:block so the dropdown isn't accidentally caught
+       by `.site-nav ul { display: flex }` again (already scoped to
+       direct child, but belt + suspenders). */
+    display: block;
     min-width: 220px;
     list-style: none;
     margin: 0;
@@ -269,6 +284,10 @@ const isActive = (href: string) =>
     box-shadow: 0 18px 36px rgba(0, 0, 0, 0.45);
     z-index: 25;
   }
+  /* Hide when the trigger is closed — `[hidden]` from the HTML attribute
+     gets overridden by display:block above without this. */
+  .more-dropdown[hidden] { display: none; }
+  .more-dropdown li { display: list-item; }
   .more-dropdown a {
     display: block;
     padding: 10px 18px;
