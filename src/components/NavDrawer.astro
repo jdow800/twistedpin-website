@@ -21,12 +21,18 @@ interface Section {
   icon: IconKey;
 }
 
+// Minimum-scope patch (2026-05-03): each slot retargeted to a slug that
+// matches the post-Phase-1 SiteHeader IA. The 5-slot structure is preserved
+// pending the broader hamburger-IA decision (sitemap-tldr Q7). VIP Suite
+// keeps its drawer slot — the standalone /vip-suite page is the canonical
+// destination for both the bowling and events VIP-suite mentions, and the
+// drawer reflects its strategic weight as the actual revenue engine.
 const sections: Section[] = [
-  { href: "/craft-bar/",  label: "Craft Bar", icon: "martini" },
+  { href: "/bar/",        label: "Bar",       icon: "martini"     },
+  { href: "/eat/",        label: "Eat",       icon: "utensils"    },
   { href: "/vip-suite/",  label: "VIP Suite", icon: "bowling-pin" },
-  { href: "/events/",     label: "Events",    icon: "calendar" },
-  { href: "/menu/",       label: "Menu",      icon: "utensils" },
-  { href: "/find-us/",    label: "Find Us",   icon: "map-pin" },
+  { href: "/events/",     label: "Events",    icon: "calendar"    },
+  { href: "/#find-us",    label: "Find Us",   icon: "map-pin"     },
 ];
 
 // Lucide stroke conventions: 24x24 viewBox, 2px stroke, round caps + joins, fill="none".
