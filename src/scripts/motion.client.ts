@@ -53,6 +53,172 @@ function stickyCTAEntry(): void {
 }
 
 /* -----------------------------------------------------------
+   Section video — single-active-video rule across `[data-section-video]`
+   elements. Ratio > 0.5 plays; below pauses. Math note: with stacked
+   sections summing > 100vh in height, only one section can have
+   intersection ratio > 0.5 at a time, so mutual exclusivity falls out
+   of the geometry — no central state manager needed.
+
+   Lazy-source promotion: any source with `data-src` (instead of `src`)
+   is promoted as soon as the video has *any* visibility (ratio > 0).
+   Bytes don't load until the user is approaching the section.
+
+   Mute is enforced on every state transition — audio collision is
+   structurally impossible regardless of future "should this have sound?"
+   decisions on individual videos.
+   ----------------------------------------------------------- */
+function sectionVideo(): void {
+  const videos = Array.from(document.querySelectorAll<HTMLVideoElement>("video[data-section-video]"));
+  if (videos.length === 0) return;
+
+  const reduced = reducedMotion();
+  if (reduced) {
+    // Reduced motion: no autoplay anywhere; show the poster only.
+    videos.forEach((v) => {
+      v.removeAttribute("autoplay");
+      try { v.pause(); } catch { /* not yet ready, fine */ }
+    });
+    return;
+  }
+
+  const enforceMute = (v: HTMLVideoElement): void => { v.muted = true; };
+
+  const promoteLazySources = (v: HTMLVideoElement): void => {
+    if (v.dataset.sourcesPromoted === "true") return;
+    let promoted = false;
+    v.querySelectorAll<HTMLSourceElement>("source[data-src]").forEach((s) => {
+      const src = s.getAttribute("data-src");
+      if (src) { s.setAttribute("src", src); promoted = true; }
+    });
+    if (promoted) {
+      v.dataset.sourcesPromoted = "true";
+      v.load();
+    }
+  };
+
+  const playOne = (v: HTMLVideoElement): void => {
+    enforceMute(v);
+    promoteLazySources(v);
+    v.play().catch(() => { /* autoplay blocked; poster shows */ });
+  };
+
+  const isMostlyInView = (v: HTMLVideoElement): boolean => {
+    const r = v.getBoundingClientRect();
+    if (r.height === 0) return false;
+    const vh = window.innerHeight;
+    const visible = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 0));
+    return visible / r.height > 0.5;
+  };
+
+  // Initial state — enforce mute everywhere; pause anything not mostly in view.
+  videos.forEach((v) => {
+    enforceMute(v);
+    if (!isMostlyInView(v)) {
+      try { v.pause(); } catch { /* not yet ready */ }
+    }
+  });
+
+  if ("IntersectionObserver" in window) {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const v = e.target as HTMLVideoElement;
+          if (e.intersectionRatio > 0) promoteLazySources(v);
+          if (e.intersectionRatio >= 0.5) playOne(v);
+          else v.pause();
+        }
+      },
+      { threshold: [0, 0.5] },
+    );
+    videos.forEach((v) => obs.observe(v));
+  }
+
+  // Scroll-listener fallback. window covers desktop long-scroll; .snap covers
+  // the mobile container's own overflow scrollport.
+  const onScroll = (): void => {
+    for (const v of videos) {
+      if (isMostlyInView(v)) playOne(v);
+      else { try { v.pause(); } catch { /* */ } }
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  const snapEl = document.querySelector<HTMLElement>(".snap");
+  if (snapEl) snapEl.addEventListener("scroll", onScroll, { passive: true });
+}
+
+/* -----------------------------------------------------------
+   Section reveal — fade-up on scroll-into-view, once per element.
+   Used by /snap-test/ desktop track (Phase 2A) for `[data-reveal]`
+   markers. Defensive against the documented IO flakiness in headless
+   preview environments: belt + suspenders with window scroll, .snap
+   scroll, AND an immediate-visible check at boot.
+   ----------------------------------------------------------- */
+function sectionReveal(): void {
+  const reveals = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+  if (reveals.length === 0) return;
+
+  const reduced = reducedMotion();
+  if (reduced) {
+    // CSS already shows them via the prefers-reduced-motion media query.
+    // Belt + suspenders: clear inline styles in case anything left them set.
+    reveals.forEach((el) => {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+    });
+    return;
+  }
+
+  const reveal = (el: HTMLElement): void => {
+    if (el.dataset.revealed === "true") return;
+    el.dataset.revealed = "true";
+    animate(
+      el,
+      { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
+      { duration: 0.45, ease: [0.22, 0.61, 0.36, 1] },
+    );
+  };
+
+  const isInView = (el: HTMLElement): boolean => {
+    const r = el.getBoundingClientRect();
+    const vh = window.innerHeight;
+    // Trigger when ~10% of the element is on-screen at the bottom edge.
+    return r.top < vh * 0.9 && r.bottom > 0;
+  };
+
+  // Fire immediately for elements already in view at boot — covers cases
+  // where IO never observes (headless previews) and where the user lands
+  // mid-page (back-button, anchor link).
+  reveals.forEach((el) => { if (isInView(el)) reveal(el); });
+
+  if ("IntersectionObserver" in window) {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            reveal(e.target as HTMLElement);
+            obs.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -10% 0px" },
+    );
+    reveals.forEach((el) => { if (el.dataset.revealed !== "true") obs.observe(el); });
+  }
+
+  // Scroll-listener fallback. window covers desktop long-scroll; .snap
+  // covers the mobile container (its own overflow scrollport) where window
+  // scroll never fires.
+  const onScroll = (): void => {
+    for (const el of reveals) {
+      if (el.dataset.revealed !== "true" && isInView(el)) reveal(el);
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  const snapEl = document.querySelector<HTMLElement>(".snap");
+  if (snapEl) snapEl.addEventListener("scroll", onScroll, { passive: true });
+}
+
+/* -----------------------------------------------------------
    Nav drawer — open/close. CSS handles the slide; JS toggles classes
    and manages focus + scroll lock.
    ----------------------------------------------------------- */
@@ -94,6 +260,8 @@ export function initMotion(): void {
     requestAnimationFrame(() => {
       heroEntry();
       stickyCTAEntry();
+      sectionReveal();
+      sectionVideo();
     });
   });
 }

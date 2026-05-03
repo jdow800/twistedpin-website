@@ -30,9 +30,14 @@
     <source src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
   </video>
 
-  {/* DESKTOP — 16:9 video (placeholder until final clip is shot). */}
+  {/* DESKTOP — 16:9 video (placeholder until final clip is shot).
+      data-section-video: the sectionVideo() motion module pauses this
+      video when its intersection ratio drops below 0.5, freeing main-thread
+      decode for the next section's video. Mobile hero video is intentionally
+      NOT marked — the locked mobile track keeps its current behavior. */}
   <video
     class="hero-video hero-video-desktop"
+    data-section-video
     preload="metadata"
     muted
     autoplay

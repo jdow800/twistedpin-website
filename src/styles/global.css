@@ -36,7 +36,18 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* Reserve scrollbar gutter on BOTH edges so containers using
+     `margin: 0 auto` center against the visible viewport, not just the
+     scrollbar-narrowed body. Without `both-edges`, plain `stable` only
+     reserves on the inline-end side — body becomes narrower-than-viewport
+     and centered content shifts ~15px off-axis from the visible window.
+     Phase 2C review caught this as a 14–15px frame-position asymmetry
+     between Tap Wall (col 1) and Cocktails (col 2). Browser support for
+     `both-edges`: Chrome/Edge 94+, Firefox 97+, Safari 18.2+. */
+  scrollbar-gutter: stable both-edges;
+}
 body {
   background: var(--indigo-deep);
   color: var(--warm-white);

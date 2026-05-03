@@ -23,12 +23,16 @@ interface Props {
   href?: string;
   /** Optional aria-label override for the section. */
   label?: string;
+  /** Extra classes applied to the snap-section root. Used by /snap-test/ to
+   *  flag stubs as `mobile-only` so they collapse on desktop while the
+   *  desktop-track sections take over (Phase 2A parallel-track architecture). */
+  class?: string;
 }
-const { title, subhead, subheadParen, href = "#", label } = Astro.props;
+const { title, subhead, subheadParen, href = "#", label, class: className = "" } = Astro.props;
 const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
 ---
 <section
-  class="snap-section snap-stub"
+  class:list={["snap-section", "snap-stub", className]}
   aria-labelledby={ariaId}
   aria-label={label}
 >

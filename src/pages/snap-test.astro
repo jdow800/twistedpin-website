@@ -1,16 +1,35 @@
 ---
 /**
- * /snap-test/ — staging route for the 8-snap homepage architecture.
+ * /snap-test/ — staging route for the homepage architecture.
  *
- * Snap order (locked in the architecture brief):
- *   1. Hero (revised: no eyebrow, no stat bar, new subhead)
- *   2. Events / Suite Life       (stub — solid Midnight Indigo)
- *   3. Tap Wall                  (real beer-wall video, lazy-loaded)
- *   4. Craft Cocktails           (stub)
- *   5. Food                      (stub)
- *   6. Bowl                      (stub)
- *   7. Arcade                    (stub)
- *   8. Hours / Location / Footer (sticky CTA bar hidden here)
+ * PHASE 2A — parallel mobile / desktop tracks.
+ *
+ * Mobile track (≤1024px) — locked, do not touch:
+ *   1. Hero (shared with both tracks)
+ *   2. Events / Suite Life   (mobile-only stub)
+ *   3. Tap Wall              (mobile-only, real beer-wall video)
+ *   4. Craft Cocktails       (mobile-only stub)
+ *   5. Food                  (mobile-only stub)
+ *   6. Bowl                  (mobile-only stub)
+ *   7. Arcade                (mobile-only stub)
+ *   8. Footer (shared with both tracks)
+ *
+ * Desktop track (≥1025px) — Phase 2A scaffolds 4 weighted-height sections
+ *   that replace the mobile snaps 2–7. Order intentionally diverges from
+ *   mobile (cornerstones first, lighter beats after):
+ *   1. Hero                                   (shared, 100dvh)
+ *   2. Tap Wall          [Phase 2B placeholder, 70vh]
+ *   3. Craft Cocktails   [Phase 2C placeholder, 70vh]
+ *   4. Events            [Phase 2D placeholder, 60vh]
+ *   5. EAT · BOWL · GAME [Phase 2E placeholder, 70vh — hidden via CSS
+ *                         until social-team stills land: food / bowl
+ *                         VIP-room / arcade prizes. Full-neon arcade
+ *                         is off-brand per visual-direction.md.]
+ *   6. Footer                                 (shared)
+ *
+ * Track-swap mechanic: `mobile-only` and `desktop-only` modifier classes
+ *   on each section, gated by `@media (min-width: 1025px)`. Both tracks
+ *   live in the same DOM; the inactive track is `display: none`.
  *
  * Snap mechanic: container-driven scroll-snap on mobile (≤1024), normal
  *   long-scroll on desktop. See the .snap CSS block for specifics.
@@ -21,8 +40,8 @@
  *   Promotion to / happens after staging review.
  *
  * Sticky CTA bar (rendered by Base) stays visible on snaps 1–7; the
- *   page-level scroll watcher toggles `body.snap-cta-hidden` when snap 8
- *   is in view, fading the bar out.
+ *   page-level scroll watcher toggles `body.snap-cta-hidden` when the
+ *   footer is in view, fading the bar out.
  */
 import Base from "../layouts/Base.astro";
 import SnapStub from "../components/snap/SnapStub.astro";
@@ -56,9 +75,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         <source src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
       </video>
 
-      {/* Desktop 16:9 video. */}
+      {/* Desktop 16:9 video.
+          data-section-video: pauses when scroll-past drops the ratio below 0.5,
+          freeing main-thread decode for the Tap Wall video next in line.
+          Mobile hero video is intentionally NOT marked — locked mobile track. */}
       <video
         class="hero-video hero-video-desktop"
+        data-section-video
         preload="metadata"
         muted
         autoplay
@@ -86,18 +109,19 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </section>
 
     {/* ================================================
-        SNAP 2 — EVENTS THAT DON'T SUCK  (stub)
+        SNAP 2 — EVENTS THAT DON'T SUCK  (mobile-only stub)
         ================================================ */}
     <SnapStub
       title="Events That Don't Suck"
       subhead="Privatize the suite. Run the night your way."
       href="#"
+      class="mobile-only"
     />
 
     {/* ================================================
-        SNAP 3 — THE TAP WALL  (real beer-wall video, lazy-loaded)
+        SNAP 3 — THE TAP WALL  (mobile-only, real beer-wall video)
         ================================================ */}
-    <section class="snap-section snap-tapwall" data-tapwall-section aria-labelledby="tapwall-h1">
+    <section class="snap-section snap-tapwall mobile-only" data-tapwall-section aria-labelledby="tapwall-h1">
       {/* Lazy: <video preload="none">; sources held in data-src until the
           page-level lazy-loader promotes them on near-viewport entry. */}
       <video
@@ -126,52 +150,195 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </section>
 
     {/* ================================================
-        SNAP 4 — CRAFT COCKTAILS  (stub; reserved-copy subhead, line-break form)
-        Title-case "Top Mixologist" preserved per voice.md locked copy —
-        worth confirming if you wanted strict sentence-case here.
+        SNAP 4 — CRAFT COCKTAILS  (mobile-only stub; terse credential)
+        Desktop track promotes this to a 50/50 split with the long-form
+        reserved copy ("Cocktails this serious aren't supposed to live at
+        bowling alleys.") — see the desktop-cocktails section below.
         ================================================ */}
     <SnapStub
       title="Craft Cocktails"
       subhead="Built by America's Top Mixologist."
       subheadParen="their words, not ours"
       href="#"
+      class="mobile-only"
     />
 
     {/* ================================================
-        SNAP 5 — FOOD  (stub; food-focused copy, no bar reference)
+        SNAP 5 — FOOD  (mobile-only; food-focused copy, no bar reference)
         ================================================ */}
     <SnapStub
       title="Food"
       subhead="Chef-inspired menu."
       subheadParen="built to share"
       href="#"
+      class="mobile-only"
     />
 
     {/* ================================================
-        SNAP 6 — BOWL  (stub; locked lane phrasing + paren aside)
-        Keeps the canonical "17 traditional lanes + a 6-lane VIP suite"
-        data points (per voice.md) and adds the privatize-the-suite aside.
+        SNAP 6 — BOWL  (mobile-only; VIP-leading + privatize aside)
+        Desktop EBG card uses the tighter no-aside variant — see voice.md
+        Locked Lines (two Bowl variants).
         ================================================ */}
     <SnapStub
       title="Bowl"
       subhead="17 traditional lanes plus a 6-lane VIP suite."
       subheadParen="yes, you can take it over"
       href="#"
+      class="mobile-only"
     />
 
     {/* ================================================
-        SNAP 7 — ARCADE  (stub; statement / aside per round-N feedback)
+        SNAP 7 — ARCADE  (mobile-only; statement / aside)
         ================================================ */}
     <SnapStub
       title="Arcade"
       subhead="Skee-ball, redemption, jackpot."
       subheadParen="don't pretend you don't want the giant bear"
       href="#"
+      class="mobile-only"
     />
 
     {/* ================================================
-        SNAP 8 — HOURS / LOCATION / FOOTER
-        Sticky CTA bar fades out when this snap is in view.
+        DESKTOP TRACK — six cluster sections, each one full viewport
+        height with vertical scroll-snap. Mobile snap-track is locked
+        and untouched; this is the desktop-only sibling track that
+        mirrors mobile's 6-section structure (Hero + 6 + Footer = 8
+        snaps top-to-bottom on both devices).
+
+        Pattern: every section uses the same composition — frame on
+        the LEFT, copy on the RIGHT, no alternation. Sameness IS the
+        design (per the Spotify-featured-albums register). Snap-scroll
+        gives each section full viewport presence, so the dead-air
+        problem from earlier phases (when sections shared a long-scroll
+        with content centered in a 100vh box) doesn't apply here —
+        the cluster fills the section.
+
+        Body copy on Events / Tap Wall / Cocktails is locked from
+        prior phases. Body copy on Eat / Bowl / Game is FIRST DRAFT
+        — voice-checked but expects user iteration.
+
+        Class strategy: shared `.cluster-*` classes (single rule per
+        property) since six sections use the identical pattern. Per-
+        section classes (`.desktop-events` etc.) are kept on the
+        section element only, for any section-specific overrides if
+        ever needed.
+        ================================================ */}
+
+    {/* DESKTOP — Events */}
+    <section class="snap-section desktop-only desktop-events" aria-labelledby="desktop-events-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <picture>
+            <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
+            <img class="cluster-img" src="/snap/events-bg-600.jpg" srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="Guests gathered in the VIP suite at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>VIP Suite</p>
+          <h2 class="cluster-title" id="desktop-events-h2" data-reveal>Events that don't suck</h2>
+          <p class="cluster-body" data-reveal>Take over the 6-lane VIP suite. Custom catering. Birthdays, corporate things, the after-party of an after-party. Tell us what you want, we set it up.</p>
+          <a class="stub-learn" href="/events" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* DESKTOP — Tap Wall (video, lazy-loaded + plays when in-viewport) */}
+    <section class="snap-section desktop-only desktop-tapwall" aria-labelledby="desktop-tapwall-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/beerwall-poster.webp" aria-hidden="true">
+            <source data-src="/snap/beerwall-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>The Bar</p>
+          <h2 class="cluster-title" id="desktop-tapwall-h2" data-reveal>The tap wall</h2>
+          <p class="cluster-body" data-reveal>28 self-serve taps. The only self-serve wall in the area. Pour your own beer, wine, or rotating cocktail. Tap a card, find your style, settle up when you're done.</p>
+          <a class="stub-learn" href="/bar" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* DESKTOP — Cocktails (long-form credential, two-line split body) */}
+    <section class="snap-section desktop-only desktop-cocktails" aria-labelledby="desktop-cocktails-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <picture>
+            <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-900.webp 900w" sizes="(min-width: 1280px) 405px, 32vw" />
+            <img class="cluster-img" src="/snap/cocktails-bg-900.jpg" srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-900.jpg 900w" sizes="(min-width: 1280px) 405px, 32vw" alt="A cherry-garnished old fashioned in soft bokeh" width="900" height="1600" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>The Bar</p>
+          <h2 class="cluster-title" id="desktop-cocktails-h2" data-reveal>Craft cocktails</h2>
+          <p class="cluster-body cluster-body-split">
+            <span data-reveal>Cocktails this serious aren't supposed to live at bowling alleys.</span>
+            <span data-reveal>Built by America's Top Mixologist.</span>
+          </p>
+          <a class="stub-learn" href="/bar" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* DESKTOP — Eat (DRAFT body copy) */}
+    <section class="snap-section desktop-only desktop-eat" aria-labelledby="desktop-eat-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <picture>
+            <source type="image/webp" srcset="/snap/stage-eat-540.webp 540w, /snap/stage-eat-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
+            <img class="cluster-img" src="/snap/stage-eat-600.jpg" srcset="/snap/stage-eat-540.jpg 540w, /snap/stage-eat-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="A spread of food at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>Kitchen</p>
+          <h2 class="cluster-title" id="desktop-eat-h2" data-reveal>Eat</h2>
+          <p class="cluster-body" data-reveal>Chef-inspired menu, built to share. Wings, flatbreads, cheese curds — things that travel from kitchen to lane without losing the plot. Custom catering when you take it over.</p>
+          <a class="stub-learn" href="/eat" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* DESKTOP — Bowl (DRAFT body copy) */}
+    <section class="snap-section desktop-only desktop-bowl" aria-labelledby="desktop-bowl-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <picture>
+            <source type="image/webp" srcset="/snap/stage-bowl-540.webp 540w, /snap/stage-bowl-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
+            <img class="cluster-img" src="/snap/stage-bowl-600.jpg" srcset="/snap/stage-bowl-540.jpg 540w, /snap/stage-bowl-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="Bowling lanes at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>Lanes</p>
+          <h2 class="cluster-title" id="desktop-bowl-h2" data-reveal>Bowl</h2>
+          <p class="cluster-body" data-reveal>17 lanes plus a 6-lane VIP suite. Traditional lanes are open to anyone; the suite is takeable when you book it. Leagues, birthdays, the after-party — pick your size.</p>
+          <a class="stub-learn" href="/bowl" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* DESKTOP — Game (DRAFT body copy) */}
+    <section class="snap-section desktop-only desktop-game" aria-labelledby="desktop-game-h2">
+      <div class="cluster-grid">
+        <div class="cluster-frame">
+          <picture>
+            <source type="image/webp" srcset="/snap/stage-game-540.webp 540w, /snap/stage-game-900.webp 900w" sizes="(min-width: 1280px) 405px, 32vw" />
+            <img class="cluster-img" src="/snap/stage-game-900.jpg" srcset="/snap/stage-game-540.jpg 540w, /snap/stage-game-900.jpg 900w" sizes="(min-width: 1280px) 405px, 32vw" alt="Arcade prize wall at Twisted Pin" width="900" height="1600" loading="lazy" decoding="async" />
+          </picture>
+        </div>
+        <div class="cluster-copy">
+          <p class="section-eyebrow" data-reveal>Arcade</p>
+          <h2 class="cluster-title" id="desktop-game-h2" data-reveal>Game</h2>
+          <p class="cluster-body" data-reveal>Skee-ball, redemption, jackpot. Win tickets, walk out with the giant bear, drag your group through the prize wall. Open as late as we are.</p>
+          <a class="stub-learn" href="/game" data-reveal>Learn more <span aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </section>
+
+    {/* ================================================
+        FOOTER — shared by both tracks.
+        Sticky CTA bar fades out when this section is in view (mobile only;
+        desktop CTAs live in the persistent SiteHeader).
         ================================================ */}
     <SnapFooter />
   </main>
@@ -278,6 +445,17 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       onScroll();
     }
   }
+
+  /* ============================================================
+     Cluster section videos — same single-active-video rule as the
+     existing sectionVideo() motion module (which already handles
+     `[data-section-video]` elements via IntersectionObserver at
+     threshold 0.5). The desktop Tap Wall video is marked
+     data-section-video and inherits that behavior — plays only when
+     its section is in the viewport, pauses on others. With desktop
+     scroll-snap, only one section can be visible at a time, so the
+     ratio>0.5 rule cleanly identifies the active section.
+     ============================================================ */
 </script>
 
 <style is:global>
@@ -305,32 +483,32 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 
 <style>
   /* ============================================================
-     Snap container. Mobile (≤1024) takes over the viewport as the
-     scroll surface; desktop falls back to normal page flow.
+     Snap container. Vertical scroll-snap on BOTH mobile and desktop —
+     each section is one full viewport, snaps into place when scrolled
+     past its midpoint. Apple-product-page / CLUBHAUS register on
+     desktop; same mechanic mobile already had. Mobile (≤1024) and
+     desktop (≥1025) share the rule; the only desktop difference is
+     overscroll-behavior (mobile gets a contained bounce, desktop
+     defaults to native).
      ============================================================ */
   .snap {
-    /* desktop default: normal block layout */
+    height: 100dvh;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
-  @media (max-width: 1024px) {
-    .snap {
-      height: 100dvh;
-      height: 100vh;
-      height: 100dvh;
-      overflow-y: scroll;
-      overflow-x: hidden;
-      scroll-snap-type: y mandatory;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior-y: contain;
-    }
-    /* Direct children become snap stops. `:global(.snap-section)` is needed
-       because SnapStub and SnapFooter are child components — Astro scopes
-       their `.snap-section` differently from this page's, so the unscoped
-       selector misses them. (Same Astro-scoping gotcha as the live homepage
-       Hero used in earlier rounds — see CLAUDE.md decisions log.) */
-    .snap > :global(.snap-section) {
-      scroll-snap-align: start;
-      scroll-snap-stop: always;
-    }
+  /* Direct children become snap stops. `:global(.snap-section)` is needed
+     because SnapStub and SnapFooter are child components — Astro scopes
+     their `.snap-section` differently from this page's, so the unscoped
+     selector misses them. (Same Astro-scoping gotcha as the live homepage
+     Hero used in earlier rounds — see CLAUDE.md decisions log.) */
+  .snap > :global(.snap-section) {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   /* Shared section chrome — wrapped in :global so the rule matches both
@@ -350,6 +528,212 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   }
   @media (min-width: 1025px) {
     :global(.snap-section) { padding-bottom: 0; }
+  }
+
+  /* ============================================================
+     PHASE 2A — Parallel mobile / desktop tracks.
+     Both tracks live in the DOM; the inactive track is display:none.
+     Specificity: `.snap-section.{mobile,desktop}-only` (0,2,0) beats the
+     base `.snap-section` (0,1,0), so these rules win without `!important`.
+     ============================================================ */
+  @media (min-width: 1025px) {
+    :global(.snap-section.mobile-only) { display: none; }
+  }
+  :global(.snap-section.desktop-only) { display: none; }
+  @media (min-width: 1025px) {
+    :global(.snap-section.desktop-only) { display: flex; }
+  }
+
+  /* All sections (mobile-only and desktop-only) inherit the base
+     `.snap-section { min-height: 100dvh }` rule — every section fills
+     a full viewport so scroll-snap lands cleanly on each one. The
+     prior weighted-heights treatment (Tap Wall/Cocktails 70vh, Events
+     60vh) was retired when desktop adopted the snap-scroll register;
+     uniform 100dvh sections is the convention. */
+
+  /* Sections are transparent by default so the page-level Pin Tilt
+     watermark (`.snap::before`) shows through. Sections that REPLACE
+     the background entirely (Hero #000 + video) keep their own bg
+     and naturally cover the pattern in those regions. */
+  :global(.snap-section.desktop-only) {
+    background: transparent;
+  }
+
+  /* ============================================================
+     Section eyebrow — small caps category label sitting above the section
+     title. Categorizes related sections (e.g. Tap Wall + Cocktails both
+     get "THE BAR" because they're both bar-program). Adds vertical density
+     to the copy column without competing with the display title.
+     Brand spec: Proxima Nova Bold, 11–13px, tracked, all caps, slightly
+     dimmed. Glow color reinforces "this is metadata about the section."
+     ============================================================ */
+  .section-eyebrow {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--glow);
+    opacity: 0.85;
+    margin-bottom: 14px;
+  }
+
+  /* ============================================================
+     DESKTOP — Tap Wall (Phase 2B). 50/50 split.
+     Background inherits the desktop-only default (Indigo Deep). Frame:
+     ~450×800 at 1080h+, 9/16 aspect, 1px warm-white border at low
+     opacity, two-tier drop shadow.
+
+     2C-pattern sample: container max-width bumped 1280 → 1440 to give
+     the copy column more room (~590px instead of ~520px) and to bring
+     viewport gutters from 305px to 225px each side. Gutters fill with
+     a Pin Tilt watermark pattern (`.desktop-tapwall::before`) at 5%
+     opacity — fixes the "vertical river of dead indigo" red-line issue
+     without retiring frame chrome. Cocktails keeps the original 1280 +
+     no-pattern treatment as the A/B comparison.
+     ============================================================ */
+  /* Pin Tilt watermark — viewport-fixed pattern that stays put while
+     content scroll-snaps past it. Was `position: absolute; inset: 0`
+     during the long-scroll era, but with `.snap` now being the scroll
+     container (overflow-y: scroll), absolute positioning sized the
+     pseudo to one viewport at the TOP of the scroll content (hidden
+     behind Hero's #000 bg). Switching to `position: fixed` decouples
+     the pattern from the scroll container — it pins to the visible
+     viewport, content scrolls past, pattern stays. Sections without
+     their own background (cluster sections, desktop SnapFooter
+     override) show the pattern through; sections with their own
+     background (Hero #000 + video) cover the pattern in their region. */
+  .snap { position: relative; }
+  .snap::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: url("/pattern/pin-tilt-white.png");
+    background-repeat: repeat;
+    background-size: 200px auto;
+    background-position: center top;
+    opacity: 0.05;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .snap > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Footer transparency on desktop is handled in the SnapFooter
+     component directly (Astro scoped CSS specificity made the global
+     override unreliable). See SnapFooter.astro. */
+
+  /* ============================================================
+     SHARED CLUSTER PATTERN — used by all six desktop sections.
+     Frame on the LEFT (column 1), copy on the RIGHT (column 2). Same
+     orientation across every section — no alternation, no zigzag.
+     Sameness is the design (per the locked decision: "Spotify-featured-
+     albums register"). Each section fills 100dvh on desktop and
+     scroll-snaps; the cluster is centered vertically inside.
+     ============================================================ */
+  .cluster-grid {
+    width: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 64px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Gap widened from 32px to 42px (~30% larger) per review feedback —
+       gives the cluster more breathing between frame and copy without
+       crossing into "two separate columns floating apart" territory. */
+    gap: 42px;
+  }
+
+  .cluster-frame {
+    flex: 0 0 auto;
+    /* Responsive frame size. Hits ~450×800 on tall viewports (≥1080h);
+       shrinks proportionally on shorter ones so the frame always sits
+       inside the section with breathing room. aspect-ratio keeps 9:16
+       throughout. */
+    height: min(800px, calc(80vh - 40px));
+    aspect-ratio: 9 / 16;
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    box-shadow:
+      0 4px 12px rgba(0, 0, 0, 0.30),
+      0 24px 48px rgba(0, 0, 0, 0.45);
+  }
+  .cluster-frame picture { display: block; width: 100%; height: 100%; }
+  .cluster-img,
+  .cluster-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cluster-copy {
+    flex: 0 0 494px;
+    color: var(--warm-white);
+  }
+
+  /* Title — UI font, capped at 88px so the longest word ("COCKTAILS")
+     fits the 494 copy column without overflow. */
+  .cluster-title {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    font-size: clamp(56px, 7vw, 88px);
+    letter-spacing: 0.02em;
+    line-height: 1.0;
+    margin-bottom: 22px;
+  }
+
+  /* Body — flowing paragraph (Events / TW / Eat / Bowl / Game). */
+  .cluster-body {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 19px;
+    line-height: 1.5;
+    color: #ece6d6;
+    margin-bottom: 28px;
+    max-width: 26em;
+  }
+
+  /* Cocktails variant — two display:block claims for the contradiction-
+     and-reveal rhythm (provocation → credential). Same weight/size as
+     the flowing body; just structurally split into two lines. */
+  .cluster-body-split span { display: block; }
+  .cluster-body-split span + span { margin-top: 14px; }
+
+  /* SocialProof CSS retired — content + styles moved into the SnapFooter
+     component (.footer-proof / .proof-*) per the architecture decision
+     to merge social-proof into the footer instead of carrying it as a
+     separate snap. IG grid dropped per user call (the existing
+     Instagram icon in the social-icons row covers IG discovery). */
+
+  /* ============================================================
+     [data-reveal] initial state — the section-reveal motion module
+     (motion.client.ts → sectionReveal()) animates these in on
+     IntersectionObserver entry, with a window/.snap scroll-listener
+     fallback for environments where IO is flaky.
+
+     Defined AFTER all desktop-* placeholder rules so the [data-reveal]
+     opacity:0 wins source-order against `.desktop-phase-tag` (which sets
+     opacity:0.85 as its visible state). Same specificity (0,1,0); later
+     rule wins. After motion's animate() fires, its inline opacity:1
+     overrides both — element ends up fully opaque regardless.
+     ============================================================ */
+  :global([data-reveal]) {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global([data-reveal]) {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /* ============================================================

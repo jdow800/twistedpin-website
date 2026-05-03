@@ -74,45 +74,52 @@ const isActive = (href: string) =>
             >{item.label}</a>
           </li>
         ))}
-        <li class="has-dropdown">
-          <button
-            type="button"
-            class="more-toggle"
-            data-more-toggle
-            aria-expanded="false"
-            aria-haspopup="menu"
-            aria-controls="site-more-menu"
-          >
-            More
-            <span class="caret" aria-hidden="true">▼</span>
-          </button>
-          <ul
-            id="site-more-menu"
-            class="more-dropdown"
-            data-more-menu
-            role="menu"
-            hidden
-          >
-            {moreItems.map(item => (
-              <li role="none">
-                <a
-                  role="menuitem"
-                  href={item.href}
-                  class={isActive(item.href) ? "active" : ""}
-                >{item.label}</a>
-              </li>
-            ))}
-          </ul>
-        </li>
       </ul>
     </nav>
   </div>
 
-  {/* Right group: (desktop) two CTAs + (mobile) hamburger */}
+  {/* Right group: (desktop) two CTAs + MORE meta-nav + (mobile) hamburger.
+      MORE was previously the last item inside the inline nav UL. Moved out
+      during 2C polish — its dropdown was overlapping content because the
+      MORE button sat near the center of the header. As a meta-control
+      (rather than a destination like BAR/EAT/BOWL/GAME/EVENTS), MORE
+      belongs grouped with the action region anyway. Now sits after the
+      CTAs; its dropdown right-aligns to its button which is at viewport-
+      right, opening into the right gutter outside the content cluster. */}
   <div class="header-right">
     <div class="site-cta-cluster">
       <a class="btn btn-solid" href="/reserve">Reserve a lane</a>
       <a class="btn btn-outline" href="/events">Plan an event</a>
+    </div>
+    <div class="has-dropdown header-more">
+      <button
+        type="button"
+        class="more-toggle"
+        data-more-toggle
+        aria-expanded="false"
+        aria-haspopup="menu"
+        aria-controls="site-more-menu"
+      >
+        More
+        <span class="caret" aria-hidden="true">▼</span>
+      </button>
+      <ul
+        id="site-more-menu"
+        class="more-dropdown"
+        data-more-menu
+        role="menu"
+        hidden
+      >
+        {moreItems.map(item => (
+          <li role="none">
+            <a
+              role="menuitem"
+              href={item.href}
+              class={isActive(item.href) ? "active" : ""}
+            >{item.label}</a>
+          </li>
+        ))}
+      </ul>
     </div>
     <NavToggle />
   </div>
@@ -333,6 +340,21 @@ const isActive = (href: string) =>
     .site-cta-cluster { display: inline-flex; }
   }
   .site-cta-cluster .btn { padding: 12px 18px; font-size: 12px; }
+
+  /* ---------- MORE meta-nav (desktop only) ----------
+     Sits in the right cluster after the CTAs. The 16px gap from
+     .header-right's flex-gap separates it from the CTAs without a
+     graphic divider — per locked decision: whitespace alone does the
+     grouping work; a divider line would compete with the inline nav's
+     1px Glow active-page underline (two thin-line treatments doing
+     different jobs in the same header). */
+  .header-more {
+    display: none;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .header-more { display: inline-flex; }
+  }
 
   /* nav toggle responsive visibility lives in NavToggle.astro
      (scoped specificity beats `:global` from this component). */
