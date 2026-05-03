@@ -233,9 +233,9 @@ Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion 
 | 2 | *Events That Don't Suck* | *Privatize the suite. Run the night your way.* | — |
 | 3 | *The Tap Wall* | *28 self-serve taps* | *(only wall in the area)* |
 | 4 | *Craft Cocktails* | *Built by America's Top Mixologist.* | *(their words, not ours)* |
-| 5 | *Food* | *Chef-inspired menu.* | *(built to share)* |
+| 5 | *Eat* | *Chef-inspired menu.* | *(built to share)* |
 | 6 | *Bowl* | *17 traditional lanes plus a 6-lane VIP suite.* | *(yes, you can take it over)* |
-| 7 | *Arcade* | *Skee-ball, redemption, jackpot.* | *(don't pretend you don't want the giant bear)* |
+| 7 | *Game* | *Skee-ball, redemption, jackpot.* | *(don't pretend you don't want the giant bear)* |
 | 8 | *Find Us* | (utility footer — hours, address, contact, social, copyright) | — |
 
 **Snap 1 hero on `/snap-test/`** uses a simplified subhead — *"Plainfield's premier night out. Bowling optional."* — and drops both the *PLAINFIELD, IL* eyebrow and the stat-trio. The live homepage hero (`/`) was promoted to match this on 2026-05-01.
@@ -272,7 +272,7 @@ The Cocktails long-form variant — *"Cocktails this serious aren't supposed to 
 - *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
 - *"Built by America's Top Mixologist. (Their words, not ours.)"* in the **hero subhead slot** — retired from the hero. Reason: the hero headline starts with "Built for adults." and the subhead repeating "Built by…" misimplied the mixologist built the venue itself, not just the bar program. The short form lives on in the cocktail snap (mobile snap 4); the long-form variant lives on in the desktop Cocktails section.
 - *PLAINFIELD, IL* (hero eyebrow) and *28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu* (hero stat-trio subhead) — retired from the live `/` hero on 2026-05-01 when the live page was promoted to match the `/snap-test/` simplified hero. Replaced by *"Plainfield's premier night out. Bowling optional."* and no eyebrow.
-- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Food) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. Replaced by *"Chef-inspired menu. (built to share)"* — food-focused, no bar reference.
+- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Eat) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. Replaced by *"Chef-inspired menu. (built to share)"* — food-focused, no bar reference.
 - *"Skee-ball, redemption, and the jackpot machine you came for."* — drafted and discarded as the snap 7 subhead. Specific machine claims weren't verified. Replaced by *"Skee-ball, redemption, jackpot. (don't pretend you don't want the giant bear)"* — three-beat statement + voicy aside.
 
 For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.
