@@ -61,9 +61,9 @@ Supporting assets:
 | Lane phrasing (canonical) | *"17 traditional lanes + a 6-lane VIP suite"* — traditional first, VIP as upgrade |
 | Mobile hero source | Splice direction locked: pour (`Bank Vs Stories.mp4`) → tap wall (`Beer Wall.mov`) → cocktail (`Best Things To Order.mov`). Total ≤4–5s at current CRF. **Specific window timestamps pending user.** Currently live: Bank Vs Stories 0–4s, single shot. |
 | Desktop hero | Video placeholder (`After Social Highlight…_v2.mp4`, 8s recut). Final desktop hero (photo or video) still pending shoot. |
-| Hero eyebrow | *PLAINFIELD, IL* — warm-white at 85% opacity, no Glow |
+| Hero eyebrow | Retired per 2026-05-01 promotion. Live `/` and `/snap-test/` ship without an eyebrow. (Old: *PLAINFIELD, IL* — warm-white, no Glow.) |
 | Hero headline | *"Built for adults."* / *"Fine, bring the kids."* — two lines, all caps, Barlow Cond Black 900 |
-| Hero subhead | *"28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu"* — stats trio + menu beat. Roboto Slab Regular, no italics, narrative "A" articles. 4th item drops below 600px viewport. |
+| Hero subhead | *"Plainfield's premier night out. Bowling optional."* — Roboto Slab Regular, no italics. (Old stat-trio *"28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu"* retired same day.) |
 | Hero CTA | **None in the hero.** Sticky bar carries all conversion (*Reserve a lane* solid Glow + *Plan an event* outlined). |
 | Closing band (homepage) | *"You can keep doing dinner-and-a-movie. Or you can do this."* |
 | Cocktail credential (primary) | *America's Top Mixologist* (Food Network). Per Se / Keller / Michelin three-star framing **retired for the website** — long-form `/craft-bar/` body copy only. |
