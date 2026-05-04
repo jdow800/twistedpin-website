@@ -480,6 +480,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      closing CTA band — the conversion ask
      ============================================================ */
   .bar-cta {
+    /* position: relative so the ::before pattern overlay below positions
+       against this section, not the page. */
+    position: relative;
     background: var(--indigo);
     padding: 72px 22px calc(72px + var(--bar-pad));
     text-align: center;
@@ -491,11 +494,31 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       transparent 72%,
       rgba(0, 0, 0, 0.25) 100%);
   }
+  /* Pattern overlay — same Pin Tilt watermark as the global body::before,
+     painted ABOVE this section's indigo bg so the pattern carries into
+     the lifted band. (The global body::before is z-index: -1, behind the
+     section bg, so it's covered here without this overlay.) Matches the
+     same 0.06 opacity for visual continuity with adjacent sections. */
+  .bar-cta::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("/pattern/pin-tilt-white.png");
+    background-repeat: repeat;
+    background-size: 200px auto;
+    background-position: center top;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
+  }
   @media (min-width: 1025px) {
     .bar-cta { padding: 96px 64px; }
   }
 
   .bar-cta-inner {
+    /* Above the ::before pattern overlay. */
+    position: relative;
+    z-index: 1;
     max-width: 720px;
     margin: 0 auto;
   }
