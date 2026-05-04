@@ -23,7 +23,7 @@ These are proven performers. The new site must keep ranking for them. Don't chan
 | `bowling near me`, `bowling Plainfield`, `bowling alley near me`, `bowling Plainfield IL`, `plainfield bowling` | 44% of paid clicks. ~1,000–13K monthly searches. Low CPC, high convert. **The foundation.** | Homepage + dedicated `/bowling/` page |
 | `twisted pin`, `twisted pins`, `twisted pin plainfield`, `twisted pin photos` | 6,600+ monthly branded searches. Already ranks. Don't break it. | Homepage |
 | `restaurants Plainfield`, `restaurants near me`, `places to eat near me` | 15K+ restaurant-related GBP searches. 17% of paid clicks. | Dedicated `/dining/` or `/menu/` page |
-| `corporate event venue near me`, `team building venue`, `company outing bowling` | $2K–$10K+ bookings. Google drives 40% of corporate leads. | Dedicated `/corporate-events/` or `/private-events/` page |
+| `corporate event venue near me`, `team building venue`, `company outing bowling` | $2K–$10K+ bookings. Google drives 40% of corporate leads. | Dedicated `/corporate-events/` or `/group-events/` page (avoid `/private-events/` slug per voice.md — venue has no fully-private space) |
 | `adult birthday party venue`, `VIP party room`, `bowling birthday party` | 11.86% CTR — birthday planners convert hard. | Dedicated `/birthday-parties/` page |
 | `arcades near me`, `arcade Plainfield` | 3,700+ GBP searches. Currently no dedicated landing page. | Dedicated `/arcade/` page |
 
@@ -38,7 +38,7 @@ Build pages and copy to capture these — current site doesn't.
 | `bars near me`, `cocktail bars near me`, `sports bar near me`, `craft cocktails Plainfield` | No dedicated page. Quality Score of 3 on the bar ad group. | `/bar/` or `/cocktails/` page with cocktail menu, mixologist content, tap wall |
 | `event spaces near me`, `party venues near me`, `party rooms for rent` | Generic event searchers aren't thinking "bowling" yet. We surface as a bowling alley. | Lead the events page with **VIP suite & event space** — not bowling |
 | `self serve beer wall near me`, `28 tap beer wall` | We're the only one in the area. Almost no competition. | Page or strong section calling this out — schema + photos |
-| `fundraiser venue`, `bowling fundraiser` | Fundraisers average 65 attendees (highest of any event type). | Sub-page or section under `/private-events/` |
+| `fundraiser venue`, `bowling fundraiser` | Fundraisers average 65 attendees (highest of any event type). | Sub-page or section under `/group-events/` (or `/fundraiser/` if standalone — see also voice.md re: avoiding `/private-*` slugs) |
 | `things to do Plainfield`, `things to do Naperville`, `date night ideas Plainfield` | Top-of-funnel discovery searches. | Blog content, not landing pages — `/blog/best-date-night-plainfield/` style |
 | Competitor conquest: `Bowlero`, `Lucky Strike`, `Main Event`, `Round 1`, `Dave & Buster's`, `Topgolf` | 4,500+ Main Event searches alone trigger our GBP. Cheap intent. | Comparison content (subtle) + paid Custom Intent — not the website's main job, but supporting blog content helps |
 | Spanish: `boliche cerca de mi`, `bolos cerca de mi` | 9.6% Hispanic local population. Zero competition. 68 clicks already. | Translated versions of bowling and events pages |
@@ -92,7 +92,7 @@ Before launch:
 
 - **Homepage:** *"Premium Bowling, Elevated Dining & Craft Cocktails in Plainfield, IL"* (covers bowling, dining, bar, location — replaces the misleading "Ultimate Dining Destination")
 - **Bowling:** *"Bowling in Plainfield, IL — 23 Lanes Including a 6-Lane VIP Suite"* (17 traditional + 6 VIP)
-- **VIP Suite:** *"The VIP Suite — Private Bowling for Groups Up to 80, Near Naperville & Bolingbrook"*
+- **VIP Suite:** *"The VIP Suite — Bowling for Groups Up to 80, Near Naperville & Bolingbrook"*
 - **Dining:** *"Chef-Inspired Food in Plainfield — Eat at Twisted Pin"*
 - **Bar:** *"Craft Cocktails & a 28-Tap Self-Serve Beer Wall"*
 - **Arcade:** *"State-of-the-Art Arcade in Plainfield"*
