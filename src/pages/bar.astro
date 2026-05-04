@@ -480,10 +480,16 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      closing CTA band — the conversion ask
      ============================================================ */
   .bar-cta {
-    /* position: relative so the ::before pattern overlay below positions
-       against this section, not the page. */
-    position: relative;
-    background: var(--indigo);
+    /* Translucent indigo (85% var(--indigo) over the indigo-deep body bg)
+       so the global body::before Pin Tilt watermark bleeds through the
+       band rather than being covered by an opaque bg. Single pattern
+       source for the whole page = guaranteed tile-grid continuity, no
+       section-scoped overlay needed. Pins in the band render at slightly
+       reduced visibility vs adjacent dark sections (filtered through the
+       85% overlay) but on the same exact tile positions. Tune the alpha:
+       higher (0.90+) for more saturated purple, lower (~0.80) for more
+       visible pins. */
+    background: rgba(32, 15, 83, 0.85);
     padding: 72px 22px calc(72px + var(--bar-pad));
     text-align: center;
     /* Subtle vertical gradient — matches the SnapStub atmosphere treatment
@@ -494,42 +500,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       transparent 72%,
       rgba(0, 0, 0, 0.25) 100%);
   }
-  /* Pattern overlay — same Pin Tilt watermark as the global body::before,
-     painted ABOVE this section's indigo bg so the pattern carries into
-     the lifted band. (The global body::before is z-index: -1, behind
-     the section bg, so it's covered here without this overlay.)
-
-     `background-attachment: fixed` is the load-bearing property —
-     without it, the section pattern tiles from the section's top-left
-     while the global body::before tiles from the viewport's top-left.
-     Different tile origins = visible discontinuity at the section
-     boundary (pins look "cut off at weird angles"). With fixed, both
-     patterns share the viewport tile-grid → seamless continuity.
-
-     Note: `background-attachment: fixed` is sometimes ignored on iOS
-     Safari (falls back to scroll). Mobile may briefly show the original
-     misaligned behavior; acceptable trade since the band is short. */
-  .bar-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url("/pattern/pin-tilt-white.png");
-    background-attachment: fixed;
-    background-repeat: repeat;
-    background-size: 200px auto;
-    background-position: center top;
-    opacity: 0.06;
-    pointer-events: none;
-    z-index: 0;
-  }
   @media (min-width: 1025px) {
     .bar-cta { padding: 96px 64px; }
   }
 
   .bar-cta-inner {
-    /* Above the ::before pattern overlay. */
-    position: relative;
-    z-index: 1;
     max-width: 720px;
     margin: 0 auto;
   }

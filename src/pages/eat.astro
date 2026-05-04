@@ -444,11 +444,10 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      closing CTA band
      ============================================================ */
   .eat-cta {
-    /* position: relative so the ::before pattern overlay below positions
-       against this section. (Same pattern as .bar-cta — when the third
-       lifted-band section lands, hoist to a shared utility.) */
-    position: relative;
-    background: var(--indigo);
+    /* Translucent indigo — see .bar-cta in bar.astro for full explanation.
+       Lets the global body::before Pin Tilt watermark bleed through;
+       guarantees pattern continuity without a section-scoped overlay. */
+    background: rgba(32, 15, 83, 0.85);
     padding: 72px 22px calc(72px + var(--bar-pad));
     text-align: center;
     background-image: linear-gradient(180deg,
@@ -457,31 +456,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       transparent 72%,
       rgba(0, 0, 0, 0.25) 100%);
   }
-  /* Pattern overlay — see .bar-cta::before in bar.astro for the full
-     explanation, including why `background-attachment: fixed` is
-     load-bearing (viewport tile-grid alignment with the global
-     body::before, no boundary discontinuity). */
-  .eat-cta::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background-image: url("/pattern/pin-tilt-white.png");
-    background-attachment: fixed;
-    background-repeat: repeat;
-    background-size: 200px auto;
-    background-position: center top;
-    opacity: 0.06;
-    pointer-events: none;
-    z-index: 0;
-  }
   @media (min-width: 1025px) {
     .eat-cta { padding: 96px 64px; }
   }
 
   .eat-cta-inner {
-    /* Above the ::before pattern overlay. */
-    position: relative;
-    z-index: 1;
     max-width: 720px;
     margin: 0 auto;
   }
