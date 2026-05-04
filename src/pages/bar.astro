@@ -317,7 +317,10 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      Two-column on desktop; stacked image-then-copy on mobile.
      ============================================================ */
   .bar-section {
-    background: var(--indigo-deep);
+    /* Transparent so the global body::before Pin Tilt watermark shows
+       through in the section gutters. Hero (image bg) and closing CTA
+       band (var(--indigo) bg) cover the pattern in their regions. */
+    background: transparent;
     padding: 56px 22px;
   }
   @media (min-width: 1025px) {

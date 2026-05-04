@@ -588,38 +588,12 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      without retiring frame chrome. Cocktails keeps the original 1280 +
      no-pattern treatment as the A/B comparison.
      ============================================================ */
-  /* Pin Tilt watermark — viewport-fixed pattern that stays put while
-     content scroll-snaps past it. Was `position: absolute; inset: 0`
-     during the long-scroll era, but with `.snap` now being the scroll
-     container (overflow-y: scroll), absolute positioning sized the
-     pseudo to one viewport at the TOP of the scroll content (hidden
-     behind Hero's #000 bg). Switching to `position: fixed` decouples
-     the pattern from the scroll container — it pins to the visible
-     viewport, content scrolls past, pattern stays. Sections without
-     their own background (cluster sections, desktop SnapFooter
-     override) show the pattern through; sections with their own
-     background (Hero #000 + video) cover the pattern in their region. */
-  .snap { position: relative; }
-  .snap::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: url("/pattern/pin-tilt-white.png");
-    background-repeat: repeat;
-    background-size: 200px auto;
-    background-position: center top;
-    /* 0.05 → 0.12 → 0.08 (2026-05-03). 5% was functionally invisible;
-       12% read too loud IRL (screenshot looked fine, deployed felt heavy);
-       8% is the middle ground — present-but-quiet brand pattern that
-       doesn't compete with copy. */
-    opacity: 0.08;
-    pointer-events: none;
-    z-index: 0;
-  }
-  .snap > * {
-    position: relative;
-    z-index: 1;
-  }
+  /* Pin Tilt watermark moved to global body::before (see global.css)
+     2026-05-03 — applies to every page now, not just /. The local
+     `.snap::before` rule and the `.snap > * { z-index: 1 }` rule that
+     used to live here are both retired (body::before at z-index -1
+     renders below body content automatically without per-page z-index
+     handling). */
 
   /* Footer transparency on desktop is handled in the SnapFooter
      component directly (Astro scoped CSS specificity made the global
