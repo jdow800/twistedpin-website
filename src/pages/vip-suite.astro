@@ -1,0 +1,354 @@
+---
+/**
+ * /vip-suite/ — VIP Suite pillar page.
+ *
+ * Third inner-page mock. Highest-LTV page on the site — the suite is the
+ * actual revenue engine, doing both bowling AND events differentiation
+ * work. Per voice.md: VIP suite is where bowling and events converge,
+ * mention the cocktail credential here in service of "the bar program
+ * in the VIP suite is the same one designed by..."
+ *
+ * Same skeleton as /bar and /eat:
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (image one side, copy the other,
+ *     alternating)
+ *   - SnapFooter
+ *
+ * Two thematic sections:
+ *   1. The Room — physical specs (lanes, capacity, AV, seating, bar/kitchen access)
+ *   2. What You Can Do — use cases (birthdays, corporate, fundraisers)
+ *
+ * Rule-of-three triggered: .bar-* / .eat-* / .vip-* CSS is now triplicated.
+ * Next refactor pass should hoist shared rules to .pillar-* utilities in
+ * global.css. Flagged in Context/media-needs.md.
+ *
+ * TODOs (non-blocking):
+ *   - Section photos are stubs (events-bg-600 / events-bg-540, same shot
+ *     as the homepage Events snap). Need distinct VIP-suite imagery —
+ *     room shot + event-energy shot. See Context/media-needs.md.
+ *   - Capacity number ("80") and fundraiser stat ("50% of bowling revenue
+ *     back to host") need ops confirmation before launch.
+ *   - "Plan an event" CTA points to /events as a placeholder. When the
+ *     events.twistedpin.com Zite subdomain ships, sweep all instances.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="The 6-Lane VIP Suite — Private Events for Up to 80 | Twisted Pin"
+  description="Six private bowling lanes, custom catering, the same craft cocktail program as the rest of the venue. Adult birthdays, corporate offsites, fundraisers — the VIP suite at Twisted Pin, Plainfield IL."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="vip-hero" data-hero aria-labelledby="vip-hero-h1">
+    <div class="vip-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Private Events</p>
+      <h1 class="t-display vip-hero-headline hero-fade" id="vip-hero-h1" data-delay-ms="120">
+        The&nbsp;6-lane VIP&nbsp;suite.
+      </h1>
+      <p class="vip-hero-sub hero-fade" data-delay-ms="320">
+        Up to 80 people. Six private lanes. The same bar program as the
+        rest of the venue. Built for the night you want to throw.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE ROOM — image left, copy right (desktop)
+      ============================================================ */}
+  <section class="vip-section" aria-labelledby="vip-room-h2">
+    <div class="vip-section-grid">
+      <div class="vip-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="vip-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The 6-lane VIP suite at Twisted Pin"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="vip-section-copy">
+        <p class="t-eyebrow">The Room</p>
+        <h2 class="t-display vip-section-title" id="vip-room-h2">
+          Six lanes. Yours.
+        </h2>
+        <p class="vip-section-aside">(yes, all to yourselves)</p>
+
+        <p class="vip-section-body">
+          Six private bowling lanes, separated from the main floor.
+          Couch seating around the lanes for the people who'd rather
+          watch than throw. An LED video wall for slideshows, sports,
+          presentations, or whatever you want playing. AV hookups for
+          music, mics, your laptop.
+        </p>
+
+        <p class="vip-section-body">
+          The 28-tap self-serve wall sits right next to it. The
+          cocktail bar is the program designed by <em>America's Top
+          Mixologist</em> — same drinks, same execution as the rest
+          of the venue. The kitchen runs through, too.
+        </p>
+
+        <ul class="vip-section-list">
+          <li>6 private lanes</li>
+          <li>Up to 80 people</li>
+          <li>LED video wall</li>
+          <li>AV hookups for music + mics</li>
+          <li>Couch seating around the lanes</li>
+          <li>Tap wall + cocktail bar + kitchen access</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT YOU CAN DO — image RIGHT, copy LEFT (desktop alternation)
+      ============================================================ */}
+  <section class="vip-section vip-section--reverse" aria-labelledby="vip-uses-h2">
+    <div class="vip-section-grid">
+      <div class="vip-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp" />
+          <img
+            class="vip-section-img"
+            src="/snap/events-bg-540.jpg"
+            alt="A group celebrating in the VIP suite at Twisted Pin"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="vip-section-copy">
+        <p class="t-eyebrow">What You Can Do Here</p>
+        <h2 class="t-display vip-section-title" id="vip-uses-h2">
+          Birthdays. Corporate. Fundraisers.
+        </h2>
+        <p class="vip-section-aside">(or whatever you can talk us into)</p>
+
+        <p class="vip-section-body">
+          Most groups book the suite for adult birthday parties, corporate
+          offsites and holiday parties, fundraisers, and the after-party
+          of an after-party. Tell us what you want; we set it up.
+        </p>
+
+        <p class="vip-section-body">
+          Custom catering through the kitchen. Open bar, host bar, drink
+          tickets — whatever billing model works for your group. The
+          suite is yours from setup to last call.
+        </p>
+
+        <ul class="vip-section-list">
+          <li>Adult birthday parties</li>
+          <li>Corporate offsites + holiday parties</li>
+          <li>Fundraisers — 50% of bowling revenue back to the host</li>
+          <li>After-parties + private functions</li>
+        </ul>
+
+        {/* "Plan an event" → /events as placeholder. Will switch to
+             events.twistedpin.com (Zite subdomain) when that launches. */}
+        <a class="btn btn-outline" href="/events">Plan an event</a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /vip-suite — same pattern as /bar, /eat. Class names .vip-*
+     mirror .bar-* / .eat-*; rule-of-three has triggered, so the
+     next refactor pass should hoist shared rules to .pillar-*
+     utilities in global.css (see Context/media-needs.md tech debt).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .vip-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(420px, 60vh, 560px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      calc(var(--bar-pad) + 32px);
+  }
+  @media (min-width: 1025px) {
+    .vip-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      /* Desktop: center the title moment horizontally — same pattern
+         as /bar and /eat. */
+      justify-content: center;
+    }
+  }
+
+  .vip-hero-copy {
+    max-width: 720px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .vip-hero-copy {
+      text-align: center;
+    }
+    .vip-hero-sub {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .vip-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(28px, 8vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .vip-hero-headline { font-size: clamp(48px, 5.2vw, 72px); }
+  }
+
+  .vip-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 32em;
+  }
+  @media (min-width: 1025px) {
+    .vip-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     section pattern (same shape as .bar-section / .eat-section)
+     ============================================================ */
+  .vip-section {
+    /* Transparent so the global body::before Pin Tilt watermark shows
+       through. */
+    background: transparent;
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .vip-section { padding: 96px 64px; }
+  }
+
+  .vip-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .vip-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .vip-section--reverse .vip-section-grid > .vip-section-frame {
+      order: 2;
+    }
+  }
+
+  .vip-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .vip-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .vip-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .vip-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .vip-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .vip-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .vip-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .vip-section-aside { font-size: 17px; }
+  }
+
+  .vip-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .vip-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .vip-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .vip-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .vip-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  .vip-section-copy .btn {
+    margin-top: 28px;
+  }
+</style>
