@@ -123,12 +123,12 @@ Brian Van Flandern is named *"America's Top Mixologist"* by Food Network, with c
 ### The credential we lead with — and what we retired
 **Lead credential (website primary positioning):** *America's Top Mixologist* (Food Network). That's how he positions himself on his own site (mymixologist.com), it has broader recognition with the target audience than fine-dining names, and it reads as a clear external credential — which reduces any implication that he's on staff or owns the bar.
 
-**Retired for the website:** the Per Se / Thomas Keller / Michelin three-star framing. Reasons:
+**Retired for the website (fully — no carve-out):** the Per Se / Thomas Keller / Michelin three-star framing. Reasons:
 1. It borrows more prestige than the consulting relationship warrants.
 2. It pulls the brand toward *fine-dining-with-bowling*, which is not the locked thesis (the thesis is *bar-program-led entertainment venue*).
 3. The Food Network credential does the same conversion job with less risk.
 
-The Per Se anchor may still appear in long-form `/craft-bar/` body copy where there's room to give backstory and the framing can be set carefully. It does not appear in primary positioning, headlines, hero subheads, or short-form anywhere.
+The Per Se anchor does not appear anywhere on the website — not in primary positioning, not in headlines, not in hero copy, and **not in long-form body copy on `/craft-bar/` or `/bar/`** (the earlier "long-form OK" carve-out was retired 2026-05-03). The Food Network credential carries the full credential weight on its own.
 
 ### How to use the name in copy
 Lead with the credential, not the personality. Direct, factual, slightly understated reads stronger than clever. Avoid "cute" framings (drink-as-device, wink phrasing) — they undercut the credential.
@@ -141,8 +141,8 @@ When citing the Food Network credential as a self-applied label, the *"(Their wo
 - *"The bar program was built by the guy Food Network calls America's Top Mixologist."*
 - *"Cocktails this serious aren't supposed to live at bowling alleys."* — reserved for cocktail/bar section header (does not name him; carries the contradiction)
 
-✅ Long-form only (/craft-bar/ body copy)
-The full résumé — Per Se, Thomas Keller, Michelin three-star, 40+ countries — may appear in body paragraphs that have room to set the context. Never in headlines, hero copy, or any short-form slot.
+✅ Long-form (/bar body copy)
+Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the credential, plus the consulting-relationship framing (designed the program, not staff, retraining team this summer). **Do not include Per Se, Thomas Keller, or Michelin three-star anywhere** — even in long-form body copy. Retired 2026-05-03 with no carve-out.
 
 ❌ Retired / off-brand
 - *"The mixologist behind Thomas Keller's Per Se built our bar."* (Per Se framing retired for primary positioning — pulls toward fine-dining, overstates the relationship)
@@ -157,7 +157,7 @@ The full résumé — Per Se, Thomas Keller, Michelin three-star, 40+ countries 
 
 ### Where he belongs
 - **Homepage** — once, in a bar/cocktail spot. Hero subhead carries the credential ("America's Top Mixologist") in the locked line; he's not named in the hero itself.
-- **/craft-bar/** — anchor credential of the page. Long-form context here can include the full résumé.
+- **/bar/** — anchor credential of the page. Long-form context here uses the Food Network credential and the consulting-relationship framing only (no Per Se / Keller / Michelin per 2026-05-03 retirement).
 - **/vip-suite/** — mention as part of *"the bar program in the VIP suite is the same one designed by…"*
 - **Cocktail menu / drink descriptions** — sparingly; let the menu itself carry the design
 - **Press / about** — the long version

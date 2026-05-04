@@ -28,7 +28,7 @@ Adjective shorthand: *moody, editorial, photo-forward, type-led, confident.*
 
 **Twisted Pin is a bar-program-led venue.** Two cornerstone differentiators carry equal weight on the homepage:
 
-1. **A craft cocktail program built by Brian Van Flandern** — Michelin three-star mixologist, former head mixologist at Thomas Keller's Per Se. One of the highest-level cocktail programs in the area.
+1. **A craft cocktail program built by Brian Van Flandern** — named *America's Top Mixologist* by Food Network, with cocktails served in 40+ countries. One of the highest-level cocktail programs in the area. (Per Se / Thomas Keller / Michelin three-star framing retired 2026-05-03 — see voice.md.)
 2. **The 28-tap self-serve beer & wine wall** — unique in our immediate market.
 
 The bowling experience exists, but it isn't the lead. **When bowling shows up on the homepage, it's the VIP suite specifically** — that's the actual differentiator vs Bowlero / Lucky Strike, not "we have lanes." Traditional lanes get acknowledged lower on the page, not in the hero.

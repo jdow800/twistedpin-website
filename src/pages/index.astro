@@ -608,7 +608,10 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     background-repeat: repeat;
     background-size: 200px auto;
     background-position: center top;
-    opacity: 0.05;
+    /* Bumped 0.05 → 0.12 (2026-05-03) — at 5% the watermark was technically
+       present but functionally invisible. 12% reads as a present-but-quiet
+       brand pattern on the indigo background without competing with copy. */
+    opacity: 0.12;
     pointer-events: none;
     z-index: 0;
   }
