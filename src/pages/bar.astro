@@ -204,14 +204,31 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     .bar-hero {
       min-height: clamp(440px, 55vh, 640px);
       padding: calc(var(--header-height) + 64px) 64px 64px;
+      /* Desktop: center the copy column horizontally too — typography-only
+         hero reads as a "title page" moment. Mobile keeps the left-aligned
+         editorial flow because center-stacked lines on a narrow viewport
+         feel busier than they help. */
+      justify-content: center;
     }
   }
 
   .bar-hero-copy {
-    /* Flexbox parent centers vertically; copy column constrained to
-       readable measure. Left-aligned by default (text-align inherits). */
+    /* Flexbox parent centers vertically (and on desktop, horizontally too);
+       copy column constrained to readable measure. Left-aligned on mobile,
+       center-aligned on desktop (see media query below). */
     max-width: 720px;
     color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .bar-hero-copy {
+      text-align: center;
+    }
+    .bar-hero-sub {
+      /* Center the sub paragraph (which has its own max-width) within
+         the copy column so it doesn't hang left despite text-align:center. */
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
   .bar-hero-headline {

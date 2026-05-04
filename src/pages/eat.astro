@@ -203,12 +203,23 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     .eat-hero {
       min-height: clamp(440px, 55vh, 640px);
       padding: calc(var(--header-height) + 64px) 64px 64px;
+      /* Desktop center — see /bar.astro for full explanation. */
+      justify-content: center;
     }
   }
 
   .eat-hero-copy {
     max-width: 720px;
     color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .eat-hero-copy {
+      text-align: center;
+    }
+    .eat-hero-sub {
+      margin-left: auto;
+      margin-right: auto;
+    }
   }
 
   .eat-hero-headline {
