@@ -219,6 +219,50 @@ function sectionReveal(): void {
 }
 
 /* -----------------------------------------------------------
+   Sticky CTA bar — hide when SnapFooter is the dominant section
+   in view (>50% intersection). Adds/removes `body.snap-cta-hidden`;
+   the global rule in global.css fades the bar out smoothly.
+
+   Lifted from index.astro inline (2026-05-04) so /bar, /eat, and
+   every future page including SnapFooter inherit the same auto-hide
+   behavior. Belt + suspenders: IntersectionObserver covers window
+   scroll on inner pages; the .snap container scroll-listener
+   covers the homepage where window scroll never fires (the .snap
+   element is the actual scroll container on /).
+   ----------------------------------------------------------- */
+function snapFooterCTAHide(): void {
+  const footer = document.querySelector<HTMLElement>(".snap-footer");
+  if (!footer) return;
+
+  const toggleHide = (hide: boolean): void => {
+    document.body.classList.toggle("snap-cta-hidden", hide);
+  };
+
+  if ("IntersectionObserver" in window) {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) toggleHide(e.intersectionRatio > 0.5);
+      },
+      { threshold: [0, 0.25, 0.5, 0.75, 1] },
+    );
+    obs.observe(footer);
+  }
+
+  // Scroll-listener fallback. window covers desktop / inner-page long-scroll;
+  // .snap covers the homepage's container scrollport.
+  const onScroll = (): void => {
+    const rect = footer.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const visible = Math.max(0, Math.min(rect.bottom, vh) - Math.max(rect.top, 0));
+    toggleHide(visible / vh > 0.5);
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  const snapEl = document.querySelector<HTMLElement>(".snap");
+  if (snapEl) snapEl.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+}
+
+/* -----------------------------------------------------------
    Nav drawer — open/close. CSS handles the slide; JS toggles classes
    and manages focus + scroll lock.
    ----------------------------------------------------------- */
@@ -260,6 +304,7 @@ export function initMotion(): void {
     requestAnimationFrame(() => {
       heroEntry();
       stickyCTAEntry();
+      snapFooterCTAHide();
       sectionReveal();
       sectionVideo();
     });

@@ -3,10 +3,19 @@
  * /bar/ — Bar program pillar page.
  *
  * First inner-page mock. Establishes the inner-page rhythm:
- *   - Hero (full-bleed image, headline, sub — no snap mechanic)
- *   - Long-scroll editorial sections (image one side, copy the other)
- *   - Closing CTA band
+ *   - Hero: typography-led title section (no image — page identity comes
+ *     from the headline against the body bg + global Pin Tilt watermark).
+ *     2026-05-04: switched from full-bleed cocktail-bg image to type-only.
+ *     The image was redundant with the homepage's cocktails snap, and a
+ *     typography hero gets to body content faster.
+ *   - Long-scroll editorial sections (image one side, copy the other,
+ *     alternating)
  *   - SnapFooter (reused from homepage)
+ *
+ * Closing CTA band ("Come see for yourself.") was retired 2026-05-04 —
+ * the global sticky CTA bar at the bottom of the viewport already carries
+ * Reserve / Plan, so a duplicate at the page bottom was visual debt without
+ * conversion lift. SnapFooter handles the "find us" beat at the bottom.
  *
  * Two thematic sections because the bar IS two things:
  *   1. Tap Wall (28 self-serve taps)
@@ -16,15 +25,13 @@
  * for / where the tasting-menu format earns it.
  *
  * TODOs (non-blocking):
- *   - Hero photo is stub (using cocktails-bg-900). Real hero is the
- *     Jan 29 2024 bar atmosphere shot — needs to land in /public/bar/.
  *   - "View what's on tap" CTA: GoTab API integration future. Link is "#".
  *   - "View cocktail menu" CTA: GoTab API integration future. Link is "#".
  *   - 5 signature cocktail names + descriptions are placeholders.
- *   - Cocktail editorial photos for the Cocktails section: stand-in is the
- *     same cocktails-bg-540 used as the section image. AIV01579 (copper
- *     shaker pour) and AIV01592 (cherry old fashioned) per visual-direction.md
- *     are the targets.
+ *   - Cocktail editorial photos for the Cocktails section: stand-in is
+ *     cocktails-bg-540 (same as homepage). AIV01579 (copper shaker pour)
+ *     and AIV01592 (cherry old fashioned) per visual-direction.md are the
+ *     targets when real photography lands.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -35,25 +42,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 >
 
   {/* ============================================================
-      HERO
+      HERO — typography-led title section (no image)
       ============================================================ */}
   <section class="bar-hero" data-hero aria-labelledby="bar-hero-h1">
-    <picture>
-      <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-900.webp 900w" sizes="100vw" />
-      <img
-        class="bar-hero-img"
-        src="/snap/cocktails-bg-900.jpg"
-        srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-900.jpg 900w"
-        sizes="100vw"
-        alt="Cocktail being poured at the Twisted Pin bar"
-        width="900"
-        height="1600"
-        fetchpriority="high"
-        decoding="async"
-      />
-    </picture>
-    <div class="bar-hero-scrim" aria-hidden="true"></div>
-
     <div class="bar-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">Bar Program</p>
       <h1 class="t-display bar-hero-headline hero-fade" id="bar-hero-h1" data-delay-ms="120">
@@ -187,23 +178,6 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </div>
   </section>
 
-  {/* ============================================================
-      CLOSING CTA BAND
-      ============================================================ */}
-  <section class="bar-cta">
-    <div class="bar-cta-inner">
-      <h2 class="t-display bar-cta-headline">Come see for yourself.</h2>
-      <p class="bar-cta-body">
-        Reserve a lane and start at the wall. Or skip the lanes and
-        post up at the bar — that works too.
-      </p>
-      <div class="bar-cta-buttons">
-        <a class="btn btn-solid" href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">Reserve a lane</a>
-        <a class="btn btn-outline" href="/events">Plan an event</a>
-      </div>
-    </div>
-  </section>
-
   <SnapFooter />
 </Base>
 
@@ -213,70 +187,31 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      Reuses global tokens from global.css; no new color/font work.
      ============================================================ */
 
-  /* ---------- hero ---------- */
+  /* ---------- hero (typography-led, no image) ----------
+     Title section sized to feel like a deliberate "title moment"
+     without dominating the viewport. Padding clears the persistent
+     SiteHeader at the top and the mobile sticky CTA bar at the bottom. */
   .bar-hero {
     position: relative;
-    /* Mobile: full-viewport so the hero dominates the first scroll-screen.
-       Desktop: 80vh — leaves a hint of the next section visible to invite
-       the scroll, since inner pages don't have the snap-mechanic forcing
-       full-viewport sections. */
-    height: 100dvh;
-    min-height: 560px;
-    overflow: hidden;
-    background: var(--indigo-deep);
+    display: flex;
+    align-items: center;
+    min-height: clamp(420px, 60vh, 560px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      calc(var(--bar-pad) + 32px);
   }
   @media (min-width: 1025px) {
-    .bar-hero { height: 80vh; min-height: 640px; max-height: 900px; }
-  }
-
-  .bar-hero-img {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  /* Hero scrim: stronger at the bottom-left where the copy lives. Same
-     two-stop recipe as the homepage hero so the inner-page hero feels
-     like a quieter cousin, not a different language. */
-  .bar-hero-scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(180deg,
-      rgba(14, 10, 31, 0)    0%,
-      rgba(14, 10, 31, 0)    35%,
-      rgba(14, 10, 31, 0.55) 70%,
-      rgba(14, 10, 31, 0.95) 100%);
-  }
-  @media (min-width: 1025px) {
-    .bar-hero-scrim {
-      background:
-        linear-gradient(90deg,
-          rgba(14, 10, 31, 0.65) 0%,
-          rgba(14, 10, 31, 0.20) 40%,
-          rgba(14, 10, 31, 0)    70%),
-        linear-gradient(180deg,
-          rgba(14, 10, 31, 0)    0%,
-          rgba(14, 10, 31, 0)    45%,
-          rgba(14, 10, 31, 0.55) 75%,
-          rgba(14, 10, 31, 0.95) 100%);
+    .bar-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
     }
   }
 
   .bar-hero-copy {
-    position: absolute;
-    z-index: 2;
-    left: 22px;
-    right: 22px;
-    bottom: calc(var(--bar-pad) + 24px);
-    color: var(--warm-white);
+    /* Flexbox parent centers vertically; copy column constrained to
+       readable measure. Left-aligned by default (text-align inherits). */
     max-width: 720px;
-  }
-  @media (min-width: 1025px) {
-    .bar-hero-copy { left: 64px; right: auto; bottom: 88px; max-width: 720px; }
+    color: var(--warm-white);
   }
 
   .bar-hero-headline {
@@ -318,8 +253,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
      ============================================================ */
   .bar-section {
     /* Transparent so the global body::before Pin Tilt watermark shows
-       through in the section gutters. Hero (image bg) and closing CTA
-       band (var(--indigo) bg) cover the pattern in their regions. */
+       through in the section gutters. Hero is now transparent too (no
+       image), so the watermark is continuous from page top to footer. */
     background: transparent;
     padding: 56px 22px;
   }
@@ -476,64 +411,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     margin-top: 28px;
   }
 
-  /* ============================================================
-     closing CTA band — the conversion ask
-     ============================================================ */
-  .bar-cta {
-    /* Translucent indigo (85% var(--indigo) over the indigo-deep body bg)
-       so the global body::before Pin Tilt watermark bleeds through the
-       band rather than being covered by an opaque bg. Single pattern
-       source for the whole page = guaranteed tile-grid continuity, no
-       section-scoped overlay needed. Pins in the band render at slightly
-       reduced visibility vs adjacent dark sections (filtered through the
-       85% overlay) but on the same exact tile positions. Tune the alpha:
-       higher (0.90+) for more saturated purple, lower (~0.80) for more
-       visible pins. */
-    background: rgba(32, 15, 83, 0.85);
-    padding: 72px 22px calc(72px + var(--bar-pad));
-    text-align: center;
-    /* Subtle vertical gradient — matches the SnapStub atmosphere treatment
-       so the CTA feels of-a-piece with the homepage rhythm. */
-    background-image: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.03) 0%,
-      transparent 28%,
-      transparent 72%,
-      rgba(0, 0, 0, 0.25) 100%);
-  }
-  @media (min-width: 1025px) {
-    .bar-cta { padding: 96px 64px; }
-  }
-
-  .bar-cta-inner {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .bar-cta-headline {
-    color: var(--warm-white);
-    font-size: clamp(32px, 8vw, 48px);
-    line-height: 1.0;
-  }
-  @media (min-width: 1025px) {
-    .bar-cta-headline { font-size: clamp(48px, 5vw, 64px); }
-  }
-
-  .bar-cta-body {
-    margin-top: 18px;
-    font-family: var(--font-body);
-    font-size: 17px;
-    line-height: 1.55;
-    color: var(--warm-mid);
-    max-width: 32em;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .bar-cta-buttons {
-    margin-top: 32px;
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-  }
+  /* The closing CTA band (.bar-cta) was removed 2026-05-04 — the global
+     sticky CTA bar already carries Reserve / Plan, so a duplicate at the
+     page bottom was visual debt. SnapFooter handles the "find us" beat. */
 </style>
