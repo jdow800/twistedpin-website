@@ -49,7 +49,7 @@ Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish 
 - Unforgettable, unrivaled, unparalleled, ultimate
 - Escape, break, unleash, redefine, reimagine, disrupt
 - Adults, grown-up, social hub, destination
-- VIP, exclusive, private
+- VIP, exclusive (NOT "private" — see Words to Avoid below; the venue has no fully-private spaces, the suite is *semi*-private)
 
 ### Action verbs (good for CTAs and headlines)
 - Unleash, Elevate, Discover, Reserve, Claim, Conquer, Tap into

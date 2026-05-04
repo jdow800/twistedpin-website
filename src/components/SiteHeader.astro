@@ -34,6 +34,11 @@ const navItems: NavItem[] = [
 ];
 
 const moreItems: NavItem[] = [
+  // VIP Suite is a tier-1 conversion page (revenue engine) but the 5-slot
+  // inline nav is locked at BAR · EAT · BOWL · GAME · EVENTS. So it lives
+  // in MORE, at the top — most-likely-to-click in the dropdown. Mobile
+  // NavDrawer also lists it directly.
+  { href: "/vip-suite/",       label: "VIP Suite"       },
   { href: "/upcoming-events/", label: "Upcoming Events" },
   { href: "/leagues/",         label: "Leagues"         },
   { href: "/rewards/",         label: "Rewards"         },

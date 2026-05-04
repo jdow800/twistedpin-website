@@ -168,7 +168,7 @@ The voice rules in `brand and voice.md` are the law. SEO doesn't override voice 
 - **Use the keyword naturally in the first 100 words.** Not stuffed — just present.
 - **Write for the search intent.** Someone searching `corporate event venue near me` wants to know capacity, packages, and how to book — not a brand story. Lead with what they came for, then layer in the brand voice.
 - **Include city names naturally.** "5 minutes from Naperville" beats "naperville naperville naperville" repeated.
-- **Use H2s as questions** when the topic matches voice search: *"Can I host a private corporate event?"*, *"How many lanes does the VIP suite have?"* — these capture featured snippets.
+- **Use H2s as questions** when the topic matches voice search: *"Can I take over the VIP suite for a corporate event?"*, *"How many lanes does the VIP suite have?"* — these capture featured snippets. (Note: avoid "private" per voice.md — the venue has no fully-private space.)
 - **Use specific numbers.** *"17 lanes,"* *"6-lane VIP suite,"* *"28 self-serve taps,"* *"groups up to 200."* Specifics convert and rank better than adjectives.
 - **Write a real FAQ section.** Pull from actual GBP Q&A, lead form questions, and front-of-house common questions. Wrap in FAQ schema.
 
