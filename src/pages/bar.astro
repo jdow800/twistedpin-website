@@ -1,0 +1,529 @@
+---
+/**
+ * /bar/ — Bar program pillar page.
+ *
+ * First inner-page mock. Establishes the inner-page rhythm:
+ *   - Hero (full-bleed image, headline, sub — no snap mechanic)
+ *   - Long-scroll editorial sections (image one side, copy the other)
+ *   - Closing CTA band
+ *   - SnapFooter (reused from homepage)
+ *
+ * Two thematic sections because the bar IS two things:
+ *   1. Tap Wall (28 self-serve taps)
+ *   2. Craft Cocktails (Brian Van Flandern program)
+ *
+ * NOT snap-mechanic — inner pages are normal long-scroll. Snap is reserved
+ * for / where the tasting-menu format earns it.
+ *
+ * TODOs (non-blocking):
+ *   - Hero photo is stub (using cocktails-bg-900). Real hero is the
+ *     Jan 29 2024 bar atmosphere shot — needs to land in /public/bar/.
+ *   - "View what's on tap" CTA: GoTab API integration future. Link is "#".
+ *   - "View cocktail menu" CTA: GoTab API integration future. Link is "#".
+ *   - 5 signature cocktail names + descriptions are placeholders.
+ *   - Cocktail editorial photos for the Cocktails section: stand-in is the
+ *     same cocktails-bg-540 used as the section image. AIV01579 (copper
+ *     shaker pour) and AIV01592 (cherry old fashioned) per visual-direction.md
+ *     are the targets.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Craft Cocktails & a 28-Tap Self-Serve Beer Wall | Twisted Pin"
+  description="A craft cocktail program built by America's Top Mixologist plus a 28-tap self-serve beer & wine wall — the only one in the immediate area. The bar at Twisted Pin, Plainfield IL."
+>
+
+  {/* ============================================================
+      HERO
+      ============================================================ */}
+  <section class="bar-hero" data-hero aria-labelledby="bar-hero-h1">
+    <picture>
+      <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-900.webp 900w" sizes="100vw" />
+      <img
+        class="bar-hero-img"
+        src="/snap/cocktails-bg-900.jpg"
+        srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-900.jpg 900w"
+        sizes="100vw"
+        alt="Cocktail being poured at the Twisted Pin bar"
+        width="900"
+        height="1600"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <div class="bar-hero-scrim" aria-hidden="true"></div>
+
+    <div class="bar-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Bar Program</p>
+      <h1 class="t-display bar-hero-headline hero-fade" id="bar-hero-h1" data-delay-ms="120">
+        Cocktails&nbsp;this&nbsp;serious aren't&nbsp;supposed to&nbsp;live at&nbsp;bowling alleys.
+      </h1>
+      <p class="bar-hero-sub hero-fade" data-delay-ms="320">
+        28 self-serve taps and a craft cocktail program built by
+        America's Top Mixologist. Yes, here. Right next to the lanes.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      TAP WALL — image left, copy right (desktop)
+      ============================================================ */}
+  <section class="bar-section" aria-labelledby="bar-tapwall-h2">
+    <div class="bar-section-grid">
+      <div class="bar-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/beerwall-poster.webp" />
+          <img
+            class="bar-section-img"
+            src="/snap/beerwall-poster.jpg"
+            alt="The 28-tap self-serve beer & wine wall at Twisted Pin"
+            width="900"
+            height="1600"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="bar-section-copy">
+        <p class="t-eyebrow">The Tap Wall</p>
+        <h2 class="t-display bar-section-title" id="bar-tapwall-h2">
+          28 self-serve taps.
+        </h2>
+        <p class="bar-section-aside">(only wall in the immediate area)</p>
+
+        <p class="bar-section-body">
+          Twenty-eight taps. Beer, wine, and a few non-alcoholic options
+          on rotation. Grab a card, pour your own, pay by the ounce.
+          No flagging down a bartender for a refill. No committing to a
+          full pint when you just want to try something.
+        </p>
+
+        <p class="bar-section-body">
+          The card tracks what you pour. The wall keeps the rotation
+          fresh. The bartenders, freed from the basic-pour grind, are
+          over at the cocktail bar doing the work that actually
+          requires them.
+        </p>
+
+        <ul class="bar-section-list">
+          <li>28 taps total</li>
+          <li>Beer, wine, and non-alcoholic options on rotation</li>
+          <li>Pay-by-the-ounce card system</li>
+          <li>Pour your own — no waiting</li>
+        </ul>
+
+        {/* TODO: GoTab API integration. View-only menu link for now. */}
+        <a class="btn btn-outline" href="#tap-list">View what's on tap</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CRAFT COCKTAILS — image RIGHT, copy LEFT (desktop alternation)
+      ============================================================ */}
+  <section class="bar-section bar-section--reverse" aria-labelledby="bar-cocktails-h2">
+    <div class="bar-section-grid">
+      <div class="bar-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/cocktails-bg-540.webp" />
+          <img
+            class="bar-section-img"
+            src="/snap/cocktails-bg-540.jpg"
+            alt="A craft cocktail at Twisted Pin's bar"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="bar-section-copy">
+        <p class="t-eyebrow">Craft Cocktails</p>
+        <h2 class="t-display bar-section-title" id="bar-cocktails-h2">
+          Built by America's Top Mixologist.
+        </h2>
+        <p class="bar-section-aside">(their words, not ours)</p>
+
+        <p class="bar-section-body">
+          The bar program at Twisted Pin was built by Brian Van Flandern —
+          named <em>America's Top Mixologist</em> by Food Network, with
+          cocktails served in 40+ countries. He cut his teeth as the head
+          mixologist at Thomas Keller's Per Se, the Michelin three-star
+          restaurant in New York City.
+        </p>
+
+        <p class="bar-section-body">
+          He's not behind our bar nightly. But the program he designed is —
+          every spec, every technique, every garnish, every rotation. He's
+          back this summer to retrain the team firsthand.
+        </p>
+
+        <p class="bar-section-callout">Five to start with:</p>
+        <ul class="bar-cocktail-list">
+          <li>
+            <span class="cocktail-name">The Twisted Old Fashioned</span>
+            <span class="cocktail-desc">[placeholder — bourbon, demerara, smoked]</span>
+          </li>
+          <li>
+            <span class="cocktail-name">[Signature Cocktail 2]</span>
+            <span class="cocktail-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="cocktail-name">[Signature Cocktail 3]</span>
+            <span class="cocktail-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="cocktail-name">[Signature Cocktail 4]</span>
+            <span class="cocktail-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="cocktail-name">[Signature Cocktail 5]</span>
+            <span class="cocktail-desc">[placeholder description]</span>
+          </li>
+        </ul>
+
+        {/* TODO: GoTab API integration. View-only menu link for now. */}
+        <a class="btn btn-outline" href="#cocktail-menu">View the cocktail menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND
+      ============================================================ */}
+  <section class="bar-cta">
+    <div class="bar-cta-inner">
+      <h2 class="t-display bar-cta-headline">Come see for yourself.</h2>
+      <p class="bar-cta-body">
+        Reserve a lane and start at the wall. Or skip the lanes and
+        post up at the bar — that works too.
+      </p>
+      <div class="bar-cta-buttons">
+        <a class="btn btn-solid" href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">Reserve a lane</a>
+        <a class="btn btn-outline" href="/events">Plan an event</a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /bar — inner-page rhythm. Long-scroll, NO snap mechanic.
+     Reuses global tokens from global.css; no new color/font work.
+     ============================================================ */
+
+  /* ---------- hero ---------- */
+  .bar-hero {
+    position: relative;
+    /* Mobile: full-viewport so the hero dominates the first scroll-screen.
+       Desktop: 80vh — leaves a hint of the next section visible to invite
+       the scroll, since inner pages don't have the snap-mechanic forcing
+       full-viewport sections. */
+    height: 100dvh;
+    min-height: 560px;
+    overflow: hidden;
+    background: var(--indigo-deep);
+  }
+  @media (min-width: 1025px) {
+    .bar-hero { height: 80vh; min-height: 640px; max-height: 900px; }
+  }
+
+  .bar-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  /* Hero scrim: stronger at the bottom-left where the copy lives. Same
+     two-stop recipe as the homepage hero so the inner-page hero feels
+     like a quieter cousin, not a different language. */
+  .bar-hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+      rgba(14, 10, 31, 0)    0%,
+      rgba(14, 10, 31, 0)    35%,
+      rgba(14, 10, 31, 0.55) 70%,
+      rgba(14, 10, 31, 0.95) 100%);
+  }
+  @media (min-width: 1025px) {
+    .bar-hero-scrim {
+      background:
+        linear-gradient(90deg,
+          rgba(14, 10, 31, 0.65) 0%,
+          rgba(14, 10, 31, 0.20) 40%,
+          rgba(14, 10, 31, 0)    70%),
+        linear-gradient(180deg,
+          rgba(14, 10, 31, 0)    0%,
+          rgba(14, 10, 31, 0)    45%,
+          rgba(14, 10, 31, 0.55) 75%,
+          rgba(14, 10, 31, 0.95) 100%);
+    }
+  }
+
+  .bar-hero-copy {
+    position: absolute;
+    z-index: 2;
+    left: 22px;
+    right: 22px;
+    bottom: calc(var(--bar-pad) + 24px);
+    color: var(--warm-white);
+    max-width: 720px;
+  }
+  @media (min-width: 1025px) {
+    .bar-hero-copy { left: 64px; right: auto; bottom: 88px; max-width: 720px; }
+  }
+
+  .bar-hero-headline {
+    color: var(--warm-white);
+    /* Slightly smaller than the homepage hero (which goes to 110px on
+       desktop). Inner pages should not out-shout the homepage. */
+    font-size: clamp(28px, 8vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .bar-hero-headline { font-size: clamp(48px, 5.2vw, 72px); }
+  }
+
+  .bar-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 32em;
+  }
+  @media (min-width: 1025px) {
+    .bar-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
+  }
+
+  /* hero-fade entry uses the same Motion One pipeline as the homepage hero
+     (heroEntry() in motion.client.ts watches [data-hero] for .hero-fade).
+     Initial state set here; Motion overrides on entry. */
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     section pattern — used by Tap Wall and Cocktails
+     Two-column on desktop; stacked image-then-copy on mobile.
+     ============================================================ */
+  .bar-section {
+    background: var(--indigo-deep);
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .bar-section { padding: 96px 64px; }
+  }
+
+  .bar-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .bar-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    /* Reverse layout for the second section (image right, copy left)
+       — alternation gives editorial rhythm. */
+    .bar-section--reverse .bar-section-grid > .bar-section-frame {
+      order: 2;
+    }
+  }
+
+  .bar-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    /* Mobile: 4:5 portrait crop, fits a phone screen well.
+       Desktop: 3:4 portrait, taller frame matches editorial weight. */
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .bar-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .bar-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .bar-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .bar-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .bar-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .bar-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .bar-section-aside { font-size: 17px; }
+  }
+
+  .bar-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .bar-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .bar-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .bar-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .bar-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  .bar-section-callout {
+    margin-top: 22px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    opacity: 0.9;
+  }
+
+  .bar-cocktail-list {
+    margin-top: 12px;
+    padding-left: 0;
+    list-style: none;
+  }
+  .bar-cocktail-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .cocktail-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--warm-white);
+  }
+  .cocktail-desc {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .cocktail-name { font-size: 22px; }
+    .cocktail-desc { font-size: 16px; }
+  }
+
+  .bar-section-copy .btn {
+    margin-top: 28px;
+  }
+
+  /* ============================================================
+     closing CTA band — the conversion ask
+     ============================================================ */
+  .bar-cta {
+    background: var(--indigo);
+    padding: 72px 22px calc(72px + var(--bar-pad));
+    text-align: center;
+    /* Subtle vertical gradient — matches the SnapStub atmosphere treatment
+       so the CTA feels of-a-piece with the homepage rhythm. */
+    background-image: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.25) 100%);
+  }
+  @media (min-width: 1025px) {
+    .bar-cta { padding: 96px 64px; }
+  }
+
+  .bar-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .bar-cta-headline {
+    color: var(--warm-white);
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 1.0;
+  }
+  @media (min-width: 1025px) {
+    .bar-cta-headline { font-size: clamp(48px, 5vw, 64px); }
+  }
+
+  .bar-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .bar-cta-buttons {
+    margin-top: 32px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+</style>
