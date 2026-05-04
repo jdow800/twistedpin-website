@@ -39,14 +39,31 @@ const navItems: NavItem[] = [
   { href: "/vip-suite/", label: "VIP Suite" },
 ];
 
-const moreItems: NavItem[] = [
-  { href: "/upcoming-events/", label: "Upcoming Events" },
-  { href: "/leagues/",         label: "Leagues"         },
-  { href: "/rewards/",         label: "Rewards"         },
-  { href: "/gift-cards/",      label: "Gift Cards"      },
-  { href: "/faq/",             label: "FAQ"             },
-  { href: "/contact/",         label: "Contact"         },
-  { href: "/careers/",         label: "Careers"         },
+// MORE dropdown — grouped into 2 sections with labels + a divider
+// (2026-05-04 polish). Splits the 7 items into "Programs & Events"
+// (recurring engagement: leagues, rewards, what's on) vs "Useful"
+// (utility surfaces: gift cards, FAQ, contact, careers). Section
+// labels are aria-hidden — they're decoration for sighted scanning;
+// each menuitem keeps its own role for screen readers.
+interface MoreSection { label: string; items: NavItem[]; }
+const moreSections: MoreSection[] = [
+  {
+    label: "Programs & Events",
+    items: [
+      { href: "/upcoming-events/", label: "Upcoming Events" },
+      { href: "/leagues/",         label: "Leagues"         },
+      { href: "/rewards/",         label: "Rewards"         },
+    ],
+  },
+  {
+    label: "Useful",
+    items: [
+      { href: "/gift-cards/", label: "Gift Cards" },
+      { href: "/faq/",        label: "FAQ"        },
+      { href: "/contact/",    label: "Contact"    },
+      { href: "/careers/",    label: "Careers"    },
+    ],
+  },
 ];
 
 const isActive = (href: string) =>
@@ -116,14 +133,20 @@ const isActive = (href: string) =>
         role="menu"
         hidden
       >
-        {moreItems.map(item => (
-          <li role="none">
-            <a
-              role="menuitem"
-              href={item.href}
-              class={isActive(item.href) ? "active" : ""}
-            >{item.label}</a>
-          </li>
+        {moreSections.map((section, i) => (
+          <>
+            {i > 0 && <li role="separator" class="more-divider" aria-hidden="true"></li>}
+            <li class="more-section-label" aria-hidden="true">{section.label}</li>
+            {section.items.map(item => (
+              <li role="none">
+                <a
+                  role="menuitem"
+                  href={item.href}
+                  class={isActive(item.href) ? "active" : ""}
+                >{item.label}</a>
+              </li>
+            ))}
+          </>
         ))}
       </ul>
     </div>
@@ -285,10 +308,12 @@ const isActive = (href: string) =>
        by `.site-nav ul { display: flex }` again (already scoped to
        direct child, but belt + suspenders). */
     display: block;
-    min-width: 220px;
+    /* Bumped 220 → 260 (2026-05-04 polish) — section labels + slightly
+       wider items breathe better at 260px. */
+    min-width: 260px;
     list-style: none;
     margin: 0;
-    padding: 8px 0;
+    padding: 6px 0;
 
     /* Premium glass — picks up the header chrome but earns its own
        visual presence as a floating panel. The inset top highlight
@@ -321,14 +346,48 @@ const isActive = (href: string) =>
   .more-dropdown li { display: list-item; }
   .more-dropdown a {
     display: block;
-    padding: 10px 18px;
+    /* 10/18 → 11/20 (2026-05-04 polish) — slightly more breathing room. */
+    padding: 11px 20px;
     font-family: var(--font-ui);
     font-weight: 600;
-    font-size: 12px;
+    /* Bumped 12 → 13 so each item lands a touch more confident. */
+    font-size: 13px;
     letter-spacing: 0.10em;
     text-transform: uppercase;
     color: var(--warm-mid);
     transition: color 150ms ease-out, background-color 150ms ease-out;
+  }
+
+  /* ---------- Section labels + dividers (2026-05-04) ---------- */
+  /* Section label sits above each group as a tiny tracked eyebrow.
+     Visually decorative — aria-hidden on the JSX side so screen readers
+     skip it (each menuitem still self-identifies). Color is warm-dim so
+     the label reads as label-not-link, no hover state. */
+  .more-section-label {
+    display: list-item;
+    padding: 10px 20px 4px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+    /* Don't inherit the menu list-style; this isn't a navigable item. */
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Section divider — thin warm-white line at low opacity between groups.
+     Same opacity as the menuitem hover background underline so it reads
+     as part of the system rather than an arbitrary rule. */
+  .more-divider {
+    display: list-item;
+    margin: 6px 14px;
+    padding: 0;
+    height: 1px;
+    background: rgba(244, 239, 227, 0.10);
+    list-style: none;
+    pointer-events: none;
   }
   .more-dropdown a:hover {
     color: var(--glow);
