@@ -1,0 +1,489 @@
+---
+/**
+ * /eat/ — Food pillar page.
+ *
+ * Second inner-page mock. Follows the rhythm established in /bar:
+ *   - Hero (full-bleed image, headline, sub — no snap mechanic)
+ *   - Two long-scroll editorial sections (image one side, copy the other,
+ *     alternating)
+ *   - Closing CTA band
+ *   - SnapFooter
+ *
+ * Two thematic sections because the food story IS two beats:
+ *   1. The Kitchen — chef-inspired, not bowling-alley-food philosophy
+ *   2. Built to Share — shareable plates, social-eating angle
+ *
+ * Aligns with the locked snap-5 subhead "Chef-inspired menu. (built to
+ * share)" — the page expands those two phrases into full sections.
+ *
+ * Per voice.md "specifics beat adjectives" — but per the user's tap-wall
+ * note ("don't get specific, people will hold us to it") the food copy
+ * stays generic for now. Claims like "fresh, never frozen" are easy to
+ * write and hard to defend at every plate; staying generic is safer
+ * until the kitchen team locks the operational truth.
+ *
+ * TODOs (non-blocking):
+ *   - Hero photo is stub (stage-eat-600). Need a real food hero shot —
+ *     ideally tray-on-wood at hero scale. Existing /eat asset is 600×1067
+ *     which is borderline-small for hero use.
+ *   - "View the menu" CTAs are placeholder ("#"). GoTab API integration
+ *     queued — quick-start says GraphQL + OAuth 2.0 (Client Credentials
+ *     or Authorization Code Grant). Menu endpoint + data shape live in
+ *     separate docs ("Products & Menus 101"); spike that before building.
+ *   - Signature dishes (5 placeholders in section 2) are placeholders;
+ *     real dish names/descriptions come with menu integration.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Chef-Inspired Food in Plainfield, IL | Twisted Pin"
+  description="Chef-inspired plates built to share — not the food you'd expect at a bowling alley. The kitchen at Twisted Pin, Plainfield IL."
+>
+
+  {/* ============================================================
+      HERO
+      ============================================================ */}
+  <section class="eat-hero" data-hero aria-labelledby="eat-hero-h1">
+    <picture>
+      <source type="image/webp" srcset="/snap/stage-eat-540.webp 540w, /snap/stage-eat-600.webp 600w" sizes="100vw" />
+      <img
+        class="eat-hero-img"
+        src="/snap/stage-eat-600.jpg"
+        srcset="/snap/stage-eat-540.jpg 540w, /snap/stage-eat-600.jpg 600w"
+        sizes="100vw"
+        alt="A shared plate at the Twisted Pin kitchen"
+        width="600"
+        height="1067"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <div class="eat-hero-scrim" aria-hidden="true"></div>
+
+    <div class="eat-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">The Kitchen</p>
+      <h1 class="t-display eat-hero-headline hero-fade" id="eat-hero-h1" data-delay-ms="120">
+        Not&nbsp;the&nbsp;food you'd&nbsp;expect.
+      </h1>
+      <p class="eat-hero-sub hero-fade" data-delay-ms="320">
+        Chef-inspired plates, built to share. The kitchen is the second
+        reason to come back. (The bar is the first.)
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE KITCHEN — image left, copy right (desktop)
+      ============================================================ */}
+  <section class="eat-section" aria-labelledby="eat-kitchen-h2">
+    <div class="eat-section-grid">
+      <div class="eat-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/stage-eat-600.webp" />
+          <img
+            class="eat-section-img"
+            src="/snap/stage-eat-600.jpg"
+            alt="Plates from the Twisted Pin kitchen"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="eat-section-copy">
+        <p class="t-eyebrow">The Kitchen</p>
+        <h2 class="t-display eat-section-title" id="eat-kitchen-h2">
+          Real cooking. No fryer hideout.
+        </h2>
+        <p class="eat-section-aside">(yes, you can still get fries)</p>
+
+        <p class="eat-section-body">
+          Bowling-alley food has a reputation: cardboard pizza, sad
+          chicken tenders, the kind of nachos that exist only because
+          someone had to put something on the menu. We are aware of
+          this reputation. We do not earn it.
+        </p>
+
+        <p class="eat-section-body">
+          The kitchen runs on a chef-driven menu — plates that taste
+          like someone cared, sauces that didn't come out of a #10 can,
+          a rotation that changes when the season says it should. Not
+          fine dining. Not trying to be. Just food worth eating after
+          you bowl, before you bowl, or instead of bowling.
+        </p>
+
+        {/* TODO: GoTab API integration. View-only menu link for now. */}
+        <a class="btn btn-outline" href="#menu">View the menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      BUILT TO SHARE — image RIGHT, copy LEFT (desktop alternation)
+      ============================================================ */}
+  <section class="eat-section eat-section--reverse" aria-labelledby="eat-share-h2">
+    <div class="eat-section-grid">
+      <div class="eat-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/stage-eat-540.webp" />
+          <img
+            class="eat-section-img"
+            src="/snap/stage-eat-540.jpg"
+            alt="Shareable plates set for a group at Twisted Pin"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="eat-section-copy">
+        <p class="t-eyebrow">Built to Share</p>
+        <h2 class="t-display eat-section-title" id="eat-share-h2">
+          Plates that pass.
+        </h2>
+        <p class="eat-section-aside">(no one's ordering for themselves)</p>
+
+        <p class="eat-section-body">
+          The menu is built around the table, not the place setting.
+          Boards, snacks, things you put in the middle and reach for
+          while someone's lining up their next throw. Big enough to
+          split, small enough to order three of.
+        </p>
+
+        <p class="eat-section-body">
+          Pairs with the cocktail program on purpose — a few of the
+          bar's signatures were specced for the food on this menu, and
+          a few of the snacks were specced for the bar. Order both;
+          they know each other.
+        </p>
+
+        <p class="eat-section-callout">A few we'll always have on the menu:</p>
+        <ul class="eat-dish-list">
+          <li>
+            <span class="dish-name">[Signature Dish 1]</span>
+            <span class="dish-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="dish-name">[Signature Dish 2]</span>
+            <span class="dish-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="dish-name">[Signature Dish 3]</span>
+            <span class="dish-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="dish-name">[Signature Dish 4]</span>
+            <span class="dish-desc">[placeholder description]</span>
+          </li>
+          <li>
+            <span class="dish-name">[Signature Dish 5]</span>
+            <span class="dish-desc">[placeholder description]</span>
+          </li>
+        </ul>
+
+        {/* TODO: GoTab API integration. View-only menu link for now. */}
+        <a class="btn btn-outline" href="#menu">View the full menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND
+      ============================================================ */}
+  <section class="eat-cta">
+    <div class="eat-cta-inner">
+      <h2 class="t-display eat-cta-headline">Skip the drive-thru.</h2>
+      <p class="eat-cta-body">
+        Reserve a lane and stay for the menu. Or post up at the bar —
+        the kitchen feeds the bar too.
+      </p>
+      <div class="eat-cta-buttons">
+        <a class="btn btn-solid" href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">Reserve a lane</a>
+        <a class="btn btn-outline" href="/events">Plan an event</a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /eat — inner-page rhythm. Mirrors /bar's pattern.
+     Reuses global tokens from global.css; no new theme work.
+     Class names prefixed `.eat-*` to keep scoped styles distinct from
+     `.bar-*` while sharing the same CSS shape — when the third pillar
+     lands and the rule-of-three triggers, hoist the shared bits up to
+     a `.pillar-*` utility.
+     ============================================================ */
+
+  /* ---------- hero ---------- */
+  .eat-hero {
+    position: relative;
+    height: 100dvh;
+    min-height: 560px;
+    overflow: hidden;
+    background: var(--indigo-deep);
+  }
+  @media (min-width: 1025px) {
+    .eat-hero { height: 80vh; min-height: 640px; max-height: 900px; }
+  }
+
+  .eat-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .eat-hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+      rgba(14, 10, 31, 0)    0%,
+      rgba(14, 10, 31, 0)    35%,
+      rgba(14, 10, 31, 0.55) 70%,
+      rgba(14, 10, 31, 0.95) 100%);
+  }
+  @media (min-width: 1025px) {
+    .eat-hero-scrim {
+      background:
+        linear-gradient(90deg,
+          rgba(14, 10, 31, 0.65) 0%,
+          rgba(14, 10, 31, 0.20) 40%,
+          rgba(14, 10, 31, 0)    70%),
+        linear-gradient(180deg,
+          rgba(14, 10, 31, 0)    0%,
+          rgba(14, 10, 31, 0)    45%,
+          rgba(14, 10, 31, 0.55) 75%,
+          rgba(14, 10, 31, 0.95) 100%);
+    }
+  }
+
+  .eat-hero-copy {
+    position: absolute;
+    z-index: 2;
+    left: 22px;
+    right: 22px;
+    bottom: calc(var(--bar-pad) + 24px);
+    color: var(--warm-white);
+    max-width: 720px;
+  }
+  @media (min-width: 1025px) {
+    .eat-hero-copy { left: 64px; right: auto; bottom: 88px; max-width: 720px; }
+  }
+
+  .eat-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(28px, 8vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .eat-hero-headline { font-size: clamp(48px, 5.2vw, 72px); }
+  }
+
+  .eat-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 32em;
+  }
+  @media (min-width: 1025px) {
+    .eat-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     section pattern (mirrors /bar; will be hoisted to a shared
+     `.pillar-section` utility once the third pillar lands and the
+     rule of three triggers)
+     ============================================================ */
+  .eat-section {
+    background: var(--indigo-deep);
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .eat-section { padding: 96px 64px; }
+  }
+
+  .eat-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .eat-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .eat-section--reverse .eat-section-grid > .eat-section-frame {
+      order: 2;
+    }
+  }
+
+  .eat-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .eat-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .eat-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .eat-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .eat-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .eat-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .eat-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .eat-section-aside { font-size: 17px; }
+  }
+
+  .eat-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .eat-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .eat-section-callout {
+    margin-top: 22px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    opacity: 0.9;
+  }
+
+  .eat-dish-list {
+    margin-top: 12px;
+    padding-left: 0;
+    list-style: none;
+  }
+  .eat-dish-list li {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .dish-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--warm-white);
+  }
+  .dish-desc {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .dish-name { font-size: 22px; }
+    .dish-desc { font-size: 16px; }
+  }
+
+  .eat-section-copy .btn {
+    margin-top: 28px;
+  }
+
+  /* ============================================================
+     closing CTA band
+     ============================================================ */
+  .eat-cta {
+    background: var(--indigo);
+    padding: 72px 22px calc(72px + var(--bar-pad));
+    text-align: center;
+    background-image: linear-gradient(180deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      transparent 28%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.25) 100%);
+  }
+  @media (min-width: 1025px) {
+    .eat-cta { padding: 96px 64px; }
+  }
+
+  .eat-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .eat-cta-headline {
+    color: var(--warm-white);
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 1.0;
+  }
+  @media (min-width: 1025px) {
+    .eat-cta-headline { font-size: clamp(48px, 5vw, 64px); }
+  }
+
+  .eat-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .eat-cta-buttons {
+    margin-top: 32px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+</style>
