@@ -25,20 +25,21 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 interface NavItem { href: string; label: string }
 
+// Inline nav: 6 items (was 5). VIP Suite promoted to inline 2026-05-04 —
+// it's the tier-1 conversion page (revenue engine), and the desktop chrome
+// has plenty of room for a sixth label. Sits to the right of Events as
+// the natural pairing (events → suite is the common journey). MORE
+// dropdown carries the secondary utility surfaces only.
 const navItems: NavItem[] = [
-  { href: "/bar/",    label: "Bar"    },
-  { href: "/eat/",    label: "Eat"    },
-  { href: "/bowl/",   label: "Bowl"   },
-  { href: "/game/",   label: "Game"   },
-  { href: "/events/", label: "Events" },
+  { href: "/bar/",       label: "Bar"       },
+  { href: "/eat/",       label: "Eat"       },
+  { href: "/bowl/",      label: "Bowl"      },
+  { href: "/game/",      label: "Game"      },
+  { href: "/events/",    label: "Events"    },
+  { href: "/vip-suite/", label: "VIP Suite" },
 ];
 
 const moreItems: NavItem[] = [
-  // VIP Suite is a tier-1 conversion page (revenue engine) but the 5-slot
-  // inline nav is locked at BAR · EAT · BOWL · GAME · EVENTS. So it lives
-  // in MORE, at the top — most-likely-to-click in the dropdown. Mobile
-  // NavDrawer also lists it directly.
-  { href: "/vip-suite/",       label: "VIP Suite"       },
   { href: "/upcoming-events/", label: "Upcoming Events" },
   { href: "/leagues/",         label: "Leagues"         },
   { href: "/rewards/",         label: "Rewards"         },
