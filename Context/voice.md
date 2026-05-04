@@ -71,9 +71,9 @@ Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish 
 ## Words to Avoid
 
 ### Generic / flat
-- "Fun for the whole family" (we lead adults-first)
-- "Affordable", "cheap", "budget-friendly", "value", "deals", "cheap eats"
-- "Bowling alley" as the primary descriptor — we are an entertainment destination
+- "Fun for the whole family" (banned as a marketing lead — but the venue IS family-welcome; see the *"Adults-first, group-friendly, family-welcome"* section below). Family-friendliness is a true *fact* about the venue, not a brand angle. Don't deny families; don't market to families either.
+- "Affordable", "cheap", "budget-friendly", "value", "deals", "cheap eats" — **hard ban**, premium positioning. Even on `/free-10` (the coupon page) frame the offer without leaning into discount language.
+- "Bowling alley" as the **primary** descriptor — fine to use the term descriptively (and the brand uses it deliberately in lines like *"This isn't your parents' bowling alley."* and *"Cocktails this serious aren't supposed to live at bowling alleys."*). Just don't lead with it — we're a bar-program-led entertainment destination, not a bowling alley first.
 - "Just" (as in "just bowling", "just come here") — undersells everything
 - "Ultimate dining destination" (misleading — we are way more than dining)
 
