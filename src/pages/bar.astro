@@ -496,14 +496,25 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   }
   /* Pattern overlay — same Pin Tilt watermark as the global body::before,
      painted ABOVE this section's indigo bg so the pattern carries into
-     the lifted band. (The global body::before is z-index: -1, behind the
-     section bg, so it's covered here without this overlay.) Matches the
-     same 0.06 opacity for visual continuity with adjacent sections. */
+     the lifted band. (The global body::before is z-index: -1, behind
+     the section bg, so it's covered here without this overlay.)
+
+     `background-attachment: fixed` is the load-bearing property —
+     without it, the section pattern tiles from the section's top-left
+     while the global body::before tiles from the viewport's top-left.
+     Different tile origins = visible discontinuity at the section
+     boundary (pins look "cut off at weird angles"). With fixed, both
+     patterns share the viewport tile-grid → seamless continuity.
+
+     Note: `background-attachment: fixed` is sometimes ignored on iOS
+     Safari (falls back to scroll). Mobile may briefly show the original
+     misaligned behavior; acceptable trade since the band is short. */
   .bar-cta::before {
     content: "";
     position: absolute;
     inset: 0;
     background-image: url("/pattern/pin-tilt-white.png");
+    background-attachment: fixed;
     background-repeat: repeat;
     background-size: 200px auto;
     background-position: center top;

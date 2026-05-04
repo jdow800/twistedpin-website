@@ -457,14 +457,16 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       transparent 72%,
       rgba(0, 0, 0, 0.25) 100%);
   }
-  /* Pattern overlay — see .bar-cta::before in bar.astro for full
-     explanation. Same Pin Tilt watermark + same 0.06 opacity, painted
-     above the indigo bg so the pattern carries into the lifted band. */
+  /* Pattern overlay — see .bar-cta::before in bar.astro for the full
+     explanation, including why `background-attachment: fixed` is
+     load-bearing (viewport tile-grid alignment with the global
+     body::before, no boundary discontinuity). */
   .eat-cta::before {
     content: "";
     position: absolute;
     inset: 0;
     background-image: url("/pattern/pin-tilt-white.png");
+    background-attachment: fixed;
     background-repeat: repeat;
     background-size: 200px auto;
     background-position: center top;
