@@ -24,7 +24,7 @@ const cocktailMenu = await getCocktails();
   description="The cocktail program at Twisted Pin — built by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
 >
 
-  <section class="menu-hero" aria-labelledby="menu-h1">
+  <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Bar Program</p>
     <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
       Cocktails
@@ -75,6 +75,26 @@ const cocktailMenu = await getCocktails();
       </div>
     </section>
   )}
+
+  <section class="menu-seo" aria-labelledby="menu-seo-h2">
+    <div class="menu-seo-inner">
+      <h2 class="menu-seo-title" id="menu-seo-h2">About the cocktail program</h2>
+      <p>
+        Twisted Pin's cocktail program was designed by Brian Van Flandern —
+        named America's Top Mixologist by Food Network, with cocktails
+        served in 40+ countries. The menu rotates around three categories:
+        original craft cocktails built specifically for this bar, reimagined
+        classics (Old Fashioneds, Negronis, Cosmopolitans, Aperol Spritzes —
+        done with fresh juice, house-made syrup, and the right bitters), and
+        a small seasonal lineup that turns over a few times a year.
+      </p>
+      <p>
+        Cocktails are served all hours the bar is open. Find us at
+        15610 S Joliet Rd, Plainfield, IL — about 30 minutes southwest
+        of downtown Chicago.
+      </p>
+    </div>
+  </section>
 
   <SnapFooter />
 </Base>
@@ -260,5 +280,49 @@ const cocktailMenu = await getCocktails();
   }
   @media (min-width: 1025px) {
     .cocktail-card-ingredients { font-size: 13.5px; }
+  }
+
+  /* ============================================================
+     SEO copy block — modest, type-only, sits above SnapFooter.
+     Provides keyword-relevant context for cold search traffic landing
+     on this page. Dimmed color so it reads as supporting copy, not
+     primary content.
+     ============================================================ */
+  .menu-seo {
+    background: transparent;
+    padding: 24px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo { padding: 32px 64px 96px; }
+  }
+
+  .menu-seo-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .menu-seo-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--warm-white);
+    margin: 0 0 14px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo-title { font-size: 22px; margin-bottom: 18px; }
+  }
+
+  .menu-seo p {
+    margin: 0 0 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--warm-dim);
+  }
+  .menu-seo p:last-child { margin-bottom: 0; }
+  @media (min-width: 1025px) {
+    .menu-seo p { font-size: 15px; line-height: 1.65; }
   }
 </style>

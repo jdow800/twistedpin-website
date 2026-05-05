@@ -24,7 +24,7 @@ const tapList = await getTapList();
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
 >
 
-  <section class="menu-hero" aria-labelledby="menu-h1">
+  <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>
     <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
       28 Self-Serve Taps
@@ -79,6 +79,31 @@ const tapList = await getTapList();
       </div>
     </section>
   )}
+
+  <section class="menu-seo" aria-labelledby="menu-seo-h2">
+    <div class="menu-seo-inner">
+      <h2 class="menu-seo-title" id="menu-seo-h2">About the tap wall</h2>
+      <p>
+        Twisted Pin runs a 28-tap self-serve beer wall — the only one in
+        the immediate Plainfield area. Grab a card at the bar, pour your
+        own, and pay by the ounce. The card system means you can try a
+        few sips of something new without committing to a full pint, and
+        you don't have to flag down a bartender for a refill.
+      </p>
+      <p>
+        The rotation leans Illinois craft — Werk Force (Plainfield),
+        Solemn Oath (Naperville), Phase Three (Lake Zurich), Brothership
+        (Mokena), Pollyanna (Lemont), Old Irving and Revolution (Chicago),
+        Pipeworks (Chicago), Sketchbook (Evanston) — alongside familiar
+        macros, a hard cider, hard seltzer, a non-alcoholic IPA from
+        Go Brewing, and four wines on tap. Tap list synced from Untappd
+        and refreshed daily.
+      </p>
+      <p>
+        Find us at 15610 S Joliet Rd, Plainfield, IL.
+      </p>
+    </div>
+  </section>
 
   <SnapFooter />
 </Base>
@@ -280,5 +305,46 @@ const tapList = await getTapList();
   }
   @media (min-width: 1025px) {
     .tap-line-2 { font-size: 13px; }
+  }
+
+  /* ============================================================
+     SEO copy block — see /menu/cocktails for shape rationale.
+     ============================================================ */
+  .menu-seo {
+    background: transparent;
+    padding: 24px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo { padding: 32px 64px 96px; }
+  }
+
+  .menu-seo-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .menu-seo-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--warm-white);
+    margin: 0 0 14px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo-title { font-size: 22px; margin-bottom: 18px; }
+  }
+
+  .menu-seo p {
+    margin: 0 0 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--warm-dim);
+  }
+  .menu-seo p:last-child { margin-bottom: 0; }
+  @media (min-width: 1025px) {
+    .menu-seo p { font-size: 15px; line-height: 1.65; }
   }
 </style>

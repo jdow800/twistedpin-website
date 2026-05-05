@@ -22,7 +22,7 @@ const foodMenu = await getFood();
   description="The food menu at Twisted Pin — chef-inspired plates built to share. Starters, handhelds, pizza, salads, and desserts. Plainfield, IL."
 >
 
-  <section class="menu-hero" aria-labelledby="menu-h1">
+  <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Kitchen</p>
     <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
       Food
@@ -79,6 +79,25 @@ const foodMenu = await getFood();
       </div>
     </section>
   )}
+
+  <section class="menu-seo" aria-labelledby="menu-seo-h2">
+    <div class="menu-seo-inner">
+      <h2 class="menu-seo-title" id="menu-seo-h2">About the kitchen</h2>
+      <p>
+        The kitchen at Twisted Pin runs a chef-inspired menu built to share —
+        starters and snack platters for the table, handhelds (sliders,
+        burgers, tacos, and fried chicken sandwiches), pizza and flatbreads,
+        salads, a kids menu, and house-made desserts. Pairs deliberately
+        with the cocktail program — a few of the bar's signatures were
+        specced for plates on this menu, and a few of the snacks were
+        specced for the bar.
+      </p>
+      <p>
+        Find us at 15610 S Joliet Rd, Plainfield, IL — about 30 minutes
+        southwest of downtown Chicago.
+      </p>
+    </div>
+  </section>
 
   <SnapFooter />
 </Base>
@@ -268,5 +287,46 @@ const foodMenu = await getFood();
   }
   @media (min-width: 1025px) {
     .food-card-description { font-size: 13.5px; }
+  }
+
+  /* ============================================================
+     SEO copy block — see /menu/cocktails for shape rationale.
+     ============================================================ */
+  .menu-seo {
+    background: transparent;
+    padding: 24px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo { padding: 32px 64px 96px; }
+  }
+
+  .menu-seo-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .menu-seo-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--warm-white);
+    margin: 0 0 14px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo-title { font-size: 22px; margin-bottom: 18px; }
+  }
+
+  .menu-seo p {
+    margin: 0 0 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--warm-dim);
+  }
+  .menu-seo p:last-child { margin-bottom: 0; }
+  @media (min-width: 1025px) {
+    .menu-seo p { font-size: 15px; line-height: 1.65; }
   }
 </style>
