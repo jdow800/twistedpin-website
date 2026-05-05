@@ -122,7 +122,7 @@ const drawerSections: DrawerSection[] = [
 
   <nav class="nav-drawer-list" aria-label="Site sections">
     {drawerSections.map((section, i) => (
-      <details class="nav-section" open={i === 0}>
+      <details class="nav-section" name="nav-section" open={i === 0}>
         <summary class="nav-section-header">
           <span class="nav-section-label">{section.label}</span>
           <svg
@@ -169,6 +169,15 @@ const drawerSections: DrawerSection[] = [
   </nav>
 
   <div class="nav-drawer-foot">
+    {/* In-drawer CTAs (2026-05-04 round 5). ABC — Always Be Converting.
+        The viewport sticky bar is hidden while the drawer is open (via
+        body.nav-open in global.css) since the drawer covers the right
+        92vw — these duplicate the same Reserve / Plan recipe so users
+        can convert without closing the drawer first. */}
+    <div class="nav-drawer-cta">
+      <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a Lane</a>
+      <a class="btn btn-outline" href="/events">Plan an Event</a>
+    </div>
     <p class="nav-meta">15610 S Joliet Rd · Plainfield, IL</p>
   </div>
 </aside>
@@ -383,6 +392,21 @@ const drawerSections: DrawerSection[] = [
     padding-top: 14px;
     border-top: 1px solid var(--indigo-lift);
   }
+
+  /* In-drawer CTA pair (2026-05-04 round 5). Same recipe as the
+     viewport sticky bar (Glow primary + warm-white outlined alternate)
+     so the conversion units feel of-a-piece across surfaces. */
+  .nav-drawer-cta {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .nav-drawer-cta .btn {
+    flex: 1;
+    padding: 12px 16px;
+    font-size: 11.5px;
+  }
+
   .nav-meta {
     font-family: var(--font-ui);
     font-weight: 600;

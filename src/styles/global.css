@@ -208,7 +208,13 @@ body.no-scroll { overflow: hidden; }
    live in the persistent SiteHeader), so the hide-on-footer mechanic
    only matters on mobile.
    ============================================================ */
-body.snap-cta-hidden [data-cta-bar] {
+body.snap-cta-hidden [data-cta-bar],
+/* Also hide the viewport sticky bar while the nav drawer is open
+   (2026-05-04 round 5). The drawer covers the right 92vw on mobile
+   — the bar would peek through the backdrop on the left ~8vw. The
+   drawer renders its own CTA pair internally, so conversion isn't
+   impacted by hiding the viewport bar. */
+body.nav-open [data-cta-bar] {
   opacity: 0 !important;
   transform: translateY(120%) !important;
   pointer-events: none;
