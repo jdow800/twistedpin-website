@@ -49,7 +49,7 @@ const drawerSections: DrawerSection[] = [
     items: [
       { href: "/bar/",       label: "Bar",       icon: "martini"     },
       { href: "/eat/",       label: "Eat",       icon: "utensils"    },
-      { href: "/bowl/",      label: "Bowl",      icon: "bowling-pin" },
+      { href: "/bowl/",      label: "Bowl",      icon: "bowling-ball" },
       { href: "/game/",      label: "Game",      icon: "gamepad"     },
       { href: "/events/",    label: "Events",    icon: "calendar"    },
       { href: "/vip-suite/", label: "VIP Suite", icon: "crown"       },
@@ -121,9 +121,24 @@ const drawerSections: DrawerSection[] = [
   </div>
 
   <nav class="nav-drawer-list" aria-label="Site sections">
-    {drawerSections.map(section => (
-      <div class="nav-section">
-        <p class="nav-section-label" aria-hidden="true">{section.label}</p>
+    {drawerSections.map((section, i) => (
+      <details class="nav-section" open={i === 0}>
+        <summary class="nav-section-header">
+          <span class="nav-section-label">{section.label}</span>
+          <svg
+            class="nav-section-chevron"
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            set:html={ICON_PATHS["chevron-down"]}
+          />
+        </summary>
         <ul>
           {section.items.map(item => (
             <li>
@@ -149,7 +164,7 @@ const drawerSections: DrawerSection[] = [
             </li>
           ))}
         </ul>
-      </div>
+      </details>
     ))}
   </nav>
 
@@ -255,22 +270,66 @@ const drawerSections: DrawerSection[] = [
     padding-right: 8px;
   }
 
-  /* Section: label + items */
+  /* ---------- Accordion sections (2026-05-04 round 4) ----------
+     Drawer feels like a lot at 17 items, so collapsed-by-default sections
+     reduce the initial visual load. User taps section header to expand.
+     Default state: Experience open (primary nav visible immediately),
+     Visit + Info closed.
+
+     Uses native <details>/<summary> — accessible by default (keyboard,
+     screen reader), no JS needed. Animation is browser-default (instant)
+     because animating native <details> height is unreliable; the chevron
+     rotation is the affordance for state change. */
   .nav-section + .nav-section {
-    margin-top: 22px;
-    padding-top: 16px;
     border-top: 1px solid var(--indigo-lift);
   }
 
+  .nav-section-header {
+    /* Full-width tap target — easier on mobile than a label-only target. */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 4px;
+    cursor: pointer;
+    color: var(--warm-white);
+    /* Hide the default <summary> marker (the disclosure triangle). */
+    list-style: none;
+    transition: color 150ms ease-out;
+  }
+  .nav-section-header::-webkit-details-marker { display: none; }
+  .nav-section-header::marker { content: ""; }
+  .nav-section-header:hover { color: var(--glow); }
+
   .nav-section-label {
+    /* Bigger than a typical eyebrow because it's now a tap target —
+       16px UI font, all caps, tracked. Lands like a section title
+       rather than a quiet label. */
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.18em;
+    font-size: 14px;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--warm-dim);
-    margin-bottom: 4px;
-    padding: 0 2px;
+  }
+
+  .nav-section-chevron {
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+    opacity: 0.7;
+    transition: transform 200ms ease, opacity 150ms ease-out;
+  }
+  .nav-section[open] > .nav-section-header .nav-section-chevron {
+    transform: rotate(180deg);
+  }
+  .nav-section-header:hover .nav-section-chevron { opacity: 1; }
+
+  /* Items list collapses with the section. Slight indent so items read
+     as nested under their section header. Bottom margin gives breathing
+     room before the next section's header. */
+  .nav-section[open] > ul {
+    padding-bottom: 8px;
   }
 
   .nav-drawer-list ul {

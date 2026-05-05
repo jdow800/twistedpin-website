@@ -15,7 +15,8 @@ export type IconKey =
   // Pillar pages
   | 'martini'        // Bar
   | 'utensils'       // Eat (utensils-crossed)
-  | 'bowling-pin'    // Bowl (hand-drawn — Lucide doesn't ship one)
+  | 'bowling-ball'   // Bowl (hand-drawn — Lucide doesn't ship one)
+  | 'bowling-pin'    // Brand mark; kept for any future use (was Bowl pre-2026-05-04)
   | 'gamepad'        // Game (gamepad-2)
   | 'calendar'       // Events (calendar-days)
   | 'crown'          // VIP Suite
@@ -31,7 +32,9 @@ export type IconKey =
   | 'help'           // FAQ (circle-help)
   | 'mail'           // Contact (when label says Contact)
   | 'briefcase'      // Careers
-  | 'map-pin';       // Find Us
+  | 'map-pin'        // Find Us
+  // UI utilities
+  | 'chevron-down';  // Expand/collapse on accordion sections
 
 export const ICON_PATHS: Record<IconKey, string> = {
   // lucide.dev/icons/martini
@@ -40,7 +43,15 @@ export const ICON_PATHS: Record<IconKey, string> = {
   // lucide.dev/icons/utensils-crossed
   'utensils': '<path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/>',
 
-  // hand-drawn bowling pin (Lucide doesn't ship one)
+  // hand-drawn bowling ball (Lucide doesn't ship one). Big circle =
+  // ball outline; three small circles in upper-left quadrant = the
+  // standard 3-finger drilling layout. All stroked (no fill) so the
+  // holes read as detail dots rather than face-features.
+  'bowling-ball': '<circle cx="12" cy="12" r="9"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="12.5" cy="9" r="1"/><circle cx="10.5" cy="12.5" r="1"/>',
+
+  // hand-drawn bowling pin (Lucide doesn't ship one) — used for Bowl
+  // pre-2026-05-04, replaced by bowling-ball. Kept in the library as
+  // the Twisted Pin brand mark for any future "the Pin" reference.
   'bowling-pin': '<path d="M12 3a3 3 0 0 0-3 3v1.5a3 3 0 0 1-.7 1.95C6.6 11.5 6 13.6 6 16c0 3 2.5 5 6 5s6-2 6-5c0-2.4-.6-4.5-2.3-6.55A3 3 0 0 1 15 7.5V6a3 3 0 0 0-3-3z"/><path d="M9.5 8h5"/><path d="M9 10h6"/>',
 
   // lucide.dev/icons/gamepad-2
@@ -84,4 +95,7 @@ export const ICON_PATHS: Record<IconKey, string> = {
 
   // lucide.dev/icons/map-pin
   'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+
+  // lucide.dev/icons/chevron-down
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
 };
