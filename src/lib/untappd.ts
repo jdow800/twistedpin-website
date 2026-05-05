@@ -7,9 +7,9 @@ const TIMEOUT_MS = 15_000;
 
 function authHeader(): string {
   const email = import.meta.env.UNTAPPD_EMAIL;
-  const token = import.meta.env.UNTAPPD_API_TOKEN;
+  const token = import.meta.env.UNTAPPD_API_KEY;
   if (!email || !token) {
-    throw new Error('Untappd credentials missing (UNTAPPD_EMAIL / UNTAPPD_API_TOKEN)');
+    throw new Error('Untappd credentials missing (UNTAPPD_EMAIL / UNTAPPD_API_KEY)');
   }
   const encoded = Buffer.from(`${email}:${token}`).toString('base64');
   return `Basic ${encoded}`;
