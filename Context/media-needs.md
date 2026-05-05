@@ -65,7 +65,7 @@ build but don't yet have (or have only as stubs / homepage reuses).
 - **/reserve** — Roller iframe wrapper. No media beyond brand chrome above the iframe
 - **/gift-cards** — pending fact-check that a gift card flow exists on twistedpin.com today. If yes: photo of an actual gift card (warmly lit, on a bar or with a cocktail). If no: skip the page until the operation exists
 - **/coupon** — renamed from legacy `/free-10` 2026-05-04. Page itself is project-state-locked (kept as-is per existing operational flow); old `/free-10` URL gets a 301 to `/coupon` at launch. No new media needed — existing coupon-page imagery carries over
-- **/waitlist** — TablesReady iframe page, project-state-locked. Polish task queued: branded chrome wrapper (header + frame + footer) around the third-party iframe so it doesn't feel jarring. No new media — the iframe itself is the content
+- **/waitlist** — shipped 2026-05-04 (typography hero + branded iframe wrapper around `host.tablesready.com/p/waitlist/twistedpin` + closing Reserve CTA + SnapFooter). Webhook-derived state version explored and tabled — see [waitlist-theory.md](waitlist-theory.md) for the full theory + revisit checklist. No new media needed for current iframe version; if we revisit Path 1 (webhook-derived), we render our own copy from live count + no media changes
 
 ---
 

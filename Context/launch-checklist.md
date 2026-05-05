@@ -59,7 +59,7 @@ To do: implement these in `vercel.json` rewrites/redirects. Validate after deplo
 | **Roller booking** | URL confirmed: `https://ecom.roller.app/twistedpin/openbowl/en-us/home`. Currently used as direct external link from sticky-bar "Reserve a Lane" CTA | Wire into `/reserve` page when built (Roller iframe wrapper) — until then, keep direct external link |
 | **Zite events platform** | Subdomain not yet deployed (`events.twistedpin.com`) | Coordinated launch with Avery's polish. **After deploy: sweep all "Plan an event" hrefs** from `/events` (main, placeholder) → `events.twistedpin.com` (subdomain). Currently several locations reference `/events` as placeholder: SiteHeader CTA, StickyCTABar, /vip-suite, etc. |
 | **GoTab API** | Not integrated. Quick-start docs say GraphQL + OAuth 2.0 (Client Credentials Grant). Menu endpoint + data shape live in separate "Products & Menus 101" docs (not yet read) | OAuth credentials provisioned by ops. Powers `/bar` "View what's on tap" + "View cocktail menu" CTAs and `/eat` "View the menu" CTAs. Spike the menu data shape before designing the menu component |
-| **TablesReady waitlist** | Iframe URL needed for `/waitlist` page | Get iframe URL/embed snippet from ops; build branded chrome wrapper |
+| **TablesReady waitlist** | `/waitlist` shipped 2026-05-04 wrapping `host.tablesready.com/p/waitlist/twistedpin` (no X-Frame headers, embeds cleanly). User flagged inner iframe content as ugly; webhook-derived state explored and **tabled** pending plan upgrade. See [waitlist-theory.md](waitlist-theory.md) for full theory + revisit checklist | When revisiting: upgrade TablesReady plan tier → run webhook.site test → capture real payloads → resolve `party.checked_in` ambiguity → build webhook receiver + state store + 4am reset → swap iframe for live-data render |
 | **Cross-subdomain tracking** | UTM-tagging set up per user | Verify: GTM / Meta Pixel / GA4 tags set on `.twistedpin.com` (with leading dot) so they fire on both main + `events.twistedpin.com` subdomain |
 
 ---
@@ -80,7 +80,7 @@ Tier 2 (utility / secondary):
 - [ ] `/faq` — port from old site or rebuild
 - [ ] `/careers` — port from old site or rebuild
 - [ ] `/coupon` — kept as-is operationally (renamed from `/free-10`); confirm it ports cleanly
-- [ ] `/waitlist` — TablesReady iframe with brand chrome
+- [x] `/waitlist` — shipped 2026-05-04 (TablesReady iframe wrapped in brand chrome). Webhook-derived state version tabled — see [waitlist-theory.md](waitlist-theory.md)
 
 Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`.
 
