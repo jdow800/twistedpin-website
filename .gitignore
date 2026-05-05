@@ -34,3 +34,7 @@ Context/pictures/
 
 
 .vercel
+
+# Claude Code runtime state — local-only, should never be committed
+.claude/scheduled_tasks.lock
+.claude/*.lock
