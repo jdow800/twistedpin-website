@@ -1,0 +1,458 @@
+---
+/**
+ * /events — Group Events pillar page.
+ *
+ * **The most important unbuilt page on the site** per Context/seo.md and
+ * Context/launch-checklist.md — ad spend lands here for the
+ * `corporate event venue near me` / `event spaces near me` /
+ * `adult birthday party venue` / `team building venue` clusters that
+ * drive $2K-$10K+ bookings (40% of corporate leads via Google).
+ *
+ * Strategy: pre-qualify + persuade, then hand off to Zite. The Zite app
+ * (`events.twistedpin.com`) is the inquiry form + facility tour; this
+ * page is the brand-voiced landing layer above it. A direct redirect
+ * to Zite would convert the bottom-of-funnel (already-decided users)
+ * but waste the top-of-funnel (researchers needing to learn what we
+ * offer first). Landing page filters AND educates → higher-intent form
+ * fills, fewer junk submissions, plus organic SEO that a redirect can't
+ * earn.
+ *
+ * Same skeleton as /bar /eat /vip-suite (rule of four — .pillar-* CSS
+ * hoist is now overdue):
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (image + copy, alternating)
+ *   - Closing CTA band (NEW pattern for this page — single dominant
+ *     "Plan an event" CTA → Zite)
+ *   - SnapFooter
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - Brian Van Flandern named only as "America's Top Mixologist"
+ *     credential, in service of "the bar program is the same one
+ *     designed by..." (allowed mention per voice.md)
+ *   - "private" hard-banned — used "take over," "yours for the night,"
+ *     "set apart from the main floor"
+ *   - Specifics > adjectives — 6-lane VIP suite, up to 80, 28 self-serve
+ *     taps, 50% of bowling revenue back to fundraiser hosts
+ *   - Adults-first, not Chuck E Cheese
+ *
+ * TODOs (non-blocking):
+ *   - Closing-band CTA href = `events.twistedpin.com` (Zite subdomain,
+ *     not yet deployed). Will resolve when Avery's polish ships;
+ *     currently 404s like other unbuilt destinations.
+ *   - Capacity numbers for full-venue buyouts not yet confirmed by ops.
+ *     "More for full-venue buyouts" hand-waves until ops gives a number.
+ *   - Section photos reuse homepage events-bg + cocktails-bg shots.
+ *     Distinct event-energy photography flagged in Context/media-needs.md.
+ *   - Real success-story content (e.g. "X companies hosted last quarter")
+ *     would land hard but not in scope until ops gives numbers.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+// Zite subdomain — currently 404s, will resolve when Avery's polish
+// ships. After Zite goes live, sweep all "Plan an event" hrefs across
+// the site (currently /events) → this URL. Tracked in launch-checklist.md.
+const ZITE_URL = "https://events.twistedpin.com/";
+---
+<Base
+  title="Group Events in Plainfield, IL | Twisted Pin"
+  description="VIP suite for up to 80, custom catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties — Plainfield, IL."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="events-hero" data-hero aria-labelledby="events-hero-h1">
+    <div class="events-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Group Events</p>
+      <h1 class="t-display events-hero-headline hero-fade" id="events-hero-h1" data-delay-ms="120">
+        Events that don't&nbsp;suck.
+      </h1>
+      <p class="events-hero-sub hero-fade" data-delay-ms="320">
+        Take over the 6-lane VIP suite. Custom catering. The bar program
+        your guests will text you about the next morning.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT YOU CAN HOST — image left, copy right
+      ============================================================ */}
+  <section class="events-section" aria-labelledby="events-host-h2">
+    <div class="events-section-grid">
+      <div class="events-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="events-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group celebrating in the VIP suite at Twisted Pin"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="events-section-copy">
+        <p class="t-eyebrow">What You Can Host</p>
+        <h2 class="t-display events-section-title" id="events-host-h2">
+          Birthdays. Corporate. Fundraisers.
+        </h2>
+        <p class="events-section-aside">(or whatever you can talk us into)</p>
+
+        <p class="events-section-body">
+          Adult birthdays. Corporate offsites and holiday parties.
+          Fundraisers, retirements, after-parties of after-parties — if
+          it's a group of adults that wants to have a night, we can host it.
+        </p>
+
+        <p class="events-section-body">
+          Fundraisers get a real package: <strong>50% of bowling revenue
+          back to your organization</strong>, Thursday nights 5–9pm.
+          Schools, churches, community groups.
+        </p>
+
+        <ul class="events-section-list">
+          <li>Adult birthday parties</li>
+          <li>Corporate offsites + team building</li>
+          <li>Holiday parties (December books fast — reach out by October)</li>
+          <li>Fundraisers — 50% back to the host</li>
+          <li>Retirements + farewells</li>
+          <li>After-parties + group functions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHY IT WORKS — image RIGHT, copy LEFT (alternation)
+      ============================================================ */}
+  <section class="events-section events-section--reverse" aria-labelledby="events-why-h2">
+    <div class="events-section-grid">
+      <div class="events-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-1080.webp 1080w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="events-section-img"
+            src="/snap/cocktails-bg-1080.jpg"
+            srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-1080.jpg 1080w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A craft cocktail at Twisted Pin's bar program"
+            width="1080"
+            height="1920"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="events-section-copy">
+        <p class="t-eyebrow">Why It Works</p>
+        <h2 class="t-display events-section-title" id="events-why-h2">
+          The room, the bar, the kitchen — yours for the night.
+        </h2>
+        <p class="events-section-aside">(when you book the suite)</p>
+
+        <p class="events-section-body">
+          The 6-lane VIP suite is set apart from the main floor — yours
+          when you reserve it. Up to 80 people. AV hookups for music
+          and mics. LED video wall for slideshows, sports, or whatever
+          you want playing. Couch seating around the lanes for the
+          people who'd rather watch than throw.
+        </p>
+
+        <p class="events-section-body">
+          The 28-tap self-serve wall sits next door. The cocktail bar
+          runs the program designed by <em>America's Top Mixologist</em> —
+          same drinks, same execution as the rest of the venue. The
+          kitchen handles custom catering through the night.
+        </p>
+
+        <p class="events-section-body">
+          Open bar, host bar, drink tickets — pick whatever billing model
+          fits your group. We've done all of them.
+        </p>
+
+        <ul class="events-section-list">
+          <li>6-lane VIP suite, up to 80 (more for full-venue buyouts)</li>
+          <li>28-tap self-serve beer &amp; wine wall</li>
+          <li>Cocktail program by <em>America's Top Mixologist</em></li>
+          <li>Custom catering through the kitchen</li>
+          <li>Open bar / host bar / drink tickets — your call</li>
+          <li>AV hookups + LED video wall</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — single dominant "Plan an event" → Zite.
+      Different visual treatment from the editorial sections (lifted
+      indigo, centered, spacious) so the conversion moment lands as
+      a moment, not as another scroll beat.
+      ============================================================ */}
+  <section class="events-cta" aria-labelledby="events-cta-h2">
+    <div class="events-cta-inner">
+      <p class="t-eyebrow">Tell Us What You Want</p>
+      <h2 class="t-display events-cta-title" id="events-cta-h2">
+        We'll set it up.
+      </h2>
+      <p class="events-cta-body">
+        Quick form. Tour the venue, see the suite, get a quote.
+      </p>
+      <a class="btn btn-solid events-cta-btn" href={ZITE_URL}>
+        Plan an event
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /events — same pillar skeleton as /bar /eat /vip-suite for
+     hero + editorial sections, plus a NEW closing CTA band pattern
+     specific to this page (highest-conversion page on the site).
+     Class names .events-* mirror .bar-* / .eat-* / .vip-* / .waitlist-* —
+     rule of four hit; .pillar-* CSS hoist overdue (flagged in
+     Context/launch-checklist.md tech debt).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .events-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(420px, 60vh, 560px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      calc(var(--bar-pad) + 32px);
+  }
+  @media (min-width: 1025px) {
+    .events-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .events-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .events-hero-copy { text-align: center; }
+    .events-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .events-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .events-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .events-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .events-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     section pattern (same shape as .vip-section etc.)
+     ============================================================ */
+  .events-section {
+    background: transparent; /* Pin Tilt watermark shows through */
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .events-section { padding: 96px 64px; }
+  }
+
+  .events-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .events-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .events-section--reverse .events-section-grid > .events-section-frame {
+      order: 2;
+    }
+  }
+
+  .events-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .events-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .events-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .events-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .events-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .events-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .events-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .events-section-aside { font-size: 17px; }
+  }
+
+  .events-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .events-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .events-section-body strong {
+    color: var(--warm-white);
+    font-weight: 700;
+  }
+
+  .events-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .events-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .events-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  /* ============================================================
+     CLOSING CTA BAND — distinct from editorial sections.
+     Lifted indigo background gives the conversion moment its own
+     visual presence (vs the transparent editorial sections that let
+     the watermark show through). Centered content, prominent CTA.
+     This is the "moment that earns its space" pattern from
+     visual-direction.md.
+     ============================================================ */
+  .events-cta {
+    /* Lifted indigo — slight elevation from the editorial body. Not
+       a gradient (we removed those per visual-direction.md), just a
+       solid that's marginally lighter than the indigo-deep page bg. */
+    background: rgba(26, 21, 48, 0.92);
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+    padding: 72px 22px 88px;
+  }
+  @media (min-width: 1025px) {
+    .events-cta { padding: 112px 64px 128px; }
+  }
+
+  .events-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .events-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .events-cta-title { font-size: clamp(56px, 5vw, 72px); }
+  }
+
+  .events-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .events-cta-body { font-size: 19px; }
+  }
+
+  .events-cta-btn {
+    margin-top: 32px;
+    /* Slightly bigger than default button to land as the page's
+       conversion moment — not a sticky-bar-sized button. */
+    padding: 16px 32px;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+  }
+  @media (min-width: 1025px) {
+    .events-cta-btn { padding: 18px 40px; font-size: 15px; }
+  }
+</style>
