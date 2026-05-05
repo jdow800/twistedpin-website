@@ -1,0 +1,397 @@
+---
+/**
+ * /bowl — Bowling pillar page.
+ *
+ * SEO weight: high. Per Context/seo.md the `bowling near me /
+ * bowling Plainfield / bowling alley near me` cluster is the
+ * foundation of paid + organic traffic (44% of paid clicks,
+ * ~1k-13k monthly searches). Old site had /bowling/ which gets a
+ * 301 to /bowl/ at launch.
+ *
+ * Strategy: lead with the canonical lane phrasing (17 traditional +
+ * 6-lane VIP suite) — both numbers do work. The page acknowledges
+ * traditional lanes (the SEO target) AND funnels VIP-curious users
+ * to /vip-suite (the conversion target). Cross-links to leagues
+ * (anchor #leagues for now; standalone /leagues page eventually)
+ * and free kids bowling (anchor #free-kids — old /free-kids-bowling/
+ * gets a 301 to /bowl/#free-kids per launch-checklist).
+ *
+ * Same skeleton as the other pillars (rule of FIVE — .pillar-* CSS
+ * hoist now seriously overdue):
+ *   - Hero: typography-led
+ *   - Section 1 — 17 traditional lanes (walk-in / reserve / leagues
+ *     / free kids cross-links)
+ *   - Section 2 — VIP suite preview (cross-link to /vip-suite for full)
+ *   - SnapFooter (the global one carries hours / address / contact)
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - Canonical lane phrasing: "17 traditional lanes + a 6-lane VIP suite"
+ *   - "private" hard-banned — "yours when you reserve it" / "take over"
+ *   - Adults-first but not denying families (free kids bowling IS real)
+ *   - "Bowling alley" used descriptively in lower body, not as primary
+ *     descriptor (per voice.md soft-positioning rule)
+ *
+ * TODOs (non-blocking):
+ *   - League schedule + free-kids day/time are TBD pending ops input.
+ *     Copy hand-waves with "weekly leagues" / "free kids bowling day"
+ *     until ops gives specifics.
+ *   - Section photos reuse /vip-suite events-bg shot for the VIP
+ *     preview section. Need distinct traditional-lane photography
+ *     for section 1 — flagged in Context/media-needs.md.
+ *   - /leagues, /upcoming-events still 404 — anchor cross-links work
+ *     when those pages ship.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+---
+<Base
+  title="Bowling in Plainfield, IL — Twisted Pin"
+  description="17 traditional lanes plus a 6-lane VIP suite. Walk in, reserve, leagues, free kids bowling. Plainfield, IL — 5 minutes from Naperville and Bolingbrook."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="bowl-hero" data-hero aria-labelledby="bowl-hero-h1">
+    <div class="bowl-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Bowling</p>
+      <h1 class="t-display bowl-hero-headline hero-fade" id="bowl-hero-h1" data-delay-ms="120">
+        17 lanes. Plus six&nbsp;more.
+      </h1>
+      <p class="bowl-hero-sub hero-fade" data-delay-ms="320">
+        Walk in, reserve a lane, or take over the 6-lane VIP suite when
+        you want all six to yourselves.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      TRADITIONAL LANES — image left, copy right
+      ============================================================ */}
+  <section class="bowl-section" aria-labelledby="bowl-traditional-h2">
+    <div class="bowl-section-grid">
+      <div class="bowl-section-frame">
+        {/* Stub photo — uses events-bg for now (group-energy lane shot).
+            Need distinct traditional-lane photography (per
+            visual-direction.md, AIV07036-Enhanced-NR teal/green lit
+            lanes are OK on /bowl, just not on the homepage hero). */}
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="bowl-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="Bowling lanes at Twisted Pin in Plainfield, IL"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="bowl-section-copy">
+        <p class="t-eyebrow">Traditional Lanes</p>
+        <h2 class="t-display bowl-section-title" id="bowl-traditional-h2">
+          17 lanes. Walk in or reserve.
+        </h2>
+        <p class="bowl-section-aside">(Friday or Saturday after 7? Reserve.)</p>
+
+        <p class="bowl-section-body">
+          17 traditional lanes for the actual bowling — the part of a
+          bowling alley that's supposed to do bowling. Walk in most
+          weekday nights and you'll find a lane. Friday and Saturday
+          after 7, the room fills up — reserve in advance so you're not
+          standing around.
+        </p>
+
+        <p class="bowl-section-body">
+          Bumpers when the kids need them. Light beer in hand when they
+          don't. The bar is twenty steps away.
+        </p>
+
+        <ul class="bowl-section-list">
+          <li>17 traditional lanes</li>
+          <li>Walk-in friendly most weekday nights</li>
+          <li>Reserve in advance for weekends + peak hours</li>
+          <li>Bumpers available</li>
+          <li>Shoe rental at the counter</li>
+        </ul>
+
+        <a class="btn btn-solid bowl-cta-inline" href={ROLLER_URL} target="_blank" rel="noopener">
+          Reserve a lane
+        </a>
+
+        {/* League + free-kids cross-links. Anchor IDs preserved here
+            so legacy /free-kids-bowling/ → /bowl/#free-kids 301 works
+            even though we haven't built the standalone /leagues yet. */}
+        <div class="bowl-cross-links">
+          <a href="/leagues" id="leagues">
+            <strong>Leagues</strong> · weekly mixed leagues, casual + competitive
+          </a>
+          <a href="#free-kids" id="free-kids">
+            <strong>Free kids bowling</strong> · bring the kids on a designated day, you grab a drink
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      VIP SUITE PREVIEW — image RIGHT, copy LEFT (alternation).
+      Funnels suite-curious users to the full /vip-suite page.
+      ============================================================ */}
+  <section class="bowl-section bowl-section--reverse" aria-labelledby="bowl-vip-h2">
+    <div class="bowl-section-grid">
+      <div class="bowl-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp" />
+          <img
+            class="bowl-section-img"
+            src="/snap/events-bg-540.jpg"
+            alt="The 6-lane VIP suite at Twisted Pin"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="bowl-section-copy">
+        <p class="t-eyebrow">The VIP Suite</p>
+        <h2 class="t-display bowl-section-title" id="bowl-vip-h2">
+          Want all six to yourselves?
+        </h2>
+        <p class="bowl-section-aside">(yes, you can take it over)</p>
+
+        <p class="bowl-section-body">
+          The 6-lane VIP suite is set apart from the main floor — yours
+          when you reserve it. Up to 80 people. Couch seating around
+          the lanes for the people who'd rather watch than throw. LED
+          video wall for slideshows or the game. AV hookups for music.
+        </p>
+
+        <p class="bowl-section-body">
+          The 28-tap self-serve wall sits next door. The cocktail bar
+          runs the program designed by <em>America's Top Mixologist</em>.
+          Custom catering through the kitchen.
+        </p>
+
+        <ul class="bowl-section-list">
+          <li>6 lanes of your own</li>
+          <li>Up to 80 people</li>
+          <li>LED video wall + AV hookups</li>
+          <li>Tap wall + cocktail bar + kitchen access</li>
+        </ul>
+
+        <a class="btn btn-outline bowl-cta-inline" href="/vip-suite/">
+          See the suite
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /bowl — same pillar skeleton as the others. Rule of FIVE
+     hit; .pillar-* CSS hoist now seriously overdue (flagged in
+     Context/launch-checklist.md tech debt — every pillar after
+     this hoist saves ~150 lines).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .bowl-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(420px, 60vh, 560px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      calc(var(--bar-pad) + 32px);
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .bowl-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-copy { text-align: center; }
+    .bowl-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .bowl-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .bowl-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ---------- editorial sections ---------- */
+  .bowl-section {
+    background: transparent;
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section { padding: 96px 64px; }
+  }
+
+  .bowl-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .bowl-section--reverse .bowl-section-grid > .bowl-section-frame {
+      order: 2;
+    }
+  }
+
+  .bowl-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .bowl-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .bowl-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .bowl-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .bowl-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-aside { font-size: 17px; }
+  }
+
+  .bowl-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .bowl-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .bowl-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .bowl-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  .bowl-cta-inline {
+    margin-top: 28px;
+  }
+
+  /* ---------- cross-links (Leagues / Free Kids) ---------- */
+  .bowl-cross-links {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bowl-cross-links a {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    transition: color 150ms ease-out;
+  }
+  .bowl-cross-links a:hover { color: var(--glow); }
+  .bowl-cross-links a strong {
+    color: var(--warm-white);
+    font-weight: 700;
+    /* Inline with body text — same font-family inheritance, lifts
+       the lead word visually so the link reads "[Word] · description". */
+  }
+</style>
