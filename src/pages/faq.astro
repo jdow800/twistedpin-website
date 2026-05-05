@@ -1,0 +1,190 @@
+---
+/**
+ * /faq — Frequently Asked Questions.
+ *
+ * Replaces the legacy /faqs/ page (slug cleanup per launch-checklist.md
+ * — 301 from /faqs/ → /faq/ at launch). Content sourced from the live
+ * twistedpin.com/faqs/ Q&As (2026-05-05 capture), with voice cleanup:
+ *   - "world-renowned mixologist Brian Van Flandern" →
+ *     "designed by Brian Van Flandern — *America's Top Mixologist*
+ *     (Food Network)" (matches voice.md locked credential framing)
+ *   - "click here" / "Learn more here" weak CTAs → real anchor links
+ *     to the relevant pillar page or external action
+ *   - "semi-private section" — kept (per voice.md this IS the
+ *     accurate framing for the VIP suite)
+ *
+ * Native <details>/<summary> accordion — accessible by default
+ * (keyboard, screen reader), no JS. Same pattern the NavDrawer uses.
+ * All items closed by default; user expands the ones they care about.
+ *
+ * SEO: FAQPage JSON-LD schema for Google rich-result snippets
+ * (per Context/seo.md "FAQPage on the FAQ section"). Schema mirrors
+ * the rendered Q&As exactly.
+ *
+ * TODOs (non-blocking):
+ *   - Bowling cost ($35/hour walk-in, $5.95 shoes) — verify with
+ *     ops; pricing on the live site as of 2026-05-05.
+ *   - Hours captured from live site schema markup; verify they're
+ *     current vs the SnapFooter's "Open today / until 11:00 PM"
+ *     placeholder.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import { ICON_PATHS } from "../lib/icons";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+
+interface FaqItem {
+  q: string;
+  /** Plain-text answer for the JSON-LD schema (no HTML). */
+  schemaA: string;
+  /** Rendered HTML answer (may include <a> links to other pages). */
+  htmlA: string;
+}
+
+const faqs: FaqItem[] = [
+  {
+    q: "What are your hours?",
+    schemaA: "Monday–Thursday 3pm–11pm. Friday 2pm–1am. Saturday 11am–1am. Sunday 12pm–10pm. Hours may vary on holidays — check our Google listing for real-time updates.",
+    htmlA: `<p>Monday–Thursday <strong>3pm–11pm</strong>. Friday <strong>2pm–1am</strong>. Saturday <strong>11am–1am</strong>. Sunday <strong>12pm–10pm</strong>.</p><p>Hours may vary on holidays — check our Google listing for real-time updates.</p>`,
+  },
+  {
+    q: "When is open bowling?",
+    schemaA: "We always have open bowling during regular operating hours.",
+    htmlA: `<p>We always have open bowling during regular operating hours.</p>`,
+  },
+  {
+    q: "Do I need reservations?",
+    schemaA: "Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.",
+    htmlA: `<p>Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.</p><p><a href="${ROLLER_URL}" target="_blank" rel="noopener">Reserve a lane →</a></p>`,
+  },
+  {
+    q: "How many lanes do you have?",
+    schemaA: "23 total — 17 traditional lanes plus a 6-lane VIP suite.",
+    htmlA: `<p>23 total — <strong>17 traditional lanes plus a 6-lane VIP suite</strong>.</p>`,
+  },
+  {
+    q: "How much does bowling cost?",
+    schemaA: "Pricing varies by day and time. Walk-in starts at $35/hour per lane. Shoe rental $5.95/pair.",
+    htmlA: `<p>Pricing varies by day and time. Walk-in starts at <strong>$35/hour per lane</strong>. Shoe rental <strong>$5.95/pair</strong>.</p><p><a href="/bowl/">See current rates and reserve →</a></p>`,
+  },
+  {
+    q: "What is the VIP bowling suite?",
+    schemaA: "The VIP suite is a semi-private section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.",
+    htmlA: `<p>The VIP suite is a <strong>semi-private</strong> section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+  },
+  {
+    q: "Can I bring a cake, cupcakes, or party decor?",
+    schemaA: "Outside cake and decor are welcome only for booked events.",
+    htmlA: `<p>Outside cake and decor are welcome only for booked events.</p><p><a href="/events/">Plan an event →</a></p>`,
+  },
+  {
+    q: "Do you have a dress code?",
+    schemaA: "No formal dress code. Socks required for bowling shoes — wear appropriate footwear.",
+    htmlA: `<p>No formal dress code. Socks required for bowling shoes — wear appropriate footwear.</p>`,
+  },
+  {
+    q: "Is there parking?",
+    schemaA: "Yes — free on-site parking at 15610 S Joliet Rd, Plainfield, IL 60544.",
+    htmlA: `<p>Yes — free on-site parking at <strong>15610 S Joliet Rd, Plainfield, IL 60544</strong>.</p>`,
+  },
+  {
+    q: "Is there an age requirement?",
+    schemaA: "All ages welcome during regular hours. Guests under 21 can't use the self-serve beer and wine wall. The bar area may have age restrictions during late-night hours. Parental guidance recommended.",
+    htmlA: `<p>All ages welcome during regular hours. Guests under 21 can't use the self-serve beer and wine wall. The bar area may have age restrictions during late-night hours. Parental guidance recommended.</p>`,
+  },
+  {
+    q: "What kind of cocktails do you have?",
+    schemaA: "Our craft cocktail program was designed by Brian Van Flandern — America's Top Mixologist (Food Network). All cocktails are made with freshly juiced ingredients.",
+    htmlA: `<p>Our craft cocktail program was designed by Brian Van Flandern — <em>America's Top Mixologist</em> (Food Network). All cocktails are made with freshly juiced ingredients.</p><p><a href="/bar/">See the bar program →</a></p>`,
+  },
+  {
+    q: "Do you serve food?",
+    schemaA: "Yes — full kitchen with a chef-inspired menu.",
+    htmlA: `<p>Yes — full kitchen with a chef-inspired menu.</p><p><a href="/eat/">See the menu →</a></p>`,
+  },
+  {
+    q: "How does the self-serve beer and wine wall work?",
+    schemaA: "Check in with a bartender to get your tap card. Pour from any of our 28 taps — pay by the ounce. Sample a little, pour a flight, or go for a full pint. Great for trying something new without committing to a full glass.",
+    htmlA: `<p>Check in with a bartender to get your tap card. Pour from any of our <strong>28 taps</strong> — pay by the ounce.</p><p>Sample a little, pour a flight, or go for a full pint. Great for trying something new without committing to a full glass.</p>`,
+  },
+  {
+    q: "Do you have an arcade?",
+    schemaA: "Yes — skee-ball, pinball, redemption games, VR experiences, and a redemption counter for prizes.",
+    htmlA: `<p>Yes — skee-ball, pinball, redemption games, VR, and a redemption counter for prizes.</p><p><a href="/game/">See the arcade →</a></p>`,
+  },
+  {
+    q: "Can I host a corporate event or team building outing?",
+    schemaA: "Yes — casual team nights to full corporate events with custom catering and AV setup.",
+    htmlA: `<p>Yes — casual team nights to full corporate events with custom catering and AV setup.</p><p><a href="/events/">Plan an event →</a></p>`,
+  },
+  {
+    q: "Do you sell gift cards?",
+    schemaA: "Yes — available in-store at the front desk only. Valid for bowling and arcade purchases.",
+    htmlA: `<p>Yes — available <strong>in-store at the front desk only</strong>. Valid for bowling and arcade purchases.</p>`,
+  },
+];
+
+// JSON-LD FAQPage schema — Google rich-result eligible. Per seo.md.
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqs.map(f => ({
+    "@type": "Question",
+    "name": f.q,
+    "acceptedAnswer": { "@type": "Answer", "text": f.schemaA },
+  })),
+};
+---
+<Base
+  title="FAQ — Twisted Pin Plainfield IL"
+  description="Hours, lanes, pricing, reservations, VIP suite, gift cards, events. Answers to the most common questions about Twisted Pin in Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="faq-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Questions</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="faq-h1" data-delay-ms="120">
+        Frequently asked.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Hours, pricing, reservations, the suite, gift cards. The
+        answers to what people ask the front desk most.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-label="Frequently asked questions">
+    <div class="t2-section-inner">
+      <div class="t2-faq">
+        {faqs.map(item => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              {item.q}
+              <svg
+                class="t2-faq-chevron"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={ICON_PATHS["chevron-down"]}
+              />
+            </summary>
+            <div class="t2-faq-a" set:html={item.htmlA} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* JSON-LD FAQ schema — Google reads it from anywhere in the
+      document; doesn't have to be in <head>. */}
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+
+  <SnapFooter />
+</Base>

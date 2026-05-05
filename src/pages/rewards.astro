@@ -1,0 +1,66 @@
+---
+/**
+ * /rewards — loyalty / rewards program page.
+ *
+ * Tier-2 utility page. Live twistedpin.com/rewards/ exists but the
+ * program details (signup, points/tier mechanics, app requirements)
+ * are JS-rendered; couldn't scrape via curl. Page acknowledges the
+ * program exists + routes users to ops for signup until details land.
+ *
+ * TODOs (non-blocking):
+ *   - Program mechanics (how to earn, how to redeem, app vs in-store
+ *     signup) — pending ops. Likely the live site uses a third-party
+ *     loyalty platform (e.g. Toast Loyalty, Square Loyalty, FiveStars)
+ *     — confirm which, then either embed their signup widget or link
+ *     out to their hosted page.
+ *   - Voice rule check: the loyalty program may have $-off rewards,
+ *     but per voice.md "cheap/discount/value/deals" hard-ban applies
+ *     even on /coupon — same applies here. Frame rewards in
+ *     experience terms ("a free game," "your next round") not
+ *     discount terms ("$5 off").
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Rewards — Twisted Pin Plainfield IL"
+  description="Loyalty rewards for Twisted Pin regulars. Sign up at the front desk or in our app. Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="rewards-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Rewards</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="rewards-h1" data-delay-ms="120">
+        Regulars get the&nbsp;perks.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Bowl with us often? The rewards program adds up over time.
+        Sign up at the front desk on your next visit.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="rewards-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="rewards-h2" style="font-size:11px;">How It Works</h2>
+      <p class="t2-section-body">
+        Sign up at the front desk on your next visit. From there, every
+        visit earns rewards you can redeem on future bowling, food, and
+        drinks.
+      </p>
+
+      <p class="t2-section-body">
+        For program specifics — earning rate, redemption rules, current
+        signup bonus — email
+        <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>
+        or ask at the front desk.
+      </p>
+
+      <p class="t2-section-body">
+        Already a member? Bring your phone — we'll look you up at checkout.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>

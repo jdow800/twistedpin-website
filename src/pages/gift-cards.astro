@@ -1,0 +1,81 @@
+---
+/**
+ * /gift-cards — gift card info page.
+ *
+ * Live twistedpin.com/gift-cards/ returns 404 — the page DOESN'T
+ * exist on the current site. But the live FAQ confirms gift cards
+ * ARE sold:
+ *   - "available to purchase in-store at the front desk"
+ *   - "valid on bowling and arcade related purchases in our facility"
+ *   - (no online purchase option)
+ *
+ * So this page exists to surface that fact for users who land on
+ * /gift-cards/ via search or the MORE/drawer. It explains the
+ * in-store-only flow and points users to visit.
+ *
+ * Voice rule check: "cheap/discount/value/deals/budget-friendly"
+ * hard-banned per CLAUDE.md Working Preferences. Gift cards aren't
+ * discount language — they're a purchase product. Frame as "give
+ * the night, not a coupon" — premium-positioning angle.
+ *
+ * TODOs (non-blocking):
+ *   - Confirm with ops: are there standard denominations? Custom
+ *     amounts? Both? Currently hand-waved to "any amount" pending
+ *     verification.
+ *   - "valid on bowling and arcade related purchases" — does NOT
+ *     include food/drinks per the live FAQ. Surfaced clearly so
+ *     gift recipients aren't surprised.
+ *   - Future: online purchase via a gift card platform (Toast,
+ *     Square, etc.) — would graduate this page from info-only to
+ *     a transactional page.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Gift Cards — Twisted Pin Plainfield IL"
+  description="Twisted Pin gift cards — available in-store at the front desk. Valid for bowling and arcade. Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="giftcards-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Gift Cards</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="giftcards-h1" data-delay-ms="120">
+        Give the night.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Twisted Pin gift cards — available at the front desk. Good
+        for bowling and arcade.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="giftcards-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="giftcards-h2" style="font-size:11px;">How It Works</h2>
+      <p class="t2-section-body">
+        Stop by the front desk during open hours and pick up a gift
+        card in any amount. We don't sell them online (yet) — it's
+        an in-person stop.
+      </p>
+
+      <p class="t2-section-body">
+        <strong>What gift cards cover:</strong> bowling and arcade
+        purchases at Twisted Pin. They don't cover food or bar tabs —
+        those are settled the regular way at checkout.
+      </p>
+
+      <p class="t2-section-body">
+        Hours: Mon–Thu 3pm–11pm. Fri 2pm–1am. Sat 11am–1am. Sun 12pm–10pm.
+        We're at <a href="#find-us">15610 S Joliet Rd, Plainfield, IL</a>.
+      </p>
+
+      <p class="t2-section-body">
+        Looking for a group experience instead of a card?
+        <a href="/events/">Plan an event →</a>
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>

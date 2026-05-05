@@ -1,0 +1,67 @@
+---
+/**
+ * /upcoming-events — public event calendar / what's on.
+ *
+ * Tier-2 utility page. Live twistedpin.com/upcoming-events/ exists
+ * but the calendar is JS-rendered; couldn't scrape current listings.
+ * Page acknowledges seasonal events exist + routes users to follow
+ * social or check Instagram for the live calendar.
+ *
+ * Per launch-checklist.md: legacy /event-directory/ also gets a 301
+ * to /upcoming-events/ at launch (consolidation).
+ *
+ * TODOs (non-blocking):
+ *   - Real event listings — pending CMS or static markdown source.
+ *     Could be: a) Astro content collection of markdown files in
+ *     src/content/events/, b) a feed pulled from Eventbrite or
+ *     Facebook Events, c) just a manual list updated quarterly.
+ *   - Instagram handle (@twistedpinplainfield) link — placeholder
+ *     until SnapFooter's real social URLs land.
+ *   - "What's On" rename per launch-checklist.md "out of scope" item
+ *     — kept slug as /upcoming-events/ for now (matches MORE
+ *     dropdown label + legacy URL preservation).
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Upcoming Events — Twisted Pin Plainfield IL"
+  description="Trivia nights, themed events, holiday parties, league nights. What's on at Twisted Pin in Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="upcoming-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">What's On</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="upcoming-h1" data-delay-ms="120">
+        Upcoming events.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Themed nights, seasonal events, holiday parties. The full
+        calendar lives on Instagram for now.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="upcoming-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="upcoming-h2" style="font-size:11px;">For the Live Calendar</h2>
+      <p class="t2-section-body">
+        We run themed nights, holiday events, and seasonal programming
+        throughout the year. The fastest place to see what's coming up:
+        <a href="https://www.instagram.com/twistedpinplainfield/" target="_blank" rel="noopener">our Instagram</a>.
+      </p>
+
+      <p class="t2-section-body">
+        Want to host your own night? Group events, corporate offsites,
+        and birthdays all run through our event team — <a href="/events/">plan an event →</a>
+      </p>
+
+      <p class="t2-section-body">
+        Looking for league nights specifically?
+        <a href="/leagues/">See leagues →</a>
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>

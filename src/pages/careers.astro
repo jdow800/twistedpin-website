@@ -1,0 +1,74 @@
+---
+/**
+ * /careers — employment / hiring page.
+ *
+ * Replaces the legacy /join-our-team/ page (slug cleanup per
+ * launch-checklist.md — 301 from /join-our-team/ → /careers/ at launch).
+ *
+ * Live twistedpin.com/join-our-team/ exists (eyebrow "Employment",
+ * title "Twisted Pin: Plainfield, Naperville, Bolingbrook Bowling
+ * Careers", subhead starts "Are You..."). Application form is
+ * JS-rendered; couldn't scrape. Page acknowledges hiring + routes
+ * applicants to email (contactus@twistedpin.com) until the form
+ * destination is confirmed.
+ *
+ * Voice register: confident, direct. Don't overclaim culture
+ * ("amazing team", "family vibes") — the venue's brand is
+ * adults-first / sharper than most hospitality, and hiring copy
+ * should match. Specifics > adjectives applies here too.
+ *
+ * TODOs (non-blocking):
+ *   - Open positions list — pending ops. Could be a static list
+ *     here, or routed to an external HR tool (Indeed, Workable,
+ *     ADP). Confirm which platform handles applications.
+ *   - "Are You..." subhead from live site — couldn't capture the
+ *     full sentence. Replaced with our own positioning line.
+ *   - Service area in title/description matches live site
+ *     (Plainfield, Naperville, Bolingbrook) for SEO continuity.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Careers — Twisted Pin Plainfield IL"
+  description="Hiring for bartenders, servers, kitchen, and front-of-house at Twisted Pin in Plainfield, IL. Serving Naperville, Bolingbrook, and the surrounding area."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="careers-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Employment</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="careers-h1" data-delay-ms="120">
+        Work here.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Bartenders, servers, kitchen, front desk. If you're good at
+        what you do and want to do it somewhere that takes the work
+        seriously, we want to hear from you.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="careers-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="careers-h2" style="font-size:11px;">How to Apply</h2>
+      <p class="t2-section-body">
+        Email your resume and the role you're interested in to
+        <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.
+        Or stop by the front desk during open hours and ask for a manager.
+      </p>
+
+      <p class="t2-section-body">
+        We hire for the bar, the kitchen, the lanes, the arcade, and
+        front-of-house. Weekend availability is a real plus —
+        Friday and Saturday are when the room comes alive.
+      </p>
+
+      <p class="t2-section-body">
+        Twisted Pin is in Plainfield, IL — easy commute from Naperville,
+        Bolingbrook, Romeoville, Shorewood, Joliet, and Oswego.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>

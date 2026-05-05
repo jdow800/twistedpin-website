@@ -222,3 +222,144 @@ body.nav-open [data-cta-bar] {
     opacity 280ms ease-out,
     transform 280ms ease-out !important;
 }
+
+/* ============================================================
+   Tier-2 utility pages (.t2-*) — /faq /leagues /upcoming-events
+   /rewards /careers /gift-cards. Lighter pattern than the full
+   pillar template (no editorial image+copy split, no closing CTA
+   band by default). Pillar pages keep their heavier .bar-* /
+   .eat-* etc. namespaces; the .pillar-* hoist for THOSE remains
+   the bigger refactor. Hoisted on 2026-05-05 alongside the tier-2
+   batch build to avoid adding 6 more sets of duplicated CSS.
+   ============================================================ */
+.t2-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(320px, 42vh, 420px);
+  padding:
+    calc(var(--header-height) + 28px) 22px
+    24px;
+}
+@media (min-width: 1025px) {
+  .t2-hero {
+    min-height: clamp(340px, 38vh, 460px);
+    padding: calc(var(--header-height) + 56px) 64px 40px;
+    justify-content: center;
+  }
+}
+.t2-hero-copy {
+  max-width: 720px;
+  color: var(--warm-white);
+}
+@media (min-width: 1025px) {
+  .t2-hero-copy { text-align: center; }
+  .t2-hero-sub  { margin-left: auto; margin-right: auto; }
+}
+.t2-hero-headline {
+  color: var(--warm-white);
+  font-size: clamp(30px, 8.5vw, 52px);
+  letter-spacing: -0.005em;
+  line-height: 0.98;
+  margin-top: 10px;
+}
+@media (min-width: 1025px) {
+  .t2-hero-headline { font-size: clamp(48px, 5vw, 72px); }
+}
+.t2-hero-sub {
+  margin-top: 14px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ece6d6;
+  max-width: 32em;
+}
+@media (min-width: 1025px) {
+  .t2-hero-sub { margin-top: 18px; font-size: 18px; max-width: 36em; }
+}
+
+/* Content section — single column, max-width readable */
+.t2-section {
+  background: transparent; /* let body::before Pin Tilt show through */
+  padding: 24px 22px 56px;
+}
+@media (min-width: 1025px) {
+  .t2-section { padding: 32px 64px 96px; }
+}
+.t2-section-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  color: var(--warm-white);
+}
+.t2-section-body {
+  margin-top: 14px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--warm-mid);
+}
+@media (min-width: 1025px) {
+  .t2-section-body { font-size: 17px; line-height: 1.65; }
+}
+.t2-section-body a {
+  color: var(--glow);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(78, 236, 196, 0.4);
+  transition: border-color 150ms ease-out;
+}
+.t2-section-body a:hover { border-bottom-color: var(--glow); }
+.t2-section .btn { margin-top: 28px; }
+
+/* FAQ accordion — native <details>/<summary>, same chevron pattern
+   as the NavDrawer accordion. No JS needed (browser-native). */
+.t2-faq { margin-top: 8px; }
+.t2-faq-item { border-top: 1px solid rgba(244, 239, 227, 0.10); }
+.t2-faq-item:last-child { border-bottom: 1px solid rgba(244, 239, 227, 0.10); }
+.t2-faq-q {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 4px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  color: var(--warm-white);
+  list-style: none;
+  transition: color 150ms ease-out;
+}
+.t2-faq-q::-webkit-details-marker { display: none; }
+.t2-faq-q::marker { content: ""; }
+.t2-faq-q:hover { color: var(--glow); }
+@media (min-width: 1025px) {
+  .t2-faq-q { font-size: 16px; padding: 20px 4px; }
+}
+.t2-faq-chevron {
+  flex: 0 0 18px;
+  color: currentColor;
+  opacity: 0.7;
+  transition: transform 200ms ease, opacity 150ms ease-out;
+}
+.t2-faq-item[open] .t2-faq-chevron { transform: rotate(180deg); }
+.t2-faq-q:hover .t2-faq-chevron { opacity: 1; }
+.t2-faq-a {
+  padding: 0 4px 22px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--warm-mid);
+}
+@media (min-width: 1025px) {
+  .t2-faq-a { font-size: 17px; line-height: 1.65; }
+}
+.t2-faq-a a {
+  color: var(--glow);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(78, 236, 196, 0.4);
+  transition: border-color 150ms ease-out;
+}
+.t2-faq-a a:hover { border-bottom-color: var(--glow); }
+.t2-faq-a p { margin: 0 0 12px; }
+.t2-faq-a p:last-child { margin-bottom: 0; }

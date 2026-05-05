@@ -75,15 +75,16 @@ Pillars (real pages with content):
 - [ ] `/gift-cards` — pending fact-check that gift card flow exists today; if yes, "available in-store only" page
 
 Tier 2 (utility / secondary):
-- [ ] `/leagues` — port from old site or rebuild
-- [ ] `/rewards` — port from old site or rebuild
-- [ ] `/upcoming-events` — listing page (CMS or static markdown)
-- [ ] `/faq` — port from old site or rebuild
-- [ ] `/careers` — port from old site or rebuild
+- [x] `/leagues` — shipped 2026-05-05 as a tier-2 stub. Will County service area + email contact for current schedule. Pending ops: real league schedule, signup form/destination
+- [x] `/rewards` — shipped 2026-05-05 as a tier-2 stub. "Sign up at the front desk" framing + email contact for program specifics. Pending ops: program mechanics (earn rate, redemption rules, app vs in-store), confirm loyalty platform
+- [x] `/upcoming-events` — shipped 2026-05-05 as a tier-2 stub. Routes users to Instagram for the live calendar. Pending: real events feed (CMS, content collection, or third-party feed)
+- [x] `/faq` — shipped 2026-05-05 with all 16 Q&As scraped from live `/faqs/` + voice cleanup (Brian Van Flandern → "America's Top Mixologist" framing) + FAQPage JSON-LD schema for Google rich results. Native `<details>/<summary>` accordion
+- [x] `/careers` — shipped 2026-05-05 as a tier-2 stub. Email-resume-to-contactus framing. Pending ops: open positions list, confirm if HR platform (Indeed/Workable/ADP) handles applications
+- [x] `/gift-cards` — shipped 2026-05-05 as a tier-2 page. FAQ-confirmed in-store-only flow ("bowling and arcade purchases only"). Live site /gift-cards/ was 404 — this fills the gap
 - [ ] `/coupon` — kept as-is operationally (renamed from `/free-10`); confirm it ports cleanly
 - [x] `/waitlist` — shipped 2026-05-04 (TablesReady iframe wrapped in brand chrome). Webhook-derived state version tabled — see [waitlist-theory.md](waitlist-theory.md)
 
-Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`.
+Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards` (14 pages).
 
 Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index killed (posts kept live at original URLs, no new content).
 
