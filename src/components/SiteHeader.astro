@@ -39,20 +39,63 @@ const navItems: NavItem[] = [
   { href: "/vip-suite/", label: "VIP Suite" },
 ];
 
-// MORE dropdown — flat list, with a thin divider between every item
-// for visual rhythm (2026-05-04 polish round 2). Earlier section-grouping
-// experiment (Programs & Events / Useful) was removed — the categorization
-// didn't earn its weight; the per-item divider does the scannability work
-// on its own.
-const moreItems: NavItem[] = [
-  { href: "/upcoming-events/", label: "Upcoming Events" },
-  { href: "/leagues/",         label: "Leagues"         },
-  { href: "/rewards/",         label: "Rewards"         },
-  { href: "/gift-cards/",      label: "Gift Cards"      },
-  { href: "/faq/",             label: "FAQ"             },
-  { href: "/contact/",         label: "Contact"         },
-  { href: "/careers/",         label: "Careers"         },
+// MORE dropdown — flat list, with Lucide icons left of each label and
+// a thin divider between every item.
+//
+// 2026-05-04 round 3:
+//   - Added `/coupon` (renamed from legacy `/free-10` per user — cleaner
+//     brand-y slug). Old `/free-10` URL gets a 301 redirect to `/coupon`
+//     at launch; both will be live during transition. Label: "Coupon".
+//   - Added `/waitlist` (TablesReady iframe page, project-state-locked).
+//   - Added 16px Lucide icons left of every label, currentColor + 0.7
+//     opacity at rest, full opacity on hover. Same icon vocabulary as
+//     the mobile NavDrawer.
+//
+// Item order: visit-now intents first (Upcoming Events, Coupon, Waitlist)
+// → recurring engagement (Leagues, Rewards) → purchase intent (Gift Cards)
+// → utility (FAQ, Contact, Careers). No labels — the per-item divider
+// does the scannability work.
+type MoreIconKey =
+  | 'calendar' | 'ticket' | 'clock' | 'trophy' | 'star'
+  | 'gift' | 'help' | 'mail' | 'briefcase';
+
+interface MoreItem extends NavItem { icon: MoreIconKey; }
+
+const moreItems: MoreItem[] = [
+  { href: "/upcoming-events/", label: "Upcoming Events", icon: "calendar"  },
+  { href: "/coupon/",          label: "Coupon",          icon: "ticket"    },
+  { href: "/waitlist/",        label: "Waitlist",        icon: "clock"     },
+  { href: "/leagues/",         label: "Leagues",         icon: "trophy"    },
+  { href: "/rewards/",         label: "Rewards",         icon: "star"      },
+  { href: "/gift-cards/",      label: "Gift Cards",      icon: "gift"      },
+  { href: "/faq/",             label: "FAQ",             icon: "help"      },
+  { href: "/contact/",         label: "Contact",         icon: "mail"      },
+  { href: "/careers/",         label: "Careers",         icon: "briefcase" },
 ];
+
+// Lucide stroke conventions (24x24 viewBox, 2px stroke, round caps + joins,
+// fill="none"). Same vocabulary as NavDrawer.astro — when this hits a
+// fourth use we should hoist to a shared icon module.
+const MORE_ICON_PATHS: Record<MoreIconKey, string> = {
+  // lucide.dev/icons/calendar-days
+  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  // lucide.dev/icons/ticket
+  'ticket': '<path d="M2 9a3 3 0 1 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 1 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+  // lucide.dev/icons/clock
+  'clock': '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  // lucide.dev/icons/trophy
+  'trophy': '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  // lucide.dev/icons/star
+  'star': '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  // lucide.dev/icons/gift
+  'gift': '<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1-2.5-2.5C5 4.12 6.5 3 8 3s4 5 4 5"/><path d="M16.5 8a2.5 2.5 0 0 0 2.5-2.5C19 4.12 17.5 3 16 3s-4 5-4 5"/>',
+  // lucide.dev/icons/circle-help
+  'help': '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
+  // lucide.dev/icons/mail
+  'mail': '<rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>',
+  // lucide.dev/icons/briefcase
+  'briefcase': '<rect width="20" height="14" x="2" y="6" rx="2"/><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+};
 
 const isActive = (href: string) =>
   currentPath === href.replace(/\/$/, "");
@@ -127,7 +170,22 @@ const isActive = (href: string) =>
               role="menuitem"
               href={item.href}
               class={isActive(item.href) ? "active" : ""}
-            >{item.label}</a>
+            >
+              <svg
+                class="more-icon"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={MORE_ICON_PATHS[item.icon]}
+              />
+              <span class="more-label">{item.label}</span>
+            </a>
           </li>
         ))}
       </ul>
@@ -330,7 +388,10 @@ const isActive = (href: string) =>
   .more-dropdown[hidden] { display: none; }
   .more-dropdown li { display: list-item; }
   .more-dropdown a {
-    display: block;
+    /* Flex so the icon sits left of the label with a consistent gap. */
+    display: flex;
+    align-items: center;
+    gap: 12px;
     /* 10/18 → 11/20 (2026-05-04 polish) — slightly more breathing room. */
     padding: 11px 20px;
     font-family: var(--font-ui);
@@ -343,12 +404,24 @@ const isActive = (href: string) =>
     transition: color 150ms ease-out, background-color 150ms ease-out;
   }
 
+  /* Lucide icons (round 3 polish). Slightly muted at rest so the type
+     leads; brightens to full opacity with the link's hover Glow.
+     `currentColor` lets the icon inherit the link's color transition. */
+  .more-icon {
+    flex: 0 0 16px;
+    width: 16px;
+    height: 16px;
+    color: currentColor;
+    opacity: 0.7;
+    transition: opacity 150ms ease-out;
+  }
+  .more-dropdown a:hover .more-icon {
+    opacity: 1;
+  }
+
   /* Per-item divider (2026-05-04 polish round 2). Top border on every
      item except the first creates a thin warm-white rule between every
-     pair of items — gives the flat list a scannable grid rhythm. The
-     14px horizontal margin matches the section-divider treatment we
-     trialled, so the rule sits inset from the panel edges rather than
-     bleeding to corner-to-corner. */
+     pair of items — gives the flat list a scannable grid rhythm. */
   .more-dropdown li + li > a {
     border-top: 1px solid rgba(244, 239, 227, 0.10);
   }
