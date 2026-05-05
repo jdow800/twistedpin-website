@@ -483,8 +483,10 @@ const cocktailMenu = await getCocktails();
      page bottom was visual debt. SnapFooter handles the "find us" beat. */
 
   /* ============================================================
-     COCKTAIL MENU — full GoTab-driven list. Card grid grouped by
-     category. Photos are 16:9 (sourced from GoTab img CDN).
+     COCKTAIL MENU — full GoTab-driven list. Compact card grid grouped
+     by category. Photos are 1:1 (sourced from GoTab img CDN). Mobile-
+     first 2-col grid; desktop scales to 4 cols. Ingredients clamped to
+     2 lines so card heights stay regular.
      ============================================================ */
   .cocktail-menu {
     background: transparent;
@@ -550,33 +552,35 @@ const cocktailMenu = await getCocktails();
     padding: 0;
     margin: 0;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 28px;
+    /* Mobile: 2 cols from the very narrowest viewport. Tight gaps so
+       photos read as a tile field, not floating cards. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
   }
   @media (min-width: 700px) {
     .cocktail-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 32px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px 20px;
     }
   }
   @media (min-width: 1025px) {
     .cocktail-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 36px 32px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px 24px;
     }
   }
 
   .cocktail-card {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
   }
 
   .cocktail-card-frame {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-surface);
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1 / 1;
     background: rgba(244, 239, 227, 0.04);
   }
 
@@ -590,12 +594,12 @@ const cocktailMenu = await getCocktails();
 
   .cocktail-card-badge {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 8px;
+    right: 8px;
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 0.14em;
+    font-size: 9px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--indigo-deep);
     background: var(--glow);
@@ -611,25 +615,35 @@ const cocktailMenu = await getCocktails();
   .cocktail-card-name {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 19px;
+    font-size: 15px;
     text-transform: uppercase;
-    letter-spacing: 0.005em;
+    letter-spacing: 0.01em;
     color: var(--warm-white);
-    margin: 0 0 6px;
-    line-height: 1.05;
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+  @media (min-width: 700px) {
+    .cocktail-card-name { font-size: 17px; }
   }
   @media (min-width: 1025px) {
-    .cocktail-card-name { font-size: 22px; }
+    .cocktail-card-name { font-size: 18px; }
   }
 
   .cocktail-card-ingredients {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 14.5px;
-    line-height: 1.5;
+    font-size: 12.5px;
+    line-height: 1.4;
     color: var(--warm-dim);
+    /* Clamp to 2 lines so card heights stay regular across cocktails
+       with wildly different ingredient counts. Full text remains in
+       the DOM for SEO / accessibility. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   @media (min-width: 1025px) {
-    .cocktail-card-ingredients { font-size: 15.5px; }
+    .cocktail-card-ingredients { font-size: 13.5px; }
   }
 </style>
