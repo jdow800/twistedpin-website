@@ -1,0 +1,299 @@
+---
+/**
+ * /waitlist — Live wait-status page wrapping the TablesReady iframe.
+ *
+ * Why an iframe (and not our own data):
+ *   TablesReady's API is write-only (POST/PUT/DELETE for adding/updating
+ *   parties); there is no GET endpoint for current wait status. Their
+ *   public "view-only" page at host.tablesready.com/p/waitlist/twistedpin
+ *   IS the live data source. We can't replace it without webhook + DB
+ *   infrastructure, and the wait number is the load-bearing data on this
+ *   page — so we wrap, not replace.
+ *
+ * What we control (and what we don't):
+ *   - Outside the iframe: brand chrome, hero, surrounding copy, closing
+ *     CTA. All on-brand.
+ *   - Inside the iframe: nothing (cross-origin). The TablesReady page has
+ *     its own logo + defensive copy ("If you're not here, you're NOT on
+ *     the list" etc.). User can clean this up via TablesReady Settings >
+ *     Public Pages — out-of-scope for this build.
+ *
+ * Page job (in priority order):
+ *   1. Show live wait status (the iframe — most nights "0, come on in")
+ *   2. Direct users who don't want to wait to /reserve (Roller URL)
+ *   3. Set the brand frame so the third-party page feels less jarring
+ *
+ * Structure mirrors the .bar/.eat/.vip pillar pattern (hero + sections +
+ * SnapFooter), but the middle section is an iframe frame instead of an
+ * image+copy split. Class names .waitlist-* mirror .bar-* / .eat-* / .vip-*;
+ * the .pillar-* CSS hoist (flagged in media-needs.md) gets even more
+ * pressing with this fourth surface.
+ *
+ * TODOs (non-blocking):
+ *   - Verify after deploy that TablesReady allows X-Frame embedding from
+ *     twistedpin-website.vercel.app. If iframe is blocked, we'll see a
+ *     blank frame in production — fallback link below the iframe handles
+ *     the worst case.
+ *   - User to clean up colors/copy on TablesReady's side
+ *     (Settings > Public Pages) to reduce inner-iframe ugliness.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const TABLESREADY_URL = "https://host.tablesready.com/p/waitlist/twistedpin";
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+---
+<Base
+  title="Live Wait Status | Twisted Pin Plainfield IL"
+  description="Live walk-in wait status from the front desk at Twisted Pin in Plainfield, IL. Most nights it's zero — or reserve a lane to skip it."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image, matches pillar
+      pattern from /bar /eat /vip-suite)
+      ============================================================ */}
+  <section class="waitlist-hero" data-hero aria-labelledby="waitlist-hero-h1">
+    <div class="waitlist-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Live Waitlist</p>
+      <h1 class="t-display waitlist-hero-headline hero-fade" id="waitlist-hero-h1" data-delay-ms="120">
+        How long's the&nbsp;wait?
+      </h1>
+      <p class="waitlist-hero-sub hero-fade" data-delay-ms="320">
+        Live from the front desk. Most nights it's zero — but if we're
+        slammed, you'll see it below.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      LIVE STATUS — TablesReady iframe in a brand frame
+      ============================================================ */}
+  <section class="waitlist-section" aria-labelledby="waitlist-status-h2">
+    <div class="waitlist-section-inner">
+      <p class="t-eyebrow waitlist-status-eyebrow">Right Now</p>
+      <h2 class="t-display waitlist-section-title" id="waitlist-status-h2">
+        Live status.
+      </h2>
+      <p class="waitlist-section-aside">(updates in real time — pull down to refresh)</p>
+
+      <div class="waitlist-frame">
+        <iframe
+          src={TABLESREADY_URL}
+          title="Twisted Pin live waitlist status"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          class="waitlist-iframe"
+        ></iframe>
+      </div>
+
+      {/* Fallback link in case the iframe is blocked by TablesReady's
+          X-Frame headers in production (we'll know after first deploy). */}
+      <p class="waitlist-fallback">
+        Iframe not loading?
+        <a href={TABLESREADY_URL} target="_blank" rel="noopener noreferrer">
+          Open the live page →
+        </a>
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING — alternative path. Walk-in works most nights;
+      reserve when the room is going to be packed.
+      ============================================================ */}
+  <section class="waitlist-section waitlist-section--closing" aria-labelledby="waitlist-reserve-h2">
+    <div class="waitlist-section-inner">
+      <p class="t-eyebrow">Skip the Wait</p>
+      <h2 class="t-display waitlist-section-title" id="waitlist-reserve-h2">
+        Reserve a lane.
+      </h2>
+      <p class="waitlist-section-body">
+        Walk-in works most nights. Friday and Saturday after 7? Lock in
+        a time so you're not standing around.
+      </p>
+      <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener noreferrer">
+        Reserve a lane
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /waitlist — same pillar skeleton as /bar /eat /vip-suite for
+     hero + closing band, but the middle section is an iframe frame
+     instead of the image+copy editorial split. Class names
+     .waitlist-* mirror .bar-* / .eat-* / .vip-* — the .pillar-*
+     CSS hoist gets more pressing with this fourth surface
+     (flagged in Context/media-needs.md).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .waitlist-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(380px, 50vh, 480px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      32px;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-hero {
+      min-height: clamp(400px, 45vh, 540px);
+      padding: calc(var(--header-height) + 64px) 64px 48px;
+      justify-content: center;
+    }
+  }
+
+  .waitlist-hero-copy {
+    max-width: 720px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .waitlist-hero-copy { text-align: center; }
+    .waitlist-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .waitlist-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .waitlist-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 32em;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     section pattern (analogous to .bar-section / .eat-section /
+     .vip-section, but no image+copy grid — the iframe IS the
+     visual moment, centered)
+     ============================================================ */
+  .waitlist-section {
+    background: transparent; /* let body::before Pin Tilt show through */
+    padding: 32px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-section { padding: 48px 64px 96px; }
+  }
+
+  .waitlist-section-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    color: var(--warm-white);
+    text-align: center;
+  }
+
+  .waitlist-status-eyebrow {
+    /* small tint of glow on the eyebrow above the live data — earns
+       its accent because this IS the live moment on the page */
+    color: var(--glow);
+  }
+
+  .waitlist-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .waitlist-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .waitlist-section-aside { font-size: 16px; }
+  }
+
+  .waitlist-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  /* ---------- iframe frame (the live data) ---------- */
+  .waitlist-frame {
+    position: relative;
+    margin-top: 32px;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    box-shadow:
+      0 8px 16px rgba(0, 0, 0, 0.30),
+      0 24px 48px rgba(0, 0, 0, 0.45);
+    /* TablesReady's page background is dark navy (close to but not
+       identical to our --indigo-deep). Set a matching backstop so any
+       brief load-state gap reads as flat dark, not blank white. */
+    background: #0E0A1F;
+  }
+
+  .waitlist-iframe {
+    display: block;
+    width: 100%;
+    /* Mobile: TablesReady content is ~720px tall in the "no wait" state.
+       Allow some slack for "wait active" longer state. */
+    height: 760px;
+    border: 0;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-iframe { height: 700px; }
+  }
+
+  .waitlist-fallback {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--warm-dim);
+  }
+  .waitlist-fallback a {
+    color: var(--glow);
+    text-decoration: none;
+    margin-left: 6px;
+  }
+  .waitlist-fallback a:hover { text-decoration: underline; }
+
+  /* ---------- closing band (Reserve as alternative) ---------- */
+  .waitlist-section--closing { padding-top: 48px; }
+  @media (min-width: 1025px) {
+    .waitlist-section--closing { padding-top: 64px; }
+  }
+  .waitlist-section--closing .btn {
+    margin-top: 28px;
+  }
+</style>
+
