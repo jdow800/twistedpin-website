@@ -1,64 +1,87 @@
 ---
 /**
- * Global navigation drawer — slide-in overlay only.
+ * Global navigation drawer — slide-in overlay from the right.
  *
  * The hamburger button extracted to NavToggle.astro (mounted inside SiteHeader's
  * flex flow). This component renders the backdrop + drawer panel + content.
  *
- * Drawer header: Logo_Horizontal_GlowInTheDark image (replaces the earlier "The works." text).
- * Drawer body: placeholder section links with Lucide-style line icons, right-aligned.
+ * Mobile nav rebuild 2026-05-04 (round 3): drawer expanded from 5 flat items
+ * to 17 items in 3 sections (Experience / Visit / Info). Closes the
+ * mobile-nav gap — previously mobile users could only reach 5 of the
+ * 15+ destinations the desktop nav offered. Section labels (eyebrow style)
+ * + per-item dividers handle the scannability work; item type dropped
+ * from display 28-36px → UI 15px since 17 items in display would scroll
+ * forever and feel shouty.
  *
- * Icons: 4 lifted directly from Lucide (martini / calendar-days / utensils-crossed / map-pin)
- * and one hand-drawn bowling pin in matching stroke style — Lucide doesn't ship one.
- * `currentColor` lets the icons inherit the link's hover Glow without extra rules.
+ * Reserve a Lane and Plan an Event are duplicated here from the sticky CTA
+ * bar — intentional per sitemap-tldr.md ("some users hunt for the hamburger
+ * by habit"). They're regular drawer items (not button-styled) — the section
+ * label "Visit" plus their position at top of section signals the intent.
+ *
+ * Find Us is a #find-us anchor that scrolls to the SnapFooter on the
+ * current page. Same destination as the desktop MORE "Contact" item.
+ *
+ * Drawer header: Logo_Horizontal_GlowInTheDark image. Address line in footer.
+ *
+ * Icons: shared from src/lib/icons.ts (hoisted from per-component records on
+ * 2026-05-04 — three uses triggered the rule of three: SiteHeader MORE,
+ * NavDrawer items, and any future icon-using surface).
  */
+import { ICON_PATHS, type IconKey } from "../lib/icons";
 
-type IconKey = 'martini' | 'bowling-pin' | 'calendar' | 'utensils' | 'map-pin';
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 
-interface Section {
+interface DrawerItem {
   href: string;
   label: string;
   icon: IconKey;
+  external?: boolean;
 }
 
-// Minimum-scope patch (2026-05-03): each slot retargeted to a slug that
-// matches the post-Phase-1 SiteHeader IA. The 5-slot structure is preserved
-// pending the broader hamburger-IA decision (sitemap-tldr Q7). VIP Suite
-// keeps its drawer slot — the standalone /vip-suite page is the canonical
-// destination for both the bowling and events VIP-suite mentions, and the
-// drawer reflects its strategic weight as the actual revenue engine.
-const sections: Section[] = [
-  { href: "/bar/",        label: "Bar",       icon: "martini"     },
-  { href: "/eat/",        label: "Eat",       icon: "utensils"    },
-  { href: "/vip-suite/",  label: "VIP Suite", icon: "bowling-pin" },
-  { href: "/events/",     label: "Events",    icon: "calendar"    },
-  // 2026-05-04: changed `/#find-us` → `#find-us` so the link scrolls
-  // in-place to the footer on the current page (SnapFooter is included
-  // on every page) rather than navigating to / first. Also serves as the
-  // sole "contact info" destination — the dedicated /contact page was
-  // killed; everything users need (address, hours, phone, email) lives
-  // in SnapFooter.
-  { href: "#find-us",     label: "Find Us",   icon: "map-pin"     },
+interface DrawerSection {
+  label: string;
+  items: DrawerItem[];
+}
+
+const drawerSections: DrawerSection[] = [
+  {
+    label: "Experience",
+    items: [
+      { href: "/bar/",       label: "Bar",       icon: "martini"     },
+      { href: "/eat/",       label: "Eat",       icon: "utensils"    },
+      { href: "/bowl/",      label: "Bowl",      icon: "bowling-pin" },
+      { href: "/game/",      label: "Game",      icon: "gamepad"     },
+      { href: "/events/",    label: "Events",    icon: "calendar"    },
+      { href: "/vip-suite/", label: "VIP Suite", icon: "crown"       },
+    ],
+  },
+  {
+    label: "Visit",
+    items: [
+      // Reserve / Plan duplicated from sticky CTA bar. Intentional —
+      // hamburger-hunters expect to find primary CTAs in the menu too.
+      { href: ROLLER_URL,          label: "Reserve a Lane",  icon: "calendar-check", external: true },
+      { href: "/events",           label: "Plan an Event",   icon: "message-square" },
+      { href: "/upcoming-events/", label: "Upcoming Events", icon: "calendar"       },
+      { href: "/coupon/",          label: "Coupon",          icon: "ticket"         },
+      { href: "/waitlist/",        label: "Waitlist",        icon: "clock"          },
+    ],
+  },
+  {
+    label: "Info",
+    items: [
+      { href: "/leagues/",    label: "Leagues",    icon: "trophy"    },
+      { href: "/rewards/",    label: "Rewards",    icon: "star"      },
+      { href: "/gift-cards/", label: "Gift Cards", icon: "gift"      },
+      { href: "/faq/",        label: "FAQ",        icon: "help"      },
+      { href: "/careers/",    label: "Careers",    icon: "briefcase" },
+      // Find Us = the contact destination per 2026-05-04 decision —
+      // scrolls in-place to the SnapFooter (#find-us) which has address,
+      // hours, phone, email. No dedicated /contact page.
+      { href: "#find-us",     label: "Find Us",    icon: "map-pin"   },
+    ],
+  },
 ];
-
-// Lucide stroke conventions: 24x24 viewBox, 2px stroke, round caps + joins, fill="none".
-const ICON_PATHS: Record<IconKey, string> = {
-  // lucide.dev/icons/martini
-  'martini': '<path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/>',
-
-  // hand-drawn — Lucide doesn't ship a bowling pin. Stylized: rounded head,
-  // narrowing neck, wider body that tapers toward the base. Two short bands at the neck.
-  'bowling-pin': '<path d="M12 3a3 3 0 0 0-3 3v1.5a3 3 0 0 1-.7 1.95C6.6 11.5 6 13.6 6 16c0 3 2.5 5 6 5s6-2 6-5c0-2.4-.6-4.5-2.3-6.55A3 3 0 0 1 15 7.5V6a3 3 0 0 0-3-3z"/><path d="M9.5 8h5"/><path d="M9 10h6"/>',
-
-  // lucide.dev/icons/calendar-days
-  'calendar': '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
-
-  // lucide.dev/icons/utensils-crossed
-  'utensils': '<path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/>',
-
-  // lucide.dev/icons/map-pin
-  'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-};
 ---
 <div class="nav-backdrop" data-nav-backdrop aria-hidden="true"></div>
 
@@ -98,28 +121,36 @@ const ICON_PATHS: Record<IconKey, string> = {
   </div>
 
   <nav class="nav-drawer-list" aria-label="Site sections">
-    <ul>
-      {sections.map(s => (
-        <li>
-          <a href={s.href}>
-            <span class="label">{s.label}</span>
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              width="24"
-              height="24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              set:html={ICON_PATHS[s.icon]}
-            />
-          </a>
-        </li>
-      ))}
-    </ul>
+    {drawerSections.map(section => (
+      <div class="nav-section">
+        <p class="nav-section-label" aria-hidden="true">{section.label}</p>
+        <ul>
+          {section.items.map(item => (
+            <li>
+              <a
+                href={item.href}
+                {...(item.external ? { target: "_blank", rel: "noopener" } : {})}
+              >
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  set:html={ICON_PATHS[item.icon]}
+                />
+                <span class="label">{item.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
   </nav>
 
   <div class="nav-drawer-foot">
@@ -159,7 +190,10 @@ const ICON_PATHS: Record<IconKey, string> = {
     transition: transform 250ms cubic-bezier(0.22, 0.61, 0.36, 1);
     display: flex;
     flex-direction: column;
-    padding: calc(24px + var(--safe-top)) 28px calc(24px + var(--safe-bottom));
+    /* Padding bumped down on mobile (was 24px top) since the rebuilt drawer
+       holds 17 items + 3 section labels + chrome — needs every bit of
+       vertical space. Footer pushed tighter against the bottom edge too. */
+    padding: calc(20px + var(--safe-top)) 24px calc(16px + var(--safe-bottom));
   }
 
   body.nav-open .nav-backdrop {
@@ -176,7 +210,9 @@ const ICON_PATHS: Record<IconKey, string> = {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 36px;
+    /* Tighter than the previous 36px since we now have 3 sections worth
+       of content competing for vertical space. */
+    margin-bottom: 20px;
   }
   .nav-drawer-brand {
     line-height: 0;
@@ -184,15 +220,16 @@ const ICON_PATHS: Record<IconKey, string> = {
     min-width: 0;
   }
   .nav-drawer-brand img {
-    /* Round 4: +30% from round-3's 56/64 per request. */
-    height: 73px;
+    /* Reduced from 73px (the 5-item drawer's logo treatment) to 56px so
+       the logo doesn't crowd the 17-item nav below. Desktop bumps back up. */
+    height: 56px;
     width: auto;
     display: block;
     /* Glow logo on dark indigo — subtle drop shadow keeps it from feeling flat. */
     filter: drop-shadow(0 1px 0 rgba(78, 236, 196, 0.18));
   }
   @media (min-width: 1025px) {
-    .nav-drawer-brand img { height: 84px; }
+    .nav-drawer-brand img { height: 72px; }
   }
   .nav-close {
     width: 40px;
@@ -209,47 +246,82 @@ const ICON_PATHS: Record<IconKey, string> = {
     background: rgba(244, 239, 227, 0.06);
   }
 
+  /* ---------- nav body (scrollable) ---------- */
   .nav-drawer-list {
     flex: 1;
     overflow-y: auto;
+    /* Tiny -8px right margin so the scrollbar doesn't crowd item icons. */
+    margin-right: -8px;
+    padding-right: 8px;
   }
-  .nav-drawer-list ul { list-style: none; }
-  .nav-drawer-list li + li { margin-top: 4px; }
+
+  /* Section: label + items */
+  .nav-section + .nav-section {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--indigo-lift);
+  }
+
+  .nav-section-label {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+    margin-bottom: 4px;
+    padding: 0 2px;
+  }
+
+  .nav-drawer-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
   .nav-drawer-list a {
+    /* Icon LEFT, label right (mirror the desktop MORE pattern — icon
+       leads). The previous 5-item drawer had label-left / icon-right
+       because items were big display type and the icon was a quiet
+       coda; with smaller UI items the icon does identification work
+       and reads better leading. */
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--indigo-lift);
-    font-family: var(--font-display);
-    font-weight: 900;
-    font-size: clamp(28px, 5vw, 36px);
-    line-height: 1;
+    gap: 14px;
+    padding: 11px 4px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
-    letter-spacing: 0.005em;
     color: var(--warm-white);
     transition: color 150ms ease-out;
   }
   .nav-drawer-list a:hover { color: var(--glow); }
-  .nav-drawer-list .label { flex: 1 1 auto; min-width: 0; }
+  /* Per-item divider (matches desktop MORE rhythm). */
+  .nav-drawer-list li + li > a {
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+  }
+  .nav-drawer-list .label {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
   .nav-drawer-list .icon {
-    flex: 0 0 24px;
-    width: 24px;
-    height: 24px;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
     color: currentColor;
-    /* Slightly muted at rest so the type leads; brightens with link hover. */
-    opacity: 0.78;
-    transition: opacity 150ms ease-out, transform 150ms ease-out;
+    opacity: 0.7;
+    transition: opacity 150ms ease-out;
   }
   .nav-drawer-list a:hover .icon {
     opacity: 1;
-    transform: translateX(2px);
   }
 
+  /* ---------- footer ---------- */
   .nav-drawer-foot {
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: 16px;
+    padding-top: 14px;
     border-top: 1px solid var(--indigo-lift);
   }
   .nav-meta {
@@ -264,6 +336,5 @@ const ICON_PATHS: Record<IconKey, string> = {
   @media (prefers-reduced-motion: reduce) {
     .nav-drawer { transition: opacity 100ms ease-out; }
     body.nav-open .nav-drawer { transform: translateX(0); }
-    .nav-drawer-list a:hover .icon { transform: none; }
   }
 </style>
