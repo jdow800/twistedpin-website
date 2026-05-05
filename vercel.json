@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/reserve",
+      "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/hero/(.*)",
