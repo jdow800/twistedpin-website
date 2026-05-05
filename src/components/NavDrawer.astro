@@ -186,14 +186,16 @@ const drawerSections: DrawerSection[] = [
   /* Hamburger toggle styles live in NavToggle.astro — extracted because the
      button is now a flex child of SiteHeader, not a fixed-position element. */
 
-  /* ---------- backdrop + drawer ---------- */
+  /* ---------- backdrop + drawer ----------
+     2026-05-05: backdrop blur removed, dim dropped from 0.65 → 0.30
+     so the main site reads clearly behind the drawer instead of being
+     muddied. The light dim is intentional — preserves the
+     click-outside-to-dismiss affordance without obscuring content. */
   .nav-backdrop {
     position: fixed;
     inset: 0;
     z-index: 50;
-    background: rgba(14, 10, 31, 0.65);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: rgba(14, 10, 31, 0.30);
     opacity: 0;
     pointer-events: none;
     transition: opacity 200ms ease-out;
