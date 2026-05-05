@@ -33,6 +33,12 @@ build but don't yet have (or have only as stubs / homepage reuses).
 | Built to Share section photo | `stage-eat-540.webp` (same shot, smaller crop) | Distinct shareable-plates shot — multiple plates on a table, hands reaching, group-eating energy |
 | Five signature dish names + 1-line descriptions | All placeholders | Real dish names + 1-line descriptions |
 
+## /careers — shipped (visual upgrade pending)
+
+| Asset | Currently | Need |
+|---|---|---|
+| Staff photo or video | None — page is typography-only | **Fun staff-team shot or short video** (user has these — flagged 2026-05-05). Placement options: (a) replace typography hero with full-bleed staff photo + headline overlay, (b) drop an editorial `.t2-section` with the image between "What You Get" and "How to Apply" as social proof before the conversion ask. (b) recommended — lighter, matches other tier-2 pages. Video would land harder than a photo if available — short, vertical or 16:9, smiling/laughing crew, post-shift drink energy welcome |
+
 ## /vip-suite — shipping next
 
 | Asset | Currently | Need |
