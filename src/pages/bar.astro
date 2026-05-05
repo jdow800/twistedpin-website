@@ -35,6 +35,12 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { getCocktails } from "../lib/gotab-cocktails";
+
+// Build-time fetch from GoTab. Fails closed (returns empty menu) if the
+// upstream is unreachable — the page still renders, the menu sections just
+// don't appear. See src/lib/gotab-cocktails.ts.
+const cocktailMenu = await getCocktails();
 ---
 <Base
   title="Craft Cocktails & a 28-Tap Self-Serve Beer Wall | Twisted Pin"
@@ -148,35 +154,79 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           back this summer to retrain the team firsthand.
         </p>
 
-        <p class="bar-section-callout">Five to start with:</p>
-        <ul class="bar-cocktail-list">
-          <li>
-            <span class="cocktail-name">The Twisted Old Fashioned</span>
-            <span class="cocktail-desc">[placeholder — bourbon, demerara, smoked]</span>
-          </li>
-          <li>
-            <span class="cocktail-name">[Signature Cocktail 2]</span>
-            <span class="cocktail-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="cocktail-name">[Signature Cocktail 3]</span>
-            <span class="cocktail-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="cocktail-name">[Signature Cocktail 4]</span>
-            <span class="cocktail-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="cocktail-name">[Signature Cocktail 5]</span>
-            <span class="cocktail-desc">[placeholder description]</span>
-          </li>
-        </ul>
+        {cocktailMenu.teaserPicks.length > 0 && (
+          <>
+            <p class="bar-section-callout">A few to start with:</p>
+            <ul class="bar-cocktail-list">
+              {cocktailMenu.teaserPicks.map((c) => (
+                <li>
+                  <span class="cocktail-name">{c.name}</span>
+                  {c.ingredients && (
+                    <span class="cocktail-desc">{c.ingredients}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
-        {/* TODO: GoTab API integration. View-only menu link for now. */}
         <a class="btn btn-outline" href="#cocktail-menu">View the cocktail menu</a>
       </div>
     </div>
   </section>
+
+  {/* ============================================================
+      COCKTAIL MENU — full list grouped by GoTab category.
+      Powered by getCocktails() build-time fetch. Empty when GoTab
+      is unreachable (section just doesn't render).
+      ============================================================ */}
+  {cocktailMenu.categories.length > 0 && (
+    <section class="cocktail-menu" id="cocktail-menu" aria-labelledby="cocktail-menu-h2">
+      <div class="cocktail-menu-inner">
+        <header class="cocktail-menu-header">
+          <p class="t-eyebrow">The Menu</p>
+          <h2 class="t-display cocktail-menu-title" id="cocktail-menu-h2">
+            Every cocktail, on the rocks or up.
+          </h2>
+        </header>
+
+        {cocktailMenu.categories.map((cat) => (
+          <div class="cocktail-category">
+            <h3 class="cocktail-category-name">{cat.name}</h3>
+            <ul class="cocktail-grid" role="list">
+              {cat.cocktails.map((c) => (
+                <li class="cocktail-card">
+                  {c.imageUrl && (
+                    <div class="cocktail-card-frame">
+                      <img
+                        src={c.imageUrl}
+                        srcset={c.imageUrlLg ? `${c.imageUrl} 480w, ${c.imageUrlLg} 720w` : undefined}
+                        sizes="(min-width: 1025px) 360px, (min-width: 700px) 45vw, 92vw"
+                        alt={c.name}
+                        width="480"
+                        height="270"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {c.isStaffFavorite && (
+                        <span class="cocktail-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  )}
+                  <div class="cocktail-card-body">
+                    <h4 class="cocktail-card-name">{c.name}</h4>
+                    {c.ingredients && (
+                      <p class="cocktail-card-ingredients">{c.ingredients}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
 
   <SnapFooter />
 </Base>
@@ -431,4 +481,155 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   /* The closing CTA band (.bar-cta) was removed 2026-05-04 — the global
      sticky CTA bar already carries Reserve / Plan, so a duplicate at the
      page bottom was visual debt. SnapFooter handles the "find us" beat. */
+
+  /* ============================================================
+     COCKTAIL MENU — full GoTab-driven list. Card grid grouped by
+     category. Photos are 16:9 (sourced from GoTab img CDN).
+     ============================================================ */
+  .cocktail-menu {
+    background: transparent;
+    padding: 56px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-menu { padding: 96px 64px 120px; }
+  }
+
+  .cocktail-menu-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .cocktail-menu-header {
+    margin-bottom: 40px;
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-menu-header { margin-bottom: 56px; }
+  }
+
+  .cocktail-menu-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-menu-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .cocktail-category + .cocktail-category {
+    margin-top: 56px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-category + .cocktail-category { margin-top: 88px; }
+  }
+
+  .cocktail-category-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .cocktail-category-name {
+      font-size: 32px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+    }
+  }
+
+  .cocktail-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  @media (min-width: 700px) {
+    .cocktail-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 32px;
+    }
+  }
+  @media (min-width: 1025px) {
+    .cocktail-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 36px 32px;
+    }
+  }
+
+  .cocktail-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .cocktail-card-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 16 / 9;
+    background: rgba(244, 239, 227, 0.04);
+  }
+
+  .cocktail-card-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .cocktail-card-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .cocktail-card-body {
+    padding: 0 2px;
+  }
+
+  .cocktail-card-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 19px;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+    line-height: 1.05;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-card-name { font-size: 22px; }
+  }
+
+  .cocktail-card-ingredients {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .cocktail-card-ingredients { font-size: 15.5px; }
+  }
 </style>
