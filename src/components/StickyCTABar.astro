@@ -12,51 +12,25 @@
  * "two co-equal primaries / Glow + Copper" treatment.
  */
 ---
-<div class="cta-backdrop" aria-hidden="true"></div>
 <aside class="cta-bar" data-cta-bar aria-label="Site actions">
   <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener" class="btn btn-solid">Reserve a lane</a>
   <a href="/events" class="btn btn-outline">Plan an event</a>
 </aside>
 
 <style>
-  /* Backdrop sits behind the floating pill (z-index 29 vs pill's 30) and
-     extends from the viewport bottom up past the pill's top edge. Gradient
-     fades from transparent above (so content scrolls in normally) to an
-     Indigo Deep wash at the bottom (so the strip the pill lives in reads
-     as deliberate UI space rather than a gap with content visible below
-     the pill). Subtle blur softens whatever scrolls behind it. */
-  .cta-backdrop {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: calc(110px + var(--safe-bottom));
-    z-index: 29;
-    pointer-events: none;
-    background: linear-gradient(
-      to top,
-      rgba(14, 10, 31, 0.92) 0%,
-      rgba(14, 10, 31, 0.78) 35%,
-      rgba(14, 10, 31, 0.4) 70%,
-      rgba(14, 10, 31, 0) 100%
-    );
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-  }
-  @media (min-width: 1025px) {
-    .cta-backdrop { display: none; }
-  }
-
   .cta-bar {
     position: fixed;
     z-index: 30;
     display: flex;
     gap: 10px;
 
-    /* Mobile bottom bar, full-width buttons. */
+    /* Mobile bottom bar, full-width buttons. Tight 6px gap to the viewport
+       bottom (was 12px) — small enough that no meaningful page content
+       shows in the gap. Pill's own backdrop-blur handles content scrolling
+       behind it. */
     left: 12px;
     right: 12px;
-    bottom: calc(12px + var(--safe-bottom));
+    bottom: calc(6px + var(--safe-bottom));
 
     background: rgba(14, 10, 31, 0.88);
     backdrop-filter: blur(18px) saturate(140%);
