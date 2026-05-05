@@ -363,3 +363,34 @@ body.nav-open [data-cta-bar] {
 .t2-faq-a a:hover { border-bottom-color: var(--glow); }
 .t2-faq-a p { margin: 0 0 12px; }
 .t2-faq-a p:last-child { margin-bottom: 0; }
+
+/* Tier-2 list — Glow-bulleted list style for benefits, role specs,
+   etc. Same recipe as the pillar pages' .events-section-list /
+   .bowl-section-list but namespaced .t2-list. */
+.t2-list {
+  margin-top: 18px;
+  padding-left: 0;
+  list-style: none;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--warm-white);
+}
+.t2-list li {
+  padding: 10px 0 10px 22px;
+  border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  position: relative;
+}
+.t2-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--glow);
+  opacity: 0.85;
+}

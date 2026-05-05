@@ -5,24 +5,30 @@
  * Replaces the legacy /join-our-team/ page (slug cleanup per
  * launch-checklist.md — 301 from /join-our-team/ → /careers/ at launch).
  *
- * Live twistedpin.com/join-our-team/ exists (eyebrow "Employment",
- * title "Twisted Pin: Plainfield, Naperville, Bolingbrook Bowling
- * Careers", subhead starts "Are You..."). Application form is
- * JS-rendered; couldn't scrape. Page acknowledges hiring + routes
- * applicants to email (contactus@twistedpin.com) until the form
- * destination is confirmed.
+ * Live twistedpin.com/join-our-team/ application flow:
+ *   - "Why is it worth working with us?" — 4-icon benefits row:
+ *     Fun Work Environment / Health Insurance / Dental & Vision /
+ *     Company Sponsored 401k (per user 2026-05-05 screenshots)
+ *   - "Are You Ready to Join Our Team?" CTA → external application:
+ *     https://www.employment-application.net/application.php?application=84
  *
- * Voice register: confident, direct. Don't overclaim culture
- * ("amazing team", "family vibes") — the venue's brand is
- * adults-first / sharper than most hospitality, and hiring copy
- * should match. Specifics > adjectives applies here too.
+ * 2026-05-05 update: page rebuilt against the real benefits + real
+ * application link. Replaces the "email contactus@twistedpin.com"
+ * placeholder flow that was here from the initial tier-2 batch.
+ *
+ * Voice register: confident, direct. The brand is adults-first /
+ * sharper than most hospitality, and hiring copy should match.
+ * Don't overclaim culture ("amazing team", "family vibes"). Don't
+ * say "fun work environment" verbatim — that's tonal opposite of
+ * voice.md (try-hard hype). The fact (welcoming workplace) is real;
+ * convey it in voice ("a venue you'd actually want to be in after
+ * your shift ends"). Specifics > adjectives applies — name the
+ * benefits factually.
  *
  * TODOs (non-blocking):
- *   - Open positions list — pending ops. Could be a static list
- *     here, or routed to an external HR tool (Indeed, Workable,
- *     ADP). Confirm which platform handles applications.
- *   - "Are You..." subhead from live site — couldn't capture the
- *     full sentence. Replaced with our own positioning line.
+ *   - Open positions list — pending ops if specific roles. The
+ *     external application form (employment-application.net) seems
+ *     to handle role selection itself.
  *   - Service area in title/description matches live site
  *     (Plainfield, Naperville, Bolingbrook) for SEO continuity.
  */
@@ -48,22 +54,36 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </div>
   </section>
 
-  <section class="t2-section" aria-labelledby="careers-h2">
+  <section class="t2-section" aria-labelledby="careers-perks-h2">
     <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="careers-h2" style="font-size:11px;">How to Apply</h2>
+      <h2 class="t-eyebrow" id="careers-perks-h2" style="font-size:11px;">What You Get</h2>
       <p class="t2-section-body">
-        Email your resume and the role you're interested in to
-        <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.
-        Or stop by the front desk during open hours and ask for a manager.
+        The basics, sorted:
+      </p>
+      <ul class="t2-list">
+        <li>Health insurance</li>
+        <li>Dental + vision</li>
+        <li>401k, company-sponsored</li>
+        <li>A venue you'd actually want to be in after your shift ends</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="careers-apply-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="careers-apply-h2" style="font-size:11px;">How to Apply</h2>
+      <p class="t2-section-body">
+        Fill out the application below — we keep it open year-round
+        across bar, kitchen, lanes, arcade, and front-of-house.
+        Weekend availability is a real plus; Friday and Saturday are
+        when the room comes alive.
       </p>
 
-      <p class="t2-section-body">
-        We hire for the bar, the kitchen, the lanes, the arcade, and
-        front-of-house. Weekend availability is a real plus —
-        Friday and Saturday are when the room comes alive.
-      </p>
+      <a class="btn btn-solid" href="https://www.employment-application.net/application.php?application=84" target="_blank" rel="noopener">
+        Fill out application
+      </a>
 
-      <p class="t2-section-body">
+      <p class="t2-section-body" style="margin-top: 28px;">
         Twisted Pin is in Plainfield, IL — easy commute from Naperville,
         Bolingbrook, Romeoville, Shorewood, Joliet, and Oswego.
       </p>
