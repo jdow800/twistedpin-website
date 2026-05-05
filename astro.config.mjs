@@ -14,7 +14,7 @@ export default defineConfig({
   // (or `https://twistedpin.com` — pick one canonical host) and
   // resubmit sitemap.xml to Google Search Console.
   site: 'https://twistedpin-website.vercel.app',
-  output: 'static',
+  output: 'hybrid',
   adapter: vercel({
     webAnalytics: { enabled: false },
     imageService: false,
