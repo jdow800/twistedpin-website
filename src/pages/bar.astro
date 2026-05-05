@@ -144,6 +144,19 @@ const [cocktailMenu, tapList] = await Promise.all([
             <ul class="tap-rows" role="list">
               {section.taps.map((tap) => (
                 <li class="tap-row">
+                  <div class="tap-label-frame">
+                    {tap.labelImage && (
+                      <img
+                        class="tap-label"
+                        src={tap.labelImage}
+                        alt=""
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+                  </div>
                   <span class="tap-number">{tap.tapNumber}</span>
                   <div class="tap-content">
                     <div class="tap-line-1">
@@ -619,18 +632,42 @@ const [cocktailMenu, tapList] = await Promise.all([
 
   .tap-row {
     display: grid;
-    grid-template-columns: 36px 1fr;
-    gap: 14px;
+    /* [label] [tap#] [content]. Label first because it's the visual anchor
+       a beer drinker scans for after the tap number — "what was that on
+       12?" → glance at the label, recognize the brand. */
+    grid-template-columns: 40px 32px 1fr;
+    gap: 12px;
     padding: 12px 0;
     border-bottom: 1px solid rgba(244, 239, 227, 0.06);
-    align-items: baseline;
+    align-items: center;
   }
   @media (min-width: 1025px) {
     .tap-row {
-      grid-template-columns: 44px 1fr;
+      grid-template-columns: 48px 40px 1fr;
       padding: 14px 0;
-      gap: 16px;
+      gap: 14px;
     }
+  }
+
+  .tap-label-frame {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    /* Subtle placeholder for items with no real label image (filtered at
+       the lib level so generic Untappd placeholders never show). Empty
+       frame keeps the grid aligned across rows that have/don't have art. */
+    background: rgba(244, 239, 227, 0.04);
+  }
+  @media (min-width: 1025px) {
+    .tap-label-frame { width: 48px; height: 48px; }
+  }
+
+  .tap-label {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
   }
 
   .tap-number {

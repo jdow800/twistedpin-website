@@ -29,6 +29,18 @@ export interface TapList {
 
 const EMPTY: TapList = { sections: [], totalCount: 0 };
 
+function pickLabelImage(item: any): string | null {
+  // Untappd returns a generic placeholder (badge-beer-default.png for beer,
+  // default/wine.svg for wine) when an item has no real label image.
+  // Reject those so we don't render visual noise — a missing label slot
+  // looks better than 28 identical placeholders.
+  const url = item.label_image_thumb || item.label_image;
+  if (!url) return null;
+  if (url.includes('badge-beer-default')) return null;
+  if (url.includes('default/wine.svg')) return null;
+  return url;
+}
+
 function pickStyle(item: any): string {
   // Untappd has 3 style fields with different fidelity: short_style is the
   // cleanest (e.g. "IPA - American" vs original "IPA - Imperial / Double
@@ -77,7 +89,7 @@ export async function getTapList(): Promise<TapList> {
               breweryLocation: pickBreweryLocation(it),
               style: pickStyle(it),
               abv: String(it.abv ?? ''),
-              labelImage: it.label_image_thumb || it.label_image || null,
+              labelImage: pickLabelImage(it),
             }))
             .sort((a: Tap, b: Tap) => {
               const aN = parseInt(a.tapNumber, 10);
