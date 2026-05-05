@@ -1,0 +1,355 @@
+---
+/**
+ * /game — Arcade pillar page.
+ *
+ * SEO weight: medium-high. Per Context/seo.md `arcades near me /
+ * arcade Plainfield` is 3,700+ GBP searches with "currently no
+ * dedicated landing page" — this page captures it. Old site had
+ * /game/ as the slug; per seo.md the eventual rename target is
+ * /arcade/ but for now we ship under /game (matches the inline-nav
+ * slug and homepage snap 7 label).
+ *
+ * Visual constraint per Context/visual-direction.md:
+ *   "Arcade in full neon (DSC_0569, ArcadeHeyFlow) — fights the moody
+ *    thesis directly. These are great on the dedicated /arcade/ page
+ *    but not on the homepage."
+ * Translation: full-neon photography is OK *here*, just not on /. The
+ * arcade is the subject of this page; the high-contrast lighting is
+ * on-thesis when arcade IS the subject.
+ *
+ * Same skeleton as the other pillars (rule of SIX — .pillar-* CSS
+ * hoist past overdue):
+ *   - Hero: typography-led, "Adults play too." (carries the locked
+ *     "giant bear" energy from homepage snap 7)
+ *   - Section 1 — What's in there (game inventory, ticket-counter prizes)
+ *   - Section 2 — Yes, adults too (positioning + drink-in-hand
+ *     bowling-game culture, family-welcome but not lead)
+ *   - SnapFooter
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - Adults-first positioning, but family-welcome NOT denied (per the
+ *     2026-05-04 nuance clarification: family-friendly is a TRUE fact,
+ *     just not a marketing lead)
+ *   - "(don't pretend you don't want the giant bear)" — the locked
+ *     homepage snap 7 aside echoes through this page's voice
+ *   - "private" / "cheap" hard-bans observed
+ *   - Specifics > adjectives (skee-ball, pinball, redemption)
+ *
+ * TODOs (non-blocking):
+ *   - Real arcade photography needed. Per visual-direction.md the
+ *     existing DSC_0569 / ArcadeHeyFlow neon shots ARE on-thesis here
+ *     (just not on /). Need them encoded into /public/snap/ as
+ *     arcade-bg-*.{webp,jpg} variants. For now, stub uses events-bg.
+ *     Flagged in Context/media-needs.md.
+ *   - Specific games + machine claims not verified (per voice.md the
+ *     earlier "skee-ball, redemption, jackpot machine you came for"
+ *     was retired because specific machine claims weren't verified).
+ *     Generic categories used.
+ *   - Redemption prize specifics ("the giant bear is real") could be
+ *     a literal photo callout if a giant-bear-on-arcade-shelf shot
+ *     exists or gets shot.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Arcade in Plainfield, IL — Twisted Pin"
+  description="Skee-ball, pinball, redemption tickets. The bar is twenty steps away. Adults play too — Twisted Pin in Plainfield, IL."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="game-hero" data-hero aria-labelledby="game-hero-h1">
+    <div class="game-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Arcade</p>
+      <h1 class="t-display game-hero-headline hero-fade" id="game-hero-h1" data-delay-ms="120">
+        Adults play&nbsp;too.
+      </h1>
+      <p class="game-hero-sub hero-fade" data-delay-ms="320">
+        Skee-ball, pinball, redemption tickets. Bring a cocktail. Win
+        the giant bear.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT'S IN THERE — image left, copy right
+      ============================================================ */}
+  <section class="game-section" aria-labelledby="game-inventory-h2">
+    <div class="game-section-frame-and-copy">
+      <div class="game-section-frame">
+        {/* Stub — needs real arcade photo encoded as arcade-bg-*.
+            Per visual-direction.md, full-neon arcade shots ARE
+            on-thesis on this page (the constraint is /'s hero only). */}
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="game-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The arcade at Twisted Pin in Plainfield, IL"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="game-section-copy">
+        <p class="t-eyebrow">What's In There</p>
+        <h2 class="t-display game-section-title" id="game-inventory-h2">
+          Skee-ball. Pinball. The works.
+        </h2>
+        <p class="game-section-aside">(the noisy fun part)</p>
+
+        <p class="game-section-body">
+          Classic skee-ball lanes. Pinball machines. Modern redemption
+          games and crane machines. Same vendors as the chain arcades,
+          same prizes — just dropped into a venue that also makes
+          actual cocktails.
+        </p>
+
+        <p class="game-section-body">
+          Tickets stack up at the redemption counter. Trade them in
+          for the cheap stuff (sticker, plastic spider) or save up for
+          the big stuff (the giant bear is real — see below).
+        </p>
+
+        <ul class="game-section-list">
+          <li>Skee-ball</li>
+          <li>Pinball</li>
+          <li>Redemption / ticket games</li>
+          <li>Crane machines</li>
+          <li>Redemption counter with real prizes</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      YES, ADULTS TOO — image RIGHT, copy LEFT (alternation)
+      ============================================================ */}
+  <section class="game-section game-section--reverse" aria-labelledby="game-adults-h2">
+    <div class="game-section-frame-and-copy">
+      <div class="game-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-1080.webp 1080w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="game-section-img"
+            src="/snap/cocktails-bg-1080.jpg"
+            srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-1080.jpg 1080w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A craft cocktail at Twisted Pin's bar"
+            width="1080"
+            height="1920"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="game-section-copy">
+        <p class="t-eyebrow">Yes, Adults Too</p>
+        <h2 class="t-display game-section-title" id="game-adults-h2">
+          Bring a drink to the skee-ball lane.
+        </h2>
+        <p class="game-section-aside">(this isn't your parents' arcade)</p>
+
+        <p class="game-section-body">
+          The bar is right next door. The 28-tap self-serve wall is
+          closer. The point is you don't have to choose between
+          "serious bar visit" and "arcade with the kids" — both are
+          happening at the same time, in the same room.
+        </p>
+
+        <p class="game-section-body">
+          Family-friendly when the family is here. Ticket-shopping at
+          the redemption counter is built for kids. The rest of the
+          time it's where adults remember they like skee-ball.
+        </p>
+
+        <p class="game-section-body">
+          And yes, the giant bear is real. Earn the tickets, take it home.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /game — same pillar skeleton as the others. Rule of SIX hit;
+     .pillar-* CSS hoist seriously overdue (Context/launch-checklist.md).
+     One small structural deviation: .game-section-frame-and-copy
+     instead of .game-section-grid because grid was getting overloaded
+     across the 6 pillars and `frame-and-copy` reads more clearly.
+     Layout effect is identical.
+     ============================================================ */
+
+  /* ---------- hero ---------- */
+  .game-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(420px, 60vh, 560px);
+    padding:
+      calc(var(--header-height) + 32px) 22px
+      calc(var(--bar-pad) + 32px);
+  }
+  @media (min-width: 1025px) {
+    .game-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .game-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .game-hero-copy { text-align: center; }
+    .game-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .game-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .game-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .game-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .game-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ---------- editorial sections ---------- */
+  .game-section {
+    background: transparent;
+    padding: 56px 22px;
+  }
+  @media (min-width: 1025px) {
+    .game-section { padding: 96px 64px; }
+  }
+
+  .game-section-frame-and-copy {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .game-section-frame-and-copy {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .game-section--reverse .game-section-frame-and-copy > .game-section-frame {
+      order: 2;
+    }
+  }
+
+  .game-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .game-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .game-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .game-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .game-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .game-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .game-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .game-section-aside { font-size: 17px; }
+  }
+
+  .game-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .game-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .game-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .game-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .game-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+</style>
