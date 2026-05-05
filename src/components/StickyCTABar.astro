@@ -12,12 +12,33 @@
  * "two co-equal primaries / Glow + Copper" treatment.
  */
 ---
+<div class="cta-bar-base" aria-hidden="true"></div>
 <aside class="cta-bar" data-cta-bar aria-label="Site actions">
   <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener" class="btn btn-solid">Reserve a lane</a>
   <a href="/events" class="btn btn-outline">Plan an event</a>
 </aside>
 
 <style>
+  /* Solid blur strip from viewport bottom up to where the pill starts.
+     Same backdrop-filter + Indigo Deep wash as the pill, so the pill
+     reads as seated on a continuous base rather than floating with a
+     visible gap below it. No fade above (that was the earlier mistake). */
+  .cta-bar-base {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: calc(6px + var(--safe-bottom));
+    z-index: 29;
+    pointer-events: none;
+    background: rgba(14, 10, 31, 0.88);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+  @media (min-width: 1025px) {
+    .cta-bar-base { display: none; }
+  }
+
   .cta-bar {
     position: fixed;
     z-index: 30;

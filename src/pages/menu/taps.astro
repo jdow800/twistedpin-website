@@ -1,0 +1,284 @@
+---
+/**
+ * /menu/taps — dedicated tap list page.
+ *
+ * Extracted from /bar's #tap-list section (2026-05-05) so the bar
+ * pillar page stays focused on editorial. Tap list is reference content;
+ * lives at its own URL.
+ *
+ * Layout: typography-led hero (no image) + the list-led tap rows
+ * (different visual rhythm than the cocktail card grid — beer lists are
+ * scannable text with tap-number anchors).
+ *
+ * Data: build-time fetch from Untappd Business via getTapList(). Daily
+ * 4am cron keeps it fresh.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import { getTapList } from "../../lib/untappd-taps";
+
+const tapList = await getTapList();
+---
+<Base
+  title="What's On Tap | Twisted Pin Plainfield IL"
+  description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
+>
+
+  <section class="menu-hero" aria-labelledby="menu-h1">
+    <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>
+    <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
+      28 Self-Serve Taps
+    </h1>
+    <p class="menu-hero-sub hero-fade" data-delay-ms="320">
+      What's pouring at the wall — beer, cider, hard seltzer, wine.
+      Synced from Untappd. Twisted Pin, Plainfield IL.
+    </p>
+  </section>
+
+  {tapList.sections.length > 0 && (
+    <section class="tap-list" id="tap-list" aria-labelledby="tap-list-h2">
+      <div class="tap-list-inner">
+        {tapList.sections.map((section) => (
+          <div class="tap-section">
+            <h2 class="tap-section-name">
+              {section.name} <span class="tap-section-count">· {section.taps.length}</span>
+            </h2>
+            <ul class="tap-rows" role="list">
+              {section.taps.map((tap) => (
+                <li class="tap-row">
+                  <div class="tap-label-frame">
+                    {tap.labelImage && (
+                      <img
+                        class="tap-label"
+                        src={tap.labelImage}
+                        alt=""
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
+                  </div>
+                  <span class="tap-number">{tap.tapNumber}</span>
+                  <div class="tap-content">
+                    <div class="tap-line-1">
+                      <span class="tap-name">{tap.name}</span>
+                      {tap.abv && <span class="tap-abv">{tap.abv}%</span>}
+                    </div>
+                    <div class="tap-line-2">
+                      {[tap.brewery, tap.breweryLocation, tap.style]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     Menu page hero — shared shape across /menu/* pages.
+     ============================================================ */
+  .menu-hero {
+    padding: calc(var(--header-height) + 32px) 22px 24px;
+    color: var(--warm-white);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero {
+      padding: calc(var(--header-height) + 56px) 64px 32px;
+    }
+  }
+
+  .menu-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-headline { font-size: clamp(56px, 6vw, 84px); }
+  }
+
+  .menu-hero-sub {
+    margin-top: 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-sub { font-size: 17px; max-width: 42em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     TAP LIST — list-led rows. Moved here from /bar 2026-05-05.
+     ============================================================ */
+  .tap-list {
+    background: transparent;
+    padding: 24px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .tap-list { padding: 32px 64px 120px; }
+  }
+
+  .tap-list-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .tap-section + .tap-section {
+    margin-top: 40px;
+  }
+  @media (min-width: 1025px) {
+    .tap-section + .tap-section { margin-top: 56px; }
+  }
+
+  .tap-section-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .tap-section-name {
+      font-size: 28px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+    }
+  }
+
+  .tap-section-count {
+    color: var(--warm-dim);
+    font-weight: 700;
+  }
+
+  .tap-rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1025px) {
+    .tap-rows {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 48px;
+    }
+  }
+
+  .tap-row {
+    display: grid;
+    grid-template-columns: 40px 32px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .tap-row {
+      grid-template-columns: 48px 40px 1fr;
+      padding: 14px 0;
+      gap: 14px;
+    }
+  }
+
+  .tap-label-frame {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: rgba(244, 239, 227, 0.04);
+  }
+  @media (min-width: 1025px) {
+    .tap-label-frame { width: 48px; height: 48px; }
+  }
+
+  .tap-label {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .tap-number {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--glow);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  @media (min-width: 1025px) {
+    .tap-number { font-size: 26px; }
+  }
+
+  .tap-content {
+    min-width: 0;
+  }
+
+  .tap-line-1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .tap-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    line-height: 1.2;
+  }
+  @media (min-width: 1025px) {
+    .tap-name { font-size: 17px; }
+  }
+
+  .tap-abv {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--warm-mid);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  @media (min-width: 1025px) {
+    .tap-abv { font-size: 12px; }
+  }
+
+  .tap-line-2 {
+    margin-top: 4px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .tap-line-2 { font-size: 13px; }
+  }
+</style>

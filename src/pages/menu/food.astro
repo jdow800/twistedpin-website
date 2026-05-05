@@ -1,0 +1,272 @@
+---
+/**
+ * /menu/food — dedicated food menu page.
+ *
+ * Extracted from /eat's #menu section (2026-05-05) so the food pillar
+ * stays editorial-focused. Reference content lives at its own URL.
+ *
+ * Layout: typography-led hero (no image) + the food card grid (mirrors
+ * the cocktail menu's card rhythm).
+ *
+ * Data: build-time fetch from GoTab via getFood(). Daily 4am cron
+ * keeps it fresh.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import { getFood } from "../../lib/gotab-food";
+
+const foodMenu = await getFood();
+---
+<Base
+  title="Food Menu | Twisted Pin Plainfield IL"
+  description="The food menu at Twisted Pin — chef-inspired plates built to share. Starters, handhelds, pizza, salads, and desserts. Plainfield, IL."
+>
+
+  <section class="menu-hero" aria-labelledby="menu-h1">
+    <p class="t-eyebrow hero-fade" data-delay-ms="0">The Kitchen</p>
+    <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
+      Food
+    </h1>
+    <p class="menu-hero-sub hero-fade" data-delay-ms="320">
+      Chef-inspired plates, built to share. Starters, handhelds,
+      pizza, salads, and desserts. Twisted Pin, Plainfield IL.
+    </p>
+  </section>
+
+  {foodMenu.categories.length > 0 && (
+    <section class="food-menu" id="menu" aria-labelledby="food-menu-h2">
+      <div class="food-menu-inner">
+        {foodMenu.categories.map((cat) => (
+          <div class="food-category">
+            <h2 class="food-category-name">{cat.name}</h2>
+            <ul class="food-grid" role="list">
+              {cat.items.map((it) => (
+                <li class="food-card">
+                  {it.imageUrl ? (
+                    <div class="food-card-frame">
+                      <img
+                        src={it.imageUrl}
+                        srcset={it.imageUrlLg ? `${it.imageUrl} 480w, ${it.imageUrlLg} 720w` : undefined}
+                        sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
+                        alt={it.name}
+                        width="480"
+                        height="480"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {it.isStaffFavorite && (
+                        <span class="food-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div class="food-card-frame food-card-frame--empty" aria-hidden="true">
+                      {it.isStaffFavorite && (
+                        <span class="food-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  )}
+                  <div class="food-card-body">
+                    <h3 class="food-card-name">{it.name}</h3>
+                    {it.description && (
+                      <p class="food-card-description">{it.description}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     Menu page hero — shared shape across /menu/* pages.
+     ============================================================ */
+  .menu-hero {
+    padding: calc(var(--header-height) + 32px) 22px 24px;
+    color: var(--warm-white);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero {
+      padding: calc(var(--header-height) + 56px) 64px 32px;
+    }
+  }
+
+  .menu-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-headline { font-size: clamp(56px, 6vw, 84px); }
+  }
+
+  .menu-hero-sub {
+    margin-top: 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-sub { font-size: 17px; max-width: 42em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     FOOD MENU — same compact grid as cocktails. Moved here from
+     /eat 2026-05-05.
+     ============================================================ */
+  .food-menu {
+    background: transparent;
+    padding: 24px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .food-menu { padding: 32px 64px 120px; }
+  }
+
+  .food-menu-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .food-category + .food-category {
+    margin-top: 56px;
+  }
+  @media (min-width: 1025px) {
+    .food-category + .food-category { margin-top: 88px; }
+  }
+
+  .food-category-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .food-category-name {
+      font-size: 32px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+    }
+  }
+
+  .food-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  @media (min-width: 700px) {
+    .food-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px 20px;
+    }
+  }
+  @media (min-width: 1025px) {
+    .food-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px 24px;
+    }
+  }
+
+  .food-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .food-card-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 1 / 1;
+    background: rgba(244, 239, 227, 0.04);
+  }
+
+  .food-card-frame--empty {
+    background:
+      linear-gradient(135deg, rgba(244, 239, 227, 0.04), rgba(244, 239, 227, 0.02));
+  }
+
+  .food-card-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .food-card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .food-card-body {
+    padding: 0 2px;
+  }
+
+  .food-card-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+  @media (min-width: 700px) {
+    .food-card-name { font-size: 17px; }
+  }
+  @media (min-width: 1025px) {
+    .food-card-name { font-size: 18px; }
+  }
+
+  .food-card-description {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  @media (min-width: 1025px) {
+    .food-card-description { font-size: 13.5px; }
+  }
+</style>

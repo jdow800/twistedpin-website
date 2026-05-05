@@ -1,0 +1,264 @@
+---
+/**
+ * /menu/cocktails — dedicated cocktail menu page.
+ *
+ * Extracted from /bar's #cocktail-menu section (2026-05-05) so the bar
+ * pillar page can stay editorial-focused and short. Reference content
+ * lives at its own URL where it can be linked, shared, and crawled
+ * independently.
+ *
+ * Layout: typography-led hero (no image) + the cocktail card grid.
+ * Mirrors the rhythm of all three menu pages — no editorial drift.
+ *
+ * Data: build-time fetch from GoTab via getCocktails(). Daily 4am cron
+ * keeps it fresh.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import { getCocktails } from "../../lib/gotab-cocktails";
+
+const cocktailMenu = await getCocktails();
+---
+<Base
+  title="Cocktail Menu | Twisted Pin Plainfield IL"
+  description="The cocktail program at Twisted Pin — built by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
+>
+
+  <section class="menu-hero" aria-labelledby="menu-h1">
+    <p class="t-eyebrow hero-fade" data-delay-ms="0">The Bar Program</p>
+    <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
+      Cocktails
+    </h1>
+    <p class="menu-hero-sub hero-fade" data-delay-ms="320">
+      A craft cocktail program built by America's Top Mixologist.
+      Twenty-eight cocktails, served at Twisted Pin in Plainfield, IL.
+    </p>
+  </section>
+
+  {cocktailMenu.categories.length > 0 && (
+    <section class="cocktail-menu" id="cocktail-menu" aria-labelledby="cocktail-menu-h2">
+      <div class="cocktail-menu-inner">
+        {cocktailMenu.categories.map((cat) => (
+          <div class="cocktail-category">
+            <h2 class="cocktail-category-name">{cat.name}</h2>
+            <ul class="cocktail-grid" role="list">
+              {cat.cocktails.map((c) => (
+                <li class="cocktail-card">
+                  {c.imageUrl && (
+                    <div class="cocktail-card-frame">
+                      <img
+                        src={c.imageUrl}
+                        srcset={c.imageUrlLg ? `${c.imageUrl} 480w, ${c.imageUrlLg} 720w` : undefined}
+                        sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
+                        alt={c.name}
+                        width="480"
+                        height="480"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {c.isStaffFavorite && (
+                        <span class="cocktail-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  )}
+                  <div class="cocktail-card-body">
+                    <h3 class="cocktail-card-name">{c.name}</h3>
+                    {c.ingredients && (
+                      <p class="cocktail-card-ingredients">{c.ingredients}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     Menu page hero — typography-led, no image. Tighter than the
+     pillar-page hero (no min-height) so the menu starts quickly.
+     ============================================================ */
+  .menu-hero {
+    padding: calc(var(--header-height) + 32px) 22px 24px;
+    color: var(--warm-white);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero {
+      padding: calc(var(--header-height) + 56px) 64px 32px;
+    }
+  }
+
+  .menu-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-headline { font-size: clamp(56px, 6vw, 84px); }
+  }
+
+  .menu-hero-sub {
+    margin-top: 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-sub { font-size: 17px; max-width: 42em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     COCKTAIL MENU — same compact grid as before. Moved here from
+     /bar 2026-05-05.
+     ============================================================ */
+  .cocktail-menu {
+    background: transparent;
+    padding: 24px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-menu { padding: 32px 64px 120px; }
+  }
+
+  .cocktail-menu-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .cocktail-category + .cocktail-category {
+    margin-top: 56px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-category + .cocktail-category { margin-top: 88px; }
+  }
+
+  .cocktail-category-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .cocktail-category-name {
+      font-size: 32px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+    }
+  }
+
+  .cocktail-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  @media (min-width: 700px) {
+    .cocktail-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px 20px;
+    }
+  }
+  @media (min-width: 1025px) {
+    .cocktail-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px 24px;
+    }
+  }
+
+  .cocktail-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .cocktail-card-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 1 / 1;
+    background: rgba(244, 239, 227, 0.04);
+  }
+
+  .cocktail-card-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .cocktail-card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .cocktail-card-body {
+    padding: 0 2px;
+  }
+
+  .cocktail-card-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+  @media (min-width: 700px) {
+    .cocktail-card-name { font-size: 17px; }
+  }
+  @media (min-width: 1025px) {
+    .cocktail-card-name { font-size: 18px; }
+  }
+
+  .cocktail-card-ingredients {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-card-ingredients { font-size: 13.5px; }
+  }
+</style>
