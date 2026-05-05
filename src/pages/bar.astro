@@ -36,11 +36,15 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import { getCocktails } from "../lib/gotab-cocktails";
+import { getTapList } from "../lib/untappd-taps";
 
-// Build-time fetch from GoTab. Fails closed (returns empty menu) if the
-// upstream is unreachable — the page still renders, the menu sections just
-// don't appear. See src/lib/gotab-cocktails.ts.
-const cocktailMenu = await getCocktails();
+// Build-time fetches. Both fail closed (return empty) if upstream is
+// unreachable — the page still renders, only the affected section
+// disappears. Fired in parallel to keep build time tight.
+const [cocktailMenu, tapList] = await Promise.all([
+  getCocktails(),
+  getTapList(),
+]);
 ---
 <Base
   title="Craft Cocktails & a 28-Tap Self-Serve Beer Wall | Twisted Pin"
@@ -110,11 +114,56 @@ const cocktailMenu = await getCocktails();
           <li>Pour your own — no waiting</li>
         </ul>
 
-        {/* TODO: GoTab API integration. View-only menu link for now. */}
         <a class="btn btn-outline" href="#tap-list">View what's on tap</a>
       </div>
     </div>
   </section>
+
+  {/* ============================================================
+      TAP LIST — full Untappd-driven list. List-led layout (not photo
+      grid like the cocktail menu) — beer lists are scannable text-led
+      formats, tap number is the anchor.
+      Powered by getTapList() build-time fetch. Empty when Untappd is
+      unreachable (section just doesn't render).
+      ============================================================ */}
+  {tapList.sections.length > 0 && (
+    <section class="tap-list" id="tap-list" aria-labelledby="tap-list-h2">
+      <div class="tap-list-inner">
+        <header class="tap-list-header">
+          <p class="t-eyebrow">Currently Pouring</p>
+          <h2 class="t-display tap-list-title" id="tap-list-h2">
+            What's on right now.
+          </h2>
+        </header>
+
+        {tapList.sections.map((section) => (
+          <div class="tap-section">
+            <h3 class="tap-section-name">
+              {section.name} <span class="tap-section-count">· {section.taps.length}</span>
+            </h3>
+            <ul class="tap-rows" role="list">
+              {section.taps.map((tap) => (
+                <li class="tap-row">
+                  <span class="tap-number">{tap.tapNumber}</span>
+                  <div class="tap-content">
+                    <div class="tap-line-1">
+                      <span class="tap-name">{tap.name}</span>
+                      {tap.abv && <span class="tap-abv">{tap.abv}%</span>}
+                    </div>
+                    <div class="tap-line-2">
+                      {[tap.brewery, tap.breweryLocation, tap.style]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
 
   {/* ============================================================
       CRAFT COCKTAILS — image RIGHT, copy LEFT (desktop alternation)
@@ -481,6 +530,168 @@ const cocktailMenu = await getCocktails();
   /* The closing CTA band (.bar-cta) was removed 2026-05-04 — the global
      sticky CTA bar already carries Reserve / Plan, so a duplicate at the
      page bottom was visual debt. SnapFooter handles the "find us" beat. */
+
+  /* ============================================================
+     TAP LIST — list-led layout for the 28-tap wall. Different rhythm
+     than the cocktail menu (photo grid): tap number anchors each row,
+     name dominates, brewery + location + style as metadata. 1 col on
+     mobile, 2 cols on desktop to fill horizontal space.
+     ============================================================ */
+  .tap-list {
+    background: transparent;
+    padding: 56px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .tap-list { padding: 96px 64px 120px; }
+  }
+
+  .tap-list-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .tap-list-header {
+    margin-bottom: 36px;
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .tap-list-header { margin-bottom: 56px; }
+  }
+
+  .tap-list-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .tap-list-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .tap-section + .tap-section {
+    margin-top: 40px;
+  }
+  @media (min-width: 1025px) {
+    .tap-section + .tap-section { margin-top: 56px; }
+  }
+
+  .tap-section-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .tap-section-name {
+      font-size: 28px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+    }
+  }
+
+  /* The "· N" count next to each section name dims so the section title
+     reads as the dominant element. */
+  .tap-section-count {
+    color: var(--warm-dim);
+    font-weight: 700;
+  }
+
+  .tap-rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1025px) {
+    .tap-rows {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 48px;
+    }
+  }
+
+  .tap-row {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+    align-items: baseline;
+  }
+  @media (min-width: 1025px) {
+    .tap-row {
+      grid-template-columns: 44px 1fr;
+      padding: 14px 0;
+      gap: 16px;
+    }
+  }
+
+  .tap-number {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 22px;
+    color: var(--glow);
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  @media (min-width: 1025px) {
+    .tap-number { font-size: 26px; }
+  }
+
+  .tap-content {
+    min-width: 0;
+  }
+
+  .tap-line-1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .tap-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    line-height: 1.2;
+  }
+  @media (min-width: 1025px) {
+    .tap-name { font-size: 17px; }
+  }
+
+  .tap-abv {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--warm-mid);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  @media (min-width: 1025px) {
+    .tap-abv { font-size: 12px; }
+  }
+
+  .tap-line-2 {
+    margin-top: 4px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .tap-line-2 { font-size: 13px; }
+  }
 
   /* ============================================================
      COCKTAIL MENU — full GoTab-driven list. Compact card grid grouped
