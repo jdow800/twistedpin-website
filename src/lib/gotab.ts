@@ -67,13 +67,17 @@ async function fetchToken(): Promise<string> {
     throw new Error(`GoTab token: non-JSON response: ${text.slice(0, 200)}`);
   }
 
-  if (!json.access_token) {
-    throw new Error(`GoTab token: no access_token in response: ${text.slice(0, 200)}`);
+  // GoTab returns { token, tokenType } rather than the OAuth-standard
+  // { access_token, token_type, expires_in }. No expiry is returned —
+  // the docs say tokens last 24h, so we cache for 23h to be safe.
+  const accessToken = json.token ?? json.access_token;
+  if (!accessToken) {
+    throw new Error(`GoTab token: no token in response: ${text.slice(0, 200)}`);
   }
 
   _token = {
-    value: json.access_token,
-    expiresAt: now + (json.expires_in ?? 86400) * 1000,
+    value: accessToken,
+    expiresAt: now + 23 * 60 * 60 * 1000,
   };
   return _token.value;
 }
