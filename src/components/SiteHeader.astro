@@ -69,7 +69,9 @@ const moreItems: MoreItem[] = [
   { href: "/rewards/",         label: "Rewards",         icon: "star"      },
   { href: "/gift-cards/",      label: "Gift Cards",      icon: "gift"      },
   { href: "/faq/",             label: "FAQ",             icon: "help"      },
-  { href: "/contact/",         label: "Contact",         icon: "mail"      },
+  // Contact has no dedicated page — clicks scroll to the SnapFooter
+  // (Find Us section: address, hours, phone, email). 2026-05-04.
+  { href: "#find-us",          label: "Contact",         icon: "mail"      },
   { href: "/careers/",         label: "Careers",         icon: "briefcase" },
 ];
 

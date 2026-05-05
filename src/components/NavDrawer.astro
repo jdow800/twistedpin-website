@@ -32,7 +32,13 @@ const sections: Section[] = [
   { href: "/eat/",        label: "Eat",       icon: "utensils"    },
   { href: "/vip-suite/",  label: "VIP Suite", icon: "bowling-pin" },
   { href: "/events/",     label: "Events",    icon: "calendar"    },
-  { href: "/#find-us",    label: "Find Us",   icon: "map-pin"     },
+  // 2026-05-04: changed `/#find-us` → `#find-us` so the link scrolls
+  // in-place to the footer on the current page (SnapFooter is included
+  // on every page) rather than navigating to / first. Also serves as the
+  // sole "contact info" destination — the dedicated /contact page was
+  // killed; everything users need (address, hours, phone, email) lives
+  // in SnapFooter.
+  { href: "#find-us",     label: "Find Us",   icon: "map-pin"     },
 ];
 
 // Lucide stroke conventions: 24x24 viewBox, 2px stroke, round caps + joins, fill="none".
