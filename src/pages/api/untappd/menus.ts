@@ -3,10 +3,10 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { untappdGet } from '../../../lib/untappd';
 
-// Discovery endpoint. Returns every menu attached to UNTAPPD_LOCATION_ID
-// so we can identify which one is the 28-tap self-serve wall (a venue
-// can have multiple menus — Draft, Bottles, Wine, etc.). Once we know
-// the right menu ID, this route can be deleted.
+// Discovery probe: returns every menu attached to UNTAPPD_LOCATION_ID,
+// each enriched with its sections and items. Used to identify the tap
+// wall menu structure and design the final display. Will be deleted
+// once the real /api/untappd/taps integration ships.
 
 export const GET: APIRoute = async () => {
   try {
@@ -17,8 +17,34 @@ export const GET: APIRoute = async () => {
         { status: 500, headers: { 'Content-Type': 'application/json' } },
       );
     }
-    const data = await untappdGet(`/locations/${locationId}/menus`);
-    return new Response(JSON.stringify(data, null, 2), {
+
+    const menusResp: any = await untappdGet(`/locations/${locationId}/menus`);
+    const menus = menusResp.menus ?? [];
+
+    const enriched = await Promise.all(menus.map(async (menu: any) => {
+      let sections: any[] = [];
+      try {
+        const sectionsResp: any = await untappdGet(`/menus/${menu.id}/sections`);
+        sections = sectionsResp.sections ?? [];
+
+        sections = await Promise.all(sections.map(async (section: any) => {
+          try {
+            const itemsResp: any = await untappdGet(`/sections/${section.id}/items`);
+            return {
+              ...section,
+              items: itemsResp.items ?? itemsResp,
+            };
+          } catch (err) {
+            return { ...section, _items_error: String(err) };
+          }
+        }));
+      } catch (err) {
+        return { ...menu, _sections_error: String(err) };
+      }
+      return { ...menu, sections };
+    }));
+
+    return new Response(JSON.stringify({ menus: enriched }, null, 2), {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store',
