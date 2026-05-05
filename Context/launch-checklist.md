@@ -59,7 +59,9 @@ To do: implement remaining 301s in `vercel.json` rewrites/redirects (the /reserv
 |---|---|---|
 | **Roller booking** | URL confirmed: `https://ecom.roller.app/twistedpin/openbowl/en-us/home`. **2026-05-05**: `/reserve` page killed — all "Reserve a lane" CTAs (SiteHeader, StickyCTABar, NavDrawer, /waitlist closing band) link directly to Roller in a new tab. Stray `/reserve` traffic gets a 308 redirect via vercel.json. Revisit if/when we launch our own reservation platform | Direct link is the pattern. No further wiring needed unless we build our own platform |
 | **Zite events platform** | Subdomain not yet deployed (`events.twistedpin.com`) | Coordinated launch with Avery's polish. **After deploy: sweep all "Plan an event" hrefs** from `/events` (main, placeholder) → `events.twistedpin.com` (subdomain). Currently several locations reference `/events` as placeholder: SiteHeader CTA, StickyCTABar, /vip-suite, etc. |
-| **GoTab API** | Not integrated. Quick-start docs say GraphQL + OAuth 2.0 (Client Credentials Grant). Menu endpoint + data shape live in separate "Products & Menus 101" docs (not yet read) | OAuth credentials provisioned by ops. Powers `/bar` "View what's on tap" + "View cocktail menu" CTAs and `/eat` "View the menu" CTAs. Spike the menu data shape before designing the menu component |
+| **GoTab API** | **Shipped 2026-05-05.** OAuth Client Credentials wired in `src/lib/gotab.ts`. Cocktail menu (`/menu/cocktails`) reads from "View Only Cocktail Menu"; food menu (`/menu/food`) reads from "View Only Menu" (filtered to food categories). Build-time fetch + 4am cron rebuild keeps data fresh within ~24h. 3 env vars on Vercel: `GOTAB_CLIENT_ID`, `GOTAB_CLIENT_SECRET`, `GOTAB_LOCATION_ID` | Done |
+| **Untappd Business API** | **Shipped 2026-05-05.** HTTP Basic auth in `src/lib/untappd.ts`. Tap list (`/menu/taps`) reads location → menus → sections → items. 28 taps confirmed (23 Draft + 1 NA + 4 Wine). 3 env vars on Vercel: `UNTAPPD_EMAIL`, `UNTAPPD_API_KEY`, `UNTAPPD_LOCATION_ID` | Done |
+| **Daily auto-rebuild cron** | **Shipped 2026-05-05.** Vercel Cron (`vercel.json`) at 9 UTC daily hits `/api/cron/rebuild` → POSTs deploy hook → fresh build re-fetches GoTab + Untappd. 2 env vars on Vercel: `CRON_SECRET`, `VERCEL_DEPLOY_HOOK_URL` | Done |
 | **TablesReady waitlist** | `/waitlist` shipped 2026-05-04 wrapping `host.tablesready.com/p/waitlist/twistedpin` (no X-Frame headers, embeds cleanly). User flagged inner iframe content as ugly; webhook-derived state explored and **tabled** pending plan upgrade. See [waitlist-theory.md](waitlist-theory.md) for full theory + revisit checklist | When revisiting: upgrade TablesReady plan tier → run webhook.site test → capture real payloads → resolve `party.checked_in` ambiguity → build webhook receiver + state store + 4am reset → swap iframe for live-data render |
 | **Cross-subdomain tracking** | UTM-tagging set up per user | Verify: GTM / Meta Pixel / GA4 tags set on `.twistedpin.com` (with leading dot) so they fire on both main + `events.twistedpin.com` subdomain |
 
@@ -84,7 +86,7 @@ Tier 2 (utility / secondary):
 - [ ] `/coupon` — kept as-is operationally (renamed from `/free-10`); confirm it ports cleanly
 - [x] `/waitlist` — shipped 2026-05-04 (TablesReady iframe wrapped in brand chrome). Webhook-derived state version tabled — see [waitlist-theory.md](waitlist-theory.md)
 
-Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards` (14 pages).
+Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards`, `/menu/cocktails`, `/menu/taps`, `/menu/food` (17 pages — three menu pages added 2026-05-05).
 
 Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index killed (posts kept live at original URLs, no new content).
 
@@ -97,7 +99,7 @@ Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index kill
   - 6 homepage `SnapStub` placeholders fixed (`href="#"` → real pillar pages: `/bar/`, `/eat/`, `/bowl/`, `/game/`, `/events/`)
   - `SnapFooter` UTILITY_LINKS: FAQ/Careers/Gift Cards `#` placeholders fixed; Privacy/Accessibility kept `#` (those pages don't exist yet — flagged below)
   - `SnapFooter` social: Instagram + Facebook hrefs wired to real URLs from twistedpin.com JSON-LD schema (`instagram.com/twistedpinplainfield/`, `facebook.com/twistedpin`); TikTok kept `#` pending ops
-  - **Known unresolved:** `/coupon/` linked in NavDrawer but page not built (intentional — kept on legacy operational flow per existing decision); `#cocktail-menu`, `#menu`, `#tap-list` anchors on `/bar` and `/eat` go nowhere (placeholders for the GoTab menu integration)
+  - **Known unresolved:** `/coupon/` linked in NavDrawer but page not built (intentional — kept on legacy operational flow per existing decision). The `#cocktail-menu`, `#menu`, `#tap-list` anchors on `/bar` and `/eat` were resolved 2026-05-05 by extracting menus to dedicated `/menu/*` pages and repointing the CTAs.
 - [x] **Sitemap setup** (2026-05-05): `@astrojs/sitemap` integration added. `sitemap-index.xml` + `sitemap-0.xml` generate at build time with all 14 routes. **Pre-launch action:** swap `site` URL in `astro.config.mjs` from Vercel staging to `https://www.twistedpin.com` and resubmit to Google Search Console.
 - [ ] **301 monitoring**: after deploy, monitor Search Console for crawl errors weekly for the first 60 days
 - [ ] **Lighthouse / performance check**: hit the seo.md targets — Mobile LCP < 2.5s, Performance score 85+
