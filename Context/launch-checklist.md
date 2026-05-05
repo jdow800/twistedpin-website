@@ -92,12 +92,16 @@ Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index kill
 
 ## Pre-launch sweeps
 
-- [ ] **Hard-ban word sweep**: grep every built page for `private`, `cheap`, `discount`, `value`, `deals`, `budget-friendly`. Zero hits required. (See `voice.md` Words to Avoid for the full list.)
-- [ ] **Nav-coverage sweep**: every built page has at least one inbound nav link OR is intentionally not in nav (geo SEO pages, blog posts, 301-only). Document the intentional exceptions
-- [ ] **404 sweep**: every internal link resolves. Especially after the Zite subdomain launches and we sweep `/events` placeholders
-- [ ] **Sitemap regen**: build a new `sitemap.xml` with the new URL structure; submit to Google Search Console
+- [x] **Hard-ban word sweep** (2026-05-05): grep'd every page for `private`, `cheap`, `discount`, `value`, `deals`, `budget-friendly`. One real hit found and fixed: `/game` "the cheap stuff" → "the small stuff". All other matches are docstring references documenting the rule itself, or the explicitly-approved "semi-private" framing for the VIP suite.
+- [x] **Nav-coverage / internal-href sweep** (2026-05-05): grep'd all internal hrefs across pages + components. Findings:
+  - 6 homepage `SnapStub` placeholders fixed (`href="#"` → real pillar pages: `/bar/`, `/eat/`, `/bowl/`, `/game/`, `/events/`)
+  - `SnapFooter` UTILITY_LINKS: FAQ/Careers/Gift Cards `#` placeholders fixed; Privacy/Accessibility kept `#` (those pages don't exist yet — flagged below)
+  - `SnapFooter` social: Instagram + Facebook hrefs wired to real URLs from twistedpin.com JSON-LD schema (`instagram.com/twistedpinplainfield/`, `facebook.com/twistedpin`); TikTok kept `#` pending ops
+  - **Known unresolved:** `/coupon/` linked in NavDrawer but page not built (intentional — kept on legacy operational flow per existing decision); `#cocktail-menu`, `#menu`, `#tap-list` anchors on `/bar` and `/eat` go nowhere (placeholders for the GoTab menu integration)
+- [x] **Sitemap setup** (2026-05-05): `@astrojs/sitemap` integration added. `sitemap-index.xml` + `sitemap-0.xml` generate at build time with all 14 routes. **Pre-launch action:** swap `site` URL in `astro.config.mjs` from Vercel staging to `https://www.twistedpin.com` and resubmit to Google Search Console.
 - [ ] **301 monitoring**: after deploy, monitor Search Console for crawl errors weekly for the first 60 days
 - [ ] **Lighthouse / performance check**: hit the seo.md targets — Mobile LCP < 2.5s, Performance score 85+
+- [ ] **Privacy + Accessibility pages** (NEW, surfaced by 2026-05-05 sweep): SnapFooter UTILITY_LINKS includes `Privacy` and `Accessibility` items pointing at `#` placeholder. Build basic compliance pages OR remove from utility row. Both standard SaaS-era expectations; pages can be light (the venue isn't collecting much PII)
 
 ---
 

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
+import sitemap from '@astrojs/sitemap';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -8,11 +9,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
+  // Sitemap + canonical URL base. Currently pointed at the Vercel
+  // staging deploy. **At launch:** swap to `https://www.twistedpin.com`
+  // (or `https://twistedpin.com` — pick one canonical host) and
+  // resubmit sitemap.xml to Google Search Console.
+  site: 'https://twistedpin-website.vercel.app',
   output: 'static',
   adapter: vercel({
     webAnalytics: { enabled: false },
     imageService: false,
   }),
+  integrations: [sitemap()],
   build: {
     inlineStylesheets: 'auto',
   },

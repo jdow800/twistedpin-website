@@ -36,10 +36,19 @@ const PHONE_DISPLAY = "(815) 555-0100";
 const PHONE_TEL     = "+18155550100";
 const EMAIL_ADDRESS = "contactus@twistedpin.com";
 
+// Real social URLs (verified 2026-05-05 from twistedpin.com JSON-LD
+// schema's `sameAs` array). TikTok URL not yet confirmed by ops —
+// stays placeholder until provided.
+const IG_URL  = "https://www.instagram.com/twistedpinplainfield/";
+const FB_URL  = "https://www.facebook.com/twistedpin";
+const TT_URL  = "#"; // TODO: real TikTok URL pending ops confirmation
+
 const UTILITY_LINKS = [
-  { label: "FAQ",           href: "#" },
-  { label: "Careers",       href: "#" },
-  { label: "Gift Cards",    href: "#" },
+  { label: "FAQ",           href: "/faq/" },
+  { label: "Careers",       href: "/careers/" },
+  { label: "Gift Cards",    href: "/gift-cards/" },
+  // TODO: /privacy and /accessibility pages not yet built. Hash
+  // placeholders until those pages ship. Flagged in launch-checklist.md.
   { label: "Privacy",       href: "#" },
   { label: "Accessibility", href: "#" },
 ];
@@ -136,7 +145,7 @@ const UTILITY_LINKS = [
          Real IG handle / Basic Display API embed is queued for the API
          batch round; per-thumb hrefs use `#` until then. */}
     <div class="footer-ig">
-      <a class="ig-handle" href="#" target="_blank" rel="noopener">
+      <a class="ig-handle" href={IG_URL} target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="3" y="3" width="18" height="18" rx="5" ry="5"/>
           <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
@@ -147,7 +156,7 @@ const UTILITY_LINKS = [
       <ul class="ig-grid" role="list">
         {[1, 2, 3, 4, 5, 6].map((n) => (
           <li>
-            <a href="#" target="_blank" rel="noopener" aria-label={`Twisted Pin on Instagram — post ${n}`}>
+            <a href={IG_URL} target="_blank" rel="noopener" aria-label={`Twisted Pin on Instagram — post ${n}`}>
               <picture>
                 <source
                   type="image/webp"
@@ -183,7 +192,7 @@ const UTILITY_LINKS = [
 
       <ul class="social-icons" aria-label="Social media">
         <li>
-          <a href="#" aria-label="Twisted Pin on Instagram">
+          <a href={IG_URL} target="_blank" rel="noopener" aria-label="Twisted Pin on Instagram">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="5" ry="5"/>
               <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/>
@@ -192,14 +201,14 @@ const UTILITY_LINKS = [
           </a>
         </li>
         <li>
-          <a href="#" aria-label="Twisted Pin on Facebook">
+          <a href={FB_URL} target="_blank" rel="noopener" aria-label="Twisted Pin on Facebook">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
             </svg>
           </a>
         </li>
         <li>
-          <a href="#" aria-label="Twisted Pin on TikTok">
+          <a href={TT_URL} aria-label="Twisted Pin on TikTok">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/>
             </svg>

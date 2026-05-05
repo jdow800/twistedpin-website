@@ -31,9 +31,9 @@
  * Snap mechanic: container-driven scroll-snap on mobile (≤1024), normal
  *   long-scroll on desktop. See the .snap CSS block for specifics.
  *
- * Hero is INLINED rather than using the shared <Hero /> component — the
- *   inlined version is the canonical implementation; src/components/Hero.astro
- *   is the older single-viewport hero, retained for reference (unused).
+ * Hero is INLINED in this file (snap 1) rather than a shared component —
+ *   the inlined version is the canonical implementation. (The older
+ *   src/components/Hero.astro was deleted 2026-05-05.)
  *
  * Sticky CTA bar (rendered by Base) stays visible on snaps 1–7; the
  *   page-level scroll watcher toggles `body.snap-cta-hidden` when the
@@ -110,7 +110,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <SnapStub
       title="Events That Don't Suck"
       subhead="Privatize the suite. Run the night your way."
-      href="#"
+      href="/events/"
       class="mobile-only"
     />
 
@@ -141,7 +141,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           <span class="tapwall-sub-main">28 self-serve taps</span>
           <span class="tapwall-sub-paren">(only wall in the area)</span>
         </p>
-        <a class="stub-learn" href="#">Learn more <span aria-hidden="true">→</span></a>
+        <a class="stub-learn" href="/bar/">Learn more <span aria-hidden="true">→</span></a>
       </div>
     </section>
 
@@ -155,7 +155,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       title="Craft Cocktails"
       subhead="Built by America's Top Mixologist."
       subheadParen="their words, not ours"
-      href="#"
+      href="/bar/"
       class="mobile-only"
     />
 
@@ -166,7 +166,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       title="Eat"
       subhead="Chef-inspired menu."
       subheadParen="built to share"
-      href="#"
+      href="/eat/"
       class="mobile-only"
     />
 
@@ -179,7 +179,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       title="Bowl"
       subhead="17 traditional lanes plus a 6-lane VIP suite."
       subheadParen="yes, you can take it over"
-      href="#"
+      href="/bowl/"
       class="mobile-only"
     />
 
@@ -190,7 +190,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       title="Game"
       subhead="Skee-ball, redemption, jackpot."
       subheadParen="don't pretend you don't want the giant bear"
-      href="#"
+      href="/game/"
       class="mobile-only"
     />
 
