@@ -37,6 +37,12 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { getFood } from "../lib/gotab-food";
+
+// Build-time fetch from GoTab. Fails closed (returns empty menu) if the
+// upstream is unreachable — the page still renders, the menu sections just
+// don't appear. See src/lib/gotab-food.ts.
+const foodMenu = await getFood();
 ---
 <Base
   title="Chef-Inspired Food in Plainfield, IL | Twisted Pin"
@@ -146,35 +152,87 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           they know each other.
         </p>
 
-        <p class="eat-section-callout">A few we'll always have on the menu:</p>
-        <ul class="eat-dish-list">
-          <li>
-            <span class="dish-name">[Signature Dish 1]</span>
-            <span class="dish-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="dish-name">[Signature Dish 2]</span>
-            <span class="dish-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="dish-name">[Signature Dish 3]</span>
-            <span class="dish-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="dish-name">[Signature Dish 4]</span>
-            <span class="dish-desc">[placeholder description]</span>
-          </li>
-          <li>
-            <span class="dish-name">[Signature Dish 5]</span>
-            <span class="dish-desc">[placeholder description]</span>
-          </li>
-        </ul>
+        {foodMenu.teaserPicks.length > 0 && (
+          <>
+            <p class="eat-section-callout">A few staff favorites:</p>
+            <ul class="eat-dish-list">
+              {foodMenu.teaserPicks.map((it) => (
+                <li>
+                  <span class="dish-name">{it.name}</span>
+                  {it.description && (
+                    <span class="dish-desc">{it.description}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
 
-        {/* TODO: GoTab API integration. View-only menu link for now. */}
         <a class="btn btn-outline" href="#menu">View the full menu</a>
       </div>
     </div>
   </section>
+
+  {/* ============================================================
+      FOOD MENU — full list grouped by GoTab category.
+      Powered by getFood() build-time fetch. Empty when GoTab is
+      unreachable (section just doesn't render).
+      Layout mirrors /bar #cocktail-menu (compact 2/3/4-col grid,
+      square photos, 3-line description clamp).
+      ============================================================ */}
+  {foodMenu.categories.length > 0 && (
+    <section class="food-menu" id="menu" aria-labelledby="food-menu-h2">
+      <div class="food-menu-inner">
+        <header class="food-menu-header">
+          <p class="t-eyebrow">The Menu</p>
+          <h2 class="t-display food-menu-title" id="food-menu-h2">
+            The whole spread, one scroll.
+          </h2>
+        </header>
+
+        {foodMenu.categories.map((cat) => (
+          <div class="food-category">
+            <h3 class="food-category-name">{cat.name}</h3>
+            <ul class="food-grid" role="list">
+              {cat.items.map((it) => (
+                <li class="food-card">
+                  {it.imageUrl ? (
+                    <div class="food-card-frame">
+                      <img
+                        src={it.imageUrl}
+                        srcset={it.imageUrlLg ? `${it.imageUrl} 480w, ${it.imageUrlLg} 720w` : undefined}
+                        sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
+                        alt={it.name}
+                        width="480"
+                        height="480"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      {it.isStaffFavorite && (
+                        <span class="food-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div class="food-card-frame food-card-frame--empty" aria-hidden="true">
+                      {it.isStaffFavorite && (
+                        <span class="food-card-badge">Staff Pick</span>
+                      )}
+                    </div>
+                  )}
+                  <div class="food-card-body">
+                    <h4 class="food-card-name">{it.name}</h4>
+                    {it.description && (
+                      <p class="food-card-description">{it.description}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
 
   <SnapFooter />
 </Base>
@@ -386,4 +444,175 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   /* The closing CTA band (.eat-cta) was removed 2026-05-04 — same
      reasoning as /bar. Sticky bar carries Reserve / Plan; SnapFooter
      handles the "find us" beat at the bottom. */
+
+  /* ============================================================
+     FOOD MENU — mirrors /bar #cocktail-menu styling. When the
+     rule-of-three triggers (third menu pillar lands), hoist the
+     shared bits up to a `.menu-*` utility.
+     ============================================================ */
+  .food-menu {
+    background: transparent;
+    padding: 56px 22px 72px;
+  }
+  @media (min-width: 1025px) {
+    .food-menu { padding: 96px 64px 120px; }
+  }
+
+  .food-menu-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .food-menu-header {
+    margin-bottom: 40px;
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .food-menu-header { margin-bottom: 56px; }
+  }
+
+  .food-menu-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .food-menu-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .food-category + .food-category {
+    margin-top: 56px;
+  }
+  @media (min-width: 1025px) {
+    .food-category + .food-category { margin-top: 88px; }
+  }
+
+  .food-category-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5vw, 26px);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+  @media (min-width: 1025px) {
+    .food-category-name {
+      font-size: 32px;
+      margin-bottom: 28px;
+      padding-bottom: 16px;
+    }
+  }
+
+  .food-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 12px;
+  }
+  @media (min-width: 700px) {
+    .food-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 28px 20px;
+    }
+  }
+  @media (min-width: 1025px) {
+    .food-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 32px 24px;
+    }
+  }
+
+  .food-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .food-card-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 1 / 1;
+    background: rgba(244, 239, 227, 0.04);
+  }
+
+  /* Some food items in GoTab don't have photos (Bottled Water, juice boxes,
+     a few sides). The frame stays rendered with the placeholder background
+     so the grid stays geometrically uniform — name+description still read
+     as a card; absence of a photo doesn't break the row. */
+  .food-card-frame--empty {
+    background:
+      linear-gradient(135deg, rgba(244, 239, 227, 0.04), rgba(244, 239, 227, 0.02));
+  }
+
+  .food-card-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .food-card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  .food-card-body {
+    padding: 0 2px;
+  }
+
+  .food-card-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 0 0 4px;
+    line-height: 1.1;
+  }
+  @media (min-width: 700px) {
+    .food-card-name { font-size: 17px; }
+  }
+  @media (min-width: 1025px) {
+    .food-card-name { font-size: 18px; }
+  }
+
+  .food-card-description {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+    /* Clamp to 3 lines so card heights stay regular across items with
+       wildly different description lengths. Full text remains in the
+       DOM for SEO / accessibility. */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  @media (min-width: 1025px) {
+    .food-card-description { font-size: 13.5px; }
+  }
 </style>
