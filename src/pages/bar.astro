@@ -635,11 +635,11 @@ const cocktailMenu = await getCocktails();
     font-size: 12.5px;
     line-height: 1.4;
     color: var(--warm-dim);
-    /* Clamp to 2 lines so card heights stay regular across cocktails
+    /* Clamp to 3 lines so card heights stay regular across cocktails
        with wildly different ingredient counts. Full text remains in
        the DOM for SEO / accessibility. */
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
