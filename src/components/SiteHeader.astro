@@ -1,26 +1,28 @@
 ---
 /**
  * SiteHeader — persistent top header. Rendered globally by Base.astro,
- * lives inside the .site-chrome wrapper alongside CouponBanner.
+ * lives inside the .site-chrome wrapper.
  *
  * Desktop (≥1025px):
- *   [Logo] [BAR EAT BOWL GAME EVENTS MORE▼]   [Reserve] [Plan]
+ *   [Logo] [BAR EAT BOWL GAME EVENTS VIP SUITE]   [Reserve] [Plan] [☰]
  * Mobile (≤1024px):
- *   [Logo]                                                [☰]
+ *   [Logo]                                                          [☰]
  *
  * Active-page indicator: 1px Glow underline below the active link only —
  * NOT applied on hover. Per locked decision (Phase 1 build spec round).
  *
- * MORE dropdown is click-only (no hover-open). Reasons logged in build spec:
- * hover dropdowns are unreliable on touch devices in 1024–1279px, click-only
- * is the accessibility default, and the ▼ caret is sufficient discoverability.
+ * MORE dropdown was retired 2026-05-05. The hamburger ☰ now appears at
+ * ALL viewports and opens the same NavDrawer mobile uses — one drawer
+ * surface for the long tail (Coupon / Waitlist / Leagues / Rewards /
+ * Gift Cards / FAQ / Find Us / Careers / Upcoming Events). Drawer's
+ * 3-section accordion (Experience / Visit / Info) earns the categorization
+ * that the 260px-wide dropdown couldn't.
  *
  * Background: light translucent scrim + backdrop blur. One static recipe
  * that has to read on hero video, on Midnight Indigo solids, and on the
  * Indigo Deep footer — same pattern as the hamburger button.
  */
 import NavToggle from "./NavToggle.astro";
-import { ICON_PATHS, type IconKey } from "../lib/icons";
 
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
@@ -29,8 +31,9 @@ interface NavItem { href: string; label: string }
 // Inline nav: 6 items (was 5). VIP Suite promoted to inline 2026-05-04 —
 // it's the tier-1 conversion page (revenue engine), and the desktop chrome
 // has plenty of room for a sixth label. Sits to the right of Events as
-// the natural pairing (events → suite is the common journey). MORE
-// dropdown carries the secondary utility surfaces only.
+// the natural pairing (events → suite is the common journey). The drawer
+// (opened via the ☰ at the right of the header) carries the secondary
+// utility surfaces.
 const navItems: NavItem[] = [
   { href: "/bar/",       label: "Bar"       },
   { href: "/eat/",       label: "Eat"       },
@@ -38,38 +41,6 @@ const navItems: NavItem[] = [
   { href: "/game/",      label: "Game"      },
   { href: "/events/",    label: "Events"    },
   { href: "/vip-suite/", label: "VIP Suite" },
-];
-
-// MORE dropdown — flat list, with Lucide icons left of each label and
-// a thin divider between every item.
-//
-// 2026-05-04 round 3:
-//   - Added `/coupon` (renamed from legacy `/free-10` per user — cleaner
-//     brand-y slug). Old `/free-10` URL gets a 301 redirect to `/coupon`
-//     at launch; both will be live during transition. Label: "Coupon".
-//   - Added `/waitlist` (TablesReady iframe page, project-state-locked).
-//   - Added 16px Lucide icons left of every label, currentColor + 0.7
-//     opacity at rest, full opacity on hover. Same icon vocabulary as
-//     the mobile NavDrawer.
-//
-// Item order: visit-now intents first (Upcoming Events, Coupon, Waitlist)
-// → recurring engagement (Leagues, Rewards) → purchase intent (Gift Cards)
-// → utility (FAQ, Contact, Careers). No labels — the per-item divider
-// does the scannability work.
-interface MoreItem extends NavItem { icon: IconKey; }
-
-const moreItems: MoreItem[] = [
-  { href: "/upcoming-events/", label: "Upcoming Events", icon: "calendar"  },
-  { href: "/coupon/",          label: "Coupon",          icon: "ticket"    },
-  { href: "/waitlist/",        label: "Waitlist",        icon: "clock"     },
-  { href: "/leagues/",         label: "Leagues",         icon: "trophy"    },
-  { href: "/rewards/",         label: "Rewards",         icon: "star"      },
-  { href: "/gift-cards/",      label: "Gift Cards",      icon: "gift"      },
-  { href: "/faq/",             label: "FAQ",             icon: "help"      },
-  // Contact has no dedicated page — clicks scroll to the SnapFooter
-  // (Find Us section: address, hours, phone, email). 2026-05-04.
-  { href: "#find-us",          label: "Contact",         icon: "mail"      },
-  { href: "/careers/",         label: "Careers",         icon: "briefcase" },
 ];
 
 const isActive = (href: string) =>
@@ -107,101 +78,18 @@ const isActive = (href: string) =>
     </nav>
   </div>
 
-  {/* Right group: (desktop) two CTAs + MORE meta-nav + (mobile) hamburger.
-      MORE was previously the last item inside the inline nav UL. Moved out
-      during 2C polish — its dropdown was overlapping content because the
-      MORE button sat near the center of the header. As a meta-control
-      (rather than a destination like BAR/EAT/BOWL/GAME/EVENTS), MORE
-      belongs grouped with the action region anyway. Now sits after the
-      CTAs; its dropdown right-aligns to its button which is at viewport-
-      right, opening into the right gutter outside the content cluster. */}
+  {/* Right group: (desktop) two CTAs + hamburger; (mobile) hamburger only.
+      The hamburger sits to the right of the CTAs at desktop, opens the
+      shared NavDrawer (the same surface mobile uses). Replaces the
+      previous MORE ▼ dropdown — see header docstring for rationale. */}
   <div class="header-right">
     <div class="site-cta-cluster">
       <a class="btn btn-solid" href="/reserve">Reserve a lane</a>
       <a class="btn btn-outline" href="/events">Plan an event</a>
     </div>
-    <div class="has-dropdown header-more">
-      <button
-        type="button"
-        class="more-toggle"
-        data-more-toggle
-        aria-expanded="false"
-        aria-haspopup="menu"
-        aria-controls="site-more-menu"
-      >
-        More
-        <span class="caret" aria-hidden="true">▼</span>
-      </button>
-      <ul
-        id="site-more-menu"
-        class="more-dropdown"
-        data-more-menu
-        role="menu"
-        hidden
-      >
-        {moreItems.map(item => (
-          <li role="none">
-            <a
-              role="menuitem"
-              href={item.href}
-              class={isActive(item.href) ? "active" : ""}
-            >
-              <svg
-                class="more-icon"
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                set:html={ICON_PATHS[item.icon]}
-              />
-              <span class="more-label">{item.label}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
     <NavToggle />
   </div>
 </header>
-
-<script>
-  /* MORE dropdown — click-only per locked decision.
-     - Click toggle: opens/closes
-     - Click outside: closes
-     - Escape: closes and returns focus to the toggle */
-  const moreToggle = document.querySelector<HTMLButtonElement>("[data-more-toggle]");
-  const moreMenu = document.querySelector<HTMLElement>("[data-more-menu]");
-
-  if (moreToggle && moreMenu) {
-    const setOpen = (open: boolean) => {
-      moreToggle.setAttribute("aria-expanded", String(open));
-      if (open) moreMenu.removeAttribute("hidden");
-      else moreMenu.setAttribute("hidden", "");
-    };
-
-    moreToggle.addEventListener("click", (e) => {
-      e.stopPropagation();
-      setOpen(moreToggle.getAttribute("aria-expanded") !== "true");
-    });
-
-    document.addEventListener("click", (e) => {
-      const t = e.target as Element | null;
-      if (!t?.closest(".has-dropdown")) setOpen(false);
-    });
-
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && moreToggle.getAttribute("aria-expanded") === "true") {
-        setOpen(false);
-        moreToggle.focus();
-      }
-    });
-  }
-</script>
 
 <style>
   .site-header {
@@ -252,10 +140,6 @@ const isActive = (href: string) =>
   .site-nav { display: none; }
   @media (min-width: 1025px) { .site-nav { display: block; } }
 
-  /* Direct-child scope on the outer nav UL is critical — without `>`, this
-     rule matches the MORE dropdown's inner UL too, turning the dropdown
-     into a horizontal flex row that blows past 600px wide. (Verified via
-     real overflow on the deploy.) */
   .site-nav > ul {
     list-style: none;
     margin: 0;
@@ -265,10 +149,8 @@ const isActive = (href: string) =>
     gap: 4px;
   }
 
-  /* Inline nav-link styling — scoped to direct children of the outer UL
-     so the same rule doesn't bleed into dropdown anchors. */
-  .site-nav > ul > li > a,
-  .more-toggle {
+  /* Inline nav-link styling. */
+  .site-nav > ul > li > a {
     display: inline-block;
     position: relative;
     padding: 10px 12px;
@@ -283,8 +165,7 @@ const isActive = (href: string) =>
     cursor: pointer;
     transition: color 150ms ease-out;
   }
-  .site-nav > ul > li > a:hover,
-  .more-toggle:hover { color: var(--glow); }
+  .site-nav > ul > li > a:hover { color: var(--glow); }
 
   /* Active-page underline — applies ONLY to the current page, never on
      hover. Per locked decision. The ::after sits 4px below the text,
@@ -300,112 +181,6 @@ const isActive = (href: string) =>
     background: var(--glow);
   }
 
-  .more-toggle .caret {
-    display: inline-block;
-    margin-left: 6px;
-    font-size: 0.7em;
-    transition: transform 150ms ease-out;
-  }
-  .more-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
-  .more-toggle[aria-expanded="true"] { color: var(--warm-white); }
-
-  /* ---------- MORE dropdown panel ---------- */
-  .has-dropdown { position: relative; }
-  .more-dropdown {
-    position: absolute;
-    /* Bumped 6 → 18px (2026-05-04 polish round 2) so the dropdown panel
-       lands clearly BELOW the header band rather than visually touching
-       its bottom edge. Two distinct surfaces. */
-    top: calc(100% + 18px);
-    /* Anchor to the right edge of the MORE button and extend leftward.
-       Width is content-driven (min-width 220px floor); fits inside the
-       viewport at ≥1280px because the MORE button itself sits in the
-       middle of the header. */
-    right: 0;
-    /* Explicit display:block so the dropdown isn't accidentally caught
-       by `.site-nav ul { display: flex }` again (already scoped to
-       direct child, but belt + suspenders). */
-    display: block;
-    /* Bumped 220 → 260 (2026-05-04 polish) — section labels + slightly
-       wider items breathe better at 260px. */
-    min-width: 260px;
-    list-style: none;
-    margin: 0;
-    padding: 6px 0;
-
-    /* Premium glass — picks up the header chrome but earns its own
-       visual presence as a floating panel. The inset top highlight
-       (1px warm-white at low opacity inside the box-shadow stack)
-       simulates light catching the panel's top edge — the move that
-       actually makes glass read as glass instead of as a flat tinted
-       rectangle. Bg dropped to 0.55 so the blur clearly shows through
-       (0.78 was still reading too solid against video). Stronger blur
-       and saturate so the colors behind the panel come through with
-       more life. */
-    background: rgba(14, 10, 31, 0.55);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(244, 239, 227, 0.18);
-    border-radius: var(--radius-button);
-    box-shadow:
-      /* inset top: lit edge — the move */
-      inset 0 1px 0 rgba(244, 239, 227, 0.14),
-      /* close: anchor against immediate background */
-      0 4px 8px rgba(0, 0, 0, 0.20),
-      /* mid: floating depth */
-      0 12px 24px rgba(0, 0, 0, 0.30),
-      /* far: lift off the surface */
-      0 32px 64px rgba(0, 0, 0, 0.50);
-    z-index: 25;
-  }
-  /* Hide when the trigger is closed — `[hidden]` from the HTML attribute
-     gets overridden by display:block above without this. */
-  .more-dropdown[hidden] { display: none; }
-  .more-dropdown li { display: list-item; }
-  .more-dropdown a {
-    /* Flex so the icon sits left of the label with a consistent gap. */
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    /* 10/18 → 11/20 (2026-05-04 polish) — slightly more breathing room. */
-    padding: 11px 20px;
-    font-family: var(--font-ui);
-    font-weight: 600;
-    /* Bumped 12 → 13 so each item lands a touch more confident. */
-    font-size: 13px;
-    letter-spacing: 0.10em;
-    text-transform: uppercase;
-    color: var(--warm-mid);
-    transition: color 150ms ease-out, background-color 150ms ease-out;
-  }
-
-  /* Lucide icons (round 3 polish). Slightly muted at rest so the type
-     leads; brightens to full opacity with the link's hover Glow.
-     `currentColor` lets the icon inherit the link's color transition. */
-  .more-icon {
-    flex: 0 0 16px;
-    width: 16px;
-    height: 16px;
-    color: currentColor;
-    opacity: 0.7;
-    transition: opacity 150ms ease-out;
-  }
-  .more-dropdown a:hover .more-icon {
-    opacity: 1;
-  }
-
-  /* Per-item divider (2026-05-04 polish round 2). Top border on every
-     item except the first creates a thin warm-white rule between every
-     pair of items — gives the flat list a scannable grid rhythm. */
-  .more-dropdown li + li > a {
-    border-top: 1px solid rgba(244, 239, 227, 0.10);
-  }
-  .more-dropdown a:hover {
-    color: var(--glow);
-    background: rgba(244, 239, 227, 0.04);
-  }
-  .more-dropdown a.active { color: var(--warm-white); }
-
   /* ---------- CTA cluster (desktop only) ---------- */
   .site-cta-cluster {
     display: none;
@@ -416,22 +191,4 @@ const isActive = (href: string) =>
     .site-cta-cluster { display: inline-flex; }
   }
   .site-cta-cluster .btn { padding: 12px 18px; font-size: 12px; }
-
-  /* ---------- MORE meta-nav (desktop only) ----------
-     Sits in the right cluster after the CTAs. The 16px gap from
-     .header-right's flex-gap separates it from the CTAs without a
-     graphic divider — per locked decision: whitespace alone does the
-     grouping work; a divider line would compete with the inline nav's
-     1px Glow active-page underline (two thin-line treatments doing
-     different jobs in the same header). */
-  .header-more {
-    display: none;
-    align-items: center;
-  }
-  @media (min-width: 1025px) {
-    .header-more { display: inline-flex; }
-  }
-
-  /* nav toggle responsive visibility lives in NavToggle.astro
-     (scoped specificity beats `:global` from this component). */
 </style>

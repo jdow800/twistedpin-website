@@ -3,7 +3,9 @@
  * NavToggle — the hamburger button only.
  *
  * Extracted from NavDrawer so it can live inside the persistent SiteHeader
- * flex flow (mobile-only). NavDrawer keeps the slide-in overlay.
+ * flex flow. **Now visible at ALL viewports (2026-05-05)** — desktop MORE
+ * dropdown was retired in favor of opening the same drawer mobile uses.
+ * One drawer surface, two viewports.
  *
  * Wiring: motion.client.ts navDrawer() queries `[data-nav-toggle]` regardless
  * of where the toggle lives in the DOM, so opening/closing keeps working.
@@ -54,9 +56,9 @@
     border-radius: 1px;
   }
 
-  /* Mobile-only — desktop uses inline nav in SiteHeader. Lives here (not in
-     SiteHeader's `:global` selector) so the scoped specificity wins. */
-  @media (min-width: 1025px) {
-    .nav-toggle { display: none; }
-  }
+  /* Visible at all viewports (2026-05-05). Desktop opens the same drawer
+     mobile uses; the MORE dropdown that previously lived on desktop was
+     retired. Inline nav still handles the 6 pillar items at ≥1025px; the
+     drawer carries the long tail (Coupon / Waitlist / Leagues / Rewards
+     / Gift Cards / FAQ / Find Us / Careers / Upcoming Events). */
 </style>
