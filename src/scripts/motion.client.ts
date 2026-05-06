@@ -289,6 +289,18 @@ function navDrawer(): void {
   toggle.addEventListener("click", open);
   closeBtn.addEventListener("click", close);
   backdrop.addEventListener("click", close);
+
+  // Close drawer when any link inside it is clicked. Critical for
+  // in-page anchors like #find-us — without this the drawer stays
+  // open over the scroll target. Cross-page links also benefit:
+  // closing before navigation means the user sees a clean state if
+  // they hit the back button. External target=_blank links open in
+  // a new tab and the drawer closes so the original tab is tidy when
+  // the user comes back.
+  drawer.querySelectorAll<HTMLAnchorElement>("a[href]").forEach((link) => {
+    link.addEventListener("click", close);
+  });
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && document.body.classList.contains("nav-open")) close();
   });
