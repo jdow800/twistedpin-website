@@ -1,0 +1,342 @@
+---
+/**
+ * /menu — hub page for the three menu surfaces.
+ *
+ * Built 2026-05-05 to close the discoverability loop on the /menu/* pages
+ * shipped earlier the same day. Three pages (cocktails / taps / food) were
+ * otherwise only reachable from /bar and /eat editorial CTAs — invisible to
+ * direct/search traffic. /menu is now linked from the inline desktop nav
+ * and the NavDrawer Experience section.
+ *
+ * Layout: typography hero (matches the rest of /menu/*) + 3 large card
+ * tiles (Cocktails / Taps / Food) + brief SEO copy + SnapFooter. No image
+ * hero — same logic as the other menu pages: get to the choice fast.
+ *
+ * Card content is data-driven where the count is part of the brand thesis
+ * (28 cocktails / 28 taps) and avoided for food where item counts vary
+ * and the descriptor matters more than the number.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import { getCocktails } from "../../lib/gotab-cocktails";
+import { getFood } from "../../lib/gotab-food";
+import { getTapList } from "../../lib/untappd-taps";
+
+const [cocktailMenu, foodMenu, tapList] = await Promise.all([
+  getCocktails(),
+  getFood(),
+  getTapList(),
+]);
+
+const cocktailCount = cocktailMenu.categories.reduce((n, c) => n + c.cocktails.length, 0);
+const foodCount = foodMenu.categories.reduce((n, c) => n + c.items.length, 0);
+const tapCount = tapList.totalCount;
+---
+<Base
+  title="Menus | Twisted Pin Plainfield IL"
+  description="The full menus at Twisted Pin — cocktails (built by America's Top Mixologist), 28 self-serve taps, and a chef-inspired kitchen. Plainfield, IL."
+>
+
+  <section class="menu-hero" data-hero aria-labelledby="menu-h1">
+    <p class="t-eyebrow hero-fade" data-delay-ms="0">Menus</p>
+    <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
+      What's on the menu.
+    </h1>
+    <p class="menu-hero-sub hero-fade" data-delay-ms="320">
+      Three menus, three ways to spend an evening. Pick your room.
+    </p>
+  </section>
+
+  <section class="menu-hub" aria-label="Menu sections">
+    <ul class="menu-hub-grid" role="list">
+      <li class="menu-hub-card-wrap">
+        <a class="menu-hub-card" href="/menu/cocktails">
+          <p class="menu-hub-eyebrow">The Bar Program</p>
+          <h2 class="menu-hub-title">Cocktails</h2>
+          <p class="menu-hub-desc">
+            Original craft, reimagined classics, seasonal pours. Built by
+            America's Top Mixologist.
+          </p>
+          <div class="menu-hub-foot">
+            {cocktailCount > 0 && (
+              <span class="menu-hub-count">{cocktailCount} cocktails</span>
+            )}
+            <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+          </div>
+        </a>
+      </li>
+
+      <li class="menu-hub-card-wrap">
+        <a class="menu-hub-card" href="/menu/taps">
+          <p class="menu-hub-eyebrow">The Tap Wall</p>
+          <h2 class="menu-hub-title">On Tap</h2>
+          <p class="menu-hub-desc">
+            Self-serve beer, cider, hard seltzer, and wine. Pour your own.
+            Pay by the ounce. The only wall like it in the area.
+          </p>
+          <div class="menu-hub-foot">
+            {tapCount > 0 && (
+              <span class="menu-hub-count">{tapCount} taps</span>
+            )}
+            <span class="menu-hub-cta">View list <span aria-hidden="true">→</span></span>
+          </div>
+        </a>
+      </li>
+
+      <li class="menu-hub-card-wrap">
+        <a class="menu-hub-card" href="/menu/food">
+          <p class="menu-hub-eyebrow">The Kitchen</p>
+          <h2 class="menu-hub-title">Food</h2>
+          <p class="menu-hub-desc">
+            Chef-inspired plates built to share. Starters, handhelds, pizza,
+            salads, and house-made desserts.
+          </p>
+          <div class="menu-hub-foot">
+            {foodCount > 0 && (
+              <span class="menu-hub-count">{foodCount} dishes</span>
+            )}
+            <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+          </div>
+        </a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="menu-seo" aria-labelledby="menu-seo-h2">
+    <div class="menu-seo-inner">
+      <h2 class="menu-seo-title" id="menu-seo-h2">About the menus</h2>
+      <p>
+        Twisted Pin runs three menus side by side: a craft cocktail program
+        designed by Brian Van Flandern (named America's Top Mixologist by
+        Food Network), a 28-tap self-serve beer & wine wall — the only one
+        in the immediate Plainfield area — and a chef-inspired kitchen
+        built to pair with the bar. The bar and kitchen menus update with
+        the seasons; tap-wall lineup rotates more often. All three pages
+        sync from the live POS overnight, so what you see is what's pouring.
+      </p>
+      <p>
+        Find us at 15610 S Joliet Rd, Plainfield, IL — about 30 minutes
+        southwest of downtown Chicago.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     Menu hub hero — same recipe as /menu/cocktails, /menu/taps,
+     /menu/food. Maintains rhythm across the four pages.
+     ============================================================ */
+  .menu-hero {
+    padding: calc(var(--header-height) + 32px) 22px 24px;
+    color: var(--warm-white);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero {
+      padding: calc(var(--header-height) + 56px) 64px 32px;
+    }
+  }
+
+  .menu-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-headline { font-size: clamp(56px, 6vw, 84px); }
+  }
+
+  .menu-hero-sub {
+    margin-top: 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-sub { font-size: 17px; max-width: 42em; }
+  }
+
+  .hero-fade { opacity: 0; transform: translateY(12px); }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fade { opacity: 1; transform: none; }
+  }
+
+  /* ============================================================
+     Menu hub — 3 large card tiles. Stacked on mobile, equal-width
+     row on desktop. Whole card is the link target.
+     ============================================================ */
+  .menu-hub {
+    background: transparent;
+    padding: 16px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hub { padding: 32px 64px 96px; }
+  }
+
+  .menu-hub-grid {
+    list-style: none;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 1280px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  @media (min-width: 760px) {
+    .menu-hub-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-grid { gap: 24px; }
+  }
+
+  .menu-hub-card-wrap { display: flex; }
+
+  /* Card visual: subtle indigo-lift surface, warm-white border at low
+     opacity, generous interior padding. On hover the border lifts to
+     glow and the card raises 2px — same affordance vocabulary as the
+     menu cards on /menu/cocktails, /menu/food. */
+  .menu-hub-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 22px 22px 20px;
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-radius: var(--radius-surface);
+    color: var(--warm-white);
+    text-decoration: none;
+    transition: transform 200ms ease-out, border-color 200ms ease-out, background-color 200ms ease-out;
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-card { padding: 28px 28px 24px; gap: 14px; }
+  }
+  .menu-hub-card:hover {
+    border-color: var(--glow);
+    background: rgba(78, 236, 196, 0.04);
+    transform: translateY(-2px);
+  }
+  .menu-hub-card:focus-visible {
+    outline: 2px solid var(--glow);
+    outline-offset: 3px;
+  }
+
+  .menu-hub-eyebrow {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+  }
+
+  .menu-hub-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(32px, 7vw, 44px);
+    line-height: 0.95;
+    letter-spacing: -0.005em;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-title { font-size: 48px; }
+  }
+
+  .menu-hub-desc {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    flex: 1;
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-desc { font-size: 15px; line-height: 1.55; }
+  }
+
+  .menu-hub-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(244, 239, 227, 0.08);
+  }
+
+  .menu-hub-count {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+  }
+
+  .menu-hub-cta {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin-left: auto;
+    transition: transform 200ms ease-out;
+  }
+  .menu-hub-card:hover .menu-hub-cta {
+    transform: translateX(2px);
+  }
+
+  /* ============================================================
+     SEO copy block — same recipe as the rest of /menu/*.
+     ============================================================ */
+  .menu-seo {
+    background: transparent;
+    padding: 24px 22px 56px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo { padding: 32px 64px 96px; }
+  }
+
+  .menu-seo-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .menu-seo-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 18px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--warm-white);
+    margin: 0 0 14px;
+  }
+  @media (min-width: 1025px) {
+    .menu-seo-title { font-size: 22px; margin-bottom: 18px; }
+  }
+
+  .menu-seo p {
+    margin: 0 0 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--warm-dim);
+  }
+  .menu-seo p:last-child { margin-bottom: 0; }
+  @media (min-width: 1025px) {
+    .menu-seo p { font-size: 15px; line-height: 1.65; }
+  }
+</style>

@@ -15,6 +15,7 @@ export type IconKey =
   // Pillar pages
   | 'martini'        // Bar
   | 'utensils'       // Eat (utensils-crossed)
+  | 'book-open'      // Menu (cocktails / taps / food hub)
   | 'bowling-ball'   // Bowl (hand-drawn — Lucide doesn't ship one)
   | 'bowling-pin'    // Brand mark; kept for any future use (was Bowl pre-2026-05-04)
   | 'gamepad'        // Game (gamepad-2)
@@ -42,6 +43,9 @@ export const ICON_PATHS: Record<IconKey, string> = {
 
   // lucide.dev/icons/utensils-crossed
   'utensils': '<path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"/><path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"/><path d="m2.1 21.8 6.4-6.3"/><path d="m19 5-7 7"/>',
+
+  // lucide.dev/icons/book-open
+  'book-open': '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
 
   // hand-drawn bowling ball (Lucide doesn't ship one). Big circle =
   // ball outline; three small circles in upper-left quadrant = the

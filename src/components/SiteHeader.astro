@@ -28,23 +28,32 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 interface NavItem { href: string; label: string }
 
-// Inline nav: 6 items (was 5). VIP Suite promoted to inline 2026-05-04 —
-// it's the tier-1 conversion page (revenue engine), and the desktop chrome
-// has plenty of room for a sixth label. Sits to the right of Events as
-// the natural pairing (events → suite is the common journey). The drawer
-// (opened via the ☰ at the right of the header) carries the secondary
-// utility surfaces.
+// Inline nav: 7 items. Menu added 2026-05-05 — the /menu/* pages (cocktails,
+// taps, food) shipped earlier today are otherwise only reachable from /bar
+// and /eat editorial CTAs, which makes them invisible to direct/search
+// traffic. Slot between Eat and Bowl groups it with the F&B pillars
+// (the user thinking about food/drinks finds the menu in the same cluster).
+// VIP Suite stays at the right end as the natural events→suite pairing.
+// The drawer (opened via the ☰ at the right of the header) carries the
+// secondary utility surfaces.
 const navItems: NavItem[] = [
   { href: "/bar/",       label: "Bar"       },
   { href: "/eat/",       label: "Eat"       },
+  { href: "/menu/",      label: "Menu"      },
   { href: "/bowl/",      label: "Bowl"      },
   { href: "/game/",      label: "Game"      },
   { href: "/events/",    label: "Events"    },
   { href: "/vip-suite/", label: "VIP Suite" },
 ];
 
-const isActive = (href: string) =>
-  currentPath === href.replace(/\/$/, "");
+// Active match: exact path OR any sub-path under it. Deep match matters
+// for /menu/ — the inline MENU item should stay highlighted on
+// /menu/cocktails, /menu/taps, /menu/food. Other pillars don't have
+// sub-pages today, so the subpath branch is a no-op for them.
+const isActive = (href: string) => {
+  const trimmed = href.replace(/\/$/, "");
+  return currentPath === trimmed || currentPath.startsWith(trimmed + "/");
+};
 ---
 <header class="site-header" data-site-header>
   {/* Left group: logo + (desktop) inline nav */}
@@ -149,11 +158,14 @@ const isActive = (href: string) =>
     gap: 4px;
   }
 
-  /* Inline nav-link styling. */
+  /* Inline nav-link styling. Horizontal padding tightened from 12 → 10
+     2026-05-05 to fit 7 items in the desktop chrome at the 1025px
+     breakpoint without overflowing past the CTA cluster. Underline
+     left/right matches the padding. */
   .site-nav > ul > li > a {
     display: inline-block;
     position: relative;
-    padding: 10px 12px;
+    padding: 10px 10px;
     font-family: var(--font-ui);
     font-weight: 700;
     font-size: 13px;
@@ -174,8 +186,8 @@ const isActive = (href: string) =>
   .site-nav > ul > li > a.active::after {
     content: "";
     position: absolute;
-    left: 12px;
-    right: 12px;
+    left: 10px;
+    right: 10px;
     bottom: 4px;
     height: 1px;
     background: var(--glow);
