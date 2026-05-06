@@ -18,24 +18,32 @@ import type { APIRoute } from 'astro';
  *   body: { first_name, last_name, email, phone, sms_on, email_on, ... }
  *   resp: 200 { ...contact } | 4xx/5xx { error }
  *
- * Tag-driven coupon flow: after upsert, we apply a tag (PATCH_TAG env
- * var, e.g. "coupon_10_lane") so Patch's automation triggers the SMS
- * with the actual coupon code. The tag → SMS mapping is configured
- * by ops in the Patch dashboard. If the env var is unset, we skip the
- * tag step and the contact is still created — useful for staging.
+ * Trigger / DOI flow: TBD pending Patch support response. The legacy
+ * iframe form does double-opt-in (verification code SMS → confirm →
+ * coupon SMS). The current native form path doesn't replicate that
+ * — submissions land in Patch's contact list but the coupon SMS path
+ * needs the right trigger configured. Open questions sent to Patch:
+ *   1. Does the API expose the DOI/verification flow?
+ *   2. What's the recommended trigger pattern for "web form → coupon
+ *      SMS" — contact.created event listener, custom event type, etc.?
+ *   3. How is a tag attached to a contact via API (the docs only show
+ *      /v2/tags as create/list of tag definitions, no contact-attach)?
+ * The earlier `POST /v2/tags` step was REMOVED 2026-05-05 — that
+ * endpoint creates tag definitions, doesn't attach tags to contacts.
+ * Was a no-op at best.
  *
- * Birthday: Patch's default upsert body doesn't include `birthday`.
- * We send it as `birthday: "MM-DD"` and ops verifies in Patch that
- * the custom field exists with that key + format. Patch typically
- * ignores unknown fields silently, so this is safe to send blindly.
+ * Birthday: Patch's dashboard shows the field as MM/DD/YYYY (date
+ * type), so we need a parseable date string. We collect MM/DD only
+ * on the form (year is irrelevant for birthday-month/day offers and
+ * we don't want to ask for it), and append a placeholder year (1900)
+ * before sending. Birthday-month / birthday-day automations behave
+ * identically; only year-based queries return 1900 for everyone,
+ * which is fine because we don't run any.
  *
  * Required env vars (set in Vercel):
  *   PATCH_API_KEY     — Bearer token from Patch dashboard
  *   PATCH_ACCOUNT_ID  — Account ID from Patch dashboard (sent as
  *                       X-Account-Id header on every request)
- *   PATCH_TAG         — (optional) tag name applied to new signups,
- *                       e.g. "coupon_10_lane". Patch automation
- *                       triggers off this tag.
  */
 
 const PATCH_BASE = 'https://api.patchretention.com';
@@ -45,9 +53,12 @@ interface SignupPayload {
   last_name: string;
   phone: string;
   email: string;
-  birthday: string;  // user-entered "MM/DD" — server normalizes to "MM-DD"
+  birthday: string;  // user-entered "MM/DD" — server normalizes to "MM/DD/1900"
   consent: boolean;
 }
+
+/** Placeholder year sent to Patch for birthday — see file header. */
+const BIRTHDAY_PLACEHOLDER_YEAR = '1900';
 
 /**
  * Normalize a US phone number to digits only with leading "1" country
@@ -102,9 +113,9 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonError('Please agree to the messaging terms to receive your code');
   }
 
-  // Birthday: parse "MM/DD" (or "MM / DD" with whitespace) to "MM-DD".
-  // Ops verifies the custom field name in Patch dashboard; if Patch
-  // expects a different key/format, swap below.
+  // Birthday: parse user-entered "MM/DD" (or "MM / DD" with whitespace)
+  // and pad with a placeholder year so Patch's date field accepts it.
+  // See file header for the year-placeholder rationale.
   let birthday: string | null = null;
   const bdayMatch = String(payload.birthday || '').match(
     /^\s*(0?[1-9]|1[0-2])\s*\/\s*(0?[1-9]|[12]\d|3[01])\s*$/,
@@ -112,7 +123,7 @@ export const POST: APIRoute = async ({ request }) => {
   if (bdayMatch) {
     const m = bdayMatch[1].padStart(2, '0');
     const d = bdayMatch[2].padStart(2, '0');
-    birthday = `${m}-${d}`;
+    birthday = `${m}/${d}/${BIRTHDAY_PLACEHOLDER_YEAR}`;
   } else if (payload.birthday) {
     return jsonError('Please enter your birthday as MM/DD (for example, 04/17)');
   }
@@ -152,31 +163,20 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonError('Signup failed. Please try again, or text 815-782-7790.', 502);
   }
 
-  const contact = (await upsertRes.json().catch(() => null)) as { _id?: string } | null;
-  const contactId = contact?._id;
-
-  // ---- Optional tag application ----
-  // Patch's automation fires off a tag — this is the "trigger the
-  // coupon SMS" step. Tag name configured by ops via PATCH_TAG env var.
-  // If the env var is unset OR the tag step fails, the contact is
-  // still created — we treat tag failure as a soft error, log it, and
-  // return success to the user so they don't think their signup
-  // didn't go through. Ops can backfill via dashboard if needed.
-  const tagName = import.meta.env.PATCH_TAG;
-  if (tagName && contactId) {
-    try {
-      await fetch(`${PATCH_BASE}/v2/tags`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({ contact_id: contactId, name: tagName }),
-      });
-    } catch (err) {
-      console.warn('[coupon-signup] tag application failed (soft error):', err);
-    }
-  }
+  // Trigger step (TBD): the legacy iframe form does double-opt-in
+  // and ties the coupon SMS to a verified contact. The right API
+  // pattern for replicating that is pending Patch support response —
+  // see file header for the open questions. Until we hear back,
+  // submissions land in Patch's contact list and ops can either:
+  //   (a) configure a Patch automation listening for `contact.created`
+  //       to fire the coupon SMS (would fire on ANY new contact —
+  //       fine if /coupon is the only public signup that creates
+  //       contacts via API)
+  //   (b) backfill manually until the right trigger pattern is wired
+  //
+  // The earlier `POST /v2/tags` call here was REMOVED — that endpoint
+  // creates tag definitions, doesn't attach tags to contacts. There
+  // is no "apply tag to contact" endpoint in the v2 API.
 
   return new Response(
     JSON.stringify({ ok: true }),
