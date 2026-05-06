@@ -7,8 +7,11 @@ import type { APIRoute } from 'astro';
  * submission from /coupon and forwards it to Patch Retention's
  * /v2/contacts upsert endpoint.
  *
- * Auth: Patch uses `Authorization: Bearer ${apiToken}`. Token is held
- * server-side only (PATCH_API_KEY env var); browser never sees it.
+ * Auth: Patch requires TWO headers (caught 2026-05-05 — bundle scan
+ * showed `X-Account-Id` is required alongside the Bearer token):
+ *   Authorization: Bearer ${PATCH_API_KEY}
+ *   X-Account-Id: ${PATCH_ACCOUNT_ID}
+ * Both held server-side only; browser never sees them.
  *
  * Endpoint shape (Patch v2):
  *   PATCH https://api.patchretention.com/v2/contacts?match:phone={phone}
@@ -27,10 +30,12 @@ import type { APIRoute } from 'astro';
  * ignores unknown fields silently, so this is safe to send blindly.
  *
  * Required env vars (set in Vercel):
- *   PATCH_API_KEY   — Bearer token from Patch dashboard
- *   PATCH_TAG       — (optional) tag name applied to new signups,
- *                      e.g. "coupon_10_lane". Patch automation
- *                      triggers off this tag.
+ *   PATCH_API_KEY     — Bearer token from Patch dashboard
+ *   PATCH_ACCOUNT_ID  — Account ID from Patch dashboard (sent as
+ *                       X-Account-Id header on every request)
+ *   PATCH_TAG         — (optional) tag name applied to new signups,
+ *                       e.g. "coupon_10_lane". Patch automation
+ *                       triggers off this tag.
  */
 
 const PATCH_BASE = 'https://api.patchretention.com';
@@ -40,8 +45,7 @@ interface SignupPayload {
   last_name: string;
   phone: string;
   email: string;
-  birth_month: string;
-  birth_day: string;
+  birthday: string;  // user-entered "MM/DD" — server normalizes to "MM-DD"
   consent: boolean;
 }
 
@@ -70,8 +74,9 @@ function jsonError(message: string, status = 400): Response {
 
 export const POST: APIRoute = async ({ request }) => {
   const apiKey = import.meta.env.PATCH_API_KEY;
-  if (!apiKey) {
-    console.error('[coupon-signup] PATCH_API_KEY not configured');
+  const accountId = import.meta.env.PATCH_ACCOUNT_ID;
+  if (!apiKey || !accountId) {
+    console.error('[coupon-signup] PATCH_API_KEY or PATCH_ACCOUNT_ID not configured');
     return jsonError('Signup is temporarily unavailable. Please text 815-782-7790 to claim your code.', 503);
   }
 
@@ -97,14 +102,19 @@ export const POST: APIRoute = async ({ request }) => {
     return jsonError('Please agree to the messaging terms to receive your code');
   }
 
-  // Birthday: optional. If both month + day present, send as MM-DD.
+  // Birthday: parse "MM/DD" (or "MM / DD" with whitespace) to "MM-DD".
   // Ops verifies the custom field name in Patch dashboard; if Patch
-  // expects a different key, swap below.
+  // expects a different key/format, swap below.
   let birthday: string | null = null;
-  if (payload.birth_month && payload.birth_day) {
-    const m = String(payload.birth_month).padStart(2, '0');
-    const d = String(payload.birth_day).padStart(2, '0');
-    if (/^\d{2}$/.test(m) && /^\d{2}$/.test(d)) birthday = `${m}-${d}`;
+  const bdayMatch = String(payload.birthday || '').match(
+    /^\s*(0?[1-9]|1[0-2])\s*\/\s*(0?[1-9]|[12]\d|3[01])\s*$/,
+  );
+  if (bdayMatch) {
+    const m = bdayMatch[1].padStart(2, '0');
+    const d = bdayMatch[2].padStart(2, '0');
+    birthday = `${m}-${d}`;
+  } else if (payload.birthday) {
+    return jsonError('Please enter your birthday as MM/DD (for example, 04/17)');
   }
 
   // ---- Build Patch upsert request ----
@@ -127,6 +137,7 @@ export const POST: APIRoute = async ({ request }) => {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
+        'X-Account-Id': accountId,
       },
       body: JSON.stringify(body),
     });

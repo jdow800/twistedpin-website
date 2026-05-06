@@ -38,11 +38,6 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
-
-const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December",
-];
 ---
 <Base
   title="$10 Lane Credit — Twisted Pin Plainfield IL"
@@ -57,8 +52,8 @@ const months = [
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Drop your number below. We'll text you a $10 lane credit good
-        on walk-in open bowling — or use it on a Fast Lane reservation
-        at <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">our online booking page</a>.
+        on walk-in open bowling — or use it on a
+        <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>.
       </p>
     </div>
   </section>
@@ -79,23 +74,21 @@ const months = [
           </label>
         </div>
 
-        <fieldset class="coupon-field coupon-fieldset">
-          <legend class="coupon-label">Birthday</legend>
-          <div class="coupon-row coupon-row-bday">
-            <select name="birth_month" required aria-label="Birth month">
-              <option value="">Month</option>
-              {months.map((m, i) => (
-                <option value={String(i + 1).padStart(2, "0")}>{m}</option>
-              ))}
-            </select>
-            <select name="birth_day" required aria-label="Birth day">
-              <option value="">Day</option>
-              {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                <option value={String(d).padStart(2, "0")}>{d}</option>
-              ))}
-            </select>
-          </div>
-        </fieldset>
+        <label class="coupon-field">
+          <span class="coupon-label">Birthday</span>
+          <input
+            type="text"
+            name="birthday"
+            inputmode="numeric"
+            autocomplete="bday"
+            placeholder="MM / DD"
+            pattern="^(0?[1-9]|1[0-2]) ?/ ?(0?[1-9]|[12][0-9]|3[01])$"
+            maxlength="7"
+            required
+            aria-describedby="birthday-help"
+          />
+          <span class="coupon-help" id="birthday-help">Month and day, like 04 / 17. We use it to send a birthday surprise.</span>
+        </label>
 
         <label class="coupon-field">
           <span class="coupon-label">Mobile number</span>
@@ -104,7 +97,7 @@ const months = [
             name="phone"
             autocomplete="tel-national"
             inputmode="numeric"
-            pattern="[0-9\s\-\(\)+]*"
+            pattern="[0-9 ()+\-]*"
             placeholder="(555) 555-5555"
             required
           />
@@ -188,8 +181,7 @@ const months = [
         last_name:  String(fd.get("last_name")  || "").trim(),
         phone:      String(fd.get("phone")      || ""),
         email:      String(fd.get("email")      || "").trim(),
-        birth_month: String(fd.get("birth_month") || ""),
-        birth_day:   String(fd.get("birth_day")   || ""),
+        birthday:   String(fd.get("birthday")   || "").trim(),
         consent:    fd.get("consent") === "on",
       };
 
@@ -241,7 +233,6 @@ const months = [
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
-  .coupon-row-bday { gap: 12px; }
 
   .coupon-field {
     display: flex;
@@ -252,7 +243,14 @@ const months = [
     margin: 0;
     min-width: 0;
   }
-  .coupon-fieldset { display: flex; flex-direction: column; }
+
+  .coupon-help {
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: var(--warm-dim);
+    margin-top: 2px;
+  }
 
   .coupon-label {
     font-family: var(--font-ui);
@@ -266,8 +264,7 @@ const months = [
 
   .coupon-form input[type="text"],
   .coupon-form input[type="tel"],
-  .coupon-form input[type="email"],
-  .coupon-form select {
+  .coupon-form input[type="email"] {
     appearance: none;
     -webkit-appearance: none;
     width: 100%;
@@ -283,20 +280,10 @@ const months = [
   }
   .coupon-form input::placeholder { color: var(--warm-dim); }
 
-  .coupon-form input:focus-visible,
-  .coupon-form select:focus-visible {
+  .coupon-form input:focus-visible {
     outline: none;
     border-color: var(--glow);
     background: rgba(78, 236, 196, 0.06);
-  }
-
-  .coupon-form select {
-    background-image: linear-gradient(45deg, transparent 50%, var(--warm-mid) 50%),
-                      linear-gradient(135deg, var(--warm-mid) 50%, transparent 50%);
-    background-position: calc(100% - 18px) center, calc(100% - 13px) center;
-    background-size: 5px 5px, 5px 5px;
-    background-repeat: no-repeat;
-    padding-right: 36px;
   }
 
   /* Consent — checkbox + small print row. */
