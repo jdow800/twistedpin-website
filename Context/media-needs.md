@@ -55,8 +55,8 @@ build but don't yet have (or have only as stubs / homepage reuses).
 |---|---|---|
 | Phone number | `(815) 555-0100` placeholder in SnapFooter | Real phone |
 | Instagram handle + 6 thumbnails | `#` placeholder href on handle, `ig-1` through `ig-6` images (existing in `/public/snap/`) | Real `@twistedpin` handle linked to actual profile, real recent post URLs (or auto-feed integration via Instagram Basic Display API) |
-| Facebook URL | `#` placeholder | Real URL |
-| TikTok URL | `#` placeholder | Real URL |
+| Facebook URL | Wired to `https://www.facebook.com/twistedpin` (2026-05-05) | Done |
+| ~~TikTok URL~~ | Removed from footer 2026-05-05 — business has no TikTok presence currently | Re-add icon + URL constant in `SnapFooter.astro` if/when a TikTok account launches |
 | Mobile hero video splice | `Bank Vs Stories` 0–4s, single shot | Splice timestamps pending — direction is locked: pour → tap wall → cocktail (3 sources, ≤4–5s total) |
 | Desktop hero video | `After Social Highlight v2.mp4`, 8s recut placeholder | Final desktop hero — pending a real shoot or Ken-Burns photo treatment per `visual-direction.md` |
 | OG / share card image | None specified | Brand-coherent 1200×630 image for social link previews (Twitter, Facebook, LinkedIn). Should match the moody/photo-led visual direction |

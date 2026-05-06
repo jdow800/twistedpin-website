@@ -37,11 +37,12 @@ const PHONE_TEL     = "+18155550100";
 const EMAIL_ADDRESS = "contactus@twistedpin.com";
 
 // Real social URLs (verified 2026-05-05 from twistedpin.com JSON-LD
-// schema's `sameAs` array). TikTok URL not yet confirmed by ops —
-// stays placeholder until provided.
+// schema's `sameAs` array). TikTok was a placeholder; user confirmed
+// 2026-05-05 the business has no TikTok presence currently — icon
+// removed below. Re-add the SVG + URL constant when/if a TikTok
+// account launches.
 const IG_URL  = "https://www.instagram.com/twistedpinplainfield/";
 const FB_URL  = "https://www.facebook.com/twistedpin";
-const TT_URL  = "#"; // TODO: real TikTok URL pending ops confirmation
 
 const UTILITY_LINKS = [
   { label: "FAQ",           href: "/faq/" },
@@ -203,13 +204,6 @@ const UTILITY_LINKS = [
           <a href={FB_URL} target="_blank" rel="noopener" aria-label="Twisted Pin on Facebook">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
-            </svg>
-          </a>
-        </li>
-        <li>
-          <a href={TT_URL} aria-label="Twisted Pin on TikTok">
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M9 12a4 4 0 104 4V4a5 5 0 005 5"/>
             </svg>
           </a>
         </li>
