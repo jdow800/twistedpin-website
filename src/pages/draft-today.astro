@@ -1,0 +1,67 @@
+---
+/**
+ * /draft-today/ — preview-only URL for reviewing the SnapToday module
+ * before lifting it onto the homepage.
+ *
+ * REMOVE THIS FILE once SnapToday is wired into / and the user has
+ * approved. It exists for A/B comparison purposes only — sitemap
+ * exclusion via robots noindex meta to avoid Google indexing it.
+ */
+import Base from "../layouts/Base.astro";
+import SnapToday from "../components/snap/SnapToday.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+---
+<Base
+  title="Today (draft preview) — Twisted Pin"
+  description="Internal draft preview for the SnapToday module."
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+
+  <main class="snap">
+    {/* Hero stub so the page has the same chrome rhythm as the real
+        homepage — gives an honest preview of how SnapToday lands
+        right after the hero. */}
+    <section class="snap-section draft-hero" aria-labelledby="draft-h1">
+      <div class="draft-hero-copy">
+        <p class="t-eyebrow">Draft preview</p>
+        <h1 id="draft-h1" class="t-display">SnapToday module</h1>
+        <p class="draft-hero-sub">
+          Click any pill to preview that day. Scroll to see the snap
+          beat right after a hero stub.
+        </p>
+      </div>
+    </section>
+
+    <SnapToday />
+
+    <SnapFooter />
+  </main>
+</Base>
+
+<style>
+  .draft-hero {
+    background: var(--indigo-deep);
+    color: var(--warm-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 64px 24px;
+  }
+  .draft-hero-copy {
+    max-width: 480px;
+  }
+  .draft-hero-copy h1 {
+    font-size: clamp(36px, 9vw, 56px);
+    margin: 8px 0 16px;
+    color: var(--warm-white);
+  }
+  .draft-hero-sub {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: rgba(255, 252, 245, 0.7);
+    line-height: 1.5;
+  }
+</style>

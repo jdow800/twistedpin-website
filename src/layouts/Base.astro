@@ -31,6 +31,10 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
 
+    {/* Per-page head injection — used by draft / staging pages to add
+        noindex, by article-style pages for canonical links, etc. */}
+    <slot name="head" />
+
     {/* Hero LCP preloads — poster image is the LCP element, not the video. */}
     <link
       rel="preload"
