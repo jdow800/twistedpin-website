@@ -51,51 +51,72 @@ const tapCount = tapList.totalCount;
     <ul class="menu-hub-grid" role="list">
       <li class="menu-hub-card-wrap">
         <a class="menu-hub-card" href="/menu/cocktails">
-          <p class="menu-hub-eyebrow">The Bar Program</p>
-          <h2 class="menu-hub-title">Cocktails</h2>
-          <p class="menu-hub-desc">
-            Original craft, reimagined classics, seasonal pours. Built by
-            America's Top Mixologist.
-          </p>
-          <div class="menu-hub-foot">
-            {cocktailCount > 0 && (
-              <span class="menu-hub-count">{cocktailCount} cocktails</span>
-            )}
-            <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+          <div class="menu-hub-body">
+            <p class="menu-hub-eyebrow">The Bar Program</p>
+            <h2 class="menu-hub-title">Cocktails</h2>
+            <p class="menu-hub-desc">
+              Built by America's Top Mixologist.
+            </p>
+            <div class="menu-hub-foot">
+              {cocktailCount > 0 && (
+                <span class="menu-hub-count">{cocktailCount} cocktails</span>
+              )}
+              <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+            </div>
+          </div>
+          <div class="menu-hub-thumb">
+            <picture>
+              <source type="image/webp" srcset="/snap/menu-hub-cocktails-540.webp 540w, /snap/menu-hub-cocktails-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
+              <img src="/snap/menu-hub-cocktails-540.jpg" srcset="/snap/menu-hub-cocktails-540.jpg 540w, /snap/menu-hub-cocktails-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A pink craft cocktail with an orchid and lime garnish at Twisted Pin" width="540" height="540" loading="lazy" decoding="async" />
+            </picture>
           </div>
         </a>
       </li>
 
       <li class="menu-hub-card-wrap">
         <a class="menu-hub-card" href="/menu/taps">
-          <p class="menu-hub-eyebrow">The Tap Wall</p>
-          <h2 class="menu-hub-title">On Tap</h2>
-          <p class="menu-hub-desc">
-            Self-serve beer, cider, hard seltzer, and wine. Pour your own.
-            Pay by the ounce. The only wall like it in the area.
-          </p>
-          <div class="menu-hub-foot">
-            {tapCount > 0 && (
-              <span class="menu-hub-count">{tapCount} taps</span>
-            )}
-            <span class="menu-hub-cta">View list <span aria-hidden="true">→</span></span>
+          <div class="menu-hub-body">
+            <p class="menu-hub-eyebrow">The Tap Wall</p>
+            <h2 class="menu-hub-title">On Tap</h2>
+            <p class="menu-hub-desc">
+              Self-serve beer &amp; wine. Pay by the ounce.
+            </p>
+            <div class="menu-hub-foot">
+              {tapCount > 0 && (
+                <span class="menu-hub-count">{tapCount} taps</span>
+              )}
+              <span class="menu-hub-cta">View list <span aria-hidden="true">→</span></span>
+            </div>
+          </div>
+          <div class="menu-hub-thumb">
+            <picture>
+              <source type="image/webp" srcset="/snap/menu-hub-taps-540.webp 540w, /snap/menu-hub-taps-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
+              <img src="/snap/menu-hub-taps-540.jpg" srcset="/snap/menu-hub-taps-540.jpg 540w, /snap/menu-hub-taps-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="The 28-tap self-serve beer wall at Twisted Pin with the GUTTERS HAPPEN BEER HELPS sign" width="540" height="540" loading="lazy" decoding="async" />
+            </picture>
           </div>
         </a>
       </li>
 
       <li class="menu-hub-card-wrap">
         <a class="menu-hub-card" href="/menu/food">
-          <p class="menu-hub-eyebrow">The Kitchen</p>
-          <h2 class="menu-hub-title">Food</h2>
-          <p class="menu-hub-desc">
-            Chef-inspired plates built to share. Starters, handhelds, pizza,
-            salads, and house-made desserts.
-          </p>
-          <div class="menu-hub-foot">
-            {foodCount > 0 && (
-              <span class="menu-hub-count">{foodCount} dishes</span>
-            )}
-            <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+          <div class="menu-hub-body">
+            <p class="menu-hub-eyebrow">The Kitchen</p>
+            <h2 class="menu-hub-title">Food</h2>
+            <p class="menu-hub-desc">
+              Chef-inspired plates, built to share.
+            </p>
+            <div class="menu-hub-foot">
+              {foodCount > 0 && (
+                <span class="menu-hub-count">{foodCount} dishes</span>
+              )}
+              <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+            </div>
+          </div>
+          <div class="menu-hub-thumb">
+            <picture>
+              <source type="image/webp" srcset="/snap/menu-hub-food-540.webp 540w, /snap/menu-hub-food-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
+              <img src="/snap/menu-hub-food-540.jpg" srcset="/snap/menu-hub-food-540.jpg 540w, /snap/menu-hub-food-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A platter of wings, fries, celery, and carrots at Twisted Pin" width="540" height="540" loading="lazy" decoding="async" />
+            </picture>
           </div>
         </a>
       </li>
@@ -205,13 +226,19 @@ const tapCount = tapList.totalCount;
   /* Card visual: subtle indigo-lift surface, warm-white border at low
      opacity, generous interior padding. On hover the border lifts to
      glow and the card raises 2px — same affordance vocabulary as the
-     menu cards on /menu/cocktails, /menu/food. */
+     menu cards on /menu/cocktails, /menu/food.
+     Layout: horizontal split — body left (eyebrow / title / desc / foot),
+     square thumbnail right. The thumbnail is centered vertically against
+     the body's natural height. Same direction at every breakpoint —
+     the card stays horizontal even at narrow mobile widths since the
+     thumbnail shrinks to ~110px. */
   .menu-hub-card {
     flex: 1;
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 22px 22px 20px;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px;
     background: rgba(244, 239, 227, 0.04);
     border: 1px solid rgba(244, 239, 227, 0.10);
     border-radius: var(--radius-surface);
@@ -219,8 +246,11 @@ const tapCount = tapList.totalCount;
     text-decoration: none;
     transition: transform 200ms ease-out, border-color 200ms ease-out, background-color 200ms ease-out;
   }
+  @media (min-width: 760px) {
+    .menu-hub-card { padding: 22px; gap: 18px; }
+  }
   @media (min-width: 1025px) {
-    .menu-hub-card { padding: 28px 28px 24px; gap: 14px; }
+    .menu-hub-card { padding: 24px; gap: 20px; }
   }
   .menu-hub-card:hover {
     border-color: var(--glow);
@@ -230,6 +260,49 @@ const tapCount = tapList.totalCount;
   .menu-hub-card:focus-visible {
     outline: 2px solid var(--glow);
     outline-offset: 3px;
+  }
+
+  /* Body column — flex column so the foot row can sit at the bottom
+     of the card height while the title and desc breathe at the top. */
+  .menu-hub-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-body { gap: 12px; }
+  }
+
+  /* Thumbnail column — square 1:1 image cropped at build time. Sits to
+     the right of the body, vertically aligned to the start so it lines
+     up with the eyebrow. Width tightens on mobile so the body retains
+     enough room for the title to read at 28-32px. */
+  .menu-hub-thumb {
+    flex: 0 0 auto;
+    width: 110px;
+    align-self: flex-start;
+    overflow: hidden;
+    border-radius: 8px;
+    background: rgba(14, 10, 31, 0.40);
+  }
+  @media (min-width: 760px) {
+    .menu-hub-thumb { width: 130px; }
+  }
+  @media (min-width: 1025px) {
+    .menu-hub-thumb { width: 140px; }
+  }
+  .menu-hub-thumb img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    transition: transform 300ms ease-out;
+  }
+  .menu-hub-card:hover .menu-hub-thumb img {
+    transform: scale(1.04);
   }
 
   .menu-hub-eyebrow {
@@ -242,17 +315,21 @@ const tapCount = tapList.totalCount;
     color: var(--warm-mid);
   }
 
+  /* Title scaled down for the split layout — body column is narrower
+     because the right side of the card is now occupied by the square
+     thumbnail. 32px max keeps "Cocktails" (the longest title) on a
+     single line at the breakpoint. */
   .menu-hub-title {
     margin: 0;
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(32px, 7vw, 44px);
+    font-size: clamp(26px, 6vw, 30px);
     line-height: 0.95;
     letter-spacing: -0.005em;
     color: var(--warm-white);
   }
   @media (min-width: 1025px) {
-    .menu-hub-title { font-size: 48px; }
+    .menu-hub-title { font-size: 32px; }
   }
 
   .menu-hub-desc {
@@ -267,12 +344,17 @@ const tapCount = tapList.totalCount;
     .menu-hub-desc { font-size: 15px; line-height: 1.55; }
   }
 
+  /* Foot row sits at the bottom of the body column. Wraps to 2 lines
+     when the body column is too narrow to fit count + CTA inline
+     (typical at mobile widths and on the cards in 3-up layout). */
   .menu-hub-foot {
+    margin-top: auto;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding-top: 14px;
+    gap: 6px 12px;
+    padding-top: 12px;
     border-top: 1px solid rgba(244, 239, 227, 0.08);
   }
 

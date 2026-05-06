@@ -95,6 +95,16 @@ const SOURCES = [
   { src: "AIV07036-Enhanced-NR.jpg",name: "stage-bowl", aspect: [9, 16], widths: [540, 600] },
   { src: "Arcade - Prizes.jpg",     name: "stage-game", aspect: [9, 16], widths: [540, 900] },
 
+  // /menu hub card thumbnails. Square 1:1 crops sit in the right half of
+  // the 3 hub cards on desktop and stack on top of the text on mobile.
+  // Widths [540, 720] cover the displayed range — desktop right-half is
+  // ~140px wide (so 540 webp at 2x is plenty) and mobile stacked is
+  // ~287px (720 covers it at high-DPR). Sources picked by user 2026-05-05.
+  // attention-based crop centers on the focal subject of each shot.
+  { src: "DSC_0110.jpg",         name: "menu-hub-cocktails", aspect: [1, 1], widths: [540, 720] },
+  { src: "DSC05701.jpg",         name: "menu-hub-food",      aspect: [1, 1], widths: [540, 720] },
+  { src: "BeerWallHeyFlow.jpg",  name: "menu-hub-taps",      aspect: [1, 1], widths: [540, 720] },
+
   // Events: VIP-suite photo, source 1600×1067 (1.5 landscape). Now
   // displayed in a 9:16 contained frame (matching Tap Wall + Cocktails
   // cluster pattern) — the original full-bleed treatment was retired
