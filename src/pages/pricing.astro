@@ -122,10 +122,12 @@ function specialsForDay(day: DayKey) {
       return (
         <article class="today-view" data-view-day={d.key} aria-hidden={isToday ? "false" : "true"}>
           <header class="today-header">
-            <p class="today-eyebrow">
-              {isToday && <span class="today-pill-today">Today</span>}
-              <span class="today-day-name">{d.full}</span>
-            </p>
+            {isToday && (
+              <p class="today-pill-today-wrap">
+                <span class="today-pill-today">Today</span>
+              </p>
+            )}
+            <p class="today-day-name">{d.full}</p>
             <p class="today-hours">
               Open {hrs.label}
               {!hrs.live && (
@@ -157,8 +159,14 @@ function specialsForDay(day: DayKey) {
             <thead>
               <tr>
                 <th class="today-th-time">Time</th>
-                <th class="today-th-tier">Traditional</th>
-                <th class="today-th-tier">VIP Suite</th>
+                <th class="today-th-tier">
+                  <span class="today-th-name">Traditional</span>
+                  <span class="today-th-cap">{schedule.traditionalCapacity}</span>
+                </th>
+                <th class="today-th-tier">
+                  <span class="today-th-name">VIP Suite</span>
+                  <span class="today-th-cap">{schedule.suiteCapacity}</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -178,23 +186,22 @@ function specialsForDay(day: DayKey) {
             </tbody>
           </table>
 
-          <p class="today-capacity">
-            Traditional {schedule.traditionalCapacity}
-            {" · "}Suite {schedule.suiteCapacity}
-            {" · "}Shoe rental {SHOE_RENTAL_LABEL}
+          <p class="today-shoe-line">
+            Shoe rental{" "}
+            <span class="today-shoe-price">{SHOE_RENTAL_LABEL}</span>
           </p>
         </article>
       );
     })}
 
-    {/* Single global CTA — renders once below all per-day views.
-        Sits before the holiday-note disclaimer so it doesn't get
-        buried in the fine print. Outlined (not Glow-solid) because
-        Reserve a lane is the global primary CTA in the sticky bar
-        / header — Check the waitlist is a different "before you
-        commit" intent and gets a quieter button. */}
-    <div class="today-waitlist-cta">
+    {/* Two quick-action pills — renders once below all per-day
+        views. Both outlined: Reserve a lane is the global primary
+        CTA (sticky bar / header), so these two are deliberate
+        "before you commit" hand-offs at the same lower visual
+        weight. Wraps on narrow viewports if needed. */}
+    <div class="today-quick-actions">
       <a class="btn btn-outline" href="/waitlist/">Check the waitlist &rarr;</a>
+      <a class="btn btn-outline" href="/coupon/">Get the coupon &rarr;</a>
     </div>
 
     {/* Global note — applies to every day, render once below the views */}
@@ -381,12 +388,10 @@ function specialsForDay(day: DayKey) {
     text-align: center;
     margin-bottom: 20px;
   }
-  .today-eyebrow {
-    margin: 0 0 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
+  /* TODAY pill stacks ABOVE the day name (per user direction) —
+     not inline. Renders only when this view is the current day. */
+  .today-pill-today-wrap {
+    margin: 0 0 10px;
   }
   .today-pill-today {
     display: inline-block;
@@ -402,6 +407,7 @@ function specialsForDay(day: DayKey) {
     line-height: 1;
   }
   .today-day-name {
+    margin: 0 0 6px;
     font-family: var(--font-display);
     font-weight: 900;
     font-size: clamp(40px, 10vw, 60px);
@@ -476,19 +482,48 @@ function specialsForDay(day: DayKey) {
     margin: 16px 0 12px;
   }
   .today-table th {
+    padding: 10px 6px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 252, 245, 0.10);
+    vertical-align: top;
+  }
+  .today-th-time {
+    text-align: left;
     font-family: var(--font-ui);
     font-weight: 700;
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 252, 245, 0.65);
-    padding: 8px 6px;
-    text-align: right;
-    border-bottom: 1px solid rgba(255, 252, 245, 0.10);
+    color: rgba(255, 252, 245, 0.5);
   }
-  .today-th-time { text-align: left; }
+  /* Tier headers stack a name + capacity sub-line. The sub-line
+     replaces the prior single combined "Traditional up to 5 …"
+     footnote — capacity is a property of the tier, not the day. */
+  .today-th-tier {
+    text-align: right;
+  }
+  .today-th-name {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+    line-height: 1.1;
+  }
+  .today-th-cap {
+    display: block;
+    margin-top: 4px;
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 12px;
+    color: rgba(255, 252, 245, 0.6);
+    text-transform: none;
+    letter-spacing: 0;
+  }
   .today-table td {
-    padding: 16px 6px;
+    padding: 18px 6px;
     border-bottom: 1px solid rgba(255, 252, 245, 0.06);
     text-align: right;
     vertical-align: middle;
@@ -498,15 +533,15 @@ function specialsForDay(day: DayKey) {
     text-align: left;
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.08em;
+    font-size: 13px;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
     color: rgba(255, 252, 245, 0.78);
   }
   .today-rate-num {
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: clamp(30px, 5vw, 40px);
+    font-size: clamp(28px, 4.5vw, 36px);
     color: var(--glow);
     line-height: 1;
   }
@@ -527,24 +562,37 @@ function specialsForDay(day: DayKey) {
     display: inline-block;
   }
 
-  .today-capacity {
-    margin: 8px 0 0;
+  /* Shoe rental — the only universal-day footnote left after
+     capacity moved into per-tier column headers. Bumped size
+     from prior compressed footnote since it's now the only
+     line of fine print and earns the legibility. $5.95
+     gets the Glow accent (matches the price-number color). */
+  .today-shoe-line {
+    margin: 12px 0 0;
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.5;
-    color: rgba(255, 252, 245, 0.65);
+    color: rgba(255, 252, 245, 0.78);
     text-align: center;
+  }
+  .today-shoe-price {
+    color: var(--glow);
+    font-weight: 700;
   }
 
-  /* Single waitlist CTA — global, sits between the per-day views
-     and the holiday note. Compact button with small letter-spacing,
-     outlined to keep it deliberate (Reserve is the primary CTA
-     elsewhere; this is a "before you commit" hand-off). */
-  .today-waitlist-cta {
+  /* Two side-by-side quick-action pills — global, sits between
+     the per-day views and the holiday note. Both outlined to keep
+     them deliberate (Reserve is the global primary CTA elsewhere;
+     these are "before you commit" hand-offs). Wrap to a column
+     on narrow viewports if buttons would overflow. */
+  .today-quick-actions {
     margin: 24px 0 0;
-    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
   }
-  .today-waitlist-cta .btn {
+  .today-quick-actions .btn {
     padding: 11px 22px;
     font-size: 12px;
     letter-spacing: 0.14em;
