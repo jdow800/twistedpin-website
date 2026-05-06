@@ -3,10 +3,16 @@
    Substitute fonts (Barlow Cond / Montserrat / Roboto Slab) — Adobe Fonts swap deferred
    ============================================================ */
 
-@import "@fontsource/barlow-condensed/900.css";
-@import "@fontsource/montserrat/600.css";
-@import "@fontsource/montserrat/700.css";
-@import "@fontsource/roboto-slab/400.css";
+/* Latin-only @fontsource subsets. The full /900.css imports include
+   Vietnamese, Cyrillic, Greek, and Latin-Ext subsets that the site
+   never renders (English-only content). Switching to /latin-900.css
+   etc. cuts CSS size ~5x per face (1452B → 298B) and avoids defining
+   @font-face blocks for unicode ranges we'll never hit. Same fonts,
+   same font-display: swap, less render-blocking byte. 2026-05-05 perf pass. */
+@import "@fontsource/barlow-condensed/latin-900.css";
+@import "@fontsource/montserrat/latin-600.css";
+@import "@fontsource/montserrat/latin-700.css";
+@import "@fontsource/roboto-slab/latin-400.css";
 /* Roboto Slab ships no italic — browser synthesizes italics for <em>. Production swap to Yorkten Slab will need to verify italic availability. */
 
 :root {

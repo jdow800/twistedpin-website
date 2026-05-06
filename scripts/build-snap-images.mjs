@@ -2,12 +2,19 @@
  * Twisted Pin — /snap-test/ image pipeline
  *
  * Encodes one or more `Context/pictures/*` source files to responsive
- * `public/snap/<name>-{540,1080,1280}.{webp,jpg}` outputs. Sources missing
- * from the worktree are warned and skipped — gitignored Context/pictures/
- * isn't always populated on a fresh worktree.
+ * `public/snap/<name>-{540,1080,1280}.{avif,webp,jpg}` outputs. Sources
+ * missing from the worktree are warned and skipped — gitignored
+ * Context/pictures/ isn't always populated on a fresh worktree.
  *
  * Sized for the section media (object-fit: cover). Quality bias is toward
  * smaller files than the hero pipeline since these aren't the LCP element.
+ *
+ * Three formats per width:
+ *   - .avif (best compression, ~20-30% smaller than webp at same quality —
+ *     Chrome 85+ / Safari 16.4+ / Firefox 113+ — 95%+ browser coverage)
+ *   - .webp (broad fallback)
+ *   - .jpg (universal fallback)
+ * <picture> tags should list source order: avif → webp → jpg fallback.
  *
  * Run: `node scripts/build-snap-images.mjs`
  */
@@ -139,6 +146,7 @@ async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
   );
 
   for (const w of widths) {
+    const avifOut = path.join(OUT, `${name}-${w}.avif`);
     const webpOut = path.join(OUT, `${name}-${w}.webp`);
     const jpgOut  = path.join(OUT, `${name}-${w}.jpg`);
 
@@ -154,6 +162,14 @@ async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
         }
       : { width: w, withoutEnlargement: true };
 
+    // AVIF — best compression, modern browsers (Chrome 85+, Safari 16.4+,
+    // Firefox 113+). Quality 50 in AVIF roughly matches WebP quality 72
+    // perceptually; effort 4 is a reasonable speed/size trade-off for build.
+    await sharp(srcPath)
+      .resize(resizeOpts)
+      .avif({ quality: 50, effort: 4 })
+      .toFile(avifOut);
+
     await sharp(srcPath)
       .resize(resizeOpts)
       .webp({ quality: 72, effort: 5 })
@@ -164,10 +180,11 @@ async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
       .jpeg({ quality: 76, progressive: true, mozjpeg: true })
       .toFile(jpgOut);
 
-    const [wStat, jStat] = await Promise.all([stat(webpOut), stat(jpgOut)]);
+    const [aStat, wStat, jStat] = await Promise.all([stat(avifOut), stat(webpOut), stat(jpgOut)]);
     const outMeta = await sharp(webpOut).metadata();
     console.log(
       `  ${w}px  ${outMeta.width}×${outMeta.height}  ` +
+      `avif ${(aStat.size / 1024).toFixed(1)} KB  ` +
       `webp ${(wStat.size / 1024).toFixed(1)} KB  ` +
       `jpg ${(jStat.size / 1024).toFixed(1)} KB`,
     );

@@ -56,7 +56,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       {/* Logo lives in the persistent SiteHeader — not duplicated here.
           The header sits over the hero with a translucent dark scrim. */}
 
-      {/* Mobile vertical 9:16 video — same source as the live hero. */}
+      {/* Mobile vertical 9:16 video — same source as the live hero.
+          Source order: AV1 (best compression) first, H.264 (universal) fallback.
+          Within each codec, narrow-viewport 540w sources come BEFORE the
+          1080w sources — first-match-wins means phones ≤480px CSS width
+          fetch the 540w (749 KB H.264 / 1.2 MB AV1) instead of the 1080w
+          (1.8 MB H.264 / 2.0 MB AV1). Cuts ~1 MB off mobile LCP without
+          visible quality loss on phone-sized screens. 2026-05-05 LCP pass. */}
       <video
         class="hero-video hero-video-mobile"
         preload="metadata"
@@ -67,7 +73,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         poster="/hero/hero-poster.webp"
         aria-hidden="true"
       >
-        <source src="/hero/hero-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(max-width: 480px)" src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(max-width: 480px)" src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
+        <source src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
         <source src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
       </video>
 
@@ -130,7 +138,12 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         poster="/snap/beerwall-poster.webp"
         aria-hidden="true"
       >
-        <source data-src="/snap/beerwall-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        {/* Narrow-viewport variants (≤480px CSS width) come first — first-match-wins
+            means phones fetch the 540w files instead of the 1080w. Saves ~50%
+            bandwidth on this lazy-loaded section. Encoded by build-snap-video.sh. */}
+        <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-h264-540.mp4" type="video/mp4" />
+        <source data-src="/snap/beerwall-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
         <source data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
       </video>
       <div class="tapwall-scrim" aria-hidden="true"></div>
