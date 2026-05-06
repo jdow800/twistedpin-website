@@ -37,7 +37,12 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | `/why-us/*` (8 geo subpages) | (keep live, not in nav) | SEO equity preserved |
 | `/reserve` | `https://ecom.roller.app/twistedpin/openbowl/en-us/home` | **2026-05-05**: `/reserve` page killed — direct redirect to Roller booking. All in-code "Reserve a lane" CTAs (SiteHeader, StickyCTABar, NavDrawer, /waitlist) point at the Roller URL directly with `target="_blank"`. The vercel.json 308 redirect handles any stray `/reserve` traffic. Revisit if/when we launch our own reservation platform |
 
-To do: implement remaining 301s in `vercel.json` rewrites/redirects (the /reserve one is shipped). Validate after deploy: hash anchors work where used (`/bar#cocktails`, etc.) — some servers strip fragments on 301.
+**Shipped 2026-05-06**: full 301 redirect map landed in `vercel.json` (308 permanent redirects via `"permanent": true`). Each legacy slug uses `{/}?` for optional trailing slash, so `/bowling` and `/bowling/` both fire. Three truncated old-promo slugs use prefix patterns (`:rest*`) since the full URL tail wasn't recoverable from existing docs:
+- `/event-spaces-for-teams-*` → `/events/#corporate`
+- `/experience-the-ultimate-group-event-destination*` → `/events/`
+- `/event-venues-with-a-twist-*` → `/events/`
+
+**Validate after deploy:** (1) hash anchors land correctly in browser address bar after redirect (Vercel includes `#fragment` in the Location header but some old crawlers/clients strip fragments on 301/308 — modern Google/Bing handle them); (2) `/contact-us/` → `/` (no anchor — hash anchors don't survive 301s and the 2026-05-04 decision is "user lands on homepage and finds the footer themselves"); (3) verify the prefix-pattern slugs match the real legacy URLs by spot-checking Google Search Console crawl errors after launch.
 
 ---
 

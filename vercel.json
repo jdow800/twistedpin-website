@@ -6,11 +6,31 @@
     }
   ],
   "redirects": [
-    {
-      "source": "/reserve",
-      "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home",
-      "permanent": true
-    }
+    { "source": "/reserve", "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home", "permanent": true },
+
+    { "source": "/bowling{/}?", "destination": "/bowl/", "permanent": true },
+    { "source": "/faqs{/}?", "destination": "/faq/", "permanent": true },
+    { "source": "/join-our-team{/}?", "destination": "/careers/", "permanent": true },
+    { "source": "/free-10{/}?", "destination": "/coupon/", "permanent": true },
+
+    { "source": "/craft-bar{/}?", "destination": "/bar/#cocktails", "permanent": true },
+    { "source": "/self-serve-tap-wall{/}?", "destination": "/bar/#tap-wall", "permanent": true },
+
+    { "source": "/special-events{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/corporate-parties{/}?", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/birthday-parties-booking{/}?", "destination": "/events/#birthday", "permanent": true },
+    { "source": "/fundraiser{/}?", "destination": "/events/#fundraiser", "permanent": true },
+    { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/free-kids-bowling{/}?", "destination": "/bowl/#free-kids", "permanent": true },
+
+    { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
+
+    { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/event-spaces-for-teams-:rest*", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/experience-the-ultimate-group-event-destination:rest*", "destination": "/events/", "permanent": true },
+    { "source": "/event-venues-with-a-twist-:rest*", "destination": "/events/", "permanent": true },
+
+    { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true }
   ],
   "headers": [
     {
