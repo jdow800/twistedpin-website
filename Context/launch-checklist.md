@@ -36,6 +36,8 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | All NYE 2025 / seasonal promo posts | (keep at original URLs — blog posts) | |
 | `/why-us/*` (8 geo subpages) | (keep live, not in nav) | SEO equity preserved |
 | `/reserve` | `https://ecom.roller.app/twistedpin/openbowl/en-us/home` | **2026-05-05**: `/reserve` page killed — direct redirect to Roller booking. All in-code "Reserve a lane" CTAs (SiteHeader, StickyCTABar, NavDrawer, /waitlist) point at the Roller URL directly with `target="_blank"`. The vercel.json 308 redirect handles any stray `/reserve` traffic. Revisit if/when we launch our own reservation platform |
+| `/essential` | `https://menu.twistedpin.com/essential` | **SMS short link** — 302 (kept temporary; matches current live behavior). Group-event menu picker on Zite. Used in text marketing to customers (`text /essential` to land on the picker). Do not remove |
+| `/elevated` | `https://menu.twistedpin.com/elevated` | **SMS short link** — 302. Higher-tier menu picker variant. Same context as `/essential`. Do not remove |
 
 **Shipped 2026-05-06**: full 301 redirect map landed in `vercel.json` (308 permanent redirects via `"permanent": true`). Each legacy slug uses `{/}?` for optional trailing slash, so `/bowling` and `/bowling/` both fire. Three truncated old-promo slugs use prefix patterns (`:rest*`) since the full URL tail wasn't recoverable from existing docs:
 - `/event-spaces-for-teams-*` → `/events/#corporate`

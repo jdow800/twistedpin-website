@@ -30,7 +30,10 @@
     { "source": "/experience-the-ultimate-group-event-destination:rest*", "destination": "/events/", "permanent": true },
     { "source": "/event-venues-with-a-twist-:rest*", "destination": "/events/", "permanent": true },
 
-    { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true }
+    { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true },
+
+    { "source": "/essential{/}?", "destination": "https://menu.twistedpin.com/essential", "permanent": false },
+    { "source": "/elevated{/}?", "destination": "https://menu.twistedpin.com/elevated", "permanent": false }
   ],
   "headers": [
     {
