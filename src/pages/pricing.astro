@@ -1,0 +1,642 @@
+---
+/**
+ * /pricing — walk-in lane rates, day-by-day.
+ *
+ * Architecturally a tier-2 utility page reachable through the
+ * NavDrawer Info section. Replaces the homepage SnapToday concept
+ * (decided 2026-05-06: pricing is reference content that doesn't
+ * need to be in the homepage tasting menu — but it does need a real
+ * URL with SEO chrome and proper headings).
+ *
+ * Three layers stacked:
+ *   1. Typography hero (brand-voiced H1)
+ *   2. Day-tabbed pricing calendar (live Google hours when configured;
+ *      falls back to static src/data/hours.ts)
+ *   3. SEO copy block (keyword-rich H2 + body that contextualizes
+ *      walk-in vs reservation vs full suite buyout)
+ *
+ * Visual: NOT a boxed card. Section sits transparent on the page bg
+ * so the body's Pin Tilt watermark shows through — explicit user
+ * direction 2026-05-06. Cards within the module (specials callout,
+ * pricing table) carry their own subtle chrome.
+ *
+ * No Reserve / Plan-an-event CTAs in the module — those are global
+ * (sticky bar + header) and don't need duplication on a reference
+ * page. Suite buyout is mentioned in the SEO block as a hand-off.
+ *
+ * Holiday note: "Holidays follow Friday 5pm pricing" — preserved from
+ * current twistedpin.com/bowling per ops practice.
+ *
+ * TODOs (non-blocking):
+ *   - GOOGLE_MAPS_API_KEY + GOOGLE_PLACE_ID env vars on Vercel — once
+ *     set, the hours line auto-populates from Google Business Profile.
+ *     Falls back gracefully to static hours until then.
+ */
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import { DAYS, hoursLabel, todayKey, type DayKey } from "../data/hours";
+import { PRICING, SHOE_RENTAL_LABEL, type PriceWindow } from "../data/pricing";
+import { getLiveHours } from "../lib/google-hours";
+
+const today = todayKey();
+const now = new Date();
+
+// Live hours from Google when GOOGLE_MAPS_API_KEY + GOOGLE_PLACE_ID
+// are set. Returns null otherwise; callers fall back to static.
+const liveHours = await getLiveHours();
+
+function hoursFor(day: DayKey): { label: string; live: boolean } {
+  if (liveHours && !liveHours[day].closed) {
+    return { label: liveHours[day].label, live: true };
+  }
+  return { label: hoursLabel(day), live: false };
+}
+
+// Active specials (drafts + out-of-window filtered out).
+const allSpecials = await getCollection("specials");
+const activeSpecials = allSpecials
+  .filter((s) => !s.data.draft)
+  .filter((s) => {
+    if (s.data.showFrom && now < s.data.showFrom) return false;
+    if (s.data.showUntil && now > s.data.showUntil) return false;
+    return true;
+  });
+
+function specialsForDay(day: DayKey) {
+  return activeSpecials.filter((s) => s.data.days.includes(day));
+}
+function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
+  return activeSpecials.find(
+    (s) =>
+      s.data.replacesRate &&
+      s.data.days.includes(day) &&
+      s.data.tiers.includes(tier),
+  );
+}
+---
+<Base
+  title="Bowling Prices in Plainfield, IL | Walk-in Lane Rates | Twisted Pin"
+  description="Walk-in lane rates at Twisted Pin in Plainfield, IL. Day-by-day pricing for traditional lanes and the 6-lane VIP suite. Shoe rental $5.95 per pair."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section
+      ============================================================ */}
+  <section class="pricing-hero" data-hero aria-labelledby="pricing-hero-h1">
+    <div class="pricing-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Pricing</p>
+      <h1 class="t-display pricing-hero-headline hero-fade" id="pricing-hero-h1" data-delay-ms="120">
+        Walk-in pricing.
+      </h1>
+      <p class="pricing-hero-sub hero-fade" data-delay-ms="320">
+        Day-by-day rates for traditional lanes and the 6-lane VIP suite.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CALENDAR — day pill nav + per-day views
+      ============================================================ */}
+  <section
+    class="pricing-calendar"
+    data-snap-today
+    data-active-day={today}
+    aria-labelledby="pricing-calendar-h2"
+  >
+    <h2 id="pricing-calendar-h2" class="visually-hidden">Hourly rates by day</h2>
+
+    <nav class="today-pills" aria-label="Pick a day">
+      {DAYS.map((d) => (
+        <button
+          type="button"
+          class="today-pill"
+          data-pill-day={d.key}
+          data-is-today={d.key === today ? "" : null}
+          aria-pressed={d.key === today ? "true" : "false"}
+        >
+          <span class="today-pill-label">{d.abbr3}</span>
+          <span class="today-pill-dot" aria-hidden="true"></span>
+        </button>
+      ))}
+    </nav>
+
+    {DAYS.map((d) => {
+      const schedule = PRICING[d.key];
+      const dailySpecials = specialsForDay(d.key);
+      const isToday = d.key === today;
+      const hrs = hoursFor(d.key);
+
+      return (
+        <article class="today-view" data-view-day={d.key} aria-hidden={isToday ? "false" : "true"}>
+          <header class="today-header">
+            <p class="today-eyebrow">
+              {isToday && <span class="today-pill-today">Today</span>}
+              <span class="today-day-name">{d.full}</span>
+            </p>
+            <p class="today-hours">
+              Open {hrs.label}
+              {!hrs.live && (
+                <span class="today-hours-caveat">
+                  {" · "}<a href="https://maps.google.com/?cid=12977050655706712680" target="_blank" rel="noopener">verify on Google</a>
+                </span>
+              )}
+            </p>
+          </header>
+
+          {dailySpecials.length > 0 && (
+            <div class="today-specials">
+              {dailySpecials.map((s) => (
+                <div class="today-special">
+                  <p class="today-special-head">
+                    <span class="today-special-mark" aria-hidden="true">✦</span>
+                    <span class="today-special-name">{s.data.name}</span>
+                  </p>
+                  <p class="today-special-tagline">{s.data.tagline}</p>
+                  {s.body && s.body.trim() && (
+                    <p class="today-special-body">{s.body.trim()}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p class="today-table-label">Walk-in pricing</p>
+          <table class="today-table">
+            <thead>
+              <tr>
+                <th class="today-th-time">Time</th>
+                <th class="today-th-tier">Traditional</th>
+                <th class="today-th-tier">VIP Suite</th>
+              </tr>
+            </thead>
+            <tbody>
+              {schedule.windows.map((w: PriceWindow) => {
+                const tradReplace = rateReplacement(d.key, "traditional");
+                const suiteReplace = rateReplacement(d.key, "suite");
+                return (
+                  <tr>
+                    <td class="today-td-time">{w.label}</td>
+                    <td class="today-td-rate">
+                      {tradReplace ? (
+                        <span class="today-rate-special">
+                          <span aria-hidden="true">✦</span> {tradReplace.data.name}
+                        </span>
+                      ) : (
+                        <>
+                          <span class="today-rate-num">${w.traditional}</span>
+                          <span class="today-rate-unit">/hr</span>
+                        </>
+                      )}
+                    </td>
+                    <td class="today-td-rate">
+                      {suiteReplace ? (
+                        <span class="today-rate-special">
+                          <span aria-hidden="true">✦</span> {suiteReplace.data.name}
+                        </span>
+                      ) : (
+                        <>
+                          <span class="today-rate-num">${w.suite}</span>
+                          <span class="today-rate-unit">/hr</span>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <p class="today-capacity">
+            Traditional {schedule.traditionalCapacity}
+            {" · "}Suite {schedule.suiteCapacity}
+            {" · "}Shoe rental {SHOE_RENTAL_LABEL}
+          </p>
+        </article>
+      );
+    })}
+
+    {/* Global note — applies to every day, render once below the views */}
+    <p class="today-holiday-note">
+      Holidays and school breaks follow Friday 5pm pricing.
+      Hours can shift — call ahead if you're cutting it close.
+    </p>
+  </section>
+
+  {/* ============================================================
+      SEO COPY — H2 + keyword-rich body
+      ============================================================ */}
+  <section class="pricing-seo" aria-labelledby="pricing-seo-h2">
+    <div class="pricing-seo-inner">
+      <h2 id="pricing-seo-h2" class="t-display pricing-seo-headline">
+        How pricing works.
+      </h2>
+
+      <p class="pricing-seo-body">
+        Bowling at Twisted Pin in Plainfield, IL is priced by the lane,
+        by the hour. One lane fits up to five players for traditional
+        lanes; the VIP suite seats six per lane. Walk-in welcome any
+        open hour, with rates shifting by day and by time of day —
+        early sessions are friendlier, peak Friday and Saturday nights
+        run at the top of the range.
+      </p>
+
+      <p class="pricing-seo-body">
+        Shoe rental is $5.95 per pair. Reservations guarantee your
+        time but aren't required for one or two lanes; busy nights
+        may mean a wait if you walk in. Larger groups (three lanes
+        and up) — book ahead.
+      </p>
+
+      <p class="pricing-seo-body">
+        The 6-lane VIP suite is available two ways: by-the-lane at
+        the rates above, or as a full suite buyout for groups, parties,
+        and corporate events. Buyouts run through our event team —
+        <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">plan an event &rarr;</a>.
+        For the broader bowling story (lanes, leagues, kids-bowl-free
+        Sundays), see <a href="/bowl/">/bowl</a>.
+      </p>
+
+      <p class="pricing-seo-body pricing-seo-meta">
+        Twisted Pin · 15610 S Joliet Rd, Plainfield, IL 60544
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<script>
+  // Day-pill toggle — same pattern as the SnapToday draft.
+  const root = document.querySelector<HTMLElement>("[data-snap-today]");
+  if (root) {
+    const pills = root.querySelectorAll<HTMLButtonElement>("[data-pill-day]");
+    const views = root.querySelectorAll<HTMLElement>("[data-view-day]");
+    pills.forEach((pill) => {
+      pill.addEventListener("click", () => {
+        const day = pill.getAttribute("data-pill-day");
+        if (!day) return;
+        root.setAttribute("data-active-day", day);
+        pills.forEach((p) =>
+          p.setAttribute(
+            "aria-pressed",
+            p.getAttribute("data-pill-day") === day ? "true" : "false",
+          ),
+        );
+        views.forEach((v) =>
+          v.setAttribute(
+            "aria-hidden",
+            v.getAttribute("data-view-day") === day ? "false" : "true",
+          ),
+        );
+      });
+    });
+  }
+</script>
+
+<style>
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .pricing-hero {
+    padding: 120px 24px 48px;
+    color: var(--warm-white);
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .pricing-hero {
+      padding: 160px 64px 64px;
+    }
+  }
+  .pricing-hero-copy {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .pricing-hero-headline {
+    margin: 8px 0 16px;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(40px, 11vw, 80px);
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+  }
+  .pricing-hero-sub {
+    font-family: var(--font-body);
+    font-size: clamp(15px, 4vw, 18px);
+    line-height: 1.5;
+    color: rgba(255, 252, 245, 0.78);
+    margin: 0;
+  }
+
+  /* ============================================================
+     CALENDAR — transparent on page bg, no boxing
+     ============================================================ */
+  .pricing-calendar {
+    /* No background — let the body's Indigo Deep + Pin Tilt
+       watermark show through. Explicit direction 2026-05-06. */
+    padding: 24px;
+    max-width: 760px;
+    margin: 0 auto 64px;
+  }
+  @media (min-width: 1025px) {
+    .pricing-calendar {
+      padding: 32px 64px 48px;
+    }
+  }
+
+  /* Day pills — segmented control */
+  .today-pills {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    margin: 0 auto 28px;
+    width: 100%;
+    max-width: 480px;
+    padding: 4px;
+    background: rgba(255, 252, 245, 0.05);
+    border: 1px solid rgba(255, 252, 245, 0.10);
+    border-radius: 999px;
+  }
+  .today-pill {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 252, 245, 0.65);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.10em;
+    padding: 10px 0 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 150ms ease, background-color 150ms ease;
+  }
+  .today-pill:hover { color: var(--warm-white); }
+  .today-pill[aria-pressed="true"] {
+    background: var(--glow);
+    color: var(--indigo-deep);
+  }
+  .today-pill-label { display: block; line-height: 1; }
+  .today-pill-dot {
+    display: block;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: transparent;
+    margin: 4px auto 0;
+  }
+  .today-pill[data-is-today] .today-pill-dot { background: var(--glow); }
+  .today-pill[data-is-today][aria-pressed="true"] .today-pill-dot {
+    background: var(--indigo-deep);
+  }
+
+  /* Per-day view — only one visible */
+  .today-view { display: none; }
+  .today-view[aria-hidden="false"] { display: block; }
+
+  .today-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .today-eyebrow {
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .today-pill-today {
+    display: inline-block;
+    background: var(--glow);
+    color: var(--indigo-deep);
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 4px 9px;
+    border-radius: 999px;
+    line-height: 1;
+  }
+  .today-day-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 1;
+    letter-spacing: 0.005em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+  }
+  .today-hours {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: rgba(255, 252, 245, 0.78);
+    line-height: 1.3;
+  }
+  .today-hours-caveat a {
+    color: inherit;
+    border-bottom: 1px solid rgba(255, 252, 245, 0.3);
+    text-decoration: none;
+  }
+  .today-hours-caveat a:hover {
+    color: var(--glow);
+    border-bottom-color: var(--glow);
+  }
+
+  /* Specials callout */
+  .today-specials {
+    margin: 16px 0;
+    display: grid;
+    gap: 10px;
+  }
+  .today-special {
+    border: 1px solid rgba(159, 245, 202, 0.42);
+    background: rgba(159, 245, 202, 0.06);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+  .today-special-head {
+    margin: 0 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .today-special-mark { color: var(--glow); font-size: 14px; }
+  .today-special-name {
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--glow);
+  }
+  .today-special-tagline {
+    margin: 0 0 6px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--warm-white);
+  }
+  .today-special-body {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.45;
+    color: rgba(255, 252, 245, 0.65);
+  }
+
+  /* Pricing table */
+  .today-table-label {
+    margin: 12px 0 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    color: rgba(255, 252, 245, 0.55);
+    text-align: center;
+  }
+  .today-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+  }
+  .today-table th {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255, 252, 245, 0.55);
+    padding: 8px 6px;
+    text-align: right;
+    border-bottom: 1px solid rgba(255, 252, 245, 0.10);
+  }
+  .today-th-time { text-align: left; }
+  .today-table td {
+    padding: 16px 6px;
+    border-bottom: 1px solid rgba(255, 252, 245, 0.06);
+    text-align: right;
+    vertical-align: middle;
+  }
+  .today-table tr:last-child td { border-bottom: 0; }
+  .today-td-time {
+    text-align: left;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 252, 245, 0.78);
+  }
+  .today-rate-num {
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--glow);
+    line-height: 1;
+  }
+  .today-rate-unit {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: rgba(255, 252, 245, 0.55);
+    margin-left: 2px;
+  }
+  .today-rate-special {
+    font-family: var(--font-ui);
+    font-weight: 800;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glow);
+    line-height: 1.2;
+    display: inline-block;
+  }
+
+  .today-capacity {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 252, 245, 0.5);
+    text-align: center;
+  }
+
+  /* Holiday note — global, applies to every day, sits below all views. */
+  .today-holiday-note {
+    margin: 32px auto 0;
+    max-width: 480px;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(255, 252, 245, 0.55);
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 252, 245, 0.08);
+  }
+
+  /* ============================================================
+     SEO COPY BLOCK
+     ============================================================ */
+  .pricing-seo {
+    padding: 64px 24px 96px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .pricing-seo {
+      padding: 96px 64px 128px;
+    }
+  }
+  .pricing-seo-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .pricing-seo-headline {
+    margin: 0 0 24px;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(28px, 7vw, 44px);
+    line-height: 1.05;
+    letter-spacing: -0.005em;
+    text-transform: uppercase;
+    color: var(--warm-white);
+  }
+  .pricing-seo-body {
+    font-family: var(--font-body);
+    font-size: clamp(15px, 4vw, 17px);
+    line-height: 1.6;
+    color: rgba(255, 252, 245, 0.85);
+    margin: 0 0 18px;
+  }
+  .pricing-seo-body a {
+    color: var(--warm-white);
+    border-bottom: 1px solid rgba(255, 252, 245, 0.3);
+    text-decoration: none;
+  }
+  .pricing-seo-body a:hover {
+    color: var(--glow);
+    border-bottom-color: var(--glow);
+  }
+  .pricing-seo-meta {
+    margin-top: 28px;
+    font-size: 13px;
+    color: rgba(255, 252, 245, 0.5);
+  }
+
+  /* a11y */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
