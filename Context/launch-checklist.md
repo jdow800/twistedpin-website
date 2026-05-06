@@ -21,7 +21,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | `/birthday-parties-booking/` | `/events/#birthday` | Consolidated, slug cleanup |
 | `/fundraiser/` | `/events/#fundraiser` | Consolidated |
 | `/event-directory/` | `/upcoming-events/` | Consolidated |
-| `/free-kids-bowling/` | `/bowl/#free-kids` | Folded |
+| `/free-kids-bowling/` | `/bowl/` | **Updated 2026-05-06**: previously routed to `/bowl/#free-kids`; redirect target simplified to `/bowl/` because (a) venue does not currently run a kids-bowl-free program and (b) "Kids Bowl Free" is TM'd by another operator. Anchor + section both removed from `/bowl`. When a future family-bowling page launches (name TBD), update redirect target accordingly |
 | `/contact-us/` | `/` | **Note 2026-05-04**: `/contact` page killed — Contact in MORE scrolls to SnapFooter (`#find-us`). Hash anchors don't survive 301s, so legacy `/contact-us/` redirects to `/` (homepage); user finds the footer themselves |
 | `/faqs/` | `/faq/` | Slug cleanup |
 | `/join-our-team/` | `/careers/` | Slug cleanup |
@@ -81,7 +81,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 
 Pillars (real pages with content):
 - [x] `/events` — shipped 2026-05-05 (typography hero + 2 editorial sections + closing CTA band → Zite at events.twistedpin.com)
-- [x] `/bowl` — shipped 2026-05-05 (17 traditional lanes section + VIP suite preview + cross-links to /leagues + #free-kids anchor for the 301 from /free-kids-bowling/)
+- [x] `/bowl` — shipped 2026-05-05 (17 traditional lanes section + VIP suite preview + cross-link to /leagues). 2026-05-06 cleanup: removed `#free-kids` anchor + "free kids bowling" cross-link card — TM issue with "Kids Bowl Free" plus venue doesn't currently run that program. Future family-bowling page (name TBD) will land its own slug.
 - [x] `/game` — shipped 2026-05-05 (arcade inventory + "adults play too" positioning, full-neon photography OK on this page per visual-direction.md)
 - [x] `/reserve` — killed; direct redirect to Roller via vercel.json + in-code CTA swap. See Redirects table above
 - [ ] `/gift-cards` — pending fact-check that gift card flow exists today; if yes, "available in-store only" page

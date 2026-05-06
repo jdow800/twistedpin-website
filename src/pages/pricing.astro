@@ -66,14 +66,6 @@ const activeSpecials = allSpecials
 function specialsForDay(day: DayKey) {
   return activeSpecials.filter((s) => s.data.days.includes(day));
 }
-function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
-  return activeSpecials.find(
-    (s) =>
-      s.data.replacesRate &&
-      s.data.days.includes(day) &&
-      s.data.tiers.includes(tier),
-  );
-}
 ---
 <Base
   title="Bowling Prices in Plainfield, IL | Walk-in Lane Rates | Twisted Pin"
@@ -171,39 +163,19 @@ function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
               </tr>
             </thead>
             <tbody>
-              {schedule.windows.map((w: PriceWindow) => {
-                const tradReplace = rateReplacement(d.key, "traditional");
-                const suiteReplace = rateReplacement(d.key, "suite");
-                return (
-                  <tr>
-                    <td class="today-td-time">{w.label}</td>
-                    <td class="today-td-rate">
-                      {tradReplace ? (
-                        <span class="today-rate-special">
-                          <span aria-hidden="true">✦</span> {tradReplace.data.name}
-                        </span>
-                      ) : (
-                        <>
-                          <span class="today-rate-num">${w.traditional}</span>
-                          <span class="today-rate-unit">/hr</span>
-                        </>
-                      )}
-                    </td>
-                    <td class="today-td-rate">
-                      {suiteReplace ? (
-                        <span class="today-rate-special">
-                          <span aria-hidden="true">✦</span> {suiteReplace.data.name}
-                        </span>
-                      ) : (
-                        <>
-                          <span class="today-rate-num">${w.suite}</span>
-                          <span class="today-rate-unit">/hr</span>
-                        </>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {schedule.windows.map((w: PriceWindow) => (
+                <tr>
+                  <td class="today-td-time">{w.label}</td>
+                  <td class="today-td-rate">
+                    <span class="today-rate-num">${w.traditional}</span>
+                    <span class="today-rate-unit">/hr</span>
+                  </td>
+                  <td class="today-td-rate">
+                    <span class="today-rate-num">${w.suite}</span>
+                    <span class="today-rate-unit">/hr</span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
 
@@ -215,6 +187,16 @@ function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
         </article>
       );
     })}
+
+    {/* Single global CTA — renders once below all per-day views.
+        Sits before the holiday-note disclaimer so it doesn't get
+        buried in the fine print. Outlined (not Glow-solid) because
+        Reserve a lane is the global primary CTA in the sticky bar
+        / header — Check the waitlist is a different "before you
+        commit" intent and gets a quieter button. */}
+    <div class="today-waitlist-cta">
+      <a class="btn btn-outline" href="/waitlist/">Check the waitlist &rarr;</a>
+    </div>
 
     {/* Global note — applies to every day, render once below the views */}
     <p class="today-holiday-note">
@@ -253,8 +235,8 @@ function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
         the rates above, or as a full suite buyout for groups, parties,
         and corporate events. Buyouts run through our event team —
         <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">plan an event &rarr;</a>.
-        For the broader bowling story (lanes, leagues, kids-bowl-free
-        Sundays), see <a href="/bowl/">/bowl</a>.
+        For the broader bowling story (lanes, leagues, the night), see
+        <a href="/bowl/">/bowl</a>.
       </p>
 
       <p class="pricing-seo-body pricing-seo-meta">
@@ -565,9 +547,23 @@ function rateReplacement(day: DayKey, tier: "traditional" | "suite") {
     text-align: center;
   }
 
+  /* Single waitlist CTA — global, sits between the per-day views
+     and the holiday note. Compact button with small letter-spacing,
+     outlined to keep it deliberate (Reserve is the primary CTA
+     elsewhere; this is a "before you commit" hand-off). */
+  .today-waitlist-cta {
+    margin: 24px 0 0;
+    text-align: center;
+  }
+  .today-waitlist-cta .btn {
+    padding: 11px 22px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+  }
+
   /* Holiday note — global, applies to every day, sits below all views. */
   .today-holiday-note {
-    margin: 32px auto 0;
+    margin: 24px auto 0;
     max-width: 480px;
     font-family: var(--font-body);
     font-style: italic;

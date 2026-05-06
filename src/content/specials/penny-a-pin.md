@@ -2,7 +2,6 @@
 name: Penny A Pin
 days: [wed]
 tiers: [traditional]
-replacesRate: true
 tagline: Score = price. Bowl 103, pay $1.03.
 ---
 

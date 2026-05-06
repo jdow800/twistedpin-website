@@ -66,7 +66,7 @@ build but don't yet have (or have only as stubs / homepage reuses).
 ## Future pillars (not yet built — needs catalogued when shipped)
 
 - **/events** — listing of popular events, "Plan My Event" CTA → `events.twistedpin.com` (Zite). Will need: real event imagery (corporate, birthday, fundraiser), upcoming events data source (Zite API or static markdown)
-- **/bowl** — anchor sections for traditional lanes, VIP suite (link to `/vip-suite`), leagues (link), free kids bowling (anchor), pro shop (anchor or omit). Will need: lane photography (per `visual-direction.md` traditional-lanes shots are OK on this page, NOT homepage), league night photography
+- **/bowl** — anchor sections for traditional lanes, VIP suite (link to `/vip-suite`), leagues (link), pro shop (anchor or omit). Will need: lane photography (per `visual-direction.md` traditional-lanes shots are OK on this page, NOT homepage), league night photography. **2026-05-06**: free-kids anchor removed (TM issue + venue doesn't currently run that program). Future family-bowling page is on the roadmap, name TBD
 - **/game** — arcade pillar. Will need: arcade imagery that AVOIDS full-neon (per `visual-direction.md`); skee-ball / pinball / redemption detail shots. The "giant bear" reference in the snap subhead suggests a literal giant bear prize photo could earn its place
 - **/reserve** — Roller iframe wrapper. No media beyond brand chrome above the iframe
 - **/gift-cards** — pending fact-check that a gift card flow exists on twistedpin.com today. If yes: photo of an actual gift card (warmly lit, on a bar or with a cocktail). If no: skip the page until the operation exists

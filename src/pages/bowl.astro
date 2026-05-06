@@ -11,35 +11,35 @@
  * Strategy: lead with the canonical lane phrasing (17 traditional +
  * 6-lane VIP suite) — both numbers do work. The page acknowledges
  * traditional lanes (the SEO target) AND funnels VIP-curious users
- * to /vip-suite (the conversion target). Cross-links to leagues
- * (anchor #leagues for now; standalone /leagues page eventually)
- * and free kids bowling (anchor #free-kids — old /free-kids-bowling/
- * gets a 301 to /bowl/#free-kids per launch-checklist).
+ * to /vip-suite (the conversion target). Cross-link to /leagues.
  *
  * Same skeleton as the other pillars (rule of FIVE — .pillar-* CSS
  * hoist now seriously overdue):
  *   - Hero: typography-led
- *   - Section 1 — 17 traditional lanes (walk-in / reserve / leagues
- *     / free kids cross-links)
+ *   - Section 1 — 17 traditional lanes (walk-in / reserve / leagues link)
  *   - Section 2 — VIP suite preview (cross-link to /vip-suite for full)
  *   - SnapFooter (the global one carries hours / address / contact)
  *
  * Voice rules applied (per Context/voice.md):
  *   - Canonical lane phrasing: "17 traditional lanes + a 6-lane VIP suite"
  *   - "private" hard-banned — "yours when you reserve it" / "take over"
- *   - Adults-first but not denying families (free kids bowling IS real)
  *   - "Bowling alley" used descriptively in lower body, not as primary
  *     descriptor (per voice.md soft-positioning rule)
  *
+ * "Kids Bowl Free" is TM'd by another operator and the venue currently
+ * does NOT run a kids-bowl-free program — both reasons it's stripped
+ * from this page (2026-05-06). A future family-bowling page is on the
+ * roadmap (name TBD) — when it lands, add a cross-link from this
+ * section. Legacy /free-kids-bowling/ now 301s to /bowl/ (no anchor)
+ * to avoid implying we have a program we don't.
+ *
  * TODOs (non-blocking):
- *   - League schedule + free-kids day/time are TBD pending ops input.
- *     Copy hand-waves with "weekly leagues" / "free kids bowling day"
- *     until ops gives specifics.
+ *   - League schedule TBD pending ops input.
  *   - Section photos reuse /vip-suite events-bg shot for the VIP
  *     preview section. Need distinct traditional-lane photography
  *     for section 1 — flagged in Context/media-needs.md.
- *   - /leagues, /upcoming-events still 404 — anchor cross-links work
- *     when those pages ship.
+ *   - /upcoming-events still 404 — anchor cross-links work when
+ *     those pages ship.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -48,7 +48,7 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 ---
 <Base
   title="Bowling in Plainfield, IL — Twisted Pin"
-  description="17 traditional lanes plus a 6-lane VIP suite. Walk in, reserve, leagues, free kids bowling. Plainfield, IL — 5 minutes from Naperville and Bolingbrook."
+  description="17 traditional lanes plus a 6-lane VIP suite. Walk in, reserve, or join a league. Plainfield, IL — 5 minutes from Naperville and Bolingbrook."
 >
 
   {/* ============================================================
@@ -124,15 +124,14 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
           Reserve a lane
         </a>
 
-        {/* League + free-kids cross-links. Anchor IDs preserved here
-            so legacy /free-kids-bowling/ → /bowl/#free-kids 301 works
-            even though we haven't built the standalone /leagues yet. */}
+        {/* League cross-link. The free-kids cross-link was removed
+            2026-05-06 — venue doesn't currently run a kids-bowl-free
+            program AND "Kids Bowl Free" is TM'd by another operator.
+            Future family-bowling page (name TBD) gets a link added
+            here when it lands. */}
         <div class="bowl-cross-links">
           <a href="/leagues" id="leagues">
             <strong>Leagues</strong> · weekly mixed leagues, casual + competitive
-          </a>
-          <a href="#free-kids" id="free-kids">
-            <strong>Free kids bowling</strong> · bring the kids on a designated day, you grab a drink
           </a>
         </div>
       </div>

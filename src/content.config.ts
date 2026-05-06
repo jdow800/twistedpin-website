@@ -38,9 +38,6 @@ const specials = defineCollection({
     days: z.array(z.enum(DAY_KEYS)).min(1),
     /** Tiers it covers (one or both). */
     tiers: z.array(z.enum(TIER_KEYS)).default(["traditional"]),
-    /** True = special replaces the standard $/hr rate (Penny A Pin).
-        False = additive (e.g., trivia at 7pm at the normal rate). */
-    replacesRate: z.boolean().default(false),
     /** One-line hook shown alongside the special name. */
     tagline: z.string(),
     /** Optional seasonal window (summer-only, etc.). */
