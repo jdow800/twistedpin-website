@@ -30,7 +30,14 @@
 
 const ADDRESS_STREET = "15610 S Joliet Rd";
 const ADDRESS_CITY   = "Plainfield, IL";
-const MAPS_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${ADDRESS_STREET}, ${ADDRESS_CITY}`)}`;
+// Google Place ID — the canonical identifier for the Twisted Pin
+// listing. Drives both the directions URL (with destination_place_id
+// for reliable venue match) and the place-page URL (used by the
+// Google review card so users land on the listing instead of a
+// search results page).
+const PLACE_ID = "ChIJURI15Tr1DogRLKYdPWWuY-M";
+const MAPS_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${ADDRESS_STREET}, ${ADDRESS_CITY}`)}&destination_place_id=${PLACE_ID}`;
+const MAPS_PLACE_HREF = `https://www.google.com/maps/place/?q=place_id:${PLACE_ID}`;
 // Phone is a placeholder — real number from operations team.
 const PHONE_DISPLAY = "(815) 555-0100";
 const PHONE_TEL     = "+18155550100";
@@ -116,7 +123,7 @@ const UTILITY_LINKS = [
         <p class="proof-eyebrow">Don't take our word for it.</p>
         <p class="proof-sub">Everyone's been talking.</p>
         <div class="proof-cards">
-          <a class="proof-card" href="https://maps.app.goo.gl/yyiVoLzTsHA2TNGW8" target="_blank" rel="noopener">
+          <a class="proof-card" href={MAPS_PLACE_HREF} target="_blank" rel="noopener">
             <p class="proof-source">Google</p>
             <p class="proof-rating">
               <span class="proof-stars" aria-hidden="true">★★★★★</span>
