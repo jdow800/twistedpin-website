@@ -34,6 +34,8 @@ export type IconKey =
   | 'mail'           // Contact (when label says Contact)
   | 'briefcase'      // Careers
   | 'map-pin'        // Find Us
+  // Seasonal
+  | 'sparkles'       // NYE / festive seasonal items
   // UI utilities
   | 'chevron-down';  // Expand/collapse on accordion sections
 
@@ -99,6 +101,9 @@ export const ICON_PATHS: Record<IconKey, string> = {
 
   // lucide.dev/icons/map-pin
   'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+
+  // lucide.dev/icons/sparkles
+  'sparkles': '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>',
 
   // lucide.dev/icons/chevron-down
   'chevron-down': '<path d="m6 9 6 6 6-6"/>',

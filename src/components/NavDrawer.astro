@@ -28,6 +28,7 @@
  * NavDrawer items, and any future icon-using surface).
  */
 import { ICON_PATHS, type IconKey } from "../lib/icons";
+import { activeSeasonalItems } from "../config/nav-seasonal";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
@@ -37,10 +38,11 @@ interface DrawerItem {
   label: string;
   icon: IconKey;
   external?: boolean;
+  seasonal?: boolean;
 }
 
 interface DrawerSection {
-  label: string;
+  label: "Experience" | "Visit" | "Info";
   items: DrawerItem[];
 }
 
@@ -84,6 +86,20 @@ const drawerSections: DrawerSection[] = [
     ],
   },
 ];
+
+// Merge active seasonal items into their target section. Seasonal items
+// render at the TOP of their section (most recent / time-bound first),
+// flagged with `.is-seasonal` so the CSS can lift them visually.
+for (const seasonal of activeSeasonalItems()) {
+  const section = drawerSections.find((s) => s.label === seasonal.section);
+  if (!section) continue;
+  section.items.unshift({
+    href: seasonal.href,
+    label: seasonal.label,
+    icon: seasonal.icon as IconKey,
+    seasonal: true,
+  });
+}
 ---
 <div class="nav-backdrop" data-nav-backdrop aria-hidden="true"></div>
 
@@ -143,7 +159,7 @@ const drawerSections: DrawerSection[] = [
         </summary>
         <ul>
           {section.items.map(item => (
-            <li>
+            <li class:list={[item.seasonal && "is-seasonal"]}>
               <a
                 href={item.href}
                 {...(item.external ? { target: "_blank", rel: "noopener" } : {})}
@@ -387,6 +403,15 @@ const drawerSections: DrawerSection[] = [
     transition: opacity 150ms ease-out;
   }
   .nav-drawer-list a:hover .icon {
+    opacity: 1;
+  }
+
+  /* Seasonal items get a Glow-tinted icon at full opacity — subtle
+     "this is time-bound" affordance without shouting. Driven by the
+     activeSeasonalItems() merge in the frontmatter; only fires when
+     today is inside the item's window. */
+  .nav-drawer-list li.is-seasonal > a .icon {
+    color: var(--glow);
     opacity: 1;
   }
 

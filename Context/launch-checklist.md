@@ -88,14 +88,17 @@ Pillars (real pages with content):
 Tier 2 (utility / secondary):
 - [x] `/leagues` — shipped 2026-05-05 as a tier-2 stub. Will County service area + email contact for current schedule. Pending ops: real league schedule, signup form/destination
 - [x] `/rewards` — shipped 2026-05-05 as a tier-2 stub. "Sign up at the front desk" framing + email contact for program specifics. Pending ops: program mechanics (earn rate, redemption rules, app vs in-store), confirm loyalty platform
-- [x] `/upcoming-events` — shipped 2026-05-05 as a tier-2 stub. Routes users to Instagram for the live calendar. Pending: real events feed (CMS, content collection, or third-party feed)
+- [x] `/upcoming-events` — **rebuilt 2026-05-06** as a real calendar page reading from the `events` Astro content collection (`src/content/events/*.md`). Workflow: drop a markdown file with frontmatter (`title`, `start`, optional `end`, `location`, `cta { label, href }`, `tentative`, `virtual`, `draft`), push, and the daily 4am cron rebuild surfaces it. Past events auto-hide once `end` (or `start` if no `end`) is in the past. Empty state: "Calendar's clear right now. Want to fill it? Plan an event →" — brand-voiced fallback for zero-event windows. Cards group by month (DECEMBER 2026 etc.) with a date block / title / time / location / optional description / single CTA per row.
 - [x] `/faq` — shipped 2026-05-05 with all 16 Q&As scraped from live `/faqs/` + voice cleanup (Brian Van Flandern → "America's Top Mixologist" framing) + FAQPage JSON-LD schema for Google rich results. Native `<details>/<summary>` accordion
 - [x] `/careers` — shipped 2026-05-05 as a tier-2 stub. Email-resume-to-contactus framing. Pending ops: open positions list, confirm if HR platform (Indeed/Workable/ADP) handles applications
 - [x] `/gift-cards` — shipped 2026-05-05 as a tier-2 page. FAQ-confirmed in-store-only flow ("bowling and arcade purchases only"). Live site /gift-cards/ was 404 — this fills the gap
 - [x] `/coupon` — shipped 2026-05-05 as a native form (replaces legacy iframe). POSTs to `/api/coupon-signup` → Patch Retention upsert. Voice reframe applied: "$10 OFF" → "$10 lane credit" (matches /rewards reframe). Pending: `PATCH_API_KEY` + `PATCH_TAG` env vars on Vercel
 - [x] `/waitlist` — shipped 2026-05-04 (TablesReady iframe wrapped in brand chrome). Webhook-derived state version tabled — see [waitlist-theory.md](waitlist-theory.md)
 
-Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards`, `/menu/cocktails`, `/menu/taps`, `/menu/food` (17 pages — three menu pages added 2026-05-05).
+Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards`, `/menu/cocktails`, `/menu/taps`, `/menu/food`, `/new-years-eve`, `/privacy`, `/terms`, `/accessibility` (21 pages — `/new-years-eve` added 2026-05-06).
+
+Seasonal pages (live at URL year-round, surface in NavDrawer only inside their date window — config in `src/config/nav-seasonal.ts`):
+- [x] `/new-years-eve` — shipped 2026-05-06 with NYE.mp4 video hero (encoded to /public/snap/nye-* in 4 variants matching the beerwall pipeline). Auto-shows in drawer Nov 15 → Jan 2. Page is reachable year-round so the upcoming-events card deep-link always resolves. Body copy is voice-y placeholder; pending ops package details (price tiers, what's included, ticket flow).
 
 Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index killed (posts kept live at original URLs, no new content).
 

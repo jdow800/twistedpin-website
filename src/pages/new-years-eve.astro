@@ -1,0 +1,284 @@
+---
+/**
+ * /new-years-eve/ — seasonal NYE landing page.
+ *
+ * Architecturally a "seasonal" page: lives at this URL year-round
+ * (so deep links from /upcoming-events/ or Google land on a real page
+ * even in March), but only surfaces in the NavDrawer between the
+ * showFrom / showUntil window defined in src/config/nav-seasonal.ts.
+ * Daily 4am cron rebuild handles auto-show / auto-hide without manual
+ * deploys around the holiday.
+ *
+ * Layout:
+ *   - Full-bleed video hero (NYE.mp4 9:16, mobile-first)
+ *   - One editorial section (the night, the bar, the suite)
+ *   - Closing CTA band: Plan an Event (Zite, primary) +
+ *     Reserve a lane (Roller, outlined alternate)
+ *   - SnapFooter
+ *
+ * Body copy is intentionally placeholder-quality until ops gives real
+ * package details (price tiers, what's included, ticket vs walk-in).
+ * The brand-coherent shell ships now so the page exists and can be
+ * deep-linked; copy gets refined when packages are confirmed.
+ *
+ * TODOs (ops-blocked):
+ *   - Real package details (tiers, pricing positioning, what's included).
+ *     Until then the section reads "details with our event team."
+ *   - Date-specific time (currently event collection has 8pm – 1am CT
+ *     as a sensible default).
+ *   - If Roller offers NYE-specific reservation slots, wire those.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+---
+<Base
+  title="New Year's Eve at Twisted Pin — Plainfield, IL"
+  description="Cocktails by America's Top Mixologist, the 28-tap self-serve wall, and a 6-lane VIP suite if you want to take the night over. New Year's Eve at Twisted Pin in Plainfield, IL."
+>
+
+  {/* ============================================================
+      HERO — full-bleed vertical video, headline overlay
+      ============================================================ */}
+  <section class="nye-hero" data-hero aria-labelledby="nye-hero-h1">
+    <video
+      class="nye-hero-video"
+      preload="metadata"
+      muted
+      autoplay
+      loop
+      playsinline
+      poster="/snap/nye-poster.webp"
+      aria-hidden="true"
+    >
+      <source media="(max-width: 480px)" src="/snap/nye-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+      <source media="(max-width: 480px)" src="/snap/nye-mobile-h264-540.mp4" type="video/mp4" />
+      <source src="/snap/nye-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+      <source src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
+    </video>
+
+    <div class="nye-hero-scrim" aria-hidden="true"></div>
+
+    <div class="nye-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">December 31</p>
+      <h1 class="t-display nye-hero-headline" id="nye-hero-h1">
+        <span class="hero-fade" data-delay-ms="120">New Year's Eve.</span>
+        <span class="hero-fade" data-delay-ms="280">Done right.</span>
+      </h1>
+      <p class="nye-hero-sub hero-fade" data-delay-ms="380">
+        The night, the bar, the suite. Bowling optional.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE NIGHT — editorial section
+      ============================================================ */}
+  <section class="nye-section" aria-labelledby="nye-night-h2">
+    <div class="nye-section-inner">
+      <p class="t-eyebrow">The Night</p>
+      <h2 class="t-display nye-section-title" id="nye-night-h2">
+        Cocktails, the wall, your suite.
+      </h2>
+
+      <p class="nye-section-body">
+        The cocktail program is by America's Top Mixologist. The 28-tap
+        self-serve wall is the only one in the immediate area. The 6-lane
+        VIP suite, set apart from the main floor, is yours for the night
+        when you book it — TVs, AV hookups, your own bar service, your
+        own count-down to midnight.
+      </p>
+
+      <p class="nye-section-body">
+        Or come for the lanes and the bar like any other night, and
+        let the night take care of the rest.
+      </p>
+
+      <ul class="nye-section-list">
+        <li>Cocktail menu by America's Top Mixologist</li>
+        <li>28 self-serve taps — beer, wine, and a few non-alcoholic options</li>
+        <li>6-lane VIP suite available for groups (book early)</li>
+        <li>Chef-inspired menu, made for sharing</li>
+      </ul>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — same pattern as /events
+      ============================================================ */}
+  <section class="nye-cta" aria-labelledby="nye-cta-h2">
+    <div class="nye-cta-inner">
+      <h2 class="t-display nye-cta-title" id="nye-cta-h2">
+        Take the night over.
+      </h2>
+      <p class="nye-cta-body">
+        Group package details and the suite reservation flow run through
+        our event team. Reserve a lane on the main floor for the casual
+        plan.
+      </p>
+      <div class="nye-cta-actions">
+        <a class="btn btn-solid" href={ZITE_EVENTS_URL} target="_blank" rel="noopener">
+          Plan an event
+        </a>
+        <a class="btn btn-outline" href={ROLLER_URL} target="_blank" rel="noopener">
+          Reserve a lane
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     HERO
+     ============================================================ */
+  .nye-hero {
+    position: relative;
+    min-height: 100dvh;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .nye-hero-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  .nye-hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      180deg,
+      rgba(14, 10, 31, 0.35) 0%,
+      rgba(14, 10, 31, 0.05) 35%,
+      rgba(14, 10, 31, 0.55) 75%,
+      rgba(14, 10, 31, 0.85) 100%
+    );
+  }
+  .nye-hero-copy {
+    position: relative;
+    z-index: 2;
+    padding: 0 24px 96px;
+    color: var(--warm-white);
+    max-width: 800px;
+  }
+  @media (min-width: 1025px) {
+    .nye-hero-copy {
+      padding: 0 64px 120px;
+    }
+  }
+  .nye-hero-headline {
+    font-size: clamp(40px, 12vw, 92px);
+    line-height: 0.95;
+    letter-spacing: -0.015em;
+    margin: 8px 0 18px;
+    color: var(--warm-white);
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 900;
+  }
+  .nye-hero-headline span {
+    display: block;
+  }
+  .nye-hero-sub {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 4vw, 22px);
+    line-height: 1.4;
+    color: rgba(255, 252, 245, 0.9);
+    margin: 0;
+    max-width: 28em;
+  }
+
+  /* ============================================================
+     EDITORIAL SECTION
+     ============================================================ */
+  .nye-section {
+    padding: 80px 24px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .nye-section {
+      padding: 120px 64px;
+    }
+  }
+  .nye-section-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .nye-section-title {
+    font-size: clamp(28px, 7vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.005em;
+    margin: 8px 0 28px;
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 900;
+  }
+  .nye-section-body {
+    font-family: var(--font-body);
+    font-size: clamp(16px, 4vw, 18px);
+    line-height: 1.6;
+    color: rgba(255, 252, 245, 0.88);
+    margin: 0 0 20px;
+  }
+  .nye-section-list {
+    margin: 28px 0 0;
+    padding: 0 0 0 20px;
+    color: rgba(255, 252, 245, 0.82);
+    font-family: var(--font-body);
+    font-size: clamp(15px, 3.8vw, 17px);
+    line-height: 1.55;
+  }
+  .nye-section-list li + li {
+    margin-top: 8px;
+  }
+
+  /* ============================================================
+     CLOSING CTA BAND
+     ============================================================ */
+  .nye-cta {
+    background: var(--indigo-deep);
+    padding: 80px 24px;
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .nye-cta {
+      padding: 120px 64px;
+    }
+  }
+  .nye-cta-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .nye-cta-title {
+    font-size: clamp(28px, 7vw, 44px);
+    line-height: 1.05;
+    color: var(--warm-white);
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 900;
+  }
+  .nye-cta-body {
+    font-family: var(--font-body);
+    font-size: clamp(15px, 3.8vw, 17px);
+    line-height: 1.55;
+    color: rgba(255, 252, 245, 0.85);
+    margin: 0 0 32px;
+  }
+  .nye-cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+</style>
