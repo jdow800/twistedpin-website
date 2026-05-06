@@ -33,6 +33,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import { ICON_PATHS } from "../lib/icons";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 
 interface FaqItem {
   q: string;
@@ -76,7 +77,7 @@ const faqs: FaqItem[] = [
   {
     q: "Can I bring a cake, cupcakes, or party decor?",
     schemaA: "Outside cake and decor are welcome only for booked events.",
-    htmlA: `<p>Outside cake and decor are welcome only for booked events.</p><p><a href="/events/">Plan an event →</a></p>`,
+    htmlA: `<p>Outside cake and decor are welcome only for booked events.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
   },
   {
     q: "Do you have a dress code?",
@@ -116,7 +117,7 @@ const faqs: FaqItem[] = [
   {
     q: "Can I host a corporate event or team building outing?",
     schemaA: "Yes — casual team nights to full corporate events with custom catering and AV setup.",
-    htmlA: `<p>Yes — casual team nights to full corporate events with custom catering and AV setup.</p><p><a href="/events/">Plan an event →</a></p>`,
+    htmlA: `<p>Yes — casual team nights to full corporate events with custom catering and AV setup.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
   },
   {
     q: "Do you sell gift cards?",

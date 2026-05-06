@@ -30,6 +30,7 @@
 import { ICON_PATHS, type IconKey } from "../lib/icons";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 
 interface DrawerItem {
   href: string;
@@ -62,7 +63,7 @@ const drawerSections: DrawerSection[] = [
       // Reserve / Plan duplicated from sticky CTA bar. Intentional —
       // hamburger-hunters expect to find primary CTAs in the menu too.
       { href: ROLLER_URL,          label: "Reserve a Lane",  icon: "calendar-check", external: true },
-      { href: "/events",           label: "Plan an Event",   icon: "message-square" },
+      { href: ZITE_EVENTS_URL,     label: "Plan an Event",   icon: "message-square", external: true },
       { href: "/upcoming-events/", label: "Upcoming Events", icon: "calendar"       },
       { href: "/coupon/",          label: "Coupon",          icon: "ticket"         },
       { href: "/waitlist/",        label: "Waitlist",        icon: "clock"          },
@@ -177,7 +178,7 @@ const drawerSections: DrawerSection[] = [
         can convert without closing the drawer first. */}
     <div class="nav-drawer-cta">
       <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a Lane</a>
-      <a class="btn btn-outline" href="/events">Plan an Event</a>
+      <a class="btn btn-outline" href={ZITE_EVENTS_URL} target="_blank" rel="noopener">Plan an Event</a>
     </div>
     <p class="nav-meta">15610 S Joliet Rd · Plainfield, IL</p>
   </div>

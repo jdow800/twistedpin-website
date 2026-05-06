@@ -28,8 +28,6 @@
  *     room shot + event-energy shot. See Context/media-needs.md.
  *   - Capacity number ("80") and fundraiser stat ("50% of bowling revenue
  *     back to host") need ops confirmation before launch.
- *   - "Plan an event" CTA points to /events as a placeholder. When the
- *     events.twistedpin.com Zite subdomain ships, sweep all instances.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -155,9 +153,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           <li>After-parties + group functions</li>
         </ul>
 
-        {/* "Plan an event" → /events as placeholder. Will switch to
-             events.twistedpin.com (Zite subdomain) when that launches. */}
-        <a class="btn btn-outline" href="/events">Plan an event</a>
+        <a class="btn btn-outline" href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event</a>
       </div>
     </div>
   </section>
