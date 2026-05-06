@@ -35,8 +35,8 @@ export interface DaySchedule {
 }
 
 const STANDARD_CAPACITY = {
-  traditionalCapacity: "Up to 5",
-  suiteCapacity: "Up to 6",
+  traditionalCapacity: "Up to 5 players",
+  suiteCapacity: "Up to 6 players",
 };
 
 const MON_THU: DaySchedule = {

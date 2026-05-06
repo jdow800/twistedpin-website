@@ -498,17 +498,21 @@ function specialsForDay(day: DayKey) {
   .today-table[data-cols="2"] td {
     width: 50%;
   }
-  /* 3-column (Fri/Sat/Sun): time gets a slightly tighter column,
-     trad/suite share the remainder evenly */
+  /* 3-column (Fri/Sat/Sun): TIME 34% / Trad 33% / Suite 33%.
+     TIME wide enough that "12 PM – 7 PM" doesn't wrap; Trad/Suite
+     wide enough that TRADITIONAL header (the longest of the three
+     labels) fits without spilling into the next column. Header
+     font + tracking dialed back to 13px / 0.08em as part of the
+     same fit pass. */
   .today-table[data-cols="3"] th:nth-child(1),
   .today-table[data-cols="3"] td:nth-child(1) {
-    width: 30%;
+    width: 34%;
   }
   .today-table[data-cols="3"] th:nth-child(2),
   .today-table[data-cols="3"] td:nth-child(2),
   .today-table[data-cols="3"] th:nth-child(3),
   .today-table[data-cols="3"] td:nth-child(3) {
-    width: 35%;
+    width: 33%;
   }
   .today-table th {
     padding: 10px 6px;
@@ -520,8 +524,8 @@ function specialsForDay(day: DayKey) {
     text-align: left;
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.12em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--warm-white);
     line-height: 1.1;
@@ -536,8 +540,8 @@ function specialsForDay(day: DayKey) {
     display: block;
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.12em;
+    font-size: 13px;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--warm-white);
     line-height: 1.1;
@@ -567,6 +571,10 @@ function specialsForDay(day: DayKey) {
     letter-spacing: 0.10em;
     text-transform: uppercase;
     color: rgba(255, 252, 245, 0.78);
+    /* Force single line — without this, the dash + space inside
+       "11 AM – 4 PM" gives the browser a wrap opportunity that
+       fires inconsistently depending on column width. */
+    white-space: nowrap;
   }
   .today-rate-num {
     font-family: var(--font-body);
