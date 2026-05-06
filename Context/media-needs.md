@@ -21,7 +21,7 @@ build but don't yet have (or have only as stubs / homepage reuses).
 |---|---|---|
 | Hero photo | None (typography-only title section) | Optional: bar-room atmosphere shot at hero scale (the Jan 29 2024 photo was the original target). NOT blocking — typography hero is the locked pattern |
 | Cocktails section photo | `cocktails-bg-540.webp` (same shot as homepage Cocktails snap) | Distinct cocktail editorial. Per `visual-direction.md`: AIV01579 (copper-shaker pour), AIV01592 (cherry old fashioned), DSC_0110 (orchid highball). Need ONE for the section |
-| Tap Wall section photo | `beerwall-poster.webp` (same as homepage Tap Wall snap) | Reuse is acceptable — this IS the wall, so same shot reads as continuity not redundancy |
+| Tap Wall section photo | `beerwall-poster.webp` (same as homepage Tap Wall snap) | Reuse is acceptable — this IS the wall, so same shot reads as continuity not redundancy. **2026-05-05: user flagged a reshoot may be wanted** — current photo (`BeerWallHeyFlow.jpg` source, used here + on `/menu` hub thumbnail + homepage Tap Wall) leans wide-environmental with the "GUTTERS HAPPEN BEER HELPS" sign dominating. A tighter / more atmospheric tap-row composition (or hand-mid-pour on one of the taps) would refresh all three surfaces with one shoot |
 | Five signature cocktail names + 1-line descriptions | Placeholders ("[Signature Cocktail 2]" etc., one real: "The Twisted Old Fashioned") | Real cocktail names + 1-line descriptions. Could pull from cocktail menu when GoTab API integration lands |
 
 ## /eat — shipped

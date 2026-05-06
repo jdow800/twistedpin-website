@@ -2,29 +2,60 @@
 /**
  * /rewards — loyalty / rewards program page.
  *
- * Tier-2 utility page. Live twistedpin.com/rewards/ exists but the
- * program details (signup, points/tier mechanics, app requirements)
- * are JS-rendered; couldn't scrape via curl. Page acknowledges the
- * program exists + routes users to ops for signup until details land.
+ * Tier-2 utility page. Rebuilt 2026-05-05 against the actual program
+ * details captured from the live twistedpin.com/rewards/ page (user
+ * screenshot). Two engagement loops live on this page:
+ *
+ *   1. Rewards program — front-desk kiosk check-in earns 50 points per
+ *      visit. Points stack against a ladder of rewards (free shoes,
+ *      lane credit, bonus hours).
+ *   2. Text Club — separate SMS opt-in (BOWL123 → 85775) for inside-line
+ *      content (events, lineup changes, league openings). Distinct from
+ *      the rewards-program SMS (which is transactional re: the program
+ *      itself).
+ *
+ * Voice: the live page uses "Score Stellar Deals + Exclusive Discounts!"
+ * and "$10 OFF Any Open Bowling" framing — both clash with the locked
+ * voice rule banning discount/deals/cheap/value vocabulary (CLAUDE.md
+ * Working Preferences). Reframed:
+ *   - "$10 OFF Any Open Bowling" → "$10 lane credit" (keeps dollar
+ *     accuracy, drops discount framing — POS reality preserved)
+ *   - "Score Stellar Deals + Exclusive Discounts!" → inside-line framing
+ *     ("first to know on cocktails, events, league openings") — text
+ *     club becomes content access, not promo subscription
+ *   - "Bogo Hour" → "Buy an hour, second hour on us"
+ *   - "FREE Hour of Bowling" → "An hour of bowling, on us"
  *
  * TODOs (non-blocking):
- *   - Program mechanics (how to earn, how to redeem, app vs in-store
- *     signup) — pending ops. Likely the live site uses a third-party
- *     loyalty platform (e.g. Toast Loyalty, Square Loyalty, FiveStars)
- *     — confirm which, then either embed their signup widget or link
- *     out to their hosted page.
- *   - Voice rule check: the loyalty program may have $-off rewards,
- *     but per voice.md "cheap/discount/value/deals" hard-ban applies
- *     even on /coupon — same applies here. Frame rewards in
- *     experience terms ("a free game," "your next round") not
- *     discount terms ("$5 off").
+ *   - Verify $10 / $20 lane credit reframe is accurate to ops reality.
+ *     If the credit only applies to specific products / day-parts, that
+ *     belongs in fine print on this page.
+ *   - Confirm 50 pts/visit is the only earn rate. If there are bonus
+ *     events ("double points Tuesdays") add them.
+ *   - Text Club shortcode "BOWL123 → 85775" — verify keyword + shortcode
+ *     match the current SMS provider config. If they're hitting any
+ *     volume thresholds, consider a click-to-text link
+ *     (sms:&body=BOWL123 to:85775) for mobile UX.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+
+interface RewardTier {
+  points: number;
+  reward: string;
+}
+
+const rewardTiers: RewardTier[] = [
+  { points: 50,  reward: "Free shoe rental" },
+  { points: 100, reward: "$10 lane credit" },
+  { points: 200, reward: "$20 lane credit" },
+  { points: 250, reward: "Buy an hour, second hour on us" },
+  { points: 350, reward: "A full hour of bowling, on us" },
+];
 ---
 <Base
   title="Rewards — Twisted Pin Plainfield IL"
-  description="Loyalty rewards for Twisted Pin regulars. Sign up at the front desk or in our app. Plainfield, IL."
+  description="The Twisted Pin rewards program. Check in at the front-desk kiosk on every visit and stack points toward free shoes, lane credit, and bonus hours. Plainfield, IL."
 >
 
   <section class="t2-hero" data-hero aria-labelledby="rewards-h1">
@@ -34,8 +65,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         Regulars get the&nbsp;perks.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Bowl with us often? The rewards program adds up over time.
-        Sign up at the front desk on your next visit.
+        Tap your number into the kiosk at the front desk on every
+        visit. Points stack. Redeem at the levels below — shoes, lane
+        credit, an hour on the house.
       </p>
     </div>
   </section>
@@ -44,23 +76,115 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="rewards-h2" style="font-size:11px;">How It Works</h2>
       <p class="t2-section-body">
-        Sign up at the front desk on your next visit. From there, every
-        visit earns rewards you can redeem on future bowling, food, and
-        drinks.
+        <strong>50 points per check-in.</strong> Punch your phone number
+        into the kiosk at the front desk every time you bowl. That's it —
+        no app, no card, no signup form. The first check-in enrolls you;
+        every check-in after that adds points.
       </p>
-
       <p class="t2-section-body">
-        For program specifics — earning rate, redemption rules, current
-        signup bonus — email
-        <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>
-        or ask at the front desk.
+        Bring your phone to the front desk when you redeem and we'll
+        look you up.
       </p>
+    </div>
+  </section>
 
+  <section class="t2-section" aria-labelledby="rewards-tiers-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="rewards-tiers-h2" style="font-size:11px;">The Ladder</h2>
+      <table class="rewards-table">
+        <thead>
+          <tr>
+            <th scope="col" class="rewards-th-points">Points</th>
+            <th scope="col" class="rewards-th-reward">Reward</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rewardTiers.map(tier => (
+            <tr>
+              <td class="rewards-td-points">{tier.points}</td>
+              <td class="rewards-td-reward">{tier.reward}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p class="t2-section-body" style="margin-top: 24px; font-size: 13px; color: var(--warm-dim);">
+        Points don't expire. Rewards apply to open bowling and shoe
+        rental — not to events, leagues, or the VIP suite.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="rewards-text-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="rewards-text-h2" style="font-size:11px;">Text Club</h2>
       <p class="t2-section-body">
-        Already a member? Bring your phone — we'll look you up at checkout.
+        First to know on the cocktail rotation, league openings,
+        upcoming events, and the rare drop. One inbox you'll actually
+        read.
+      </p>
+      <p class="t2-section-body">
+        <strong>Text BOWL123 to 85775</strong> to opt in.
+      </p>
+      <p class="t2-section-body" style="font-size: 13px; color: var(--warm-dim);">
+        Standard message and data rates apply. Message frequency varies.
+        Reply STOP to opt out at any time, or HELP for help. See our
+        <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
       </p>
     </div>
   </section>
 
   <SnapFooter />
 </Base>
+
+<style>
+  /* Rewards table — same visual register as other tier-2 content
+     (warm-white type on indigo, low-opacity row dividers). Mobile
+     keeps the same layout — points column narrow, reward column
+     fluid — since the data fits cleanly even at narrow widths. */
+  .rewards-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-family: var(--font-body);
+  }
+
+  .rewards-table th {
+    text-align: left;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
+  }
+
+  .rewards-th-points { width: 100px; }
+
+  .rewards-table td {
+    padding: 14px 0;
+    color: var(--warm-white);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  @media (min-width: 760px) {
+    .rewards-table td { font-size: 16px; }
+  }
+
+  .rewards-td-points {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px !important;
+    letter-spacing: 0.04em;
+    color: var(--glow);
+  }
+  @media (min-width: 760px) {
+    .rewards-td-points { font-size: 18px !important; }
+  }
+
+  .rewards-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+</style>
