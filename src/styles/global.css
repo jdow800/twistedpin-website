@@ -36,6 +36,25 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Global focus-visible (a11y): keyboard-navigation users need a clearly
+   visible focus ring on every interactive element. Browser defaults
+   (light blue / black ring) read poorly on Indigo Deep. Glow is the
+   site's lever color and contrasts cleanly against every background
+   in the palette. `:focus-visible` (not `:focus`) means mouse clicks
+   don't trigger the ring — only keyboard tabbing / programmatic focus
+   gets the indicator, which keeps the visual register clean for the
+   pointer-using majority while serving keyboard users properly.
+   Added 2026-05-05 as part of the /accessibility page launch sweep. */
+:focus-visible {
+  outline: 2px solid var(--glow);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+/* Suppress the ring when an element opts in to its own focus styling
+   (e.g. .menu-hub-card has a custom outline + offset). Components that
+   define their own :focus-visible will continue to use that. */
+:focus:not(:focus-visible) { outline: none; }
 html {
   /* Background moved from body to html (2026-05-03) so the global
      body::before Pin Tilt watermark below has a solid layer to sit on

@@ -1,0 +1,171 @@
+---
+/**
+ * /accessibility — Accessibility Statement.
+ *
+ * Built 2026-05-05. Standard accessibility statement for hospitality
+ * venues — documents WCAG 2.1 AA as the conformance target, lists
+ * what's implemented, names known limitations honestly (third-party
+ * iframes can't be fully audited), and provides a remediation
+ * contact path.
+ *
+ * Not a legal shield by itself — the site has to actually meet the
+ * standard. See pre-launch sweep notes in launch-checklist.md for
+ * what was verified and what's still queued.
+ *
+ * Voice: legal/factual register, same recipe as /privacy and /terms.
+ *
+ * TODOs (non-blocking):
+ *   - Counsel review pre-launch — same as /privacy and /terms.
+ *   - Whenever Lighthouse / axe-core scans land, update the
+ *     "Current Status" section to reflect concrete results
+ *     (e.g. "Lighthouse Accessibility score: 95+").
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const LAST_UPDATED = "May 5, 2026";
+---
+<Base
+  title="Accessibility Statement — Twisted Pin Plainfield IL"
+  description="Twisted Pin's commitment to web accessibility. WCAG 2.1 AA conformance target, current status, known limitations, and how to report a barrier. Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="a11y-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Twisted Pin</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="a11y-h1" data-delay-ms="120">
+        Accessibility.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Last updated {LAST_UPDATED}. We're committed to making
+        twistedpin.com usable for everyone, including visitors who
+        rely on assistive technologies.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section legal-section" aria-labelledby="a11y-h2-1">
+    <div class="t2-section-inner">
+      <h2 class="legal-h2" id="a11y-h2-1">1. Our Commitment</h2>
+      <p>Twisted Pin is committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards to our website.</p>
+
+      <h2 class="legal-h2" id="a11y-h2-2">2. Conformance Target</h2>
+      <p>This site is designed to conform to the <strong>Web Content Accessibility Guidelines (WCAG) 2.1, Level AA</strong> — the standard published by the World Wide Web Consortium (W3C) and referenced by U.S. Department of Justice ADA guidance.</p>
+      <p>WCAG defines requirements for designers and developers to make digital content more accessible to people with a wide array of disabilities, including visual, auditory, motor, speech, cognitive, language, learning, and neurological disabilities.</p>
+
+      <h2 class="legal-h2" id="a11y-h2-3">3. Current Status</h2>
+      <p>The following accessibility practices are implemented across the site:</p>
+      <ul>
+        <li>Semantic HTML and ARIA landmarks for screen reader navigation</li>
+        <li>Alternative text on meaningful images</li>
+        <li>Keyboard-accessible navigation, including the menu drawer and accordion sections</li>
+        <li>Visible focus indicators on interactive elements</li>
+        <li>Sufficient color contrast on body copy and UI controls</li>
+        <li>Text content that scales with the browser's font-size setting</li>
+        <li>A <code>prefers-reduced-motion</code> media query that disables non-essential animation for visitors who request it in their OS settings</li>
+        <li>Form fields with associated labels (where forms appear on the site)</li>
+      </ul>
+
+      <h2 class="legal-h2" id="a11y-h2-4">4. Known Limitations</h2>
+      <p>We're working toward full conformance, but some areas have known accessibility gaps we want to be transparent about:</p>
+      <ul>
+        <li><strong>Third-party embeds.</strong> Some pages embed services we don't control — including the waitlist (TablesReady) and the booking flow (Roller). The accessibility of those embedded experiences is the responsibility of those vendors. If you encounter a barrier in an embedded service, please let us know so we can either escalate to the vendor or offer an alternative path.</li>
+        <li><strong>Third-party menu data.</strong> Our cocktail and food menus pull product images from our point-of-sale system (GoTab). We render alt text from the product name where available; some images may not have descriptive alt text beyond the product name.</li>
+        <li><strong>Auto-playing video.</strong> The homepage hero contains short, muted video. We're working toward a play/pause control on this element. In the meantime, the video does not contain audio that needs to be heard to understand the content.</li>
+      </ul>
+
+      <h2 class="legal-h2" id="a11y-h2-5">5. Reporting a Barrier</h2>
+      <p>If you encounter content on twistedpin.com that you cannot access, please tell us. We take accessibility feedback seriously and will work to resolve issues promptly.</p>
+      <p>When reporting, please include:</p>
+      <ul>
+        <li>The URL of the page</li>
+        <li>The assistive technology you're using (e.g. screen reader, keyboard only, voice control)</li>
+        <li>A description of the barrier</li>
+      </ul>
+
+      <h2 class="legal-h2" id="a11y-h2-6">6. Contact</h2>
+      <ul class="legal-contact">
+        <li><strong>Email:</strong> <a href="mailto:contactus@twistedpin.com?subject=Website%20Accessibility">contactus@twistedpin.com</a></li>
+        <li><strong>Phone:</strong> 815-782-7790</li>
+        <li><strong>Address:</strong> Twisted Pin, 15610 Joliet Rd, Plainfield, IL 60544</li>
+      </ul>
+      <p>We aim to respond to accessibility feedback within five business days.</p>
+
+      <h2 class="legal-h2" id="a11y-h2-7">7. Continuous Improvement</h2>
+      <p>This statement reflects the current state of accessibility on twistedpin.com. We review and update it as we ship improvements, and we welcome suggestions on how we can do better.</p>
+
+      <p class="legal-jurisdiction">This statement was last reviewed on {LAST_UPDATED}.</p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* Same legal-page recipe as /privacy and /terms — third use of
+     this style block. Rule of three: hoist to global.css next time
+     a legal/utility page lands. */
+  .legal-section .t2-section-inner {
+    max-width: 720px;
+  }
+
+  .legal-h2 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 40px 0 14px;
+  }
+  .legal-h2:first-child { margin-top: 8px; }
+  @media (min-width: 760px) {
+    .legal-h2 { font-size: 26px; margin-top: 48px; }
+  }
+
+  .legal-section p,
+  .legal-section li {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  .legal-section p { margin: 0 0 14px; }
+
+  .legal-section ul {
+    margin: 0 0 14px;
+    padding-left: 22px;
+  }
+  .legal-section li { margin-bottom: 6px; }
+
+  .legal-section strong { color: var(--warm-white); font-weight: 700; }
+
+  .legal-section code {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 0.92em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(244, 239, 227, 0.06);
+    color: var(--warm-white);
+  }
+
+  .legal-section a {
+    color: var(--glow);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .legal-contact {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .legal-jurisdiction {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    font-size: 13px !important;
+    color: var(--warm-dim) !important;
+    font-style: italic;
+  }
+</style>
