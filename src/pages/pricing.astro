@@ -155,10 +155,17 @@ function specialsForDay(day: DayKey) {
             </div>
           )}
 
-          <table class="today-table">
+          {/* TIME column renders only when there's more than one rate
+              window (Fri/Sat/Sun). On single-rate days (Mon-Thu) the
+              table collapses to two columns — Trad / Suite — since
+              there's no time differentiation to display, and "All
+              open hours" was wrapping awkwardly at narrow viewports. */}
+          <table class="today-table" data-cols={schedule.windows.length > 1 ? "3" : "2"}>
             <thead>
               <tr>
-                <th class="today-th-time">Time</th>
+                {schedule.windows.length > 1 && (
+                  <th class="today-th-time">Time</th>
+                )}
                 <th class="today-th-tier">
                   <span class="today-th-name">Traditional</span>
                   <span class="today-th-cap">{schedule.traditionalCapacity}</span>
@@ -172,7 +179,9 @@ function specialsForDay(day: DayKey) {
             <tbody>
               {schedule.windows.map((w: PriceWindow) => (
                 <tr>
-                  <td class="today-td-time">{w.label}</td>
+                  {schedule.windows.length > 1 && (
+                    <td class="today-td-time">{w.label}</td>
+                  )}
                   <td class="today-td-rate">
                     <span class="today-rate-num">${w.traditional}</span>
                     <span class="today-rate-unit">/hr</span>
@@ -475,11 +484,31 @@ function specialsForDay(day: DayKey) {
     color: rgba(255, 252, 245, 0.65);
   }
 
-  /* Pricing table */
+  /* Pricing table — fixed layout so columns don't auto-size to
+     content. Without this, narrow viewports squeeze "VIP SUITE"
+     to two lines and stretch "ALL OPEN HOURS" past its column. */
   .today-table {
     width: 100%;
     border-collapse: collapse;
     margin: 16px 0 12px;
+    table-layout: fixed;
+  }
+  /* 2-column (Mon-Thu): equal Trad / Suite columns */
+  .today-table[data-cols="2"] th,
+  .today-table[data-cols="2"] td {
+    width: 50%;
+  }
+  /* 3-column (Fri/Sat/Sun): time gets a slightly tighter column,
+     trad/suite share the remainder evenly */
+  .today-table[data-cols="3"] th:nth-child(1),
+  .today-table[data-cols="3"] td:nth-child(1) {
+    width: 30%;
+  }
+  .today-table[data-cols="3"] th:nth-child(2),
+  .today-table[data-cols="3"] td:nth-child(2),
+  .today-table[data-cols="3"] th:nth-child(3),
+  .today-table[data-cols="3"] td:nth-child(3) {
+    width: 35%;
   }
   .today-table th {
     padding: 10px 6px;
@@ -581,19 +610,27 @@ function specialsForDay(day: DayKey) {
     font-weight: 700;
   }
 
-  /* Two side-by-side quick-action pills — global, sits between
-     the per-day views and the holiday note. Both outlined to keep
-     them deliberate (Reserve is the global primary CTA elsewhere;
-     these are "before you commit" hand-offs). Wrap to a column
-     on narrow viewports if buttons would overflow. */
+  /* Two quick-action pills — global, sits between the per-day
+     views and the holiday note. Both outlined to keep them
+     deliberate (Reserve is the global primary CTA elsewhere;
+     these are "before you commit" hand-offs).
+     Equal-width sizing: flex-basis 200px lets them share the
+     row evenly when there's room (≥420px container) and stack
+     full-width when there isn't. Either way they render at
+     the same width — no asymmetric look from longer button
+     labels. Capped at 460px max so they don't sprawl on desktop. */
   .today-quick-actions {
-    margin: 24px 0 0;
+    margin: 24px auto 0;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 10px;
+    max-width: 460px;
   }
   .today-quick-actions .btn {
+    flex: 1 1 200px;
+    min-width: 0;
+    text-align: center;
     padding: 11px 22px;
     font-size: 12px;
     letter-spacing: 0.14em;
