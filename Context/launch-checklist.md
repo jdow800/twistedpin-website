@@ -64,6 +64,7 @@ To do: implement remaining 301s in `vercel.json` rewrites/redirects (the /reserv
 | **Daily auto-rebuild cron** | **Shipped 2026-05-05.** Vercel Cron (`vercel.json`) at 9 UTC daily hits `/api/cron/rebuild` → POSTs deploy hook → fresh build re-fetches GoTab + Untappd. 2 env vars on Vercel: `CRON_SECRET`, `VERCEL_DEPLOY_HOOK_URL` | Done |
 | **TablesReady waitlist** | `/waitlist` shipped 2026-05-04 wrapping `host.tablesready.com/p/waitlist/twistedpin` (no X-Frame headers, embeds cleanly). User flagged inner iframe content as ugly; webhook-derived state explored and **tabled** pending plan upgrade. See [waitlist-theory.md](waitlist-theory.md) for full theory + revisit checklist | When revisiting: upgrade TablesReady plan tier → run webhook.site test → capture real payloads → resolve `party.checked_in` ambiguity → build webhook receiver + state store + 4am reset → swap iframe for live-data render |
 | **Cross-subdomain tracking** | UTM-tagging set up per user | Verify: GTM / Meta Pixel / GA4 tags set on `.twistedpin.com` (with leading dot) so they fire on both main + `events.twistedpin.com` subdomain |
+| **Patch Retention API** (coupon signup) | **Shipped 2026-05-05.** `/coupon` ships a native form that POSTs to `/api/coupon-signup` (server endpoint) which upserts into Patch via `PATCH /v2/contacts?match:phone={phone}`. Replaces the legacy iframe. API key kept server-side. | **Set 2 env vars on Vercel:** `PATCH_API_KEY` (Bearer token from Patch dashboard) and `PATCH_TAG` (tag name applied to new signups, e.g. `coupon_10_lane` — Patch dashboard automation triggers off this tag to send the SMS with the actual coupon code). Until set, the page returns a "temporarily unavailable" message. Also verify in Patch dashboard: birthday custom field exists (we send as `birthday: "MM-DD"`) — if Patch expects a different key, adjust `src/pages/api/coupon-signup.ts`. |
 
 ---
 
@@ -83,7 +84,7 @@ Tier 2 (utility / secondary):
 - [x] `/faq` — shipped 2026-05-05 with all 16 Q&As scraped from live `/faqs/` + voice cleanup (Brian Van Flandern → "America's Top Mixologist" framing) + FAQPage JSON-LD schema for Google rich results. Native `<details>/<summary>` accordion
 - [x] `/careers` — shipped 2026-05-05 as a tier-2 stub. Email-resume-to-contactus framing. Pending ops: open positions list, confirm if HR platform (Indeed/Workable/ADP) handles applications
 - [x] `/gift-cards` — shipped 2026-05-05 as a tier-2 page. FAQ-confirmed in-store-only flow ("bowling and arcade purchases only"). Live site /gift-cards/ was 404 — this fills the gap
-- [ ] `/coupon` — kept as-is operationally (renamed from `/free-10`); confirm it ports cleanly
+- [x] `/coupon` — shipped 2026-05-05 as a native form (replaces legacy iframe). POSTs to `/api/coupon-signup` → Patch Retention upsert. Voice reframe applied: "$10 OFF" → "$10 lane credit" (matches /rewards reframe). Pending: `PATCH_API_KEY` + `PATCH_TAG` env vars on Vercel
 - [x] `/waitlist` — shipped 2026-05-04 (TablesReady iframe wrapped in brand chrome). Webhook-derived state version tabled — see [waitlist-theory.md](waitlist-theory.md)
 
 Already shipped: `/`, `/bar`, `/eat`, `/vip-suite`, `/waitlist`, `/events`, `/bowl`, `/game`, `/faq`, `/leagues`, `/upcoming-events`, `/rewards`, `/careers`, `/gift-cards`, `/menu/cocktails`, `/menu/taps`, `/menu/food` (17 pages — three menu pages added 2026-05-05).
@@ -103,7 +104,7 @@ Decisions made: `/contact` page killed (rerouted to footer); `/blog/` index kill
 - [x] **Sitemap setup** (2026-05-05): `@astrojs/sitemap` integration added. `sitemap-index.xml` + `sitemap-0.xml` generate at build time with all 14 routes. **Pre-launch action:** swap `site` URL in `astro.config.mjs` from Vercel staging to `https://www.twistedpin.com` and resubmit to Google Search Console.
 - [ ] **301 monitoring**: after deploy, monitor Search Console for crawl errors weekly for the first 60 days
 - [ ] **Lighthouse / performance check**: hit the seo.md targets — Mobile LCP < 2.5s, Performance score 85+
-- [ ] **Privacy + Accessibility pages** (NEW, surfaced by 2026-05-05 sweep): SnapFooter UTILITY_LINKS includes `Privacy` and `Accessibility` items pointing at `#` placeholder. Build basic compliance pages OR remove from utility row. Both standard SaaS-era expectations; pages can be light (the venue isn't collecting much PII)
+- [x] **Privacy + Terms + Accessibility pages** (2026-05-05): all three shipped. `/privacy` and `/terms` ported from live twistedpin.com with light voice/format cleanup; `/accessibility` is a standard hospitality-venue statement (WCAG 2.1 AA target, known limitations called out, remediation contact path). Global `:focus-visible` ring also added to `global.css` (biggest a11y gap before — keyboard users now get a Glow outline on Tab). All three pages flagged for counsel pass before launch — they're working drafts modeled on what's live, not attorney-reviewed
 
 ---
 
