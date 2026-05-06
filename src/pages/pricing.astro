@@ -153,7 +153,6 @@ function specialsForDay(day: DayKey) {
             </div>
           )}
 
-          <p class="today-table-label">Walk-in pricing</p>
           <table class="today-table">
             <thead>
               <tr>
@@ -348,9 +347,9 @@ function specialsForDay(day: DayKey) {
     color: rgba(255, 252, 245, 0.65);
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.10em;
-    padding: 10px 0 8px;
+    padding: 12px 0 10px;
     border-radius: 999px;
     cursor: pointer;
     transition: color 150ms ease, background-color 150ms ease;
@@ -405,7 +404,7 @@ function specialsForDay(day: DayKey) {
   .today-day-name {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: clamp(32px, 8vw, 48px);
+    font-size: clamp(40px, 10vw, 60px);
     line-height: 1;
     letter-spacing: 0.005em;
     text-transform: uppercase;
@@ -450,7 +449,7 @@ function specialsForDay(day: DayKey) {
   .today-special-name {
     font-family: var(--font-ui);
     font-weight: 800;
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--glow);
@@ -458,8 +457,8 @@ function specialsForDay(day: DayKey) {
   .today-special-tagline {
     margin: 0 0 6px;
     font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.4;
+    font-size: 16px;
+    line-height: 1.45;
     color: var(--warm-white);
   }
   .today-special-body {
@@ -471,28 +470,18 @@ function specialsForDay(day: DayKey) {
   }
 
   /* Pricing table */
-  .today-table-label {
-    margin: 12px 0 8px;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 0.20em;
-    text-transform: uppercase;
-    color: rgba(255, 252, 245, 0.55);
-    text-align: center;
-  }
   .today-table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 12px;
+    margin: 16px 0 12px;
   }
   .today-table th {
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 10px;
-    letter-spacing: 0.16em;
+    font-size: 11px;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 252, 245, 0.55);
+    color: rgba(255, 252, 245, 0.65);
     padding: 8px 6px;
     text-align: right;
     border-bottom: 1px solid rgba(255, 252, 245, 0.10);
@@ -517,15 +506,15 @@ function specialsForDay(day: DayKey) {
   .today-rate-num {
     font-family: var(--font-body);
     font-weight: 700;
-    font-size: 24px;
+    font-size: clamp(30px, 5vw, 40px);
     color: var(--glow);
     line-height: 1;
   }
   .today-rate-unit {
     font-family: var(--font-body);
-    font-size: 12px;
-    color: rgba(255, 252, 245, 0.55);
-    margin-left: 2px;
+    font-size: 14px;
+    color: rgba(255, 252, 245, 0.6);
+    margin-left: 3px;
   }
   .today-rate-special {
     font-family: var(--font-ui);
@@ -539,11 +528,11 @@ function specialsForDay(day: DayKey) {
   }
 
   .today-capacity {
-    margin: 6px 0 0;
+    margin: 8px 0 0;
     font-family: var(--font-body);
-    font-size: 12px;
+    font-size: 13px;
     line-height: 1.5;
-    color: rgba(255, 252, 245, 0.5);
+    color: rgba(255, 252, 245, 0.65);
     text-align: center;
   }
 
