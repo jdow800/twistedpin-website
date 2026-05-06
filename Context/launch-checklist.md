@@ -26,6 +26,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | `/faqs/` | `/faq/` | Slug cleanup |
 | `/join-our-team/` | `/careers/` | Slug cleanup |
 | `/free-10/` | `/coupon/` | **Renamed 2026-05-04** — old slug → new canonical |
+| **DNS authority migration** | (separate runbook) | **2026-05-05**: full DNS cutover plan captured in [dns-migration.md](dns-migration.md). Moves DNS from dev company's Cloudflare account → GoDaddy DNS without their cooperation. Includes captured records, SPF cleanup notes, and step-by-step cutover. Read before launch day. |
 | `/event-spaces-for-teams-...` | `/events/#corporate` | Old promotional URL |
 | `/group-and-company-events-twisted-pin/` | `/events/#corporate` | Old promotional URL |
 | `/experience-the-ultimate-group-event-destination.../` | `/events/` | Old promotional URL |
