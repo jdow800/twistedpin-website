@@ -123,7 +123,7 @@ const SOURCES = [
   // produces a portrait-friendly hero video — at that point the frame
   // swaps from <picture> to <video data-section-video> + lazy-source
   // pattern (matches Tap Wall).
-  { src: "events-catering/DSC00785-Enhanced-NR.jpg", name: "events-bg", aspect: [9, 16], widths: [540, 600] },
+  { src: "events-catering/DSC00785-Enhanced-NR.jpg", name: "events-bg", aspect: [9, 16], widths: [540, 600, 900] },
 
   // ===========================================================
   // Inner-page editorial slots (2026-05-07).

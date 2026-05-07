@@ -1,9 +1,17 @@
 ---
 /**
- * SnapStub — solid Midnight Indigo placeholder snap.
+ * SnapStub — full-viewport mobile snap section with optional photo
+ * background. Two modes:
  *
- * Used for snaps 2, 4, 5, 6, 7 in the /snap-test/ architecture (Events,
- * Cocktails, Food, Bowl, Arcade) until those snaps get real visuals.
+ *   1. No `image` prop  → solid Midnight Indigo with subtle gradient.
+ *      Original "placeholder until visuals land" treatment.
+ *   2. With `image` slug → full-bleed <picture> behind a dark bottom
+ *      scrim, copy floats above. Same composition pattern as the
+ *      mobile snap-tapwall (which uses video instead of a still).
+ *
+ * Used for snaps 2, 4, 5, 6, 7 in the homepage architecture (Events,
+ * Cocktails, Food, Bowl, Arcade). Mobile-only — desktop track has
+ * its own cluster sections.
  *
  * Layout: bottom-anchored, centered text. Title in UI font (substitute for
  * Proxima Nova Bold), subhead in body font, "Learn more →" Glow link.
@@ -23,19 +31,44 @@ interface Props {
   href?: string;
   /** Optional aria-label override for the section. */
   label?: string;
-  /** Extra classes applied to the snap-section root. Used by /snap-test/ to
+  /** Optional image slug — e.g. "vip-energy" pulls /snap/vip-energy-{540,900}
+   *  in AVIF + WebP + JPG. When provided, the section renders with a full-
+   *  bleed photo background + scrim instead of the solid-Indigo treatment. */
+  image?: string;
+  /** Optional alt text for the background image (a11y). Defaults to empty
+   *  since the image is decorative — the section title carries the meaning. */
+  imageAlt?: string;
+  /** Extra classes applied to the snap-section root. Used by index.astro to
    *  flag stubs as `mobile-only` so they collapse on desktop while the
-   *  desktop-track sections take over (Phase 2A parallel-track architecture). */
+   *  desktop-track sections take over. */
   class?: string;
 }
-const { title, subhead, subheadParen, href = "#", label, class: className = "" } = Astro.props;
+const { title, subhead, subheadParen, href = "#", label, image, imageAlt = "", class: className = "" } = Astro.props;
 const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
 ---
 <section
-  class:list={["snap-section", "snap-stub", className]}
+  class:list={["snap-section", "snap-stub", image && "snap-stub--photo", className]}
   aria-labelledby={ariaId}
   aria-label={label}
 >
+  {image && (
+    <picture class="stub-bg">
+      <source type="image/avif" srcset={`/snap/${image}-540.avif 540w, /snap/${image}-900.avif 900w`} sizes="100vw" />
+      <source type="image/webp" srcset={`/snap/${image}-540.webp 540w, /snap/${image}-900.webp 900w`} sizes="100vw" />
+      <img
+        class="stub-bg-img"
+        src={`/snap/${image}-900.jpg`}
+        srcset={`/snap/${image}-540.jpg 540w, /snap/${image}-900.jpg 900w`}
+        sizes="100vw"
+        alt={imageAlt}
+        width="900"
+        height="1600"
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
+  )}
+  {image && <div class="stub-scrim" aria-hidden="true"></div>}
   <div class="stub-inner">
     <h2 class="stub-title" id={ariaId}>{title}</h2>
     <p class="stub-sub">
@@ -55,6 +88,7 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
      This component only owns the inner block + visual treatment. */
 
   .snap-stub {
+    position: relative; /* anchor for the optional photo bg + scrim layers */
     background: var(--indigo);
     /* Subtle vertical gradient gives the solid background a touch of
        atmosphere without competing with future real visuals. */
@@ -63,6 +97,42 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
       transparent 28%,
       transparent 72%,
       rgba(0, 0, 0, 0.25) 100%);
+  }
+
+  /* Photo-backed mode: real visuals landed. Drop the solid background +
+     gradient (the photo replaces them) and let the picture/scrim layers
+     handle composition. */
+  .snap-stub--photo {
+    background: none;
+    background-image: none;
+    overflow: hidden;
+  }
+  .stub-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    display: block;
+  }
+  .stub-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  /* Bottom scrim — fades photo into Indigo Deep at the lower third so
+     the title + subhead + Learn more sit on a high-contrast surface
+     without losing the photo entirely. Mirrors the mobile snap-tapwall
+     treatment. */
+  .stub-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg,
+      rgba(14, 10, 31, 0.18) 0%,
+      rgba(14, 10, 31, 0.32) 35%,
+      rgba(14, 10, 31, 0.78) 78%,
+      rgba(14, 10, 31, 0.94) 100%);
+    pointer-events: none;
   }
 
   .stub-inner {
