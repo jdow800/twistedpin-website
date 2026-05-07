@@ -28,12 +28,12 @@
  * until the kitchen team locks the operational truth.
  *
  * TODOs (non-blocking):
- *   - "View the menu" CTAs are placeholder ("#"). GoTab API integration
- *     queued — quick-start says GraphQL + OAuth 2.0 (Client Credentials
- *     or Authorization Code Grant). Menu endpoint + data shape live in
- *     separate docs ("Products & Menus 101"); spike that before building.
+ *   - "View the menu" CTA points at /menu/food/ as of 2026-05-07
+ *     (GoTab integration shipped 2026-05-05; menu lives at the
+ *     dedicated route). Earlier docstring said "placeholder" —
+ *     resolved.
  *   - Signature dishes (5 placeholders in section 2) are placeholders;
- *     real dish names/descriptions come with menu integration.
+ *     real dish names/descriptions come with ops-supplied content.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -108,8 +108,7 @@ const foodMenu = await getFood();
           you bowl, before you bowl, or instead of bowling.
         </p>
 
-        {/* TODO: GoTab API integration. View-only menu link for now. */}
-        <a class="btn btn-outline" href="#menu">View the menu</a>
+        <a class="btn btn-outline" href="/menu/food/">View the menu</a>
       </div>
     </div>
   </section>
@@ -260,11 +259,11 @@ const foodMenu = await getFood();
        through. Hero is now transparent too (no image), so the watermark
        is continuous from page top to footer. */
     background: transparent;
-    /* Tightened mobile padding — see /bar.astro for rationale. */
-    padding: 15px 22px;
+    /* Tightened — see /bar.astro for rationale. */
+    padding: 5px 22px;
   }
   @media (min-width: 1025px) {
-    .eat-section { padding: 96px 64px; }
+    .eat-section { padding: 24px 64px; }
   }
 
   .eat-section-grid {
@@ -273,7 +272,7 @@ const foodMenu = await getFood();
     gap: 32px;
     max-width: 1280px;
     margin: 0 auto;
-    align-items: center;
+    align-items: start;
   }
   @media (min-width: 1025px) {
     .eat-section-grid {

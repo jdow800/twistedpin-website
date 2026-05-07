@@ -303,13 +303,17 @@ body.nav-open [data-cta-bar] {
   .t2-hero-sub { margin-top: 18px; font-size: 18px; max-width: 36em; }
 }
 
-/* Content section — single column, max-width readable */
+/* Content section — single column, max-width readable.
+   Padding is intentionally tight (5px mobile, 24px desktop) — sections
+   on tier-2 pages stack 4-6 deep and the prior 24/56 + 32/96 cascaded
+   into ~80px gaps on mobile / ~150px on desktop. Tighten everywhere;
+   pages that genuinely need a bigger air gap can override per-page. */
 .t2-section {
   background: transparent; /* let body::before Pin Tilt show through */
-  padding: 24px 22px 56px;
+  padding: 5px 22px;
 }
 @media (min-width: 1025px) {
-  .t2-section { padding: 32px 64px 96px; }
+  .t2-section { padding: 24px 64px; }
 }
 .t2-section-inner {
   max-width: 720px;

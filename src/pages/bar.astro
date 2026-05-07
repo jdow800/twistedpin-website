@@ -25,8 +25,8 @@
  * for / where the tasting-menu format earns it.
  *
  * TODOs (non-blocking):
- *   - "View what's on tap" CTA: GoTab API integration future. Link is "#".
- *   - "View cocktail menu" CTA: GoTab API integration future. Link is "#".
+ *   - "View what's on tap" CTA points at /menu/taps/ (Untappd integration shipped 2026-05-05).
+ *   - "View the cocktail menu" CTA points at /menu/cocktails/ (GoTab integration shipped 2026-05-05).
  *   - 5 signature cocktail names + descriptions are placeholders.
  *   - Cocktail editorial photo: bar-cocktails-* (AIV01579 copper-shaker
  *     pour, encoded 2026-05-07). Distinct from homepage's AIV01592
@@ -274,14 +274,15 @@ const cocktailMenu = await getCocktails();
        through in the section gutters. Hero is now transparent too (no
        image), so the watermark is continuous from page top to footer. */
     background: transparent;
-    /* Mobile padding tightened — was 56px (read as a dead-zone after
-       the hero), then 32 (still gappy on a phone). 15px keeps the
-       sections from running into each other without the typography-
-       hero -> media transition reading like a hole. Desktop unchanged. */
-    padding: 15px 22px;
+    /* Mobile padding tightened: was 56px → 32 → 15 → 5. Desktop
+       tightened from 96 → 24 in the same pass. The original 96/96
+       desktop combined with align-items: center on the grid (image
+       taller than copy) created ~340px of dead space below the copy
+       column. Tight padding + align-items: start fixes both. */
+    padding: 5px 22px;
   }
   @media (min-width: 1025px) {
-    .bar-section { padding: 96px 64px; }
+    .bar-section { padding: 24px 64px; }
   }
 
   .bar-section-grid {
@@ -290,7 +291,10 @@ const cocktailMenu = await getCocktails();
     gap: 32px;
     max-width: 1280px;
     margin: 0 auto;
-    align-items: center;
+    /* align-items: start so copy hangs at top of the section next to
+       the image, not centered (which created empty space below the
+       copy when the image was taller). */
+    align-items: start;
   }
   @media (min-width: 1025px) {
     .bar-section-grid {

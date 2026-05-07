@@ -205,24 +205,10 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
      happens (flagged in media-needs.md).
      ============================================================ */
 
-  /* Override the global .t2-section mobile padding (24px 22px 56px)
-     for this page's section rhythm. Selector explicitly lists all
-     three section variants — earlier shipped only `.fkb-section` +
-     `.fkb-pinpass-section`, missing `.fkb-section--editorial` (BEM
-     modifier is its OWN class, not a descendant of .fkb-section), so
-     the three editorial sections kept the global 80px stacking. */
-  .fkb-section,
-  .fkb-section--editorial,
-  .fkb-pinpass-section {
-    padding: 15px 22px;
-  }
-  @media (min-width: 1025px) {
-    .fkb-section,
-    .fkb-section--editorial,
-    .fkb-pinpass-section {
-      padding: 32px 64px;
-    }
-  }
+  /* Page-specific section padding override removed 2026-05-07 — the
+     global .t2-section padding was tightened from 24/56 mobile and
+     32/96 desktop down to 5px/24px (see global.css), which makes
+     this override redundant. Inherit from global. */
 
   .fkb-section .t2-section-inner {
     max-width: 560px;
