@@ -208,11 +208,9 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
     position: relative;
     display: flex;
     align-items: center;
-    /* Tighter than original 60vh / 420px floor — see /bar.astro for rationale. */
+    /* Match t2-hero — see /bar.astro for rationale. */
     min-height: clamp(320px, 42vh, 420px);
-    padding:
-      calc(var(--header-height) + 32px) 22px
-      calc(var(--bar-pad) + 32px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
   }
   @media (min-width: 1025px) {
     .bowl-hero {

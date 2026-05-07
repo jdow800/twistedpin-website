@@ -193,14 +193,13 @@ const cocktailMenu = await getCocktails();
     position: relative;
     display: flex;
     align-items: center;
-    /* Mobile: tighter than the original 60vh / 420px floor — typography-only
-       hero with short copy was leaving ~200px of empty space, made worse by
-       section padding stacking below. Matches the t2-hero value for
-       consistency across pillar + tier-2 pages. */
+    /* Match the t2-hero values from global.css for consistency across
+       pillar + tier-2 pages. Mobile bottom padding is intentionally small
+       (24px) — the hero is never tall enough to overlap the sticky CTA
+       bar, so reserving --bar-pad worth of space here was pure dead-zone
+       between the subhead and the next section's media. */
     min-height: clamp(320px, 42vh, 420px);
-    padding:
-      calc(var(--header-height) + 32px) 22px
-      calc(var(--bar-pad) + 32px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
   }
   @media (min-width: 1025px) {
     .bar-hero {
