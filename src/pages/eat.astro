@@ -195,7 +195,8 @@ const foodMenu = await getFood();
     position: relative;
     display: flex;
     align-items: center;
-    min-height: clamp(420px, 60vh, 560px);
+    /* Tighter than original 60vh / 420px floor — see /bar.astro for rationale. */
+    min-height: clamp(320px, 42vh, 420px);
     padding:
       calc(var(--header-height) + 32px) 22px
       calc(var(--bar-pad) + 32px);

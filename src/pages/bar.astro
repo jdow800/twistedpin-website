@@ -193,7 +193,11 @@ const cocktailMenu = await getCocktails();
     position: relative;
     display: flex;
     align-items: center;
-    min-height: clamp(420px, 60vh, 560px);
+    /* Mobile: tighter than the original 60vh / 420px floor — typography-only
+       hero with short copy was leaving ~200px of empty space, made worse by
+       section padding stacking below. Matches the t2-hero value for
+       consistency across pillar + tier-2 pages. */
+    min-height: clamp(320px, 42vh, 420px);
     padding:
       calc(var(--header-height) + 32px) 22px
       calc(var(--bar-pad) + 32px);
