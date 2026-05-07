@@ -9,15 +9,14 @@
 #   buffet-mobile-{av1,h264}-540.mp4        — 540×960 narrow phones
 #
 # Used in:
-#   - /vip-suite "What You Can Do" section (replaces vip-energy still
-#     in the editorial frame; still kept as poster + fallback)
-#   - /events "What You Can Host" section (replaces events-bg still
-#     in the editorial frame; still kept as poster + fallback)
+#   - Homepage desktop cluster "Events that don't suck" section
+#   - /events "What You Can Host" section
 #
 # Source is already 9:16 portrait so no aspect crop needed. Audio
-# stripped — videos play muted-autoplay-loop. Trim window 0-6s gives
-# the "before → after" beat without overstaying the 5–7s sweet spot
-# for in-frame editorial loops.
+# stripped — videos play muted-autoplay-loop. Trim window 6.3-13.3
+# (last 7s of the 13.3s source) per user 2026-05-07 — the "after" beat
+# (full spread, room set up) is the most impactful for the homepage
+# events tile and the /events editorial frame.
 # ============================================================
 set -euo pipefail
 
@@ -41,9 +40,10 @@ mkdir -p "$OUT_DIR"
 AV1_ENC="libaom-av1"
 H264_ENC="libx264"
 
-# Trim window: 0s → 6s. Adjust if the loop doesn't read well at this length.
-TRIM_START="0"
-TRIM_DUR="6"
+# Trim window: 6.3s → 13.3s (last 7s of the source). The "after" beat
+# is the most visually impactful — full spread, room set up, the payoff.
+TRIM_START="6.3"
+TRIM_DUR="7"
 
 # ---------- POSTER (first frame, 1080 wide) ----------
 POSTER_PNG="$OUT_DIR/_buffet-poster.png"

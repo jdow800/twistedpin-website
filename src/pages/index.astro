@@ -237,10 +237,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <section class="snap-section desktop-only desktop-events" aria-labelledby="desktop-events-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <picture>
-            <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
-            <img class="cluster-img" src="/snap/events-bg-600.jpg" srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="Guests gathered in the VIP suite at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
-          </picture>
+          {/* Buffet "after" video — last 7s of Buffet Before & After.mov,
+              the full-spread payoff. Same single-active-video rule via
+              sectionVideo() in motion.client.ts; data-src lazy-promotion. */}
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/buffet-poster.webp" aria-label="A buffet of catering food set up for a group event at Twisted Pin">
+            <source data-src="/snap/buffet-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
         </div>
         <div class="cluster-copy">
           <p class="section-eyebrow" data-reveal>VIP Suite</p>
