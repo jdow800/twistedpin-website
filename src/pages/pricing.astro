@@ -46,11 +46,13 @@ const now = new Date();
 // are set. Returns null otherwise; callers fall back to static.
 const liveHours = await getLiveHours();
 
-function hoursFor(day: DayKey): { label: string; live: boolean } {
-  if (liveHours && !liveHours[day].closed) {
-    return { label: liveHours[day].label, live: true };
+function hoursFor(day: DayKey): { label: string; live: boolean; closed: boolean } {
+  // When live hours are flowing, honor the closed signal — that's the whole
+  // point of pulling currentOpeningHours (catches holidays + special closures).
+  if (liveHours) {
+    return { label: liveHours[day].label, live: true, closed: liveHours[day].closed };
   }
-  return { label: hoursLabel(day), live: false };
+  return { label: hoursLabel(day), live: false, closed: false };
 }
 
 // Active specials (drafts + out-of-window filtered out).
@@ -129,7 +131,7 @@ function specialsForDay(day: DayKey) {
             )}
             <p class="today-day-name">{d.full}</p>
             <p class="today-hours">
-              Open {hrs.label}
+              {hrs.closed ? (isToday ? "Closed today" : "Closed") : `Open ${hrs.label}`}
               {!hrs.live && (
                 <span class="today-hours-caveat">
                   {" · "}<a href="https://maps.app.goo.gl/yyiVoLzTsHA2TNGW8" target="_blank" rel="noopener">verify on Google</a>

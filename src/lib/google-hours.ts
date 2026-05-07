@@ -8,6 +8,11 @@
 //
 // Daily 4am cron rebuild keeps the cached hours fresh — fresh enough for
 // the use case (holiday hours updates land within ~24h).
+//
+// Field mask: currentOpeningHours (NOT regularOpeningHours). Same Pro tier
+// SKU, but currentOpeningHours overlays Google Business Profile's holiday
+// + special-day edits onto the next 7 days. Means: when ops mark Christmas
+// closed in Business Profile, the website reflects it on the next build.
 
 import type { DayKey } from "../data/hours";
 
@@ -19,6 +24,14 @@ export interface LiveDayHours {
   label: string;
   /** True if the venue is closed on this day (per Google). */
   closed: boolean;
+  /** Open time as minutes since midnight in venue local time. 0 when closed. */
+  openMinutes: number;
+  /** Close time as minutes since midnight. >= 1440 if close wraps past midnight (e.g. Fri 1am). 0 when closed. */
+  closeMinutes: number;
+  /** Short open label e.g. "3pm" / "11am". Empty string when closed. */
+  openLabel: string;
+  /** Short close label e.g. "10pm" / "1am". Empty string when closed. */
+  closeLabel: string;
 }
 
 export type LiveHours = Record<DayKey, LiveDayHours>;
@@ -39,13 +52,16 @@ interface PlacesPeriod {
   close?: { day: number; hour: number; minute: number };
 }
 
-interface PlacesRegularOpeningHours {
+interface PlacesOpeningHours {
   periods?: PlacesPeriod[];
   weekdayDescriptions?: string[];
 }
 
 interface PlacesResponse {
-  regularOpeningHours?: PlacesRegularOpeningHours;
+  /** 7-day rolling window with holiday/special-day overlays applied. Preferred. */
+  currentOpeningHours?: PlacesOpeningHours;
+  /** Standard weekly schedule. Used as fallback if currentOpeningHours is missing. */
+  regularOpeningHours?: PlacesOpeningHours;
 }
 
 /** Format hour/minute as "3pm" or "11:30am". Lowercase, no leading zero. */
@@ -80,7 +96,7 @@ export async function getLiveHours(): Promise<LiveHours | null> {
     const res = await fetch(`${PLACES_URL}/${placeId}`, {
       headers: {
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "regularOpeningHours",
+        "X-Goog-FieldMask": "currentOpeningHours,regularOpeningHours",
       },
       signal: t.signal,
     });
@@ -89,7 +105,9 @@ export async function getLiveHours(): Promise<LiveHours | null> {
       return null;
     }
     const data = (await res.json()) as PlacesResponse;
-    const periods = data.regularOpeningHours?.periods ?? [];
+    // Prefer currentOpeningHours (holiday-aware) over regularOpeningHours.
+    const periods =
+      data.currentOpeningHours?.periods ?? data.regularOpeningHours?.periods ?? [];
     if (periods.length === 0) {
       console.warn("[google-hours] no periods returned — falling back to static");
       return null;
@@ -108,7 +126,14 @@ function periodsToHours(periods: PlacesPeriod[]): LiveHours {
   const out = {} as LiveHours;
   // Initialize all days as closed; populate from periods.
   for (const k of DAY_KEYS_BY_GOOGLE_INDEX) {
-    out[k] = { label: "Closed", closed: true };
+    out[k] = {
+      label: "Closed",
+      closed: true,
+      openMinutes: 0,
+      closeMinutes: 0,
+      openLabel: "",
+      closeLabel: "",
+    };
   }
   for (const p of periods) {
     if (!p.open) continue;
@@ -117,9 +142,21 @@ function periodsToHours(periods: PlacesPeriod[]): LiveHours {
     const closeLabel = p.close
       ? formatTime(p.close.hour, p.close.minute)
       : "open 24h";
+    const openMinutes = p.open.hour * 60 + p.open.minute;
+    let closeMinutes = p.close ? p.close.hour * 60 + p.close.minute : 24 * 60;
+    // If close day is a different weekday than open (or close time numerically
+    // earlier than open), the close wraps past midnight — bump by 24h so
+    // isOpenNow can compare cleanly.
+    if (p.close && (p.close.day !== p.open.day || closeMinutes <= openMinutes)) {
+      closeMinutes += 24 * 60;
+    }
     out[key] = {
       label: `${openLabel} – ${closeLabel}`,
       closed: false,
+      openMinutes,
+      closeMinutes,
+      openLabel,
+      closeLabel,
     };
   }
   return out;

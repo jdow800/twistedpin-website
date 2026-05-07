@@ -20,13 +20,72 @@
  * Sticky CTA bar is hidden when this snap is in view (handled by the
  * page-level scroll watcher).
  *
- * Hours strip is a static stub. Real-time sync options to discuss:
- *   1. Hardcoded weekly schedule + JS open/closed calculator (free, fast,
- *      single source of truth in repo).
- *   2. Google Places API server-side, cached daily (~$0.50/mo at low traffic;
- *      Google Business Profile is the source of truth).
- *   3. Yext widget (paid SaaS; cross-platform sync).
+ * Hours strip pulls live data from Google Business Profile via
+ * src/lib/google-hours.ts (currentOpeningHours field — overlays holiday
+ * + special-day edits). Daily 4am cron rebuild keeps it fresh. Falls
+ * back to static src/data/hours.ts when env vars aren't configured.
  */
+import { getLiveHours } from "../../lib/google-hours";
+import {
+  todayKey,
+  previousDay,
+  staticWindow,
+  nowMinutesCentral,
+} from "../../data/hours";
+import type { DayWindow, DayKey } from "../../data/hours";
+
+// Build-time fetch — null when GOOGLE_MAPS_API_KEY / GOOGLE_PLACE_ID
+// env vars aren't set, or on API failure.
+const liveHours = await getLiveHours();
+const today = todayKey();
+const yesterday = previousDay(today);
+const nowMin = nowMinutesCentral();
+
+/** Build a DayWindow from live data (preferred) or static (fallback). null = closed all day. */
+function windowFor(day: DayKey): DayWindow | null {
+  if (liveHours) {
+    const lh = liveHours[day];
+    if (lh.closed) return null;
+    return {
+      openMinutes: lh.openMinutes,
+      closeMinutes: lh.closeMinutes,
+      openLabel: lh.openLabel,
+      closeLabel: lh.closeLabel,
+    };
+  }
+  return staticWindow(day);
+}
+
+type FooterHoursStatus =
+  | { state: "closed-today" }
+  | { state: "open"; closeLabel: string }
+  | { state: "before-open"; openLabel: string }
+  | { state: "after-close" };
+
+function getStatus(): FooterHoursStatus {
+  const todayWin = windowFor(today);
+  const yWin = windowFor(yesterday);
+
+  // Yesterday's late-night carry-over still active? (e.g. Sat 12:30am inside Fri 2pm–1am)
+  if (yWin && yWin.closeMinutes >= 24 * 60) {
+    const carryClose = yWin.closeMinutes - 24 * 60;
+    if (nowMin < carryClose) {
+      return { state: "open", closeLabel: yWin.closeLabel };
+    }
+  }
+
+  if (!todayWin) return { state: "closed-today" };
+
+  if (nowMin >= todayWin.openMinutes && nowMin < todayWin.closeMinutes) {
+    return { state: "open", closeLabel: todayWin.closeLabel };
+  }
+  if (nowMin < todayWin.openMinutes) {
+    return { state: "before-open", openLabel: todayWin.openLabel };
+  }
+  return { state: "after-close" };
+}
+
+const status = getStatus();
 
 const ADDRESS_STREET = "15610 S Joliet Rd";
 const ADDRESS_CITY   = "Plainfield, IL";
@@ -78,12 +137,31 @@ const UTILITY_LINKS = [
       <div class="footer-find">
         <h2 class="footer-title" id="footer-h2">Find&nbsp;us</h2>
 
-        {/* Yext placeholder — real widget is a script-injected DOM node;
-            static stub for now so we can evaluate the layout. */}
-        <p class="hours-strip" data-yext-stub>
-          <span class="hours-status">Open today</span>
-          <span class="hours-dot" aria-hidden="true">·</span>
-          <span class="hours-times">until 11:00 PM</span>
+        {/* Hours strip — driven by getStatus() in the frontmatter. Live
+            data when configured, static fallback otherwise. Daily cron
+            keeps the build fresh enough that holiday closures land
+            within ~24h of the Business Profile edit. */}
+        <p class="hours-strip">
+          {status.state === "closed-today" && (
+            <span class="hours-status hours-status-closed">Closed today</span>
+          )}
+          {status.state === "open" && (
+            <>
+              <span class="hours-status">Open</span>
+              <span class="hours-dot" aria-hidden="true">·</span>
+              <span class="hours-times">until {status.closeLabel}</span>
+            </>
+          )}
+          {status.state === "before-open" && (
+            <>
+              <span class="hours-status hours-status-closed">Closed</span>
+              <span class="hours-dot" aria-hidden="true">·</span>
+              <span class="hours-times">opens {status.openLabel}</span>
+            </>
+          )}
+          {status.state === "after-close" && (
+            <span class="hours-status hours-status-closed">Closed for tonight</span>
+          )}
         </p>
 
         <address class="footer-address">
@@ -379,6 +457,7 @@ const UTILITY_LINKS = [
     color: var(--warm-white);
   }
   .hours-strip .hours-status { color: var(--glow); }
+  .hours-strip .hours-status-closed { color: var(--warm-dim); }
   .hours-strip .hours-dot { color: var(--warm-dim); margin: 0 0.5em; }
 
   .footer-address {

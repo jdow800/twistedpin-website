@@ -45,6 +45,97 @@ export function hoursLabel(day: DayKey): string {
 }
 
 /**
+ * Parse our human label format ("3pm", "11am", "12pm", "11:30am", "1am")
+ * into minutes since midnight. Returns null on unparseable input.
+ *
+ * "12am" = 0, "12pm" = 720, "1pm" = 780, "11pm" = 1380.
+ */
+export function parseTimeLabel(label: string): number | null {
+  const m = label.trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?(am|pm)$/);
+  if (!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = m[2] ? parseInt(m[2], 10) : 0;
+  const period = m[3];
+  if (h === 12) h = 0;
+  if (period === "pm") h += 12;
+  return h * 60 + min;
+}
+
+export interface DayWindow {
+  /** Minutes since midnight of open. */
+  openMinutes: number;
+  /** Minutes since midnight of close. >= 1440 if close wraps past midnight. */
+  closeMinutes: number;
+  /** Short open label e.g. "3pm" / "11am" — used in "Opens {x}" copy. */
+  openLabel: string;
+  /** Short close label e.g. "11pm" / "1am" — used in "until {x}" copy. */
+  closeLabel: string;
+}
+
+/** Static-data window for a given day, parsed to minutes. Used as fallback when live hours aren't available. */
+export function staticWindow(day: DayKey): DayWindow | null {
+  const h = HOURS[day];
+  const openMinutes = parseTimeLabel(h.open);
+  const closeMinutesRaw = parseTimeLabel(h.close);
+  if (openMinutes === null || closeMinutesRaw === null) return null;
+  // Close wraps past midnight when close < open (e.g. open 2pm, close 1am).
+  const closeMinutes = closeMinutesRaw <= openMinutes ? closeMinutesRaw + 24 * 60 : closeMinutesRaw;
+  return { openMinutes, closeMinutes, openLabel: h.open, closeLabel: h.close };
+}
+
+/**
+ * Current minute-of-day in venue-local time (Central). Used by isOpenNow
+ * so build-server UTC doesn't misalign with venue local time.
+ *
+ * Returns minutes since midnight in America/Chicago. Note this can be ahead
+ * of or behind UTC depending on DST.
+ */
+export function nowMinutesCentral(now: Date = new Date()): number {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  // en-US with hour12: false returns "HH:MM" (or "24:MM" at midnight on some Node versions).
+  const parts = fmt.format(now).match(/^(\d{1,2}):(\d{2})$/);
+  if (!parts) return now.getHours() * 60 + now.getMinutes();
+  const h = parseInt(parts[1], 10) % 24;
+  const m = parseInt(parts[2], 10);
+  return h * 60 + m;
+}
+
+/**
+ * Is the venue open right now?
+ *
+ * Handles past-midnight close: if today's window has closeMinutes >= 1440
+ * AND the current time is between 0 and (closeMinutes - 1440), the venue
+ * is still open from yesterday's window. Caller passes today's window AND
+ * yesterday's window for that case.
+ */
+export function isOpenNow(
+  todayWindow: DayWindow | null,
+  yesterdayWindow: DayWindow | null,
+  nowMin: number = nowMinutesCentral(),
+): boolean {
+  // Yesterday's window may still be open into early morning (e.g. Fri 2pm – 1am
+  // means Saturday at 12:30am is still inside Friday's window).
+  if (yesterdayWindow && yesterdayWindow.closeMinutes >= 24 * 60) {
+    const carryClose = yesterdayWindow.closeMinutes - 24 * 60;
+    if (nowMin < carryClose) return true;
+  }
+  if (!todayWindow) return false;
+  return nowMin >= todayWindow.openMinutes && nowMin < todayWindow.closeMinutes;
+}
+
+/** Previous day's key — used to check if last night's late-close window is still active. */
+export function previousDay(day: DayKey): DayKey {
+  const order: DayKey[] = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const i = order.indexOf(day);
+  return order[(i - 1 + 7) % 7];
+}
+
+/**
  * JS Date.getDay() returns 0 (Sun) through 6 (Sat). Map to our
  * DayKey order so getDay() can index this array directly.
  */
