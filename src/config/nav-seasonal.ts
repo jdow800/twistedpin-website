@@ -47,6 +47,24 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     showFrom: "2026-11-15",
     showUntil: "2027-01-02",
   },
+  /**
+   * Free Summer Bowling for Kids: page lives at /free-kids-bowling/
+   * year-round (legacy slug from twistedpin.com — preserves any inbound
+   * SEO). Surfaces in the "Visit" drawer section from Apr 15 → Sep 1
+   * so it's promoted across summer-planning + program-running months
+   * without crowding off-season nav. Program window is currently
+   * June 1-30 with a "we'll extend" aside; the drawer window
+   * intentionally brackets that wider so parents can find it before
+   * the program starts and after if it gets extended.
+   */
+  {
+    label: "Free Kids Bowling",
+    href: "/free-kids-bowling/",
+    icon: "bowling-pin",
+    section: "Visit",
+    showFrom: "2026-04-15",
+    showUntil: "2026-09-01",
+  },
 ];
 
 /** Active items at build time. Returns only items inside their window. */

@@ -2,42 +2,29 @@
 /**
  * /coupon — $10 lane credit signup.
  *
- * Built 2026-05-05 to replace the legacy iframe-driven page (Patch
- * Retention's hosted form) with a native, brand-styled form. Same
- * underlying mechanic — collect first/last name, birthday, mobile,
- * email, opt-in — and POST to Patch's /v2/contacts upsert endpoint.
- * Patch's automation (configured in their dashboard) sends the SMS
- * with the coupon code.
+ * 2026-05-07: reverted from native Astro form + Patch Retention API to
+ * an embedded iframe wrapper. The Patch trigger pattern (DOI + coupon
+ * SMS dispatch) was open pending Patch support response, and the user
+ * wanted to abandon that integration for now and ship something that
+ * matches the legacy live behavior. The iframe URL points at the same
+ * hosted form behind the live twistedpin.com page, so the existing
+ * SMS/email automation continues to work end-to-end without us
+ * re-implementing it.
+ *
+ * Architecture: brand chrome + iframe. Same wrap pattern as /waitlist.
+ *
+ * Future revisit: when Patch support clarifies the API trigger pattern,
+ * the native-form version (commit history, before this commit) can be
+ * revived. For now, the iframe is the pragmatic ship.
  *
  * Voice rule: live page headline is "$10 OFF Open Bowling Certificate!"
  * which clashes with the hard ban on discount/off/deals language.
- * Reframed to "$10 lane credit" — same reframe pattern used on
- * /rewards. Drops the discount framing while preserving the dollar
- * amount that's the actual offer.
- *
- * Architecture:
- *   browser form → POST /api/coupon-signup (our Astro endpoint)
- *                → PATCH api.patchretention.com/v2/contacts (upsert)
- *
- * The API key is held server-side only (env var). Browser never sees
- * it. CORS isn't a concern since we proxy through our own origin.
- *
- * Required env vars (set in Vercel):
- *   PATCH_API_KEY        — Bearer token from Patch dashboard
- *   PATCH_TAG            — tag applied to new signups (e.g. "coupon_10_lane")
- *                          Patch automation triggers off this tag.
- *
- * TCPA compliance: explicit consent checkbox tied to the disclosure
- * copy. Required for SMS opt-in under TCPA. Disclosure mirrors the
- * legacy page's text + adds the path to /privacy and /terms.
- *
- * Birthday: Patch's default upsert body doesn't include `birthday` —
- * it's likely a custom field set up in the Patch dashboard. The
- * server endpoint sends it as `birthday: "MM-DD"` and the user
- * verifies the field name + format in Patch.
+ * Reframed to "$10 lane credit" — same reframe pattern used on /rewards.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const COUPON_FORM_URL = "https://c-g.co/xORo1J";
 ---
 <Base
   title="$10 Lane Credit — Twisted Pin Plainfield IL"
@@ -62,86 +49,26 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="coupon-form-h2" style="font-size:11px;">Sign Up</h2>
 
-      <form class="coupon-form" id="coupon-form" novalidate>
-        <div class="coupon-row">
-          <label class="coupon-field">
-            <span class="coupon-label">First name</span>
-            <input type="text" name="first_name" autocomplete="given-name" required />
-          </label>
-          <label class="coupon-field">
-            <span class="coupon-label">Last name</span>
-            <input type="text" name="last_name" autocomplete="family-name" required />
-          </label>
-        </div>
-
-        <label class="coupon-field">
-          <span class="coupon-label">Birthday</span>
-          <input
-            type="text"
-            name="birthday"
-            inputmode="numeric"
-            autocomplete="bday"
-            placeholder="MM / DD"
-            pattern="^(0?[1-9]|1[0-2]) ?/ ?(0?[1-9]|[12][0-9]|3[01])$"
-            maxlength="7"
-            required
-            aria-describedby="birthday-help"
-          />
-          <span class="coupon-help" id="birthday-help">Month and day, like 04 / 17. We use it to send a birthday surprise.</span>
-        </label>
-
-        <label class="coupon-field">
-          <span class="coupon-label">Mobile number</span>
-          <input
-            type="tel"
-            name="phone"
-            autocomplete="tel-national"
-            inputmode="numeric"
-            pattern="[0-9 ()+\-]*"
-            placeholder="(555) 555-5555"
-            required
-          />
-        </label>
-
-        <label class="coupon-field">
-          <span class="coupon-label">Email</span>
-          <input type="email" name="email" autocomplete="email" required />
-        </label>
-
-        <label class="coupon-consent">
-          <input type="checkbox" name="consent" required />
-          <span>
-            I agree to receive recurring text messages and emails from
-            Twisted Pin. Message frequency varies. Message and data
-            rates may apply. Reply STOP to opt out, HELP for help.
-            See our <a href="/terms/">Terms</a> and
-            <a href="/privacy/">Privacy Policy</a>.
-          </span>
-        </label>
-
-        <button type="submit" class="btn btn-solid coupon-submit" data-coupon-submit>
-          Send me the code
-        </button>
-
-        <p class="coupon-status" data-coupon-status role="status" aria-live="polite"></p>
-      </form>
-
-      <div class="coupon-success" data-coupon-success hidden>
-        <h2 class="t-display coupon-success-h">You're in.</h2>
-        <p class="coupon-success-body">
-          Check your phone — your $10 lane code is on its way. Bring
-          it to the front desk on your next visit, or use it on a
-          Fast Lane reservation online.
-        </p>
-        <p class="coupon-success-meta">
-          Didn't get it? Text us at <a href="tel:+18157827790">815-782-7790</a>
-          or email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.
-        </p>
+      <div class="coupon-frame">
+        <iframe
+          src={COUPON_FORM_URL}
+          title="Sign up to receive your $10 lane credit"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          class="coupon-iframe"
+        ></iframe>
       </div>
+
+      <p class="coupon-fallback">
+        Form not loading?
+        <a href={COUPON_FORM_URL} target="_blank" rel="noopener noreferrer">
+          Open it in a new tab &rarr;
+        </a>
+      </p>
 
       <p class="coupon-fineprint">
         Cannot be combined with other offers. Valid for open bowling
-        only — not events, leagues, or the VIP suite. One redemption
+        only &mdash; not events, leagues, or the VIP suite. One redemption
         per customer.
       </p>
     </div>
@@ -150,224 +77,48 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   <SnapFooter />
 </Base>
 
-<script>
-  /* Submission flow:
-   *   1. Validate required fields (browser-native via [required])
-   *   2. POST JSON to /api/coupon-signup
-   *   3. On success, hide form + show success block
-   *   4. On error, surface the server message in the status line —
-   *      don't auto-clear, so user can correct + retry */
-  const form = document.getElementById("coupon-form") as HTMLFormElement | null;
-  const status = document.querySelector("[data-coupon-status]") as HTMLElement | null;
-  const submit = document.querySelector("[data-coupon-submit]") as HTMLButtonElement | null;
-  const success = document.querySelector("[data-coupon-success]") as HTMLElement | null;
-
-  if (form && status && submit && success) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      submit.disabled = true;
-      submit.textContent = "Sending…";
-      status.textContent = "";
-      status.removeAttribute("data-error");
-
-      const fd = new FormData(form);
-      const payload = {
-        first_name: String(fd.get("first_name") || "").trim(),
-        last_name:  String(fd.get("last_name")  || "").trim(),
-        phone:      String(fd.get("phone")      || ""),
-        email:      String(fd.get("email")      || "").trim(),
-        birthday:   String(fd.get("birthday")   || "").trim(),
-        consent:    fd.get("consent") === "on",
-      };
-
-      try {
-        const res = await fetch("/api/coupon-signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok) {
-          throw new Error(data.error || `Request failed (${res.status})`);
-        }
-
-        form.hidden = true;
-        success.hidden = false;
-        success.scrollIntoView({ behavior: "smooth", block: "center" });
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : "Something went wrong";
-        status.textContent = msg + ". Try again, or text us at 815-782-7790.";
-        status.setAttribute("data-error", "true");
-        submit.disabled = false;
-        submit.textContent = "Send me the code";
-      }
-    });
-  }
-</script>
-
 <style>
   /* ============================================================
-     Coupon form — same visual register as t2 utility pages, with
-     form-specific surfaces (input chrome, error states, consent row).
+     /coupon iframe frame — same chrome register as /waitlist.
+     Kept Indigo Deep backstop so any load-state gap reads dark,
+     not blank white.
      ============================================================ */
 
   .coupon-section .t2-section-inner {
-    max-width: 520px;
+    max-width: 560px;
   }
 
-  .coupon-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  .coupon-frame {
+    position: relative;
     margin-top: 16px;
-  }
-
-  .coupon-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .coupon-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border: 0;
-    padding: 0;
-    margin: 0;
-    min-width: 0;
-  }
-
-  .coupon-help {
-    font-family: var(--font-body);
-    font-size: 12.5px;
-    line-height: 1.4;
-    color: var(--warm-dim);
-    margin-top: 2px;
-  }
-
-  .coupon-label {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--warm-mid);
-    padding: 0;
-  }
-
-  .coupon-form input[type="text"],
-  .coupon-form input[type="tel"],
-  .coupon-form input[type="email"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 100%;
-    padding: 12px 14px;
-    background: rgba(244, 239, 227, 0.06);
-    border: 1px solid rgba(244, 239, 227, 0.14);
-    border-radius: var(--radius-button);
-    color: var(--warm-white);
-    font-family: var(--font-body);
-    font-size: 16px; /* ≥16px to prevent iOS zoom-on-focus */
-    line-height: 1.4;
-    transition: border-color 150ms ease-out, background-color 150ms ease-out;
-  }
-  .coupon-form input::placeholder { color: var(--warm-dim); }
-
-  .coupon-form input:focus-visible {
-    outline: none;
-    border-color: var(--glow);
-    background: rgba(78, 236, 196, 0.06);
-  }
-
-  /* Consent — checkbox + small print row. */
-  .coupon-consent {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    margin-top: 4px;
-    font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--warm-dim);
-    cursor: pointer;
-  }
-  .coupon-consent input[type="checkbox"] {
-    flex: 0 0 18px;
-    width: 18px;
-    height: 18px;
-    margin-top: 2px;
-    accent-color: var(--glow);
-    cursor: pointer;
-  }
-  .coupon-consent a {
-    color: var(--warm-mid);
-    text-decoration: underline;
-    text-underline-offset: 2px;
-  }
-  .coupon-consent a:hover { color: var(--glow); }
-
-  .coupon-submit {
-    margin-top: 8px;
-    width: 100%;
-    padding: 14px 18px;
-    font-size: 13px;
-  }
-  .coupon-submit:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-
-  .coupon-status {
-    margin: 0;
-    min-height: 1.4em;
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.4;
-    color: var(--warm-dim);
-  }
-  .coupon-status[data-error] { color: #ff8a8a; }
-
-  /* Success state — replaces the form on submit. Kept out of the
-     normal flow until JS reveals it. */
-  .coupon-success {
-    margin-top: 16px;
-    padding: 28px 22px;
-    background: rgba(78, 236, 196, 0.06);
-    border: 1px solid rgba(78, 236, 196, 0.30);
+    overflow: hidden;
     border-radius: var(--radius-surface);
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    box-shadow:
+      0 8px 16px rgba(0, 0, 0, 0.30),
+      0 24px 48px rgba(0, 0, 0, 0.45);
+    background: #0E0A1F;
   }
-  .coupon-success-h {
-    margin: 0 0 12px;
-    font-size: clamp(34px, 8vw, 48px);
-    line-height: 0.95;
-    color: var(--warm-white);
+
+  .coupon-iframe {
+    display: block;
+    width: 100%;
+    height: 1100px; /* matches the legacy live embed sizing */
+    border: 0;
   }
-  .coupon-success-body {
-    margin: 0 0 14px;
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.5;
-    color: var(--warm-mid);
-  }
-  .coupon-success-meta {
-    margin: 0;
-    font-family: var(--font-body);
+
+  .coupon-fallback {
+    margin-top: 14px;
+    font-family: var(--font-ui);
     font-size: 13px;
-    line-height: 1.5;
     color: var(--warm-dim);
   }
-  .coupon-success a {
+  .coupon-fallback a {
     color: var(--glow);
-    text-decoration: underline;
-    text-underline-offset: 2px;
+    text-decoration: none;
+    margin-left: 6px;
   }
+  .coupon-fallback a:hover { text-decoration: underline; }
 
   .coupon-fineprint {
     margin-top: 32px;

@@ -21,7 +21,6 @@
     { "source": "/birthday-parties-booking{/}?", "destination": "/events/#birthday", "permanent": true },
     { "source": "/fundraiser{/}?", "destination": "/events/#fundraiser", "permanent": true },
     { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
-    { "source": "/free-kids-bowling{/}?", "destination": "/bowl/", "permanent": true },
 
     { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
 

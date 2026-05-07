@@ -1,0 +1,334 @@
+---
+/**
+ * /free-kids-bowling — summer free-kids-bowling program signup.
+ *
+ * Shipped 2026-05-07. Reuses the legacy slug from twistedpin.com so any
+ * inbound links / search history are preserved. The 308 redirect that
+ * pointed /free-kids-bowling/ -> /bowl/ (set when the program wasn't
+ * running) is removed at the same time as this commit.
+ *
+ * Naming note: the national program is "Kids Bowl Free" (TM'd by another
+ * operator). We can't use that exact phrase. "Free Summer Bowling For
+ * Kids" / "Free Kids Bowling" are descriptive and don't infringe.
+ *
+ * Page job (in priority order):
+ *   1. BLUF — first viewport answers "what is this, who's it for, when"
+ *   2. Capture the signup (iframe, hosted form behind c-g.co/OskPxh)
+ *   3. Pin Pass upsell (the kids program is free; the Pin Pass converts
+ *      the family that bowls beyond weekday mornings)
+ *   4. SEO body block (hyper-local — Naperville, Romeoville, Shorewood,
+ *      Bolingbrook, Joliet, Oswego — per the 2026-05-07 SEO research's
+ *      hyper-local recommendation)
+ *
+ * Voice register: family-targeted, but parent is the decision-maker.
+ * Adults-first thesis still holds — "while the kids bowl, you get the
+ * bar program" reframe replaces the original copy's "premier
+ * entertainment destination" boilerplate. Specifics > adjectives:
+ * dollar amounts, ages, days, hours all named.
+ *
+ * TODOs (ops-side, non-blocking):
+ *   - Confirm the program window if it shifts (currently June 1-30 with
+ *     a "we'll extend it if it goes well" aside).
+ *   - Confirm pricing for adults/teens ($6.95/game listed; pulled from
+ *     the user-supplied existing copy 2026-05-07).
+ *   - Real photography for this page is welcome but not blocking — the
+ *     page is text + iframe + brand chrome.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const SIGNUP_FORM_URL = "https://c-g.co/OskPxh";
+const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/home";
+---
+<Base
+  title="Free Summer Bowling for Kids — Twisted Pin Plainfield IL"
+  description="Free summer bowling for kids 12 and under at Twisted Pin in Plainfield, IL. Two games per day, Monday-Friday 11am-4pm, June 1-30. Open to families across Naperville, Romeoville, Shorewood, Bolingbrook, Oswego, and Joliet."
+>
+
+  {/* ============================================================
+      HERO — typography-led; BLUF in the sub line so AI Overview /
+      voice-search extraction lands the offer immediately.
+      ============================================================ */}
+  <section class="t2-hero" data-hero aria-labelledby="fkb-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Summer Program</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="fkb-h1" data-delay-ms="120">
+        Free summer bowling for&nbsp;kids.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Two games per day for kids 12 and under. Monday&ndash;Friday,
+        11am&ndash;4pm. June 1&ndash;30 &mdash; we'll extend it if the room shows up.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      SIGNUP IFRAME — same wrap pattern as /coupon and /waitlist.
+      Hosted form behind c-g.co; brand chrome around it.
+      ============================================================ */}
+  <section class="t2-section fkb-section" aria-labelledby="fkb-form-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="fkb-form-h2" style="font-size:11px;">Sign Up</h2>
+
+      <div class="fkb-frame">
+        <iframe
+          src={SIGNUP_FORM_URL}
+          title="Free Summer Bowling for Kids signup"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          class="fkb-iframe"
+        ></iframe>
+      </div>
+
+      <p class="fkb-fallback">
+        Form not loading?
+        <a href={SIGNUP_FORM_URL} target="_blank" rel="noopener noreferrer">
+          Open it in a new tab &rarr;
+        </a>
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      HOW IT WORKS — program details in plain language.
+      ============================================================ */}
+  <section class="t2-section fkb-section--editorial" aria-labelledby="fkb-how-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">The Details</p>
+      <h2 class="t-display fkb-section-title" id="fkb-how-h2">
+        How it works.
+      </h2>
+      <p class="fkb-section-body">
+        Sign up above, then bring the kids in any weekday between
+        11am and 4pm. They get two free games on the traditional lanes.
+        That's it &mdash; that's the program.
+      </p>
+      <p class="fkb-section-body">
+        Adults and teens (13+) can bowl alongside at <strong>$6.95
+        per game</strong>. Shoe rental still applies ($5.95 per pair).
+        Walk-in friendly during the kids window; if you're rolling in
+        with a group, call ahead so we can save you the lanes.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHILE THE KIDS BOWL — adults-first reframe. The "premier
+      entertainment destination" line in the original copy gets
+      replaced with the brand thesis: bar program, then everything else.
+      ============================================================ */}
+  <section class="t2-section fkb-section--editorial" aria-labelledby="fkb-parents-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">For the Parents</p>
+      <h2 class="t-display fkb-section-title" id="fkb-parents-h2">
+        While the kids bowl.
+      </h2>
+      <p class="fkb-section-body">
+        Twisted Pin runs a bar program built by <em>America's Top
+        Mixologist</em>. Twenty-eight self-serve taps. A chef-driven
+        kitchen. A real arcade. None of it is the consolation prize.
+      </p>
+      <ul class="fkb-list">
+        <li>28-tap self-serve beer &amp; wine wall</li>
+        <li>Craft cocktails by America's Top Mixologist</li>
+        <li>Chef-driven kitchen and shared plates</li>
+        <li>State-of-the-art arcade</li>
+        <li>6-lane VIP suite (yours for the night when you book it)</li>
+      </ul>
+    </div>
+  </section>
+
+  {/* ============================================================
+      PIN PASS UPSELL — the family that bowls more than weekday
+      mornings should know about the unlimited pass. Solid Glow
+      callout so it earns its weight.
+      ============================================================ */}
+  <section class="t2-section fkb-pinpass-section" aria-labelledby="fkb-pinpass-h2">
+    <div class="t2-section-inner fkb-pinpass-inner">
+      <p class="t-eyebrow fkb-pinpass-eyebrow">Bowling all summer?</p>
+      <h2 class="t-display fkb-pinpass-title" id="fkb-pinpass-h2">
+        Summer Pin Pass.
+      </h2>
+      <p class="fkb-section-body">
+        <strong>$159.95</strong> covers your whole household. Unlimited
+        1.5-hour bowling visits every day, all summer &mdash; weekends and
+        evenings included. The kids program above runs weekdays
+        11&ndash;4. The Pin Pass is what you grab if bowling becomes
+        a weekly thing.
+      </p>
+      <a class="btn btn-solid" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
+        Get the Summer Pin Pass
+      </a>
+    </div>
+  </section>
+
+  {/* ============================================================
+      SEO BODY — hyper-local block. Per 2026-05-07 SEO research,
+      neighborhood/landmark/city-name density (not generic "near you")
+      is what holds up against AI Overview citation.
+      ============================================================ */}
+  <section class="t2-section fkb-section--editorial" aria-labelledby="fkb-seo-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-display fkb-section-title" id="fkb-seo-h2">
+        Free kids bowling near you.
+      </h2>
+      <p class="fkb-section-body">
+        Twisted Pin sits at 15610 S Joliet Rd in Plainfield, IL &mdash;
+        ten minutes from Naperville, Bolingbrook, Romeoville, Shorewood,
+        Oswego, and Joliet. The free kids bowling program runs all
+        summer on the traditional lanes, weekdays 11am to 4pm. No
+        purchase required, no membership, no gimmick.
+      </p>
+      <p class="fkb-section-body">
+        The closest free kids bowling option for families in the I-55
+        corridor and 248-school-district area. Bring the kids, sign up
+        in 30 seconds, and have a place to land on long summer
+        afternoons that's air-conditioned, supervised, and a short drive.
+      </p>
+      <p class="fkb-section-body fkb-meta">
+        Twisted Pin &middot; 15610 S Joliet Rd, Plainfield, IL 60544
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  /* ============================================================
+     /free-kids-bowling — same chrome register as /coupon and
+     /waitlist iframe wrappers, plus extra editorial sections that
+     borrow the .t2-section pattern. Class names .fkb-* so this
+     stays self-contained until the .pillar-* / .t2-* CSS hoist
+     happens (flagged in media-needs.md).
+     ============================================================ */
+
+  .fkb-section .t2-section-inner {
+    max-width: 560px;
+  }
+
+  /* ---------- iframe frame ---------- */
+  .fkb-frame {
+    position: relative;
+    margin-top: 16px;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    box-shadow:
+      0 8px 16px rgba(0, 0, 0, 0.30),
+      0 24px 48px rgba(0, 0, 0, 0.45);
+    background: #0E0A1F;
+  }
+
+  .fkb-iframe {
+    display: block;
+    width: 100%;
+    height: 1100px; /* matches the legacy live embed sizing */
+    border: 0;
+  }
+
+  .fkb-fallback {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    color: var(--warm-dim);
+  }
+  .fkb-fallback a {
+    color: var(--glow);
+    text-decoration: none;
+    margin-left: 6px;
+  }
+  .fkb-fallback a:hover { text-decoration: underline; }
+
+  /* ---------- editorial sections ---------- */
+  .fkb-section--editorial .t2-section-inner {
+    max-width: 720px;
+  }
+
+  .fkb-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 10px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .fkb-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .fkb-section-body {
+    margin: 0 0 14px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .fkb-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+  .fkb-section-body em { font-style: italic; }
+  .fkb-section-body strong { color: var(--warm-white); }
+
+  .fkb-meta {
+    margin-top: 24px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-dim);
+  }
+
+  .fkb-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .fkb-list { font-size: 17.5px; }
+  }
+  .fkb-list li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 6px;
+  }
+  .fkb-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 1px;
+    background: var(--glow);
+  }
+
+  /* ---------- Pin Pass upsell — Glow-bordered callout ---------- */
+  .fkb-pinpass-section {
+    background: transparent;
+  }
+  .fkb-pinpass-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 28px 22px;
+    border: 1px solid rgba(78, 236, 196, 0.30);
+    border-radius: var(--radius-surface);
+    background: rgba(78, 236, 196, 0.05);
+  }
+  @media (min-width: 1025px) {
+    .fkb-pinpass-inner { padding: 36px 40px; }
+  }
+  .fkb-pinpass-eyebrow { color: var(--glow); }
+  .fkb-pinpass-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 6px 0 12px;
+  }
+  @media (min-width: 1025px) {
+    .fkb-pinpass-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+  .fkb-pinpass-section .btn { margin-top: 18px; }
+</style>
