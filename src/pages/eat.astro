@@ -72,13 +72,15 @@ const foodMenu = await getFood();
     <div class="eat-section-grid">
       <div class="eat-section-frame">
         <picture>
-          <source type="image/webp" srcset="/snap/stage-eat-600.webp" />
+          <source type="image/webp" srcset="/snap/eat-kitchen-540.webp 540w, /snap/eat-kitchen-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
           <img
             class="eat-section-img"
-            src="/snap/stage-eat-600.jpg"
-            alt="Plates from the Twisted Pin kitchen"
-            width="600"
-            height="1067"
+            src="/snap/eat-kitchen-540.jpg"
+            srcset="/snap/eat-kitchen-540.jpg 540w, /snap/eat-kitchen-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="Chafers of chips, salsa, guacamole, and wings on a buffet at Twisted Pin"
+            width="540"
+            height="960"
             loading="lazy"
             decoding="async"
           />
@@ -119,11 +121,13 @@ const foodMenu = await getFood();
     <div class="eat-section-grid">
       <div class="eat-section-frame">
         <picture>
-          <source type="image/webp" srcset="/snap/stage-eat-540.webp" />
+          <source type="image/webp" srcset="/snap/eat-share-540.webp 540w, /snap/eat-share-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
           <img
             class="eat-section-img"
-            src="/snap/stage-eat-540.jpg"
-            alt="Shareable plates set for a group at Twisted Pin"
+            src="/snap/eat-share-540.jpg"
+            srcset="/snap/eat-share-540.jpg 540w, /snap/eat-share-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A platter of saucy wings on a chafer at Twisted Pin"
             width="540"
             height="960"
             loading="lazy"

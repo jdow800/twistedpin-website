@@ -124,6 +124,43 @@ const SOURCES = [
   // swaps from <picture> to <video data-section-video> + lazy-source
   // pattern (matches Tap Wall).
   { src: "events-catering/DSC00785-Enhanced-NR.jpg", name: "events-bg", aspect: [9, 16], widths: [540, 600] },
+
+  // ===========================================================
+  // Inner-page editorial slots (2026-05-07).
+  // Distinct from homepage cluster shots so /bar, /eat, /vip-suite,
+  // /game, /events stop reusing the homepage section photos. All
+  // 9:16 cover-cropped to match the inner-page editorial frame
+  // pattern; widths [540, 900] cover the displayed 1x + 2x retina
+  // range without requiring source enlargement.
+  // ===========================================================
+
+  // /bar cocktails section (also reused on /events cocktails section)
+  // — copper-shaker pour. visual-direction.md cornerstone-A asset,
+  // previously unused. Distinct from homepage's AIV01592 (cherry OF).
+  { src: "AIV01579.jpg", name: "bar-cocktails", aspect: [9, 16], widths: [540, 900] },
+
+  // /eat "Kitchen" section — chafer-buffet w/ chips, salsa, guac,
+  // wings; scribble-art on back wall (brand-asset bonus).
+  { src: "events-catering/DSC_0344.jpg", name: "eat-kitchen", aspect: [9, 16], widths: [540, 900] },
+
+  // /eat "Built to Share" — close-up wings chafer, dramatic chrome+orange.
+  { src: "events-catering/DSC_0348.jpeg", name: "eat-share", aspect: [9, 16], widths: [540, 900] },
+
+  // /vip-suite "What You Can Do" — full party setup in the VIP suite:
+  // VIP1-4 lane signage, custom "ARIA" name decor with bowling-pin
+  // accents, gold/pink/white balloons, teal seating. The "what you
+  // can actually do here" shot the slot has been waiting for.
+  { src: "events-catering/IMG_9617.jpg", name: "vip-energy", aspect: [9, 16], widths: [540, 900] },
+
+  // /game top — full-neon arcade environment. visual-direction.md
+  // explicitly endorses neon-saturated arcade shots on /game (off-limits
+  // on homepage). Replaces a wrong-content events-bg reuse.
+  { src: "ArcadeHeyFlow.jpg", name: "game-arcade", aspect: [9, 16], widths: [540, 900] },
+
+  // /game lower — neon-detail arcade closeup. Different framing from
+  // the top (environmental → detail) so the page reads as two beats,
+  // not one repeated shot.
+  { src: "DSC_0569.jpg", name: "game-neon", aspect: [9, 16], widths: [540, 900] },
 ];
 
 async function exists(p) {

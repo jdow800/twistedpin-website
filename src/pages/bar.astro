@@ -28,10 +28,9 @@
  *   - "View what's on tap" CTA: GoTab API integration future. Link is "#".
  *   - "View cocktail menu" CTA: GoTab API integration future. Link is "#".
  *   - 5 signature cocktail names + descriptions are placeholders.
- *   - Cocktail editorial photos for the Cocktails section: stand-in is
- *     cocktails-bg-540 (same as homepage). AIV01579 (copper shaker pour)
- *     and AIV01592 (cherry old fashioned) per visual-direction.md are the
- *     targets when real photography lands.
+ *   - Cocktail editorial photo: bar-cocktails-* (AIV01579 copper-shaker
+ *     pour, encoded 2026-05-07). Distinct from homepage's AIV01592
+ *     (cherry old fashioned).
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -123,11 +122,13 @@ const cocktailMenu = await getCocktails();
     <div class="bar-section-grid">
       <div class="bar-section-frame">
         <picture>
-          <source type="image/webp" srcset="/snap/cocktails-bg-540.webp" />
+          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
           <img
             class="bar-section-img"
-            src="/snap/cocktails-bg-540.jpg"
-            alt="A craft cocktail at Twisted Pin's bar"
+            src="/snap/bar-cocktails-540.jpg"
+            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
             width="540"
             height="960"
             loading="lazy"

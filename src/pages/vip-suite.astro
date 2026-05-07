@@ -115,11 +115,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <div class="vip-section-grid">
       <div class="vip-section-frame">
         <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp" />
+          <source type="image/webp" srcset="/snap/vip-energy-540.webp 540w, /snap/vip-energy-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
           <img
             class="vip-section-img"
-            src="/snap/events-bg-540.jpg"
-            alt="A group celebrating in the VIP suite at Twisted Pin"
+            src="/snap/vip-energy-540.jpg"
+            srcset="/snap/vip-energy-540.jpg 540w, /snap/vip-energy-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The VIP suite at Twisted Pin set up for a custom birthday party with named signage and balloons"
             width="540"
             height="960"
             loading="lazy"
