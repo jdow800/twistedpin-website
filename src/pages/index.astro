@@ -171,8 +171,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       subhead="Built by America's Top Mixologist."
       subheadParen="their words, not ours"
       href="/bar/"
-      image="cocktails-bg"
-      imageAlt="A cherry-garnished old fashioned in soft bokeh at Twisted Pin"
+      video="cocktails-hero"
+      imageAlt="Cocktail being built behind the bar at Twisted Pin"
       class="mobile-only"
     />
 
@@ -212,8 +212,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       subhead="Skee-ball, redemption, jackpot."
       subheadParen="don't pretend you don't want the giant bear"
       href="/game/"
-      image="stage-game"
-      imageAlt="Arcade prize wall at Twisted Pin"
+      video="arcade"
+      imageAlt="Arcade games at Twisted Pin"
       class="mobile-only"
     />
 
@@ -286,10 +286,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <section class="snap-section desktop-only desktop-cocktails" aria-labelledby="desktop-cocktails-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <picture>
-            <source type="image/webp" srcset="/snap/cocktails-bg-540.webp 540w, /snap/cocktails-bg-900.webp 900w" sizes="(min-width: 1280px) 405px, 32vw" />
-            <img class="cluster-img" src="/snap/cocktails-bg-900.jpg" srcset="/snap/cocktails-bg-540.jpg 540w, /snap/cocktails-bg-900.jpg 900w" sizes="(min-width: 1280px) 405px, 32vw" alt="A cherry-garnished old fashioned in soft bokeh" width="900" height="1600" loading="lazy" decoding="async" />
-          </picture>
+          {/* Cocktails Hero video — bartender building a cocktail, autoplay-
+              muted-loop. Same single-active-video rule as Tap Wall via
+              sectionVideo() in motion.client.ts; data-src lazy-promotion. */}
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/cocktails-hero-poster.webp" aria-label="A cocktail being built behind the bar at Twisted Pin">
+            <source data-src="/snap/cocktails-hero-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/cocktails-hero-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
         </div>
         <div class="cluster-copy">
           <p class="section-eyebrow" data-reveal>The Bar</p>
@@ -343,10 +346,12 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <section class="snap-section desktop-only desktop-game" aria-labelledby="desktop-game-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <picture>
-            <source type="image/webp" srcset="/snap/stage-game-540.webp 540w, /snap/stage-game-900.webp 900w" sizes="(min-width: 1280px) 405px, 32vw" />
-            <img class="cluster-img" src="/snap/stage-game-900.jpg" srcset="/snap/stage-game-540.jpg 540w, /snap/stage-game-900.jpg 900w" sizes="(min-width: 1280px) 405px, 32vw" alt="Arcade prize wall at Twisted Pin" width="900" height="1600" loading="lazy" decoding="async" />
-          </picture>
+          {/* Arcade video — autoplay-muted-loop, 6s window. Same lazy-
+              loaded pattern as Cocktails / Tap Wall / Buffet. */}
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/arcade-poster.webp" aria-label="Arcade games at Twisted Pin">
+            <source data-src="/snap/arcade-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
         </div>
         <div class="cluster-copy">
           <p class="section-eyebrow" data-reveal>Arcade</p>

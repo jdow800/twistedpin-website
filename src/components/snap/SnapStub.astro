@@ -35,23 +35,47 @@ interface Props {
    *  in AVIF + WebP + JPG. When provided, the section renders with a full-
    *  bleed photo background + scrim instead of the solid-Indigo treatment. */
   image?: string;
-  /** Optional alt text for the background image (a11y). Defaults to empty
-   *  since the image is decorative — the section title carries the meaning. */
+  /** Optional video slug — e.g. "cocktails-hero" pulls /snap/cocktails-hero-
+   *  mobile-{av1,h264}-{540,1080}.mp4 + /snap/cocktails-hero-poster.webp.
+   *  Takes precedence over `image` when both are set. Lazy-loaded via the
+   *  same sectionVideo() motion module that powers the homepage Tap Wall. */
+  video?: string;
+  /** Optional alt / aria-label for the background media (a11y). Defaults to
+   *  empty since the media is decorative — the section title carries the
+   *  meaning. Used as `alt` for image and `aria-label` for video. */
   imageAlt?: string;
   /** Extra classes applied to the snap-section root. Used by index.astro to
    *  flag stubs as `mobile-only` so they collapse on desktop while the
    *  desktop-track sections take over. */
   class?: string;
 }
-const { title, subhead, subheadParen, href = "#", label, image, imageAlt = "", class: className = "" } = Astro.props;
+const { title, subhead, subheadParen, href = "#", label, image, video, imageAlt = "", class: className = "" } = Astro.props;
 const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
+// Video takes precedence over image when both are provided.
+const hasMedia = !!(video || image);
 ---
 <section
-  class:list={["snap-section", "snap-stub", image && "snap-stub--photo", className]}
+  class:list={["snap-section", "snap-stub", hasMedia && "snap-stub--photo", className]}
   aria-labelledby={ariaId}
   aria-label={label}
 >
-  {image && (
+  {video ? (
+    <video
+      class="stub-bg-video"
+      data-section-video
+      preload="none"
+      muted
+      loop
+      playsinline
+      poster={`/snap/${video}-poster.webp`}
+      aria-label={imageAlt}
+    >
+      <source media="(max-width: 480px)" data-src={`/snap/${video}-mobile-av1-540.mp4`}  type="video/mp4; codecs=av01.0.05M.08" />
+      <source media="(max-width: 480px)" data-src={`/snap/${video}-mobile-h264-540.mp4`} type="video/mp4" />
+      <source data-src={`/snap/${video}-mobile-av1-1080.mp4`}  type="video/mp4; codecs=av01.0.05M.08" />
+      <source data-src={`/snap/${video}-mobile-h264-1080.mp4`} type="video/mp4" />
+    </video>
+  ) : image && (
     <picture class="stub-bg">
       <source type="image/avif" srcset={`/snap/${image}-540.avif 540w, /snap/${image}-900.avif 900w`} sizes="100vw" />
       <source type="image/webp" srcset={`/snap/${image}-540.webp 540w, /snap/${image}-900.webp 900w`} sizes="100vw" />
@@ -68,7 +92,7 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
       />
     </picture>
   )}
-  {image && <div class="stub-scrim" aria-hidden="true"></div>}
+  {hasMedia && <div class="stub-scrim" aria-hidden="true"></div>}
   <div class="stub-inner">
     <h2 class="stub-title" id={ariaId}>{title}</h2>
     <p class="stub-sub">
@@ -114,6 +138,15 @@ const ariaId = `snap-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-h1`;
     display: block;
   }
   .stub-bg-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  .stub-bg-video {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
