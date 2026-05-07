@@ -56,8 +56,9 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
         Free summer bowling for&nbsp;kids.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Two games per day for kids 12 and under. Monday&ndash;Friday,
-        11am&ndash;4pm. June 1&ndash;30 &mdash; we'll extend it if the room shows up.
+        Two games per day for kids 12 and under.<br />
+        Monday&ndash;Friday, 11am&ndash;4pm.<br />
+        June 1&ndash;30.
       </p>
     </div>
   </section>
@@ -106,8 +107,8 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
       <p class="fkb-section-body">
         Adults and teens (13+) can bowl alongside at <strong>$6.95
         per game</strong>. Shoe rental still applies ($5.95 per pair).
-        Walk-in friendly during the kids window; if you're rolling in
-        with a group, call ahead so we can save you the lanes.
+        Walk-in only during the kids window &mdash; we don't take
+        reservations for the program.
       </p>
     </div>
   </section>
@@ -175,15 +176,16 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
       <p class="fkb-section-body">
         Twisted Pin sits at 15610 S Joliet Rd in Plainfield, IL &mdash;
         ten minutes from Naperville, Bolingbrook, Romeoville, Shorewood,
-        Oswego, and Joliet. The free kids bowling program runs all
-        summer on the traditional lanes, weekdays 11am to 4pm. No
-        purchase required, no membership, no gimmick.
+        Oswego, and Joliet. The free kids bowling program runs
+        <strong>June 1&ndash;30</strong> on the traditional lanes,
+        weekdays 11am to 4pm. No purchase required, no membership,
+        no gimmick.
       </p>
       <p class="fkb-section-body">
         The closest free kids bowling option for families in the I-55
-        corridor and 248-school-district area. Bring the kids, sign up
-        in 30 seconds, and have a place to land on long summer
-        afternoons that's air-conditioned, supervised, and a short drive.
+        corridor and across <a href="https://www.psd202.org/" target="_blank" rel="noopener">Plainfield School District 202</a>.
+        Bring the kids, sign up in 30 seconds, and have a place to land
+        on long summer weekdays that's air-conditioned and a short drive.
       </p>
       <p class="fkb-section-body fkb-meta">
         Twisted Pin &middot; 15610 S Joliet Rd, Plainfield, IL 60544
@@ -202,6 +204,23 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
      stays self-contained until the .pillar-* / .t2-* CSS hoist
      happens (flagged in media-needs.md).
      ============================================================ */
+
+  /* Override the global .t2-section mobile padding (24px 22px 56px)
+     for this page's section rhythm — the page has 5+ stacked sections
+     and the global default stacked into ~80px gaps between content
+     blocks. 15px top/bottom keeps the rhythm tight. Desktop unchanged
+     (the global desktop padding still applies via the !important-free
+     cascade since this rule is scoped to mobile). */
+  .fkb-section,
+  .fkb-pinpass-section {
+    padding: 15px 22px;
+  }
+  @media (min-width: 1025px) {
+    .fkb-section,
+    .fkb-pinpass-section {
+      padding: 32px 64px;
+    }
+  }
 
   .fkb-section .t2-section-inner {
     max-width: 560px;
