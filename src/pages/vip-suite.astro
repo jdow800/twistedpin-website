@@ -239,7 +239,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     /* Transparent so the global body::before Pin Tilt watermark shows
        through. */
     background: transparent;
-    padding: 56px 22px;
+    /* Tightened mobile padding — see /bar.astro for rationale. */
+    padding: 32px 22px;
   }
   @media (min-width: 1025px) {
     .vip-section { padding: 96px 64px; }

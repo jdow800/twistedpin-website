@@ -274,7 +274,11 @@ const cocktailMenu = await getCocktails();
        through in the section gutters. Hero is now transparent too (no
        image), so the watermark is continuous from page top to footer. */
     background: transparent;
-    padding: 56px 22px;
+    /* Mobile padding tightened (was 56px) — combined with hero
+       padding-bottom: 24px above, the original 56px stacked into a
+       ~90px dead-zone between hero subhead and the first section
+       frame. 32px keeps editorial breathing without the gap. */
+    padding: 32px 22px;
   }
   @media (min-width: 1025px) {
     .bar-section { padding: 96px 64px; }
