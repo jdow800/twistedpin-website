@@ -31,17 +31,11 @@
  *     to handle role selection itself.
  *   - Service area in title/description matches live site
  *     (Plainfield, Naperville, Bolingbrook) for SEO continuity.
- *   - **Staff photo or video needed** (user 2026-05-05): the page
- *     is typography-only right now and would land harder with a
- *     fun staff-team shot. User has these in the photo library
- *     ("we have them — or maybe even a video"). Placement options:
- *       (a) Hero — replace the typography treatment with a
- *           full-bleed staff photo + headline overlay (heavier;
- *           tier-2 pages don't currently use hero photos)
- *       (b) Editorial break — drop a `.t2-section` with an image
- *           between "What You Get" and "How to Apply" as social
- *           proof before the conversion ask (lighter, recommended)
- *     See Context/media-needs.md for the running asset queue.
+ *   - Staff photo shipped 2026-05-07 — careers-team-* (DSC_0289 from
+ *     Pics Social Media). Editorial section between "What You Get"
+ *     and "How to Apply" pairs the team shot with the "Best of Will
+ *     County 2025" award framing, doubling as social proof + award
+ *     credibility marker before the conversion ask.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -80,6 +74,35 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     </div>
   </section>
 
+  {/* Social proof — staff team + Best of Will County 2025 award.
+      Editorial break between perks and the application CTA. */}
+  <section class="t2-section careers-team-section" aria-labelledby="careers-team-h2">
+    <div class="t2-section-inner">
+      <div class="careers-team-frame">
+        <picture>
+          <source type="image/avif" srcset="/snap/careers-team-540.avif 540w, /snap/careers-team-900.avif 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <source type="image/webp" srcset="/snap/careers-team-540.webp 540w, /snap/careers-team-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="careers-team-img"
+            src="/snap/careers-team-540.jpg"
+            srcset="/snap/careers-team-540.jpg 540w, /snap/careers-team-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The Twisted Pin staff team holding the Best of Will County 2025 Bowling Alley award in front of the GUTTERS HAPPEN BEER HELPS sign"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <h2 class="t-eyebrow" id="careers-team-h2" style="font-size:11px;">Best of Will County 2025</h2>
+      <p class="t2-section-body">
+        Voted Best Bowling Alley in Will County by Herald-News readers.
+        The team holding the plaque is who you'd be on shift with.
+      </p>
+    </div>
+  </section>
+
   <section class="t2-section" aria-labelledby="careers-apply-h2">
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="careers-apply-h2" style="font-size:11px;">How to Apply</h2>
@@ -103,3 +126,32 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 
   <SnapFooter />
 </Base>
+
+<style>
+  /* Staff-team editorial frame — portrait photo, constrained max-width
+     so the section reads as an editorial accent, not a hero takeover.
+     aspect-ratio kept at the source's native 9:16 so the team + award
+     fit without a tight crop. */
+  .careers-team-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 9 / 16;
+    max-width: 360px;
+    margin: 0 auto 28px;
+  }
+  @media (min-width: 1025px) {
+    .careers-team-frame { max-width: 420px; }
+  }
+  .careers-team-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+  /* Section copy is centered on tier-2 pages (matches sibling .t2-section)
+     so the eyebrow + body align under the photo. */
+  .careers-team-section .t2-section-inner {
+    text-align: center;
+  }
+</style>

@@ -77,20 +77,26 @@ const ZITE_URL = "https://twistedevents.zite.so/";
   <section class="events-section" aria-labelledby="events-host-h2">
     <div class="events-section-grid">
       <div class="events-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="events-section-img"
-            src="/snap/events-bg-600.jpg"
-            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="A group celebrating in the VIP suite at Twisted Pin"
-            width="600"
-            height="1067"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Buffet "before & after" video — autoplay-muted-loop in the
+            editorial frame, same single-active-video rule as the
+            homepage Tap Wall via sectionVideo() in motion.client.ts.
+            data-src lazy-promotion: bytes don't load until the section
+            enters the viewport. Encoded by scripts/build-buffet-video.sh. */}
+        <video
+          class="events-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster="/snap/buffet-poster.webp"
+          aria-label="A buffet of catering food set up for a group event at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="events-section-copy">
         <p class="t-eyebrow">What You Can Host</p>

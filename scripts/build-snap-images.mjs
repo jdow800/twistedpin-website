@@ -161,6 +161,14 @@ const SOURCES = [
   // the top (environmental → detail) so the page reads as two beats,
   // not one repeated shot.
   { src: "DSC_0569.jpg", name: "game-neon", aspect: [9, 16], widths: [540, 900] },
+
+  // /careers editorial section. Source lives in Context/Pics Social Media/
+  // (separate folder from Context/pictures); reach via relative path.
+  // Staff team holding the "Best of Will County 2025 Bowling Alley" award
+  // in front of the GUTTERS HAPPEN / BEER HELPS sign — doubles as social
+  // proof + award credibility marker. Source is portrait (~9:16); native
+  // crop matches our editorial frame pattern.
+  { src: "../Pics Social Media/DSC_0289.jpeg", name: "careers-team", aspect: [9, 16], widths: [540, 900] },
 ];
 
 async function exists(p) {
