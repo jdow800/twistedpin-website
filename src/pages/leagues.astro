@@ -2,32 +2,40 @@
 /**
  * /leagues — Bowling leagues page.
  *
- * Tier-2 utility page. Live twistedpin.com/leagues/ exists but the
- * actual league schedule + signup form are JS-rendered (couldn't
- * scrape via curl). Page acknowledges leagues exist + lists service
- * area + provides contact path until ops gives the schedule.
+ * Tier-2 utility page. The league schedule changes seasonally (typically
+ * 2-4 turns per year). Hardcoded in this page rather than a content
+ * collection — leagues run mostly the same lineup year over year, the
+ * only thing that turns is dates and times. PR per season is cheaper
+ * than a markdown collection for this volume.
  *
- * Service area pulled verbatim from live page intro: "Plainfield,
+ * Voice rules applied (per Context/voice.md):
+ *   - "FUN" caps register dropped (shouty)
+ *   - "FREE Beer Wall Cards Each Week!" → "Tap wall cards included"
+ *     (banned discount/value framing → entitlement framing)
+ *   - "Score big" / "fun and competitive leagues" — generic register
+ *     dropped in favor of specifics
+ *   - "scratch leagues" — venue does NOT run these; removed entirely
+ *
+ * Service area kept verbatim from live page intro: "Plainfield,
  * Joliet, Romeoville, Naperville, Shorewood, Lockport, Crest Hill
  * and beyond" — this Will County coverage is SEO-relevant per
  * Context/seo.md (Naperville is the #1 paid market, near-zero
  * organic presence to capture).
  *
  * TODOs (non-blocking):
- *   - League schedule (nights, season dates, format, prices) pending
- *     ops. Page will need a real schedule block before launch.
- *   - Signup form / contact email — currently routes to
+ *   - Tuesday Night Mixed dates are TBD pending ops confirmation —
+ *     the Monday IBT season (Aug 31 meeting / Sept 14 start) is real
+ *     for Fall 2026. When Tuesday firms up, swap "TBD" lines for
+ *     real dates.
+ *   - Signup form / contact email currently routes to
  *     contactus@twistedpin.com per the SnapFooter pattern.
- *   - When ops provides the schedule, this page graduates from a
- *     tier-2 stub into a content-heavy page (probably gets the
- *     pillar treatment with sections per league type).
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 ---
 <Base
   title="Bowling Leagues in Plainfield IL — Twisted Pin"
-  description="Mixed leagues, casual and competitive, all skill levels. Will County league bowlers welcome — Plainfield, Joliet, Romeoville, Naperville, Shorewood and beyond."
+  description="USBC-sanctioned mixed leagues — Monday IBT (5-person) and Tuesday Night Mixed (4-person teams). Will County league bowlers welcome — Plainfield, Joliet, Romeoville, Naperville, Shorewood and beyond."
 >
 
   <section class="t2-hero" data-hero aria-labelledby="leagues-h1">
@@ -37,15 +45,70 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         Find your league.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Casual to competitive. Mixed nights, themed nights, scratch
-        leagues. Will County bowlers welcome.
+        USBC-sanctioned mixed leagues. All skill levels. Will County
+        bowlers welcome.
       </p>
     </div>
   </section>
 
-  <section class="t2-section" aria-labelledby="leagues-h2">
+  <section class="t2-section" aria-labelledby="leagues-fall-h2">
     <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="leagues-h2" style="font-size:11px;">Service Area</h2>
+      <p class="t-eyebrow" style="font-size:11px;">For All Skill Levels</p>
+      <h2 class="t-display league-section-title" id="leagues-fall-h2">
+        Fall 2026 leagues.
+      </h2>
+      <p class="t2-section-body">
+        Two leagues this fall, both USBC-sanctioned. Tap wall cards
+        included on league nights.
+      </p>
+
+      <ul class="league-cards" role="list">
+        <li class="league-card">
+          <p class="league-card-eyebrow">Monday IBT</p>
+          <p class="league-card-format">5-person mixed league · USBC sanctioned</p>
+          <dl class="league-card-meta">
+            <div>
+              <dt>Organizational meeting</dt>
+              <dd>Aug 31, 6:30pm</dd>
+            </div>
+            <div>
+              <dt>Season starts</dt>
+              <dd>Sept 14</dd>
+            </div>
+            <div>
+              <dt>Practice</dt>
+              <dd>6:15pm</dd>
+            </div>
+          </dl>
+          <p class="league-card-status">Space still available</p>
+        </li>
+
+        <li class="league-card">
+          <p class="league-card-eyebrow">Tuesday Night Mixed</p>
+          <p class="league-card-format">4-person teams · USBC sanctioned</p>
+          <dl class="league-card-meta">
+            <div>
+              <dt>Organizational meeting</dt>
+              <dd>TBD</dd>
+            </div>
+            <div>
+              <dt>Season starts</dt>
+              <dd>TBD</dd>
+            </div>
+            <div>
+              <dt>Practice</dt>
+              <dd>6:45pm</dd>
+            </div>
+          </dl>
+          <p class="league-card-status">Space still available</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="leagues-area-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="leagues-area-h2" style="font-size:11px;">Service Area</h2>
       <p class="t2-section-body">
         We host league bowlers from across Will County — Plainfield,
         Joliet, Romeoville, Naperville, Shorewood, Lockport, Crest
@@ -53,14 +116,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       </p>
 
       <p class="t2-section-body">
-        <strong>League schedule and signups</strong> change by season.
-        For current openings, league nights, and format, email
+        Want in? Email
         <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>
         or call the front desk.
       </p>
 
       <p class="t2-section-body">
-        Looking for fundraiser leagues or one-time group bookings instead?
+        Looking for one-time group bookings or fundraisers instead?
         <a href="/events/">See group events →</a>
       </p>
     </div>
@@ -68,3 +130,100 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 
   <SnapFooter />
 </Base>
+
+<style>
+  .league-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 6px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .league-section-title { font-size: clamp(36px, 4vw, 52px); }
+  }
+
+  .league-cards {
+    list-style: none;
+    padding: 0;
+    margin: 28px 0 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  @media (min-width: 760px) {
+    .league-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 22px;
+    }
+  }
+
+  .league-card {
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-radius: var(--radius-surface);
+    padding: 22px;
+  }
+  @media (min-width: 1025px) {
+    .league-card { padding: 28px; }
+  }
+
+  .league-card-eyebrow {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(22px, 5.5vw, 28px);
+    line-height: 1.05;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    color: var(--warm-white);
+  }
+
+  .league-card-format {
+    margin: 6px 0 18px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.45;
+    color: var(--warm-mid);
+  }
+
+  .league-card-meta {
+    margin: 0 0 18px;
+    display: grid;
+    gap: 10px;
+    border-top: 1px solid rgba(244, 239, 227, 0.08);
+    padding-top: 14px;
+  }
+  .league-card-meta > div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .league-card-meta dt {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+    margin: 0;
+  }
+  .league-card-meta dd {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--warm-white);
+    margin: 0;
+    text-align: right;
+  }
+
+  .league-card-status {
+    margin: 0;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--glow);
+  }
+</style>

@@ -22,7 +22,16 @@ import { BUSINESS_URL, eventSchema } from "../lib/schema";
 // At-build cutoff: an event is "past" when its end (or start, if no
 // end) is before today. Cron rebuilds nightly at 9 UTC so this re-runs
 // once a day in production — close enough to "live."
+//
+// Lookahead window: events also have to start within LOOKAHEAD_DAYS to
+// surface here. Keeps the calendar focused on imminent nights instead
+// of advertising things 6+ months out (NYE etc.) all year. The seasonal
+// nav system also gates promotion of those pages independently. If a
+// specific event ever needs a longer runway, add an optional
+// `lookaheadDays` field in the markdown frontmatter and override here.
+const LOOKAHEAD_DAYS = 60;
 const now = new Date();
+const lookaheadCutoff = new Date(now.getTime() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000);
 
 const events = (await getCollection("events"))
   .filter((e) => !e.data.draft)
@@ -30,6 +39,7 @@ const events = (await getCollection("events"))
     const cutoff = e.data.end ?? e.data.start;
     return cutoff >= now;
   })
+  .filter((e) => e.data.start <= lookaheadCutoff)
   .sort((a, b) => a.data.start.getTime() - b.data.start.getTime());
 
 // Group by year-month (UTC keys for stability across DST).
@@ -154,6 +164,9 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     <section class="t2-section ev-empty" aria-labelledby="ev-empty-h2">
       <div class="t2-section-inner">
         <h2 id="ev-empty-h2" class="ev-empty-headline">Calendar's clear right now.</h2>
+        <p class="t2-section-body">
+          New nights drop here as we lock them in — keep an eye out.
+        </p>
         <p class="t2-section-body">
           Want to fill it? <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event &rarr;</a>
         </p>

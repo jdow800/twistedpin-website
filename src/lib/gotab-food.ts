@@ -22,8 +22,22 @@ const CATEGORY_RENDER_ORDER = [
   '62070', // Desserts (trailing space in GoTab)
 ];
 
-// Topup pool for teaser picks when staff favorites alone don't fill the slot count
+// Topup pool for teaser picks when pinned/staff favorites don't fill the slot count
 const TOPUP_CATEGORY = '62061'; // Starters
+
+// Editorial pins for the /eat teaser. Marketing pick is decoupled from the
+// kitchen's staff-favorite tags in GoTab — these are the items the brand
+// wants featured on /eat regardless of whether they're tagged staff-favorite.
+// Match is case-insensitive substring on item name. Order here = display order.
+// If a pin doesn't match any item we log a warning and fall through to
+// staff-favorite + Starters topup so the teaser still renders something.
+const PINNED_PICKS = [
+  'Kernitas Craze Tacos',
+  'Hog Wild Trio',
+  'Splits Hops Trio',
+];
+
+const TEASER_CAP = 3;
 
 const FOOD_QUERY = `
   query GetFood($locationUuid: String!) {
@@ -63,8 +77,8 @@ export interface FoodItem {
 
 export interface FoodMenu {
   categories: { id: string; name: string; items: FoodItem[] }[];
-  /** Up to 5 picks for the editorial teaser: staff favorites first, then
-   *  topped up from Starters. */
+  /** Up to TEASER_CAP picks for the editorial teaser. PINNED_PICKS first
+   *  (marketing's editorial picks), staff favorites + Starters as fallback. */
   teaserPicks: FoodItem[];
 }
 
@@ -134,15 +148,34 @@ export async function getFood(): Promise<FoodMenu> {
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
-  const staffFavs = items.filter(it => it.isStaffFavorite);
-  const topup = byId.get(TOPUP_CATEGORY) ?? [];
+  // Editorial picks: try pins first (case-insensitive substring match),
+  // then fall through to staff-favorite tags + Starters topup. Cap at TEASER_CAP.
   const teaserPicks: FoodItem[] = [];
   const teaserSeen = new Set<string>();
-  for (const it of [...staffFavs, ...topup]) {
-    if (teaserSeen.has(it.uuid)) continue;
-    teaserPicks.push(it);
-    teaserSeen.add(it.uuid);
-    if (teaserPicks.length >= 5) break;
+
+  for (const pin of PINNED_PICKS) {
+    const needle = pin.toLowerCase();
+    const match = items.find(it => it.name.toLowerCase().includes(needle));
+    if (match) {
+      if (!teaserSeen.has(match.uuid)) {
+        teaserPicks.push(match);
+        teaserSeen.add(match.uuid);
+      }
+    } else {
+      console.warn(`[gotab-food] PINNED_PICK "${pin}" did not match any item — falling through to auto-pick`);
+    }
+    if (teaserPicks.length >= TEASER_CAP) break;
+  }
+
+  if (teaserPicks.length < TEASER_CAP) {
+    const staffFavs = items.filter(it => it.isStaffFavorite);
+    const topup = byId.get(TOPUP_CATEGORY) ?? [];
+    for (const it of [...staffFavs, ...topup]) {
+      if (teaserSeen.has(it.uuid)) continue;
+      teaserPicks.push(it);
+      teaserSeen.add(it.uuid);
+      if (teaserPicks.length >= TEASER_CAP) break;
+    }
   }
 
   return { categories, teaserPicks };
