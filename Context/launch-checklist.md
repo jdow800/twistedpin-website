@@ -19,7 +19,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | `/special-events/` | `/events/` | Consolidated |
 | `/corporate-parties/` | `/events/#corporate` | Consolidated |
 | `/birthday-parties-booking/` | `/events/#birthday` | Consolidated, slug cleanup |
-| `/fundraiser/` | `/events/#fundraiser` | Consolidated |
+| `/fundraiser/` | `/fundraisers/` | **Updated 2026-05-07**: dedicated `/fundraisers/` page being built (was previously planned to redirect to `/events/#fundraiser`). The mechanics — 50% of bowling/shoe/arcade revenue back to host org, Thursdays 5–9pm only, main floor only (NOT VIP suite), customers must mention the fundraiser — are operationally specific enough to warrant their own URL with full SEO chrome. Inbound legacy traffic from `/fundraiser/` (singular) preserved via 301 to plural canonical. |
 | `/event-directory/` | `/upcoming-events/` | Consolidated |
 | ~~`/free-kids-bowling/`~~ | (live page, not a redirect) | **Updated 2026-05-07**: redirect retired. Venue is running the free summer kids bowling program (June 1-30, kids 12 and under, 2 games/day weekdays 11-4), so the slug now serves a real page. "Kids Bowl Free" is still TM'd by another operator; the page uses "Free Summer Bowling For Kids" / "Free Kids Bowling" framing, which is descriptive and doesn't infringe |
 | `/contact-us/` | `/` | **Note 2026-05-04**: `/contact` page killed — Contact in MORE scrolls to SnapFooter (`#find-us`). Hash anchors don't survive 301s, so legacy `/contact-us/` redirects to `/` (homepage); user finds the footer themselves |
@@ -57,7 +57,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | Reviews ratings | Hardcoded `4.5` / `1,053` (Google) and `4.2` / `80` (Yelp) | Real-time pull from Google Places API / Yelp Fusion API, or accept periodic manual updates |
 | Email address | `contactus@twistedpin.com` (Email Us button in SnapFooter) | Confirm this is the right inbox; route to operations |
 | VIP Suite capacity | "Up to 80" on `/vip-suite` | Confirm with ops |
-| Fundraiser stat | "50% of bowling revenue back to host" on `/vip-suite` | Confirm with ops — public-facing claim |
+| ~~Fundraiser stat~~ | **Confirmed 2026-05-07**: 50% of bowling, shoe, AND arcade revenue back to host. Main floor only — NOT in VIP suite. Thursdays 5–9pm. Customers must mention the fundraiser at check-in. Optional arcade promotion available at booking. /vip-suite scrubbed of fundraiser language; /events stat updated; /fundraisers page being built. | — |
 
 ---
 

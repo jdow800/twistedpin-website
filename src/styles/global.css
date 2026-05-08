@@ -200,6 +200,41 @@ img, video, svg { display: block; max-width: 100%; }
 }
 
 /* ============================================================
+   Hero entry motion — used by every typography hero across the
+   site ([data-hero] containers with .hero-fade on lines/sub).
+
+   CSS-driven (2026-05-08 LCP fix). Was previously JS-driven via
+   Motion's animate() in heroEntry() — but Motion 12's animate()
+   uses CSS custom properties (--motion-translate-y) for transform
+   composition, which collides with any direct `transform:` style
+   set elsewhere. The result was the slide animation silently no-op'd.
+   CSS @keyframes is the durable answer: no JS dependency, browser-
+   native, opacity stays at 1 throughout so LCP measurement fires
+   for hero text the moment it paints.
+
+   Per-element stagger: each .hero-fade element carries
+   `data-delay-ms="N"` (0, 120, 280, 300, 320, 380 are the values
+   used across the site). Attribute-selector rules below apply the
+   matching animation-delay. Adding a new value? Add a row.
+   ============================================================ */
+@keyframes hero-slide-in {
+  from { transform: translateY(12px); }
+  to   { transform: translateY(0); }
+}
+.hero-fade {
+  /* `both` = hold from-state during delay AND to-state after end.
+     Text is never hidden (opacity stays default 1) — only the 12px
+     offset is visible during delay, which is fine for LCP. */
+  animation: hero-slide-in 500ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+.hero-fade[data-delay-ms="0"]   { animation-delay: 0ms; }
+.hero-fade[data-delay-ms="120"] { animation-delay: 120ms; }
+.hero-fade[data-delay-ms="280"] { animation-delay: 280ms; }
+.hero-fade[data-delay-ms="300"] { animation-delay: 300ms; }
+.hero-fade[data-delay-ms="320"] { animation-delay: 320ms; }
+.hero-fade[data-delay-ms="380"] { animation-delay: 380ms; }
+
+/* ============================================================
    Reduced motion — disable transforms, keep instant fade
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
@@ -210,6 +245,7 @@ img, video, svg { display: block; max-width: 100%; }
     scroll-behavior: auto !important;
   }
   .btn:hover { transform: none !important; }
+  .hero-fade { animation: none; transform: none; }
 }
 
 /* ============================================================

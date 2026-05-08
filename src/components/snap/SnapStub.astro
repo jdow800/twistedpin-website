@@ -67,7 +67,7 @@ const hasMedia = !!(video || image);
       muted
       loop
       playsinline
-      poster={`/snap/${video}-poster.webp`}
+      data-poster={`/snap/${video}-poster.webp`}
       aria-label={imageAlt}
     >
       <source media="(max-width: 480px)" data-src={`/snap/${video}-mobile-av1-540.mp4`}  type="video/mp4; codecs=av01.0.05M.08" />

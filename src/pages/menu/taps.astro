@@ -16,8 +16,47 @@
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
 import { getTapList } from "../../lib/untappd-taps";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
 const tapList = await getTapList();
+
+// JSON-LD: Menu → MenuSection → MenuItem. Tap-list MenuItems pack
+// brewery + location + style + ABV into the description (Schema.org
+// has no beer-specific subtype; description is the cleanest place).
+const PAGE_URL = `${BUSINESS_URL}/menu/taps/`;
+const menuSchema = {
+  "@context": "https://schema.org",
+  "@type": "Menu",
+  "@id": `${BUSINESS_URL}/#menu-taps`,
+  name: "Tap List",
+  url: PAGE_URL,
+  inLanguage: "en-US",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  hasMenuSection: tapList.sections.map((section) => ({
+    "@type": "MenuSection",
+    name: section.name,
+    hasMenuItem: section.taps.map((tap) => {
+      // ABV is intentionally NOT in description — Schema.org has no
+      // beer-specific subtype, and `MenuItem.nutrition.servingSize` is
+      // for pour size, not alcohol content. ABV stays in display copy
+      // (the visible row on /menu/taps); schema doesn't need to
+      // duplicate it. Revisit with `additionalProperty` only when a
+      // frontend feature (e.g. "filter by ABV") actually needs it.
+      const descParts = [
+        tap.brewery,
+        tap.breweryLocation,
+        tap.style,
+      ].filter(Boolean);
+      const item: Record<string, unknown> = {
+        "@type": "MenuItem",
+        name: tap.name,
+      };
+      if (descParts.length > 0) item.description = descParts.join(" · ");
+      if (tap.labelImage) item.image = tap.labelImage;
+      return item;
+    }),
+  })),
+};
 ---
 <Base
   title="What's On Tap | Twisted Pin Plainfield IL"
@@ -106,6 +145,8 @@ const tapList = await getTapList();
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
 </Base>
 
 <style>
@@ -147,10 +188,7 @@ const tapList = await getTapList();
     .menu-hero-sub { font-size: 17px; max-width: 42em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      TAP LIST — list-led rows. Moved here from /bar 2026-05-05.

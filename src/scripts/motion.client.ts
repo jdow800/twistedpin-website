@@ -11,29 +11,13 @@ const reducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* -----------------------------------------------------------
-   Hero entry — sequential per-element fade-up.
-   Each .hero-fade carries a `data-delay-ms` attribute (absolute, ms).
-   Headline lines fire on a deliberate beat: line 1 with the eyebrow,
-   line 2 a beat later, subhead settles after.
+   Hero entry motion is now CSS-driven (global.css @keyframes
+   hero-slide-in). The previous JS-driven heroEntry() silently
+   no-op'd in Motion 12 because Motion's animate() composes
+   transforms via CSS custom properties that collided with any
+   direct `transform:` style. CSS @keyframes is browser-native,
+   no JS dependency, and LCP-safe (text visible from first paint).
    ----------------------------------------------------------- */
-function heroEntry(): void {
-  const hero = document.querySelector("[data-hero]");
-  if (!hero) return;
-  const fades = Array.from(hero.querySelectorAll<HTMLElement>(".hero-fade"));
-  if (fades.length === 0) return;
-
-  const reduced = reducedMotion();
-  const duration = reduced ? 0.001 : 0.5;
-
-  fades.forEach((el) => {
-    const delaySec = reduced ? 0 : Number(el.dataset.delayMs ?? 0) / 1000;
-    animate(
-      el,
-      { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
-      { duration, delay: delaySec, ease: [0.22, 0.61, 0.36, 1] },
-    );
-  });
-}
 
 /* -----------------------------------------------------------
    Sticky CTA bar entry — slides up from below.
@@ -85,14 +69,26 @@ function sectionVideo(): void {
 
   const promoteLazySources = (v: HTMLVideoElement): void => {
     if (v.dataset.sourcesPromoted === "true") return;
-    let promoted = false;
+    let sourcesPromoted = false;
     v.querySelectorAll<HTMLSourceElement>("source[data-src]").forEach((s) => {
       const src = s.getAttribute("data-src");
-      if (src) { s.setAttribute("src", src); promoted = true; }
+      if (src) { s.setAttribute("src", src); sourcesPromoted = true; }
     });
-    if (promoted) {
+    // Lazy-poster promotion (2026-05-08 LCP/payload fix): below-the-fold
+    // videos opt into `data-poster` instead of `poster=` so the poster
+    // image doesn't fetch with the initial page bytes. On Slow 4G mobile
+    // this saves 500–700KB of poster weight across the homepage. Hero
+    // videos (LCP candidates) keep `poster=` direct.
+    const lazyPoster = v.getAttribute("data-poster");
+    if (lazyPoster && !v.getAttribute("poster")) {
+      v.setAttribute("poster", lazyPoster);
+    }
+    if (sourcesPromoted) {
       v.dataset.sourcesPromoted = "true";
       v.load();
+    } else if (lazyPoster) {
+      // Mark promoted so we don't re-set the poster on every intersection tick.
+      v.dataset.sourcesPromoted = "true";
     }
   };
 
@@ -314,7 +310,6 @@ export function initMotion(): void {
   navDrawer();
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      heroEntry();
       stickyCTAEntry();
       snapFooterCTAHide();
       sectionReveal();

@@ -24,13 +24,17 @@
  * TODOs (non-blocking):
  *   - Bowling cost ($35/hour walk-in, $5.95 shoes) — verify with
  *     ops; pricing on the live site as of 2026-05-05.
- *   - Hours captured from live site schema markup; verify they're
- *     current vs the SnapFooter's "Open today / until 11:00 PM"
- *     placeholder.
+ *
+ * Hours: as of the 2026-05-08 schema rebuild, the "What are your hours?"
+ * answer is built by formatHoursAnswer() in src/lib/schema.ts — same
+ * source the SnapFooter and JSON-LD openingHoursSpecification read.
+ * Live Google Places data when GOOGLE_MAPS_API_KEY + GOOGLE_PLACE_ID
+ * are set on Vercel; src/data/hours.ts fallback otherwise.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import { ICON_PATHS } from "../lib/icons";
+import { formatHoursAnswer } from "../lib/schema";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
@@ -43,11 +47,16 @@ interface FaqItem {
   htmlA: string;
 }
 
+// Hours answer derived from the same source schema/footer use:
+// live Google Places data when env vars are set, src/data/hours.ts
+// fallback otherwise. Display copy and structured data cannot drift.
+const hoursAnswer = await formatHoursAnswer();
+
 const faqs: FaqItem[] = [
   {
     q: "What are your hours?",
-    schemaA: "Monday–Thursday 3pm–11pm. Friday 2pm–1am. Saturday 11am–1am. Sunday 12pm–10pm. Hours may vary on holidays — check our Google listing for real-time updates.",
-    htmlA: `<p>Monday–Thursday <strong>3pm–11pm</strong>. Friday <strong>2pm–1am</strong>. Saturday <strong>11am–1am</strong>. Sunday <strong>12pm–10pm</strong>.</p><p>Hours may vary on holidays — check our Google listing for real-time updates.</p>`,
+    schemaA: hoursAnswer.schemaA,
+    htmlA: hoursAnswer.htmlA,
   },
   {
     q: "When is open bowling?",

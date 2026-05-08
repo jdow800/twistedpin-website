@@ -206,7 +206,7 @@ Specifics beat adjectives. These are real, verifiable details — use them in co
 - **Tap Wall:** 28 self-serve taps, beer & wine, pay by the ounce — **the only self-serve tap wall in the immediate area**
 - **Bar:** Craft cocktails developed by **mixologist Brian Van Flandern** (real differentiator — top-tier mixology pedigree)
 - **Arcade:** VR, pinball, ticket games & redemption prizes
-- **Fundraisers:** **50% of bowling & shoe revenue** back to the host organization. Schools, churches, community groups. Thursday nights 5–9pm.
+- **Fundraisers:** **50% of bowling, shoe, and arcade revenue** back to the host organization. Schools, churches, community groups. Thursday nights 5–9pm. **Main floor only — fundraisers do not run in the VIP suite.**
 - **Reviews:** 4.5★ on Google (1,000+ reviews), 4.2★ on Yelp
 - **Location:** Plainfield, IL — 5–8 minutes from Naperville, Bolingbrook, Romeoville, Shorewood
 

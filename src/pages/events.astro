@@ -45,10 +45,28 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
 // Zite-hosted group events platform. May get a vanity subdomain
 // (events.twistedpin.com) later; URL not yet final.
 const ZITE_URL = "https://twistedevents.zite.so/";
+
+// JSON-LD: EventVenue subtype on the canonical venue @id. Tells AI
+// "the venue, viewed as an event venue" — same multi-faceted entity
+// as the BarOrPub / BowlingAlley / Restaurant / EntertainmentBusiness
+// declarations on other pages. The VIP suite gets its own @id
+// (#vip-suite) on /vip-suite — that's the contained-place with the
+// specific capacity claim.
+const PAGE_URL = `${BUSINESS_URL}/events/`;
+const eventVenueSchema = {
+  ...(await localBusinessBase({
+    url: PAGE_URL,
+    image: `${BUSINESS_URL}/snap/events-bg-600.webp`,
+    description:
+      "Group events at Twisted Pin: take over the 6-lane VIP suite, custom catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties. Plainfield, IL.",
+  })),
+  "@type": "EventVenue",
+};
 ---
 <Base
   title="Group Events in Plainfield, IL | Twisted Pin"
@@ -89,7 +107,7 @@ const ZITE_URL = "https://twistedevents.zite.so/";
           muted
           loop
           playsinline
-          poster="/snap/buffet-poster.webp"
+          data-poster="/snap/buffet-poster.webp"
           aria-label="A buffet of catering food set up for a group event at Twisted Pin"
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
@@ -112,16 +130,16 @@ const ZITE_URL = "https://twistedevents.zite.so/";
         </p>
 
         <p class="events-section-body">
-          Fundraisers get a real package: <strong>50% of bowling revenue
-          back to your organization</strong>, Thursday nights 5–9pm.
-          Schools, churches, community groups.
+          Fundraisers get a real package: <strong>50% of bowling, shoe,
+          and arcade revenue back to your organization</strong>, Thursday
+          nights 5–9pm. Schools, churches, community groups. <a href="/fundraisers/">Full fundraiser details →</a>
         </p>
 
         <ul class="events-section-list">
           <li>Adult birthday parties</li>
           <li>Corporate offsites + team building</li>
           <li>Holiday parties (December books fast — reach out by October)</li>
-          <li>Fundraisers — 50% back to the host</li>
+          <li><a href="/fundraisers/">Fundraisers</a> — 50% back to the host</li>
           <li>Retirements + farewells</li>
           <li>After-parties + group functions</li>
         </ul>
@@ -211,6 +229,8 @@ const ZITE_URL = "https://twistedevents.zite.so/";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(eventVenueSchema)} />
 </Base>
 
 <style>
@@ -272,10 +292,7 @@ const ZITE_URL = "https://twistedevents.zite.so/";
     .events-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      section pattern (same shape as .vip-section etc.)

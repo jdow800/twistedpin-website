@@ -53,6 +53,10 @@ export interface FoodItem {
   imageUrl: string | null;
   imageUrlLg: string | null;
   isStaffFavorite: boolean;
+  /** Raw GoTab tags. Includes `go:staff favorite` and any dietary tags
+   *  ops adds in the GoTab dashboard. Schema mapping in /menu/food
+   *  consumes this to emit `suitableForDiet` URLs. */
+  tags: string[];
   categoryId: string;
   categoryName: string;
 }
@@ -109,6 +113,7 @@ export async function getFood(): Promise<FoodMenu> {
       imageUrl: p.images?.md?.url ?? null,
       imageUrlLg: p.images?.lg?.url ?? null,
       isStaffFavorite: Array.isArray(p.tags) && p.tags.includes('go:staff favorite'),
+      tags: Array.isArray(p.tags) ? p.tags : [],
       categoryId: p.category.categoryId,
       categoryName: p.category.name,
     });

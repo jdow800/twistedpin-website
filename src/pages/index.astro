@@ -42,6 +42,39 @@
 import Base from "../layouts/Base.astro";
 import SnapStub from "../components/snap/SnapStub.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import {
+  localBusinessBase,
+  BUSINESS_NAME,
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+} from "../lib/schema";
+
+// JSON-LD: BarOrPub primary entity + bare WebSite. Single @type per page
+// (bar-led thesis; bowling lives on /bowl). hasMap, hours, NAP, sameAs
+// all come from localBusinessBase().
+const PAGE_URL = `${BUSINESS_URL}/`;
+
+const barOrPubSchema = {
+  ...(await localBusinessBase({
+    url: PAGE_URL,
+    image: `${BUSINESS_URL}/hero/hero-desktop-poster.webp`,
+    description:
+      "A craft cocktail program designed by America's Top Mixologist, a 28-tap self-serve beer and wine wall, and 17 traditional bowling lanes plus a 6-lane VIP suite. Bar-led, group-friendly, in Plainfield, IL.",
+  })),
+  "@type": "BarOrPub",
+};
+
+// WebSite — entity declaration only. No SearchAction (no site-search route).
+// publisher references the LocalBusiness via @id so the entity graph
+// unifies across pages.
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${BUSINESS_URL}/#website`,
+  url: BUSINESS_URL,
+  name: BUSINESS_NAME,
+  publisher: { "@id": BUSINESS_ENTITY_ID },
+};
 ---
 <Base
   title="Twisted Pin — Cocktails, 28 taps, a 6-lane VIP suite. Plainfield, IL."
@@ -91,7 +124,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         autoplay
         loop
         playsinline
-        poster="/hero/hero-desktop-poster.webp"
+        data-poster="/hero/hero-desktop-poster.webp"
         aria-hidden="true"
       >
         <source src="/hero/hero-desktop-av1.mp4" type="video/mp4; codecs=av01.0.05M.08" />
@@ -117,7 +150,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         ================================================ */}
     <SnapStub
       title="Events That Don't Suck"
-      subhead="Privatize the suite. Run the night your way."
+      subhead="Take over the suite. Run the night your way."
       href="/events/"
       video="buffet"
       imageAlt="A buffet of catering food set up for a group event at Twisted Pin"
@@ -137,7 +170,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         muted
         loop
         playsinline
-        poster="/snap/beerwall-poster.webp"
+        data-poster="/snap/beerwall-poster.webp"
         aria-hidden="true"
       >
         {/* Narrow-viewport variants (≤480px CSS width) come first — first-match-wins
@@ -190,7 +223,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     />
 
     {/* ================================================
-        SNAP 6 — BOWL  (mobile-only; VIP-leading + privatize aside)
+        SNAP 6 — BOWL  (mobile-only; VIP-leading + take-it-over aside)
         Desktop EBG card uses the tighter no-aside variant — see voice.md
         Locked Lines (two Bowl variants).
         ================================================ */}
@@ -250,7 +283,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           {/* Buffet "after" video — last 7s of Buffet Before & After.mov,
               the full-spread payoff. Same single-active-video rule via
               sectionVideo() in motion.client.ts; data-src lazy-promotion. */}
-          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/buffet-poster.webp" aria-label="A buffet of catering food set up for a group event at Twisted Pin">
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/buffet-poster.webp" aria-label="A buffet of catering food set up for a group event at Twisted Pin">
             <source data-src="/snap/buffet-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
             <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
           </video>
@@ -268,7 +301,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     <section class="snap-section desktop-only desktop-tapwall" aria-labelledby="desktop-tapwall-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/beerwall-poster.webp" aria-hidden="true">
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/beerwall-poster.webp" aria-hidden="true">
             <source data-src="/snap/beerwall-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
             <source data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
           </video>
@@ -289,7 +322,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           {/* Cocktails Hero video — bartender building a cocktail, autoplay-
               muted-loop. Same single-active-video rule as Tap Wall via
               sectionVideo() in motion.client.ts; data-src lazy-promotion. */}
-          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/cocktails-hero-poster.webp" aria-label="A cocktail being built behind the bar at Twisted Pin">
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/cocktails-hero-poster.webp" aria-label="A cocktail being built behind the bar at Twisted Pin">
             <source data-src="/snap/cocktails-hero-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
             <source data-src="/snap/cocktails-hero-mobile-h264-1080.mp4" type="video/mp4" />
           </video>
@@ -348,7 +381,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         <div class="cluster-frame">
           {/* Arcade video — autoplay-muted-loop, 6s window. Same lazy-
               loaded pattern as Cocktails / Tap Wall / Buffet. */}
-          <video class="cluster-video" data-section-video preload="none" muted loop playsinline poster="/snap/arcade-poster.webp" aria-label="Arcade games at Twisted Pin">
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/arcade-poster.webp" aria-label="Arcade games at Twisted Pin">
             <source data-src="/snap/arcade-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
             <source data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
           </video>
@@ -369,6 +402,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         ================================================ */}
     <SnapFooter />
   </main>
+
+  {/* JSON-LD: BarOrPub primary entity + bare WebSite. Same @id used
+      across pages so crawlers unify the venue into one entity. */}
+  <script type="application/ld+json" set:html={JSON.stringify(barOrPubSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
 </Base>
 
 <script>
@@ -391,6 +429,11 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         const src = s.getAttribute("data-src");
         if (src) s.setAttribute("src", src);
       });
+      // Lazy-poster promotion (matches motion.client.ts sectionVideo).
+      const lazyPoster = tapwallVideo.getAttribute("data-poster");
+      if (lazyPoster && !tapwallVideo.getAttribute("poster")) {
+        tapwallVideo.setAttribute("poster", lazyPoster);
+      }
       tapwallVideo.load();
     };
     const tryPlay = () => {
@@ -779,10 +822,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     .hero-sub { margin-top: 22px; font-size: 20px; line-height: 1.5; max-width: 30em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade rule + reduced-motion override hoisted to global.css
+     (2026-05-08 LCP fix). */
 
   /* ============================================================
      SNAP 3 — TAP WALL

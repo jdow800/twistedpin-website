@@ -51,6 +51,21 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
+
+// JSON-LD: EntertainmentBusiness. AmusementPark would be the closest
+// Schema.org type for an arcade specifically, but it implies park-scale
+// — EntertainmentBusiness is the truthful umbrella. Same @id as homepage.
+const PAGE_URL = `${BUSINESS_URL}/game/`;
+const entertainmentSchema = {
+  ...(await localBusinessBase({
+    url: PAGE_URL,
+    image: `${BUSINESS_URL}/snap/arcade-poster.webp`,
+    description:
+      "The arcade at Twisted Pin: skee-ball, pinball, redemption tickets, and VR. The bar is twenty steps away. Plainfield, IL.",
+  })),
+  "@type": "EntertainmentBusiness",
+};
 ---
 <Base
   title="Arcade in Plainfield, IL — Twisted Pin"
@@ -173,6 +188,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(entertainmentSchema)} />
 </Base>
 
 <style>
@@ -234,10 +251,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     .game-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ---------- editorial sections ---------- */
   .game-section {

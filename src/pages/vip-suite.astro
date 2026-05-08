@@ -16,7 +16,12 @@
  *
  * Two thematic sections:
  *   1. The Room — physical specs (lanes, capacity, AV, seating, bar/kitchen access)
- *   2. What You Can Do — use cases (birthdays, corporate, fundraisers)
+ *   2. What You Can Do — use cases (birthdays, corporate, holiday parties)
+ *
+ * **Fundraisers do NOT happen in the VIP suite** — they run on the main
+ * floor, Thursdays 5–9pm only. Dedicated /fundraisers page covers that
+ * program. Keep this page clear of fundraiser language to avoid creating
+ * an inaccurate public claim.
  *
  * Rule-of-three triggered: .bar-* / .eat-* / .vip-* CSS is now triplicated.
  * Next refactor pass should hoist shared rules to .pillar-* utilities in
@@ -26,15 +31,38 @@
  *   - Section photos are stubs (events-bg-600 / events-bg-540, same shot
  *     as the homepage Events snap). Need distinct VIP-suite imagery —
  *     room shot + event-energy shot. See Context/media-needs.md.
- *   - Capacity number ("80") and fundraiser stat ("50% of bowling revenue
- *     back to host") need ops confirmation before launch.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  addressNAP,
+} from "../lib/schema";
+
+// JSON-LD: EventVenue with its own @id (#vip-suite) — the suite is a
+// distinct sub-location with its own capacity claim. containedInPlace
+// links it back to the venue via @id. Capacity mirrors the page copy
+// ("Up to 80"); when ops corrects the displayed number, schema updates
+// in the same diff.
+const PAGE_URL = `${BUSINESS_URL}/vip-suite/`;
+const vipSuiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "EventVenue",
+  "@id": `${BUSINESS_URL}/#vip-suite`,
+  name: "The VIP Suite at Twisted Pin",
+  url: PAGE_URL,
+  description:
+    "Six bowling lanes set apart from the main floor, custom catering, the same craft cocktail program as the main bar. Up to 80 guests. Plainfield, IL.",
+  image: `${BUSINESS_URL}/snap/vip-energy-900.webp`,
+  maximumAttendeeCapacity: 80,
+  address: addressNAP(),
+  containedInPlace: { "@id": BUSINESS_ENTITY_ID },
+};
 ---
 <Base
   title="VIP Suite — Bowling for Groups Up to 80 | Twisted Pin"
-  description="Six bowling lanes for your group, custom catering, craft cocktails. Birthdays, corporate offsites, fundraisers — the VIP suite at Twisted Pin, Plainfield IL."
+  description="Six bowling lanes for your group, custom catering, craft cocktails. Birthdays, corporate offsites, holiday parties — the VIP suite at Twisted Pin, Plainfield IL."
 >
 
   {/* ============================================================
@@ -132,14 +160,14 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
       <div class="vip-section-copy">
         <p class="t-eyebrow">What You Can Do Here</p>
         <h2 class="t-display vip-section-title" id="vip-uses-h2">
-          Birthdays. Corporate. Fundraisers.
+          Birthdays. Corporate. Holiday parties.
         </h2>
         <p class="vip-section-aside">(or whatever you can talk us into)</p>
 
         <p class="vip-section-body">
           Most groups book the suite for adult birthday parties, corporate
-          offsites and holiday parties, fundraisers, and the after-party
-          of an after-party. Tell us what you want; we set it up.
+          offsites and holiday parties, and the after-party of an
+          after-party. Tell us what you want; we set it up.
         </p>
 
         <p class="vip-section-body">
@@ -151,7 +179,6 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
         <ul class="vip-section-list">
           <li>Adult birthday parties</li>
           <li>Corporate offsites + holiday parties</li>
-          <li>Fundraisers — 50% of bowling revenue back to the host</li>
           <li>After-parties + group functions</li>
         </ul>
 
@@ -161,6 +188,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(vipSuiteSchema)} />
 </Base>
 
 <style>
@@ -227,10 +256,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
     .vip-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      section pattern (same shape as .bar-section / .eat-section)

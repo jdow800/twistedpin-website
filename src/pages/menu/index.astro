@@ -21,6 +21,7 @@ import SnapFooter from "../../components/snap/SnapFooter.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
 import { getFood } from "../../lib/gotab-food";
 import { getTapList } from "../../lib/untappd-taps";
+import { BUSINESS_URL } from "../../lib/schema";
 
 const [cocktailMenu, foodMenu, tapList] = await Promise.all([
   getCocktails(),
@@ -31,6 +32,28 @@ const [cocktailMenu, foodMenu, tapList] = await Promise.all([
 const cocktailCount = cocktailMenu.categories.reduce((n, c) => n + c.cocktails.length, 0);
 const foodCount = foodMenu.categories.reduce((n, c) => n + c.items.length, 0);
 const tapCount = tapList.totalCount;
+
+// JSON-LD: BreadcrumbList only on the hub. Per the schema rebuild plan
+// the umbrella Menu pattern was rejected — the three child pages each
+// carry their own canonical Menu schema; the hub is just navigation.
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: `${BUSINESS_URL}/`,
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      name: "Menus",
+      item: `${BUSINESS_URL}/menu/`,
+    },
+  ],
+};
 ---
 <Base
   title="Menus | Twisted Pin Plainfield IL"
@@ -146,6 +169,8 @@ const tapCount = tapList.totalCount;
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 </Base>
 
 <style>
@@ -188,10 +213,7 @@ const tapCount = tapList.totalCount;
     .menu-hero-sub { font-size: 17px; max-width: 42em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      Menu hub — 3 large card tiles. Stacked on mobile, equal-width

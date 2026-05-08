@@ -230,7 +230,7 @@ Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion 
 | # | Title | Subhead (statement) | Aside (parenthetical) |
 |---|---|---|---|
 | 1 | (Hero — see below) | *Plainfield's premier night out. Bowling optional.* | — |
-| 2 | *Events That Don't Suck* | *Privatize the suite. Run the night your way.* | — |
+| 2 | *Events That Don't Suck* | *Take over the suite. Run the night your way.* | — |
 | 3 | *The Tap Wall* | *28 self-serve taps* | *(only wall in the area)* |
 | 4 | *Craft Cocktails* | *Built by America's Top Mixologist.* | *(their words, not ours)* |
 | 5 | *Eat* | *Chef-inspired menu.* | *(built to share)* |
@@ -244,7 +244,7 @@ Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion 
 
 **Pattern (snaps 3–7) — "statement / (aside)":** the statement is a confident one-liner; the aside is a smaller, dimmer parenthetical that adds attitude or specificity. Visually, the aside is one drop below the statement (warm-dim color, ~0.9em). Implemented via the `subheadParen` prop on the SnapStub component. The aside is voicy-by-design — it carries the playful register; the statement carries the data.
 
-**Snap 6 lane phrasing**: keeps the canonical *"17 traditional lanes + a 6-lane VIP suite"* construction in the statement (*"17 traditional lanes plus a 6-lane VIP suite."*). The aside *(yes, you can take it over)* foreshadows the "Privatize the suite" beat from snap 2. **Note:** desktop EBG card uses a tighter no-aside variant — see "Desktop track copy" below.
+**Snap 6 lane phrasing**: keeps the canonical *"17 traditional lanes + a 6-lane VIP suite"* construction in the statement (*"17 traditional lanes plus a 6-lane VIP suite."*). The aside *(yes, you can take it over)* foreshadows the "Take over the suite" beat from snap 2. **Note:** desktop EBG card uses a tighter no-aside variant — see "Desktop track copy" below.
 
 ### Desktop track copy (`/snap-test/` desktop ≥1025px)
 
@@ -255,7 +255,7 @@ The desktop track diverges from mobile in two beats — Bowl and Cocktails. Mobi
 | Cocktails (desktop section 3, 50/50 split) — full credential | *Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist.* |
 | Bowl (desktop EBG row card) — tighter, no aside | *17 lanes plus a 6-lane VIP suite.* |
 
-**Why two Bowl variants:** mobile snap 6 has a full viewport-tall slot, so the *(yes, you can take it over)* aside earns its space and foreshadows the Events / "Privatize the suite" beat. The desktop EBG card lives in a 33%-width column inside a 3-card row — there's no room for the aside, and trying to keep it produces ugly wraps. The card drops the aside and tightens the data line; the VIP differentiator is preserved (*"plus a 6-lane VIP suite."*) so the card doesn't quietly revert to Bowlero positioning.
+**Why two Bowl variants:** mobile snap 6 has a full viewport-tall slot, so the *(yes, you can take it over)* aside earns its space and foreshadows the Events / "Take over the suite" beat. The desktop EBG card lives in a 33%-width column inside a 3-card row — there's no room for the aside, and trying to keep it produces ugly wraps. The card drops the aside and tightens the data line; the VIP differentiator is preserved (*"plus a 6-lane VIP suite."*) so the card doesn't quietly revert to Bowlero positioning.
 
 **Why the Cocktails long-form on desktop:** the line was reserved for "a future cocktail/bar section on `/` that has more room than the snap-test stub." The desktop 50/50 split (≥640px copy column) IS that room. Mobile snap 4 stays terse because a snap-stub doesn't have the breathing space for two-sentence copy.
 

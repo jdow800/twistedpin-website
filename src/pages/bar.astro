@@ -35,12 +35,51 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import { getCocktails } from "../lib/gotab-cocktails";
+import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
 // Editorial page only as of 2026-05-05 — full cocktail menu lives at
 // /menu/cocktails, full tap list at /menu/taps. We still fetch cocktails
 // here for the editorial teaser (5 staff favorites previewed in the
 // craft cocktails section).
 const cocktailMenu = await getCocktails();
+
+// JSON-LD: BarOrPub for the bar program + Person for Brian Van Flandern.
+// Same @id as homepage (BUSINESS_ENTITY_ID) — entity unification.
+// Brian's @id is canonical so future pages can reference him by @id.
+//
+// IMPORTANT: Brian is a consulting partner, NOT staff. No worksFor,
+// no employee link to BarOrPub. Co-occurrence on this page (he's named
+// in the BarOrPub.description AND has his own Person entity) is enough
+// for AI assistants to link the credential to the venue without making
+// a structured employment claim.
+const PAGE_URL = `${BUSINESS_URL}/bar/`;
+const BRIAN_ID = `${BUSINESS_URL}/#brian-van-flandern`;
+
+const barOrPubSchema = {
+  ...(await localBusinessBase({
+    url: PAGE_URL,
+    image: `${BUSINESS_URL}/snap/bar-cocktails-900.webp`,
+    description:
+      "The bar at Twisted Pin — a craft cocktail program designed by Brian Van Flandern (America's Top Mixologist, Food Network) and a 28-tap self-serve beer and wine wall. Plainfield, IL.",
+  })),
+  "@type": "BarOrPub",
+};
+
+const brianSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "@id": BRIAN_ID,
+  name: "Brian Van Flandern",
+  jobTitle: "Mixologist",
+  award: "America's Top Mixologist (Food Network)",
+  knowsAbout: [
+    "mixology",
+    "cocktail program design",
+    "craft cocktails",
+  ],
+  description:
+    "Mixologist whose cocktails are served in 40+ countries. Designed the cocktail program at Twisted Pin in Plainfield, IL as a consulting partner.",
+};
 ---
 <Base
   title="Craft Cocktails & a 28-Tap Self-Serve Beer Wall | Twisted Pin"
@@ -177,6 +216,12 @@ const cocktailMenu = await getCocktails();
   </section>
 
   <SnapFooter />
+
+  {/* JSON-LD. Same @id as homepage's BarOrPub for entity unification.
+      Brian is a separate Person entity — co-occurrence on the page,
+      not a structured employment link. */}
+  <script type="application/ld+json" set:html={JSON.stringify(barOrPubSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(brianSchema)} />
 </Base>
 
 <style>
@@ -257,13 +302,9 @@ const cocktailMenu = await getCocktails();
     .bar-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
   }
 
-  /* hero-fade entry uses the same Motion One pipeline as the homepage hero
-     (heroEntry() in motion.client.ts watches [data-hero] for .hero-fade).
-     Initial state set here; Motion overrides on entry. */
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade rule + reduced-motion override hoisted to global.css
+     (2026-05-08 LCP fix). heroEntry() in motion.client.ts watches
+     [data-hero] for .hero-fade and animates transform on load. */
 
   /* ============================================================
      section pattern — used by Tap Wall and Cocktails

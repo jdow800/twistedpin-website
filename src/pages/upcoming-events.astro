@@ -17,6 +17,7 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { BUSINESS_URL, eventSchema } from "../lib/schema";
 
 // At-build cutoff: an event is "past" when its end (or start, if no
 // end) is before today. Cron rebuilds nightly at 9 UTC so this re-runs
@@ -99,6 +100,38 @@ function timeRange(start: Date, end?: Date) {
   const e = timeFmt.format(end).toLowerCase();
   return `${s} – ${e} CT`;
 }
+
+// JSON-LD: ItemList of Events. Same `events` array the page renders —
+// schema and display can't drift. Skipped when no events are scheduled
+// (calendar's clear → no ItemList to ship). Each Event:
+//   - eventStatus: EventScheduled (default; flip via markdown if needed)
+//   - eventAttendanceMode: OfflineEventAttendanceMode
+//   - location + organizer reference the venue via @id
+//   - url prefers the cta.href when it's an internal page (lets crawlers
+//     follow to the dedicated detail page e.g. /new-years-eve/), falls
+//     back to the upcoming-events page itself.
+const upcomingEventsJsonLd = events.length === 0 ? null : {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: events.map((e, i) => {
+    const cta = e.data.cta?.href;
+    const ctaIsInternal = cta && cta.startsWith("/");
+    const eventUrl = ctaIsInternal
+      ? `${BUSINESS_URL}${cta}`
+      : `${BUSINESS_URL}/upcoming-events/`;
+    return {
+      "@type": "ListItem",
+      position: i + 1,
+      item: eventSchema({
+        name: e.data.title,
+        start: e.data.start,
+        end: e.data.end,
+        description: e.body?.trim(),
+        url: eventUrl,
+      }),
+    };
+  }),
+};
 ---
 <Base
   title="Upcoming Events — Twisted Pin Plainfield IL"
@@ -198,6 +231,10 @@ function timeRange(start: Date, end?: Date) {
   </section>
 
   <SnapFooter />
+
+  {upcomingEventsJsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(upcomingEventsJsonLd)} />
+  )}
 </Base>
 
 <style>

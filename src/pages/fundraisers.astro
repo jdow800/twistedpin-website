@@ -1,0 +1,453 @@
+---
+/**
+ * /fundraisers — Fundraiser program landing page.
+ *
+ * Captures the `fundraiser venue` / `bowling fundraiser` keyword cluster
+ * flagged in Context/seo.md as opportunity-not-yet-captured. Replaces the
+ * earlier plan to redirect /fundraiser/ → /events/#fundraiser — the
+ * mechanics here are operationally specific enough to warrant a
+ * dedicated URL with full SEO chrome:
+ *   - Thursdays 5–9pm only (recurring window)
+ *   - Main floor only — NOT the VIP suite
+ *   - Customers must mention the fundraiser at check-in
+ *   - 50% of bowling, shoe, AND arcade revenue back to host (not just bowling)
+ *   - Optional bonus arcade promotion at booking
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - Drop the live-site "FUN!" / "FUNdraisers" / all-caps section
+ *     register — confident-and-specific, not corporate-cheerful
+ *   - "private" hard-banned — VIP suite is for "booked group events,"
+ *     fundraisers run "on the main floor"
+ *   - Specifics > adjectives — Thursdays 5–9pm, 50% of bowling/shoe/arcade,
+ *     all ages, 28-tap self-serve wall
+ *
+ * Same skeleton as /events (rule of seven — .pillar-* CSS hoist is
+ * deeply overdue at this point):
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (image + copy, alternating)
+ *   - Closing CTA band → Zite (matches /events conversion-moment pattern)
+ *   - SnapFooter
+ *
+ * TODOs (non-blocking):
+ *   - Section photos reuse events-bg + stage-game homepage shots.
+ *     Distinct fundraiser-energy photography (a real fundraiser night,
+ *     a check-presentation moment, a school group's logo on the LED
+ *     wall) would land harder. Flagged in Context/media-needs.md.
+ *   - Real success-story content ("X organizations raised $Y last year")
+ *     would convert hard but not in scope until ops gives numbers.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+
+const ZITE_URL = "https://twistedevents.zite.so/";
+
+// JSON-LD: Service offered by the venue. provider → #business links
+// the program to the canonical entity. No specific Event schema since
+// fundraisers are scheduled per-organization, not venue-published.
+const PAGE_URL = `${BUSINESS_URL}/fundraisers/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#fundraiser-program`,
+  name: "Fundraiser Program",
+  url: PAGE_URL,
+  description:
+    "Twisted Pin returns 50% of bowling, shoe, and arcade revenue from supporters back to host organizations. Thursday nights 5–9pm. Schools, churches, sports teams, charities, community groups in Plainfield, IL and surrounding Will County.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  serviceType: "Fundraiser hosting",
+  areaServed: {
+    "@type": "Place",
+    name: "Plainfield, IL and surrounding Will County",
+  },
+  offers: {
+    "@type": "Offer",
+    description:
+      "50% of bowling, shoe, and arcade revenue from supporters returned to host organization",
+    availability: "https://schema.org/InStock",
+  },
+};
+---
+<Base
+  title="Fundraiser Venue in Plainfield, IL | Twisted Pin"
+  description="Bowling fundraisers at Twisted Pin: 50% of bowling, shoe, and arcade revenue back to your cause. Thursday nights 5–9pm. Schools, churches, sports teams, charities. Plainfield, IL."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="fundraiser-hero" data-hero aria-labelledby="fundraiser-hero-h1">
+    <div class="fundraiser-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Fundraisers</p>
+      <h1 class="t-display fundraiser-hero-headline hero-fade" id="fundraiser-hero-h1" data-delay-ms="120">
+        Bowling makes a great&nbsp;fundraiser.
+      </h1>
+      <p class="fundraiser-hero-sub hero-fade" data-delay-ms="320">
+        50% of eligible bowling, shoe, and arcade sales — back to your cause.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      HOW IT WORKS — image left, copy right
+      ============================================================ */}
+  <section class="fundraiser-section" aria-labelledby="fundraiser-how-h2">
+    <div class="fundraiser-section-grid">
+      <div class="fundraiser-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="fundraiser-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group enjoying a night out at Twisted Pin in Plainfield, IL"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="fundraiser-section-copy">
+        <p class="t-eyebrow">How It Works</p>
+        <h2 class="t-display fundraiser-section-title" id="fundraiser-how-h2">
+          Thursdays, 5–9pm. We host. You promote.
+        </h2>
+        <p class="fundraiser-section-aside">(no setup fee, no minimums)</p>
+
+        <p class="fundraiser-section-body">
+          Tell your supporters when and where. They show up, mention
+          they're there for your fundraiser, and pay regular price. We
+          send <strong>50% of their bowling, shoe, and arcade spend</strong>
+          back to your organization.
+        </p>
+
+        <p class="fundraiser-section-body">
+          Fundraisers run on the main floor. The 6-lane VIP suite is set
+          aside for booked group events.
+        </p>
+
+        <ul class="fundraiser-section-list">
+          <li>Pick a Thursday between 5pm and 9pm</li>
+          <li>Promote it to your supporters</li>
+          <li>Supporters bowl, eat, drink, play arcade</li>
+          <li>They mention the fundraiser at check-in</li>
+          <li>50% of bowling, shoe, and arcade revenue comes back to your org</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHY BOWLING FUNDRAISERS WORK — image RIGHT, copy LEFT (alternation)
+      ============================================================ */}
+  <section class="fundraiser-section fundraiser-section--reverse" aria-labelledby="fundraiser-why-h2">
+    <div class="fundraiser-section-grid">
+      <div class="fundraiser-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/stage-game-540.webp 540w, /snap/stage-game-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="fundraiser-section-img"
+            src="/snap/stage-game-540.jpg"
+            srcset="/snap/stage-game-540.jpg 540w, /snap/stage-game-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="Arcade games at Twisted Pin — pinball, redemption, skee-ball"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="fundraiser-section-copy">
+        <p class="t-eyebrow">Why Bowling</p>
+        <h2 class="t-display fundraiser-section-title" id="fundraiser-why-h2">
+          All ages, weather-proof, high&#8209;capacity.
+        </h2>
+        <p class="fundraiser-section-aside">(food, fun, and funds)</p>
+
+        <p class="fundraiser-section-body">
+          Bowling is one of the few group activities that works for
+          grandparents and grade-schoolers in the same lane. No skill
+          required, no rainout backup plan, no early-November cancel risk.
+        </p>
+
+        <p class="fundraiser-section-body">
+          The kitchen, bar, and 28-tap self-serve wall are open to your
+          supporters all night — they make an evening of it instead of
+          a quick game. Bigger evenings mean more raised.
+        </p>
+
+        <p class="fundraiser-section-body">
+          Ask about our <strong>arcade promotion</strong> at booking —
+          there's an extra path to raise more on top of the 50% bowling,
+          shoe, and arcade share.
+        </p>
+
+        <ul class="fundraiser-section-list">
+          <li>All ages, all skill levels</li>
+          <li>Indoors — no rain, snow, or heat-cancel risk</li>
+          <li>Full kitchen + 28-tap self-serve wall</li>
+          <li>Arcade open all night</li>
+          <li>Schools, churches, sports teams, charities, community groups</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — single dominant "Plan a fundraiser" → Zite.
+      Same lifted-indigo treatment as /events for the conversion moment.
+      ============================================================ */}
+  <section class="fundraiser-cta" aria-labelledby="fundraiser-cta-h2">
+    <div class="fundraiser-cta-inner">
+      <p class="t-eyebrow">Plan Your Fundraiser</p>
+      <h2 class="t-display fundraiser-cta-title" id="fundraiser-cta-h2">
+        Pick a Thursday. We'll set it up.
+      </h2>
+      <p class="fundraiser-cta-body">
+        Quick form. Tour the venue, see what's involved, lock in your date.
+      </p>
+      <a class="btn btn-solid fundraiser-cta-btn" href={ZITE_URL} target="_blank" rel="noopener">
+        Plan a fundraiser
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+</Base>
+
+<style>
+  /* ============================================================
+     /fundraisers — same pillar skeleton as /events. .fundraiser-*
+     mirrors .events-* / .bar-* / .eat-* / .vip-* / .game-* / .bowl-* —
+     rule of seven. .pillar-* CSS hoist is deeply overdue (flagged in
+     Context/launch-checklist.md tech debt).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .fundraiser-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .fundraiser-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-hero-copy { text-align: center; }
+    .fundraiser-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .fundraiser-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .fundraiser-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
+
+  /* ============================================================
+     section pattern (mirrors .events-section etc.)
+     ============================================================ */
+  .fundraiser-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section { padding: 24px 64px; }
+  }
+
+  .fundraiser-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+      align-items: start;
+    }
+  }
+
+  .fundraiser-section--reverse .fundraiser-section-frame {
+    order: 0;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section--reverse .fundraiser-section-frame { order: 2; }
+  }
+
+  .fundraiser-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 9 / 16;
+    background: rgba(244, 239, 227, 0.04);
+    max-height: min(640px, calc(70vh - 80px));
+    width: 100%;
+    align-self: start;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-frame {
+      aspect-ratio: 9 / 16;
+      max-width: 480px;
+      justify-self: center;
+    }
+  }
+
+  .fundraiser-section-frame picture,
+  .fundraiser-section-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .fundraiser-section-copy {
+    color: var(--warm-white);
+    max-width: 56ch;
+  }
+
+  .fundraiser-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    letter-spacing: -0.005em;
+    line-height: 1.0;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-title { font-size: clamp(36px, 4.5vw, 56px); }
+  }
+
+  .fundraiser-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-aside { font-size: 16px; }
+  }
+
+  .fundraiser-section-body {
+    margin-top: 16px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: #ece6d6;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-body { font-size: 17px; line-height: 1.6; }
+  }
+
+  .fundraiser-section-list {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .fundraiser-section-list li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #ece6d6;
+  }
+  .fundraiser-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 8px;
+    height: 1px;
+    background: var(--glow);
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-section-list li { font-size: 15.5px; }
+  }
+
+  /* ============================================================
+     CLOSING CTA — same recipe as /events for visual rhythm
+     ============================================================ */
+  .fundraiser-cta {
+    background: var(--indigo-lift);
+    padding: 56px 22px;
+    margin-top: 32px;
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-cta { padding: 96px 64px; margin-top: 64px; }
+  }
+
+  .fundraiser-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    color: var(--warm-white);
+  }
+
+  .fundraiser-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(32px, 9vw, 56px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-cta-title { font-size: clamp(48px, 5.5vw, 80px); }
+  }
+
+  .fundraiser-cta-body {
+    margin: 18px auto 28px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-cta-body { font-size: 19px; margin-bottom: 36px; }
+  }
+
+  .fundraiser-cta-btn {
+    display: inline-block;
+  }
+</style>

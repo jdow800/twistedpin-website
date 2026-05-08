@@ -14,8 +14,65 @@
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
 import { getFood } from "../../lib/gotab-food";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
 const foodMenu = await getFood();
+
+// Map GoTab's free-form `tags: string[]` to Schema.org's RestrictedDiet
+// enumeration. Best-effort match against known patterns — silently skips
+// tags that don't map (`go:staff favorite`, etc). If GoTab returns no
+// dietary tags the field is simply omitted from the MenuItem.
+//
+// Schema.org RestrictedDiet:
+// https://schema.org/RestrictedDiet
+const DIET_MAP: Array<{ pattern: RegExp; url: string }> = [
+  { pattern: /\bvegan\b/i,                            url: "https://schema.org/VeganDiet" },
+  { pattern: /\bvegetarian\b/i,                       url: "https://schema.org/VegetarianDiet" },
+  { pattern: /\b(gluten[- ]?free|gf)\b/i,             url: "https://schema.org/GlutenFreeDiet" },
+  { pattern: /\bhalal\b/i,                            url: "https://schema.org/HalalDiet" },
+  { pattern: /\bkosher\b/i,                           url: "https://schema.org/KosherDiet" },
+  { pattern: /\blow[- ]?fat\b/i,                      url: "https://schema.org/LowFatDiet" },
+  { pattern: /\blow[- ]?(cal|calorie)\b/i,            url: "https://schema.org/LowCalorieDiet" },
+];
+
+function suitableForDiet(tags: string[] | undefined): string[] {
+  if (!tags || tags.length === 0) return [];
+  const out: string[] = [];
+  for (const tag of tags) {
+    for (const { pattern, url } of DIET_MAP) {
+      if (pattern.test(tag) && !out.includes(url)) out.push(url);
+    }
+  }
+  return out;
+}
+
+// JSON-LD: Menu → MenuSection → MenuItem. /eat's hasMenu URL points
+// at this page; the @id below is the canonical entity reference.
+const PAGE_URL = `${BUSINESS_URL}/menu/food/`;
+const menuSchema = {
+  "@context": "https://schema.org",
+  "@type": "Menu",
+  "@id": `${BUSINESS_URL}/#menu-food`,
+  name: "Food Menu",
+  url: PAGE_URL,
+  inLanguage: "en-US",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  hasMenuSection: foodMenu.categories.map((cat) => ({
+    "@type": "MenuSection",
+    name: cat.name.trim(),
+    hasMenuItem: cat.items.map((it) => {
+      const item: Record<string, unknown> = {
+        "@type": "MenuItem",
+        name: it.name,
+      };
+      if (it.description) item.description = it.description;
+      if (it.imageUrlLg || it.imageUrl) item.image = it.imageUrlLg ?? it.imageUrl;
+      const diets = suitableForDiet(it.tags);
+      if (diets.length > 0) item.suitableForDiet = diets;
+      return item;
+    }),
+  })),
+};
 ---
 <Base
   title="Food Menu | Twisted Pin Plainfield IL"
@@ -100,6 +157,8 @@ const foodMenu = await getFood();
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
 </Base>
 
 <style>
@@ -141,10 +200,7 @@ const foodMenu = await getFood();
     .menu-hero-sub { font-size: 17px; max-width: 42em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      FOOD MENU — same compact grid as cocktails. Moved here from

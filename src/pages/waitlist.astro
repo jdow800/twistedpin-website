@@ -180,10 +180,7 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
     .waitlist-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      section pattern (analogous to .bar-section / .eat-section /

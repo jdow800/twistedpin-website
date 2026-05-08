@@ -16,8 +16,36 @@
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
 const cocktailMenu = await getCocktails();
+
+// JSON-LD: Menu → MenuSection → MenuItem. Stable @id so other pages
+// can cross-reference (e.g. /bar's hasMenu). provider references the
+// LocalBusiness via @id — entity graph closes.
+const PAGE_URL = `${BUSINESS_URL}/menu/cocktails/`;
+const menuSchema = {
+  "@context": "https://schema.org",
+  "@type": "Menu",
+  "@id": `${BUSINESS_URL}/#menu-cocktails`,
+  name: "Cocktail Menu",
+  url: PAGE_URL,
+  inLanguage: "en-US",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  hasMenuSection: cocktailMenu.categories.map((cat) => ({
+    "@type": "MenuSection",
+    name: cat.name,
+    hasMenuItem: cat.cocktails.map((c) => {
+      const item: Record<string, unknown> = {
+        "@type": "MenuItem",
+        name: c.name,
+      };
+      if (c.ingredients) item.description = c.ingredients;
+      if (c.imageUrlLg || c.imageUrl) item.image = c.imageUrlLg ?? c.imageUrl;
+      return item;
+    }),
+  })),
+};
 ---
 <Base
   title="Cocktail Menu | Twisted Pin Plainfield IL"
@@ -97,6 +125,8 @@ const cocktailMenu = await getCocktails();
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
 </Base>
 
 <style>
@@ -139,10 +169,7 @@ const cocktailMenu = await getCocktails();
     .menu-hero-sub { font-size: 17px; max-width: 42em; }
   }
 
-  .hero-fade { opacity: 0; transform: translateY(12px); }
-  @media (prefers-reduced-motion: reduce) {
-    .hero-fade { opacity: 1; transform: none; }
-  }
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
 
   /* ============================================================
      COCKTAIL MENU — same compact grid as before. Moved here from

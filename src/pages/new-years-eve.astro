@@ -28,11 +28,35 @@
  *     as a sensible default).
  *   - If Roller offers NYE-specific reservation slots, wire those.
  */
+import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import { BUSINESS_URL, eventSchema } from "../lib/schema";
 
 const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+
+// JSON-LD: Event. Dates pulled from the events content collection so
+// /new-years-eve and /upcoming-events read from the same SoT. `offers`
+// is omitted — package details are ops-blocked. eventStatus defaults to
+// EventScheduled inside eventSchema(); flip to EventCancelled or
+// EventPostponed in the markdown frontmatter (with a follow-up schema
+// pass) if the situation changes.
+const PAGE_URL = `${BUSINESS_URL}/new-years-eve/`;
+const nyeEntry = await getEntry("events", "2026-12-31-new-years-eve");
+const nyeJsonLd = nyeEntry
+  ? {
+      "@context": "https://schema.org",
+      ...eventSchema({
+        name: nyeEntry.data.title,
+        start: nyeEntry.data.start,
+        end: nyeEntry.data.end,
+        description: nyeEntry.body?.trim(),
+        image: `${BUSINESS_URL}/snap/nye-poster.webp`,
+        url: PAGE_URL,
+      }),
+    }
+  : null;
 ---
 <Base
   title="New Year's Eve at Twisted Pin — Plainfield, IL"
@@ -130,6 +154,10 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
   </section>
 
   <SnapFooter />
+
+  {nyeJsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />
+  )}
 </Base>
 
 <style>
