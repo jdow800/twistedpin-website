@@ -1,0 +1,8 @@
+# Twisted Pin — Plainfield, IL
+# https://www.twistedpin.com
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://www.twistedpin.com/sitemap-index.xml

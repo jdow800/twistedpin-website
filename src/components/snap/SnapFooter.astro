@@ -102,12 +102,13 @@ const PHONE_TEL     = "+18157827790";
 const EMAIL_ADDRESS = "contactus@twistedpin.com";
 
 // Real social URLs (verified 2026-05-05 from twistedpin.com JSON-LD
-// schema's `sameAs` array). TikTok was a placeholder; user confirmed
-// 2026-05-05 the business has no TikTok presence currently — icon
-// removed below. Re-add the SVG + URL constant when/if a TikTok
-// account launches.
+// schema's `sameAs` array). YouTube confirmed 2026-05-08. TikTok was a
+// placeholder; user confirmed 2026-05-05 the business has no TikTok
+// presence currently — icon removed below. Re-add the SVG + URL
+// constant when/if a TikTok account launches. LinkedIn + X also absent.
 const IG_URL  = "https://www.instagram.com/twistedpinplainfield/";
 const FB_URL  = "https://www.facebook.com/twistedpin";
+const YT_URL  = "https://www.youtube.com/@TwistedPin";
 
 const UTILITY_LINKS = [
   { label: "FAQ",           href: "/faq/" },
@@ -206,15 +207,15 @@ const UTILITY_LINKS = [
               <span class="proof-stars" aria-hidden="true">★★★★★</span>
               <span class="proof-num">4.5</span>
             </p>
-            <p class="proof-meta">1,053 reviews</p>
+            <p class="proof-meta">1,141 reviews</p>
           </a>
           <a class="proof-card" href="https://www.yelp.com/biz/twisted-pin-plainfield" target="_blank" rel="noopener">
             <p class="proof-source">Yelp</p>
             <p class="proof-rating">
               <span class="proof-stars" aria-hidden="true">★★★★★</span>
-              <span class="proof-num">4.2</span>
+              <span class="proof-num">4.1</span>
             </p>
-            <p class="proof-meta">80 reviews</p>
+            <p class="proof-meta">99 reviews</p>
           </a>
         </div>
       </div>
@@ -249,7 +250,7 @@ const UTILITY_LINKS = [
                 />
                 <img
                   src={`/snap/ig-${n}-540.jpg`}
-                  alt=""
+                  alt={`Recent scene from Twisted Pin in Plainfield, IL — ${n}`}
                   width="540"
                   height="540"
                   loading="lazy"
@@ -288,6 +289,14 @@ const UTILITY_LINKS = [
           <a href={FB_URL} target="_blank" rel="noopener" aria-label="Twisted Pin on Facebook">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/>
+            </svg>
+          </a>
+        </li>
+        <li>
+          <a href={YT_URL} target="_blank" rel="noopener" aria-label="Twisted Pin on YouTube">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33z"/>
+              <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="currentColor"/>
             </svg>
           </a>
         </li>

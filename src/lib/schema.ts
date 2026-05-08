@@ -58,10 +58,11 @@ export const PLACE_ID = "ChIJURI15Tr1DogRLKYdPWWuY-M";
  */
 export const HAS_MAP_URL = `https://www.google.com/maps/place/?q=place_id:${PLACE_ID}`;
 
-/** Mirrors SnapFooter's social row. Verified 2026-05-05. */
+/** Mirrors SnapFooter's social row. YouTube added 2026-05-08. */
 export const SOCIAL_SAME_AS = [
   "https://www.instagram.com/twistedpinplainfield/",
   "https://www.facebook.com/twistedpin",
+  "https://www.youtube.com/@TwistedPin",
 ];
 
 /**

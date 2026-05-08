@@ -7,6 +7,14 @@ import SiteHeader from "../components/SiteHeader.astro";
 interface Props {
   title?: string;
   description?: string;
+  /** Override og:image / twitter:image. Path is relative to site root.
+   *  Defaults to /og/og-default.jpg (catering buffet shot). Per-page
+   *  overrides should be 1200x630 px, JPG or PNG. */
+  ogImage?: string;
+  /** og:image:alt — describes the image itself, not the page. */
+  ogImageAlt?: string;
+  /** og:type — defaults to "website". Use "article" for blog posts. */
+  ogType?: string;
   /** Hide the global sticky CTA bar (e.g. on the booking flow). */
   hideStickyCTA?: boolean;
   /** Hide the persistent header (rare — full-bleed campaign pages). */
@@ -16,9 +24,18 @@ interface Props {
 const {
   title = "Twisted Pin — Plainfield, IL",
   description = "Cocktails, 28 self-serve taps, and a 6-lane VIP suite. Built for adults. Plainfield, IL.",
+  ogImage = "/og/og-default.jpg",
+  ogImageAlt = "A catering buffet set up at Twisted Pin in Plainfield, IL",
+  ogType = "website",
   hideStickyCTA = false,
   hideHeader = false,
 } = Astro.props;
+
+// Absolute URLs for canonical + og:url + og:image. Reads from astro.config.mjs
+// `site` field via Astro.site. At DNS cutover the `site` field flips to the
+// production domain and every page's canonical follows automatically.
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageURL = new URL(ogImage, Astro.site).href;
 ---
 <!doctype html>
 <html lang="en">
@@ -26,10 +43,41 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0E0A1F" />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {/* Favicons — Pin logo at multiple sizes (Favicon-100p source).
+        Astro-default favicon.svg deleted 2026-05-08 — wrong brand. */}
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+
+    {/* Canonical URL — single source of truth for which URL Google indexes. */}
+    <link rel="canonical" href={canonicalURL} />
+
+    {/* Open Graph — controls preview cards on Facebook, LinkedIn, iMessage,
+        Slack, Discord, etc. og:image is 1200x630 (1.91:1) for the
+        large-image card layout. Per-page Props override the defaults. */}
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Twisted Pin" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={ogImageAlt} />
+
+    {/* Twitter Card — same content, Twitter-namespaced. summary_large_image
+        is the big-image layout; falls back to summary if image fails. */}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+    <meta name="twitter:image:alt" content={ogImageAlt} />
 
     {/* Per-page head injection — used by draft / staging pages to add
         noindex, by article-style pages for canonical links, etc. */}
