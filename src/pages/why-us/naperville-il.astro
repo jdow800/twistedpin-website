@@ -1,0 +1,549 @@
+---
+/**
+ * /why-us/naperville-il/ — Service-area page (Naperville, IL).
+ *
+ * First service-area page on the new build. Per Context/seo.md:
+ *   - Naperville is the #1 paid market: 21.6% of paid clicks, near-zero
+ *     organic. Single biggest SEO gap on the entire site.
+ *   - Service-area pages live at /why-us/[city]-il/ — preserved slug
+ *     from the legacy site so any inbound SEO equity carries through.
+ *     Per launch-checklist.md: kept live, not in nav.
+ *   - 200–300+ words of unique content. No city-name-swap duplicates.
+ *   - Distance + drive directions from the city, named landmarks,
+ *     a unique angle, embedded directions CTA, internal links.
+ *
+ * Voice rules applied:
+ *   - Brand thesis is bar-led; the page leads with bar / cocktail
+ *     differentiator + VIP suite, not "we have lanes."
+ *   - "private" is hard-banned — VIP suite is "set apart by a wall,"
+ *     "semi-private," "yours for the night."
+ *   - Brian Van Flandern is NOT named on this page. voice.md line 167
+ *     keeps the name reserved for cocktail/bar pages specifically;
+ *     the credential ("America's Top Mixologist") does the heavy
+ *     lifting without the name.
+ *   - Specifics over adjectives — 8 minutes, Route 59, 28 taps, 6-lane
+ *     VIP suite, capacity to 80.
+ *
+ * Skeleton mirrors the .pillar-* pattern used on /fundraisers and
+ * /events (rule of seven hit; .pillar-* CSS hoist is queued tech debt).
+ *   - Hero: typography-led title section
+ *   - Three editorial sections (image alternates side L/R/L)
+ *   - Closing CTA band → Reserve (Glow) + Plan an event (outlined)
+ *   - SnapFooter
+ *
+ * Schema: Service offered to Naperville-IL, provider linked to the
+ * canonical venue entity. Adds a NAP repeat in plain English at the
+ * bottom of the closing band so crawlers + AI assistants pick up the
+ * city-page co-occurrence (Naperville + Plainfield NAP on the same URL).
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  PLACE_ID,
+  STREET,
+  LOCALITY,
+} from "../../lib/schema";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const ZITE_URL = "https://twistedevents.zite.so/";
+const MAPS_DIR_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+  `${STREET}, ${LOCALITY}`,
+)}&destination_place_id=${PLACE_ID}`;
+
+const PAGE_URL = `${BUSINESS_URL}/why-us/naperville-il/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#service-naperville`,
+  name: "Twisted Pin — Bowling, Bar & Event Venue Near Naperville, IL",
+  url: PAGE_URL,
+  description:
+    "Twisted Pin is an adults-first entertainment venue 8 minutes south of Naperville on Route 59. A craft cocktail program, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  areaServed: {
+    "@type": "City",
+    name: "Naperville",
+    sameAs: "https://en.wikipedia.org/wiki/Naperville,_Illinois",
+    containedInPlace: {
+      "@type": "AdministrativeArea",
+      name: "Illinois",
+    },
+  },
+};
+---
+<Base
+  title="Bowling Near Naperville, IL | Twisted Pin"
+  description="Eight minutes south of Naperville: a craft cocktail program, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve a lane at Twisted Pin."
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="naperville-hero" data-hero aria-labelledby="naperville-hero-h1">
+    <div class="naperville-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Naperville</p>
+      <h1 class="t-display naperville-hero-headline hero-fade" id="naperville-hero-h1" data-delay-ms="120">
+        Eight&nbsp;minutes from&nbsp;Naperville. A&nbsp;different night&nbsp;out.
+      </h1>
+      <p class="naperville-hero-sub hero-fade" data-delay-ms="320">
+        Twisted Pin sits 8 minutes south on Route 59 in Plainfield, IL —
+        a craft cocktail program, a 28-tap self-serve wall, and the only
+        6-lane VIP suite in the area.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      DRIVE — image left, copy right
+      ============================================================ */}
+  <section class="naperville-section" aria-labelledby="naperville-drive-h2">
+    <div class="naperville-section-grid">
+      <div class="naperville-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="naperville-section-img"
+            src="/snap/events-bg-540.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group enjoying a night out at Twisted Pin in Plainfield, IL"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="naperville-section-copy">
+        <p class="t-eyebrow">Drive</p>
+        <h2 class="t-display naperville-section-title" id="naperville-drive-h2">
+          Eight minutes south. Free parking out front.
+        </h2>
+        <p class="naperville-section-aside">(less time than valeting downtown)</p>
+
+        <p class="naperville-section-body">
+          Take Route 59 south through Naperville Crossings, cross 119th,
+          and you're here. From the Edward-Elmhurst corridor on south
+          Naperville, count on about 8 minutes. From downtown Naperville
+          off Ogden, 12–15 — fewer if you skip Ogden and ride 59 the
+          whole way.
+        </p>
+
+        <p class="naperville-section-body">
+          A sit-down dinner downtown, a $40 cab home, and a wait for the
+          check is one option for a Friday night. This is the other one.
+        </p>
+
+        <ul class="naperville-section-list">
+          <li>~8 minutes from south Naperville (95th &amp; Route 59)</li>
+          <li>~12–15 minutes from downtown Naperville</li>
+          <li>Off Route 59 — easy from the I-55 corridor</li>
+          <li>Free parking out front</li>
+        </ul>
+
+        <a class="btn btn-outline" href={MAPS_DIR_HREF} target="_blank" rel="noopener">
+          Get directions
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      VIP SUITE — image RIGHT, copy LEFT (alternation)
+      Naperville's biggest paid-search angle is corporate / group
+      events. Lead with the suite differentiator.
+      ============================================================ */}
+  <section class="naperville-section naperville-section--reverse" aria-labelledby="naperville-vip-h2">
+    <div class="naperville-section-grid">
+      <div class="naperville-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/vip-energy-540.webp 540w, /snap/vip-energy-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="naperville-section-img"
+            src="/snap/vip-energy-540.jpg"
+            srcset="/snap/vip-energy-540.jpg 540w, /snap/vip-energy-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The 6-lane VIP suite at Twisted Pin — set apart from the traditional lanes"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="naperville-section-copy">
+        <p class="t-eyebrow">Group Events</p>
+        <h2 class="t-display naperville-section-title" id="naperville-vip-h2">
+          Take over the 6-lane VIP suite.
+        </h2>
+        <p class="naperville-section-aside">(only one in the area)</p>
+
+        <p class="naperville-section-body">
+          Naperville companies book the suite for corporate offsites,
+          holiday parties, and staff appreciation nights. Adult
+          birthdays, gender reveals, bridal showers, graduation parties
+          land here too. The six lanes sit set apart from the
+          traditional lanes by a wall — semi-private when you take it
+          over, yours for the night.
+        </p>
+
+        <p class="naperville-section-body">
+          Capacity to 80, AV hookups for slideshows and walk-in music,
+          custom catering from the kitchen, and bar billing on a tab or
+          drink tickets — your call. If your office holiday party in
+          Naperville is starting to feel like last year's office holiday
+          party in Naperville, this is what's eight minutes south.
+        </p>
+
+        <ul class="naperville-section-list">
+          <li>6-lane VIP suite — only one in the immediate area</li>
+          <li>Up to 80 people when you take the whole suite</li>
+          <li>AV hookups + custom catering</li>
+          <li>Run a tab or drink tickets — not "open bar"</li>
+          <li>Set apart from the traditional lanes by a wall</li>
+        </ul>
+
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+          Plan an event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE BAR — image left, copy right
+      Bar-led brand thesis. The cocktail-bar angle is the carve-out
+      that lets us cite the credential here per voice.md line 167.
+      Brian's name is held to /bar/; the credential carries the page.
+      ============================================================ */}
+  <section class="naperville-section" aria-labelledby="naperville-bar-h2">
+    <div class="naperville-section-grid">
+      <div class="naperville-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="naperville-section-img"
+            src="/snap/bar-cocktails-540.jpg"
+            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
+            width="540"
+            height="960"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="naperville-section-copy">
+        <p class="t-eyebrow">The Bar</p>
+        <h2 class="t-display naperville-section-title" id="naperville-bar-h2">
+          A craft cocktail program by America's Top Mixologist.
+        </h2>
+        <p class="naperville-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
+
+        <p class="naperville-section-body">
+          The bar program was built by the consulting mixologist Food
+          Network calls <em>America's Top Mixologist</em> — cocktails
+          served in 40+ countries. The 28-tap self-serve wall is its
+          counterweight: grab a card, pour your own beer or wine, pay by
+          the ounce.
+        </p>
+
+        <p class="naperville-section-body">
+          You'd find this kind of bar program in River North or downtown
+          Naperville. Not in Plainfield. That's the gap we're closing.
+        </p>
+
+        <a class="btn btn-outline" href="/menu/cocktails">View the cocktail menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — both primary CTAs side-by-side.
+      Service-area pages funnel both buckets (date night → Reserve
+      via Roller; corporate planner → Plan via Zite). Mirrors /events
+      closing band style.
+      ============================================================ */}
+  <section class="naperville-cta" aria-labelledby="naperville-cta-h2">
+    <div class="naperville-cta-inner">
+      <p class="t-eyebrow">Worth the Drive</p>
+      <h2 class="t-display naperville-cta-title" id="naperville-cta-h2">
+        Eight minutes. One reservation.
+      </h2>
+      <p class="naperville-cta-body">
+        Reserve a lane for tonight or plan a group event for next
+        quarter. Either is faster than the drive home from a sit-down
+        dinner downtown.
+      </p>
+      <div class="naperville-cta-row">
+        <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">
+          Reserve a lane
+        </a>
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+          Plan an event
+        </a>
+      </div>
+      <p class="naperville-cta-nap">
+        Twisted Pin · 15610 S Joliet Rd, Plainfield, IL 60544 · 8 minutes from Naperville
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+</Base>
+
+<style>
+  /* ============================================================
+     /why-us/naperville-il — same pillar skeleton as /fundraisers
+     and /events. .naperville-* mirrors .fundraiser-* / .events-*;
+     pillar-* CSS hoist queued in launch-checklist.md tech debt.
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .naperville-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .naperville-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .naperville-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .naperville-hero-copy { text-align: center; }
+    .naperville-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .naperville-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .naperville-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .naperville-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .naperville-hero-sub { margin-top: 22px; font-size: 19px; max-width: 40em; }
+  }
+
+  /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
+
+  /* ============================================================
+     section pattern — mirrors .fundraiser-section
+     ============================================================ */
+  .naperville-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section { padding: 24px 64px; }
+  }
+
+  .naperville-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+    }
+  }
+
+  .naperville-section--reverse .naperville-section-frame {
+    order: 0;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section--reverse .naperville-section-frame { order: 2; }
+  }
+
+  .naperville-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 9 / 16;
+    background: rgba(244, 239, 227, 0.04);
+    max-height: min(640px, calc(70vh - 80px));
+    width: 100%;
+    align-self: start;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-frame {
+      aspect-ratio: 9 / 16;
+      max-width: 480px;
+      justify-self: center;
+    }
+  }
+
+  .naperville-section-frame picture,
+  .naperville-section-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .naperville-section-copy {
+    color: var(--warm-white);
+    max-width: 56ch;
+  }
+
+  .naperville-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    letter-spacing: -0.005em;
+    line-height: 1.0;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-title { font-size: clamp(36px, 4.5vw, 56px); }
+  }
+
+  .naperville-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-aside { font-size: 16px; }
+  }
+
+  .naperville-section-body {
+    margin-top: 16px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: #ece6d6;
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-body { font-size: 17px; line-height: 1.6; }
+  }
+
+  .naperville-section-list {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .naperville-section-list li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: #ece6d6;
+  }
+  .naperville-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.65em;
+    width: 8px;
+    height: 1px;
+    background: var(--glow);
+  }
+  @media (min-width: 1025px) {
+    .naperville-section-list li { font-size: 15.5px; }
+  }
+
+  .naperville-section-copy .btn {
+    margin-top: 28px;
+  }
+
+  /* ============================================================
+     CLOSING CTA — same recipe as /events / /fundraisers
+     ============================================================ */
+  .naperville-cta {
+    background: var(--indigo-lift);
+    padding: 56px 22px;
+    margin-top: 32px;
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .naperville-cta { padding: 96px 64px; margin-top: 64px; }
+  }
+
+  .naperville-cta-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    color: var(--warm-white);
+  }
+
+  .naperville-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(32px, 9vw, 56px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .naperville-cta-title { font-size: clamp(48px, 5.5vw, 80px); }
+  }
+
+  .naperville-cta-body {
+    margin: 18px auto 28px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .naperville-cta-body { font-size: 19px; margin-bottom: 36px; }
+  }
+
+  .naperville-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .naperville-cta-nap {
+    margin-top: 28px;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .naperville-cta-nap { margin-top: 36px; font-size: 13px; }
+  }
+</style>
+</content>
+</invoke>
