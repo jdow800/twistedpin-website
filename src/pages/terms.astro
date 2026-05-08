@@ -2,11 +2,19 @@
 /**
  * /terms — Terms and Conditions (SMS messaging program scope).
  *
- * Built 2026-05-05 from the live twistedpin.com terms-and-conditions
- * page (user screenshot). The live page is narrowly scoped to the
- * SMS messaging program — TCPA / CTIA compliance scaffold, not a
- * full website-use ToS. Preserving that scope here so we don't
- * silently broaden the legal commitments without ops review.
+ * Updated 2026-05-08: substantive rewrite to support SMS messaging
+ * program approval. Major additions:
+ *   - Dow Holdings Inc named as the operating legal entity
+ *   - Section 3(b): verbal phone opt-in path documented in detail —
+ *     AI receptionist offers to send info via text, single SMS sent on
+ *     verbal confirmation, consent logged with timestamp + recording
+ *   - Section 2: informational link messages added to program scope
+ *   - Section 8: CTIA-mandated "no mobile sharing" boilerplate
+ *   - Re-enroll path now includes verbal phone request
+ *
+ * The live page is narrowly scoped to the SMS messaging program —
+ * TCPA / CTIA compliance scaffold, not a full website-use ToS.
+ * Preserving that scope.
  *
  * Structural note: if a broader ToS is needed pre-launch (covering
  * website use, reservation cancellation, gift card terms, prize /
@@ -17,22 +25,15 @@
  *   (b) replace this page with a comprehensive ToS that retains the
  *       SMS sections at the back
  * Flagging in launch-checklist.md for ops decision.
- *
- * Voice: legal copy stays factual / formal — no voice-rule reframes
- * needed. Section headings tightened to t2 register; substance
- * preserved exactly to keep TCPA/CTIA compliance language intact.
- *
- * Last Updated date matches the live page until ops confirms a new
- * effective date for this rebuild.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 
-const LAST_UPDATED = "February 21, 2026";
+const LAST_UPDATED = "May 8, 2026";
 ---
 <Base
   title="Terms and Conditions — Twisted Pin Plainfield IL"
-  description="Terms and Conditions for the Twisted Pin SMS messaging program. Opt-in, opt-out, message frequency, eligibility, and contact information. Plainfield, IL."
+  description="Terms and Conditions for the Twisted Pin SMS messaging program. Web form and verbal phone opt-in, opt-out, message frequency, eligibility, and contact information. Plainfield, IL."
 >
 
   <section class="t2-hero" data-hero aria-labelledby="terms-h1">
@@ -44,8 +45,9 @@ const LAST_UPDATED = "February 21, 2026";
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Last updated {LAST_UPDATED}. The terms below govern the
         Twisted Pin SMS messaging program. By submitting your phone
-        number through our event inquiry form, you agree to these
-        terms.
+        number through our event inquiry form, or by verbally consenting
+        to receive a text message during a phone call to our business
+        line, you agree to these terms.
       </p>
     </div>
   </section>
@@ -53,30 +55,37 @@ const LAST_UPDATED = "February 21, 2026";
   <section class="t2-section legal-section" aria-labelledby="terms-h2-1">
     <div class="t2-section-inner">
       <h2 class="legal-h2" id="terms-h2-1">1. Overview</h2>
-      <p>These Terms and Conditions govern your use of the Twisted Pin SMS messaging program. By submitting your phone number through our event inquiry form, you agree to these terms. Please read them carefully before participating.</p>
+      <p>These Terms and Conditions govern your use of the Twisted Pin SMS messaging program, operated by Dow Holdings Inc. By submitting your phone number through our event inquiry form, or by verbally consenting to receive a text message during a phone call to our business line, you agree to these terms. Please read them carefully before participating.</p>
 
       <h2 class="legal-h2" id="terms-h2-2">2. Program Description</h2>
-      <p>Twisted Pin ("Twisted Pin", "we", "us") operates an SMS messaging program to communicate with customers who have submitted event inquiry forms. Program messages may include:</p>
+      <p>Twisted Pin ("Twisted Pin," "we," "us"), a brand operated by Dow Holdings Inc, operates an SMS messaging program to communicate with customers who have submitted event inquiry forms or who request information during a phone call to our business line. Program messages may include:</p>
       <ul>
         <li>Responses to event booking inquiries</li>
         <li>Custom event quotes and pricing information</li>
         <li>Availability confirmations and booking details</li>
+        <li>Informational links sent in response to phone inquiries (pricing, hours, directions, location)</li>
         <li>Customer service follow-up related to your event</li>
         <li>Event reminders and confirmations</li>
       </ul>
 
       <h2 class="legal-h2" id="terms-h2-3">3. How to Opt In</h2>
-      <p>You opt in to receive SMS messages from Twisted Pin by submitting your phone number through our event inquiry form at twistedpin.com. By providing your phone number and submitting the form, you expressly consent to receive text messages from Twisted Pin at the number provided. You confirm that you are the account holder or have the account holder's permission to enroll the number.</p>
+      <p>You may opt in to receive SMS messages from Twisted Pin in one of two ways:</p>
+
+      <p><strong>(a) Web form opt-in:</strong> By submitting your phone number through our event inquiry form at twistedpin.com. By providing your phone number and submitting the form, you expressly consent to receive text messages from Twisted Pin at the number provided.</p>
+
+      <p><strong>(b) Verbal opt-in:</strong> By verbally requesting that information be sent to you via text message during a phone call to our business line at 815-782-7790. When you call and ask for details such as pricing, hours, directions, or location, our AI receptionist will offer to send the information via text. If you verbally confirm, a single informational SMS will be sent to the phone number from which you are calling. Verbal consent is captured and logged with date, timestamp, and call recording.</p>
+
+      <p>In either case, you confirm that you are the account holder or have the account holder's permission to enroll the number.</p>
 
       <h2 class="legal-h2" id="terms-h2-4">4. Message Frequency</h2>
-      <p>Message frequency varies based on your inquiry and the nature of your event planning process. You may receive multiple messages per inquiry as we assist you with quotes, availability, and booking details. We will not send unsolicited promotional messages unrelated to your event inquiry.</p>
+      <p>Message frequency varies based on your inquiry and the nature of your event planning process. For event inquiry opt-ins, you may receive multiple messages per inquiry as we assist you with quotes, availability, and booking details. For verbal phone opt-ins, you will typically receive a single informational message per request. We do not send unsolicited promotional messages.</p>
 
       <h2 class="legal-h2" id="terms-h2-5">5. Message and Data Rates</h2>
       <p>Message and data rates may apply. These charges are billed by your mobile carrier and are not collected by Twisted Pin. Please contact your mobile carrier if you are unsure about your messaging and data plan rates.</p>
 
       <h2 class="legal-h2" id="terms-h2-6">6. How to Opt Out (STOP)</h2>
       <p>You may opt out of receiving SMS messages from Twisted Pin at any time by replying <strong>STOP</strong> to any message you receive from us.</p>
-      <p>After texting STOP, you will receive one final confirmation message and no further messages will be sent. To re-enroll, simply submit a new event inquiry form or text START to our number.</p>
+      <p>After texting STOP, you will receive one final confirmation message and no further messages will be sent. To re-enroll, submit a new event inquiry form, call our business line and verbally request information, or text START to our number.</p>
       <p>Other opt-out keywords we honor: STOPALL, UNSUBSCRIBE, CANCEL, END, QUIT.</p>
 
       <h2 class="legal-h2" id="terms-h2-7">7. How to Get Help (HELP)</h2>
@@ -88,7 +97,7 @@ const LAST_UPDATED = "February 21, 2026";
       </ul>
 
       <h2 class="legal-h2" id="terms-h2-8">8. Privacy</h2>
-      <p>Your phone number and personal information collected through our SMS program will be used solely to respond to your event inquiry and facilitate your booking with Twisted Pin. We do not sell, rent, or share your phone number with third parties for marketing purposes. For full details on how we collect and use your data, please review our <a href="/privacy/">Privacy Policy</a>.</p>
+      <p>Your phone number and personal information collected through our SMS program will be used solely to respond to your event inquiry, fulfill your information request, and facilitate your booking with Twisted Pin. No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. For full details on how we collect and use your data, please review our <a href="/privacy/">Privacy Policy</a>.</p>
 
       <h2 class="legal-h2" id="terms-h2-9">9. Eligibility</h2>
       <p>This SMS program is available to users with a valid mobile phone number in the United States. By opting in, you represent that you are 18 years of age or older and are the account holder of the mobile number provided, or have authorization from the account holder to enroll.</p>
@@ -99,7 +108,7 @@ const LAST_UPDATED = "February 21, 2026";
       <h2 class="legal-h2" id="terms-h2-11">11. Contact Us</h2>
       <p>If you have questions about these Terms and Conditions or our SMS program, please contact us:</p>
       <ul class="legal-contact">
-        <li><strong>Twisted Pin</strong></li>
+        <li><strong>Twisted Pin (operated by Dow Holdings Inc)</strong></li>
         <li>15610 Joliet Rd, Plainfield, IL 60544</li>
         <li><a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a></li>
         <li><a href="/">twistedpin.com</a></li>
@@ -114,8 +123,7 @@ const LAST_UPDATED = "February 21, 2026";
 
 <style>
   /* Same legal-page recipe as /privacy — see that file for the
-     vocabulary. Hoisting to global.css if a third legal page lands
-     (rule of three). */
+     vocabulary. Hoist to global.css if a third legal page lands. */
   .legal-section .t2-section-inner {
     max-width: 720px;
   }
