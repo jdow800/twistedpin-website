@@ -97,7 +97,7 @@ Supporting assets:
 
 ## In Progress
 
-- **Site is structurally complete** with real content for every nav-linked URL. Latest session captured in [session-handoffs/2026-05-06-pricing-events-redirects.md](Context/session-handoffs/2026-05-06-pricing-events-redirects.md) — read first.
+- **Site is structurally complete** with real content for every nav-linked URL. Latest session captured in [session-handoffs/2026-05-08-copy-pass-seo-infra-sms.md](Context/session-handoffs/2026-05-08-copy-pass-seo-infra-sms.md) — read first. Prior same-day handoff: [2026-05-08-schema-rebuild-lcp-fundraisers.md](Context/session-handoffs/2026-05-08-schema-rebuild-lcp-fundraisers.md).
 - **301 redirect map shipped** (2026-05-06) — 18 legacy URLs preserved per launch-checklist. Plus `/essential` + `/elevated` SMS short links for text marketing.
 - **`/upcoming-events` rebuilt** (2026-05-06) as a real calendar driven by an Astro content collection (`src/content/events/*.md`). Empty state when zero events; multi-day cross-month range support; CTA per event. NYE 2026 is the first entry.
 - **`/new-years-eve` page live** (2026-05-06) with NYE.mp4 video hero. Exists at the URL year-round; surfaces in NavDrawer Visit section between `showFrom` / `showUntil` via the new `src/config/nav-seasonal.ts` system. Body copy is voice-y placeholder until ops gives package details.
