@@ -138,6 +138,56 @@ Not recommended: PSI/INP optimization (synthetic noise — wait for real CrUX). 
 
 ---
 
+## Audit findings — round 2 (post-shipping triage)
+
+After the three commits above, a fresh site-wide audit ran (572 issue rows in `Downloads/twistedpin-website.vercel.app issues 2026-05-08.csv`). **A parallel chat is working on most of these**; capturing the triage here so handoffs stay consistent.
+
+### Already fixed by today's commits (will clear on re-audit)
+
+| Issue | Count | Status |
+|---|---|---|
+| Missing HSTS header | 25 | ✓ Shipped in `8be7391` (`vercel.json` `Strict-Transport-Security` header) |
+| Pages with long title | 1 of 3 | ✓ Homepage trimmed (was 69 → 58); `/bar` + `/pricing` still need trim |
+| Pages with long meta description | 1 of 11 | ✓ Homepage trimmed (was 179 → 146); 11 inner pages still long |
+
+### False positives — ignore
+
+| Issue | Count | Why |
+|---|---|---|
+| URLs with underscore characters | 185 | All `/_astro/*` build artifacts (CSS, JS, fonts). Astro's internal output naming. Not user-facing URLs. |
+| Pages with external follow links | 34 | Standard hygiene flag. External links to Roller, Zite, Maps are legitimate. |
+| Pages with external links to redirect URLs | 34 | Zite, Roller, etc. legitimately redirect. Third-party. |
+| URLs with incorrect media type (GoTab/Untappd) | 27 | Third-party servers (img.gotab.io, labels.untappd.com) serve `.png` with `image/jpeg` Content-Type. Not our infrastructure. |
+| Slow TTFB | 112 | All `img.gotab.io/products/*`. GoTab's CDN is slow — third-party. Tech debt: proxy/cache menu images at build time (significant change). |
+| Timeout (1) | 1 | Specific GoTab image. Transient or third-party. |
+
+### Real findings to address (parallel-chat scope)
+
+| # | Issue | Count | Action |
+|---|---|---|---|
+| 1 | **Trailing-slash duplication** — both `/bar` AND `/bar/` indexed | 18 dup-content + 9 non-canonical-in-sitemap | Set `trailingSlash: 'always'` in `astro.config.mjs` + `vercel.json`. Forces single canonical per page. ~10 min |
+| 2 | Long meta descriptions | 11 pages | Trim each to 120-160 chars: `/bar`, `/menu`, `/vip-suite`, `/privacy`, `/terms`, `/free-kids-bowling`, `/leagues`, `/rewards`, `/fundraisers`. ~20 min |
+| 3 | Long titles | `/bar`, `/pricing` | Trim to ≤60 chars. ~5 min |
+| 4 | Missing alt on `/menu/taps` | 2 | Likely Untappd brewery label `<img>`. Add alt. ~5 min |
+| 5 | Missing `X-Content-Type-Options: nosniff` | 34 | One-line header rule in `vercel.json`. ~2 min |
+| 6 | Pages with broken external links | 34 | Need to identify *which* links — could be flaky audit or real dead destination. Investigate. ~20 min |
+| 7 | Pages with little content | 8 | `/coupon`, `/waitlist`, `/free-kids-bowling`, `/menu`, `/careers`, `/gift-cards`, `/upcoming-events`, `/leagues`. Add SEO body block beneath each iframe / thin page. ~45 min |
+
+### Defer / pre-launch
+
+| Issue | Why |
+|---|---|
+| Missing CSP (34) | Requires careful policy definition (third-party embeds: TablesReady iframe, GoTab/Untappd images, Maps, Roller, Zite). Pre-launch decision. |
+| GoTab image proxy/cache | Closes 100+ TTFB warnings. Build pipeline change. Post-launch tech debt. |
+
+### Trailing-slash decision context (load-bearing)
+
+Astro currently uses default `trailingSlash: 'ignore'` — both `/bar` and `/bar/` work, no preference. The canonical tag we shipped today reads `Astro.url.pathname`, so canonical is *per-request* — `/bar` canonicalizes to `/bar`, `/bar/` canonicalizes to `/bar/`. **Both think they're canonical.** That's why duplicate-content + sitemap-mismatch flagged.
+
+Recommended fix: `trailingSlash: 'always'` in both `astro.config.mjs` and `vercel.json`. Sitemap, links, canonical tags all align on `/bar/`. Vercel 308-redirects `/bar` → `/bar/`.
+
+---
+
 ## Open the next chat with
 
 > *"Read CLAUDE.md and Context/session-handoffs/2026-05-08-copy-pass-seo-infra-sms.md. [Then state the task — Naperville page / `<main>` audit / blog posts / address normalization / new bug found / etc.]"*
