@@ -1,0 +1,102 @@
+---
+/**
+ * /blog/[slug]/ — Blog post route.
+ *
+ * Static-prerendered from the `blog` content collection
+ * (src/content/blog/*.md). Each post supplies its own SEO chrome
+ * via frontmatter (title / description / publishDate / etc.) and
+ * its body markdown renders inside .blog-post wrapper styles in
+ * global.css.
+ *
+ * Article JSON-LD: Article + datePublished + dateModified +
+ * publisher linked to BUSINESS_ENTITY_ID. Per seo.md blog strategy,
+ * each post should be 800-1500 words with internal links to
+ * relevant landing pages.
+ *
+ * No /blog/ index page (per the 2026-05-04 launch-checklist
+ * decision — entry from SERP, not a hub). New posts are discovered
+ * via sitemap + internal links from pillar pages.
+ */
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID, BUSINESS_NAME } from "../../lib/schema";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog", ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const PAGE_URL = `${BUSINESS_URL}/blog/${post.id}/`;
+const ogImage = post.data.ogImage ?? "/og/og-default.jpg";
+const ogImageAlt =
+  post.data.ogImageAlt ??
+  "A catering buffet set up at Twisted Pin in Plainfield, IL";
+
+// Article schema. publisher → BUSINESS_ENTITY_ID for entity unification
+// across the site. Author is the venue (no individual byline) — feels
+// honest for a venue-authored guide rather than a fake person byline.
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "@id": `${PAGE_URL}#article`,
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.publishDate.toISOString(),
+  ...(post.data.updateDate
+    ? { dateModified: post.data.updateDate.toISOString() }
+    : { dateModified: post.data.publishDate.toISOString() }),
+  author: { "@id": BUSINESS_ENTITY_ID, name: BUSINESS_NAME },
+  publisher: { "@id": BUSINESS_ENTITY_ID, name: BUSINESS_NAME },
+  mainEntityOfPage: PAGE_URL,
+  image: new URL(ogImage, BUSINESS_URL).href,
+};
+
+// Display date for the post header. ISO-ish format keeps it scannable
+// without faking false freshness ("12 minutes ago" etc.).
+const publishedLabel = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+}).format(post.data.publishDate);
+const updatedLabel = post.data.updateDate
+  ? new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(post.data.updateDate)
+  : null;
+---
+<Base
+  title={`${post.data.title} | Twisted Pin`}
+  description={post.data.description}
+  ogImage={ogImage}
+  ogImageAlt={ogImageAlt}
+  ogType="article"
+>
+  <article class="blog-post" data-hero aria-labelledby="blog-h1">
+    <header class="blog-post-header">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Twisted Pin Journal</p>
+      <h1 class="t-display blog-post-title hero-fade" id="blog-h1" data-delay-ms="120">
+        {post.data.title}
+      </h1>
+      <p class="blog-post-meta hero-fade" data-delay-ms="320">
+        Published {publishedLabel}{updatedLabel && updatedLabel !== publishedLabel ? ` · Updated ${updatedLabel}` : ""}
+      </p>
+    </header>
+
+    <div class="blog-post-body">
+      <Content />
+    </div>
+  </article>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+</Base>
