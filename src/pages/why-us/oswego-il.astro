@@ -1,0 +1,230 @@
+---
+/**
+ * /why-us/oswego-il/ — Service-area page (Oswego, IL).
+ *
+ * Per Context/seo.md: Oswego = under-penetrated, 7% of paid clicks.
+ * Distance per ops 2026-05-08:
+ *   - ~13 miles
+ *   - User explicitly said leave route + drive time OFF the page
+ *     ("that one is pushing 30 mins"). Mileage carries; we don't
+ *     pretend it's a quick run.
+ *
+ * Different angle than the I-55-corridor pages: Oswego sits west of
+ * Plainfield with no direct expressway connection, so the conversion
+ * angle is "worth the drive — nothing closer to home looks like
+ * this." Lean on differentiator, not proximity.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  PLACE_ID,
+  STREET,
+  LOCALITY,
+} from "../../lib/schema";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const ZITE_URL = "https://twistedevents.zite.so/";
+const MAPS_DIR_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+  `${STREET}, ${LOCALITY}`,
+)}&destination_place_id=${PLACE_ID}`;
+
+const PAGE_URL = `${BUSINESS_URL}/why-us/oswego-il/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#service-oswego`,
+  name: "Twisted Pin — Bowling, Bar & Event Venue Near Oswego, IL",
+  url: PAGE_URL,
+  description:
+    "Twisted Pin is thirteen miles east of Oswego — a craft cocktail program, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  areaServed: {
+    "@type": "City",
+    name: "Oswego",
+    sameAs: "https://en.wikipedia.org/wiki/Oswego,_Illinois",
+    containedInPlace: { "@type": "AdministrativeArea", name: "Illinois" },
+  },
+};
+---
+<Base
+  title="Bowling Near Oswego, IL | Twisted Pin"
+  description="Thirteen miles east of Oswego: a craft cocktail program, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve at Twisted Pin."
+>
+
+  <section class="svc-hero" data-hero aria-labelledby="svc-hero-h1">
+    <div class="svc-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Oswego</p>
+      <h1 class="t-display svc-hero-headline hero-fade" id="svc-hero-h1" data-delay-ms="120">
+        Thirteen miles. Worth&nbsp;the drive.
+      </h1>
+      <p class="svc-hero-sub hero-fade" data-delay-ms="320">
+        Twisted Pin sits thirteen miles east of Oswego in Plainfield,
+        IL — a craft cocktail program, a 28-tap self-serve wall, and
+        the only 6-lane VIP suite in the area. Nothing closer to home
+        looks like this.
+      </p>
+    </div>
+  </section>
+
+  {/* Drive — distance only, no time, no route per ops --------- */}
+  <section class="svc-section" aria-labelledby="svc-drive-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/events-bg-540.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group enjoying a night out at Twisted Pin in Plainfield, IL"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">Drive</p>
+        <h2 class="t-display svc-section-title" id="svc-drive-h2">
+          Thirteen miles. Worth it.
+        </h2>
+        <p class="svc-section-aside">(nothing this side of Naperville looks like it)</p>
+
+        <p class="svc-section-body">
+          Thirteen miles is real. We're not pretending it's around the
+          corner. What you get for it: a craft cocktail program by the
+          consulting mixologist Food Network calls
+          <em>America's Top Mixologist</em>, the only 28-tap self-serve
+          beer and wine wall in the area, and a 6-lane VIP suite that
+          doesn't exist anywhere closer to Oswego than Naperville.
+        </p>
+
+        <p class="svc-section-body">
+          For the night you actually want to remember, the drive is the
+          easy part.
+        </p>
+
+        <ul class="svc-section-list">
+          <li>~13 miles east of Oswego</li>
+          <li>Free parking out front</li>
+          <li>Closer than Chicago, sharper than what's between</li>
+        </ul>
+
+        <a class="btn btn-outline" href={MAPS_DIR_HREF} target="_blank" rel="noopener">
+          Get directions
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* Group Events --------------------------------------------- */}
+  <section class="svc-section svc-section--reverse" aria-labelledby="svc-vip-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/vip-energy-540.webp 540w, /snap/vip-energy-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/vip-energy-540.jpg"
+            srcset="/snap/vip-energy-540.jpg 540w, /snap/vip-energy-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The 6-lane VIP suite at Twisted Pin — set apart from the traditional lanes"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">Group Events</p>
+        <h2 class="t-display svc-section-title" id="svc-vip-h2">
+          Take over the 6-lane VIP suite.
+        </h2>
+        <p class="svc-section-aside">(milestone birthdays, gender reveals, holiday parties)</p>
+
+        <p class="svc-section-body">
+          Adult birthdays, gender reveals, holiday parties, milestone
+          celebrations — they land in the VIP suite. Six lanes set
+          apart from the traditional lanes by a wall, capacity to 80,
+          AV hookups, custom catering. Yours for the night when you
+          book the suite.
+        </p>
+
+        <p class="svc-section-body">
+          For a once-a-year night that actually has to land, thirteen
+          miles is a small price.
+        </p>
+
+        <ul class="svc-section-list">
+          <li>6-lane VIP suite — only one in the immediate area</li>
+          <li>Up to 80 people when you take the whole suite</li>
+          <li>AV hookups + custom catering</li>
+          <li>Run a tab or drink tickets — not "open bar"</li>
+          <li>Set apart from the traditional lanes by a wall</li>
+        </ul>
+
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+          Plan an event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* Bar ------------------------------------------------------- */}
+  <section class="svc-section" aria-labelledby="svc-bar-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/bar-cocktails-540.jpg"
+            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">The Bar</p>
+        <h2 class="t-display svc-section-title" id="svc-bar-h2">
+          A craft cocktail program by America's Top Mixologist.
+        </h2>
+        <p class="svc-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
+
+        <p class="svc-section-body">
+          The bar program was built by the consulting mixologist Food
+          Network calls <em>America's Top Mixologist</em> — cocktails
+          served in 40+ countries. Twenty-eight self-serve taps where
+          you grab a card, pour your own, and pay by the ounce.
+        </p>
+
+        <p class="svc-section-body">
+          You'd drive to River North or downtown Naperville for this
+          kind of bar program. Or you head east. The drink's the same.
+        </p>
+
+        <a class="btn btn-outline" href="/menu/cocktails">View the cocktail menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* Closing CTA band ----------------------------------------- */}
+  <section class="svc-cta" aria-labelledby="svc-cta-h2">
+    <div class="svc-cta-inner">
+      <p class="t-eyebrow">Worth the Drive</p>
+      <h2 class="t-display svc-cta-title" id="svc-cta-h2">
+        Thirteen miles. One reservation.
+      </h2>
+      <p class="svc-cta-body">
+        Reserve a lane for tonight or plan a group event for next
+        quarter. Worth the drive both ways.
+      </p>
+      <div class="svc-cta-row">
+        <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a lane</a>
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">Plan an event</a>
+      </div>
+      <p class="svc-cta-nap">
+        Twisted Pin · 15610 S Joliet Rd, Plainfield, IL 60544 · 13 miles east of Oswego
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+</Base>

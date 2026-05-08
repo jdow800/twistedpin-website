@@ -459,3 +459,258 @@ body.nav-open [data-cta-bar] {
   background: var(--glow);
   opacity: 0.85;
 }
+
+/* ============================================================
+   .svc-* — service-area page skeleton (/why-us/[city]-il/)
+
+   First page (/why-us/naperville-il/, 2026-05-08) used a per-page
+   .naperville-* prefix and inlined ~250 lines of CSS in its <style>
+   block, matching the existing pillar-page convention. When the rest
+   of the service-area family went to ship (Shorewood / Bolingbrook /
+   Romeoville / Joliet / Oswego), per-page prefixes would have meant
+   ~1,250 lines of identical duplicated CSS. Hoisting the shared
+   skeleton up here is the right call for a 5-at-once batch — distinct
+   per-page work is content only.
+
+   Naperville's .naperville-* block is intentionally NOT migrated
+   here in the same change — the page already shipped, and the
+   broader pillar CSS hoist (.pillar-* on .bar-* / .eat-* / .vip-* /
+   .events-* / .game-* / .bowl-* / .fundraiser-* / .naperville-*)
+   is queued tech debt in launch-checklist.md. Migrate Naperville
+   when that pass happens.
+
+   Same skeleton as the pillar pages (typography hero → editorial
+   sections with image alternation → closing CTA band) — copied here
+   so service-area pages don't depend on a pillar that gets renamed.
+   ============================================================ */
+
+/* ---------- hero (typography-led, no image) ---------- */
+.svc-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(320px, 42vh, 420px);
+  padding: calc(var(--header-height) + 28px) 22px 24px;
+}
+@media (min-width: 1025px) {
+  .svc-hero {
+    min-height: clamp(440px, 55vh, 640px);
+    padding: calc(var(--header-height) + 64px) 64px 64px;
+    justify-content: center;
+  }
+}
+
+.svc-hero-copy {
+  max-width: 760px;
+  color: var(--warm-white);
+}
+@media (min-width: 1025px) {
+  .svc-hero-copy { text-align: center; }
+  .svc-hero-sub { margin-left: auto; margin-right: auto; }
+}
+
+.svc-hero-headline {
+  color: var(--warm-white);
+  font-size: clamp(34px, 10vw, 64px);
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+  margin-top: 12px;
+}
+@media (min-width: 1025px) {
+  .svc-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+}
+
+.svc-hero-sub {
+  margin-top: 18px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ece6d6;
+  max-width: 36em;
+}
+@media (min-width: 1025px) {
+  .svc-hero-sub { margin-top: 22px; font-size: 19px; max-width: 40em; }
+}
+
+/* ---------- editorial section (image L/R alternation) ---------- */
+.svc-section {
+  background: transparent;
+  padding: 5px 22px;
+}
+@media (min-width: 1025px) {
+  .svc-section { padding: 24px 64px; }
+}
+
+.svc-section-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: start;
+}
+@media (min-width: 1025px) {
+  .svc-section-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 64px;
+  }
+}
+
+.svc-section--reverse .svc-section-frame { order: 0; }
+@media (min-width: 1025px) {
+  .svc-section--reverse .svc-section-frame { order: 2; }
+}
+
+.svc-section-frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-surface);
+  aspect-ratio: 9 / 16;
+  background: rgba(244, 239, 227, 0.04);
+  max-height: min(640px, calc(70vh - 80px));
+  width: 100%;
+  align-self: start;
+}
+@media (min-width: 1025px) {
+  .svc-section-frame {
+    aspect-ratio: 9 / 16;
+    max-width: 480px;
+    justify-self: center;
+  }
+}
+
+.svc-section-frame picture,
+.svc-section-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.svc-section-copy {
+  color: var(--warm-white);
+  max-width: 56ch;
+}
+
+.svc-section-title {
+  color: var(--warm-white);
+  font-size: clamp(28px, 7vw, 40px);
+  letter-spacing: -0.005em;
+  line-height: 1.0;
+  margin-top: 12px;
+}
+@media (min-width: 1025px) {
+  .svc-section-title { font-size: clamp(36px, 4.5vw, 56px); }
+}
+
+.svc-section-aside {
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--warm-mid);
+}
+@media (min-width: 1025px) {
+  .svc-section-aside { font-size: 16px; }
+}
+
+.svc-section-body {
+  margin-top: 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  color: #ece6d6;
+}
+@media (min-width: 1025px) {
+  .svc-section-body { font-size: 17px; line-height: 1.6; }
+}
+
+.svc-section-list {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.svc-section-list li {
+  position: relative;
+  padding-left: 22px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #ece6d6;
+}
+.svc-section-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 8px;
+  height: 1px;
+  background: var(--glow);
+}
+@media (min-width: 1025px) {
+  .svc-section-list li { font-size: 15.5px; }
+}
+
+.svc-section-copy .btn { margin-top: 28px; }
+
+/* ---------- closing CTA band ---------- */
+.svc-cta {
+  background: var(--indigo-lift);
+  padding: 56px 22px;
+  margin-top: 32px;
+  text-align: center;
+}
+@media (min-width: 1025px) {
+  .svc-cta { padding: 96px 64px; margin-top: 64px; }
+}
+
+.svc-cta-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  color: var(--warm-white);
+}
+
+.svc-cta-title {
+  color: var(--warm-white);
+  font-size: clamp(32px, 9vw, 56px);
+  letter-spacing: -0.01em;
+  line-height: 0.95;
+  margin-top: 12px;
+}
+@media (min-width: 1025px) {
+  .svc-cta-title { font-size: clamp(48px, 5.5vw, 80px); }
+}
+
+.svc-cta-body {
+  margin: 18px auto 28px;
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  color: #ece6d6;
+  max-width: 36em;
+}
+@media (min-width: 1025px) {
+  .svc-cta-body { font-size: 19px; margin-bottom: 36px; }
+}
+
+.svc-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.svc-cta-nap {
+  margin-top: 28px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warm-mid);
+}
+@media (min-width: 1025px) {
+  .svc-cta-nap { margin-top: 36px; font-size: 13px; }
+}

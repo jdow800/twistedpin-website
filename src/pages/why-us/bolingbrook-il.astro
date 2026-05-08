@@ -1,0 +1,224 @@
+---
+/**
+ * /why-us/bolingbrook-il/ — Service-area page (Bolingbrook, IL).
+ *
+ * Per Context/seo.md: Bolingbrook = 13.1% of paid clicks, second-
+ * highest paid market. Distance + route confirmed by ops 2026-05-08:
+ *   - ~13 miles, I-55 south to Plainfield
+ *   - No drive-time claim (not user-confirmed; mileage carries)
+ *
+ * Skeleton: shared .svc-* in global.css.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  PLACE_ID,
+  STREET,
+  LOCALITY,
+} from "../../lib/schema";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const ZITE_URL = "https://twistedevents.zite.so/";
+const MAPS_DIR_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
+  `${STREET}, ${LOCALITY}`,
+)}&destination_place_id=${PLACE_ID}`;
+
+const PAGE_URL = `${BUSINESS_URL}/why-us/bolingbrook-il/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#service-bolingbrook`,
+  name: "Twisted Pin — Bowling, Bar & Event Venue Near Bolingbrook, IL",
+  url: PAGE_URL,
+  description:
+    "Twisted Pin is thirteen miles south of Bolingbrook on I-55 — a craft cocktail program, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  areaServed: {
+    "@type": "City",
+    name: "Bolingbrook",
+    sameAs: "https://en.wikipedia.org/wiki/Bolingbrook,_Illinois",
+    containedInPlace: { "@type": "AdministrativeArea", name: "Illinois" },
+  },
+};
+---
+<Base
+  title="Bowling Near Bolingbrook, IL | Twisted Pin"
+  description="Thirteen miles south of Bolingbrook on I-55: cocktails, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve at Twisted Pin."
+>
+
+  <section class="svc-hero" data-hero aria-labelledby="svc-hero-h1">
+    <div class="svc-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Bolingbrook</p>
+      <h1 class="t-display svc-hero-headline hero-fade" id="svc-hero-h1" data-delay-ms="120">
+        Thirteen&nbsp;miles south on&nbsp;I-55. A&nbsp;different night&nbsp;out.
+      </h1>
+      <p class="svc-hero-sub hero-fade" data-delay-ms="320">
+        Twisted Pin sits thirteen miles south of Bolingbrook on I-55 in
+        Plainfield, IL — a craft cocktail program, a 28-tap self-serve
+        wall, and the only 6-lane VIP suite in the area.
+      </p>
+    </div>
+  </section>
+
+  {/* Drive ---------------------------------------------------- */}
+  <section class="svc-section" aria-labelledby="svc-drive-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/events-bg-540.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group enjoying a night out at Twisted Pin in Plainfield, IL"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">Drive</p>
+        <h2 class="t-display svc-section-title" id="svc-drive-h2">
+          Thirteen miles. I-55 the whole way.
+        </h2>
+        <p class="svc-section-aside">(no toll, no rerouting)</p>
+
+        <p class="svc-section-body">
+          Take I-55 south from Bolingbrook to the Plainfield exit. Free
+          parking out front.
+        </p>
+
+        <p class="svc-section-body">
+          Thirteen miles is the price of admission for a 28-tap
+          self-serve wall, a craft cocktail program, and the only
+          6-lane VIP suite in the area. Worth it.
+        </p>
+
+        <ul class="svc-section-list">
+          <li>~13 miles south of Bolingbrook</li>
+          <li>I-55 south, exit at Plainfield</li>
+          <li>Free parking out front</li>
+        </ul>
+
+        <a class="btn btn-outline" href={MAPS_DIR_HREF} target="_blank" rel="noopener">
+          Get directions
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* Group Events --------------------------------------------- */}
+  <section class="svc-section svc-section--reverse" aria-labelledby="svc-vip-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/vip-energy-540.webp 540w, /snap/vip-energy-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/vip-energy-540.jpg"
+            srcset="/snap/vip-energy-540.jpg 540w, /snap/vip-energy-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The 6-lane VIP suite at Twisted Pin — set apart from the traditional lanes"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">Group Events</p>
+        <h2 class="t-display svc-section-title" id="svc-vip-h2">
+          Take over the 6-lane VIP suite.
+        </h2>
+        <p class="svc-section-aside">(corporate offsites, milestone birthdays, holiday parties)</p>
+
+        <p class="svc-section-body">
+          Bolingbrook companies book the suite for corporate offsites,
+          holiday parties, and staff appreciation nights. Six lanes
+          set apart from the traditional lanes by a wall. Capacity to
+          80, AV hookups for slideshows and walk-in music, custom
+          catering from the kitchen, and bar billing on a tab or drink
+          tickets — your call.
+        </p>
+
+        <p class="svc-section-body">
+          The kind of event venue you'd otherwise drive into the city
+          for. Or take I-55 south thirteen miles.
+        </p>
+
+        <ul class="svc-section-list">
+          <li>6-lane VIP suite — only one in the immediate area</li>
+          <li>Up to 80 people when you take the whole suite</li>
+          <li>AV hookups + custom catering</li>
+          <li>Run a tab or drink tickets — not "open bar"</li>
+          <li>Set apart from the traditional lanes by a wall</li>
+        </ul>
+
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+          Plan an event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* Bar ------------------------------------------------------- */}
+  <section class="svc-section" aria-labelledby="svc-bar-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img class="svc-section-img"
+            src="/snap/bar-cocktails-540.jpg"
+            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
+            width="540" height="960" loading="lazy" decoding="async" />
+        </picture>
+      </div>
+      <div class="svc-section-copy">
+        <p class="t-eyebrow">The Bar</p>
+        <h2 class="t-display svc-section-title" id="svc-bar-h2">
+          A craft cocktail program by America's Top Mixologist.
+        </h2>
+        <p class="svc-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
+
+        <p class="svc-section-body">
+          The bar program was built by the consulting mixologist Food
+          Network calls <em>America's Top Mixologist</em> — cocktails
+          served in 40+ countries. The 28-tap self-serve wall is its
+          counterweight: grab a card, pour your own beer or wine, pay
+          by the ounce.
+        </p>
+
+        <p class="svc-section-body">
+          You'd drive into Chicago or out to downtown Naperville for a
+          bar program like this. Or you take I-55 south. Same drink,
+          less traffic.
+        </p>
+
+        <a class="btn btn-outline" href="/menu/cocktails">View the cocktail menu</a>
+      </div>
+    </div>
+  </section>
+
+  {/* Closing CTA band ----------------------------------------- */}
+  <section class="svc-cta" aria-labelledby="svc-cta-h2">
+    <div class="svc-cta-inner">
+      <p class="t-eyebrow">Worth the Drive</p>
+      <h2 class="t-display svc-cta-title" id="svc-cta-h2">
+        Thirteen miles. One reservation.
+      </h2>
+      <p class="svc-cta-body">
+        I-55 south. Free parking. Reserve a lane for tonight or plan a
+        group event for next quarter.
+      </p>
+      <div class="svc-cta-row">
+        <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a lane</a>
+        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">Plan an event</a>
+      </div>
+      <p class="svc-cta-nap">
+        Twisted Pin · 15610 S Joliet Rd, Plainfield, IL 60544 · 13 miles south of Bolingbrook
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+</Base>
