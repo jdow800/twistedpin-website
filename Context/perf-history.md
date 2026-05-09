@@ -10,6 +10,111 @@ entries — they're the baseline.
 
 ---
 
+## 2026-05-08 (evening) — Perf pass: 100/100/100/100 across mobile + desktop
+
+**URL:** `https://twistedpin-website.vercel.app/`
+**Tool:** PageSpeed Insights (Lighthouse 13.0.1, HeadlessChromium 146.0.7680.177) + GTmetrix (Chrome 142, Seattle)
+**Conditions:** Captured by user. Mobile = Slow 4G + Moto G Power emulation. Desktop = standard. GTmetrix = real-world from Seattle, WA.
+
+### What changed since the 2026-05-05 baseline
+
+Two perf-targeted commits this evening:
+
+- **`bb3a3b5`** — `inlineStylesheets: 'always'` (eliminated 2 render-blocking CSS round-trips per page); `preload="metadata"` → `preload="none"` on hero + NYE videos (~1-2s LCP win on Slow 4G); poster re-encode at quality 65 webp / 78 jpg (529 KB total saved across 16 posters; mobile hero 102 KB → 72 KB).
+- **`7c4f855`** — **hero video viewport gating** (the biggest single win — added `media="(max-width: 1024px)"` and `media="(min-width: 1025px)"` to mobile and desktop video sources respectively; previously every visit fetched BOTH the wrong-tier and right-tier video, ~3.7 MB of doubled fetches on mobile); logos resized 3× smaller (~64 KB saved); cluster image quality 80 → 70 (~19 KB saved).
+
+Prior fixes that landed earlier 2026-05-08 (commit `f59ae90`) but weren't measured before this run: hero entry CSS keyframes (replaced silently-broken Motion-12 `animate()`); lazy-load fix on poster fetches via `data-poster` → `poster` promotion; AggregateRating schema; `<main>` landmark hoist; H3 hierarchy on /faq + /leagues.
+
+### Desktop (Lighthouse, PSI)
+
+| Score | Value | vs 2026-05-05 baseline |
+|---|---|---|
+| Performance | **100** 🟢 | held (was 100; intermediate run on May 8 8:40 PM CDT showed 79 due to TBT 440ms — the hero video gating fix is what cleared it) |
+| Accessibility | 100 🟢 | held |
+| Best Practices | 100 🟢 | held |
+| SEO | 100 🟢 | held |
+
+| Metric | Value | vs 2026-05-05 baseline |
+|---|---|---|
+| FCP | **0.3s** | held (was 0.3s) |
+| LCP | **0.6s** | -0.1s (was 0.7s) |
+| TBT | **0ms** | held (was 10ms; spiked to 440ms in the intermediate run) |
+| CLS | **0.002** | held (essentially 0) |
+| Speed Index | **0.5s** | n/a (not in baseline) |
+
+**Read:** desktop is fully clean. The TBT spike to 440ms in the intermediate run was caused by the desktop hero video competing with main-thread work during decode — the viewport gating fix eliminates that contention by ensuring only the right-tier video file is even fetched.
+
+### Mobile (Lighthouse, PSI)
+
+| Score | Value | vs 2026-05-05 baseline |
+|---|---|---|
+| Performance | **100** 🟢 | **+14** (was 86 yellow) |
+| Accessibility | 100 🟢 | held |
+| Best Practices | 100 🟢 | held |
+| SEO | 100 🟢 | held |
+
+| Metric | Value | vs 2026-05-05 baseline |
+|---|---|---|
+| FCP | **1.0s** | -0.5s (was 1.5s) |
+| **LCP** | **1.0s** | **-2.9s (was 3.9s yellow band)** |
+| TBT | **40ms** | +40ms but still well under 200ms threshold (was 0ms) |
+| CLS | **0.007** | +0.007 (still well under 0.1; basically noise) |
+| Speed Index | **1.5s** | -2.6s (was 4.1s) |
+
+**Read:** the LCP cut from 3.9s → 1.0s (74% reduction) is the headline result. Mobile finally hit perfect Performance 100 on Slow 4G + Moto G Power, the worst-case profile the brief targets.
+
+### GTmetrix (real-world, Seattle WA)
+
+| Metric | Value |
+|---|---|
+| Grade | **A** |
+| Performance | **92%** |
+| Structure | **94%** |
+| LCP | **743ms** |
+| TBT | **41ms** |
+| CLS | **0** |
+| TTFB | 203ms |
+| TTI | 603ms |
+| FCP | 339ms |
+| Speed Index | 3.3s (only "longer than recommended" metric — non-CWV, noisy on hero-video pages) |
+| Fully Loaded | 1.3s |
+
+**Total network payload (GTmetrix Structure):** **3.49 MB** (down from ~5.9 MB pre-optimization, ~5.7 MB intermediate). Top contributors:
+
+| Asset | Size |
+|---|---|
+| `/hero/hero-desktop-av1.mp4` | 3.01 MB |
+| `/hero/hero-desktop-poster.webp` | 173 KB |
+| `/snap/beerwall-poster.webp` | 90 KB |
+| `/hero/hero-poster.webp` | 72 KB |
+| `/pattern/pin-tilt-white.png` | 26.9 KB |
+| `/_astro/Base.astro_*.js` | 23.9 KB |
+| `barlow-condensed-latin-900-normal.woff2` | 21.6 KB |
+| 3 other woff2 fonts | 18-19 KB each |
+| HTML | 16.9 KB |
+
+The hero AV1 video at 3.01 MB is the entire payload tail on desktop. It's loaded with `preload="none"` and falls outside the LCP window, but it's 86% of the total bytes — single biggest remaining lever if a future round wants to push further.
+
+### Insights still flagged (informational only — score is already 100)
+
+- **Forced reflow** (mobile, 93ms unattributed): JS triggering layout reads after writes. Likely Motion / IntersectionObserver / sticky CTA bar scroll watcher. Doesn't move the score; not worth chasing without a profiling session.
+- **Network dependency tree** (mobile + desktop): fonts + Base JS chained off HTML. Same as prior run.
+- **Improve image delivery** (mobile, ~26 KiB savings, down from ~94 KiB earlier today): logo resize + poster re-encode cleared the bigger items. Remaining items are sub-30KB at this point.
+
+### What's left if a future round wants nuclear
+
+These all sit BELOW the score-impact threshold but would tighten real-world bytes:
+
+- Re-encode hero-desktop-av1.mp4 at lower CRF (3.01 MB → ~2 MB) — touches the largest single asset on the page
+- Critical font preload (`<link rel="preload" as="font" type="font/woff2">`) — needs build-time templating because woff2 filenames are content-hashed
+- `Save-Data` / `prefers-reduced-data` detection — skip video on flagged connections
+- Forced reflow source diagnosis (JS profiling session) — not score-impacting
+- Inline render-blocking critical CSS extraction beyond what `inlineStylesheets: 'always'` does
+
+**Recommendation:** **don't chase any of these.** The page is at 100/100/100/100 on synthetic, A grade on GTmetrix, and ~3.5 MB total payload is reasonable for a video-led venue site. Real CrUX data after launch is the next signal that should drive any further perf work.
+
+---
+
 ## 2026-05-05 — Baseline (pre-optimization)
 
 **URL:** `https://twistedpin-website.vercel.app/` *(homepage)*
