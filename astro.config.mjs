@@ -21,7 +21,22 @@ export default defineConfig({
   }),
   integrations: [sitemap()],
   build: {
-    inlineStylesheets: 'auto',
+    // Inline ALL stylesheets into the HTML head (was 'auto', which only
+    // inlined files <4KB). Both render-blocking sheets on the homepage
+    // (SnapFooter.css ~30KB, index.css ~8KB) sat above that ceiling and
+    // cost two extra round-trips on first paint.
+    //
+    // Trade-off: ~6-8KB gzipped grows the per-page HTML payload (HTML
+    // can't share CSS across page navigations like the cached external
+    // file would). For a content site where most visitors land on one
+    // page from search and decide there, eliminating the round-trips on
+    // that landing-page paint is the bigger win — repeat-visit cache
+    // savings are theoretical when ~90% of traffic is mobile-first-time.
+    //
+    // Per-page CSS still chunks per-route via Astro's per-page bundling;
+    // 'always' just inlines the chunks the page already needs into its
+    // own HTML rather than emitting them as separate _astro/*.css files.
+    inlineStylesheets: 'always',
   },
   vite: {
     server: {
