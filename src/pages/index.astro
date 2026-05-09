@@ -772,32 +772,38 @@ const websiteSchema = {
     .hero-video-desktop { display: block; }
   }
 
-  /* Bottom-only scrim per the brief. Stronger near the bottom so headline
-     reads against any video frame. */
+  /* Scrim — soft fade-up from the bottom for headline readability.
+     2026-05-08: lightened across the board (was peaking at 95% indigo,
+     now 60%) because the previous treatment was crushing the video's
+     visible brightness. Pairs with the hero-headline / hero-sub
+     text-shadow below — belt-and-suspenders so the scrim stays subtle
+     even when a video frame happens to have bright content right
+     behind the headline. */
   .hero-scrim {
     position: absolute;
     inset: 0;
     z-index: 1;
     background: linear-gradient(180deg,
       rgba(14, 10, 31, 0)    0%,
-      rgba(14, 10, 31, 0)    35%,
-      rgba(14, 10, 31, 0.55) 70%,
-      rgba(14, 10, 31, 0.95) 100%);
+      rgba(14, 10, 31, 0)    50%,
+      rgba(14, 10, 31, 0.30) 80%,
+      rgba(14, 10, 31, 0.60) 100%);
   }
   @media (min-width: 1025px) {
     /* Desktop: keep a left-side fade as well so copy on the lower-left has
-       its own backstop. Same bottom emphasis. */
+       its own backstop. Same bottom emphasis, lighter overall (was 95%
+       at the bottom; now 65%). */
     .hero-scrim {
       background:
         linear-gradient(90deg,
-          rgba(14, 10, 31, 0.65) 0%,
-          rgba(14, 10, 31, 0.20) 40%,
+          rgba(14, 10, 31, 0.45) 0%,
+          rgba(14, 10, 31, 0.15) 40%,
           rgba(14, 10, 31, 0)    70%),
         linear-gradient(180deg,
           rgba(14, 10, 31, 0)    0%,
-          rgba(14, 10, 31, 0)    45%,
-          rgba(14, 10, 31, 0.55) 75%,
-          rgba(14, 10, 31, 0.95) 100%);
+          rgba(14, 10, 31, 0)    55%,
+          rgba(14, 10, 31, 0.35) 82%,
+          rgba(14, 10, 31, 0.65) 100%);
     }
   }
 
@@ -823,6 +829,11 @@ const websiteSchema = {
     font-size: clamp(34px, 11vw, 80px);
     letter-spacing: -0.015em;
     line-height: 0.92;
+    /* Soft per-character backstop so we can keep the scrim subtle.
+       Brand-indigo, blurred, slightly offset — reads like the text was
+       always meant to live on a moody background, not as an overlay
+       hack. Same approach as the tap wall title. */
+    text-shadow: 0 2px 18px rgba(14, 10, 31, 0.65);
   }
   .hero-headline-line { display: block; }
   .hero-headline-line + .hero-headline-line { margin-top: 2px; }
@@ -838,6 +849,9 @@ const websiteSchema = {
     line-height: 1.45;
     color: #ece6d6;
     max-width: 24em;
+    /* Lighter shadow than the headline (sub doesn't carry as much
+       weight) but enough to keep contrast over a bright video frame. */
+    text-shadow: 0 1px 10px rgba(14, 10, 31, 0.55);
   }
   @media (min-width: 1025px) {
     .hero-sub { margin-top: 22px; font-size: 20px; line-height: 1.5; max-width: 30em; }
