@@ -80,7 +80,12 @@ const websiteSchema = {
   title="Twisted Pin — Cocktails, Taps & VIP Suite. Plainfield, IL."
   description="A craft cocktail program curated by Brian Van Flandern (America's Top Mixologist). 28 self-serve taps. 17 lanes + 6-lane VIP suite. Plainfield, IL."
 >
-  <main class="snap">
+  {/* <div class="snap"> rather than <main class="snap">. Base.astro
+      now wraps every page's slot in a <main> landmark; keeping a
+      <main> here too would double-nest. The .snap class carries the
+      snap-scroll behavior + Pin Tilt watermark — only div→main was
+      semantic, so the swap is purely structural. */}
+  <div class="snap">
     {/* ================================================
         SNAP 1 — HERO (revised per brief)
         Inlined: shared <Hero /> stays untouched until staging review.
@@ -401,7 +406,7 @@ const websiteSchema = {
         desktop CTAs live in the persistent SiteHeader).
         ================================================ */}
     <SnapFooter />
-  </main>
+  </div>
 
   {/* JSON-LD: BarOrPub primary entity + bare WebSite. Same @id used
       across pages so crawlers unify the venue into one entity. */}

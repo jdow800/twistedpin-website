@@ -65,6 +65,28 @@ const barOrPubSchema = {
   "@type": "BarOrPub",
 };
 
+/**
+ * sameAs — entity-graph identifiers for Brian. Verified URLs only,
+ * picked for Knowledge Graph signal strength: Wikipedia (canonical
+ * encyclopedia entity), IMDb (Food Network appearance credits — Bar
+ * Rescue, Barefoot Contessa, A Nice Touch), mymixologist.com (his
+ * canonical owned URL, listed as official site on Wikipedia), and
+ * the Instagram handle that matches his domain.
+ *
+ * Intentionally omitted: X/Twitter and LinkedIn — both are
+ * medium-confidence (handle pattern matches but content not directly
+ * verified by this session's research). Bad sameAs URLs do
+ * disproportionate damage in structured data; better to ship four
+ * verified URLs than six probable ones.
+ *
+ * Note re. brand thesis: Wikipedia + mymixologist.com both prominently
+ * mention Per Se / Thomas Keller / Michelin three-star. Per CLAUDE.md
+ * 2026-05-03, that framing is fully retired in **on-site copy**.
+ * sameAs URLs are entity identifiers, not copy — Wikipedia is the
+ * single strongest signal we have for Knowledge Graph unification, and
+ * the rule applies to what we say about Brian, not to which canonical
+ * encyclopedia entry we point at.
+ */
 const brianSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -76,6 +98,12 @@ const brianSchema = {
     "mixology",
     "cocktail program design",
     "craft cocktails",
+  ],
+  sameAs: [
+    "https://en.wikipedia.org/wiki/Brian_Van_Flandern",
+    "https://mymixologist.com",
+    "https://www.imdb.com/name/nm4724304/",
+    "https://www.instagram.com/mymixologist/",
   ],
   description:
     "Mixologist whose cocktails are served in 40+ countries. Designed the cocktail program at Twisted Pin in Plainfield, IL as a consulting partner.",

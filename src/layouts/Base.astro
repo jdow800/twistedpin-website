@@ -110,7 +110,14 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
       </div>
     )}
 
-    <slot />
+    {/* <main> landmark wraps every page's primary content (a11y +
+        SEO). The homepage's old `<main class="snap">` was changed to
+        `<div class="snap">` in the same change so we don't double-nest.
+        `id="main"` is forward-looking for a future skip-to-content link
+        — adding it now is harmless and saves a refactor later. */}
+    <main id="main">
+      <slot />
+    </main>
 
     <NavDrawer />
     {!hideStickyCTA && <StickyCTABar />}
