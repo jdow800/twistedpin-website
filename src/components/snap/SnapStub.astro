@@ -154,17 +154,24 @@ const hasMedia = !!(video || image);
   }
   /* Bottom scrim — fades photo into Indigo Deep at the lower third so
      the title + subhead + Learn more sit on a high-contrast surface
-     without losing the photo entirely. Mirrors the mobile snap-tapwall
-     treatment. */
+     without losing the photo entirely. Mirrors the snap-hero +
+     snap-tapwall treatment.
+
+     2026-05-08: significantly lightened. Was bleeding 18% indigo
+     even at the very top of the section — every video frame had a
+     wash over it, making /game and similar sections look dim
+     regardless of source content. New balance keeps the top fully
+     clear and ramps up to 60% at the bottom (was 94%). The
+     stub-title text-shadow below is the readability backstop. */
   .stub-scrim {
     position: absolute;
     inset: 0;
     z-index: 1;
     background: linear-gradient(180deg,
-      rgba(14, 10, 31, 0.18) 0%,
-      rgba(14, 10, 31, 0.32) 35%,
-      rgba(14, 10, 31, 0.78) 78%,
-      rgba(14, 10, 31, 0.94) 100%);
+      rgba(14, 10, 31, 0)    0%,
+      rgba(14, 10, 31, 0)    45%,
+      rgba(14, 10, 31, 0.30) 78%,
+      rgba(14, 10, 31, 0.60) 100%);
     pointer-events: none;
   }
 
@@ -196,6 +203,10 @@ const hasMedia = !!(video || image);
     letter-spacing: 0.02em;
     line-height: 1.0;
     margin-bottom: 14px;
+    /* Per-character backstop now that the scrim above is much
+       lighter. Brand-indigo, soft. Same pattern as .hero-headline
+       and .tapwall-title (2026-05-08 brightening pass). */
+    text-shadow: 0 2px 18px rgba(14, 10, 31, 0.65);
   }
   @media (min-width: 1025px) {
     .stub-title { font-size: clamp(48px, 5.5vw, 72px); }
@@ -209,6 +220,8 @@ const hasMedia = !!(video || image);
     color: #ece6d6;
     max-width: 32em;
     margin: 0 auto 22px;
+    /* Lighter shadow than .stub-title — same pattern as .hero-sub. */
+    text-shadow: 0 1px 10px rgba(14, 10, 31, 0.55);
   }
   /* Two-line pattern: main statement + parenthetical aside on its own line.
      Both spans become block so the line break is structural, not whitespace. */
