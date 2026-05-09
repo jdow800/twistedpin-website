@@ -152,7 +152,7 @@ Name, Address, Phone must match **exactly** across the site, GBP, Yelp, Apple Ma
 
 ```
 Twisted Pin
-15610 S Joliet Rd
+15610 Joliet Rd
 Plainfield, IL 60544
 815-782-7790
 ```
@@ -302,7 +302,7 @@ The audit also confirmed several things working well that the new site should pr
 - [ ] 300+ words of unique content (more for landing pages)
 - [ ] All images: descriptive alt text, WebP/AVIF, lazy loaded
 - [ ] LocalBusiness (or relevant) schema present
-- [ ] NAP matches exactly: `15610 S Joliet Rd, Plainfield, IL 60544`
+- [ ] NAP matches exactly: `15610 Joliet Rd, Plainfield, IL 60544`
 - [ ] Internal links to 2–3 related pages with descriptive anchor text
 - [ ] Mobile LCP under 2.5s
 - [ ] No "cheap," "family-friendly," or off-brand words

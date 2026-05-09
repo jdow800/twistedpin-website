@@ -36,7 +36,7 @@ import { getLiveHours } from "./google-hours";
 export const BUSINESS_NAME = "Twisted Pin";
 export const BUSINESS_URL = "https://twistedpin.com";
 
-export const STREET = "15610 S Joliet Rd";
+export const STREET = "15610 Joliet Rd";
 export const LOCALITY = "Plainfield";
 export const REGION = "IL";
 export const POSTAL_CODE = "60544";
