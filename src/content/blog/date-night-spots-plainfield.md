@@ -1,6 +1,6 @@
 ---
 title: "The Best Date Night Spots in Plainfield"
-description: "An honest local's take on date-night spots in Plainfield, IL — what works for a first date, an anniversary, or just breaking the dinner-and-a-movie cycle. From Twisted Pin."
+description: "An honest local's take on date-night spots in Plainfield, IL — what works for a first date, an anniversary, or just breaking the routine."
 publishDate: 2026-05-08
 targetKeyword: "date night plainfield"
 ---

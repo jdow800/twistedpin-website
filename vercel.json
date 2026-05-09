@@ -5,6 +5,7 @@
       "schedule": "0 9 * * *"
     }
   ],
+  "trailingSlash": true,
   "redirects": [
     { "source": "/reserve", "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home", "permanent": true },
 
@@ -38,7 +39,9 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     },
     {

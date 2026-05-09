@@ -1,6 +1,6 @@
 ---
-title: "Where to Host a Corporate Event Near Naperville"
-description: "A practical guide to corporate event venues near Naperville, IL — what each option is good for, what to ask, and where to start. From a Plainfield venue eight miles south."
+title: "Corporate Event Venues Near Naperville"
+description: "A practical guide to corporate event venues near Naperville, IL — what each option is good for, what to ask, and where to start."
 publishDate: 2026-05-08
 targetKeyword: "corporate event venue near naperville"
 ---

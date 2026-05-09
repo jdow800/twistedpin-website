@@ -15,6 +15,15 @@ export default defineConfig({
   // resubmit sitemap.xml to Google Search Console.
   site: 'https://twistedpin-website.vercel.app',
   output: 'static',
+  // Force trailing slash on every URL Astro generates (sitemap, links,
+  // canonical). Was 'ignore' (default) — both /bar and /bar/ resolved,
+  // and the per-request canonical tag canonicalized each variant to
+  // itself. The round-2 audit (2026-05-08) flagged 18 duplicate-content
+  // pairs + 9 sitemap-mismatch entries because of it. Now: every URL
+  // is the trailing-slash form, vercel.json mirrors with `trailingSlash:
+  // true` for runtime 308 redirects, and Google has one canonical per
+  // page to index.
+  trailingSlash: 'always',
   adapter: vercel({
     webAnalytics: { enabled: false },
     imageService: false,

@@ -34,7 +34,17 @@ const {
 // Absolute URLs for canonical + og:url + og:image. Reads from astro.config.mjs
 // `site` field via Astro.site. At DNS cutover the `site` field flips to the
 // production domain and every page's canonical follows automatically.
-const canonicalURL = new URL(Astro.url.pathname, Astro.site).href;
+//
+// Trailing-slash normalization: pair with astro.config.mjs trailingSlash:
+// 'always' + vercel.json trailingSlash: true. Defensive — if a path ever
+// comes through without trailing slash (dev mode edge cases, future config
+// drift), canonical still emits the slash form so Google sees one canonical
+// per page. Round-2 audit (2026-05-08) flagged duplicate-content pairs
+// caused by per-request canonical that canonicalized each variant to itself.
+const canonicalPath = Astro.url.pathname.endsWith("/")
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+const canonicalURL = new URL(canonicalPath, Astro.site).href;
 const ogImageURL = new URL(ogImage, Astro.site).href;
 ---
 <!doctype html>
