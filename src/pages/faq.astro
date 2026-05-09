@@ -39,7 +39,24 @@ import { formatHoursAnswer } from "../lib/schema";
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 
+/**
+ * FAQ items grouped by category. Categories render as H2 section
+ * headers, individual questions as H3 inside the <summary> tag — gives
+ * the page a clean H1 → H2 → H3 hierarchy instead of jumping from H1
+ * straight to <details>/<summary> body content. Categories also help
+ * a reader scan past sections that don't apply to them.
+ *
+ * Schema is unchanged — Google FAQPage rich results read
+ * Question.name + Answer.text from JSON-LD, not HTML hierarchy.
+ */
+type Category =
+  | "Hours & Visiting"
+  | "Bowling"
+  | "VIP Suite & Events"
+  | "Bar, Food & Arcade";
+
 interface FaqItem {
+  category: Category;
   q: string;
   /** Plain-text answer for the JSON-LD schema (no HTML). */
   schemaA: string;
@@ -53,82 +70,118 @@ interface FaqItem {
 const hoursAnswer = await formatHoursAnswer();
 
 const faqs: FaqItem[] = [
+  // Hours & Visiting
   {
+    category: "Hours & Visiting",
     q: "What are your hours?",
     schemaA: hoursAnswer.schemaA,
     htmlA: hoursAnswer.htmlA,
   },
   {
-    q: "When is open bowling?",
-    schemaA: "We always have open bowling during regular operating hours.",
-    htmlA: `<p>We always have open bowling during regular operating hours.</p>`,
-  },
-  {
-    q: "Do I need reservations?",
-    schemaA: "Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.",
-    htmlA: `<p>Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.</p><p><a href="${ROLLER_URL}" target="_blank" rel="noopener">Reserve a lane →</a></p>`,
-  },
-  {
-    q: "How many lanes do you have?",
-    schemaA: "23 total — 17 traditional lanes plus a 6-lane VIP suite.",
-    htmlA: `<p>23 total — <strong>17 traditional lanes plus a 6-lane VIP suite</strong>.</p>`,
-  },
-  {
-    q: "How much does bowling cost?",
-    schemaA: "Pricing varies by day and time. Walk-in starts at $35/hour per lane. Shoe rental $5.95/pair.",
-    htmlA: `<p>Pricing varies by day and time. Walk-in starts at <strong>$35/hour per lane</strong>. Shoe rental <strong>$5.95/pair</strong>.</p><p><a href="/bowl/">See current rates and reserve →</a></p>`,
-  },
-  {
-    q: "What is the VIP bowling suite?",
-    schemaA: "The VIP suite is a semi-private section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.",
-    htmlA: `<p>The VIP suite is a <strong>semi-private</strong> section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
-  },
-  {
-    q: "Can I bring a cake, cupcakes, or party decor?",
-    schemaA: "Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.",
-    htmlA: `<p>Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
-  },
-  {
+    category: "Hours & Visiting",
     q: "Is there parking?",
     schemaA: "Yes — free on-site parking at 15610 S Joliet Rd, Plainfield, IL 60544.",
     htmlA: `<p>Yes — free on-site parking at <strong>15610 S Joliet Rd, Plainfield, IL 60544</strong>.</p>`,
   },
   {
+    category: "Hours & Visiting",
     q: "Is there an age requirement?",
     schemaA: "All ages welcome during regular hours. Guests under 21 can't use the self-serve beer and wine wall. The bar area may have age restrictions during late-night hours. Parental guidance recommended.",
     htmlA: `<p>All ages welcome during regular hours. Guests under 21 can't use the self-serve beer and wine wall. The bar area may have age restrictions during late-night hours. Parental guidance recommended.</p>`,
   },
   {
+    category: "Hours & Visiting",
+    q: "Do you sell gift cards?",
+    schemaA: "Yes — available in-store at the front desk only. Valid for bowling and arcade purchases.",
+    htmlA: `<p>Yes — available <strong>in-store at the front desk only</strong>. Valid for bowling and arcade purchases.</p>`,
+  },
+
+  // Bowling
+  {
+    category: "Bowling",
+    q: "When is open bowling?",
+    schemaA: "We always have open bowling during regular operating hours.",
+    htmlA: `<p>We always have open bowling during regular operating hours.</p>`,
+  },
+  {
+    category: "Bowling",
+    q: "Do I need reservations?",
+    schemaA: "Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.",
+    htmlA: `<p>Groups needing multiple lanes — yes, reserve in advance. One or two lanes? You can reserve or walk in. Without a reservation there may be a wait on busy nights.</p><p><a href="${ROLLER_URL}" target="_blank" rel="noopener">Reserve a lane →</a></p>`,
+  },
+  {
+    category: "Bowling",
+    q: "How many lanes do you have?",
+    schemaA: "23 total — 17 traditional lanes plus a 6-lane VIP suite.",
+    htmlA: `<p>23 total — <strong>17 traditional lanes plus a 6-lane VIP suite</strong>.</p>`,
+  },
+  {
+    category: "Bowling",
+    q: "How much does bowling cost?",
+    schemaA: "Pricing varies by day and time. Walk-in starts at $35/hour per lane. Shoe rental $5.95/pair.",
+    htmlA: `<p>Pricing varies by day and time. Walk-in starts at <strong>$35/hour per lane</strong>. Shoe rental <strong>$5.95/pair</strong>.</p><p><a href="/bowl/">See current rates and reserve →</a></p>`,
+  },
+
+  // VIP Suite & Events
+  {
+    category: "VIP Suite & Events",
+    q: "What is the VIP bowling suite?",
+    schemaA: "The VIP suite is a semi-private section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.",
+    htmlA: `<p>The VIP suite is a <strong>semi-private</strong> section with 6 dedicated bowling lanes, a giant LED video wall with AV hookups, and direct access to the 28-tap self-serve wall. Up to 80 guests.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+  },
+  {
+    category: "VIP Suite & Events",
+    q: "Can I bring a cake, cupcakes, or party decor?",
+    schemaA: "Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.",
+    htmlA: `<p>Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+  },
+  {
+    category: "VIP Suite & Events",
+    q: "Can I host a corporate event or team building outing?",
+    schemaA: "Yes — casual team nights to full corporate events with custom catering and AV setup.",
+    htmlA: `<p>Yes — casual team nights to full corporate events with custom catering and AV setup.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+  },
+
+  // Bar, Food & Arcade
+  {
+    category: "Bar, Food & Arcade",
     q: "What kind of cocktails do you have?",
     schemaA: "Our craft cocktail program was designed by Brian Van Flandern — America's Top Mixologist (Food Network). All cocktails are made with freshly juiced ingredients.",
     htmlA: `<p>Our craft cocktail program was designed by Brian Van Flandern — <em>America's Top Mixologist</em> (Food Network). All cocktails are made with freshly juiced ingredients.</p><p><a href="/bar/">See the bar program →</a></p>`,
   },
   {
+    category: "Bar, Food & Arcade",
     q: "Do you serve food?",
     schemaA: "Yes — full kitchen with a chef-inspired menu.",
     htmlA: `<p>Yes — full kitchen with a chef-inspired menu.</p><p><a href="/eat/">See the menu →</a></p>`,
   },
   {
+    category: "Bar, Food & Arcade",
     q: "How does the self-serve beer and wine wall work?",
     schemaA: "Check in with a bartender to get your tap card. Pour from any of our 28 taps — pay by the ounce. Sample a little, pour a flight, or go for a full pint. Great for trying something new without committing to a full glass.",
     htmlA: `<p>Check in with a bartender to get your tap card. Pour from any of our <strong>28 taps</strong> — pay by the ounce.</p><p>Sample a little, pour a flight, or go for a full pint. Great for trying something new without committing to a full glass.</p>`,
   },
   {
+    category: "Bar, Food & Arcade",
     q: "Do you have an arcade?",
     schemaA: "Yes — skee-ball, redemption games, crane machines, and a redemption counter for prizes.",
     htmlA: `<p>Yes — skee-ball, redemption games, crane machines, and a redemption counter for prizes.</p><p><a href="/game/">See the arcade →</a></p>`,
   },
-  {
-    q: "Can I host a corporate event or team building outing?",
-    schemaA: "Yes — casual team nights to full corporate events with custom catering and AV setup.",
-    htmlA: `<p>Yes — casual team nights to full corporate events with custom catering and AV setup.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
-  },
-  {
-    q: "Do you sell gift cards?",
-    schemaA: "Yes — available in-store at the front desk only. Valid for bowling and arcade purchases.",
-    htmlA: `<p>Yes — available <strong>in-store at the front desk only</strong>. Valid for bowling and arcade purchases.</p>`,
-  },
 ];
+
+// Group by category in the order categories first appear in `faqs`.
+// Map preserves insertion order, so the rendered groups follow the
+// data-source order — change the categories' first occurrence in the
+// array above to reorder the groups on the page.
+const grouped = new Map<Category, FaqItem[]>();
+for (const item of faqs) {
+  const list = grouped.get(item.category) ?? [];
+  list.push(item);
+  grouped.set(item.category, list);
+}
+// Stable slug for each category (drives the H2's aria-labelledby + id).
+const slugify = (s: string) =>
+  s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
 // JSON-LD FAQPage schema — Google rich-result eligible. Per seo.md.
 const faqSchema = {
@@ -159,33 +212,42 @@ const faqSchema = {
     </div>
   </section>
 
-  <section class="t2-section" aria-label="Frequently asked questions">
-    <div class="t2-section-inner">
-      <div class="t2-faq">
-        {faqs.map(item => (
-          <details class="t2-faq-item">
-            <summary class="t2-faq-q">
-              {item.q}
-              <svg
-                class="t2-faq-chevron"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                set:html={ICON_PATHS["chevron-down"]}
-              />
-            </summary>
-            <div class="t2-faq-a" set:html={item.htmlA} />
-          </details>
-        ))}
-      </div>
-    </div>
-  </section>
+  {Array.from(grouped.entries()).map(([category, items]) => {
+    const catId = `faq-cat-${slugify(category)}`;
+    return (
+      <section class="t2-section faq-category-section" aria-labelledby={catId}>
+        <div class="t2-section-inner">
+          <h2 class="faq-category" id={catId}>{category}</h2>
+          <div class="t2-faq">
+            {items.map(item => (
+              <details class="t2-faq-item">
+                <summary class="t2-faq-q">
+                  {/* H3 wraps the question text for proper H1→H2→H3
+                      hierarchy without affecting the <summary>'s
+                      flexbox layout (display: contents below). */}
+                  <h3 class="t2-faq-q-text">{item.q}</h3>
+                  <svg
+                    class="t2-faq-chevron"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    set:html={ICON_PATHS["chevron-down"]}
+                  />
+                </summary>
+                <div class="t2-faq-a" set:html={item.htmlA} />
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  })}
 
   {/* JSON-LD FAQ schema — Google reads it from anywhere in the
       document; doesn't have to be in <head>. */}

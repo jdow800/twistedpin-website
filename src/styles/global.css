@@ -841,3 +841,44 @@ body.nav-open [data-cta-bar] {
   border-radius: 4px;
   font-size: 0.92em;
 }
+
+/* ============================================================
+   FAQ — category H2 + question H3 hierarchy
+
+   The /faq page groups questions by category to give it a clean
+   H1 → H2 → H3 structure (rather than H1 → <summary> jumps).
+   .faq-category styles the section H2; .t2-faq-q-text is the
+   <h3> wrapping question text inside <summary>, set to
+   display: contents so it doesn't disturb the existing flexbox
+   layout of the summary row.
+   ============================================================ */
+.faq-category {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  font-size: clamp(20px, 4vw, 26px);
+  line-height: 1.1;
+  color: var(--warm-white);
+  margin: 0 0 6px;
+}
+@media (min-width: 1025px) {
+  .faq-category { font-size: clamp(22px, 2.4vw, 28px); }
+}
+/* Tighten the gap above each category section since the H2 itself
+   provides the visual break. The first category section keeps the
+   default top-padding from .t2-section. */
+.faq-category-section + .faq-category-section {
+  padding-top: 0;
+}
+
+/* H3 inside <summary>: no layout box, inherits font from summary.
+   Preserves the existing .t2-faq-q flexbox row (question text +
+   chevron) while giving accessibility tools + crawlers the H3
+   semantic. */
+.t2-faq-q-text {
+  display: contents;
+  font: inherit;
+  margin: 0;
+  color: inherit;
+}
