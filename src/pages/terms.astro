@@ -28,6 +28,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
 const LAST_UPDATED = "May 8, 2026";
 ---
@@ -119,6 +120,10 @@ const LAST_UPDATED = "May 8, 2026";
   </section>
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Terms", path: "/terms/" },
+  ]} />
 </Base>
 
 <style>

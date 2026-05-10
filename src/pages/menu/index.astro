@@ -18,10 +18,10 @@
  */
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
 import { getFood } from "../../lib/gotab-food";
 import { getTapList } from "../../lib/untappd-taps";
-import { BUSINESS_URL } from "../../lib/schema";
 
 const [cocktailMenu, foodMenu, tapList] = await Promise.all([
   getCocktails(),
@@ -32,28 +32,6 @@ const [cocktailMenu, foodMenu, tapList] = await Promise.all([
 const cocktailCount = cocktailMenu.categories.reduce((n, c) => n + c.cocktails.length, 0);
 const foodCount = foodMenu.categories.reduce((n, c) => n + c.items.length, 0);
 const tapCount = tapList.totalCount;
-
-// JSON-LD: BreadcrumbList only on the hub. Per the schema rebuild plan
-// the umbrella Menu pattern was rejected — the three child pages each
-// carry their own canonical Menu schema; the hub is just navigation.
-const breadcrumbSchema = {
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  itemListElement: [
-    {
-      "@type": "ListItem",
-      position: 1,
-      name: "Home",
-      item: `${BUSINESS_URL}/`,
-    },
-    {
-      "@type": "ListItem",
-      position: 2,
-      name: "Menus",
-      item: `${BUSINESS_URL}/menu/`,
-    },
-  ],
-};
 ---
 <Base
   title="Menus | Twisted Pin Plainfield IL"
@@ -170,7 +148,10 @@ const breadcrumbSchema = {
 
   <SnapFooter />
 
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Menu", path: "/menu/" },
+  ]} />
 </Base>
 
 <style>

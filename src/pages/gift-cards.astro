@@ -31,6 +31,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 ---
 <Base
   title="Gift Cards — Twisted Pin Plainfield IL"
@@ -78,4 +79,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   </section>
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Gift Cards", path: "/gift-cards/" },
+  ]} />
 </Base>

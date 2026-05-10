@@ -34,6 +34,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import {
   BUSINESS_URL,
   BUSINESS_ENTITY_ID,
@@ -202,6 +203,10 @@ const vipSuiteSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(vipSuiteSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "VIP Suite", path: "/vip-suite/" },
+  ]} />
 </Base>
 
 <style>

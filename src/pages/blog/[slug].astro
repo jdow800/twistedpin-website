@@ -20,6 +20,7 @@
 import { getCollection, render } from "astro:content";
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID, BUSINESS_NAME } from "../../lib/schema";
 
 export async function getStaticPaths() {
@@ -99,4 +100,8 @@ const updatedLabel = post.data.updateDate
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: post.data.title, path: `/blog/${post.id}/` },
+  ]} />
 </Base>

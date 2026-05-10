@@ -45,6 +45,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
 // Zite-hosted group events platform. May get a vanity subdomain
@@ -239,6 +240,10 @@ const eventVenueSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(eventVenueSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/events/" },
+  ]} />
 </Base>
 
 <style>

@@ -34,6 +34,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { getCocktails } from "../lib/gotab-cocktails";
 import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
@@ -253,6 +254,10 @@ const brianSchema = {
       not a structured employment link. */}
   <script type="application/ld+json" set:html={JSON.stringify(barOrPubSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(brianSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Bar", path: "/bar/" },
+  ]} />
 </Base>
 
 <style>

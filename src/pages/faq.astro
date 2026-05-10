@@ -33,6 +33,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { ICON_PATHS } from "../lib/icons";
 import { formatHoursAnswer } from "../lib/schema";
 
@@ -254,4 +255,8 @@ const faqSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "FAQ", path: "/faq/" },
+  ]} />
 </Base>

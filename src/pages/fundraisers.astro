@@ -38,6 +38,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 const ZITE_URL = "https://twistedevents.zite.so/";
@@ -218,6 +219,10 @@ const serviceSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Fundraisers", path: "/fundraisers/" },
+  ]} />
 </Base>
 
 <style>

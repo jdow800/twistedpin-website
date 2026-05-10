@@ -23,6 +23,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
 const COUPON_FORM_URL = "https://c-g.co/xORo1J";
 ---
@@ -75,6 +76,10 @@ const COUPON_FORM_URL = "https://c-g.co/xORo1J";
   </section>
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Coupon", path: "/coupon/" },
+  ]} />
 </Base>
 
 <style>

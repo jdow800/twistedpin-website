@@ -35,6 +35,7 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { DAYS, hoursLabel, todayKey, type DayKey } from "../data/hours";
 import { PRICING, SHOE_RENTAL_LABEL, type PriceWindow } from "../data/pricing";
 import { getLiveHours } from "../lib/google-hours";
@@ -263,6 +264,10 @@ function specialsForDay(day: DayKey) {
   </section>
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Pricing", path: "/pricing/" },
+  ]} />
 </Base>
 
 <script>

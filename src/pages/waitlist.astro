@@ -39,6 +39,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
 const TABLESREADY_URL = "https://host.tablesready.com/p/waitlist/twistedpin";
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
@@ -118,6 +119,10 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
   </section>
 
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Waitlist", path: "/waitlist/" },
+  ]} />
 </Base>
 
 <style>

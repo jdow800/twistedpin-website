@@ -51,6 +51,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
 // JSON-LD: EntertainmentBusiness. AmusementPark would be the closest
@@ -187,6 +188,10 @@ const entertainmentSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(entertainmentSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Game", path: "/game/" },
+  ]} />
 </Base>
 
 <style>

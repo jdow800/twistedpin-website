@@ -43,6 +43,7 @@
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
@@ -217,6 +218,10 @@ const bowlingAlleySchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(bowlingAlleySchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Bowl", path: "/bowl/" },
+  ]} />
 </Base>
 
 <style>

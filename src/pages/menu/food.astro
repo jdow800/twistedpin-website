@@ -13,6 +13,7 @@
  */
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import { getFood } from "../../lib/gotab-food";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
@@ -159,6 +160,11 @@ const menuSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Menu", path: "/menu/" },
+    { name: "Food", path: "/menu/food/" },
+  ]} />
 </Base>
 
 <style>

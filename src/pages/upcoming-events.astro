@@ -17,6 +17,7 @@
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema } from "../lib/schema";
 
 // At-build cutoff: an event is "past" when its end (or start, if no
@@ -248,6 +249,10 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
   {upcomingEventsJsonLd && (
     <script type="application/ld+json" set:html={JSON.stringify(upcomingEventsJsonLd)} />
   )}
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Upcoming Events", path: "/upcoming-events/" },
+  ]} />
 </Base>
 
 <style>
