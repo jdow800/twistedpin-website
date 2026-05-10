@@ -83,6 +83,8 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
           title="Twisted Pin live waitlist status"
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
+          scrolling="no"
+          allowfullscreen
           class="waitlist-iframe"
         ></iframe>
       </div>
@@ -305,13 +307,11 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
   .waitlist-iframe {
     display: block;
     width: 100%;
-    /* Mobile: TablesReady content is ~720px tall in the "no wait" state.
-       Allow some slack for "wait active" longer state. */
-    height: 760px;
+    /* 900px matches TablesReady's canonical embed height — fits the
+       "wait active" state without inner scrollbars (paired with
+       scrolling="no" on the iframe element). */
+    height: 900px;
     border: 0;
-  }
-  @media (min-width: 1025px) {
-    .waitlist-iframe { height: 700px; }
   }
 
   .waitlist-fallback {
