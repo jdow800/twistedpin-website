@@ -46,6 +46,8 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 
 **Validate after deploy:** (1) hash anchors land correctly in browser address bar after redirect (Vercel includes `#fragment` in the Location header but some old crawlers/clients strip fragments on 301/308 — modern Google/Bing handle them); (2) `/contact-us/` → `/` (no anchor — hash anchors don't survive 301s and the 2026-05-04 decision is "user lands on homepage and finds the footer themselves"); (3) verify the prefix-pattern slugs match the real legacy URLs by spot-checking Google Search Console crawl errors after launch.
 
+**Extended 2026-05-09**: full legacy-sitemap sweep. Pulled `/post-sitemap.xml`, `/page-sitemap.xml`, `/ajde_events-sitemap.xml`, `/event_location-sitemap.xml`, and `/geo-sitemap.xml` from twistedpin.com — 70 unique URLs total. Added 37 redirects to vercel.json (now 58 total) covering every old WordPress promo post and event-plugin URL not already handled. Targets routed by topical closest-match: VIP-suite promo posts → `/vip-suite/`, fundraiser posts → `/fundraisers/`, summer-Pin-Pass posts → `/free-kids-bowling/`, NYE promo posts → `/new-years-eve/`, dated `/events/paint-and-sip*` etc. → `/upcoming-events/`, group-event genres (karaoke / class reunion / graduation / holiday party / summer celebration promo) → `/events/`. Two judgment calls: `/why-us/crest-hill-il/` and `/why-us/plainfield-il/` → `/` (Crest Hill not a new service-area page; Plainfield is implicit on every page). `/locations.kml` (Yoast geo plugin) intentionally not redirected — letting it 404 is cleaner than serving HTML for a .kml request. vercel.json is the canonical list; this checklist no longer enumerates every entry.
+
 ---
 
 ## Operational data — needs ops input

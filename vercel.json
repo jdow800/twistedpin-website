@@ -32,6 +32,54 @@
 
     { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true },
 
+    { "source": "/looking-for-a-good-time-rent-our-vip-suite{/}?", "destination": "/vip-suite/", "permanent": true },
+    { "source": "/vip-bowling-suite-the-perfect-place-to-host-your-next-group-outing{/}?", "destination": "/vip-suite/", "permanent": true },
+    { "source": "/vip-bowling-suite-the-perfect-place-to-host-your-next-group-outing-2{/}?", "destination": "/vip-suite/", "permanent": true },
+
+    { "source": "/knock-down-pins-raise-funds-host-a-bowling-fundraiser-with-twisted-pin{/}?", "destination": "/fundraisers/", "permanent": true },
+    { "source": "/knock-down-pins-raise-funds-host-a-bowling-fundraiser-with-twisted-pin-2{/}?", "destination": "/fundraisers/", "permanent": true },
+
+    { "source": "/summer-pin-pass-is-here-lets-roll{/}?", "destination": "/free-kids-bowling/", "permanent": true },
+    { "source": "/summer-pin-pass-is-here-lets-roll-2{/}?", "destination": "/free-kids-bowling/", "permanent": true },
+    { "source": "/unleash-summer-fun-with-twisted-pins-summer-pin-pass{/}?", "destination": "/free-kids-bowling/", "permanent": true },
+
+    { "source": "/twisted-pin-2024-bowling-league-season-free-beer{/}?", "destination": "/leagues/", "permanent": true },
+
+    { "source": "/plainfield-new-year-eve-event-party-to-ring-in-the-new-year{/}?", "destination": "/new-years-eve/", "permanent": true },
+    { "source": "/epic-nye-parties-now-reserving-for-2025{/}?", "destination": "/new-years-eve/", "permanent": true },
+    { "source": "/events/nye-twisted-pin{/}?", "destination": "/new-years-eve/", "permanent": true },
+
+    { "source": "/craft-beer-craft-cocktails-let-twisted-pin-be-your-next-restaurant-stop{/}?", "destination": "/bar/", "permanent": true },
+    { "source": "/craft-beer-paradise-inspired-menu-in-plainfield{/}?", "destination": "/bar/", "permanent": true },
+    { "source": "/beer-technology-next-level-fun-our-28-tap-self-serve-system{/}?", "destination": "/bar/#tap-wall", "permanent": true },
+    { "source": "/twisted-pin-unveils-first-na-draft-cheers-to-guilt-free-sips{/}?", "destination": "/menu/taps/", "permanent": true },
+
+    { "source": "/sing-your-heart-out-karaoke-nights-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/class-reunion-venue-event-space-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/celebrate-your-milestone-the-ideal-graduation-party-venue-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/twisted-pin-the-ultimate-venue-for-your-summer-celebrations{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/birthday-party-booking-is-back-lets-roll-plainfield{/}?", "destination": "/events/#birthday", "permanent": true },
+
+    { "source": "/events/paint-and-sip{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/paint-and-sip-twisted-pin{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/paint-and-sip-twisted-pin-2{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/paint-and-sip-twisted-pin-3{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/paint-and-sip-vintage-christmas{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/jingle-bowl-twisted-pin-copy{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/black-wednesday-karaoke{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/karaoke-free{/}?", "destination": "/upcoming-events/", "permanent": true },
+
+    { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
+    { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill-2{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
+
+    { "source": "/twisted-pin-in-plainfield-a-night-out-experience{/}?", "destination": "/", "permanent": true },
+    { "source": "/why-us{/}?", "destination": "/", "permanent": true },
+    { "source": "/why-us/crest-hill-il{/}?", "destination": "/", "permanent": true },
+    { "source": "/why-us/plainfield-il{/}?", "destination": "/", "permanent": true },
+    { "source": "/blog{/}?", "destination": "/", "permanent": true },
+    { "source": "/event-location/twisted-pin{/}?", "destination": "/", "permanent": true },
+
     { "source": "/essential{/}?", "destination": "https://menu.twistedpin.com/essential", "permanent": false },
     { "source": "/elevated{/}?", "destination": "https://menu.twistedpin.com/elevated", "permanent": false }
   ],
