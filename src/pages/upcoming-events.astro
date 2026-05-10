@@ -229,6 +229,43 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     </section>
   )}
 
+  {/* SEO body block — substantive content for the calendar page so
+      the empty-state version isn't ~30 words around a single Zite link.
+      Sets expectation re: lookahead window, names what runs even when
+      the calendar is clear, and links out to /bar/, /game/, and the
+      Naperville service area. Distinct copy from the other 4 thin
+      pages (calendar context, not iframe / credit / hiring). */}
+  <section class="t2-section" aria-labelledby="upcoming-info-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="upcoming-info-h2" style="font-size:11px;">What Goes On The Calendar</h2>
+      <p class="t2-section-body">
+        The calendar above tracks the bigger nights &mdash; themed
+        events, holiday programming, seasonal pop-ups, and one-off
+        collaborations. Most fall in the 4&ndash;8 weeks out window;
+        we don't post six months ahead because the calendar tends to
+        shift, and stale dates do nobody any favors. New things get
+        added as we lock them in.
+      </p>
+      <p class="t2-section-body">
+        Standard programming runs even when the calendar's empty.
+        Walk-in bowling all year, cocktails by
+        <a href="/bar/">America's Top Mixologist</a> every night the
+        bar's open, the 28-tap self-serve wall, the kitchen, the
+        <a href="/game/">arcade</a>. The calendar is for the bigger
+        or one-off nights &mdash; not everyday operations, which run
+        on a standard schedule.
+      </p>
+      <p class="t2-section-body">
+        Plainfield, IL is the venue, with most weekend regulars
+        driving in from <a href="/why-us/naperville-il/">Naperville</a>,
+        Bolingbrook, Joliet, and the rest of Will County. Want to put
+        your own night on this calendar? <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event &rarr;</a>
+        &mdash; group buyouts and corporate offsites are how most
+        non-themed nights start.
+      </p>
+    </div>
+  </section>
+
   <section class="t2-section ev-handoff" aria-labelledby="upcoming-h2">
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="upcoming-h2" style="font-size:11px;">More Ways In</h2>

@@ -99,6 +99,44 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
   </section>
 
   {/* ============================================================
+      SEO body block — explanatory copy beneath the live data so the
+      page has indexable content. Voice rule: "Most nights, walk right
+      in." matches the hero sub register ("Most nights it's zero").
+      Distinct copy from /coupon and /free-kids-bowling per the
+      duplicate-content rule.
+      ============================================================ */}
+  <section class="t2-section" aria-labelledby="waitlist-info-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">What to expect</p>
+      <h2 class="t-display waitlist-info-title" id="waitlist-info-h2">
+        Most nights, walk right in.
+      </h2>
+      <p class="t2-section-body">
+        The number on the counter above is live from our front desk.
+        Drop your name and phone number, and we'll text you when your
+        lane opens up. No standing in line, no checking back at the
+        host stand &mdash; we'll come find you.
+      </p>
+      <p class="t2-section-body">
+        Most nights the wait reads zero. Friday and Saturday after 7pm
+        at our Plainfield location are when it actually moves &mdash;
+        busy season, league nights, holiday weekends. If you're driving
+        from Will County and don't want to gamble on the wait, locking
+        in a reservation ahead of time is the safer play.
+      </p>
+      <p class="t2-section-body">
+        Walk-in works for solo bowlers, couples, and full groups
+        &mdash; open lanes get assigned in the order names came in.
+        See <a href="/pricing/">walk-in pricing</a> for what each day's
+        lane time costs,
+        <a href={ROLLER_URL} target="_blank" rel="noopener noreferrer">reserve a lane online</a>
+        to skip the wait, or <a href="/bowl/">more on bowling here</a>
+        before you book.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
       CLOSING — alternative path. Walk-in works most nights;
       reserve when the room is going to be packed.
       ============================================================ */}
@@ -288,6 +326,19 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
     margin-left: 6px;
   }
   .waitlist-fallback a:hover { text-decoration: underline; }
+
+  /* SEO body block heading — same recipe as .fkb-section-title /
+     .coupon-info-title. Folds into .pillar-* CSS hoist when that lands. */
+  .waitlist-info-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 10px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .waitlist-info-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
 
   /* ---------- closing band (Reserve as alternative) ---------- */
   .waitlist-section--closing { padding-top: 48px; }

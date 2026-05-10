@@ -40,8 +40,8 @@
  *     poster so the section reads correctly before the video loads.
  */
 import Base from "../layouts/Base.astro";
-import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
 ---
 <Base
   title="Careers in Plainfield, IL | Twisted Pin"
@@ -108,6 +108,41 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
     </div>
   </section>
 
+  {/* SEO body block — explanatory copy that adds indexable substance
+      to a page that's mostly perks-list + video + CTA. Voice rule:
+      "hires for craft, not just shifts" replaces try-hard culture
+      claims. Links out to /bar/ (credential context for bar staff)
+      and /why-us/naperville-il/ (priority service area). */}
+  <section class="t2-section" aria-labelledby="careers-info-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="careers-info-h2" style="font-size:11px;">What It's Like</h2>
+      <p class="t2-section-body">
+        Bar staff work a <a href="/bar/">program designed by America's
+        Top Mixologist</a> (Food Network). Kitchen runs chef-inspired
+        plates, not bowling-alley food. Front-of-house manages the
+        28-tap self-serve wall, 17 traditional lanes, and the 6-lane
+        VIP suite. Whatever side of the operation you're on, you're
+        working in a place that hires for craft, not just shifts
+        &mdash; and trains accordingly.
+      </p>
+      <p class="t2-section-body">
+        Weekends are the real shifts. Friday and Saturday from 7pm
+        onward is when the room peaks and the team carries the night
+        together &mdash; that's also when tips and hours are at their
+        best. Mid-week runs lighter, solid for picking up extra hours,
+        training new hires, or staff who prefer the quieter pace
+        before close.
+      </p>
+      <p class="t2-section-body">
+        Twisted Pin is in Plainfield, IL &mdash; most of the team
+        commutes from <a href="/why-us/naperville-il/">Naperville</a>,
+        Bolingbrook, Joliet, Romeoville, Shorewood, or Oswego. The
+        application stays open year-round across all positions; the
+        form below routes the rest.
+      </p>
+    </div>
+  </section>
+
   <section class="t2-section" aria-labelledby="careers-apply-h2">
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="careers-apply-h2" style="font-size:11px;">How to Apply</h2>
@@ -121,11 +156,6 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
       <a class="btn btn-solid" href="https://www.employment-application.net/application.php?application=84" target="_blank" rel="noopener">
         Fill out application
       </a>
-
-      <p class="t2-section-body" style="margin-top: 28px;">
-        Twisted Pin is in Plainfield, IL — easy commute from Naperville,
-        Bolingbrook, Romeoville, Shorewood, Joliet, and Oswego.
-      </p>
     </div>
   </section>
 

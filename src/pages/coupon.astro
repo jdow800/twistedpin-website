@@ -75,6 +75,44 @@ const COUPON_FORM_URL = "https://c-g.co/xORo1J";
     </div>
   </section>
 
+  {/* ============================================================
+      SEO body block — explanatory copy beneath the iframe so the
+      page has indexable content beyond the form chrome. Voice-aligned,
+      no discount/off framing in the headline (the canonical reframe
+      is "$10 lane credit"). Two redemption paths kept simple — the
+      operational details (lookup mechanic, overage handling) live
+      at the front desk, not in copy that could go stale.
+      ============================================================ */}
+  <section class="t2-section" aria-labelledby="coupon-info-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">How it works</p>
+      <h2 class="t-display coupon-info-title" id="coupon-info-h2">
+        Two ways to use it.
+      </h2>
+      <p class="t2-section-body">
+        Walk in and bring your phone to the front desk &mdash; we apply
+        the $10 lane credit to your bowling tab. Or use it on a
+        <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>
+        and the $10 comes off the booking total. Either way, it's for
+        open bowling specifically &mdash; not group events, leagues, or
+        the VIP suite.
+      </p>
+      <p class="t2-section-body">
+        Plainfield's where we are; Will County's where most of our
+        regulars come from. The credit's a low-friction way to test
+        the place if you haven't been in. Date night, family night out,
+        a Saturday with friends &mdash; the $10 applies to whatever the
+        lane rate is when you arrive, and the rest of the night runs
+        as a normal visit.
+      </p>
+      <p class="t2-section-body">
+        One credit per customer. See <a href="/pricing/">walk-in pricing</a>
+        for what $10 covers on a given day, or <a href="/bowl/">more on
+        bowling here</a> before you book.
+      </p>
+    </div>
+  </section>
+
   <SnapFooter />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
@@ -133,5 +171,18 @@ const COUPON_FORM_URL = "https://c-g.co/xORo1J";
     font-size: 12px;
     line-height: 1.55;
     color: var(--warm-dim);
+  }
+
+  /* SEO body block heading — same recipe as .fkb-section-title.
+     Will fold into the .pillar-* CSS hoist when that lands. */
+  .coupon-info-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 10px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .coupon-info-title { font-size: clamp(40px, 4.2vw, 56px); }
   }
 </style>
