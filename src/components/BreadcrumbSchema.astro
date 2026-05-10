@@ -1,0 +1,25 @@
+---
+/**
+ * BreadcrumbSchema — emits a single BreadcrumbList JSON-LD script.
+ *
+ * Wire on every non-homepage route:
+ *
+ *   <BreadcrumbSchema crumbs={[
+ *     { name: "Home", path: "/" },
+ *     { name: "Bar", path: "/bar/" },
+ *   ]} />
+ *
+ * Trailing slashes match the project's canonical convention (fix
+ * `6c478e9`, trailingSlash: 'always'). Homepage has no parent — does
+ * not need a BreadcrumbList.
+ */
+import { breadcrumbList, type BreadcrumbCrumb } from "../lib/schema";
+
+interface Props {
+  crumbs: BreadcrumbCrumb[];
+}
+
+const { crumbs } = Astro.props;
+const schema = breadcrumbList(crumbs);
+---
+<script type="application/ld+json" set:html={JSON.stringify(schema)} />

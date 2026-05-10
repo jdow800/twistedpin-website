@@ -297,6 +297,43 @@ export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
   };
 }
 
+// ── BreadcrumbList ───────────────────────────────────────────────
+
+export interface BreadcrumbCrumb {
+  /** Display name for this hop. Title-case, matches nav labels where possible. */
+  name: string;
+  /**
+   * Site-relative path with leading + trailing slash, e.g. "/" or "/bar/"
+   * or "/menu/cocktails/". Resolved against BUSINESS_URL — every item in
+   * the emitted JSON-LD carries an absolute URL.
+   */
+  path: string;
+}
+
+/**
+ * BreadcrumbList JSON-LD for Google rich-result eligibility (the small
+ * "Home > Bar" trail that appears under SERP listings instead of the
+ * raw URL). Homepage doesn't get one — breadcrumbs only make sense on
+ * pages with a parent.
+ *
+ * Two-crumb chains (Home → Self) are valid per Google's spec; we use
+ * those when the natural intermediate parent doesn't exist as a real
+ * URL on the site (no /blog/ index, no /why-us/ index — emitting a
+ * link to a 404 is worse than skipping the hop).
+ */
+export function breadcrumbList(crumbs: BreadcrumbCrumb[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: `${BUSINESS_URL}${c.path}`,
+    })),
+  };
+}
+
 // ── Event helper ─────────────────────────────────────────────────
 
 export interface EventInput {
