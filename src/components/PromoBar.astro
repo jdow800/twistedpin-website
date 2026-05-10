@@ -1,0 +1,269 @@
+---
+/**
+ * PromoBar — site-wide "attention" overlay for time-bounded campaigns.
+ *
+ * Server-side selection from src/config/promos.ts. Renders the first active
+ * promo or nothing. Auto-hides on the promo's own landing page so we don't
+ * tell a /free-kids-bowling visitor about /free-kids-bowling.
+ *
+ * Layout strategy:
+ *   - Mobile: thin bar pinned just above the sticky CTAs (~52px above the
+ *     bottom edge — accounts for the sticky pill height + safe-area inset).
+ *     Full-width with 12px side margins, matches the pill's footprint.
+ *   - Desktop: floating bottom-right toast (~340px) 24px from corners. The
+ *     mobile "above the CTAs" layout doesn't translate — desktop CTAs live
+ *     in the top-right header, not the bottom. Bottom-right is the standard
+ *     toast zone.
+ *
+ * Visual recipe:
+ *   - Indigo Deep blurred background (same as sticky pill — cohesive)
+ *   - 1px Glow top border for attention contrast
+ *   - Glow dot + arrow accent; warm-white message text
+ *   - Whole link region clickable; dismiss X is a separate flex sibling
+ *
+ * Dismissal:
+ *   - Click X stores promo id in localStorage; bar hides on subsequent loads
+ *     until the showUntil window closes. Bump promo `id` to re-show with
+ *     refreshed copy.
+ *
+ * A11y:
+ *   - role="region" + aria-label so it's announced as a landmark
+ *   - Dismiss is a real <button> with aria-label
+ *   - prefers-reduced-motion: skip the entry slide
+ */
+import { getActivePromo } from "../config/promos";
+
+const promo = getActivePromo();
+
+// Auto-hide on the promo's own landing page. Trailing-slash normalize so
+// "/free-kids-bowling" and "/free-kids-bowling/" both match.
+const currentPath = Astro.url.pathname.endsWith("/")
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+const targetPath = promo?.hideOnPath ?? promo?.href;
+const targetPathNormalized = targetPath?.endsWith("/")
+  ? targetPath
+  : targetPath
+    ? `${targetPath}/`
+    : undefined;
+const onLandingPage = targetPathNormalized && currentPath === targetPathNormalized;
+
+const shouldRender = promo && !onLandingPage;
+---
+{shouldRender && (
+  <aside
+    class="promo-bar"
+    data-promo-bar
+    data-promo-id={promo.id}
+    role="region"
+    aria-label="Promotion"
+  >
+    <a class="promo-link" href={promo.href}>
+      <span class="promo-dot" aria-hidden="true"></span>
+      <span class="promo-text">{promo.message}</span>
+      <span class="promo-arrow" aria-hidden="true">&rarr;</span>
+    </a>
+    <button
+      type="button"
+      class="promo-dismiss"
+      data-promo-dismiss
+      aria-label="Dismiss promotion"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </aside>
+)}
+
+<style>
+  /* ---------- Mobile (default) ---------- */
+
+  .promo-bar {
+    position: fixed;
+    z-index: 31; /* above sticky CTA pill (30) so it can't be covered */
+
+    /* Sit just above the sticky CTA pill.
+       Pill: bottom: calc(6px + safe-bottom), height ~60px (10+40+10).
+       Gap above pill: 8px. So bar bottom: calc(74px + safe-bottom).
+       Slight slack added — 78px — so a renderer that pads slightly more
+       still leaves visible breathing room. */
+    left: 12px;
+    right: 12px;
+    bottom: calc(78px + var(--safe-bottom, 0px));
+
+    display: flex;
+    align-items: stretch;
+
+    background: rgba(14, 10, 31, 0.92);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-radius: calc(var(--radius-button) + 4px);
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-top: 1px solid var(--glow);
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
+
+    /* Entry animation — matches StickyCTABar pattern. The body class
+       set by motion.client.ts triggers the on-state transition. */
+    transform: translateY(140%);
+    opacity: 0;
+    transition:
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
+      opacity 240ms ease-out 120ms;
+  }
+
+  :global(body.promo-ready) .promo-bar {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Dismissed state — hide immediately, no transition. */
+  .promo-bar[data-dismissed] {
+    display: none;
+  }
+
+  /* ---------- The message link (full-bleed clickable area) ---------- */
+
+  .promo-link {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 14px;
+    color: var(--warm-white);
+    text-decoration: none;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    min-width: 0; /* allow text truncation if needed */
+  }
+
+  .promo-dot {
+    flex: 0 0 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--glow);
+    box-shadow: 0 0 8px rgba(178, 255, 89, 0.6); /* soft Glow halo */
+  }
+
+  .promo-text {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .promo-arrow {
+    flex: 0 0 auto;
+    color: var(--glow);
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 200ms ease;
+  }
+
+  .promo-link:hover .promo-arrow,
+  .promo-link:focus-visible .promo-arrow {
+    transform: translateX(2px);
+  }
+
+  /* ---------- Dismiss button ---------- */
+
+  .promo-dismiss {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-left: 1px solid rgba(244, 239, 227, 0.10);
+    color: var(--warm-mid);
+    cursor: pointer;
+    transition: color 150ms ease;
+  }
+
+  .promo-dismiss:hover,
+  .promo-dismiss:focus-visible {
+    color: var(--warm-white);
+  }
+
+  /* ---------- Desktop (≥1025): bottom-right toast ---------- */
+
+  @media (min-width: 1025px) {
+    .promo-bar {
+      left: auto;
+      right: 24px;
+      bottom: 24px; /* no sticky CTA to clear on desktop */
+      width: 360px;
+      max-width: calc(100vw - 48px);
+    }
+
+    .promo-link {
+      padding: 13px 16px;
+      font-size: 14px;
+    }
+
+    .promo-dismiss {
+      width: 44px;
+    }
+  }
+
+  /* ---------- Reduced motion ---------- */
+
+  @media (prefers-reduced-motion: reduce) {
+    .promo-bar {
+      transform: none;
+      opacity: 1;
+      transition: none;
+    }
+  }
+</style>
+
+<script is:inline>
+  // Client-side: check localStorage for prior dismissal of this promo id.
+  // If dismissed, hide the bar immediately. If not, trigger the entry
+  // animation by adding `promo-ready` to <body>.
+  //
+  // Inline so it runs before paint — no flash of "promo visible then hidden"
+  // if the user has already dismissed it.
+  (function () {
+    var bar = document.querySelector("[data-promo-bar]");
+    if (!bar) return;
+    var id = bar.getAttribute("data-promo-id");
+    var key = "tp-promo-dismissed-" + id;
+
+    try {
+      if (localStorage.getItem(key) === "1") {
+        bar.setAttribute("data-dismissed", "");
+        return;
+      }
+    } catch (_e) {
+      // localStorage unavailable (private mode, etc.) — show the promo
+      // anyway. Dismissal still works for the current session via the
+      // click handler below; just won't persist.
+    }
+
+    // Trigger entry animation on next frame so the transform/opacity
+    // transition has something to interpolate from.
+    requestAnimationFrame(function () {
+      document.body.classList.add("promo-ready");
+    });
+
+    // Dismiss handler — store flag and slide the bar away.
+    var dismissBtn = bar.querySelector("[data-promo-dismiss]");
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", function () {
+        try {
+          localStorage.setItem(key, "1");
+        } catch (_e) {
+          // No persistence in private mode — bar still hides for this load.
+        }
+        bar.setAttribute("data-dismissed", "");
+      });
+    }
+  })();
+</script>

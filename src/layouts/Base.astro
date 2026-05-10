@@ -3,6 +3,7 @@ import "../styles/global.css";
 import StickyCTABar from "../components/StickyCTABar.astro";
 import NavDrawer from "../components/NavDrawer.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import PromoBar from "../components/PromoBar.astro";
 
 interface Props {
   title?: string;
@@ -131,6 +132,7 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 
     <NavDrawer />
     {!hideStickyCTA && <StickyCTABar />}
+    <PromoBar />
 
     <script>
       import { initMotion } from "../scripts/motion.client.ts";
