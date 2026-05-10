@@ -7,24 +7,35 @@
  * tell a /free-kids-bowling visitor about /free-kids-bowling.
  *
  * Layout strategy:
- *   - Mobile: thin bar pinned just above the sticky CTAs (~52px above the
- *     bottom edge — accounts for the sticky pill height + safe-area inset).
- *     Full-width with 12px side margins, matches the pill's footprint.
- *   - Desktop: floating bottom-right toast (~340px) 24px from corners. The
- *     mobile "above the CTAs" layout doesn't translate — desktop CTAs live
- *     in the top-right header, not the bottom. Bottom-right is the standard
- *     toast zone.
+ *   - Mobile: thin bar pinned BELOW the persistent SiteHeader (~72px from
+ *     the top, accounting for header height + safe-area inset). Full-width
+ *     minus 12px side margins. Slides down from behind the header.
+ *     Earlier iteration sat above the sticky CTAs but overlapped hero
+ *     headline copy at the bottom of the viewport — moved to the top
+ *     band where it only covers hero video, never text. (2026-05-10)
+ *   - Desktop: floating bottom-right toast (440px wide) 24px from corners.
+ *     The mobile "below the header" layout doesn't translate — desktop
+ *     has more horizontal real estate and the bottom-right is the
+ *     standard toast zone for non-blocking notifications. Slides up
+ *     from below the viewport.
  *
  * Visual recipe:
  *   - Indigo Deep blurred background (same as sticky pill — cohesive)
  *   - 1px Glow top border for attention contrast
  *   - Glow dot + arrow accent; warm-white message text
+ *   - 2-line wrap (via -webkit-line-clamp) — no mid-word truncation
  *   - Whole link region clickable; dismiss X is a separate flex sibling
  *
+ * Entry timing:
+ *   - Slides in ~1200ms after page load — AFTER the sticky-CTA Motion One
+ *     entry completes (~870ms). Gives the CTAs their landing moment first,
+ *     then the promo arrives as a deliberate second beat for attention.
+ *
  * Dismissal:
- *   - Click X stores promo id in localStorage; bar hides on subsequent loads
- *     until the showUntil window closes. Bump promo `id` to re-show with
- *     refreshed copy.
+ *   - No persistence. Click X slides the bar back out and hides it for
+ *     the current page view only. Reload or navigation brings it back.
+ *     The promo is a recurring nudge for the showFrom→showUntil window —
+ *     a permanent silence isn't what the user wanted (2026-05-10 call).
  *
  * A11y:
  *   - role="region" + aria-label so it's announced as a landmark
@@ -81,16 +92,16 @@ const shouldRender = promo && !onLandingPage;
 
   .promo-bar {
     position: fixed;
-    z-index: 31; /* above sticky CTA pill (30) so it can't be covered */
+    z-index: 19; /* below .site-chrome (20) so the header always wins
+                    visually; the bar slides in *under* the header band. */
 
-    /* Sit just above the sticky CTA pill.
-       Pill: bottom: calc(6px + safe-bottom), height ~60px (10+40+10).
-       Gap above pill: 8px. So bar bottom: calc(74px + safe-bottom).
-       Slight slack added — 78px — so a renderer that pads slightly more
-       still leaves visible breathing room. */
+    /* Sit just below the persistent SiteHeader. Mobile header:
+       padding 10px + logo 41px + padding 10px = ~61px.
+       Plus 8px gap below it and slack for the header's bottom border.
+       72px is the working number; safe-top added for notched devices. */
     left: 12px;
     right: 12px;
-    bottom: calc(78px + var(--safe-bottom, 0px));
+    top: calc(72px + var(--safe-top, 0px));
 
     display: flex;
     align-items: stretch;
@@ -103,13 +114,16 @@ const shouldRender = promo && !onLandingPage;
     border-top: 1px solid var(--glow);
     box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
 
-    /* Entry animation — matches StickyCTABar pattern. The body class
-       set by motion.client.ts triggers the on-state transition. */
-    transform: translateY(140%);
+    /* Entry animation — slides DOWN from behind the header. Initial state
+       offset upward; .promo-ready class on body triggers transition.
+       Timing tuned so the bar arrives AFTER the sticky-CTA entry (Motion
+       One: delay 550ms + duration 320ms = ~870ms) — gives the CTAs their
+       moment first, then the promo slides in as a second beat. */
+    transform: translateY(-140%);
     opacity: 0;
     transition:
-      transform 360ms cubic-bezier(0.22, 1, 0.36, 1) 120ms,
-      opacity 240ms ease-out 120ms;
+      transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 260ms ease-out;
   }
 
   :global(body.promo-ready) .promo-bar {
@@ -117,9 +131,11 @@ const shouldRender = promo && !onLandingPage;
     opacity: 1;
   }
 
-  /* Dismissed state — hide immediately, no transition. */
+  /* Dismissed state — slide back up and fade out, then hide entirely. */
   .promo-bar[data-dismissed] {
-    display: none;
+    transform: translateY(-140%);
+    opacity: 0;
+    pointer-events: none;
   }
 
   /* ---------- The message link (full-bleed clickable area) ---------- */
@@ -151,9 +167,12 @@ const shouldRender = promo && !onLandingPage;
 
   .promo-text {
     flex: 1 1 auto;
+    /* Allow up to 2 lines, then clamp. Removes the prior single-line
+       ellipsis (which cut "Free Bowling For Kids — throu…" on desktop). */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .promo-arrow {
@@ -195,16 +214,32 @@ const shouldRender = promo && !onLandingPage;
 
   @media (min-width: 1025px) {
     .promo-bar {
+      /* Desktop layout is different: bottom-right toast, not top bar.
+         Override mobile top: with bottom: and adjust left/right. The slide
+         direction also flips — initial state translates DOWN below the
+         viewport, slides UP into view. */
       left: auto;
+      top: auto;
       right: 24px;
-      bottom: 24px; /* no sticky CTA to clear on desktop */
-      width: 360px;
+      bottom: 24px;
+      width: 440px; /* wider so message gets 2 generous lines, not 1 truncated */
       max-width: calc(100vw - 48px);
+
+      transform: translateY(140%);
+    }
+
+    :global(body.promo-ready) .promo-bar {
+      transform: translateY(0);
+    }
+
+    .promo-bar[data-dismissed] {
+      transform: translateY(140%);
     }
 
     .promo-link {
-      padding: 13px 16px;
+      padding: 13px 18px;
       font-size: 14px;
+      line-height: 1.3;
     }
 
     .promo-dismiss {
@@ -224,45 +259,36 @@ const shouldRender = promo && !onLandingPage;
 </style>
 
 <script is:inline>
-  // Client-side: check localStorage for prior dismissal of this promo id.
-  // If dismissed, hide the bar immediately. If not, trigger the entry
-  // animation by adding `promo-ready` to <body>.
+  // Client-side: trigger the entry animation AFTER the sticky CTA bar
+  // lands. Motion One animates the CTA bar with delay 550ms + duration
+  // 320ms = ~870ms. We wait ~1200ms so the promo arrives as a deliberate
+  // second beat rather than competing with the CTA entry.
   //
-  // Inline so it runs before paint — no flash of "promo visible then hidden"
-  // if the user has already dismissed it.
+  // No persistence: user dismissal hides the bar for the current page
+  // view only. Reloading or navigating brings it back. This is intentional
+  // per the 2026-05-10 product call — the promo is a recurring nudge for
+  // the showFrom→showUntil window, not a permanent overlay the user
+  // wants to silence forever. Showing it again on the next page load
+  // costs the user one click; never showing it again costs us the
+  // conversion.
   (function () {
     var bar = document.querySelector("[data-promo-bar]");
     if (!bar) return;
-    var id = bar.getAttribute("data-promo-id");
-    var key = "tp-promo-dismissed-" + id;
 
-    try {
-      if (localStorage.getItem(key) === "1") {
-        bar.setAttribute("data-dismissed", "");
-        return;
-      }
-    } catch (_e) {
-      // localStorage unavailable (private mode, etc.) — show the promo
-      // anyway. Dismissal still works for the current session via the
-      // click handler below; just won't persist.
-    }
-
-    // Trigger entry animation on next frame so the transform/opacity
-    // transition has something to interpolate from.
-    requestAnimationFrame(function () {
+    // Trigger entry slide-in after the CTA bar has finished its own.
+    window.setTimeout(function () {
       document.body.classList.add("promo-ready");
-    });
+    }, 1200);
 
-    // Dismiss handler — store flag and slide the bar away.
+    // Dismiss handler — slide back to initial state then hide entirely
+    // once the transition completes so it can't trap pointer events.
     var dismissBtn = bar.querySelector("[data-promo-dismiss]");
     if (dismissBtn) {
       dismissBtn.addEventListener("click", function () {
-        try {
-          localStorage.setItem(key, "1");
-        } catch (_e) {
-          // No persistence in private mode — bar still hides for this load.
-        }
         bar.setAttribute("data-dismissed", "");
+        window.setTimeout(function () {
+          bar.style.display = "none";
+        }, 420); // matches transition duration + small slack
       });
     }
   })();
