@@ -7,7 +7,7 @@
 #
 # Outputs: public/hero/
 #   hero-poster.{webp,jpg}                        — mobile poster (frame 0 of mobile source)
-#   hero-mobile-{av1,h264}-{1080,540}.mp4         — mobile, 9:16, recut 0–11.45s + 0.4s first-frame hold
+#   hero-mobile-{av1,h264}-{1080,540}.mp4         — mobile, 9:16, recut 0–12.5s + 0.4s first-frame hold
 #   hero-desktop-poster.{webp,jpg}                — desktop poster (frame 0 of desktop source)
 #   hero-desktop-{av1,h264}.mp4                   — desktop, 16:9, recut 0–8s, 1920×1080
 #
@@ -54,7 +54,7 @@ ffmpeg -y -hide_banner -loglevel error -i "$TMP" -c:v libwebp -quality 80 -compr
 ffmpeg -y -hide_banner -loglevel error -i "$TMP" -q:v 4 "$OUT_DIR/hero-poster.jpg"
 rm -f "$TMP"
 
-MOBILE_TRIM=(-ss 0 -t 11.45)
+MOBILE_TRIM=(-ss 0 -t 12.5)
 MOBILE_VFILTER="tpad=start_mode=clone:start_duration=0.4"
 
 mobile_h264() { local W=$1 H=$2 OUT=$3 CRF=$4
