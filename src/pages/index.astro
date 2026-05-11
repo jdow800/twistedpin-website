@@ -105,10 +105,16 @@ const websiteSchema = {
           element). Lighthouse on 2026-05-08 caught ~3.7 MB of doubled
           fetches on every mobile visit. 2026-05-08 perf pass.
 
-          Within mobile, 540w wins for phones ≤480px CSS width (749 KB
-          H.264 / 1.2 MB AV1); 1080w covers tablets up to 1024px CSS
-          width (1.8 MB H.264 / 2.0 MB AV1). Desktop kicks in at 1025px+
-          via the desktop video below. */}
+          Within mobile, 540w covers ALL viewports up to 1024px CSS width
+          (1.4 MB H.264 / 2.0 MB AV1 at 11.45s runtime). The 540×960
+          source upscales slightly on tablet portrait + big-phone
+          landscape, but it's a background video with a Glow scrim —
+          visually indistinguishable from the 1080w variant per user
+          testing on a 412px-CSS-px Samsung Ultra (2026-05-11). The
+          1080w mobile encodes still exist in /public/hero/ as a
+          fallback option — un-comment those <source> tags if HD is
+          ever wanted back. Desktop kicks in at 1025px+ via the
+          desktop video below. */}
       <video
         class="hero-video hero-video-mobile"
         preload="none"
@@ -119,10 +125,8 @@ const websiteSchema = {
         poster="/hero/hero-poster.webp"
         aria-hidden="true"
       >
-        <source media="(max-width: 480px)" src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-        <source media="(max-width: 480px)" src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
-        <source media="(max-width: 1024px)" src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-        <source media="(max-width: 1024px)" src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+        <source media="(max-width: 1024px)" src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(max-width: 1024px)" src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
       </video>
 
       {/* Desktop 16:9 video.
