@@ -42,7 +42,7 @@ in the historic downtown after.
 The [6-lane VIP suite](/vip-suite/) at Twisted Pin is the only one of
 its kind between Plainfield and Naperville. Six lanes set apart from
 the traditional lanes by a wall, capacity to 80 people, AV hookups for
-slideshows and walk-in music, custom catering from the kitchen, and bar
+slideshows and walk-in music, in-house catering from the kitchen, and bar
 billing on a tab or drink tickets. Yours for the night when you book
 the suite.
 

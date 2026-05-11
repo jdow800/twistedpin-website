@@ -64,7 +64,7 @@ isn't a side room of a working restaurant.
 
 What it is: a [6-lane VIP suite](/vip-suite/) set apart from the
 venue's traditional lanes by a wall. Capacity to 80, AV hookups for
-slideshows and walk-in music, custom catering from the kitchen,
+slideshows and walk-in music, in-house catering from the kitchen,
 billiards-style group dynamics, and bar billing you control on a tab
 or drink tickets — your call. Set apart, semi-private, and yours for
 the night when you book the suite.
