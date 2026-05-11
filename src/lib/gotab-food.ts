@@ -10,13 +10,15 @@ import { gotabQuery } from './gotab';
 
 const SOURCE_MENU = 'View Only Menu';
 
-// Render order: classic restaurant flow (apps → salads → mains → kids → desserts).
-// Category names come from GoTab unchanged — including the trailing space on
-// "Desserts " (GoTab is source of truth for naming).
+// Render order: Handhelds-led (2026-05-11 product call — the brand's
+// strongest food category up top; the rest follow a soft apps → salads →
+// pizza → kids → desserts arc). Category names come from GoTab unchanged
+// — including the trailing space on "Desserts " (GoTab is source of
+// truth for naming).
 const CATEGORY_RENDER_ORDER = [
+  '62063', // Handhelds
   '62061', // Starters
   '62067', // Salads
-  '62063', // Handhelds
   '62065', // Pizza / Flatbreads
   '62069', // Kids
   '62070', // Desserts (trailing space in GoTab)
