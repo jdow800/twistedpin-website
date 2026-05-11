@@ -41,3 +41,10 @@ Context/og images/
 # Claude Code runtime state — local-only, should never be committed
 .claude/scheduled_tasks.lock
 .claude/*.lock
+
+# Claude Code worktree sandboxes — sibling git workspaces under .claude/.
+# These are local-only; tracking them as gitlinks (which `git add -A`
+# auto-converts subdirs containing .git into) makes the parent repo
+# think they're submodules and creates phantom "modified" entries on
+# every status. Always ignored.
+.claude/worktrees/
