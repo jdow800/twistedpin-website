@@ -51,12 +51,35 @@ export const EMAIL = "contactus@twistedpin.com";
 export const PLACE_ID = "ChIJURI15Tr1DogRLKYdPWWuY-M";
 
 /**
- * place_id-form Maps URL — more durable than maps.app.goo.gl/* short
- * URLs (Firebase Dynamic Links sunset Aug 25, 2025). Used for hasMap,
- * which is machine-read by crawlers — user-facing surfaces still use
- * the short URL where it works better.
+ * Canonical Google Maps URL for the venue page — Google's officially
+ * documented `search/?api=1` deep-link pattern with `query_place_id`.
+ *
+ * Replaces the prior `maps.app.goo.gl/yyiVoLzTsHA2TNGW8` short URL
+ * (Firebase Dynamic Links — Google sunset that platform Aug 25, 2025;
+ * short links are on borrowed time). Also replaces the prior
+ * `/maps/place/?q=place_id:...` form, which was flagged in earlier
+ * testing as unreliable for venue-page surfaces (it landed on the
+ * search list rather than the place card on some clients).
+ *
+ * Verified 2026-05-10: opens the Twisted Pin place card on iOS Safari
+ * and Maps app deeplinks with Save / Share / Directions buttons exposed.
+ *
+ * Used by:
+ *   - LocalBusiness JSON-LD `hasMap`
+ *   - SnapFooter Google reviews card (the "see reviews on Google" link)
+ *   - /pricing "verify on Google" caveat
+ *
+ * Different from the *directions* deep-link (which uses /maps/dir/ with
+ * destination_place_id, defined per-page in service-area pages).
  */
-export const HAS_MAP_URL = `https://www.google.com/maps/place/?q=place_id:${PLACE_ID}`;
+export const MAPS_VENUE_URL = `https://www.google.com/maps/search/?api=1&query=Twisted+Pin&query_place_id=${PLACE_ID}`;
+
+/**
+ * @deprecated Use MAPS_VENUE_URL instead. Kept as an alias only because
+ * `hasMap` already references this name in schema callers — single
+ * source of truth, just one identifier short of consolidated.
+ */
+export const HAS_MAP_URL = MAPS_VENUE_URL;
 
 /** Mirrors SnapFooter's social row. YouTube added 2026-05-08. */
 export const SOCIAL_SAME_AS = [

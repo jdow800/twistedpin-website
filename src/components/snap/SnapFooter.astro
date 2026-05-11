@@ -26,6 +26,7 @@
  * back to static src/data/hours.ts when env vars aren't configured.
  */
 import { getLiveHours } from "../../lib/google-hours";
+import { MAPS_VENUE_URL } from "../../lib/schema";
 import {
   todayKey,
   previousDay,
@@ -91,10 +92,10 @@ const ADDRESS_STREET = "15610 Joliet Rd";
 const ADDRESS_CITY   = "Plainfield, IL";
 // Google Place ID drives the Get Directions URL — the place_id query
 // param ensures Maps lands on the right venue regardless of how the
-// address string is parsed. The "verify on Google" + Google review
-// card use the user-supplied short URL (maps.app.goo.gl/…) instead;
-// place_id-style URLs didn't open the venue page reliably in user
-// testing for those flows.
+// address string is parsed. The Google reviews card uses MAPS_VENUE_URL
+// (the documented `search/?api=1` deep-link with `query_place_id` —
+// see src/lib/schema.ts) which replaced the prior maps.app.goo.gl
+// short URL in the 2026-05-10 Firebase Dynamic Links retirement.
 const PLACE_ID = "ChIJURI15Tr1DogRLKYdPWWuY-M";
 const MAPS_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${ADDRESS_STREET}, ${ADDRESS_CITY}`)}&destination_place_id=${PLACE_ID}`;
 const PHONE_DISPLAY = "(815) 782-7790";
@@ -201,7 +202,7 @@ const UTILITY_LINKS = [
         <p class="proof-eyebrow">Don't take our word for it.</p>
         <p class="proof-sub">Everyone's been talking.</p>
         <div class="proof-cards">
-          <a class="proof-card" href="https://maps.app.goo.gl/yyiVoLzTsHA2TNGW8" target="_blank" rel="noopener">
+          <a class="proof-card" href={MAPS_VENUE_URL} target="_blank" rel="noopener">
             <p class="proof-source">Google</p>
             <p class="proof-rating">
               <span class="proof-stars" aria-hidden="true">★★★★★</span>
