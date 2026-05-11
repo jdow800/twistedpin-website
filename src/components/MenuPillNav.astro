@@ -1,0 +1,210 @@
+---
+/**
+ * MenuPillNav — horizontal pill bar that pins under the SiteHeader and
+ * lets users jump between long-menu category sections.
+ *
+ * Render at the top of a menu section. Sticks under the persistent header
+ * while the user scrolls through the menu body; un-sticks when the section
+ * ends (so it doesn't follow into the footer).
+ *
+ * Wire-up requirements on the host page:
+ *   1. Pass `pills: [{ id, name }]` matching the section anchors.
+ *   2. Add the same `id` to each section div the pills target.
+ *   3. Add `scroll-margin-top: 120px` (or similar) on those target divs
+ *      so anchor jumps land below the sticky header + this pill bar.
+ *
+ * Behavior:
+ *   - Tap a pill → smooth-scrolls to that section.
+ *   - As user scrolls, the pill matching the section currently in the
+ *     top portion of viewport gets the `active` class.
+ *   - Active pill is auto-scrolled into the center of the pill rail so
+ *     it stays visible while user navigates a long menu.
+ *
+ * A11y:
+ *   - <nav> + aria-label landmark.
+ *   - Real anchor links so right-click "open in new tab" and keyboard
+ *     navigation work (smooth-scroll is the enhancement, not the only path).
+ *   - aria-current="location" on the active pill.
+ */
+interface Pill {
+  /** Anchor target id (without #). Must match a sibling section's id. */
+  id: string;
+  /** Visible text on the pill. Long names will horizontal-scroll the rail. */
+  name: string;
+}
+
+interface Props {
+  pills: Pill[];
+  /** Accessible label for the nav landmark. */
+  label: string;
+}
+
+const { pills, label } = Astro.props as Props;
+---
+<nav class="menu-pills" aria-label={label} data-menu-pills>
+  <ul class="menu-pills-rail" role="list">
+    {pills.map((p, i) => (
+      <li>
+        <a
+          class={`menu-pill${i === 0 ? " active" : ""}`}
+          href={`#${p.id}`}
+          data-target={p.id}
+          aria-current={i === 0 ? "location" : undefined}
+        >{p.name}</a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  // Smooth-scroll on click + IntersectionObserver scroll-spy + horizontal
+  // auto-center of the active pill. Per-nav so multiple instances on a
+  // page would each work independently — but we only render one per page.
+  (() => {
+    const navs = document.querySelectorAll<HTMLElement>("[data-menu-pills]");
+    navs.forEach((nav) => {
+      const pills = Array.from(
+        nav.querySelectorAll<HTMLAnchorElement>("a.menu-pill"),
+      );
+      if (pills.length === 0) return;
+
+      const targets = pills
+        .map((a) => document.getElementById(a.dataset.target ?? ""))
+        .filter((el): el is HTMLElement => el !== null);
+
+      // Smooth-scroll on click. scroll-margin-top on the target handles
+      // the offset below header + pill bar so we don't have to compute it.
+      pills.forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const id = a.dataset.target;
+          if (!id) return;
+          const target = document.getElementById(id);
+          if (!target) return;
+          e.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+
+      // Scroll-spy: top-band rootMargin so a section becomes "active" when
+      // its header crosses into the upper portion of the viewport.
+      const setActive = (id: string) => {
+        let activeEl: HTMLAnchorElement | null = null;
+        pills.forEach((a) => {
+          const isMatch = a.dataset.target === id;
+          a.classList.toggle("active", isMatch);
+          if (isMatch) {
+            a.setAttribute("aria-current", "location");
+            activeEl = a;
+          } else {
+            a.removeAttribute("aria-current");
+          }
+        });
+        // Auto-center the active pill in the rail so it stays in view
+        // as the user scrolls down a long menu.
+        if (activeEl) {
+          (activeEl as HTMLElement).scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "center",
+          });
+        }
+      };
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          // Pick the entry closest to the top of the viewport that's
+          // currently intersecting. If multiple sections cross the band
+          // during a fast scroll, this avoids flicker.
+          const intersecting = entries.filter((e) => e.isIntersecting);
+          if (intersecting.length === 0) return;
+          intersecting.sort(
+            (a, b) => a.boundingClientRect.top - b.boundingClientRect.top,
+          );
+          setActive(intersecting[0].target.id);
+        },
+        // Top band: top 0-40% of viewport, accounting for ~100px of fixed
+        // chrome above (SiteHeader + pill rail). Tuned for mobile.
+        { rootMargin: "-100px 0px -60% 0px", threshold: 0 },
+      );
+
+      targets.forEach((t) => observer.observe(t));
+    });
+  })();
+</script>
+
+<style>
+  .menu-pills {
+    position: sticky;
+    top: 61px; /* under SiteHeader on mobile (~61px tall: 10+41+10) */
+    z-index: 18; /* below site-chrome (20), above page content */
+
+    /* Match SiteHeader chrome so the two stacked bars read as a unit. */
+    background: rgba(14, 10, 31, 0.92);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+
+    /* Negative margins let the rail bleed edge-to-edge regardless of
+       the parent .{cocktail|food}-menu-inner padding. The parent should
+       already establish its max-width / centering. */
+    margin: 0 -20px;
+    padding: 10px 20px;
+  }
+  @media (min-width: 1025px) {
+    .menu-pills {
+      top: 76px; /* desktop header has more padding */
+      padding: 12px 40px;
+      margin: 0 -40px;
+    }
+  }
+
+  .menu-pills-rail {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .menu-pills-rail::-webkit-scrollbar { display: none; }
+
+  .menu-pill {
+    display: inline-block;
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(244, 239, 227, 0.14);
+    background: transparent;
+
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--warm-mid);
+    white-space: nowrap;
+
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      border-color 180ms ease;
+  }
+  @media (min-width: 1025px) {
+    .menu-pill { font-size: 13px; padding: 9px 16px; }
+  }
+
+  .menu-pill:hover {
+    color: var(--warm-white);
+    border-color: rgba(244, 239, 227, 0.30);
+  }
+
+  .menu-pill.active {
+    background: var(--glow);
+    color: var(--indigo-deep);
+    border-color: var(--glow);
+  }
+</style>

@@ -16,10 +16,25 @@
 import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
+import MenuPillNav from "../../components/MenuPillNav.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
 const cocktailMenu = await getCocktails();
+
+// Pill-rail wayfinding: slugify the GoTab category name for an in-page
+// anchor. Same slug is applied as the `id` on the corresponding category
+// div below so the pill links target each section directly. Pill labels
+// use the full GoTab name — long names (e.g. "Cocktails - Reimagined &
+// Handcrafted Fav") horizontal-scroll the rail; we accept that for v1
+// rather than guessing at smart truncation that might drop meaning.
+function slugify(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+}
+const pills = cocktailMenu.categories.map((cat) => ({
+  id: `cat-${slugify(cat.name)}`,
+  name: cat.name,
+}));
 
 // JSON-LD: Menu → MenuSection → MenuItem. Stable @id so other pages
 // can cross-reference (e.g. /bar's hasMenu). provider references the
@@ -67,8 +82,11 @@ const menuSchema = {
   {cocktailMenu.categories.length > 0 && (
     <section class="cocktail-menu" id="cocktail-menu" aria-labelledby="cocktail-menu-h2">
       <div class="cocktail-menu-inner">
+        {pills.length > 1 && (
+          <MenuPillNav pills={pills} label="Cocktail menu sections" />
+        )}
         {cocktailMenu.categories.map((cat) => (
-          <div class="cocktail-category">
+          <div class="cocktail-category" id={`cat-${slugify(cat.name)}`}>
             <h2 class="cocktail-category-name">{cat.name}</h2>
             <ul class="cocktail-grid" role="list">
               {cat.cocktails.map((c) => (
@@ -199,6 +217,15 @@ const menuSchema = {
   }
   @media (min-width: 1025px) {
     .cocktail-category + .cocktail-category { margin-top: 88px; }
+  }
+
+  /* Anchor-jump offset so pill-nav clicks land below the sticky
+     SiteHeader + MenuPillNav (combined ~120px mobile / ~140px desktop). */
+  .cocktail-category {
+    scroll-margin-top: 120px;
+  }
+  @media (min-width: 1025px) {
+    .cocktail-category { scroll-margin-top: 140px; }
   }
 
   .cocktail-category-name {
