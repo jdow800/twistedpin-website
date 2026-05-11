@@ -51,6 +51,31 @@ const tapCount = tapList.totalCount;
   <section class="menu-hub" aria-label="Menu sections">
     <ul class="menu-hub-grid" role="list">
       <li class="menu-hub-card-wrap">
+        <a class="menu-hub-card" href="/menu/food/">
+          <div class="menu-hub-body">
+            <p class="menu-hub-eyebrow">The Kitchen</p>
+            <h2 class="menu-hub-title">Food</h2>
+            <p class="menu-hub-desc">
+              Chef-inspired plates, built to share.
+            </p>
+            <div class="menu-hub-foot">
+              {foodCount > 0 && (
+                <span class="menu-hub-count">{foodCount} dishes</span>
+              )}
+              <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
+            </div>
+          </div>
+          <div class="menu-hub-thumb">
+            <picture>
+              <source type="image/avif" srcset="/snap/menu-hub-food-540.avif 540w, /snap/menu-hub-food-720.avif 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
+              <source type="image/webp" srcset="/snap/menu-hub-food-540.webp 540w, /snap/menu-hub-food-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
+              <img src="/snap/menu-hub-food-540.jpg" srcset="/snap/menu-hub-food-540.jpg 540w, /snap/menu-hub-food-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A platter of wings, fries, celery, and carrots at Twisted Pin" width="540" height="540" loading="lazy" decoding="async" />
+            </picture>
+          </div>
+        </a>
+      </li>
+
+      <li class="menu-hub-card-wrap">
         <a class="menu-hub-card" href="/menu/cocktails/">
           <div class="menu-hub-body">
             <p class="menu-hub-eyebrow">The Bar Program</p>
@@ -95,31 +120,6 @@ const tapCount = tapList.totalCount;
               <source type="image/avif" srcset="/snap/menu-hub-taps-540.avif 540w, /snap/menu-hub-taps-720.avif 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
               <source type="image/webp" srcset="/snap/menu-hub-taps-540.webp 540w, /snap/menu-hub-taps-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
               <img src="/snap/menu-hub-taps-540.jpg" srcset="/snap/menu-hub-taps-540.jpg 540w, /snap/menu-hub-taps-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="The 28-tap self-serve beer wall at Twisted Pin with the GUTTERS HAPPEN BEER HELPS sign" width="540" height="540" loading="lazy" decoding="async" />
-            </picture>
-          </div>
-        </a>
-      </li>
-
-      <li class="menu-hub-card-wrap">
-        <a class="menu-hub-card" href="/menu/food/">
-          <div class="menu-hub-body">
-            <p class="menu-hub-eyebrow">The Kitchen</p>
-            <h2 class="menu-hub-title">Food</h2>
-            <p class="menu-hub-desc">
-              Chef-inspired plates, built to share.
-            </p>
-            <div class="menu-hub-foot">
-              {foodCount > 0 && (
-                <span class="menu-hub-count">{foodCount} dishes</span>
-              )}
-              <span class="menu-hub-cta">View menu <span aria-hidden="true">→</span></span>
-            </div>
-          </div>
-          <div class="menu-hub-thumb">
-            <picture>
-              <source type="image/avif" srcset="/snap/menu-hub-food-540.avif 540w, /snap/menu-hub-food-720.avif 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
-              <source type="image/webp" srcset="/snap/menu-hub-food-540.webp 540w, /snap/menu-hub-food-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
-              <img src="/snap/menu-hub-food-540.jpg" srcset="/snap/menu-hub-food-540.jpg 540w, /snap/menu-hub-food-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A platter of wings, fries, celery, and carrots at Twisted Pin" width="540" height="540" loading="lazy" decoding="async" />
             </picture>
           </div>
         </a>
