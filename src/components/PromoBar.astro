@@ -46,11 +46,13 @@ import { getActivePromo } from "../config/promos";
 
 const promo = getActivePromo();
 
-// Auto-hide on the promo's own landing page. Trailing-slash normalize so
-// "/free-kids-bowling" and "/free-kids-bowling/" both match.
+// Trailing-slash normalize so "/free-kids-bowling" and "/free-kids-bowling/"
+// both match.
 const currentPath = Astro.url.pathname.endsWith("/")
   ? Astro.url.pathname
   : `${Astro.url.pathname}/`;
+
+// Auto-hide on the promo's own landing page.
 const targetPath = promo?.hideOnPath ?? promo?.href;
 const targetPathNormalized = targetPath?.endsWith("/")
   ? targetPath
@@ -59,7 +61,10 @@ const targetPathNormalized = targetPath?.endsWith("/")
     : undefined;
 const onLandingPage = targetPathNormalized && currentPath === targetPathNormalized;
 
-const shouldRender = promo && !onLandingPage;
+// Homepage-only gate: when promo.homepageOnly is true, render only on `/`.
+const homepageOnlyFiltered = promo?.homepageOnly && currentPath !== "/";
+
+const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
 ---
 {shouldRender && (
   <aside

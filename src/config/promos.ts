@@ -53,6 +53,17 @@ export interface Promo {
    * Omit for no expiry (rare — most promos should be bounded).
    */
   showUntil?: string;
+  /**
+   * Render the promo only on the homepage (`/`). When false (default),
+   * the promo appears site-wide except on its own landing page.
+   *
+   * Use case: campaigns where the homepage is the conversion funnel
+   * and inner pages already serve the user's deeper intent — letting
+   * the bar follow into /faq, /bar, /pricing etc. starts to feel like
+   * marketing chase. Homepage-only respects that the user has already
+   * navigated past the broadcast surface.
+   */
+  homepageOnly?: boolean;
 }
 
 /**
@@ -67,6 +78,7 @@ export const PROMOS: readonly Promo[] = [
     message: "Free Bowling For Kids — through June 30",
     href: "/free-kids-bowling/",
     showUntil: "2026-06-30",
+    homepageOnly: true,
   },
 ];
 
