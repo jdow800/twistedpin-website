@@ -19,7 +19,6 @@
 
     { "source": "/special-events{/}?", "destination": "/events/", "permanent": true },
     { "source": "/corporate-parties{/}?", "destination": "/events/#corporate", "permanent": true },
-    { "source": "/birthday-parties-booking{/}?", "destination": "/events/#birthday", "permanent": true },
     { "source": "/fundraiser{/}?", "destination": "/fundraisers/", "permanent": true },
     { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
 

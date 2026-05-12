@@ -1,0 +1,654 @@
+---
+/**
+ * /birthday-parties-booking/ — Birthday parties pillar page.
+ *
+ * Slug preserved exactly from the legacy twistedpin.com site (any inbound
+ * SEO + bookmarks survive — see vercel.json which had a redirect to
+ * /events/#birthday that this page now replaces).
+ *
+ * Architecture follows the established pillar pattern (.bar / .eat /
+ * .vip-suite): typography hero → editorial sections (image one side,
+ * copy the other, alternating) → packages card-grid → closing CTA band
+ * → SnapFooter.
+ *
+ * Kids-led content with an adult-birthdays handoff section at the end:
+ *   - Kids section explains the "we don't try to do five different
+ *     activities — we do this well" angle the user articulated
+ *     2026-05-11 (no trampolines / go-karts / indoor playground; just
+ *     bowling + arcade + a real kitchen + the parent bar program).
+ *   - Two kid packages (Suite $419 / Extra Suite $489.90) booked via
+ *     Roller. Prices confirmed accurate 2026-05-11.
+ *   - Adult birthdays funnel to the events team (Zite) since they need
+ *     custom catering and the VIP suite — distinct from the kid-package
+ *     online booking flow.
+ *
+ * Voice notes (per 2026-05-11 reframe in voice.md):
+ *   - Don't dwell on limited slot availability (1 Sunday, 2 Saturdays,
+ *     earlier-day only). Position quality + "the times kids' parties
+ *     actually happen" without leaning on scarcity in body copy.
+ *   - "Phenomenal" is the user's internal word — use it once, not as a
+ *     refrain.
+ *   - Lean into kid-validation angle: "the party your kid asks for
+ *     again" — matches the two-mode positioning where the adult is
+ *     always the chooser but the kid pulls them back.
+ *
+ * Rule-of-four triggered (.bar / .eat / .vip-* / .birthday-*) — pillar
+ * CSS hoist into global.css .pillar-* utilities is overdue. Tracked in
+ * Context/media-needs.md.
+ *
+ * Photography (2026-05-11): real birthday photo (DSC00781 → birthday-
+ * table-*) lands here as the section 1 image. Adult section uses the
+ * existing events-bg-* stub (same as homepage) — flag in media-needs
+ * for a distinct adult-birthday/VIP suite shot when shoot happens.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+
+const ROLLER_KIDS_URL = "https://ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products";
+const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
+---
+<Base
+  title="Birthday Parties in Plainfield, IL | Twisted Pin"
+  description="Kids' birthday parties at Twisted Pin: bowling, arcade, a real kitchen — and a bar program for the parents. Two packages, weekend slots, book online. Plainfield, IL."
+  ogImage="/og/og-vip-suite.jpg"
+  ogImageAlt="A Twisted Pin birthday party set up in the suite — table with Extra Suite Birthday placard, party cups, and reserved signage"
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="birthday-hero" data-hero aria-labelledby="birthday-hero-h1">
+    <div class="birthday-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Birthday Parties</p>
+      <h1 class="t-display birthday-hero-headline hero-fade" id="birthday-hero-h1" data-delay-ms="120">
+        The birthday your&nbsp;kid asks&nbsp;for&nbsp;again.
+      </h1>
+      <p class="birthday-hero-sub hero-fade" data-delay-ms="320">
+        Bowling lanes, the arcade, food they'll actually eat — and for the
+        parents, a bar program that pulls its weight. The kind of party
+        your kid talks about Monday.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      KIDS — image LEFT, copy RIGHT (desktop)
+      Photo: birthday-table (DSC00781 — the real table setup shot)
+      ============================================================ */}
+  <section class="birthday-section" aria-labelledby="birthday-kids-h2">
+    <div class="birthday-section-grid">
+      <div class="birthday-section-frame">
+        <picture>
+          <source type="image/avif" srcset="/snap/birthday-table-540.avif 540w, /snap/birthday-table-900.avif 900w, /snap/birthday-table-1200.avif 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <source type="image/webp" srcset="/snap/birthday-table-540.webp 540w, /snap/birthday-table-900.webp 900w, /snap/birthday-table-1200.webp 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="birthday-section-img"
+            src="/snap/birthday-table-900.jpg"
+            srcset="/snap/birthday-table-540.jpg 540w, /snap/birthday-table-900.jpg 900w, /snap/birthday-table-1200.jpg 1200w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A Twisted Pin kids' birthday party set up — table with Extra Suite Birthday placard, balloon-print party cups, and a reserved-for sign with a bowling pin"
+            width="900"
+            height="600"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="birthday-section-copy">
+        <p class="t-eyebrow">Kids' Parties</p>
+        <h2 class="t-display birthday-section-title" id="birthday-kids-h2">
+          We don't try to do everything.
+        </h2>
+        <p class="birthday-section-aside">(we do this part really well)</p>
+
+        <p class="birthday-section-body">
+          Some places try to do five different kid activities at once —
+          trampolines, go-karts, ninja courses, mini-golf, indoor playgrounds.
+          We don't. We have bowling. We have an arcade. We have a real
+          kitchen. That's the whole pitch. And we're genuinely good at it.
+        </p>
+
+        <p class="birthday-section-body">
+          The lane is your group's. The arcade is yours. Food, cake,
+          presents — we handle the room. A real coordinator walks you
+          through it. And while the kids run the place, the parents get
+          a craft cocktail program designed by Brian Van Flandern —
+          <em>America's Top Mixologist</em>. Both sides win.
+        </p>
+
+        <ul class="birthday-section-list">
+          <li>A reserved lane</li>
+          <li>Arcade time built in</li>
+          <li>Real kitchen, not a microwave</li>
+          <li>A coordinator who runs the room</li>
+          <li>Bar program for the parents</li>
+          <li>Souvenir bags + invitations</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      PACKAGES — centered card grid, no image
+      ============================================================ */}
+  <section class="birthday-packages" aria-labelledby="birthday-packages-h2">
+    <div class="birthday-packages-inner">
+      <p class="t-eyebrow t-eyebrow--center">Packages</p>
+      <h2 class="t-display birthday-packages-title" id="birthday-packages-h2">
+        Two packages.
+      </h2>
+      <p class="birthday-section-aside birthday-packages-aside">(pick the one that fits your group)</p>
+
+      <div class="birthday-package-grid">
+        <article class="birthday-package-card">
+          <h3 class="birthday-package-name">Suite Birthday</h3>
+          <p class="birthday-package-price">
+            <span class="birthday-package-amount">$419</span>
+            <span class="birthday-package-base">up to 10 guests</span>
+          </p>
+          <p class="birthday-package-meta">$30 per additional guest · 14 guest max</p>
+          <ul class="birthday-package-list">
+            <li>1 hour of bowling</li>
+            <li>2 hours of party time total</li>
+            <li>Shoes &amp; balls</li>
+            <li>45-min reserved party space (food, cake, presents)</li>
+            <li>$10 arcade game card per child</li>
+            <li>Souvenir lunch bag</li>
+            <li>Invitations (pickup at the venue)</li>
+            <li>Food &amp; beverage choice</li>
+            <li>Thank-you cards</li>
+            <li>Personal party coordinator</li>
+          </ul>
+          <a
+            class="btn btn-solid birthday-package-cta"
+            href={ROLLER_KIDS_URL}
+            target="_blank"
+            rel="noopener"
+          >Book Suite Birthday</a>
+        </article>
+
+        <article class="birthday-package-card birthday-package-card--featured">
+          <p class="birthday-package-badge">More time, more space</p>
+          <h3 class="birthday-package-name">Extra Suite Birthday</h3>
+          <p class="birthday-package-price">
+            <span class="birthday-package-amount">$489.90</span>
+            <span class="birthday-package-base">up to 10 guests</span>
+          </p>
+          <p class="birthday-package-meta">$40 per additional guest · 14 guest max</p>
+          <ul class="birthday-package-list">
+            <li>1 hour of bowling</li>
+            <li>2.5 hours of party time total</li>
+            <li>Shoes &amp; balls</li>
+            <li>1 hour reserved party space (food, drink, presents)</li>
+            <li>$10 arcade game card per child</li>
+            <li>Souvenir lunch bag</li>
+            <li>Invitations (pickup at the venue)</li>
+            <li>Food &amp; beverage choice</li>
+            <li>Thank-you cards</li>
+            <li>Personal party coordinator</li>
+          </ul>
+          <a
+            class="btn btn-solid birthday-package-cta"
+            href={ROLLER_KIDS_URL}
+            target="_blank"
+            rel="noopener"
+          >Book Extra Suite Birthday</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      ADULT BIRTHDAYS — image RIGHT, copy LEFT (reverse)
+      ============================================================ */}
+  <section class="birthday-section birthday-section--reverse" aria-labelledby="birthday-adult-h2">
+    <div class="birthday-section-grid">
+      <div class="birthday-section-frame">
+        <picture>
+          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="birthday-section-img"
+            src="/snap/events-bg-600.jpg"
+            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="A group of adults celebrating in the VIP suite at Twisted Pin"
+            width="600"
+            height="1067"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="birthday-section-copy">
+        <p class="t-eyebrow">Adult Birthdays</p>
+        <h2 class="t-display birthday-section-title" id="birthday-adult-h2">
+          Or &mdash; yours.
+        </h2>
+        <p class="birthday-section-aside">(grown-up edition)</p>
+
+        <p class="birthday-section-body">
+          Adult birthdays at Twisted Pin live in the VIP suite. Different
+          gig from the kids' packages. Six lanes set apart from the main
+          floor, the LED video wall, in-house catering through the kitchen,
+          and the same craft cocktail program as the rest of the venue.
+        </p>
+
+        <p class="birthday-section-body">
+          Custom drink ticket setups, open tab, or per-person —
+          pick whatever billing model fits the group. The events team
+          builds it with you.
+        </p>
+
+        <a
+          class="btn btn-outline"
+          href={ZITE_EVENTS_URL}
+          target="_blank"
+          rel="noopener"
+        >Plan an event</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — split flow: kids → Roller, adult → Zite
+      ============================================================ */}
+  <section class="birthday-closing" aria-labelledby="birthday-closing-h2">
+    <div class="birthday-closing-inner">
+      <h2 class="t-display birthday-closing-title" id="birthday-closing-h2">
+        Ready when you are.
+      </h2>
+      <div class="birthday-closing-ctas">
+        <a class="btn btn-solid" href={ROLLER_KIDS_URL} target="_blank" rel="noopener">
+          Book a kids' party
+        </a>
+        <a class="btn btn-outline" href={ZITE_EVENTS_URL} target="_blank" rel="noopener">
+          Plan an adult event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Birthday Parties", path: "/birthday-parties-booking/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     /birthday-parties-booking — same pattern as /bar, /eat,
+     /vip-suite. Rule-of-four triggered; next refactor should hoist
+     shared rules to .pillar-* utilities in global.css (see
+     Context/media-needs.md tech debt).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .birthday-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .birthday-hero-copy {
+    max-width: 720px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .birthday-hero-copy {
+      text-align: center;
+    }
+    .birthday-hero-sub {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+
+  .birthday-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(28px, 8vw, 56px);
+    letter-spacing: -0.005em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-hero-headline { font-size: clamp(48px, 5.2vw, 72px); }
+  }
+
+  .birthday-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 32em;
+  }
+  @media (min-width: 1025px) {
+    .birthday-hero-sub { margin-top: 22px; font-size: 19px; max-width: 36em; }
+  }
+
+  /* ============================================================
+     section pattern (mirrors .vip-section)
+     ============================================================ */
+  .birthday-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-section { padding: 24px 64px; }
+  }
+
+  .birthday-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .birthday-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .birthday-section--reverse .birthday-section-grid > .birthday-section-frame {
+      order: 2;
+    }
+  }
+
+  .birthday-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .birthday-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .birthday-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .birthday-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .birthday-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .birthday-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .birthday-section-aside { font-size: 17px; }
+  }
+
+  .birthday-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .birthday-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .birthday-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .birthday-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .birthday-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  .birthday-section-copy .btn {
+    margin-top: 28px;
+  }
+
+  /* ============================================================
+     packages — centered card grid
+     ============================================================ */
+  .birthday-packages {
+    padding: 36px 22px;
+    background: transparent;
+  }
+  @media (min-width: 1025px) {
+    .birthday-packages { padding: 56px 64px; }
+  }
+
+  .birthday-packages-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .t-eyebrow--center {
+    text-align: center;
+  }
+
+  .birthday-packages-title {
+    color: var(--warm-white);
+    font-size: clamp(32px, 9vw, 48px);
+    line-height: 0.98;
+    margin-top: 8px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-packages-title { font-size: clamp(44px, 4.5vw, 60px); }
+  }
+
+  .birthday-packages-aside {
+    /* Centered version of the section aside */
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-packages-aside { margin-bottom: 36px; }
+  }
+
+  .birthday-package-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    text-align: left;
+  }
+  @media (min-width: 768px) {
+    .birthday-package-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+  }
+
+  .birthday-package-card {
+    position: relative;
+    padding: 28px 24px 28px;
+    border-radius: var(--radius-surface);
+    background: rgba(244, 239, 227, 0.03);
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    display: flex;
+    flex-direction: column;
+  }
+  .birthday-package-card--featured {
+    border-color: rgba(78, 236, 196, 0.55);
+    background: rgba(78, 236, 196, 0.04);
+  }
+
+  .birthday-package-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 10px;
+    background: var(--glow);
+    color: var(--indigo-deep);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .birthday-package-name {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(24px, 6vw, 30px);
+    line-height: 1;
+    letter-spacing: -0.005em;
+    color: var(--warm-white);
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .birthday-package-price {
+    margin: 16px 0 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .birthday-package-amount {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(32px, 9vw, 44px);
+    line-height: 1;
+    color: var(--glow);
+    letter-spacing: -0.01em;
+  }
+  .birthday-package-base {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--warm-mid);
+  }
+
+  .birthday-package-meta {
+    margin: 0 0 18px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--warm-dim);
+  }
+
+  .birthday-package-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    flex: 1;
+  }
+  .birthday-package-list li {
+    position: relative;
+    padding: 8px 0 8px 22px;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.4;
+    color: var(--warm-mid);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+  }
+  .birthday-package-list li:last-child { border-bottom: 0; }
+  .birthday-package-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 14px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.7;
+  }
+
+  .birthday-package-cta {
+    margin-top: 24px;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* ============================================================
+     closing CTA band
+     ============================================================ */
+  .birthday-closing {
+    padding: 48px 22px 64px;
+    background: rgba(14, 10, 31, 0.30);
+    text-align: center;
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
+  }
+  @media (min-width: 1025px) {
+    .birthday-closing { padding: 80px 64px 96px; }
+  }
+
+  .birthday-closing-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .birthday-closing-title {
+    color: var(--warm-white);
+    font-size: clamp(30px, 8vw, 44px);
+    line-height: 1;
+    letter-spacing: -0.005em;
+  }
+  @media (min-width: 1025px) {
+    .birthday-closing-title { font-size: clamp(40px, 4.4vw, 56px); }
+  }
+
+  .birthday-closing-ctas {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .birthday-closing-ctas .btn {
+    flex: 0 1 auto;
+  }
+</style>
+</content>
+</invoke>

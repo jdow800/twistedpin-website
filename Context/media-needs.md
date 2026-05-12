@@ -33,6 +33,29 @@ build but don't yet have (or have only as stubs / homepage reuses).
 | Built to Share section photo | `stage-eat-540.webp` (same shot, smaller crop) | Distinct shareable-plates shot — multiple plates on a table, hands reaching, group-eating energy |
 | Five signature dish names + 1-line descriptions | All placeholders | Real dish names + 1-line descriptions |
 
+## /birthday-parties-booking — shipped 2026-05-11
+
+| Asset | Currently | Need |
+|---|---|---|
+| Hero photo | None (typography-only title section per pattern) | Optional |
+| Kids section photo | `birthday-table-{540,900,1200}.{avif,webp,jpg}` — real photo from More Images (DSC00781): party table set up with Extra Suite Birthday placard, balloon party cups, "Reserved for [name]" sign | ✅ Real photo — no action needed |
+| Adult section photo | `events-bg-{540,600}.{webp,jpg}` (same stub as homepage Events + /vip-suite) | Distinct adult-birthday-in-VIP-suite shot — clean, well-lit, group enjoying themselves. Could also reuse a future VIP-suite hero shot |
+| Package prices | $419 Suite Birthday / $489.90 Extra Suite Birthday (mirrored from live twistedpin.com — confirmed accurate 2026-05-11) | Confirm with ops if prices change |
+
+## New photo catalog (More Images folder, 2026-05-11)
+
+Five photos added by the user to `Context/pictures/More Images/`. All encoded to `/public/snap/{name}-{540,900,1200}.{avif,webp,jpg}` at the same time. Catalog of where each fits:
+
+| File | Encoded as | Where it fits |
+|---|---|---|
+| DSC00781 2.JPG | `birthday-table-*` | **Used on `/birthday-parties-booking` kids section.** The real-deal birthday photo — placard, cups, reserved sign. |
+| DSC00795.JPG | `kid-bowling-*` | **Not yet placed.** Kid (jersey #23) bowling in the VIP suite with the LED video wall visible. Best fit: a *future* `/vip-suite` "what you can do" section showing group activity, OR a `/free-kids-bowling` editorial section. Could also work on `/birthday-parties-booking` if the page grows a second photo |
+| F2_P32.jpg | `prize-wall-*` | **Not yet placed.** Redemption counter / prize wall with neon lighting. Best fit: `/game` page (V3 tester specifically asked "what are the Skee-Ball prizes?"). Could also work as a small thumbnail callout on `/birthday-parties-booking` (kids spend game cards here) |
+| DSC04640.jpg | `teens-arcade-*` | **Not yet placed.** Three teens in the arcade, basketball, color-block wall. Best fit: `/game` or homepage Game snap. Reads as older-kid / teen-party (vs the kids-party-table photo which reads younger-kid) |
+| DSC_0569.jpg | `arcade-interior-*` | **Not yet placed.** Wide arcade shot — Fast & Furious sim, ticket machine, neon dice game. Best fit: `/game` hero or section photo |
+
+Three of these (kid-bowling, teens-arcade, arcade-interior) are queued for next pillar passes on `/game` and `/free-kids-bowling`. Adding them as the appropriate sections get visual refreshes.
+
 ## /careers — shipped (visual upgrade pending)
 
 | Asset | Currently | Need |
