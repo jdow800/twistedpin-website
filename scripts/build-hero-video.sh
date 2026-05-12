@@ -3,7 +3,11 @@
 # Twisted Pin — hero video pipeline
 #
 # Mobile source:   Context/videos/Bank Vs Stories.mp4   (1080×1920, 60fps)
-# Desktop source:  Context/videos/After Social Highlight - Plainfield Lanes x Twisted Pin - Jon Dow - 15610 S Joliet RD Plainfield, IL_v2.mp4   (1920×1080, 30fps)
+# Desktop source:  Context/videos/Twisted Pin Website V4.mov   (3840×2160 4K, 24fps, 22s)
+#                  Swapped 2026-05-12 from "After Social Highlight…_v2.mp4"
+#                  per user direction. Output filenames unchanged so the
+#                  homepage hero <source> elements pick up the new asset
+#                  with no markup churn.
 #
 # Outputs: public/hero/
 #   hero-poster.{webp,jpg}                        — mobile poster (frame 0 of mobile source)
@@ -30,7 +34,7 @@ fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC_MOBILE="$ROOT/Context/videos/Bank Vs Stories.mp4"
-SRC_DESKTOP="$ROOT/Context/videos/After Social Highlight - Plainfield Lanes x Twisted Pin - Jon Dow - 15610 S Joliet RD Plainfield, IL_v2.mp4"
+SRC_DESKTOP="$ROOT/Context/videos/Twisted Pin Website V4.mov"
 OUT_DIR="$ROOT/public/hero"
 mkdir -p "$OUT_DIR"
 
