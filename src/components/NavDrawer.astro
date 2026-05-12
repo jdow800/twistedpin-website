@@ -50,6 +50,12 @@ const drawerSections: DrawerSection[] = [
   {
     label: "Experience",
     items: [
+      // Home at the top — added 2026-05-12 in response to V4 + V8
+      // tester friction ("can't figure out how to get back home").
+      // Clickable logo affordance isn't reading on mobile; the drawer
+      // is where users go when they're stuck. Home as the first
+      // Experience item gives them an obvious way back.
+      { href: "/",           label: "Home",      icon: "home"        },
       { href: "/bar/",       label: "Bar",       icon: "martini"     },
       { href: "/eat/",       label: "Eat",       icon: "utensils"    },
       { href: "/menu/",      label: "Menu",      icon: "book-open"   },

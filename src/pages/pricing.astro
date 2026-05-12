@@ -37,7 +37,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { MAPS_VENUE_URL } from "../lib/schema";
-import { DAYS, hoursLabel, todayKey, type DayKey } from "../data/hours";
+import { DAYS, HOURS, hoursLabel, todayKey, type DayKey } from "../data/hours";
 import { PRICING, SHOE_RENTAL_LABEL, type PriceWindow } from "../data/pricing";
 import { getLiveHours } from "../lib/google-hours";
 
@@ -48,13 +48,95 @@ const now = new Date();
 // are set. Returns null otherwise; callers fall back to static.
 const liveHours = await getLiveHours();
 
-function hoursFor(day: DayKey): { label: string; live: boolean; closed: boolean } {
+function hoursFor(day: DayKey): { label: string; live: boolean; closed: boolean; openLabel: string; closeLabel: string } {
   // When live hours are flowing, honor the closed signal — that's the whole
   // point of pulling currentOpeningHours (catches holidays + special closures).
   if (liveHours) {
-    return { label: liveHours[day].label, live: true, closed: liveHours[day].closed };
+    return {
+      label: liveHours[day].label,
+      live: true,
+      closed: liveHours[day].closed,
+      openLabel: liveHours[day].openLabel,
+      closeLabel: liveHours[day].closeLabel,
+    };
   }
-  return { label: hoursLabel(day), live: false, closed: false };
+  return {
+    label: hoursLabel(day),
+    live: false,
+    closed: false,
+    openLabel: HOURS[day].open,
+    closeLabel: HOURS[day].close,
+  };
+}
+
+/**
+ * Format a time label consistently with the static window labels in
+ * pricing.ts (uppercase + space, e.g. "3pm" → "3 PM", "11:30am" → "11:30 AM").
+ * Google API returns lowercase no-space; static labels are uppercase with space.
+ */
+function timeForLabel(time: string): string {
+  const m = time.trim().match(/^(\d{1,2}(?::\d{2})?)(am|pm)$/i);
+  if (!m) return time.toUpperCase();
+  return `${m[1]} ${m[2].toUpperCase()}`;
+}
+
+/**
+ * Compose the time-range label for a pricing window, applying dynamic
+ * open/close substitution where appropriate.
+ *
+ * Rule (2026-05-12):
+ *   - First window's START time becomes the day's live open time
+ *   - Last window's END time becomes the day's live close time
+ *   - Middle boundaries stay static (they're rate-tier transitions, not hours)
+ *
+ * That means Mon-Thu single-window days now show the day's full open-close
+ * range in the TIME column (was previously "All open hours" hidden). Fri/Sat/Sun
+ * multi-window days get their first window's start and last window's end
+ * synced to whatever Google says — when ops moves Friday's open from 2pm
+ * to 11am, the pricing window adjusts on the next build.
+ */
+function windowLabelFor(
+  windowIndex: number,
+  totalWindows: number,
+  originalLabel: string,
+  hrs: { openLabel: string; closeLabel: string },
+): string {
+  const openFmt = timeForLabel(hrs.openLabel);
+  const closeFmt = timeForLabel(hrs.closeLabel);
+
+  // Single-window day: show the day's full open-close range
+  if (totalWindows === 1) {
+    return `${openFmt} – ${closeFmt}`;
+  }
+
+  // Multi-window day: split the static label on the en-dash separator
+  // ("2 PM – 5 PM" → ["2 PM", "5 PM"]). Replace start of first window
+  // with live open, end of last window with live close, keep middle
+  // boundaries as-is.
+  const parts = originalLabel.split(" – ");
+  if (parts.length !== 2) return originalLabel;
+  const [staticStart, staticEnd] = parts;
+
+  if (windowIndex === 0) {
+    return `${openFmt} – ${staticEnd}`;
+  }
+  if (windowIndex === totalWindows - 1) {
+    return `${staticStart} – ${closeFmt}`;
+  }
+  return originalLabel;
+}
+
+/**
+ * Eyebrow label for a special — derives from its days array.
+ * Wed-only → "Wed Special". Multi-day specials would render as
+ * e.g. "Tue–Thu Special" but we don't have any yet.
+ */
+function specialEyebrow(days: readonly DayKey[]): string {
+  if (days.length === 1) {
+    const d = DAYS.find((x) => x.key === days[0]);
+    return `${d?.short ?? days[0]} Special`;
+  }
+  return "Special";
 }
 
 // Active specials (drafts + out-of-window filtered out).
@@ -146,9 +228,18 @@ function specialsForDay(day: DayKey) {
             <div class="today-specials">
               {dailySpecials.map((s) => (
                 <div class="today-special">
+                  {/* "Wed Special" eyebrow + (hours) next to name
+                      (2026-05-12) — surfaces this as a special offer
+                      vs a regular price, AND answers the planning-mode
+                      question "what hours is this offer available?"
+                      Hours dynamic from Google when configured. */}
+                  <p class="today-special-eyebrow">{specialEyebrow(s.data.days)}</p>
                   <p class="today-special-head">
                     <span class="today-special-mark" aria-hidden="true">✦</span>
                     <span class="today-special-name">{s.data.name}</span>
+                    {!hrs.closed && (
+                      <span class="today-special-hours">({hrs.label})</span>
+                    )}
                   </p>
                   <p class="today-special-tagline">{s.data.tagline}</p>
                   {s.body && s.body.trim() && (
@@ -159,17 +250,14 @@ function specialsForDay(day: DayKey) {
             </div>
           )}
 
-          {/* TIME column renders only when there's more than one rate
-              window (Fri/Sat/Sun). On single-rate days (Mon-Thu) the
-              table collapses to two columns — Trad / Suite — since
-              there's no time differentiation to display, and "All
-              open hours" was wrapping awkwardly at narrow viewports. */}
-          <table class="today-table" data-cols={schedule.windows.length > 1 ? "3" : "2"}>
+          {/* Always 3-column now (2026-05-12) — single-rate days
+              (Mon-Thu) show the day's full hours range in the TIME
+              column instead of "All open hours" hidden. Dynamic
+              from Google when configured. */}
+          <table class="today-table" data-cols="3">
             <thead>
               <tr>
-                {schedule.windows.length > 1 && (
-                  <th class="today-th-time">Time</th>
-                )}
+                <th class="today-th-time">Time</th>
                 <th class="today-th-tier">
                   <span class="today-th-name">Traditional</span>
                   <span class="today-th-cap">{schedule.traditionalCapacity}</span>
@@ -181,11 +269,11 @@ function specialsForDay(day: DayKey) {
               </tr>
             </thead>
             <tbody>
-              {schedule.windows.map((w: PriceWindow) => (
+              {schedule.windows.map((w: PriceWindow, i: number) => (
                 <tr>
-                  {schedule.windows.length > 1 && (
-                    <td class="today-td-time">{w.label}</td>
-                  )}
+                  <td class="today-td-time">
+                    {windowLabelFor(i, schedule.windows.length, w.label, hrs)}
+                  </td>
                   <td class="today-td-rate">
                     <span class="today-rate-num">${w.traditional}</span>
                     <span class="today-rate-unit">/hr</span>
@@ -462,13 +550,27 @@ function specialsForDay(day: DayKey) {
     border-radius: 12px;
     padding: 14px 16px;
   }
+  /* "Wed Special" eyebrow above the name — quieter than the name,
+     matches the t-eyebrow recipe but tinted Glow at lower opacity
+     to live within the Glow-bordered card without competing. */
+  .today-special-eyebrow {
+    margin: 0 0 6px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(159, 245, 202, 0.7);
+    line-height: 1;
+  }
   .today-special-head {
     margin: 0 0 4px;
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 8px;
+    flex-wrap: wrap;
   }
-  .today-special-mark { color: var(--glow); font-size: 14px; }
+  .today-special-mark { color: var(--glow); font-size: 14px; line-height: 1; }
   .today-special-name {
     font-family: var(--font-ui);
     font-weight: 800;
@@ -476,6 +578,17 @@ function specialsForDay(day: DayKey) {
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--glow);
+  }
+  /* Hours displayed inline with the special name — answers
+     "what hours is this special available?" without forcing a
+     second copy line. Lower-emphasis than the name. */
+  .today-special-hours {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(255, 252, 245, 0.7);
   }
   .today-special-tagline {
     margin: 0 0 6px;
