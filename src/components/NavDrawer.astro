@@ -140,53 +140,95 @@ for (const seasonal of activeSeasonalItems()) {
     </button>
   </div>
 
-  <nav class="nav-drawer-list" aria-label="Site sections">
-    {drawerSections.map((section, i) => (
-      <details class="nav-section" name="nav-section" open={i === 0}>
-        <summary class="nav-section-header">
-          <span class="nav-section-label">{section.label}</span>
-          <svg
-            class="nav-section-chevron"
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-            set:html={ICON_PATHS["chevron-down"]}
-          />
-        </summary>
-        <ul>
-          {section.items.map(item => (
-            <li class:list={[item.seasonal && "is-seasonal"]}>
-              <a
-                href={item.href}
-                {...(item.external ? { target: "_blank", rel: "noopener" } : {})}
-              >
-                <svg
-                  class="icon"
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                  set:html={ICON_PATHS[item.icon]}
-                />
-                <span class="label">{item.label}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </details>
-    ))}
-  </nav>
+  <div class="nav-drawer-body" data-drawer-body>
+    {/* Quick Actions strip — high-traffic shortcuts that surface when the
+        drawer is in its default state (all sections collapsed). The CSS
+        rule `.nav-drawer-body:has(details[open]) .nav-quick-actions`
+        collapses this strip the moment a user expands any section, so
+        the section content sits up immediately under their tap.
+
+        Chips picked 2026-05-11: Pricing (V5 tester couldn't find it),
+        Coupon (direct conversion intent), Waitlist (Saturday-night
+        decision tool), Menu (replaces what would otherwise be a
+        time-bound seasonal slot — high permanent value).
+
+        Reserve / Plan an Event are NOT here — they stay primary at the
+        drawer foot. This strip is for *secondary* high-impact intents. */}
+    <ul class="nav-quick-actions" aria-label="Quick actions">
+      <li>
+        <a href="/pricing/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["tag"]} />
+          <span class="label">Pricing</span>
+        </a>
+      </li>
+      <li>
+        <a href="/coupon/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["ticket"]} />
+          <span class="label">Coupon</span>
+        </a>
+      </li>
+      <li>
+        <a href="/waitlist/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["clock"]} />
+          <span class="label">Waitlist</span>
+        </a>
+      </li>
+      <li>
+        <a href="/menu/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["book-open"]} />
+          <span class="label">Menu</span>
+        </a>
+      </li>
+    </ul>
+
+    <nav class="nav-drawer-list" aria-label="Site sections">
+      {drawerSections.map(section => (
+        <details class="nav-section" name="nav-section">
+          <summary class="nav-section-header">
+            <span class="nav-section-label">{section.label}</span>
+            <svg
+              class="nav-section-chevron"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              set:html={ICON_PATHS["chevron-down"]}
+            />
+          </summary>
+          <ul>
+            {section.items.map(item => (
+              <li class:list={[item.seasonal && "is-seasonal"]}>
+                <a
+                  href={item.href}
+                  {...(item.external ? { target: "_blank", rel: "noopener" } : {})}
+                >
+                  <svg
+                    class="icon"
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    set:html={ICON_PATHS[item.icon]}
+                  />
+                  <span class="label">{item.label}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </nav>
+  </div>
 
   <div class="nav-drawer-foot">
     {/* In-drawer CTAs (2026-05-04 round 5). ABC — Always Be Converting.
@@ -292,20 +334,107 @@ for (const seasonal of activeSeasonalItems()) {
     background: rgba(244, 239, 227, 0.06);
   }
 
-  /* ---------- nav body (scrollable) ---------- */
-  .nav-drawer-list {
+  /* ---------- nav body (scrollable wrapper) ----------
+     Wraps the Quick Actions strip + the section list so `:has()` can
+     evaluate the section state from a common ancestor. */
+  .nav-drawer-body {
     flex: 1;
     overflow-y: auto;
-    /* Tiny -8px right margin so the scrollbar doesn't crowd item icons. */
     margin-right: -8px;
     padding-right: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .nav-drawer-list {
+    /* Scroll moved up to .nav-drawer-body so the Quick Actions strip
+       scrolls in tandem with the section list. */
   }
 
-  /* ---------- Accordion sections (2026-05-04 round 4) ----------
-     Drawer feels like a lot at 17 items, so collapsed-by-default sections
-     reduce the initial visual load. User taps section header to expand.
-     Default state: Experience open (primary nav visible immediately),
-     Visit + Info closed.
+  /* ---------- Quick Actions strip (2026-05-11) ----------
+     Surfaces high-traffic shortcuts in the empty real estate when all
+     sections are collapsed. Picked chips: Pricing, Coupon, Waitlist,
+     Menu. Reserve / Plan stay primary at the drawer foot.
+
+     The strip collapses (max-height + opacity + margin animate to 0)
+     the moment any section opens, so the user's tap takes them
+     straight to that section's items with no chip-grid pushing it
+     down. Re-expands when they close back to default state.
+
+     CSS-only via :has() — supported in Safari 15.4+ / Chrome 105+ /
+     Firefox 121+. On older browsers (negligible mobile share in 2026),
+     the strip stays visible even when a section is open. Graceful. */
+  .nav-quick-actions {
+    list-style: none;
+    margin: 0 0 18px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    /* Animated collapse target. max-height needs to be generous enough
+       to fit the 2x2 grid at the largest expected chip height. */
+    max-height: 240px;
+    opacity: 1;
+    overflow: hidden;
+    transition:
+      max-height 250ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 200ms ease-out,
+      margin-bottom 250ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .nav-drawer-body:has(details[open]) .nav-quick-actions {
+    max-height: 0;
+    opacity: 0;
+    margin-bottom: 0;
+    pointer-events: none;
+  }
+
+  .nav-quick-actions a {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 14px 12px;
+    min-height: 84px;
+    border-radius: var(--radius-button);
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(78, 236, 196, 0.18);
+    color: var(--warm-white);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12.5px;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    transition:
+      background-color 150ms ease-out,
+      border-color 150ms ease-out,
+      color 150ms ease-out;
+  }
+  .nav-quick-actions a:hover,
+  .nav-quick-actions a:focus-visible {
+    background: rgba(78, 236, 196, 0.08);
+    border-color: rgba(78, 236, 196, 0.55);
+    color: var(--warm-white);
+  }
+  .nav-quick-actions .icon {
+    width: 20px;
+    height: 20px;
+    color: var(--glow);
+    opacity: 0.95;
+    flex: 0 0 auto;
+  }
+  .nav-quick-actions .label {
+    line-height: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-quick-actions { transition: none; }
+  }
+
+  /* ---------- Accordion sections ----------
+     All three sections start collapsed (changed from Experience-open
+     2026-05-11 to make room for the Quick Actions strip above). User
+     taps a section header to expand. `name="nav-section"` makes the
+     three sections an exclusive group — opening one auto-closes others.
 
      Uses native <details>/<summary> — accessible by default (keyboard,
      screen reader), no JS needed. Animation is browser-default (instant)
