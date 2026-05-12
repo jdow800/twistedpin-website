@@ -57,6 +57,14 @@ const SOURCES = [
   // small (360w native); 540w + 1080w outputs upscale. Acceptable for
   // /careers editorial frame at max-width 360–420px.
   { src: "Hiring Vid.mp4", name: "hiring", trimStart: 0, trimDur: 7.5 },
+
+  // 2160x3840 60fps 6.9s — 4K phone-shot vertical, food montage.
+  // Replaces the eat-kitchen still on the homepage Eat snap (2026-05-12).
+  { src: "Best Things To Order.mov", name: "best-things", trimStart: 0, trimDur: 6.5 },
+
+  // 1080x1920 60fps 7.5s — Summer Pin Pass promo, vertical.
+  // Replaces the vip-energy still on the homepage Bowl snap (2026-05-12).
+  { src: "Summer Pass.mp4", name: "summer-pass", trimStart: 0, trimDur: 7 },
 ];
 
 const WIDTHS = [
