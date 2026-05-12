@@ -167,8 +167,19 @@ Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the 
 - Service-area pages (unless the angle is specifically the cocktail bar)
 - Generic taglines
 
-### Adults-first, group-friendly, family-welcome (in that order)
-We're built for the adult who's tired of bad food at entertainment venues. Families and corporate groups come because the adults are happy.
+### Adults-first, family-welcome — segmented by hour, not by audience
+
+The venue self-segments by hour. Saturday at 6pm is family-dinner-and-bowling. Saturday at 11pm is friends-and-cocktails. **Same room, different night.** The adult is always the chooser — but the choice is easier when the parent knows the kid will ask to come back.
+
+**The frame to write toward:**
+- **Adult-quality is the *lever*** — the reason to choose us over Chuck E. Cheese, Bowlero, D&B. Lead copy with it.
+- **Family-welcome is the *permission slip*** — the reason it's OK to bring the kids. Don't bury it; don't lean on it either.
+- We don't have to choose. **Don't write "family-friendly" as a lead noun. Don't write copy that implies kids aren't welcome.** Both fail differently.
+- **The 1am close is a positioning asset**, not just an ops fact. It signals adult time exists, which is what gives family time permission to exist without contradiction.
+
+The voice this supports: warm-but-not-grudging when kids come up, plainspoken about hours, never preachy. *"Fine, bring the kids"* is the locked register — concessive on the surface, genuinely welcoming underneath. The FAQ entry on *"Can I bring my kids?"* is the canonical long-form answer: bedtime as the dividing line, not age.
+
+(The previous *"in that order"* formulation — adults-first, group-friendly, family-welcome — read as a grudging hierarchy. The reality is **co-equal modes segmented by time**, with the adult as the consistent decision-maker across both.)
 
 ---
 
