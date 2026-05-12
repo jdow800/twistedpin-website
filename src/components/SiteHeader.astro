@@ -106,7 +106,11 @@ const isActive = (href: string) => {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 10px 22px;
+    /* Vertical padding tightened 10→2 (2026-05-11) when logo bumped +40%.
+       The logo itself now fills the band that used to have ~10px of empty
+       blur on each side; band total height stays at ~original mobile
+       height (~61px) instead of growing with the logo. */
+    padding: 2px 22px;
     /* Light scrim so the header reads on video, on Midnight Indigo, and on
        Indigo Deep without ever feeling like a heavy clubhouse band. */
     background: rgba(14, 10, 31, 0.40);
@@ -115,7 +119,7 @@ const isActive = (href: string) => {
     border-bottom: 1px solid rgba(244, 239, 227, 0.08);
   }
   @media (min-width: 1025px) {
-    .site-header { padding: 10px 40px; }
+    .site-header { padding: 2px 40px; }
   }
 
   .header-left,
