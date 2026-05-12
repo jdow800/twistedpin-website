@@ -98,15 +98,16 @@ const entertainmentSchema = {
     <div class="game-section-frame-and-copy">
       <div class="game-section-frame">
         <picture>
-          <source type="image/webp" srcset="/snap/game-arcade-540.webp 540w, /snap/game-arcade-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <source type="image/avif" srcset="/snap/arcade-interior-540.avif 540w, /snap/arcade-interior-900.avif 900w, /snap/arcade-interior-1200.avif 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <source type="image/webp" srcset="/snap/arcade-interior-540.webp 540w, /snap/arcade-interior-900.webp 900w, /snap/arcade-interior-1200.webp 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
           <img
             class="game-section-img"
-            src="/snap/game-arcade-540.jpg"
-            srcset="/snap/game-arcade-540.jpg 540w, /snap/game-arcade-900.jpg 900w"
+            src="/snap/arcade-interior-900.jpg"
+            srcset="/snap/arcade-interior-540.jpg 540w, /snap/arcade-interior-900.jpg 900w, /snap/arcade-interior-1200.jpg 1200w"
             sizes="(min-width: 1025px) 480px, 90vw"
-            alt="The neon-lit arcade floor at Twisted Pin in Plainfield, IL"
-            width="540"
-            height="960"
+            alt="The arcade floor at Twisted Pin in Plainfield, IL — Fast & Furious driving sim, neon dice game, ticket redemption machines"
+            width="900"
+            height="668"
             loading="lazy"
             decoding="async"
           />
@@ -143,9 +144,59 @@ const entertainmentSchema = {
   </section>
 
   {/* ============================================================
-      YES, ADULTS TOO — image RIGHT, copy LEFT (alternation)
+      THE PRIZES — image RIGHT, copy LEFT (alternation)
+      Added 2026-05-11 in response to V3 tester feedback: "Skee-Ball,
+      I'd like to see what the prizes are. Because it looks like this
+      place is more geared towards adults..." Surfacing the redemption
+      wall directly answers the planning-mode-parent question + adds
+      visual variety to a previously 2-section page.
       ============================================================ */}
-  <section class="game-section game-section--reverse" aria-labelledby="game-adults-h2">
+  <section class="game-section game-section--reverse" aria-labelledby="game-prizes-h2">
+    <div class="game-section-frame-and-copy">
+      <div class="game-section-frame">
+        <picture>
+          <source type="image/avif" srcset="/snap/prize-wall-540.avif 540w, /snap/prize-wall-900.avif 900w, /snap/prize-wall-1200.avif 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <source type="image/webp" srcset="/snap/prize-wall-540.webp 540w, /snap/prize-wall-900.webp 900w, /snap/prize-wall-1200.webp 1200w" sizes="(min-width: 1025px) 480px, 90vw" />
+          <img
+            class="game-section-img"
+            src="/snap/prize-wall-900.jpg"
+            srcset="/snap/prize-wall-540.jpg 540w, /snap/prize-wall-900.jpg 900w, /snap/prize-wall-1200.jpg 1200w"
+            sizes="(min-width: 1025px) 480px, 90vw"
+            alt="The redemption counter and prize wall at Twisted Pin — glass display case stocked with toys, electronics, plush, and game cards"
+            width="900"
+            height="600"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+      <div class="game-section-copy">
+        <p class="t-eyebrow">The Prizes</p>
+        <h2 class="t-display game-section-title" id="game-prizes-h2">
+          Tickets in. Stuff out.
+        </h2>
+        <p class="game-section-aside">(yes, the small kids get the spider rings)</p>
+
+        <p class="game-section-body">
+          Glass case at the redemption counter, restocked regularly. The
+          smaller end: stickers, plastic spiders, candy &mdash; what
+          first-grade pockets are made for. Higher up: game controllers,
+          Bluetooth speakers, plush, lights. Save the tickets across
+          visits; we don&rsquo;t reset the card.
+        </p>
+
+        <p class="game-section-body">
+          Game-card specials at the counter when we have them. Loaded
+          cards never expire.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      YES, ADULTS TOO — image LEFT, copy RIGHT (back to original alternation)
+      ============================================================ */}
+  <section class="game-section" aria-labelledby="game-adults-h2">
     <div class="game-section-frame-and-copy">
       <div class="game-section-frame">
         <picture>

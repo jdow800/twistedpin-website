@@ -100,6 +100,27 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
       <h2 class="t-display fkb-section-title" id="fkb-how-h2">
         How it works.
       </h2>
+
+      {/* Real photo of a kid bowling — breaks up the text wall the
+          page had previously (iframe + 3 editorial blocks with no
+          imagery). Asset: DSC00795, encoded 2026-05-11. */}
+      <div class="fkb-media-frame">
+        <picture>
+          <source type="image/avif" srcset="/snap/kid-bowling-540.avif 540w, /snap/kid-bowling-900.avif 900w, /snap/kid-bowling-1200.avif 1200w" sizes="(min-width: 1025px) 720px, 100vw" />
+          <source type="image/webp" srcset="/snap/kid-bowling-540.webp 540w, /snap/kid-bowling-900.webp 900w, /snap/kid-bowling-1200.webp 1200w" sizes="(min-width: 1025px) 720px, 100vw" />
+          <img
+            src="/snap/kid-bowling-900.jpg"
+            srcset="/snap/kid-bowling-540.jpg 540w, /snap/kid-bowling-900.jpg 900w, /snap/kid-bowling-1200.jpg 1200w"
+            sizes="(min-width: 1025px) 720px, 100vw"
+            alt="A kid in a #23 jersey releases the ball on a Twisted Pin lane, the LED video wall behind showing cocktail tasting notes"
+            width="900"
+            height="1350"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
+      </div>
+
       <p class="fkb-section-body">
         Sign up above, then bring the kids in any weekday between
         11am and 4pm. They get two free games on the traditional lanes.
@@ -217,6 +238,30 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
 
   .fkb-section .t2-section-inner {
     max-width: 560px;
+  }
+
+  /* ---------- media frame (kid-bowling photo in How It Works) ---------- */
+  .fkb-media-frame {
+    position: relative;
+    margin: 22px auto 0;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+    max-width: 560px;
+  }
+  @media (min-width: 1025px) {
+    .fkb-media-frame {
+      aspect-ratio: 4 / 5;
+      max-width: 480px;
+      margin-top: 28px;
+    }
+  }
+  .fkb-media-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    display: block;
   }
 
   /* ---------- iframe frame ---------- */
