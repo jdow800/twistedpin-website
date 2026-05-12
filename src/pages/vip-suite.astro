@@ -91,20 +91,26 @@ const vipSuiteSchema = {
   <section class="vip-section" aria-labelledby="vip-room-h2">
     <div class="vip-section-grid">
       <div class="vip-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="vip-section-img"
-            src="/snap/events-bg-600.jpg"
-            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="The 6-lane VIP suite at Twisted Pin"
-            width="600"
-            height="1067"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* "VIP Lanes" video (2026-05-12) — replaces the events-bg
+            stub. Source is landscape 4K (3840×2160); center-cropped
+            to portrait in the encode pipeline (full source height,
+            center horizontal slice) so the lanes + LED screens read
+            as the focal subject. Lazy-loaded via data-section-video. */}
+        <video
+          class="vip-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/vip-lanes-poster.webp"
+          aria-label="The 6-lane VIP suite at Twisted Pin — neon-lit lanes with LED video walls overhead"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="vip-section-copy">
         <p class="t-eyebrow">The Room</p>
@@ -323,11 +329,13 @@ const vipSuiteSchema = {
     .vip-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
   }
 
-  .vip-section-img {
+  .vip-section-img,
+  .vip-section-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    display: block;
   }
 
   .vip-section-copy {

@@ -65,6 +65,17 @@ const SOURCES = [
   // 1080x1920 60fps 7.5s — Summer Pin Pass promo, vertical.
   // Replaces the vip-energy still on the homepage Bowl snap (2026-05-12).
   { src: "Summer Pass.mp4", name: "summer-pass", trimStart: 0, trimDur: 7 },
+
+  // 1080x1920 30fps 8.7s — group-event/venue ambience clip, vertical.
+  // Used on /events "Six lanes set apart" section (2026-05-12).
+  { src: "Where you belong (no sound).mov", name: "where-you-belong", trimStart: 0, trimDur: 7 },
+
+  // 3840x2160 24fps 7.4s — landscape lane shot with VIP signage + LED
+  // walls. Center-cropped to portrait by the standard scale+crop in
+  // this pipeline (full source height, centered horizontal slice — the
+  // brand-relevant subjects happen to live in the centered third of
+  // the wide frame). Used on /vip-suite "The Room" section (2026-05-12).
+  { src: "Vip Lanes.mov", name: "vip-lanes", trimStart: 0, trimDur: 7 },
 ];
 
 const WIDTHS = [

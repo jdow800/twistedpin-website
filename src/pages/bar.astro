@@ -140,18 +140,24 @@ const brianSchema = {
   <section class="bar-section" aria-labelledby="bar-tapwall-h2">
     <div class="bar-section-grid">
       <div class="bar-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/beerwall-poster.webp" />
-          <img
-            class="bar-section-img"
-            src="/snap/beerwall-poster.jpg"
-            alt="The 28-tap self-serve beer & wine wall at Twisted Pin"
-            width="900"
-            height="1600"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Placeholder video (2026-05-12) — uses the homepage mobile-hero
+            assets until distinct tap-wall video lands. Lazy-loaded
+            via data-section-video. */}
+        <video
+          class="bar-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/hero/hero-poster.webp"
+          aria-label="A pour at the bar, the tap wall, and a cocktail being built at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="bar-section-copy">
         <p class="t-eyebrow">The Tap Wall</p>
@@ -192,20 +198,24 @@ const brianSchema = {
   <section class="bar-section bar-section--reverse" aria-labelledby="bar-cocktails-h2">
     <div class="bar-section-grid">
       <div class="bar-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="bar-section-img"
-            src="/snap/bar-cocktails-540.jpg"
-            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Placeholder video (2026-05-12) — uses the homepage mobile-hero
+            assets until distinct cocktail video lands. Lazy-loaded
+            via data-section-video. */}
+        <video
+          class="bar-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/hero/hero-poster.webp"
+          aria-label="A pour at the bar, the tap wall, and a cocktail being built at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="bar-section-copy">
         <p class="t-eyebrow">Craft Cocktails</p>
@@ -397,11 +407,13 @@ const brianSchema = {
     .bar-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
   }
 
-  .bar-section-img {
+  .bar-section-img,
+  .bar-section-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    display: block;
   }
 
   .bar-section-copy {

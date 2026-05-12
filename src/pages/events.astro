@@ -161,20 +161,24 @@ const eventVenueSchema = {
   <section class="events-section events-section--reverse" aria-labelledby="events-why-h2">
     <div class="events-section-grid">
       <div class="events-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/bar-cocktails-540.webp 540w, /snap/bar-cocktails-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="events-section-img"
-            src="/snap/bar-cocktails-540.jpg"
-            srcset="/snap/bar-cocktails-540.jpg 540w, /snap/bar-cocktails-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="A copper cocktail shaker mid-pour at Twisted Pin's bar"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* "Where you belong (no sound)" video (2026-05-12) — replaces
+            the bar-cocktails stub. Native 9:16 portrait; no crop.
+            Lazy-loaded via data-section-video. */}
+        <video
+          class="events-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/where-you-belong-poster.webp"
+          aria-label="The VIP suite at Twisted Pin set up for a group event"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/where-you-belong-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/where-you-belong-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/where-you-belong-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/where-you-belong-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="events-section-copy">
         <p class="t-eyebrow">Why It Works</p>
@@ -347,11 +351,13 @@ const eventVenueSchema = {
     .events-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
   }
 
-  .events-section-img {
+  .events-section-img,
+  .events-section-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    display: block;
   }
 
   .events-section-copy {

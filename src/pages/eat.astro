@@ -91,20 +91,24 @@ const restaurantSchema = {
   <section class="eat-section" aria-labelledby="eat-kitchen-h2">
     <div class="eat-section-grid">
       <div class="eat-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/eat-kitchen-540.webp 540w, /snap/eat-kitchen-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="eat-section-img"
-            src="/snap/eat-kitchen-540.jpg"
-            srcset="/snap/eat-kitchen-540.jpg 540w, /snap/eat-kitchen-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="Chafers of chips, salsa, guacamole, and wings on a buffet at Twisted Pin"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Placeholder video (2026-05-12) — uses the homepage mobile-hero
+            assets (pour → tap wall → cocktail splice) until distinct
+            kitchen video lands. Lazy-loaded via data-section-video. */}
+        <video
+          class="eat-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/hero/hero-poster.webp"
+          aria-label="A pour at the bar, the tap wall, and a cocktail being built at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="eat-section-copy">
         <p class="t-eyebrow">The Kitchen</p>
@@ -317,11 +321,13 @@ const restaurantSchema = {
     .eat-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
   }
 
-  .eat-section-img {
+  .eat-section-img,
+  .eat-section-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    display: block;
   }
 
   .eat-section-copy {
