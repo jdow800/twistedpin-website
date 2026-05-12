@@ -368,14 +368,17 @@ const websiteSchema = {
       </div>
     </section>
 
-    {/* DESKTOP — Eat (DRAFT body copy) */}
+    {/* DESKTOP — Eat (DRAFT body copy)
+        Video swapped 2026-05-12 — was stage-eat still, now uses the
+        same "Best Things To Order" video as the mobile Eat snap.
+        DRY: one source, two surfaces. */}
     <section class="snap-section desktop-only desktop-eat" aria-labelledby="desktop-eat-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <picture>
-            <source type="image/webp" srcset="/snap/stage-eat-540.webp 540w, /snap/stage-eat-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
-            <img class="cluster-img" src="/snap/stage-eat-600.jpg" srcset="/snap/stage-eat-540.jpg 540w, /snap/stage-eat-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="A spread of food at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
-          </picture>
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/best-things-poster.webp" aria-label="A montage of food and shareable plates at Twisted Pin">
+            <source data-src="/snap/best-things-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/best-things-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
         </div>
         <div class="cluster-copy">
           <p class="section-eyebrow" data-reveal>Kitchen</p>
@@ -386,14 +389,16 @@ const websiteSchema = {
       </div>
     </section>
 
-    {/* DESKTOP — Bowl (DRAFT body copy) */}
+    {/* DESKTOP — Bowl (DRAFT body copy)
+        Video swapped 2026-05-12 — was stage-bowl still, now uses the
+        same "Summer Pass" video as the mobile Bowl snap. */}
     <section class="snap-section desktop-only desktop-bowl" aria-labelledby="desktop-bowl-h2">
       <div class="cluster-grid">
         <div class="cluster-frame">
-          <picture>
-            <source type="image/webp" srcset="/snap/stage-bowl-540.webp 540w, /snap/stage-bowl-600.webp 600w" sizes="(min-width: 1280px) 405px, 32vw" />
-            <img class="cluster-img" src="/snap/stage-bowl-600.jpg" srcset="/snap/stage-bowl-540.jpg 540w, /snap/stage-bowl-600.jpg 600w" sizes="(min-width: 1280px) 405px, 32vw" alt="Bowling lanes at Twisted Pin" width="600" height="1067" loading="lazy" decoding="async" />
-          </picture>
+          <video class="cluster-video" data-section-video preload="none" muted loop playsinline data-poster="/snap/summer-pass-poster.webp" aria-label="Bowling at Twisted Pin — the Summer Pin Pass clip">
+            <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+            <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+          </video>
         </div>
         <div class="cluster-copy">
           <p class="section-eyebrow" data-reveal>Lanes</p>
