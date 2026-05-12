@@ -18,7 +18,7 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | `/self-serve-tap-wall/` | `/bar/#tap-wall` | Combined into /bar |
 | `/special-events/` | `/events/` | Consolidated |
 | `/corporate-parties/` | `/events/#corporate` | Consolidated |
-| `/birthday-parties-booking/` | `/events/#birthday` | Consolidated, slug cleanup |
+| ~~`/birthday-parties-booking/`~~ | (live page, not a redirect) | **Updated 2026-05-11**: redirect retired. Slug now hosts a dedicated pillar page (kids packages + adult-birthday handoff) — `/events/#birthday` redirect was a temporary placeholder that's been superseded |
 | `/fundraiser/` | `/fundraisers/` | **Updated 2026-05-07**: dedicated `/fundraisers/` page being built (was previously planned to redirect to `/events/#fundraiser`). The mechanics — 50% of bowling/shoe/arcade revenue back to host org, Thursdays 5–9pm only, main floor only (NOT VIP suite), customers must mention the fundraiser — are operationally specific enough to warrant their own URL with full SEO chrome. Inbound legacy traffic from `/fundraiser/` (singular) preserved via 301 to plural canonical. |
 | `/event-directory/` | `/upcoming-events/` | Consolidated |
 | ~~`/free-kids-bowling/`~~ | (live page, not a redirect) | **Updated 2026-05-07**: redirect retired. Venue is running the free summer kids bowling program (June 1-30, kids 12 and under, 2 games/day weekdays 11-4), so the slug now serves a real page. "Kids Bowl Free" is still TM'd by another operator; the page uses "Free Summer Bowling For Kids" / "Free Kids Bowling" framing, which is descriptive and doesn't infringe |
