@@ -47,9 +47,11 @@ const SOURCES = [
   // 720x1280 30fps 6s — full source, no trim needed.
   { src: "Cocktails Hero.mp4", name: "cocktails-hero", trimStart: 0, trimDur: 6 },
 
-  // 720x1280 24fps 12.5s — pick a 6s window. 0–6 by default; adjust if
-  // the loop reads off (e.g. mid-clip is the better beat).
-  { src: "Arcade.mp4", name: "arcade", trimStart: 0, trimDur: 6 },
+  // Arcade source swapped 2026-05-12: original Arcade.mp4 → "One More Time.mp4".
+  // New source per user request after Round 2 testing. Output slug kept
+  // as "arcade" so /snap/arcade-mobile-* references on the homepage Game
+  // snap + /game hero stay valid without markup churn.
+  { src: "One More Time.mp4", name: "arcade", trimStart: 0, trimDur: 6 },
 
   // 360x640 30fps 7.5s — phone-shot vertical, full duration. Source is
   // small (360w native); 540w + 1080w outputs upscale. Acceptable for
