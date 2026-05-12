@@ -155,20 +155,26 @@ const vipSuiteSchema = {
   <section class="vip-section vip-section--reverse" aria-labelledby="vip-uses-h2">
     <div class="vip-section-grid">
       <div class="vip-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/vip-energy-540.webp 540w, /snap/vip-energy-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="vip-section-img"
-            src="/snap/vip-energy-540.jpg"
-            srcset="/snap/vip-energy-540.jpg 540w, /snap/vip-energy-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="The VIP suite at Twisted Pin set up for a custom birthday party with named signage and balloons"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* "Buffet Before & After" video (2026-05-12) — replaces the
+            vip-energy still. Reuses /snap/buffet-mobile-* assets
+            (same source video the homepage Events snap uses; DRY).
+            Lazy-loaded via data-section-video — poster shows until
+            section enters viewport, then sources promote. */}
+        <video
+          class="vip-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/buffet-poster.webp"
+          aria-label="A buffet of catering food set up for a group event at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="vip-section-copy">
         <p class="t-eyebrow">What You Can Do Here</p>
