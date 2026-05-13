@@ -86,24 +86,25 @@ const menuSchema = {
         {pills.length > 1 && (
           <MenuPillNav pills={pills} label="Cocktail menu sections" />
         )}
-        {cocktailMenu.categories.map((cat) => (
+        {cocktailMenu.categories.map((cat, catIdx) => (
           <div class="cocktail-category" id={`cat-${slugify(cat.name)}`}>
             <h2 class="cocktail-category-name">{cat.name}</h2>
             <ul class="cocktail-grid" role="list">
-              {cat.cocktails.map((c) => (
+              {cat.cocktails.map((c, idx) => (
                 <li class="cocktail-card">
                   {c.imageUrl && (
                     <div class="cocktail-card-frame">
                       <img
                         src={cdnImage(c.imageUrl, 480)}
                         srcset={c.imageUrlLg
-                          ? `${cdnImage(c.imageUrl, 480)} 480w, ${cdnImage(c.imageUrlLg, 720)} 720w`
-                          : undefined}
+                          ? `${cdnImage(c.imageUrl, 320)} 320w, ${cdnImage(c.imageUrl, 480)} 480w, ${cdnImage(c.imageUrlLg, 720)} 720w`
+                          : `${cdnImage(c.imageUrl, 320)} 320w, ${cdnImage(c.imageUrl, 480)} 480w`}
                         sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
                         alt={c.name}
                         width="480"
                         height="480"
-                        loading="lazy"
+                        loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
+                        fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
                         decoding="async"
                       />
                       {c.isStaffFavorite && (

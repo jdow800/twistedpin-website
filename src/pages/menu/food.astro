@@ -109,24 +109,25 @@ const menuSchema = {
         {pills.length > 1 && (
           <MenuPillNav pills={pills} label="Food menu sections" />
         )}
-        {foodMenu.categories.map((cat) => (
+        {foodMenu.categories.map((cat, catIdx) => (
           <div class="food-category" id={`cat-${slugify(cat.name)}`}>
             <h2 class="food-category-name">{cat.name}</h2>
             <ul class="food-grid" role="list">
-              {cat.items.map((it) => (
+              {cat.items.map((it, idx) => (
                 <li class="food-card">
                   {it.imageUrl ? (
                     <div class="food-card-frame">
                       <img
                         src={cdnImage(it.imageUrl, 480)}
                         srcset={it.imageUrlLg
-                          ? `${cdnImage(it.imageUrl, 480)} 480w, ${cdnImage(it.imageUrlLg, 720)} 720w`
-                          : undefined}
+                          ? `${cdnImage(it.imageUrl, 320)} 320w, ${cdnImage(it.imageUrl, 480)} 480w, ${cdnImage(it.imageUrlLg, 720)} 720w`
+                          : `${cdnImage(it.imageUrl, 320)} 320w, ${cdnImage(it.imageUrl, 480)} 480w`}
                         sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
                         alt={it.name}
                         width="480"
                         height="480"
-                        loading="lazy"
+                        loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
+                        fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
                         decoding="async"
                       />
                       {it.isStaffFavorite && (
