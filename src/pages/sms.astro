@@ -1,0 +1,244 @@
+---
+/**
+ * /sms — SMS Information Service compliance page.
+ *
+ * Documents the opt-in SMS service for TCPA/CTIA carrier registration.
+ * The AI receptionist captures verbal consent on calls; this page is
+ * the public-facing service description that carriers, regulators, and
+ * curious users can reference.
+ *
+ * Created 2026-05-13 to support SMS program approval. Content sourced
+ * from ops + counsel-reviewed wording. Mirrors the legal-section
+ * pattern used by /privacy /terms /accessibility:
+ *   - Numbered sections with H2 headers
+ *   - Glow-bordered preamble call-out
+ *   - Contact block at the bottom
+ *   - Italic jurisdiction line under a hairline divider
+ *
+ * Cross-references:
+ *   - /privacy Section 3 ("SMS Messaging Program") covers the same
+ *     program from the privacy-policy angle. The two pages should stay
+ *     consistent; counsel review should re-confirm any divergence.
+ *   - /terms covers SMS Terms and Conditions (general TOS).
+ *
+ * Legal note: This is the working draft for SMS messaging program
+ * approval. Counsel should confirm the verbal consent script and the
+ * consent-documentation language match the recorded-call evidence
+ * chain we maintain.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+
+const LAST_UPDATED = "May 13, 2026";
+---
+<Base
+  title="SMS Information Service | Twisted Pin"
+  description="How Twisted Pin's opt-in SMS service works — verbal consent during AI receptionist calls, single informational text messages, full opt-out anytime. Plainfield, IL."
+>
+
+  <section class="t2-hero" data-hero aria-labelledby="sms-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Twisted Pin</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="sms-h1" data-delay-ms="120">
+        SMS Information Service.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Last updated {LAST_UPDATED}. How our opt-in SMS service works,
+        what we send, and how to opt out at any time.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section legal-section" aria-labelledby="sms-h2-1">
+    <div class="t2-section-inner">
+      <p class="legal-preamble">
+        Twisted Pin ("Twisted Pin," "we," "us," "our") is a brand operated
+        by Dow Holdings Inc, an Illinois corporation. We offer an opt-in
+        SMS service that lets callers receive a single informational text
+        message after speaking with our AI receptionist. This page
+        documents the service, your consent options, and how to opt out
+        at any time.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-1">1. Service description</h2>
+      <p>
+        When a caller asks our AI receptionist to text them business
+        information — such as pricing, hours, directions, or location —
+        we send a single transactional SMS containing a link to the
+        requested information on twistedpin.com.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-2">2. Message frequency</h2>
+      <p>
+        One message per call request. Most callers receive zero or one
+        messages per interaction. No recurring messages, promotional
+        broadcasts, or unsolicited follow-ups.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-3">3. Message and data rates</h2>
+      <p>
+        Standard message and data rates may apply, depending on your
+        mobile carrier.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-4">4. Verbal consent script</h2>
+      <p>
+        Our AI receptionist captures explicit verbal consent before
+        sending any SMS. The full script:
+      </p>
+      <blockquote class="legal-blockquote">
+        "As part of our service we can send you a single text message
+        with the [pricing / hours / directions] you asked about. We'll
+        send one informational message. Message and data rates may
+        apply, depending on your mobile carrier. You can reply HELP for
+        assistance or STOP to opt out at any time. Our Terms of Service
+        are at twistedpin.com/terms and our Privacy Policy at
+        twistedpin.com/privacy. Please reply with 'yes' or 'no' to
+        confirm you'd like to receive this text."
+      </blockquote>
+      <p>
+        If the caller verbally affirms, the agent confirms enrollment
+        ("Great — sending it now") and the SMS is sent. If the caller
+        declines, no message is sent and no further attempt is made
+        during the call.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-5">5. Help and opt-out</h2>
+      <ul>
+        <li>Reply <strong>HELP</strong> to any message for assistance.</li>
+        <li>Reply <strong>STOP</strong> to any message to opt out at any time.</li>
+      </ul>
+      <p>
+        Opt-out requests are honored immediately. No further messages
+        are sent to opted-out numbers.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-6">6. Related policies</h2>
+      <ul>
+        <li><a href="/privacy/">Privacy Policy</a></li>
+        <li><a href="/terms/">SMS Terms and Conditions</a></li>
+      </ul>
+
+      <h2 class="legal-h2" id="sms-h2-7">7. Consent documentation</h2>
+      <p>
+        All calls to our business line are recorded. The verbal consent
+        moment is logged with date, timestamp, and caller phone number.
+        Recordings serve as proof of consent and are retained per our
+        <a href="/privacy/">Privacy Policy</a> data retention schedule.
+      </p>
+
+      <h2 class="legal-h2" id="sms-h2-8">8. Contact</h2>
+      <p>For questions about this SMS service or to verify your enrollment status:</p>
+      <ul class="legal-contact">
+        <li><strong>Business:</strong> Twisted Pin (operated by Dow Holdings Inc)</li>
+        <li><strong>Address:</strong> 15610 Joliet Rd, Plainfield, IL 60544</li>
+        <li><strong>Phone:</strong> 815-782-7790</li>
+        <li><strong>Email:</strong> <a href={`mailto:contactus@twistedpin.com?subject=${encodeURIComponent("SMS Service Question")}&body=${encodeURIComponent("Hi,\n\n")}`}>contactus@twistedpin.com</a></li>
+      </ul>
+
+      <p class="legal-jurisdiction">
+        Twisted Pin's SMS service operates in compliance with TCPA
+        regulations and CTIA messaging guidelines.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "SMS Information", path: "/sms/" },
+  ]} />
+</Base>
+
+<style>
+  /* Legal pages share a vocabulary — tighter line-height, scannable
+     section breaks, dim long-form copy on indigo. Same recipe as
+     /privacy /terms /accessibility. Duplicated here pending a future
+     hoist to a shared partial when the fourth use lands. */
+  .legal-section .t2-section-inner {
+    max-width: 720px;
+  }
+
+  /* Preamble paragraph — sits before Section 1, sets the legal-entity
+     and scope context. Slightly heavier than body to mark its role. */
+  .legal-preamble {
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--warm-mid);
+    margin: 0 0 24px;
+    padding: 16px 18px;
+    background: rgba(244, 239, 227, 0.04);
+    border-left: 2px solid var(--glow);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legal-h2 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 40px 0 14px;
+  }
+  .legal-h2:first-child { margin-top: 8px; }
+  @media (min-width: 760px) {
+    .legal-h2 { font-size: 26px; margin-top: 48px; }
+  }
+
+  .legal-section p,
+  .legal-section li {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  .legal-section p { margin: 0 0 14px; }
+
+  .legal-section ul {
+    margin: 0 0 14px;
+    padding-left: 22px;
+  }
+  .legal-section li { margin-bottom: 6px; }
+
+  .legal-section strong { color: var(--warm-white); font-weight: 700; }
+
+  .legal-section a {
+    color: var(--glow);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Verbal consent script — distinct treatment so it reads as the
+     literal script our agent recites on calls, not commentary about
+     it. Slightly brighter text + same glow border vocabulary as the
+     preamble so the two compliance-critical blocks read as a pair. */
+  .legal-blockquote {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--warm-white);
+    margin: 0 0 18px;
+    padding: 18px 22px;
+    background: rgba(244, 239, 227, 0.05);
+    border-left: 2px solid var(--glow);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legal-contact {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .legal-jurisdiction {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    font-size: 13px !important;
+    color: var(--warm-dim) !important;
+    font-style: italic;
+  }
+</style>
