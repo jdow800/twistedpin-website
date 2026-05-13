@@ -17,6 +17,7 @@ import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import MenuPillNav from "../../components/MenuPillNav.astro";
 import { getFood } from "../../lib/gotab-food";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
+import { cdnImage } from "../../lib/cdn-image";
 
 const foodMenu = await getFood();
 
@@ -117,8 +118,10 @@ const menuSchema = {
                   {it.imageUrl ? (
                     <div class="food-card-frame">
                       <img
-                        src={it.imageUrl}
-                        srcset={it.imageUrlLg ? `${it.imageUrl} 480w, ${it.imageUrlLg} 720w` : undefined}
+                        src={cdnImage(it.imageUrl, 480)}
+                        srcset={it.imageUrlLg
+                          ? `${cdnImage(it.imageUrl, 480)} 480w, ${cdnImage(it.imageUrlLg, 720)} 720w`
+                          : undefined}
                         sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
                         alt={it.name}
                         width="480"

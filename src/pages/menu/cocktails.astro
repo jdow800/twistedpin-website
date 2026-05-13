@@ -19,6 +19,7 @@ import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import MenuPillNav from "../../components/MenuPillNav.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
+import { cdnImage } from "../../lib/cdn-image";
 
 const cocktailMenu = await getCocktails();
 
@@ -94,8 +95,10 @@ const menuSchema = {
                   {c.imageUrl && (
                     <div class="cocktail-card-frame">
                       <img
-                        src={c.imageUrl}
-                        srcset={c.imageUrlLg ? `${c.imageUrl} 480w, ${c.imageUrlLg} 720w` : undefined}
+                        src={cdnImage(c.imageUrl, 480)}
+                        srcset={c.imageUrlLg
+                          ? `${cdnImage(c.imageUrl, 480)} 480w, ${cdnImage(c.imageUrlLg, 720)} 720w`
+                          : undefined}
                         sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
                         alt={c.name}
                         width="480"

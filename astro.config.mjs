@@ -30,7 +30,27 @@ export default defineConfig({
   trailingSlash: 'always',
   adapter: vercel({
     webAnalytics: { enabled: false },
-    imageService: false,
+    // Enable Vercel's image optimization edge function (deployed at
+    // /_vercel/image). Required to route remote GoTab menu images through
+    // Vercel's AVIF/WebP encoder + edge CDN caching — see src/lib/cdn-image.ts.
+    // Local static images (e.g. /public/snap/*) are pre-encoded by
+    // scripts/build-snap-images.mjs and served as static files; this setting
+    // doesn't affect them.
+    imageService: true,
+    imagesConfig: {
+      // Widths the optimizer will produce. Matches our srcset breakpoints:
+      // mobile 2-col / tablet 3-col cards request 480w; desktop 4-col cards
+      // request 720w (270px CSS × ~2.7x effective DPR).
+      sizes: [320, 480, 720, 1080],
+      // Remote hostnames allowed as source URLs. GoTab serves cocktail +
+      // food product images. Untappd's beer label thumbnails are tiny and
+      // already fast — not routed here.
+      domains: ['img.gotab.io'],
+      // AVIF first (50% smaller than JPEG, ~95% browser support), WebP
+      // fallback (30% smaller, ~99% browser support). Vercel auto-negotiates
+      // via Accept header; legacy browsers fall through to JPEG.
+      formats: ['image/avif', 'image/webp'],
+    },
   }),
   integrations: [sitemap()],
   build: {
