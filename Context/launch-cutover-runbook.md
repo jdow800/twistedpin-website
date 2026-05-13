@@ -15,13 +15,45 @@ Last updated: 2026-05-12.
 
 ## ⚡ TL;DR — where you are right now
 
-✅ **Live site is 100% untouched.** Everything done so far has been Vercel-side only. DNS still points at the dev company's Cloudflare → site keeps serving normally → email keeps flowing normally.
+🟢 **LAUNCHED 2026-05-12 evening + Day-1 cleanup completed 2026-05-13 morning.** Site is live on Vercel. Email auth verified PASS on both Freshdesk and Google Workspace paths. Real-user Core Web Vitals: passing. DNS fully propagating worldwide.
 
-🎯 **Strategy:** **Path B — Vercel DNS.** Pre-stage every record in Vercel's DNS UI BEFORE flipping nameservers at GoDaddy → zero-gap cutover.
+📍 **You are here:** Day 1 of launch is complete. Site is operational. Next checkpoint is **Day 7 (May 20, 2026)** — Bot Protection log review.
 
-⏳ **Next steps when you return:** finish Phase 0 audits (mostly done), execute Phase 1 (pre-launch code work), execute Phase 2 (populate Vercel DNS), execute Phase 3 (flip nameservers), Phase 4 verify, sleep, Phase 5/6 cleanup the next day.
+### 🏆 Day 1 launch wins (today)
 
-📍 **You are here:** between Phase 0 and Phase 1.
+| Category | Win |
+|---|---|
+| **SEO** | Sitemap submitted to GSC ✅ Old WordPress sitemap removed ✅ Bing Webmaster + sitemap ✅ Top 10 URLs indexing requested ✅ |
+| **Email auth** | MX Toolbox re-verified — SPF cleanup landed, Vercel DNS authoritative ✅ |
+| **Operations** | Dev company autopay canceled ✅ |
+| **Content** | FAQ added video gaming question ✅ |
+| **Marketing/Directory** | Yext audit complete — 6 fixes shipped (Casino removed, description rewritten in brand voice, Featured Message reframed, Apple Action Links added, Display URLs polished, suggestions reviewed) ✅ |
+| **Performance** | GoTab menu image optimization (Vercel Image API, AVIF/WebP, q70, 320w mobile srcset, eager LCP hints) ✅ |
+| **Compliance** | Privacy policy updated to disclose Vercel Analytics + Microsoft Clarity ✅ |
+| **Avery / shortlinks** | `/tour` redirect added (verbal handoff to YouTube tour video) ✅ |
+| **UX polish** | mailto pre-population on SnapFooter + leagues page (subject + body) ✅ |
+
+### ⏳ 7-day interim — what you should do (low pressure)
+
+Mostly optional. Site is functioning fully. If you have 5 minutes:
+
+| Task | Time | Why |
+|---|---|---|
+| **Verify Vercel Web Analytics is collecting data** | 3 min | Project → Analytics tab. Should see pageviews accumulating. |
+| **Verify Microsoft Clarity is showing sessions** | 3 min | clarity.microsoft.com → project `wq8e536e4r`. Should see session recordings within 24 hours of users visiting. |
+| **Email the dev company** (courtesy notice) | 5 min | "DNS has migrated. Please keep origin running ~14 days for propagation tail, then feel free to decommission." Prevents them from pulling the plug too early. |
+| **Watch for inbound leads via contactus@** | passive | School field-trip inquiry came in Day 1 via the old WordPress form (DNS-cached user). Confirms leads are still flowing; watch the pattern. |
+
+### 🎯 7-day return session (May 20 = Day 7)
+
+When you come back:
+
+1. **Bot Protection log review** — flip from Logging → Enforcement if logs look clean. (Scheduled per Phase 7 of this runbook.)
+2. **Verify all analytics tools have a week of data** — Web Analytics, Clarity, GSC.
+3. **Check GSC "Page with redirect" report** — confirms our 70 redirects in vercel.json are doing their job.
+4. **Re-PSI** — see real cumulative impact of today's perf work vs the q80 baseline.
+5. **Flip apex `twistedpin.com → www.twistedpin.com` redirect from 307 → 308** (now that we have a week of stable operation).
+6. Anything new that surfaced in the interim.
 
 ---
 
