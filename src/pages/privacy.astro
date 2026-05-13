@@ -2,6 +2,17 @@
 /**
  * /privacy — Privacy Policy.
  *
+ * Updated 2026-05-13: analytics disclosure rewritten post-migration.
+ *   - Removed Google Analytics claim (GA4 deferred until ad campaigns
+ *     start; not currently installed)
+ *   - Added Vercel Web Analytics disclosure (cookieless pageview data;
+ *     Vercel, Inc. as data processor)
+ *   - Added Microsoft Clarity disclosure (cookieless session replay +
+ *     heatmaps; Microsoft Corporation as data processor; sensitive form
+ *     fields auto-masked)
+ *   - Section 4 service-provider list expanded to include website
+ *     hosting and analytics platforms
+ *
  * Updated 2026-05-08: substantive rewrite to support SMS messaging
  * approval. Major additions:
  *   - Dow Holdings Inc named as the operating legal entity
@@ -9,7 +20,6 @@
  *     captures consent during calls; logged with timestamp + recording
  *   - CTIA-mandated "no mobile sharing for marketing" boilerplate
  *   - AI communication agents/platforms disclosed under service providers
- *   - Google Analytics confirmed (was "may include")
  *   - Subcontractor categories enumerated for SMS opt-in data scope
  *
  * Voice cleanup applied:
@@ -18,15 +28,16 @@
  *
  * Legal note: This is the working draft for SMS messaging program
  * approval. Counsel should confirm pre-launch — at minimum to verify
- * the disclosures match current data flows (the integrations have
- * shifted: GoTab, Untappd, Roller, TablesReady, Vercel hosting,
- * Google Places, Google Analytics, AI receptionist).
+ * the disclosures match current data flows (the integrations: GoTab,
+ * Untappd, Roller, TablesReady, Vercel hosting, Vercel Web Analytics,
+ * Microsoft Clarity, Google Places, Heyflow, Zite, Freshdesk, AI
+ * receptionist).
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-const LAST_UPDATED = "May 8, 2026";
+const LAST_UPDATED = "May 13, 2026";
 ---
 <Base
   title="Privacy Policy | Twisted Pin"
@@ -98,13 +109,19 @@ const LAST_UPDATED = "May 8, 2026";
       <h2 class="legal-h2" id="privacy-h2-4">4. How We Share Your Information</h2>
       <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following limited circumstances:</p>
       <ul>
-        <li><strong>Service providers:</strong> trusted vendors who help us operate our business (such as booking software, payment processors, AI communication platforms, and SMS delivery providers), bound by confidentiality agreements</li>
+        <li><strong>Service providers:</strong> trusted vendors who help us operate our business (such as website hosting, booking software, payment processors, analytics platforms, AI communication platforms, and SMS delivery providers), bound by confidentiality agreements</li>
         <li><strong>Legal requirements:</strong> when required by law or to protect the rights and safety of Twisted Pin, Dow Holdings Inc, or others</li>
         <li><strong>Business transfers:</strong> in connection with a merger, acquisition, or sale of assets, with notice provided to you</li>
       </ul>
 
-      <h2 class="legal-h2" id="privacy-h2-5">5. Cookies and Analytics</h2>
-      <p>Our website uses cookies and Google Analytics to understand how visitors use our site. This includes demographic, acquisition, and behavior reporting. You may disable cookies in your browser settings, though some site features may not function properly. We do not use cookies to track you across other websites for advertising purposes.</p>
+      <h2 class="legal-h2" id="privacy-h2-5">5. Analytics and Session Recording</h2>
+      <p>To understand how visitors interact with our website, we use two analytics tools. Both are cookieless and do not track you across other websites for advertising purposes.</p>
+      <ul>
+        <li><strong>Vercel Web Analytics</strong> (operated by Vercel, Inc.): collects aggregated pageview data including pages visited, referring URLs, device type, browser, and approximate geographic region derived from IP address.</li>
+        <li><strong>Microsoft Clarity</strong> (operated by Microsoft Corporation): collects session replay data including mouse movement, click patterns, scroll behavior, IP address, and aggregated heatmaps showing how visitors interact with each page. Sensitive form fields (such as passwords or payment information) are automatically masked from recordings.</li>
+      </ul>
+      <p>Neither tool collects personal information such as names, addresses, or email addresses you enter into form fields. Data collected by these tools is processed by their respective operators (Vercel, Inc. and Microsoft Corporation) under their own privacy policies. We do not sell, share, or rent analytics data to third parties beyond these service providers.</p>
+      <p>If you wish to opt out of analytics tracking on our site, you may use browser extensions that block third-party scripts (such as uBlock Origin or Privacy Badger), or enable a tracking protection feature in your browser settings.</p>
 
       <h2 class="legal-h2" id="privacy-h2-6">6. Data Retention</h2>
       <p>We retain your personal information for as long as necessary to fulfill the purposes described in this policy, including completing your event booking and maintaining records for legal and accounting purposes. Event inquiry data is typically retained for up to 3 years. You may request deletion of your data at any time (see Section 8).</p>
