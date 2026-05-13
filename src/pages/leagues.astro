@@ -118,7 +118,7 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
       <p class="t2-section-body">
         Want in? Email
-        <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>
+        <a href={`mailto:contactus@twistedpin.com?subject=${encodeURIComponent("Bowling League Inquiry")}&body=${encodeURIComponent("Hi,\n\nI'd like to learn more about leagues at Twisted Pin.\n\n")}`}>contactus@twistedpin.com</a>
         or call the front desk.
       </p>
 

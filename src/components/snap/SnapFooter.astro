@@ -101,6 +101,14 @@ const MAPS_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeUR
 const PHONE_DISPLAY = "(815) 782-7790";
 const PHONE_TEL     = "+18157827790";
 const EMAIL_ADDRESS = "contactus@twistedpin.com";
+// Pre-populated mailto: subject + body so the user's mail client opens
+// with a sensible subject line (tags the lead source for triage in
+// Freshdesk) + cursor in body ready to type. Friction-reducing polish:
+// the user's open-message app already has the email started for them.
+const EMAIL_HREF =
+  `mailto:${EMAIL_ADDRESS}` +
+  `?subject=${encodeURIComponent("Question from twistedpin.com")}` +
+  `&body=${encodeURIComponent("Hi,\n\n")}`;
 
 // Real social URLs (verified 2026-05-05 from twistedpin.com JSON-LD
 // schema's `sameAs` array). YouTube confirmed 2026-05-08. TikTok was a
@@ -184,7 +192,7 @@ const UTILITY_LINKS = [
             </svg>
             {PHONE_DISPLAY}
           </a>
-          <a class="footer-action" href={`mailto:${EMAIL_ADDRESS}`}>
+          <a class="footer-action" href={EMAIL_HREF}>
             <svg class="action-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="2" y="4" width="20" height="16" rx="2"/>
               <polyline points="22 6 12 13 2 6"/>
