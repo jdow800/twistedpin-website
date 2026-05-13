@@ -40,6 +40,7 @@ import {
   BUSINESS_ENTITY_ID,
   addressNAP,
 } from "../lib/schema";
+import { PLAN_EVENT_URL } from "../lib/links";
 
 // JSON-LD: EventVenue with its own @id (#vip-suite) — the suite is a
 // distinct sub-location with its own capacity claim. containedInPlace
@@ -213,7 +214,7 @@ const vipSuiteSchema = {
           <li>Reception dinners</li>
         </ul>
 
-        <a class="btn btn-outline" href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event</a>
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
       </div>
     </div>
   </section>

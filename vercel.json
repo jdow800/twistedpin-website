@@ -16,11 +16,15 @@
 
     { "source": "/craft-bar{/}?", "destination": "/bar/#cocktails", "permanent": true },
     { "source": "/self-serve-tap-wall{/}?", "destination": "/bar/#tap-wall", "permanent": true },
+    { "source": "/self-serve-beer-wall{/}?", "destination": "/bar/#tap-wall", "permanent": true },
+    { "source": "/beer-wine-wall{/}?", "destination": "/bar/#tap-wall", "permanent": true },
+    { "source": "/bar-grill{/}?", "destination": "/bar/", "permanent": true },
 
     { "source": "/special-events{/}?", "destination": "/events/", "permanent": true },
     { "source": "/corporate-parties{/}?", "destination": "/events/#corporate", "permanent": true },
     { "source": "/fundraiser{/}?", "destination": "/fundraisers/", "permanent": true },
     { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/family-party{/}?", "destination": "/events/#birthday", "permanent": true },
 
     { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
 
@@ -34,6 +38,7 @@
     { "source": "/looking-for-a-good-time-rent-our-vip-suite{/}?", "destination": "/vip-suite/", "permanent": true },
     { "source": "/vip-bowling-suite-the-perfect-place-to-host-your-next-group-outing{/}?", "destination": "/vip-suite/", "permanent": true },
     { "source": "/vip-bowling-suite-the-perfect-place-to-host-your-next-group-outing-2{/}?", "destination": "/vip-suite/", "permanent": true },
+    { "source": "/wp-suite{/}?", "destination": "/vip-suite/", "permanent": true },
 
     { "source": "/knock-down-pins-raise-funds-host-a-bowling-fundraiser-with-twisted-pin{/}?", "destination": "/fundraisers/", "permanent": true },
     { "source": "/knock-down-pins-raise-funds-host-a-bowling-fundraiser-with-twisted-pin-2{/}?", "destination": "/fundraisers/", "permanent": true },
@@ -59,6 +64,8 @@
     { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/events/", "permanent": true },
     { "source": "/twisted-pin-the-ultimate-venue-for-your-summer-celebrations{/}?", "destination": "/events/", "permanent": true },
     { "source": "/birthday-party-booking-is-back-lets-roll-plainfield{/}?", "destination": "/events/#birthday", "permanent": true },
+    { "source": "/lots-of-ish-why-bowling-is-the-perfect-summertime-activity{/}?", "destination": "/", "permanent": true },
+    { "source": "/cheers-success-where-event-spaces-in-joliet-thrive{/}?", "destination": "/events/", "permanent": true },
 
     { "source": "/events/paint-and-sip{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/paint-and-sip-twisted-pin{/}?", "destination": "/upcoming-events/", "permanent": true },
@@ -68,6 +75,10 @@
     { "source": "/events/jingle-bowl-twisted-pin-copy{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/black-wednesday-karaoke{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/karaoke-free{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/karaoke-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/bar-bingo-free{/}?", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/bar-bingo-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/16{/}?", "destination": "/upcoming-events/", "permanent": true },
 
     { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
     { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill-2{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
@@ -76,6 +87,13 @@
     { "source": "/why-us{/}?", "destination": "/", "permanent": true },
     { "source": "/why-us/crest-hill-il{/}?", "destination": "/", "permanent": true },
     { "source": "/why-us/plainfield-il{/}?", "destination": "/", "permanent": true },
+    { "source": "/why-us/joliet{/}?", "destination": "/why-us/joliet-il/", "permanent": true },
+    { "source": "/why-us/naperville{/}?", "destination": "/why-us/naperville-il/", "permanent": true },
+    { "source": "/why-us/lockport{/}?", "destination": "/why-us/lockport-il/", "permanent": true },
+    { "source": "/why-us/oswego{/}?", "destination": "/why-us/oswego-il/", "permanent": true },
+    { "source": "/why-us/romeoville{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
+    { "source": "/why-us/shorewood{/}?", "destination": "/why-us/shorewood-il/", "permanent": true },
+    { "source": "/why-us/bolingbrook{/}?", "destination": "/why-us/bolingbrook-il/", "permanent": true },
     { "source": "/blog{/}?", "destination": "/", "permanent": true },
     { "source": "/event-location/twisted-pin{/}?", "destination": "/", "permanent": true },
 

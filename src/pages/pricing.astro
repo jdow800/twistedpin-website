@@ -37,6 +37,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { MAPS_VENUE_URL } from "../lib/schema";
+import { PLAN_EVENT_URL } from "../lib/links";
 import { DAYS, HOURS, hoursLabel, todayKey, type DayKey } from "../data/hours";
 import { PRICING, SHOE_RENTAL_LABEL, type PriceWindow } from "../data/pricing";
 import { getLiveHours } from "../lib/google-hours";
@@ -341,7 +342,7 @@ function specialsForDay(day: DayKey) {
         The 6-lane VIP suite is available two ways: by-the-lane at
         the rates above, or as a full suite buyout for groups, parties,
         and corporate events. Buyouts run through our event team —
-        <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">plan an event &rarr;</a>.
+        <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">plan an event &rarr;</a>.
         For the broader bowling story (lanes, leagues, the night), see
         <a href="/bowl/">/bowl</a>.
       </p>

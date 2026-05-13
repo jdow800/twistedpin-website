@@ -19,6 +19,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema } from "../lib/schema";
+import { PLAN_EVENT_URL } from "../lib/links";
 
 // At-build cutoff: an event is "past" when its end (or start, if no
 // end) is before today. Cron rebuilds nightly at 9 UTC so this re-runs
@@ -169,7 +170,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
           New nights drop here as we lock them in — keep an eye out.
         </p>
         <p class="t2-section-body">
-          Want to fill it? <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event &rarr;</a>
+          Want to fill it? <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event &rarr;</a>
         </p>
       </div>
     </section>
@@ -259,7 +260,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
         Plainfield, IL is the venue, with most weekend regulars
         driving in from <a href="/why-us/naperville-il/">Naperville</a>,
         Bolingbrook, Joliet, and the rest of Will County. Want to put
-        your own night on this calendar? <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">Plan an event &rarr;</a>
+        your own night on this calendar? <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event &rarr;</a>
         &mdash; group buyouts and corporate offsites are how most
         non-themed nights start.
       </p>
@@ -271,7 +272,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
       <h2 class="t-eyebrow" id="upcoming-h2" style="font-size:11px;">More Ways In</h2>
       <p class="t2-section-body">
         Want to host your own night? Group events, corporate offsites,
-        and birthdays all run through our event team — <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">plan an event &rarr;</a>
+        and birthdays all run through our event team — <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">plan an event &rarr;</a>
       </p>
 
       <p class="t2-section-body">

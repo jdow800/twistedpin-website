@@ -9,7 +9,7 @@
  * drive $2K-$10K+ bookings (40% of corporate leads via Google).
  *
  * Strategy: pre-qualify + persuade, then hand off to Zite. The Zite app
- * (currently `twistedevents.zite.so`) is the inquiry form + facility tour; this
+ * (URL hoisted to src/lib/links.ts) is the inquiry form + facility tour; this
  * page is the brand-voiced landing layer above it. A direct redirect
  * to Zite would convert the bottom-of-funnel (already-decided users)
  * but waste the top-of-funnel (researchers needing to learn what we
@@ -48,9 +48,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 
-// Zite-hosted group events platform. May get a vanity subdomain
-// (events.twistedpin.com) later; URL not yet final.
-const ZITE_URL = "https://twistedevents.zite.so/";
+// Zite-hosted group events platform. URL may swap to event.twistedpin.com
+// once Avery (AI sales agent) is proven. Source of truth: src/lib/links.ts.
+import { PLAN_EVENT_URL } from "../lib/links";
 
 // JSON-LD: EventVenue subtype on the canonical venue @id. Tells AI
 // "the venue, viewed as an event venue" — same multi-faceted entity
@@ -235,7 +235,7 @@ const eventVenueSchema = {
       <p class="events-cta-body">
         Quick form. Tour the venue, see the suite, get a quote.
       </p>
-      <a class="btn btn-solid events-cta-btn" href={ZITE_URL} target="_blank" rel="noopener">
+      <a class="btn btn-solid events-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
         Plan an event
       </a>
     </div>

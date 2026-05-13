@@ -9,11 +9,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://astro.build/config
 export default defineConfig({
-  // Sitemap + canonical URL base. Currently pointed at the Vercel
-  // staging deploy. **At launch:** swap to `https://www.twistedpin.com`
-  // (or `https://twistedpin.com` — pick one canonical host) and
-  // resubmit sitemap.xml to Google Search Console.
-  site: 'https://twistedpin-website.vercel.app',
+  // Sitemap + canonical URL base. Set to www.twistedpin.com pre-DNS-flip
+  // so the deployed sitemap + canonical tags are correct from the moment
+  // DNS points at Vercel. While DNS still points at Cloudflare, the
+  // staging URL (twistedpin-website.vercel.app) renders pages whose
+  // canonical tags reference www.twistedpin.com — harmless because
+  // browsers don't navigate on canonical and Google doesn't crawl the
+  // staging URL (no inbound links, not in sitemap). Resubmit sitemap.xml
+  // to GSC after DNS flip.
+  site: 'https://www.twistedpin.com',
   output: 'static',
   // Force trailing slash on every URL Astro generates (sitemap, links,
   // canonical). Was 'ignore' (default) — both /bar and /bar/ resolved,

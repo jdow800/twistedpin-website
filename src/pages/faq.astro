@@ -37,8 +37,9 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { ICON_PATHS } from "../lib/icons";
 import { formatHoursAnswer } from "../lib/schema";
 
+import { PLAN_EVENT_URL } from "../lib/links";
+
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
-const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 
 /**
  * FAQ items grouped by category. Categories render as H2 section
@@ -140,13 +141,13 @@ const faqs: FaqItem[] = [
     category: "VIP Suite & Events",
     q: "Can I bring a cake, cupcakes, or party decor?",
     schemaA: "Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.",
-    htmlA: `<p>Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+    htmlA: `<p>Outside cake and decor are welcome for booked, catered events only. Confirm specifics with us at booking.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
   },
   {
     category: "VIP Suite & Events",
     q: "Can I host a corporate event or team building outing?",
     schemaA: "Yes — casual team nights to full corporate events with in-house catering and AV setup.",
-    htmlA: `<p>Yes — casual team nights to full corporate events with in-house catering and AV setup.</p><p><a href="${ZITE_EVENTS_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+    htmlA: `<p>Yes — casual team nights to full corporate events with in-house catering and AV setup.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
   },
 
   // Bar, Food & Arcade

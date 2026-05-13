@@ -48,7 +48,7 @@ import {
 } from "../../lib/schema";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
-const ZITE_URL = "https://twistedevents.zite.so/";
+import { PLAN_EVENT_URL } from "../../lib/links";
 const MAPS_DIR_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
   `${STREET}, ${LOCALITY}`,
 )}&destination_place_id=${PLACE_ID}`;
@@ -206,7 +206,7 @@ const serviceSchema = {
           <li>Set apart from the traditional lanes by a wall</li>
         </ul>
 
-        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
           Plan an event
         </a>
       </div>
@@ -283,7 +283,7 @@ const serviceSchema = {
         <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">
           Reserve a lane
         </a>
-        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
           Plan an event
         </a>
       </div>

@@ -29,7 +29,7 @@ import {
 } from "../../lib/schema";
 
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
-const ZITE_URL = "https://twistedevents.zite.so/";
+import { PLAN_EVENT_URL } from "../../lib/links";
 const MAPS_DIR_HREF = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(
   `${STREET}, ${LOCALITY}`,
 )}&destination_place_id=${PLACE_ID}`;
@@ -159,7 +159,7 @@ const serviceSchema = {
           <li>Yours for the night when you book the suite</li>
         </ul>
 
-        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
           Plan an event
         </a>
       </div>
@@ -217,7 +217,7 @@ const serviceSchema = {
       </p>
       <div class="svc-cta-row">
         <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a lane</a>
-        <a class="btn btn-outline" href={ZITE_URL} target="_blank" rel="noopener">Plan an event</a>
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
       </div>
       <p class="svc-cta-nap">
         Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544 · 8 miles west of Lockport

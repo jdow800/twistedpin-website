@@ -45,8 +45,9 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
+import { PLAN_EVENT_URL } from "../lib/links";
+
 const ROLLER_KIDS_URL = "https://ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products";
-const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 ---
 <Base
   title="Birthday Parties in Plainfield, IL | Twisted Pin"
@@ -242,7 +243,7 @@ const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
 
         <a
           class="btn btn-outline"
-          href={ZITE_EVENTS_URL}
+          href={PLAN_EVENT_URL}
           target="_blank"
           rel="noopener"
         >Plan an event</a>
@@ -262,7 +263,7 @@ const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
         <a class="btn btn-solid" href={ROLLER_KIDS_URL} target="_blank" rel="noopener">
           Book a kids' party
         </a>
-        <a class="btn btn-outline" href={ZITE_EVENTS_URL} target="_blank" rel="noopener">
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
           Plan an adult event
         </a>
       </div>

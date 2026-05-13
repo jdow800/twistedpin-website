@@ -41,7 +41,7 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
-const ZITE_URL = "https://twistedevents.zite.so/";
+import { PLAN_EVENT_URL } from "../lib/links";
 
 // JSON-LD: Service offered by the venue. provider → #business links
 // the program to the canonical entity. No specific Event schema since
@@ -210,7 +210,7 @@ const serviceSchema = {
       <p class="fundraiser-cta-body">
         Quick form. Tour the venue, see what's involved, lock in your date.
       </p>
-      <a class="btn btn-solid fundraiser-cta-btn" href={ZITE_URL} target="_blank" rel="noopener">
+      <a class="btn btn-solid fundraiser-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
         Plan a fundraiser
       </a>
     </div>

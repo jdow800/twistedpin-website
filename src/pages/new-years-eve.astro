@@ -34,7 +34,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema } from "../lib/schema";
 
-const ZITE_EVENTS_URL = "https://twistedevents.zite.so/";
+import { PLAN_EVENT_URL } from "../lib/links";
+
 const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 
 // JSON-LD: Event. Dates pulled from the events content collection so
@@ -144,7 +145,7 @@ const nyeJsonLd = nyeEntry
         plan.
       </p>
       <div class="nye-cta-actions">
-        <a class="btn btn-solid" href={ZITE_EVENTS_URL} target="_blank" rel="noopener">
+        <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
           Plan an event
         </a>
         <a class="btn btn-outline" href={ROLLER_URL} target="_blank" rel="noopener">

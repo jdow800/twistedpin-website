@@ -4,6 +4,7 @@ import StickyCTABar from "../components/StickyCTABar.astro";
 import NavDrawer from "../components/NavDrawer.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import PromoBar from "../components/PromoBar.astro";
+import Analytics from "@vercel/analytics/astro";
 
 interface Props {
   title?: string;
@@ -94,6 +95,18 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
         noindex, by article-style pages for canonical links, etc. */}
     <slot name="head" />
 
+    {/* Microsoft Clarity — free UX heatmaps + session recordings.
+        Async load (t.async=1) so it never blocks LCP. Cookieless by
+        default; no consent banner needed. is:inline keeps Astro from
+        processing the script — it ships exactly as Clarity provides. */}
+    <script is:inline>
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "wq8e536e4r");
+    </script>
+
     {/* Hero LCP preloads — poster image is the LCP element, not the video. */}
     <link
       rel="preload"
@@ -133,6 +146,11 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <NavDrawer />
     {!hideStickyCTA && <StickyCTABar />}
     <PromoBar />
+
+    {/* Vercel Web Analytics — cookieless pageview beacon. Free tier on Pro.
+        No PII, no consent banner needed. Auto-detects the project from
+        the deployment environment. */}
+    <Analytics />
 
     <script>
       import { initMotion } from "../scripts/motion.client.ts";

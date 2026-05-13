@@ -32,6 +32,7 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { PLAN_EVENT_URL } from "../lib/links";
 ---
 <Base
   title="Gift Cards in Plainfield, IL | Twisted Pin"
@@ -101,7 +102,7 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
         no monthly maintenance fees eating into the balance (Illinois
         gift card law). See <a href="/pricing/">walk-in pricing</a> for
         what each day's bowling costs, <a href="/bowl/">more on the
-        lanes here</a>, or <a href="https://twistedevents.zite.so/" target="_blank" rel="noopener">plan a group event</a>
+        lanes here</a>, or <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">plan a group event</a>
         if you'd rather book the room than gift a card.
       </p>
     </div>
