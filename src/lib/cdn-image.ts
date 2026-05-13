@@ -27,20 +27,23 @@
  *
  * @param url     Source image URL (likely from GoTab API response)
  * @param width   Target width in pixels (Vercel resizes + caches per width)
- * @param quality JPEG/AVIF/WebP quality, 1-100. Default 80 — visually
- *                lossless at this level, significant byte savings over q100.
- *                Drop to q70 for further savings if needed.
+ * @param quality AVIF/WebP/JPEG quality, 1-100. Default 70 — verified
+ *                visually identical to q80 for product photography at
+ *                thumbnail sizes (<720px), ~30% smaller file size.
+ *                Stop at q70: q60 starts to show artifacts on detailed
+ *                food images. Override per-call if a specific image
+ *                needs higher fidelity (e.g. a hero photograph).
  *
  * @returns Vercel image URL, or null if input was null/undefined.
  *
  * @example
  *   cdnImage("https://img.gotab.io/products/.../foo.jpeg", 480)
- *   // -> "/_vercel/image?url=https%3A%2F%2Fimg.gotab.io%2F...&w=480&q=80"
+ *   // -> "/_vercel/image?url=https%3A%2F%2Fimg.gotab.io%2F...&w=480&q=70"
  */
 export function cdnImage(
   url: string | null | undefined,
   width: number,
-  quality = 80,
+  quality = 70,
 ): string | null {
   if (!url) return null;
   const encoded = encodeURIComponent(url);
