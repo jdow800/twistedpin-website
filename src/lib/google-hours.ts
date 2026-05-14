@@ -6,8 +6,13 @@
 // .env keys), Vercel runs with it once GOOGLE_MAPS_API_KEY +
 // GOOGLE_PLACE_ID are set in the project settings.
 //
-// Daily 4am cron rebuild keeps the cached hours fresh — fresh enough for
-// the use case (holiday hours updates land within ~24h).
+// Cost discipline (see 2026-05-13 decisions): we read hours from a daily
+// snapshot committed to src/data/live-hours.json. The cron route fetches
+// Places once per day and commits the snapshot via GitHub API — every
+// build that day imports the JSON instead of hitting Places. Module-level
+// promise memo is the belt-and-suspenders fallback: if the snapshot is
+// missing/stale and we DO hit the API, all callers in the same build
+// process share a single fetch.
 //
 // Field mask: currentOpeningHours (NOT regularOpeningHours). Same Pro tier
 // SKU, but currentOpeningHours overlays Google Business Profile's holiday
@@ -15,6 +20,7 @@
 // closed in Business Profile, the website reflects it on the next build.
 
 import type { DayKey } from "../data/hours";
+import cachedHoursFile from "../data/live-hours.json";
 
 const PLACES_URL = "https://places.googleapis.com/v1/places";
 const FETCH_TIMEOUT_MS = 8_000;
@@ -72,19 +78,61 @@ function formatTime(hour: number, minute: number): string {
   return `${h12}${minStr}${period}`;
 }
 
+/** Snapshot file shape — written by the daily cron (see /api/cron/rebuild). */
+interface CachedHoursSnapshot {
+  /** ISO timestamp of when the cron wrote the snapshot. */
+  fetchedAt?: string;
+  /** Hours by day, in our normalized shape. */
+  hours?: LiveHours;
+}
+
 /**
- * Pull live weekly hours from Google Places. Returns null when the API
- * key or place ID isn't configured — caller falls back to static data
- * in src/data/hours.ts. Returns null on any fetch error too (logged,
- * non-fatal).
+ * Cache freshness ceiling. Snapshot is rewritten daily by cron — anything
+ * older than this falls back to a live fetch. 48h gives one cron-miss of
+ * grace before we re-hit the API.
  */
-export async function getLiveHours(): Promise<LiveHours | null> {
+const SNAPSHOT_STALE_AFTER_MS = 48 * 60 * 60 * 1000;
+
+/**
+ * Module-level promise memo. Every page that renders during a single
+ * build process shares ONE fetch — the previous implementation called
+ * getLiveHours() ~70x per build (once per page via SnapFooter + schema)
+ * and hit the API each time. See decisions log 2026-05-13.
+ */
+let liveHoursPromise: Promise<LiveHours | null> | null = null;
+
+/**
+ * Pull weekly hours. Read order:
+ *   1. Committed snapshot at src/data/live-hours.json (cron-written, ≤24h old)
+ *   2. Live Google Places API (memoized — one call per build process max)
+ *   3. null → caller falls back to src/data/hours.ts static data
+ */
+export function getLiveHours(): Promise<LiveHours | null> {
+  // 1. Try the committed snapshot first — zero API cost.
+  const snap = cachedHoursFile as CachedHoursSnapshot;
+  if (snap.hours && snap.fetchedAt) {
+    const ageMs = Date.now() - new Date(snap.fetchedAt).getTime();
+    if (Number.isFinite(ageMs) && ageMs >= 0 && ageMs < SNAPSHOT_STALE_AFTER_MS) {
+      return Promise.resolve(snap.hours);
+    }
+    if (import.meta.env.DEV) {
+      console.warn(`[google-hours] snapshot stale (${Math.round(ageMs / 3.6e6)}h old), falling through to live fetch`);
+    }
+  }
+
+  // 2. Memoized live fetch — at most one network call per build process.
+  if (!liveHoursPromise) {
+    liveHoursPromise = fetchLiveHoursFromAPI();
+  }
+  return liveHoursPromise;
+}
+
+/** Underlying Places API fetch — used by getLiveHours() and the cron route. */
+export async function fetchLiveHoursFromAPI(): Promise<LiveHours | null> {
   const apiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
   const placeId = import.meta.env.GOOGLE_PLACE_ID;
 
   if (!apiKey || !placeId) {
-    // Silent in production builds (don't spam Vercel logs); useful in
-    // local dev to know why hours are static.
     if (import.meta.env.DEV) {
       console.warn("[google-hours] skipping — GOOGLE_MAPS_API_KEY / GOOGLE_PLACE_ID not set, falling back to static hours");
     }
