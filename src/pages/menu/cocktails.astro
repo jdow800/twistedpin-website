@@ -97,8 +97,8 @@ const menuSchema = {
                       <img
                         src={cdnImage(c.imageUrl, 480)}
                         srcset={c.imageUrlLg
-                          ? `${cdnImage(c.imageUrl, 320)} 320w, ${cdnImage(c.imageUrl, 480)} 480w, ${cdnImage(c.imageUrlLg, 720)} 720w`
-                          : `${cdnImage(c.imageUrl, 320)} 320w, ${cdnImage(c.imageUrl, 480)} 480w`}
+                          ? `${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w, ${cdnImage(c.imageUrlLg, 720, 85)} 720w, ${cdnImage(c.imageUrlLg, 1080, 85)} 1080w`
+                          : `${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w`}
                         sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
                         alt={c.name}
                         width="480"
