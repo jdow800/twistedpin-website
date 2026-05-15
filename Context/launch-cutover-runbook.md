@@ -51,9 +51,55 @@ When you come back:
 1. **Bot Protection log review** — flip from Logging → Enforcement if logs look clean. (Scheduled per Phase 7 of this runbook.)
 2. **Verify all analytics tools have a week of data** — Web Analytics, Clarity, GSC.
 3. **Check GSC "Page with redirect" report** — confirms our 70 redirects in vercel.json are doing their job.
-4. **Re-PSI** — see real cumulative impact of today's perf work vs the q80 baseline.
+4. ~~**Re-PSI**~~ ✅ **Validated 2026-05-14** — see baseline snapshot below
 5. **Flip apex `twistedpin.com → www.twistedpin.com` redirect from 307 → 308** (now that we have a week of stable operation).
 6. Anything new that surfaced in the interim.
+
+### 📊 Performance baseline — 2026-05-14 SEO crawl
+
+Third-party SEO service ran PSI across all crawlable pages two days after launch. **Confirms yesterday's image-optimization work landed: `/menu/food/` 58 → 93, `/menu/cocktails/` 58 → 87.** All scores are mobile Lighthouse synthetic (CrUX field data already passing per real-user Core Web Vitals).
+
+Save this as the baseline to compare against future reports — the goal is "stay green or improve," not chase 100 on every page.
+
+| Page | Performance | LCP (ms) | CLS |
+|---|---|---|---|
+| `/` | **100** | 954 | 0.007 |
+| `/new-years-eve/` | 99 | 1801 | 0.021 |
+| `/bar/` | 99 | 2101 | 0.042 |
+| `/accessibility/` | 98 | 2101 | 0.060 |
+| `/leagues/` | 98 | 2251 | — |
+| `/menu/` | 98 | 2176 | 0.034 |
+| `/bowl/` | 97 | 2551 | — |
+| `/birthday-parties-booking/` | 96 | 2701 | 0.020 |
+| `/eat/` | 96 | 2776 | 0.006 |
+| `/menu/food/` | 93 | 3077 | 0.019 |
+| `/pricing/` | 89 | 3616 | 0.049 |
+| `/blog/date-night-spots-plainfield/` | 89 | 3376 | 0.084 |
+| `/menu/cocktails/` | 87 | 3905 | 0.0002 |
+| `/privacy/` | 87 | 4051 | 0.007 |
+| `/faq/` | 87 | 3976 | 0.004 |
+| `/gift-cards/` | 86 | 4051 | 0.003 |
+| `/blog/corporate-event-venue-near-naperville/` | 86 | 4051 | 0.047 |
+| `/careers/` | 85 | 4201 | — |
+| `/menu/taps/` | 83 | 4501 | — |
+| `/fundraisers/` | 82 | 4727 | 0.012 |
+| `/game/` | 78 | 5702 | 0.005 |
+| `/free-kids-bowling/` | 76 | 4051 | 0.038 |
+
+**Highlights:**
+- Homepage **100** (LCP < 1s)
+- 9 of 22 pages at 95+
+- 90% at 80+
+- All pages pass CLS threshold (<0.1)
+- Top conversion pages (`/`, `/bar`, `/eat`, `/bowl`, `/events`-style, `/menu/`) all 96+
+
+**Bottom-tier outliers** (known causes, deferred unless future reports show regression):
+- `/game/` 78 — arcade video on page; deferring video to scroll-near would help
+- `/free-kids-bowling/` 76 — iframe-wrapped TablesReady form; iframe lazy-load would help
+- `/fundraisers/` 82 — investigate hero/asset setup
+- `/menu/taps/` 83 — Untappd labels heavy on slow 4G; Vercel image proxy would help marginally
+
+Decision: **not optimizing further today.** Re-PSI when the next SEO crawl report lands. If anything regresses, address then.
 
 ---
 
