@@ -94,19 +94,35 @@ const menuSchema = {
                 <li class="cocktail-card">
                   {c.imageUrl && (
                     <div class="cocktail-card-frame">
-                      <img
-                        src={cdnImage(c.imageUrl, 480)}
-                        srcset={c.imageUrlLg
-                          ? `${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w, ${cdnImage(c.imageUrlLg, 720, 85)} 720w, ${cdnImage(c.imageUrlLg, 1080, 85)} 1080w`
-                          : `${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w`}
-                        sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
-                        alt={c.name}
-                        width="480"
-                        height="480"
-                        loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
-                        fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
-                        decoding="async"
-                      />
+                      {/* Per-device image strategy (2026-05-14):
+                          Desktop (>=1025px) loads GoTab's native JPEG
+                          directly — no Vercel re-encoding, no generational
+                          compression loss. Cocktail product photography
+                          shown at 270px CSS / 540-810 device pixels needs
+                          source fidelity that the AVIF re-encode at q85
+                          was visibly softening (especially detail-heavy
+                          shots: garnishes, ice clarity, glassware). Cost
+                          accepted: cross-origin to img.gotab.io for
+                          desktop variant, larger payload (~50-80KB JPEG
+                          vs ~25-40KB AVIF), no Vercel CDN benefit on
+                          that variant. Mobile keeps Vercel AVIF — smaller
+                          display + glance behavior hides compression. */}
+                      <picture>
+                        {c.imageUrlLg && (
+                          <source media="(min-width: 1025px)" srcset={c.imageUrlLg} />
+                        )}
+                        <img
+                          src={cdnImage(c.imageUrl, 480, 70)}
+                          srcset={`${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w`}
+                          sizes="(min-width: 700px) 30vw, 46vw"
+                          alt={c.name}
+                          width="480"
+                          height="480"
+                          loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
+                          fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
+                          decoding="async"
+                        />
+                      </picture>
                       {c.isStaffFavorite && (
                         <span class="cocktail-card-badge">Staff Pick</span>
                       )}

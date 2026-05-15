@@ -117,19 +117,31 @@ const menuSchema = {
                 <li class="food-card">
                   {it.imageUrl ? (
                     <div class="food-card-frame">
-                      <img
-                        src={cdnImage(it.imageUrl, 480)}
-                        srcset={it.imageUrlLg
-                          ? `${cdnImage(it.imageUrl, 320, 70)} 320w, ${cdnImage(it.imageUrl, 480, 70)} 480w, ${cdnImage(it.imageUrlLg, 720, 85)} 720w, ${cdnImage(it.imageUrlLg, 1080, 85)} 1080w`
-                          : `${cdnImage(it.imageUrl, 320, 70)} 320w, ${cdnImage(it.imageUrl, 480, 70)} 480w`}
-                        sizes="(min-width: 1025px) 270px, (min-width: 700px) 30vw, 46vw"
-                        alt={it.name}
-                        width="480"
-                        height="480"
-                        loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
-                        fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
-                        decoding="async"
-                      />
+                      {/* Per-device image strategy (2026-05-14):
+                          Desktop loads GoTab's native JPEG directly to
+                          preserve source fidelity. Vercel AVIF re-encode
+                          at q85 was visibly softening food photography
+                          on retina displays — texture detail (fries,
+                          sesame seeds, sauce drips) gets smoothed by AVIF
+                          even at high quality settings. Mobile keeps
+                          Vercel AVIF for speed. See cocktails.astro for
+                          full rationale. */}
+                      <picture>
+                        {it.imageUrlLg && (
+                          <source media="(min-width: 1025px)" srcset={it.imageUrlLg} />
+                        )}
+                        <img
+                          src={cdnImage(it.imageUrl, 480, 70)}
+                          srcset={`${cdnImage(it.imageUrl, 320, 70)} 320w, ${cdnImage(it.imageUrl, 480, 70)} 480w`}
+                          sizes="(min-width: 700px) 30vw, 46vw"
+                          alt={it.name}
+                          width="480"
+                          height="480"
+                          loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
+                          fetchpriority={catIdx === 0 && idx === 0 ? "high" : "auto"}
+                          decoding="async"
+                        />
+                      </picture>
                       {it.isStaffFavorite && (
                         <span class="food-card-badge">Staff Pick</span>
                       )}
