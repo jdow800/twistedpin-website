@@ -182,6 +182,9 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
       <a class="btn btn-solid" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
         Get the Summer Pin Pass
       </a>
+      <p class="fkb-pinpass-deeplink">
+        <a href="/summer-pin-pass/">More details →</a>
+      </p>
     </div>
   </section>
 
@@ -388,4 +391,17 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
     .fkb-pinpass-title { font-size: clamp(40px, 4.2vw, 56px); }
   }
   .fkb-pinpass-section .btn { margin-top: 18px; }
+  .fkb-pinpass-deeplink {
+    margin: 14px 0 0;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .fkb-pinpass-deeplink a {
+    color: var(--warm-mid);
+    text-decoration: none;
+    transition: color 150ms ease-out;
+  }
+  .fkb-pinpass-deeplink a:hover { color: var(--glow); }
 </style>

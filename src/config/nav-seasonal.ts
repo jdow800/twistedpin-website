@@ -65,6 +65,24 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     showFrom: "2026-04-15",
     showUntil: "2026-09-01",
   },
+  /**
+   * Summer Pin Pass: page lives at /summer-pin-pass/ year-round.
+   * Sits directly below Free Kids Bowling in the drawer order (same
+   * season + same audience pair: parents). The Pin Pass is the
+   * paid upgrade — unlimited household summer bowling including
+   * evenings and weekends, $159.95 — vs the free kids program
+   * (weekdays 11-4 only, kids only, registration required). Both
+   * use the Apr 15 -> Sep 1 window so they appear together during
+   * the summer-planning + program-running months.
+   */
+  {
+    label: "Summer Pin Pass",
+    href: "/summer-pin-pass/",
+    icon: "sun",
+    section: "Visit",
+    showFrom: "2026-04-15",
+    showUntil: "2026-09-01",
+  },
 ];
 
 /** Active items at build time. Returns only items inside their window. */

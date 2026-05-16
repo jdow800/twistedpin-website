@@ -1,0 +1,354 @@
+---
+/**
+ * /summer-pin-pass/ — dedicated Summer Pin Pass page.
+ *
+ * Extracted from the /free-kids-bowling Pin Pass upsell section
+ * 2026-05-14 — gives the Pass its own URL for direct linking,
+ * SMS shareability via Avery (AI receptionist), and SEO targeting
+ * on "summer bowling pass [city]" searches. Before this page, the
+ * Pin Pass was only discoverable by scrolling halfway down
+ * /free-kids-bowling/.
+ *
+ * Seasonal nav: surfaces in NavDrawer Visit section Apr 15 → Sep 1
+ * via src/config/nav-seasonal.ts (same window as Free Kids Bowling
+ * — they're a natural pair: free program is the entry point, Pin
+ * Pass is the upgrade for families bowling more than weekday
+ * mornings). URL stays live year-round so legacy/external links
+ * don't break.
+ *
+ * Conversion: direct ecommerce on Roller. Single-button funnel —
+ * no form fill, no email capture, just send them to checkout.
+ *
+ * Cross-links:
+ *   - /free-kids-bowling/ Pin Pass section now has "More details →"
+ *     to this page (parent flow: read about free program → see
+ *     Pin Pass exists → click through for full details → buy).
+ *   - This page's "Not the free kids program" section links back.
+ *
+ * Vercel redirect: /summerpinpass → /summer-pin-pass (single-word
+ * verbal shortlink for Avery, matches the Roller URL spelling).
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+
+const PIN_PASS_URL = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/home";
+const PRICE = "$159.95";
+---
+<Base
+  title="Summer Pin Pass — Unlimited Summer Bowling in Plainfield, IL | Twisted Pin"
+  description="The Summer Pin Pass: $159.95 for unlimited 1.5-hour bowling visits every day all summer. Weekends and evenings included. Twisted Pin in Plainfield, IL."
+>
+
+  {/* ============================================================
+      HERO — typography-led, no image. Tight enough to read above
+      the fold on mobile; "Unlimited summer bowling." is the
+      five-word elevator pitch.
+      ============================================================ */}
+  <section class="t2-hero" data-hero aria-labelledby="spp-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Summer 2026</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="spp-h1" data-delay-ms="120">
+        Unlimited summer bowling.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        One pass. {PRICE}. Bowl every day, all summer — weekends and
+        evenings included.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE PASS — video left, value-prop copy right. The video is
+      the existing summer-pass clip (already encoded for the
+      homepage cluster section). single-active-video rule via
+      data-section-video / sectionVideo() in motion.client.ts.
+      ============================================================ */}
+  <section class="spp-section" aria-labelledby="spp-what-h2">
+    <div class="spp-section-grid">
+      <div class="spp-frame">
+        <video
+          class="spp-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/summer-pass-poster.webp"
+          aria-label="Bowling at Twisted Pin — Summer Pin Pass program"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="spp-copy">
+        <p class="t-eyebrow">The Pass</p>
+        <h2 class="t-display spp-section-title" id="spp-what-h2">
+          One pass. Every day.
+        </h2>
+        <p class="spp-section-body">
+          The Summer Pin Pass is <strong>{PRICE}</strong> for the
+          whole household. One 1.5-hour bowling visit, every day, all
+          summer. Weekends. Evenings. Holidays. If you can find a lane,
+          you can use it.
+        </p>
+        <ul class="spp-feature-list">
+          <li>Unlimited 1.5-hour bowling visits, one per day</li>
+          <li>Weekends, evenings, and weekdays — no schedule restrictions</li>
+          <li>Covers the whole household</li>
+          <li>One flat price, no per-visit costs</li>
+        </ul>
+        <a class="btn btn-solid" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
+          Get the Summer Pin Pass
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      NOT THE FREE KIDS PROGRAM — disambiguation. Parents land
+      here from search and might confuse the two. Cross-link to
+      /free-kids-bowling/ so they can see both and pick.
+      ============================================================ */}
+  <section class="spp-section spp-section--editorial" aria-labelledby="spp-vs-h2">
+    <div class="spp-section-inner">
+      <p class="t-eyebrow">Different program</p>
+      <h2 class="t-display spp-section-title" id="spp-vs-h2">
+        Not the same as the free kids program.
+      </h2>
+      <p class="spp-section-body">
+        <a href="/free-kids-bowling/">Free Summer Bowling for Kids</a> is
+        a separate program — free, weekdays 11am–4pm only, kids 15 and
+        under, runs in June. Limited daily lane availability.
+      </p>
+      <p class="spp-section-body">
+        The Summer Pin Pass is the upgrade for families that want to
+        bowl on weekends, in the evenings, or every day. The kids
+        program covers weekday mornings; the Pin Pass covers the rest
+        of the week.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — single dominant button, $-tagged so the
+      price is the last thing they see before clicking.
+      ============================================================ */}
+  <section class="spp-cta-band" aria-labelledby="spp-cta-h2">
+    <div class="spp-cta-inner">
+      <h2 class="t-display spp-cta-title" id="spp-cta-h2">
+        Buy once. Bowl all summer.
+      </h2>
+      <p class="spp-cta-sub">
+        Available through summer 2026.
+      </p>
+      <a class="btn btn-solid spp-cta-btn" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
+        Get the Summer Pin Pass · {PRICE}
+      </a>
+    </div>
+  </section>
+
+  {/* ============================================================
+      SEO BODY — hyper-local. Per 2026-05-07 SEO research,
+      neighborhood/landmark/city-name density (not generic
+      "near you") is what holds up against AI Overview citation.
+      ============================================================ */}
+  <section class="spp-section spp-section--editorial" aria-labelledby="spp-seo-h2">
+    <div class="spp-section-inner">
+      <h2 class="t-display spp-section-title" id="spp-seo-h2">
+        About the Summer Pin Pass.
+      </h2>
+      <p class="spp-section-body">
+        Twisted Pin's Summer Pin Pass gives Plainfield, Naperville,
+        Romeoville, Bolingbrook, Joliet, Oswego, and Shorewood families
+        unlimited summer bowling for one flat price. <strong>{PRICE}</strong>
+        covers the whole household — one 1.5-hour bowling visit every
+        day from program start through summer's end. Weekends,
+        evenings, and holidays included.
+      </p>
+      <p class="spp-section-body">
+        The Pin Pass is built for families that bowl multiple times a
+        week. If you bowl occasionally, our
+        <a href="/pricing/">walk-in pricing</a> works fine. If you bowl
+        2+ times a week, or want evenings and weekends covered, the
+        Pin Pass starts paying for itself fast.
+      </p>
+      <p class="spp-section-body">
+        Find us at <strong>15610 Joliet Rd, Plainfield, IL 60544</strong>
+        — minutes from Naperville, Romeoville, Bolingbrook, and Joliet.
+        Lane availability is subject to walk-in capacity on busy
+        nights; <a href="/reserve">reserve a lane in advance</a> if
+        you're planning a specific time.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Summer Pin Pass", path: "/summer-pin-pass/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     Page styles — mirrors the /free-kids-bowling pattern with
+     spp-* prefix. Reuses t2-hero / t-display / t-eyebrow / btn
+     global classes. When a fifth pillar/specialty page lands
+     these section vocabularies should hoist to .pillar-* utilities
+     in global.css (flagged 2026-05-03 on /bar landing).
+     ============================================================ */
+  .spp-section {
+    background: transparent;
+    padding: 32px 22px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .spp-section { padding: 56px 64px; }
+  }
+
+  .spp-section-inner,
+  .spp-section-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* The Pass section — video frame on the left, copy on the right.
+     Mobile stacks; desktop splits. Mirrors /events Tap Wall split. */
+  .spp-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    align-items: center;
+  }
+  @media (min-width: 1025px) {
+    .spp-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 64px;
+    }
+  }
+
+  .spp-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 9 / 16;
+    max-height: min(640px, calc(70vh - 80px));
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    margin: 0 auto;
+    width: 100%;
+    max-width: 360px;
+  }
+  @media (min-width: 1025px) {
+    .spp-frame { max-width: 100%; }
+  }
+
+  .spp-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .spp-section-title {
+    color: var(--warm-white);
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 8px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .spp-section-title { font-size: clamp(44px, 4.5vw, 60px); }
+  }
+
+  .spp-section-body {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--warm-mid);
+    margin: 0 0 14px;
+    max-width: 36em;
+  }
+  @media (min-width: 1025px) {
+    .spp-section-body { font-size: 17px; line-height: 1.6; }
+  }
+
+  .spp-section-body strong { color: var(--warm-white); }
+
+  .spp-section-body a {
+    color: var(--glow);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* Feature list — same Glow-tick pattern used on /free-kids-bowling */
+  .spp-feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0 22px;
+  }
+  .spp-feature-list li {
+    position: relative;
+    padding: 6px 0 6px 20px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.45;
+    color: var(--warm-mid);
+  }
+  .spp-feature-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 1px;
+    background: var(--glow);
+  }
+
+  /* Editorial sections (vs free kids + SEO body) — single column,
+     centered, narrower max-width than the split section above. */
+  .spp-section--editorial .spp-section-inner {
+    max-width: 760px;
+  }
+
+  /* CTA band — distinct treatment so the closing CTA reads as a
+     decisive moment, not just another section. Subtle Indigo Deep
+     lift + warm-white border to mark the closing beat. */
+  .spp-cta-band {
+    background: rgba(14, 10, 31, 0.55);
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.10);
+    padding: 48px 22px;
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .spp-cta-band { padding: 80px 64px; }
+  }
+  .spp-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  .spp-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(32px, 8vw, 48px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+  @media (min-width: 1025px) {
+    .spp-cta-title { font-size: clamp(48px, 5vw, 68px); }
+  }
+  .spp-cta-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0 0 24px;
+  }
+  .spp-cta-btn {
+    font-size: 16px;
+    padding: 16px 32px;
+  }
+</style>
