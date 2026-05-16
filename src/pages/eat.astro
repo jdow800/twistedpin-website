@@ -91,9 +91,9 @@ const restaurantSchema = {
   <section class="eat-section" aria-labelledby="eat-kitchen-h2">
     <div class="eat-section-grid">
       <div class="eat-section-frame">
-        {/* Placeholder video (2026-05-12) — uses the homepage mobile-hero
-            assets (pour → tap wall → cocktail splice) until distinct
-            kitchen video lands. Lazy-loaded via data-section-video. */}
+        {/* Kitchen video — "Best things to order" plates clip. Lazy-loaded
+            via data-section-video. (Updated 2026-05-15 from a placeholder
+            /hero/hero-* source to the dedicated best-things asset.) */}
         <video
           class="eat-section-video"
           data-section-video
@@ -101,13 +101,13 @@ const restaurantSchema = {
           muted
           loop
           playsinline
-          data-poster="/hero/hero-poster.webp"
-          aria-label="A pour at the bar, the tap wall, and a cocktail being built at Twisted Pin"
+          data-poster="/snap/best-things-poster.webp"
+          aria-label="The best things to order from the Twisted Pin kitchen"
         >
-          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source media="(max-width: 480px)" data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/hero/hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/hero/hero-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(max-width: 480px)" data-src="/snap/best-things-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/best-things-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/best-things-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/best-things-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="eat-section-copy">
@@ -143,20 +143,25 @@ const restaurantSchema = {
   <section class="eat-section eat-section--reverse" aria-labelledby="eat-share-h2">
     <div class="eat-section-grid">
       <div class="eat-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/eat-share-540.webp 540w, /snap/eat-share-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="eat-section-img"
-            src="/snap/eat-share-540.jpg"
-            srcset="/snap/eat-share-540.jpg 540w, /snap/eat-share-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="A platter of saucy wings on a chafer at Twisted Pin"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Built to Share — buffet "before and after" video. Same asset
+            as /vip-suite and /events second-section catering frames.
+            Lazy-loaded via data-section-video. (Updated 2026-05-15 from
+            the eat-share still photo to the dedicated buffet video.) */}
+        <video
+          class="eat-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/buffet-poster.webp"
+          aria-label="A catering buffet at Twisted Pin — plates built to share"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="eat-section-copy">
         <p class="t-eyebrow">Built to Share</p>

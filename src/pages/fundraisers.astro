@@ -95,20 +95,25 @@ const serviceSchema = {
   <section class="fundraiser-section" aria-labelledby="fundraiser-how-h2">
     <div class="fundraiser-section-grid">
       <div class="fundraiser-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="fundraiser-section-img"
-            src="/snap/events-bg-600.jpg"
-            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="A group enjoying a night out at Twisted Pin in Plainfield, IL"
-            width="600"
-            height="1067"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* How It Works video — Summer Pin Pass clip (Thursday-night
+            group energy on the traditional lanes). Lazy-loaded via
+            data-section-video. (Updated 2026-05-15 from a stub
+            events-bg still photo to the summer-pass video.) */}
+        <video
+          class="fundraiser-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/summer-pass-poster.webp"
+          aria-label="A fundraiser group bowling at Twisted Pin in Plainfield, IL"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="fundraiser-section-copy">
         <p class="t-eyebrow">How It Works</p>
@@ -146,20 +151,26 @@ const serviceSchema = {
   <section class="fundraiser-section fundraiser-section--reverse" aria-labelledby="fundraiser-why-h2">
     <div class="fundraiser-section-grid">
       <div class="fundraiser-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/stage-game-540.webp 540w, /snap/stage-game-900.webp 900w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="fundraiser-section-img"
-            src="/snap/stage-game-540.jpg"
-            srcset="/snap/stage-game-540.jpg 540w, /snap/stage-game-900.jpg 900w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="Arcade games at Twisted Pin — pinball, redemption, skee-ball"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Why Bowling Fundraisers Work — arcade video (same as /game
+            first-section "One more time" clip). Bowling + arcade =
+            engagement-driven revenue for the fundraiser. Lazy-loaded
+            via data-section-video. (Updated 2026-05-15 from a stub
+            stage-game still photo to the arcade video.) */}
+        <video
+          class="fundraiser-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/arcade-poster.webp"
+          aria-label="Arcade and bowling at Twisted Pin — fundraiser revenue lanes"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/arcade-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="fundraiser-section-copy">
         <p class="t-eyebrow">Why Bowling</p>

@@ -92,24 +92,25 @@ const bowlingAlleySchema = {
   <section class="bowl-section" aria-labelledby="bowl-traditional-h2">
     <div class="bowl-section-grid">
       <div class="bowl-section-frame">
-        {/* Stub photo — uses events-bg for now (group-energy lane shot).
-            Need distinct traditional-lane photography (per
-            visual-direction.md, AIV07036-Enhanced-NR teal/green lit
-            lanes are OK on /bowl, just not on the homepage hero). */}
-        <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp 540w, /snap/events-bg-600.webp 600w" sizes="(min-width: 1025px) 480px, 90vw" />
-          <img
-            class="bowl-section-img"
-            src="/snap/events-bg-600.jpg"
-            srcset="/snap/events-bg-540.jpg 540w, /snap/events-bg-600.jpg 600w"
-            sizes="(min-width: 1025px) 480px, 90vw"
-            alt="Bowling lanes at Twisted Pin in Plainfield, IL"
-            width="600"
-            height="1067"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* Traditional Lanes video — Summer Pin Pass clip (family bowling
+            energy that fits the traditional-lane positioning). Lazy-loaded
+            via data-section-video. (Updated 2026-05-15 from a stub
+            events-bg still photo to a dedicated summer-pass video.) */}
+        <video
+          class="bowl-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/summer-pass-poster.webp"
+          aria-label="Bowling on the traditional lanes at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="bowl-section-copy">
         <p class="t-eyebrow">Traditional Lanes</p>
@@ -164,18 +165,25 @@ const bowlingAlleySchema = {
   <section class="bowl-section bowl-section--reverse" aria-labelledby="bowl-vip-h2">
     <div class="bowl-section-grid">
       <div class="bowl-section-frame">
-        <picture>
-          <source type="image/webp" srcset="/snap/events-bg-540.webp" />
-          <img
-            class="bowl-section-img"
-            src="/snap/events-bg-540.jpg"
-            alt="The 6-lane VIP suite at Twisted Pin"
-            width="540"
-            height="960"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+        {/* VIP Suite Preview — uses the same vip-lanes video as the
+            first section on /vip-suite. Reinforces the suite as a
+            distinct space; click-through goes to the full pillar.
+            Lazy-loaded via data-section-video. */}
+        <video
+          class="bowl-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/vip-lanes-poster.webp"
+          aria-label="The 6-lane VIP suite at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
       </div>
       <div class="bowl-section-copy">
         <p class="t-eyebrow">The VIP Suite</p>
