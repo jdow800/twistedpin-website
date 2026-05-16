@@ -107,6 +107,105 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
       })(window, document, "clarity", "script", "wq8e536e4r");
     </script>
 
+    {/* ===========================================================
+        Google Analytics 4 + Meta Pixel — queue-immediately, fetch-late
+        ===========================================================
+        Both tracking pixels follow the same two-stage pattern:
+          1. Inline stub sets up the global function (gtag / fbq) and
+             its queue array. This is tiny (~1KB total for both) and
+             runs synchronously during head parse.
+          2. The page calls config() / init() / track('PageView')
+             immediately — these calls QUEUE into the stub's array,
+             they do not fetch anything yet.
+          3. The heavy script downloads (gtag.js ~50KB, fbevents.js
+             ~70KB) defer until requestIdleCallback OR first user
+             interaction (whichever fires first). When they load,
+             they consume the queue and dispatch every queued event.
+
+        Why this matters: a naive install with <script async> in head
+        still competes for connection slots and CPU during LCP. This
+        pattern keeps the heavy scripts entirely out of the LCP
+        critical path while still tracking 100% of legitimate
+        visitors (anyone who interacts OR stays past idle).
+
+        Trade-off accepted: visitors who bounce in <1-2 seconds
+        without any interaction won't be tracked. For ad attribution
+        this is a feature — bouncers don't convert, so tracking
+        them adds noise without value.
+
+        Conversion attribution flow:
+          - GA4 events marked as "Conversions" in GA4 admin
+          - GA4 → auto-imports into Google Ads as conversion goals
+          - Meta Pixel events match Meta's standard event vocabulary
+            (PageView, Contact, Lead, InitiateCheckout, FindLocation)
+          - Cross-domain linker preserves click_id across Roller,
+            event.twistedpin.com, and Zite (when Avery is on).
+        =========================================================== */}
+    <script is:inline>
+      // GA4 stub — gtag() and dataLayer queue available immediately.
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function(){ window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', 'G-R64WB0Y4VW', {
+        // Cross-domain linker preserves Google click_id (gclid) across
+        // referral hops. Add new destinations here when funnel changes:
+        //   - ecom.roller.app: lane reservations
+        //   - event.twistedpin.com: Heyflow event form (Avery OFF)
+        //   - twistedevents.zite.so: Zite event form (Avery ON)
+        linker: { domains: ['ecom.roller.app', 'event.twistedpin.com', 'twistedevents.zite.so'] }
+      });
+
+      // Meta Pixel stub — defines fbq() function and queue. Does NOT
+      // inject fbevents.js (that's deferred to interaction below).
+      (function(f){
+        if (f.fbq) return;
+        var n = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+        if (!f._fbq) f._fbq = n;
+        n.push = n; n.loaded = true; n.version = '2.0'; n.queue = [];
+      })(window);
+      window.fbq('init', '106774361588990');
+      window.fbq('track', 'PageView');
+
+      // Heavy script loader — fires once on first qualifying signal.
+      (function(){
+        var loaded = false;
+        function loadAdScripts(){
+          if (loaded) return;
+          loaded = true;
+          // GA4 gtag.js
+          var ga = document.createElement('script');
+          ga.async = true;
+          ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-R64WB0Y4VW';
+          document.head.appendChild(ga);
+          // Meta fbevents.js
+          var fb = document.createElement('script');
+          fb.async = true;
+          fb.src = 'https://connect.facebook.net/en_US/fbevents.js';
+          document.head.appendChild(fb);
+        }
+
+        // Defer to requestIdleCallback (Chrome/FF/Edge) when browser is idle,
+        // OR to a setTimeout fallback (Safari), OR to first user interaction
+        // (likely sooner than either). Whichever fires first wins.
+        var idle = window.requestIdleCallback || function(cb){ setTimeout(cb, 2500); };
+        function scheduleIdle(){ idle(loadAdScripts, { timeout: 4000 }); }
+        if (document.readyState === 'complete') {
+          scheduleIdle();
+        } else {
+          window.addEventListener('load', scheduleIdle, { once: true });
+        }
+        ['mousemove','touchstart','scroll','keydown','click'].forEach(function(t){
+          window.addEventListener(t, loadAdScripts, { once: true, passive: true });
+        });
+      })();
+    </script>
+    <noscript>
+      {/* Meta Pixel JS-disabled fallback — fires a PageView via pixel image. */}
+      <img height="1" width="1" style="display:none"
+           src="https://www.facebook.com/tr?id=106774361588990&ev=PageView&noscript=1"
+           alt="" />
+    </noscript>
+
     {/* Hero LCP preloads — poster image is the LCP element, not the video. */}
     <link
       rel="preload"
@@ -154,7 +253,9 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 
     <script>
       import { initMotion } from "../scripts/motion.client.ts";
+      import { initClickTracking } from "../scripts/track-clicks.client.ts";
       initMotion();
+      initClickTracking();
     </script>
 
     <style is:global>

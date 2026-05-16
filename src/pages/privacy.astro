@@ -2,6 +2,18 @@
 /**
  * /privacy — Privacy Policy.
  *
+ * Updated 2026-05-15: ad-tracking pixels added.
+ *   - Google Analytics 4 (gtag.js) installed for cross-channel ad
+ *     attribution. Uses first-party cookies; data flows to Google.
+ *   - Meta Pixel (Facebook/Instagram ads) installed for paid social
+ *     campaign optimization. Uses first-party cookies; data flows to Meta.
+ *   - Both lazy-loaded post-LCP to minimize perf impact.
+ *   - Section 5 rewritten to accurately disclose both tools and the
+ *     cookie-based + cross-site tracking they perform. The previous
+ *     "cookieless, no cross-site tracking" framing applied only to
+ *     Vercel Web Analytics + Microsoft Clarity; that framing no
+ *     longer applies to the full analytics stack.
+ *
  * Updated 2026-05-13: analytics disclosure rewritten post-migration.
  *   - Removed Google Analytics claim (GA4 deferred until ad campaigns
  *     start; not currently installed)
@@ -37,7 +49,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-const LAST_UPDATED = "May 13, 2026";
+const LAST_UPDATED = "May 15, 2026";
 ---
 <Base
   title="Privacy Policy | Twisted Pin"
@@ -116,14 +128,34 @@ const LAST_UPDATED = "May 13, 2026";
         <li><strong>Business transfers:</strong> in connection with a merger, acquisition, or sale of assets, with notice provided to you</li>
       </ul>
 
-      <h2 class="legal-h2" id="privacy-h2-5">5. Analytics and Session Recording</h2>
-      <p>To understand how visitors interact with our website, we use two analytics tools. Both are cookieless and do not track you across other websites for advertising purposes.</p>
+      <h2 class="legal-h2" id="privacy-h2-5">5. Analytics, Ad Tracking, and Session Recording</h2>
+      <p>To understand how visitors interact with our website and to measure the performance of our advertising campaigns, we use four tracking tools. Two are cookieless (analytics-only); two use cookies and participate in cross-site advertising networks.</p>
+
+      <p><strong>Cookieless tools (no cross-site advertising tracking):</strong></p>
       <ul>
         <li><strong>Vercel Web Analytics</strong> (operated by Vercel, Inc.): collects aggregated pageview data including pages visited, referring URLs, device type, browser, and approximate geographic region derived from IP address.</li>
         <li><strong>Microsoft Clarity</strong> (operated by Microsoft Corporation): collects session replay data including mouse movement, click patterns, scroll behavior, IP address, and aggregated heatmaps showing how visitors interact with each page. Sensitive form fields (such as passwords or payment information) are automatically masked from recordings.</li>
       </ul>
-      <p>Neither tool collects personal information such as names, addresses, or email addresses you enter into form fields. Data collected by these tools is processed by their respective operators (Vercel, Inc. and Microsoft Corporation) under their own privacy policies. We do not sell, share, or rent analytics data to third parties beyond these service providers.</p>
-      <p>If you wish to opt out of analytics tracking on our site, you may use browser extensions that block third-party scripts (such as uBlock Origin or Privacy Badger), or enable a tracking protection feature in your browser settings.</p>
+
+      <p><strong>Cookie-based ad tracking tools (used for advertising attribution and campaign optimization):</strong></p>
+      <ul>
+        <li><strong>Google Analytics 4</strong> (operated by Google LLC): collects pageview data, custom interaction events (such as clicks on phone numbers, email addresses, reservation buttons, and event inquiry forms), referring URLs, device type, browser, geographic region derived from IP address, and a randomly generated user identifier stored in a first-party cookie. Data flows to Google for use in Google Ads campaign attribution and audience targeting. We mark certain events as conversions in our GA4 account; those conversions auto-import into Google Ads as conversion goals.</li>
+        <li><strong>Meta Pixel</strong> (operated by Meta Platforms, Inc., the parent of Facebook and Instagram): collects pageview data, custom interaction events (such as Contact, Lead, InitiateCheckout, FindLocation), referring URLs, device type, browser, IP address, and a randomly generated user identifier stored in a first-party cookie. Data flows to Meta for use in Facebook and Instagram ad campaign optimization, audience targeting, and conversion attribution.</li>
+      </ul>
+
+      <p>Cookie-based tracking tools (Google Analytics 4 and Meta Pixel) participate in cross-site advertising networks operated by Google and Meta respectively. This means data collected on twistedpin.com may be combined with data those companies collect from other websites you visit, to build advertising profiles and serve you targeted ads on other Google and Meta properties.</p>
+
+      <p>The data we collect through these tools does not directly include personal information such as your name, mailing address, or email address (unless you submit it in a form). However, the user identifiers stored in cookies, combined with IP address and behavior data, may be treated as personal information under some privacy laws.</p>
+
+      <p><strong>Data processors:</strong> Each tool's data is processed by its respective operator (Vercel, Inc.; Microsoft Corporation; Google LLC; Meta Platforms, Inc.) under that operator's own privacy policy and terms of service. We do not sell, share, or rent analytics or advertising data to third parties beyond these service providers and the advertising networks they operate.</p>
+
+      <p><strong>Opt-out options:</strong></p>
+      <ul>
+        <li>Use browser extensions that block third-party scripts (such as uBlock Origin or Privacy Badger), or enable a tracking-protection feature in your browser settings.</li>
+        <li>Opt out of Google Ads personalized advertising at <a href="https://adssettings.google.com" target="_blank" rel="noopener">adssettings.google.com</a>.</li>
+        <li>Opt out of Meta ad personalization in your Facebook or Instagram account settings, or at <a href="https://www.facebook.com/ads/preferences" target="_blank" rel="noopener">facebook.com/ads/preferences</a>.</li>
+        <li>Industry-wide opt-out: <a href="https://optout.aboutads.info" target="_blank" rel="noopener">optout.aboutads.info</a> (Digital Advertising Alliance).</li>
+      </ul>
 
       <h2 class="legal-h2" id="privacy-h2-6">6. Data Retention</h2>
       <p>We retain your personal information for as long as necessary to fulfill the purposes described in this policy, including completing your event booking and maintaining records for legal and accounting purposes. Event inquiry data is typically retained for up to 3 years. You may request deletion of your data at any time (see Section 8).</p>
