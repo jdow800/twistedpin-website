@@ -142,10 +142,15 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
             event.twistedpin.com, and Zite (when Avery is on).
         =========================================================== */}
     <script is:inline>
-      // GA4 stub — gtag() and dataLayer queue available immediately.
+      // GA4 + Google Ads stubs — gtag() and dataLayer queue available
+      // immediately. Both identifiers route through the same gtag.js
+      // script, so a second config call just adds another tag to
+      // dispatch to (no extra network request).
       window.dataLayer = window.dataLayer || [];
       window.gtag = function(){ window.dataLayer.push(arguments); };
       window.gtag('js', new Date());
+      // GA4 — pageviews + custom interaction events (analytics + GA4-side
+      // conversion goals that auto-import into Google Ads).
       window.gtag('config', 'G-R64WB0Y4VW', {
         // Cross-domain linker preserves Google click_id (gclid) across
         // referral hops. Add new destinations here when funnel changes:
@@ -154,6 +159,12 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
         //   - twistedevents.zite.so: Zite event form (Avery ON)
         linker: { domains: ['ecom.roller.app', 'event.twistedpin.com', 'twistedevents.zite.so'] }
       });
+      // Google Ads (AW-) — enables native Ads conversion tracking +
+      // remarketing audiences. Conversion actions configured in Google
+      // Ads UI dispatch via gtag('event', 'conversion', { send_to: 'AW-961151619/LABEL' });
+      // adding this config alongside the GA4 one means specific Ads
+      // conversion sends can target either tag.
+      window.gtag('config', 'AW-961151619');
 
       // Meta Pixel stub — defines fbq() function and queue. Does NOT
       // inject fbevents.js (that's deferred to interaction below).
