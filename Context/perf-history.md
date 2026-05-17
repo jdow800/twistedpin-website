@@ -69,6 +69,17 @@ For any future text-LCP page on mobile:
 | `af76ae9` | `/menu/` hub: eager-load + AVIF preload first card thumbnail. **Note:** this turned out to attack the wrong LCP element (image, not H1). Kept as-is — it's still a valid optimization and additive to the H1 fix. |
 | `9f031ff` | Diagnostic — see above |
 
+### Validation — site-wide rule confirmed (post-`ef526be` deploy, 2026-05-17 2:36-2:37 PM CDT)
+
+Two spot-checks against the deployed site-wide `@media (max-width: 1024px) { .hero-fade { animation: none } }`:
+
+| Page | LCP element type | Before | After | Verdict |
+|---|---|---|---|---|
+| `/faq` | text subhead `<p class="t2-hero-sub hero-fade" data-delay-ms="320">` | (no clean baseline) | **Perf 94, LCP 1.7s, element render delay 270ms** | ✅ Subhead-LCP confirmed; broadened selector pays off — the 320ms subhead delay was indeed the worst-case LCP gate, more so than the 120ms H1 |
+| `/game` | image (section-video poster `arcade-poster.avif`) | Perf 90, LCP 3.2s | **Perf 96, LCP 2.3s** | ✅ Pillar page IMPROVED instead of regressed — disabling H1 hero-fade above the LCP image removed competing render work, freeing the image to paint sooner |
+
+Theory fully validated. The broader hypothesis stands: **Chrome's LCP heuristic gates transform-animated elements regardless of opacity, and the gate cost scales with `animation-delay`.** Pages with `data-delay-ms="320"` (subhead) were the worst offenders, then `data-delay-ms="120"` (H1), then `data-delay-ms="0"` (eyebrow). The single-rule fix covers all three.
+
 ### Out of scope this round
 
 - **`/free-kids-bowling` lab/field divergence** (field LCP 1.1s passing, lab LCP 6.6s, perf 28) — iframe-driven. User opted to skip iframe-page work. Verified `content-visibility: auto` would NOT help here: iframe top sits at 358px in a 640px viewport with 282px in initial fold. Not below-the-fold enough for `content-visibility: auto` to skip render. The actual fix (JS-defer iframe injection until idle) was scoped out per user direction.
