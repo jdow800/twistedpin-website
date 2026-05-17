@@ -294,6 +294,18 @@ interface LocalBusinessBaseOptions {
  *
  * @id is canonical and shared across pages so crawlers unify pages
  * into one entity. url is per-page.
+ *
+ * **VALID @type VALUES**: this helper carries `aggregateRating`, which
+ * Google's Review Snippet policy only permits under `LocalBusiness` (and
+ * its subtypes), `Organization`, `Product`, `Service`, `Event`, and a
+ * handful of other types. Spreading this into a node typed `Place`,
+ * `EventVenue`, `CivicStructure`, or `TouristAttraction` will fail GSC
+ * validation with "Invalid object type for field <parent_node>" — this
+ * happened on /events 2026-05-13. Stick to `LocalBusiness` subtypes:
+ * BarOrPub, Restaurant, BowlingAlley, EntertainmentBusiness, NightClub,
+ * FoodEstablishment, SportsActivityLocation, etc. If a page is
+ * semantically an `EventVenue`, use a type array
+ * `["EventVenue", "EntertainmentBusiness"]` so the AR parent is valid.
  */
 export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
   return {
@@ -389,6 +401,14 @@ export interface EventInput {
  * `offers` is intentionally NOT modeled here. Add per-page only when
  * real ticket / package data exists — Schema.org `Offer` requires
  * price + availability that ops needs to confirm per event.
+ *
+ * `location` inlines name + address alongside @id rather than emitting
+ * a bare @id reference. Google's Event rich-result validator has been
+ * flagged in the wild for "Missing field 'name' in location" when
+ * `location` is a pure @id ref — crawlers don't always traverse the @id
+ * graph to resolve it. Inlining the canonical NAP is cheap and removes
+ * the validator footgun. The shared @id still ties this Place node back
+ * to the unified business entity for AI-surface entity resolution.
  */
 export function eventSchema(input: EventInput): Record<string, unknown> {
   const startISO = typeof input.start === "string" ? input.start : input.start.toISOString();
@@ -398,7 +418,12 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
     startDate: startISO,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    location: { "@id": BUSINESS_ENTITY_ID },
+    location: {
+      "@id": BUSINESS_ENTITY_ID,
+      "@type": "Place",
+      name: BUSINESS_NAME,
+      address: addressNAP(),
+    },
     organizer: { "@id": BUSINESS_ENTITY_ID },
   };
   if (input.end) {

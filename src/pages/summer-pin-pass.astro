@@ -31,9 +31,37 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 const PIN_PASS_URL = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/home";
 const PRICE = "$159.95";
+
+// JSON-LD: Product + Offer. The Pin Pass is a real SKU sold on Roller
+// — Product is the right shape, eligible for product rich snippets
+// (price + availability in SERP). validThrough caps the offer at
+// summer's end; brand/seller link the product back to the venue entity.
+const PAGE_URL = `${BUSINESS_URL}/summer-pin-pass/`;
+const PIN_PASS_NUMERIC_PRICE = "159.95";
+const PIN_PASS_VALID_THROUGH = "2026-09-01";
+const pinPassSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": `${BUSINESS_URL}/#summer-pin-pass`,
+  name: "Summer Pin Pass",
+  description:
+    "Unlimited summer bowling at Twisted Pin in Plainfield, IL. One 1.5-hour bowling visit every day, all summer, for the entire household. Weekends, evenings, and holidays included.",
+  brand: { "@id": BUSINESS_ENTITY_ID },
+  url: PAGE_URL,
+  offers: {
+    "@type": "Offer",
+    price: PIN_PASS_NUMERIC_PRICE,
+    priceCurrency: "USD",
+    availability: "https://schema.org/InStock",
+    validThrough: PIN_PASS_VALID_THROUGH,
+    url: PIN_PASS_URL,
+    seller: { "@id": BUSINESS_ENTITY_ID },
+  },
+};
 ---
 <Base
   title="Summer Pin Pass — Unlimited Summer Bowling in Plainfield, IL | Twisted Pin"
@@ -186,6 +214,8 @@ const PRICE = "$159.95";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(pinPassSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Summer Pin Pass", path: "/summer-pin-pass/" },

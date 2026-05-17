@@ -44,10 +44,68 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
 const ROLLER_KIDS_URL = "https://ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products";
+
+// JSON-LD: two Product nodes (one per package) wrapped in an ItemList.
+// Product + Offer is the right shape for SKU-priced packages — eligible
+// for product rich snippets (price + availability in SERP). brand →
+// BUSINESS_ENTITY_ID ties each package back to the venue entity graph.
+// Prices match the page display (confirmed accurate 2026-05-11).
+const PAGE_URL = `${BUSINESS_URL}/birthday-parties-booking/`;
+const SUITE_BIRTHDAY_PRICE = "419.00";
+const EXTRA_SUITE_BIRTHDAY_PRICE = "489.90";
+const partyPackagesSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      item: {
+        "@type": "Product",
+        "@id": `${BUSINESS_URL}/#party-suite-birthday`,
+        name: "Suite Birthday Party",
+        description:
+          "Kids' birthday party package at Twisted Pin: 1 hour of bowling on a reserved lane, 2 hours total party time, shoes and balls, 45-min reserved party space, $10 arcade game card per child, souvenir lunch bag, invitations, and a personal party coordinator. Up to 10 guests.",
+        brand: { "@id": BUSINESS_ENTITY_ID },
+        url: PAGE_URL,
+        offers: {
+          "@type": "Offer",
+          price: SUITE_BIRTHDAY_PRICE,
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: ROLLER_KIDS_URL,
+          seller: { "@id": BUSINESS_ENTITY_ID },
+        },
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      item: {
+        "@type": "Product",
+        "@id": `${BUSINESS_URL}/#party-extra-suite-birthday`,
+        name: "Extra Suite Birthday Party",
+        description:
+          "Extended kids' birthday party package: 1 hour of bowling on a reserved lane, 2.5 hours total party time, shoes and balls, 1 hour reserved party space, $10 arcade game card per child, souvenir lunch bag, invitations, and a personal party coordinator. Up to 10 guests.",
+        brand: { "@id": BUSINESS_ENTITY_ID },
+        url: PAGE_URL,
+        offers: {
+          "@type": "Offer",
+          price: EXTRA_SUITE_BIRTHDAY_PRICE,
+          priceCurrency: "USD",
+          availability: "https://schema.org/InStock",
+          url: ROLLER_KIDS_URL,
+          seller: { "@id": BUSINESS_ENTITY_ID },
+        },
+      },
+    },
+  ],
+};
 ---
 <Base
   title="Birthday Parties in Plainfield, IL | Twisted Pin"
@@ -283,6 +341,7 @@ const ROLLER_KIDS_URL = "https://ecom.roller.app/twistedpin/kidsbirthdayparties/
 
   <SnapFooter />
 
+  <script type="application/ld+json" set:html={JSON.stringify(partyPackagesSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Birthday Parties", path: "/birthday-parties-booking/" },

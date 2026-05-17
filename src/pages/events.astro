@@ -52,12 +52,17 @@ import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
 // once Avery (AI sales agent) is proven. Source of truth: src/lib/links.ts.
 import { PLAN_EVENT_URL } from "../lib/links";
 
-// JSON-LD: EventVenue subtype on the canonical venue @id. Tells AI
-// "the venue, viewed as an event venue" — same multi-faceted entity
-// as the BarOrPub / BowlingAlley / Restaurant / EntertainmentBusiness
-// declarations on other pages. The VIP suite gets its own @id
-// (#vip-suite) on /vip-suite — that's the contained-place with the
-// specific capacity claim.
+// JSON-LD: dual @type so the node is BOTH an EventVenue (preserves the
+// "this is an event venue" signal for Google's event-venue queries) AND
+// an EntertainmentBusiness (a LocalBusiness subtype). The LocalBusiness
+// branch is required because `localBusinessBase()` spreads
+// `aggregateRating` in — Google's Review Snippet policy only accepts AR
+// under LocalBusiness / Organization / Product / Service / Event / etc.
+// EventVenue alone (a Place subtype, not a LocalBusiness) triggered the
+// "Invalid object type for field <parent_node>" GSC error on 2026-05-13.
+// EntertainmentBusiness is the right business-side type for a venue
+// that operates events under its own roof (Topgolf / Bowlero pattern),
+// not just a passive structure that hosts them.
 const PAGE_URL = `${BUSINESS_URL}/events/`;
 const eventVenueSchema = {
   ...(await localBusinessBase({
@@ -66,7 +71,7 @@ const eventVenueSchema = {
     description:
       "Group events at Twisted Pin: take over the 6-lane VIP suite, in-house catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties. Plainfield, IL.",
   })),
-  "@type": "EventVenue",
+  "@type": ["EventVenue", "EntertainmentBusiness"],
 };
 ---
 <Base

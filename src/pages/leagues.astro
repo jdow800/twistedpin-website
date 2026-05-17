@@ -33,6 +33,29 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+
+// JSON-LD: Service offered by the venue. Same shape as /fundraisers —
+// provider links the program to the canonical entity. No specific
+// SportsEvent schema since league dates / formats turn seasonally and
+// the program-as-service is what's stable. areaServed names the Will
+// County coverage that the body copy claims.
+const PAGE_URL = `${BUSINESS_URL}/leagues/`;
+const leaguesSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#leagues-program`,
+  name: "Bowling Leagues",
+  url: PAGE_URL,
+  description:
+    "USBC-sanctioned mixed bowling leagues at Twisted Pin: Monday IBT (5-person) and Tuesday Night Mixed (4-person). Open to bowlers from Plainfield, Joliet, Romeoville, Naperville, Shorewood, Lockport, Crest Hill, and surrounding Will County.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  serviceType: "Bowling league",
+  areaServed: {
+    "@type": "Place",
+    name: "Will County, IL",
+  },
+};
 ---
 <Base
   title="Bowling Leagues in Plainfield, IL | Twisted Pin"
@@ -163,6 +186,8 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(leaguesSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Leagues", path: "/leagues/" },

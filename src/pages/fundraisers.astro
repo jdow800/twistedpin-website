@@ -46,6 +46,12 @@ import { PLAN_EVENT_URL } from "../lib/links";
 // JSON-LD: Service offered by the venue. provider → #business links
 // the program to the canonical entity. No specific Event schema since
 // fundraisers are scheduled per-organization, not venue-published.
+//
+// `offers` removed 2026-05-17 — fundraisers aren't a purchasable SKU
+// (no price, no inventory). They're a partnership. Schema.org Offer
+// requires price/priceCurrency/priceSpecification to validate, and the
+// 50% revenue-share is a rate, not a price. The revenue-share detail
+// is captured in the Service description above and the on-page copy.
 const PAGE_URL = `${BUSINESS_URL}/fundraisers/`;
 const serviceSchema = {
   "@context": "https://schema.org",
@@ -60,12 +66,6 @@ const serviceSchema = {
   areaServed: {
     "@type": "Place",
     name: "Plainfield, IL and surrounding Will County",
-  },
-  offers: {
-    "@type": "Offer",
-    description:
-      "50% of bowling, shoe, and arcade revenue from supporters returned to host organization",
-    availability: "https://schema.org/InStock",
   },
 };
 ---

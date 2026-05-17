@@ -32,7 +32,42 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 import { PLAN_EVENT_URL } from "../lib/links";
+
+// JSON-LD: Product + Offer. Gift cards are sold in-person at the front
+// desk only — availability: InStoreOnly captures that exactly. The
+// $25 minPrice is a conservative placeholder until ops confirms
+// denomination policy ("any amount" per current copy); update both
+// minPrice here and the page body when ops gives real denominations.
+// Eligible for product knowledge-graph inclusion even without a single
+// fixed price (Offer's priceSpecification.minPrice satisfies validation).
+const PAGE_URL = `${BUSINESS_URL}/gift-cards/`;
+const GIFT_CARD_MIN_PRICE = "25.00";
+const giftCardSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "@id": `${BUSINESS_URL}/#gift-card`,
+  name: "Twisted Pin Gift Card",
+  description:
+    "Twisted Pin gift card — available at the front desk in any amount. Good for bowling and arcade purchases at the venue in Plainfield, IL. No expiration, no maintenance fees (per Illinois gift card law).",
+  brand: { "@id": BUSINESS_ENTITY_ID },
+  url: PAGE_URL,
+  offers: {
+    "@type": "Offer",
+    availability: "https://schema.org/InStoreOnly",
+    priceSpecification: {
+      "@type": "PriceSpecification",
+      priceCurrency: "USD",
+      minPrice: GIFT_CARD_MIN_PRICE,
+    },
+    seller: { "@id": BUSINESS_ENTITY_ID },
+    areaServed: {
+      "@type": "Place",
+      name: "Twisted Pin, 15610 Joliet Rd, Plainfield, IL 60544",
+    },
+  },
+};
 ---
 <Base
   title="Gift Cards in Plainfield, IL | Twisted Pin"
@@ -109,6 +144,8 @@ import { PLAN_EVENT_URL } from "../lib/links";
   </section>
 
   <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(giftCardSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Gift Cards", path: "/gift-cards/" },
