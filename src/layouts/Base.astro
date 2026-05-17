@@ -252,23 +252,35 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
            alt="" />
     </noscript>
 
-    {/* Hero LCP preloads — poster image is the LCP element, not the video. */}
-    <link
-      rel="preload"
-      as="image"
-      href="/hero/hero-poster.webp"
-      type="image/webp"
-      fetchpriority="high"
-      media="(max-width: 1024px)"
-    />
-    <link
-      rel="preload"
-      as="image"
-      href="/hero/hero-desktop-poster.webp"
-      type="image/webp"
-      fetchpriority="high"
-      media="(min-width: 1025px)"
-    />
+    {/* Hero LCP preloads — poster image is the LCP element, not the video.
+        ONLY emitted on the homepage. Was previously unconditional, which
+        meant every pillar page (which has a TYPOGRAPHY hero, not a video
+        hero) was preloading 104 KB + 176 KB of unused imagery at
+        fetchpriority="high", starving the connection slots used by the
+        per-page lcpPreloadHref poster. Caught 2026-05-17 after PSI
+        variance showed pillar pages with cheap AVIF posters (24-79 KB)
+        scoring worse than expected — the unused hero preload was
+        outranking the real LCP element in the preload-scanner queue. */}
+    {Astro.url.pathname === '/' && (
+      <>
+        <link
+          rel="preload"
+          as="image"
+          href="/hero/hero-poster.webp"
+          type="image/webp"
+          fetchpriority="high"
+          media="(max-width: 1024px)"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="/hero/hero-desktop-poster.webp"
+          type="image/webp"
+          fetchpriority="high"
+          media="(min-width: 1025px)"
+        />
+      </>
+    )}
 
     {/* Per-page LCP poster preload — opt-in via Base.astro lcpPreloadHref
         prop. Pillar pages whose first section video poster lands inside
