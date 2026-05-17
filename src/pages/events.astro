@@ -74,6 +74,8 @@ const eventVenueSchema = {
   description="VIP suite for up to 80, in-house catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties — Plainfield, IL."
   ogImage="/og/og-events.jpg"
   ogImageAlt="A group event at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/buffet-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -99,10 +101,23 @@ const eventVenueSchema = {
     <div class="events-section-grid">
       <div class="events-section-frame">
         {/* Buffet "before & after" video — autoplay-muted-loop in the
-            editorial frame, same single-active-video rule as the
-            homepage Tap Wall via sectionVideo() in motion.client.ts.
-            data-src lazy-promotion: bytes don't load until the section
-            enters the viewport. Encoded by scripts/build-buffet-video.sh. */}
+            editorial frame. Single-active-video rule via sectionVideo()
+            in motion.client.ts.
+
+            LCP optimization (2026-05-17): poster is the DIRECT poster=
+            attribute (was data-poster) AND preloaded via Base.astro's
+            lcpPreloadHref prop in this page's frontmatter. On mobile
+            (412×823) the events-hero is ~410px tall so the top ~357px
+            of this section's frame sits inside the initial viewport,
+            making the poster image an LCP candidate. The prior lazy
+            data-poster pattern delayed the poster fetch until JS ran
+            the IntersectionObserver — that's the 4-7s LCP we measured
+            on PSI synthetic tests. Direct poster + preload-with-
+            fetchpriority="high" pulls the LCP fetch into the preload-
+            scanner critical path. Same recipe as the homepage hero
+            (Base.astro hero-poster preload + index.astro direct
+            poster=). Video bytes (data-src) stay lazy — only the
+            poster needed the fast path. */}
         <video
           class="events-section-img"
           data-section-video
@@ -110,7 +125,7 @@ const eventVenueSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/buffet-poster.webp"
+          poster="/snap/buffet-poster.webp"
           aria-label="A buffet of catering food set up for a group event at Twisted Pin"
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />

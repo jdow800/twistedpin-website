@@ -21,6 +21,24 @@ interface Props {
   hideStickyCTA?: boolean;
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
+  /** LCP preload: image href to preload with fetchpriority="high" so the
+   *  browser preload-scanner kicks the fetch off immediately (before any JS
+   *  parse or IntersectionObserver setup). Used by pages whose LCP element
+   *  is a section-video poster that would otherwise lazy-load via
+   *  `data-poster` and not paint until motion.client.ts promotes it.
+   *
+   *  Example (events.astro):
+   *    lcpPreloadHref="/snap/buffet-poster.webp"
+   *    lcpPreloadMedia="(max-width: 1024px)"
+   *
+   *  Pattern matches the homepage hero poster preload (Base.astro lines
+   *  for /hero/hero-*-poster.webp). Pages that don't pass this prop get
+   *  no extra preload — their existing LCP path is fine. */
+  lcpPreloadHref?: string;
+  /** Optional `media` attribute on the preload tag. Use to scope a poster
+   *  preload to mobile only (e.g. `"(max-width: 1024px)"`) if desktop has
+   *  a different visual layout that doesn't surface this poster as LCP. */
+  lcpPreloadMedia?: string;
 }
 
 const {
@@ -31,6 +49,8 @@ const {
   ogType = "website",
   hideStickyCTA = false,
   hideHeader = false,
+  lcpPreloadHref,
+  lcpPreloadMedia,
 } = Astro.props;
 
 // Absolute URLs for canonical + og:url + og:image. Reads from astro.config.mjs
@@ -234,6 +254,30 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
       fetchpriority="high"
       media="(min-width: 1025px)"
     />
+
+    {/* Per-page LCP poster preload — opt-in via Base.astro lcpPreloadHref
+        prop. Pillar pages whose first section video poster lands inside
+        the initial mobile viewport (typography hero is shorter than the
+        viewport, so the section video frame's top is visible) need their
+        poster preloaded with fetchpriority="high" — otherwise the lazy
+        data-poster pattern (sectionVideo() in motion.client.ts) delays
+        the poster fetch until after JS parses + module imports + double
+        RAF + IntersectionObserver setup, which is what's pushing LCP to
+        4-7s on /events /game /vip-suite /fundraisers in Lighthouse
+        mobile synthetic tests.
+
+        Same pattern as the homepage hero poster preload above; just
+        per-page rather than global. */}
+    {lcpPreloadHref && (
+      <link
+        rel="preload"
+        as="image"
+        href={lcpPreloadHref}
+        type="image/webp"
+        fetchpriority="high"
+        media={lcpPreloadMedia}
+      />
+    )}
   </head>
   <body>
     {/* Persistent chrome — fixed to the top of the viewport.
