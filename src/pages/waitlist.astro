@@ -48,6 +48,12 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
   title="Bowling Wait Times in Plainfield, IL | Twisted Pin"
   description="Live walk-in wait status from the front desk at Twisted Pin in Plainfield, IL. Most nights it's zero — or reserve a lane to skip it."
 >
+  {/* Live wait status iframe loads from host.tablesready.com. Iframe is
+      below the typography hero so not in LCP path — preconnect makes the
+      iframe paint faster on scroll. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://host.tablesready.com" />
+  </Fragment>
 
   {/* ============================================================
       HERO — typography-led title section (no image, matches pillar

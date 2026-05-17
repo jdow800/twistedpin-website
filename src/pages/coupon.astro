@@ -31,6 +31,14 @@ const COUPON_FORM_URL = "https://c-g.co/xORo1J";
   title="Free $10 Lane Credit in Plainfield, IL | Twisted Pin"
   description="Get a free $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL. Sign up — we'll text the credit to your phone in a few minutes."
 >
+  {/* Signup iframe loads from c-g.co (Patch Retention). Preconnect kicks
+      off TCP+TLS in parallel with HTML parse so the lazy iframe lands
+      faster when the user scrolls. Iframe is below the typography hero
+      (~250-300px on mobile) so it's not in the LCP path itself — this is
+      a perceived-perf win, not an LCP fix. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://c-g.co" />
+  </Fragment>
 
   <section class="t2-hero" data-hero aria-labelledby="coupon-h1">
     <div class="t2-hero-copy">
