@@ -10,6 +10,59 @@ entries — they're the baseline.
 
 ---
 
+## 2026-05-17 — Pre-ads-launch perf pass: pillar pages cleared LCP < 3.5s
+
+**URLs tested:** `/game`, `/bowl`, `/fundraisers`, `/vip-suite`, `/birthday-parties-booking`, `/events` (all production at twistedpin.com)
+**Tool:** PageSpeed Insights (Lighthouse)
+**Conditions:** Mobile, simulated Slow 4G + 4× CPU slowdown
+
+### Wins (mobile)
+
+| Page | Pre-session baseline (2026-05-16) | Post-session (2026-05-17 confirmed) | Delta |
+|---|---|---|---|
+| `/events` | Perf 72, LCP 6.9s | **Perf 92, LCP 3.1s** | -3.8s LCP |
+| `/game` | Perf 72, LCP 7.5s | **Perf 90, LCP 3.2s** | -4.3s LCP |
+| `/bowl` | (no clean baseline) | **Perf 97, LCP 2.5s** | green band ✅ |
+| `/fundraisers` | Perf 82, LCP 4.7s | **Perf 86, LCP 3.5s** | -1.2s LCP |
+| `/vip-suite` | Perf 88, LCP 4.0s | **Perf 94, LCP 2.9s** | -1.1s LCP |
+| `/birthday-parties-booking` | (no clean baseline) | **Perf 88, LCP 3.5s** | green-adjacent |
+
+Every page that was blocking ad campaign launch is now under 3.5s LCP. `/bowl` and `/vip-suite` are in the green band (LCP <2.5s / <3.0s). Ads can launch.
+
+### What landed (8 commits, all on main)
+
+1. **`916cc84`** — Schema site-wide pass. Fixed GSC `/events` "Invalid object type for field `<parent_node>`" via dual `@type ["EventVenue", "EntertainmentBusiness"]`. Added Product/Service/Event schemas to 6 pages that had none.
+2. **`9980370`** — LCP fix pattern spread to 11 pillar pages: direct `poster=` + bounded `<source media>` queries + per-page `lcpPreloadHref`.
+3. **`62bffa4`** — `/new-years-eve` hero `lcpPreloadHref` (missed in spread).
+4. **`4c4e3c9`** — Arcade AVIF poster + extended Vercel cache headers to `/snap`+`/og`+`/favicon-*`+`/apple-touch-icon` + Vite build target ES2020 (drops legacy-JS polyfills).
+5. **`00f3905`** — AVIF sweep across all 10 section-video posters (367 KB total saved; arcade also went 1080w → 720w for the LCP outlier).
+6. **`47e7479`** — **The "aha" fix.** Gated hero LCP preloads (104 KB mobile + 176 KB desktop) to homepage only. Was unconditional in Base.astro, meaning every pillar page wasted 280 KB of high-priority preload on imagery they don't display, starving the preload-scanner queue for the real LCP element. Symptom that surfaced this: `/vip-suite` with a 43 KB poster scored LCP 2.9s while `/bowl` with a 24 KB poster scored 5.2s — SMALLER poster, SLOWER LCP, because both were behind the wasted hero preload. This single commit produced the biggest LCP delta across all pillar pages (1-2.5s drops everywhere).
+7. **`63bcd78`** — Handoff doc + CLAUDE.md decisions log.
+
+### Still flagged (not blocking ads, future passes)
+
+- **Reduce unused JS (~60 KiB/page)** — GTM stack. Partytown would move it off main thread (~300-500ms TBT win).
+- **Forced reflow on `/game`** (4 instances) — `motion.client.ts` likely.
+- **Homepage hero AVIF** — `/hero/hero-*.webp` still WebP. Not worth touching (homepage at 100/954ms LCP).
+- **`/menu/taps` 4.5s** — iframe-related; separate investigation.
+- **`/pricing` 3.6s** — no section video; CSS / critical-path render delay; separate.
+
+### Don't break what works
+
+Homepage retains both hero LCP preloads via `{Astro.url.pathname === '/'}` gate in Base.astro. Homepage still 100/954ms LCP. The variance theory that kept us guessing was wrong — it wasn't run noise, it was the wasted preload starving the connection queue.
+
+### The reusable "LCP fix pattern" (documented in handoff)
+
+For any future page with typography hero → first section video:
+1. Encode AVIF Q50 poster (1080w default; 720w only for hard-to-compress content like arcade lighting)
+2. Pass `lcpPreloadHref` + `lcpPreloadMedia="(max-width: 1024px)"` to `<Base>`
+3. First section video: direct `poster="..."` (NOT `data-poster=`) + bounded `media="(max-width: 480px)"` / `media="(min-width: 481px)"` on the source tags
+4. Below-fold videos: keep `data-poster=` (lazy is fine)
+
+Full session captured: [session-handoffs/2026-05-17-schema-lcp-perf-sweep.md](session-handoffs/2026-05-17-schema-lcp-perf-sweep.md)
+
+---
+
 ## 2026-05-08 (evening) — Perf pass: 100/100/100/100 across mobile + desktop
 
 **URL:** `https://twistedpin-website.vercel.app/`
