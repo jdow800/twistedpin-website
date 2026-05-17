@@ -68,6 +68,8 @@ const bowlingAlleySchema = {
   description="17 traditional lanes plus a 6-lane VIP suite. Walk in, reserve, or join a league. Plainfield, IL — 5 minutes from Naperville and Bolingbrook."
   ogImage="/og/og-bowl.jpg"
   ogImageAlt="A bowling lane at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/summer-pass-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -92,10 +94,10 @@ const bowlingAlleySchema = {
   <section class="bowl-section" aria-labelledby="bowl-traditional-h2">
     <div class="bowl-section-grid">
       <div class="bowl-section-frame">
-        {/* Traditional Lanes video — Summer Pin Pass clip (family bowling
-            energy that fits the traditional-lane positioning). Lazy-loaded
-            via data-section-video. (Updated 2026-05-15 from a stub
-            events-bg still photo to a dedicated summer-pass video.) */}
+        {/* Traditional Lanes video — Summer Pin Pass clip.
+            LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="bowl-section-img"
           data-section-video
@@ -103,13 +105,13 @@ const bowlingAlleySchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/summer-pass-poster.webp"
+          poster="/snap/summer-pass-poster.webp"
           aria-label="Bowling on the traditional lanes at Twisted Pin"
         >
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="bowl-section-copy">
@@ -181,8 +183,8 @@ const bowlingAlleySchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="bowl-section-copy">

@@ -66,6 +66,8 @@ const pinPassSchema = {
 <Base
   title="Summer Pin Pass — Unlimited Summer Bowling in Plainfield, IL | Twisted Pin"
   description="The Summer Pin Pass: $159.95 for unlimited 1.5-hour bowling visits every day all summer. Weekends and evenings included. Twisted Pin in Plainfield, IL."
+  lcpPreloadHref="/snap/summer-pass-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -95,6 +97,9 @@ const pinPassSchema = {
   <section class="spp-section" aria-labelledby="spp-what-h2">
     <div class="spp-section-grid">
       <div class="spp-frame">
+        {/* LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="spp-video"
           data-section-video
@@ -102,13 +107,13 @@ const pinPassSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/summer-pass-poster.webp"
+          poster="/snap/summer-pass-poster.webp"
           aria-label="Bowling at Twisted Pin — Summer Pin Pass program"
         >
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="spp-copy">

@@ -67,6 +67,8 @@ const vipSuiteSchema = {
   description="Six lanes for your group, in-house catering, craft cocktails. Birthdays, offsites, holiday parties — the VIP suite at Twisted Pin, Plainfield, IL."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="The VIP suite at Twisted Pin — six lanes set apart for groups"
+  lcpPreloadHref="/snap/vip-lanes-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -92,11 +94,13 @@ const vipSuiteSchema = {
   <section class="vip-section" aria-labelledby="vip-room-h2">
     <div class="vip-section-grid">
       <div class="vip-section-frame">
-        {/* "VIP Lanes" video (2026-05-12) — replaces the events-bg
-            stub. Source is landscape 4K (3840×2160); center-cropped
-            to portrait in the encode pipeline (full source height,
-            center horizontal slice) so the lanes + LED screens read
-            as the focal subject. Lazy-loaded via data-section-video. */}
+        {/* "VIP Lanes" video — source is landscape 4K (3840×2160);
+            center-cropped to portrait in the encode pipeline (full
+            source height, center horizontal slice) so the lanes + LED
+            screens read as the focal subject.
+            LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="vip-section-video"
           data-section-video
@@ -104,13 +108,13 @@ const vipSuiteSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/vip-lanes-poster.webp"
+          poster="/snap/vip-lanes-poster.webp"
           aria-label="The 6-lane VIP suite at Twisted Pin — neon-lit lanes with LED video walls overhead"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="vip-section-copy">
@@ -173,8 +177,8 @@ const vipSuiteSchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="vip-section-copy">

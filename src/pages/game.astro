@@ -73,6 +73,8 @@ const entertainmentSchema = {
   description="Skee-ball, redemption tickets, crane machines. The bar is twenty steps away. Adults play too — Twisted Pin in Plainfield, IL."
   ogImage="/og/og-game.jpg"
   ogImageAlt="The arcade at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/arcade-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -97,10 +99,10 @@ const entertainmentSchema = {
   <section class="game-section" aria-labelledby="game-inventory-h2">
     <div class="game-section-frame-and-copy">
       <div class="game-section-frame">
-        {/* Video replaces the prior arcade-interior photo (2026-05-12) —
-            uses the same arcade-mobile-* assets as the homepage Game
-            snap. Lazy-loaded via data-section-video — poster shows
-            until the section enters the viewport. */}
+        {/* Arcade video — same arcade-mobile-* assets as the homepage
+            Game snap. LCP optimization (2026-05-17): direct poster= +
+            preload via Base.astro lcpPreloadHref; bounded media queries
+            on sources. Same recipe as /events first section. */}
         <video
           class="game-section-video"
           data-section-video
@@ -108,13 +110,13 @@ const entertainmentSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/arcade-poster.webp"
+          poster="/snap/arcade-poster.webp"
           aria-label="The arcade floor at Twisted Pin in Plainfield, IL"
         >
           <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/arcade-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/arcade-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="game-section-copy">

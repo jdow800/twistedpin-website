@@ -46,6 +46,8 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 <Base
   title="Careers in Plainfield, IL | Twisted Pin"
   description="Hiring for bartenders, servers, kitchen, and front-of-house at Twisted Pin in Plainfield, IL. Serving Naperville, Bolingbrook, and the surrounding area."
+  lcpPreloadHref="/snap/careers-team-540.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   <section class="t2-hero" data-hero aria-labelledby="careers-h1">
@@ -84,6 +86,9 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
   <section class="t2-section careers-team-section" aria-labelledby="careers-team-h2">
     <div class="t2-section-inner">
       <div class="careers-team-frame">
+        {/* LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="careers-team-video"
           data-section-video
@@ -91,13 +96,13 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
           muted
           loop
           playsinline
-          data-poster="/snap/careers-team-540.webp"
+          poster="/snap/careers-team-540.webp"
           aria-label="The Twisted Pin team — staff at work behind the bar, lanes, and floor"
         >
           <source media="(max-width: 480px)" data-src="/snap/hiring-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/hiring-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/hiring-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/hiring-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/hiring-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/hiring-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <h2 class="t-eyebrow" id="careers-team-h2" style="font-size:11px;">Best of Will County 2025</h2>

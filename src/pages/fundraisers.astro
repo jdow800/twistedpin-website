@@ -72,6 +72,8 @@ const serviceSchema = {
 <Base
   title="Fundraiser Venue in Plainfield, IL | Twisted Pin"
   description="Bowling fundraisers: 50% of bowling, shoe, and arcade revenue back to your cause. Thursday nights 5–9pm at Twisted Pin, Plainfield, IL."
+  lcpPreloadHref="/snap/summer-pass-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -98,7 +100,10 @@ const serviceSchema = {
         {/* How It Works video — Summer Pin Pass clip (Thursday-night
             group energy on the traditional lanes). Lazy-loaded via
             data-section-video. (Updated 2026-05-15 from a stub
-            events-bg still photo to the summer-pass video.) */}
+            events-bg still photo to the summer-pass video.)
+            LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="fundraiser-section-img"
           data-section-video
@@ -106,13 +111,13 @@ const serviceSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/summer-pass-poster.webp"
+          poster="/snap/summer-pass-poster.webp"
           aria-label="A fundraiser group bowling at Twisted Pin in Plainfield, IL"
         >
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="fundraiser-section-copy">
@@ -168,8 +173,8 @@ const serviceSchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/arcade-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/arcade-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/arcade-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="fundraiser-section-copy">

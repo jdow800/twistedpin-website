@@ -112,6 +112,8 @@ const partyPackagesSchema = {
   description="Kids' birthday parties at Twisted Pin: bowling, arcade, a real kitchen — and a bar program for the parents. Two packages, weekend slots, book online. Plainfield, IL."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="A Twisted Pin birthday party set up in the suite — table with Extra Suite Birthday placard, party cups, and reserved signage"
+  lcpPreloadHref="/snap/vip-lanes-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -140,9 +142,9 @@ const partyPackagesSchema = {
       <div class="birthday-section-frame">
         {/* Kids Parties video — vip-lanes clip (matches the /vip-suite
             first section, since most kids' parties run in the VIP suite).
-            Lazy-loaded via data-section-video. (Updated 2026-05-15 from
-            the birthday-table still photo, which wasn't carrying the
-            energy the page needed.) */}
+            LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="birthday-section-img"
           data-section-video
@@ -150,13 +152,13 @@ const partyPackagesSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/vip-lanes-poster.webp"
+          poster="/snap/vip-lanes-poster.webp"
           aria-label="The 6-lane VIP suite at Twisted Pin where kids' birthday parties run"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="birthday-section-copy">
@@ -286,8 +288,8 @@ const partyPackagesSchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="birthday-section-copy">

@@ -115,6 +115,8 @@ const brianSchema = {
   description="A craft cocktail program by America's Top Mixologist plus the area's only 28-tap self-serve beer & wine wall. Twisted Pin, Plainfield, IL."
   ogImage="/og/og-bar.jpg"
   ogImageAlt="A craft cocktail mid-pour at the bar at Twisted Pin"
+  lcpPreloadHref="/snap/beerwall-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -140,9 +142,15 @@ const brianSchema = {
   <section class="bar-section" aria-labelledby="bar-tapwall-h2">
     <div class="bar-section-grid">
       <div class="bar-section-frame">
-        {/* Tap Wall video — 28-tap self-serve wall in action. Lazy-loaded
-            via data-section-video. (Updated 2026-05-15 from a placeholder
-            /hero/hero-* source to the dedicated beerwall asset.) */}
+        {/* Tap Wall video — 28-tap self-serve wall in action.
+            LCP optimization (2026-05-17): first section video is an LCP
+            candidate on mobile (sits ~410px below the typography hero,
+            partially inside the initial viewport). Poster is direct
+            poster= (not data-poster) AND preloaded via Base.astro's
+            lcpPreloadHref prop. Same recipe as /events. Bounded media
+            queries ensure exactly ONE source matches per viewport tier —
+            ≤480 → 540, ≥481 → 1080. Without the upper bound on 1080,
+            mobile Lighthouse saw doubled fetches during v.load() probing. */}
         <video
           class="bar-section-video"
           data-section-video
@@ -150,13 +158,13 @@ const brianSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/beerwall-poster.webp"
+          poster="/snap/beerwall-poster.webp"
           aria-label="The 28-tap self-serve beer and wine wall at Twisted Pin"
         >
           <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/beerwall-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/beerwall-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/beerwall-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="bar-section-copy">
@@ -213,8 +221,8 @@ const brianSchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/cocktails-hero-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/cocktails-hero-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/cocktails-hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/cocktails-hero-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/cocktails-hero-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/cocktails-hero-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="bar-section-copy">

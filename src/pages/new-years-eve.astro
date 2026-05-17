@@ -79,10 +79,14 @@ const nyeJsonLd = nyeEntry
       poster="/snap/nye-poster.webp"
       aria-hidden="true"
     >
+      {/* Bounded media queries (2026-05-17) — same pattern as homepage
+          hero / events first section. Source ordering already prefers
+          540 on phones, but explicit upper bound on 1080 sources is
+          defense-in-depth against browser probe behavior during load. */}
       <source media="(max-width: 480px)" src="/snap/nye-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
       <source media="(max-width: 480px)" src="/snap/nye-mobile-h264-540.mp4" type="video/mp4" />
-      <source src="/snap/nye-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-      <source src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
+      <source media="(min-width: 481px)" src="/snap/nye-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+      <source media="(min-width: 481px)" src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
     </video>
 
     <div class="nye-hero-scrim" aria-hidden="true"></div>

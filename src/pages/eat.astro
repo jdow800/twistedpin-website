@@ -67,6 +67,8 @@ const restaurantSchema = {
   description="Real plates built to share — not the food you'd expect at a bowling alley. The kitchen at Twisted Pin in Plainfield, IL. Reserve a lane to eat."
   ogImage="/og/og-eat.jpg"
   ogImageAlt="A shared plate from the kitchen at Twisted Pin"
+  lcpPreloadHref="/snap/best-things-poster.webp"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -91,9 +93,10 @@ const restaurantSchema = {
   <section class="eat-section" aria-labelledby="eat-kitchen-h2">
     <div class="eat-section-grid">
       <div class="eat-section-frame">
-        {/* Kitchen video — "Best things to order" plates clip. Lazy-loaded
-            via data-section-video. (Updated 2026-05-15 from a placeholder
-            /hero/hero-* source to the dedicated best-things asset.) */}
+        {/* Kitchen video — "Best things to order" plates clip.
+            LCP optimization (2026-05-17): direct poster= + preload via
+            Base.astro lcpPreloadHref; bounded media queries on sources.
+            Same recipe as /events first section. */}
         <video
           class="eat-section-video"
           data-section-video
@@ -101,13 +104,13 @@ const restaurantSchema = {
           muted
           loop
           playsinline
-          data-poster="/snap/best-things-poster.webp"
+          poster="/snap/best-things-poster.webp"
           aria-label="The best things to order from the Twisted Pin kitchen"
         >
           <source media="(max-width: 480px)" data-src="/snap/best-things-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/best-things-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/best-things-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/best-things-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/best-things-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/best-things-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="eat-section-copy">
@@ -159,8 +162,8 @@ const restaurantSchema = {
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="eat-section-copy">

@@ -204,6 +204,9 @@ const eventVenueSchema = {
           <source media="(max-width: 480px)" data-src="/snap/where-you-belong-mobile-h264-540.mp4" type="video/mp4" />
           <source media="(min-width: 481px)" data-src="/snap/where-you-belong-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(min-width: 481px)" data-src="/snap/where-you-belong-mobile-h264-1080.mp4" type="video/mp4" />
+          {/* 2nd section video — sits below the mobile fold so NOT an LCP
+              candidate. data-poster stays lazy; bounded media on 1080 is
+              defense-in-depth (audit 2026-05-17). */}
         </video>
       </div>
       <div class="events-section-copy">
