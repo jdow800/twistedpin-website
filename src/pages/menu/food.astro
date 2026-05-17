@@ -91,6 +91,12 @@ const menuSchema = {
   title="Food Menu in Plainfield, IL | Twisted Pin"
   description="The food menu at Twisted Pin — real plates built to share. Starters, handhelds, pizza, salads, and desserts. Plainfield, IL."
 >
+  {/* Desktop variant uses img.gotab.io pass-through (2026-05-14 fidelity
+      decision). Mobile goes through /_vercel/image (same-origin). Preconnect
+      scoped to desktop. See /menu/cocktails for rationale. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://img.gotab.io" crossorigin media="(min-width: 1025px)" />
+  </Fragment>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Kitchen</p>

@@ -63,6 +63,17 @@ const menuSchema = {
   title="What's On Tap in Plainfield, IL | Twisted Pin"
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
 >
+  {/* Cross-origin tap labels: 28 beer/cider/seltzer thumbnails load from
+      labels.untappd.com, 4 wine thumbnails load from www.wine-searcher.com.
+      The typography hero is short (~220px on mobile) so the first 3-4 rows
+      sit inside the initial viewport — preconnect opens TCP+TLS to
+      labels.untappd.com in parallel with HTML parse so the first lazy image
+      doesn't pay the full DNS+TLS round-trip on viewport entry. Wine labels
+      sit further down (after Draft Beer section) — DNS-only suffices. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://labels.untappd.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.wine-searcher.com" />
+  </Fragment>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>
@@ -78,13 +89,13 @@ const menuSchema = {
   {tapList.sections.length > 0 && (
     <section class="tap-list" id="tap-list" aria-labelledby="tap-list-h2">
       <div class="tap-list-inner">
-        {tapList.sections.map((section) => (
+        {tapList.sections.map((section, sectIdx) => (
           <div class="tap-section">
             <h2 class="tap-section-name">
               {section.name} <span class="tap-section-count">· {section.taps.length}</span>
             </h2>
             <ul class="tap-rows" role="list">
-              {section.taps.map((tap) => (
+              {section.taps.map((tap, tapIdx) => (
                 <li class="tap-row">
                   <div class="tap-label-frame">
                     {tap.labelImage && (
@@ -94,7 +105,7 @@ const menuSchema = {
                         alt=""
                         width="48"
                         height="48"
-                        loading="lazy"
+                        loading={sectIdx === 0 && tapIdx < 3 ? "eager" : "lazy"}
                         decoding="async"
                       />
                     )}

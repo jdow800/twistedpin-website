@@ -68,6 +68,15 @@ const menuSchema = {
   title="Cocktail Menu in Plainfield, IL | Twisted Pin"
   description="The cocktail program at Twisted Pin — built by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
 >
+  {/* Desktop visitors (>=1025px) hit img.gotab.io directly via the
+      <source media="(min-width: 1025px)"> branch — pass-through for source
+      fidelity, see 2026-05-14 decision. Mobile goes through /_vercel/image
+      (same-origin) so no cross-origin handshake needed there. Preconnect
+      scoped to desktop avoids paying the TCP+TLS cost on mobile where the
+      origin is never hit. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://img.gotab.io" crossorigin media="(min-width: 1025px)" />
+  </Fragment>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Bar Program</p>
