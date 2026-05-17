@@ -203,14 +203,21 @@ img, video, svg { display: block; max-width: 100%; }
    Hero entry motion — used by every typography hero across the
    site ([data-hero] containers with .hero-fade on lines/sub).
 
-   CSS-driven (2026-05-08 LCP fix). Was previously JS-driven via
-   Motion's animate() in heroEntry() — but Motion 12's animate()
-   uses CSS custom properties (--motion-translate-y) for transform
-   composition, which collides with any direct `transform:` style
-   set elsewhere. The result was the slide animation silently no-op'd.
+   CSS-driven (2026-05-08). Was previously JS-driven via Motion's
+   animate() in heroEntry() — but Motion 12's animate() uses CSS
+   custom properties (--motion-translate-y) for transform composition,
+   which collides with any direct `transform:` style set elsewhere.
    CSS @keyframes is the durable answer: no JS dependency, browser-
-   native, opacity stays at 1 throughout so LCP measurement fires
-   for hero text the moment it paints.
+   native.
+
+   LCP CAVEAT (2026-05-17): Chrome's LCP heuristic treats elements
+   with active CSS transform animations as "not yet painted" until
+   the animation completes, EVEN WHEN OPACITY STAYS AT 1. The earlier
+   comment claiming opacity-stable transforms are LCP-safe was
+   empirically wrong — verified on /menu/ where the .hero-fade H1
+   added ~1,050ms to element render delay (PSI lab LCP 4.1s -> 1.7s,
+   perf 84 -> 99 after disabling the animation on mobile).
+   See the @media (max-width: 1024px) rule below.
 
    Per-element stagger: each .hero-fade element carries
    `data-delay-ms="N"` (0, 120, 280, 300, 320, 380 are the values
@@ -224,7 +231,7 @@ img, video, svg { display: block; max-width: 100%; }
 .hero-fade {
   /* `both` = hold from-state during delay AND to-state after end.
      Text is never hidden (opacity stays default 1) — only the 12px
-     offset is visible during delay, which is fine for LCP. */
+     transform offset is visible during delay. */
   animation: hero-slide-in 500ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 .hero-fade[data-delay-ms="0"]   { animation-delay: 0ms; }
@@ -233,6 +240,22 @@ img, video, svg { display: block; max-width: 100%; }
 .hero-fade[data-delay-ms="300"] { animation-delay: 300ms; }
 .hero-fade[data-delay-ms="320"] { animation-delay: 320ms; }
 .hero-fade[data-delay-ms="380"] { animation-delay: 380ms; }
+
+/* Disable hero-fade slide-in on mobile (≤1024px) to remove Chrome's
+   LCP gating on transform-animated text. Covers eyebrow (0ms),
+   H1 (120ms), and subhead (320ms) — any of which can land as the LCP
+   candidate depending on the page's text layout. The 320ms subhead
+   delay is the worst LCP offender on text-heavy pages.
+
+   Desktop keeps the animation: faster CPU + network means the H1
+   paints before the animation matters, and the 12px slide is more
+   visually meaningful at desktop dwell distance.
+
+   Validated on /menu/ 2026-05-17: lab LCP 4.1s -> 1.7s, perf 84 -> 99.
+   See Context/perf-history.md for the full lesson. */
+@media (max-width: 1024px) {
+  .hero-fade { animation: none; }
+}
 
 /* ============================================================
    Reduced motion — disable transforms, keep instant fade

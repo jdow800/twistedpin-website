@@ -42,11 +42,7 @@ const tapCount = tapList.totalCount;
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">Menus</p>
-    {/* hero-fade removed from H1 only (2026-05-17 diagnostic). PSI showed
-        H1 as LCP element with 1,320ms element render delay — Chrome's LCP
-        heuristic appears to gate on the transform animation despite opacity
-        staying at 1. Eyebrow + sub keep the animation for polish. */}
-    <h1 class="t-display menu-hero-headline" id="menu-h1">
+    <h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
       What's on the menu.
     </h1>
     <p class="menu-hero-sub hero-fade" data-delay-ms="320">
