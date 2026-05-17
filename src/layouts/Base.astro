@@ -39,6 +39,11 @@ interface Props {
    *  preload to mobile only (e.g. `"(max-width: 1024px)"`) if desktop has
    *  a different visual layout that doesn't surface this poster as LCP. */
   lcpPreloadMedia?: string;
+  /** Optional `type` attribute on the preload tag. Defaults to derived from
+   *  the file extension (.avif → image/avif, .webp → image/webp). Override
+   *  only if you know what you're doing — wrong type makes the browser
+   *  refetch the resource. */
+  lcpPreloadType?: string;
 }
 
 const {
@@ -51,7 +56,17 @@ const {
   hideHeader = false,
   lcpPreloadHref,
   lcpPreloadMedia,
+  lcpPreloadType,
 } = Astro.props;
+
+// Auto-derive preload type from file extension. AVIF is ~30% smaller than
+// WebP for complex content (arcade lighting, busy textures) — worth shipping
+// when the WebP version is the LCP outlier.
+const derivedPreloadType = lcpPreloadType
+  ?? (lcpPreloadHref?.endsWith('.avif') ? 'image/avif'
+    : lcpPreloadHref?.endsWith('.webp') ? 'image/webp'
+    : lcpPreloadHref?.endsWith('.jpg') || lcpPreloadHref?.endsWith('.jpeg') ? 'image/jpeg'
+    : undefined);
 
 // Absolute URLs for canonical + og:url + og:image. Reads from astro.config.mjs
 // `site` field via Astro.site. At DNS cutover the `site` field flips to the
@@ -273,7 +288,7 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
         rel="preload"
         as="image"
         href={lcpPreloadHref}
-        type="image/webp"
+        type={derivedPreloadType}
         fetchpriority="high"
         media={lcpPreloadMedia}
       />

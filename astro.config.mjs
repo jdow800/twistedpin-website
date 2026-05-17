@@ -84,5 +84,19 @@ export default defineConfig({
         allow: [path.resolve(__dirname, '../../..')],
       },
     },
+    build: {
+      // Target modern browsers — drops polyfills for nullish-coalescing,
+      // optional chaining, async/await, object-spread, etc. (~12-14 KiB
+      // saved per page per PSI's "Legacy JavaScript" audit). ES2020 has
+      // 97%+ browser support globally and 99%+ on mobile (our 90% traffic
+      // share). The browsers that fall off (Safari <14, iOS <14, Chrome
+      // <90, Firefox <80, all 2020 or earlier) are vanishingly rare —
+      // and they degrade to "feature missing" not "page broken" since
+      // we don't rely on optional chaining for critical paths.
+      //
+      // Vite ships a single build (not differential serving) so this is
+      // the trade-off: faster mainstream load vs zero legacy support.
+      target: 'es2020',
+    },
   },
 });

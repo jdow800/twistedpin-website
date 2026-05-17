@@ -73,7 +73,7 @@ const entertainmentSchema = {
   description="Skee-ball, redemption tickets, crane machines. The bar is twenty steps away. Adults play too — Twisted Pin in Plainfield, IL."
   ogImage="/og/og-game.jpg"
   ogImageAlt="The arcade at Twisted Pin in Plainfield, IL"
-  lcpPreloadHref="/snap/arcade-poster.webp"
+  lcpPreloadHref="/snap/arcade-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
 
@@ -102,7 +102,13 @@ const entertainmentSchema = {
         {/* Arcade video — same arcade-mobile-* assets as the homepage
             Game snap. LCP optimization (2026-05-17): direct poster= +
             preload via Base.astro lcpPreloadHref; bounded media queries
-            on sources. Same recipe as /events first section. */}
+            on sources. Same recipe as /events first section.
+            Poster is AVIF (not WebP) because the arcade interior content
+            compresses 5x worse than other posters in WebP — AVIF Q50
+            handles the complex lighting/texture much better (209 KB WebP
+            -> 128 KB AVIF, matches PSI's 117 KiB savings target). AVIF
+            browser support is 95%+; older browsers fall back to a black
+            poster frame for the ~200-500ms before video paints. */}
         <video
           class="game-section-video"
           data-section-video
@@ -110,7 +116,7 @@ const entertainmentSchema = {
           muted
           loop
           playsinline
-          poster="/snap/arcade-poster.webp"
+          poster="/snap/arcade-poster.avif"
           aria-label="The arcade floor at Twisted Pin in Plainfield, IL"
         >
           <source media="(max-width: 480px)" data-src="/snap/arcade-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
