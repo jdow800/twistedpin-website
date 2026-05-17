@@ -304,6 +304,28 @@ function navDrawer(): void {
 
 /* -----------------------------------------------------------
    Boot
+
+   Two-stage init (2026-05-17 LCP optimization):
+     1. Immediate (double RAF): hero / nav drawer / sticky CTA entry,
+        section reveal observer setup. These need to run early so the
+        hero entry animation feels instant and reveals can begin firing
+        as the user scrolls.
+     2. Deferred (window.load): sectionVideo(). The IntersectionObserver
+        promotes data-src → src AND calls v.load() the moment any pixel
+        of a section video frame enters the viewport (ratio > 0). On
+        pillar pages with short typography heros (≤410px), the first
+        section's video frame is partially visible at initial paint,
+        which means promoteLazySources() fires immediately and v.load()
+        starts pulling video bytes during the LCP critical path. Even
+        with bounded media queries that's still 500KB-1MB of video bytes
+        competing for bandwidth before LCP fires.
+
+        Deferring to window.load pushes the section-video IntersectionObserver
+        setup to AFTER the page has fully loaded — so video byte fetches
+        only start once LCP has already fired. The poster image (via
+        direct poster= attribute + Base.astro lcpPreloadHref) still
+        paints fast for LCP candidacy. Users who scroll within the first
+        ~1 second see the poster, then the video kicks in shortly after.
    ----------------------------------------------------------- */
 export function initMotion(): void {
   if (typeof window === "undefined") return;
@@ -313,7 +335,15 @@ export function initMotion(): void {
       stickyCTAEntry();
       snapFooterCTAHide();
       sectionReveal();
-      sectionVideo();
     });
   });
+  // Defer section video setup until after the page has fully loaded.
+  // Pages without section videos are unaffected (sectionVideo no-ops).
+  // If the load event has already fired (cached navigation, etc.),
+  // run immediately.
+  if (document.readyState === "complete") {
+    sectionVideo();
+  } else {
+    window.addEventListener("load", sectionVideo, { once: true });
+  }
 }

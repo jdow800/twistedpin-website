@@ -128,10 +128,15 @@ const eventVenueSchema = {
           poster="/snap/buffet-poster.webp"
           aria-label="A buffet of catering food set up for a group event at Twisted Pin"
         >
+          {/* Bounded media queries (2026-05-17) — matches the homepage hero
+              pattern. Without the upper bound on the 1080 sources, mobile
+              Lighthouse saw ~3.4MB of doubled fetches (540 AND 1080 both
+              matched + got fetched during v.load() probing). Each viewport
+              tier now matches exactly ONE source: ≤480 → 540, ≥481 → 1080. */}
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="events-section-copy">
@@ -189,10 +194,11 @@ const eventVenueSchema = {
           data-poster="/snap/where-you-belong-poster.webp"
           aria-label="The VIP suite at Twisted Pin set up for a group event"
         >
+          {/* Bounded media queries — see buffet section above. */}
           <source media="(max-width: 480px)" data-src="/snap/where-you-belong-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/where-you-belong-mobile-h264-540.mp4" type="video/mp4" />
-          <source data-src="/snap/where-you-belong-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-          <source data-src="/snap/where-you-belong-mobile-h264-1080.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/where-you-belong-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/where-you-belong-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="events-section-copy">
