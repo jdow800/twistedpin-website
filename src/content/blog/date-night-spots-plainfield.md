@@ -45,7 +45,7 @@ the first three months whether they planned it or not.
 The catch with most bowling alleys is that they're set up for kids'
 birthday parties. Fluorescent overhead, snack-bar hot dogs, soda from
 a fountain. We're [a different format](/) — the lanes are there, but
-the bar is the headline. A craft cocktail program by Brian Van
+the bar is the headline. A craft cocktail program curated by Brian Van
 Flandern (Food Network calls him *America's Top Mixologist*), real
 food from a real kitchen, and a [28-tap self-serve beer and wine
 wall](/menu/taps/) that lets you both taste-test instead of committing
@@ -134,7 +134,7 @@ even if we weren't writing this.
 Most date nights at Twisted Pin take a [lane reservation](https://ecom.roller.app/twistedpin/openbowl/en-us/home)
 and 90 minutes of attention. If you want the suite for an
 anniversary-tier night, [send a note through the events
-platform](https://twistedevents.zite.so/) instead — same-week response.
+platform](https://event.twistedpin.com/#start) instead — same-week response.
 
 If your date is reading this over your shoulder right now, here's the
 soft pitch: *we've been doing dinner-and-a-movie for two years; let's

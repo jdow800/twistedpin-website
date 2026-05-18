@@ -93,7 +93,7 @@ Before launch:
 - **Homepage:** *"Premium Bowling, Elevated Dining & Craft Cocktails in Plainfield, IL"* (covers bowling, dining, bar, location — replaces the misleading "Ultimate Dining Destination")
 - **Bowling:** *"Bowling in Plainfield, IL — 23 Lanes Including a 6-Lane VIP Suite"* (17 traditional + 6 VIP)
 - **VIP Suite:** *"The VIP Suite — Bowling for Groups Up to 80, Near Naperville & Bolingbrook"*
-- **Dining:** *"Chef-Inspired Food in Plainfield — Eat at Twisted Pin"*
+- **Dining:** *"From-Scratch Food in Plainfield — Eat at Twisted Pin"*
 - **Bar:** *"Craft Cocktails & a 28-Tap Self-Serve Beer Wall"*
 - **Arcade:** *"State-of-the-Art Arcade in Plainfield"*
 - **Corporate Events:** *"Corporate Event Venue Near Naperville & Bolingbrook"*
@@ -195,7 +195,7 @@ These work because they include search-friendly nouns while staying on-brand:
 - *"Corporate event venue near Naperville"*
 - *"Adult birthday parties — done right"*
 - *"VIP bowling suite — the only one in the area"*
-- *"Chef-inspired food, not bowling alley food"*
+- *"From-scratch food, not bowling alley food"*
 
 ### Concrete specs to use (these convert and rank)
 
@@ -204,7 +204,7 @@ Specifics beat adjectives. These are real, verifiable details — use them in co
 - **Bowling:** 23 total lanes — 17 traditional + a 6-lane VIP suite
 - **VIP Suite:** 6 lanes, giant LED video wall, AV hookups, 28-tap beer wall access, couch seating, **groups up to 80**
 - **Tap Wall:** 28 self-serve taps, beer & wine, pay by the ounce — **the only self-serve tap wall in the immediate area**
-- **Bar:** Craft cocktails developed by **mixologist Brian Van Flandern** (real differentiator — top-tier mixology pedigree)
+- **Bar:** Craft cocktails curated by **mixologist Brian Van Flandern** (real differentiator — top-tier mixology pedigree)
 - **Arcade:** VR, pinball, ticket games & redemption prizes
 - **Fundraisers:** **50% of bowling, shoe, and arcade revenue** back to the host organization. Schools, churches, community groups. Thursday nights 5–9pm. **Main floor only — fundraisers do not run in the VIP suite.**
 - **Reviews:** 4.5★ on Google (1,000+ reviews), 4.2★ on Yelp

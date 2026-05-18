@@ -8,6 +8,6 @@ cta:
   href: /new-years-eve/
 ---
 
-The night, the bar, the suite. Cocktails by America's Top Mixologist,
+The night, the bar, the suite. Cocktails curated by America's Top Mixologist,
 the 28-tap wall, and a 6-lane VIP suite if you want to take the
 night over. Packages and reservations on the New Year's Eve page.

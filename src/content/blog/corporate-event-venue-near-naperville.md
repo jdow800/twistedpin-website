@@ -69,7 +69,7 @@ billiards-style group dynamics, and bar billing you control on a tab
 or drink tickets — your call. Set apart, semi-private, and yours for
 the night when you book the suite.
 
-The bar program is a load-bearing piece. It was built by Brian Van
+The bar program is a load-bearing piece. It was curated by Brian Van
 Flandern, who Food Network calls *America's Top Mixologist* — the kind
 of cocktail program your Naperville office won't see in the hotel
 ballrooms or the chain restaurants on Route 59. The 28-tap self-serve
@@ -124,7 +124,7 @@ A short list, and the answers we give for the VIP suite:
 ## How to start
 
 If you're planning something for 20–80 people and the format above
-fits, [the events platform](https://twistedevents.zite.so/) takes
+fits, [the events platform](https://event.twistedpin.com/#start) takes
 about 90 seconds to fill out. We follow up the same week.
 
 If you're planning something larger, or it's a different format than
@@ -142,4 +142,4 @@ and point you somewhere that is.
 - [/events/](/events/) — corporate, birthday, fundraiser, gender
   reveal, holiday — all the event types we run
 
-[Plan an event →](https://twistedevents.zite.so/)
+[Plan an event →](https://event.twistedpin.com/#start)

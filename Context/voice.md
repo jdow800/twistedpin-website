@@ -44,7 +44,7 @@ Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish 
 
 ### Core vocabulary
 - Elevated, premium, luxurious, upscale, sophisticated
-- Crafted, curated, signature, gourmet, chef-inspired, artisanal
+- Crafted, curated, signature, gourmet, artisanal
 - Vibrant, spirited, lively, dynamic
 - Unforgettable, unrivaled, unparalleled, ultimate
 - Escape, break, unleash, redefine, reimagine, disrupt
@@ -82,6 +82,28 @@ Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish 
 - **"Private space" / "Private event space"** — the venue has no fully-private event space. The only way to get a fully-private experience is to rent the entire facility (full buyout).
 - **"Private" as a generic descriptor for the VIP suite** — the VIP suite is **semi-private**: when reserved, the 6 lanes are exclusive to that group, but the bar / arcade / shared room around them is not. Use **"VIP suite"**, **"take over the suite"**, or **"the suite to your group"** — never "private suite" or "private room."
 
+### Brian Van Flandern relationship — banned framings (per 2026-05-17 ads-launch reframe)
+Brian is a **consultant who curated** the cocktail program. He did some initial staff training. He is **not** staff, **not** an owner, and never on site. Any framing that implies otherwise is a deceptive claim under Google Ads policy and inaccurate on the website.
+
+- ❌ **"Built by [Brian / Top Mixologist]"** — implies he built the venue or the program is his work
+- ❌ **"Designed by [Brian]"** — same risk; "curated" is the precise verb
+- ❌ **"Backed by"** — implies financial stake / equity
+- ❌ **"Partnered with"** — implies ongoing business partnership
+- ❌ **"Headed by" / "Led by" / "Run by"** — implies active operational role
+- ❌ **"Brian Van Flandern presents"** — implies branded / named partnership
+
+✅ **Canonical phrasing:** *"Curated by Brian Van Flandern, America's Top Mixologist (Food Network)."* — or the short form *"Curated by America's Top Mixologist."*
+
+### Chef language — venue has no executive chef
+The kitchen is run by the F&B team, not a named chef. Using chef-language is a deceptive claim under Google Ads policy.
+
+- ❌ **"Chef-driven"** — implies a chef leads the kitchen
+- ❌ **"Chef-inspired"** — same risk, softer form
+- ❌ **"Chef-led"**, **"Chef's [anything]"** — same
+- ❌ **"Executive chef"** as a credential — there isn't one
+
+✅ **Replacements:** *"from-scratch,"* *"built to share,"* *"crafted in-house,"* or describe the food itself.
+
 When framing events / group bookings, the load-bearing accurate phrasing is **"Take over the 6-lane VIP suite"** (echoes the locked Bowl aside *"(yes, you can take it over)"*) plus **"custom catering"**. The suite is takeable; the bar isn't private; full privacy requires a full venue buyout — frame accordingly.
 
 ### Off-brand emotional register
@@ -109,13 +131,13 @@ When framing events / group bookings, the load-bearing accurate phrasing is **"T
 - 28-tap self-serve beer & wine wall (only one in the immediate area)
 - State-of-the-art arcade
 - Cocktail program — see "Cocktail Credibility" below for credential framing
-- Chef-inspired food
+- From-scratch food (NOT "chef-inspired" or "chef-driven" — see Words to Avoid)
 
 ---
 
 ## Cocktail Credibility — Brian Van Flandern
 
-Our bar program was set up by **Brian Van Flandern** as a consultant, and he's back to retrain the team this summer (2026). He's not staff, not an owner, not a daily presence. The relationship is real and ownable — almost no entertainment venue in the country has it — but the framing matters: he's an external authority who designed the program, not part of the house.
+Our bar program was set up by **Brian Van Flandern** as a consultant, and he's back to retrain the team this summer (2026). He's not staff, not an owner, not a daily presence. The relationship is real and ownable — almost no entertainment venue in the country has it — but the framing matters: he's an external authority who **curated** the program, not part of the house. **"Curated by"** is the canonical verb; **"built by" / "designed by" are banned** (2026-05-17, see Words to Avoid).
 
 ### Who he is (in a sentence)
 Brian Van Flandern is named *"America's Top Mixologist"* by Food Network, with cocktails served in 40+ countries.
@@ -136,13 +158,13 @@ Lead with the credential, not the personality. Direct, factual, slightly underst
 When citing the Food Network credential as a self-applied label, the *"(Their words, not ours.)"* parenthetical does double duty: it disclaims the boast on our behalf, and it sources the line to him without naming him. Use sparingly — once per page max.
 
 ✅ Approved homepage / craft-bar lines (primary positioning)
-- *"Built by America's Top Mixologist. (Their words, not ours.)"* — current hero subhead
-- *"A craft cocktail program designed by America's Top Mixologist."*
-- *"The bar program was built by the guy Food Network calls America's Top Mixologist."*
-- *"Cocktails this serious aren't supposed to live at bowling alleys."* — reserved for cocktail/bar section header (does not name him; carries the contradiction)
+- *"Curated by America's Top Mixologist. (Their words, not ours.)"*
+- *"A craft cocktail program curated by America's Top Mixologist."*
+- *"The bar program was curated by the consulting mixologist Food Network calls America's Top Mixologist."*
+- *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — full credential line for cocktail/bar long-form
 
 ✅ Long-form (/bar body copy)
-Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the credential, plus the consulting-relationship framing (designed the program, not staff, retraining team this summer). **Do not include Per Se, Thomas Keller, or Michelin three-star anywhere** — even in long-form body copy. Retired 2026-05-03 with no carve-out.
+Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the credential, plus the consulting-relationship framing (**curated** the program, not staff, retraining team this summer). **Do not include Per Se, Thomas Keller, or Michelin three-star anywhere** — even in long-form body copy. Retired 2026-05-03 with no carve-out.
 
 ❌ Retired / off-brand
 - *"The mixologist behind Thomas Keller's Per Se built our bar."* (Per Se framing retired for primary positioning — pulls toward fine-dining, overstates the relationship)
@@ -158,7 +180,7 @@ Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the 
 ### Where he belongs
 - **Homepage** — once, in a bar/cocktail spot. Hero subhead carries the credential ("America's Top Mixologist") in the locked line; he's not named in the hero itself.
 - **/bar/** — anchor credential of the page. Long-form context here uses the Food Network credential and the consulting-relationship framing only (no Per Se / Keller / Michelin per 2026-05-03 retirement).
-- **/vip-suite/** — mention as part of *"the bar program in the VIP suite is the same one designed by…"*
+- **/vip-suite/** — mention as part of *"the bar program in the VIP suite is the same one curated by…"*
 - **Cocktail menu / drink descriptions** — sparingly; let the menu itself carry the design
 - **Press / about** — the long version
 
@@ -243,15 +265,15 @@ Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion 
 | 1 | (Hero — see below) | *Plainfield's premier night out. Bowling optional.* | — |
 | 2 | *Events That Don't Suck* | *Take over the suite. Run the night your way.* | — |
 | 3 | *The Tap Wall* | *28 self-serve taps* | *(only wall in the area)* |
-| 4 | *Craft Cocktails* | *Built by America's Top Mixologist.* | *(their words, not ours)* |
-| 5 | *Eat* | *Chef-inspired menu.* | *(built to share)* |
+| 4 | *Craft Cocktails* | *Curated by America's Top Mixologist.* | *(their words, not ours)* |
+| 5 | *Eat* | *Real kitchen.* | *(built to share)* |
 | 6 | *Bowl* | *17 traditional lanes plus a 6-lane VIP suite.* | *(yes, you can take it over)* |
 | 7 | *Game* | *Skee-ball, redemption, jackpot.* | *(don't pretend you don't want the giant bear)* |
 | 8 | *Find Us* | (utility footer — hours, address, contact, social, copyright) | — |
 
 **Snap 1 hero on `/snap-test/`** uses a simplified subhead — *"Plainfield's premier night out. Bowling optional."* — and drops both the *PLAINFIELD, IL* eyebrow and the stat-trio. The live homepage hero (`/`) was promoted to match this on 2026-05-01.
 
-**Snap 4** uses the short variant of the cocktail credential — *"Built by America's Top Mixologist." (their words, not ours)*. The long-form variant — *"Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist."* — is now active for the desktop track only (see desktop-track copy below); it was previously reserved.
+**Snap 4** uses the short variant of the cocktail credential — *"Curated by America's Top Mixologist." (their words, not ours)*. The long-form variant — *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — is now active for the desktop track only (see desktop-track copy below); it was previously reserved.
 
 **Pattern (snaps 3–7) — "statement / (aside)":** the statement is a confident one-liner; the aside is a smaller, dimmer parenthetical that adds attitude or specificity. Visually, the aside is one drop below the statement (warm-dim color, ~0.9em). Implemented via the `subheadParen` prop on the SnapStub component. The aside is voicy-by-design — it carries the playful register; the statement carries the data.
 
@@ -263,7 +285,7 @@ The desktop track diverges from mobile in two beats — Bowl and Cocktails. Mobi
 
 | Slot | Line |
 |---|---|
-| Cocktails (desktop section 3, 50/50 split) — full credential | *Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist.* |
+| Cocktails (desktop section 3, 50/50 split) — full credential | *Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist.* |
 | Bowl (desktop EBG row card) — tighter, no aside | *17 lanes plus a 6-lane VIP suite.* |
 
 **Why two Bowl variants:** mobile snap 6 has a full viewport-tall slot, so the *(yes, you can take it over)* aside earns its space and foreshadows the Events / "Take over the suite" beat. The desktop EBG card lives in a 33%-width column inside a 3-card row — there's no room for the aside, and trying to keep it produces ugly wraps. The card drops the aside and tightens the data line; the VIP differentiator is preserved (*"plus a 6-lane VIP suite."*) so the card doesn't quietly revert to Bowlero positioning.
@@ -276,14 +298,15 @@ These lines are written, approved, and waiting for their slot to be built. **Don
 
 *(No copy currently reserved.)*
 
-The Cocktails long-form variant — *"Cocktails this serious aren't supposed to live at bowling alleys. Built by America's Top Mixologist."* — was previously reserved for a future cocktail/bar section on `/`. It was promoted on 2026-05-02 to active use on the `/snap-test/` desktop section 3 (the 50/50 split). The short variant — *"Built by America's Top Mixologist. (Their words, not ours.)"* — remains in use on mobile snap 4. See "Desktop track copy" above for the dual-variant rationale.
+The Cocktails long-form variant — current canonical *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — was previously reserved for a future cocktail/bar section on `/`. It was promoted on 2026-05-02 to active use on the `/snap-test/` desktop section 3 (the 50/50 split). The short variant — *"Curated by America's Top Mixologist. (Their words, not ours.)"* — remains in use on mobile snap 4. See "Desktop track copy" above for the dual-variant rationale. (Both lines previously used "Built by" — retired 2026-05-17 per ads-launch reframe.)
 
 ### Deprecated copy (do not use)
 - *"The bar that bowls."* — retired. Reads as a tagline competing with the headline.
 - *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
-- *"Built by America's Top Mixologist. (Their words, not ours.)"* in the **hero subhead slot** — retired from the hero. Reason: the hero headline starts with "Built for adults." and the subhead repeating "Built by…" misimplied the mixologist built the venue itself, not just the bar program. The short form lives on in the cocktail snap (mobile snap 4); the long-form variant lives on in the desktop Cocktails section.
-- *PLAINFIELD, IL* (hero eyebrow) and *28 self-serve taps · A 6-lane VIP suite · 17 traditional lanes · A chef-inspired menu* (hero stat-trio subhead) — retired from the live `/` hero on 2026-05-01 when the live page was promoted to match the `/snap-test/` simplified hero. Replaced by *"Plainfield's premier night out. Bowling optional."* and no eyebrow.
-- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Eat) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. Replaced by *"Chef-inspired menu. (built to share)"* — food-focused, no bar reference.
+- ***"Built by [X]" / "Designed by [X]" — entire constructions retired** as of 2026-05-17.* Replaced by **"Curated by [X]"** everywhere — see "Brian Van Flandern relationship — banned framings" in Words to Avoid. The historical context for the hero-subhead retirement (2026-04-30, the "built by carried through from headline" issue) still stands; the broader ban supersedes it. Old form *"Built by America's Top Mixologist. (Their words, not ours.)"* is now *"Curated by America's Top Mixologist. (Their words, not ours.)"*.
+- ***"Chef-inspired" / "Chef-driven" / any chef-language** — entire family retired* as of 2026-05-17. Venue has no executive chef; chef-language is a deceptive claim under Google Ads policy. Replacements: *"from-scratch,"* *"real kitchen,"* *"built to share,"* or describe the food itself. Old snap 5 line *"Chef-inspired menu. (built to share)"* is now *"Real kitchen. (built to share)"* on the homepage; pillar `/eat` uses *"from-scratch menu"* in long-form body copy.
+- *PLAINFIELD, IL* (hero eyebrow) and the hero stat-trio subhead — retired from the live `/` hero on 2026-05-01 when the live page was promoted to match the `/snap-test/` simplified hero. Replaced by *"Plainfield's premier night out. Bowling optional."* and no eyebrow.
+- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Eat) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. (Both phrasings are now also retired under the chef-language ban above.)
 - *"Skee-ball, redemption, and the jackpot machine you came for."* — drafted and discarded as the snap 7 subhead. Specific machine claims weren't verified. Replaced by *"Skee-ball, redemption, jackpot. (don't pretend you don't want the giant bear)"* — three-beat statement + voicy aside.
 
 For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.

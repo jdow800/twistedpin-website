@@ -7,7 +7,7 @@ Twisted Pin is a hospitality venue at 15610 Joliet Rd, Plainfield, IL — minute
 ## Pillars
 
 - [Bar program](https://www.twistedpin.com/bar/): Cocktails curated by Brian Van Flandern (America's Top Mixologist) plus 28-tap self-serve beer and wine wall.
-- [Eat](https://www.twistedpin.com/eat/): Chef-inspired plates built to share, paired with the bar program.
+- [Eat](https://www.twistedpin.com/eat/): From-scratch plates built to share, paired with the bar program.
 - [Bowl](https://www.twistedpin.com/bowl/): 17 traditional lanes plus a 6-lane VIP suite. Open bowling almost any time; reservations for busy nights.
 - [VIP Suite](https://www.twistedpin.com/vip-suite/): Six lanes set apart from the traditional lanes — semi-private, yours when you take the whole suite. Up to 80 people. Adult birthdays, corporate offsites, holiday parties, staff appreciation, graduation parties, gender reveals, bridal showers, reception dinners.
 - [Group Events](https://www.twistedpin.com/events/): Birthdays, corporate, fundraisers, family events. Run a tab or hand out drink tickets.
@@ -40,4 +40,4 @@ Twisted Pin is a hospitality venue at 15610 Joliet Rd, Plainfield, IL — minute
 
 ## Plan an event
 
-Group events (birthdays, corporate, fundraisers) book through [Zite](https://twistedevents.zite.so/). Standard bowling reservations book through [Roller](https://ecom.roller.app/twistedpin/openbowl/en-us/home).
+Group events (birthdays, corporate, fundraisers) book through the [event inquiry form](https://event.twistedpin.com/#start). Standard bowling reservations book through [Roller](https://ecom.roller.app/twistedpin/openbowl/en-us/home).

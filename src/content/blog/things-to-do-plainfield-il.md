@@ -22,11 +22,11 @@ to do.
 
 ## For a date night
 
-The honest answer: a craft cocktail program by [America's Top
+The honest answer: a craft cocktail program curated by [America's Top
 Mixologist](/bar/) is sitting on the corner of Joliet Rd and 159th
 inside what most people drove past for years assuming was a regular
 bowling alley. It isn't. The bar program at
-[Twisted Pin](/) was built by Brian Van Flandern, who Food Network
+[Twisted Pin](/) was curated by Brian Van Flandern, who Food Network
 calls *America's Top Mixologist* and whose cocktails are served in 40+
 countries. You can have a real cocktail, eat real food from a real
 kitchen, and — if the night calls for it — bowl two games before
@@ -51,7 +51,7 @@ spot that doesn't require driving to Lombard or downtown Chicago,
 that's the differentiator. If you're throwing a milestone birthday or
 gender reveal that needs to actually feel like an event, same.
 
-[Plan an event →](https://twistedevents.zite.so/)
+[Plan an event →](https://event.twistedpin.com/#start)
 
 ## For a Saturday that needs to actually feel like one
 
@@ -121,5 +121,5 @@ Saturday morning or an outdoor day, start with the Riverwalk or the
 park district.
 
 [Reserve a lane](https://ecom.roller.app/twistedpin/openbowl/en-us/home) ·
-[Plan an event](https://twistedevents.zite.so/) ·
+[Plan an event](https://event.twistedpin.com/#start) ·
 [See the cocktail menu](/menu/cocktails/)
