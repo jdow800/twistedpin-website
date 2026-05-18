@@ -32,7 +32,7 @@ All context lives in `Context/`. Read all four for any meaningful work.
 | **`Context/brand-guidelines.md`** | Logo system, typography roster, hex values, "the Pin" / Formation marks. Mood description partially deprecated (see header note); everything else is authoritative. |
 | **`Context/seo.md`** | Keywords, page structure, URL migration plan, page-speed targets, meta requirements |
 | **`Context/media-needs.md`** | Running list of imagery / video / copy / data assets needed for inner pages. Update whenever a new pillar ships — flag any homepage-reuse stubs, placeholders, or missing real assets so the user can source / brief / replace. |
-| **`Context/launch-checklist.md`** | Operational + technical items that must be resolved before the new build replaces twistedpin.com. 301 redirect map, ops-data placeholders, integration credentials, pages to build, pre-launch sweeps. Update as items land or change. |
+| **`Context/launch-checklist.md`** | Historical launch checklist. Site is live at twistedpin.com (2026-05-17). Retained for the 301 redirect map of record + any residual ops-data placeholders / counsel review items still open. |
 
 Supporting assets:
 - `Context/pictures/` — photo library (with `events-catering/` subfolder)
@@ -97,7 +97,7 @@ Supporting assets:
 
 ## In Progress
 
-- **Site is structurally complete** with real content for every nav-linked URL. **Latest session captured in [session-handoffs/2026-05-17-schema-lcp-perf-sweep.md](Context/session-handoffs/2026-05-17-schema-lcp-perf-sweep.md) — read first.** Prior session: [2026-05-08-copy-pass-seo-infra-sms.md](Context/session-handoffs/2026-05-08-copy-pass-seo-infra-sms.md).
+- **🟢 SITE IS LIVE at https://twistedpin.com (cutover 2026-05-17).** New build replaces the legacy site. All 18 production 301 redirects are now load-bearing for real traffic; GSC actions affect real indexing; copy/schema/perf changes ship straight to production. **Latest session captured in [session-handoffs/2026-05-17-punch-list-stages-0-4.md](Context/session-handoffs/2026-05-17-punch-list-stages-0-4.md) — read first.** Prior session: [2026-05-17-schema-lcp-perf-sweep.md](Context/session-handoffs/2026-05-17-schema-lcp-perf-sweep.md).
 - **Pre-ads-launch perf pass shipped (2026-05-17)** — 8 commits across schema, LCP, AVIF posters, cache headers, ES2020 build target, hero-preload gating. **Every ad-blocking page is now under 3.5s LCP** (`/events` 6.9s → 3.1s, `/game` 7.5s → 3.2s, `/bowl` → 2.5s green band, `/vip-suite` 4.0s → 2.9s green band, `/fundraisers` 4.7s → 3.5s, `/birthday-parties-booking` 3.5s). GSC `/events` Review-Snippets error fixed via dual `@type` + 6 missing schemas added. AVIF posters site-wide saved 367 KB. The "aha" fix was `47e7479`: hero LCP preload was unconditional in Base.astro, wasting 280 KB on every pillar page that doesn't display the hero — gated to homepage only. **One action remaining: in GSC, click Validate Fix on `/events` Review Snippets issue.**
 - **301 redirect map shipped** (2026-05-06) — 18 legacy URLs preserved per launch-checklist. Plus `/essential` + `/elevated` SMS short links for text marketing.
 - **`/upcoming-events` rebuilt** (2026-05-06) as a real calendar driven by an Astro content collection (`src/content/events/*.md`). Empty state when zero events; multi-day cross-month range support; CTA per event. NYE 2026 is the first entry.
@@ -107,15 +107,16 @@ Supporting assets:
 - **Google Places API live hours** (2026-05-06 wiring; **env vars confirmed set on Vercel as of 2026-05-08**) — `src/lib/google-hours.ts` reads live hours from the Business Profile when `GOOGLE_MAPS_API_KEY` + `GOOGLE_PLACE_ID` are set; falls back to static `src/data/hours.ts` otherwise. **Live in production** — confirmed empirically by ops (hours auto-updated 2026-05-08 with no commit). All hours surfaces (SnapFooter status strip, /pricing day tabs, /faq "What are your hours?", schema `openingHoursSpecification`) read through `getLiveHours()` / `formatHoursAnswer()`. Single point of truth: edit `src/data/hours.ts` only as a fallback if Google API ever errors.
 - **GoTab + Untappd menu data is wired** (2026-05-05). Daily 4am cron rebuilds. See [session-handoffs/2026-05-05-menus.md](Context/session-handoffs/2026-05-05-menus.md).
 - **`/menu` hub + thumbnails** (2026-05-05) — 7th inline nav slot; horizontal-split cards with real hero photography.
-- **`/privacy`, `/terms`, `/accessibility`** (2026-05-05) — three compliance pages live, flagged for counsel review pre-launch.
+- **`/privacy`, `/terms`, `/accessibility`** (2026-05-05) — three compliance pages live. Counsel review status: unknown / open — confirm with ops whether these were reviewed before the 2026-05-17 cutover.
 - **`/coupon` native form + Patch API** (2026-05-05) — replaces legacy iframe. `PATCH_API_KEY` + `PATCH_ACCOUNT_ID` set on Vercel. **Trigger pattern (DOI / event listener) is OPEN — pending Patch support response.** Submissions land in Patch's contact list; coupon SMS path TBD.
 - **DNS migration runbook** (2026-05-05) — full cutover plan in [Context/dns-migration.md](Context/dns-migration.md). User picked GoDaddy DNS.
 - **Lighthouse baseline + LCP optimization** (2026-05-05) — Desktop 100/100/100/100; Mobile 86 with LCP 3.9s. **Don't re-test until real photography + final hero splice land.**
-- **Hero is live** (2026-04-30) at https://twistedpin-website.vercel.app — main-tip auto-deploys from each push.
+- **Vercel auto-deploy** — main-tip auto-deploys to https://twistedpin.com (production domain since 2026-05-17 cutover). Preview deploys still spin up on every branch.
 - **Mobile hero video splice** — direction approved (3 sources), specific window timestamps pending user.
 - **Adobe Fonts kit** — declined 2026-05-06. Substitutes (Barlow Cond / Montserrat / Roboto Slab) ship for production; user opted out of the CC subscription cost. Swap is a 5-minute CSS-variable change if direction changes later.
 - **Real photography** — pillar pages still use placeholders / homepage reuses. Encoder pipeline ready (`scripts/build-snap-images.mjs`); when sources land in `Context/pictures/`, AVIFs auto-generate.
-- **Pre-launch code work remaining (small):** ops confirmations on VIP suite capacity, fundraiser stat, NYE packages. (Phone number placeholder was already swapped — `PHONE_DISPLAY`/`PHONE_TEL` in `src/lib/schema.ts` hold the real `(815) 782-7790` number.)
+- **Outstanding ops confirmations (post-launch sweep):** VIP suite capacity, fundraiser stat, NYE packages. Phone number is real (`(815) 782-7790` in `PHONE_DISPLAY`/`PHONE_TEL` in `src/lib/schema.ts`).
+- **Post-cutover GSC actions:** (1) Validate Fix on `/events` Review-Snippets error (per 2026-05-17 schema-LCP handoff). (2) Submit `/sitemap-videos.xml` (shipped in Stage 4 of 2026-05-17 punch list). (3) Spot-check that the 18 production 301 redirects are firing on real traffic.
 
 ### Watch list
 
@@ -222,3 +223,5 @@ Supporting assets:
   - **Confirmed wins (PSI mobile, all post-`47e7479`):** `/events` 6.9s → 3.1s LCP (perf 72 → 92). `/game` 7.5s → 3.2s LCP (perf 72 → 90). `/bowl` → 2.5s LCP (perf 97 — green band). `/vip-suite` 4.0s → 2.9s LCP (perf 88 → 94 — green band). `/fundraisers` 4.7s → 3.5s LCP (perf 82 → 86). `/birthday-parties-booking` 3.5s LCP (perf 88). The variance theory that kept us second-guessing PSI mid-session was wrong — wasn't run noise, was the wasted hero preload starving connection slots on pillar pages.
   - **Still flagged for future passes:** Reduce unused JS (~60 KiB GTM — Partytown territory), forced reflow on `/game`, homepage hero AVIF (currently WebP, not blocking since homepage scores 100/954ms LCP), `/menu/taps` iframe-related slowness, `/pricing` 3.6s LCP (no section video — separate investigation).
   - **The new "LCP fix pattern" for any future page** that has typography hero → first section video is documented in the handoff doc Step-by-step section. AVIF Q50 poster + bounded media + `lcpPreloadHref`.
+
+- **2026-05-17 — Site cutover to twistedpin.com.** New build replaced the legacy site on the production domain. Operational implications: (1) `vercel.json` redirect map is now load-bearing for real traffic — any legacy URL hitting prod relies on those 18 entries firing correctly, plus the `/essential` / `/elevated` SMS short links. (2) GSC actions (Validate Fix on `/events` Review Snippets, submit `/sitemap-videos.xml`) now affect real indexing — earlier sooner than later. (3) Copy / schema / perf changes ship straight to production from each push to main — no staging cushion. (4) Pre-launch framing in this file has been retired; launch-checklist.md is now historical. Treat any "pre-launch" or "before the new build replaces twistedpin.com" language anywhere else as stale and rewrite when you see it.

@@ -1,0 +1,596 @@
+---
+/**
+ * /corporate-events/ — Corporate Events landing page.
+ *
+ * Audience-specific funnel split from /events. /events is the broad
+ * group-events pillar; this page narrows to corporate planners (EA,
+ * office manager, HR, owner) booking offsites, holiday parties,
+ * staff appreciation nights, sales kickoffs, client entertainment.
+ *
+ * Per Context/seo.md (line 26): `corporate event venue near me` /
+ * `team building venue` / `company outing bowling` is a $2K–$10K+
+ * booking cluster, ~40% of paid corporate leads via Google. The
+ * dedicated URL captures the planner-intent search that the broad
+ * /events page dilutes (and competes against — same domain, blunter
+ * keyword target).
+ *
+ * Replaces the legacy `/corporate-parties/` → `/events/#corporate`
+ * 301 (hash drops on 301 so the equity was landing on the generic
+ * events page). New redirect target: this page directly.
+ *
+ * Same pillar skeleton as /events + /fundraisers + /vip-suite (rule
+ * of nine — .pillar-* CSS hoist is overdue, flagged on every page in
+ * this family):
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (video + copy, alternating)
+ *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
+ *   - SnapFooter
+ *
+ * Hero videos: same as /vip-suite by user direction (2026-05-17) —
+ * the VIP suite IS the corporate event room, so vip-lanes-* (LCP
+ * candidate) + buffet-* (lazy below-fold) is the visually correct
+ * pairing. Both videos are already canonical on their primary pages
+ * (/vip-suite, /events) per src/data/videos.ts; this page reuses
+ * them visually only and does NOT emit duplicate VideoObject JSON-LD
+ * (single-canonical convention for the video sitemap).
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - Brian Van Flandern named only as "America's Top Mixologist"
+ *     credential — "curated by," never "built by"
+ *   - "private" hard-banned — VIP suite is "set apart from the main
+ *     floor," "yours when you book it," "semi-private"
+ *   - "Cheap / discount / value" banned — corporate planners have
+ *     budgets, not coupons. Confident pricing language only.
+ *   - "Team building" used pointedly (we're not running ropes-course
+ *     activities; we're running an offsite that has bowling, food,
+ *     and a real bar — the planner can call it team building)
+ *   - Specifics > adjectives — 6-lane suite, up to 80, 28 self-serve
+ *     taps, LED video wall, full-venue buyouts for larger groups
+ *
+ * TODOs (non-blocking):
+ *   - Capacity number for full-venue buyouts ("more for full-venue
+ *     buyouts") still hand-waved; same as /events. When ops gives a
+ *     number, update here + /events + /vip-suite in the same diff.
+ *   - Real corporate-event photography (a real offsite night, a deck
+ *     on the LED wall, a buffet from the kitchen at scale) would
+ *     convert harder than the existing vip-lanes/buffet stock loops.
+ *     Flagged for Context/media-needs.md.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+
+import { PLAN_EVENT_URL } from "../lib/links";
+
+// JSON-LD: Service (parallel to /fundraisers). provider → #business
+// links the program to the canonical entity via @id. areaServed is
+// the I-55/I-80 corridor where corporate planners actually come from —
+// Plainfield is the venue address, but the audience is anchored
+// across the western suburbs (matches the /why-us/*-il/ city set).
+const PAGE_URL = `${BUSINESS_URL}/corporate-events/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#corporate-events`,
+  name: "Corporate Event Hosting",
+  url: PAGE_URL,
+  description:
+    "Corporate offsites, holiday parties, sales kickoffs, and staff appreciation events at Twisted Pin in Plainfield, IL. The 6-lane VIP suite seats up to 80 (more for full-venue buyouts), with in-house catering and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  serviceType: "Corporate event hosting",
+  areaServed: [
+    { "@type": "City", name: "Plainfield, IL" },
+    { "@type": "City", name: "Naperville, IL" },
+    { "@type": "City", name: "Bolingbrook, IL" },
+    { "@type": "City", name: "Joliet, IL" },
+    { "@type": "City", name: "Romeoville, IL" },
+    { "@type": "City", name: "Oswego, IL" },
+    { "@type": "City", name: "Shorewood, IL" },
+    { "@type": "City", name: "Lockport, IL" },
+  ],
+};
+---
+<Base
+  title="Corporate Event Venue in Plainfield, IL | Twisted Pin"
+  description="Corporate offsites + holiday parties at Twisted Pin: 6-lane VIP suite, in-house catering, craft cocktails. Plainfield, IL — near Naperville, Bolingbrook, Joliet."
+  ogImage="/og/og-events.jpg"
+  ogImageAlt="A corporate event in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/vip-lanes-poster.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="corp-hero" data-hero aria-labelledby="corp-hero-h1">
+    <div class="corp-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Corporate Events</p>
+      <h1 class="t-display corp-hero-headline hero-fade" id="corp-hero-h1" data-delay-ms="120">
+        Offsites they actually&nbsp;show up to.
+      </h1>
+      <p class="corp-hero-sub hero-fade" data-delay-ms="320">
+        The 6-lane VIP suite. Catering through the kitchen. A bar
+        program serious enough that someone's still talking about it
+        Monday.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE ROOM — image left, copy right (desktop)
+
+      LCP optimization (matches /events + /vip-suite recipe):
+        - poster=/snap/vip-lanes-poster.avif (direct, AVIF Q50)
+        - lcpPreloadHref="/snap/vip-lanes-poster.avif" in Base frontmatter
+        - Bounded media on every <source>: ≤480 → 540w, ≥481 → 1080w
+        - data-src (lazy promotion via sectionVideo() motion module)
+      Video bytes stay deferred until IntersectionObserver promotes
+      the section; only the poster takes the LCP fast path.
+      ============================================================ */}
+  <section class="corp-section" aria-labelledby="corp-room-h2">
+    <div class="corp-section-grid">
+      <div class="corp-section-frame">
+        <video
+          class="corp-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster="/snap/vip-lanes-poster.avif"
+          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a group event"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="corp-section-copy">
+        <p class="t-eyebrow">The Room</p>
+        <h2 class="t-display corp-section-title" id="corp-room-h2">
+          Six lanes. Eighty people. Yours.
+        </h2>
+        <p class="corp-section-aside">(more for full-venue buyouts)</p>
+
+        <p class="corp-section-body">
+          The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
+          wall, set apart from the main floor — semi-private, yours
+          for the night when you book it. LED video wall for the
+          company deck, the highlight reel, the logo, or the playoff
+          game once the meeting's over. AV solutions for the actual
+          presentation if one has to happen.
+        </p>
+
+        <p class="corp-section-body">
+          Couch seating wraps the lanes for the people who'd rather
+          watch than throw. Run the all-hands at 6:30, call it the
+          offsite at 7, let the room handle the rest of the night.
+        </p>
+
+        <ul class="corp-section-list">
+          <li>6-lane VIP suite, set apart from the main floor</li>
+          <li>Up to 80 in the suite; more for full-venue buyouts</li>
+          <li>LED video wall + AV solutions for the deck</li>
+          <li>Couch seating wraps the lanes</li>
+          <li>Yours from setup to last call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE FOOD & BAR — image RIGHT, copy LEFT (alternation)
+
+      Second section sits below the mobile fold so the poster is NOT
+      an LCP candidate — data-poster (lazy) is correct here. Bounded
+      media on sources is defense-in-depth for the v.load() probing
+      bug (see /events comment block for full rationale).
+      ============================================================ */}
+  <section class="corp-section corp-section--reverse" aria-labelledby="corp-food-h2">
+    <div class="corp-section-grid">
+      <div class="corp-section-frame">
+        <video
+          class="corp-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/buffet-poster.avif"
+          aria-label="A buffet of catering food laid out for a group event at Twisted Pin — chafing dishes and shareable plates"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="corp-section-copy">
+        <p class="t-eyebrow">The Food &amp; Bar</p>
+        <h2 class="t-display corp-section-title" id="corp-food-h2">
+          The kitchen and the bar handle the rest.
+        </h2>
+
+        <p class="corp-section-body">
+          In-house catering through <a href="/eat/">the kitchen</a> —
+          built to share, scaled to your group, served buffet or
+          plated. Vegetarian, gluten-free, and dietary accommodations
+          on request.
+        </p>
+
+        <p class="corp-section-body">
+          The 28-tap self-serve <a href="/menu/taps/">beer &amp; wine
+          wall</a> sits next door. The <a href="/menu/cocktails/">cocktail
+          bar</a> runs the program curated by Brian Van Flandern,
+          <em>America's Top Mixologist</em> — same drinks, same
+          execution as the rest of the venue.
+        </p>
+
+        <p class="corp-section-body">
+          Run a tab, hand out drink tickets, or set a per-head cap —
+          pick the billing model that fits the budget. The kitchen
+          handles custom catering through the night.
+        </p>
+
+        <ul class="corp-section-list">
+          <li>In-house catering, buffet or plated</li>
+          <li>28-tap self-serve beer &amp; wine wall</li>
+          <li>Cocktail program curated by Brian Van Flandern</li>
+          <li>Tab, drink tickets, or per-head cap — your call</li>
+          <li>Dietary accommodations on request</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT WE HOST — text-only band, light cross-link to /events
+      for adjacent event types (graduation, birthday, fundraiser).
+      Smaller register than the closing CTA so it doesn't compete.
+      ============================================================ */}
+  <section class="corp-context" aria-labelledby="corp-context-h2">
+    <div class="corp-context-inner">
+      <p class="t-eyebrow">What We Host</p>
+      <h2 class="t-display corp-context-title" id="corp-context-h2">
+        Offsites. Holiday parties. Staff appreciation.
+      </h2>
+      <p class="corp-context-body">
+        Sales kickoffs, board dinners, client entertainment, retirements,
+        farewells, summer outings, and the holiday party that has to
+        happen by mid-December. December books fast — reach out by
+        October. For non-corporate events (birthdays, fundraisers,
+        showers, graduation parties), see <a href="/events/">all group
+        events</a>.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND — single dominant "Plan an event" → Heyflow.
+      Same lifted-indigo treatment as /events for visual consistency
+      across the conversion-moment family.
+      ============================================================ */}
+  <section class="corp-cta" aria-labelledby="corp-cta-h2">
+    <div class="corp-cta-inner">
+      <p class="t-eyebrow">Tell us what you need</p>
+      <h2 class="t-display corp-cta-title" id="corp-cta-h2">
+        We'll set it up.
+      </h2>
+      <p class="corp-cta-body">
+        Quick form. Tour the suite, see the room, get a quote and a
+        catering menu.
+      </p>
+      <a class="btn btn-solid corp-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+        Plan an event
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/events/" },
+    { name: "Corporate Events", path: "/corporate-events/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     /corporate-events — same pillar skeleton as /events /vip-suite
+     /fundraisers. Class names .corp-* mirror .events-* / .vip-* /
+     .fundraiser-* — rule of nine, .pillar-* CSS hoist deeply overdue.
+     Numbers match /events.astro byte-for-byte where applicable so
+     the family reads cohesive across pages.
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .corp-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .corp-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .corp-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .corp-hero-copy { text-align: center; }
+    .corp-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .corp-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .corp-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .corp-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .corp-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  /* ============================================================
+     section pattern (same shape as .events-section etc.)
+     ============================================================ */
+  .corp-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .corp-section { padding: 24px 64px; }
+  }
+
+  .corp-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .corp-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .corp-section--reverse .corp-section-grid > .corp-section-frame {
+      order: 2;
+    }
+  }
+
+  .corp-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .corp-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .corp-section-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .corp-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .corp-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .corp-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .corp-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .corp-section-aside { font-size: 17px; }
+  }
+
+  .corp-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .corp-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .corp-section-body strong {
+    color: var(--warm-white);
+    font-weight: 700;
+  }
+
+  .corp-section-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .corp-section-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  .corp-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .corp-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .corp-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  /* ============================================================
+     WHAT WE HOST context band — sits between editorial sections and
+     the closing CTA. Lighter than the closing-CTA band so it reads
+     as orientation, not conversion.
+     ============================================================ */
+  .corp-context {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .corp-context { padding: 72px 64px 24px; }
+  }
+
+  .corp-context-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .corp-context-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 6.5vw, 38px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .corp-context-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .corp-context-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    max-width: 38em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .corp-context-body { font-size: 17.5px; }
+  }
+
+  .corp-context-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .corp-context-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  /* ============================================================
+     CLOSING CTA BAND — matches /events .events-cta numbers.
+     ============================================================ */
+  .corp-cta {
+    background: rgba(26, 21, 48, 0.92);
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+    padding: 72px 22px 88px;
+    margin-top: 32px;
+  }
+  @media (min-width: 1025px) {
+    .corp-cta { padding: 112px 64px 128px; margin-top: 48px; }
+  }
+
+  .corp-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .corp-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .corp-cta-title { font-size: clamp(56px, 5vw, 72px); }
+  }
+
+  .corp-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .corp-cta-body { font-size: 19px; }
+  }
+
+  .corp-cta-btn {
+    margin-top: 32px;
+    padding: 16px 32px;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+  }
+  @media (min-width: 1025px) {
+    .corp-cta-btn { padding: 18px 40px; font-size: 15px; }
+  }
+</style>

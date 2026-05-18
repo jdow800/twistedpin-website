@@ -21,15 +21,15 @@
     { "source": "/bar-grill{/}?", "destination": "/bar/", "permanent": true },
 
     { "source": "/special-events{/}?", "destination": "/events/", "permanent": true },
-    { "source": "/corporate-parties{/}?", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/corporate-parties{/}?", "destination": "/corporate-events/", "permanent": true },
     { "source": "/fundraiser{/}?", "destination": "/fundraisers/", "permanent": true },
     { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/family-party{/}?", "destination": "/events/#birthday", "permanent": true },
 
     { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
 
-    { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/events/#corporate", "permanent": true },
-    { "source": "/event-spaces-for-teams-:rest*", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/corporate-events/", "permanent": true },
+    { "source": "/event-spaces-for-teams-:rest*", "destination": "/corporate-events/", "permanent": true },
     { "source": "/experience-the-ultimate-group-event-destination:rest*", "destination": "/events/", "permanent": true },
     { "source": "/event-venues-with-a-twist-:rest*", "destination": "/events/", "permanent": true },
 
