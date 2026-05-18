@@ -1,0 +1,580 @@
+---
+/**
+ * /wedding-receptions/ — Wedding Receptions + Rehearsal Dinners.
+ *
+ * Audience-narrowed funnel split from /events. Niche: intimate
+ * weddings (25-80 guests), rehearsal dinners (smaller, often
+ * 30-50), elopement receptions, post-courthouse dinners. NOT the
+ * venue for 150+ traditional weddings — the VIP suite tops out at
+ * 80 in the suite (more for full-venue buyouts) and that's the
+ * honest framing.
+ *
+ * Positioning: the alternative to the hotel ballroom for the
+ * couple who wanted something with a personality. Bowling-as-
+ * entertainment is the novelty hook — the photos people text
+ * each other on the Monday after.
+ *
+ * **Ops sign-off note**: this page launches without explicit
+ * confirmation that the venue has run weddings before. The copy is
+ * intentionally honest about what we offer (room + catering + bar +
+ * AV) without over-promising on packages, planners, or services we
+ * may not have. If ops says "we don't take weddings," kill this
+ * page; if ops has package details, layer them in.
+ *
+ * Same pillar skeleton as /corporate-events + /holiday-parties +
+ * /showers (rule of twelve — .pillar-* CSS hoist deeply overdue):
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (video + copy, alternating)
+ *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
+ *   - SnapFooter
+ *
+ * Hero videos: vip-lanes-* (LCP candidate) + buffet-* (lazy
+ * below-fold) by user direction. Same recipe as the event-page
+ * family. Both videos canonical on their primary pages; visual-only
+ * reuse here.
+ *
+ * Voice rules applied:
+ *   - "private" hard-banned — VIP suite is "set apart," "yours when
+ *     you book it," "semi-private"
+ *   - Brian Van Flandern named only as "America's Top Mixologist" —
+ *     "curated by," never "built by"
+ *   - Honest about capacity — no "we host weddings of any size" when
+ *     the room is 80-person max. "Intimate weddings, 25-80" is the
+ *     truth and the differentiator (couples shopping at this size
+ *     are escaping the 200-person ballroom)
+ *   - No saccharine register — "magical day," "perfect moment,"
+ *     "the day of your dreams" all banned by the brand-voice rule
+ *     against empty intensifiers
+ *   - Adults-first holds — the couple is the chooser; the wedding
+ *     is an adult event
+ *
+ * TODOs (non-blocking):
+ *   - Real wedding photography would land harder than the existing
+ *     vip-lanes/buffet stock loops. Currently no wedding-event
+ *     photo in /snap/. Flagged for media-needs.md.
+ *   - Wedding package details (food per head, bar minimums, room
+ *     fees, vendor list) all hand-waved pending ops input. The page
+ *     funnels to Heyflow for the actual conversation.
+ *   - Officiant / ceremony space: NOT mentioned because the venue
+ *     doesn't currently offer a ceremony setup. Copy is "receptions
+ *     + rehearsal dinners," not "weddings" as the lead noun.
+ *     Don't add ceremony copy without ops confirmation.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+
+import { PLAN_EVENT_URL } from "../lib/links";
+
+const PAGE_URL = `${BUSINESS_URL}/wedding-receptions/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#wedding-receptions`,
+  name: "Wedding Reception and Rehearsal Dinner Hosting",
+  url: PAGE_URL,
+  description:
+    "Intimate wedding receptions (25-80 guests), rehearsal dinners, and elopement receptions at Twisted Pin in Plainfield, IL. The 6-lane VIP suite, in-house catering, and a cocktail program curated by Brian Van Flandern (America's Top Mixologist). The alternative to a hotel ballroom for couples who want something with a personality. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  serviceType: "Wedding reception and rehearsal dinner hosting",
+  areaServed: [
+    { "@type": "City", name: "Plainfield, IL" },
+    { "@type": "City", name: "Naperville, IL" },
+    { "@type": "City", name: "Bolingbrook, IL" },
+    { "@type": "City", name: "Joliet, IL" },
+    { "@type": "City", name: "Romeoville, IL" },
+    { "@type": "City", name: "Oswego, IL" },
+    { "@type": "City", name: "Shorewood, IL" },
+    { "@type": "City", name: "Lockport, IL" },
+  ],
+};
+---
+<Base
+  title="Wedding Receptions & Rehearsal Dinners in Plainfield, IL | Twisted Pin"
+  description="Intimate weddings (25-80), rehearsal dinners, elopement receptions at Twisted Pin: 6-lane VIP suite, in-house catering, craft cocktails. Plainfield, IL — near Naperville, Bolingbrook, Joliet."
+  ogImage="/og/og-events.jpg"
+  ogImageAlt="A wedding reception in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/vip-lanes-poster.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="wed-hero" data-hero aria-labelledby="wed-hero-h1">
+    <div class="wed-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Weddings &amp; Rehearsal Dinners</p>
+      <h1 class="t-display wed-hero-headline hero-fade" id="wed-hero-h1" data-delay-ms="120">
+        Receptions and rehearsal dinners. Not a&nbsp;ballroom.
+      </h1>
+      <p class="wed-hero-sub hero-fade" data-delay-ms="320">
+        The 6-lane VIP suite for up to 80 guests. In-house catering.
+        The bar program your wedding party will text about Monday.
+        Intimate weddings, rehearsal dinners, elopement receptions.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE ROOM — image left, copy right (desktop)
+      LCP optimization (matches family recipe).
+      ============================================================ */}
+  <section class="wed-section" aria-labelledby="wed-room-h2">
+    <div class="wed-section-grid">
+      <div class="wed-section-frame">
+        <video
+          class="wed-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster="/snap/vip-lanes-poster.avif"
+          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes, set up for a wedding reception"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="wed-section-copy">
+        <p class="t-eyebrow">The Room</p>
+        <h2 class="t-display wed-section-title" id="wed-room-h2">
+          The room your guests will text about.
+        </h2>
+        <p class="wed-section-aside">(better than the hotel-conference-floor option)</p>
+
+        <p class="wed-section-body">
+          The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
+          wall, set apart from the main floor — semi-private, yours
+          for the night when you book it. LED video wall for the
+          slideshow, the photo-of-the-couple-as-kids montage, or the
+          live game if the wedding lands on a Sunday in October.
+        </p>
+
+        <p class="wed-section-body">
+          Couch seating wraps the lanes for everyone who didn't make
+          the dance floor cut. The bowling isn't the main event — it's
+          the thing your bridesmaids do during cocktail hour while
+          you're taking photos.
+        </p>
+
+        <ul class="wed-section-list">
+          <li>6-lane VIP suite, semi-private from the main floor</li>
+          <li>Right-sized for intimate weddings — 25 to 80</li>
+          <li>LED video wall + AV solutions</li>
+          <li>Couch seating wraps the lanes</li>
+          <li>Yours from setup to last call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE FOOD & BAR — image RIGHT, copy LEFT (alternation)
+      Below the fold — lazy poster.
+      ============================================================ */}
+  <section class="wed-section wed-section--reverse" aria-labelledby="wed-food-h2">
+    <div class="wed-section-grid">
+      <div class="wed-section-frame">
+        <video
+          class="wed-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/buffet-poster.avif"
+          aria-label="A buffet of catering food laid out for a wedding reception at Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="wed-section-copy">
+        <p class="t-eyebrow">The Food &amp; Bar</p>
+        <h2 class="t-display wed-section-title" id="wed-food-h2">
+          Catering through the kitchen. Bar program by name.
+        </h2>
+
+        <p class="wed-section-body">
+          In-house catering through <a href="/eat/">the kitchen</a> —
+          plated, buffet, or family-style. Cake-cutting service for
+          outside cakes. Vegetarian, gluten-free, and dietary
+          accommodations on request. Tasting available when you tour
+          the venue.
+        </p>
+
+        <p class="wed-section-body">
+          The 28-tap self-serve <a href="/menu/taps/">beer &amp; wine
+          wall</a> sits next door. The <a href="/menu/cocktails/">cocktail
+          bar</a> runs the program curated by Brian Van Flandern,
+          <em>America's Top Mixologist</em> — including a real
+          mocktail menu for guests who aren't drinking, and a
+          signature-cocktail option for the couple if you want one.
+        </p>
+
+        <p class="wed-section-body">
+          Run an open bar, set a per-head cap, or do drink tickets —
+          pick the model that fits the budget. Champagne toast on the
+          bar when the speeches start.
+        </p>
+
+        <ul class="wed-section-list">
+          <li>In-house catering — plated, buffet, or family-style</li>
+          <li>Cake-cutting service for outside cakes</li>
+          <li>Tasting available when you tour</li>
+          <li>Cocktail program curated by Brian Van Flandern</li>
+          <li>Real mocktail menu + signature-cocktail option</li>
+          <li>Open bar, per-head cap, or drink tickets — your call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT WE HOST — orienting band.
+      ============================================================ */}
+  <section class="wed-context" aria-labelledby="wed-context-h2">
+    <div class="wed-context-inner">
+      <p class="t-eyebrow">What We Host</p>
+      <h2 class="t-display wed-context-title" id="wed-context-h2">
+        Receptions. Rehearsal dinners. Eloped.
+      </h2>
+      <p class="wed-context-body">
+        Intimate wedding receptions, rehearsal dinners, elopement
+        receptions, post-courthouse dinners, vow-renewal parties, and
+        the "we just want to celebrate with everyone" reception that
+        doesn't have a name. For the shower side of the wedding cycle,
+        see <a href="/showers/">bridal showers</a>. For everything else
+        group-event, see <a href="/events/">all group events</a>.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND
+      ============================================================ */}
+  <section class="wed-cta" aria-labelledby="wed-cta-h2">
+    <div class="wed-cta-inner">
+      <p class="t-eyebrow">Tell us when</p>
+      <h2 class="t-display wed-cta-title" id="wed-cta-h2">
+        We'll set it up.
+      </h2>
+      <p class="wed-cta-body">
+        Quick form. Tour the suite, talk through dates, get a quote
+        and a tasting.
+      </p>
+      <a class="btn btn-solid wed-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+        Plan an event
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/events/" },
+    { name: "Wedding Receptions", path: "/wedding-receptions/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     /wedding-receptions — same pillar skeleton as /showers
+     /corporate-events /holiday-parties /events /vip-suite. Class
+     names .wed-* mirror the family. Rule of twelve — .pillar-*
+     hoist deeply overdue.
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .wed-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .wed-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .wed-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .wed-hero-copy { text-align: center; }
+    .wed-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .wed-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .wed-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .wed-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .wed-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  /* ============================================================
+     section pattern
+     ============================================================ */
+  .wed-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .wed-section { padding: 24px 64px; }
+  }
+
+  .wed-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .wed-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .wed-section--reverse .wed-section-grid > .wed-section-frame {
+      order: 2;
+    }
+  }
+
+  .wed-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .wed-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .wed-section-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .wed-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .wed-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .wed-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .wed-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .wed-section-aside { font-size: 17px; }
+  }
+
+  .wed-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .wed-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .wed-section-body strong {
+    color: var(--warm-white);
+    font-weight: 700;
+  }
+
+  .wed-section-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .wed-section-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  .wed-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .wed-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .wed-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  /* ============================================================
+     WHAT WE HOST context band
+     ============================================================ */
+  .wed-context {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .wed-context { padding: 72px 64px 24px; }
+  }
+
+  .wed-context-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .wed-context-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 6.5vw, 38px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .wed-context-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .wed-context-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    max-width: 38em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .wed-context-body { font-size: 17.5px; }
+  }
+
+  .wed-context-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .wed-context-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  /* ============================================================
+     CLOSING CTA BAND
+     ============================================================ */
+  .wed-cta {
+    background: rgba(26, 21, 48, 0.92);
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+    padding: 72px 22px 88px;
+    margin-top: 32px;
+  }
+  @media (min-width: 1025px) {
+    .wed-cta { padding: 112px 64px 128px; margin-top: 48px; }
+  }
+
+  .wed-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .wed-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .wed-cta-title { font-size: clamp(56px, 5vw, 72px); }
+  }
+
+  .wed-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .wed-cta-body { font-size: 19px; }
+  }
+
+  .wed-cta-btn {
+    margin-top: 32px;
+    padding: 16px 32px;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+  }
+  @media (min-width: 1025px) {
+    .wed-cta-btn { padding: 18px 40px; font-size: 15px; }
+  }
+</style>

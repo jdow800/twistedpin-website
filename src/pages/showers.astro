@@ -1,0 +1,579 @@
+---
+/**
+ * /showers/ — Bridal + Baby Showers landing page.
+ *
+ * Audience-narrowed funnel split from /events. Combines bridal and
+ * baby showers in a single page (same room, same catering, same
+ * planner persona — typically female-led: maid of honor for bridal,
+ * sister / best friend / mother / future grandmother for baby).
+ *
+ * Why combined: same staffing, same room, same logistics, same
+ * audience archetype. Two thin pages would dilute the SEO signal.
+ * Cross-promotion bonus — the same planner often knows someone
+ * planning the other.
+ *
+ * Group size differs from corporate / weddings — showers run 20-40
+ * guests typically. The VIP suite still works (it just doesn't fill
+ * — and a quieter, more spread-out suite is actually the right
+ * shower vibe).
+ *
+ * Same pillar skeleton as /corporate-events + /holiday-parties (rule
+ * of eleven — .pillar-* CSS hoist remains overdue):
+ *   - Hero: typography-led title section (no image)
+ *   - Two long-scroll editorial sections (video + copy, alternating)
+ *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
+ *   - SnapFooter
+ *
+ * Hero videos: vip-lanes-* (LCP candidate) + buffet-* (lazy
+ * below-fold) by user direction — same recipe as /corporate-events
+ * + /holiday-parties. Both videos remain canonical on their primary
+ * pages per src/data/videos.ts; this page reuses them visually only.
+ *
+ * Voice rules applied (per Context/voice.md):
+ *   - "private" hard-banned — VIP suite is "set apart from the main
+ *     floor," "yours when you book it," "semi-private"
+ *   - Brian Van Flandern named only as "America's Top Mixologist" —
+ *     "curated by," never "built by"
+ *   - Mocktail program named explicitly — baby showers have a
+ *     non-drinking guest of honor; pretending otherwise insults the
+ *     planner. Brian's program adapts to non-alcoholic, said
+ *     directly.
+ *   - No saccharine / Hallmark register — confident-with-attitude
+ *     holds for showers same as everywhere else. Don't say "magical,"
+ *     "perfect," "memorable" or other empty intensifiers
+ *   - Adults-first framing — the planner is an adult; the shower is
+ *     an adult event (even baby showers are adult parties). Don't
+ *     accidentally code this as family / kid-coded
+ *
+ * TODOs (non-blocking):
+ *   - Shower-specific catering / mocktail menu (the actual non-alc
+ *     cocktails on the menu) would convert harder once the kitchen
+ *     and bar give the seasonal lineup. Currently soft-promised.
+ *   - Photo-moment angle (showers are heavy on Instagram moments)
+ *     not pushed — venue's lighting / backdrop work for stories but
+ *     no dedicated mention until real shower-event photography lands.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+
+import { PLAN_EVENT_URL } from "../lib/links";
+
+const PAGE_URL = `${BUSINESS_URL}/showers/`;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": `${BUSINESS_URL}/#showers`,
+  name: "Bridal and Baby Shower Hosting",
+  url: PAGE_URL,
+  description:
+    "Bridal showers and baby showers at Twisted Pin in Plainfield, IL. The 6-lane VIP suite seats up to 80 — runs perfectly for the 20-40 guest shower. In-house catering, a cocktail program curated by Brian Van Flandern (America's Top Mixologist), and a real mocktail menu for the guest of honor when she isn't drinking. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  serviceType: "Bridal and baby shower hosting",
+  areaServed: [
+    { "@type": "City", name: "Plainfield, IL" },
+    { "@type": "City", name: "Naperville, IL" },
+    { "@type": "City", name: "Bolingbrook, IL" },
+    { "@type": "City", name: "Joliet, IL" },
+    { "@type": "City", name: "Romeoville, IL" },
+    { "@type": "City", name: "Oswego, IL" },
+    { "@type": "City", name: "Shorewood, IL" },
+    { "@type": "City", name: "Lockport, IL" },
+  ],
+};
+---
+<Base
+  title="Bridal & Baby Shower Venue in Plainfield, IL | Twisted Pin"
+  description="Bridal and baby showers at Twisted Pin: 6-lane VIP suite, in-house catering, mocktails serious enough for the guest of honor. Plainfield, IL — near Naperville, Bolingbrook, Joliet."
+  ogImage="/og/og-events.jpg"
+  ogImageAlt="A bridal shower in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/vip-lanes-poster.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
+>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="showers-hero" data-hero aria-labelledby="showers-hero-h1">
+    <div class="showers-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Bridal &amp; Baby Showers</p>
+      <h1 class="t-display showers-hero-headline hero-fade" id="showers-hero-h1" data-delay-ms="120">
+        A shower that isn't a hotel&nbsp;brunch.
+      </h1>
+      <p class="showers-hero-sub hero-fade" data-delay-ms="320">
+        The 6-lane VIP suite for 20-40 guests. In-house catering.
+        Mocktails serious enough for the guest of honor. Run a tab for
+        the rest of the party.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE ROOM — image left, copy right (desktop)
+
+      LCP optimization (matches /corporate-events + /holiday-parties
+      + /vip-suite recipe):
+        - poster=/snap/vip-lanes-poster.avif (direct, AVIF Q50)
+        - lcpPreloadHref="/snap/vip-lanes-poster.avif" in Base frontmatter
+        - Bounded media on every <source>: ≤480 → 540w, ≥481 → 1080w
+      ============================================================ */}
+  <section class="showers-section" aria-labelledby="showers-room-h2">
+    <div class="showers-section-grid">
+      <div class="showers-section-frame">
+        <video
+          class="showers-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster="/snap/vip-lanes-poster.avif"
+          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes, ready for a shower"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="showers-section-copy">
+        <p class="t-eyebrow">The Room</p>
+        <h2 class="t-display showers-section-title" id="showers-room-h2">
+          A suite that fits 80. Just yours for the 30.
+        </h2>
+        <p class="showers-section-aside">(don't pretend a hotel ballroom does this)</p>
+
+        <p class="showers-section-body">
+          The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
+          wall, set apart from the main floor — semi-private, yours
+          for the afternoon when you book it. Couch seating wraps the
+          lanes, so the guest of honor has somewhere to sit when she's
+          opening gifts and the rest of the party has somewhere to
+          spread out.
+        </p>
+
+        <p class="showers-section-body">
+          LED video wall for the slideshow, the ultrasound montage,
+          the wedding-photos-from-the-mom-side reel, or whatever you
+          want playing. Bowling shows up later if you want it — most
+          shower groups bowl one round and call it a day.
+        </p>
+
+        <ul class="showers-section-list">
+          <li>6-lane VIP suite, set apart from the main floor</li>
+          <li>Right-sized for 20-40 (room for 80 if it grows)</li>
+          <li>LED video wall for slideshows</li>
+          <li>Couch seating wraps the lanes</li>
+          <li>Bowl one round or zero — your call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      THE FOOD & DRINK — image RIGHT, copy LEFT (alternation)
+
+      Second section sits below the mobile fold so the poster is NOT
+      an LCP candidate — data-poster (lazy) is correct here.
+      ============================================================ */}
+  <section class="showers-section showers-section--reverse" aria-labelledby="showers-food-h2">
+    <div class="showers-section-grid">
+      <div class="showers-section-frame">
+        <video
+          class="showers-section-video"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/buffet-poster.avif"
+          aria-label="A buffet of catering food laid out for a shower at Twisted Pin — chafing dishes, shareable plates, mocktails"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="showers-section-copy">
+        <p class="t-eyebrow">The Food &amp; Drink</p>
+        <h2 class="t-display showers-section-title" id="showers-food-h2">
+          Real catering. Real mocktails.
+        </h2>
+
+        <p class="showers-section-body">
+          In-house catering through <a href="/eat/">the kitchen</a> —
+          buffet, plated, or a brunch-style spread for a daytime
+          shower. Vegetarian, gluten-free, and dietary accommodations
+          on request. Cake-cutting service if you're bringing one in.
+        </p>
+
+        <p class="showers-section-body">
+          The bar runs the program curated by Brian Van Flandern,
+          <em>America's Top Mixologist</em> — including the
+          <a href="/menu/cocktails/">mocktail menu</a>. The guest of
+          honor at a baby shower deserves a drink that isn't
+          cranberry juice in a champagne flute. We made one. Several,
+          actually.
+        </p>
+
+        <p class="showers-section-body">
+          Run a tab for the rest of the party, hand out drink tickets,
+          or set a per-head cap. Champagne toast on the bar for the
+          bridal-shower table when the speeches start.
+        </p>
+
+        <ul class="showers-section-list">
+          <li>In-house catering — buffet, plated, or brunch-style</li>
+          <li>Real mocktails, not cranberry-juice-in-a-flute</li>
+          <li>Cake-cutting service for outside cakes</li>
+          <li>Dietary accommodations on request</li>
+          <li>Tab, drink tickets, or per-head cap — your call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      WHAT WE HOST — orienting band.
+      ============================================================ */}
+  <section class="showers-context" aria-labelledby="showers-context-h2">
+    <div class="showers-context-inner">
+      <p class="t-eyebrow">What We Host</p>
+      <h2 class="t-display showers-context-title" id="showers-context-h2">
+        Bridal. Baby. Engagement.
+      </h2>
+      <p class="showers-context-body">
+        Bridal showers, baby showers, engagement parties, sip-and-see
+        afternoons, bridesmaid-proposal lunches, gender reveals, and
+        the "we're celebrating something" gathering that doesn't have
+        a name yet. For weddings themselves, see <a href="/wedding-receptions/">wedding
+        receptions</a>. For everything else group-event, see
+        <a href="/events/">all group events</a>.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      CLOSING CTA BAND
+      ============================================================ */}
+  <section class="showers-cta" aria-labelledby="showers-cta-h2">
+    <div class="showers-cta-inner">
+      <p class="t-eyebrow">Tell us when</p>
+      <h2 class="t-display showers-cta-title" id="showers-cta-h2">
+        We'll set it up.
+      </h2>
+      <p class="showers-cta-body">
+        Quick form. Tour the suite, see the room, get a quote and a
+        catering menu.
+      </p>
+      <a class="btn btn-solid showers-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+        Plan an event
+      </a>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Events", path: "/events/" },
+    { name: "Bridal & Baby Showers", path: "/showers/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     /showers — same pillar skeleton as /corporate-events
+     /holiday-parties /events /vip-suite. Class names .showers-*
+     mirror .corp-* / .holiday-* / .events-* / .vip-* — rule of
+     eleven, .pillar-* CSS hoist deeply overdue.
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .showers-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .showers-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .showers-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .showers-hero-copy { text-align: center; }
+    .showers-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .showers-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .showers-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .showers-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .showers-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  /* ============================================================
+     section pattern
+     ============================================================ */
+  .showers-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .showers-section { padding: 24px 64px; }
+  }
+
+  .showers-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .showers-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .showers-section--reverse .showers-section-grid > .showers-section-frame {
+      order: 2;
+    }
+  }
+
+  .showers-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .showers-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .showers-section-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+
+  .showers-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .showers-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .showers-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .showers-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .showers-section-aside { font-size: 17px; }
+  }
+
+  .showers-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .showers-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .showers-section-body strong {
+    color: var(--warm-white);
+    font-weight: 700;
+  }
+
+  .showers-section-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .showers-section-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  .showers-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .showers-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .showers-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  /* ============================================================
+     WHAT WE HOST context band
+     ============================================================ */
+  .showers-context {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .showers-context { padding: 72px 64px 24px; }
+  }
+
+  .showers-context-inner {
+    max-width: 760px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .showers-context-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 6.5vw, 38px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .showers-context-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .showers-context-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    max-width: 38em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .showers-context-body { font-size: 17.5px; }
+  }
+
+  .showers-context-body a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .showers-context-body a:hover {
+    text-decoration-color: var(--glow);
+  }
+
+  /* ============================================================
+     CLOSING CTA BAND
+     ============================================================ */
+  .showers-cta {
+    background: rgba(26, 21, 48, 0.92);
+    border-top: 1px solid rgba(244, 239, 227, 0.06);
+    padding: 72px 22px 88px;
+    margin-top: 32px;
+  }
+  @media (min-width: 1025px) {
+    .showers-cta { padding: 112px 64px 128px; margin-top: 48px; }
+  }
+
+  .showers-cta-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    color: var(--warm-white);
+  }
+
+  .showers-cta-title {
+    color: var(--warm-white);
+    font-size: clamp(36px, 9vw, 56px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .showers-cta-title { font-size: clamp(56px, 5vw, 72px); }
+  }
+
+  .showers-cta-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--warm-mid);
+    max-width: 32em;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  @media (min-width: 1025px) {
+    .showers-cta-body { font-size: 19px; }
+  }
+
+  .showers-cta-btn {
+    margin-top: 32px;
+    padding: 16px 32px;
+    font-size: 14px;
+    letter-spacing: 0.16em;
+  }
+  @media (min-width: 1025px) {
+    .showers-cta-btn { padding: 18px 40px; font-size: 15px; }
+  }
+</style>
