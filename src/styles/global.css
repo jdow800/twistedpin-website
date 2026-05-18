@@ -715,6 +715,33 @@ body.nav-open [data-cta-bar] {
   .svc-cta-nap { margin-top: 36px; font-size: 13px; }
 }
 
+/* .svc-cta-more — internal-link row that sits between the CTA buttons
+   and the NAP line on /why-us/* pages. Gives users who aren't ready to
+   book tonight three or four onramps deeper into the site (VIP suite,
+   tap wall, group events, fundraisers). Reads quieter than the primary
+   CTAs above it; sized between body and NAP. */
+.svc-cta-more {
+  margin-top: 22px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  color: #ece6d6;
+  opacity: 0.85;
+}
+.svc-cta-more a {
+  color: var(--glow);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+.svc-cta-more a:hover,
+.svc-cta-more a:focus-visible {
+  border-bottom-color: var(--glow);
+}
+@media (min-width: 1025px) {
+  .svc-cta-more { margin-top: 28px; font-size: 15px; }
+}
+
 /* ============================================================
    .blog-post — long-form article rendering for /blog/[slug]/
 

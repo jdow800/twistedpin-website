@@ -21,7 +21,7 @@
  *     keeps the name reserved for cocktail/bar pages specifically;
  *     the credential ("America's Top Mixologist") does the heavy
  *     lifting without the name.
- *   - Specifics over adjectives — 8 minutes, Route 59, 28 taps, 6-lane
+ *   - Specifics over adjectives — ~10 minutes, Route 59, 28 taps, 6-lane
  *     VIP suite, capacity to 80.
  *
  * Skeleton mirrors the .pillar-* pattern used on /fundraisers and
@@ -61,7 +61,7 @@ const serviceSchema = {
   name: "Twisted Pin — Bowling, Bar & Event Venue Near Naperville, IL",
   url: PAGE_URL,
   description:
-    "Twisted Pin is an adults-first entertainment venue 8 minutes south of Naperville on Route 59. A craft cocktail program, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+    "Twisted Pin is an adults-first entertainment venue about 10 minutes south of Naperville on Route 59. A craft cocktail program curated by America's Top Mixologist, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   areaServed: {
     "@type": "City",
@@ -76,7 +76,7 @@ const serviceSchema = {
 ---
 <Base
   title="Bowling Near Naperville, IL | Twisted Pin"
-  description="Eight minutes south of Naperville: a craft cocktail program, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve a lane at Twisted Pin."
+  description="Ten minutes south of Naperville on Route 59: a craft cocktail program curated by America's Top Mixologist, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve a lane at Twisted Pin."
 >
 
   {/* ============================================================
@@ -86,12 +86,12 @@ const serviceSchema = {
     <div class="naperville-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">Naperville</p>
       <h1 class="t-display naperville-hero-headline hero-fade" id="naperville-hero-h1" data-delay-ms="120">
-        Eight&nbsp;minutes from&nbsp;Naperville. A&nbsp;different night&nbsp;out.
+        Ten&nbsp;minutes from&nbsp;Naperville. A&nbsp;different night&nbsp;out.
       </h1>
       <p class="naperville-hero-sub hero-fade" data-delay-ms="320">
-        Twisted Pin sits 8 minutes south on Route 59 in Plainfield, IL —
-        a craft cocktail program, a 28-tap self-serve wall, and the only
-        6-lane VIP suite in the area.
+        Twisted Pin sits about 10 minutes south on Route 59 in Plainfield,
+        IL — a craft cocktail program, a 28-tap self-serve wall, and the
+        only 6-lane VIP suite in the area.
       </p>
     </div>
   </section>
@@ -120,15 +120,15 @@ const serviceSchema = {
       <div class="naperville-section-copy">
         <p class="t-eyebrow">Drive</p>
         <h2 class="t-display naperville-section-title" id="naperville-drive-h2">
-          Eight minutes south. Free parking out front.
+          Ten minutes south. Free parking out front.
         </h2>
         <p class="naperville-section-aside">(less time than valeting downtown)</p>
 
         <p class="naperville-section-body">
           Take Route 59 south through Naperville Crossings, cross 119th,
           and you're here. From the Edward-Elmhurst corridor on south
-          Naperville, count on about 8 minutes. From downtown Naperville
-          off Ogden, 12–15 — fewer if you skip Ogden and ride 59 the
+          Naperville, count on about 10 minutes. From downtown Naperville
+          off Ogden, 15–18 — fewer if you skip Ogden and ride 59 the
           whole way.
         </p>
 
@@ -138,8 +138,8 @@ const serviceSchema = {
         </p>
 
         <ul class="naperville-section-list">
-          <li>~8 minutes from south Naperville (95th &amp; Route 59)</li>
-          <li>~12–15 minutes from downtown Naperville</li>
+          <li>~10 minutes from south Naperville (95th &amp; Route 59)</li>
+          <li>~15–18 minutes from downtown Naperville</li>
           <li>Off Route 59 — easy from the I-55 corridor</li>
           <li>Free parking out front</li>
         </ul>
@@ -182,7 +182,7 @@ const serviceSchema = {
         <p class="naperville-section-aside">(only one in the area)</p>
 
         <p class="naperville-section-body">
-          Naperville companies book the suite for corporate offsites,
+          Naperville companies book <a href="/vip-suite/">the suite</a> for corporate offsites,
           holiday parties, and staff appreciation nights. Adult
           birthdays, gender reveals, bridal showers, graduation parties
           land here too. The six lanes sit set apart from the
@@ -192,10 +192,10 @@ const serviceSchema = {
 
         <p class="naperville-section-body">
           Capacity to 80, AV hookups for slideshows and walk-in music,
-          in-house catering from the kitchen, and bar billing on a tab or
-          drink tickets — your call. If your office holiday party in
-          Naperville is starting to feel like last year's office holiday
-          party in Naperville, this is what's eight minutes south.
+          <a href="/eat/">in-house catering from the kitchen</a>, and bar billing on a
+          tab or drink tickets — your call. If your office holiday party
+          in Naperville is starting to feel like last year's office
+          holiday party in Naperville, this is what's ten minutes south.
         </p>
 
         <ul class="naperville-section-list">
@@ -245,11 +245,10 @@ const serviceSchema = {
         <p class="naperville-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
 
         <p class="naperville-section-body">
-          The bar program was curated by the consulting mixologist Food
-          Network calls <em>America's Top Mixologist</em> — cocktails
-          served in 40+ countries. The 28-tap self-serve wall is its
-          counterweight: grab a card, pour your own beer or wine, pay by
-          the ounce.
+          <a href="/bar/">Cocktails curated by the consulting mixologist Food Network
+          calls <em>America's Top Mixologist</em></a>, served in 40+ countries.
+          <a href="/menu/taps/">The 28-tap self-serve wall</a> behind them — grab a card, pour
+          your own, pay by the ounce.
         </p>
 
         <p class="naperville-section-body">
@@ -272,7 +271,7 @@ const serviceSchema = {
     <div class="naperville-cta-inner">
       <p class="t-eyebrow">Worth the Drive</p>
       <h2 class="t-display naperville-cta-title" id="naperville-cta-h2">
-        Eight minutes. One reservation.
+        Ten minutes. One reservation.
       </h2>
       <p class="naperville-cta-body">
         Reserve a lane for tonight or plan a group event for next
@@ -287,8 +286,11 @@ const serviceSchema = {
           Plan an event
         </a>
       </div>
+      <p class="svc-cta-more" style="text-align:center;">
+        More: <a href="/vip-suite/">the VIP suite</a> · <a href="/menu/taps/">the 28-tap self-serve wall</a> · <a href="/events/">group events</a> · <a href="/fundraisers/">fundraisers</a>
+      </p>
       <p class="naperville-cta-nap">
-        Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544 · 8 minutes from Naperville
+        Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544 · 10 minutes from Naperville
       </p>
     </div>
   </section>

@@ -6,12 +6,12 @@
  * paid-market priority table in seo.md (Naperville/Bolingbrook/
  * Shorewood/Romeoville/Oswego/Plainfield), meaning measured search
  * demand from the city is below Plainfield's 4.9%. Built anyway
- * because (1) Lockport is geographically close (~8 miles east) with
+ * because (1) Lockport is geographically close (~11 miles east) with
  * a real direct connector via Renwick Rd, and (2) low-impression
  * pages cost nothing to host once the .svc-* skeleton is shared.
  *
  * Distance + route confirmed by ops 2026-05-08:
- *   - ~8 miles, Renwick Rd
+ *   - ~11 miles, Renwick Rd (verified 2026-05-17 via Google Maps research)
  *   - No drive-time claim; mileage carries
  *
  * Lockport is east of Plainfield, so the directional copy goes
@@ -42,7 +42,7 @@ const serviceSchema = {
   name: "Twisted Pin — Bowling, Bar & Event Venue Near Lockport, IL",
   url: PAGE_URL,
   description:
-    "Twisted Pin is eight miles west of Lockport down Renwick Rd — a craft cocktail program, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+    "Twisted Pin is eleven miles west of Lockport down Renwick Rd — the other half of a Lockport night out. A craft cocktail program curated by America's Top Mixologist, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   areaServed: {
     "@type": "City",
@@ -54,19 +54,19 @@ const serviceSchema = {
 ---
 <Base
   title="Bowling Near Lockport, IL | Twisted Pin"
-  description="Eight miles west of Lockport down Renwick Rd: cocktails, a 28-tap self-serve wall, and the only 6-lane VIP suite in the area. Reserve at Twisted Pin."
+  description="Eleven miles west of Lockport down Renwick Rd — the other half of a Lockport night out. Cocktails curated by America's Top Mixologist, a 28-tap self-serve wall, and a 6-lane VIP suite. Reserve at Twisted Pin."
 >
 
   <section class="svc-hero" data-hero aria-labelledby="svc-hero-h1">
     <div class="svc-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">Lockport</p>
       <h1 class="t-display svc-hero-headline hero-fade" id="svc-hero-h1" data-delay-ms="120">
-        Eight&nbsp;miles west on&nbsp;Renwick Rd.
+        Eleven&nbsp;miles west on&nbsp;Renwick Rd.
       </h1>
       <p class="svc-hero-sub hero-fade" data-delay-ms="320">
-        Twisted Pin sits eight miles west of Lockport down Renwick Rd
-        in Plainfield, IL — a craft cocktail program, a 28-tap
-        self-serve wall, and the only 6-lane VIP suite in the area.
+        Eleven miles west on Renwick. The other half of your night out.
+        Twisted Pin in Plainfield, IL — the suite, the wall, the kitchen
+        until 1am.
       </p>
     </div>
   </section>
@@ -94,17 +94,18 @@ const serviceSchema = {
 
         <p class="svc-section-body">
           Renwick Rd runs east-west between Lockport and Plainfield.
-          Eight miles, no toll, no I-355 detour. Free parking out
+          Eleven miles, no toll, no I-355 detour. Free parking out
           front when you get here.
         </p>
 
         <p class="svc-section-body">
-          For Lockport residents who've watched the same handful of
-          local spots cycle through, eight miles is a short reset.
+          For Lockport residents finishing a State Street dinner who
+          want the night to keep moving, eleven miles west is the
+          extension.
         </p>
 
         <ul class="svc-section-list">
-          <li>~8 miles west of Lockport</li>
+          <li>~11 miles west of Lockport</li>
           <li>Renwick Rd — direct east-west connector</li>
           <li>No expressway, no toll</li>
           <li>Free parking out front</li>
@@ -140,14 +141,14 @@ const serviceSchema = {
 
         <p class="svc-section-body">
           Adult birthdays, gender reveals, holiday parties, staff
-          appreciation, graduation. The VIP suite holds up to 80 people
-          across six lanes set apart from the traditional lanes by a
-          wall, with AV hookups for slideshows and walk-in music, and
-          in-house catering from the kitchen.
+          appreciation, graduation. <a href="/vip-suite/">The VIP suite</a> holds up to 80
+          people across six lanes set apart from the traditional lanes
+          by a wall, with AV hookups for slideshows and walk-in music,
+          and <a href="/eat/">in-house catering from the kitchen</a>.
         </p>
 
         <p class="svc-section-body">
-          Bar billing on a tab or drink tickets — your call. Eight
+          Bar billing on a tab or drink tickets — your call. Eleven
           miles up Renwick.
         </p>
 
@@ -183,20 +184,24 @@ const serviceSchema = {
       <div class="svc-section-copy">
         <p class="t-eyebrow">The Bar</p>
         <h2 class="t-display svc-section-title" id="svc-bar-h2">
-          America's Top Mixologist. Eight miles west.
+          America's Top Mixologist. Eleven miles west.
         </h2>
         <p class="svc-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
 
         <p class="svc-section-body">
-          Twenty-eight self-serve taps and a craft cocktail program
-          curated by the consulting mixologist Food Network calls
-          <em>America's Top Mixologist</em>. Cocktails served in 40+
-          countries.
+          Lockport's Historic Downtown does dinner well — Tallgrass on
+          State Street, the Gaylord Building, real craft bars within
+          walking distance. We're not trying to replace that night.
+          We're the other one.
         </p>
 
         <p class="svc-section-body">
-          The kind of bar program that doesn't usually live next to
-          bowling lanes. We'd argue it should.
+          Eleven miles west on Renwick — no expressway, no toll — for
+          the night that needs <a href="/menu/taps/">a 28-tap self-serve wall</a>, <a href="/bar/">a cocktail
+          program curated by America's Top Mixologist</a>, and a 6-lane
+          suite for the group of 80 that doesn't fit in a State Street
+          dining room. Same county, different register. Kitchen open
+          until 1am, in case Historic Downtown already wrapped.
         </p>
 
         <a class="btn btn-outline" href="/menu/cocktails/">View the cocktail menu</a>
@@ -209,7 +214,7 @@ const serviceSchema = {
     <div class="svc-cta-inner">
       <p class="t-eyebrow">Worth the Drive</p>
       <h2 class="t-display svc-cta-title" id="svc-cta-h2">
-        Eight miles. We'll save you a lane.
+        Eleven miles. We'll save you a lane.
       </h2>
       <p class="svc-cta-body">
         Renwick Rd west. Reserve a lane for tonight or plan a group
@@ -219,8 +224,11 @@ const serviceSchema = {
         <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a lane</a>
         <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
       </div>
+      <p class="svc-cta-more">
+        More: <a href="/vip-suite/">the VIP suite</a> · <a href="/menu/taps/">the 28-tap self-serve wall</a> · <a href="/events/">group events</a> · <a href="/fundraisers/">fundraisers</a>
+      </p>
       <p class="svc-cta-nap">
-        Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544 · 8 miles west of Lockport
+        Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544 · 11 miles west of Lockport
       </p>
     </div>
   </section>
