@@ -1,60 +1,64 @@
 ---
 /**
- * /corporate-events/ — Corporate Events landing page.
+ * /holiday-parties/ — Holiday Parties landing page.
  *
- * Audience-specific funnel split from /events. /events is the broad
- * group-events pillar; this page narrows to corporate planners (EA,
- * office manager, HR, owner) booking offsites, holiday parties,
- * staff appreciation nights, sales kickoffs, client entertainment.
+ * Audience-specific funnel split from /events. The corporate
+ * planner's December problem: book a holiday party for the team,
+ * make it not feel like the office, make it not be a hotel ballroom,
+ * make it happen by mid-December. We solve all three.
  *
- * Per Context/seo.md (line 26): `corporate event venue near me` /
- * `team building venue` / `company outing bowling` is a $2K–$10K+
- * booking cluster, ~40% of paid corporate leads via Google. The
- * dedicated URL captures the planner-intent search that the broad
- * /events page dilutes (and competes against — same domain, blunter
- * keyword target).
+ * Page exists at the URL year-round (SEO equity); surfaces in the
+ * NavDrawer Visit section from Sep 1 → Jan 5 via the seasonal-nav
+ * system (parallel to /new-years-eve and /free-kids-bowling). The
+ * window brackets the actual sourcing-to-cleanup cycle: planners
+ * start sourcing in late summer, drag tail into early January for
+ * post-holiday follow-ups.
  *
- * Replaces the legacy `/corporate-parties/` → `/events/#corporate`
- * 301 (hash drops on 301 so the equity was landing on the generic
- * events page). New redirect target: this page directly.
+ * Captures the `holiday party venue near me` / `company holiday
+ * party venue` / `Christmas party spots Plainfield` keyword cluster
+ * (top-of-funnel Aug-Oct, conversion-intent Nov-Dec). Replaces the
+ * legacy `/ultimate-holiday-party-venue-*` 301 (currently dropping
+ * into bare /events/) with a dedicated landing.
  *
- * Same pillar skeleton as /events + /fundraisers + /vip-suite (rule
- * of nine — .pillar-* CSS hoist is overdue, flagged on every page in
- * this family):
+ * Same pillar skeleton as /corporate-events + /events + /vip-suite
+ * (rule of ten — .pillar-* CSS hoist deeply overdue):
  *   - Hero: typography-led title section (no image)
  *   - Two long-scroll editorial sections (video + copy, alternating)
  *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
  *   - SnapFooter
  *
- * Hero videos: same as /vip-suite by user direction (2026-05-17) —
- * the VIP suite IS the corporate event room, so vip-lanes-* (LCP
- * candidate) + buffet-* (lazy below-fold) is the visually correct
- * pairing. Both videos are already canonical on their primary pages
- * (/vip-suite, /events) per src/data/videos.ts; this page reuses
- * them visually only and does NOT emit duplicate VideoObject JSON-LD
- * (single-canonical convention for the video sitemap).
+ * Hero videos: vip-lanes-* (LCP candidate) + buffet-* (lazy
+ * below-fold) by user direction — same recipe as /corporate-events.
+ * Both videos remain canonical on their primary pages per
+ * src/data/videos.ts; this page reuses them visually only and does
+ * NOT emit duplicate VideoObject JSON-LD.
  *
  * Voice rules applied (per Context/voice.md):
  *   - Brian Van Flandern named only as "America's Top Mixologist"
  *     credential — "curated by," never "built by"
  *   - "private" hard-banned — VIP suite is "set apart from the main
  *     floor," "yours when you book it," "semi-private"
- *   - "Cheap / discount / value" banned — corporate planners have
- *     budgets, not coupons. Confident pricing language only.
- *   - "Team building" used pointedly (we're not running ropes-course
- *     activities; we're running an offsite that has bowling, food,
- *     and a real bar — the planner can call it team building)
+ *   - "Cheap / discount / value / budget-friendly" banned — even with
+ *     seasonal pressure to lean on price, premium positioning holds
+ *   - "Holiday" is intentionally non-denominational; the page welcomes
+ *     Christmas parties, end-of-year celebrations, Hanukkah, Diwali,
+ *     and the secular "company holiday party" — no Christmas-coded
+ *     copy that excludes the non-Christian planner
  *   - Specifics > adjectives — 6-lane suite, up to 80, 28 self-serve
  *     taps, LED video wall, full-venue buyouts for larger groups
+ *   - Urgency is earned ("December books fast — reach out by
+ *     October"), not manufactured ("limited time offer" banned)
  *
  * TODOs (non-blocking):
  *   - Capacity number for full-venue buyouts ("more for full-venue
- *     buyouts") still hand-waved; same as /events. When ops gives a
- *     number, update here + /events + /vip-suite in the same diff.
- *   - Real corporate-event photography (a real offsite night, a deck
- *     on the LED wall, a buffet from the kitchen at scale) would
- *     convert harder than the existing vip-lanes/buffet stock loops.
- *     Flagged for Context/media-needs.md.
+ *     buyouts") still hand-waved across the event-page family. When
+ *     ops gives a number, update here + /events + /corporate-events +
+ *     /vip-suite in the same diff.
+ *   - Holiday-specific catering / cocktail menu (eggnog flight,
+ *     mulled wine, seasonal small-plates) would land harder when the
+ *     kitchen ops gives the actual seasonal lineup. Currently
+ *     references "holiday menu pairings on request" as a soft
+ *     promise rather than naming dishes.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -63,22 +67,22 @@ import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
-// JSON-LD: Service (parallel to /fundraisers). provider → #business
-// links the program to the canonical entity via @id. areaServed is
-// the I-55/I-80 corridor where corporate planners actually come from —
-// Plainfield is the venue address, but the audience is anchored
-// across the western suburbs (matches the /why-us/*-il/ city set).
-const PAGE_URL = `${BUSINESS_URL}/corporate-events/`;
+// JSON-LD: Service (parallel to /corporate-events + /fundraisers).
+// provider → #business links to the canonical entity via @id.
+// areaServed matches /corporate-events — same I-55/I-80 corridor of
+// planner-audience cities (corporate holiday parties pull from the
+// same geographic pool as corporate offsites year-round).
+const PAGE_URL = `${BUSINESS_URL}/holiday-parties/`;
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  "@id": `${BUSINESS_URL}/#corporate-events`,
-  name: "Corporate Event Hosting",
+  "@id": `${BUSINESS_URL}/#holiday-parties`,
+  name: "Holiday Party Hosting",
   url: PAGE_URL,
   description:
-    "Corporate offsites, holiday parties, sales kickoffs, and staff appreciation events at Twisted Pin in Plainfield, IL. The 6-lane VIP suite seats up to 80 (more for full-venue buyouts), with in-house catering and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+    "Holiday parties at Twisted Pin in Plainfield, IL — corporate holiday parties, end-of-year celebrations, staff appreciation events, December team gatherings. The 6-lane VIP suite seats up to 80 (more for full-venue buyouts), in-house catering, and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. December books fast — reach out by October. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
   provider: { "@id": BUSINESS_ENTITY_ID },
-  serviceType: "Corporate event hosting",
+  serviceType: "Holiday party hosting",
   areaServed: [
     { "@type": "City", name: "Plainfield, IL" },
     { "@type": "City", name: "Naperville, IL" },
@@ -92,10 +96,10 @@ const serviceSchema = {
 };
 ---
 <Base
-  title="Corporate Event Venue in Plainfield, IL | Twisted Pin"
-  description="Corporate offsites + holiday parties at Twisted Pin: 6-lane VIP suite, in-house catering, craft cocktails. Plainfield, IL — near Naperville, Bolingbrook, Joliet."
+  title="Holiday Party Venue in Plainfield, IL | Twisted Pin"
+  description="Holiday parties at Twisted Pin: 6-lane VIP suite, in-house catering, craft cocktails. Plainfield, IL — near Naperville, Bolingbrook, Joliet. December books fast — reach out by October."
   ogImage="/og/og-events.jpg"
-  ogImageAlt="A corporate event in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  ogImageAlt="A holiday party in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
@@ -103,16 +107,16 @@ const serviceSchema = {
   {/* ============================================================
       HERO — typography-led title section (no image)
       ============================================================ */}
-  <section class="corp-hero" data-hero aria-labelledby="corp-hero-h1">
-    <div class="corp-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Corporate Events</p>
-      <h1 class="t-display corp-hero-headline hero-fade" id="corp-hero-h1" data-delay-ms="120">
-        Offsites they actually&nbsp;show up to.
+  <section class="holiday-hero" data-hero aria-labelledby="holiday-hero-h1">
+    <div class="holiday-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Holiday Parties</p>
+      <h1 class="t-display holiday-hero-headline hero-fade" id="holiday-hero-h1" data-delay-ms="120">
+        Holiday parties they actually&nbsp;remember.
       </h1>
-      <p class="corp-hero-sub hero-fade" data-delay-ms="320">
-        The 6-lane VIP suite. Catering through the kitchen. A bar
-        program serious enough that someone's still talking about it
-        Monday.
+      <p class="holiday-hero-sub hero-fade" data-delay-ms="320">
+        The 6-lane VIP suite. Catering through the kitchen. Cocktails
+        curated by Brian Van Flandern. December books fast —
+        reach out by October.
       </p>
     </div>
   </section>
@@ -120,7 +124,7 @@ const serviceSchema = {
   {/* ============================================================
       THE ROOM — image left, copy right (desktop)
 
-      LCP optimization (matches /events + /vip-suite recipe):
+      LCP optimization (matches /corporate-events + /vip-suite recipe):
         - poster=/snap/vip-lanes-poster.avif (direct, AVIF Q50)
         - lcpPreloadHref="/snap/vip-lanes-poster.avif" in Base frontmatter
         - Bounded media on every <source>: ≤480 → 540w, ≥481 → 1080w
@@ -128,18 +132,18 @@ const serviceSchema = {
       Video bytes stay deferred until IntersectionObserver promotes
       the section; only the poster takes the LCP fast path.
       ============================================================ */}
-  <section class="corp-section" aria-labelledby="corp-room-h2">
-    <div class="corp-section-grid">
-      <div class="corp-section-frame">
+  <section class="holiday-section" aria-labelledby="holiday-room-h2">
+    <div class="holiday-section-grid">
+      <div class="holiday-section-frame">
         <video
-          class="corp-section-video"
+          class="holiday-section-video"
           data-section-video
           preload="none"
           muted
           loop
           playsinline
           poster="/snap/vip-lanes-poster.avif"
-          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a group event"
+          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a holiday party"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
@@ -147,32 +151,31 @@ const serviceSchema = {
           <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
-      <div class="corp-section-copy">
+      <div class="holiday-section-copy">
         <p class="t-eyebrow">The Room</p>
-        <h2 class="t-display corp-section-title" id="corp-room-h2">
+        <h2 class="t-display holiday-section-title" id="holiday-room-h2">
           Six lanes. Eighty people. Yours.
         </h2>
-        <p class="corp-section-aside">(more for full-venue buyouts)</p>
+        <p class="holiday-section-aside">(more for full-venue buyouts)</p>
 
-        <p class="corp-section-body">
+        <p class="holiday-section-body">
           The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
           wall, set apart from the main floor — semi-private, yours
           for the night when you book it. LED video wall for the
-          company deck, the highlight reel, the logo, or the playoff
-          game once the meeting's over. AV solutions for the actual
-          presentation if one has to happen.
+          year-in-review reel, the company photo carousel, or the
+          playoff game once the toasts are done.
         </p>
 
-        <p class="corp-section-body">
+        <p class="holiday-section-body">
           Couch seating wraps the lanes for the people who'd rather
-          watch than throw. Run the all-hands at 6:30, call it the
-          offsite at 7, let the room handle the rest of the night.
+          watch than throw. The whole thing is yours from setup to
+          last call — no shared room, no overlapping reservation.
         </p>
 
-        <ul class="corp-section-list">
+        <ul class="holiday-section-list">
           <li>6-lane VIP suite, set apart from the main floor</li>
           <li>Up to 80 in the suite; more for full-venue buyouts</li>
-          <li>LED video wall + AV solutions for the deck</li>
+          <li>LED video wall + AV solutions</li>
           <li>Couch seating wraps the lanes</li>
           <li>Yours from setup to last call</li>
         </ul>
@@ -185,21 +188,21 @@ const serviceSchema = {
 
       Second section sits below the mobile fold so the poster is NOT
       an LCP candidate — data-poster (lazy) is correct here. Bounded
-      media on sources is defense-in-depth for the v.load() probing
-      bug (see /events comment block for full rationale).
+      media on sources is defense-in-depth against the v.load()
+      doubled-fetch issue.
       ============================================================ */}
-  <section class="corp-section corp-section--reverse" aria-labelledby="corp-food-h2">
-    <div class="corp-section-grid">
-      <div class="corp-section-frame">
+  <section class="holiday-section holiday-section--reverse" aria-labelledby="holiday-food-h2">
+    <div class="holiday-section-grid">
+      <div class="holiday-section-frame">
         <video
-          class="corp-section-video"
+          class="holiday-section-video"
           data-section-video
           preload="none"
           muted
           loop
           playsinline
           data-poster="/snap/buffet-poster.avif"
-          aria-label="A buffet of catering food laid out for a group event at Twisted Pin — chafing dishes and shareable plates"
+          aria-label="A buffet of catering food laid out for a holiday party at Twisted Pin — chafing dishes and shareable plates"
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
@@ -207,82 +210,85 @@ const serviceSchema = {
           <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
-      <div class="corp-section-copy">
+      <div class="holiday-section-copy">
         <p class="t-eyebrow">The Food &amp; Bar</p>
-        <h2 class="t-display corp-section-title" id="corp-food-h2">
-          The kitchen and the bar handle the rest.
+        <h2 class="t-display holiday-section-title" id="holiday-food-h2">
+          Catering through the kitchen. Cocktails worth the night.
         </h2>
 
-        <p class="corp-section-body">
+        <p class="holiday-section-body">
           In-house catering through <a href="/eat/">the kitchen</a> —
-          built to share, scaled to your group, served buffet or
-          plated. Vegetarian, gluten-free, and dietary accommodations
-          on request.
+          buffet, plated, or family-style. Holiday menu pairings on
+          request. Vegetarian, gluten-free, and dietary accommodations
+          on request — December tables run mixed.
         </p>
 
-        <p class="corp-section-body">
+        <p class="holiday-section-body">
           The 28-tap self-serve <a href="/menu/taps/">beer &amp; wine
           wall</a> sits next door. The <a href="/menu/cocktails/">cocktail
           bar</a> runs the program curated by Brian Van Flandern,
           <em>America's Top Mixologist</em> — same drinks, same
-          execution as the rest of the venue.
+          execution as the rest of the venue, including the seasonal
+          rotation.
         </p>
 
-        <p class="corp-section-body">
+        <p class="holiday-section-body">
           Run a tab, hand out drink tickets, or set a per-head cap —
           pick the billing model that fits the budget. The kitchen
           handles custom catering through the night.
         </p>
 
-        <ul class="corp-section-list">
+        <ul class="holiday-section-list">
           <li>In-house catering, buffet or plated</li>
+          <li>Holiday menu pairings on request</li>
           <li>28-tap self-serve beer &amp; wine wall</li>
           <li>Cocktail program curated by Brian Van Flandern</li>
           <li>Tab, drink tickets, or per-head cap — your call</li>
-          <li>Dietary accommodations on request</li>
         </ul>
       </div>
     </div>
   </section>
 
   {/* ============================================================
-      WHAT WE HOST — text-only band, light cross-link to /events
-      for adjacent event types (graduation, birthday, fundraiser).
-      Smaller register than the closing CTA so it doesn't compete.
+      WHAT WE HOST — orienting band. Lighter register than the
+      closing CTA so it reads as context, not conversion.
       ============================================================ */}
-  <section class="corp-context" aria-labelledby="corp-context-h2">
-    <div class="corp-context-inner">
+  <section class="holiday-context" aria-labelledby="holiday-context-h2">
+    <div class="holiday-context-inner">
       <p class="t-eyebrow">What We Host</p>
-      <h2 class="t-display corp-context-title" id="corp-context-h2">
-        Offsites. Holiday parties. Staff appreciation.
+      <h2 class="t-display holiday-context-title" id="holiday-context-h2">
+        Company parties. End-of-year. Staff appreciation.
       </h2>
-      <p class="corp-context-body">
-        Sales kickoffs, board dinners, client entertainment, retirements,
-        farewells, summer outings, and the <a href="/holiday-parties/">holiday
-        party</a> that has to happen by mid-December. December books fast —
-        reach out by October. For non-corporate events (birthdays, fundraisers,
-        showers, graduation parties), see <a href="/events/">all group
+      <p class="holiday-context-body">
+        Corporate holiday parties, end-of-year celebrations, staff
+        appreciation nights, client thank-yous, neighborhood block
+        parties, family holiday gatherings. Christmas, Hanukkah,
+        Diwali, NYE-eve, "we never get the team together" — whatever
+        the occasion. For New Year's Eve specifically, see
+        <a href="/new-years-eve/">New Year's Eve</a>. For corporate
+        events year-round, see <a href="/corporate-events/">corporate
         events</a>.
       </p>
     </div>
   </section>
 
   {/* ============================================================
-      CLOSING CTA BAND — single dominant "Plan an event" → Heyflow.
-      Same lifted-indigo treatment as /events for visual consistency
-      across the conversion-moment family.
+      CLOSING CTA BAND — urgency as headline (rare; earned because
+      the constraint is real — December genuinely books fast).
+      Same lifted-indigo treatment as /corporate-events for the
+      conversion-moment family visual consistency.
       ============================================================ */}
-  <section class="corp-cta" aria-labelledby="corp-cta-h2">
-    <div class="corp-cta-inner">
-      <p class="t-eyebrow">Tell us what you need</p>
-      <h2 class="t-display corp-cta-title" id="corp-cta-h2">
-        We'll set it up.
+  <section class="holiday-cta" aria-labelledby="holiday-cta-h2">
+    <div class="holiday-cta-inner">
+      <p class="t-eyebrow">Reach out by October</p>
+      <h2 class="t-display holiday-cta-title" id="holiday-cta-h2">
+        December books fast.
       </h2>
-      <p class="corp-cta-body">
-        Quick form. Tour the suite, see the room, get a quote and a
-        catering menu.
+      <p class="holiday-cta-body">
+        Quick form. Tour the suite, get a quote and a holiday menu,
+        lock the date.
       </p>
-      <a class="btn btn-solid corp-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+      <a class="btn btn-solid holiday-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
         Plan an event
       </a>
     </div>
@@ -294,21 +300,21 @@ const serviceSchema = {
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Events", path: "/events/" },
-    { name: "Corporate Events", path: "/corporate-events/" },
+    { name: "Holiday Parties", path: "/holiday-parties/" },
   ]} />
 </Base>
 
 <style>
   /* ============================================================
-     /corporate-events — same pillar skeleton as /events /vip-suite
-     /fundraisers. Class names .corp-* mirror .events-* / .vip-* /
-     .fundraiser-* — rule of nine, .pillar-* CSS hoist deeply overdue.
-     Numbers match /events.astro byte-for-byte where applicable so
-     the family reads cohesive across pages.
+     /holiday-parties — same pillar skeleton as /corporate-events
+     /events /vip-suite /fundraisers. Class names .holiday-* mirror
+     .corp-* / .events-* / .vip-* / .fundraiser-* — rule of ten,
+     .pillar-* CSS hoist deeply overdue. Numbers match the family
+     byte-for-byte where applicable.
      ============================================================ */
 
   /* ---------- hero (typography-led, no image) ---------- */
-  .corp-hero {
+  .holiday-hero {
     position: relative;
     display: flex;
     align-items: center;
@@ -316,23 +322,23 @@ const serviceSchema = {
     padding: calc(var(--header-height) + 28px) 22px 24px;
   }
   @media (min-width: 1025px) {
-    .corp-hero {
+    .holiday-hero {
       min-height: clamp(440px, 55vh, 640px);
       padding: calc(var(--header-height) + 64px) 64px 64px;
       justify-content: center;
     }
   }
 
-  .corp-hero-copy {
+  .holiday-hero-copy {
     max-width: 760px;
     color: var(--warm-white);
   }
   @media (min-width: 1025px) {
-    .corp-hero-copy { text-align: center; }
-    .corp-hero-sub { margin-left: auto; margin-right: auto; }
+    .holiday-hero-copy { text-align: center; }
+    .holiday-hero-sub { margin-left: auto; margin-right: auto; }
   }
 
-  .corp-hero-headline {
+  .holiday-hero-headline {
     color: var(--warm-white);
     font-size: clamp(34px, 10vw, 64px);
     letter-spacing: -0.01em;
@@ -340,10 +346,10 @@ const serviceSchema = {
     margin-top: 12px;
   }
   @media (min-width: 1025px) {
-    .corp-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+    .holiday-hero-headline { font-size: clamp(56px, 6vw, 88px); }
   }
 
-  .corp-hero-sub {
+  .holiday-hero-sub {
     margin-top: 18px;
     font-family: var(--font-body);
     font-size: 16px;
@@ -352,21 +358,21 @@ const serviceSchema = {
     max-width: 34em;
   }
   @media (min-width: 1025px) {
-    .corp-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+    .holiday-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
   }
 
   /* ============================================================
-     section pattern (same shape as .events-section etc.)
+     section pattern (same shape as .corp-section etc.)
      ============================================================ */
-  .corp-section {
+  .holiday-section {
     background: transparent;
     padding: 5px 22px;
   }
   @media (min-width: 1025px) {
-    .corp-section { padding: 24px 64px; }
+    .holiday-section { padding: 24px 64px; }
   }
 
-  .corp-section-grid {
+  .holiday-section-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 32px;
@@ -375,26 +381,26 @@ const serviceSchema = {
     align-items: start;
   }
   @media (min-width: 1025px) {
-    .corp-section-grid {
+    .holiday-section-grid {
       grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
       gap: 64px;
     }
-    .corp-section--reverse .corp-section-grid > .corp-section-frame {
+    .holiday-section--reverse .holiday-section-grid > .holiday-section-frame {
       order: 2;
     }
   }
 
-  .corp-section-frame {
+  .holiday-section-frame {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-surface);
     aspect-ratio: 4 / 5;
   }
   @media (min-width: 1025px) {
-    .corp-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+    .holiday-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
   }
 
-  .corp-section-video {
+  .holiday-section-video {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -402,12 +408,12 @@ const serviceSchema = {
     display: block;
   }
 
-  .corp-section-copy {
+  .holiday-section-copy {
     color: var(--warm-white);
     max-width: 36em;
   }
 
-  .corp-section-title {
+  .holiday-section-title {
     color: var(--warm-white);
     font-size: clamp(28px, 7.5vw, 42px);
     line-height: 0.98;
@@ -415,20 +421,20 @@ const serviceSchema = {
     margin-top: 10px;
   }
   @media (min-width: 1025px) {
-    .corp-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+    .holiday-section-title { font-size: clamp(40px, 4.2vw, 56px); }
   }
 
-  .corp-section-aside {
+  .holiday-section-aside {
     margin-top: 6px;
     font-family: var(--font-body);
     font-size: 15px;
     color: var(--warm-dim);
   }
   @media (min-width: 1025px) {
-    .corp-section-aside { font-size: 17px; }
+    .holiday-section-aside { font-size: 17px; }
   }
 
-  .corp-section-body {
+  .holiday-section-body {
     margin-top: 18px;
     font-family: var(--font-body);
     font-size: 16px;
@@ -436,26 +442,26 @@ const serviceSchema = {
     color: var(--warm-mid);
   }
   @media (min-width: 1025px) {
-    .corp-section-body { font-size: 17.5px; line-height: 1.65; }
+    .holiday-section-body { font-size: 17.5px; line-height: 1.65; }
   }
 
-  .corp-section-body strong {
+  .holiday-section-body strong {
     color: var(--warm-white);
     font-weight: 700;
   }
 
-  .corp-section-body a {
+  .holiday-section-body a {
     color: var(--warm-white);
     text-decoration: underline;
     text-decoration-color: rgba(244, 239, 227, 0.4);
     text-underline-offset: 3px;
     transition: text-decoration-color 200ms ease;
   }
-  .corp-section-body a:hover {
+  .holiday-section-body a:hover {
     text-decoration-color: var(--glow);
   }
 
-  .corp-section-list {
+  .holiday-section-list {
     margin-top: 22px;
     padding-left: 0;
     list-style: none;
@@ -465,12 +471,12 @@ const serviceSchema = {
     letter-spacing: 0.04em;
     color: var(--warm-white);
   }
-  .corp-section-list li {
+  .holiday-section-list li {
     padding: 8px 0 8px 22px;
     border-bottom: 1px solid rgba(244, 239, 227, 0.08);
     position: relative;
   }
-  .corp-section-list li::before {
+  .holiday-section-list li::before {
     content: "";
     position: absolute;
     left: 0;
@@ -484,26 +490,24 @@ const serviceSchema = {
   }
 
   /* ============================================================
-     WHAT WE HOST context band — sits between editorial sections and
-     the closing CTA. Lighter than the closing-CTA band so it reads
-     as orientation, not conversion.
+     WHAT WE HOST context band — orientation, not conversion.
      ============================================================ */
-  .corp-context {
+  .holiday-context {
     background: transparent;
     padding: 48px 22px 8px;
   }
   @media (min-width: 1025px) {
-    .corp-context { padding: 72px 64px 24px; }
+    .holiday-context { padding: 72px 64px 24px; }
   }
 
-  .corp-context-inner {
+  .holiday-context-inner {
     max-width: 760px;
     margin: 0 auto;
     text-align: center;
     color: var(--warm-white);
   }
 
-  .corp-context-title {
+  .holiday-context-title {
     color: var(--warm-white);
     font-size: clamp(28px, 6.5vw, 38px);
     line-height: 0.98;
@@ -511,10 +515,10 @@ const serviceSchema = {
     margin-top: 10px;
   }
   @media (min-width: 1025px) {
-    .corp-context-title { font-size: clamp(36px, 3.6vw, 48px); }
+    .holiday-context-title { font-size: clamp(36px, 3.6vw, 48px); }
   }
 
-  .corp-context-body {
+  .holiday-context-body {
     margin-top: 18px;
     font-family: var(--font-body);
     font-size: 16px;
@@ -525,41 +529,41 @@ const serviceSchema = {
     margin-right: auto;
   }
   @media (min-width: 1025px) {
-    .corp-context-body { font-size: 17.5px; }
+    .holiday-context-body { font-size: 17.5px; }
   }
 
-  .corp-context-body a {
+  .holiday-context-body a {
     color: var(--warm-white);
     text-decoration: underline;
     text-decoration-color: rgba(244, 239, 227, 0.4);
     text-underline-offset: 3px;
     transition: text-decoration-color 200ms ease;
   }
-  .corp-context-body a:hover {
+  .holiday-context-body a:hover {
     text-decoration-color: var(--glow);
   }
 
   /* ============================================================
-     CLOSING CTA BAND — matches /events .events-cta numbers.
+     CLOSING CTA BAND — matches /corporate-events .corp-cta numbers.
      ============================================================ */
-  .corp-cta {
+  .holiday-cta {
     background: rgba(26, 21, 48, 0.92);
     border-top: 1px solid rgba(244, 239, 227, 0.06);
     padding: 72px 22px 88px;
     margin-top: 32px;
   }
   @media (min-width: 1025px) {
-    .corp-cta { padding: 112px 64px 128px; margin-top: 48px; }
+    .holiday-cta { padding: 112px 64px 128px; margin-top: 48px; }
   }
 
-  .corp-cta-inner {
+  .holiday-cta-inner {
     max-width: 720px;
     margin: 0 auto;
     text-align: center;
     color: var(--warm-white);
   }
 
-  .corp-cta-title {
+  .holiday-cta-title {
     color: var(--warm-white);
     font-size: clamp(36px, 9vw, 56px);
     line-height: 0.98;
@@ -567,10 +571,10 @@ const serviceSchema = {
     margin-top: 10px;
   }
   @media (min-width: 1025px) {
-    .corp-cta-title { font-size: clamp(56px, 5vw, 72px); }
+    .holiday-cta-title { font-size: clamp(56px, 5vw, 72px); }
   }
 
-  .corp-cta-body {
+  .holiday-cta-body {
     margin-top: 18px;
     font-family: var(--font-body);
     font-size: 17px;
@@ -581,16 +585,16 @@ const serviceSchema = {
     margin-right: auto;
   }
   @media (min-width: 1025px) {
-    .corp-cta-body { font-size: 19px; }
+    .holiday-cta-body { font-size: 19px; }
   }
 
-  .corp-cta-btn {
+  .holiday-cta-btn {
     margin-top: 32px;
     padding: 16px 32px;
     font-size: 14px;
     letter-spacing: 0.16em;
   }
   @media (min-width: 1025px) {
-    .corp-cta-btn { padding: 18px 40px; font-size: 15px; }
+    .holiday-cta-btn { padding: 18px 40px; font-size: 15px; }
   }
 </style>

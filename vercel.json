@@ -61,7 +61,7 @@
     { "source": "/sing-your-heart-out-karaoke-nights-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
     { "source": "/class-reunion-venue-event-space-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
     { "source": "/celebrate-your-milestone-the-ideal-graduation-party-venue-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
-    { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/holiday-parties/", "permanent": true },
     { "source": "/twisted-pin-the-ultimate-venue-for-your-summer-celebrations{/}?", "destination": "/events/", "permanent": true },
     { "source": "/birthday-party-booking-is-back-lets-roll-plainfield{/}?", "destination": "/events/#birthday", "permanent": true },
     { "source": "/lots-of-ish-why-bowling-is-the-perfect-summertime-activity{/}?", "destination": "/", "permanent": true },

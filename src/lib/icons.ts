@@ -34,6 +34,7 @@ export type IconKey =
   | 'mail'           // Contact (when label says Contact)
   | 'briefcase'      // Careers
   | 'building-2'     // Corporate Events
+  | 'tree-pine'      // Holiday Parties (seasonal Sep 1 → Jan 5)
   | 'map-pin'        // Find Us
   | 'tag'            // Pricing
   | 'heart-handshake' // Fundraisers (community + giving)
@@ -107,6 +108,9 @@ export const ICON_PATHS: Record<IconKey, string> = {
 
   // lucide.dev/icons/building-2
   'building-2': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+
+  // lucide.dev/icons/tree-pine
+  'tree-pine': '<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L11.3 3a1 1 0 0 1 1.4 0L16 7.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/>',
 
   // lucide.dev/icons/map-pin
   'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
