@@ -59,8 +59,10 @@ const vipSuiteSchema = {
   name: "The VIP Suite at Twisted Pin",
   url: PAGE_URL,
   description:
-    "Six bowling lanes set apart from the traditional lanes, in-house catering, the same craft cocktail program as the main bar. Up to 80 guests. Plainfield, IL.",
+    "Six bowling lanes set apart from the traditional lanes, in-house catering, the same craft cocktail program as the main bar. Up to 80 in the suite, or up to 200 for full-venue buyouts. Plainfield, IL.",
   image: `${BUSINESS_URL}/snap/vip-energy-900.webp`,
+  // Suite-only capacity. Venue-level capacity (200) is on the parent
+  // LocalBusiness node — see localBusinessBase() in src/lib/schema.ts.
   maximumAttendeeCapacity: 80,
   address: addressNAP(),
   containedInPlace: { "@id": BUSINESS_ENTITY_ID },
@@ -68,7 +70,7 @@ const vipSuiteSchema = {
 ---
 <Base
   title="VIP Suite — Bowling for Groups Up to 80 | Twisted Pin"
-  description="Six lanes for your group, in-house catering, craft cocktails. Birthdays, offsites, holiday parties — the VIP suite at Twisted Pin, Plainfield, IL."
+  description="Six lanes for your group, in-house catering, craft cocktails. Up to 80 in the suite, or up to 200 for full-venue buyouts. Birthdays, offsites, holiday parties — Plainfield, IL."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="The VIP suite at Twisted Pin — six lanes set apart for groups"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
@@ -85,9 +87,9 @@ const vipSuiteSchema = {
         The&nbsp;6-lane VIP&nbsp;suite.
       </h1>
       <p class="vip-hero-sub hero-fade" data-delay-ms="320">
-        Up to 80 people. Reserve two lanes, four, or all six. The same
-        bar program as the rest of the venue. Built for the night you
-        want to throw.
+        Up to 80 people in the suite — or up to 200 if you take the whole
+        venue. Reserve two lanes, four, or all six. The same bar program
+        as the rest of the venue. Built for the night you want to throw.
       </p>
     </div>
   </section>
@@ -148,7 +150,7 @@ const vipSuiteSchema = {
 
         <ul class="vip-section-list">
           <li>Reserve 2, 4, or 6 lanes</li>
-          <li>Up to 80 people</li>
+          <li>Up to 80 in the suite — or up to 200 for full-venue buyouts</li>
           <li>LED video wall</li>
           <li>AV solutions available</li>
           <li>Semi-private couch seating</li>

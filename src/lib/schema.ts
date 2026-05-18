@@ -360,6 +360,15 @@ export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
     hasMap: HAS_MAP_URL,
     sameAs: SOCIAL_SAME_AS,
     openingHoursSpecification: await openingHoursSpec(),
+    // Venue-level full-venue-buyout capacity. The /vip-suite sub-location
+    // separately claims maximumAttendeeCapacity: 80 for the suite alone
+    // (see src/pages/vip-suite.astro). This number is the whole-venue cap
+    // — 17 traditional lanes + the VIP suite when an organization takes
+    // over the building. "Up to 200" hedges the same way our copy does:
+    // 200 is the upper tolerance; situational but achievable. Adding
+    // 2026-05-18 to unlock "venue 200 capacity Plainfield" type SERP
+    // eligibility and to back the capacity copy across event-funnel pages.
+    maximumAttendeeCapacity: 200,
     aggregateRating: {
       "@type": "AggregateRating",
       ratingValue: GOOGLE_RATING,
