@@ -34,7 +34,13 @@ import { getLiveHours } from "./google-hours";
 // must read these constants — no hardcoded copies.
 
 export const BUSINESS_NAME = "Twisted Pin";
-export const BUSINESS_URL = "https://twistedpin.com";
+// www.* form matches astro.config.mjs `site` + every canonical/og:url
+// tag emitted by Base.astro. Was bare `twistedpin.com` until 2026-05-17;
+// the mismatch meant every JSON-LD `@id` resolved via a 308 redirect on
+// crawl rather than matching the canonical exactly. Single-line fix
+// propagates to BUSINESS_ENTITY_ID, BRIAN_ID, MENU_*_ID, every event
+// `@id`, every service `@id`, every video sitemap URL.
+export const BUSINESS_URL = "https://www.twistedpin.com";
 
 export const STREET = "15610 Joliet Rd";
 export const LOCALITY = "Plainfield";
@@ -466,5 +472,60 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
   if (input.description) obj.description = input.description;
   if (input.image) obj.image = input.image;
   if (input.url) obj.url = input.url;
+  return obj;
+}
+
+// ── VideoObject helper ────────────────────────────────────────────
+
+import type { VideoEntry } from "../data/videos";
+import { isoDuration, thumbnailUrl, contentUrl, primaryPageUrl } from "../data/videos";
+
+/**
+ * Build a Schema.org `VideoObject` JSON-LD object for a video registry
+ * entry. Emit at the top level on the video's primary page only —
+ * cross-page video instances are visual; only one canonical schema
+ * exists per video entity.
+ *
+ * Required fields per Google's video best-practices doc: `name`,
+ * `description`, `thumbnailUrl`. Strongly recommended: `uploadDate`,
+ * `contentUrl`, `duration`. All present here.
+ *
+ * `publisher` references the canonical LocalBusiness entity via @id —
+ * entity graph closes through to the homepage BarOrPub.
+ *
+ * `expires` populated only for seasonal videos (NYE, summer-pass,
+ * free-kids-bowling). Google drops VideoObject from results past that
+ * date, so the video stops surfacing after the program window ends.
+ *
+ * @example
+ * ```astro
+ * import { BEERWALL_VIDEO } from "../data/videos";
+ * import { videoObjectSchema } from "../lib/schema";
+ * const beerwallSchema = videoObjectSchema(BEERWALL_VIDEO);
+ * ---
+ * <script type="application/ld+json" set:html={JSON.stringify(beerwallSchema)} />
+ * ```
+ */
+export function videoObjectSchema(v: VideoEntry): Record<string, unknown> {
+  const obj: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "@id": `${BUSINESS_URL}/#video-${v.slug}`,
+    name: v.name,
+    description: v.description,
+    thumbnailUrl: thumbnailUrl(v),
+    contentUrl: contentUrl(v),
+    uploadDate: v.uploadDate,
+    duration: isoDuration(v.durationSeconds),
+    publisher: { "@id": BUSINESS_ENTITY_ID },
+    // Page that owns this video — closes the page→video association.
+    // Note: Schema.org `isPartOf` accepts WebPage; the page itself is
+    // not separately schema'd, so we reference its URL.
+    isPartOf: {
+      "@type": "WebPage",
+      url: primaryPageUrl(v),
+    },
+  };
+  if (v.expires) obj.expires = v.expires;
   return obj;
 }

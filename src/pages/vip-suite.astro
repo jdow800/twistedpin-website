@@ -39,8 +39,12 @@ import {
   BUSINESS_URL,
   BUSINESS_ENTITY_ID,
   addressNAP,
+  videoObjectSchema,
 } from "../lib/schema";
 import { PLAN_EVENT_URL } from "../lib/links";
+import { VIP_LANES_VIDEO } from "../data/videos";
+
+const vipLanesVideoSchema = videoObjectSchema(VIP_LANES_VIDEO);
 
 // JSON-LD: EventVenue with its own @id (#vip-suite) — the suite is a
 // distinct sub-location with its own capacity claim. containedInPlace
@@ -226,6 +230,7 @@ const vipSuiteSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(vipSuiteSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(vipLanesVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "VIP Suite", path: "/vip-suite/" },

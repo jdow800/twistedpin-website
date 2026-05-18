@@ -101,6 +101,14 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <title>{title}</title>
     <meta name="description" content={description} />
 
+    {/* max-video-preview: allow Google to surface unlimited preview length
+        in SERP for any video on the page. Our section videos are short
+        loops (4-15s) — letting the full clip preview reads stronger than
+        the default cropped preview, and there's no IP risk on ambient
+        venue footage. Per Google's video best-practices doc, value "-1"
+        means "no limit." Applies site-wide via Base.astro. */}
+    <meta name="robots" content="max-video-preview:-1" />
+
     {/* Canonical URL — single source of truth for which URL Google indexes. */}
     <link rel="canonical" href={canonicalURL} />
 

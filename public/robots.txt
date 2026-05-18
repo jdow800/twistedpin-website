@@ -6,3 +6,4 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
+Sitemap: https://www.twistedpin.com/sitemap-videos.xml

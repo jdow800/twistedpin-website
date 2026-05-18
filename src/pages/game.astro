@@ -52,7 +52,10 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
+import { localBusinessBase, videoObjectSchema, BUSINESS_URL } from "../lib/schema";
+import { ARCADE_VIDEO } from "../data/videos";
+
+const arcadeVideoSchema = videoObjectSchema(ARCADE_VIDEO);
 
 // JSON-LD: EntertainmentBusiness. AmusementPark would be the closest
 // Schema.org type for an arcade specifically, but it implies park-scale
@@ -251,6 +254,7 @@ const entertainmentSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(entertainmentSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(arcadeVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Game", path: "/game/" },

@@ -44,6 +44,7 @@ import SnapStub from "../components/snap/SnapStub.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import {
   localBusinessBase,
+  videoObjectSchema,
   BUSINESS_NAME,
   BUSINESS_URL,
   BUSINESS_ENTITY_ID,
@@ -51,6 +52,9 @@ import {
   MENU_FOOD_ID,
   MENU_TAPS_ID,
 } from "../lib/schema";
+import { HERO_VIDEO } from "../data/videos";
+
+const heroVideoSchema = videoObjectSchema(HERO_VIDEO);
 
 // JSON-LD: BarOrPub primary entity + bare WebSite. Single @type per page
 // (bar-led thesis; bowling lives on /bowl). hasMap, hours, NAP, sameAs
@@ -453,6 +457,7 @@ const websiteSchema = {
       across pages so crawlers unify the venue into one entity. */}
   <script type="application/ld+json" set:html={JSON.stringify(barOrPubSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(heroVideoSchema)} />
 </Base>
 
 <script>

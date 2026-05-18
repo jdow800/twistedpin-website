@@ -39,7 +39,10 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { getFood } from "../lib/gotab-food";
-import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
+import { localBusinessBase, videoObjectSchema, BUSINESS_URL } from "../lib/schema";
+import { BEST_THINGS_VIDEO } from "../data/videos";
+
+const bestThingsVideoSchema = videoObjectSchema(BEST_THINGS_VIDEO);
 
 // Build-time fetch from GoTab. Fails closed (returns empty menu) if the
 // upstream is unreachable — the page still renders, the menu sections just
@@ -211,6 +214,7 @@ const restaurantSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(restaurantSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(bestThingsVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Eat", path: "/eat/" },

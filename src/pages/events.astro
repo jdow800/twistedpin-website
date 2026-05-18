@@ -46,7 +46,10 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
+import { localBusinessBase, videoObjectSchema, BUSINESS_URL } from "../lib/schema";
+import { BUFFET_VIDEO } from "../data/videos";
+
+const buffetVideoSchema = videoObjectSchema(BUFFET_VIDEO);
 
 // Zite-hosted group events platform. URL may swap to event.twistedpin.com
 // once Avery (AI sales agent) is proven. Source of truth: src/lib/links.ts.
@@ -273,6 +276,7 @@ const eventVenueSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(eventVenueSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(buffetVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Events", path: "/events/" },

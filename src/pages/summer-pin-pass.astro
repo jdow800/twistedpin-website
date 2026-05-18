@@ -31,7 +31,10 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID, videoObjectSchema } from "../lib/schema";
+import { SUMMER_PASS_VIDEO } from "../data/videos";
+
+const summerPassVideoSchema = videoObjectSchema(SUMMER_PASS_VIDEO);
 
 const PIN_PASS_URL = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/home";
 const PRICE = "$159.95";
@@ -223,6 +226,7 @@ const pinPassSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(pinPassSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(summerPassVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Summer Pin Pass", path: "/summer-pin-pass/" },

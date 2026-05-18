@@ -32,7 +32,10 @@ import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, eventSchema } from "../lib/schema";
+import { BUSINESS_URL, eventSchema, videoObjectSchema } from "../lib/schema";
+import { NYE_VIDEO } from "../data/videos";
+
+const nyeVideoSchema = videoObjectSchema(NYE_VIDEO);
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
@@ -166,6 +169,7 @@ const nyeJsonLd = nyeEntry
   {nyeJsonLd && (
     <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />
   )}
+  <script type="application/ld+json" set:html={JSON.stringify(nyeVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "New Year's Eve", path: "/new-years-eve/" },

@@ -38,11 +38,16 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { getCocktails } from "../lib/gotab-cocktails";
 import {
   localBusinessBase,
+  videoObjectSchema,
   BUSINESS_URL,
   BRIAN_ID,
   MENU_COCKTAILS_ID,
   MENU_TAPS_ID,
 } from "../lib/schema";
+import { BEERWALL_VIDEO, COCKTAILS_HERO_VIDEO } from "../data/videos";
+
+const beerwallVideoSchema = videoObjectSchema(BEERWALL_VIDEO);
+const cocktailsHeroVideoSchema = videoObjectSchema(COCKTAILS_HERO_VIDEO);
 
 // Editorial page only as of 2026-05-05 — full cocktail menu lives at
 // /menu/cocktails, full tap list at /menu/taps. We still fetch cocktails
@@ -285,6 +290,8 @@ const brianSchema = {
       not a structured employment link. */}
   <script type="application/ld+json" set:html={JSON.stringify(barOrPubSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(brianSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(beerwallVideoSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(cocktailsHeroVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Bar", path: "/bar/" },
