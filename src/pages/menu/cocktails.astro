@@ -18,7 +18,12 @@ import SnapFooter from "../../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import MenuPillNav from "../../components/MenuPillNav.astro";
 import { getCocktails } from "../../lib/gotab-cocktails";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  BRIAN_ID,
+  MENU_COCKTAILS_ID,
+} from "../../lib/schema";
 import { cdnImage } from "../../lib/cdn-image";
 
 const cocktailMenu = await getCocktails();
@@ -46,16 +51,21 @@ const pills = cocktailMenu.categories.map((cat) => ({
 
 // JSON-LD: Menu → MenuSection → MenuItem. Stable @id so other pages
 // can cross-reference (e.g. /bar's hasMenu). provider references the
-// LocalBusiness via @id — entity graph closes.
+// LocalBusiness via @id — entity graph closes. contributor references
+// Brian's Person @id (defined on /bar) — Schema.org `contributor` is the
+// correct relationship for "curated by" (consultant who helped shape the
+// CreativeWork). NOT `creator` (he didn't author the menu) and NOT
+// `author` (same overclaim). See project_brian_van_flandern_relationship.md
 const PAGE_URL = `${BUSINESS_URL}/menu/cocktails/`;
 const menuSchema = {
   "@context": "https://schema.org",
   "@type": "Menu",
-  "@id": `${BUSINESS_URL}/#menu-cocktails`,
+  "@id": MENU_COCKTAILS_ID,
   name: "Cocktail Menu",
   url: PAGE_URL,
   inLanguage: "en-US",
   provider: { "@id": BUSINESS_ENTITY_ID },
+  contributor: { "@id": BRIAN_ID },
   hasMenuSection: cocktailMenu.categories.map((cat) => ({
     "@type": "MenuSection",
     name: cat.name,
@@ -180,7 +190,7 @@ const menuSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
-    { name: "Menu", path: "/menu/" },
+    { name: "Bar", path: "/bar/" },
     { name: "Cocktails", path: "/menu/cocktails/" },
   ]} />
 </Base>

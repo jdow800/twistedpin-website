@@ -17,7 +17,11 @@ import Base from "../../layouts/Base.astro";
 import SnapFooter from "../../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import { getTapList } from "../../lib/untappd-taps";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  MENU_TAPS_ID,
+} from "../../lib/schema";
 
 const tapList = await getTapList();
 
@@ -32,7 +36,7 @@ const PAGE_URL = `${BUSINESS_URL}/menu/taps/`;
 const menuSchema = {
   "@context": "https://schema.org",
   "@type": "Menu",
-  "@id": `${BUSINESS_URL}/#menu-taps`,
+  "@id": MENU_TAPS_ID,
   name: "Tap List",
   url: PAGE_URL,
   inLanguage: "en-US",
@@ -159,7 +163,7 @@ const menuSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
-    { name: "Menu", path: "/menu/" },
+    { name: "Bar", path: "/bar/" },
     { name: "Tap List", path: "/menu/taps/" },
   ]} />
 </Base>

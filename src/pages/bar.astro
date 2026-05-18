@@ -36,7 +36,13 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { getCocktails } from "../lib/gotab-cocktails";
-import { localBusinessBase, BUSINESS_URL } from "../lib/schema";
+import {
+  localBusinessBase,
+  BUSINESS_URL,
+  BRIAN_ID,
+  MENU_COCKTAILS_ID,
+  MENU_TAPS_ID,
+} from "../lib/schema";
 
 // Editorial page only as of 2026-05-05 — full cocktail menu lives at
 // /menu/cocktails, full tap list at /menu/taps. We still fetch cocktails
@@ -46,15 +52,18 @@ const cocktailMenu = await getCocktails();
 
 // JSON-LD: BarOrPub for the bar program + Person for Brian Van Flandern.
 // Same @id as homepage (BUSINESS_ENTITY_ID) — entity unification.
-// Brian's @id is canonical so future pages can reference him by @id.
+// BRIAN_ID and MENU_*_ID hoisted to schema.ts for cross-page consistency.
 //
 // IMPORTANT: Brian is a consulting partner, NOT staff. No worksFor,
-// no employee link to BarOrPub. Co-occurrence on this page (he's named
-// in the BarOrPub.description AND has his own Person entity) is enough
-// for AI assistants to link the credential to the venue without making
-// a structured employment claim.
+// no employee link to BarOrPub. The structural relationship goes
+// through Menu.contributor on the cocktail-menu page — accurate to the
+// truth of curation rather than authorship/employment.
+//
+// hasMenu closes the entity graph: this BarOrPub owns the Cocktail
+// menu + the Tap List. Food lives under /eat, so it's not referenced
+// here. Cross-document @id references are standard Schema.org — the
+// Menu entities are defined on /menu/cocktails and /menu/taps.
 const PAGE_URL = `${BUSINESS_URL}/bar/`;
-const BRIAN_ID = `${BUSINESS_URL}/#brian-van-flandern`;
 
 const barOrPubSchema = {
   ...(await localBusinessBase({
@@ -64,6 +73,10 @@ const barOrPubSchema = {
       "The bar at Twisted Pin — a craft cocktail program curated by Brian Van Flandern (America's Top Mixologist, Food Network) and a 28-tap self-serve beer and wine wall. Plainfield, IL.",
   })),
   "@type": "BarOrPub",
+  hasMenu: [
+    { "@id": MENU_COCKTAILS_ID },
+    { "@id": MENU_TAPS_ID },
+  ],
 };
 
 /**

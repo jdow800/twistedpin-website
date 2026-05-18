@@ -120,6 +120,40 @@ export const GOOGLE_REVIEW_COUNT = 1141;
  */
 export const BUSINESS_ENTITY_ID = `${BUSINESS_URL}/#business`;
 
+/**
+ * Canonical @id for Brian Van Flandern's Person entity.
+ *
+ * Brian is a CONSULTANT who curated the cocktail program — not staff,
+ * not an owner. Schema.org relationships must reflect that:
+ *   - Menu.contributor: ✅ accurate ("secondary contributor to the CreativeWork")
+ *   - Menu.creator / Menu.author: ❌ overclaims authorship
+ *   - LocalBusiness.employee: ❌ employment claim he isn't
+ *   - LocalBusiness.member: ❌ membership claim he isn't
+ *
+ * The Person entity itself is defined on `/bar` (the page that carries
+ * the credential as primary positioning). Other pages reference Brian
+ * via this @id only — `contributor: { "@id": BRIAN_ID }` is the canonical
+ * cross-document reference.
+ *
+ * See memory: project_brian_van_flandern_relationship.md
+ */
+export const BRIAN_ID = `${BUSINESS_URL}/#brian-van-flandern`;
+
+/**
+ * Canonical @id values for the three Menu entities.
+ *
+ * Defined on `/menu/cocktails`, `/menu/food`, `/menu/taps` respectively
+ * (each page emits the full Menu → MenuSection → MenuItem tree at its
+ * own @id). LocalBusiness subtype pages (homepage BarOrPub, /bar
+ * BarOrPub) reference these via `hasMenu: [{ "@id": MENU_COCKTAILS_ID }, ...]`
+ * to close the entity graph — Brian is a contributor to the Menu, the
+ * Menu is owned by the BarOrPub, the BarOrPub is the same entity as
+ * the homepage business.
+ */
+export const MENU_COCKTAILS_ID = `${BUSINESS_URL}/#menu-cocktails`;
+export const MENU_FOOD_ID = `${BUSINESS_URL}/#menu-food`;
+export const MENU_TAPS_ID = `${BUSINESS_URL}/#menu-taps`;
+
 // ── Address ────────────────────────────────────────────────────────
 
 export function addressNAP() {

@@ -40,12 +40,15 @@ const ogImageAlt =
   post.data.ogImageAlt ??
   "A catering buffet set up at Twisted Pin in Plainfield, IL";
 
-// Article schema. publisher → BUSINESS_ENTITY_ID for entity unification
-// across the site. Author is the venue (no individual byline) — feels
-// honest for a venue-authored guide rather than a fake person byline.
+// BlogPosting schema (a subtype of Article). publisher → BUSINESS_ENTITY_ID
+// for entity unification across the site. Author is the venue (no individual
+// byline) — feels honest for a venue-authored guide rather than a fake person
+// byline. BlogPosting over bare Article: more semantically precise for blog
+// content, same required fields, slightly stronger signal for Google Discover
+// + AI Overviews surfaces that weight content type.
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "@id": `${PAGE_URL}#article`,
   headline: post.data.title,
   description: post.data.description,

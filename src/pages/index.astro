@@ -47,6 +47,9 @@ import {
   BUSINESS_NAME,
   BUSINESS_URL,
   BUSINESS_ENTITY_ID,
+  MENU_COCKTAILS_ID,
+  MENU_FOOD_ID,
+  MENU_TAPS_ID,
 } from "../lib/schema";
 
 // JSON-LD: BarOrPub primary entity + bare WebSite. Single @type per page
@@ -62,6 +65,15 @@ const barOrPubSchema = {
       "A craft cocktail program curated by Brian Van Flandern (America's Top Mixologist), a 28-tap self-serve beer and wine wall, and 17 traditional bowling lanes plus a 6-lane VIP suite. Bar-led, group-friendly, in Plainfield, IL.",
   })),
   "@type": "BarOrPub",
+  // hasMenu — entity-graph closure. Menu entities themselves are
+  // defined on /menu/cocktails, /menu/food, /menu/taps; this is the
+  // cross-document @id reference. Tells crawlers "this BarOrPub owns
+  // these three menus" without re-emitting the entire Menu tree.
+  hasMenu: [
+    { "@id": MENU_COCKTAILS_ID },
+    { "@id": MENU_FOOD_ID },
+    { "@id": MENU_TAPS_ID },
+  ],
 };
 
 // WebSite — entity declaration only. No SearchAction (no site-search route).

@@ -16,7 +16,11 @@ import SnapFooter from "../../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
 import MenuPillNav from "../../components/MenuPillNav.astro";
 import { getFood } from "../../lib/gotab-food";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  MENU_FOOD_ID,
+} from "../../lib/schema";
 import { cdnImage } from "../../lib/cdn-image";
 
 const foodMenu = await getFood();
@@ -69,7 +73,7 @@ const PAGE_URL = `${BUSINESS_URL}/menu/food/`;
 const menuSchema = {
   "@context": "https://schema.org",
   "@type": "Menu",
-  "@id": `${BUSINESS_URL}/#menu-food`,
+  "@id": MENU_FOOD_ID,
   name: "Food Menu",
   url: PAGE_URL,
   inLanguage: "en-US",
@@ -201,7 +205,7 @@ const menuSchema = {
   <script type="application/ld+json" set:html={JSON.stringify(menuSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
-    { name: "Menu", path: "/menu/" },
+    { name: "Eat", path: "/eat/" },
     { name: "Food", path: "/menu/food/" },
   ]} />
 </Base>
