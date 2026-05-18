@@ -753,13 +753,18 @@ const websiteSchema = {
      rule wins. After motion's animate() fires, its inline opacity:1
      overrides both — element ends up fully opaque regardless.
      ============================================================ */
+  /* Reveal pattern: animate translate only, not opacity. Initial state is
+     full-opacity-but-offset; JS slides it to position on intersection.
+     Rationale (2026-05-17): the earlier `opacity: 0` initial state hid
+     mid-page content until JS executed, which is cloaking-adjacent for
+     non-rendering bots (Slack/Discord unfurlers, AI browsers, faster
+     crawlers). Translate-only is functionally equivalent visually with
+     no indexability risk. Matches the existing `.hero-fade` pattern. */
   :global([data-reveal]) {
-    opacity: 0;
     transform: translateY(12px);
   }
   @media (prefers-reduced-motion: reduce) {
     :global([data-reveal]) {
-      opacity: 1;
       transform: none;
     }
   }

@@ -60,6 +60,21 @@ see `voice.md`. For SEO/page structure, see `seo.md`.
 | Email address | `contactus@twistedpin.com` (Email Us button in SnapFooter) | Confirm this is the right inbox; route to operations |
 | VIP Suite capacity | "Up to 80" on `/vip-suite` | Confirm with ops |
 | ~~Fundraiser stat~~ | **Confirmed 2026-05-07**: 50% of bowling, shoe, AND arcade revenue back to host. Main floor only — NOT in VIP suite. Thursdays 5–9pm. Customers must mention the fundraiser at check-in. Optional arcade promotion available at booking. /vip-suite scrubbed of fundraiser language; /events stat updated; /fundraisers page being built. | — |
+| Gift card denomination floor | `$25` placeholder in `/gift-cards` JSON-LD `minPrice` field (`src/pages/gift-cards.astro`) | Confirm minimum denomination with ops; update schema if different. Affects rich-result eligibility for Offer rich snippets. |
+
+---
+
+## Recurring schema maintenance (annual review)
+
+JSON-LD `Event` / `Offer` schemas with date fields go stale. Google de-lists Events whose `endDate` is in the past, and surfaces "Offer validThrough is in the past" warnings in GSC. Date constants are centralized in **`src/data/schema-dates.ts`** — one file, one edit per program per year.
+
+| Program | Constant | Current value | Review by |
+|---|---|---|---|
+| Free Summer Bowling for Kids | `FREE_KIDS_BOWLING.programStart` / `.programEnd` | `2026-06-01` / `2026-06-30` | **Apr 15 each year** — confirm new program window with ops; update both dates |
+| Summer Pin Pass | `SUMMER_PIN_PASS.validThrough` | `2026-09-01` | **Apr 15 each year** — confirm summer-end cutoff |
+| New Year's Eve | (content collection) `src/content/events/<YEAR>-12-31-new-years-eve.md` | 2026-12-31 entry exists | **Nov 1 each year** — add a new `<YEAR>-12-31-...` markdown file. Old years can stay (the calendar page filters by lookahead window) |
+
+**If a program is paused / skipped for a year:** update the constant to the next planned run date — DO NOT leave a past date in the schema (Google will treat the page as serving stale content). If the program is permanently retired, remove the page + add a redirect entry in `vercel.json`.
 
 ---
 

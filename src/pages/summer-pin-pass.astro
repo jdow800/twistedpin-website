@@ -40,9 +40,11 @@ const PRICE = "$159.95";
 // — Product is the right shape, eligible for product rich snippets
 // (price + availability in SERP). validThrough caps the offer at
 // summer's end; brand/seller link the product back to the venue entity.
+import { SUMMER_PIN_PASS } from "../data/schema-dates";
+
 const PAGE_URL = `${BUSINESS_URL}/summer-pin-pass/`;
 const PIN_PASS_NUMERIC_PRICE = "159.95";
-const PIN_PASS_VALID_THROUGH = "2026-09-01";
+const PIN_PASS_VALID_THROUGH = SUMMER_PIN_PASS.validThrough;
 const pinPassSchema = {
   "@context": "https://schema.org",
   "@type": "Product",

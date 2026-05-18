@@ -46,9 +46,11 @@ const PIN_PASS_URL    = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/
 // June 2026 program window. isAccessibleForFree + audience (max age 12)
 // match the eligibility copy. Update window dates here AND in the body
 // copy when ops confirms a different program window for future years.
+import { FREE_KIDS_BOWLING } from "../data/schema-dates";
+
 const PAGE_URL = `${BUSINESS_URL}/free-kids-bowling/`;
-const PROGRAM_START = "2026-06-01";
-const PROGRAM_END = "2026-06-30";
+const PROGRAM_START = FREE_KIDS_BOWLING.programStart;
+const PROGRAM_END = FREE_KIDS_BOWLING.programEnd;
 const freeKidsBowlingSchema = {
   "@context": "https://schema.org",
   ...eventSchema({

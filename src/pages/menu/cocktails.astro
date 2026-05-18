@@ -23,6 +23,13 @@ import { cdnImage } from "../../lib/cdn-image";
 
 const cocktailMenu = await getCocktails();
 
+// Guard against silent thin-content deploy: if GoTab fetch failed at build
+// (network blip, expired creds, API outage), `getCocktails()` returns
+// EMPTY rather than throwing — page still ships with hero + SEO body but
+// zero menu items. noindex the page in that state so Google doesn't index
+// the empty shell; next successful build restores indexing automatically.
+const isMenuEmpty = cocktailMenu.categories.length === 0;
+
 // Pill-rail wayfinding: slugify the GoTab category name for an in-page
 // anchor. Same slug is applied as the `id` on the corresponding category
 // div below so the pill links target each section directly. Pill labels
@@ -68,6 +75,11 @@ const menuSchema = {
   title="Cocktail Menu in Plainfield, IL | Twisted Pin"
   description="The cocktail program at Twisted Pin — curated by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
 >
+  {isMenuEmpty && (
+    <Fragment slot="head">
+      <meta name="robots" content="noindex,follow" />
+    </Fragment>
+  )}
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Bar Program</p>

@@ -21,6 +21,10 @@ import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../../lib/schema";
 
 const tapList = await getTapList();
 
+// Guard against silent thin-content deploy: see /menu/cocktails for the
+// pattern. If Untappd returns EMPTY (build-time fetch failure), noindex.
+const isMenuEmpty = tapList.sections.length === 0;
+
 // JSON-LD: Menu → MenuSection → MenuItem. Tap-list MenuItems pack
 // brewery + location + style + ABV into the description (Schema.org
 // has no beer-specific subtype; description is the cleanest place).
@@ -63,6 +67,11 @@ const menuSchema = {
   title="What's On Tap in Plainfield, IL | Twisted Pin"
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
 >
+  {isMenuEmpty && (
+    <Fragment slot="head">
+      <meta name="robots" content="noindex,follow" />
+    </Fragment>
+  )}
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>

@@ -1,0 +1,123 @@
+---
+/**
+ * /404 — Custom branded 404 page.
+ *
+ * Astro convention: `src/pages/404.astro` is auto-served with HTTP 404
+ * for any path that doesn't match a route. Vercel respects this and
+ * returns the right status code (not 200).
+ *
+ * Why custom: ads traffic with typos / outdated bookmarks / stale
+ * social links lands on 404 daily. The default Vercel 404 is a dead
+ * end; this version keeps the user inside the funnel by surfacing
+ * the 5 most likely intents (Reserve, Plan an Event, Menu, Bar, FAQ).
+ *
+ * Voice: light, on-brand, doesn't apologize twice. Same register as
+ * the snap-footer copy.
+ *
+ * Indexability: noindex,follow so the 404 page itself doesn't appear
+ * in SERP, but its outbound links still flow PageRank to legit pages.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import { PLAN_EVENT_URL } from "../lib/links";
+
+// Roller is the open-bowling reservation platform. URL is hardcoded across
+// other pillar pages (SiteHeader/StickyCTABar/NavDrawer/waitlist) — not
+// hoisted yet. Match that pattern here.
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+---
+<Base
+  title="Page Not Found | Twisted Pin"
+  description="That page wandered off. Here's where to go next at Twisted Pin in Plainfield, IL."
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,follow" />
+  </Fragment>
+
+  <section class="t2-hero" data-hero aria-labelledby="not-found-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">404</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="not-found-h1" data-delay-ms="120">
+        Looks like that's not on the menu.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        The page you're looking for wandered off &mdash; or never existed.
+        Here's where most people are heading.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section" aria-labelledby="not-found-options-h2">
+    <div class="t2-section-inner">
+      <h2 class="t-eyebrow" id="not-found-options-h2" style="font-size:11px;">Try one of these</h2>
+      <ul class="not-found-list">
+        <li>
+          <a href={ROLLER_URL} target="_blank" rel="noopener">Reserve a lane &rarr;</a>
+          <span>Open bowling, 17 traditional + 6 VIP suite</span>
+        </li>
+        <li>
+          <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event &rarr;</a>
+          <span>Birthdays, corporate, fundraisers, holiday parties</span>
+        </li>
+        <li>
+          <a href="/menu/">See the menu &rarr;</a>
+          <span>Cocktails, taps, and the kitchen</span>
+        </li>
+        <li>
+          <a href="/bar/">The bar program &rarr;</a>
+          <span>Curated by America's Top Mixologist (their words, not ours)</span>
+        </li>
+        <li>
+          <a href="/faq/">FAQ &rarr;</a>
+          <span>Hours, lanes, pricing, reservations, gift cards</span>
+        </li>
+        <li>
+          <a href="/">Or start over from the home page &rarr;</a>
+          <span>The full picture</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+<style>
+  .not-found-list {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .not-found-list li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .not-found-list a {
+    color: var(--glow);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: clamp(16px, 4vw, 20px);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 160ms ease;
+    align-self: flex-start;
+  }
+
+  .not-found-list a:hover,
+  .not-found-list a:focus-visible {
+    border-bottom-color: var(--glow);
+  }
+
+  .not-found-list span {
+    color: var(--warm-white);
+    opacity: 0.7;
+    font-size: 14px;
+    font-family: var(--font-body);
+  }
+</style>

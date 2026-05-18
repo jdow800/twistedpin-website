@@ -158,18 +158,22 @@ function sectionReveal(): void {
     // CSS already shows them via the prefers-reduced-motion media query.
     // Belt + suspenders: clear inline styles in case anything left them set.
     reveals.forEach((el) => {
-      el.style.opacity = "1";
       el.style.transform = "none";
     });
     return;
   }
 
+  // Translate-only reveal (no opacity fade). The earlier opacity:0 initial
+  // state made mid-page content invisible to non-rendering crawlers — the
+  // CSS in index.astro now keeps elements at full opacity and only offsets
+  // them 12px; JS slides them to position on intersection. Animating just
+  // transform keeps the visual cue without the cloaking-adjacent risk.
   const reveal = (el: HTMLElement): void => {
     if (el.dataset.revealed === "true") return;
     el.dataset.revealed = "true";
     animate(
       el,
-      { opacity: [0, 1], transform: ["translateY(12px)", "translateY(0px)"] },
+      { transform: ["translateY(12px)", "translateY(0px)"] },
       { duration: 0.45, ease: [0.22, 0.61, 0.36, 1] },
     );
   };
