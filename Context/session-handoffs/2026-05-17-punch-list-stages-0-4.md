@@ -190,14 +190,29 @@ Five commits on `claude/nice-hodgkin-fb6b5e`. Branch state: **5 ahead of origin/
 
 ### Stage 6 — `/events/{type}` page builds (Day 60 ads-restructure deadline ~Jul 17)
 
+**🔄 SUPERSEDED 2026-05-18** — the 3 specialized event-type pages this stage planned (`/events/corporate`, `/events/birthdays`, `/events/holiday-parties`) were effectively built at top-level URLs on 2026-05-18 with the audience-funnel build-out:
+- `/corporate-events/` (ships full editorial + Service schema + Heyflow CTA — covers `/events/corporate` intent)
+- `/holiday-parties/` (seasonal nav Sep 1→Jan 5, same recipe — covers `/events/holiday-parties` intent)
+- `/birthday-parties-booking/` (pre-existed — covers `/events/birthdays` intent)
+
+Plus the user-direction extras that weren't in the original Stage 6 spec:
+- `/showers/` (bridal + baby)
+- `/wedding-receptions/` (intimate weddings + rehearsal dinners)
+
+Top-level URLs win over nested `/events/{type}/` for organic SEO (`corporate-events` keyword-matches `corporate event venue near me` more directly than `events/corporate` does). Ads dashboard can still organize campaigns under `/events/{type}/` paths if marketing prefers the nested taxonomy — but those would be ad-platform tags, not real URLs.
+
+If marketing later needs distinct ads landing pages (stripped-down, Heyflow-embedded, noindex, conversion-only) at the `/events/{type}/` URLs, that's a deliberate Option B build on top of the existing top-level pages — see CLAUDE.md decisions log entry 2026-05-18 for the full option analysis.
+
+**`/valentines/`** is still in the same family with the Jan 2027 deadline — DO NOT BUILD YET.
+
+**Original spec preserved below for reference:**
+
 Per the 2026-05-17 ads handoff:
 - `/events/corporate`
 - `/events/birthdays`
 - `/events/holiday-parties`
 
 Each: hero (corporate/birthday/holiday-themed photography or video), VIP-suite-as-differentiator lead, inquiry form → **Heyflow** (`event.twistedpin.com` — per the toggle, current default), Event + LocalBusiness schema, inner-page rhythm from `/bar`.
-
-**`/valentines/`** is in the same family but Jan 2027 deadline — DO NOT BUILD YET.
 
 ### Stage 7 — Optional / strategic (post-launch)
 
