@@ -409,6 +409,103 @@ export function breadcrumbList(crumbs: BreadcrumbCrumb[]): Record<string, unknow
   };
 }
 
+// ── WebPage entity helper ─────────────────────────────────────────
+//
+// Stage 7 addition (2026-05-18). Every page emits a WebPage node that
+// wraps the page's primary content as a typed entity. This is a small
+// SEO signal (1-3% per page, compounding) plus a meaningful clarity
+// boost for AI Overviews / ChatGPT / Perplexity entity recognition.
+//
+// Critical design constraints captured here so future maintainers
+// don't accidentally trigger Google's date-manipulation detection:
+//
+//   - `inLanguage` is emitted on EVERY page. Zero staleness risk.
+//     "en-US" for everything under `/`, "es-US" for `/es/*`. Auto-
+//     detected by Base.astro from Astro.url.pathname.
+//
+//   - `dateModified` is emitted ONLY on pages where content genuinely
+//     refreshes. As of Phase 1 (2026-05-18):
+//       * /menu/cocktails — daily GoTab cron pulls real menu changes
+//       * /menu/food — same
+//       * /menu/taps — daily Untappd cron pulls beer rotation
+//     Everywhere else: omit dateModified. The Vercel shallow-clone
+//     (depth=1) defeats git-mtime as a source; manual per-page dates
+//     decay into stale signals; build-timestamp without real content
+//     change is Google's "content flapping" pattern, which is
+//     algorithmically detected and penalized. Conservative is correct.
+//
+//   - `speakable` is emitted on pages where voice-assistant queries
+//     map to specific on-page content:
+//       * /faq — questions + answers (.t2-faq-q-text, .t2-faq-a)
+//       * / (homepage) — NAP address block (.footer-address)
+//     Per Google's spec, speakable content should be readable in
+//     ~20-30 seconds. Keep selector list short and bounded.
+//
+//   - `about` references BUSINESS_ENTITY_ID — the WebPage is about
+//     the business. Closes the entity graph (WebPage → LocalBusiness).
+//     Crawlers + LLMs use this to unify the page-vs-business signal.
+//
+// **What this is NOT:**
+//   - Not a major SEO lever. ~1-3% per page; cumulative across 25
+//     pages = measurable in 30-60 days, not transformative.
+//   - Not a substitute for real content freshness. Pillar pages
+//     should still get genuine content refreshes (live review-count
+//     widget, "this week's events" teaser, quarterly content reviews).
+//     The WebPage schema doesn't replace that work; it makes the
+//     existing freshness signal honest.
+
+export interface WebPageOptions {
+  /** Canonical absolute URL of the page. */
+  url: string;
+  /** Page name (typically the meta title, possibly trimmed). */
+  name: string;
+  /** Page description (typically the meta description). */
+  description: string;
+  /** Language code. "en-US" for English pages, "es-US" for /es/* pages. */
+  inLanguage: "en-US" | "es-US";
+  /**
+   * ISO date when the page's content last meaningfully changed. **Only set
+   * on pages where this is HONEST.** Menu pages use today() at build time
+   * because cron-driven refresh is real. Other pages: omit entirely.
+   */
+  dateModified?: string;
+  /**
+   * CSS selectors identifying content suitable for voice-assistant
+   * read-aloud. Keep the list short — 1-3 selectors max. Per Google's
+   * Speakable spec, the content these select should be 20-30 seconds
+   * when spoken.
+   */
+  speakable?: string[];
+}
+
+/**
+ * Emit a WebPage JSON-LD entity for the current page. Wired into
+ * Base.astro so every page gets one automatically; specific pages
+ * pass extra opts (dateModified, speakable) when applicable.
+ */
+export function webPageSchema(opts: WebPageOptions): Record<string, unknown> {
+  const node: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${opts.url}#webpage`,
+    url: opts.url,
+    name: opts.name,
+    description: opts.description,
+    inLanguage: opts.inLanguage,
+    about: { "@id": BUSINESS_ENTITY_ID },
+  };
+  if (opts.dateModified) {
+    node.dateModified = opts.dateModified;
+  }
+  if (opts.speakable && opts.speakable.length > 0) {
+    node.speakable = {
+      "@type": "SpeakableSpecification",
+      cssSelector: opts.speakable,
+    };
+  }
+  return node;
+}
+
 // ── Event helper ─────────────────────────────────────────────────
 
 export interface EventInput {

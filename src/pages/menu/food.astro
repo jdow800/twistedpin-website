@@ -94,10 +94,16 @@ const menuSchema = {
     }),
   })),
 };
+
+// dateModified: today() — honest because GoTab cron pulls real food
+// menu data daily at 4am. Stage 7 (2026-05-18) — see schema.ts
+// webPageSchema docstring for the "what counts as honest" rationale.
+const dateModified = new Date().toISOString().split("T")[0];
 ---
 <Base
   title="Food Menu in Plainfield, IL | Twisted Pin"
   description="The food menu at Twisted Pin — real plates built to share. Starters, handhelds, pizza, salads, and desserts. Plainfield, IL."
+  dateModified={dateModified}
 >
   {/* Head additions: conditional noindex on EMPTY (Stage 1) + desktop
       preconnect to img.gotab.io for pass-through food photography. Same

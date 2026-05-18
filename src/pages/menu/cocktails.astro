@@ -104,10 +104,17 @@ const menuSchema = {
     }),
   })),
 };
+// dateModified: today() — honest because GoTab cron pulls real cocktail
+// data daily at 4am. The cocktail list, ingredients, images all genuinely
+// refresh. Emitting today() reflects the cron-driven content refresh, NOT
+// fake freshness. Stage 7 (2026-05-18) — see schema.ts webPageSchema
+// docstring for the "what counts as honest dateModified" rationale.
+const dateModified = new Date().toISOString().split("T")[0];
 ---
 <Base
   title="Cocktail Menu in Plainfield, IL | Twisted Pin"
   description="The cocktail program at Twisted Pin — curated by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
+  dateModified={dateModified}
 >
   {/* Head additions, two concerns combined into the single slot:
       - Conditional noindex when GoTab fetch returned EMPTY (Stage 1
