@@ -49,6 +49,30 @@ const pills = cocktailMenu.categories.map((cat) => ({
   name: cat.name,
 }));
 
+// Alt-text category labels (Stage 5 item 4 — alt text strengthening,
+// 2026-05-18). Derived from category ID rather than the raw GoTab name
+// to sidestep the "Cocktails - Reimagined & Handcrafted Fav" truncation
+// in alt-text strings. The visible category H2 still renders the raw
+// GoTab name per the source-of-truth-is-GoTab convention; alt text is a
+// derived/curated surface where we have editorial latitude.
+const ALT_CATEGORY_LABEL: Record<string, string> = {
+  "102125": "original craft",
+  "102126": "reimagined classic",
+  "114111": "seasonal",
+};
+function buildCocktailAlt(c: { name: string; ingredients: string; categoryId: string }): string {
+  const cat = ALT_CATEGORY_LABEL[c.categoryId] ?? "craft";
+  // Voice rule: include venue + city for local-SEO + screen-reader
+  // context. Ingredient list when present; gracefully omit when not.
+  // Aiming for ~80-150 chars typical — under WCAG's loose ceiling
+  // (~125 recommended, ~250 hard) but informative enough to earn the
+  // alt slot.
+  if (c.ingredients) {
+    return `${c.name} — ${c.ingredients}. A ${cat} cocktail at Twisted Pin in Plainfield, IL.`;
+  }
+  return `${c.name}, a ${cat} cocktail at Twisted Pin in Plainfield, IL.`;
+}
+
 // JSON-LD: Menu → MenuSection → MenuItem. Stable @id so other pages
 // can cross-reference (e.g. /bar's hasMenu). provider references the
 // LocalBusiness via @id — entity graph closes. contributor references
@@ -146,7 +170,7 @@ const menuSchema = {
                           src={cdnImage(c.imageUrl, 480, 70)}
                           srcset={`${cdnImage(c.imageUrl, 320, 70)} 320w, ${cdnImage(c.imageUrl, 480, 70)} 480w`}
                           sizes="(min-width: 700px) 30vw, 46vw"
-                          alt={c.name}
+                          alt={buildCocktailAlt(c)}
                           width="480"
                           height="480"
                           loading={catIdx === 0 && idx < 4 ? "eager" : "lazy"}
