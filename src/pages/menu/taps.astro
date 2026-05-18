@@ -71,11 +71,18 @@ const menuSchema = {
   title="What's On Tap in Plainfield, IL | Twisted Pin"
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
 >
-  {isMenuEmpty && (
-    <Fragment slot="head">
-      <meta name="robots" content="noindex,follow" />
-    </Fragment>
-  )}
+  {/* Head additions, two concerns combined into the single slot:
+      - Conditional noindex when Untappd fetch returned EMPTY (Stage 1
+        indexability hygiene — guards against silent thin-content deploys)
+      - Preconnect to labels.untappd.com (28 beer/cider/seltzer thumbnails
+        load from there; first 3-4 rows are in the initial viewport on
+        mobile so the handshake matters) + DNS-prefetch wine-searcher.com
+        (4 wine labels below the fold; DNS-only suffices). */}
+  <Fragment slot="head">
+    {isMenuEmpty && <meta name="robots" content="noindex,follow" />}
+    <link rel="preconnect" href="https://labels.untappd.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.wine-searcher.com" />
+  </Fragment>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>
@@ -91,13 +98,13 @@ const menuSchema = {
   {tapList.sections.length > 0 && (
     <section class="tap-list" id="tap-list" aria-labelledby="tap-list-h2">
       <div class="tap-list-inner">
-        {tapList.sections.map((section) => (
+        {tapList.sections.map((section, sectIdx) => (
           <div class="tap-section">
             <h2 class="tap-section-name">
               {section.name} <span class="tap-section-count">· {section.taps.length}</span>
             </h2>
             <ul class="tap-rows" role="list">
-              {section.taps.map((tap) => (
+              {section.taps.map((tap, tapIdx) => (
                 <li class="tap-row">
                   <div class="tap-label-frame">
                     {tap.labelImage && (
@@ -107,7 +114,7 @@ const menuSchema = {
                         alt=""
                         width="48"
                         height="48"
-                        loading="lazy"
+                        loading={sectIdx === 0 && tapIdx < 3 ? "eager" : "lazy"}
                         decoding="async"
                       />
                     )}

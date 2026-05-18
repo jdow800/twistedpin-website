@@ -10,6 +10,83 @@ entries — they're the baseline.
 
 ---
 
+## 2026-05-17 (evening) — Per-page audit pass: /menu/ LCP fix (transform animation gates Chrome's LCP register)
+
+**URL:** `https://www.twistedpin.com/menu/`
+**Tool:** PageSpeed Insights (Lighthouse 13.0.1)
+**Conditions:** Mobile, simulated Slow 4G + 4× CPU slowdown
+
+### The /menu/ win
+
+| Metric | Before | After (diagnostic commit `9f031ff`) | Delta |
+|---|---|---|---|
+| Perf score | 84 | **99** | +15 |
+| Lab LCP | 4.1 s | **1.7 s** | -2.4 s |
+| Element render delay | 1,320 ms | 270 ms | -1,050 ms |
+| TBT | 180 ms | 70 ms | -110 ms |
+| Speed Index | 2.6 s | 1.0 s | -1.6 s |
+
+Field data already passed CWV pre-fix (LCP 1.4s, real users were fine). The bad number was lab synthetic only — but lab matters for Google Ads landing-page experience scoring and PSI-driven QS.
+
+### The lesson — Chrome's LCP heuristic gates transform animations
+
+The LCP element on `/menu/` was the H1 text — **not** the hub card thumbnail I initially assumed. PSI's LCP-element panel showed it definitively:
+
+```html
+<h1 class="t-display menu-hero-headline hero-fade" id="menu-h1" data-delay-ms="120">
+  What's on the menu.
+</h1>
+```
+
+LCP breakdown reported "Element render delay: 1,320 ms" on a TEXT element with no resource to load. That's a hard contradiction unless something was gating paint register.
+
+The cause: `.hero-fade` applies a CSS `transform: translateY(12px → 0)` animation with `animation-delay: 120ms` and `animation-fill-mode: both`. The element painted at FCP with the from-state offset, but **Chrome's LCP heuristic treats elements with active transform animations as "not yet painted" until the animation completes** — even when opacity stays at 1 throughout.
+
+The previous global.css comment (2026-05-08 LCP fix annotation) claimed opacity-stable transforms don't affect LCP. **Empirically wrong.** That comment has been corrected; the misattribution would have cost us another investigation cycle.
+
+### What landed
+
+1. **`9f031ff`** — diagnostic: dropped `.hero-fade` from `/menu/`'s H1 only. Confirmed the theory (84 → 99, 4.1s → 1.7s LCP).
+2. **`[next commit]`** — production fix: site-wide CSS `@media (max-width: 1024px) { .hero-fade { animation: none; } }` in global.css. Covers eyebrow (delay 0ms), H1 (delay 120ms), and subhead (delay 320ms) — all three are LCP candidates on different pages depending on text layout. The 320ms subhead delay was likely a worse offender than the H1 on text-heavy pages. H1 hero-fade restored on `/menu/` for desktop polish.
+
+### Why mobile-only
+
+Desktop PSI uses faster CPU + faster network. The H1 paints before the animation matters, so LCP isn't gated there. Desktop also has higher animation stakes (larger viewport, bigger H1 font, longer dwell time → users notice the slide-in). Mobile sacrifices a "subtle but nice" motion polish for a ~1-2s LCP win where it matters for ads QS.
+
+### The "LCP fix pattern" grows a step #5
+
+Updating the reusable pattern from the earlier 2026-05-17 session:
+
+For any future text-LCP page on mobile:
+- **Step 5 (new):** Avoid CSS transform animations on elements that could be LCP candidates (H1, eyebrow, hero-sub). Chrome's LCP heuristic gates register on transform-animated elements regardless of opacity. If polish is desired, gate the animation with `@media (min-width: 1025px)` so desktop keeps the motion and mobile keeps the fast paint.
+
+### Other commits this session
+
+| Commit | What |
+|---|---|
+| `01d3282` | Menu pages: preconnect cross-origin image hosts (labels.untappd.com, img.gotab.io on desktop) + eager-load top 3 tap labels |
+| `6288873` | Iframe pages: preconnect to embedded form/widget origins (c-g.co, host.tablesready.com) |
+| `af76ae9` | `/menu/` hub: eager-load + AVIF preload first card thumbnail. **Note:** this turned out to attack the wrong LCP element (image, not H1). Kept as-is — it's still a valid optimization and additive to the H1 fix. |
+| `9f031ff` | Diagnostic — see above |
+
+### Validation — site-wide rule confirmed (post-`ef526be` deploy, 2026-05-17 2:36-2:37 PM CDT)
+
+Two spot-checks against the deployed site-wide `@media (max-width: 1024px) { .hero-fade { animation: none } }`:
+
+| Page | LCP element type | Before | After | Verdict |
+|---|---|---|---|---|
+| `/faq` | text subhead `<p class="t2-hero-sub hero-fade" data-delay-ms="320">` | (no clean baseline) | **Perf 94, LCP 1.7s, element render delay 270ms** | ✅ Subhead-LCP confirmed; broadened selector pays off — the 320ms subhead delay was indeed the worst-case LCP gate, more so than the 120ms H1 |
+| `/game` | image (section-video poster `arcade-poster.avif`) | Perf 90, LCP 3.2s | **Perf 96, LCP 2.3s** | ✅ Pillar page IMPROVED instead of regressed — disabling H1 hero-fade above the LCP image removed competing render work, freeing the image to paint sooner |
+
+Theory fully validated. The broader hypothesis stands: **Chrome's LCP heuristic gates transform-animated elements regardless of opacity, and the gate cost scales with `animation-delay`.** Pages with `data-delay-ms="320"` (subhead) were the worst offenders, then `data-delay-ms="120"` (H1), then `data-delay-ms="0"` (eyebrow). The single-rule fix covers all three.
+
+### Out of scope this round
+
+- **`/free-kids-bowling` lab/field divergence** (field LCP 1.1s passing, lab LCP 6.6s, perf 28) — iframe-driven. User opted to skip iframe-page work. Verified `content-visibility: auto` would NOT help here: iframe top sits at 358px in a 640px viewport with 282px in initial fold. Not below-the-fold enough for `content-visibility: auto` to skip render. The actual fix (JS-defer iframe injection until idle) was scoped out per user direction.
+- **`/pricing` 3.6s baseline** — stale, was actually 1.4s post-`47e7479`. Killed the planned DOM-weight refactor. **Lesson: always re-measure baselines after a known site-wide fix lands.** Memorialized in user memory `feedback_perf_baselines.md`.
+
+---
+
 ## 2026-05-17 — Pre-ads-launch perf pass: pillar pages cleared LCP < 3.5s
 
 **URLs tested:** `/game`, `/bowl`, `/fundraisers`, `/vip-suite`, `/birthday-parties-booking`, `/events` (all production at twistedpin.com)

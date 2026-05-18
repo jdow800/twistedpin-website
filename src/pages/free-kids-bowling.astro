@@ -102,6 +102,12 @@ const freeKidsBowlingSchema = {
   title="Free Kids Bowling in Plainfield, IL | Twisted Pin"
   description="Free summer bowling for kids 12 and under in Plainfield, IL — two games/day weekdays 11am-4pm, June 1-30. Open to all Will County families."
 >
+  {/* Signup iframe loads from c-g.co (same form host as /coupon). Below
+      the typography hero, so preconnect is a perceived-perf win on scroll
+      rather than an LCP fix. */}
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://c-g.co" />
+  </Fragment>
 
   {/* ============================================================
       HERO — typography-led; BLUF in the sub line so AI Overview /

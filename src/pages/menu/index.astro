@@ -36,6 +36,8 @@ const tapCount = tapList.totalCount;
 <Base
   title="Menus in Plainfield, IL | Twisted Pin"
   description="Full menus at Twisted Pin — cocktails curated by America's Top Mixologist, 28 self-serve taps, and a real kitchen of plates built to share. Plainfield, IL."
+  lcpPreloadHref="/snap/menu-hub-food-540.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
@@ -69,7 +71,7 @@ const tapCount = tapList.totalCount;
             <picture>
               <source type="image/avif" srcset="/snap/menu-hub-food-540.avif 540w, /snap/menu-hub-food-720.avif 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
               <source type="image/webp" srcset="/snap/menu-hub-food-540.webp 540w, /snap/menu-hub-food-720.webp 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" />
-              <img src="/snap/menu-hub-food-540.jpg" srcset="/snap/menu-hub-food-540.jpg 540w, /snap/menu-hub-food-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A platter of wings, fries, celery, and carrots at Twisted Pin" width="540" height="540" loading="lazy" decoding="async" />
+              <img src="/snap/menu-hub-food-540.jpg" srcset="/snap/menu-hub-food-540.jpg 540w, /snap/menu-hub-food-720.jpg 720w" sizes="(min-width: 1025px) 140px, (min-width: 760px) 130px, 110px" alt="A platter of wings, fries, celery, and carrots at Twisted Pin" width="540" height="540" loading="eager" fetchpriority="high" decoding="async" />
             </picture>
           </div>
         </a>

@@ -85,11 +85,20 @@ const menuSchema = {
   title="Cocktail Menu in Plainfield, IL | Twisted Pin"
   description="The cocktail program at Twisted Pin — curated by America's Top Mixologist. Original craft cocktails, reimagined classics, and seasonal pours. Plainfield, IL."
 >
-  {isMenuEmpty && (
-    <Fragment slot="head">
-      <meta name="robots" content="noindex,follow" />
-    </Fragment>
-  )}
+  {/* Head additions, two concerns combined into the single slot:
+      - Conditional noindex when GoTab fetch returned EMPTY (Stage 1
+        indexability hygiene — guards against silent thin-content deploys)
+      - Preconnect to img.gotab.io for desktop pass-through cocktail
+        photography. Desktop (>=1025px) hits img.gotab.io directly via
+        the <source media="(min-width: 1025px)"> branch (2026-05-14
+        fidelity decision). Mobile goes through /_vercel/image
+        (same-origin) — no cross-origin handshake needed. Preconnect
+        scoped to desktop avoids paying TCP+TLS on mobile where the
+        origin is never hit. */}
+  <Fragment slot="head">
+    {isMenuEmpty && <meta name="robots" content="noindex,follow" />}
+    <link rel="preconnect" href="https://img.gotab.io" crossorigin media="(min-width: 1025px)" />
+  </Fragment>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">The Bar Program</p>
