@@ -1,0 +1,485 @@
+---
+/**
+ * /es/bowl/ — Spanish-localized bowling pillar page.
+ *
+ * Phase 1 of the Spanish hreflang work (2026-05-18). Mirrors /bowl/
+ * exactly in structure + LCP recipe + section videos; body copy is
+ * translated to Mexican Spanish (the predominant Hispanic-market
+ * dialect in Plainfield / Joliet / Aurora per the geo-targets memory).
+ *
+ * Translation provenance:
+ *   - Initial pass: Claude (Sonnet 4.5), prompted for Mexican-Spanish
+ *     register + hospitality vocabulary + Twisted Pin brand voice
+ *   - Self-QA: separate analytical pass on the output for native-speaker
+ *     feel, regional vocabulary preferences (pista vs línea, boliche vs
+ *     bolera, coctel spelling), and cultural connotation checks (the
+ *     "Diversión Para Adultos" failure mode flagged by the ads-team audit)
+ *   - Production correction-link: footer "¿Encontraste un error?" mailto
+ *     so real users surface real problems we can patch over time
+ *   - Side-by-side audit doc: Context/spanish-localization.md — paragraph-
+ *     by-paragraph English source + Spanish target for future review
+ *
+ * **Why this page first (not homepage):**
+ *   - Spanish ads are running NOW (Bar-Led campaign, Spanish Test ad
+ *     group, 5 keywords at $1.50 max CPC) currently pointing at the
+ *     English /bowl/ → predictable bounce-rate problem
+ *   - /bowl is functional copy (lanes, prices, walk-in/reserve) that
+ *     translates cleanly with low brand-voice risk vs the homepage
+ *     ("Built for adults. Fine, bring the kids." is voice-locked
+ *     English that flattens or mis-codes in ML translation)
+ *   - 68 documented Spanish clicks already on /bowl with zero
+ *     targeting (per seo.md:44) — demand is proven, not theoretical
+ *
+ * **Maintenance:**
+ *   - Build-time freshness check (scripts/check-translation-freshness.mjs)
+ *     compares git mtime of /bowl.astro vs /es/bowl.astro; prints a
+ *     warning if English is newer by more than 14 days. Doesn't fail the
+ *     build — drift visibility, not enforcement.
+ *   - Future Spanish pages slot in alongside this one (/es/menu/cocktails,
+ *     /es/menu/food planned for Phase 2 after data review)
+ *
+ * **Open items / known gaps:**
+ *   - SnapFooter renders in English for now. v1 ships hybrid (Spanish
+ *     hero + body + schema, English footer + nav). Phase 1.5: thread
+ *     locale prop through SnapFooter + SiteHeader OR build a Spanish
+ *     SnapFooter variant. Flagged in Context/spanish-localization.md.
+ *   - Cross-links from /es/bowl still point at English pages (/vip-suite,
+ *     /leagues, /free-kids-bowling). A Spanish reader who can read
+ *     this page can navigate the English destinations; full Spanish
+ *     navigation is Phase 2+ when sibling pages exist.
+ */
+import Base from "../../layouts/Base.astro";
+import SnapFooter from "../../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../../components/BreadcrumbSchema.astro";
+import { localBusinessBase, BUSINESS_URL } from "../../lib/schema";
+
+const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+
+// JSON-LD: BowlingAlley with the SAME @id as the English /bowl/ (and
+// homepage). Critical for hreflang correctness — Google treats matching
+// @id across language variants as "same business entity in different
+// languages," NOT two competing entities. inLanguage tells Google this
+// is the Spanish view of the same business.
+const PAGE_URL = `${BUSINESS_URL}/es/bowl/`;
+const bowlingAlleySchema = {
+  ...(await localBusinessBase({
+    url: PAGE_URL,
+    image: `${BUSINESS_URL}/snap/vip-energy-900.webp`,
+    description:
+      "Boliche en Twisted Pin: 17 pistas tradicionales más una suite VIP de 6 pistas. Llega sin reservación, reserva, o únete a una liga. Plainfield, IL — a 5 minutos de Naperville y Bolingbrook.",
+  })),
+  "@type": "BowlingAlley",
+  inLanguage: "es-US",
+};
+---
+<Base
+  title="Boliche en Plainfield, IL — Twisted Pin"
+  description="17 pistas tradicionales más una suite VIP de 6 pistas. Llega sin reservación, reserva, o únete a una liga. Plainfield, IL — a 5 minutos de Naperville y Bolingbrook."
+  ogImage="/og/og-bowl.jpg"
+  ogImageAlt="Una pista de boliche en Twisted Pin en Plainfield, IL"
+  lcpPreloadHref="/snap/summer-pass-poster.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
+>
+  {/* hreflang triplet — declares both language variants AND x-default
+      fallback for Google's language-targeting algorithm. Identical on
+      both /bowl and /es/bowl (Google requires reciprocal declarations
+      OR Search Console flags the pair as broken). x-default → English
+      because the site is primarily English; Spanish is a documented
+      audience-segment overlay. */}
+  <Fragment slot="head">
+    <link rel="alternate" hreflang="en-US" href={`${BUSINESS_URL}/bowl/`} />
+    <link rel="alternate" hreflang="es-US" href={`${BUSINESS_URL}/es/bowl/`} />
+    <link rel="alternate" hreflang="x-default" href={`${BUSINESS_URL}/bowl/`} />
+  </Fragment>
+
+  {/* ============================================================
+      HERO — typography-led title section (no image)
+      ============================================================ */}
+  <section class="bowl-hero" data-hero aria-labelledby="bowl-hero-h1">
+    <div class="bowl-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Boliche</p>
+      <h1 class="t-display bowl-hero-headline hero-fade" id="bowl-hero-h1" data-delay-ms="120">
+        17 pistas. Más una suite VIP de&nbsp;6&nbsp;pistas.
+      </h1>
+      <p class="bowl-hero-sub hero-fade" data-delay-ms="320">
+        Llega cuando quieras. Reserva unas pistas en la suite VIP — o
+        llévate las seis.
+      </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      PISTAS TRADICIONALES — image left, copy right
+      Matches /bowl section 1. Same video assets, same LCP recipe.
+      ============================================================ */}
+  <section class="bowl-section" aria-labelledby="bowl-traditional-h2">
+    <div class="bowl-section-grid">
+      <div class="bowl-section-frame">
+        <video
+          class="bowl-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          poster="/snap/summer-pass-poster.avif"
+          aria-label="Bolear en las pistas tradicionales en Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/summer-pass-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/summer-pass-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="bowl-section-copy">
+        <p class="t-eyebrow">Pistas Tradicionales</p>
+        <h2 class="t-display bowl-section-title" id="bowl-traditional-h2">
+          17 pistas. Llega o reserva.
+        </h2>
+
+        <p class="bowl-section-body">
+          17 pistas tradicionales para bolear en serio — la parte de un
+          boliche que debería ser para bolear. Boliche libre casi
+          siempre que llegas. Reserva una pista si prefieres asegurarla
+          para una noche concurrida.
+        </p>
+
+        <p class="bowl-section-body">
+          Rampas cuando los niños las necesiten. Coctel en la mano
+          cuando no.
+        </p>
+
+        <ul class="bowl-section-list">
+          <li>17 pistas tradicionales</li>
+          <li>Máximo 5 jugadores por pista</li>
+          <li>Boliche libre casi siempre</li>
+          <li>Reservaciones para noches concurridas, no la norma</li>
+          <li>Rampas disponibles</li>
+          <li>Renta de zapatos en el mostrador</li>
+        </ul>
+
+        <a class="btn btn-solid bowl-cta-inline" href={ROLLER_URL} target="_blank" rel="noopener">
+          Reservar una pista
+        </a>
+
+        <div class="bowl-cross-links">
+          <a href="/leagues/" id="leagues">
+            <strong>Ligas</strong> &middot; ligas mixtas semanales, casuales + competitivas
+          </a>
+          <a href="/free-kids-bowling/">
+            <strong>Boliche gratis para niños en verano</strong> &middot; 2 juegos/día, lunes a viernes 11&ndash;4, 1&ndash;30 de junio
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      SUITE VIP PREVIEW — image RIGHT, copy LEFT (alternation)
+      ============================================================ */}
+  <section class="bowl-section bowl-section--reverse" aria-labelledby="bowl-vip-h2">
+    <div class="bowl-section-grid">
+      <div class="bowl-section-frame">
+        <video
+          class="bowl-section-img"
+          data-section-video
+          preload="none"
+          muted
+          loop
+          playsinline
+          data-poster="/snap/vip-lanes-poster.avif"
+          aria-label="La suite VIP de 6 pistas en Twisted Pin"
+        >
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="bowl-section-copy">
+        <p class="t-eyebrow">La Suite VIP</p>
+        <h2 class="t-display bowl-section-title" id="bowl-vip-h2">
+          Dos pistas, cuatro, o seis.
+        </h2>
+        <p class="bowl-section-aside">(sí, te la puedes llevar entera)</p>
+
+        <p class="bowl-section-body">
+          La suite VIP de 6 pistas está detrás de una pared, separada
+          de las pistas tradicionales — semi-privada, tuya cuando la
+          reservas. Reserva dos pistas, cuatro, o las seis. Hasta 80
+          personas cuando te llevas la suite entera. Sillones que
+          rodean las pistas para quien prefiera ver en lugar de tirar.
+          Pantalla LED para presentaciones o el partido. Soluciones de
+          audio y video disponibles.
+        </p>
+
+        <p class="bowl-section-body">
+          El muro de 28 grifos de autoservicio está a un lado. La barra
+          de cocteles tiene el programa curado por Brian Van Flandern,
+          <em>Top Mixólogo de Estados Unidos</em> (Food Network).
+          Catering desde la cocina.
+        </p>
+
+        <ul class="bowl-section-list">
+          <li>Hasta 80 personas</li>
+          <li>Reserva 2, 4 o las 6 pistas</li>
+          <li>Sillones semi-privados</li>
+          <li>Pantalla LED + soluciones de audio y video</li>
+          <li>Muro de grifos + barra de cocteles + acceso a cocina</li>
+        </ul>
+
+        <a class="btn btn-outline bowl-cta-inline" href="/vip-suite/">
+          Ver la suite
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      Correction-link footer — production-side QA loop.
+      Real users surface real translation problems faster than any
+      pre-ship review pass. Small, unobtrusive, mailto so anyone can
+      reply without an account. Flagged in spanish-localization.md
+      as the v1 quality-mitigation mechanism.
+      ============================================================ */}
+  <section class="es-correction-band" aria-label="Correcciones de traducción">
+    <div class="es-correction-inner">
+      <p>
+        ¿Encontraste un error en la traducción?
+        <a href="mailto:contactus@twistedpin.com?subject=Correcci%C3%B3n%20de%20traducci%C3%B3n%20%2Fes%2Fbowl%2F&body=P%C3%A1gina%3A%20%2Fes%2Fbowl%2F%0AError%3A%20%0ASugerencia%3A%20">
+          Avísanos
+        </a>
+        &middot;
+        <a href="/bowl/" hreflang="en-US">Ver en inglés</a>
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+
+  <script type="application/ld+json" set:html={JSON.stringify(bowlingAlleySchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Inicio", path: "/" },
+    { name: "Boliche", path: "/es/bowl/" },
+  ]} />
+</Base>
+
+<style>
+  /* ============================================================
+     /es/bowl — mirrors /bowl styles exactly. Class names .bowl-*
+     are scoped by Astro per-file hashing so they don't collide
+     with the English page's identically-named classes. CSS hoist
+     to .pillar-* utilities remains overdue (flagged across the
+     pillar family).
+     ============================================================ */
+
+  /* ---------- hero (typography-led, no image) ---------- */
+  .bowl-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: clamp(320px, 42vh, 420px);
+    padding: calc(var(--header-height) + 28px) 22px 24px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero {
+      min-height: clamp(440px, 55vh, 640px);
+      padding: calc(var(--header-height) + 64px) 64px 64px;
+      justify-content: center;
+    }
+  }
+
+  .bowl-hero-copy {
+    max-width: 760px;
+    color: var(--warm-white);
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-copy { text-align: center; }
+    .bowl-hero-sub { margin-left: auto; margin-right: auto; }
+  }
+
+  .bowl-hero-headline {
+    color: var(--warm-white);
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    line-height: 0.95;
+    margin-top: 12px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-headline { font-size: clamp(56px, 6vw, 88px); }
+  }
+
+  .bowl-hero-sub {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #ece6d6;
+    max-width: 34em;
+  }
+  @media (min-width: 1025px) {
+    .bowl-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  /* ---------- editorial sections ---------- */
+  .bowl-section {
+    background: transparent;
+    padding: 5px 22px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section { padding: 24px 64px; }
+  }
+
+  .bowl-section-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 32px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+      gap: 64px;
+    }
+    .bowl-section--reverse .bowl-section-grid > .bowl-section-frame {
+      order: 2;
+    }
+  }
+
+  .bowl-section-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-surface);
+    aspect-ratio: 4 / 5;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-frame { aspect-ratio: 3 / 4; max-height: 640px; }
+  }
+
+  .bowl-section-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .bowl-section-copy {
+    color: var(--warm-white);
+    max-width: 36em;
+  }
+
+  .bowl-section-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  .bowl-section-aside {
+    margin-top: 6px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-dim);
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-aside { font-size: 17px; }
+  }
+
+  .bowl-section-body {
+    margin-top: 18px;
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  @media (min-width: 1025px) {
+    .bowl-section-body { font-size: 17.5px; line-height: 1.65; }
+  }
+
+  .bowl-section-list {
+    margin-top: 22px;
+    padding-left: 0;
+    list-style: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+  }
+  .bowl-section-list li {
+    padding: 8px 0 8px 22px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+    position: relative;
+  }
+  .bowl-section-list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--glow);
+    opacity: 0.85;
+  }
+
+  .bowl-cta-inline {
+    margin-top: 28px;
+  }
+
+  /* ---------- cross-links (Ligas / Boliche gratis para niños) ---------- */
+  .bowl-cross-links {
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bowl-cross-links a {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    transition: color 150ms ease-out;
+  }
+  .bowl-cross-links a:hover { color: var(--glow); }
+  .bowl-cross-links a strong {
+    color: var(--warm-white);
+    font-weight: 700;
+  }
+
+  /* ---------- correction-link band (Spanish-page-specific) ---------- */
+  .es-correction-band {
+    padding: 24px 22px 32px;
+    text-align: center;
+  }
+  @media (min-width: 1025px) {
+    .es-correction-band { padding: 32px 64px 48px; }
+  }
+
+  .es-correction-inner p {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--warm-dim);
+  }
+  .es-correction-inner a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    margin: 0 2px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .es-correction-inner a:hover {
+    text-decoration-color: var(--glow);
+  }
+</style>
