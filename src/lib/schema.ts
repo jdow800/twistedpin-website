@@ -27,7 +27,7 @@
  */
 
 import { HOURS, parseTimeLabel, type DayKey } from "../data/hours";
-import { getLiveHours } from "./google-hours";
+import { getLiveHours, getLiveReviews } from "./google-hours";
 
 // ── Canonical NAP ──────────────────────────────────────────────────
 // Single source of truth. Schema, SnapFooter, and any future contact UI
@@ -102,15 +102,14 @@ export const SOCIAL_SAME_AS = [
 export const PRICE_RANGE = "$$";
 
 /**
- * AggregateRating — Google review data, captured 2026-05-07 from the
- * Twisted Pin Business Profile. Drives the rich-result star display
- * in SERP listings.
+ * AggregateRating — Google review data. Wired live via Google Places API
+ * 2026-05-18 (`rating` + `userRatingCount` fields, fetched in the same
+ * daily Places call as live hours — see src/lib/google-hours.ts).
  *
- * Update cadence: refresh annually or on any major review-velocity
- * change. Could be wired live via the Places API (`rating` +
- * `userRatingCount` fields) on the same key as google-hours.ts;
- * deferred for v1 — Google updates this monthly anyway and the cron
- * rebuild gives us a 24h refresh window if we wire it later.
+ * These constants are the FALLBACK values, used when the live snapshot
+ * is missing/stale or env vars aren't configured. Initial capture from
+ * the Twisted Pin Business Profile 2026-05-07. Update annually as a
+ * floor; live data takes over when present.
  *
  * Yelp (4.1/99 as of 2026-05-07) intentionally omitted — Schema.org
  * `aggregateRating` is single-source; Google is the primary signal
@@ -348,6 +347,15 @@ interface LocalBusinessBaseOptions {
  * `["EventVenue", "EntertainmentBusiness"]` so the AR parent is valid.
  */
 export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
+  // Live Google review data — pulled from the same Places API snapshot
+  // as live hours. Falls back to GOOGLE_RATING / GOOGLE_REVIEW_COUNT
+  // constants when snapshot is missing/stale. Memoized inside
+  // getLiveReviews() — at most one Places fetch per build process,
+  // shared with getLiveHours().
+  const liveReviews = await getLiveReviews();
+  const ratingValue = liveReviews?.rating ?? GOOGLE_RATING;
+  const reviewCount = liveReviews?.reviewCount ?? GOOGLE_REVIEW_COUNT;
+
   return {
     "@context": "https://schema.org",
     "@id": BUSINESS_ENTITY_ID,
@@ -371,8 +379,8 @@ export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
     maximumAttendeeCapacity: 200,
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: GOOGLE_RATING,
-      reviewCount: GOOGLE_REVIEW_COUNT,
+      ratingValue,
+      reviewCount,
       bestRating: 5,
       worstRating: 1,
     },

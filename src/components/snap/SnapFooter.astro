@@ -25,8 +25,8 @@
  * + special-day edits). Daily 4am cron rebuild keeps it fresh. Falls
  * back to static src/data/hours.ts when env vars aren't configured.
  */
-import { getLiveHours } from "../../lib/google-hours";
-import { MAPS_VENUE_URL } from "../../lib/schema";
+import { getLiveHours, getLiveReviews } from "../../lib/google-hours";
+import { MAPS_VENUE_URL, GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "../../lib/schema";
 import {
   todayKey,
   previousDay,
@@ -36,8 +36,20 @@ import {
 import type { DayWindow, DayKey } from "../../data/hours";
 
 // Build-time fetch — null when GOOGLE_MAPS_API_KEY / GOOGLE_PLACE_ID
-// env vars aren't set, or on API failure.
+// env vars aren't set, or on API failure. Hours + reviews share a single
+// Places API call internally; this is two function calls but one fetch.
 const liveHours = await getLiveHours();
+const liveReviews = await getLiveReviews();
+
+// Display values for the proof-card. Live values when present; fall back
+// to constants (captured 2026-05-07, refreshed annually as a floor) so
+// the card always renders honest data even if env vars / cron / GitHub
+// commit have all failed.
+const googleRating = liveReviews?.rating ?? GOOGLE_RATING;
+const googleReviewCount = liveReviews?.reviewCount ?? GOOGLE_REVIEW_COUNT;
+// One-decimal rating ("4.5") + thousands-separated count ("1,141").
+const googleRatingLabel = googleRating.toFixed(1);
+const googleReviewCountLabel = googleReviewCount.toLocaleString("en-US");
 const today = todayKey();
 const yesterday = previousDay(today);
 const nowMin = nowMinutesCentral();
@@ -218,9 +230,9 @@ const UTILITY_LINKS = [
             <p class="proof-source">Google</p>
             <p class="proof-rating">
               <span class="proof-stars" aria-hidden="true">★★★★★</span>
-              <span class="proof-num">4.5</span>
+              <span class="proof-num">{googleRatingLabel}</span>
             </p>
-            <p class="proof-meta">1,141 reviews</p>
+            <p class="proof-meta">{googleReviewCountLabel} reviews</p>
           </a>
           <a class="proof-card" href="https://www.yelp.com/biz/twisted-pin-plainfield" target="_blank" rel="noopener">
             <p class="proof-source">Yelp</p>
