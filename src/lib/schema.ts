@@ -578,7 +578,26 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
       name: BUSINESS_NAME,
       address: addressNAP(),
     },
-    organizer: { "@id": BUSINESS_ENTITY_ID },
+    // organizer inlines name + url alongside @id. Bare @id was flagged by
+    // GSC 2026-05-19 as "Missing field 'url' (in 'organizer')" — Event
+    // rich-result validator doesn't traverse the @id graph reliably.
+    // Same pattern as location above. Type "Organization" is the standard
+    // shape for venue-hosted events where the venue is also the organizer.
+    organizer: {
+      "@id": BUSINESS_ENTITY_ID,
+      "@type": "Organization",
+      name: BUSINESS_NAME,
+      url: BUSINESS_URL,
+    },
+    // performer is recommended-but-missing per GSC 2026-05-19. For
+    // venue-hosted events without a distinct featured artist, the venue
+    // performs as itself (the experience IS the venue). PerformingGroup
+    // is the shape Google accepts for this case; "name" is the only
+    // required sub-field.
+    performer: {
+      "@type": "PerformingGroup",
+      name: BUSINESS_NAME,
+    },
   };
   if (input.end) {
     obj.endDate = typeof input.end === "string" ? input.end : input.end.toISOString();
@@ -592,7 +611,7 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
 // ── VideoObject helper ────────────────────────────────────────────
 
 import type { VideoEntry } from "../data/videos";
-import { isoDuration, thumbnailUrl, contentUrl, primaryPageUrl } from "../data/videos";
+import { isoDuration, thumbnailUrl, contentUrl, primaryPageUrl, formatUploadDate } from "../data/videos";
 
 /**
  * Build a Schema.org `VideoObject` JSON-LD object for a video registry
@@ -629,7 +648,11 @@ export function videoObjectSchema(v: VideoEntry): Record<string, unknown> {
     description: v.description,
     thumbnailUrl: thumbnailUrl(v),
     contentUrl: contentUrl(v),
-    uploadDate: v.uploadDate,
+    // Full ISO 8601 with timezone offset. GSC flagged bare date as
+    // "Datetime property 'uploadDate' is missing a timezone" 2026-05-19;
+    // formatUploadDate() applies VIDEO_TZ_OFFSET (-06:00, US Central) to
+    // keep this in sync with the /sitemap-videos.xml emission.
+    uploadDate: formatUploadDate(v.uploadDate),
     duration: isoDuration(v.durationSeconds),
     publisher: { "@id": BUSINESS_ENTITY_ID },
     // Page that owns this video — closes the page→video association.
@@ -640,6 +663,7 @@ export function videoObjectSchema(v: VideoEntry): Record<string, unknown> {
       url: primaryPageUrl(v),
     },
   };
-  if (v.expires) obj.expires = v.expires;
+  // Expires is also a Datetime per Schema.org — apply the same TZ wrap.
+  if (v.expires) obj.expires = formatUploadDate(v.expires);
   return obj;
 }
