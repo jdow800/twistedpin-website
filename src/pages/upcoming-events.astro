@@ -131,6 +131,21 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     const eventUrl = ctaIsInternal
       ? `${BUSINESS_URL}${cta}`
       : `${BUSINESS_URL}/upcoming-events/`;
+    // `offers` sourced from the event's `lowPrice` frontmatter when set.
+    // AggregateOffer floor pattern — clears GSC "Missing field 'offers'"
+    // and keeps each Event eligible for rich results in this ItemList.
+    const offers = e.data.lowPrice
+      ? {
+          "@type": "AggregateOffer",
+          priceCurrency: "USD",
+          lowPrice: e.data.lowPrice,
+          availability: "https://schema.org/InStock",
+          url: eventUrl,
+          // validFrom omitted — listed in the calendar means sales are
+          // open. validThrough = event start: no sales after kickoff.
+          validThrough: e.data.start.toISOString(),
+        }
+      : undefined;
     return {
       "@type": "ListItem",
       position: i + 1,
@@ -140,6 +155,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
         end: e.data.end,
         description: e.body?.trim(),
         url: eventUrl,
+        offers,
       }),
     };
   }),

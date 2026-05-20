@@ -31,7 +31,13 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID, videoObjectSchema } from "../lib/schema";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  GOOGLE_RATING,
+  GOOGLE_REVIEW_COUNT,
+  videoObjectSchema,
+} from "../lib/schema";
 import { SUMMER_PASS_VIDEO } from "../data/videos";
 
 const summerPassVideoSchema = videoObjectSchema(SUMMER_PASS_VIDEO);
@@ -57,6 +63,13 @@ const pinPassSchema = {
     "Unlimited summer bowling at Twisted Pin in Plainfield, IL. One 1.5-hour bowling visit every day, all summer, for the entire household. Weekends, evenings, and holidays included.",
   brand: { "@id": BUSINESS_ENTITY_ID },
   url: PAGE_URL,
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: GOOGLE_RATING,
+    reviewCount: GOOGLE_REVIEW_COUNT,
+    bestRating: 5,
+    worstRating: 1,
+  },
   offers: {
     "@type": "Offer",
     price: PIN_PASS_NUMERIC_PRICE,

@@ -17,6 +17,15 @@ const events = defineCollection({
     tentative: z.boolean().default(false),
     virtual: z.boolean().default(false),
     draft: z.boolean().default(false),
+    /**
+     * Optional pricing floor for the Event's `offers` block in JSON-LD.
+     * When present, both /upcoming-events (ItemList) and the dedicated
+     * event page emit an AggregateOffer with this as `lowPrice`. Without
+     * it, the Event is rich-result-ineligible (GSC: "Missing field
+     * 'offers'"). Use the cheapest real package as the floor; ops can
+     * refine when packages are confirmed.
+     */
+    lowPrice: z.string().optional(),
   }),
 });
 

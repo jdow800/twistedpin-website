@@ -6,6 +6,9 @@ location: Twisted Pin · Plainfield, IL
 cta:
   label: See packages
   href: /new-years-eve/
+# 2025 floor was $109.95/lane; package prices rarely go down. Update
+# when ops confirms 2026 pricing.
+lowPrice: "109.95"
 ---
 
 The night, the bar, the suite. Cocktails curated by America's Top Mixologist,

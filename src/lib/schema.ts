@@ -539,6 +539,15 @@ export interface EventInput {
   image?: string;
   /** Canonical event URL. */
   url?: string;
+  /**
+   * Pre-built Offer / AggregateOffer JSON-LD object. Optional but
+   * recommended — GSC flags Events without `offers` ("Missing field
+   * 'offers'", non-critical → can become critical for rich-result
+   * eligibility). For events with package pricing TBD or a "starts
+   * at" floor, use AggregateOffer with `lowPrice`. For free events,
+   * use Offer with `price: "0"`.
+   */
+  offers?: Record<string, unknown>;
 }
 
 /**
@@ -552,9 +561,11 @@ export interface EventInput {
  * top-level emission (add `@context`) or nested inside an ItemList
  * (omit `@context`).
  *
- * `offers` is intentionally NOT modeled here. Add per-page only when
- * real ticket / package data exists — Schema.org `Offer` requires
- * price + availability that ops needs to confirm per event.
+ * `offers` is optional but recommended. When ops has package pricing,
+ * pass an Offer or AggregateOffer JSON-LD object via the `offers`
+ * param. For ItemList children (calendars), provide offers per Event
+ * via the same param. Without it, GSC reports "Missing field 'offers'"
+ * and the page loses Event rich-result eligibility.
  *
  * `location` inlines name + address alongside @id rather than emitting
  * a bare @id reference. Google's Event rich-result validator has been
@@ -605,6 +616,7 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
   if (input.description) obj.description = input.description;
   if (input.image) obj.image = input.image;
   if (input.url) obj.url = input.url;
+  if (input.offers) obj.offers = input.offers;
   return obj;
 }
 
