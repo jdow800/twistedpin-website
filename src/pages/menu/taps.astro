@@ -66,10 +66,17 @@ const menuSchema = {
     }),
   })),
 };
+
+// dateModified: today() — honest because Untappd cron pulls real tap
+// rotation data daily at 4am. Tap wall genuinely rotates (kegs blow,
+// new beers come on). Stage 7 (2026-05-18) — see schema.ts
+// webPageSchema docstring for the "what counts as honest" rationale.
+const dateModified = new Date().toISOString().split("T")[0];
 ---
 <Base
   title="What's On Tap in Plainfield, IL | Twisted Pin"
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
+  dateModified={dateModified}
 >
   {/* Head additions, two concerns combined into the single slot:
       - Conditional noindex when Untappd fetch returned EMPTY (Stage 1

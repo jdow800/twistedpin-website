@@ -5,6 +5,7 @@ import NavDrawer from "../components/NavDrawer.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import PromoBar from "../components/PromoBar.astro";
 import Analytics from "@vercel/analytics/astro";
+import { webPageSchema } from "../lib/schema";
 
 interface Props {
   title?: string;
@@ -44,6 +45,27 @@ interface Props {
    *  only if you know what you're doing — wrong type makes the browser
    *  refetch the resource. */
   lcpPreloadType?: string;
+  /**
+   * Opt-in `dateModified` on the auto-emitted WebPage schema. ONLY pass
+   * this when the page's content truly refreshes — daily cron-driven
+   * pages (menu pages) at `today()`, otherwise omit. See WebPage helper
+   * comment in src/lib/schema.ts for the full "what counts as honest"
+   * rationale. Emitting on slow-moving pages risks Google's
+   * content-flapping detection. Default: undefined (no dateModified).
+   */
+  dateModified?: string;
+  /**
+   * Opt-in `speakable` selectors on the auto-emitted WebPage schema.
+   * Identifies on-page content for voice-assistant read-aloud. Per
+   * Google's Speakable spec, target content should be ~20-30 seconds
+   * when spoken — keep selector list short and bounded.
+   *
+   * Examples:
+   *   - /faq: ['.t2-faq-q-text', '.t2-faq-a']
+   *   - homepage: ['.footer-address']
+   * Default: undefined (no speakable property).
+   */
+  speakable?: string[];
 }
 
 const {
@@ -57,6 +79,8 @@ const {
   lcpPreloadHref,
   lcpPreloadMedia,
   lcpPreloadType,
+  dateModified,
+  speakable,
 } = Astro.props;
 
 // Auto-derive preload type from file extension. AVIF is ~30% smaller than
@@ -83,9 +107,29 @@ const canonicalPath = Astro.url.pathname.endsWith("/")
   : `${Astro.url.pathname}/`;
 const canonicalURL = new URL(canonicalPath, Astro.site).href;
 const ogImageURL = new URL(ogImage, Astro.site).href;
+
+// Auto-detect inLanguage from canonical path. /es/* gets es-US; everything
+// else gets en-US. Drives the WebPage entity below. When/if Spanish
+// localization expands beyond /es/bowl/ (Phase 2 in spanish-localization.md),
+// this single line handles all of it.
+const inLanguage: "en-US" | "es-US" = canonicalPath.startsWith("/es/") ? "es-US" : "en-US";
+
+// Auto-emit WebPage entity for every page (Stage 7 schema work,
+// 2026-05-18). Provides inLanguage signal + entity-graph clarity
+// for AI Overviews. dateModified + speakable opt-in via Base props
+// — keep them empty unless the page genuinely qualifies; see the
+// WebPage helper docstring in src/lib/schema.ts for the rules.
+const webPage = webPageSchema({
+  url: canonicalURL,
+  name: title,
+  description,
+  inLanguage,
+  dateModified,
+  speakable,
+});
 ---
 <!doctype html>
-<html lang="en">
+<html lang={inLanguage}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -117,7 +161,7 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
         large-image card layout. Per-page Props override the defaults. */}
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="Twisted Pin" />
-    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale" content={inLanguage.replace("-", "_")} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -133,6 +177,14 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageURL} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+
+    {/* Auto-emitted WebPage entity (Stage 7 schema work, 2026-05-18).
+        Every page gets one — provides inLanguage signal + entity-graph
+        clarity for AI Overviews / ChatGPT / Perplexity. Pages opt in
+        to dateModified + speakable via Base props (see prop docstrings
+        + src/lib/schema.ts webPageSchema docstring for the rules on
+        what counts as honest dateModified). */}
+    <script type="application/ld+json" set:html={JSON.stringify(webPage)} />
 
     {/* Per-page head injection — used by draft / staging pages to add
         noindex, by article-style pages for canonical links, etc. */}

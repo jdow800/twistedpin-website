@@ -1,7 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
-import { fetchLiveHoursFromAPI } from '../../../lib/google-hours';
+import { fetchLivePlacesData } from '../../../lib/google-hours';
 
 // Daily rebuild trigger. Scheduled in vercel.json crons (4am Central).
 // Vercel Cron auto-injects `Authorization: Bearer ${CRON_SECRET}` so a
@@ -9,11 +9,15 @@ import { fetchLiveHoursFromAPI } from '../../../lib/google-hours';
 //
 // Two jobs:
 //
-//   1. Hours snapshot — fetch Google Places ONCE/day, commit the result
+//   1. Places snapshot — fetch Google Places ONCE/day, commit the result
 //      to src/data/live-hours.json via GitHub Contents API. Every build
 //      that day reads from the committed JSON instead of hitting Places.
 //      Drops Places API cost from ~$200/mo (~70 calls/build × ~10 builds/day)
 //      to ~$0.62/mo (~30 calls/month). See decisions log 2026-05-13.
+//
+//      Snapshot covers BOTH hours and review rating/count — one Places
+//      API call, multi-field mask, single JSON file. Reviews added
+//      2026-05-18 at zero additional API cost (same SKU, same request).
 //
 //      The GitHub commit auto-triggers a Vercel deploy (via the GitHub
 //      integration that's already running), which is how the new menus
@@ -57,15 +61,23 @@ export const GET: APIRoute = async ({ request }) => {
   // Path 1: GitHub commit (preferred — decouples API call from build frequency).
   if (githubToken && githubRepo) {
     try {
-      const hours = await fetchLiveHoursFromAPI();
-      result.hoursFetched = hours !== null;
+      // Single Places API call returns hours + rating + reviewCount.
+      // Hours is the gating field — if Places gave us nothing usable for
+      // hours, we treat the whole snapshot as failed and fall through to
+      // the deploy-hook path. Reviews are written when present, omitted
+      // when null (consumers fall back to GOOGLE_RATING/GOOGLE_REVIEW_COUNT
+      // constants in schema.ts).
+      const places = await fetchLivePlacesData();
+      result.hoursFetched = places.hours !== null;
 
-      if (hours) {
-        const snapshot = JSON.stringify(
-          { fetchedAt: new Date().toISOString(), hours },
-          null,
-          2,
-        ) + '\n';
+      if (places.hours) {
+        const snapshotData: Record<string, unknown> = {
+          fetchedAt: new Date().toISOString(),
+          hours: places.hours,
+        };
+        if (places.rating != null) snapshotData.rating = places.rating;
+        if (places.reviewCount != null) snapshotData.reviewCount = places.reviewCount;
+        const snapshot = JSON.stringify(snapshotData, null, 2) + '\n';
 
         const committed = await commitHoursToRepo({
           repo: githubRepo,
@@ -164,7 +176,7 @@ async function commitHoursToRepo(opts: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      message: 'cron: refresh live-hours snapshot from Google Places',
+      message: 'cron: refresh live Google Places snapshot (hours + reviews)',
       content: Buffer.from(content, 'utf-8').toString('base64'),
       sha,
     }),

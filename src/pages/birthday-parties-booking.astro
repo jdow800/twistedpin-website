@@ -44,7 +44,12 @@
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+import {
+  BUSINESS_URL,
+  BUSINESS_ENTITY_ID,
+  GOOGLE_RATING,
+  GOOGLE_REVIEW_COUNT,
+} from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
@@ -58,6 +63,16 @@ const ROLLER_KIDS_URL = "https://ecom.roller.app/twistedpin/kidsbirthdayparties/
 const PAGE_URL = `${BUSINESS_URL}/birthday-parties-booking/`;
 const SUITE_BIRTHDAY_PRICE = "419.00";
 const EXTRA_SUITE_BIRTHDAY_PRICE = "489.90";
+// Venue-wide Google rating, surfaced on both party Products so SERP
+// results for /birthday-parties-booking can show stars. Clears GSC
+// "Missing field 'aggregateRating'" non-critical warning.
+const partyAggregateRating = {
+  "@type": "AggregateRating",
+  ratingValue: GOOGLE_RATING,
+  reviewCount: GOOGLE_REVIEW_COUNT,
+  bestRating: 5,
+  worstRating: 1,
+};
 const partyPackagesSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
@@ -73,6 +88,7 @@ const partyPackagesSchema = {
           "Kids' birthday party package at Twisted Pin: 1 hour of bowling on a reserved lane, 2 hours total party time, shoes and balls, 45-min reserved party space, $10 arcade game card per child, souvenir lunch bag, invitations, and a personal party coordinator. Up to 10 guests.",
         brand: { "@id": BUSINESS_ENTITY_ID },
         url: PAGE_URL,
+        aggregateRating: partyAggregateRating,
         offers: {
           "@type": "Offer",
           price: SUITE_BIRTHDAY_PRICE,
@@ -94,6 +110,7 @@ const partyPackagesSchema = {
           "Extended kids' birthday party package: 1 hour of bowling on a reserved lane, 2.5 hours total party time, shoes and balls, 1 hour reserved party space, $10 arcade game card per child, souvenir lunch bag, invitations, and a personal party coordinator. Up to 10 guests.",
         brand: { "@id": BUSINESS_ENTITY_ID },
         url: PAGE_URL,
+        aggregateRating: partyAggregateRating,
         offers: {
           "@type": "Offer",
           price: EXTRA_SUITE_BIRTHDAY_PRICE,

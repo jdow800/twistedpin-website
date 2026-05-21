@@ -33,6 +33,10 @@ export type IconKey =
   | 'help'           // FAQ (circle-help)
   | 'mail'           // Contact (when label says Contact)
   | 'briefcase'      // Careers
+  | 'building-2'     // Corporate Events
+  | 'tree-pine'      // Holiday Parties (seasonal Sep 1 → Jan 5)
+  | 'flower'         // Bridal & Baby Showers
+  | 'wine'           // Wedding Receptions
   | 'map-pin'        // Find Us
   | 'tag'            // Pricing
   | 'heart-handshake' // Fundraisers (community + giving)
@@ -103,6 +107,18 @@ export const ICON_PATHS: Record<IconKey, string> = {
 
   // lucide.dev/icons/briefcase
   'briefcase': '<rect width="20" height="14" x="2" y="6" rx="2"/><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+
+  // lucide.dev/icons/building-2
+  'building-2': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+
+  // lucide.dev/icons/tree-pine
+  'tree-pine': '<path d="m17 14 3 3.3a1 1 0 0 1-.7 1.7H4.7a1 1 0 0 1-.7-1.7L7 14h-.3a1 1 0 0 1-.7-1.7L9 9h-.2A1 1 0 0 1 8 7.3L11.3 3a1 1 0 0 1 1.4 0L16 7.3a1 1 0 0 1-.8 1.7H15l3 3.3a1 1 0 0 1-.7 1.7H17Z"/><path d="M12 22v-3"/>',
+
+  // lucide.dev/icons/flower
+  'flower': '<circle cx="12" cy="12" r="3"/><path d="M12 16.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 1 1 4.5 4.5 4.5 4.5 0 1 1-4.5 4.5"/><path d="M12 7.5V9"/><path d="M7.5 12H9"/><path d="M16.5 12H15"/><path d="M12 16.5V15"/><path d="m8 8 1.88 1.88"/><path d="M14.12 9.88 16 8"/><path d="m8 16 1.88-1.88"/><path d="M14.12 14.12 16 16"/>',
+
+  // lucide.dev/icons/wine
+  'wine': '<path d="M8 22h8"/><path d="M7 10h10"/><path d="M12 15v7"/><path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z"/>',
 
   // lucide.dev/icons/map-pin
   'map-pin': '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',

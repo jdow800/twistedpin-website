@@ -71,6 +71,22 @@ export function isoDuration(seconds: number): string {
   return s > 0 ? `PT${m}M${s}S` : `PT${m}M`;
 }
 
+/**
+ * Timezone offset applied to uploadDate / expires when emitting in
+ * either the JSON-LD VideoObject (src/lib/schema.ts) or the
+ * /sitemap-videos.xml extension. Twisted Pin is in Plainfield, IL —
+ * US Central. Holding at CST (-06:00) year-round is acceptable per
+ * Google's spec — any valid ISO 8601 timezone is fine; what's NOT
+ * fine is a bare date with no timezone, which is what GSC flagged
+ * 2026-05-19 ("Datetime property 'uploadDate' is missing a timezone").
+ */
+export const VIDEO_TZ_OFFSET = "-06:00";
+
+/** Format a YYYY-MM-DD date as full ISO 8601 with venue timezone. */
+export function formatUploadDate(yyyymmdd: string): string {
+  return `${yyyymmdd}T00:00:00${VIDEO_TZ_OFFSET}`;
+}
+
 // ── Registry ───────────────────────────────────────────────────────
 
 export const HERO_VIDEO: VideoEntry = {

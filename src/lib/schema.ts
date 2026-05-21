@@ -27,7 +27,7 @@
  */
 
 import { HOURS, parseTimeLabel, type DayKey } from "../data/hours";
-import { getLiveHours } from "./google-hours";
+import { getLiveHours, getLiveReviews } from "./google-hours";
 
 // ── Canonical NAP ──────────────────────────────────────────────────
 // Single source of truth. Schema, SnapFooter, and any future contact UI
@@ -102,15 +102,14 @@ export const SOCIAL_SAME_AS = [
 export const PRICE_RANGE = "$$";
 
 /**
- * AggregateRating — Google review data, captured 2026-05-07 from the
- * Twisted Pin Business Profile. Drives the rich-result star display
- * in SERP listings.
+ * AggregateRating — Google review data. Wired live via Google Places API
+ * 2026-05-18 (`rating` + `userRatingCount` fields, fetched in the same
+ * daily Places call as live hours — see src/lib/google-hours.ts).
  *
- * Update cadence: refresh annually or on any major review-velocity
- * change. Could be wired live via the Places API (`rating` +
- * `userRatingCount` fields) on the same key as google-hours.ts;
- * deferred for v1 — Google updates this monthly anyway and the cron
- * rebuild gives us a 24h refresh window if we wire it later.
+ * These constants are the FALLBACK values, used when the live snapshot
+ * is missing/stale or env vars aren't configured. Initial capture from
+ * the Twisted Pin Business Profile 2026-05-07. Update annually as a
+ * floor; live data takes over when present.
  *
  * Yelp (4.1/99 as of 2026-05-07) intentionally omitted — Schema.org
  * `aggregateRating` is single-source; Google is the primary signal
@@ -348,6 +347,15 @@ interface LocalBusinessBaseOptions {
  * `["EventVenue", "EntertainmentBusiness"]` so the AR parent is valid.
  */
 export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
+  // Live Google review data — pulled from the same Places API snapshot
+  // as live hours. Falls back to GOOGLE_RATING / GOOGLE_REVIEW_COUNT
+  // constants when snapshot is missing/stale. Memoized inside
+  // getLiveReviews() — at most one Places fetch per build process,
+  // shared with getLiveHours().
+  const liveReviews = await getLiveReviews();
+  const ratingValue = liveReviews?.rating ?? GOOGLE_RATING;
+  const reviewCount = liveReviews?.reviewCount ?? GOOGLE_REVIEW_COUNT;
+
   return {
     "@context": "https://schema.org",
     "@id": BUSINESS_ENTITY_ID,
@@ -360,10 +368,19 @@ export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
     hasMap: HAS_MAP_URL,
     sameAs: SOCIAL_SAME_AS,
     openingHoursSpecification: await openingHoursSpec(),
+    // Venue-level full-venue-buyout capacity. The /vip-suite sub-location
+    // separately claims maximumAttendeeCapacity: 80 for the suite alone
+    // (see src/pages/vip-suite.astro). This number is the whole-venue cap
+    // — 17 traditional lanes + the VIP suite when an organization takes
+    // over the building. "Up to 200" hedges the same way our copy does:
+    // 200 is the upper tolerance; situational but achievable. Adding
+    // 2026-05-18 to unlock "venue 200 capacity Plainfield" type SERP
+    // eligibility and to back the capacity copy across event-funnel pages.
+    maximumAttendeeCapacity: 200,
     aggregateRating: {
       "@type": "AggregateRating",
-      ratingValue: GOOGLE_RATING,
-      reviewCount: GOOGLE_REVIEW_COUNT,
+      ratingValue,
+      reviewCount,
       bestRating: 5,
       worstRating: 1,
     },
@@ -409,6 +426,103 @@ export function breadcrumbList(crumbs: BreadcrumbCrumb[]): Record<string, unknow
   };
 }
 
+// ── WebPage entity helper ─────────────────────────────────────────
+//
+// Stage 7 addition (2026-05-18). Every page emits a WebPage node that
+// wraps the page's primary content as a typed entity. This is a small
+// SEO signal (1-3% per page, compounding) plus a meaningful clarity
+// boost for AI Overviews / ChatGPT / Perplexity entity recognition.
+//
+// Critical design constraints captured here so future maintainers
+// don't accidentally trigger Google's date-manipulation detection:
+//
+//   - `inLanguage` is emitted on EVERY page. Zero staleness risk.
+//     "en-US" for everything under `/`, "es-US" for `/es/*`. Auto-
+//     detected by Base.astro from Astro.url.pathname.
+//
+//   - `dateModified` is emitted ONLY on pages where content genuinely
+//     refreshes. As of Phase 1 (2026-05-18):
+//       * /menu/cocktails — daily GoTab cron pulls real menu changes
+//       * /menu/food — same
+//       * /menu/taps — daily Untappd cron pulls beer rotation
+//     Everywhere else: omit dateModified. The Vercel shallow-clone
+//     (depth=1) defeats git-mtime as a source; manual per-page dates
+//     decay into stale signals; build-timestamp without real content
+//     change is Google's "content flapping" pattern, which is
+//     algorithmically detected and penalized. Conservative is correct.
+//
+//   - `speakable` is emitted on pages where voice-assistant queries
+//     map to specific on-page content:
+//       * /faq — questions + answers (.t2-faq-q-text, .t2-faq-a)
+//       * / (homepage) — NAP address block (.footer-address)
+//     Per Google's spec, speakable content should be readable in
+//     ~20-30 seconds. Keep selector list short and bounded.
+//
+//   - `about` references BUSINESS_ENTITY_ID — the WebPage is about
+//     the business. Closes the entity graph (WebPage → LocalBusiness).
+//     Crawlers + LLMs use this to unify the page-vs-business signal.
+//
+// **What this is NOT:**
+//   - Not a major SEO lever. ~1-3% per page; cumulative across 25
+//     pages = measurable in 30-60 days, not transformative.
+//   - Not a substitute for real content freshness. Pillar pages
+//     should still get genuine content refreshes (live review-count
+//     widget, "this week's events" teaser, quarterly content reviews).
+//     The WebPage schema doesn't replace that work; it makes the
+//     existing freshness signal honest.
+
+export interface WebPageOptions {
+  /** Canonical absolute URL of the page. */
+  url: string;
+  /** Page name (typically the meta title, possibly trimmed). */
+  name: string;
+  /** Page description (typically the meta description). */
+  description: string;
+  /** Language code. "en-US" for English pages, "es-US" for /es/* pages. */
+  inLanguage: "en-US" | "es-US";
+  /**
+   * ISO date when the page's content last meaningfully changed. **Only set
+   * on pages where this is HONEST.** Menu pages use today() at build time
+   * because cron-driven refresh is real. Other pages: omit entirely.
+   */
+  dateModified?: string;
+  /**
+   * CSS selectors identifying content suitable for voice-assistant
+   * read-aloud. Keep the list short — 1-3 selectors max. Per Google's
+   * Speakable spec, the content these select should be 20-30 seconds
+   * when spoken.
+   */
+  speakable?: string[];
+}
+
+/**
+ * Emit a WebPage JSON-LD entity for the current page. Wired into
+ * Base.astro so every page gets one automatically; specific pages
+ * pass extra opts (dateModified, speakable) when applicable.
+ */
+export function webPageSchema(opts: WebPageOptions): Record<string, unknown> {
+  const node: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": `${opts.url}#webpage`,
+    url: opts.url,
+    name: opts.name,
+    description: opts.description,
+    inLanguage: opts.inLanguage,
+    about: { "@id": BUSINESS_ENTITY_ID },
+  };
+  if (opts.dateModified) {
+    node.dateModified = opts.dateModified;
+  }
+  if (opts.speakable && opts.speakable.length > 0) {
+    node.speakable = {
+      "@type": "SpeakableSpecification",
+      cssSelector: opts.speakable,
+    };
+  }
+  return node;
+}
+
 // ── Event helper ─────────────────────────────────────────────────
 
 export interface EventInput {
@@ -425,6 +539,15 @@ export interface EventInput {
   image?: string;
   /** Canonical event URL. */
   url?: string;
+  /**
+   * Pre-built Offer / AggregateOffer JSON-LD object. Optional but
+   * recommended — GSC flags Events without `offers` ("Missing field
+   * 'offers'", non-critical → can become critical for rich-result
+   * eligibility). For events with package pricing TBD or a "starts
+   * at" floor, use AggregateOffer with `lowPrice`. For free events,
+   * use Offer with `price: "0"`.
+   */
+  offers?: Record<string, unknown>;
 }
 
 /**
@@ -438,9 +561,11 @@ export interface EventInput {
  * top-level emission (add `@context`) or nested inside an ItemList
  * (omit `@context`).
  *
- * `offers` is intentionally NOT modeled here. Add per-page only when
- * real ticket / package data exists — Schema.org `Offer` requires
- * price + availability that ops needs to confirm per event.
+ * `offers` is optional but recommended. When ops has package pricing,
+ * pass an Offer or AggregateOffer JSON-LD object via the `offers`
+ * param. For ItemList children (calendars), provide offers per Event
+ * via the same param. Without it, GSC reports "Missing field 'offers'"
+ * and the page loses Event rich-result eligibility.
  *
  * `location` inlines name + address alongside @id rather than emitting
  * a bare @id reference. Google's Event rich-result validator has been
@@ -464,7 +589,26 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
       name: BUSINESS_NAME,
       address: addressNAP(),
     },
-    organizer: { "@id": BUSINESS_ENTITY_ID },
+    // organizer inlines name + url alongside @id. Bare @id was flagged by
+    // GSC 2026-05-19 as "Missing field 'url' (in 'organizer')" — Event
+    // rich-result validator doesn't traverse the @id graph reliably.
+    // Same pattern as location above. Type "Organization" is the standard
+    // shape for venue-hosted events where the venue is also the organizer.
+    organizer: {
+      "@id": BUSINESS_ENTITY_ID,
+      "@type": "Organization",
+      name: BUSINESS_NAME,
+      url: BUSINESS_URL,
+    },
+    // performer is recommended-but-missing per GSC 2026-05-19. For
+    // venue-hosted events without a distinct featured artist, the venue
+    // performs as itself (the experience IS the venue). PerformingGroup
+    // is the shape Google accepts for this case; "name" is the only
+    // required sub-field.
+    performer: {
+      "@type": "PerformingGroup",
+      name: BUSINESS_NAME,
+    },
   };
   if (input.end) {
     obj.endDate = typeof input.end === "string" ? input.end : input.end.toISOString();
@@ -472,13 +616,14 @@ export function eventSchema(input: EventInput): Record<string, unknown> {
   if (input.description) obj.description = input.description;
   if (input.image) obj.image = input.image;
   if (input.url) obj.url = input.url;
+  if (input.offers) obj.offers = input.offers;
   return obj;
 }
 
 // ── VideoObject helper ────────────────────────────────────────────
 
 import type { VideoEntry } from "../data/videos";
-import { isoDuration, thumbnailUrl, contentUrl, primaryPageUrl } from "../data/videos";
+import { isoDuration, thumbnailUrl, contentUrl, primaryPageUrl, formatUploadDate } from "../data/videos";
 
 /**
  * Build a Schema.org `VideoObject` JSON-LD object for a video registry
@@ -515,7 +660,11 @@ export function videoObjectSchema(v: VideoEntry): Record<string, unknown> {
     description: v.description,
     thumbnailUrl: thumbnailUrl(v),
     contentUrl: contentUrl(v),
-    uploadDate: v.uploadDate,
+    // Full ISO 8601 with timezone offset. GSC flagged bare date as
+    // "Datetime property 'uploadDate' is missing a timezone" 2026-05-19;
+    // formatUploadDate() applies VIDEO_TZ_OFFSET (-06:00, US Central) to
+    // keep this in sync with the /sitemap-videos.xml emission.
+    uploadDate: formatUploadDate(v.uploadDate),
     duration: isoDuration(v.durationSeconds),
     publisher: { "@id": BUSINESS_ENTITY_ID },
     // Page that owns this video — closes the page→video association.
@@ -526,6 +675,7 @@ export function videoObjectSchema(v: VideoEntry): Record<string, unknown> {
       url: primaryPageUrl(v),
     },
   };
-  if (v.expires) obj.expires = v.expires;
+  // Expires is also a Datetime per Schema.org — apply the same TZ wrap.
+  if (v.expires) obj.expires = formatUploadDate(v.expires);
   return obj;
 }

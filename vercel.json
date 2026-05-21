@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/rebuild",
+      "path": "/api/cron/rebuild/",
       "schedule": "0 9 * * *"
     }
   ],
@@ -21,17 +21,17 @@
     { "source": "/bar-grill{/}?", "destination": "/bar/", "permanent": true },
 
     { "source": "/special-events{/}?", "destination": "/events/", "permanent": true },
-    { "source": "/corporate-parties{/}?", "destination": "/events/#corporate", "permanent": true },
+    { "source": "/corporate-parties{/}?", "destination": "/corporate-events/", "permanent": true },
     { "source": "/fundraiser{/}?", "destination": "/fundraisers/", "permanent": true },
     { "source": "/event-directory{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/family-party{/}?", "destination": "/events/#birthday", "permanent": true },
 
     { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
 
-    { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/events/#corporate", "permanent": true },
-    { "source": "/event-spaces-for-teams-:rest*", "destination": "/events/#corporate", "permanent": true },
-    { "source": "/experience-the-ultimate-group-event-destination:rest*", "destination": "/events/", "permanent": true },
-    { "source": "/event-venues-with-a-twist-:rest*", "destination": "/events/", "permanent": true },
+    { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/corporate-events/", "permanent": true },
+    { "source": "/event-spaces-for-teams-(.*)", "destination": "/corporate-events/", "permanent": true },
+    { "source": "/experience-the-ultimate-group-event-destination(.*)", "destination": "/events/", "permanent": true },
+    { "source": "/event-venues-with-a-twist-(.*)", "destination": "/events/", "permanent": true },
 
     { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true },
 
@@ -61,7 +61,7 @@
     { "source": "/sing-your-heart-out-karaoke-nights-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
     { "source": "/class-reunion-venue-event-space-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
     { "source": "/celebrate-your-milestone-the-ideal-graduation-party-venue-at-twisted-pin{/}?", "destination": "/events/", "permanent": true },
-    { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/events/", "permanent": true },
+    { "source": "/ultimate-holiday-party-venue-celebrate-your-event{/}?", "destination": "/holiday-parties/", "permanent": true },
     { "source": "/twisted-pin-the-ultimate-venue-for-your-summer-celebrations{/}?", "destination": "/events/", "permanent": true },
     { "source": "/birthday-party-booking-is-back-lets-roll-plainfield{/}?", "destination": "/events/#birthday", "permanent": true },
     { "source": "/lots-of-ish-why-bowling-is-the-perfect-summertime-activity{/}?", "destination": "/", "permanent": true },
@@ -75,9 +75,9 @@
     { "source": "/events/jingle-bowl-twisted-pin-copy{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/black-wednesday-karaoke{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/karaoke-free{/}?", "destination": "/upcoming-events/", "permanent": true },
-    { "source": "/events/karaoke-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/karaoke-free/(.*)", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/bar-bingo-free{/}?", "destination": "/upcoming-events/", "permanent": true },
-    { "source": "/events/bar-bingo-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/bar-bingo-free/(.*)", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/16{/}?", "destination": "/upcoming-events/", "permanent": true },
 
     { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },

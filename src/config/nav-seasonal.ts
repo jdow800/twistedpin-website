@@ -83,6 +83,25 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     showFrom: "2026-04-15",
     showUntil: "2026-09-01",
   },
+  /**
+   * Holiday Parties: page lives at /holiday-parties/ year-round.
+   * Surfaces in the "Visit" drawer section from Sep 1 → Jan 5 so
+   * it's promoted across the full sourcing-to-cleanup cycle:
+   * planners start sourcing late summer, drag tail into early
+   * January for post-holiday follow-ups. NYE drawer window
+   * (Nov 15 → Jan 2) overlaps; both surface with distinct icons
+   * (tree-pine vs sparkles) and distinct labels — no clash.
+   * December books fast — drawer surfacing in Sep gives ~3 months
+   * of lead time before the venue starts losing dates.
+   */
+  {
+    label: "Holiday Parties",
+    href: "/holiday-parties/",
+    icon: "tree-pine",
+    section: "Visit",
+    showFrom: "2026-09-01",
+    showUntil: "2027-01-05",
+  },
 ];
 
 /** Active items at build time. Returns only items inside their window. */

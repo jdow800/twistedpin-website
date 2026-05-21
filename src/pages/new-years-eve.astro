@@ -43,10 +43,10 @@ const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
 
 // JSON-LD: Event. Dates pulled from the events content collection so
 // /new-years-eve and /upcoming-events read from the same SoT. `offers`
-// is omitted — package details are ops-blocked. eventStatus defaults to
-// EventScheduled inside eventSchema(); flip to EventCancelled or
-// EventPostponed in the markdown frontmatter (with a follow-up schema
-// pass) if the situation changes.
+// is sourced from the markdown's `lowPrice` field — AggregateOffer with
+// lowPrice models "packages start at $X" for events where ops hasn't
+// confirmed exact tiers. eventStatus defaults to EventScheduled inside
+// eventSchema(); flip via markdown if cancellation/postponement happens.
 const PAGE_URL = `${BUSINESS_URL}/new-years-eve/`;
 const nyeEntry = await getEntry("events", "2026-12-31-new-years-eve");
 const nyeJsonLd = nyeEntry
@@ -59,6 +59,19 @@ const nyeJsonLd = nyeEntry
         description: nyeEntry.body?.trim(),
         image: `${BUSINESS_URL}/snap/nye-poster.avif`,
         url: PAGE_URL,
+        offers: nyeEntry.data.lowPrice
+          ? {
+              "@type": "AggregateOffer",
+              priceCurrency: "USD",
+              lowPrice: nyeEntry.data.lowPrice,
+              availability: "https://schema.org/InStock",
+              url: PAGE_URL,
+              // validFrom omitted — sales open as soon as the page is
+              // live. validThrough = event start: tickets can't be sold
+              // after the night begins.
+              validThrough: nyeEntry.data.start.toISOString(),
+            }
+          : undefined,
       }),
     }
   : null;

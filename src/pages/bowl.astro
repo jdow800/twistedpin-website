@@ -71,6 +71,18 @@ const bowlingAlleySchema = {
   lcpPreloadHref="/snap/summer-pass-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
+  {/* hreflang triplet — reciprocal to /es/bowl. Both pages MUST declare
+      the same triplet pointing at both URLs + x-default; Google flags
+      the pair as broken in Search Console if a declaration is one-way.
+      x-default → English because the site is primarily English; Spanish
+      is the documented audience-segment overlay (seo.md:44 — 68 clicks
+      already on Spanish queries with zero targeting). Added 2026-05-18
+      with the /es/bowl Phase 1 build. */}
+  <Fragment slot="head">
+    <link rel="alternate" hreflang="en-US" href={`${BUSINESS_URL}/bowl/`} />
+    <link rel="alternate" hreflang="es-US" href={`${BUSINESS_URL}/es/bowl/`} />
+    <link rel="alternate" hreflang="x-default" href={`${BUSINESS_URL}/bowl/`} />
+  </Fragment>
 
   {/* ============================================================
       HERO — typography-led title section (no image)

@@ -31,6 +31,8 @@ import {
   thumbnailUrl,
   contentUrl,
   primaryPageUrl,
+  VIDEO_TZ_OFFSET,
+  formatUploadDate,
 } from "../data/videos";
 
 export const prerender = true;
@@ -47,14 +49,13 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-// Twisted Pin is in Plainfield, IL — US Central time. ISO 8601 W3C
-// Datetime format with timezone offset is what Google's spec requires.
-const TZ_OFFSET = "-06:00";
-
 export const GET: APIRoute = () => {
   const entries = VIDEO_REGISTRY.map((v) => {
+    // expires is end-of-day; pubdate is midnight venue local. Both apply
+    // VIDEO_TZ_OFFSET — same constant the JSON-LD VideoObject uses, keeps
+    // the sitemap and structured-data emissions in sync.
     const expirationLine = v.expires
-      ? `\n      <video:expiration_date>${v.expires}T23:59:59${TZ_OFFSET}</video:expiration_date>`
+      ? `\n      <video:expiration_date>${v.expires}T23:59:59${VIDEO_TZ_OFFSET}</video:expiration_date>`
       : "";
 
     return `  <url>
@@ -65,7 +66,7 @@ export const GET: APIRoute = () => {
       <video:description>${escapeXml(v.description)}</video:description>
       <video:content_loc>${contentUrl(v)}</video:content_loc>
       <video:duration>${v.durationSeconds}</video:duration>
-      <video:publication_date>${v.uploadDate}T00:00:00${TZ_OFFSET}</video:publication_date>${expirationLine}
+      <video:publication_date>${formatUploadDate(v.uploadDate)}</video:publication_date>${expirationLine}
     </video:video>
   </url>`;
   }).join("\n");
