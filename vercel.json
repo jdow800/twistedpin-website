@@ -29,9 +29,9 @@
     { "source": "/contact-us{/}?", "destination": "/", "permanent": true },
 
     { "source": "/group-and-company-events-twisted-pin{/}?", "destination": "/corporate-events/", "permanent": true },
-    { "source": "/event-spaces-for-teams-:rest*", "destination": "/corporate-events/", "permanent": true },
-    { "source": "/experience-the-ultimate-group-event-destination:rest*", "destination": "/events/", "permanent": true },
-    { "source": "/event-venues-with-a-twist-:rest*", "destination": "/events/", "permanent": true },
+    { "source": "/event-spaces-for-teams-(.*)", "destination": "/corporate-events/", "permanent": true },
+    { "source": "/experience-the-ultimate-group-event-destination(.*)", "destination": "/events/", "permanent": true },
+    { "source": "/event-venues-with-a-twist-(.*)", "destination": "/events/", "permanent": true },
 
     { "source": "/16378-2{/}?", "destination": "/events/", "permanent": true },
 
@@ -75,9 +75,9 @@
     { "source": "/events/jingle-bowl-twisted-pin-copy{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/black-wednesday-karaoke{/}?", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/karaoke-free{/}?", "destination": "/upcoming-events/", "permanent": true },
-    { "source": "/events/karaoke-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/karaoke-free/(.*)", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/bar-bingo-free{/}?", "destination": "/upcoming-events/", "permanent": true },
-    { "source": "/events/bar-bingo-free/:rest*", "destination": "/upcoming-events/", "permanent": true },
+    { "source": "/events/bar-bingo-free/(.*)", "destination": "/upcoming-events/", "permanent": true },
     { "source": "/events/16{/}?", "destination": "/upcoming-events/", "permanent": true },
 
     { "source": "/get-bowled-over-unveiling-romeovilles-ultimate-place-to-roll-and-chill{/}?", "destination": "/why-us/romeoville-il/", "permanent": true },
