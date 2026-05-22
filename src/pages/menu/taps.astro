@@ -22,6 +22,10 @@ import {
   BUSINESS_ENTITY_ID,
   MENU_TAPS_ID,
 } from "../../lib/schema";
+// Build-time URL import — Vite resolves to the hashed /_astro/files/*.woff2
+// path so the preload tag below matches the URL @fontsource's @font-face
+// will request (no double-fetch).
+import barlowCond900Woff2 from "@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2?url";
 
 const tapList = await getTapList();
 
@@ -78,7 +82,15 @@ const dateModified = new Date().toISOString().split("T")[0];
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
   dateModified={dateModified}
 >
-  {/* Head additions, two concerns combined into the single slot:
+  {/* Head additions, three concerns combined into the single slot:
+      - Preload Barlow Condensed Latin 900 — H1 "28 Self-Serve Taps" is the
+        LCP element on mobile, and font-display: swap registers the web-font
+        repaint (not the FCP fallback paint) as LCP. Preloading kicks the
+        woff2 fetch off before CSS parse finishes — without it, the chain is
+        HTML → CSS → @font-face → woff2, and on /menu/taps the 28 tap-row
+        label images compete for connection slots, lengthening the swap
+        window to ~1.3s render delay. Page-scoped pending verification; will
+        promote to Base.astro globally if it lands the win.
       - Conditional noindex when Untappd fetch returned EMPTY (Stage 1
         indexability hygiene — guards against silent thin-content deploys)
       - Preconnect to labels.untappd.com (28 beer/cider/seltzer thumbnails
@@ -86,6 +98,13 @@ const dateModified = new Date().toISOString().split("T")[0];
         mobile so the handshake matters) + DNS-prefetch wine-searcher.com
         (4 wine labels below the fold; DNS-only suffices). */}
   <Fragment slot="head">
+    <link
+      rel="preload"
+      href={barlowCond900Woff2}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     {isMenuEmpty && <meta name="robots" content="noindex,follow" />}
     <link rel="preconnect" href="https://labels.untappd.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.wine-searcher.com" />
