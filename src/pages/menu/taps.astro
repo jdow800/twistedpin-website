@@ -22,10 +22,14 @@ import {
   BUSINESS_ENTITY_ID,
   MENU_TAPS_ID,
 } from "../../lib/schema";
-// Build-time URL import — Vite resolves to the hashed /_astro/files/*.woff2
-// path so the preload tag below matches the URL @fontsource's @font-face
-// will request (no double-fetch).
+// Build-time URL imports — Vite resolves to the hashed /_astro/files/*.woff2
+// paths so the preload tags below match the URLs @fontsource's @font-face
+// will request (no double-fetch). Two fonts because the typography hero has
+// two LCP candidates: H1 in Barlow (var(--font-display)) and subhead in
+// Roboto Slab (var(--font-body)). Preloading just one was whack-a-mole —
+// fixing the H1 promoted the subhead to LCP.
 import barlowCond900Woff2 from "@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2?url";
+import robotoSlab400Woff2 from "@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2?url";
 
 const tapList = await getTapList();
 
@@ -83,14 +87,17 @@ const dateModified = new Date().toISOString().split("T")[0];
   dateModified={dateModified}
 >
   {/* Head additions, three concerns combined into the single slot:
-      - Preload Barlow Condensed Latin 900 — H1 "28 Self-Serve Taps" is the
-        LCP element on mobile, and font-display: swap registers the web-font
-        repaint (not the FCP fallback paint) as LCP. Preloading kicks the
-        woff2 fetch off before CSS parse finishes — without it, the chain is
-        HTML → CSS → @font-face → woff2, and on /menu/taps the 28 tap-row
-        label images compete for connection slots, lengthening the swap
-        window to ~1.3s render delay. Page-scoped pending verification; will
-        promote to Base.astro globally if it lands the win.
+      - Preload critical hero fonts — typography hero has TWO LCP candidates
+        on mobile: H1 in Barlow Condensed 900 (var(--font-display)) and
+        subhead in Roboto Slab 400 (var(--font-body)). Without preloading,
+        both chain through HTML → CSS parse → @font-face → woff2; on cold
+        edge cache that's ~1.3-2.3s of font-swap latency for whichever font
+        loads last, and Chrome registers the final swap as LCP. Preloading
+        both kicks fetches off in parallel with HTML parse. The two fonts
+        are the only ones visible in the first viewport that aren't already
+        rendered with system fallbacks acceptable. Page-scoped pending
+        re-baseline; will promote to Base.astro globally if it lands the
+        win without regressing the homepage video LCP.
       - Conditional noindex when Untappd fetch returned EMPTY (Stage 1
         indexability hygiene — guards against silent thin-content deploys)
       - Preconnect to labels.untappd.com (28 beer/cider/seltzer thumbnails
@@ -101,6 +108,13 @@ const dateModified = new Date().toISOString().split("T")[0];
     <link
       rel="preload"
       href={barlowCond900Woff2}
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href={robotoSlab400Woff2}
       as="font"
       type="font/woff2"
       crossorigin
