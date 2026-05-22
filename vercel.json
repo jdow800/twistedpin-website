@@ -98,6 +98,9 @@
     { "source": "/blog{/}?", "destination": "/", "permanent": true },
     { "source": "/event-location/twisted-pin{/}?", "destination": "/", "permanent": true },
 
+    { "source": "/apple-touch-icon-precomposed.png", "destination": "/apple-touch-icon.png", "permanent": true },
+    { "source": "/wp-content/uploads/(.*)", "destination": "/", "permanent": true },
+
     { "source": "/essential{/}?", "destination": "https://menu.twistedpin.com/essential", "permanent": false },
     { "source": "/elevated{/}?", "destination": "https://menu.twistedpin.com/elevated", "permanent": false },
     { "source": "/tour{/}?", "destination": "https://www.youtube.com/watch?v=PgQcmTXUn88", "permanent": false },
