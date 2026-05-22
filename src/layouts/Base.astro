@@ -5,6 +5,7 @@ import NavDrawer from "../components/NavDrawer.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import PromoBar from "../components/PromoBar.astro";
 import Analytics from "@vercel/analytics/astro";
+import SpeedInsights from "@vercel/speed-insights/astro";
 import { webPageSchema } from "../lib/schema";
 
 interface Props {
@@ -392,6 +393,14 @@ const webPage = webPageSchema({
         No PII, no consent banner needed. Auto-detects the project from
         the deployment environment. */}
     <Analytics />
+
+    {/* Vercel Speed Insights — real-user Core Web Vitals (LCP, INP, CLS,
+        FCP, TTFB) per-route, cross-browser, deploy-correlated. Drops in
+        ~3 KB of client JS that pushes one beacon per visit. Catches
+        regressions CrUX won't surface for 28 days, and covers iOS Safari
+        + Firefox traffic which CrUX (Chrome-only) misses entirely.
+        Enabled 2026-05-21 alongside Google Ads landing-page rollout. */}
+    <SpeedInsights />
 
     <script>
       import { initMotion } from "../scripts/motion.client.ts";
