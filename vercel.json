@@ -104,6 +104,7 @@
     { "source": "/essential{/}?", "destination": "https://menu.twistedpin.com/essential", "permanent": false },
     { "source": "/elevated{/}?", "destination": "https://menu.twistedpin.com/elevated", "permanent": false },
     { "source": "/tour{/}?", "destination": "https://www.youtube.com/watch?v=PgQcmTXUn88", "permanent": false },
+    { "source": "/review{/}?", "destination": "https://search.google.com/local/writereview?placeid=ChIJURI15Tr1DogRLKYdPWWuY-M", "permanent": false },
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true }
   ],
