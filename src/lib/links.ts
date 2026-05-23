@@ -26,4 +26,4 @@
 const AVERY_ON_URL = "https://twistedevents.zite.so/";
 const AVERY_OFF_URL = "https://event.twistedpin.com/#start";
 
-export const PLAN_EVENT_URL = AVERY_ON_URL;
+export const PLAN_EVENT_URL = AVERY_OFF_URL;
