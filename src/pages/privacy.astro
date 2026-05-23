@@ -49,7 +49,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-const LAST_UPDATED = "May 15, 2026";
+const LAST_UPDATED = "May 23, 2026";
 ---
 <Base
   title="Privacy Policy | Twisted Pin"
@@ -68,7 +68,7 @@ const LAST_UPDATED = "May 15, 2026";
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Last updated {LAST_UPDATED}. How we handle your information when
         you visit twistedpin.com, submit an event inquiry, call our
-        business phone line, or interact with our SMS messaging program.
+        business phone line, or interact with our SMS messaging programs.
       </p>
     </div>
   </section>
@@ -82,7 +82,7 @@ const LAST_UPDATED = "May 15, 2026";
         collect, use, and protect your personal information when you
         visit our website at twistedpin.com, submit an event inquiry,
         call our business phone line, or interact with our SMS messaging
-        program.
+        programs.
       </p>
 
       <h2 class="legal-h2" id="privacy-h2-1">1. Information We Collect</h2>
@@ -98,30 +98,43 @@ const LAST_UPDATED = "May 15, 2026";
       <p>We use the information we collect to:</p>
       <ul>
         <li>Respond to your event inquiry and provide custom pricing and availability information</li>
-        <li>Send SMS messages related to your inquiry or call, including informational links, quotes, booking confirmations, and event reminders</li>
+        <li>Send transactional SMS messages related to your inquiry or call, including informational links, quotes, booking confirmations, and event reminders (see Section 3a)</li>
+        <li>Send promotional SMS messages — offers, event announcements, and loyalty rewards — to subscribers who have explicitly opted in (see Section 3b)</li>
         <li>Process and manage your event booking</li>
         <li>Improve our website, services, and customer experience</li>
         <li>Comply with legal obligations</li>
       </ul>
 
-      <h2 class="legal-h2" id="privacy-h2-3">3. SMS Messaging Program</h2>
-      <p>You may consent to receive SMS messages from Twisted Pin in one of two ways:</p>
-      <p><strong>(a)</strong> By submitting an event inquiry form on our website and opting in to SMS communications related to your inquiry; or</p>
-      <p><strong>(b)</strong> By verbally requesting information (such as pricing, hours, directions, or location) during a phone call to our business line, at which point we may send a single informational text message containing the requested link.</p>
+      <h2 class="legal-h2" id="privacy-h2-3">3. SMS Messaging Programs</h2>
+      <p>Twisted Pin operates two distinct opt-in SMS programs. You only receive messages from a program you have explicitly opted into.</p>
 
-      <p>Regarding our SMS program:</p>
+      <h3 class="legal-h3">3a. Event Inquiry &amp; Information Program (transactional)</h3>
+      <p>This program sends single transactional messages in response to a customer-initiated inquiry. You may opt in by:</p>
       <ul>
-        <li>We send SMS messages only in response to your inquiry, request, or booking — including quotes, availability, booking details, informational links, and customer service follow-up</li>
-        <li>We do not send unsolicited promotional SMS messages</li>
-        <li>Message frequency varies based on your inquiry or request</li>
-        <li>Message and data rates may apply</li>
-        <li>You may opt out at any time by replying STOP to any message</li>
-        <li>Reply HELP for assistance</li>
+        <li><strong>Web form:</strong> submitting an event inquiry form on our website and opting in to SMS communications related to your inquiry; or</li>
+        <li><strong>Verbal phone opt-in:</strong> verbally requesting information (such as pricing, hours, directions, or location) during a phone call to our business line, at which point we may send a single informational text containing the requested link.</li>
+      </ul>
+      <p>Messages from this program include quotes, availability, booking details, informational links, and customer service follow-up. Message frequency varies based on your inquiry. For full details, see our <a href="/sms/">SMS Information Service</a> page.</p>
+
+      <h3 class="legal-h3">3b. Marketing &amp; Loyalty Program (promotional)</h3>
+      <p>This program sends recurring promotional messages — offers, event announcements, loyalty perk notifications, and birthday/anniversary rewards — only to customers who have explicitly opted in. You may opt in by:</p>
+      <ul>
+        <li><strong>Signup form:</strong> submitting your phone number through a signup form on our website (such as twistedpin.com/signup) and checking the marketing-consent checkbox;</li>
+        <li><strong>Keyword opt-in:</strong> texting an opt-in keyword (such as BOWL or KIDS) to our marketing number;</li>
+        <li><strong>In-venue enrollment:</strong> signing up at our front-desk kiosk and providing explicit consent; or</li>
+        <li><strong>Existing subscribers:</strong> customers who previously opted in through our prior SMS provider remain enrolled; consent records are preserved.</li>
+      </ul>
+      <p>Message frequency typically does not exceed eight (8) messages per month. For full details, see our <a href="/sms-marketing/">Marketing SMS Program</a> page.</p>
+
+      <h3 class="legal-h3">Applicable to both programs:</h3>
+      <ul>
+        <li>Message and data rates may apply, depending on your mobile carrier</li>
+        <li>You may opt out at any time by replying <strong>STOP</strong> to any message; opt-out is honored immediately</li>
+        <li>Reply <strong>HELP</strong> for assistance</li>
+        <li>Opting out of one program does not opt you out of the other; reply STOP to a message in each program you wish to leave</li>
       </ul>
 
       <p>No mobile information will be shared with third parties or affiliates for marketing or promotional purposes. Information sharing with subcontractors in support of services we provide (such as SMS delivery platforms, AI communication agents, and customer service vendors) is permitted solely to deliver the services you have requested. All other categories exclude text messaging originator opt-in data and consent; this information will not be shared with any third parties.</p>
-
-      <p>For the full SMS service description — including the verbal consent script our AI receptionist recites, message frequency disclosure, and consent documentation procedures — see our <a href="/sms/">SMS Information Service</a> page.</p>
 
       <h2 class="legal-h2" id="privacy-h2-4">4. How We Share Your Information</h2>
       <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following limited circumstances:</p>
@@ -191,9 +204,9 @@ const LAST_UPDATED = "May 15, 2026";
       </ul>
 
       <h2 class="legal-h2" id="privacy-h2-11">11. Changes to This Policy</h2>
-      <p>We may update this Privacy Policy from time to time. When we do, we will revise the "Last Updated" date at the top of this page. We encourage you to review this policy periodically. Continued use of our website or SMS program after changes are posted constitutes your acceptance of the updated policy.</p>
+      <p>We may update this Privacy Policy from time to time. When we do, we will revise the "Last Updated" date at the top of this page. We encourage you to review this policy periodically. Continued use of our website or SMS programs after changes are posted constitutes your acceptance of the updated policy.</p>
 
-      <p class="legal-jurisdiction">Twisted Pin is located in Plainfield, Illinois and serves the greater Chicagoland area. Our SMS program is operated in compliance with TCPA regulations and CTIA messaging guidelines.</p>
+      <p class="legal-jurisdiction">Twisted Pin is located in Plainfield, Illinois and serves the greater Chicagoland area. Our SMS programs are operated in compliance with TCPA regulations and CTIA messaging guidelines.</p>
     </div>
   </section>
 
@@ -238,6 +251,22 @@ const LAST_UPDATED = "May 15, 2026";
   .legal-h2:first-child { margin-top: 8px; }
   @media (min-width: 760px) {
     .legal-h2 { font-size: 26px; margin-top: 48px; }
+  }
+
+  /* H3 sub-sections within an H2 (e.g. 3a, 3b under "SMS Messaging
+     Programs"). Less display-prominence than the H2 to read as a
+     sub-divider, not a parallel section. */
+  .legal-h3 {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--warm-white);
+    margin: 22px 0 10px;
+  }
+  @media (min-width: 760px) {
+    .legal-h3 { font-size: 15px; }
   }
 
   .legal-section p,

@@ -1,0 +1,319 @@
+---
+/**
+ * /sms-marketing — Marketing & Loyalty SMS program disclosure.
+ *
+ * Companion to /sms (which documents the transactional/event-inquiry
+ * program). This page documents the opt-in marketing SMS program that
+ * sends promotional offers, event announcements, loyalty perks, and
+ * birthday/anniversary rewards to subscribers who have explicitly
+ * opted in.
+ *
+ * Created 2026-05-23 to support the second SignalWire/TCR campaign
+ * registration. Mirrors /sms.astro structure section-for-section so
+ * carriers and TCR reviewers can cross-check both programs against a
+ * consistent disclosure pattern.
+ *
+ * Opt-in paths covered:
+ *   (a) Web signup forms (/signup/* with explicit consent checkbox)
+ *   (b) SMS keyword (texting BOWL, KIDS, or similar to our marketing
+ *       number) — single-step double-opt-in via confirmation reply
+ *   (c) In-venue kiosk enrollment
+ *   (d) Patch-migrated subscriber list (customers who previously opted
+ *       in via the legacy Patch Retention platform; consent records
+ *       preserved through the migration)
+ *
+ * Cross-references:
+ *   - /privacy Section 3 covers both this program and /sms from the
+ *     privacy-policy angle; should stay consistent.
+ *   - /terms covers both programs from the terms-of-service angle.
+ *   - /sms documents the parallel transactional program.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+
+const LAST_UPDATED = "May 23, 2026";
+---
+<Base
+  title="Marketing SMS Program | Twisted Pin"
+  description="How Twisted Pin's opt-in marketing SMS program works — promotional offers, event announcements, loyalty rewards. Easy opt-out anytime. Plainfield, IL."
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,follow" />
+  </Fragment>
+
+  <section class="t2-hero" data-hero aria-labelledby="smsm-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Twisted Pin</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="smsm-h1" data-delay-ms="120">
+        Marketing SMS Program.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Last updated {LAST_UPDATED}. How our opt-in marketing text program
+        works, what we send, and how to opt out at any time.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section legal-section" aria-labelledby="smsm-h2-1">
+    <div class="t2-section-inner">
+      <p class="legal-preamble">
+        Twisted Pin ("Twisted Pin," "we," "us," "our") is a brand operated
+        by Dow Holdings Inc, an Illinois corporation. This page documents
+        our opt-in marketing and loyalty SMS program — the messages we
+        send to customers who have explicitly subscribed to receive
+        promotional offers, event announcements, and loyalty rewards.
+        For our separate transactional SMS program (information requested
+        during phone calls and event inquiries), see <a href="/sms/">SMS Information Service</a>.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-1">1. Program description</h2>
+      <p>
+        The Twisted Pin Marketing SMS Program delivers periodic
+        promotional text messages to customers who have opted in.
+        Messages may include:
+      </p>
+      <ul>
+        <li>Promotional offers and discounts</li>
+        <li>Event announcements (holidays, themed nights, special programming)</li>
+        <li>Loyalty program notifications, including Insider tier perks</li>
+        <li>Birthday and anniversary rewards</li>
+        <li>Seasonal campaigns and venue news</li>
+      </ul>
+
+      <h2 class="legal-h2" id="smsm-h2-2">2. How to opt in</h2>
+      <p>
+        You may opt in to the marketing SMS program in any of the
+        following ways:
+      </p>
+      <p>
+        <strong>(a) Website signup form.</strong> By submitting your
+        phone number through a signup form at twistedpin.com (such as
+        twistedpin.com/signup) and checking the consent checkbox, you
+        expressly consent to receive recurring promotional text messages
+        from Twisted Pin. The consent language displayed on the form
+        reads, in substance:
+      </p>
+      <blockquote class="legal-blockquote">
+        By providing your phone number and checking this box, you agree
+        to receive recurring automated promotional text messages from
+        Twisted Pin at the number provided. Consent is not a condition
+        of purchase. Msg &amp; data rates may apply. Msg frequency varies.
+        Reply HELP for help, STOP to cancel.
+      </blockquote>
+
+      <p>
+        <strong>(b) SMS keyword opt-in.</strong> By texting an opt-in
+        keyword (such as <strong>BOWL</strong> or <strong>KIDS</strong>)
+        to our marketing number, you consent to receive recurring
+        promotional text messages from Twisted Pin. We send a confirmation
+        message restating the program terms after a keyword opt-in.
+      </p>
+
+      <p>
+        <strong>(c) In-venue enrollment.</strong> By signing up at our
+        in-venue kiosk and providing explicit consent, you opt in to the
+        program. Consent is captured with timestamp and source.
+      </p>
+
+      <p>
+        <strong>(d) Existing subscribers.</strong> Customers who
+        previously opted in to Twisted Pin SMS marketing through our
+        prior SMS provider remain subscribed under these terms. Consent
+        records from that platform are preserved. Anyone wishing to opt
+        out can do so at any time per Section 5 below.
+      </p>
+
+      <p>
+        In all cases, you confirm that you are the account holder of the
+        mobile number provided, or have the account holder's permission
+        to enroll.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-3">3. Message frequency</h2>
+      <p>
+        Message frequency varies based on the season and campaigns we
+        are running, but typically does not exceed <strong>eight (8)
+        messages per month</strong>. Active subscribers may receive
+        fewer; during quieter months you may receive one or none. We do
+        not exceed eight per month under normal operations.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-4">4. Message and data rates</h2>
+      <p>
+        Standard message and data rates may apply, depending on your
+        mobile carrier. These charges are billed by your carrier, not
+        by Twisted Pin.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-5">5. Help and opt-out</h2>
+      <ul>
+        <li>Reply <strong>HELP</strong> to any message for assistance.</li>
+        <li>Reply <strong>STOP</strong> to any message to opt out at any time. Other accepted opt-out keywords: STOPALL, UNSUBSCRIBE, CANCEL, END, QUIT.</li>
+      </ul>
+      <p>
+        Opt-out requests are honored immediately. After opting out, you
+        will receive one final confirmation message and no further
+        marketing messages will be sent to your number. To re-enroll
+        after opting out, submit a new signup form, text an opt-in
+        keyword, or enroll at our in-venue kiosk.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-6">6. Sample messages</h2>
+      <p>
+        For illustration, sample messages from this program may read:
+      </p>
+      <ul>
+        <li>"Twisted Pin: Tomorrow's Tuesday night — $2 games + $1 shoes, 6-10pm. Walk in or reserve: [link]. Reply STOP to opt out."</li>
+        <li>"Twisted Pin: Moms bowl FREE this Sunday at Twisted Pin. Bring the family, treat mom. Book here: [link]. Reply STOP to opt out."</li>
+        <li>"Twisted Pin: Christopher, you've earned $10 off your next visit. Show this msg at the counter or redeem: [link]. Reply STOP to opt out."</li>
+        <li>"Twisted Pin: NYE Bowling Bash is live — glow lanes, DJ, midnight champagne. Reserve before we sell out: [link]. Reply STOP to opt out."</li>
+      </ul>
+
+      <h2 class="legal-h2" id="smsm-h2-7">7. Privacy and data sharing</h2>
+      <p>
+        Your phone number and personal information collected for this
+        program are used solely to deliver the program and improve our
+        marketing communications to you. No mobile information will be
+        shared with third parties or affiliates for marketing or
+        promotional purposes. Information sharing with subcontractors
+        that support delivery of the program (such as SMS delivery
+        platforms and customer service vendors) is permitted solely to
+        deliver the services you have requested. Text messaging
+        originator opt-in data and consent will not be shared with any
+        third parties.
+      </p>
+      <p>
+        For full details, see our <a href="/privacy/">Privacy Policy</a>.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-8">8. Related policies</h2>
+      <ul>
+        <li><a href="/privacy/">Privacy Policy</a></li>
+        <li><a href="/terms/">SMS Terms and Conditions</a></li>
+        <li><a href="/sms/">SMS Information Service</a> (transactional program)</li>
+      </ul>
+
+      <h2 class="legal-h2" id="smsm-h2-9">9. Eligibility</h2>
+      <p>
+        This SMS program is available to customers with a valid mobile
+        phone number in the United States. By opting in, you represent
+        that you are 18 years of age or older and are the account
+        holder of the mobile number provided, or have authorization
+        from the account holder to enroll.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-10">10. Changes to the program</h2>
+      <p>
+        Twisted Pin reserves the right to modify this program and
+        these terms at any time. Material changes will be posted at
+        twistedpin.com/sms-marketing/. Continued participation after
+        changes are posted constitutes your acceptance of the updated
+        terms.
+      </p>
+
+      <h2 class="legal-h2" id="smsm-h2-11">11. Contact</h2>
+      <p>For questions about this SMS program or to verify your enrollment status:</p>
+      <ul class="legal-contact">
+        <li><strong>Business:</strong> Twisted Pin (operated by Dow Holdings Inc)</li>
+        <li><strong>Address:</strong> 15610 Joliet Rd, Plainfield, IL 60544</li>
+        <li><strong>Phone:</strong> 815-782-7790</li>
+        <li><strong>Email:</strong> <a href={`mailto:contactus@twistedpin.com?subject=${encodeURIComponent("Marketing SMS Question")}&body=${encodeURIComponent("Hi,\n\n")}`}>contactus@twistedpin.com</a></li>
+      </ul>
+
+      <p class="legal-jurisdiction">
+        Twisted Pin's marketing SMS program operates in compliance with
+        TCPA regulations and CTIA messaging guidelines.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Marketing SMS", path: "/sms-marketing/" },
+  ]} />
+</Base>
+
+<style>
+  /* Same legal-page recipe as /sms /privacy /terms /accessibility. */
+  .legal-section .t2-section-inner {
+    max-width: 720px;
+  }
+
+  .legal-preamble {
+    font-family: var(--font-body);
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--warm-mid);
+    margin: 0 0 24px;
+    padding: 16px 18px;
+    background: rgba(244, 239, 227, 0.04);
+    border-left: 2px solid var(--glow);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legal-h2 {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 22px;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    color: var(--warm-white);
+    margin: 40px 0 14px;
+  }
+  .legal-h2:first-child { margin-top: 8px; }
+  @media (min-width: 760px) {
+    .legal-h2 { font-size: 26px; margin-top: 48px; }
+  }
+
+  .legal-section p,
+  .legal-section li {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+  .legal-section p { margin: 0 0 14px; }
+
+  .legal-section ul {
+    margin: 0 0 14px;
+    padding-left: 22px;
+  }
+  .legal-section li { margin-bottom: 6px; }
+
+  .legal-section strong { color: var(--warm-white); font-weight: 700; }
+
+  .legal-section a {
+    color: var(--glow);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .legal-blockquote {
+    font-family: var(--font-body);
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--warm-white);
+    margin: 0 0 18px;
+    padding: 18px 22px;
+    background: rgba(244, 239, 227, 0.05);
+    border-left: 2px solid var(--glow);
+    border-radius: 0 8px 8px 0;
+  }
+
+  .legal-contact {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .legal-jurisdiction {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    font-size: 13px !important;
+    color: var(--warm-dim) !important;
+    font-style: italic;
+  }
+</style>
