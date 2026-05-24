@@ -244,7 +244,20 @@ const dateModified = new Date().toISOString().split("T")[0];
 
   .menu-hero-sub {
     margin-top: 14px;
-    font-family: var(--font-body);
+    /* font-family swap (2026-05-24) — was var(--font-body) (Roboto Slab).
+       The subhead text area is larger than the H1, which makes it Chrome's
+       LCP candidate on mobile. Roboto Slab is preloaded but the woff2 fetch
+       + parse + swap still costs ~2.4s on Slow 4G. Barlow Condensed 900 is
+       ALREADY loaded (it's the H1's font, preloaded + above-the-fold) so
+       the subhead renders in Barlow immediately at FCP — no swap, no LCP
+       late-register. Visual cost: heavy-condensed instead of slab serif. */
+    font-family: var(--font-display);
+    /* Only weight 900 is imported for Barlow Condensed. Setting explicitly
+       so the browser doesn't synthesize from weight 400 (would fall back
+       to 900 anyway, but explicit beats accidental). Letter-spacing slight
+       positive to soften the dense 900 at this size. */
+    font-weight: 900;
+    letter-spacing: 0.005em;
     font-size: 15px;
     line-height: 1.5;
     color: var(--warm-mid);
