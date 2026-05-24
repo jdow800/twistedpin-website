@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-05-23T09:00:25.779Z",
+  "fetchedAt": "2026-05-24T09:00:13.634Z",
   "hours": {
     "sun": {
       "label": "12pm – 10pm",
@@ -42,22 +42,22 @@
       "closeLabel": "10pm"
     },
     "fri": {
-      "label": "2pm – 11:59pm",
+      "label": "2pm – 1am",
       "closed": false,
       "openMinutes": 840,
-      "closeMinutes": 1439,
+      "closeMinutes": 1500,
       "openLabel": "2pm",
-      "closeLabel": "11:59pm"
+      "closeLabel": "1am"
     },
     "sat": {
-      "label": "11am – 1am",
+      "label": "11am – 11:59pm",
       "closed": false,
       "openMinutes": 660,
-      "closeMinutes": 1500,
+      "closeMinutes": 1439,
       "openLabel": "11am",
-      "closeLabel": "1am"
+      "closeLabel": "11:59pm"
     }
   },
   "rating": 4.5,
-  "reviewCount": 1142
+  "reviewCount": 1143
 }
