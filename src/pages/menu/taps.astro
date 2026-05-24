@@ -85,6 +85,8 @@ const dateModified = new Date().toISOString().split("T")[0];
   title="What's On Tap in Plainfield, IL | Twisted Pin"
   description="The 28-tap self-serve wall at Twisted Pin — beer, cider, hard seltzer, and wine on tap. Synced from Untappd, refreshed daily. Plainfield, IL."
   dateModified={dateModified}
+  lcpPreloadHref="/snap/beerwall-poster.avif"
+  lcpPreloadMedia="(max-width: 1024px)"
 >
   {/* Head additions, three concerns combined into the single slot:
       - Preload critical hero fonts — typography hero has TWO LCP candidates
@@ -123,6 +125,27 @@ const dateModified = new Date().toISOString().split("T")[0];
     <link rel="preconnect" href="https://labels.untappd.com" crossorigin />
     <link rel="dns-prefetch" href="https://www.wine-searcher.com" />
   </Fragment>
+
+  {/* Mobile-only hero image (2026-05-24) — the tap-wall photo becomes the
+      LCP candidate on mobile, replacing the text subhead which was
+      Chrome-attributed LCP with a ~2.4s font-swap/render-delay ceiling
+      we couldn't crack via preloads or font swaps. Image-LCP mirrors
+      the proven /es/bowl recipe (97/2.3s). Hidden on desktop ≥1025px
+      because desktop already scores well without it and the typography
+      hero reads cleaner without the photo. Reuses the existing
+      beerwall-poster.avif asset (already in production, immutable-cached,
+      72 KB) so zero new asset work + the preload above hits the edge
+      cache that's been warm since the homepage tap-wall section deployed. */}
+  <section class="menu-hero-image" aria-hidden="true">
+    <img
+      src="/snap/beerwall-poster.avif"
+      alt=""
+      width="1080"
+      height="1920"
+      fetchpriority="high"
+      decoding="async"
+    />
+  </section>
 
   <section class="menu-hero" data-hero aria-labelledby="menu-h1">
     <p class="t-eyebrow hero-fade" data-delay-ms="0">On Tap Right Now</p>
@@ -217,6 +240,39 @@ const dateModified = new Date().toISOString().split("T")[0];
 
 <style>
   /* ============================================================
+     Mobile-only hero image — full-width tap-wall photo above the
+     typography hero. Becomes the LCP candidate on mobile (image
+     bigger than any text element), bypasses the text-LCP /
+     font-swap ceiling we couldn't crack with preloads.
+
+     Container fixed-height (220px) + object-fit: cover means the
+     image's source aspect ratio doesn't matter — the asset crops
+     to fill. Sits flush below the persistent header (no top
+     padding) for full-bleed visual impact.
+
+     Hidden on desktop: the menu page reads cleaner without the
+     photo at wider viewports, and desktop already scores well
+     without an image LCP candidate.
+     ============================================================ */
+  .menu-hero-image {
+    display: block;
+    width: 100%;
+    height: 220px;
+    margin-top: var(--header-height);
+    overflow: hidden;
+    background: var(--indigo-deep);
+  }
+  .menu-hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (min-width: 1025px) {
+    .menu-hero-image { display: none; }
+  }
+
+  /* ============================================================
      Menu page hero — shared shape across /menu/* pages.
      ============================================================ */
   .menu-hero {
@@ -224,6 +280,14 @@ const dateModified = new Date().toISOString().split("T")[0];
     color: var(--warm-white);
     max-width: 1280px;
     margin: 0 auto;
+  }
+  /* On mobile, the hero image above absorbs the header-clearance
+     padding — so the typography hero doesn't need to push down past
+     the header again. Tightens the visual stack. */
+  @media (max-width: 1024px) {
+    .menu-hero {
+      padding-top: 24px;
+    }
   }
   @media (min-width: 1025px) {
     .menu-hero {
@@ -244,20 +308,12 @@ const dateModified = new Date().toISOString().split("T")[0];
 
   .menu-hero-sub {
     margin-top: 14px;
-    /* font-family swap (2026-05-24) — was var(--font-body) (Roboto Slab).
-       The subhead text area is larger than the H1, which makes it Chrome's
-       LCP candidate on mobile. Roboto Slab is preloaded but the woff2 fetch
-       + parse + swap still costs ~2.4s on Slow 4G. Barlow Condensed 900 is
-       ALREADY loaded (it's the H1's font, preloaded + above-the-fold) so
-       the subhead renders in Barlow immediately at FCP — no swap, no LCP
-       late-register. Visual cost: heavy-condensed instead of slab serif. */
-    font-family: var(--font-display);
-    /* Only weight 900 is imported for Barlow Condensed. Setting explicitly
-       so the browser doesn't synthesize from weight 400 (would fall back
-       to 900 anyway, but explicit beats accidental). Letter-spacing slight
-       positive to soften the dense 900 at this size. */
-    font-weight: 900;
-    letter-spacing: 0.005em;
+    /* font-family reverted (2026-05-24) — briefly swapped to Barlow 900
+       to bypass the subhead font-swap LCP issue, but the image hero
+       above now carries LCP duty so the subhead can return to its
+       original slab serif. Roboto Slab preload retained in head as
+       belt-and-suspenders for FCP / CLS-avoidance. */
+    font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.5;
     color: var(--warm-mid);
