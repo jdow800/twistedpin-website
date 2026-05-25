@@ -446,38 +446,49 @@ const dateModified = new Date().toISOString().split("T")[0];
   .tap-name {
     font-family: var(--font-display);
     font-weight: 900;
-    font-size: 15px;
+    /* Bumped 15 -> 17 mobile, 17 -> 19 desktop (2026-05-24). Prior
+       sizing was readable for the display font but felt small at
+       arm's length, especially as the primary scan target. */
+    font-size: 17px;
     text-transform: uppercase;
     letter-spacing: 0.01em;
     color: var(--warm-white);
     line-height: 1.2;
   }
   @media (min-width: 1025px) {
-    .tap-name { font-size: 17px; }
+    .tap-name { font-size: 19px; }
   }
 
   .tap-abv {
     font-family: var(--font-ui);
     font-weight: 700;
-    font-size: 11px;
+    /* Bumped 11 -> 13 mobile, 12 -> 14 desktop. 11px was below
+       any reasonable mobile readability floor; ABV is one of the
+       two primary scan signals (alongside beer name) so it should
+       be comfortable, not squinty. */
+    font-size: 13px;
     letter-spacing: 0.06em;
     color: var(--warm-mid);
     white-space: nowrap;
     flex-shrink: 0;
   }
   @media (min-width: 1025px) {
-    .tap-abv { font-size: 12px; }
+    .tap-abv { font-size: 14px; }
   }
 
   .tap-line-2 {
     margin-top: 4px;
     font-family: var(--font-body);
-    font-size: 12px;
+    /* Bumped 12 -> 14 mobile, 13 -> 15 desktop. Brewery+location+style
+       metadata used to read as fine-print footer; bump puts it in the
+       legible body-text band. Line-height stays 1.4 so the relative
+       proportions of the row stay clean. */
+    font-size: 14px;
     line-height: 1.4;
     color: var(--warm-dim);
   }
   @media (min-width: 1025px) {
-    .tap-line-2 { font-size: 13px; }
+    .tap-line-2 { font-size: 15px; }
   }
 
   /* ============================================================
