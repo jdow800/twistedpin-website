@@ -50,6 +50,7 @@ const FOOD_QUERY = `
           productUuid
           name
           description
+          displayPrice
           tags
           images
           category {
@@ -66,6 +67,13 @@ export interface FoodItem {
   uuid: string;
   name: string;
   description: string;
+  /** GoTab's `displayPrice` — pre-formatted with currency symbol (e.g.
+   *  "$14.95", "MP" for market price, or "$14 / $18" for size variants).
+   *  Empty string if GoTab returned null/missing (rare but possible for
+   *  in-development items). Rendered in the click-to-expand detail
+   *  modal (added 2026-05-24 after Clarity dead-click analysis confirmed
+   *  users actively want item details). */
+  price: string;
   imageUrl: string | null;
   imageUrlLg: string | null;
   isStaffFavorite: boolean;
@@ -126,6 +134,7 @@ export async function getFood(): Promise<FoodMenu> {
       uuid: p.productUuid,
       name: p.name,
       description: cleanDescription(p.description),
+      price: typeof p.displayPrice === 'string' ? p.displayPrice : '',
       imageUrl: p.images?.md?.url ?? null,
       imageUrlLg: p.images?.lg?.url ?? null,
       isStaffFavorite: Array.isArray(p.tags) && p.tags.includes('go:staff favorite'),

@@ -135,32 +135,32 @@ const dateModified = new Date().toISOString().split("T")[0];
             <h2 class="food-category-name">{cat.name}</h2>
             <ul class="food-grid" role="list">
               {cat.items.map((it, idx) => {
-                /* PROTOTYPE (2026-05-24): single item is wired up as
-                   click-to-expand. Targets the Garlic Parmesan Flatbread
-                   that was the dead-click hot spot in Clarity recordings
-                   (5/22-5/24). If the UX lands, every food + cocktail
-                   card gets the same treatment. Tap list deferred — beer
-                   detail isn't the conversion lever. */
-                const isExpandable = it.name.toLowerCase().includes('garlic parmesan flatbread');
-                const expandableProps = isExpandable
-                  ? {
-                      'data-expandable': '',
-                      'data-item-name': it.name,
-                      'data-item-description': it.description,
-                      'data-item-image': it.imageUrlLg ?? it.imageUrl ?? '',
-                      'data-item-tags': it.tags.join(','),
-                      /* PROTOTYPE: hardcoded $14 placeholder for the
-                         pricing-visible vs pricing-hidden visual A/B
-                         evaluation. Real GoTab `price` field would wire
-                         here if pricing is approved for production. */
-                      'data-item-price': '$14',
-                      'role': 'button',
-                      'tabindex': '0',
-                      'aria-label': `${it.name} — view details`,
-                    }
-                  : {};
+                /* Click-to-expand modal on every food card (rolled out
+                   2026-05-24 after the Garlic Parmesan Flatbread
+                   prototype confirmed UX + pricing direction). Clarity
+                   data showed 5.85% dead-click rate on food cards;
+                   users were actively trying to click for detail. The
+                   modal serves description (untruncated), large image,
+                   price (real GoTab displayPrice — refreshed daily by
+                   the existing 4am cron), and dietary tags.
+
+                   Pricing positioning intentionally broken from the
+                   2026-05-05 captive-audience-pricing rule — owner
+                   call after seeing the visual: "Go ahead — be scared
+                   off by our pricing." */
+                const expandableProps = {
+                  'data-expandable': '',
+                  'data-item-name': it.name,
+                  'data-item-description': it.description,
+                  'data-item-image': it.imageUrlLg ?? it.imageUrl ?? '',
+                  'data-item-tags': it.tags.join(','),
+                  'data-item-price': it.price,
+                  'role': 'button',
+                  'tabindex': '0',
+                  'aria-label': `${it.name} — view details`,
+                };
                 return (
-                <li class:list={['food-card', isExpandable && 'food-card--expandable']} {...expandableProps}>
+                <li class="food-card food-card--expandable" {...expandableProps}>
                   {it.imageUrl ? (
                     <div class="food-card-frame">
                       {/* Per-device image strategy (2026-05-14):
