@@ -21,6 +21,10 @@ interface MenuItemData {
   description: string;
   image: string;
   tags: string[];
+  /** Optional. Currently a prototype field for the pricing-visibility
+   *  visual evaluation — only the test card sets it. When absent, the
+   *  price span renders empty and hides via CSS :empty. */
+  price: string;
 }
 
 const DIETARY_TAG_LABELS: Record<string, string> = {
@@ -51,6 +55,7 @@ function readItemData(card: HTMLElement): MenuItemData {
     description: card.dataset.itemDescription ?? '',
     image: card.dataset.itemImage ?? '',
     tags: (card.dataset.itemTags ?? '').split(',').map(s => s.trim()).filter(Boolean),
+    price: card.dataset.itemPrice ?? '',
   };
 }
 
@@ -62,13 +67,14 @@ export function initMenuItemModal(): void {
   if (!dialog || typeof dialog.showModal !== 'function') return;
 
   const nameEl = dialog.querySelector('.menu-dialog-name') as HTMLElement | null;
+  const priceEl = dialog.querySelector('.menu-dialog-price') as HTMLElement | null;
   const descEl = dialog.querySelector('.menu-dialog-description') as HTMLElement | null;
   const imgEl = dialog.querySelector('.menu-dialog-image') as HTMLImageElement | null;
   const imgWrap = dialog.querySelector('.menu-dialog-image-wrap') as HTMLElement | null;
   const tagsEl = dialog.querySelector('.menu-dialog-tags') as HTMLElement | null;
   const closeBtn = dialog.querySelector('.menu-dialog-close') as HTMLButtonElement | null;
 
-  if (!nameEl || !descEl || !imgEl || !imgWrap || !tagsEl || !closeBtn) return;
+  if (!nameEl || !priceEl || !descEl || !imgEl || !imgWrap || !tagsEl || !closeBtn) return;
 
   const cards = document.querySelectorAll<HTMLElement>('[data-expandable]');
   cards.forEach(card => {
@@ -76,6 +82,7 @@ export function initMenuItemModal(): void {
       const data = readItemData(card);
 
       nameEl.textContent = data.name;
+      priceEl.textContent = data.price;
       descEl.textContent = data.description;
 
       if (data.image) {

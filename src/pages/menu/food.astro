@@ -149,6 +149,11 @@ const dateModified = new Date().toISOString().split("T")[0];
                       'data-item-description': it.description,
                       'data-item-image': it.imageUrlLg ?? it.imageUrl ?? '',
                       'data-item-tags': it.tags.join(','),
+                      /* PROTOTYPE: hardcoded $14 placeholder for the
+                         pricing-visible vs pricing-hidden visual A/B
+                         evaluation. Real GoTab `price` field would wire
+                         here if pricing is approved for production. */
+                      'data-item-price': '$14',
                       'role': 'button',
                       'tabindex': '0',
                       'aria-label': `${it.name} — view details`,
@@ -243,7 +248,13 @@ const dateModified = new Date().toISOString().split("T")[0];
       <img class="menu-dialog-image" alt="" />
     </div>
     <div class="menu-dialog-body">
-      <h3 id="menu-dialog-name" class="menu-dialog-name"></h3>
+      <div class="menu-dialog-header">
+        <h3 id="menu-dialog-name" class="menu-dialog-name"></h3>
+        {/* Pricing visibility is a brand-positioning call — currently
+            populated only on cards that pass data-item-price (prototype
+            scope: one item). Hidden via :empty when absent. */}
+        <span class="menu-dialog-price"></span>
+      </div>
       <p class="menu-dialog-description"></p>
       <div class="menu-dialog-tags" role="list"></div>
     </div>
@@ -540,11 +551,14 @@ const dateModified = new Date().toISOString().split("T")[0];
     max-width: min(92vw, 480px);
     max-height: 90vh;
     width: 100%;
+    /* Centering for desktop. Native <dialog> + showModal() positions
+       the element with `inset: 0` by default; pairing with `margin: auto`
+       centers it both axes. Mobile media query below overrides this
+       with margin-top: auto for the bottom-sheet anchor. */
+    inset: 0;
+    margin: auto;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45),
                 0 8px 16px rgba(0, 0, 0, 0.30);
-    /* Reset position — native dialog uses absolute; we want it
-       centered via margin auto, which works because dialog has
-       fixed positioning when shown via showModal(). */
   }
   dialog.menu-dialog::backdrop {
     background: rgba(14, 10, 31, 0.78);
@@ -620,6 +634,18 @@ const dateModified = new Date().toISOString().split("T")[0];
     .menu-dialog-body { padding: 26px 28px 30px; }
   }
 
+  /* Name + price share a flex row so price sits right-aligned next to
+     the name (classic menu-row pattern). Baseline alignment keeps the
+     two typographically anchored to the same line even though they're
+     different fonts/weights. */
+  .menu-dialog-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+
   .menu-dialog-name {
     font-family: var(--font-display);
     font-weight: 900;
@@ -627,9 +653,26 @@ const dateModified = new Date().toISOString().split("T")[0];
     text-transform: uppercase;
     letter-spacing: 0.01em;
     color: var(--warm-white);
-    margin: 0 0 12px;
+    margin: 0;
     line-height: 1.05;
+    flex: 1 1 auto;
+    min-width: 0;
   }
+
+  /* Price — restrained typography vs the name. Same weight as the name
+     so it doesn't compete, but smaller + warm-mid color so it sits as
+     informational rather than promotional. :empty hides the element
+     entirely when the card didn't pass data-item-price. */
+  .menu-dialog-price {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: clamp(20px, 5.5vw, 24px);
+    color: var(--warm-mid);
+    line-height: 1.05;
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+  .menu-dialog-price:empty { display: none; }
 
   .menu-dialog-description {
     font-family: var(--font-body);
