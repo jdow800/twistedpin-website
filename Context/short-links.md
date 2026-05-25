@@ -47,6 +47,7 @@ Each day-of-week short link opens `/pricing/` pre-activated to that day's tab (p
 | Short link | Destination | Type | Notes |
 |---|---|---|---|
 | `/tour` | `youtube.com/watch?v=PgQcmTXUn88` | 302 | Venue walkthrough video |
+| `/beerwall` | `youtube.com/shorts/L4DcZX9PsOg` | 302 | 28-tap self-serve wall short |
 | `/review` | `search.google.com/local/writereview?placeid=ChIJURI15Tr1DogRLKYdPWWuY-M` | 302 | Direct-to-Google-review form |
 
 ## Staff / internal tools
