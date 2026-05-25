@@ -110,6 +110,14 @@ export function initMenuItemModal(): void {
 
   closeBtn.addEventListener('click', () => dialog.close());
 
+  // Tap-image-to-close — redundant close path for thumbs on small
+  // screens. The image is the largest tap target in the modal and is
+  // the most prominent visual; users who can't find the X button
+  // (or whose thumb is too clumsy for the 36px close icon) will
+  // naturally tap the image. Matches the lightbox UX pattern from
+  // Instagram / Apple Photos / standard mobile galleries.
+  imgWrap.addEventListener('click', () => dialog.close());
+
   // Click on backdrop (outside the dialog content box) closes. The
   // backdrop is rendered behind the dialog box itself, so any click
   // outside the visible bounds is on the backdrop. We detect by

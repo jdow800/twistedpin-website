@@ -613,6 +613,14 @@ const dateModified = new Date().toISOString().split("T")[0];
     aspect-ratio: 4 / 3;
     background: rgba(244, 239, 227, 0.04);
     overflow: hidden;
+    /* Image is also a tap-to-close target (see modal script). Pointer
+       cursor + slight active-state press feedback signals the
+       affordance without being noisy. */
+    cursor: pointer;
+    transition: filter 150ms;
+  }
+  .menu-dialog-image-wrap:active {
+    filter: brightness(0.85);
   }
   @media (max-width: 600px) {
     .menu-dialog-image-wrap {
