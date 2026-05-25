@@ -362,27 +362,50 @@ function specialsForDay(day: DayKey) {
 
 <script>
   // Day-pill toggle — same pattern as the SnapToday draft.
+  //
+  // Deep-link support (2026-05-26): /pricing/?day=wed OR /pricing/#wed
+  // opens the calendar pre-activated to that day. Falls back to the
+  // server-rendered TODAY view if the URL param is missing or invalid.
+  // Query param wins over hash when both are set; both are case-insensitive.
+  // Intended for ads, SMS, and social posts (e.g. linking the Penny A Pin
+  // special directly to Wednesday). Brief flicker on initial paint is
+  // accepted — the server still renders TODAY first, then JS swaps.
   const root = document.querySelector<HTMLElement>("[data-snap-today]");
   if (root) {
     const pills = root.querySelectorAll<HTMLButtonElement>("[data-pill-day]");
     const views = root.querySelectorAll<HTMLElement>("[data-view-day]");
+    const VALID_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+    function activate(day: string) {
+      if (!VALID_DAYS.includes(day)) return;
+      root!.setAttribute("data-active-day", day);
+      pills.forEach((p) =>
+        p.setAttribute(
+          "aria-pressed",
+          p.getAttribute("data-pill-day") === day ? "true" : "false",
+        ),
+      );
+      views.forEach((v) =>
+        v.setAttribute(
+          "aria-hidden",
+          v.getAttribute("data-view-day") === day ? "false" : "true",
+        ),
+      );
+    }
+
+    // Read URL on load: query param first, then hash.
+    const url = new URL(location.href);
+    const fromQuery = url.searchParams.get("day");
+    const fromHash = location.hash.slice(1);
+    const requested = (fromQuery || fromHash || "").toLowerCase();
+    if (requested && VALID_DAYS.includes(requested)) {
+      activate(requested);
+    }
+
     pills.forEach((pill) => {
       pill.addEventListener("click", () => {
         const day = pill.getAttribute("data-pill-day");
-        if (!day) return;
-        root.setAttribute("data-active-day", day);
-        pills.forEach((p) =>
-          p.setAttribute(
-            "aria-pressed",
-            p.getAttribute("data-pill-day") === day ? "true" : "false",
-          ),
-        );
-        views.forEach((v) =>
-          v.setAttribute(
-            "aria-hidden",
-            v.getAttribute("data-view-day") === day ? "false" : "true",
-          ),
-        );
+        if (day) activate(day);
       });
     });
   }
