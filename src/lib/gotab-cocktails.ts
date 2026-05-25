@@ -20,6 +20,7 @@ const COCKTAILS_QUERY = `
           productUuid
           name
           description
+          displayPrice
           tags
           images
           category {
@@ -36,6 +37,11 @@ export interface Cocktail {
   uuid: string;
   name: string;
   ingredients: string;
+  /** GoTab's `displayPrice` — pre-formatted with currency symbol (e.g.
+   *  "$14"). Empty string if GoTab returned null. Rendered in the
+   *  click-to-expand detail modal (rolled out 2026-05-24 — mirrors
+   *  the /menu/food pattern after Clarity dead-click validation). */
+  price: string;
   imageUrl: string | null;
   imageUrlLg: string | null;
   isStaffFavorite: boolean;
@@ -87,6 +93,7 @@ export async function getCocktails(): Promise<CocktailMenu> {
       uuid: p.productUuid,
       name: p.name,
       ingredients: cleanDescription(p.description),
+      price: typeof p.displayPrice === 'string' ? p.displayPrice : '',
       imageUrl: p.images?.md?.url ?? null,
       imageUrlLg: p.images?.lg?.url ?? null,
       isStaffFavorite: Array.isArray(p.tags) && p.tags.includes('go:staff favorite'),
