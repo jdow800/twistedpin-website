@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-05-24T09:00:13.634Z",
+  "fetchedAt": "2026-05-25T09:00:17.488Z",
   "hours": {
     "sun": {
       "label": "12pm – 10pm",
@@ -50,14 +50,14 @@
       "closeLabel": "1am"
     },
     "sat": {
-      "label": "11am – 11:59pm",
+      "label": "11am – 1am",
       "closed": false,
       "openMinutes": 660,
-      "closeMinutes": 1439,
+      "closeMinutes": 1500,
       "openLabel": "11am",
-      "closeLabel": "11:59pm"
+      "closeLabel": "1am"
     }
   },
   "rating": 4.5,
-  "reviewCount": 1143
+  "reviewCount": 1144
 }
