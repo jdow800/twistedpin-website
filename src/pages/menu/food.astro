@@ -456,7 +456,12 @@ const dateModified = new Date().toISOString().split("T")[0];
   .food-card-description {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 12.5px;
+    /* Bumped 12.5 -> 14 mobile, 13.5 -> 15 desktop (2026-05-24,
+       same pass as the tap-row text bumps). Was below the comfort
+       floor for body-tier secondary text. 3-line clamp preserved
+       so card heights stay close to original — only ~6px taller
+       per card from the larger line-height. */
+    font-size: 14px;
     line-height: 1.4;
     color: var(--warm-dim);
     display: -webkit-box;
@@ -465,7 +470,7 @@ const dateModified = new Date().toISOString().split("T")[0];
     overflow: hidden;
   }
   @media (min-width: 1025px) {
-    .food-card-description { font-size: 13.5px; }
+    .food-card-description { font-size: 15px; }
   }
 
   /* ============================================================
