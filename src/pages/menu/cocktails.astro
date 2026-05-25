@@ -459,7 +459,10 @@ const dateModified = new Date().toISOString().split("T")[0];
   .cocktail-card-ingredients {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 12.5px;
+    /* Bumped 12.5 -> 14 mobile, 13.5 -> 15 desktop (2026-05-24,
+       Tier 1 readability pass — same recipe as /menu/food
+       commit c24a93f and /menu/taps commit e38effb). */
+    font-size: 14px;
     line-height: 1.4;
     color: var(--warm-dim);
     display: -webkit-box;
@@ -468,7 +471,7 @@ const dateModified = new Date().toISOString().split("T")[0];
     overflow: hidden;
   }
   @media (min-width: 1025px) {
-    .cocktail-card-ingredients { font-size: 13.5px; }
+    .cocktail-card-ingredients { font-size: 15px; }
   }
 
   /* ============================================================
