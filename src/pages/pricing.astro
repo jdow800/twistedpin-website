@@ -601,7 +601,10 @@ function specialsForDay(day: DayKey) {
   .today-special-body {
     margin: 0;
     font-family: var(--font-body);
-    font-size: 12px;
+    /* Bumped 12 -> 14 (2026-05-24 readability sweep). This is body
+       text inside the special callout — was sitting below the
+       comfort floor for secondary content. */
+    font-size: 14px;
     line-height: 1.45;
     color: rgba(255, 252, 245, 0.65);
   }
@@ -673,7 +676,11 @@ function specialsForDay(day: DayKey) {
     margin-top: 4px;
     font-family: var(--font-body);
     font-weight: 400;
-    font-size: 12px;
+    /* Bumped 12 -> 13 (2026-05-24 readability sweep). Sub-line under
+       the TRAD / VIP SUITE column header carrying capacity info
+       ("up to 5 per lane") — informational text deserves to be
+       legible, not footnote-tier. */
+    font-size: 13px;
     color: rgba(255, 252, 245, 0.6);
     text-transform: none;
     letter-spacing: 0;
@@ -772,7 +779,10 @@ function specialsForDay(day: DayKey) {
     max-width: 480px;
     font-family: var(--font-body);
     font-style: italic;
-    font-size: 12px;
+    /* Bumped 12 -> 13 (2026-05-24 readability sweep). Italic fine
+       print at the bottom of each day view. Still subordinate
+       (italic + low opacity color), now legible at arm's length. */
+    font-size: 13px;
     line-height: 1.5;
     color: rgba(255, 252, 245, 0.55);
     text-align: center;
