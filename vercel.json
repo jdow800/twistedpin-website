@@ -110,7 +110,15 @@
     { "source": "/avery{/}?", "destination": "https://script.google.com/macros/s/AKfycbxbykQ0_ryJSIPVs-ZWcaiWnAxSL1VR5f0WrXcSVDgLJxXqM-DElt477SmR3F6gdqwxtQ/exec", "permanent": false },
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true },
-    { "source": "/nye{/}?", "destination": "/new-years-eve/", "permanent": true }
+    { "source": "/nye{/}?", "destination": "/new-years-eve/", "permanent": true },
+
+    { "source": "/mon{/}?", "destination": "/pricing/#mon", "permanent": true },
+    { "source": "/tue{/}?", "destination": "/pricing/#tue", "permanent": true },
+    { "source": "/wed{/}?", "destination": "/pricing/#wed", "permanent": true },
+    { "source": "/thu{/}?", "destination": "/pricing/#thu", "permanent": true },
+    { "source": "/fri{/}?", "destination": "/pricing/#fri", "permanent": true },
+    { "source": "/sat{/}?", "destination": "/pricing/#sat", "permanent": true },
+    { "source": "/sun{/}?", "destination": "/pricing/#sun", "permanent": true }
   ],
   "headers": [
     {

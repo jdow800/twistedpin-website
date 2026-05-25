@@ -28,6 +28,20 @@ One-page reference for every short link configured on the production site. All r
 | `/nye` | `/new-years-eve/` | 301 | Stealth — reserved for NYE ad campaigns |
 | `/summerpinpass` | `/summer-pin-pass/` | 301 | Summer Pin Pass landing page |
 
+### Pricing day deep-links
+
+Each day-of-week short link opens `/pricing/` pre-activated to that day's tab (powered by the page's `?day=` / `#day` deep-link support — see `src/pages/pricing.astro`). Built for SMS replies and day-specific ads (e.g. linking the Wednesday Penny A Pin special directly to Wednesday's view).
+
+| Short link | Destination | Type |
+|---|---|---|
+| `/mon` | `/pricing/#mon` | 301 |
+| `/tue` | `/pricing/#tue` | 301 |
+| `/wed` | `/pricing/#wed` | 301 |
+| `/thu` | `/pricing/#thu` | 301 |
+| `/fri` | `/pricing/#fri` | 301 |
+| `/sat` | `/pricing/#sat` | 301 |
+| `/sun` | `/pricing/#sun` | 301 |
+
 ## Marketing & social
 
 | Short link | Destination | Type | Notes |
