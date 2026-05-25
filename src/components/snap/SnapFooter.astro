@@ -632,7 +632,11 @@ const UTILITY_LINKS = [
   }
   .proof-meta {
     font-family: var(--font-body);
-    font-size: 12px;
+    /* Bumped 12 -> 13 (2026-05-24 readability sweep, Tier 2). Body-
+       tier informational text ("1,142 reviews") that sat slightly
+       below the comfort floor. Stars + rating number still carry the
+       visual weight — this is the human-readable count next to them. */
+    font-size: 13px;
     color: var(--warm-dim);
     margin: 0;
   }
