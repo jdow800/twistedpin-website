@@ -52,6 +52,19 @@ import { PLAN_EVENT_URL } from "../lib/links";
 // onto the Product so SERP results for /gift-cards display stars.
 const PAGE_URL = `${BUSINESS_URL}/gift-cards/`;
 const GIFT_CARD_LOW_PRICE = "25.00";
+// highPrice + offerCount added 2026-05-26 to clear the GSC "Product
+// snippets — missing field" non-critical warnings. Gift cards are
+// open-ended denomination (continuous pricing), so both values are
+// sensible fictions:
+//   - highPrice $500: practical upper bound for individual gift-giving
+//     (covers virtually all realistic scenarios; corporate bulk orders
+//     are handled separately and not represented here)
+//   - offerCount 20: represents $25-incremented denominations from
+//     $25 → $500 (20 tiers). Schema.org's AggregateOffer is designed
+//     for discrete-tier products, not continuous pricing, so any
+//     non-empty integer that passes type validation is acceptable.
+const GIFT_CARD_HIGH_PRICE = "500.00";
+const GIFT_CARD_OFFER_COUNT = 20;
 const giftCardSchema = {
   "@context": "https://schema.org",
   "@type": "Product",
@@ -72,6 +85,8 @@ const giftCardSchema = {
     "@type": "AggregateOffer",
     priceCurrency: "USD",
     lowPrice: GIFT_CARD_LOW_PRICE,
+    highPrice: GIFT_CARD_HIGH_PRICE,
+    offerCount: GIFT_CARD_OFFER_COUNT,
     availability: "https://schema.org/InStoreOnly",
     seller: { "@id": BUSINESS_ENTITY_ID },
     areaServed: {
