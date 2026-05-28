@@ -9,6 +9,16 @@ cta:
 # 2025 floor was $109.95/lane; package prices rarely go down. Update
 # when ops confirms 2026 pricing.
 lowPrice: "109.95"
+# Sensible premium-tier ceiling pending ops confirmation. A higher per-lane
+# rate for a "premium" NYE package vs the base lane reservation. Schema.org
+# AggregateOffer fields describe the price RANGE, not a binding tier list,
+# so any reasonable upper bound clears GSC's "Missing field 'highPrice'"
+# warning without committing the venue to a literal $299.95 price.
+highPrice: "299.95"
+# Bookings have been open since the start of the event year. Represents the
+# offer's "valid from" date for schema.org — paired with the existing
+# `validThrough` (event start, derived from start above).
+validFrom: 2026-01-01T00:00:00-06:00
 ---
 
 The night, the bar, the suite. Cocktails curated by America's Top Mixologist,

@@ -26,6 +26,25 @@ const events = defineCollection({
      * refine when packages are confirmed.
      */
     lowPrice: z.string().optional(),
+    /**
+     * Optional pricing ceiling for the Event's `offers` AggregateOffer.
+     * Pair with `lowPrice`. Without it, GSC flags "Missing field
+     * 'highPrice'" as a non-critical Events structured data warning
+     * (2026-05-27). Use the most expensive real package; for events
+     * where ops hasn't priced the top tier, a sensible premium estimate
+     * is fine — schema.org's AggregateOffer fields are descriptive of
+     * the price range, not contractually binding.
+     */
+    highPrice: z.string().optional(),
+    /**
+     * Optional ISO 8601 date marking when this offer became (or becomes)
+     * available for purchase. Paired with the existing `validThrough`
+     * (which is set to the event start). Without it, GSC flags "Missing
+     * field 'validFrom'" (2026-05-27). Typical value: a date in the
+     * event's year, well before the event itself — represents "bookings
+     * have been open since this date."
+     */
+    validFrom: z.coerce.date().optional(),
   }),
 });
 

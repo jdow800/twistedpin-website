@@ -139,10 +139,16 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
           "@type": "AggregateOffer",
           priceCurrency: "USD",
           lowPrice: e.data.lowPrice,
+          // highPrice + validFrom added 2026-05-27 to clear GSC
+          // "Events structured data — non-critical missing field"
+          // warnings. Both optional in the events schema — Events
+          // without these fields just emit lowPrice (back to the
+          // earlier shape).
+          ...(e.data.highPrice && { highPrice: e.data.highPrice }),
+          ...(e.data.validFrom && { validFrom: e.data.validFrom.toISOString() }),
           availability: "https://schema.org/InStock",
           url: eventUrl,
-          // validFrom omitted — listed in the calendar means sales are
-          // open. validThrough = event start: no sales after kickoff.
+          // validThrough = event start: no sales after kickoff.
           validThrough: e.data.start.toISOString(),
         }
       : undefined;

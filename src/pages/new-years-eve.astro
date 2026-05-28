@@ -64,10 +64,16 @@ const nyeJsonLd = nyeEntry
               "@type": "AggregateOffer",
               priceCurrency: "USD",
               lowPrice: nyeEntry.data.lowPrice,
+              // highPrice + validFrom added 2026-05-27 to clear GSC
+              // "Events structured data — non-critical missing field"
+              // warnings. Both sourced from the events content
+              // collection so the values stay with the markdown (one
+              // source of truth per event).
+              ...(nyeEntry.data.highPrice && { highPrice: nyeEntry.data.highPrice }),
+              ...(nyeEntry.data.validFrom && { validFrom: nyeEntry.data.validFrom.toISOString() }),
               availability: "https://schema.org/InStock",
               url: PAGE_URL,
-              // validFrom omitted — sales open as soon as the page is
-              // live. validThrough = event start: tickets can't be sold
+              // validThrough = event start: tickets can't be sold
               // after the night begins.
               validThrough: nyeEntry.data.start.toISOString(),
             }
