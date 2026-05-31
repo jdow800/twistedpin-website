@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-05-30T09:00:05.554Z",
+  "fetchedAt": "2026-05-31T09:00:38.357Z",
   "hours": {
     "sun": {
       "label": "12pm – 10pm",
@@ -10,54 +10,54 @@
       "closeLabel": "10pm"
     },
     "mon": {
-      "label": "3pm – 10pm",
+      "label": "11am – 10pm",
       "closed": false,
-      "openMinutes": 900,
+      "openMinutes": 660,
       "closeMinutes": 1320,
-      "openLabel": "3pm",
+      "openLabel": "11am",
       "closeLabel": "10pm"
     },
     "tue": {
-      "label": "3pm – 10pm",
+      "label": "11am – 10pm",
       "closed": false,
-      "openMinutes": 900,
+      "openMinutes": 660,
       "closeMinutes": 1320,
-      "openLabel": "3pm",
+      "openLabel": "11am",
       "closeLabel": "10pm"
     },
     "wed": {
-      "label": "3pm – 10pm",
+      "label": "11am – 10pm",
       "closed": false,
-      "openMinutes": 900,
+      "openMinutes": 660,
       "closeMinutes": 1320,
-      "openLabel": "3pm",
+      "openLabel": "11am",
       "closeLabel": "10pm"
     },
     "thu": {
-      "label": "3pm – 10pm",
+      "label": "11am – 10pm",
       "closed": false,
-      "openMinutes": 900,
+      "openMinutes": 660,
       "closeMinutes": 1320,
-      "openLabel": "3pm",
+      "openLabel": "11am",
       "closeLabel": "10pm"
     },
     "fri": {
-      "label": "2pm – 11:59pm",
-      "closed": false,
-      "openMinutes": 840,
-      "closeMinutes": 1439,
-      "openLabel": "2pm",
-      "closeLabel": "11:59pm"
-    },
-    "sat": {
       "label": "11am – 1am",
       "closed": false,
       "openMinutes": 660,
       "closeMinutes": 1500,
       "openLabel": "11am",
       "closeLabel": "1am"
+    },
+    "sat": {
+      "label": "11am – 11:59pm",
+      "closed": false,
+      "openMinutes": 660,
+      "closeMinutes": 1439,
+      "openLabel": "11am",
+      "closeLabel": "11:59pm"
     }
   },
   "rating": 4.5,
-  "reviewCount": 1143
+  "reviewCount": 1144
 }
