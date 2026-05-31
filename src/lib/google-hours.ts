@@ -236,11 +236,13 @@ export async function fetchLivePlacesData(): Promise<LivePlacesData> {
       return empty;
     }
     const data = (await res.json()) as PlacesResponse;
-    // Prefer currentOpeningHours (holiday-aware) over regularOpeningHours.
-    const periods =
-      data.currentOpeningHours?.periods ?? data.regularOpeningHours?.periods ?? [];
+    // Merge currentOpeningHours (holiday-aware, but its rolling 7-day window
+    // truncates trailing past-midnight closes to 23:59) with regularOpeningHours
+    // (canonical weekly schedule, no window horizon). See mergeHours().
+    const currentPeriods = data.currentOpeningHours?.periods ?? [];
+    const regularPeriods = data.regularOpeningHours?.periods ?? [];
     return {
-      hours: periods.length > 0 ? periodsToHours(periods) : null,
+      hours: mergeHours(currentPeriods, regularPeriods),
       rating: typeof data.rating === "number" ? data.rating : null,
       reviewCount: typeof data.userRatingCount === "number" ? data.userRatingCount : null,
     };
@@ -250,6 +252,56 @@ export async function fetchLivePlacesData(): Promise<LivePlacesData> {
   } finally {
     t.cancel();
   }
+}
+
+/**
+ * Merge currentOpeningHours with regularOpeningHours into one weekly map.
+ *
+ * currentOpeningHours is PREFERRED (it overlays Google Business Profile's
+ * holiday / special-day edits onto the next 7 days). BUT that window has a
+ * hard horizon: any period whose close lands past the end of the rolling
+ * 7-day window gets clipped by Google to 23:59 on the open day. For a venue
+ * open past midnight, this clips whichever late-night day is TRAILING in the
+ * window — e.g. when the cron runs on a Sunday, Saturday is the last day and
+ * its real Sun-1am close is reported as "11:59pm". The artifact is therefore
+ * intermittent and depends on which weekday the fetch runs.
+ *
+ * regularOpeningHours is the canonical weekly schedule with no window horizon,
+ * so it always carries the true past-midnight close. We use it to repair any
+ * day where current was clipped: when current closes at exactly 23:59 AND the
+ * regular schedule for that day genuinely wraps past midnight, we restore the
+ * regular close (keeping current's open, which may carry a special-day edit).
+ *
+ * Returns null only when neither source has periods (caller falls back to
+ * static src/data/hours.ts).
+ */
+function mergeHours(
+  currentPeriods: PlacesPeriod[],
+  regularPeriods: PlacesPeriod[],
+): LiveHours | null {
+  const current = currentPeriods.length > 0 ? periodsToHours(currentPeriods) : null;
+  const regular = regularPeriods.length > 0 ? periodsToHours(regularPeriods) : null;
+  if (!current) return regular;
+  if (!regular) return current;
+
+  for (const k of DAY_KEYS_BY_GOOGLE_INDEX) {
+    const c = current[k];
+    const r = regular[k];
+    // 23:59 (1439) is Google's window-truncation sentinel — never a real
+    // closing time. If the regular schedule wraps past midnight that day,
+    // current was clipped; restore the genuine close.
+    const looksTruncated = !c.closed && c.closeMinutes === 24 * 60 - 1;
+    const regularWraps = !r.closed && r.closeMinutes >= 24 * 60;
+    if (looksTruncated && regularWraps) {
+      current[k] = {
+        ...c,
+        closeMinutes: r.closeMinutes,
+        closeLabel: r.closeLabel,
+        label: `${c.openLabel} – ${r.closeLabel}`,
+      };
+    }
+  }
+  return current;
 }
 
 /** Convert Google's periods array into our weekday-keyed map. */
