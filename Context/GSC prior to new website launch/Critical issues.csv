@@ -1,0 +1,8 @@
+Reason,Source,Validation,Pages
+Not found (404),Website,Not Started,24
+Page with redirect,Website,Not Started,13
+Alternate page with proper canonical tag,Website,Not Started,4
+Excluded by ‘noindex’ tag,Website,Not Started,3
+Blocked due to access forbidden (403),Website,Not Started,1
+Crawled - currently not indexed,Google systems,Not Started,37
+Discovered - currently not indexed,Google systems,Not Started,5
