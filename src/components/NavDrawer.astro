@@ -190,6 +190,26 @@ for (const seasonal of activeSeasonalItems()) {
           <span class="label">Menu</span>
         </a>
       </li>
+      {/* Birthday Parties + Fundraisers added to the strip 2026-06-01 for
+          exposure — both are high-LTV booking CTAs that were otherwise
+          buried in collapsed accordion sections (Visit / Info). The drawer
+          is the only nav surface on both mobile AND desktop (the desktop
+          MORE dropdown was retired), so the always-visible strip is the
+          only place these get seen without a section expand + scan. They
+          remain in their accordion sections too — strip is for exposure,
+          accordion for completeness. */}
+      <li>
+        <a href="/birthday-parties-booking/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["cake"]} />
+          <span class="label">Birthdays</span>
+        </a>
+      </li>
+      <li>
+        <a href="/fundraisers/">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["heart-handshake"]} />
+          <span class="label">Fundraisers</span>
+        </a>
+      </li>
     </ul>
 
     <nav class="nav-drawer-list" aria-label="Site sections">
@@ -382,8 +402,10 @@ for (const seasonal of activeSeasonalItems()) {
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     /* Animated collapse target. max-height needs to be generous enough
-       to fit the 2x2 grid at the largest expected chip height. */
-    max-height: 240px;
+       to fit the 2x3 grid (6 chips, 3 rows) at the largest expected chip
+       height — otherwise overflow:hidden clips the bottom row in the
+       expanded state. 3 rows ≈ 3×84 + 2×8 = 268px; 360 leaves slack. */
+    max-height: 360px;
     opacity: 1;
     overflow: hidden;
     transition:
