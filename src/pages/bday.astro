@@ -7,8 +7,10 @@
  * restrictions live here so we don't burn SMS characters on fine print.
  *
  * Offer: pick ONE — a $30 credit toward walk-in open bowling, OR a $30
- * arcade card. Redeemed at the front desk (staff-assisted, because it's a
- * choose-one — unlike /1hr which is a kiosk login).
+ * arcade card. The offer is pre-loaded on the guest's account; they log
+ * in to the front-desk kiosk with their phone number and pick their
+ * present during the visit (same kiosk redemption as /1hr — no "claim"
+ * step, which removes the "do I need to click something?" friction).
  *
  * Voice: "$30 off" is reframed to "$30 toward open bowling" — the hard ban
  * on discount/"off"/deals language applies (same reframe as /coupon's
@@ -34,7 +36,7 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
 ---
 <Base
   title="Happy Birthday — Pick Your Present | Twisted Pin"
-  description="Your Twisted Pin birthday gift: pick one — a $30 credit toward open bowling, or a $30 arcade card. See the front desk to redeem. Check your text for the expiration date."
+  description="Your Twisted Pin birthday gift: pick one — a $30 credit toward open bowling, or a $30 arcade card. It's already on your account — log in at the front-desk kiosk to redeem. Check your text for the expiration date."
   ogImage="/og/og-game.jpg"
   ogImageAlt="The arcade at Twisted Pin in Plainfield, IL"
 >
@@ -90,8 +92,9 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
       </div>
 
       <p class="offer-redeem">
-        Pick your present when you get here — just stop by the front desk
-        and our team will set you up.
+        Good news — it's already on your account. Just log in to the kiosk
+        at the front desk with your phone number and pick your present
+        during your visit.
       </p>
 
       <p class="offer-fineprint">
