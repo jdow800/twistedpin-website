@@ -1,0 +1,421 @@
+---
+/**
+ * /coupon-preview — PARKED preview of the new /coupon replacement.
+ *
+ * This is the native online signup form that will funnel into Twisted
+ * Pin's custom loyalty platform (Supabase `hdcoyqlskurvpjfrlnop` +
+ * SignalWire + n8n). On first-join it grants the `signup-10off` welcome
+ * offer ($10 lane credit) and texts the guest. It replaces the current
+ * /coupon iframe (Patch Retention) once approved.
+ *
+ * PARKED / UNFINDABLE (same hardening as /tprs):
+ *   - noindex,nofollow (Fragment slot="head" below)
+ *   - Disallow'd in public/robots.txt
+ *   - excluded from sitemap.xml (astro.config.mjs filter)
+ *   - unlinked from nav / footer / anywhere
+ * When approved, the content moves to coupon.astro (replacing the iframe)
+ * and this preview route is deleted.
+ *
+ * ⚠️ SUBMIT IS NOT WIRED YET. The form runs in PREVIEW MODE — submitting
+ * shows the simulated success state and sends NOTHING. The real POST to
+ * the loyalty platform drops into the clearly-marked block in the inline
+ * <script> once Jon provides: endpoint URL, payload field names, auth +
+ * CORS, response/duplicate contract, and the confirmed 10DLC consent
+ * string + STOP number. See TODO markers.
+ *
+ * Voice: "$10 lane credit" / "$10 toward your next lane" — NEVER "$10
+ * off" (discount-language ban). Same reframe coupon.astro already uses.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+---
+<Base
+  title="Get $10 Toward Your Next Lane | Twisted Pin"
+  description="Sign up and we'll text you a $10 lane credit good on walk-in open bowling at Twisted Pin in Plainfield, IL."
+  ogImage="/og/og-bowl.jpg"
+  ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
+>
+  {/* PARKED: noindex,nofollow — internal preview, never indexed, never
+      crawled. Mirrors the /tprs hardening. Also robots-disallowed +
+      sitemap-excluded + unlinked. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  <section class="t2-hero" data-hero aria-labelledby="cp-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">For Regulars (and the soon-to-be)</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="cp-h1" data-delay-ms="120">
+        $10 toward your next&nbsp;lane.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Drop your number below. We'll text you a $10 lane credit good on
+        walk-in open bowling — or use it on a
+        <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section cp-section" aria-labelledby="cp-form-h2">
+    <div class="t2-section-inner">
+
+      {/* PREVIEW banner — visible so nobody mistakes this parked page for
+          a live, connected form. Remove when migrating to coupon.astro. */}
+      <p class="cp-preview-flag" role="status">
+        ⚙ Preview — not yet connected to the loyalty platform. Submitting
+        shows the success state but sends nothing.
+      </p>
+
+      <h2 class="t-eyebrow" id="cp-form-h2" style="font-size:11px;">Sign Up</h2>
+
+      {/* ---- FORM ---- */}
+      <form id="cp-form" class="cp-form" novalidate>
+        <div class="cp-row cp-row-2">
+          <div class="cp-field">
+            <label for="cp-first">First name <span class="cp-req">*</span></label>
+            <input id="cp-first" name="first_name" type="text" autocomplete="given-name" required />
+          </div>
+          <div class="cp-field">
+            <label for="cp-last">Last name <span class="cp-req">*</span></label>
+            <input id="cp-last" name="last_name" type="text" autocomplete="family-name" required />
+          </div>
+        </div>
+
+        <div class="cp-field">
+          <label for="cp-mobile">Mobile number <span class="cp-req">*</span></label>
+          <input id="cp-mobile" name="phone" type="tel" inputmode="tel"
+                 autocomplete="tel" placeholder="(815) 555-0123" required />
+          <p class="cp-hint">This is where we text your $10 credit.</p>
+        </div>
+
+        <fieldset class="cp-field cp-birthday">
+          <legend>Birthday <span class="cp-opt">(optional — we'll send a gift)</span></legend>
+          <div class="cp-row cp-row-2">
+            <select id="cp-bmonth" name="birthday_month" aria-label="Birthday month">
+              <option value="">Month</option>
+              {MONTHS.map((m, i) => <option value={i + 1}>{m}</option>)}
+            </select>
+            <select id="cp-bday" name="birthday_day" aria-label="Birthday day">
+              <option value="">Day</option>
+              {DAYS.map((d) => <option value={d}>{d}</option>)}
+            </select>
+          </div>
+        </fieldset>
+
+        <div class="cp-field">
+          <label for="cp-email">Email <span class="cp-opt">(optional)</span></label>
+          <input id="cp-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" />
+        </div>
+
+        {/* TODO(loyalty): replace this consent copy + STOP number with the
+            counsel-confirmed 10DLC string from the loyalty platform. The
+            779-234-4062 SignalWire number is the likely STOP target (the
+            loyalty inbound handler) — CONFIRM before launch. */}
+        <label class="cp-consent">
+          <input id="cp-consent" name="consent" type="checkbox" required />
+          <span>
+            By signing up, you agree to receive recurring automated marketing
+            text messages from Twisted Pin at the number provided. Consent is
+            not a condition of purchase. Message &amp; data rates may apply.
+            Reply STOP to cancel, HELP for help. See our
+            <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
+          </span>
+        </label>
+
+        <p id="cp-error" class="cp-error" role="alert" hidden></p>
+
+        <button type="submit" id="cp-submit" class="cp-submit">Text me my $10</button>
+      </form>
+
+      {/* ---- SUCCESS PANEL (hidden until submit) ---- */}
+      <div id="cp-success" class="cp-success" hidden>
+        <p class="cp-success-eyebrow">You're in 🎉</p>
+        <h3 class="cp-success-title">Check your phone.</h3>
+        <p class="cp-success-body">
+          We just texted your $10 lane credit to the number you gave us.
+          Show it at the front desk — or use it on a
+          <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>.
+        </p>
+        <p class="cp-success-note">
+          Didn't get a text in a couple minutes? Check that your number was
+          right, or just ask the front desk when you come in.
+        </p>
+      </div>
+
+      <p class="cp-fineprint">
+        Valid for open bowling only — not events, leagues, or the VIP suite.
+        One credit per customer. Can't be combined with other offers.
+      </p>
+    </div>
+  </section>
+
+  <SnapFooter />
+</Base>
+
+{/* ============================================================
+    Inline form handler. PREVIEW MODE — validates + shows the success
+    state but performs NO network request. The real submission wiring
+    goes in the clearly-marked block below once the loyalty endpoint +
+    payload contract are provided.
+    ============================================================ */}
+<script is:inline>
+  (function () {
+    var form = document.getElementById("cp-form");
+    if (!form) return;
+    var errorEl = document.getElementById("cp-error");
+    var submitBtn = document.getElementById("cp-submit");
+    var successEl = document.getElementById("cp-success");
+    var mobile = document.getElementById("cp-mobile");
+
+    // Light US phone formatter — cosmetic only; raw digits are what we
+    // send. Strips to digits, formats as (XXX) XXX-XXXX up to 10.
+    mobile.addEventListener("input", function () {
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      var out = d;
+      if (d.length > 6) out = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+      else if (d.length > 3) out = "(" + d.slice(0, 3) + ") " + d.slice(3);
+      else if (d.length > 0) out = "(" + d.slice(0, 3);
+      mobile.value = out;
+    });
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var first = form.first_name.value.trim();
+      var last = form.last_name.value.trim();
+      var phoneDigits = form.phone.value.replace(/\D/g, "");
+      var consent = form.consent.checked;
+
+      if (!first || !last) return showError("Please enter your first and last name.");
+      if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
+      if (!consent) return showError("Please agree to receive texts so we can send your credit.");
+
+      var payload = {
+        first_name: first,
+        last_name: last,
+        phone: "+1" + phoneDigits,
+        birthday_month: form.birthday_month.value || null,
+        birthday_day: form.birthday_day.value || null,
+        email: form.email.value.trim() || null,
+        consent: true,
+        source: "web-coupon",
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending…";
+
+      // ============================================================
+      // TODO(loyalty): REAL SUBMISSION GOES HERE.
+      // Expected (confirm with Jon): POST `payload` as JSON to the
+      // loyalty signup endpoint (Supabase edge fn or n8n webhook),
+      // with the right auth header + CORS allow-origin for twistedpin.com.
+      // On success → reveal #cp-success. On duplicate (already a member)
+      // → friendly "you're already in" state. On error → showError(...)
+      // and re-enable the button.
+      //
+      //   fetch("<ENDPOINT>", {
+      //     method: "POST",
+      //     headers: { "Content-Type": "application/json", /* auth */ },
+      //     body: JSON.stringify(payload),
+      //   }).then(...).catch(...);
+      // ============================================================
+
+      // --- PREVIEW MODE: simulate success, send nothing. ---
+      console.log("[coupon-preview] PREVIEW submit (not sent):", payload);
+      setTimeout(function () {
+        form.hidden = true;
+        document.querySelector(".cp-preview-flag").hidden = true;
+        successEl.hidden = false;
+        successEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 500);
+    });
+  })();
+</script>
+
+<style>
+  /* ============================================================
+     /coupon-preview — native loyalty signup form. Dark brand chrome
+     (indigo surface, warm-white text, glow accents). Self-contained
+     so it lifts cleanly into coupon.astro at migration.
+     ============================================================ */
+  .cp-section .t2-section-inner { max-width: 560px; }
+
+  .cp-preview-flag {
+    margin: 0 0 20px;
+    padding: 10px 14px;
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    border-radius: 7px;
+    font-weight: 700;
+  }
+
+  .cp-form { margin-top: 14px; }
+
+  .cp-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .cp-field {
+    margin: 0 0 16px;
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .cp-field label,
+  .cp-birthday legend {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+    padding: 0;
+  }
+  .cp-req { color: var(--glow); }
+  .cp-opt { color: var(--warm-dim); font-weight: 400; }
+
+  .cp-form input[type="text"],
+  .cp-form input[type="tel"],
+  .cp-form input[type="email"],
+  .cp-form select {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+    font-size: 16px; /* 16px avoids iOS zoom-on-focus */
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    border-radius: 7px;
+    padding: 13px 14px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .cp-form select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a89eb6' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .cp-form input::placeholder { color: var(--warm-dim); }
+  .cp-form input:focus,
+  .cp-form select:focus {
+    outline: 2px solid var(--glow);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+
+  .cp-hint {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    color: var(--warm-dim);
+  }
+
+  .cp-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 4px 0 18px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--warm-dim);
+  }
+  .cp-consent input { margin-top: 2px; flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--glow); }
+  .cp-consent a { color: var(--glow); text-decoration: none; }
+  .cp-consent a:hover { text-decoration: underline; }
+
+  .cp-error {
+    margin: 0 0 14px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ff8a8a;
+  }
+
+  .cp-submit {
+    width: 100%;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    border: 0;
+    border-radius: 7px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
+  }
+  .cp-submit:hover:not(:disabled) { background: var(--glow-dim); transform: scale(1.01); }
+  .cp-submit:disabled { opacity: 0.6; cursor: default; }
+
+  /* Success panel */
+  .cp-success {
+    margin-top: 10px;
+    padding: 24px 22px;
+    border: 1px solid rgba(78, 236, 196, 0.35);
+    border-radius: var(--radius-surface);
+    background: rgba(78, 236, 196, 0.06);
+  }
+  .cp-success-eyebrow {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin: 0 0 6px;
+  }
+  .cp-success-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--warm-white);
+    margin: 0 0 12px;
+  }
+  .cp-success-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    margin: 0 0 12px;
+  }
+  .cp-success-body a { color: var(--glow); text-decoration: none; }
+  .cp-success-body a:hover { text-decoration: underline; }
+  .cp-success-note {
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--warm-dim);
+    margin: 0;
+  }
+
+  .cp-fineprint {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(244, 239, 227, 0.08);
+    font-family: var(--font-body);
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--warm-dim);
+  }
+</style>

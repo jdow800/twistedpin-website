@@ -4,6 +4,8 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+# Parked preview of the new loyalty signup form (replaces /coupon at launch) — unindexed, unlinked.
+Disallow: /coupon-preview/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml
