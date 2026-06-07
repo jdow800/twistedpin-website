@@ -52,7 +52,15 @@ export default defineConfig({
       formats: ['image/avif', 'image/webp'],
     },
   }),
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // Exclude texted-offer landing pages (/1hr + future SMS-only offer
+      // URLs). These are noindex,follow campaign links we hand out by text —
+      // keeping them out of the sitemap prevents GSC "submitted URL marked
+      // noindex" warnings. Add new offer slugs to this list.
+      filter: (page) => !page.includes('/1hr'),
+    }),
+  ],
   build: {
     // Inline ALL stylesheets into the HTML head (was 'auto', which only
     // inlined files <4KB). Both render-blocking sheets on the homepage
