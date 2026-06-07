@@ -2,48 +2,83 @@
 /**
  * /coupon-preview — PARKED preview of the new /coupon replacement.
  *
- * This is the native online signup form that will funnel into Twisted
- * Pin's custom loyalty platform (Supabase `hdcoyqlskurvpjfrlnop` +
- * SignalWire + n8n). On first-join it grants the `signup-10off` welcome
- * offer ($10 lane credit) and texts the guest. It replaces the current
- * /coupon iframe (Patch Retention) once approved.
+ * Native online $10-signup form that funnels into Twisted Pin's custom
+ * loyalty platform. Wired per Loyalty/docs/coupon-page-intake-spec.md:
+ * the form POSTs to our server-side proxy (/api/coupon-signup), which
+ * forwards to the n8n intake webhook. All loyalty logic (create customer,
+ * grant signup-10off, send the $10 welcome text, enforce first-join) is
+ * server-side; this page just branches on the JSON response:
+ *   - ok:false              → inline form error (honeypot → silent)
+ *   - first_join:true        → success ("check your texts for your $10")
+ *   - first_join:false       → already-a-member panel → /rewards
+ *
+ * ⚠️ LIVE-CONNECTED. Submitting hits the real loyalty platform (creates a
+ * customer + grants the offer). The welcome SMS is gated by the platform's
+ * TEST_MODE allowlist until launch, so only the allowlisted number gets the
+ * text — but customer rows ARE written. Keep this URL parked until cutover.
  *
  * PARKED / UNFINDABLE (same hardening as /tprs):
- *   - noindex,nofollow (Fragment slot="head" below)
- *   - Disallow'd in public/robots.txt
- *   - excluded from sitemap.xml (astro.config.mjs filter)
- *   - unlinked from nav / footer / anywhere
- * When approved, the content moves to coupon.astro (replacing the iframe)
- * and this preview route is deleted.
+ *   - noindex,nofollow (Fragment slot="head") + robots.txt Disallow
+ *   - excluded from sitemap.xml (astro.config.mjs filter) + unlinked
+ * When approved, the content moves to coupon.astro (replacing the iframe),
+ * the preview banner is removed, and this route + its robots/sitemap
+ * entries are deleted.
  *
- * ⚠️ SUBMIT IS NOT WIRED YET. The form runs in PREVIEW MODE — submitting
- * shows the simulated success state and sends NOTHING. The real POST to
- * the loyalty platform drops into the clearly-marked block in the inline
- * <script> once Jon provides: endpoint URL, payload field names, auth +
- * CORS, response/duplicate contract, and the confirmed 10DLC consent
- * string + STOP number. See TODO markers.
- *
- * Voice: "$10 lane credit" / "$10 toward your next lane" — NEVER "$10
- * off" (discount-language ban). Same reframe coupon.astro already uses.
+ * Voice/SEO: "$10 lane credit" — NEVER "$10 off" (discount-language ban)
+ * and NOT framed around "free/cheap bowling" (seo.md negative keywords).
+ * Target is branded + local intent, not deal-hunters. SEO body copy below
+ * the form keeps the page off the thin-content list.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December",
 ];
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+// The EXACT consent prose shown next to the checkbox. Captured verbatim and
+// passed to the platform as `consent_language` for the TCPA audit trail
+// (spec §6). Keep this string and the rendered label identical.
+const CONSENT_TEXT =
+  "By checking this box, you agree to receive recurring automated marketing " +
+  "text messages from Twisted Pin at the number provided. Consent is not a " +
+  "condition of purchase. Message & data rates may apply. Reply STOP to " +
+  "cancel, HELP for help. See our Terms (twistedpin.com/terms) and Privacy " +
+  "Policy (twistedpin.com/privacy).";
+
+// FAQ — doubles as unique body content + an FAQPage entity. (FAQ rich
+// results are deprecated for commercial sites, so this is for content depth
+// / AI overviews, not a SERP dropdown.)
+const FAQ = [
+  {
+    q: "How do I get my $10 lane credit?",
+    a: "Drop your name and mobile number in the form above. We text you the $10 lane credit within a few minutes — use code SAVE10 to book open bowling online, or just show the text at the front desk in Plainfield.",
+  },
+  {
+    q: "What can I use it on?",
+    a: "Open (walk-in or online) bowling. It comes off your lane time — not group events, leagues, or the VIP suite. Lane shoes and anything from the bar or kitchen run on a normal tab.",
+  },
+  {
+    q: "Does the $10 credit expire?",
+    a: "We'll note any expiration in the text we send you. One credit per customer, and it can't be combined with other offers.",
+  },
+  {
+    q: "Can I use it on an online reservation?",
+    a: "Yes — apply code SAVE10 when you reserve a lane online, and the $10 comes off your booking total. Or use it on a walk-in visit at the desk.",
+  },
+];
 ---
 <Base
   title="Get $10 Toward Your Next Lane | Twisted Pin"
-  description="Sign up and we'll text you a $10 lane credit good on walk-in open bowling at Twisted Pin in Plainfield, IL."
+  description="Sign up and we'll text you a $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL — good on a walk-in visit or with code SAVE10 online."
   ogImage="/og/og-bowl.jpg"
   ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
 >
-  {/* PARKED: noindex,nofollow — internal preview, never indexed, never
-      crawled. Mirrors the /tprs hardening. Also robots-disallowed +
-      sitemap-excluded + unlinked. */}
+  {/* PARKED: noindex,nofollow — internal preview, never indexed or crawled.
+      Also robots-disallowed + sitemap-excluded + unlinked. */}
   <Fragment slot="head">
     <meta name="robots" content="noindex,nofollow" />
   </Fragment>
@@ -55,8 +90,9 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         $10 toward your next&nbsp;lane.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Drop your number below. We'll text you a $10 lane credit good on
-        walk-in open bowling — or use it on a
+        Drop your number below and we'll text you a $10 lane credit good on
+        open bowling in Plainfield, IL — use it on a walk-in visit, or with
+        code SAVE10 on a
         <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>.
       </p>
     </div>
@@ -65,25 +101,25 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   <section class="t2-section cp-section" aria-labelledby="cp-form-h2">
     <div class="t2-section-inner">
 
-      {/* PREVIEW banner — visible so nobody mistakes this parked page for
-          a live, connected form. Remove when migrating to coupon.astro. */}
+      {/* PREVIEW banner — REMOVE when migrating to coupon.astro. */}
       <p class="cp-preview-flag" role="status">
-        ⚙ Preview — not yet connected to the loyalty platform. Submitting
-        shows the success state but sends nothing.
+        ⚙ Parked preview (noindex, unlinked). The form is <strong>live-connected</strong>
+        to the loyalty platform — submitting creates a real signup and sends
+        the $10 welcome text (SMS limited to the test allowlist until launch).
       </p>
 
       <h2 class="t-eyebrow" id="cp-form-h2" style="font-size:11px;">Sign Up</h2>
 
       {/* ---- FORM ---- */}
-      <form id="cp-form" class="cp-form" novalidate>
+      <form id="cp-form" class="cp-form" data-consent={CONSENT_TEXT} novalidate>
         <div class="cp-row cp-row-2">
           <div class="cp-field">
             <label for="cp-first">First name <span class="cp-req">*</span></label>
             <input id="cp-first" name="first_name" type="text" autocomplete="given-name" required />
           </div>
           <div class="cp-field">
-            <label for="cp-last">Last name <span class="cp-req">*</span></label>
-            <input id="cp-last" name="last_name" type="text" autocomplete="family-name" required />
+            <label for="cp-last">Last name <span class="cp-opt">(optional)</span></label>
+            <input id="cp-last" name="last_name" type="text" autocomplete="family-name" />
           </div>
         </div>
 
@@ -113,17 +149,20 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
           <input id="cp-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" />
         </div>
 
-        {/* TODO(loyalty): replace this consent copy + STOP number with the
-            counsel-confirmed 10DLC string from the loyalty platform. The
-            779-234-4062 SignalWire number is the likely STOP target (the
-            loyalty inbound handler) — CONFIRM before launch. */}
+        {/* Honeypot — hidden from humans; bots that fill it get rejected
+            server-side as `honeypot`. (spec §2 / §6) */}
+        <div class="cp-hp" aria-hidden="true">
+          <label for="cp-website">Website</label>
+          <input id="cp-website" name="website_url" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
         <label class="cp-consent">
           <input id="cp-consent" name="consent" type="checkbox" required />
           <span>
-            By signing up, you agree to receive recurring automated marketing
-            text messages from Twisted Pin at the number provided. Consent is
-            not a condition of purchase. Message &amp; data rates may apply.
-            Reply STOP to cancel, HELP for help. See our
+            By checking this box, you agree to receive recurring automated
+            marketing text messages from Twisted Pin at the number provided.
+            Consent is not a condition of purchase. Message &amp; data rates
+            may apply. Reply STOP to cancel, HELP for help. See our
             <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
           </span>
         </label>
@@ -133,19 +172,31 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
         <button type="submit" id="cp-submit" class="cp-submit">Text me my $10</button>
       </form>
 
-      {/* ---- SUCCESS PANEL (hidden until submit) ---- */}
-      <div id="cp-success" class="cp-success" hidden>
-        <p class="cp-success-eyebrow">You're in 🎉</p>
-        <h3 class="cp-success-title">Check your phone.</h3>
-        <p class="cp-success-body">
-          We just texted your $10 lane credit to the number you gave us.
-          Show it at the front desk — or use it on a
-          <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>.
+      {/* ---- SUCCESS PANEL (first_join) ---- */}
+      <div id="cp-success" class="cp-panel cp-success" hidden>
+        <p class="cp-panel-eyebrow">You're in 🎉</p>
+        <h3 class="cp-panel-title">Check your phone.</h3>
+        <p class="cp-panel-body">
+          We just texted your $10 lane credit<span id="cp-success-phone"></span>.
+          Use code <strong>SAVE10</strong> to
+          <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">book open bowling online</a>,
+          or show the text at the front desk.
         </p>
-        <p class="cp-success-note">
-          Didn't get a text in a couple minutes? Check that your number was
-          right, or just ask the front desk when you come in.
+        <p class="cp-panel-note">
+          Didn't get a text in a couple minutes? Double-check your number, or
+          ask the front desk when you come in.
         </p>
+      </div>
+
+      {/* ---- ALREADY-A-MEMBER PANEL (first_join:false) ---- */}
+      <div id="cp-already" class="cp-panel cp-already" hidden>
+        <p class="cp-panel-eyebrow">You're already in 👋</p>
+        <h3 class="cp-panel-title">You're already a member.</h3>
+        <p class="cp-panel-body">
+          The $10 is a new-member welcome, so we didn't add another — but your
+          rewards are waiting. Check your points and current perks.
+        </p>
+        <p><a class="cp-rewards-link" href="/rewards/">See your rewards →</a></p>
       </div>
 
       <p class="cp-fineprint">
@@ -155,14 +206,88 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     </div>
   </section>
 
+  {/* ============================================================
+      SEO body — unique content beneath the form so the page isn't a
+      thin form-only page (seo.md: 300+ words, internal links). Adapted
+      from the current /coupon. Targets branded + local intent; avoids
+      "free/cheap/discount bowling" per the negative-keyword list.
+      ============================================================ */}
+  <section class="t2-section" aria-labelledby="cp-info-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">How it works</p>
+      <h2 class="t-display cp-info-title" id="cp-info-h2">Two ways to use it.</h2>
+      <p class="t2-section-body">
+        Sign up and we text the $10 lane credit to your phone. Walk in and
+        show it at the front desk and we apply it to your bowling tab — or
+        use code <strong>SAVE10</strong> on a
+        <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>
+        and the $10 comes off your booking total. Either way it's for
+        <a href="/bowl/">open bowling</a> — not group events, leagues, or the
+        VIP suite.
+      </p>
+
+      <p class="t-eyebrow" style="margin-top: 36px;">What the $10 covers</p>
+      <h2 class="t-display cp-info-title">Lane time. Not the rest of the night.</h2>
+      <p class="t2-section-body">
+        The credit comes off your lane time. Lane rentals at Twisted Pin run
+        by the hour — see <a href="/pricing/">walk-in pricing</a> for the rate
+        that applies the night you're coming in (Wednesday is different than
+        Saturday). Lane shoes, food, and drinks order separately on a normal
+        tab. If your lane time runs over $10 you pay the difference; we don't
+        apply leftover credit to food, drinks, or arcade play.
+      </p>
+
+      <p class="t-eyebrow" style="margin-top: 36px;">More than the $10</p>
+      <h2 class="t-display cp-info-title">It's not just lanes.</h2>
+      <p class="t2-section-body">
+        While you're here, the rest of the venue runs in parallel —
+        <a href="/bar/">the bar program</a> curated by Brian Van Flandern,
+        America's Top Mixologist, the
+        <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>, and
+        <a href="/eat/">a from-scratch kitchen</a>. Signing up for the $10
+        also joins our text list — the fastest way to hear about what's next.
+        Already a member? Check your <a href="/rewards/">rewards</a>.
+      </p>
+    </div>
+  </section>
+
+  {/* ---- FAQ ---- */}
+  <section class="t2-section" aria-labelledby="cp-faq-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">Good to know</p>
+      <h2 class="t-display cp-info-title" id="cp-faq-h2">Questions, answered.</h2>
+      <dl class="cp-faq">
+        {FAQ.map((item) => (
+          <div class="cp-faq-item">
+            <dt>{item.q}</dt>
+            <dd>{item.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
   <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "$10 Lane Credit", path: "/coupon-preview/" },
+  ]} />
+  {/* Hand-rolled FAQPage entity (no helper in lib/schema.ts). */}
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": FAQ.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": { "@type": "Answer", "text": item.a },
+    })),
+  })} />
 </Base>
 
 {/* ============================================================
-    Inline form handler. PREVIEW MODE — validates + shows the success
-    state but performs NO network request. The real submission wiring
-    goes in the clearly-marked block below once the loyalty endpoint +
-    payload contract are provided.
+    Form handler. Posts to the server-side proxy (/api/coupon-signup),
+    which forwards to the loyalty intake webhook, and branches on the
+    response per the intake spec.
     ============================================================ */}
 <script is:inline>
   (function () {
@@ -171,10 +296,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     var errorEl = document.getElementById("cp-error");
     var submitBtn = document.getElementById("cp-submit");
     var successEl = document.getElementById("cp-success");
+    var alreadyEl = document.getElementById("cp-already");
     var mobile = document.getElementById("cp-mobile");
 
-    // Light US phone formatter — cosmetic only; raw digits are what we
-    // send. Strips to digits, formats as (XXX) XXX-XXXX up to 10.
+    // Idempotency key — one per form render. Reused across retries so a
+    // double-submit can't create a duplicate customer / double text.
+    var submissionId = (window.crypto && window.crypto.randomUUID)
+      ? window.crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.round(performance.now());
+
+    // Cosmetic US phone formatter — raw digits are what we send.
     mobile.addEventListener("input", function () {
       var d = mobile.value.replace(/\D/g, "").slice(0, 10);
       var out = d;
@@ -187,6 +318,28 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     function showError(msg) {
       errorEl.textContent = msg;
       errorEl.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Text me my $10";
+    }
+
+    function reasonMessage(reason) {
+      if (reason === "missing_phone" || reason === "invalid_phone")
+        return "Please enter a valid 10-digit mobile number.";
+      if (reason === "network_error" || reason === "upstream_error")
+        return "Something went wrong on our end — please try again in a moment.";
+      return "Sorry, that didn't go through. Please try again.";
+    }
+
+    function reveal(panel, phoneText) {
+      form.hidden = true;
+      var flag = document.querySelector(".cp-preview-flag");
+      if (flag) flag.hidden = true;
+      if (phoneText) {
+        var span = document.getElementById("cp-success-phone");
+        if (span) span.textContent = " to " + phoneText;
+      }
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
     form.addEventListener("submit", function (e) {
@@ -194,61 +347,64 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
       errorEl.hidden = true;
 
       var first = form.first_name.value.trim();
-      var last = form.last_name.value.trim();
       var phoneDigits = form.phone.value.replace(/\D/g, "");
       var consent = form.consent.checked;
 
-      if (!first || !last) return showError("Please enter your first and last name.");
+      if (!first) return showError("Please enter your first name.");
       if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
       if (!consent) return showError("Please agree to receive texts so we can send your credit.");
 
       var payload = {
         first_name: first,
-        last_name: last,
+        last_name: form.last_name.value.trim() || null,
         phone: "+1" + phoneDigits,
-        birthday_month: form.birthday_month.value || null,
-        birthday_day: form.birthday_day.value || null,
         email: form.email.value.trim() || null,
-        consent: true,
-        source: "web-coupon",
+        birthday_month: form.birthday_month.value ? parseInt(form.birthday_month.value, 10) : null,
+        birthday_day: form.birthday_day.value ? parseInt(form.birthday_day.value, 10) : null,
+        consent_marketing: true,
+        submission_id: submissionId,
+        consent_language: form.getAttribute("data-consent") || "",
+        page_url: window.location.href,
+        website_url: form.website_url.value || "",
       };
 
       submitBtn.disabled = true;
       submitBtn.textContent = "Sending…";
 
-      // ============================================================
-      // TODO(loyalty): REAL SUBMISSION GOES HERE.
-      // Expected (confirm with Jon): POST `payload` as JSON to the
-      // loyalty signup endpoint (Supabase edge fn or n8n webhook),
-      // with the right auth header + CORS allow-origin for twistedpin.com.
-      // On success → reveal #cp-success. On duplicate (already a member)
-      // → friendly "you're already in" state. On error → showError(...)
-      // and re-enable the button.
-      //
-      //   fetch("<ENDPOINT>", {
-      //     method: "POST",
-      //     headers: { "Content-Type": "application/json", /* auth */ },
-      //     body: JSON.stringify(payload),
-      //   }).then(...).catch(...);
-      // ============================================================
-
-      // --- PREVIEW MODE: simulate success, send nothing. ---
-      console.log("[coupon-preview] PREVIEW submit (not sent):", payload);
-      setTimeout(function () {
-        form.hidden = true;
-        document.querySelector(".cp-preview-flag").hidden = true;
-        successEl.hidden = false;
-        successEl.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 500);
+      fetch("/api/coupon-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (r) {
+          if (!r || r.ok !== true) {
+            // Honeypot → silently no-op (it's a bot); reset quietly.
+            if (r && r.reason === "honeypot") {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Text me my $10";
+              return;
+            }
+            return showError(reasonMessage(r && r.reason));
+          }
+          if (r.first_join || r.replayed) {
+            reveal(successEl, form.phone.value.trim());
+          } else {
+            reveal(alreadyEl);
+          }
+        })
+        .catch(function () {
+          showError("Something went wrong on our end — please try again in a moment.");
+        });
     });
   })();
 </script>
 
 <style>
   /* ============================================================
-     /coupon-preview — native loyalty signup form. Dark brand chrome
-     (indigo surface, warm-white text, glow accents). Self-contained
-     so it lifts cleanly into coupon.astro at migration.
+     /coupon-preview — native loyalty signup form + SEO body. Dark
+     brand chrome (indigo surface, warm-white text, glow accents).
+     Self-contained so it lifts cleanly into coupon.astro at migration.
      ============================================================ */
   .cp-section .t2-section-inner { max-width: 560px; }
 
@@ -263,6 +419,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     border-radius: 7px;
     font-weight: 700;
   }
+  .cp-preview-flag strong { text-decoration: underline; }
 
   .cp-form { margin-top: 14px; }
 
@@ -328,6 +485,15 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     color: var(--warm-dim);
   }
 
+  /* Honeypot — visually + assistively hidden, still focusable by bots. */
+  .cp-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
   .cp-consent {
     display: flex;
     gap: 10px;
@@ -366,15 +532,21 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
   .cp-submit:hover:not(:disabled) { background: var(--glow-dim); transform: scale(1.01); }
   .cp-submit:disabled { opacity: 0.6; cursor: default; }
 
-  /* Success panel */
-  .cp-success {
+  /* Result panels (success / already-member) */
+  .cp-panel {
     margin-top: 10px;
     padding: 24px 22px;
-    border: 1px solid rgba(78, 236, 196, 0.35);
     border-radius: var(--radius-surface);
+  }
+  .cp-success {
+    border: 1px solid rgba(78, 236, 196, 0.35);
     background: rgba(78, 236, 196, 0.06);
   }
-  .cp-success-eyebrow {
+  .cp-already {
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .cp-panel-eyebrow {
     font-family: var(--font-ui);
     font-weight: 700;
     font-size: 13px;
@@ -383,7 +555,7 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     color: var(--glow);
     margin: 0 0 6px;
   }
-  .cp-success-title {
+  .cp-panel-title {
     font-family: var(--font-display);
     font-weight: 900;
     text-transform: uppercase;
@@ -392,16 +564,20 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     color: var(--warm-white);
     margin: 0 0 12px;
   }
-  .cp-success-body {
+  .cp-panel-body {
     font-family: var(--font-body);
     font-size: 15px;
     line-height: 1.6;
     color: var(--warm-mid);
     margin: 0 0 12px;
   }
-  .cp-success-body a { color: var(--glow); text-decoration: none; }
-  .cp-success-body a:hover { text-decoration: underline; }
-  .cp-success-note {
+  .cp-panel-body strong { color: var(--warm-white); }
+  .cp-panel-body a,
+  .cp-rewards-link { color: var(--glow); text-decoration: none; }
+  .cp-panel-body a:hover,
+  .cp-rewards-link:hover { text-decoration: underline; }
+  .cp-rewards-link { font-family: var(--font-ui); font-weight: 700; font-size: 15px; }
+  .cp-panel-note {
     font-family: var(--font-body);
     font-size: 13px;
     line-height: 1.55;
@@ -417,5 +593,39 @@ const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
     font-size: 12px;
     line-height: 1.55;
     color: var(--warm-dim);
+  }
+
+  /* SEO body headings — match the /coupon recipe. */
+  .cp-info-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 10px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .cp-info-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  /* FAQ */
+  .cp-faq { margin: 14px 0 0; }
+  .cp-faq-item {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  .cp-faq-item:last-child { border-bottom: 0; }
+  .cp-faq dt {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+  }
+  .cp-faq dd {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
   }
 </style>
