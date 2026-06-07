@@ -150,6 +150,7 @@
     { "source": "/beerwall{/}?", "destination": "https://www.youtube.com/shorts/L4DcZX9PsOg", "permanent": false },
     { "source": "/review{/}?", "destination": "https://search.google.com/local/writereview?placeid=ChIJURI15Tr1DogRLKYdPWWuY-M", "permanent": false },
     { "source": "/avery{/}?", "destination": "https://script.google.com/macros/s/AKfycbxbykQ0_ryJSIPVs-ZWcaiWnAxSL1VR5f0WrXcSVDgLJxXqM-DElt477SmR3F6gdqwxtQ/exec", "permanent": false },
+    { "source": "/feedback{/}?", "destination": "https://app.giveme5.ai/twisted-pin", "permanent": false },
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true },
     { "source": "/nye{/}?", "destination": "/new-years-eve/", "permanent": true },
