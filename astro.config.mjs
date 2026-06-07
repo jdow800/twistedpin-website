@@ -54,12 +54,13 @@ export default defineConfig({
   }),
   integrations: [
     sitemap({
-      // Exclude texted-offer landing pages (/1hr, /bday + future SMS-only
-      // offer URLs). These are noindex,follow campaign links we hand out by
-      // text — keeping them out of the sitemap prevents GSC "submitted URL
-      // marked noindex" warnings. Add new offer slugs to the list.
+      // Exclude texted-offer landing pages (/1hr, /bday, /hrcard + future
+      // SMS-only offer URLs). These are noindex,follow campaign links we
+      // hand out by text — keeping them out of the sitemap prevents GSC
+      // "submitted URL marked noindex" warnings. Add new offer slugs to
+      // the list.
       filter: (page) =>
-        !['/1hr', '/bday'].some((slug) => page.includes(slug)),
+        !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
     }),
   ],
   build: {
