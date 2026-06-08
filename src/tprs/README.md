@@ -117,17 +117,20 @@ PaymentElement. Read this before touching it — the ordering is load-bearing:
 4. **Countdown + Refresh:** when the hold expires, Pay disables; **Refresh**
    re-acquires (re-checks availability — shows "filled up" if someone took it).
 
-**Payment-method GOTCHA (don't re-fight this):** the backend creates the PI with
-`automatic_payment_methods`. Stripe **forbids confirming** a PI when the Elements
-method config differs from the PI's — so `paymentMethodTypes` (manual) AND
-`allowedPaymentMethodTypes` BOTH fail to confirm ("collected using … cannot be
-confirmed through the API configured with automatic payment methods"). The client
-**must be pure automatic**, which means **method filtering can only happen in the
-Stripe Dashboard** (disable ACH / Cash App / Klarna / Affirm there). The clean
-fix is a BACKEND change: create the PI with explicit
-`payment_method_types: ['card','link']` — then the frontend can match it
-(`paymentMethodTypes: ['card','link']`) and filter in code, keeping Apple/Google
-Pay. Until then, Dashboard is the only lever.
+**Payment methods — keep the two lists in lockstep (don't re-fight this):** the
+Elements `paymentMethodTypes` MUST match the backend PI's `payment_method_types`.
+Stripe **forbids confirming** a PI when the Elements method config differs from
+the PI's. Both are now manual `['card', 'link']` — backend in
+`rail.ts` (`payment_method_types: ["card","link"]`), frontend in
+`PaymentStep.tsx` (Elements `paymentMethodTypes`). This is inline-only (no ACH /
+Cash App / Klarna / Affirm — they redirect/async and break the inline convert),
+Apple/Google Pay still ride on `card`, and there's **no Stripe-Dashboard
+dependency**. If either list changes, change the other to match or confirm fails
+("collected using payment_method_types … cannot be confirmed"). History (for
+context): the backend first shipped `automatic_payment_methods`, against which
+BOTH `paymentMethodTypes` and `allowedPaymentMethodTypes` failed to confirm — pure
+automatic was the only confirmable client config, so filtering was Dashboard-only
+until the backend switched to explicit `payment_method_types`.
 
 ## Going live — the cutover checklist
 
@@ -147,17 +150,17 @@ the live `/reserve`→Roller CTAs untouched). To stand it up for guests:
    `Disallow` + sitemap exclusion; pick the public URL; **repoint the Reserve-a-Lane
    CTAs from `ROLLER_URL` to the SPA** (the deliberate Roller→own-checkout switch).
 
-## Open backend items (coordinate in `dev/tprs`)
+## Backend items — RESOLVED (`dev/tprs`, 2026-06-08)
 
-1. **Pricing bug.** `/api/availability` applies time-windowed price rules but
-   `/api/checkout/quote` + `computeCheckoutAmountCents` use the catalog default —
-   so the cart shows a rule-priced line over a default subtotal, and bookings are
-   undercharged. Repro: product `aea165f3…`, `startTime 2026-06-13T12:30:00-05:00`
-   (Sat) → availability 7995, quote 6995. Quote + checkout-amount must apply the
-   same day-of-week + start-time rule resolution as availability.
-2. **PI payment methods.** Switch the PI from `automatic_payment_methods` to
-   explicit `payment_method_types: ['card','link']` so the frontend can match +
-   filter inline-only methods in code (see the payment-method gotcha above).
+Both verified end-to-end against staging after the backend landed them:
+
+1. ~~**Pricing bug**~~ — `dev/tprs` `36a817b` applies the time-windowed price
+   rules at quote + charge. Verified: Sat 2026-06-13 12:30 quote now 7995 (was
+   6995); PI sized at 8197 ($79.95 + $2.02 tax). No more undercharge.
+2. ~~**PI payment methods**~~ — `dev/tprs` `4d011a2` creates the PI with
+   `payment_method_types: ['card','link']`; the frontend's Elements
+   `paymentMethodTypes` matches. Verified: PI `payment_method_types` is
+   `["card","link"]`, `automatic_payment_methods: null`, full booking confirms.
 
 ## Text dialect — shared parser, no markup leaks (name / descriptions)
 
