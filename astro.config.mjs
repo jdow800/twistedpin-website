@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
+import react from '@astrojs/react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -52,7 +53,30 @@ export default defineConfig({
       formats: ['image/avif', 'image/webp'],
     },
   }),
-  integrations: [sitemap()],
+  integrations: [
+    sitemap({
+      // Exclude the internal TPRS booking-flow preview (ADR-0029 §2). The
+      // /tprs/* route is noindex,nofollow + unlinked; it must also stay out
+      // of the sitemap so it's never surfaced to crawlers. Defense-in-depth
+      // alongside the per-page robots meta + the public/robots.txt Disallow.
+      //
+      // Also exclude texted-offer landing pages (/1hr, /bday, /hrcard, and
+      // future SMS-only offer URLs). These are noindex,follow campaign links
+      // we hand out by text — keeping them out of the sitemap prevents GSC
+      // "submitted URL marked noindex" warnings. Add new offer slugs to
+      // the list.
+      filter: (page) =>
+        !page.includes('/tprs') &&
+        !page.includes('/coupon-preview') &&
+        !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
+    }),
+    // React islands for the TPRS customer booking flow (ADR-0029 §1 — the
+    // booking experience lives in this Astro repo as framework islands, not a
+    // standalone SPA). The marketing site stays static; only /tprs hydrates a
+    // client:only React wizard. Stripe's first-party React SDK is the reason
+    // React (not another framework) is the island runtime per ADR-0029.
+    react(),
+  ],
   build: {
     // Inline ALL stylesheets into the HTML head (was 'auto', which only
     // inlined files <4KB). Both render-blocking sheets on the homepage
@@ -73,6 +97,50 @@ export default defineConfig({
   },
   vite: {
     server: {
+      // Dev proxy for the TPRS customer-flow API (ADR-0029 §3 cross-origin
+      // story, dev variant). The Astro dev origin (localhost:4321) and the
+      // TPRS backend (localhost:3000) are different origins; rather than
+      // wrangle CORS + the Secure/Domain-pinned cart cookie on localhost
+      // http, the booking islands fetch a same-origin `/tprs-api/*` path
+      // that Vite proxies to the backend. Dev-only — a deployed preview
+      // points the client at PUBLIC_TPRS_API_BASE (a real API host) instead.
+      // Start the backend with `pnpm dev` in dev/tprs/apps/backend first.
+      //
+      // The `rewrite` does two things: (1) strip the `/tprs-api` prefix so
+      // `/tprs-api/api/products/bookable` → `/api/products/bookable`; (2) strip
+      // the trailing slash the client adds before the query string. That slash
+      // is load-bearing: this site runs `trailingSlash: 'always'`, so Astro
+      // 404s a non-slash path BEFORE the Vite proxy can forward it — the client
+      // (src/tprs/client.ts) appends `/` for dev-proxy requests, and we remove
+      // it here because the backend's Fastify routes are no-trailing-slash.
+      proxy: {
+        '/tprs-api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (p) =>
+            p.replace(/^\/tprs-api/, '').replace(/\/(\?|$)/, '$1'),
+          // Belt-and-suspenders cookie fix for the dev proxy. The backend now
+          // serializes the cart-token cookie env-aware (drops Domain + Secure in
+          // dev), so this is REDUNDANT against current main — but it also makes
+          // the booking flow work against an older backend that still pins the
+          // prod attrs (`Domain=.book.twistedpin.com; Secure`), which a browser
+          // on http://localhost would reject (so the hold never sticks and
+          // payment-intents 400s). Strips Domain + Secure from Set-Cookie in DEV
+          // ONLY (this proxy is dev-only); HttpOnly + SameSite=Lax stay, and the
+          // SPA reads cartToken from the response body, never the cookie. Safe to
+          // delete once everyone's on the env-aware backend.
+          configure: (proxy) => {
+            proxy.on('proxyRes', (proxyRes) => {
+              const sc = proxyRes.headers['set-cookie'];
+              if (sc) {
+                proxyRes.headers['set-cookie'] = sc.map((c) =>
+                  c.replace(/;\s*Domain=[^;]+/i, '').replace(/;\s*Secure/i, ''),
+                );
+              }
+            });
+          },
+        },
+      },
       fs: {
         // Worktrees live at <repo>/.claude/worktrees/<name>/, but node_modules
         // (motion, @fontsource/*, ...) is hoisted to the repo root. Vite's
