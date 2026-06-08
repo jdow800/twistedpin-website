@@ -59,7 +59,7 @@ const FAQ = [
   },
   {
     q: "What can I use it on?",
-    a: "Open (walk-in or online) bowling. It comes off your lane time — not group events, leagues, or the VIP suite. Lane shoes and anything from the bar or kitchen run on a normal tab.",
+    a: "Bowling — open bowling or the VIP suite, walk-in or reserved online with code SAVE10. It comes off your lane time; lane shoes and anything from the bar or kitchen run on a normal tab.",
   },
   {
     q: "Does the $10 credit expire?",
@@ -183,10 +183,6 @@ const FAQ = [
           <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">book open bowling online</a>,
           or show the text at the front desk.
         </p>
-        <p class="cp-panel-note">
-          Didn't get a text in a couple minutes? Double-check your number, or
-          ask the front desk when you come in.
-        </p>
       </div>
 
       {/* ---- ALREADY-A-MEMBER PANEL (first_join:false) ---- */}
@@ -200,10 +196,6 @@ const FAQ = [
         <p><a class="cp-rewards-link" href="/rewards/">See your rewards →</a></p>
       </div>
 
-      <p class="cp-fineprint">
-        Valid for open bowling only — not events, leagues, or the VIP suite.
-        One credit per customer. Can't be combined with other offers.
-      </p>
     </div>
   </section>
 
@@ -222,9 +214,10 @@ const FAQ = [
         show it at the front desk and we apply it to your bowling tab — or
         use code <strong>SAVE10</strong> on a
         <a href="https://ecom.roller.app/twistedpin/openbowl/en-us/home" target="_blank" rel="noopener">lane reservation online</a>
-        and the $10 comes off your booking total. Either way it's for
-        <a href="/bowl/">open bowling</a> — not group events, leagues, or the
-        VIP suite.
+        and the $10 comes off your booking total. Use it on
+        <a href="/bowl/">open bowling</a> or take over the
+        <a href="/vip-suite/">VIP suite</a> — walk in or reserve online,
+        either works.
       </p>
 
       <p class="t-eyebrow" style="margin-top: 36px;">What the $10 covers</p>
@@ -681,23 +674,6 @@ const FAQ = [
   .cp-panel-body a:hover,
   .cp-rewards-link:hover { text-decoration: underline; }
   .cp-rewards-link { font-family: var(--font-ui); font-weight: 700; font-size: 15px; }
-  .cp-panel-note {
-    font-family: var(--font-body);
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--warm-dim);
-    margin: 0;
-  }
-
-  .cp-fineprint {
-    margin-top: 28px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(244, 239, 227, 0.08);
-    font-family: var(--font-body);
-    font-size: 12px;
-    line-height: 1.55;
-    color: var(--warm-dim);
-  }
 
   /* SEO body headings — match the /coupon recipe. */
   .cp-info-title {
