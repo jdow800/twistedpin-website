@@ -10,25 +10,35 @@ and every `ROLLER_URL` CTA are untouched — the cutover is a separate, gated st
 > bold / color / links / line breaks to TPRS fields (names, descriptions,
 > category subtitles) + the allowed brand-color names (glow, copper, tango, …).
 
-## What's here (Slice 1 — lean read-only cut)
+## What's here (full flow — real checkout)
 
-`date → grouped product grid → detail (time-slot + lane qty) → add-ons →
-guest details (+ ADR-0030 form renderer + "Have a code?")`. It performs **no
-backend writes** — no cart-hold, no PaymentIntent, no convert.
+`date/slot → grouped product grid → detail (time-slot + lane qty / guest stepper)
+→ add-ons → guest details (+ ADR-0030 form renderer, gated on required fields +
+"Have a code?") → real Stripe payment → convert → confirmation w/ invoice`. It
+**writes to the backend**: cart-hold, PaymentIntent, convert (real bookings +
+email). Proven end-to-end against staging with a test card. The earlier
+"read-only Slice 1" framing is retired.
 
 ```
 src/tprs/
   schemas/        VENDORED copy of @tprs/shared-schemas (see "Vendored schemas")
-  client.ts       typed API client (reads + coupon-preview), parses every response
-  pageConfig.ts   ADR-0025 §1 pageConfig (terms + UX copy)
+  client.ts       typed API client — reads + coupon-preview + quote + cart-hold +
+                  payment-intents + convert (TprsCheckoutError carries the code)
+  pageConfig.ts   ADR-0025 §1 pageConfig (terms + UX copy + guestSteppers)
+  text-dialect/   shared product-copy markup parser/emitters (see "Text dialect")
   README.md        this file
 src/components/tprs/
   BookingWizard.tsx   single client:only React island, useReducer state machine
-  state.ts            reducer + derived selectors
+  state.ts            reducer + derived selectors (incl. booking result, ZIP regex)
+  stripe.ts           Stripe.js singleton + brand Appearance
+  Markdown.tsx        React emitter over text-dialect
   format.ts           cents/time/date/calendar helpers
-  StickySummary.tsx   running subtotal bar (honest "taxes & fees at checkout")
-  FormRenderer.tsx    ADR-0030 §5.1 generic form renderer (all 8 field types)
-  steps/              DateStep, ProductGridStep, DetailStep, AddOnsStep, GuestDetailsStep
+  StickySummary.tsx   cart rail — server-authoritative subtotal / sales tax / total
+  FormRenderer.tsx    ADR-0030 §5.1 generic form renderer (all field types + validity)
+  guestStepper.ts     base-package + per-guest add-on resolver (birthday packages)
+  useAvailability/useQuote/useMediaQuery   hooks
+  steps/              MainStep, DetailStep, AddOnsStep, GuestDetailsStep,
+                      PaymentStep (real Stripe), ConfirmationStep
   tprs.css            scoped styles on the global design tokens
 src/pages/tprs/index.astro   the noindex host page
 ```
@@ -40,16 +50,24 @@ src/pages/tprs/index.astro   the noindex host page
 2. **Website** — here: `npm run dev` (Astro on `:4321`).
 3. Open `http://localhost:4321/tprs/`.
 
+> Use **`npm run dev`**, not `pnpm dev` — pnpm v11's build-script approval gate
+> (esbuild/sharp) blocks `pnpm dev` here; `npm run dev` runs the same `astro dev`.
+> Also: `TaskStop`/Ctrl-C on `npm run dev` can leave the astro child alive on the
+> port — if a restart says "port in use," kill the stale node on 4321–4323.
+
 The booking islands fetch a same-origin `/tprs-api/*` path that the Vite dev
 proxy (`astro.config.mjs`) forwards to the backend. Same-origin sidesteps CORS
-and the `Secure`/`Domain`-pinned cart cookie on localhost http (ADR-0029 §3 dev
-variant). No backend edit is needed for the read-only flow.
+and the cart-token cookie. **Cart cookie in dev:** the backend serializes it
+env-aware now (drops `Domain`/`Secure` on localhost), and the proxy *also* strips
+them as belt-and-suspenders — without one of those the `Secure`/`Domain`-pinned
+cookie a browser on http://localhost rejects, the hold never sticks, and
+`/checkout/payment-intents` 400s "No active cart" (ADR-0029 §3).
 
-> **Thin catalog today:** `GET /api/products/bookable` currently returns one
-> product ("8 Lane Rental", $70), no images, no real categories, and no attached
-> forms. The flow degrades gracefully (branded fallback tile, single-bucket grid,
-> dormant form renderer). Real imagery/categories/forms come from the backend
-> "presentable catalog" + ADR-0030 seed work upstream.
+**Stripe key:** `PUBLIC_STRIPE_PUBLISHABLE_KEY` (a `pk_test_…`) lives in
+`dev/Website/.env` (gitignored). The backend's `dev/tprs/.env` carries the
+matching `STRIPE_SECRET_KEY` + (for emails) a Resend key — note a local backend
+may lack the Resend key, in which case confirmation emails *enqueue* but don't
+send (they send on Render staging, which has it).
 
 ## Vendored schemas — keep in lockstep
 
@@ -75,26 +93,71 @@ The Vite proxy is dev-only. To run the preview on a Vercel deployment, set
 `PUBLIC_TPRS_API_BASE` to a reachable API host (e.g. `https://api.twistedpin.com`)
 — which then requires CORS allowlisting of the Website origin on the backend.
 
-## Slice 2 gates (NOT done here — coordinate in `dev/tprs` / infra)
+## Checkout (the real payment path) — how it works + gotchas
 
-Cart-commit + payment + convert are deferred because they need changes this repo
-can't make:
+`PaymentStep.tsx` runs the ADR-0025 §4 two-step flow with Stripe's **deferred**
+PaymentElement. Read this before touching it — the ordering is load-bearing:
 
-1. **Cart-token cookie amendment (backend).** The cart cookie is hardcoded
-   `Domain=.book.twistedpin.com; Secure; SameSite=Lax`
-   (`dev/tprs/apps/backend/src/server.ts`) — dead on localhost http and pinned to
-   the wrong parent domain for the `twistedpin.com` plan. This is the ADR-0029 §3
-   cross-ADR cookie amendment: make the serialization environment-aware (drop
-   `Secure` + the `Domain` attribute in dev; scope to `.twistedpin.com` in prod).
-2. **Stripe provisioning.** Publishable key + Express Checkout / PaymentElement
-   wiring (Link on, pay-later off per ADR-0029); Apple/Google Pay domain
-   verification.
-3. **`api.twistedpin.com` host + CORS** for any non-local preview.
+1. **On mount:** `POST /api/cart/items` (lane only) acquires the **10-minute**
+   capacity hold + sets the cart-token cookie. The response body carries
+   `cartToken` (we read it from there, never the HttpOnly cookie) + `holdExpiresAt`
+   (drives the countdown).
+2. **Render:** `<Elements mode="payment" amount=…>` — *deferred*, so the
+   PaymentElement renders WITHOUT a PaymentIntent. **Why deferred:**
+   `/checkout/payment-intents` resets the hold to a **60-second** grace
+   (`extendCartHoldsForPayment`). If we created the PI on mount (non-deferred),
+   the guest would get 60s to type a card → expiry + a charge-then-stuck trap.
+   Deferred keeps the full 10 min on the form; the 60s grace only starts at Pay.
+3. **On Pay:** `elements.submit()` → `POST /api/checkout/payment-intents` (server
+   sizes the amount authoritatively from the cart cookie) → `stripe.confirmPayment`
+   (`redirect:'if_required'`, inline for card + 3DS) → `POST /api/checkout/convert`
+   (`cartToken` from step 1, `paymentIntentId`, `formAnswers`, `acceptedTerms`).
+   Convert is idempotent: a transient post-charge failure re-runs convert only
+   (button → "Finish reservation"), never a second `confirmPayment`.
+4. **Countdown + Refresh:** when the hold expires, Pay disables; **Refresh**
+   re-acquires (re-checks availability — shows "filled up" if someone took it).
 
-When those land: wire `POST /api/cart/items` (hold + countdown) at the
-"Continue" out of guest details, then `payment-intents` → Stripe → `convert`. The
-wizard state already carries `items` + `formAnswers` in the shape those calls
-need.
+**Payment-method GOTCHA (don't re-fight this):** the backend creates the PI with
+`automatic_payment_methods`. Stripe **forbids confirming** a PI when the Elements
+method config differs from the PI's — so `paymentMethodTypes` (manual) AND
+`allowedPaymentMethodTypes` BOTH fail to confirm ("collected using … cannot be
+confirmed through the API configured with automatic payment methods"). The client
+**must be pure automatic**, which means **method filtering can only happen in the
+Stripe Dashboard** (disable ACH / Cash App / Klarna / Affirm there). The clean
+fix is a BACKEND change: create the PI with explicit
+`payment_method_types: ['card','link']` — then the frontend can match it
+(`paymentMethodTypes: ['card','link']`) and filter in code, keeping Apple/Google
+Pay. Until then, Dashboard is the only lever.
+
+## Going live — the cutover checklist
+
+The build is deliberately isolated (`noindex`, `Disallow: /tprs/`, unlinked, and
+the live `/reserve`→Roller CTAs untouched). To stand it up for guests:
+
+1. **Prod backend** — deploy `dev/tprs` to a real host (staging is on Render).
+2. **`PUBLIC_TPRS_API_BASE`** (Vercel env) → that host, OR a same-origin Vercel
+   rewrite `twistedpin.com/tprs-api/*` → backend (simplest for the cart cookie).
+3. **Cart cookie / CORS** — same-origin (rewrite) just works; cross-origin needs
+   CORS allowlist + cookie scoped `.twistedpin.com` + `SameSite=None`. (Backend
+   cookie is env-aware; the dev-proxy cookie rewrite is dev-only.)
+4. **Stripe → live** — `pk_live` (Vercel) + live secret (backend) + **Apple Pay
+   domain registration** + repoint the Stripe **webhook** at the prod backend.
+5. **Resend** — prod key + verified sending domain (else emails enqueue, don't send).
+6. **Un-hide + cut over** — drop `noindex` (`index.astro`) + the robots
+   `Disallow` + sitemap exclusion; pick the public URL; **repoint the Reserve-a-Lane
+   CTAs from `ROLLER_URL` to the SPA** (the deliberate Roller→own-checkout switch).
+
+## Open backend items (coordinate in `dev/tprs`)
+
+1. **Pricing bug.** `/api/availability` applies time-windowed price rules but
+   `/api/checkout/quote` + `computeCheckoutAmountCents` use the catalog default —
+   so the cart shows a rule-priced line over a default subtotal, and bookings are
+   undercharged. Repro: product `aea165f3…`, `startTime 2026-06-13T12:30:00-05:00`
+   (Sat) → availability 7995, quote 6995. Quote + checkout-amount must apply the
+   same day-of-week + start-time rule resolution as availability.
+2. **PI payment methods.** Switch the PI from `automatic_payment_methods` to
+   explicit `payment_method_types: ['card','link']` so the frontend can match +
+   filter inline-only methods in code (see the payment-method gotcha above).
 
 ## Text dialect — shared parser, no markup leaks (name / descriptions)
 
