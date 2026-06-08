@@ -117,6 +117,7 @@ export default function StickySummary({
   onRemoveLane,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [taxesOpen, setTaxesOpen] = useState(false);
   const [bumping, setBumping] = useState(false);
   const subtotal = lineItemSubtotalCents(state);
   const discount = couponDiscountCents(state);
@@ -133,7 +134,7 @@ export default function StickySummary({
     count === 0
       ? "Pick a date and your lanes"
       : quote
-        ? `${count} item${count === 1 ? "" : "s"} · incl. tax`
+        ? `${count} item${count === 1 ? "" : "s"} · incl. taxes & fees`
         : quoteLoading && !quoteUnavailable
           ? `${count} item${count === 1 ? "" : "s"} · calculating tax…`
           : `${count} item${count === 1 ? "" : "s"} · taxes & fees at checkout`;
@@ -270,35 +271,76 @@ export default function StickySummary({
           </div>
         )}
 
-        {/* Server-authoritative totals — only when the quote endpoint responds. */}
-        {quote && (
-          <div className={`tprs-summary-totals${quoteLoading ? " is-loading" : ""}`}>
-            <div className="tprs-tot-row">
-              <span>Subtotal</span>
-              <span>{formatUsd(quote.subtotalExcludingTax)}</span>
+        {/* Server-authoritative totals — only when the quote endpoint responds.
+            Fees (online booking fee) are untaxed lines folded into
+            subtotalExcludingTax; we subtract them so "Subtotal" reads as
+            products-only, and group tax + fees under an expandable
+            "Taxes & fees" line so nothing is hidden in the subtotal. */}
+        {quote && (() => {
+          const fees = quote.fees ?? [];
+          const feesTotal = fees.reduce((s, f) => s + f.amountCents, 0);
+          const productsSubtotal = quote.subtotalExcludingTax - feesTotal;
+          const taxesAndFees = quote.taxBreakdown.totalTax + feesTotal;
+          const hasBreakdown = taxesAndFees > 0;
+          return (
+            <div className={`tprs-summary-totals${quoteLoading ? " is-loading" : ""}`}>
+              <div className="tprs-tot-row">
+                <span>Subtotal</span>
+                <span>{formatUsd(productsSubtotal)}</span>
+              </div>
+              <button
+                type="button"
+                className="tprs-tot-row tprs-tot-toggle"
+                aria-expanded={taxesOpen}
+                disabled={!hasBreakdown}
+                onClick={() => setTaxesOpen((o) => !o)}
+              >
+                <span className="tprs-tot-label">
+                  Taxes &amp; fees
+                  {hasBreakdown && (
+                    <span className="tprs-tot-caret" aria-hidden="true">
+                      {taxesOpen ? "▲" : "▼"}
+                    </span>
+                  )}
+                </span>
+                <span>{formatUsd(taxesAndFees)}</span>
+              </button>
+              {taxesOpen && hasBreakdown && (
+                <>
+                  {itemizeTax ? (
+                    <>
+                      <div className="tprs-tot-row tprs-tot-sub">
+                        <span>Shoe rental tax</span>
+                        <span>{formatUsd(quote.taxBreakdown.shoesRentalTax)}</span>
+                      </div>
+                      <div className="tprs-tot-row tprs-tot-sub">
+                        <span>Food &amp; beverage tax</span>
+                        <span>{formatUsd(quote.taxBreakdown.foodBeverageTax)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    quote.taxBreakdown.totalTax > 0 && (
+                      <div className="tprs-tot-row tprs-tot-sub">
+                        <span>Sales tax</span>
+                        <span>{formatUsd(quote.taxBreakdown.totalTax)}</span>
+                      </div>
+                    )
+                  )}
+                  {fees.map((f, i) => (
+                    <div className="tprs-tot-row tprs-tot-sub" key={`fee-${i}`}>
+                      <span>{f.name}</span>
+                      <span>{formatUsd(f.amountCents)}</span>
+                    </div>
+                  ))}
+                </>
+              )}
+              <div className="tprs-tot-row tprs-tot-grand">
+                <span>Total</span>
+                <span>{formatUsd(quote.totalIncludingTax)}</span>
+              </div>
             </div>
-            {itemizeTax && (
-              <>
-                <div className="tprs-tot-row tprs-tot-sub">
-                  <span>Shoe rental tax</span>
-                  <span>{formatUsd(quote.taxBreakdown.shoesRentalTax)}</span>
-                </div>
-                <div className="tprs-tot-row tprs-tot-sub">
-                  <span>Food &amp; beverage tax</span>
-                  <span>{formatUsd(quote.taxBreakdown.foodBeverageTax)}</span>
-                </div>
-              </>
-            )}
-            <div className="tprs-tot-row">
-              <span>Sales tax</span>
-              <span>{formatUsd(quote.taxBreakdown.totalTax)}</span>
-            </div>
-            <div className="tprs-tot-row tprs-tot-grand">
-              <span>Total</span>
-              <span>{formatUsd(quote.totalIncludingTax)}</span>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <div className="tprs-summary-inner">

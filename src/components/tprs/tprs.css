@@ -603,6 +603,11 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
 .tprs-tot-sub span:last-child { font-weight: 600; color: var(--tw-text-muted); }
 .tprs-tot-grand { font-size: 15px; color: var(--tw-text); margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--tw-border); }
 .tprs-tot-grand span { font-weight: 800 !important; }
+/* "Taxes & fees" expander — a row-shaped button revealing the tax/fee breakdown. */
+.tprs-tot-toggle { width: 100%; border: 0; background: none; margin: 0; cursor: pointer; text-align: left; align-items: baseline; }
+.tprs-tot-toggle:disabled { cursor: default; }
+.tprs-tot-caret { font-size: 10px; color: var(--tw-text-muted); }
+.tprs-tot-toggle .tprs-tot-label { display: inline-flex; align-items: baseline; gap: 4px; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
 
 .tprs-summary-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; }
 .tprs-summary-figures { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; background: none; }

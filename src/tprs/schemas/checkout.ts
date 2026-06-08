@@ -187,10 +187,29 @@ export const quoteTaxBreakdownSchema = z.object({
 });
 export type QuoteTaxBreakdown = z.infer<typeof quoteTaxBreakdownSchema>;
 
+/**
+ * Customer-visible fee line (e.g. the online booking fee). Integer cents.
+ * NOTE: `subtotalExcludingTax` ALREADY INCLUDES these fee amounts (untaxed
+ * lines folded into the untaxed subtotal). To show a products-only subtotal,
+ * subtract the fee total; the fees are surfaced here so the guest sees each one
+ * as its own line rather than an unexplained higher subtotal. Empty when none.
+ */
+export const quoteFeeSchema = z.object({
+  name: z.string(),
+  amountCents: z.number().int(),
+});
+export type QuoteFee = z.infer<typeof quoteFeeSchema>;
+
 /** Response for `POST /api/checkout/quote` (all amounts integer cents). */
 export const quoteResponseSchema = z.object({
   subtotalExcludingTax: z.number().int(),
   taxBreakdown: quoteTaxBreakdownSchema,
+  /**
+   * Customer-visible fees folded into `subtotalExcludingTax` (see quoteFeeSchema).
+   * `.default([])` so an older backend response (pre-fee field) still parses on
+   * the client — decouples backend/frontend deploy order.
+   */
+  fees: z.array(quoteFeeSchema).default([]),
   totalIncludingTax: z.number().int(),
 });
 export type QuoteResponse = z.infer<typeof quoteResponseSchema>;
