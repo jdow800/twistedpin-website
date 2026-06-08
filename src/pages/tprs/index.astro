@@ -1,0 +1,87 @@
+---
+/**
+ * /tprs — internal TPRS booking-flow preview (ADR-0029 §2).
+ *
+ * NOT a customer-facing page. It is:
+ *   - noindex,nofollow (the <Fragment slot="head"> below),
+ *   - excluded from the sitemap (astro.config.mjs sitemap filter),
+ *   - Disallow'd in robots.txt,
+ *   - unlinked from nav / footer / CTAs.
+ *
+ * It exists only so Jon can click through the React booking islands against the
+ * live TPRS customer-flow API (ADR-0025). It does NOT touch the live
+ * /reserve → Roller path or any ROLLER_URL CTA — that cutover is a separate,
+ * gated launch step.
+ *
+ * Slice 1 (lean read-only cut): date → grouped grid → detail (time-slot + lane
+ * qty) → add-ons → guest details (+ ADR-0030 form renderer + "Have a code?").
+ * Stops before cart-commit / payment. The wizard is a single client:only React
+ * island — `client:only` (not `client:load`) because the flow is fully dynamic,
+ * fetches everything client-side, and has no meaningful SSR content (the site
+ * is static-output; there's no server to render against).
+ *
+ * Local run: start the TPRS backend (`pnpm dev` in dev/tprs/apps/backend) so
+ * the Vite dev proxy (/tprs-api → :3000) has something to forward to. See
+ * src/tprs/README.md.
+ */
+import Base from "../../layouts/Base.astro";
+import BookingWizard from "../../components/tprs/BookingWizard.tsx";
+import { bookingPageConfig } from "../../tprs/pageConfig";
+
+const { uxCopy } = bookingPageConfig;
+---
+<Base
+  title="Book a Lane — Twisted Pin (preview)"
+  description="Internal booking-flow preview."
+  hideStickyCTA={true}
+>
+  {/* noindex,nofollow — internal preview, never indexed (ADR-0029 §2). */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  <section class="tprs-intro" data-hero aria-labelledby="tprs-h1">
+    <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+    <h1 class="t-display tprs-intro-headline" id="tprs-h1">{uxCopy.headline}</h1>
+    <p class="tprs-intro-sub">{uxCopy.sub}</p>
+  </section>
+
+  {/* Single multi-step React island. client:only="react" — no SSR pass.
+      `config` drives which products show: this generic page passes the default
+      (no productCodes → full bookable catalog). A curated page (e.g. /nye) is a
+      copy of this file that imports its own pageConfig with productCodes set —
+      same wizard, different config + copy + imagery (ADR-0025 §1).
+
+      The mount wrapper reserves min-height so the footer doesn't jump when the
+      client:only island hydrates (CLS). The flow is on-brand dark; readability
+      comes from the Montserrat sentence-case type + lifted contrast, not a
+      light background (the v3.0 cream variant was retired — see chat). */}
+  <div class="tprs-mount">
+    <BookingWizard client:only="react" config={bookingPageConfig} />
+  </div>
+</Base>
+
+<style>
+  .tprs-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 28px) 18px 26px;
+    text-align: center;
+  }
+  .tprs-intro-headline {
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    margin: 6px 0 10px;
+  }
+  .tprs-intro-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+  /* Reserve space for the client:only island so the footer doesn't jump on
+     hydrate (CLS). Matches the wizard's own min-height. */
+  .tprs-mount {
+    min-height: 70vh;
+  }
+</style>

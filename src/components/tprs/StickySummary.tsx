@@ -1,0 +1,360 @@
+// "Your selections" (v3 pass). ONE component, two presentations via CSS:
+//   - mobile: fixed bottom bar; tap the figures to expand the editable lines.
+//   - desktop: a sticky right-rail panel with a "Your selections" header and the
+//     lines always visible.
+// Lines are editable inline (qty steppers; Remove for add-ons), aligned in a
+// fixed column grid (K). The cart icon BUMPS when the item count rises (G).
+//
+// Total is SERVER-AUTHORITATIVE when a quote is present: the headline shows
+// `quote.totalIncludingTax` and the expanded block itemizes Subtotal / Sales tax
+// / Total. Tax is NEVER computed client-side. Until the quote endpoint responds
+// (e.g. it's still 404 on the backend), it falls back to the pre-tax line-item
+// subtotal labeled "taxes & fees at checkout".
+
+import { useEffect, useRef, useState } from "react";
+import {
+  lineItemSubtotalCents,
+  couponDiscountCents,
+  guestComplete,
+  laneMaxFor,
+  type WizardState,
+} from "./state";
+import { formatUsd } from "./format";
+import { toPlainText } from "../../tprs/text-dialect";
+import { flyToCart } from "./flyToCart";
+import { scrollPageToBottom } from "./scroll";
+import Markdown from "./Markdown";
+import type { QuoteResponse } from "../../tprs/schemas";
+
+interface Props {
+  state: WizardState;
+  /** Server-authoritative subtotal+tax+total; null until the endpoint responds. */
+  quote: QuoteResponse | null;
+  quoteLoading: boolean;
+  /** Quote endpoint 404'd — not live yet; don't show a "calculating" state. */
+  quoteUnavailable: boolean;
+  /** Required booking-form fields satisfied (gates the guest → payment step). */
+  formComplete: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onLaneQty: (qty: number) => void;
+  onAddOnQty: (addOnId: string, qty: number) => void;
+  onRemoveLane: () => void;
+}
+
+interface Line {
+  key: string;
+  kind: "lane" | "addon";
+  id?: string;
+  name: string;
+  /** Markup-stripped name for aria-labels (no dialect tokens read aloud). */
+  plainName: string;
+  /** Short description under the name (lane only — add-ons lack it in the API). */
+  desc?: string;
+  qty: number;
+  cents: number;
+  min: number;
+  max: number;
+}
+
+function lineItems(state: WizardState): Line[] {
+  const lines: Line[] = [];
+  if (state.slot && state.product) {
+    lines.push({
+      key: "lane",
+      kind: "lane",
+      name: state.product.name,
+      plainName: toPlainText(state.product.name),
+      desc: state.product.shortDescription || undefined,
+      qty: state.laneQty,
+      cents: state.slot.priceCents * state.laneQty,
+      min: 1,
+      max: laneMaxFor(state.product),
+    });
+  }
+  if (state.product) {
+    for (const a of state.product.addOnProducts) {
+      const q = state.addOnQtys[a.id] ?? 0;
+      if (q > 0) {
+        lines.push({
+          key: a.id,
+          kind: "addon",
+          id: a.id,
+          name: a.name,
+          plainName: toPlainText(a.name),
+          desc: a.shortDescription || undefined,
+          qty: q,
+          cents: a.defaultPriceCents * q,
+          min: a.isRequired ? (a.minQuantity ?? 1) : 0,
+          max: a.maxQuantity ?? 99,
+        });
+      }
+    }
+  }
+  return lines;
+}
+
+function itemCount(state: WizardState): number {
+  const lanes = state.slot ? state.laneQty : 0;
+  const addOns = Object.values(state.addOnQtys).reduce((s, q) => s + q, 0);
+  return lanes + addOns;
+}
+
+function addOnsSelected(state: WizardState): boolean {
+  return Object.values(state.addOnQtys).some((q) => q > 0);
+}
+
+export default function StickySummary({
+  state,
+  quote,
+  quoteLoading,
+  quoteUnavailable,
+  formComplete,
+  onBack,
+  onNext,
+  onLaneQty,
+  onAddOnQty,
+  onRemoveLane,
+}: Props) {
+  const [open, setOpen] = useState(false);
+  const [bumping, setBumping] = useState(false);
+  const subtotal = lineItemSubtotalCents(state);
+  const discount = couponDiscountCents(state);
+  const net = Math.max(0, subtotal - discount);
+  const count = itemCount(state);
+  const lines = lineItems(state);
+
+  // Headline = server total (incl. tax) when available, else pre-tax fallback.
+  const displayTotal = quote ? quote.totalIncludingTax : net;
+  const tax = quote?.taxBreakdown;
+  const itemizeTax =
+    !!tax && tax.shoesRentalSubtotal > 0 && tax.foodBeverageSubtotal > 0;
+  const caption =
+    count === 0
+      ? "Pick a date and your lanes"
+      : quote
+        ? `${count} item${count === 1 ? "" : "s"} · incl. tax`
+        : quoteLoading && !quoteUnavailable
+          ? `${count} item${count === 1 ? "" : "s"} · calculating tax…`
+          : `${count} item${count === 1 ? "" : "s"} · taxes & fees at checkout`;
+
+  // G — bump the cart when the count rises (add-to-cart feedback).
+  const prevCount = useRef(count);
+  useEffect(() => {
+    if (count > prevCount.current) setBumping(true);
+    prevCount.current = count;
+  }, [count]);
+
+  // Publish the (mobile) cart bar's live height to `--tprs-cart-h` so the page's
+  // bottom padding tracks it — collapsed OR expanded — and content can always
+  // scroll clear of it (fixes the expanded cart chopping off "How many lanes?").
+  const asideRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = asideRef.current;
+    if (!el) return;
+    const publish = () =>
+      document.documentElement.style.setProperty(
+        "--tprs-cart-h",
+        `${el.offsetHeight}px`,
+      );
+    publish();
+    const ro = new ResizeObserver(publish);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // When the cart is expanded on mobile, scroll to the (now taller) bottom so
+  // the content above it bumps up into view rather than getting covered.
+  const prevOpen = useRef(open);
+  useEffect(() => {
+    if (open && !prevOpen.current && window.innerWidth < 1025) {
+      scrollPageToBottom();
+    }
+    prevOpen.current = open;
+  }, [open]);
+
+  function changeLine(line: Line, qty: number) {
+    if (line.kind === "lane") onLaneQty(qty);
+    else if (line.id) onAddOnQty(line.id, qty);
+  }
+
+  let ctaLabel: string | null = null;
+  let ctaEnabled = false;
+  if (state.step === "detail") {
+    ctaLabel = "Continue";
+    ctaEnabled = state.slot !== null && state.laneQty >= 1;
+  } else if (state.step === "addons") {
+    ctaLabel = addOnsSelected(state) ? "Continue" : "Skip Add-ons";
+    ctaEnabled = true;
+  } else if (state.step === "guest") {
+    ctaLabel = "Continue to payment";
+    // Both the guest fields AND any required booking-form fields must be done.
+    ctaEnabled = guestComplete(state.guest) && formComplete;
+  }
+  // No payment-step CTA here — the Stripe <PaymentElement> form owns the Pay
+  // button (it must live inside the <Elements> provider). The sticky bar keeps
+  // showing the authoritative total + Back.
+
+  const showBack = state.step !== "main";
+
+  return (
+    <aside
+      ref={asideRef}
+      className="tprs-summary"
+      role="region"
+      aria-label="Your selections"
+    >
+      <div className="tprs-summary-head">Your selections</div>
+
+      <div className={`tprs-summary-items${open ? " is-open" : ""}`}>
+        {lines.length === 0 ? (
+          <p className="tprs-summary-empty">Nothing added yet.</p>
+        ) : (
+          lines.map((l) => (
+            <div className="tprs-line" key={l.key}>
+              <span className="tprs-line-name">
+                <span className="tprs-line-name-text">
+                  <Markdown text={l.name} inline />
+                </span>
+                {l.desc && (
+                  <span className="tprs-line-desc">
+                    <Markdown text={l.desc} inline />
+                  </span>
+                )}
+              </span>
+              <span className="tprs-line-qty" role="group" aria-label={`${l.plainName} quantity`}>
+                <button
+                  type="button"
+                  className="tprs-line-step"
+                  aria-label={l.kind === "lane" && l.qty <= 1 ? `Remove ${l.plainName}` : `Fewer ${l.plainName}`}
+                  disabled={l.kind === "addon" && l.qty <= l.min}
+                  onClick={() => {
+                    if (l.kind === "lane" && l.qty <= 1) onRemoveLane();
+                    else changeLine(l, l.qty - 1);
+                  }}
+                >
+                  −
+                </button>
+                <span className="tprs-line-count">{l.qty}</span>
+                <button
+                  type="button"
+                  className="tprs-line-step"
+                  aria-label={`More ${l.plainName}`}
+                  disabled={l.qty >= l.max}
+                  onClick={(e) => {
+                    changeLine(l, l.qty + 1);
+                    flyToCart(e.currentTarget);
+                  }}
+                >
+                  +
+                </button>
+              </span>
+              <span className="tprs-line-price">{formatUsd(l.cents)}</span>
+              <button
+                type="button"
+                className="tprs-line-remove"
+                aria-label={`Remove ${l.plainName}`}
+                onClick={() => (l.kind === "addon" && l.id ? onAddOnQty(l.id, 0) : onRemoveLane())}
+              >
+                ✕
+              </button>
+            </div>
+          ))
+        )}
+        {discount > 0 && (
+          <div className="tprs-line is-discount">
+            <span className="tprs-line-name">Code applied</span>
+            <span />
+            <span className="tprs-line-price">−{formatUsd(discount)}</span>
+            <span className="tprs-line-remove tprs-line-remove--empty" />
+          </div>
+        )}
+
+        {/* Server-authoritative totals — only when the quote endpoint responds. */}
+        {quote && (
+          <div className={`tprs-summary-totals${quoteLoading ? " is-loading" : ""}`}>
+            <div className="tprs-tot-row">
+              <span>Subtotal</span>
+              <span>{formatUsd(quote.subtotalExcludingTax)}</span>
+            </div>
+            {itemizeTax && (
+              <>
+                <div className="tprs-tot-row tprs-tot-sub">
+                  <span>Shoe rental tax</span>
+                  <span>{formatUsd(quote.taxBreakdown.shoesRentalTax)}</span>
+                </div>
+                <div className="tprs-tot-row tprs-tot-sub">
+                  <span>Food &amp; beverage tax</span>
+                  <span>{formatUsd(quote.taxBreakdown.foodBeverageTax)}</span>
+                </div>
+              </>
+            )}
+            <div className="tprs-tot-row">
+              <span>Sales tax</span>
+              <span>{formatUsd(quote.taxBreakdown.totalTax)}</span>
+            </div>
+            <div className="tprs-tot-row tprs-tot-grand">
+              <span>Total</span>
+              <span>{formatUsd(quote.totalIncludingTax)}</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="tprs-summary-inner">
+        <button
+          type="button"
+          className="tprs-summary-figures"
+          aria-expanded={open}
+          disabled={lines.length === 0}
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span
+            className={`tprs-summary-cart${bumping ? " is-bump" : ""}`}
+            aria-hidden="true"
+            onAnimationEnd={() => setBumping(false)}
+          >
+            🛒
+          </span>
+          <span className="tprs-summary-figures-text">
+            <span className="tprs-summary-total">
+              {!quote && discount > 0 && <s>{formatUsd(subtotal)}</s>}
+              {formatUsd(displayTotal)}
+              {lines.length > 0 && (
+                <span className="tprs-summary-chevron">{open ? "⌄" : "⌃"}</span>
+              )}
+            </span>
+            <span className="tprs-summary-caption">{caption}</span>
+          </span>
+        </button>
+
+        <div className="tprs-summary-actions">
+          {showBack && (
+            <button
+              type="button"
+              className="tprs-btn tprs-btn--ghost tprs-btn--small"
+              onClick={onBack}
+            >
+              Back
+            </button>
+          )}
+          {ctaLabel && (
+            <button
+              type="button"
+              className="tprs-btn tprs-btn--solid"
+              disabled={!ctaEnabled}
+              onClick={onNext}
+              title={
+                state.step === "payment"
+                  ? "Preview — no card is charged"
+                  : undefined
+              }
+            >
+              {ctaLabel}
+            </button>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
