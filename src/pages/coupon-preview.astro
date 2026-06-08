@@ -543,6 +543,14 @@ const FAQ = [
     background-position: right 12px center;
     padding-right: 36px;
   }
+  /* Open-dropdown option list — the native popup renders on a light
+     background, so the inherited warm-white text was invisible. Give the
+     options an explicit dark background + light text (respected on
+     Windows/Linux Chrome; macOS uses its native menu rendering). */
+  .cp-form select option {
+    background-color: var(--indigo);
+    color: var(--warm-white);
+  }
   .cp-form input::placeholder { color: var(--warm-dim); }
   .cp-form input:focus,
   .cp-form select:focus {
