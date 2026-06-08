@@ -50,6 +50,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     last_name: input.last_name ?? null,
     email: input.email ?? null,
     consent_marketing: input.consent_marketing === true,
+    phone_type: input.phone_type ?? null, // 'mobile'|'landline'|'voip' from Twilio Lookup (db/026)
     birthday_month: input.birthday_month ?? null,
     birthday_day: input.birthday_day ?? null,
     submission_id: input.submission_id ?? null,
