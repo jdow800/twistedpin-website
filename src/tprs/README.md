@@ -87,11 +87,23 @@ Rules:
 - Only the customer-facing subset is vendored: `common`, `customer-flow`, `cart`,
   `checkout`, `forms`.
 
-## Deployed preview (not local)
+## Deployed (preview + prod) — the same-origin proxy
 
-The Vite proxy is dev-only. To run the preview on a Vercel deployment, set
-`PUBLIC_TPRS_API_BASE` to a reachable API host (e.g. `https://api.twistedpin.com`)
-— which then requires CORS allowlisting of the Website origin on the backend.
+The Vite proxy is dev-only. In preview/prod a root **`middleware.ts`** (Vercel
+Routing Middleware) proxies `/tprs-api/* → https://api.twistedpin.com/*`, keeping
+the SPA same-origin so the cart cookie stays host-only on twistedpin.com (no CORS,
+`PUBLIC_TPRS_API_BASE` stays UNSET).
+
+**Why middleware, not a `vercel.json` rewrite:** the rewrite silently 404s here —
+`vercel.json` rewrites are "afterFiles" and the `@astrojs/vercel` adapter's
+catch-all 404 shadows them (redirects run earlier, so they work; rewrites don't).
+Middleware runs before routing. It buffers the upstream body + strips
+`content-encoding`/`content-length`/`transfer-encoding` (fetch already decoded the
+body — forwarding those truncates it). The dead `vercel.json` rewrite is left in
+place, harmless. Full rationale in `middleware.ts`.
+
+(The alternative — `PUBLIC_TPRS_API_BASE = https://api.twistedpin.com` cross-origin
+— was rejected: it needs CORS allowlisting + cross-site cookie handling.)
 
 ## Checkout (the real payment path) — how it works + gotchas
 
@@ -137,12 +149,13 @@ until the backend switched to explicit `payment_method_types`.
 The build is deliberately isolated (`noindex`, `Disallow: /tprs/`, unlinked, and
 the live `/reserve`→Roller CTAs untouched). To stand it up for guests:
 
-1. **Prod backend** — deploy `dev/tprs` to a real host (staging is on Render).
-2. **`PUBLIC_TPRS_API_BASE`** (Vercel env) → that host, OR a same-origin Vercel
-   rewrite `twistedpin.com/tprs-api/*` → backend (simplest for the cart cookie).
-3. **Cart cookie / CORS** — same-origin (rewrite) just works; cross-origin needs
-   CORS allowlist + cookie scoped `.twistedpin.com` + `SameSite=None`. (Backend
-   cookie is env-aware; the dev-proxy cookie rewrite is dev-only.)
+1. **Prod backend** — `dev/tprs` is live at `api.twistedpin.com` (Render).
+2. **Proxy is already wired** — `middleware.ts` proxies `/tprs-api/*` →
+   `api.twistedpin.com` same-origin (see "Deployed" above). `PUBLIC_TPRS_API_BASE`
+   stays UNSET. Nothing to change at cutover.
+3. **Cart cookie** — works as-is: the backend sets it host-only (no Domain) +
+   Secure, so re-served from `www.twistedpin.com` over HTTPS it scopes host-only
+   to the site. No CORS, no cookie rewriting needed.
 4. **Stripe → live** — `pk_live` (Vercel) + live secret (backend) + **Apple Pay
    domain registration** + repoint the Stripe **webhook** at the prod backend.
 5. **Resend** — prod key + verified sending domain (else emails enqueue, don't send).

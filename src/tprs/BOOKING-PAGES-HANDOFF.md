@@ -22,9 +22,18 @@ point at Roller and **don't touch them yet**.
 
 - **Same-origin.** Booking lives on the marketing site (`twistedpin.com/<url>`),
   NOT a separate `book.` subdomain. The SPA fetches **`/tprs-api/*`** (same-origin
-  → no CORS, cart cookie stays host-only). A **Vercel rewrite** (`vercel.json`)
-  forwards `/tprs-api/* → https://api.twistedpin.com/*`; `astro.config.mjs` does
-  the same in dev (→ `localhost:3000`).
+  → no CORS, cart cookie stays host-only). In preview/prod a root
+  **`middleware.ts`** (Vercel Routing Middleware) proxies
+  `/tprs-api/* → https://api.twistedpin.com/*`; `astro.config.mjs`'s Vite proxy
+  does the same in dev (→ `localhost:3000`).
+  - **NOT a `vercel.json` rewrite.** That was the first attempt and it silently
+    fails here: `vercel.json` rewrites are "afterFiles" and the `@astrojs/vercel`
+    adapter's catch-all 404 shadows them (redirects work, rewrites don't — that's
+    why `/reserve-preview` loaded but "Couldn't load the lanes" 404'd the API).
+    Middleware runs BEFORE routing, so it intercepts `/tprs-api/*` first. It
+    buffers the body + strips wire-encoding headers (else fetch's already-decoded
+    body gets re-decoded + truncated). The dead `vercel.json` rewrite is left in
+    place (harmless, ignored). See `middleware.ts` for the full why.
   - **`PUBLIC_TPRS_API_BASE` must stay UNSET on Vercel** (defaults to `/tprs-api`).
     Setting it to a cross-origin host re-introduces CORS + cookie pain.
   - The backend runs `ignoreTrailingSlash`, so the site's `trailingSlash:'always'`
