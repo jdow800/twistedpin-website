@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import DateStrip from "../DateStrip";
-import { getBookableProducts, getProducts } from "../../../tprs/client";
+import { getBookableProducts } from "../../../tprs/client";
 import type {
   BookableCategory,
   CustomerProduct,
@@ -41,15 +41,25 @@ export default function MainStep({
 
   useEffect(() => {
     const ctrl = new AbortController();
-    const load =
-      productCodes && productCodes.length > 0
-        ? getProducts(productCodes, ctrl.signal).then((res) =>
-            res.products.length
-              ? [{ slug: null, label: "", subtitle: "", products: res.products }]
-              : [],
-          )
-        : getBookableProducts(ctrl.signal).then((res) => res.categories);
-    load
+    const codes = productCodes;
+    // Always load the GROUPED bookable catalog so the category headers +
+    // subtitles ("VIP Suite Lanes · up to 6 guests…") render. A curated page
+    // (productCodes set) keeps that grouping — we just filter each category down
+    // to the curated codes and drop any category left empty. (The flat
+    // /api/products?codes= endpoint loses the grouping + the per-category
+    // subtitle that feeds the detail-screen capacity helper, so we don't use it
+    // for the grid.)
+    getBookableProducts(ctrl.signal)
+      .then((res) =>
+        codes && codes.length > 0
+          ? res.categories
+              .map((c) => ({
+                ...c,
+                products: c.products.filter((p) => codes.includes(p.code)),
+              }))
+              .filter((c) => c.products.length > 0)
+          : res.categories,
+      )
       .then((cats) => setCategories(cats))
       .catch(() => {
         if (ctrl.signal.aborted) return;
