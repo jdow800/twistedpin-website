@@ -15,6 +15,7 @@ import {
   couponDiscountCents,
 } from "./state";
 import { useQuote } from "./useQuote";
+import { useStepHistory } from "./useStepHistory";
 import { toIsoWithOffset } from "./format";
 import type {
   CheckoutItem,
@@ -44,6 +45,11 @@ interface Props {
 
 export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
+
+  // Browser/OS Back button steps back through the wizard instead of leaving the
+  // page (critical on mobile). State-only history — URL stays /reserve-preview/.
+  useStepHistory(state, dispatch);
+
   const currentIdx = STEP_ORDER.indexOf(state.step);
   const isDone = state.step === "confirmation";
   const progressPct = isDone
@@ -131,13 +137,13 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   }, [state.step, noAddOns]);
 
   const handleBack = useCallback(() => {
-    // Mirror the add-ons skip when stepping back.
-    if (state.step === "guest" && noAddOns) {
-      dispatch({ type: "GO_STEP", step: "detail" });
-      return;
-    }
-    dispatch({ type: "BACK" });
-  }, [state.step, noAddOns]);
+    // Unify the in-wizard Back with the browser/OS Back: both go through history
+    // so the step ↔ history mirror stays in sync (useStepHistory maps popstate →
+    // the previous step, honoring the add-ons skip via the entry it pops to). At
+    // the first step there's nothing to step back to in-wizard.
+    if (state.step === "main") return;
+    history.back();
+  }, [state.step]);
 
   // Stable identity so FormRenderer's answer effect doesn't loop.
   const handleFormAnswers = useCallback(
