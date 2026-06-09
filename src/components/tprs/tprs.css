@@ -535,6 +535,7 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
   padding: 14px 24px;
   border-radius: var(--radius-button);
   white-space: nowrap;
+  text-decoration: none;                 /* also used on <a> (confirmation CTA) */
   transition: background-color 150ms ease, transform 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 .tprs-btn--solid { background: var(--tw-btn-bg); color: var(--tw-btn-text); }
@@ -701,6 +702,18 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
 .tprs-confirm-total { border-top: 1px solid var(--tw-border); margin-top: 6px; padding-top: 10px; font-size: 16px; }
 .tprs-confirm-email { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin: 0 0 22px; }
 .tprs-confirm-email strong { color: var(--tw-text); }
+/* Quiet secondary action under the primary "Back to twistedpin.com" button. */
+.tprs-confirm-again {
+  display: block;
+  margin: 14px auto 0;
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--tw-text-dim);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.tprs-confirm-again:hover { color: var(--tw-text); }
 
 /* ── States ─────────────────────────────────────────────────────────── */
 .tprs-loading, .tprs-error { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); padding: 28px 0; text-align: center; }

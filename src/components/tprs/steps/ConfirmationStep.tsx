@@ -63,8 +63,11 @@ export default function ConfirmationStep({
         <strong>{guestEmail || "your email"}</strong>.
       </p>
 
-      <button type="button" className="tprs-btn tprs-btn--solid" onClick={onReset}>
-        Book another
+      <a href="/" className="tprs-btn tprs-btn--solid">
+        Back to twistedpin.com
+      </a>
+      <button type="button" className="tprs-confirm-again" onClick={onReset}>
+        Book another reservation
       </button>
     </div>
   );
