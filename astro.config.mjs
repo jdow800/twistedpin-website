@@ -61,10 +61,10 @@ export default defineConfig({
       // alongside the per-page robots meta + the public/robots.txt Disallow.
       //
       // Also exclude texted-offer landing pages (/1hr, /bday, /hrcard, and
-      // future SMS-only offer URLs). These are noindex,follow campaign links
-      // we hand out by text — keeping them out of the sitemap prevents GSC
-      // "submitted URL marked noindex" warnings. Add new offer slugs to
-      // the list.
+      // future SMS-only offer URLs) + the parked previews (/coupon-preview,
+      // /reserve-preview). These are noindex campaign / preview links —
+      // keeping them out of the sitemap prevents GSC "submitted URL marked
+      // noindex" warnings. Add new offer/preview slugs to the list.
       filter: (page) =>
         !page.includes('/tprs') &&
         !page.includes('/coupon-preview') &&
