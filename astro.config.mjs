@@ -68,6 +68,7 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/tprs') &&
         !page.includes('/coupon-preview') &&
+        !page.includes('/reserve-preview') &&
         !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
     }),
     // React islands for the TPRS customer booking flow (ADR-0029 §1 — the

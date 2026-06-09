@@ -1,0 +1,86 @@
+---
+/**
+ * /reserve-preview — PARKED customer-facing preview of the new TPRS booking flow.
+ *
+ * This is the temp home of the real booking experience while the backend runs on
+ * Stripe TEST mode + the temp Supabase staging DB. It is the customer-facing
+ * sibling of the internal /tprs sandbox: same <BookingWizard>, but at the URL
+ * that mirrors its final home so the cutover is a clean slide-over.
+ *
+ * Protections (same parked-preview pattern as /coupon-preview):
+ *   - noindex,nofollow (the <Fragment slot="head"> below),
+ *   - excluded from the sitemap (astro.config.mjs filter),
+ *   - Disallow'd in robots.txt,
+ *   - unlinked from nav / footer / CTAs (all "Reserve a Lane" CTAs still go to
+ *     Roller — the live booking path is unchanged).
+ *
+ * **Cutover (Roller → TPRS), when the backend is on Stripe LIVE + prod DB:**
+ *   1. `git mv` this file → src/pages/reserve.astro (drops the -preview suffix).
+ *   2. Remove the `/reserve{/}?` → Roller redirect in vercel.json (a page at
+ *      /reserve can't coexist with a redirect — the redirect wins).
+ *   3. Repoint the 3 CTA components (StickyCTABar, SiteHeader, NavDrawer) from
+ *      the hardcoded Roller URL to `/reserve`.
+ *   4. Remove the noindex meta + the robots.txt Disallow + the sitemap filter
+ *      entry; add /reserve to the sitemap.
+ *
+ * Same-origin model (decided 2026-06-08, hosting-recommendation.md §5b): the
+ * SPA calls `/tprs-api/*`; dev proxies to localhost:3000 (astro.config.mjs), and
+ * the deployed site needs a vercel.json rewrite `/tprs-api/* → the Render
+ * backend` for this page to reach the API off-localhost.
+ */
+import Base from "../layouts/Base.astro";
+import BookingWizard from "../components/tprs/BookingWizard.tsx";
+import { bookingPageConfig } from "../tprs/pageConfig";
+
+const { uxCopy } = bookingPageConfig;
+---
+<Base
+  title="Reserve a Lane — Twisted Pin"
+  description="Book your lanes at Twisted Pin."
+  hideStickyCTA={true}
+>
+  {/* noindex,nofollow — parked preview until the Roller→TPRS cutover. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  <section class="tprs-intro" data-hero aria-labelledby="tprs-h1">
+    <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+    <h1 class="t-display tprs-intro-headline" id="tprs-h1">{uxCopy.headline}</h1>
+    <p class="tprs-intro-sub">{uxCopy.sub}</p>
+  </section>
+
+  {/* Single multi-step React island — client:only="react" (no SSR pass; the
+      flow fetches everything client-side). `config` = the default open-bowl
+      page (no productCodes → full bookable catalog). Curated children
+      (/reserve-preview/vip-suite, /reserve-preview/birthdays) are copies of this
+      file importing their own pageConfig with productCodes set. */}
+  <div class="tprs-mount">
+    <BookingWizard client:only="react" config={bookingPageConfig} />
+  </div>
+</Base>
+
+<style>
+  .tprs-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 28px) 18px 26px;
+    text-align: center;
+  }
+  .tprs-intro-headline {
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    margin: 6px 0 10px;
+  }
+  .tprs-intro-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+  /* Reserve space for the client:only island so the footer doesn't jump on
+     hydrate (CLS). Matches the wizard's own min-height. */
+  .tprs-mount {
+    min-height: 70vh;
+  }
+</style>
