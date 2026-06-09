@@ -23,8 +23,11 @@ import {
 /** Chips visible at once — ~4 on mobile, ~7 on desktop (wider strip). */
 const WINDOW_MOBILE = 4;
 const WINDOW_DESKTOP = 7;
-/** How far ahead to look for a product's first open day (smart-forward). */
-const FORWARD_HORIZON_MONTHS = 4;
+/** How far ahead to look for a product's first open day (smart-forward). Kept
+ *  low (2) because each cold month-availability compute is ~20-25s on the
+ *  backend; decide-on-first (below) means a product open THIS month only ever
+ *  costs one compute, and we reach into month 2 only if month 1 is empty. */
+const FORWARD_HORIZON_MONTHS = 2;
 
 interface Props {
   productCodes?: number[];
@@ -75,24 +78,21 @@ export default function DateStrip({
     }
     if (forwardedFor.current === productId || availability.loadingProbe) return;
 
-    // Need the horizon's months loaded before we can decide (else wait — the
-    // effect re-runs when the availability cache updates).
-    const horizon: string[] = [];
-    for (let i = 0, m = monthOf(today); i < FORWARD_HORIZON_MONTHS; i++) {
-      horizon.push(m);
-      m = shiftMonth(m, 1);
-    }
-    horizon.forEach((m) => availability.ensureMonth(m));
-    if (!horizon.every((m) => availability.isMonthLoaded(m))) return;
-
-    // First open day from today within the horizon.
+    // Decide-on-first: walk the horizon months IN ORDER and jump to the first
+    // open day in the first month that has one — reaching into the next month
+    // ONLY if this one loaded empty. So a product open this month costs ONE
+    // ~20-25s cold compute, not the whole horizon fired at once (which also made
+    // the backend self-contend on the cold computes). We wait per-month: if the
+    // current month isn't loaded yet, bail and let the effect re-run when its
+    // cache lands.
     let firstOpen: string | null = null;
-    const limit = addDays(today, FORWARD_HORIZON_MONTHS * 31);
-    for (let d = today; d <= limit; d = addDays(d, 1)) {
-      if (availability.isAvailable(d)) {
-        firstOpen = d;
-        break;
-      }
+    let m = monthOf(today);
+    for (let i = 0; i < FORWARD_HORIZON_MONTHS; i++, m = shiftMonth(m, 1)) {
+      availability.ensureMonth(m);
+      if (!availability.isMonthLoaded(m)) return; // wait for THIS month, then re-run
+      firstOpen = firstOpenDay(m, today, availability.isAvailable);
+      if (firstOpen) break; // found it — don't fetch further months
+      // month loaded but empty → fall through to the next one
     }
 
     forwardedFor.current = productId; // decided — don't fight the guest after this
@@ -118,6 +118,11 @@ export default function DateStrip({
 
   const canGoBack = windowStart > today;
   const monthLabel = formatMonthLabel(monthOf(windowStart)).toUpperCase();
+  // Honest loading: are any visible days' months still computing? (The backend
+  // compute is slow — show "checking…" rather than letting chips read as open
+  // then flip to greyed.)
+  const checking =
+    availability.loadingProbe || days.some((d) => availability.isPending(d));
 
   return (
     <div className="tprs-datestrip">
@@ -134,7 +139,12 @@ export default function DateStrip({
         </button>
       </div>
 
-      <p className="tprs-datestrip-month">{monthLabel}</p>
+      <p className="tprs-datestrip-month">
+        {monthLabel}
+        {checking && (
+          <span className="tprs-datestrip-checking"> · checking availability…</span>
+        )}
+      </p>
 
       <div className="tprs-datestrip-row">
         <button
@@ -154,6 +164,7 @@ export default function DateStrip({
 
         <div className="tprs-datestrip-chips">
           {days.map((date) => {
+            const pending = availability.isPending(date);
             const avail = availability.isAvailable(date);
             const isSel = date === selected;
             const isToday = date === today;
@@ -162,11 +173,12 @@ export default function DateStrip({
               <button
                 key={date}
                 type="button"
-                disabled={!avail}
+                disabled={pending || !avail}
                 aria-pressed={isSel}
+                aria-busy={pending || undefined}
                 className={[
                   "tprs-chip",
-                  avail ? "is-available" : "",
+                  pending ? "is-pending" : avail ? "is-available" : "",
                   isSel ? "is-selected" : "",
                 ]
                   .filter(Boolean)
@@ -200,4 +212,20 @@ export default function DateStrip({
       )}
     </div>
   );
+}
+
+/** First selectable day within `month`, today-or-later. The month must already
+ *  be loaded so `isAvailable` is authoritative (not optimistic-true). */
+function firstOpenDay(
+  month: string,
+  today: string,
+  isAvailable: (d: string) => boolean,
+): string | null {
+  const monthStart = `${month}-01`;
+  const start = monthStart < today ? today : monthStart;
+  const nextMonthStart = `${shiftMonth(month, 1)}-01`;
+  for (let d = start; d < nextMonthStart; d = addDays(d, 1)) {
+    if (isAvailable(d)) return d;
+  }
+  return null;
 }

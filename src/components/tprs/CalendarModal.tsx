@@ -97,19 +97,21 @@ export default function CalendarModal({
           {grid.map((cell, i) => {
             if (cell.date === null)
               return <div key={`b-${i}`} className="tprs-cal-cell is-empty" />;
+            const pending = availability.isPending(cell.date);
             const avail = isAvailable(cell.date);
-            const price = avail ? availability.priceFor(cell.date) : null;
+            const price = !pending && avail ? availability.priceFor(cell.date) : null;
             const isSel = cell.date === selected;
             const isToday = cell.date === today;
             return (
               <button
                 key={cell.date}
                 type="button"
-                disabled={!avail}
+                disabled={pending || !avail}
                 aria-pressed={isSel}
+                aria-busy={pending || undefined}
                 className={[
                   "tprs-cal-cell",
-                  avail ? "is-available" : "",
+                  pending ? "is-pending" : avail ? "is-available" : "",
                   isSel ? "is-selected" : "",
                   isToday && !isSel ? "is-today" : "",
                 ]

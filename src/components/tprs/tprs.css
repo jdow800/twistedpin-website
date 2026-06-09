@@ -168,6 +168,26 @@
 .tprs-chip:disabled .tprs-chip-day { text-decoration: line-through; text-decoration-thickness: 2px; }
 .tprs-chip-dow { font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
 .tprs-chip-day { font-size: 18px; font-weight: 800; line-height: 1; }
+/* "Checking availability…" — the day's month is still computing on the (slow)
+   backend. Shimmer instead of reading as open then flipping to crossed-out. */
+.tprs-chip.is-pending {
+  opacity: 1;
+  border-style: solid;
+  cursor: progress;
+  color: var(--tw-text-dim);
+  background-image: linear-gradient(100deg, var(--tw-surface) 40%, var(--tw-surface-hover) 50%, var(--tw-surface) 60%);
+  background-size: 200% 100%;
+  animation: tprs-shimmer 1.1s ease-in-out infinite;
+}
+.tprs-chip.is-pending .tprs-chip-day { text-decoration: none; }
+.tprs-datestrip-checking { color: var(--tw-accent); font-weight: 600; letter-spacing: 0; }
+@keyframes tprs-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tprs-chip.is-pending, .tprs-cal-cell.is-pending { animation: none; }
+}
 
 .tprs-cal-arrow {
   flex-shrink: 0;
@@ -253,6 +273,17 @@
 .tprs-cal-cell.is-available:hover { background: var(--tw-surface-hover); border-color: var(--tw-accent); }
 .tprs-cal-cell.is-today { border-color: var(--tw-accent); }
 .tprs-cal-cell.is-selected { background: var(--tw-sel-bg); color: var(--tw-sel-text); border-color: var(--tw-sel-bg); }
+.tprs-cal-cell.is-pending {
+  opacity: 1;
+  border-style: solid;
+  cursor: progress;
+  color: var(--tw-text-dim);
+  text-decoration: none;
+  background-image: linear-gradient(100deg, var(--tw-surface) 40%, var(--tw-surface-hover) 50%, var(--tw-surface) 60%);
+  background-size: 200% 100%;
+  animation: tprs-shimmer 1.1s ease-in-out infinite;
+}
+.tprs-cal-cell.is-pending .tprs-cal-day { text-decoration: none; }
 .tprs-cal-legend { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-family: var(--font-body); font-size: 12px; color: var(--tw-text-muted); }
 .tprs-cal-legend-swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--tw-surface); border: 1px dashed var(--tw-border-strong); opacity: 0.6; }
 
