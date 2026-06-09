@@ -35,6 +35,13 @@ export const customerAddOnProductSchema = z.object({
   minQuantity: z.number().int(),
   maxQuantity: z.number().int().nullable(),
   isRequired: z.boolean(),
+  /**
+   * Add-on thumbnail — NOT in the backend's add-on projection yet (the parent
+   * product carries thumbnailUrl; add-ons don't). Optional+defaulted so this
+   * parses clean today and the AddOnsStep image lights up the moment the
+   * backend projects the field (mirror in @tprs/shared-schemas when it ships).
+   */
+  thumbnailUrl: z.string().nullable().optional().default(null),
 });
 export type CustomerAddOnProduct = z.infer<typeof customerAddOnProductSchema>;
 

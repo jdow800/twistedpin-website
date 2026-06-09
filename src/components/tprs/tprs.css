@@ -161,7 +161,9 @@
   font-family: var(--font-ui);
   color: var(--tw-text);
 }
-.tprs-chip.is-available:hover { border-color: var(--tw-accent); }
+@media (hover: hover) {
+  .tprs-chip.is-available:not(.is-selected):hover { border-color: var(--tw-accent); }
+}
 .tprs-chip.is-selected { background: var(--tw-sel-bg); color: var(--tw-sel-text); border-color: var(--tw-sel-bg); }
 /* Closed day in the strip — crossed out + dashed so it reads as unavailable. */
 .tprs-chip:disabled { opacity: 0.5; cursor: not-allowed; border-style: dashed; }
@@ -181,6 +183,9 @@
 }
 .tprs-chip.is-pending .tprs-chip-day { text-decoration: none; }
 .tprs-datestrip-checking { color: var(--tw-accent); font-weight: 600; letter-spacing: 0; }
+/* Auto-forward notice — the strip jumped off a booked-out day; say so. */
+.tprs-datestrip-note { font-family: var(--font-body); font-size: 13px; line-height: 1.45; color: var(--tw-text-muted); margin: 8px 0 0; }
+.tprs-datestrip-note strong { color: var(--tw-accent); font-weight: 600; }
 @keyframes tprs-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
@@ -270,7 +275,9 @@
   background: none;
   border-style: dashed;
 }
-.tprs-cal-cell.is-available:hover { background: var(--tw-surface-hover); border-color: var(--tw-accent); }
+@media (hover: hover) {
+  .tprs-cal-cell.is-available:not(.is-selected):hover { background: var(--tw-surface-hover); border-color: var(--tw-accent); }
+}
 .tprs-cal-cell.is-today { border-color: var(--tw-accent); }
 .tprs-cal-cell.is-selected { background: var(--tw-sel-bg); color: var(--tw-sel-text); border-color: var(--tw-sel-bg); }
 .tprs-cal-cell.is-pending {
@@ -341,8 +348,20 @@
   font-family: var(--font-ui);
   color: var(--tw-text);
 }
-.tprs-slot.is-available:hover { border-color: var(--tw-accent); background: var(--tw-surface-hover); }
-.tprs-slot.is-selected { background: var(--tw-sel-bg); color: var(--tw-sel-text); border-color: var(--tw-sel-bg); }
+/* Hover ONLY on devices that hover — on touch, Android keeps :hover stuck on
+   the last-tapped element, and this rule's specificity (0-3-0) beat
+   .is-selected (0-2-0), so the just-selected slot rendered the hover style
+   (dim surface + accent border = "blacked out") instead of the solid Glow. */
+@media (hover: hover) {
+  .tprs-slot.is-available:not(.is-selected):hover { border-color: var(--tw-accent); background: var(--tw-surface-hover); }
+}
+.tprs-slot.is-selected,
+.tprs-slot.is-selected:hover {
+  background: var(--tw-sel-bg);
+  color: var(--tw-sel-text);
+  border-color: var(--tw-sel-bg);
+  box-shadow: 0 0 0 3px rgba(78, 236, 196, 0.22);
+}
 .tprs-slot-time { display: block; font-size: 14px; font-weight: 700; }
 .tprs-slot-price { display: block; font-size: 12px; margin-top: 2px; opacity: 0.8; }
 
@@ -439,6 +458,9 @@
 
 /* ── Add-on rows ────────────────────────────────────────────────────── */
 .tprs-addon-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--tw-border); }
+/* Add-on image (when the catalog carries one) — small, never a layout-breaker. */
+.tprs-addon-thumb { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; flex-shrink: 0; border: 1px solid var(--tw-border); }
+.tprs-addon-main { flex: 1; min-width: 0; }
 .tprs-addon-name { font-family: var(--font-ui); font-weight: 700; font-size: 14px; color: var(--tw-text); }
 .tprs-addon-desc { font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); margin-top: 2px; }
 .tprs-addon-price { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin-top: 2px; }

@@ -175,6 +175,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       {state.step === "main" && (
         <MainStep
           productCodes={config.productCodes}
+          showDescriptions={config.cardDescriptions !== false}
           selectedDate={state.date}
           onPickDate={(date) => dispatch({ type: "SET_DATE", date })}
           onSelectProduct={(category, product) =>
@@ -217,6 +218,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             laneQty={state.laneQty}
             addOnQtys={state.addOnQtys}
             guestStepper={guestStepper}
+            showDescriptions={config.cardDescriptions !== false}
             onEdit={() => dispatch({ type: "GO_STEP", step: "detail" })}
           />
         )}

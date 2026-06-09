@@ -18,6 +18,7 @@ import {
   monthOf,
   shiftMonth,
   formatMonthLabel,
+  formatDateLong,
 } from "./format";
 
 /** Chips visible at once — ~4 on mobile, ~7 on desktop (wider strip). */
@@ -64,27 +65,37 @@ export default function DateStrip({
     monthsShown.forEach((m) => availability.ensureMonth(m));
   }, [days, availability]);
 
-  // Smart-forward (smarter than Roller): when a SPECIFIC product is in view
-  // (detail screen → `productId` set) and the current date isn't bookable for it
-  // — e.g. the Suite Birthday only runs Sat/Sun with a 7-day lead, so "today"
-  // shows nothing — jump the picker to that product's soonest open day instead
-  // of leaving the guest staring at an empty grid. Runs ONCE per product, and
-  // never overrides a date the guest themselves picked that IS available.
+  // Smart-forward (smarter than Roller): when the current date isn't bookable —
+  // for THE product on the detail screen, or for ANY of the page's products on
+  // the curated main screen (e.g. browsing after close, or a booked-out
+  // Saturday) — jump the picker to the soonest open day instead of leaving the
+  // guest staring at greyed chips / an empty grid, and SAY SO (the note below).
+  // Runs ONCE per probe, and never overrides a date the guest themselves picked
+  // that is (or may still turn out to be) available.
+  const probeKey =
+    productId ??
+    (productCodes && productCodes.length > 0
+      ? `codes:${productCodes.join(",")}`
+      : null);
   const forwardedFor = useRef<string | null>(null);
+  const [forwardNote, setForwardNote] = useState<{
+    fromToday: boolean;
+    to: string;
+  } | null>(null);
+  useEffect(() => setForwardNote(null), [probeKey]);
   useEffect(() => {
-    if (!productId) {
+    if (!probeKey) {
       forwardedFor.current = null;
       return;
     }
-    if (forwardedFor.current === productId || availability.loadingProbe) return;
+    if (forwardedFor.current === probeKey || availability.loadingProbe) return;
 
     // Decide-on-first: walk the horizon months IN ORDER and jump to the first
     // open day in the first month that has one — reaching into the next month
     // ONLY if this one loaded empty. So a product open this month costs ONE
-    // ~20-25s cold compute, not the whole horizon fired at once (which also made
-    // the backend self-contend on the cold computes). We wait per-month: if the
-    // current month isn't loaded yet, bail and let the effect re-run when its
-    // cache lands.
+    // availability compute, not the whole horizon fired at once. We wait
+    // per-month: if the current month isn't loaded yet, bail and let the
+    // effect re-run when its cache lands.
     let firstOpen: string | null = null;
     let m = monthOf(today);
     for (let i = 0; i < FORWARD_HORIZON_MONTHS; i++, m = shiftMonth(m, 1)) {
@@ -95,12 +106,20 @@ export default function DateStrip({
       // month loaded but empty → fall through to the next one
     }
 
-    forwardedFor.current = productId; // decided — don't fight the guest after this
-    const selectionValid = selected != null && availability.isAvailable(selected);
+    forwardedFor.current = probeKey; // decided — don't fight the guest after this
+    // A pick whose month hasn't loaded for THIS probe yet counts as valid —
+    // don't stomp a deliberate far-future date while its verdict is in flight.
+    const selectionValid =
+      selected != null &&
+      (availability.isAvailable(selected) || availability.isPending(selected));
     if (firstOpen && !selectionValid && selected !== firstOpen) {
+      setForwardNote({
+        fromToday: selected == null || selected === today,
+        to: firstOpen,
+      });
       onPick(firstOpen);
     }
-  }, [productId, selected, availability, today, onPick]);
+  }, [probeKey, selected, availability, today, onPick]);
 
   // If a date is picked that's OUTSIDE the visible window (e.g. from the
   // calendar modal), rotate the strip to center on it so they can page left or
@@ -115,6 +134,12 @@ export default function DateStrip({
       return centered < today ? today : centered;
     });
   }, [selected, windowSize, today]);
+
+  // A deliberate pick dismisses the auto-forward note (the guest took over).
+  const manualPick = (date: string) => {
+    setForwardNote(null);
+    onPick(date);
+  };
 
   const canGoBack = windowStart > today;
   const monthLabel = formatMonthLabel(monthOf(windowStart)).toUpperCase();
@@ -183,7 +208,7 @@ export default function DateStrip({
                 ]
                   .filter(Boolean)
                   .join(" ")}
-                onClick={() => onPick(date)}
+                onClick={() => manualPick(date)}
               >
                 <span className="tprs-chip-dow">{isToday ? "Today" : dow}</span>
                 {!isToday && <span className="tprs-chip-day">{day}</span>}
@@ -202,11 +227,20 @@ export default function DateStrip({
         </button>
       </div>
 
+      {forwardNote && (
+        <p className="tprs-datestrip-note" role="status">
+          {forwardNote.fromToday
+            ? "Today's booked out online"
+            : "That date's booked out online"}{" "}
+          — next opening is <strong>{formatDateLong(forwardNote.to)}</strong>.
+        </p>
+      )}
+
       {calOpen && (
         <CalendarModal
           selected={selected}
           availability={availability}
-          onPick={onPick}
+          onPick={manualPick}
           onClose={() => setCalOpen(false)}
         />
       )}

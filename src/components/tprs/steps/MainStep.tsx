@@ -19,6 +19,8 @@ import { toPlainText } from "../../../tprs/text-dialect";
 
 interface Props {
   productCodes?: number[];
+  /** Render each card's short-description line (pageConfig.cardDescriptions). */
+  showDescriptions?: boolean;
   selectedDate: string | null;
   onPickDate: (date: string) => void;
   onSelectProduct: (category: BookableCategory, product: CustomerProduct) => void;
@@ -26,6 +28,7 @@ interface Props {
 
 export default function MainStep({
   productCodes,
+  showDescriptions = true,
   selectedDate,
   onPickDate,
   onSelectProduct,
@@ -109,8 +112,9 @@ export default function MainStep({
                   </h4>
                   {/* Short one-liner on the grid card (falls back to the long
                       copy while shortDescription rolls out). Full copy lives on
-                      the detail screen. */}
-                  {(p.shortDescription || p.description) && (
+                      the detail screen. Page-gated: off when the product names
+                      carry the message themselves (pageConfig.cardDescriptions). */}
+                  {showDescriptions && (p.shortDescription || p.description) && (
                     <p className="tprs-card-desc">
                       <Markdown text={p.shortDescription || p.description} />
                     </p>

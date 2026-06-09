@@ -31,8 +31,7 @@ export default function AddOnsStep({
   return (
     <div>
       <div className="tprs-step-head tprs-step-head--center">
-        <h2 className="tprs-h2">Make it a night</h2>
-        <p className="tprs-sub">Optional — add what you want, skip the rest.</p>
+        <h2 className="tprs-h2">Add-ons</h2>
       </div>
 
       {addOns.length === 0 ? (
@@ -57,7 +56,17 @@ export default function AddOnsStep({
             const aName = toPlainText(a.name); // plain for aria-labels (no markup)
             return (
               <div className="tprs-addon-row" key={a.id}>
-                <div>
+                {/* Backend doesn't project add-on thumbnails yet — renders the
+                    moment the field ships (schema is already tolerant). */}
+                {a.thumbnailUrl && (
+                  <img
+                    className="tprs-addon-thumb"
+                    src={a.thumbnailUrl}
+                    alt={toPlainText(a.name)}
+                    loading="lazy"
+                  />
+                )}
+                <div className="tprs-addon-main">
                   <div className="tprs-addon-name">
                     <Markdown text={a.name} />
                     {a.isRequired && <span className="tprs-req"> *</span>}

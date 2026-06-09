@@ -28,6 +28,14 @@ export interface BookingPageConfig {
   quantityLabel?: string;
   quantityHelp?: string;
   /**
+   * Show the product short description on the grid cards + the "What you're
+   * reserving" recap (default true). Pages whose products are self-explanatory
+   * from the name alone (e.g. "1 Hour w/ Shoes (VIP Suite)") set false — the
+   * pitch line adds scroll, not information. The DETAIL screen's long copy is
+   * unaffected.
+   */
+  cardDescriptions?: boolean;
+  /**
    * Products that sell a FIXED base package + a per-guest add-on (e.g. the Suite
    * Birthday Party — priced for 10 guests, grows to 14 via the "Additional
    * Guest" add-on). For these, the detail screen shows ONE "How many guests?"
@@ -68,6 +76,9 @@ export const bookingPageConfig: BookingPageConfig = {
   // NOTE: codes are TPRS-DB-specific — re-confirm them at the prod-DB cutover
   // (the temp staging DB re-seeded once already: birthdays went 9→109, 18→118).
   productCodes: [4, 5, 121, 123],
+  // The four lane names say everything ("1 Hour w/ Shoes (VIP Suite)") — the
+  // pitch line under each card was scroll without information.
+  cardDescriptions: false,
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
   // it isn't asserted here (where it can't be product-accurate).

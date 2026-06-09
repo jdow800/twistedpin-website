@@ -19,6 +19,8 @@ interface Props {
   laneQty: number;
   addOnQtys: Record<string, number>;
   guestStepper: ResolvedGuestStepper | null;
+  /** Repeat the product/add-on pitch lines here (pageConfig.cardDescriptions). */
+  showDescriptions?: boolean;
   onEdit: () => void;
 }
 
@@ -29,6 +31,7 @@ export default function BookingContext({
   laneQty,
   addOnQtys,
   guestStepper,
+  showDescriptions = true,
   onEdit,
 }: Props) {
   // For guest products, the base line reads as a party size, and the linked
@@ -57,7 +60,7 @@ export default function BookingContext({
               ? `${guestCount} ${guestCount === 1 ? "guest" : "guests"}`
               : `${laneQty} ${laneQty === 1 ? "lane" : "lanes"}`}
           </span>
-          {product.shortDescription && (
+          {showDescriptions && product.shortDescription && (
             <span className="tprs-reserving-desc">
               <Markdown text={product.shortDescription} inline />
             </span>
@@ -75,7 +78,7 @@ export default function BookingContext({
             <span className="tprs-reserving-name">
               + <Markdown text={a.name} inline /> ×{addOnQtys[a.id]}
             </span>
-            {a.shortDescription && (
+            {showDescriptions && a.shortDescription && (
               <span className="tprs-reserving-desc">
                 <Markdown text={a.shortDescription} inline />
               </span>
