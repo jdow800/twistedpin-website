@@ -1,8 +1,10 @@
 // Per-URL booking page config (ADR-0025 §1 `pageConfig` — terms + UX copy live
-// client-side; no backend URL-config entity at v1). The Slice-1 preview drives
-// its product grid from GET /api/products/bookable (the grouped browse surface)
-// rather than a curated `codes` list, so `productCodes` is unset here; it stays
-// available for when a curated checkout URL is wanted.
+// client-side; no backend URL-config entity at v1). `bookingPageConfig` is the
+// `/reserve-preview` (open-bowl) config: curated via `productCodes` to the four
+// lane-rental products (1hr/2hr × Traditional/VIP) so the grid is just the
+// open-bowl lanes, not the birthday packages / NYE products that also come back
+// from `/api/products/bookable`. Curated child pages (vip-suite, birthdays) get
+// their own config — see the how-to block at the bottom.
 //
 // Copy obeys the ADR-0029 brand rules: "lanes" never "tickets", "Reserve a
 // Lane", no discount vocabulary, English-first.
@@ -57,6 +59,15 @@ export const DEFAULT_GUEST_LABEL = "How many guests?";
 export const CUSTOM_EVENT_URL = "https://twistedevents.zite.so/";
 
 export const bookingPageConfig: BookingPageConfig = {
+  // /reserve-preview = open-bowl lanes only. The four lane-rental products by
+  // TPRS `code` (NOT the birthday packages / NYE products in the same catalog):
+  //   4   → 1 Hour w/ Shoes (Traditional)   $69.95
+  //   5   → 2 Hour w/ Shoes (Traditional)   $99.95
+  //   121 → 1 Hour w/ Shoes (VIP Suite)     $90.95
+  //   123 → 2 Hour w/ Shoes (VIP Suite)     $145.95
+  // NOTE: codes are TPRS-DB-specific — re-confirm them at the prod-DB cutover
+  // (the temp staging DB re-seeded once already: birthdays went 9→109, 18→118).
+  productCodes: [4, 5, 121, 123],
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
   // it isn't asserted here (where it can't be product-accurate).
@@ -71,12 +82,13 @@ export const bookingPageConfig: BookingPageConfig = {
     // Swap freely; alternates floated in chat (DMV line, "skip the line", etc.).
     sub: "Reserve now — the line's for people who didn't.",
   },
-  // Birthday party packages: a fixed base (priced for 10 guests) that grows to
-  // 14 via a per-guest add-on. One "How many guests?" stepper instead of a
-  // base-package counter. Base price + per-guest price are read live off the
-  // product/add-on, so each package keeps its own pricing automatically.
-  //   9  → Suite Birthday Party  ($419,    +$30/guest via add-on code 10)
-  //   18 → Extra Suite Birthday  ($469.90, +$40/guest via add-on code 19)
+  // ⚠️ STALE + INERT here. Birthday guest-stepper mapping (base package + per-guest
+  // add-on → one "How many guests?" stepper). These do NOTHING on /reserve-preview
+  // (it's curated to lane products 4/5/121/123, no birthday products), AND the
+  // codes below are from the OLD DB seed — the catalog re-seeded (Suite Birthday
+  // 9→109, Extra Suite 18→118; add-on codes also likely changed). When the
+  // /reserve-preview/birthdays page is built, give it its OWN config and set the
+  // guestSteppers there with the CURRENT codes (verify via /api/products/bookable).
   guestSteppers: {
     9: { baseGuests: 10, addOnCode: 10 },
     18: { baseGuests: 10, addOnCode: 19 },
