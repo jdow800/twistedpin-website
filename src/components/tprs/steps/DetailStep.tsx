@@ -6,6 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import DateStrip from "../DateStrip";
+import { useDayAvailability } from "../useAvailability";
 import { getAvailability } from "../../../tprs/client";
 import type {
   AvailabilitySlot,
@@ -33,7 +34,6 @@ const SLOTS_VISIBLE = 6;
 const DESC_SENTENCES = 3;
 
 interface Props {
-  productCodes?: number[];
   date: string;
   category: BookableCategory | null;
   product: CustomerProduct;
@@ -54,7 +54,6 @@ interface Props {
 }
 
 export default function DetailStep({
-  productCodes,
   date,
   category,
   product,
@@ -75,6 +74,10 @@ export default function DetailStep({
   const [showAll, setShowAll] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
   const qtyRef = useRef<HTMLDivElement>(null);
+
+  // The detail calendar probes THIS product — its availability + per-day
+  // pricing — so days/prices match exactly what the slot grid will offer.
+  const availability = useDayAvailability(undefined, product.id);
 
   // Long copy capped to ~3 sentences with a loud "Read more" (D). The card
   // carries the short one-liner; the detail screen carries the full pitch.
@@ -162,7 +165,8 @@ export default function DetailStep({
 
       {/* Date stays on the detail screen. */}
       <DateStrip
-        productId={product.id}
+        availability={availability}
+        probeKey={product.id}
         selected={date}
         onPick={onPickDate}
         label="Select a date"

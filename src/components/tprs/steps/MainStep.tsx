@@ -6,14 +6,15 @@
 // to a side thumbnail (nobody picks bowling off a photo; and our catalog has no
 // real imagery yet, so a small fallback reads far better than a big empty tile).
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DateStrip from "../DateStrip";
+import { useDayAvailability } from "../useAvailability";
 import { getBookableProducts } from "../../../tprs/client";
 import type {
   BookableCategory,
   CustomerProduct,
 } from "../../../tprs/schemas";
-import { formatUsd, todayIso } from "../format";
+import { formatUsd, todayIso, addDays, formatDateLong } from "../format";
 import Markdown from "../Markdown";
 import { toPlainText } from "../../../tprs/text-dialect";
 
@@ -35,6 +36,21 @@ export default function MainStep({
 }: Props) {
   const [categories, setCategories] = useState<BookableCategory[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const today = useMemo(todayIso, []);
+
+  // ONE availability instance shared between the date strip and the product
+  // grid, so both read the same per-product data: the strip greys a day only
+  // when NOTHING on the page is bookable (union); the grid below scopes to
+  // what's bookable on the SELECTED day.
+  const availability = useDayAvailability(productCodes);
+  const probeKey =
+    productCodes && productCodes.length > 0
+      ? `codes:${productCodes.join(",")}`
+      : null;
+  // Date-scoping only makes sense when the probe covers exactly this page's
+  // products (the curated case) — the generic catalog probes one product.
+  const dateScoped = probeKey !== null;
+  const day = selectedDate ?? today;
 
   // Default the date to today on first mount (Roller defaults "Today" selected).
   useEffect(() => {
@@ -71,10 +87,27 @@ export default function MainStep({
     return () => ctrl.abort();
   }, [productCodes]);
 
+  // Per-product verdicts for the selected day (curated pages only): a card
+  // renders when its product is bookable that day, shimmers while the verdict
+  // loads, and drops to the "not running" list when the day is a no for it —
+  // including "no remaining times today" (the backend's day flag is
+  // time-of-day aware, so after a product's last slot passes it reads false).
+  const hidden: { p: CustomerProduct; next: string | null }[] = [];
+  if (dateScoped && categories) {
+    for (const cat of categories) {
+      for (const p of cat.products) {
+        if (availability.isProductAvailable(p.id, day) === false) {
+          hidden.push({ p, next: availability.nextOpenFor(p.id, addDays(day, 1)) });
+        }
+      }
+    }
+  }
+
   return (
     <div>
       <DateStrip
-        productCodes={productCodes}
+        availability={availability}
+        probeKey={probeKey}
         selected={selectedDate}
         onPick={onPickDate}
         label="When are you attending?"
@@ -90,7 +123,18 @@ export default function MainStep({
         <p className="tprs-empty">No lanes are bookable online right now.</p>
       )}
 
-      {categories?.map((cat) => (
+      {categories?.map((cat) => {
+        // Cards for this category on the selected day: bookable + still-loading
+        // (skeleton). A category with nothing left that day disappears whole.
+        const entries = cat.products.map((p) => ({
+          p,
+          verdict: dateScoped
+            ? availability.isProductAvailable(p.id, day)
+            : (true as boolean | undefined),
+        }));
+        const visible = entries.filter((e) => e.verdict !== false);
+        if (visible.length === 0) return null;
+        return (
         <section className="tprs-cat" key={cat.slug ?? "uncategorized"}>
           {cat.label && <h3 className="tprs-cat-label">{cat.label}</h3>}
           {cat.subtitle && (
@@ -99,7 +143,14 @@ export default function MainStep({
             </p>
           )}
           <div className="tprs-card-list">
-            {cat.products.map((p) => (
+            {visible.map(({ p, verdict }) =>
+              verdict === undefined ? (
+                <div
+                  key={p.id}
+                  className="tprs-card tprs-card--skel"
+                  aria-hidden="true"
+                />
+              ) : (
               <button
                 type="button"
                 className="tprs-card"
@@ -136,10 +187,41 @@ export default function MainStep({
                   </div>
                 )}
               </button>
-            ))}
+              ),
+            )}
           </div>
         </section>
-      ))}
+        );
+      })}
+
+      {/* What this day can't offer — kept visible (muted, not bookable) so the
+          weekend-only lanes stay discoverable; tapping jumps to their next
+          open day. One-liner to delete if pure removal wins. */}
+      {hidden.length > 0 && (
+        <div className="tprs-not-today">
+          <p className="tprs-not-today-label">
+            Not running {day === today ? "today" : "this day"}
+          </p>
+          {hidden.map(({ p, next }) => (
+            <button
+              key={p.id}
+              type="button"
+              className="tprs-not-today-row"
+              disabled={!next}
+              onClick={() => next && onPickDate(next)}
+            >
+              <span className="tprs-not-today-name">
+                <Markdown text={p.name} inline />
+              </span>
+              {next && (
+                <span className="tprs-not-today-next">
+                  Next: {formatDateLong(next)} →
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ import {
   getProducts,
   getMonthAvailability,
 } from "../../tprs/client";
-import { todayIso, monthOf } from "./format";
+import { todayIso, monthOf, shiftMonth } from "./format";
 
 // ── Module-level availability cache ──────────────────────────────────────────
 // Shared across every hook instance and surviving DetailStep unmount/remount.
@@ -62,6 +62,19 @@ export interface DayAvailability {
   /** The day's lowest slot price in cents across the probed products (exact on
    *  the single-product detail screen; a "from" price on the main screen). */
   priceFor: (isoDate: string) => number | null;
+  /** ONE product's verdict for a date — true/false once that product's month
+   *  has loaded, undefined while in flight. The curated landing uses this to
+   *  scope the product grid to what's actually bookable on the selected day
+   *  (the backend's day flag is time-of-day aware, so "no remaining times
+   *  today" reads false). */
+  isProductAvailable: (
+    productId: string,
+    isoDate: string,
+  ) => boolean | undefined;
+  /** ONE product's first open day on/after `fromIso`, scanning LOADED months
+   *  only (never fetches) — null when unknown. Feeds the "Next: Saturday,
+   *  June 13" hint on products hidden for the selected day. */
+  nextOpenFor: (productId: string, fromIso: string) => string | null;
   /** Ask the hook to load a month's availability (idempotent; cached). */
   ensureMonth: (month: string) => void;
   /** True once EVERY probed product's availability for the month has loaded. */
@@ -171,6 +184,32 @@ export function useDayAvailability(
     [today, probeIds, months],
   );
 
+  const isProductAvailable = useCallback(
+    (pid: string, isoDate: string): boolean | undefined => {
+      if (isoDate < today) return false;
+      if (probeIds === null) return true; // no probe → never gate the grid
+      const map = months[monthOf(isoDate)]?.[pid];
+      if (!map) return undefined; // verdict still loading
+      return map.has(isoDate);
+    },
+    [today, probeIds, months],
+  );
+
+  const nextOpenFor = useCallback(
+    (pid: string, fromIso: string): string | null => {
+      const start = fromIso < today ? today : fromIso;
+      let m = monthOf(start);
+      for (let i = 0; i < 3; i++, m = shiftMonth(m, 1)) {
+        const map = months[m]?.[pid];
+        if (!map) return null; // not loaded → unknown (no fetching here)
+        const dates = [...map.keys()].sort();
+        for (const d of dates) if (d >= start) return d;
+      }
+      return null;
+    },
+    [today, months],
+  );
+
   const priceFor = useCallback(
     (isoDate: string): number | null => {
       const byPid = months[monthOf(isoDate)];
@@ -195,6 +234,8 @@ export function useDayAvailability(
   return {
     isAvailable,
     isPending,
+    isProductAvailable,
+    nextOpenFor,
     priceFor,
     ensureMonth,
     isMonthLoaded,

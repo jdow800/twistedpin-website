@@ -315,6 +315,36 @@
 .tprs-card-main { flex: 1; min-width: 0; }
 .tprs-card-name { font-family: var(--font-ui); font-weight: 800; font-size: 17px; line-height: 1.1; color: var(--tw-text); margin: 0 0 5px; }
 .tprs-card-desc { font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; color: var(--tw-text-muted); margin: 0 0 8px; }
+/* Card placeholder while a product's selected-day verdict loads — same shimmer
+   vocabulary as the pending date chips; no pop-in/out when verdicts settle. */
+.tprs-card--skel {
+  min-height: 96px;
+  pointer-events: none;
+  background-image: linear-gradient(100deg, var(--tw-surface) 40%, var(--tw-surface-hover) 50%, var(--tw-surface) 60%);
+  background-size: 200% 100%;
+  animation: tprs-shimmer 1.1s ease-in-out infinite;
+}
+/* Products the selected day can't offer — wayfinding, not bookable options. */
+.tprs-not-today { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--tw-border); }
+.tprs-not-today-label { font-family: var(--font-ui); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tw-text-dim); margin: 0 0 6px; }
+.tprs-not-today-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--tw-text-muted);
+  cursor: pointer;
+}
+.tprs-not-today-row:disabled { cursor: default; }
+.tprs-not-today-name { min-width: 0; }
+.tprs-not-today-next { flex-shrink: 0; color: var(--tw-accent); font-family: var(--font-ui); font-size: 12.5px; font-weight: 600; }
 .tprs-card-from { font-family: var(--font-ui); font-size: 14px; font-weight: 800; color: var(--tw-text); }
 .tprs-card-from span { color: var(--tw-text-dim); font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
 .tprs-card-thumb {

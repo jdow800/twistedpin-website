@@ -9,7 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import CalendarModal from "./CalendarModal";
-import { useDayAvailability } from "./useAvailability";
+import type { DayAvailability } from "./useAvailability";
 import { useMediaQuery, DESKTOP_QUERY } from "./useMediaQuery";
 import {
   addDays,
@@ -31,10 +31,14 @@ const WINDOW_DESKTOP = 7;
 const FORWARD_HORIZON_MONTHS = 2;
 
 interface Props {
-  productCodes?: number[];
-  /** When set, the calendar probes THIS product (detail screen) — its
-   *  availability + per-day pricing — instead of the page's first product. */
-  productId?: string;
+  /** The date control's availability source — OWNED BY THE PARENT (the main
+   *  screen shares one instance between this strip and the product grid so
+   *  both reflect the same per-product data; the detail screen probes its one
+   *  product). Created via useDayAvailability. */
+  availability: DayAvailability;
+  /** Identity of what the calendar reflects (product id on detail; the curated
+   *  set on main). Smart-forward runs once per key; null disables it. */
+  probeKey: string | null;
   selected: string | null;
   onPick: (date: string) => void;
   /** Section label — "When are you attending?" (main) / "Select a date" (detail). */
@@ -42,8 +46,8 @@ interface Props {
 }
 
 export default function DateStrip({
-  productCodes,
-  productId,
+  availability,
+  probeKey,
   selected,
   onPick,
   label = "When are you attending?",
@@ -51,7 +55,6 @@ export default function DateStrip({
   const today = useMemo(todayIso, []);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const windowSize = isDesktop ? WINDOW_DESKTOP : WINDOW_MOBILE;
-  const availability = useDayAvailability(productCodes, productId);
   const [windowStart, setWindowStart] = useState<string>(today);
   const [calOpen, setCalOpen] = useState(false);
 
@@ -72,11 +75,6 @@ export default function DateStrip({
   // guest staring at greyed chips / an empty grid, and SAY SO (the note below).
   // Runs ONCE per probe, and never overrides a date the guest themselves picked
   // that is (or may still turn out to be) available.
-  const probeKey =
-    productId ??
-    (productCodes && productCodes.length > 0
-      ? `codes:${productCodes.join(",")}`
-      : null);
   const forwardedFor = useRef<string | null>(null);
   const [forwardNote, setForwardNote] = useState<{
     fromToday: boolean;

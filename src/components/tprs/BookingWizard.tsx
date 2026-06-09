@@ -186,7 +186,6 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
 
       {state.step === "detail" && state.date && state.product && (
         <DetailStep
-          productCodes={config.productCodes}
           date={state.date}
           category={state.category}
           product={state.product}
