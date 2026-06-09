@@ -39,11 +39,18 @@ export default async function middleware(request: Request): Promise<Response> {
     redirect: "manual",
   });
 
-  // Re-emit the backend response verbatim. Set-Cookie carries the cart token to
-  // the browser (host-only on twistedpin.com); on later requests the browser
-  // sends it back and the `headers` forward above relays it to the backend.
+  // Buffer the (small JSON) body and re-emit, but DROP the wire-encoding headers:
+  // fetch has already decoded the body, so forwarding the upstream's
+  // content-encoding / content-length / transfer-encoding makes the client
+  // re-decode and TRUNCATE it (symptom: 4018-byte 4-product response arrives as
+  // 888 bytes / 1 product with a bogus `Content-Length: 1`). Everything else —
+  // content-type, Set-Cookie (the cart token), cache-control — passes through.
+  const payload = await upstream.arrayBuffer();
   const out = new Headers(upstream.headers);
-  return new Response(upstream.body, {
+  out.delete("content-encoding");
+  out.delete("content-length");
+  out.delete("transfer-encoding");
+  return new Response(payload, {
     status: upstream.status,
     statusText: upstream.statusText,
     headers: out,
