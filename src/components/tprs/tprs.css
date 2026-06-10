@@ -301,31 +301,63 @@
 .tprs-cat-label { font-family: var(--font-ui); font-weight: 800; font-size: 16px; color: var(--tw-text); margin: 0 0 2px; text-align: center; }
 .tprs-cat-subtitle { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin: 0 0 12px; text-align: center; }
 .tprs-card-list { display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
-/* Duration tiles — same vocabulary as the time-slot grid. 1hr | 2hr sit
-   side by side; a lone survivor (auto-fit) spans the row. */
+/* Duration tiles — same vocabulary as the time-slot grid. 1hr | 2hr sit side
+   by side; widths are CAPPED + the group centers, so a lone survivor reads as
+   a tidy centered chip instead of a barren full-width strip. */
 .tprs-card-list--tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  min-height: 96px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 250px));
+  justify-content: center;
+  min-height: 112px;
 }
-.tprs-tile {
+/* .tprs-card.tprs-tile — double class on purpose: .tprs-card's own rules are
+   declared later in this file and were out-ranking the tile overrides (the
+   left-aligned-text bug). */
+.tprs-card.tprs-tile {
+  position: relative;
+  overflow: hidden;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  padding: 20px 10px;
+  padding: 26px 10px;
+  min-height: 112px;
   text-align: center;
+}
+/* Category room shot behind the tile + scrim for legibility (heavier at the
+   bottom where the price sits). */
+.tprs-tile-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.tprs-tile-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(14, 10, 31, 0.45) 0%,
+    rgba(14, 10, 31, 0.62) 100%
+  );
+}
+.tprs-tile-name,
+.tprs-card.tprs-tile .tprs-card-from {
+  position: relative; /* above the art + scrim */
 }
 .tprs-tile-name {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 27px;
+  font-size: 28px;
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.45);
 }
-.tprs-tile .tprs-card-from { margin: 0; }
-.tprs-card-list--tiles .tprs-card--skel { min-height: 92px; }
+.tprs-card.tprs-tile .tprs-card-from { margin: 0; }
+.tprs-card-list--tiles .tprs-card--skel { min-height: 112px; }
 .tprs-card {
   display: flex;
   align-items: stretch;
@@ -928,9 +960,11 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
     grid-template-columns: 1fr;
     justify-content: stretch;
   }
-  /* …but duration tiles keep their 2-up (1hr | 2hr) inside each column. */
+  /* …but duration tiles keep their 2-up (1hr | 2hr) inside each column,
+     capped + centered like mobile. */
   .tprs-cats .tprs-card-list--tiles {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 220px));
+    justify-content: center;
   }
 
   /* F — cart leaves the bottom and becomes a sticky panel in the right column. */

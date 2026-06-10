@@ -42,6 +42,14 @@ export interface BookingPageConfig {
    */
   tileCards?: boolean;
   /**
+   * Tile background art by CATEGORY slug (tile mode only) — the room is what
+   * differs between sections (suite vs traditional floor), so imagery belongs
+   * at category level: two photos total, no per-product art to maintain, and
+   * the VIP tile shows what the upgrade buys. `base` = pre-encoded /snap/
+   * basename with a -540 variant (avif+webp). Scrimmed for text legibility.
+   */
+  tileArt?: Record<string, { base: string; alt?: string }>;
+  /**
    * Quantity-step wording — editable PER PAGE since we almost always sell by
    * the lane but the framing varies (/nye, /birthday, etc.). `quantityLabel`
    * is the question ("How many lanes?"); `quantityHelp` is the line beneath it
@@ -129,6 +137,12 @@ export const bookingPageConfig: BookingPageConfig = {
   // Lanes differ only by duration within a category → duration tiles, no
   // per-product art to source/maintain on this page.
   tileCards: true,
+  // Category room shots behind the tiles (already-encoded /snap assets —
+  // swap = change the basename).
+  tileArt: {
+    vip_suite_lanes: { base: "/snap/vip-energy", alt: "" },
+    traditional_lanes: { base: "/snap/stage-bowl", alt: "" },
+  },
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
   // it isn't asserted here (where it can't be product-accurate).

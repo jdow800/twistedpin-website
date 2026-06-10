@@ -29,6 +29,8 @@ interface Props {
   showDescriptions?: boolean;
   /** Duration-led tiles instead of image cards (pageConfig.tileCards). */
   tileCards?: boolean;
+  /** Category room shots behind the tiles (pageConfig.tileArt, by slug). */
+  tileArt?: Record<string, { base: string; alt?: string }>;
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
@@ -62,6 +64,7 @@ export default function MainStep({
   productCodes,
   showDescriptions = true,
   tileCards = false,
+  tileArt,
   partyConfig,
   partySize,
   onPartySize,
@@ -273,6 +276,7 @@ export default function MainStep({
         );
         if (visible.length === 0) return null;
         const lanes = lanesFor(cat); // party-size mode: computed lane count
+        const art = tileCards ? tileArt?.[cat.slug ?? ""] : undefined;
         return (
         <section className="tprs-cat" key={cat.slug ?? "uncategorized"}>
           {cat.label && <h3 className="tprs-cat-label">{cat.label}</h3>}
@@ -301,6 +305,24 @@ export default function MainStep({
                   aria-label={toPlainText(p.name)}
                   onClick={() => onSelectProduct(cat, p, lanes ?? undefined)}
                 >
+                  {art && (
+                    <>
+                      <picture>
+                        <source
+                          type="image/avif"
+                          srcSet={`${art.base}-540.avif`}
+                        />
+                        <img
+                          className="tprs-tile-art"
+                          src={`${art.base}-540.webp`}
+                          alt={art.alt ?? ""}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </picture>
+                      <span className="tprs-tile-scrim" aria-hidden="true" />
+                    </>
+                  )}
                   <span className="tprs-tile-name">
                     {durationLabel(p.durationMinutes) ?? (
                       <Markdown text={p.name} inline />
