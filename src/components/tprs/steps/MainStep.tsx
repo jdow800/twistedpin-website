@@ -374,9 +374,10 @@ export default function MainStep({
           open day. One-liner to delete if pure removal wins. */}
       {!overThreshold && hidden.length > 0 && (
         <div className="tprs-not-today">
-          <p className="tprs-not-today-label">
-            Not running {day === today ? "today" : "this day"}
-          </p>
+          {/* Voice: sports idiom > ops-speak ("not running" is schedule
+              vocabulary). Date-agnostic — works for today or any picked day;
+              the row's payload is the forward pointer ("Next: Saturday →"). */}
+          <p className="tprs-not-today-label">Sitting this one out</p>
           {hidden.map(({ p, next }) => (
             <button
               key={p.id}
