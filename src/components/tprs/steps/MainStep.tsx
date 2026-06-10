@@ -27,6 +27,8 @@ interface Props {
   productCodes?: number[];
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
+  /** Duration-led tiles instead of image cards (pageConfig.tileCards). */
+  tileCards?: boolean;
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
@@ -45,9 +47,21 @@ interface Props {
 /** Stepper ceiling — far enough past any threshold to trip the events handoff. */
 const PARTY_MAX = 30;
 
+/** "1 Hour" / "2 Hours" from durationMinutes — the tile's headline. Falls back
+ *  to the product name when duration is unset. */
+function durationLabel(mins: number | null): string | null {
+  if (!mins || mins <= 0) return null;
+  if (mins % 60 === 0) {
+    const h = mins / 60;
+    return h === 1 ? "1 Hour" : `${h} Hours`;
+  }
+  return `${mins} min`;
+}
+
 export default function MainStep({
   productCodes,
   showDescriptions = true,
+  tileCards = false,
   partyConfig,
   partySize,
   onPartySize,
@@ -267,7 +281,7 @@ export default function MainStep({
               <Markdown text={cat.subtitle} />
             </p>
           )}
-          <div className="tprs-card-list">
+          <div className={`tprs-card-list${tileCards ? " tprs-card-list--tiles" : ""}`}>
             {visible.map(({ p, verdict }) =>
               verdict === undefined ? (
                 <div
@@ -275,6 +289,41 @@ export default function MainStep({
                   className="tprs-card tprs-card--skel"
                   aria-hidden="true"
                 />
+              ) : tileCards ? (
+                /* Duration tile — the card's whole job here is duration +
+                   price (category header carries room/capacity/shoes). Full
+                   product name stays in the aria-label + everywhere
+                   downstream (detail/cart/receipt). */
+                <button
+                  type="button"
+                  className="tprs-card tprs-tile"
+                  key={p.id}
+                  aria-label={toPlainText(p.name)}
+                  onClick={() => onSelectProduct(cat, p, lanes ?? undefined)}
+                >
+                  <span className="tprs-tile-name">
+                    {durationLabel(p.durationMinutes) ?? (
+                      <Markdown text={p.name} inline />
+                    )}
+                  </span>
+                  {lanes !== null && partySize !== null ? (
+                    <span className="tprs-card-from">
+                      <strong>
+                        {lanes} {lanes === 1 ? "lane" : "lanes"}
+                      </strong>{" "}
+                      · <span>from</span>{" "}
+                      {formatUsd(
+                        lanes *
+                          (availability.productPriceFor(p.id, day) ??
+                            p.defaultPriceCents),
+                      )}
+                    </span>
+                  ) : (
+                    <span className="tprs-card-from">
+                      <span>from</span> {formatUsd(p.defaultPriceCents)}
+                    </span>
+                  )}
+                </button>
               ) : (
               <button
                 type="button"

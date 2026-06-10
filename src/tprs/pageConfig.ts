@@ -31,6 +31,17 @@ export interface BookingPageConfig {
     alt: string;
   };
   /**
+   * Duration-led TILES instead of image cards. For pages whose products differ
+   * only by duration within a category (the open-bowl lanes: 1hr/2hr), the
+   * card's whole job is duration + price — a thumbnail repeats the name or
+   * shows a placeholder, earning none of its space (the hero owns atmosphere).
+   * Tiles render the duration big (from `durationMinutes`, so no admin rename
+   * needed; full product name stays on detail/cart/receipts) over the "from"
+   * price, matching the time-slot tile vocabulary. Pages whose products SELL
+   * via art (birthdays, NYE) keep standard image cards (unset/false).
+   */
+  tileCards?: boolean;
+  /**
    * Quantity-step wording — editable PER PAGE since we almost always sell by
    * the lane but the framing varies (/nye, /birthday, etc.). `quantityLabel`
    * is the question ("How many lanes?"); `quantityHelp` is the line beneath it
@@ -115,6 +126,9 @@ export const bookingPageConfig: BookingPageConfig = {
     base: "/snap/reserve-hero",
     alt: "Bowling lanes at Twisted Pin",
   },
+  // Lanes differ only by duration within a category → duration tiles, no
+  // per-product art to source/maintain on this page.
+  tileCards: true,
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
   // it isn't asserted here (where it can't be product-accurate).

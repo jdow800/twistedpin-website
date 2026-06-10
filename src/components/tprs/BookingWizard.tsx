@@ -208,6 +208,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         <MainStep
           productCodes={config.productCodes}
           showDescriptions={config.cardDescriptions !== false}
+          tileCards={config.tileCards === true}
           partyConfig={config.partySize}
           partySize={state.partySize}
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
