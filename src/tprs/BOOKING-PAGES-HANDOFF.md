@@ -69,9 +69,14 @@ And **don't** wire any nav/footer/CTA to it — the live booking path stays Roll
 
 | Now (parked, noindexed) | Final (at cutover) | Products |
 |---|---|---|
-| `/reserve-preview` ✅ built | `/reserve` | open bowl — all bookable lanes |
-| `/reserve-preview/vip-suite` (to build) | `/reserve/vip-suite` | the 2 VIP lane products |
-| `/reserve-preview/birthdays` (to build) | `/reserve/birthdays` | Suite Birthday packages (guest steppers — see `pageConfig.guestSteppers`) |
+| `/reserve-preview` ✅ built | `/reserve` | open bowl — the 4 lane products (codes 4/5/121/123) |
+| `/reserve/birthdays` ✅ built AT ITS REAL SLUG | `/reserve/birthdays` (no rename — the `/reserve{/}?` redirect is exact-match, so the nested path never collided) | Suite Birthday 109 + Extra Suite 118 (guest steppers 110/119, cap 14) |
+| `/reserve-preview2` ✅ built (parked REFERENCE) | — decision page; loser deleted | party-size-first variant of the lane page |
+| `/reserve-preview/vip-suite` (only if needed) | `/reserve/vip-suite` | the 2 VIP lane products |
+
+Birthday launch ≠ lane cutover: the birthday page can go live independently by
+repointing `ROLLER_KIDS_URL` in `birthday-parties-booking.astro` (the live SEO
+lander) to `/reserve/birthdays/` + lifting its noindex/robots/sitemap entries.
 
 (Slug names aren't locked beyond `/reserve` for the hub — adjust the children if
 a better IA emerges. Marketing pages `/vip-suite`, `/birthday-parties-booking`

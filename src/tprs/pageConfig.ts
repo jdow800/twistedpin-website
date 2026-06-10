@@ -157,17 +157,8 @@ export const bookingPageConfig: BookingPageConfig = {
     // Swap freely; alternates floated in chat (DMV line, "skip the line", etc.).
     sub: "Reserve now — the line's for people who didn't.",
   },
-  // ⚠️ STALE + INERT here. Birthday guest-stepper mapping (base package + per-guest
-  // add-on → one "How many guests?" stepper). These do NOTHING on /reserve-preview
-  // (it's curated to lane products 4/5/121/123, no birthday products), AND the
-  // codes below are from the OLD DB seed — the catalog re-seeded (Suite Birthday
-  // 9→109, Extra Suite 18→118; add-on codes also likely changed). When the
-  // /reserve-preview/birthdays page is built, give it its OWN config and set the
-  // guestSteppers there with the CURRENT codes (verify via /api/products/bookable).
-  guestSteppers: {
-    9: { baseGuests: 10, addOnCode: 10 },
-    18: { baseGuests: 10, addOnCode: 19 },
-  },
+  // (Birthday guest-stepper mappings live on birthdaysPageConfig below — the
+  // stale pre-re-seed copies that sat here were inert on this curated page.)
 };
 
 /**
@@ -200,6 +191,42 @@ export const bookingPage2Config: BookingPageConfig = {
     // 15 — everyone gets counted so the lanes fit the whole group.
     label: "How many guests?",
     help: "Count everyone — bowling or not, they need a place to be. We'll size the lanes to fit.",
+  },
+};
+
+/**
+ * /reserve/birthdays — kids birthday party bookings (PARKED at its REAL slug:
+ * the /reserve→Roller redirect is exact-match, so the nested path is free today
+ * and launch needs no rename — just repoint the /birthday-parties-booking
+ * lander's ROLLER_KIDS_URL here + lift noindex/robots/sitemap).
+ *
+ * Packages sell via copy + art, so STANDARD cards (no tileCards) with
+ * descriptions ON. Quantity is the GUEST STEPPER (base 10 kids + the required
+ * "Additional Guest" add-on, cap 14 → over-cap note routes to the events
+ * planner). Codes re-derived from the live catalog 2026-06-10.
+ */
+export const birthdaysPageConfig: BookingPageConfig = {
+  // 109 → Suite Birthday Party        $419.00 · 2hr   · kids 4-11
+  // 118 → Extra Suite Birthday        $469.90 · 2.5hr · kids 4-11
+  productCodes: [109, 118],
+  heroImage: {
+    base: "/snap/birthdays-hero",
+    alt: "The VIP suite set for a party at Twisted Pin",
+  },
+  termsText:
+    "Reservations hold your party space for the scheduled window. " +
+    "Packages are for kids 4–11 and cover up to 14 children. " +
+    "Arrive a few minutes early so your party host can get everyone set up.",
+  uxCopy: {
+    eyebrow: "Kids Birthday Parties",
+    headline: "Book the party.",
+    sub: "Two hours, zero cleanup. Bowling, arcade, food, cake — and a party host who handles it.",
+  },
+  // Base package is priced for 10 kids; +/- drives the per-guest add-on
+  // (max 4 → hard cap 14, then the "bigger event" note takes over).
+  guestSteppers: {
+    109: { baseGuests: 10, addOnCode: 110, label: "How many kids?" },
+    118: { baseGuests: 10, addOnCode: 119, label: "How many kids?" },
   },
 };
 

@@ -1,0 +1,167 @@
+---
+/**
+ * /reserve/birthdays — kids birthday party bookings, PARKED AT ITS REAL SLUG.
+ *
+ * Unlike /reserve-preview (temp name because /reserve itself is the Roller
+ * redirect), this page lives at its final URL from day one: the vercel.json
+ * `/reserve{/}?` redirect is EXACT-match, so the nested path never collides.
+ *
+ * LAUNCH (when ops is ready to take birthday bookings here):
+ *   1. Repoint ROLLER_KIDS_URL in src/pages/birthday-parties-booking.astro
+ *      (the live SEO lander — all its booking CTAs) to /reserve/birthdays/.
+ *   2. Remove the noindex meta below + the robots.txt
+ *      `Disallow: /reserve/birthdays/` line + the astro.config.mjs sitemap
+ *      filter entry.
+ *   No file moves, no redirect changes.
+ *
+ * Protections until then (parked-preview triad): noindex,nofollow meta +
+ * robots.txt Disallow + sitemap filter exclusion + unlinked.
+ *
+ * Page mechanics come from birthdaysPageConfig: standard cards w/ descriptions
+ * (packages sell via copy/art), guest stepper "How many kids?" (base 10 + the
+ * required Additional Guest add-on, hard cap 14 → events-planner note), and
+ * the product-hero takeover once heroImageUrl is uploaded per package in admin.
+ */
+import Base from "../../layouts/Base.astro";
+import BookingWizard from "../../components/tprs/BookingWizard.tsx";
+import { birthdaysPageConfig } from "../../tprs/pageConfig";
+
+const { uxCopy, heroImage } = birthdaysPageConfig;
+---
+<Base
+  title="Book a Kids Birthday Party — Twisted Pin"
+  description="Book a kids birthday party at Twisted Pin — bowling, arcade, food and cake, party host included."
+  hideStickyCTA={true}
+  lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
+  lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
+>
+  {/* noindex,nofollow — parked until the birthday-booking launch. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  {heroImage ? (
+    <section class="tprs-hero" data-hero aria-labelledby="tprs-h1">
+      <picture>
+        <source
+          type="image/avif"
+          media="(max-width: 1024px)"
+          srcset={`${heroImage.base}-1080.avif`}
+        />
+        <source
+          type="image/avif"
+          media="(min-width: 1025px)"
+          srcset={`${heroImage.base}-1600.avif`}
+        />
+        <source
+          type="image/webp"
+          media="(max-width: 1024px)"
+          srcset={`${heroImage.base}-1080.webp`}
+        />
+        <img
+          class="tprs-hero-img"
+          data-tprs-hero-img
+          src={`${heroImage.base}-1600.webp`}
+          alt={heroImage.alt}
+          fetchpriority="high"
+          decoding="async"
+        />
+      </picture>
+      <div class="tprs-hero-scrim" aria-hidden="true"></div>
+      <div class="tprs-hero-copy">
+        <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+        <h1 class="t-display tprs-hero-headline" id="tprs-h1">{uxCopy.headline}</h1>
+        <p class="tprs-hero-sub">{uxCopy.sub}</p>
+      </div>
+    </section>
+  ) : (
+    <section class="tprs-intro" data-hero aria-labelledby="tprs-h1">
+      <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+      <h1 class="t-display tprs-intro-headline" id="tprs-h1">{uxCopy.headline}</h1>
+      <p class="tprs-intro-sub">{uxCopy.sub}</p>
+    </section>
+  )}
+
+  <div class="tprs-mount">
+    <BookingWizard client:only="react" config={birthdaysPageConfig} />
+  </div>
+</Base>
+
+<style>
+  /* ---------- compact identity hero (image band) ---------- */
+  .tprs-hero {
+    position: relative;
+    height: clamp(300px, 42vh, 440px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  @media (min-width: 1025px) {
+    .tprs-hero {
+      height: clamp(420px, 52vh, 600px);
+    }
+  }
+  .tprs-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    /* The wizard swaps this to the chosen package's hero (BookingWizard
+       product-hero takeover) — fade between shots. */
+    transition: opacity 0.3s ease;
+  }
+  .tprs-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(14, 10, 31, 0.6) 0%,
+      rgba(14, 10, 31, 0.18) 38%,
+      rgba(14, 10, 31, 0.62) 72%,
+      #0e0a1f 100%
+    );
+  }
+  .tprs-hero-copy {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 18px 16px;
+    text-align: center;
+  }
+  .tprs-hero-headline {
+    font-size: clamp(34px, 9vw, 58px);
+    letter-spacing: -0.01em;
+    margin: 4px 0 8px;
+  }
+  .tprs-hero-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+
+  /* ---------- typography hero (fallback when no image is configured) ------ */
+  .tprs-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 28px) 18px 26px;
+    text-align: center;
+  }
+  .tprs-intro-headline {
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    margin: 6px 0 10px;
+  }
+  .tprs-intro-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+  .tprs-mount {
+    min-height: 70vh;
+  }
+</style>

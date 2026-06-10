@@ -12,6 +12,10 @@ Disallow: /coupon-preview/
 Disallow: /reserve-preview/
 # Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
 Disallow: /reserve-preview2/
+# Parked kids-birthday booking page AT ITS REAL SLUG (specific path on purpose —
+# never a broad /reserve/ block, which would have to be unwound at the lane
+# cutover). Lift at birthday-booking launch.
+Disallow: /reserve/birthdays/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml

@@ -69,6 +69,9 @@ export default defineConfig({
         !page.includes('/tprs') &&
         !page.includes('/coupon-preview') &&
         !page.includes('/reserve-preview') &&
+        // Parked at its REAL slug (kids birthday bookings) — remove this line
+        // at birthday-booking launch so the page enters the sitemap.
+        !page.includes('/reserve/birthdays') &&
         !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
     }),
     // React islands for the TPRS customer booking flow (ADR-0029 §1 — the
