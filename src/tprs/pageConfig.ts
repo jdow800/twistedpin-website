@@ -20,6 +20,17 @@ export interface BookingPageConfig {
     sub: string;
   };
   /**
+   * Per-URL hero image band (compact, ~40vh — identity + vibe, NOT Roller's
+   * full-screen collapsing hero; the date question must peek into the first
+   * viewport). `base` is a pre-encoded /snap/ basename — encode 540/1080/1600
+   * AVIF+WebP via sharp (see reserve-hero-*). Unset = typography-only hero.
+   * Each booking page gets its own shot at cutover (birthdays/NYE/suite).
+   */
+  heroImage?: {
+    base: string;
+    alt: string;
+  };
+  /**
    * Quantity-step wording — editable PER PAGE since we almost always sell by
    * the lane but the framing varies (/nye, /birthday, etc.). `quantityLabel`
    * is the question ("How many lanes?"); `quantityHelp` is the line beneath it
@@ -99,6 +110,11 @@ export const bookingPageConfig: BookingPageConfig = {
   // The four lane names say everything ("1 Hour w/ Shoes (VIP Suite)") — the
   // pitch line under each card was scroll without information.
   cardDescriptions: false,
+  // Compact identity hero (encoded from Context/og images/bowl.jpg).
+  heroImage: {
+    base: "/snap/reserve-hero",
+    alt: "Bowling lanes at Twisted Pin",
+  },
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
   // it isn't asserted here (where it can't be product-accurate).
