@@ -37,18 +37,23 @@ export interface BookingPageConfig {
   cardDescriptions?: boolean;
   /**
    * Party-size-first mode (the /reserve-preview2 experiment): ask the in-store
-   * question — "How many bowlers?" — and let the page do the lane math. When
-   * set AND the guest enters a count, each product card shows COMPUTED lanes +
-   * a group "from" total (lanes × that day's lowest lane price); entering a
-   * product pre-fills the lane stepper. Above `threshold` the grid yields to an
-   * events handoff (big groups are event territory). Unset count = the page
-   * behaves exactly like the catalog version, so browsing isn't gated.
+   * question — how many GUESTS (not bowlers: spectators count, they need a
+   * place to be) — and let the page do the lane math. Each product card shows
+   * COMPUTED lanes + a group "from" total (lanes × that day's lowest lane
+   * price); entering a product pre-fills the lane stepper. Above `threshold`
+   * the grid yields to an events handoff (big groups are event territory).
    * `capacities` = guests-per-lane by category slug (not in the API yet —
    * mirror the category subtitle copy; re-confirm at the prod-DB cutover).
+   * `default` seeds the stepper (most groups are ~4; never really 1).
+   * `label`/`help` let each page word the question (birthdays: "How many
+   * kids?").
    */
   partySize?: {
     capacities: Record<string, number>;
     threshold: number;
+    default?: number;
+    label?: string;
+    help?: string;
   };
   /**
    * Products that sell a FIXED base package + a per-guest add-on (e.g. the Suite
@@ -140,9 +145,15 @@ export const bookingPage2Config: BookingPageConfig = {
     // Guests-per-lane by category slug (mirrors each category's subtitle copy:
     // VIP couches seat 6, traditional lanes 5). Slugs from /api/products/bookable.
     capacities: { vip_suite_lanes: 6, traditional_lanes: 5 },
-    // Over this many bowlers → events handoff (3+ traditional lanes territory;
+    // Over this many guests → events handoff (3+ traditional lanes territory;
     // ops can tune — it's just this number).
     threshold: 15,
+    // Seed at 4 — groups are almost never 1-2; guests step from a realistic start.
+    default: 4,
+    // GUESTS, not bowlers (ops): 15 people with 5 bowling still need space for
+    // 15 — everyone gets counted so the lanes fit the whole group.
+    label: "How many guests?",
+    help: "Count everyone — bowling or not, they need a place to be. We'll size the lanes to fit.",
   },
 };
 

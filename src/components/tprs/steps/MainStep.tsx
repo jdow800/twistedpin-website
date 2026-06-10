@@ -17,15 +17,19 @@ import type {
 import { formatUsd, todayIso, addDays, formatDateLong } from "../format";
 import Markdown from "../Markdown";
 import { toPlainText } from "../../../tprs/text-dialect";
-import { CUSTOM_EVENT_URL } from "../../../tprs/pageConfig";
+import {
+  CUSTOM_EVENT_URL,
+  type BookingPageConfig,
+} from "../../../tprs/pageConfig";
 
 interface Props {
   productCodes?: number[];
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
-   *  experiment. Unset = catalog behavior, identical to /reserve-preview. */
-  partyConfig?: { capacities: Record<string, number>; threshold: number };
+   *  experiment. GUESTS, not bowlers: spectators count, they need a place to
+   *  be. Absent = catalog behavior, identical to /reserve-preview. */
+  partyConfig?: BookingPageConfig["partySize"];
   partySize: number | null;
   onPartySize: (size: number | null) => void;
   selectedDate: string | null;
@@ -141,22 +145,26 @@ export default function MainStep({
       />
 
       {/* The in-store question, asked first (party-size-first experiment).
-          Optional — skip it and the page reads catalog-style per-lane. */}
+          GUESTS, not bowlers — 15 people with 5 bowling still need space for
+          15, so everyone gets counted. Seeded from config.default (≈4). */}
       {partyConfig && (
         <div className="tprs-party">
-          <h3 className="tprs-section-h tprs-party-h">How many bowlers?</h3>
+          <h3 className="tprs-section-h tprs-party-h">
+            {partyConfig.label ?? "How many guests?"}
+          </h3>
           <div className="tprs-party-row">
             <p className="tprs-party-help">
-              We'll do the lane math — or skip it and browse by the lane.
+              {partyConfig.help ??
+                "Count everyone — bowling or not, they need a place to be. We'll size the lanes to fit."}
             </p>
-            <div className="tprs-stepper" role="group" aria-label="How many bowlers">
+            <div className="tprs-stepper" role="group" aria-label="How many guests">
               <button
                 type="button"
                 className="tprs-stepper-btn"
-                aria-label="Fewer bowlers"
-                disabled={partySize === null}
+                aria-label="Fewer guests"
+                disabled={partySize !== null && partySize <= 1}
                 onClick={() =>
-                  onPartySize(partySize !== null && partySize > 1 ? partySize - 1 : null)
+                  onPartySize(Math.max(1, (partySize ?? 1) - 1))
                 }
               >
                 −
@@ -167,9 +175,9 @@ export default function MainStep({
               <button
                 type="button"
                 className="tprs-stepper-btn"
-                aria-label="More bowlers"
+                aria-label="More guests"
                 disabled={partySize !== null && partySize >= PARTY_MAX}
-                onClick={() => onPartySize(partySize === null ? 1 : partySize + 1)}
+                onClick={() => onPartySize(Math.min(PARTY_MAX, (partySize ?? 0) + 1))}
               >
                 +
               </button>

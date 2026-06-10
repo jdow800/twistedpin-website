@@ -50,6 +50,16 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // page (critical on mobile). State-only history — URL stays /reserve-preview/.
   useStepHistory(state, dispatch);
 
+  // Party-size pages seed the guest stepper from config (≈4 — groups are almost
+  // never 1-2). Re-seeds after RESET; the stepper floors at 1, so null is
+  // otherwise unreachable once seeded.
+  useEffect(() => {
+    const def = config.partySize?.default;
+    if (def != null && state.partySize === null) {
+      dispatch({ type: "SET_PARTY_SIZE", size: def });
+    }
+  }, [config.partySize?.default, state.partySize]);
+
   const currentIdx = STEP_ORDER.indexOf(state.step);
   const isDone = state.step === "confirmation";
   const progressPct = isDone
