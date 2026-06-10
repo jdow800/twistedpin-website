@@ -15,6 +15,8 @@ interface Props {
   date: string;
   slot: AvailabilitySlot | null;
   laneQty: number;
+  /** Selected add-ons (qty > 0) — shown so the card reflects the whole order. */
+  addOns: { name: string; quantity: number }[];
   booking: BookingConvertedResponse | null;
   totalCents: number;
   guestEmail: string;
@@ -26,6 +28,7 @@ export default function ConfirmationStep({
   date,
   slot,
   laneQty,
+  addOns,
   booking,
   totalCents,
   guestEmail,
@@ -48,6 +51,12 @@ export default function ConfirmationStep({
             {laneQty} {laneQty === 1 ? "lane" : "lanes"}
           </span>
         </div>
+        {addOns.map((a) => (
+          <div key={a.name} className="tprs-confirm-line tprs-confirm-line--muted">
+            <span><Markdown text={a.name} inline /></span>
+            <span>× {a.quantity}</span>
+          </div>
+        ))}
         <div className="tprs-confirm-line tprs-confirm-line--muted">
           <span>{formatDateLong(date)}</span>
           <span>{slot ? formatTime12h(slot.time) : ""}</span>

@@ -377,6 +377,9 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           date={state.date}
           slot={state.slot}
           laneQty={state.laneQty}
+          addOns={state.product.addOnProducts
+            .filter((a) => (state.addOnQtys[a.id] ?? 0) > 0)
+            .map((a) => ({ name: a.name, quantity: state.addOnQtys[a.id]! }))}
           booking={state.booking}
           totalCents={
             quote
