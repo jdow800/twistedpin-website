@@ -21,6 +21,7 @@ import {
   CUSTOM_EVENT_URL,
   type BookingPageConfig,
 } from "../../../tprs/pageConfig";
+import { laneMaxFor } from "../state";
 
 interface Props {
   productCodes?: number[];
@@ -107,23 +108,7 @@ export default function MainStep({
     return () => ctrl.abort();
   }, [productCodes]);
 
-  // Per-product verdicts for the selected day (curated pages only): a card
-  // renders when its product is bookable that day, shimmers while the verdict
-  // loads, and drops to the "not running" list when the day is a no for it —
-  // including "no remaining times today" (the backend's day flag is
-  // time-of-day aware, so after a product's last slot passes it reads false).
-  const hidden: { p: CustomerProduct; next: string | null }[] = [];
-  if (dateScoped && categories) {
-    for (const cat of categories) {
-      for (const p of cat.products) {
-        if (availability.isProductAvailable(p.id, day) === false) {
-          hidden.push({ p, next: availability.nextOpenFor(p.id, addDays(day, 1)) });
-        }
-      }
-    }
-  }
-
-  // Party-size mode: the page does the lane math. ceil(bowlers ÷ per-lane
+  // Party-size mode: the page does the lane math. ceil(guests ÷ per-lane
   // capacity) per category; over the threshold the grid yields to the events
   // handoff (big crews are event territory, not self-serve).
   const lanesFor = (cat: BookableCategory): number | null => {
@@ -134,19 +119,48 @@ export default function MainStep({
   const overThreshold =
     !!partyConfig && partySize !== null && partySize > partyConfig.threshold;
 
+  // Per-product ONLINE lane caps make some setups too small for the group
+  // before the events threshold hits (VIP caps at 2 lanes = 12 guests; a crew
+  // of 13-15 must NOT be offered VIP — clamping lanes would seat 12 of 15 and
+  // ops eats the difference at the door). Too-big products are pulled from the
+  // grid and listed honestly with their real fit.
+  const tooBig: { p: CustomerProduct; maxGuests: number }[] = [];
+  if (partyConfig && partySize !== null && !overThreshold && categories) {
+    for (const cat of categories) {
+      const cap = partyConfig.capacities[cat.slug ?? ""];
+      if (!cap) continue;
+      const lanes = Math.ceil(partySize / cap);
+      for (const p of cat.products) {
+        if (lanes > laneMaxFor(p)) {
+          tooBig.push({ p, maxGuests: laneMaxFor(p) * cap });
+        }
+      }
+    }
+  }
+  const tooBigIds = new Set(tooBig.map((t) => t.p.id));
+
+  // Per-product verdicts for the selected day (curated pages only): a card
+  // renders when its product is bookable that day, shimmers while the verdict
+  // loads, and drops to the "not running" list when the day is a no for it —
+  // including "no remaining times today" (the backend's day flag is
+  // time-of-day aware, so after a product's last slot passes it reads false).
+  const hidden: { p: CustomerProduct; next: string | null }[] = [];
+  if (dateScoped && categories) {
+    for (const cat of categories) {
+      for (const p of cat.products) {
+        if (tooBigIds.has(p.id)) continue; // size rules it out before the date does
+        if (availability.isProductAvailable(p.id, day) === false) {
+          hidden.push({ p, next: availability.nextOpenFor(p.id, addDays(day, 1)) });
+        }
+      }
+    }
+  }
+
   return (
     <div>
-      <DateStrip
-        availability={availability}
-        probeKey={probeKey}
-        selected={selectedDate}
-        onPick={onPickDate}
-        label="When are you attending?"
-      />
-
-      {/* The in-store question, asked first (party-size-first experiment).
-          GUESTS, not bowlers — 15 people with 5 bowling still need space for
-          15, so everyone gets counted. Seeded from config.default (≈4). */}
+      {/* The in-store question, asked FIRST (guests → date → options): GUESTS,
+          not bowlers — 15 people with 5 bowling still need space for 15, so
+          everyone gets counted. Seeded from config.default (≈4). */}
       {partyConfig && (
         <div className="tprs-party">
           <h3 className="tprs-section-h tprs-party-h">
@@ -185,6 +199,14 @@ export default function MainStep({
           </div>
         </div>
       )}
+
+      <DateStrip
+        availability={availability}
+        probeKey={probeKey}
+        selected={selectedDate}
+        onPick={onPickDate}
+        label="When are you attending?"
+      />
 
       <h2 className="tprs-h2 tprs-products-h">
         {partySize !== null && !overThreshold
@@ -230,7 +252,9 @@ export default function MainStep({
             ? availability.isProductAvailable(p.id, day)
             : (true as boolean | undefined),
         }));
-        const visible = entries.filter((e) => e.verdict !== false);
+        const visible = entries.filter(
+          (e) => e.verdict !== false && !tooBigIds.has(e.p.id),
+        );
         if (visible.length === 0) return null;
         const lanes = lanesFor(cat); // party-size mode: computed lane count
         return (
@@ -308,6 +332,38 @@ export default function MainStep({
         </section>
         );
       })}
+
+      {/* Setups the group has outgrown ONLINE (per-product lane caps) — honest
+          about the real fit, and the suite-wanters get routed to events rather
+          than silently squeezed into fewer lanes than their headcount. */}
+      {!overThreshold && tooBig.length > 0 && (
+        <div className="tprs-not-today">
+          <p className="tprs-not-today-label">
+            Not sized for {partySize} online
+          </p>
+          {tooBig.map(({ p, maxGuests }) => (
+            <div key={p.id} className="tprs-not-today-row" role="note">
+              <span className="tprs-not-today-name">
+                <Markdown text={p.name} inline />
+              </span>
+              <span className="tprs-not-today-next">
+                Fits up to {maxGuests}
+              </span>
+            </div>
+          ))}
+          <a
+            className="tprs-not-today-row tprs-not-today-eventlink"
+            href={CUSTOM_EVENT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span className="tprs-not-today-name">
+              Want that setup for your whole crew? That's an event — we do those.
+            </span>
+            <span className="tprs-not-today-next">Plan it →</span>
+          </a>
+        </div>
+      )}
 
       {/* What this day can't offer — kept visible (muted, not bookable) so the
           weekend-only lanes stay discoverable; tapping jumps to their next

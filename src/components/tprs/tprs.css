@@ -379,6 +379,10 @@
 .tprs-not-today-row:disabled { cursor: default; }
 .tprs-not-today-name { min-width: 0; }
 .tprs-not-today-next { flex-shrink: 0; color: var(--tw-accent); font-family: var(--font-ui); font-size: 12.5px; font-weight: 600; }
+.tprs-not-today-eventlink { text-decoration: none; }
+.tprs-not-today-eventlink .tprs-not-today-name { color: var(--tw-text); }
+/* Party mode: lane count in the cart is guest-derived → read-only text. */
+.tprs-line-qty--static { font-family: var(--font-ui); font-size: 12.5px; font-weight: 600; color: var(--tw-text-muted); white-space: nowrap; }
 .tprs-card-from { font-family: var(--font-ui); font-size: 14px; font-weight: 800; color: var(--tw-text); }
 .tprs-card-from span { color: var(--tw-text-dim); font-weight: 700; text-transform: uppercase; font-size: 10px; letter-spacing: 0.08em; }
 .tprs-card-thumb {

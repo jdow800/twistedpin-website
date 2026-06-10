@@ -60,6 +60,28 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     }
   }, [config.partySize?.default, state.partySize]);
 
+  // GUEST-DRIVEN lanes: in party mode the lane count is DERIVED from the guest
+  // count, always — guests can change how many people are coming, never the
+  // lane count directly (changing lanes without changing guests is how a crew
+  // of 8 ends up on 1 lane). Runs on every guest/product change; SET_LANE_QTY
+  // clamps to the product's per-booking cap as a backstop (the UI already
+  // refuses to offer a product the group outgrew).
+  useEffect(() => {
+    if (!config.partySize || state.partySize === null) return;
+    const cap = config.partySize.capacities[state.category?.slug ?? ""];
+    if (!state.product || !cap) return;
+    const lanes = Math.ceil(state.partySize / cap);
+    if (lanes !== state.laneQty) {
+      dispatch({ type: "SET_LANE_QTY", qty: lanes });
+    }
+  }, [
+    config.partySize,
+    state.partySize,
+    state.product,
+    state.category,
+    state.laneQty,
+  ]);
+
   const currentIdx = STEP_ORDER.indexOf(state.step);
   const isDone = state.step === "confirmation";
   const progressPct = isDone
@@ -207,6 +229,9 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           quantityLabel={config.quantityLabel ?? DEFAULT_QUANTITY_LABEL}
           quantityHelp={config.quantityHelp}
           guestStepper={guestStepper}
+          partyConfig={config.partySize}
+          partySize={state.partySize}
+          onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           addOnQtys={state.addOnQtys}
           onPickDate={(date) => dispatch({ type: "SET_DATE", date })}
           onSlot={(slot) => dispatch({ type: "SET_SLOT", slot })}
@@ -230,6 +255,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             laneQty={state.laneQty}
             addOnQtys={state.addOnQtys}
             guestStepper={guestStepper}
+            partyGuests={config.partySize ? state.partySize : null}
             showDescriptions={config.cardDescriptions !== false}
             onEdit={() => dispatch({ type: "GO_STEP", step: "detail" })}
           />
@@ -321,6 +347,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         {state.step !== "confirmation" && (
         <StickySummary
           state={state}
+          partyGuests={config.partySize ? state.partySize : null}
           quote={quote}
           quoteLoading={quoteLoading}
           quoteUnavailable={quoteUnavailable}

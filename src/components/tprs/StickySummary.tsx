@@ -28,6 +28,10 @@ import type { QuoteResponse } from "../../tprs/schemas";
 
 interface Props {
   state: WizardState;
+  /** Party mode (pageConfig.partySize): lanes are DERIVED from this guest
+   *  count — the cart shows the lane line read-only ("2 lanes · for 8 guests")
+   *  instead of lane steppers, so lanes can't drift from the headcount. */
+  partyGuests?: number | null;
   /** Server-authoritative subtotal+tax+total; null until the endpoint responds. */
   quote: QuoteResponse | null;
   quoteLoading: boolean;
@@ -106,6 +110,7 @@ function addOnsSelected(state: WizardState): boolean {
 
 export default function StickySummary({
   state,
+  partyGuests = null,
   quote,
   quoteLoading,
   quoteUnavailable,
@@ -211,18 +216,34 @@ export default function StickySummary({
         {lines.length === 0 ? (
           <p className="tprs-summary-empty">Nothing added yet.</p>
         ) : (
-          lines.map((l) => (
+          lines.map((l) => {
+            // Party mode: the lane line is guest-derived → read-only here.
+            // Guests change their HEADCOUNT (on the product screen), never the
+            // lane count directly.
+            const partyLane = l.kind === "lane" && partyGuests !== null;
+            return (
             <div className="tprs-line" key={l.key}>
               <span className="tprs-line-name">
                 <span className="tprs-line-name-text">
                   <Markdown text={l.name} inline />
                 </span>
-                {l.desc && (
+                {partyLane ? (
                   <span className="tprs-line-desc">
-                    <Markdown text={l.desc} inline />
+                    For {partyGuests} guests · shoes included
                   </span>
+                ) : (
+                  l.desc && (
+                    <span className="tprs-line-desc">
+                      <Markdown text={l.desc} inline />
+                    </span>
+                  )
                 )}
               </span>
+              {partyLane ? (
+                <span className="tprs-line-qty tprs-line-qty--static">
+                  {l.qty} {l.qty === 1 ? "lane" : "lanes"}
+                </span>
+              ) : (
               <span className="tprs-line-qty" role="group" aria-label={`${l.plainName} quantity`}>
                 <button
                   type="button"
@@ -250,6 +271,7 @@ export default function StickySummary({
                   +
                 </button>
               </span>
+              )}
               <span className="tprs-line-price">{formatUsd(l.cents)}</span>
               <button
                 type="button"
@@ -260,7 +282,8 @@ export default function StickySummary({
                 ✕
               </button>
             </div>
-          ))
+            );
+          })
         )}
         {discount > 0 && (
           <div className="tprs-line is-discount">

@@ -15,7 +15,10 @@ import type {
 } from "../../../tprs/schemas";
 import { laneMaxFor } from "../state";
 import type { ResolvedGuestStepper } from "../guestStepper";
-import { CUSTOM_EVENT_URL } from "../../../tprs/pageConfig";
+import {
+  CUSTOM_EVENT_URL,
+  type BookingPageConfig,
+} from "../../../tprs/pageConfig";
 import { flyToCart } from "../flyToCart";
 import { scrollPageToBottom } from "../scroll";
 import Markdown from "../Markdown";
@@ -45,6 +48,12 @@ interface Props {
   /** When set, this product sells a base package + per-guest add-on — show a
    *  "How many guests?" stepper that drives the add-on, not a base counter. */
   guestStepper: ResolvedGuestStepper | null;
+  /** Party-size mode (pageConfig.partySize): the quantity question is GUESTS;
+   *  lanes are derived (BookingWizard keeps laneQty synced) and never directly
+   *  editable here. */
+  partyConfig?: BookingPageConfig["partySize"];
+  partySize: number | null;
+  onPartySize: (size: number | null) => void;
   addOnQtys: Record<string, number>;
   onPickDate: (date: string) => void;
   onSlot: (slot: AvailabilitySlot) => void;
@@ -62,6 +71,9 @@ export default function DetailStep({
   quantityLabel,
   quantityHelp,
   guestStepper,
+  partyConfig,
+  partySize,
+  onPartySize,
   addOnQtys,
   onPickDate,
   onSlot,
@@ -128,6 +140,19 @@ export default function DetailStep({
     quantityHelp?.trim() ||
     category?.subtitle?.trim() ||
     "Reserved by the lane for your group.";
+
+  // Party mode: the quantity question is GUESTS — lanes are derived (synced by
+  // BookingWizard) and never directly editable. Max guests for THIS setup =
+  // its online lane cap × per-lane capacity, never past the events threshold.
+  const partyCap =
+    partyConfig && category
+      ? partyConfig.capacities[category.slug ?? ""]
+      : undefined;
+  const partyMode = !!(partyConfig && partySize !== null && partyCap);
+  const partyMaxGuests =
+    partyConfig && partyCap
+      ? Math.min(laneMaxFor(product) * partyCap, partyConfig.threshold)
+      : 0;
 
   const visible = showAll ? bookable : bookable?.slice(0, SLOTS_VISIBLE);
   const hasMore = (bookable?.length ?? 0) > SLOTS_VISIBLE;
@@ -243,7 +268,64 @@ export default function DetailStep({
         />
       )}
 
-      {selectedSlot && !guestStepper && (
+      {/* Party mode — guests are the only editable number; lanes follow. */}
+      {selectedSlot && !guestStepper && partyMode && partySize !== null && (
+        <div className="tprs-qty-block" ref={qtyRef}>
+          <h3 className="tprs-section-h">
+            {partyConfig?.label ?? "How many guests?"}
+          </h3>
+          <div className="tprs-stepper-row">
+            <div className="tprs-stepper-help">
+              <strong>
+                {laneQty} {laneQty === 1 ? "lane" : "lanes"}
+              </strong>{" "}
+              reserved for your {partySize} — shoes included.
+            </div>
+            <div className="tprs-stepper" role="group" aria-label="Guest count">
+              <button
+                type="button"
+                className="tprs-stepper-btn"
+                aria-label="Fewer guests"
+                disabled={partySize <= 1}
+                onClick={() => onPartySize(Math.max(1, partySize - 1))}
+              >
+                −
+              </button>
+              <span className="tprs-stepper-count" aria-live="polite">
+                {partySize}
+              </span>
+              <button
+                type="button"
+                className="tprs-stepper-btn"
+                aria-label="More guests"
+                disabled={partySize >= partyMaxGuests}
+                onClick={(e) => {
+                  onPartySize(partySize + 1);
+                  flyToCart(e.currentTarget);
+                }}
+              >
+                +
+              </button>
+            </div>
+          </div>
+          {partySize >= partyMaxGuests && (
+            <p className="tprs-qty-note" role="status">
+              This setup fits up to {partyMaxGuests} guests online. Bigger
+              group? That's event territory — we'll set you up.{" "}
+              <a
+                className="tprs-inline-link"
+                href={CUSTOM_EVENT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Plan your event →
+              </a>
+            </p>
+          )}
+        </div>
+      )}
+
+      {selectedSlot && !guestStepper && !partyMode && (
         <div className="tprs-qty-block" ref={qtyRef}>
           <h3 className="tprs-section-h">{quantityLabel}</h3>
           <div className="tprs-stepper-row">

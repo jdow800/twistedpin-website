@@ -19,6 +19,9 @@ interface Props {
   laneQty: number;
   addOnQtys: Record<string, number>;
   guestStepper: ResolvedGuestStepper | null;
+  /** Party mode: the recap leads with the headcount the space was sized for —
+   *  "8 guests · 2 lanes" — the number ops actually plans around. */
+  partyGuests?: number | null;
   /** Repeat the product/add-on pitch lines here (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
   onEdit: () => void;
@@ -31,6 +34,7 @@ export default function BookingContext({
   laneQty,
   addOnQtys,
   guestStepper,
+  partyGuests = null,
   showDescriptions = true,
   onEdit,
 }: Props) {
@@ -58,7 +62,9 @@ export default function BookingContext({
             <Markdown text={product.name} inline /> ·{" "}
             {guestCount !== null
               ? `${guestCount} ${guestCount === 1 ? "guest" : "guests"}`
-              : `${laneQty} ${laneQty === 1 ? "lane" : "lanes"}`}
+              : partyGuests !== null
+                ? `${partyGuests} guests · ${laneQty} ${laneQty === 1 ? "lane" : "lanes"} · shoes included`
+                : `${laneQty} ${laneQty === 1 ? "lane" : "lanes"}`}
           </span>
           {showDescriptions && product.shortDescription && (
             <span className="tprs-reserving-desc">

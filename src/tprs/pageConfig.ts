@@ -136,7 +136,9 @@ export const bookingPageConfig: BookingPageConfig = {
 export const bookingPage2Config: BookingPageConfig = {
   ...bookingPageConfig,
   uxCopy: {
-    eyebrow: "Reserve a Lane",
+    // "Book Bowling", not "Reserve a Lane" — guests reserve bowling for a
+    // GROUP; lanes are our unit, not theirs (the whole thesis of this variant).
+    eyebrow: "Book Bowling",
     headline: "Book your night.",
     // The variant's thesis in one line — the page does the lane math.
     sub: "Tell us the crew size — we'll handle the lane math.",
