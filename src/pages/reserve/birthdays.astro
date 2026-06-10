@@ -97,13 +97,29 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
     overflow: hidden;
   }
   @media (min-width: 1025px) {
+    /* Desktop: start the hero BELOW the fixed header instead of behind it —
+       the header's translucent scrim + blur sat right on the LED wall (the
+       brightest part of the shot) and muted it into a dark band. The header
+       now rides on flat page indigo like every other inner page. */
     .tprs-hero {
+      margin-top: var(--header-height);
       height: clamp(420px, 52vh, 600px);
     }
     /* Bias the desktop crop toward the TOP of the shot — the wide band was
        cutting off the LED wall above the lanes. (Mobile crop is fine.) */
     .tprs-hero-img {
       object-position: center 25%;
+    }
+    /* No nav overlapping the image anymore → the heavy top darkening can
+       relax and let the wall glow. */
+    .tprs-hero-scrim {
+      background: linear-gradient(
+        to bottom,
+        rgba(14, 10, 31, 0.3) 0%,
+        rgba(14, 10, 31, 0.15) 38%,
+        rgba(14, 10, 31, 0.62) 72%,
+        #0e0a1f 100%
+      );
     }
   }
   .tprs-hero-img {
