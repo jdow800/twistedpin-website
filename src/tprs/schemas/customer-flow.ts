@@ -36,12 +36,11 @@ export const customerAddOnProductSchema = z.object({
   maxQuantity: z.number().int().nullable(),
   isRequired: z.boolean(),
   /**
-   * Add-on thumbnail — NOT in the backend's add-on projection yet (the parent
-   * product carries thumbnailUrl; add-ons don't). Optional+defaulted so this
-   * parses clean today and the AddOnsStep image lights up the moment the
-   * backend projects the field (mirror in @tprs/shared-schemas when it ships).
+   * Add-on card thumbnail (ADR-0029 §5). Now projected by the backend add-on
+   * projection (customer-catalog.ts loadAddOnsByParent) + mirrored in
+   * @tprs/shared-schemas. `.default(null)` tolerates older cached responses.
    */
-  thumbnailUrl: z.string().nullable().optional().default(null),
+  thumbnailUrl: z.string().nullable().default(null),
 });
 export type CustomerAddOnProduct = z.infer<typeof customerAddOnProductSchema>;
 
