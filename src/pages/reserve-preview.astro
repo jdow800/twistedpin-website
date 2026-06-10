@@ -72,6 +72,7 @@ const { uxCopy, heroImage } = bookingPageConfig;
         />
         <img
           class="tprs-hero-img"
+          data-tprs-hero-img
           src={`${heroImage.base}-1600.webp`}
           alt={heroImage.alt}
           fetchpriority="high"
@@ -129,6 +130,9 @@ const { uxCopy, heroImage } = bookingPageConfig;
     height: 100%;
     object-fit: cover;
     object-position: center;
+    /* The wizard swaps this to the chosen product's hero (BookingWizard
+       product-hero takeover) — fade between shots. */
+    transition: opacity 0.3s ease;
   }
   .tprs-hero-scrim {
     position: absolute;

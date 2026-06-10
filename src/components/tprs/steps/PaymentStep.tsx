@@ -20,11 +20,13 @@ import {
 } from "../../../tprs/client";
 import { formatUsd } from "../format";
 import Markdown from "../Markdown";
+import CouponField from "../CouponField";
 import type {
   BookingConvertedResponse,
   CartAddRequest,
   CheckoutCustomerPayload,
   CheckoutItem,
+  CouponPreviewResponse,
   FormAnswerInput,
 } from "../../../tprs/schemas";
 
@@ -37,6 +39,11 @@ interface Props {
   eventDate: string; // YYYY-MM-DD
   startTime: string; // ISO-8601 with offset
   couponCode?: string;
+  /** "Have a code?" lives HERE at checkout (CouponField) — code/result state
+   *  stays in the wizard so the quote + PI pick it up. */
+  couponResult: CouponPreviewResponse | null;
+  onCouponCode: (code: string) => void;
+  onCouponResult: (result: CouponPreviewResponse | null) => void;
   formAnswers: FormAnswerInput[];
   termsText: string;
   /** Authoritative total (incl. tax) for the Pay button + deferred amount. */
@@ -88,6 +95,23 @@ export default function PaymentStep(props: Props) {
         <h2 className="tprs-h2">How you'll pay</h2>
         <p className="tprs-sub">Secure payment by Stripe. Your card is charged now to reserve.</p>
       </div>
+
+      {/* "Have a code?" — at checkout, where guests hunt for it. The quote
+          (sticky cart) + the PI created at Pay both read the applied code. */}
+      <CouponField
+        productId={props.cartHoldItems[0]?.productId ?? ""}
+        startTime={props.startTime}
+        laneQty={
+          props.checkoutItems.find((i) => i.cartLineRef === "lane")?.quantity ?? 1
+        }
+        email={props.customer.email}
+        phone={props.customer.phone}
+        couponCode={props.couponCode ?? ""}
+        couponResult={props.couponResult}
+        onCouponCode={props.onCouponCode}
+        onCouponResult={props.onCouponResult}
+      />
+
       {/* Deferred mode: amount is provisional (server re-sizes at PI creation) —
           renders the card form WITHOUT a PaymentIntent so the 60s grace doesn't
           start until Pay. METHOD FILTERING: `paymentMethodTypes` MUST match the
@@ -129,6 +153,13 @@ function CheckoutForm({
 }: Props) {
   const stripe = useStripe();
   const elements = useElements();
+
+  // Keep the deferred Elements amount in step with the live total — applying a
+  // code at THIS step changes the quote after Elements mounted (the PI charges
+  // the server-computed amount regardless; this keeps wallet sheets honest).
+  useEffect(() => {
+    elements?.update({ amount: Math.max(50, totalCents) });
+  }, [elements, totalCents]);
 
   // The 10-min cart-hold (capacity reservation) acquired on mount; refreshable.
   const [cartToken, setCartToken] = useState<string | null>(null);

@@ -56,28 +56,31 @@ export default function AddOnsStep({
             const aName = toPlainText(a.name); // plain for aria-labels (no markup)
             return (
               <div className="tprs-addon-row" key={a.id}>
-                {/* Backend doesn't project add-on thumbnails yet — renders the
-                    moment the field ships (schema is already tolerant). */}
-                {a.thumbnailUrl && (
-                  <img
-                    className="tprs-addon-thumb"
-                    src={a.thumbnailUrl}
-                    alt={toPlainText(a.name)}
-                    loading="lazy"
-                  />
-                )}
-                <div className="tprs-addon-main">
-                  <div className="tprs-addon-name">
-                    <Markdown text={a.name} />
-                    {a.isRequired && <span className="tprs-req"> *</span>}
-                  </div>
-                  {a.shortDescription && (
-                    <div className="tprs-addon-desc">
-                      <Markdown text={a.shortDescription} />
+                {/* Two-deck layout (the squeezed 3-column row read cramped on
+                    mobile): copy + thumb on top, price | stepper row below. */}
+                <div className="tprs-addon-top">
+                  <div className="tprs-addon-main">
+                    <div className="tprs-addon-name">
+                      <Markdown text={a.name} />
+                      {a.isRequired && <span className="tprs-req"> *</span>}
                     </div>
+                    {a.shortDescription && (
+                      <div className="tprs-addon-desc">
+                        <Markdown text={a.shortDescription} />
+                      </div>
+                    )}
+                  </div>
+                  {a.thumbnailUrl && (
+                    <img
+                      className="tprs-addon-thumb"
+                      src={a.thumbnailUrl}
+                      alt={toPlainText(a.name)}
+                      loading="lazy"
+                    />
                   )}
-                  <div className="tprs-addon-price">{formatUsd(a.defaultPriceCents)} each</div>
                 </div>
+                <div className="tprs-addon-actions">
+                <div className="tprs-addon-price">{formatUsd(a.defaultPriceCents)} each</div>
                 <div className="tprs-stepper" role="group" aria-label={`${aName} quantity`}>
                   <button
                     type="button"
@@ -101,6 +104,7 @@ export default function AddOnsStep({
                   >
                     +
                   </button>
+                </div>
                 </div>
               </div>
             );

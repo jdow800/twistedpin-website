@@ -60,6 +60,53 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     }
   }, [config.partySize?.default, state.partySize]);
 
+  // PRODUCT HERO TAKEOVER: past the main screen, the page's hero photo becomes
+  // the chosen product's heroImageUrl (uploaded in TPRS admin) — the suite shot
+  // when you're booking the suite. The hero lives in the static Astro shell, so
+  // this swaps it via the DOM: cache the original <img src> + <source> nodes
+  // once, remove the sources (they'd out-rank the swapped src), fade the new
+  // image in; restore everything on the way back to main. Pages without an
+  // image hero (no [data-tprs-hero-img]) no-op.
+  const heroOriginal = useRef<{
+    img: HTMLImageElement;
+    src: string;
+    sources: HTMLSourceElement[];
+  } | null>(null);
+  useEffect(() => {
+    const productHero =
+      state.step !== "main" ? state.product?.heroImageUrl : null;
+    const img =
+      heroOriginal.current?.img ??
+      document.querySelector<HTMLImageElement>("[data-tprs-hero-img]");
+    if (!img) return;
+    const swapTo = (url: string) => {
+      if (img.src === url) return;
+      img.style.opacity = "0";
+      img.onload = () => {
+        img.style.opacity = "1";
+        img.onload = null;
+      };
+      img.src = url;
+    };
+    if (productHero) {
+      if (!heroOriginal.current) {
+        heroOriginal.current = {
+          img,
+          src: img.src,
+          sources: Array.from(
+            img.parentElement?.querySelectorAll("source") ?? [],
+          ),
+        };
+      }
+      heroOriginal.current.sources.forEach((s) => s.remove());
+      swapTo(productHero);
+    } else if (heroOriginal.current) {
+      const { src, sources } = heroOriginal.current;
+      sources.forEach((s) => img.parentElement?.insertBefore(s, img));
+      swapTo(src);
+    }
+  }, [state.step, state.product]);
+
   // GUEST-DRIVEN lanes: in party mode the lane count is DERIVED from the guest
   // count, always — guests can change how many people are coming, never the
   // lane count directly (changing lanes without changing guests is how a crew
@@ -282,15 +329,6 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             dispatch({ type: "SET_GUEST_FIELD", field, value })
           }
           productId={state.product.id}
-          date={state.date}
-          slotTime={state.slot.time}
-          laneQty={state.laneQty}
-          couponCode={state.couponCode}
-          couponResult={state.couponResult}
-          onCouponCode={(code) => dispatch({ type: "SET_COUPON_CODE", code })}
-          onCouponResult={(result) =>
-            dispatch({ type: "SET_COUPON_RESULT", result })
-          }
           onFormAnswers={handleFormAnswers}
           onFormValidityChange={setFormComplete}
         />
@@ -317,6 +355,11 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           eventDate={state.date}
           startTime={toIsoWithOffset(state.date, state.slot.time)}
           couponCode={state.couponCode.trim() || undefined}
+          couponResult={state.couponResult}
+          onCouponCode={(code) => dispatch({ type: "SET_COUPON_CODE", code })}
+          onCouponResult={(result) =>
+            dispatch({ type: "SET_COUPON_RESULT", result })
+          }
           formAnswers={state.formAnswers}
           termsText={config.termsText}
           totalCents={

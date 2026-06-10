@@ -137,11 +137,11 @@ export const bookingPageConfig: BookingPageConfig = {
   // Lanes differ only by duration within a category → duration tiles, no
   // per-product art to source/maintain on this page.
   tileCards: true,
-  // Category room shots behind the tiles (already-encoded /snap assets —
-  // swap = change the basename).
+  // Category room shots behind the tiles — Jon's picks (Context/pictures/
+  // "VIP for front end.jpg" / "traditional for front end.jpg", encoded 540w).
   tileArt: {
-    vip_suite_lanes: { base: "/snap/vip-energy", alt: "" },
-    traditional_lanes: { base: "/snap/stage-bowl", alt: "" },
+    vip_suite_lanes: { base: "/snap/tile-vip", alt: "" },
+    traditional_lanes: { base: "/snap/tile-trad", alt: "" },
   },
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so

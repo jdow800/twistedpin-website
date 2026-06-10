@@ -1,49 +1,26 @@
-// Step 5 — guest details + booking-question forms + "Have a code?".
+// Step 5 — guest details + booking-question forms.
 //
 // Guest form (ADR-0029 §5.1 minimization): first/last + email + phone all
 // REQUIRED (ADR-0025 — name+email+phone required), zip required by the stored
 // shape; autocomplete attributes for OS autofill; validate-on-blur that never
 // wipes input on error. The ADR-0030 FormRenderer mounts here (dormant until a
-// product has an attached form). The coupon entry is collapsed behind a "Have a
-// code?" link with an explicit Apply (Baymard's one sanctioned Apply-button
-// case) and reads "Have a code?" — never discount vocabulary (ADR-0029 §4).
+// product has an attached form). The "Have a code?" coupon entry moved to the
+// PAYMENT step (CouponField.tsx) — checkout is where guests hunt for it.
 
 import { useState, useCallback } from "react";
 import FormRenderer from "../FormRenderer";
-import { previewCoupon, TprsApiError } from "../../../tprs/client";
-import type {
-  CouponPreviewResponse,
-  FormAnswerInput,
-} from "../../../tprs/schemas";
+import type { FormAnswerInput } from "../../../tprs/schemas";
 import { ZIP_RE, type GuestFields } from "../state";
-import { formatUsd, toIsoWithOffset } from "../format";
 
 interface Props {
   guest: GuestFields;
   onGuestField: (field: keyof GuestFields, value: string) => void;
+  /** For the ADR-0030 booking-question forms lookup. */
   productId: string;
-  // Coupon-preview inputs (the chosen lane line).
-  date: string;
-  slotTime: string;
-  laneQty: number;
-  couponCode: string;
-  couponResult: CouponPreviewResponse | null;
-  onCouponCode: (code: string) => void;
-  onCouponResult: (result: CouponPreviewResponse | null) => void;
   onFormAnswers: (answers: FormAnswerInput[]) => void;
   /** Bubbles booking-form required-field completeness up to gate the CTA. */
   onFormValidityChange: (complete: boolean) => void;
 }
-
-const COUPON_REASON_COPY: Record<string, string> = {
-  not_found: "We don't recognize that code.",
-  inactive: "That code isn't active.",
-  not_yet_active: "That code isn't active yet.",
-  expired: "That code has expired.",
-  exhausted: "That code has been fully redeemed.",
-  already_redeemed: "Looks like you've already used this code.",
-  no_matching_products: "That code doesn't apply to these lanes.",
-};
 
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
@@ -52,21 +29,11 @@ export default function GuestDetailsStep(props: Props) {
     guest,
     onGuestField,
     productId,
-    date,
-    slotTime,
-    laneQty,
-    couponCode,
-    couponResult,
-    onCouponCode,
-    onCouponResult,
     onFormAnswers,
     onFormValidityChange,
   } = props;
 
   const [touched, setTouched] = useState<Partial<Record<keyof GuestFields, boolean>>>({});
-  const [codeOpen, setCodeOpen] = useState(false);
-  const [codeBusy, setCodeBusy] = useState(false);
-  const [codeError, setCodeError] = useState<string | null>(null);
 
   // Stable callback so FormRenderer's effect doesn't re-fire each render.
   const handleAnswers = useCallback(
@@ -88,40 +55,6 @@ export default function GuestDetailsStep(props: Props) {
       return null;
     }
     return v === "" ? "Required." : null;
-  }
-
-  async function applyCode() {
-    const code = couponCode.trim();
-    if (code === "") return;
-    setCodeBusy(true);
-    setCodeError(null);
-    try {
-      const res = await previewCoupon({
-        startTime: toIsoWithOffset(date, slotTime),
-        items: [
-          {
-            productId,
-            quantity: laneQty,
-            cartLineRef: "preview-lane", // opaque; preview mints no hold
-          },
-        ],
-        couponCode: code,
-        // Send contact when entered so a "once per guest" code the guest has
-        // already used previews as already-redeemed (matched on phone or email).
-        ...(guest.email.trim() !== "" && { email: guest.email.trim() }),
-        ...(guest.phone.trim() !== "" && { phone: guest.phone.trim() }),
-      });
-      onCouponResult(res);
-    } catch (e) {
-      const msg =
-        e instanceof TprsApiError
-          ? "Couldn't check that code right now."
-          : "Something went wrong.";
-      setCodeError(msg);
-      onCouponResult(null);
-    } finally {
-      setCodeBusy(false);
-    }
   }
 
   return (
@@ -233,55 +166,6 @@ export default function GuestDetailsStep(props: Props) {
         onValidityChange={onFormValidityChange}
       />
 
-      {/* "Have a code?" — collapsed + explicit Apply; never "discount". */}
-      <div className="tprs-field">
-        {!codeOpen ? (
-          <button
-            type="button"
-            className="tprs-code-toggle"
-            onClick={() => setCodeOpen(true)}
-          >
-            Have a code?
-          </button>
-        ) : (
-          <>
-            <label className="tprs-label" htmlFor="g-code">
-              Have a code?
-            </label>
-            <div className="tprs-code-row">
-              <input
-                id="g-code"
-                className="tprs-input"
-                type="text"
-                autoCapitalize="characters"
-                placeholder="Enter your code"
-                value={couponCode}
-                onChange={(e) => onCouponCode(e.currentTarget.value)}
-              />
-              <button
-                type="button"
-                className="tprs-btn tprs-btn--ghost tprs-btn--small"
-                disabled={codeBusy || couponCode.trim() === ""}
-                onClick={applyCode}
-              >
-                {codeBusy ? "Checking…" : "Apply"}
-              </button>
-            </div>
-            {codeError && <p className="tprs-code-msg is-err">{codeError}</p>}
-            {!codeError && couponResult?.valid && (
-              <p className="tprs-code-msg is-ok">
-                Code applied — {formatUsd(couponResult.discountAmountCents ?? 0)} off.
-              </p>
-            )}
-            {!codeError && couponResult && !couponResult.valid && (
-              <p className="tprs-code-msg is-err">
-                {COUPON_REASON_COPY[couponResult.reason ?? ""] ??
-                  "That code can't be applied."}
-              </p>
-            )}
-          </>
-        )}
-      </div>
     </div>
   );
 }
