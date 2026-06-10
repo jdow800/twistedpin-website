@@ -115,6 +115,13 @@ const { uxCopy, heroImage } = bookingPageConfig;
     align-items: flex-end;
     overflow: hidden;
   }
+  /* Desktop gets a touch more cinema — wide viewports made 440px feel like a
+     banner ad. Still bounded: the date question stays one short scroll away. */
+  @media (min-width: 1025px) {
+    .tprs-hero {
+      height: clamp(420px, 52vh, 600px);
+    }
+  }
   .tprs-hero-img {
     position: absolute;
     inset: 0;

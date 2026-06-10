@@ -243,7 +243,9 @@ export default function MainStep({
         </div>
       )}
 
-      {!overThreshold && categories?.map((cat) => {
+      {!overThreshold && categories && (
+      <div className="tprs-cats">
+      {categories.map((cat) => {
         // Cards for this category on the selected day: bookable + still-loading
         // (skeleton). A category with nothing left that day disappears whole.
         const entries = cat.products.map((p) => ({
@@ -332,6 +334,8 @@ export default function MainStep({
         </section>
         );
       })}
+      </div>
+      )}
 
       {/* Setups the group has outgrown ONLINE (per-product lane caps) — honest
           about the real fit, and the suite-wanters get routed to events rather

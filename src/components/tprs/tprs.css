@@ -79,7 +79,9 @@
   color: var(--tw-text);
   margin: 0;
 }
-.tprs-products-h { margin: 26px 0 14px; }
+/* Centered — the page's spine is centered (hero copy → this → category labels);
+   the date block stays left as the one form-like element. */
+.tprs-products-h { margin: 26px 0 14px; text-align: center; }
 .tprs-section-h {
   font-family: var(--font-ui);
   font-weight: 700;
@@ -886,6 +888,21 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
   }
   .tprs-card { flex-direction: column; gap: 12px; }
   .tprs-card-thumb { order: -1; width: 100%; height: 150px; }
+
+  /* Categories sit SIDE BY SIDE on desktop (VIP | Traditional) — stacked
+     full-width sections left a centered label floating over one left-packed
+     card and a field of dead space. auto-fit: two categories split the row;
+     a day with only one category spans it. Cards fill their column. */
+  .tprs-cats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 32px;
+    align-items: start;
+  }
+  .tprs-cats .tprs-card-list {
+    grid-template-columns: 1fr;
+    justify-content: stretch;
+  }
 
   /* F — cart leaves the bottom and becomes a sticky panel in the right column. */
   .tprs-summary {
