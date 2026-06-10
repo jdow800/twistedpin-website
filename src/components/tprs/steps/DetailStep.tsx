@@ -360,6 +360,24 @@ export default function DetailStep({
               </button>
             </div>
           </div>
+          {/* At the online lane cap (3 traditional / 2 VIP — data-driven from
+              maxQuantityPerBooking): say WHY the + stopped and route the bigger
+              night to events, instead of a silently dead button. */}
+          {laneQty >= laneMaxFor(product) && (
+            <p className="tprs-qty-note" role="status">
+              Online bookings cap at {laneMaxFor(product)}{" "}
+              {laneMaxFor(product) === 1 ? "lane" : "lanes"} here. Need more?
+              That's event territory — we'll set you up.{" "}
+              <a
+                className="tprs-inline-link"
+                href={CUSTOM_EVENT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Plan your event →
+              </a>
+            </p>
+          )}
         </div>
       )}
     </div>
