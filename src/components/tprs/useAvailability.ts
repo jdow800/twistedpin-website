@@ -75,6 +75,10 @@ export interface DayAvailability {
    *  only (never fetches) — null when unknown. Feeds the "Next: Saturday,
    *  June 13" hint on products hidden for the selected day. */
   nextOpenFor: (productId: string, fromIso: string) => string | null;
+  /** ONE product's lowest slot price (cents) for a date — null while loading or
+   *  when the day isn't open for it. Party-size mode multiplies this by the
+   *  computed lane count for the group "from" total. */
+  productPriceFor: (productId: string, isoDate: string) => number | null;
   /** Ask the hook to load a month's availability (idempotent; cached). */
   ensureMonth: (month: string) => void;
   /** True once EVERY probed product's availability for the month has loaded. */
@@ -210,6 +214,14 @@ export function useDayAvailability(
     [today, months],
   );
 
+  const productPriceFor = useCallback(
+    (pid: string, isoDate: string): number | null => {
+      const v = months[monthOf(isoDate)]?.[pid]?.get(isoDate);
+      return typeof v === "number" ? v : null;
+    },
+    [months],
+  );
+
   const priceFor = useCallback(
     (isoDate: string): number | null => {
       const byPid = months[monthOf(isoDate)];
@@ -236,6 +248,7 @@ export function useDayAvailability(
     isPending,
     isProductAvailable,
     nextOpenFor,
+    productPriceFor,
     priceFor,
     ensureMonth,
     isMonthLoaded,

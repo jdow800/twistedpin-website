@@ -1,0 +1,73 @@
+---
+/**
+ * /reserve-preview2 — PARKED A/B variant of /reserve-preview: PARTY-SIZE-FIRST.
+ *
+ * Same four lane products, same wizard, one difference: the page leads with the
+ * in-store question — "How many bowlers?" — and then does the lane math for the
+ * guest (computed lanes + group "from" totals per option, lane stepper
+ * pre-filled, over-threshold crews handed to the events funnel). Skipping the
+ * question leaves the page behaving exactly like /reserve-preview, so the two
+ * URLs are directly comparable on a phone.
+ *
+ * DECISION PAGE: whichever variant wins becomes /reserve at the Roller→TPRS
+ * cutover; the loser (this file or the partySize block in pageConfig) gets
+ * deleted. Don't build on top of this page until that call is made.
+ *
+ * Protections (same parked-preview pattern as /reserve-preview):
+ *   - noindex,nofollow (the <Fragment slot="head"> below),
+ *   - excluded from the sitemap (astro.config.mjs filter — the existing
+ *     `includes('/reserve-preview')` test matches this slug too),
+ *   - Disallow'd in robots.txt (its own line — robots prefix-matching needs it),
+ *   - unlinked from nav / footer / CTAs.
+ */
+import Base from "../layouts/Base.astro";
+import BookingWizard from "../components/tprs/BookingWizard.tsx";
+import { bookingPage2Config } from "../tprs/pageConfig";
+
+const { uxCopy } = bookingPage2Config;
+---
+<Base
+  title="Reserve a Lane — Twisted Pin"
+  description="Book your lanes at Twisted Pin."
+  hideStickyCTA={true}
+>
+  {/* noindex,nofollow — parked experiment, never indexed. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  <section class="tprs-intro" data-hero aria-labelledby="tprs-h1">
+    <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+    <h1 class="t-display tprs-intro-headline" id="tprs-h1">{uxCopy.headline}</h1>
+    <p class="tprs-intro-sub">{uxCopy.sub}</p>
+  </section>
+
+  <div class="tprs-mount">
+    <BookingWizard client:only="react" config={bookingPage2Config} />
+  </div>
+</Base>
+
+<style>
+  .tprs-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 28px) 18px 26px;
+    text-align: center;
+  }
+  .tprs-intro-headline {
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    margin: 6px 0 10px;
+  }
+  .tprs-intro-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+  /* Reserve space for the client:only island so the footer doesn't jump on
+     hydrate (CLS). Matches the wizard's own min-height. */
+  .tprs-mount {
+    min-height: 70vh;
+  }
+</style>

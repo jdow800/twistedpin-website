@@ -17,19 +17,35 @@ import type {
 import { formatUsd, todayIso, addDays, formatDateLong } from "../format";
 import Markdown from "../Markdown";
 import { toPlainText } from "../../../tprs/text-dialect";
+import { CUSTOM_EVENT_URL } from "../../../tprs/pageConfig";
 
 interface Props {
   productCodes?: number[];
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
+  /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
+   *  experiment. Unset = catalog behavior, identical to /reserve-preview. */
+  partyConfig?: { capacities: Record<string, number>; threshold: number };
+  partySize: number | null;
+  onPartySize: (size: number | null) => void;
   selectedDate: string | null;
   onPickDate: (date: string) => void;
-  onSelectProduct: (category: BookableCategory, product: CustomerProduct) => void;
+  onSelectProduct: (
+    category: BookableCategory,
+    product: CustomerProduct,
+    laneQty?: number,
+  ) => void;
 }
+
+/** Stepper ceiling — far enough past any threshold to trip the events handoff. */
+const PARTY_MAX = 30;
 
 export default function MainStep({
   productCodes,
   showDescriptions = true,
+  partyConfig,
+  partySize,
+  onPartySize,
   selectedDate,
   onPickDate,
   onSelectProduct,
@@ -103,6 +119,17 @@ export default function MainStep({
     }
   }
 
+  // Party-size mode: the page does the lane math. ceil(bowlers ÷ per-lane
+  // capacity) per category; over the threshold the grid yields to the events
+  // handoff (big crews are event territory, not self-serve).
+  const lanesFor = (cat: BookableCategory): number | null => {
+    if (!partyConfig || partySize === null) return null;
+    const cap = partyConfig.capacities[cat.slug ?? ""];
+    return cap ? Math.ceil(partySize / cap) : null;
+  };
+  const overThreshold =
+    !!partyConfig && partySize !== null && partySize > partyConfig.threshold;
+
   return (
     <div>
       <DateStrip
@@ -113,7 +140,49 @@ export default function MainStep({
         label="When are you attending?"
       />
 
-      <h2 className="tprs-h2 tprs-products-h">Choose your lanes</h2>
+      {/* The in-store question, asked first (party-size-first experiment).
+          Optional — skip it and the page reads catalog-style per-lane. */}
+      {partyConfig && (
+        <div className="tprs-party">
+          <h3 className="tprs-section-h tprs-party-h">How many bowlers?</h3>
+          <div className="tprs-party-row">
+            <p className="tprs-party-help">
+              We'll do the lane math — or skip it and browse by the lane.
+            </p>
+            <div className="tprs-stepper" role="group" aria-label="How many bowlers">
+              <button
+                type="button"
+                className="tprs-stepper-btn"
+                aria-label="Fewer bowlers"
+                disabled={partySize === null}
+                onClick={() =>
+                  onPartySize(partySize !== null && partySize > 1 ? partySize - 1 : null)
+                }
+              >
+                −
+              </button>
+              <span className="tprs-stepper-count" aria-live="polite">
+                {partySize ?? "–"}
+              </span>
+              <button
+                type="button"
+                className="tprs-stepper-btn"
+                aria-label="More bowlers"
+                disabled={partySize !== null && partySize >= PARTY_MAX}
+                onClick={() => onPartySize(partySize === null ? 1 : partySize + 1)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <h2 className="tprs-h2 tprs-products-h">
+        {partySize !== null && !overThreshold
+          ? `Your options for ${partySize}`
+          : "Choose your lanes"}
+      </h2>
 
       {error && <p className="tprs-error">{error}</p>}
       {!error && categories === null && (
@@ -123,7 +192,28 @@ export default function MainStep({
         <p className="tprs-empty">No lanes are bookable online right now.</p>
       )}
 
-      {categories?.map((cat) => {
+      {/* Over the threshold: big crews are event territory — hand off instead
+          of selling N self-serve lanes badly. */}
+      {overThreshold && (
+        <div className="tprs-event-handoff">
+          <h3 className="tprs-event-handoff-h">That's a party.</h3>
+          <p className="tprs-event-handoff-p">
+            Crews of {partySize} are event territory — reserved space, food
+            &amp; drink packages, and someone who handles the details. Tell us
+            what you're planning and we'll set you up.
+          </p>
+          <a
+            className="tprs-event-handoff-cta"
+            href={CUSTOM_EVENT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Plan your event →
+          </a>
+        </div>
+      )}
+
+      {!overThreshold && categories?.map((cat) => {
         // Cards for this category on the selected day: bookable + still-loading
         // (skeleton). A category with nothing left that day disappears whole.
         const entries = cat.products.map((p) => ({
@@ -134,6 +224,7 @@ export default function MainStep({
         }));
         const visible = entries.filter((e) => e.verdict !== false);
         if (visible.length === 0) return null;
+        const lanes = lanesFor(cat); // party-size mode: computed lane count
         return (
         <section className="tprs-cat" key={cat.slug ?? "uncategorized"}>
           {cat.label && <h3 className="tprs-cat-label">{cat.label}</h3>}
@@ -155,7 +246,7 @@ export default function MainStep({
                 type="button"
                 className="tprs-card"
                 key={p.id}
-                onClick={() => onSelectProduct(cat, p)}
+                onClick={() => onSelectProduct(cat, p, lanes ?? undefined)}
               >
                 <div className="tprs-card-main">
                   <h4 className="tprs-card-name">
@@ -170,9 +261,25 @@ export default function MainStep({
                       <Markdown text={p.shortDescription || p.description} />
                     </p>
                   )}
-                  <p className="tprs-card-from">
-                    <span>from</span> {formatUsd(p.defaultPriceCents)}
-                  </p>
+                  {lanes !== null && partySize !== null ? (
+                    /* Group total — the comparison a real human wants: lanes
+                       computed for THEIR crew × that day's lowest lane price. */
+                    <p className="tprs-card-from">
+                      <strong>
+                        {lanes} {lanes === 1 ? "lane" : "lanes"}
+                      </strong>{" "}
+                      for your {partySize} · <span>from</span>{" "}
+                      {formatUsd(
+                        lanes *
+                          (availability.productPriceFor(p.id, day) ??
+                            p.defaultPriceCents),
+                      )}
+                    </p>
+                  ) : (
+                    <p className="tprs-card-from">
+                      <span>from</span> {formatUsd(p.defaultPriceCents)}
+                    </p>
+                  )}
                 </div>
                 {p.thumbnailUrl ? (
                   <img
@@ -197,7 +304,7 @@ export default function MainStep({
       {/* What this day can't offer — kept visible (muted, not bookable) so the
           weekend-only lanes stay discoverable; tapping jumps to their next
           open day. One-liner to delete if pure removal wins. */}
-      {hidden.length > 0 && (
+      {!overThreshold && hidden.length > 0 && (
         <div className="tprs-not-today">
           <p className="tprs-not-today-label">
             Not running {day === today ? "today" : "this day"}

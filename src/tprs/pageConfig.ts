@@ -36,6 +36,21 @@ export interface BookingPageConfig {
    */
   cardDescriptions?: boolean;
   /**
+   * Party-size-first mode (the /reserve-preview2 experiment): ask the in-store
+   * question — "How many bowlers?" — and let the page do the lane math. When
+   * set AND the guest enters a count, each product card shows COMPUTED lanes +
+   * a group "from" total (lanes × that day's lowest lane price); entering a
+   * product pre-fills the lane stepper. Above `threshold` the grid yields to an
+   * events handoff (big groups are event territory). Unset count = the page
+   * behaves exactly like the catalog version, so browsing isn't gated.
+   * `capacities` = guests-per-lane by category slug (not in the API yet —
+   * mirror the category subtitle copy; re-confirm at the prod-DB cutover).
+   */
+  partySize?: {
+    capacities: Record<string, number>;
+    threshold: number;
+  };
+  /**
    * Products that sell a FIXED base package + a per-guest add-on (e.g. the Suite
    * Birthday Party — priced for 10 guests, grows to 14 via the "Additional
    * Guest" add-on). For these, the detail screen shows ONE "How many guests?"
@@ -103,6 +118,31 @@ export const bookingPageConfig: BookingPageConfig = {
   guestSteppers: {
     9: { baseGuests: 10, addOnCode: 10 },
     18: { baseGuests: 10, addOnCode: 19 },
+  },
+};
+
+/**
+ * /reserve-preview2 — the PARTY-SIZE-FIRST experiment (A/B against
+ * /reserve-preview, parked). Same four lane products; the difference is the
+ * "How many bowlers?" stepper driving computed lanes + group totals + the
+ * over-threshold events handoff. Compare on a phone; whichever wins becomes
+ * /reserve at cutover and the other config is deleted.
+ */
+export const bookingPage2Config: BookingPageConfig = {
+  ...bookingPageConfig,
+  uxCopy: {
+    eyebrow: "Reserve a Lane",
+    headline: "Book your night.",
+    // The variant's thesis in one line — the page does the lane math.
+    sub: "Tell us the crew size — we'll handle the lane math.",
+  },
+  partySize: {
+    // Guests-per-lane by category slug (mirrors each category's subtitle copy:
+    // VIP couches seat 6, traditional lanes 5). Slugs from /api/products/bookable.
+    capacities: { vip_suite_lanes: 6, traditional_lanes: 5 },
+    // Over this many bowlers → events handoff (3+ traditional lanes territory;
+    // ops can tune — it's just this number).
+    threshold: 15,
   },
 };
 

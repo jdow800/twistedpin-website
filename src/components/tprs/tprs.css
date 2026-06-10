@@ -324,6 +324,40 @@
   background-size: 200% 100%;
   animation: tprs-shimmer 1.1s ease-in-out infinite;
 }
+/* "How many bowlers?" — the party-size-first experiment (/reserve-preview2). */
+.tprs-party {
+  margin: 4px 0 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--tw-border);
+  border-radius: var(--radius-surface);
+  background: var(--tw-surface);
+}
+.tprs-party-h { margin: 0 0 8px; }
+.tprs-party-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.tprs-party-help { font-family: var(--font-body); font-size: 13px; line-height: 1.45; color: var(--tw-text-muted); margin: 0; }
+/* Big-crew events handoff (over the party-size threshold). */
+.tprs-event-handoff {
+  margin: 6px 0 12px;
+  padding: 22px 18px;
+  border: 1px solid var(--tw-border-strong, var(--tw-border));
+  border-radius: var(--radius-surface);
+  background: var(--tw-surface);
+  text-align: center;
+}
+.tprs-event-handoff-h { font-family: var(--font-display); font-size: 28px; letter-spacing: 0.01em; margin: 0 0 8px; color: var(--tw-text); text-transform: uppercase; }
+.tprs-event-handoff-p { font-family: var(--font-body); font-size: 14.5px; line-height: 1.55; color: var(--tw-text-muted); margin: 0 auto 16px; max-width: 46ch; }
+.tprs-event-handoff-cta {
+  display: inline-block;
+  padding: 12px 22px;
+  border-radius: var(--radius-button, 7px);
+  background: var(--tw-sel-bg);
+  color: var(--tw-sel-text);
+  font-family: var(--font-ui);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
+
 /* Products the selected day can't offer — wayfinding, not bookable options. */
 .tprs-not-today { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--tw-border); }
 .tprs-not-today-label { font-family: var(--font-ui); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tw-text-dim); margin: 0 0 6px; }

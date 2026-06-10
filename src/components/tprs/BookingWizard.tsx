@@ -176,10 +176,13 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         <MainStep
           productCodes={config.productCodes}
           showDescriptions={config.cardDescriptions !== false}
+          partyConfig={config.partySize}
+          partySize={state.partySize}
+          onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           selectedDate={state.date}
           onPickDate={(date) => dispatch({ type: "SET_DATE", date })}
-          onSelectProduct={(category, product) =>
-            dispatch({ type: "SELECT_PRODUCT", category, product })
+          onSelectProduct={(category, product, laneQty) =>
+            dispatch({ type: "SELECT_PRODUCT", category, product, laneQty })
           }
         />
       )}

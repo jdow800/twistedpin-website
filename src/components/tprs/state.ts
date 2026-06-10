@@ -63,6 +63,9 @@ export interface WizardState {
   step: WizardStep;
   /** YYYY-MM-DD (Central calendar date). */
   date: string | null;
+  /** "How many bowlers?" — the party-size-first experiment (pageConfig.partySize).
+   *  Null = not asked / guest skipped; the page then behaves catalog-style. */
+  partySize: number | null;
   /** The category the chosen product came from (carries the capacity subtitle). */
   category: BookableCategory | null;
   product: CustomerProduct | null;
@@ -82,6 +85,7 @@ export interface WizardState {
 export const initialState: WizardState = {
   step: "main",
   date: null,
+  partySize: null,
   category: null,
   product: null,
   slot: null,
@@ -110,7 +114,14 @@ export function laneMinFor(product: CustomerProduct | null): number {
 
 export type WizardAction =
   | { type: "SET_DATE"; date: string }
-  | { type: "SELECT_PRODUCT"; category: BookableCategory; product: CustomerProduct }
+  | { type: "SET_PARTY_SIZE"; size: number | null }
+  | {
+      type: "SELECT_PRODUCT";
+      category: BookableCategory;
+      product: CustomerProduct;
+      /** Pre-computed lane count (party-size mode does the ceil() math). */
+      laneQty?: number;
+    }
   | { type: "SET_SLOT"; slot: AvailabilitySlot }
   | { type: "SET_LANE_QTY"; qty: number }
   | { type: "SET_ADDON_QTY"; addOnId: string; qty: number }
@@ -142,15 +153,25 @@ export function wizardReducer(
         date: action.date,
         slot: state.date === action.date ? state.slot : null,
       };
+    case "SET_PARTY_SIZE":
+      return {
+        ...state,
+        partySize:
+          action.size === null ? null : Math.max(1, Math.round(action.size)),
+      };
     case "SELECT_PRODUCT":
       return {
         ...state,
         category: action.category,
         product: action.product,
         // New product → reset slot + add-ons (they're product-specific). Seed the
-        // base qty at the product's per-booking floor (almost always 1).
+        // base qty at the computed lane count when party-size mode did the math,
+        // else the product's per-booking floor (almost always 1).
         slot: null,
-        laneQty: laneMinFor(action.product),
+        laneQty: clampQty(
+          action.laneQty ?? laneMinFor(action.product),
+          action.product,
+        ),
         addOnQtys: {},
         formAnswers: [],
         step: "detail",
