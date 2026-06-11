@@ -254,6 +254,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       {state.step === "main" && (
         <MainStep
           productCodes={config.productCodes}
+          defaultDate={config.defaultDate}
           showDescriptions={config.cardDescriptions !== false}
           tileCards={config.tileCards === true}
           tileArt={config.tileArt}

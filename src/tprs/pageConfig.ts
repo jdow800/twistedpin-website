@@ -86,6 +86,15 @@ export interface BookingPageConfig {
     help?: string;
   };
   /**
+   * Seed the calendar at this ISO date (yyyy-mm-dd) instead of today — for
+   * single-date pages (/reserve/nye) whose products are only bookable on one
+   * day, where defaulting to today just shows greyed chips. Ignored once the
+   * date is in the past (the page is evergreen; the config shouldn't strand
+   * next year's guests on last year's date). The guest can still pick another
+   * day if ops ever opens one.
+   */
+  defaultDate?: string;
+  /**
    * Products that sell a FIXED base package + a per-guest add-on (e.g. the Suite
    * Birthday Party — priced for 10 guests, grows to 14 via the "Additional
    * Guest" add-on). For these, the detail screen shows ONE "How many guests?"
@@ -236,23 +245,30 @@ export const birthdaysPageConfig: BookingPageConfig = {
  * exact-match, so the nested path is free today and launch is just the
  * parked-triad lift + funnel repoint — no rename).
  *
- * ONE product (124, NYE Party VIP Lanes — 90min slots in the suite, $129.95/
- * lane, max 6 lanes/booking) that sells via its included-list copy, so a
- * STANDARD description card (no tileCards) with descriptions ON. Quantity is
- * the normal lane stepper — each lane covers up to 6 guests. The NYE Arcade
- * Mega Deal (125) rides along as a regular optional add-on; no guest stepper.
- * Code re-verified against the live catalog 2026-06-11.
+ * TWO products — one per room (90min party slots, max 6 lanes/booking each) —
+ * that sell via their included-list copy, so STANDARD description cards (no
+ * tileCards) with descriptions ON. Quantity is the normal lane stepper;
+ * per-lane capacity differs by room (VIP 6 / traditional 5) so capacity copy
+ * stays at category level, never page level. The NYE Arcade Mega Deal (125)
+ * rides along as a regular optional add-on; no guest stepper. Codes
+ * re-verified against the live catalog 2026-06-11.
  */
 export const nyePageConfig: BookingPageConfig = {
-  // 124 → NYE Party VIP Lanes   $129.95 · 90min · max 6 lanes per booking
-  productCodes: [124],
+  // 124 → NYE Party VIP Lanes          $129.95 · 90min · max 6 lanes per booking
+  // 126 → NYE Party Traditional Lanes  $109.95 · 90min · max 6 lanes per booking
+  productCodes: [124, 126],
+  // Both packages are bookable ONLY on NYE (ops is restricting availability in
+  // the backend) — seed the calendar there instead of today.
+  defaultDate: "2026-12-31",
   heroImage: {
     base: "/snap/nye-reserve-hero",
     alt: "The VIP suite at Twisted Pin mid-party",
   },
+  // No per-lane capacity here — it differs by room (VIP 6 / traditional 5) and
+  // the category subtitles + product copy carry the accurate numbers.
   termsText:
     "Reservations hold your lanes for the party time slot you select. " +
-    "Each lane covers up to 6 guests — shoes, pizza, and a pitcher of soda included. " +
+    "Each lane comes with shoes, a large pizza, and a pitcher of soda. " +
     "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
     "Arrive a few minutes early to get your group set up.",
   uxCopy: {
@@ -263,8 +279,8 @@ export const nyePageConfig: BookingPageConfig = {
     // sub can't promise midnight to every slot.
     sub: "Pick your party slot. Unlimited bowling, pizza, and party favors — the 10pm crew gets the midnight toast.",
   },
-  quantityLabel: "How many lanes?",
-  quantityHelp: "Each lane fits up to 6 guests — seats, shoes, and the party spread included.",
+  // quantityLabel/quantityHelp left to defaults — "How many lanes?" with the
+  // category's own capacity subtitle (the rooms hold different counts).
 };
 
 // ── How to build a curated booking page (e.g. twistedpin.com/nye) ──────────

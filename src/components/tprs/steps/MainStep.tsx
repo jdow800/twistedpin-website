@@ -37,6 +37,9 @@ interface Props {
   partyConfig?: BookingPageConfig["partySize"];
   partySize: number | null;
   onPartySize: (size: number | null) => void;
+  /** Seed the calendar here instead of today (pageConfig.defaultDate) — for
+   *  single-date pages (/reserve/nye). Past dates fall back to today. */
+  defaultDate?: string;
   selectedDate: string | null;
   onPickDate: (date: string) => void;
   onSelectProduct: (
@@ -62,6 +65,7 @@ function durationLabel(mins: number | null): string | null {
 
 export default function MainStep({
   productCodes,
+  defaultDate,
   showDescriptions = true,
   tileCards = false,
   tileArt,
@@ -90,9 +94,14 @@ export default function MainStep({
   const dateScoped = probeKey !== null;
   const day = selectedDate ?? today;
 
-  // Default the date to today on first mount (Roller defaults "Today" selected).
+  // Default the date on first mount: the page's configured date when one is
+  // set and still ahead (single-date pages like /reserve/nye), else today
+  // (Roller defaults "Today" selected). DateStrip's recenter effect rotates
+  // the strip to a far-future seed; its smart-forward treats a not-yet-loaded
+  // selection as valid, so it won't stomp the seed while Dec is in flight.
   useEffect(() => {
-    if (selectedDate === null) onPickDate(todayIso());
+    if (selectedDate === null)
+      onPickDate(defaultDate && defaultDate >= today ? defaultDate : todayIso());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
