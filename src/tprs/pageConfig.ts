@@ -86,6 +86,15 @@ export interface BookingPageConfig {
     help?: string;
   };
   /**
+   * Replace the at-cap events nudge ("Online bookings cap at N lanes here.
+   * Need more? That's event territory… Plan your event →") for specific
+   * products, keyed by integer code. For a product whose online cap IS the
+   * room's entire inventory (NYE VIP: 6 lanes = the whole suite), "need more"
+   * routes nowhere — the note should still explain the dead + button, just
+   * without the handoff. Plain text, no link. Unset codes keep the default.
+   */
+  laneCapNotes?: Record<number, string>;
+  /**
    * Seed the calendar at this ISO date (yyyy-mm-dd) instead of today — for
    * single-date pages (/reserve/nye) whose products are only bookable on one
    * day, where defaulting to today just shows greyed chips. Ignored once the
@@ -260,6 +269,13 @@ export const nyePageConfig: BookingPageConfig = {
   // Both packages are bookable ONLY on NYE (ops is restricting availability in
   // the backend) — seed the calendar there instead of today.
   defaultDate: "2026-12-31",
+  // At 6 VIP lanes the guest holds the ENTIRE suite — there's nothing more to
+  // sell, so the default "need more? plan an event" nudge is nonsense there.
+  // Traditional (126) keeps the default: 6 of 17 lanes, bigger nights really
+  // are event territory.
+  laneCapNotes: {
+    124: "That's the whole suite — all six lanes are yours for the night.",
+  },
   heroImage: {
     base: "/snap/nye-reserve-hero",
     alt: "The VIP suite at Twisted Pin mid-party",

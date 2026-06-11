@@ -278,6 +278,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           laneQty={state.laneQty}
           quantityLabel={config.quantityLabel ?? DEFAULT_QUANTITY_LABEL}
           quantityHelp={config.quantityHelp}
+          laneCapNote={config.laneCapNotes?.[state.product.code]}
           guestStepper={guestStepper}
           partyConfig={config.partySize}
           partySize={state.partySize}

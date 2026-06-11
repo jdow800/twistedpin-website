@@ -45,6 +45,11 @@ interface Props {
   /** Per-page quantity wording (pageConfig). Defaults below when unset. */
   quantityLabel: string;
   quantityHelp?: string;
+  /** Per-product replacement for the at-cap events nudge (pageConfig
+   *  .laneCapNotes by code) — for products whose online cap IS the whole room
+   *  (NYE VIP: 6 lanes = the entire suite, "need more" routes nowhere).
+   *  Plain text, no events link. Unset = the default nudge. */
+  laneCapNote?: string;
   /** When set, this product sells a base package + per-guest add-on — show a
    *  "How many guests?" stepper that drives the add-on, not a base counter. */
   guestStepper: ResolvedGuestStepper | null;
@@ -70,6 +75,7 @@ export default function DetailStep({
   laneQty,
   quantityLabel,
   quantityHelp,
+  laneCapNote,
   guestStepper,
   partyConfig,
   partySize,
@@ -360,24 +366,30 @@ export default function DetailStep({
               </button>
             </div>
           </div>
-          {/* At the online lane cap (3 traditional / 2 VIP — data-driven from
-              maxQuantityPerBooking): say WHY the + stopped and route the bigger
-              night to events, instead of a silently dead button. */}
-          {laneQty >= laneMaxFor(product) && (
-            <p className="tprs-qty-note" role="status">
-              Online bookings cap at {laneMaxFor(product)}{" "}
-              {laneMaxFor(product) === 1 ? "lane" : "lanes"} here. Need more?
-              That's event territory — we'll set you up.{" "}
-              <a
-                className="tprs-inline-link"
-                href={CUSTOM_EVENT_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Plan your event →
-              </a>
-            </p>
-          )}
+          {/* At the online lane cap (data-driven from maxQuantityPerBooking):
+              say WHY the + stopped instead of a silently dead button. Default
+              routes the bigger night to events; a laneCapNote override (when
+              the cap IS the whole room — NYE VIP) just states the fact. */}
+          {laneQty >= laneMaxFor(product) &&
+            (laneCapNote ? (
+              <p className="tprs-qty-note" role="status">
+                {laneCapNote}
+              </p>
+            ) : (
+              <p className="tprs-qty-note" role="status">
+                Online bookings cap at {laneMaxFor(product)}{" "}
+                {laneMaxFor(product) === 1 ? "lane" : "lanes"} here. Need more?
+                That's event territory — we'll set you up.{" "}
+                <a
+                  className="tprs-inline-link"
+                  href={CUSTOM_EVENT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Plan your event →
+                </a>
+              </p>
+            ))}
         </div>
       )}
     </div>
