@@ -82,6 +82,24 @@ lander) to `/reserve/birthdays/` + lifting its noindex/robots/sitemap entries.
 a better IA emerges. Marketing pages `/vip-suite`, `/birthday-parties-booking`
 should eventually deep-link to the matching booking page.)
 
+## Launch SEO pass (EVERY booking page, at ITS go-live — Jon asked to be reminded)
+
+Lifting the parked triad is necessary but not sufficient. Before a booking page
+goes live, give it the full SEO treatment per `Context/seo.md`:
+
+1. **Title + meta description** — the parked stubs are minimal ("Reserve a
+   Lane — Twisted Pin" / one-liner). Write real ones (keywords, ≤60/≤155 chars).
+2. **Social preview image** — the pages currently inherit the default og:image.
+   Set a per-page `og:image` (1200×630 crop of the page's hero shot; sources in
+   `Context/og images/`) via Base.astro's og props.
+3. **Lift the parked triad** — noindex meta + robots.txt Disallow + the
+   astro.config.mjs sitemap filter entry (then the page enters the sitemap).
+4. **Repoint the funnel** — the marketing lander's booking CTAs to the local
+   page (birthdays: `ROLLER_KIDS_URL` in `birthday-parties-booking.astro`).
+5. **GSC** — resubmit the sitemap; spot-check indexing after a few days.
+6. **Schema (optional)** — the landers carry Product/Offer schema; decide
+   whether the booking page needs its own or stays schema-quiet.
+
 ## Cutover checklist (when backend is on Stripe LIVE + prod DB — NOT yet)
 
 1. `git mv src/pages/reserve-preview.astro src/pages/reserve.astro` (+ children).
