@@ -196,7 +196,7 @@ export function formUploadUrl(id: string): string {
   return buildUrl(`/api/forms/upload/${id}`);
 }
 
-function fileToBase64(file: File): Promise<string> {
+function fileToBase64(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
@@ -209,19 +209,93 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 /**
- * Upload a guest image for a `file` form field. Reads the File as base64 and
- * POSTs it; returns the stored upload id (the field's answer value). Throws
- * `TprsApiError` on rejection (bad type / too large / network).
+ * The upload POST transits the Vercel middleware proxy, which hard-caps
+ * request bodies at ~4.5 MB (FUNCTION_PAYLOAD_TOO_LARGE — not configurable).
+ * Base64 adds +33%, so the raw image must stay under ~3 MB on the wire. The
+ * backend's own limit (20 MB direct) is NOT the constraint.
+ */
+const PROXY_SAFE_RAW_BYTES = 3 * 1024 * 1024;
+
+/**
+ * Downscale + re-encode a photo in the browser (max edge 2000px, JPEG q0.85).
+ * A 12 MB phone photo becomes a few hundred KB — these images render on lane
+ * screens, not billboards. Returns null when the file can't be decoded
+ * (caller falls back to the original bytes). GIFs are skipped by the caller
+ * (canvas would flatten the animation).
+ */
+async function compressImageForUpload(
+  file: File,
+): Promise<{ blob: Blob; contentType: string } | null> {
+  let bitmap: ImageBitmap;
+  try {
+    // from-image = honor EXIF orientation (phone portraits).
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    try {
+      bitmap = await createImageBitmap(file);
+    } catch {
+      return null;
+    }
+  }
+  try {
+    const MAX_EDGE = 2000;
+    const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+    canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.85),
+    );
+    return blob ? { blob, contentType: "image/jpeg" } : null;
+  } finally {
+    bitmap.close();
+  }
+}
+
+/**
+ * Upload a guest image for a `file` form field. Photos are downscaled
+ * client-side first (see PROXY_SAFE_RAW_BYTES — the proxy, not the backend,
+ * is the size ceiling), then POSTed as base64; returns the stored upload id
+ * (the field's answer value). Throws `TprsApiError` on rejection.
  */
 export async function uploadFormImage(file: File): Promise<string> {
-  const data = await fileToBase64(file);
+  let payload: Blob = file;
+  let contentType = file.type;
+  let filename = file.name;
+  if (file.type !== "image/gif") {
+    const compressed = await compressImageForUpload(file);
+    // Use the re-encode when it's smaller OR the original can't fit through
+    // the proxy anyway (a tiny already-small JPEG keeps its original bytes).
+    if (
+      compressed &&
+      (compressed.blob.size < file.size || file.size > PROXY_SAFE_RAW_BYTES)
+    ) {
+      payload = compressed.blob;
+      contentType = compressed.contentType;
+      filename = filename.replace(/\.[a-z0-9]+$/i, "") + ".jpg";
+    }
+  }
+  if (payload.size > PROXY_SAFE_RAW_BYTES) {
+    throw new TprsApiError(
+      "That photo is too large to send — try a smaller image (or a screenshot of it).",
+      413,
+    );
+  }
+  const data = await fileToBase64(payload);
   const { ok, status, json } = await postJson("/api/forms/upload", {
-    filename: file.name,
-    contentType: file.type,
+    filename,
+    contentType,
     data,
   });
   if (!ok) {
-    const msg = (json as { message?: string } | undefined)?.message ?? "Upload failed.";
+    const msg =
+      (json as { message?: string } | undefined)?.message ??
+      (status === 413
+        ? "That photo is too large to send — try a smaller image."
+        : "Upload failed.");
     throw new TprsApiError(msg, status);
   }
   return (json as { id: string }).id;
