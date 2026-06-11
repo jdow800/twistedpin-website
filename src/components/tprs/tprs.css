@@ -753,6 +753,11 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 25;
+  /* In-app browsers (Meta Messenger/Instagram WebView) apply Android font
+     boosting + system font scale aggressively — without this the caption
+     inflates, the row overflows, and the bar word-stacks into a wreck. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   background: rgba(14, 10, 31, 0.92);
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
@@ -813,8 +818,11 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
 .tprs-tot-caret { font-size: 10px; color: var(--tw-text-muted); }
 .tprs-tot-toggle .tprs-tot-label { display: inline-flex; align-items: baseline; gap: 4px; text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 2px; }
 
-.tprs-summary-inner { max-width: 720px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; }
-.tprs-summary-figures { display: flex; align-items: center; gap: 10px; min-width: 0; text-align: left; background: none; }
+/* flex-wrap: under big system font scale the buttons can't fit beside the
+   figures — they now drop to a second row instead of crushing the caption into
+   a one-word-per-line column (seen in Meta Messenger's WebView). */
+.tprs-summary-inner { max-width: 720px; margin: 0 auto; display: flex; flex-wrap: wrap; row-gap: 10px; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; }
+.tprs-summary-figures { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; text-align: left; background: none; }
 .tprs-summary-figures:disabled { cursor: default; }
 .tprs-summary-cart { font-size: 18px; display: inline-block; }
 .tprs-summary-cart.is-bump { animation: tprs-bump 420ms ease; }
@@ -828,8 +836,9 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
 .tprs-summary-total { display: flex; align-items: baseline; gap: 8px; font-family: var(--font-ui); font-weight: 800; font-size: 22px; line-height: 1; color: var(--tw-text); }
 .tprs-summary-total s { color: var(--tw-text-dim); font-weight: 700; font-size: 15px; }
 .tprs-summary-chevron { font-size: 12px; color: var(--tw-text-dim); }
-.tprs-summary-caption { font-family: var(--font-body); font-size: 11px; color: var(--tw-text-muted); margin-top: 3px; }
-.tprs-summary-actions { display: flex; gap: 8px; flex-shrink: 0; }
+/* Ellipsize, never word-stack — the caption is glanceable metadata, not prose. */
+.tprs-summary-caption { display: block; font-family: var(--font-body); font-size: 11px; color: var(--tw-text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tprs-summary-actions { display: flex; gap: 8px; flex-shrink: 0; margin-left: auto; }
 
 /* ── Payment PREVIEW (mock of the eventual Stripe layout) ───────────── */
 .tprs-pay-wallets { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
