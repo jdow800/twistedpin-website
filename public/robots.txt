@@ -16,6 +16,10 @@ Disallow: /reserve-preview2/
 # never a broad /reserve/ block, which would have to be unwound at the lane
 # cutover). Lift at birthday-booking launch.
 Disallow: /reserve/birthdays/
+# Parked NYE party-slot booking page AT ITS REAL SLUG (same mechanic as
+# /reserve/birthdays — specific path, never a broad /reserve/ block). Lift at
+# NYE-booking launch.
+Disallow: /reserve/nye/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml

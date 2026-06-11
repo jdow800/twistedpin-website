@@ -230,6 +230,43 @@ export const birthdaysPageConfig: BookingPageConfig = {
   },
 };
 
+/**
+ * /reserve/nye — New Year's Eve party-slot bookings (PARKED at its REAL slug,
+ * same mechanic as /reserve/birthdays: the /reserve→Roller redirect is
+ * exact-match, so the nested path is free today and launch is just the
+ * parked-triad lift + funnel repoint — no rename).
+ *
+ * ONE product (124, NYE Party VIP Lanes — 90min slots in the suite, $129.95/
+ * lane, max 6 lanes/booking) that sells via its included-list copy, so a
+ * STANDARD description card (no tileCards) with descriptions ON. Quantity is
+ * the normal lane stepper — each lane covers up to 6 guests. The NYE Arcade
+ * Mega Deal (125) rides along as a regular optional add-on; no guest stepper.
+ * Code re-verified against the live catalog 2026-06-11.
+ */
+export const nyePageConfig: BookingPageConfig = {
+  // 124 → NYE Party VIP Lanes   $129.95 · 90min · max 6 lanes per booking
+  productCodes: [124],
+  heroImage: {
+    base: "/snap/nye-reserve-hero",
+    alt: "The VIP suite at Twisted Pin mid-party",
+  },
+  termsText:
+    "Reservations hold your lanes for the party time slot you select. " +
+    "Each lane covers up to 6 guests — shoes, pizza, and a pitcher of soda included. " +
+    "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
+    "Arrive a few minutes early to get your group set up.",
+  uxCopy: {
+    eyebrow: "New Year's Eve",
+    // The how-to block below floated "Ring it in." for /nye — promoted as-is.
+    headline: "Ring it in.",
+    // Accuracy guard: only the 10pm slot includes the champagne toast, so the
+    // sub can't promise midnight to every slot.
+    sub: "Pick your party slot. Unlimited bowling, pizza, and party favors — the 10pm crew gets the midnight toast.",
+  },
+  quantityLabel: "How many lanes?",
+  quantityHelp: "Each lane fits up to 6 guests — seats, shoes, and the party spread included.",
+};
+
 // ── How to build a curated booking page (e.g. twistedpin.com/nye) ──────────
 //
 // Every booking page reuses the SAME <BookingWizard>; a page is just a config.
