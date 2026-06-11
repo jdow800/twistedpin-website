@@ -15,6 +15,11 @@ interface Props {
   date: string;
   slot: AvailabilitySlot | null;
   laneQty: number;
+  /** Folded party size for guest-stepper packages (base + additional guests).
+   *  When set, the headline unit is GUESTS — "11 guests", never "1 lane"
+   *  (the package quantity is meaningless to the parent; the additional-guest
+   *  add-on is folded in here rather than listed as a line). */
+  guestCount: number | null;
   /** Selected add-ons (qty > 0) — shown so the card reflects the whole order. */
   addOns: { name: string; quantity: number }[];
   booking: BookingConvertedResponse | null;
@@ -28,6 +33,7 @@ export default function ConfirmationStep({
   date,
   slot,
   laneQty,
+  guestCount,
   addOns,
   booking,
   totalCents,
@@ -48,7 +54,9 @@ export default function ConfirmationStep({
         <div className="tprs-confirm-line">
           <span><Markdown text={product.name} inline /></span>
           <span>
-            {laneQty} {laneQty === 1 ? "lane" : "lanes"}
+            {guestCount !== null
+              ? `${guestCount} ${guestCount === 1 ? "guest" : "guests"}`
+              : `${laneQty} ${laneQty === 1 ? "lane" : "lanes"}`}
           </span>
         </div>
         {addOns.map((a) => (

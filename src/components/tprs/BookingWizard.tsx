@@ -377,8 +377,19 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           date={state.date}
           slot={state.slot}
           laneQty={state.laneQty}
+          guestCount={
+            guestStepper
+              ? guestStepper.baseGuests +
+                (state.addOnQtys[guestStepper.addOn.id] ?? 0)
+              : null
+          }
           addOns={state.product.addOnProducts
-            .filter((a) => (state.addOnQtys[a.id] ?? 0) > 0)
+            .filter(
+              (a) =>
+                (state.addOnQtys[a.id] ?? 0) > 0 &&
+                // The guest add-on is folded into guestCount, not a line item.
+                a.id !== guestStepper?.addOn.id,
+            )
             .map((a) => ({ name: a.name, quantity: state.addOnQtys[a.id]! }))}
           booking={state.booking}
           totalCents={
