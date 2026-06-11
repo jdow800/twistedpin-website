@@ -16,17 +16,14 @@
  *     Reserve a lane (Roller, outlined alternate)
  *   - SnapFooter
  *
- * Body copy is intentionally placeholder-quality until ops gives real
- * package details (price tiers, what's included, ticket vs walk-in).
- * The brand-coherent shell ships now so the page exists and can be
- * deep-linked; copy gets refined when packages are confirmed.
- *
- * TODOs (ops-blocked):
- *   - Real package details (tiers, pricing positioning, what's included).
- *     Until then the section reads "details with our event team."
- *   - Date-specific time (currently event collection has 8pm – 1am CT
- *     as a sensible default).
- *   - If Roller offers NYE-specific reservation slots, wire those.
+ * 2026-06-11: package copy is REAL now — sourced from the live TPRS catalog
+ * (codes 124 VIP $129.95 / 126 Traditional $109.95; 90-min party slots,
+ * per-lane pizza + soda + favors, 10pm slot gets the champagne toast).
+ * Booking CTAs point at /reserve/nye/ (the TPRS booking page — still
+ * noindexed, but deliberately LINKED from here per Jon: nobody lands on NYE
+ * content in June, and the products carry a pre-order notice until the
+ * backend restricts availability to 12/31). "Plan an event" stays as the
+ * alternate for buyouts / bigger-than-six-lanes nights.
  */
 import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
@@ -39,7 +36,9 @@ const nyeVideoSchema = videoObjectSchema(NYE_VIDEO);
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
-const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+// The TPRS NYE booking page (both party products, calendar seeded 12/31).
+// Parked/noindexed but deliberately linked — see docstring above.
+const BOOK_NYE_URL = "/reserve/nye/";
 
 // JSON-LD: Event. Dates pulled from the events content collection so
 // /new-years-eve and /upcoming-events read from the same SoT. `offers`
@@ -83,8 +82,10 @@ const nyeJsonLd = nyeEntry
   : null;
 ---
 <Base
-  title="New Year's Eve at Twisted Pin — Plainfield, IL"
-  description="Cocktails curated by America's Top Mixologist, the 28-tap self-serve wall, and a 6-lane VIP suite. New Year's Eve at Twisted Pin in Plainfield, IL."
+  title="New Year's Eve Party | Twisted Pin — Plainfield, IL"
+  description="New Year's Eve in Plainfield — party slots from $109.95 a lane: unlimited bowling, pizza, party favors, and a champagne toast at midnight. Book your lanes."
+  ogImage="/og/og-vip-suite.jpg"
+  ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/nye-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
@@ -160,6 +161,36 @@ const nyeJsonLd = nyeEntry
   </section>
 
   {/* ============================================================
+      THE PACKAGES — real tiers from the live TPRS catalog
+      ============================================================ */}
+  <section class="nye-section nye-packages" aria-labelledby="nye-packages-h2">
+    <div class="nye-section-inner">
+      <p class="t-eyebrow">The Packages</p>
+      <h2 class="t-display nye-section-title" id="nye-packages-h2">
+        Party slots, by the lane.
+      </h2>
+
+      <p class="nye-section-body">
+        Pick a 90-minute party slot and bring the crew. Every lane comes with
+        unlimited bowling for your slot, shoes, a large pizza, a pitcher of
+        soda, and the party favors — hats, noise makers, the works. The 10pm
+        slot counts down to midnight with a champagne toast (sparkling cider
+        for the under-21 crowd).
+      </p>
+
+      <ul class="nye-section-list">
+        <li>Traditional lanes — $109.95 a lane, up to 5 guests each</li>
+        <li>VIP suite lanes — $129.95 a lane, couch seating for up to 6</li>
+        <li>Music video requests at the front desk all night</li>
+      </ul>
+
+      <div class="nye-packages-cta">
+        <a class="btn btn-solid" href={BOOK_NYE_URL}>Book your NYE lanes</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
       CLOSING CTA BAND — same pattern as /events
       ============================================================ */}
   <section class="nye-cta" aria-labelledby="nye-cta-h2">
@@ -168,16 +199,16 @@ const nyeJsonLd = nyeEntry
         Take the night over.
       </h2>
       <p class="nye-cta-body">
-        Group package details and the suite reservation flow run through
-        our event team. Reserve a regular lane for the casual
-        plan.
+        Lanes go by the slot, and the suite goes first — booking takes about
+        two minutes. Want the whole room, or something the packages don't
+        cover? That's our event team.
       </p>
       <div class="nye-cta-actions">
-        <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
-          Plan an event
+        <a class="btn btn-solid" href={BOOK_NYE_URL}>
+          Book NYE lanes
         </a>
-        <a class="btn btn-outline" href={ROLLER_URL} target="_blank" rel="noopener">
-          Reserve a lane
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+          Plan an event
         </a>
       </div>
     </div>
@@ -303,6 +334,14 @@ const nyeJsonLd = nyeEntry
   }
   .nye-section-list li + li {
     margin-top: 8px;
+  }
+  /* Packages section sits right after the editorial one — tighten the gap so
+     the two read as one continuous story, and give the mid-page CTA air. */
+  .nye-packages {
+    padding-top: 0;
+  }
+  .nye-packages-cta {
+    margin-top: 32px;
   }
 
   /* ============================================================

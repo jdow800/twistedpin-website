@@ -7,8 +7,11 @@
  * EXACT-match, so the nested path never collides.
  *
  * LAUNCH (when ops opens NYE bookings here — independent of the lane cutover):
- *   1. Repoint the /new-years-eve/ lander's booking CTAs (and the
- *      /upcoming-events/ NYE entry's cta) to /reserve/nye/.
+ *   1. ✅ DONE EARLY (2026-06-11): the /new-years-eve/ lander's booking CTAs
+ *      point here. Jon's call — nobody lands on NYE content in June, and the
+ *      products carry a pre-order notice until the backend restricts
+ *      availability to 12/31. (The /upcoming-events/ NYE entry still routes
+ *      to the lander — right funnel: calendar → lander → here.)
  *   2. Remove the noindex meta below + the robots.txt `Disallow: /reserve/nye/`
  *      line + the astro.config.mjs sitemap filter entry.
  *   3. Full launch SEO pass per src/tprs/BOOKING-PAGES-HANDOFF.md (real
@@ -16,8 +19,9 @@
  *      same shot as the hero band; revisit if a dedicated NYE og crop lands).
  *   No file moves, no redirect changes.
  *
- * Protections until then (parked-preview triad): noindex,nofollow meta +
- * robots.txt Disallow + sitemap filter exclusion + unlinked.
+ * Protections until then: noindex,nofollow meta + robots.txt Disallow +
+ * sitemap filter exclusion (the parked triad — all still in place; this page
+ * is LINKED from the lander but stays out of the index until launch).
  *
  * Page mechanics come from nyePageConfig: both NYE party products (VIP 124 +
  * Traditional 126) on standard description cards — the included-list copy
