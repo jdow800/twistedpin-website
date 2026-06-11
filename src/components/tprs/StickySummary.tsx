@@ -193,7 +193,10 @@ export default function StickySummary({
     ctaLabel = addOnsSelected(state) ? "Continue" : "Skip Add-ons";
     ctaEnabled = true;
   } else if (state.step === "guest") {
-    ctaLabel = "Continue to payment";
+    // Just "Continue" — only the button that CHARGES needs to be explicit, and
+    // that's the payment step's "Pay $X". The long label was also the widest
+    // element in the bar (part of the in-app-browser squeeze).
+    ctaLabel = "Continue";
     // Both the guest fields AND any required booking-form fields must be done.
     ctaEnabled = guestComplete(state.guest) && formComplete;
   }
