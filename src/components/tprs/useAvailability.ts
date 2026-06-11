@@ -16,7 +16,9 @@ import {
   getBookableProducts,
   getProducts,
   getMonthAvailability,
+  getAvailability,
 } from "../../tprs/client";
+import type { AvailabilitySlot } from "../../tprs/schemas";
 import { todayIso, monthOf, shiftMonth } from "./format";
 
 // ── Module-level availability cache ──────────────────────────────────────────
@@ -48,6 +50,39 @@ function loadMonth(productId: string, month: string): Promise<MonthMap> {
     })
     .finally(() => monthInflight.delete(key));
   monthInflight.set(key, p);
+  return p;
+}
+
+// ── Day-slot cache (the detail screen's time grid + prefetch) ────────────────
+// Same shape as the month cache above, for GET /api/availability (per-slot
+// times for one product+date). The browser's HTTP cache already covers exact
+// repeats (the API sends max-age=30 + stale-while-revalidate, and the proxy
+// forwards it) — what it does NOT give us is coalescing: a guest's click must
+// JOIN an in-flight prefetch instead of racing a duplicate request. That's
+// `slotsInflight`. First views are the slow path (~0.5s through the proxy);
+// the prefetchers in MainStep/DetailStep warm them via this loader.
+const SLOTS_TTL_MS = 90_000;
+const slotsCache = new Map<string, { at: number; slots: AvailabilitySlot[] }>();
+const slotsInflight = new Map<string, Promise<AvailabilitySlot[]>>();
+
+export function loadDaySlots(
+  productId: string,
+  date: string,
+): Promise<AvailabilitySlot[]> {
+  const key = `${productId}:${date}`;
+  const hit = slotsCache.get(key);
+  if (hit && Date.now() - hit.at < SLOTS_TTL_MS) {
+    return Promise.resolve(hit.slots);
+  }
+  const existing = slotsInflight.get(key);
+  if (existing) return existing;
+  const p = getAvailability(productId, date)
+    .then((slots) => {
+      slotsCache.set(key, { at: Date.now(), slots });
+      return slots;
+    })
+    .finally(() => slotsInflight.delete(key));
+  slotsInflight.set(key, p);
   return p;
 }
 

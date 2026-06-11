@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import DateStrip from "../DateStrip";
-import { useDayAvailability } from "../useAvailability";
+import { useDayAvailability, loadDaySlots } from "../useAvailability";
 import { getBookableProducts } from "../../../tprs/client";
 import type {
   BookableCategory,
@@ -133,6 +133,23 @@ export default function MainStep({
       });
     return () => ctrl.abort();
   }, [productCodes]);
+
+  // PREFETCH the selected day's time slots for the page's products while the
+  // guest is still choosing a card — by the time they tap one, DetailStep's
+  // slot load is a cache hit (or joins the in-flight request) instead of a
+  // ~0.5s first-view fetch. Curated pages only (≤4 products; the generic
+  // catalog is too broad to warm blindly), available-products only, and
+  // re-fires are absorbed by the loadDaySlots cache.
+  useEffect(() => {
+    if (!dateScoped || !categories) return;
+    for (const cat of categories) {
+      for (const p of cat.products) {
+        if (availability.isProductAvailable(p.id, day) === true) {
+          void loadDaySlots(p.id, day).catch(() => {});
+        }
+      }
+    }
+  }, [dateScoped, categories, day, availability]);
 
   // Party-size mode: the page does the lane math. ceil(guests ÷ per-lane
   // capacity) per category; over the threshold the grid yields to the events

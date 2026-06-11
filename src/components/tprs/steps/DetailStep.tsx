@@ -6,8 +6,7 @@
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import DateStrip from "../DateStrip";
-import { useDayAvailability } from "../useAvailability";
-import { getAvailability } from "../../../tprs/client";
+import { useDayAvailability, loadDaySlots } from "../useAvailability";
 import type {
   AvailabilitySlot,
   BookableCategory,
@@ -23,6 +22,7 @@ import { flyToCart } from "../flyToCart";
 import { scrollPageToBottom } from "../scroll";
 import Markdown from "../Markdown";
 import {
+  addDays,
   formatTime12h,
   formatUsd,
   todayIso,
@@ -117,19 +117,41 @@ export default function DetailStep({
     if (selectedSlot) scrollPageToBottom();
   }, [selectedSlot]);
 
+  // Slot load goes through the shared loadDaySlots cache — a prefetched or
+  // recently-viewed (product, date) resolves instantly, and a click that lands
+  // while its prefetch is in flight JOINS that request instead of racing a
+  // duplicate. Cancellation is a stale-closure guard rather than an abort (the
+  // shared promise may have other consumers).
   useEffect(() => {
-    const ctrl = new AbortController();
+    let stale = false;
     setSlots(null);
     setError(null);
     setShowAll(false);
-    getAvailability(product.id, date, ctrl.signal)
-      .then((s) => setSlots(s))
+    loadDaySlots(product.id, date)
+      .then((s) => {
+        if (!stale) setSlots(s);
+      })
       .catch(() => {
-        if (ctrl.signal.aborted) return;
-        setError("Couldn't load times for this date.");
+        if (!stale) setError("Couldn't load times for this date.");
       });
-    return () => ctrl.abort();
+    return () => {
+      stale = true;
+    };
   }, [product.id, date]);
+
+  // PREFETCH the next week: once this date's slots land, warm THIS product's
+  // upcoming bookable days in the background — hopping along the date strip
+  // then shows times instantly instead of paying the ~0.5s first-view fetch
+  // per day. Bounded (7 days, available-only — skips days whose month verdict
+  // hasn't loaded), and re-fires are absorbed by the cache.
+  useEffect(() => {
+    if (!slots) return;
+    for (let i = 1, d = addDays(date, 1); i <= 7; i++, d = addDays(d, 1)) {
+      if (availability.isAvailable(d)) {
+        void loadDaySlots(product.id, d).catch(() => {});
+      }
+    }
+  }, [slots, date, product.id, availability]);
 
   // Available-only, and for today drop past times (belt-and-suspenders on the
   // backend's lead-time rule — a stale slot can't sneak through).
