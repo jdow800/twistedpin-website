@@ -900,7 +900,12 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
   font-size: 34px; font-weight: 800;
 }
 .tprs-confirm-title { font-family: var(--font-ui); font-weight: 800; font-size: clamp(24px, 6vw, 32px); color: var(--tw-text); margin: 0 0 6px; }
-.tprs-confirm-sub { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin: 0 0 22px; }
+.tprs-confirm-sub { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin: 0 0 14px; }
+/* The when-line: date + time range get read-at-a-glance billing above the
+   receipt card (guests screenshot this screen — the muted card row alone
+   buried the start time; Jon missed it on his own test booking). */
+.tprs-confirm-when { font-family: var(--font-ui); font-weight: 800; font-size: 17px; color: var(--tw-text); margin: 0 0 22px; line-height: 1.45; }
+.tprs-confirm-when-time { display: block; color: var(--tw-sel-bg); }
 .tprs-confirm-card {
   text-align: left;
   border: 1px solid var(--tw-border);

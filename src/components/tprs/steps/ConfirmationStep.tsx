@@ -2,7 +2,12 @@
 // result (invoice number + booking id); the card was charged and the booking +
 // confirmation email are live. Falls back gracefully if booking is somehow null.
 
-import { formatDateLong, formatTime12h, formatUsd } from "../format";
+import {
+  formatDateLong,
+  formatTime12h,
+  formatTimeRange12h,
+  formatUsd,
+} from "../format";
 import Markdown from "../Markdown";
 import type {
   AvailabilitySlot,
@@ -47,6 +52,19 @@ export default function ConfirmationStep({
       {booking && (
         <p className="tprs-confirm-sub">
           Confirmation <strong>{booking.invoiceNumber}</strong>
+        </p>
+      )}
+
+      {/* The WHEN gets top billing — it's the one thing guests screenshot and
+          check again later. The card's muted date row below stays (receipts
+          repeat themselves); this line is the read-at-a-glance version, with
+          the end time so "how long do we have the lanes?" never needs asking. */}
+      {slot && (
+        <p className="tprs-confirm-when">
+          {formatDateLong(date)}
+          <span className="tprs-confirm-when-time">
+            {formatTimeRange12h(slot.time, product.durationMinutes)}
+          </span>
         </p>
       )}
 

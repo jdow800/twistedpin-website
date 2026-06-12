@@ -22,6 +22,22 @@ export function formatTime12h(hhmm: string): string {
   return `${h12}:${mStr} ${suffix}`;
 }
 
+/** Start time + duration → "3:00 PM – 5:00 PM" (wraps past midnight: an
+ *  11:30 PM NYE slot + 90min reads "11:30 PM – 1:00 AM"). Duration unset or
+ *  ≤0 → just the start time. */
+export function formatTimeRange12h(
+  hhmm: string,
+  durationMinutes: number | null,
+): string {
+  const start = formatTime12h(hhmm);
+  if (!durationMinutes || durationMinutes <= 0) return start;
+  const endMins = (timeToMinutes(hhmm) + durationMinutes) % (24 * 60);
+  const end = formatTime12h(
+    `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`,
+  );
+  return `${start} – ${end}`;
+}
+
 /** "2026-06-05" → "Friday, June 5". Parsed as a local calendar date (no TZ shift). */
 export function formatDateLong(isoDate: string): string {
   const [y, m, d] = isoDate.split("-").map(Number);
