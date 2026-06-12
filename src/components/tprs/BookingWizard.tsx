@@ -379,6 +379,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           date={state.date}
           slot={state.slot}
           laneQty={state.laneQty}
+          showEndTime={config.confirmEndTime !== false}
           guestCount={
             guestStepper
               ? guestStepper.baseGuests +

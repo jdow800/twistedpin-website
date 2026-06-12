@@ -86,6 +86,14 @@ export interface BookingPageConfig {
     help?: string;
   };
   /**
+   * Show the computed end time on the confirmation's when-line (default
+   * true → "3:00 PM – 5:00 PM"). Pages whose real-world end can drift from
+   * the product's durationMinutes (birthdays: bowling → room-flip → party
+   * table) set false so the screen never promises a minute we might not
+   * keep — guests see the start time only.
+   */
+  confirmEndTime?: boolean;
+  /**
    * Replace the at-cap events nudge ("Online bookings cap at N lanes here.
    * Need more? That's event territory… Plan your event →") for specific
    * products, keyed by integer code. For a product whose online cap IS the
@@ -240,6 +248,10 @@ export const birthdaysPageConfig: BookingPageConfig = {
     headline: "Book the party.",
     sub: "Two hours, zero cleanup. Bowling, arcade, food, cake — and a party host who handles it.",
   },
+  // Party flow is bowling → room flip → party table; the wall-clock end can
+  // drift from the package's durationMinutes, so the confirmation shows the
+  // START time only (never promise a minute we might not keep).
+  confirmEndTime: false,
   // Base package is priced for 10 kids; +/- drives the per-guest add-on
   // (max 4 → hard cap 14, then the "bigger event" note takes over).
   guestSteppers: {

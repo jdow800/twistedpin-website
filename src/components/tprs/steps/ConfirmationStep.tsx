@@ -20,6 +20,10 @@ interface Props {
   date: string;
   slot: AvailabilitySlot | null;
   laneQty: number;
+  /** Show the computed end time on the when-line (pageConfig.confirmEndTime,
+   *  default true). Pages whose real-world end can drift from durationMinutes
+   *  (birthdays: room-flip time) pass false → start time only. */
+  showEndTime: boolean;
   /** Folded party size for guest-stepper packages (base + additional guests).
    *  When set, the headline unit is GUESTS — "11 guests", never "1 lane"
    *  (the package quantity is meaningless to the parent; the additional-guest
@@ -38,6 +42,7 @@ export default function ConfirmationStep({
   date,
   slot,
   laneQty,
+  showEndTime,
   guestCount,
   addOns,
   booking,
@@ -63,7 +68,9 @@ export default function ConfirmationStep({
         <p className="tprs-confirm-when">
           {formatDateLong(date)}
           <span className="tprs-confirm-when-time">
-            {formatTimeRange12h(slot.time, product.durationMinutes)}
+            {showEndTime
+              ? formatTimeRange12h(slot.time, product.durationMinutes)
+              : formatTime12h(slot.time)}
           </span>
         </p>
       )}
