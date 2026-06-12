@@ -133,8 +133,8 @@ even if we weren't writing this.
 
 Most date nights at Twisted Pin take a [lane reservation](https://ecom.roller.app/twistedpin/openbowl/en-us/home)
 and 90 minutes of attention. If you want the suite for an
-anniversary-tier night, [send a note through the events
-platform](https://event.twistedpin.com/#start) instead — same-week response.
+anniversary-tier night, start on [the events page](/events/)
+instead — same-week response.
 
 If your date is reading this over your shoulder right now, here's the
 soft pitch: *we've been doing dinner-and-a-movie for two years; let's

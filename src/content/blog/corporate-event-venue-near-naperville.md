@@ -124,8 +124,8 @@ A short list, and the answers we give for the VIP suite:
 ## How to start
 
 If you're planning something for 20–80 people and the format above
-fits, [the events platform](https://event.twistedpin.com/#start) takes
-about 90 seconds to fill out. We follow up the same week.
+fits, start on [the events page](/events/) — the inquiry takes about
+90 seconds to fill out. We follow up the same week.
 
 If you're planning something larger, or it's a different format than
 the suite handles cleanly, email
@@ -142,4 +142,4 @@ and point you somewhere that is.
 - [/events/](/events/) — corporate, birthday, fundraiser, gender
   reveal, holiday — all the event types we run
 
-[Plan an event →](https://event.twistedpin.com/#start)
+[Plan an event →](/events/)

@@ -51,7 +51,7 @@ spot that doesn't require driving to Lombard or downtown Chicago,
 that's the differentiator. If you're throwing a milestone birthday or
 gender reveal that needs to actually feel like an event, same.
 
-[Plan an event →](https://event.twistedpin.com/#start)
+[Plan an event →](/events/)
 
 ## For a Saturday that needs to actually feel like one
 
@@ -121,5 +121,5 @@ Saturday morning or an outdoor day, start with the Riverwalk or the
 park district.
 
 [Reserve a lane](https://ecom.roller.app/twistedpin/openbowl/en-us/home) ·
-[Plan an event](https://event.twistedpin.com/#start) ·
+[Plan an event](/events/) ·
 [See the cocktail menu](/menu/cocktails/)
