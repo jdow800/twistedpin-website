@@ -10,7 +10,7 @@
 import { useState, useCallback } from "react";
 import FormRenderer from "../FormRenderer";
 import type { FormAnswerInput } from "../../../tprs/schemas";
-import { ZIP_RE, type GuestFields } from "../state";
+import { guestFieldError, guestInvalidFields, type GuestFields } from "../state";
 
 interface Props {
   guest: GuestFields;
@@ -18,11 +18,13 @@ interface Props {
   /** For the ADR-0030 booking-question forms lookup. */
   productId: string;
   onFormAnswers: (answers: FormAnswerInput[]) => void;
-  /** Bubbles booking-form required-field completeness up to gate the CTA. */
-  onFormValidityChange: (complete: boolean) => void;
+  /** Bubbles the booking-form's invalid field ids up so the wizard can gate the
+   *  CTA + scroll to the first miss (was onFormValidityChange:boolean). */
+  onFormInvalidIds: (ids: string[]) => void;
+  /** Bumped by a failed Continue → reveal ALL required-field errors at once,
+   *  not just blurred ones (the "what did I miss?" fix). 0 = nothing tried yet. */
+  submitAttempt: number;
 }
-
-const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 export default function GuestDetailsStep(props: Props) {
   const {
@@ -30,7 +32,8 @@ export default function GuestDetailsStep(props: Props) {
     onGuestField,
     productId,
     onFormAnswers,
-    onFormValidityChange,
+    onFormInvalidIds,
+    submitAttempt,
   } = props;
 
   const [touched, setTouched] = useState<Partial<Record<keyof GuestFields, boolean>>>({});
@@ -41,24 +44,34 @@ export default function GuestDetailsStep(props: Props) {
     [onFormAnswers],
   );
 
+  // A failed Continue reveals every field's error; otherwise errors show on blur
+  // (touched). Pure-derived from the prop — no extra state. Message logic is
+  // shared via guestFieldError so the on-blur text and the reveal never drift.
+  const showAll = submitAttempt > 0;
   function fieldError(field: keyof GuestFields): string | null {
-    if (!touched[field]) return null;
-    const v = guest[field].trim();
-    if (field === "email") {
-      if (v === "") return "Email is required.";
-      if (!EMAIL_RE.test(v)) return "Enter a valid email.";
-      return null;
-    }
-    if (field === "zip") {
-      if (v === "") return "Required.";
-      if (!ZIP_RE.test(v)) return "Enter a 5-digit ZIP.";
-      return null;
-    }
-    return v === "" ? "Required." : null;
+    if (!touched[field] && !showAll) return null;
+    return guestFieldError(field, guest);
   }
+
+  // Screen-reader announcement for a failed Continue — focus moving to the first
+  // invalid field announces only THAT one, so this says how many need attention.
+  // Keyed on submitAttempt so a second failed Continue re-announces. (Counts the
+  // guest fields — the live path has no booking form yet; see FormRenderer TODO.)
+  const invalidCount = showAll ? guestInvalidFields(guest).length : 0;
 
   return (
     <div>
+      <div
+        key={submitAttempt}
+        className="tprs-sr-only"
+        role="alert"
+        aria-live="assertive"
+      >
+        {invalidCount > 0
+          ? `${invalidCount} ${invalidCount === 1 ? "field needs" : "fields need"} your attention. The first is focused.`
+          : ""}
+      </div>
+
       <div className="tprs-step-head">
         <h2 className="tprs-h2">Your details</h2>
       </div>
@@ -73,12 +86,14 @@ export default function GuestDetailsStep(props: Props) {
             className={`tprs-input${fieldError("firstName") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="given-name"
+            aria-invalid={fieldError("firstName") ? true : undefined}
+            aria-describedby={fieldError("firstName") ? "g-first-err" : undefined}
             value={guest.firstName}
             onChange={(e) => onGuestField("firstName", e.currentTarget.value)}
             onBlur={() => setTouched((t) => ({ ...t, firstName: true }))}
           />
           {fieldError("firstName") && (
-            <p className="tprs-field-error">{fieldError("firstName")}</p>
+            <p className="tprs-field-error" id="g-first-err">{fieldError("firstName")}</p>
           )}
         </div>
         <div className="tprs-field">
@@ -90,12 +105,14 @@ export default function GuestDetailsStep(props: Props) {
             className={`tprs-input${fieldError("lastName") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="family-name"
+            aria-invalid={fieldError("lastName") ? true : undefined}
+            aria-describedby={fieldError("lastName") ? "g-last-err" : undefined}
             value={guest.lastName}
             onChange={(e) => onGuestField("lastName", e.currentTarget.value)}
             onBlur={() => setTouched((t) => ({ ...t, lastName: true }))}
           />
           {fieldError("lastName") && (
-            <p className="tprs-field-error">{fieldError("lastName")}</p>
+            <p className="tprs-field-error" id="g-last-err">{fieldError("lastName")}</p>
           )}
         </div>
       </div>
@@ -110,12 +127,14 @@ export default function GuestDetailsStep(props: Props) {
           type="email"
           inputMode="email"
           autoComplete="email"
+          aria-invalid={fieldError("email") ? true : undefined}
+          aria-describedby={fieldError("email") ? "g-email-err" : undefined}
           value={guest.email}
           onChange={(e) => onGuestField("email", e.currentTarget.value)}
           onBlur={() => setTouched((t) => ({ ...t, email: true }))}
         />
         {fieldError("email") && (
-          <p className="tprs-field-error">{fieldError("email")}</p>
+          <p className="tprs-field-error" id="g-email-err">{fieldError("email")}</p>
         )}
       </div>
 
@@ -130,12 +149,14 @@ export default function GuestDetailsStep(props: Props) {
             type="tel"
             inputMode="tel"
             autoComplete="tel"
+            aria-invalid={fieldError("phone") ? true : undefined}
+            aria-describedby={fieldError("phone") ? "g-phone-err" : undefined}
             value={guest.phone}
             onChange={(e) => onGuestField("phone", e.currentTarget.value)}
             onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
           />
           {fieldError("phone") && (
-            <p className="tprs-field-error">{fieldError("phone")}</p>
+            <p className="tprs-field-error" id="g-phone-err">{fieldError("phone")}</p>
           )}
         </div>
         <div className="tprs-field">
@@ -149,12 +170,14 @@ export default function GuestDetailsStep(props: Props) {
             inputMode="numeric"
             autoComplete="postal-code"
             maxLength={10}
+            aria-invalid={fieldError("zip") ? true : undefined}
+            aria-describedby={fieldError("zip") ? "g-zip-err" : undefined}
             value={guest.zip}
             onChange={(e) => onGuestField("zip", e.currentTarget.value)}
             onBlur={() => setTouched((t) => ({ ...t, zip: true }))}
           />
           {fieldError("zip") && (
-            <p className="tprs-field-error">{fieldError("zip")}</p>
+            <p className="tprs-field-error" id="g-zip-err">{fieldError("zip")}</p>
           )}
         </div>
       </div>
@@ -163,7 +186,8 @@ export default function GuestDetailsStep(props: Props) {
       <FormRenderer
         productId={productId}
         onAnswersChange={handleAnswers}
-        onValidityChange={onFormValidityChange}
+        onInvalidIdsChange={onFormInvalidIds}
+        submitAttempt={submitAttempt}
       />
 
     </div>

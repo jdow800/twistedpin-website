@@ -15,7 +15,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   lineItemSubtotalCents,
   couponDiscountCents,
-  guestComplete,
   laneMaxFor,
   type WizardState,
 } from "./state";
@@ -37,8 +36,6 @@ interface Props {
   quoteLoading: boolean;
   /** Quote endpoint 404'd — not live yet; don't show a "calculating" state. */
   quoteUnavailable: boolean;
-  /** Required booking-form fields satisfied (gates the guest → payment step). */
-  formComplete: boolean;
   onBack: () => void;
   onNext: () => void;
   onLaneQty: (qty: number) => void;
@@ -114,7 +111,6 @@ export default function StickySummary({
   quote,
   quoteLoading,
   quoteUnavailable,
-  formComplete,
   onBack,
   onNext,
   onLaneQty,
@@ -197,8 +193,12 @@ export default function StickySummary({
     // that's the payment step's "Pay $X". The long label was also the widest
     // element in the bar (part of the in-app-browser squeeze).
     ctaLabel = "Continue";
-    // Both the guest fields AND any required booking-form fields must be done.
-    ctaEnabled = guestComplete(state.guest) && formComplete;
+    // ALWAYS tappable — a dead disabled button left guests asking "what did I
+    // miss?" Now Continue always fires; the wizard's handleNext reveals every
+    // required-field error + scrolls to the first miss, and only advances when
+    // the guest fields AND any booking-form fields are clean. The gate lives
+    // entirely in handleNext now (no client-side disable).
+    ctaEnabled = true;
   }
   // No payment-step CTA here — the Stripe <PaymentElement> form owns the Pay
   // button (it must live inside the <Elements> provider). The sticky bar keeps

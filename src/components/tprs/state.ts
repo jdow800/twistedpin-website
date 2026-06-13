@@ -250,13 +250,53 @@ export function couponDiscountCents(state: WizardState): number {
 
 /** US ZIP — 5 digits, or ZIP+4 (`12345` / `12345-6789`). Rejects "6", letters, etc. */
 export const ZIP_RE = /^\d{5}(-\d{4})?$/;
+const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+// Guest fields in VISUAL/DOM order — drives "scroll to the first thing you
+// missed" + the reveal order. KEEP IN SYNC with GuestDetailsStep's markup
+// order + input ids below.
+export const GUEST_FIELD_ORDER: (keyof GuestFields)[] = [
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "zip",
+];
+
+export const GUEST_FIELD_DOM_ID: Record<keyof GuestFields, string> = {
+  firstName: "g-first",
+  lastName: "g-last",
+  email: "g-email",
+  phone: "g-phone",
+  zip: "g-zip",
+};
+
+/** Per-field validation message, or null if valid. PURE — no touched gating;
+ *  the caller decides whether to SHOW it. Single source of truth for both the
+ *  on-blur message and the Continue-time reveal (GuestDetailsStep imports it). */
+export function guestFieldError(
+  field: keyof GuestFields,
+  g: GuestFields,
+): string | null {
+  const v = g[field].trim();
+  if (field === "email") {
+    if (v === "") return "Email is required.";
+    if (!EMAIL_RE.test(v)) return "Enter a valid email.";
+    return null;
+  }
+  if (field === "zip") {
+    if (v === "") return "Required.";
+    if (!ZIP_RE.test(v)) return "Enter a 5-digit ZIP.";
+    return null;
+  }
+  return v === "" ? "Required." : null;
+}
+
+/** Invalid guest field keys, in DOM order (empty = all valid). */
+export function guestInvalidFields(g: GuestFields): (keyof GuestFields)[] {
+  return GUEST_FIELD_ORDER.filter((f) => guestFieldError(f, g) !== null);
+}
 
 export function guestComplete(g: GuestFields): boolean {
-  return (
-    g.firstName.trim() !== "" &&
-    g.lastName.trim() !== "" &&
-    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(g.email.trim()) &&
-    g.phone.trim() !== "" &&
-    ZIP_RE.test(g.zip.trim())
-  );
+  return guestInvalidFields(g).length === 0;
 }

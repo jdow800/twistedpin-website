@@ -26,13 +26,23 @@ import type {
 interface Props {
   productId: string;
   onAnswersChange: (answers: FormAnswerInput[]) => void;
-  /** Reports whether every required, currently-visible field is satisfied — the
-   *  guest can't reach payment until this is true (server backstops at convert). */
-  onValidityChange?: (complete: boolean) => void;
+  /** Required+visible+unsatisfied field ids, in DISPLAY order (empty = complete).
+   *  Replaces the old boolean onValidityChange — the wizard needs the ids (not
+   *  just "complete?") so a failed Continue can scroll to the FIRST missed field.
+   *  The server still backstops the full set at convert (form_answer_invalid). */
+  onInvalidIdsChange?: (ids: string[]) => void;
+  /** Bumped by a failed Continue → reveal ALL form errors at once (mirrors the
+   *  guest step's reveal). 0 = nothing attempted yet. */
+  submitAttempt?: number;
 }
 
 /** Internal answer state: fieldId → selected/entered values (array form). */
 type AnswerMap = Record<string, string[]>;
+
+/** Stable empty reference so the "nothing invalid" case (the common one) keeps
+ *  the same identity across recomputes — the onInvalidIdsChange effect then
+ *  bails instead of re-rendering the wizard on every keystroke once forms ship. */
+const EMPTY_IDS: string[] = [];
 
 function flatten(map: AnswerMap): FormAnswerInput[] {
   const out: FormAnswerInput[] = [];
@@ -68,7 +78,8 @@ function requiredSatisfied(field: FormFieldDefinition, values: string[]): boolea
 export default function FormRenderer({
   productId,
   onAnswersChange,
-  onValidityChange,
+  onInvalidIdsChange,
+  submitAttempt,
 }: Props) {
   const [forms, setForms] = useState<FormDefinition[] | null>(null);
   const [answers, setAnswers] = useState<AnswerMap>({});
@@ -114,21 +125,40 @@ export default function FormRenderer({
     if (changed) setAnswers(next);
   }, [answers, forms]);
 
-  // Every required, visible field satisfied? (Loading → true; near-instant fetch,
-  // and the server is the authoritative backstop at convert.)
-  const formComplete = useMemo(() => {
-    if (!forms) return true;
+  // Required+visible+unsatisfied field ids, in DISPLAY order. Sorted by
+  // displayOrder to MATCH the render loop below — a boolean could iterate
+  // unsorted, but "first invalid" (the scroll target) must be the visually
+  // first one. (Loading → []; near-instant fetch + server backstop at convert.)
+  const invalidIds = useMemo<string[]>(() => {
+    if (!forms) return EMPTY_IDS;
+    const ids: string[] = [];
     for (const form of forms) {
-      for (const field of form.fields) {
+      for (const field of [...form.fields].sort(
+        (a, b) => a.displayOrder - b.displayOrder,
+      )) {
         if (!field.required || !fieldVisible(field, answers)) continue;
-        if (!requiredSatisfied(field, answers[field.id] ?? [])) return false;
+        if (!requiredSatisfied(field, answers[field.id] ?? [])) ids.push(field.id);
       }
     }
-    return true;
+    return ids.length ? ids : EMPTY_IDS;
   }, [forms, answers]);
   useEffect(() => {
-    onValidityChange?.(formComplete);
-  }, [formComplete, onValidityChange]);
+    onInvalidIdsChange?.(invalidIds);
+  }, [invalidIds, onInvalidIdsChange]);
+
+  // A failed Continue (submitAttempt > 0) reveals every required field's error
+  // at once — mirrors the guest step. Pure-derived from the prop; no local flag.
+  // TODO(form-launch): the reveal here is currently border/aria only (no per-
+  // field error <p> + aria-describedby like the guest fields, and --tw-danger is
+  // low-contrast copper). Before the first real checkout form ships, add a
+  // per-field message + a non-color affordance so the reveal isn't color-only
+  // (WCAG 1.4.1) — deferred because there's no live form to test against today.
+  const showAll = (submitAttempt ?? 0) > 0;
+  const fieldInvalid = (field: FormFieldDefinition): boolean =>
+    showAll &&
+    field.required &&
+    fieldVisible(field, answers) &&
+    !requiredSatisfied(field, answers[field.id] ?? []);
 
   const hasForms = useMemo(() => (forms?.length ?? 0) > 0, [forms]);
   if (!forms || !hasForms) return null;
@@ -195,9 +225,10 @@ export default function FormRenderer({
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
             <input
               id={field.id}
-              className="tprs-input"
+              className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
               type="text"
               placeholder={field.placeholder}
+              aria-invalid={fieldInvalid(field) || undefined}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
@@ -211,8 +242,9 @@ export default function FormRenderer({
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
             <textarea
               id={field.id}
-              className="tprs-textarea"
+              className={`tprs-textarea${fieldInvalid(field) ? " is-invalid" : ""}`}
               placeholder={field.placeholder}
+              aria-invalid={fieldInvalid(field) || undefined}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
@@ -226,8 +258,9 @@ export default function FormRenderer({
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
             <input
               id={field.id}
-              className="tprs-input"
+              className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
               type="date"
+              aria-invalid={fieldInvalid(field) || undefined}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
@@ -241,7 +274,8 @@ export default function FormRenderer({
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
             <select
               id={field.id}
-              className="tprs-select"
+              className={`tprs-select${fieldInvalid(field) ? " is-invalid" : ""}`}
+              aria-invalid={fieldInvalid(field) || undefined}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             >
@@ -257,19 +291,26 @@ export default function FormRenderer({
 
       case "radio":
         return (
-          <fieldset className="tprs-field" key={field.id}>
+          <fieldset
+            className={`tprs-field${fieldInvalid(field) ? " is-invalid" : ""}`}
+            key={field.id}
+          >
             <legend className="tprs-label">
               {field.label}
               {field.required ? <span className="tprs-req"> *</span> : null}
             </legend>
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
-            {field.options.map((opt) => (
+            {field.options.map((opt, i) => (
               <label className="tprs-choice" key={opt}>
                 <input
+                  /* id on the first option so scrollFocusInvalid(field.id) can
+                     target the group (groups otherwise only carry `name`). */
+                  id={i === 0 ? field.id : undefined}
                   type="radio"
                   name={field.id}
                   value={opt}
                   checked={val[0] === opt}
+                  aria-invalid={(i === 0 && fieldInvalid(field)) || undefined}
                   onChange={() => setSingle(field.id, opt)}
                 />
                 <span>{opt}</span>
@@ -281,11 +322,16 @@ export default function FormRenderer({
       case "checkbox":
         // Single boolean acknowledgement — one answer ("true") when checked.
         return (
-          <div className="tprs-field" key={field.id}>
+          <div
+            className={`tprs-field${fieldInvalid(field) ? " is-invalid" : ""}`}
+            key={field.id}
+          >
             <label className="tprs-choice">
               <input
+                id={field.id}
                 type="checkbox"
                 checked={val[0] === "true"}
+                aria-invalid={fieldInvalid(field) || undefined}
                 onChange={(e) =>
                   setSingle(field.id, e.currentTarget.checked ? "true" : "")
                 }
@@ -305,19 +351,25 @@ export default function FormRenderer({
             ? ` (choose ${field.minSelections ?? 0}–${field.maxSelections ?? field.options.length})`
             : "";
         return (
-          <fieldset className="tprs-field" key={field.id}>
+          <fieldset
+            className={`tprs-field${fieldInvalid(field) ? " is-invalid" : ""}`}
+            key={field.id}
+          >
             <legend className="tprs-label">
               {field.label}
               {field.required ? <span className="tprs-req"> *</span> : null}
               {bounds && <span className="tprs-opt">{bounds}</span>}
             </legend>
             {field.helpText && <p className="tprs-help">{field.helpText}</p>}
-            {field.options.map((opt) => (
+            {field.options.map((opt, i) => (
               <label className="tprs-choice" key={opt}>
                 <input
+                  /* id on the first option so scrollFocusInvalid can target the group. */
+                  id={i === 0 ? field.id : undefined}
                   type="checkbox"
                   value={opt}
                   checked={val.includes(opt)}
+                  aria-invalid={(i === 0 && fieldInvalid(field)) || undefined}
                   onChange={(e) =>
                     toggleInList(field, opt, e.currentTarget.checked)
                   }
@@ -353,9 +405,10 @@ export default function FormRenderer({
             ) : (
               <input
                 id={field.id}
-                className="tprs-input"
+                className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
+                aria-invalid={fieldInvalid(field) || undefined}
                 disabled={uploadingId === field.id}
                 onChange={async (e) => {
                   const file = e.currentTarget.files?.[0];

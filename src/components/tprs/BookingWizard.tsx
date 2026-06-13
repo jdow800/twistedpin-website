@@ -13,7 +13,10 @@ import {
   STEP_LABELS,
   lineItemSubtotalCents,
   couponDiscountCents,
+  guestInvalidFields,
+  GUEST_FIELD_DOM_ID,
 } from "./state";
+import { scrollFocusInvalid } from "./scroll";
 import { useQuote } from "./useQuote";
 import { useStepHistory } from "./useStepHistory";
 import { toIsoWithOffset } from "./format";
@@ -148,9 +151,22 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [state.step]);
 
-  // Required booking-form fields satisfied? Gates "Continue to payment" (the
-  // server also rejects an incomplete set at convert with form_answer_invalid).
-  const [formComplete, setFormComplete] = useState(true);
+  // Booking-form (ADR-0030) invalid field ids, bubbled up from FormRenderer —
+  // ids (not just a boolean) so a failed Continue can scroll to the first miss
+  // and gate the advance (see guestStepInvalidIds + handleNext). Server also
+  // rejects an incomplete set at convert with form_answer_invalid.
+  const [formInvalidIds, setFormInvalidIds] = useState<string[]>([]);
+  // Bumped by a failed Continue on the guest step → broadcasts "reveal ALL
+  // required-field errors" to GuestDetailsStep + FormRenderer.
+  const [submitAttempt, setSubmitAttempt] = useState(0);
+  // Reset the reveal when we actually LEAVE the guest step (advance to payment,
+  // Back to detail, browser/OS Back, Edit, Remove lane — all change state.step)
+  // so a later return doesn't flash red before the guest re-engages. A failed
+  // Continue does NOT change step (handleNext returns early), so it never trips
+  // this — the within-visit reveal stays put.
+  useEffect(() => {
+    if (state.step !== "guest" && submitAttempt !== 0) setSubmitAttempt(0);
+  }, [state.step, submitAttempt]);
 
   // A "guests" product (base package + per-guest add-on) vs the lane default.
   const guestStepper = useMemo(
@@ -200,10 +216,36 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     unavailable: quoteUnavailable,
   } = useQuote(quoteRequest);
 
+  // First-invalid ordering for the guest step: guest fields render ABOVE the
+  // FormRenderer, so guest-then-form concatenation IS visual/DOM order. Maps
+  // each invalid guest field to its input id for the scroll target. Empty off
+  // the guest step / when everything's valid.
+  const guestStepInvalidIds = useMemo<string[]>(() => {
+    if (state.step !== "guest") return [];
+    return [
+      ...guestInvalidFields(state.guest).map((f) => GUEST_FIELD_DOM_ID[f]),
+      ...formInvalidIds,
+    ];
+  }, [state.step, state.guest, formInvalidIds]);
+
   const handleNext = useCallback(() => {
     // The payment step owns its own Pay action (Stripe confirm → convert →
     // CONVERTED), so there's no sticky-bar "next" out of it.
     if (state.step === "payment") return;
+
+    // Guest step: instead of a dead disabled button, the always-tappable
+    // Continue REVEALS every required-field error and jumps to the first one
+    // missed (the "what did I miss?" fix), and only advances once clean.
+    if (state.step === "guest") {
+      if (guestStepInvalidIds.length > 0) {
+        setSubmitAttempt((n) => n + 1); // broadcast: reveal all errors
+        scrollFocusInvalid(guestStepInvalidIds[0]); // rAF-deferred scroll + focus
+        return; // do NOT advance
+      }
+      dispatch({ type: "GO_STEP", step: "payment" });
+      return;
+    }
+
     // Skip the add-ons step entirely when the product has none (no empty screen).
     if (state.step === "detail" && noAddOns) {
       dispatch({ type: "GO_STEP", step: "guest" });
@@ -213,7 +255,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     if (idx < STEP_ORDER.length - 1) {
       dispatch({ type: "GO_STEP", step: STEP_ORDER[idx + 1] });
     }
-  }, [state.step, noAddOns]);
+  }, [state.step, noAddOns, guestStepInvalidIds]);
 
   const handleBack = useCallback(() => {
     // Unify the in-wizard Back with the browser/OS Back: both go through history
@@ -332,7 +374,8 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           }
           productId={state.product.id}
           onFormAnswers={handleFormAnswers}
-          onFormValidityChange={setFormComplete}
+          onFormInvalidIds={setFormInvalidIds}
+          submitAttempt={submitAttempt}
         />
       )}
 
@@ -413,7 +456,6 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           quote={quote}
           quoteLoading={quoteLoading}
           quoteUnavailable={quoteUnavailable}
-          formComplete={formComplete}
           onBack={handleBack}
           onNext={handleNext}
           onLaneQty={(qty) => dispatch({ type: "SET_LANE_QTY", qty })}
