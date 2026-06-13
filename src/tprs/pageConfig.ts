@@ -232,8 +232,12 @@ export const bookingPage2Config: BookingPageConfig = {
  * planner). Codes re-derived from the live catalog 2026-06-10.
  */
 export const birthdaysPageConfig: BookingPageConfig = {
-  // 109 → Suite Birthday Party        $419.00 · 2hr   · kids 4-11
-  // 118 → Extra Suite Birthday        $469.90 · 2.5hr · kids 4-11
+  // 109 → Suite Birthday Party        $419.00 · 2hr   · kids 4-12
+  // 118 → Extra Suite Birthday        $469.90 · 2.5hr · kids 4-12
+  // NOTE: the AGE RANGE in the product short/long descriptions ("kids 4-11" /
+  // "turning 4–11") is served by the TPRS catalog (API), NOT this repo — edit
+  // those in TPRS admin to match 4–12. This termsText (below) is the only
+  // age string the website owns.
   productCodes: [109, 118],
   heroImage: {
     base: "/snap/birthdays-hero",
@@ -241,7 +245,7 @@ export const birthdaysPageConfig: BookingPageConfig = {
   },
   termsText:
     "Reservations hold your party space for the scheduled window. " +
-    "Packages are for kids 4–11 and cover up to 14 children. " +
+    "Packages are for kids 4–12 and cover up to 14 children. " +
     "Arrive a few minutes early so your party host can get everyone set up.",
   uxCopy: {
     eyebrow: "Kids Birthday Parties",
