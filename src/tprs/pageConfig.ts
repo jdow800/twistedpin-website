@@ -245,7 +245,7 @@ export const birthdaysPageConfig: BookingPageConfig = {
   },
   termsText:
     "Reservations hold your party space for the scheduled window. " +
-    "Packages are for kids 4–12 and cover up to 14 children. " +
+    "Packages are for ages 4–12, with a max of 14 kids. " +
     "Arrive a few minutes early so your party host can get everyone set up.",
   uxCopy: {
     eyebrow: "Kids Birthday Parties",
