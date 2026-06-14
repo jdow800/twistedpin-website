@@ -14,6 +14,8 @@ import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-
 import { getStripe, STRIPE_AVAILABLE, STRIPE_APPEARANCE } from "../stripe";
 import {
   addCartItems,
+  getCart,
+  removeCartLine,
   createPaymentIntent,
   convertCheckout,
   TprsCheckoutError,
@@ -208,13 +210,27 @@ function CheckoutForm({
   }, [holdExpiresAt]);
   const expired = holdExpiresAt !== null && left <= 0;
 
+  // Create exactly ONE fresh 10-min hold. Release this booking's line(s) first:
+  // the backend inserts a NEW hold per add even for the same cartLineRef (verified
+  // live), and `holdExpiresAt` is the EARLIEST across holds — so re-adding without
+  // releasing stacked duplicates and made the countdown jump to the oldest hold's
+  // seconds-left on refresh. Release clears all holds for a ref (verified), so
+  // this leaves a single clean hold and makes "Refresh hold" actually extend.
+  async function createFreshHold() {
+    await Promise.all(
+      cartHoldItems.map((it) => removeCartLine(it.cartLineRef).catch(() => {})),
+    );
+    const cart = await addCartItems(cartHoldItems);
+    setCartToken(cart.cartToken);
+    setHoldExpiresAt(cart.holdExpiresAt);
+  }
+
+  // Explicit "Refresh hold" button — always mint a clean fresh hold.
   async function acquireHold() {
     setRefreshing(true);
     setHoldError(null);
     try {
-      const cart = await addCartItems(cartHoldItems);
-      setCartToken(cart.cartToken);
-      setHoldExpiresAt(cart.holdExpiresAt);
+      await createFreshHold();
     } catch (err) {
       setHoldError(checkoutErrorMessage(err));
     } finally {
@@ -222,12 +238,36 @@ function CheckoutForm({
     }
   }
 
-  // Reserve capacity on mount (StrictMode-guarded).
+  // On mount: ADOPT a live hold from a refresh / re-entry (GET the cart and use
+  // its real remaining time) instead of stacking another hold; only create one
+  // when there isn't a valid hold yet. This is what fixes the timer jumping to a
+  // stale value on refresh — the guest now sees the true time left, and the hold
+  // doesn't multiply. (StrictMode-guarded.)
   const acquired = useRef(false);
   useEffect(() => {
     if (acquired.current) return;
     acquired.current = true;
-    void acquireHold();
+    void (async () => {
+      setRefreshing(true);
+      setHoldError(null);
+      try {
+        const cart = await getCart();
+        if (
+          cart.cartToken &&
+          cart.holdExpiresAt &&
+          Date.parse(cart.holdExpiresAt) > Date.now()
+        ) {
+          setCartToken(cart.cartToken);
+          setHoldExpiresAt(cart.holdExpiresAt);
+        } else {
+          await createFreshHold();
+        }
+      } catch (err) {
+        setHoldError(checkoutErrorMessage(err));
+      } finally {
+        setRefreshing(false);
+      }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

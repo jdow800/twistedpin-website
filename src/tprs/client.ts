@@ -423,6 +423,18 @@ export async function addCartItems(
   return cartStateSchema.parse(json);
 }
 
+/**
+ * GET /api/cart — the current cart (existing holds + earliest expiry) WITHOUT
+ * acquiring anything. The payment step calls this on mount to ADOPT a live hold
+ * on refresh / re-entry instead of POSTing another add (which stacks a duplicate
+ * hold per call; `holdExpiresAt` is the earliest, so stacking made the countdown
+ * jump to the oldest hold's seconds-left). Empty cart → { cartToken:"",
+ * holds:[], holdExpiresAt:null }.
+ */
+export async function getCart(signal?: AbortSignal): Promise<CartState> {
+  return cartStateSchema.parse(await getJson("/api/cart", signal));
+}
+
 /** DELETE /api/cart/items/:id (:id = cartLineRef) — release a line's hold; returns the updated cart. */
 export async function removeCartLine(
   cartLineRef: string,
