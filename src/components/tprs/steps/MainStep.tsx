@@ -31,6 +31,9 @@ interface Props {
   tileCards?: boolean;
   /** Category room shots behind the tiles (pageConfig.tileArt, by slug). */
   tileArt?: Record<string, { base: string; alt?: string }>;
+  /** Short caution badge per product code (pageConfig.cardNotes) — e.g.
+   *  "Limited times" on the intentionally-scarce 1-hour lanes. */
+  cardNotes?: Record<number, string>;
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
@@ -69,6 +72,7 @@ export default function MainStep({
   showDescriptions = true,
   tileCards = false,
   tileArt,
+  cardNotes,
   partyConfig,
   partySize,
   onPartySize,
@@ -328,7 +332,11 @@ export default function MainStep({
                   type="button"
                   className="tprs-card tprs-tile"
                   key={p.id}
-                  aria-label={toPlainText(p.name)}
+                  aria-label={
+                    cardNotes?.[p.code]
+                      ? `${toPlainText(p.name)} — ${cardNotes[p.code]}`
+                      : toPlainText(p.name)
+                  }
                   onClick={() => onSelectProduct(cat, p, lanes ?? undefined)}
                 >
                   {art && (
@@ -348,6 +356,9 @@ export default function MainStep({
                       </picture>
                       <span className="tprs-tile-scrim" aria-hidden="true" />
                     </>
+                  )}
+                  {cardNotes?.[p.code] && (
+                    <span className="tprs-tile-badge">{cardNotes[p.code]}</span>
                   )}
                   <span className="tprs-tile-name">
                     {durationLabel(p.durationMinutes) ?? (

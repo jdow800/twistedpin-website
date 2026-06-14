@@ -50,6 +50,15 @@ export interface BookingPageConfig {
    */
   tileArt?: Record<string, { base: string; alt?: string }>;
   /**
+   * Short caution badge on a product's grid card/tile, keyed by integer code —
+   * sets expectations BEFORE the click. Used for the 1-hour lanes, whose time
+   * slots are intentionally limited: the badge nudges toward the 2-hour option
+   * up front instead of letting the guest discover a near-empty time grid on the
+   * detail screen. Copper (--tw-danger) caution treatment, not alarm. Keep it
+   * terse (≤~14 chars); unset codes show no badge.
+   */
+  cardNotes?: Record<number, string>;
+  /**
    * Quantity-step wording — editable PER PAGE since we almost always sell by
    * the lane but the framing varies (/nye, /birthday, etc.). `quantityLabel`
    * is the question ("How many lanes?"); `quantityHelp` is the line beneath it
@@ -168,6 +177,13 @@ export const bookingPageConfig: BookingPageConfig = {
   tileArt: {
     vip_suite_lanes: { base: "/snap/tile-vip", alt: "" },
     traditional_lanes: { base: "/snap/tile-trad", alt: "" },
+  },
+  // The 1-hour VIP slot is intentionally scarce — flag it on the card so the
+  // guest is steered to the 2-hour option before they hit the thin time grid
+  // (which already carries the long "LIMITED…check the 2 hour options" note).
+  // To also flag the 1-hour Traditional lane, add `4: "Limited times"`.
+  cardNotes: {
+    121: "Limited times",
   },
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
   // lane") lives in each product's booking-form acknowledgements + card copy, so
