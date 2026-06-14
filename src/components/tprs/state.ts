@@ -249,7 +249,7 @@ export function couponDiscountCents(state: WizardState): number {
 }
 
 /** US ZIP — 5 digits, or ZIP+4 (`12345` / `12345-6789`). Rejects "6", letters, etc. */
-export const ZIP_RE = /^\d{5}(-\d{4})?$/;
+export const ZIP_RE = /^\d{5}$/;
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 // Guest fields in VISUAL/DOM order — drives "scroll to the first thing you
@@ -291,11 +291,14 @@ export function guestFieldError(
   }
   if (field === "phone") {
     if (v === "") return "Required.";
-    // Count digits only (ignore spaces/()+-. formatting). US local = 10;
-    // E.164 max = 15. Anything outside that is a fat-fingered / junk number.
+    // US-strict (the venue is local): exactly 10 digits, or 11 with a leading
+    // country-code 1. This rejects the fat-finger / junk cases (e.g. a 14-digit
+    // number) that a looser 10–15 range let through. Can't catch a well-formed
+    // fake (5555555555) client-side — that's what SMS confirmation is for.
     const digits = v.replace(/\D/g, "");
-    if (digits.length < 10 || digits.length > 15)
-      return "Enter a valid phone number.";
+    const ok =
+      digits.length === 10 || (digits.length === 11 && digits[0] === "1");
+    if (!ok) return "Enter a 10-digit phone number.";
     return null;
   }
   return v === "" ? "Required." : null;

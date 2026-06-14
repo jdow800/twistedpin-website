@@ -27,10 +27,11 @@ interface Props {
 }
 
 // Input-side limiting so junk never lands in the field (paste-safe slice +
-// strip disallowed chars). Phone keeps digits + standard formatting; ZIP keeps
-// digits + the ZIP+4 hyphen. Format is still validated on top (guestFieldError).
+// strip disallowed chars). Phone keeps digits + standard formatting; ZIP is
+// digits-only, capped at 5 (US 5-digit; ZIP+4 isn't needed). Format is still
+// validated on top (guestFieldError).
 const sanitizePhone = (v: string) => v.replace(/[^\d\s+\-().]/g, "").slice(0, 20);
-const sanitizeZip = (v: string) => v.replace(/[^\d-]/g, "").slice(0, 10);
+const sanitizeZip = (v: string) => v.replace(/\D/g, "").slice(0, 5);
 
 export default function GuestDetailsStep(props: Props) {
   const {
@@ -176,7 +177,7 @@ export default function GuestDetailsStep(props: Props) {
             type="text"
             inputMode="numeric"
             autoComplete="postal-code"
-            maxLength={10}
+            maxLength={5}
             aria-invalid={fieldError("zip") ? true : undefined}
             aria-describedby={fieldError("zip") ? "g-zip-err" : undefined}
             value={guest.zip}
