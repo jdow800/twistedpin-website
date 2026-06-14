@@ -52,6 +52,9 @@ export const paymentIntentCreateRequestSchema = z.object({
   startTime: startTimeSchema,
   items: z.array(checkoutItemSchema).min(1),
   couponCode: z.string().min(1).max(64).optional(),
+  // Per-attempt nonce folded into the PI idempotency key so a declined-card retry
+  // gets a FRESH PaymentIntent (lockstep with @tprs/shared-schemas).
+  attemptKey: z.string().min(1).max(64).optional(),
 });
 export type PaymentIntentCreateRequest = z.infer<
   typeof paymentIntentCreateRequestSchema

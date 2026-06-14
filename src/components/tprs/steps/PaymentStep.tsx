@@ -191,15 +191,21 @@ function CheckoutForm({
   // Set once the charge captures — a retry then re-runs only the idempotent
   // convert (never a second confirmPayment / second charge).
   const paidPid = useRef<string | null>(null);
-  // The PaymentIntent is created ONCE per cart+amount and REUSED across retries:
-  // a declined card (e.g. a fat-fingered CVV) re-confirms the SAME intent instead
-  // of minting a new one, so the guest doesn't stack a separate authorization hold
-  // per attempt (which reads as "did they charge me 3×?"). A coupon applied here
-  // changes the amount → the amount effect below drops the stored intent so the
-  // next Pay sizes a fresh one.
+  // The PaymentIntent is created once per attempt and dropped on a decline so the
+  // next Pay mints a genuinely FRESH intent (see attemptKeyRef). A coupon applied
+  // here changes the amount → the amount effect above drops the stored intent so the
+  // next Pay sizes a fresh one too.
   const clientSecretRef = useRef<string | null>(null);
   const piIdRef = useRef<string | null>(null);
   const piAmountRef = useRef<number | null>(null);
+  // Per-attempt nonce the backend folds into the PaymentIntent idempotency key.
+  // Stable within one attempt (so a double-submit dedups to one PI); REGENERATED on
+  // each decline so the retry gets a brand-new PaymentIntent. This is the only lever
+  // that yields a fresh PI: a reused declined intent re-confirms with its already-
+  // attached (declined) payment method instead of building one from the corrected
+  // card, and the cart token is idempotent (same items → same token) so re-carting
+  // can't change the key on its own.
+  const attemptKeyRef = useRef(crypto.randomUUID());
 
   const [left, setLeft] = useState(0);
   useEffect(() => {
@@ -305,6 +311,7 @@ function CheckoutForm({
             eventDate,
             startTime,
             items: checkoutItems,
+            attemptKey: attemptKeyRef.current,
             ...(couponCode && { couponCode }),
           });
           clientSecret = pi.clientSecret;
@@ -320,14 +327,16 @@ function CheckoutForm({
           redirect: "if_required",
         });
         if (error) {
-          // Declined. Drop this intent + re-secure the cart so the NEXT Pay mints
-          // a FRESH PaymentIntent against a new cart cookie — mirrors the working
-          // page-refresh path so the guest just fixes their card and taps Pay once
-          // (no refresh). Each attempt leaves a transient auth hold the bank
-          // releases; only one charge can ever capture.
+          // Declined. Drop the dead intent + bump the per-attempt nonce so the NEXT
+          // Pay mints a genuinely FRESH PaymentIntent (the backend folds attemptKey
+          // into the idempotency key) — a reused declined intent re-confirms with its
+          // already-attached payment method, ignoring the corrected card. Also
+          // re-secure the hold (createPaymentIntent dropped it to a 60s grace) so the
+          // retry has time. The guest just fixes their card and taps Pay once.
           clientSecretRef.current = null;
           piIdRef.current = null;
           piAmountRef.current = null;
+          attemptKeyRef.current = crypto.randomUUID();
           await acquireHold();
           setErrorMsg(
             (error.message ?? "Your card couldn't be charged.") +
