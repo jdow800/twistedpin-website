@@ -22,6 +22,10 @@ import type {
   FormFieldDefinition,
   FormAnswerInput,
 } from "../../tprs/schemas";
+// Same text dialect product copy uses (**bold**, *italic*, <u>, <font color>,
+// [link](url), <br>) so admin-authored form labels + help text render markup
+// instead of literal asterisks. Backend speaks the same dialect (emails/Stripe).
+import Markdown from "./Markdown";
 
 interface Props {
   productId: string;
@@ -200,7 +204,7 @@ export default function FormRenderer({
     const val = answers[field.id] ?? [];
     const labelEl = (
       <label className="tprs-label" htmlFor={field.id}>
-        {field.label}
+        <Markdown text={field.label} inline />
         {field.required ? (
           <span className="tprs-req"> *</span>
         ) : (
@@ -213,8 +217,8 @@ export default function FormRenderer({
       case "rich_text":
         return (
           <div className="tprs-richtext" key={field.id}>
-            {field.label && <h4>{field.label}</h4>}
-            {field.helpText && <p>{field.helpText}</p>}
+            {field.label && <h4><Markdown text={field.label} inline /></h4>}
+            {field.helpText && <p><Markdown text={field.helpText} /></p>}
           </div>
         );
 
@@ -222,7 +226,7 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             <input
               id={field.id}
               className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
@@ -239,7 +243,7 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             <textarea
               id={field.id}
               className={`tprs-textarea${fieldInvalid(field) ? " is-invalid" : ""}`}
@@ -255,7 +259,7 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             <input
               id={field.id}
               className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
@@ -271,7 +275,7 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             <select
               id={field.id}
               className={`tprs-select${fieldInvalid(field) ? " is-invalid" : ""}`}
@@ -296,10 +300,10 @@ export default function FormRenderer({
             key={field.id}
           >
             <legend className="tprs-label">
-              {field.label}
+              <Markdown text={field.label} inline />
               {field.required ? <span className="tprs-req"> *</span> : null}
             </legend>
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             {field.options.map((opt, i) => (
               <label className="tprs-choice" key={opt}>
                 <input
@@ -337,11 +341,11 @@ export default function FormRenderer({
                 }
               />
               <span>
-                {field.label}
+                <Markdown text={field.label} inline />
                 {field.required ? <span className="tprs-req"> *</span> : null}
               </span>
             </label>
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
           </div>
         );
 
@@ -356,11 +360,11 @@ export default function FormRenderer({
             key={field.id}
           >
             <legend className="tprs-label">
-              {field.label}
+              <Markdown text={field.label} inline />
               {field.required ? <span className="tprs-req"> *</span> : null}
               {bounds && <span className="tprs-opt">{bounds}</span>}
             </legend>
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             {field.options.map((opt, i) => (
               <label className="tprs-choice" key={opt}>
                 <input
@@ -386,7 +390,7 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help">{field.helpText}</p>}
+            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
             {uploadedId ? (
               <div className="tprs-upload">
                 <img
