@@ -163,6 +163,14 @@ function CheckoutForm({
   // the server-computed amount regardless; this keeps wallet sheets honest).
   useEffect(() => {
     elements?.update({ amount: Math.max(50, totalCents) });
+    // A changed total (e.g. a coupon applied at this step) invalidates any
+    // PaymentIntent we already created — drop it so the next Pay sizes a fresh
+    // one rather than re-confirming the old amount.
+    if (piAmountRef.current !== null && piAmountRef.current !== totalCents) {
+      clientSecretRef.current = null;
+      piIdRef.current = null;
+      piAmountRef.current = null;
+    }
   }, [elements, totalCents]);
 
   // The 10-min cart-hold (capacity reservation) acquired on mount; refreshable.
@@ -181,6 +189,15 @@ function CheckoutForm({
   // Set once the charge captures — a retry then re-runs only the idempotent
   // convert (never a second confirmPayment / second charge).
   const paidPid = useRef<string | null>(null);
+  // The PaymentIntent is created ONCE per cart+amount and REUSED across retries:
+  // a declined card (e.g. a fat-fingered CVV) re-confirms the SAME intent instead
+  // of minting a new one, so the guest doesn't stack a separate authorization hold
+  // per attempt (which reads as "did they charge me 3×?"). A coupon applied here
+  // changes the amount → the amount effect below drops the stored intent so the
+  // next Pay sizes a fresh one.
+  const clientSecretRef = useRef<string | null>(null);
+  const piIdRef = useRef<string | null>(null);
+  const piAmountRef = useRef<number | null>(null);
 
   const [left, setLeft] = useState(0);
   useEffect(() => {
@@ -236,27 +253,40 @@ function CheckoutForm({
           setSubmitting(false);
           return;
         }
-        // Create the PI NOW (server sizes amount; 60s grace starts here)…
-        const pi = await createPaymentIntent({
-          customer,
-          eventDate,
-          startTime,
-          items: checkoutItems,
-          ...(couponCode && { couponCode }),
-        });
-        // …then confirm immediately (inline for cards + 3DS).
+        // Create the PI ONCE (server sizes amount; 60s grace starts here). On a
+        // declined-card retry clientSecret is already set, so we skip this and
+        // re-confirm the SAME intent below — no second intent, no extra auth hold.
+        let clientSecret = clientSecretRef.current;
+        if (!clientSecret) {
+          const pi = await createPaymentIntent({
+            customer,
+            eventDate,
+            startTime,
+            items: checkoutItems,
+            ...(couponCode && { couponCode }),
+          });
+          clientSecret = pi.clientSecret;
+          clientSecretRef.current = pi.clientSecret;
+          piIdRef.current = pi.paymentIntentId;
+          piAmountRef.current = totalCents;
+        }
+        // Confirm (inline for cards + 3DS). A decline returns an error; the guest
+        // corrects the card and taps Pay again → this same intent re-confirms.
         const { error } = await stripe.confirmPayment({
           elements,
-          clientSecret: pi.clientSecret,
+          clientSecret,
           confirmParams: { return_url: window.location.href },
           redirect: "if_required",
         });
         if (error) {
-          setErrorMsg(error.message ?? "Your card couldn't be charged.");
+          setErrorMsg(
+            (error.message ?? "Your card couldn't be charged.") +
+              " Check your details and tap Pay to try again.",
+          );
           setSubmitting(false);
           return;
         }
-        paidPid.current = pi.paymentIntentId; // captured — convert-only from here
+        paidPid.current = piIdRef.current; // captured — convert-only from here
       }
 
       const booking = await convertCheckout({
