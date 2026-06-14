@@ -191,6 +191,8 @@ export const bookingPageConfig: BookingPageConfig = {
   // it isn't asserted here (where it can't be product-accurate).
   termsText:
     "Reservations hold your lanes for the time you select. " +
+    "Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment. " +
+    "You can add time to your lane based on availability — if no group is booked in behind you, we're glad to sell you more. " +
     "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
     "Arrive a few minutes early to get your group set up.",
   uxCopy: {
@@ -263,6 +265,7 @@ export const birthdaysPageConfig: BookingPageConfig = {
   termsText:
     "Reservations hold your party space for the scheduled window. " +
     "Packages are for ages 4–12, with a max of 14 kids. " +
+    "Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment. " +
     "Arrive a few minutes early so your party host can get everyone set up.",
   uxCopy: {
     eyebrow: "Kids Birthday Parties",
@@ -318,6 +321,7 @@ export const nyePageConfig: BookingPageConfig = {
   termsText:
     "Reservations hold your lanes for the party time slot you select. " +
     "Each lane comes with shoes, a large pizza, and a pitcher of soda. " +
+    "Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment. " +
     "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
     "Arrive a few minutes early to get your group set up.",
   uxCopy: {
