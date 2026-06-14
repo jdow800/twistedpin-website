@@ -1,5 +1,16 @@
 # `per_unit_select` — pizza-topping picker: cross-repo handoff spec
 
+> **STATUS: PARKED 2026-06-13 — not building this.** The owner chose the simple
+> Roller-style approach instead: make "Pizza Toppings" a **free-text field**
+> (`long_text`/`short_text`) with help text — *"Most choose between Cheese,
+> Pepperoni or Sausage. You'll get 2 pizzas for up to 10 guests, 3 pizzas if you
+> add additional guest(s)."* That's an **admin-only** change (the website already
+> renders text fields; zero code). This spec — the scaled +/− stepper with
+> per-pizza enforcement — stands **only if** exact per-pizza topping enforcement
+> at checkout is ever genuinely needed (kitchen ambiguity complaints, or
+> premium/charged toppings). Until then it's gold-plating; see the decision
+> thread 2026-06-13.
+
 _Authored 2026-06-13 (design-panel + adversarial-review workflow). The synthesize
 pass is grounded in live API curls + the real code; three blockers below were
 caught by the adversarial lenses and are baked into this contract._
