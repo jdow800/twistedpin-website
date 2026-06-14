@@ -289,6 +289,15 @@ export function guestFieldError(
     if (!ZIP_RE.test(v)) return "Enter a 5-digit ZIP.";
     return null;
   }
+  if (field === "phone") {
+    if (v === "") return "Required.";
+    // Count digits only (ignore spaces/()+-. formatting). US local = 10;
+    // E.164 max = 15. Anything outside that is a fat-fingered / junk number.
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15)
+      return "Enter a valid phone number.";
+    return null;
+  }
   return v === "" ? "Required." : null;
 }
 

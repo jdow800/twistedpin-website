@@ -26,6 +26,12 @@ interface Props {
   submitAttempt: number;
 }
 
+// Input-side limiting so junk never lands in the field (paste-safe slice +
+// strip disallowed chars). Phone keeps digits + standard formatting; ZIP keeps
+// digits + the ZIP+4 hyphen. Format is still validated on top (guestFieldError).
+const sanitizePhone = (v: string) => v.replace(/[^\d\s+\-().]/g, "").slice(0, 20);
+const sanitizeZip = (v: string) => v.replace(/[^\d-]/g, "").slice(0, 10);
+
 export default function GuestDetailsStep(props: Props) {
   const {
     guest,
@@ -149,10 +155,11 @@ export default function GuestDetailsStep(props: Props) {
             type="tel"
             inputMode="tel"
             autoComplete="tel"
+            maxLength={20}
             aria-invalid={fieldError("phone") ? true : undefined}
             aria-describedby={fieldError("phone") ? "g-phone-err" : undefined}
             value={guest.phone}
-            onChange={(e) => onGuestField("phone", e.currentTarget.value)}
+            onChange={(e) => onGuestField("phone", sanitizePhone(e.currentTarget.value))}
             onBlur={() => setTouched((t) => ({ ...t, phone: true }))}
           />
           {fieldError("phone") && (
@@ -173,7 +180,7 @@ export default function GuestDetailsStep(props: Props) {
             aria-invalid={fieldError("zip") ? true : undefined}
             aria-describedby={fieldError("zip") ? "g-zip-err" : undefined}
             value={guest.zip}
-            onChange={(e) => onGuestField("zip", e.currentTarget.value)}
+            onChange={(e) => onGuestField("zip", sanitizeZip(e.currentTarget.value))}
             onBlur={() => setTouched((t) => ({ ...t, zip: true }))}
           />
           {fieldError("zip") && (
