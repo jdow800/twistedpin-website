@@ -253,9 +253,11 @@ function CheckoutForm({
           setSubmitting(false);
           return;
         }
-        // Create the PI ONCE (server sizes amount; 60s grace starts here). On a
-        // declined-card retry clientSecret is already set, so we skip this and
-        // re-confirm the SAME intent below — no second intent, no extra auth hold.
+        // Create the PI for this attempt (server sizes amount; 60s grace starts
+        // here). Reused while clientSecretRef is set; a DECLINE clears it below so
+        // the next Pay mints a FRESH intent — Stripe.js won't cleanly re-confirm a
+        // declined deferred PaymentIntent in place (verified on live), but a fresh
+        // one works (it's what a page refresh did).
         let clientSecret = clientSecretRef.current;
         if (!clientSecret) {
           const pi = await createPaymentIntent({
@@ -270,8 +272,7 @@ function CheckoutForm({
           piIdRef.current = pi.paymentIntentId;
           piAmountRef.current = totalCents;
         }
-        // Confirm (inline for cards + 3DS). A decline returns an error; the guest
-        // corrects the card and taps Pay again → this same intent re-confirms.
+        // Confirm (inline for cards + 3DS).
         const { error } = await stripe.confirmPayment({
           elements,
           clientSecret,
@@ -279,9 +280,18 @@ function CheckoutForm({
           redirect: "if_required",
         });
         if (error) {
+          // Declined. Drop this intent + re-secure the cart so the NEXT Pay mints
+          // a FRESH PaymentIntent against a new cart cookie — mirrors the working
+          // page-refresh path so the guest just fixes their card and taps Pay once
+          // (no refresh). Each attempt leaves a transient auth hold the bank
+          // releases; only one charge can ever capture.
+          clientSecretRef.current = null;
+          piIdRef.current = null;
+          piAmountRef.current = null;
+          await acquireHold();
           setErrorMsg(
             (error.message ?? "Your card couldn't be charged.") +
-              " Check your details and tap Pay to try again.",
+              " Fix your card details and tap Pay to try again.",
           );
           setSubmitting(false);
           return;
