@@ -23,6 +23,11 @@ export const formFieldTypeSchema = z.enum([
   "rich_text",
   "date",
   "file",
+  // 2026-06-13: repeat a single-select N times, N derived from a booking
+  // quantity (count_source / count_divisor). The checkout (Path B) renderer
+  // does not draw it yet — the birthday flow uses the send-a-form page; the
+  // server validator enforces the derived count on both paths.
+  "per_unit_select",
 ]);
 export type FormFieldTypeApi = z.infer<typeof formFieldTypeSchema>;
 
