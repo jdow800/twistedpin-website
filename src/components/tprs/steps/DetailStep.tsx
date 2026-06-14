@@ -169,6 +169,17 @@ export default function DetailStep({
     category?.subtitle?.trim() ||
     "Reserved by the lane for your group.";
 
+  // Lanes→people translator for the standard lane stepper — the #1 guest hangup
+  // is "how many lanes do I need?". Pull the per-lane capacity from the category
+  // subtitle ("Up to 6 per lane" / "5 players per lane") so it tracks the same
+  // number the guest reads (one source, no drift). If the phrasing ever changes
+  // and no number is found, the live readout simply doesn't render — it's an aid,
+  // not load-bearing.
+  const perLaneMatch = category?.subtitle?.match(
+    /(\d+)\s*(?:players?\s+)?per\s+lane/i,
+  );
+  const perLane = perLaneMatch ? Number(perLaneMatch[1]) : null;
+
   // Party mode: the quantity question is GUESTS — lanes are derived (synced by
   // BookingWizard) and never directly editable. Max guests for THIS setup =
   // its online lane cap × per-lane capacity, never past the events threshold.
@@ -388,6 +399,16 @@ export default function DetailStep({
               </button>
             </div>
           </div>
+          {/* Live lanes→people readout — the guest steps until their group fits,
+              no division. aria-live so it re-announces as the count changes. */}
+          {perLane && (
+            <p className="tprs-qty-capacity" aria-live="polite">
+              Seats up to{" "}
+              <strong>
+                {laneQty * perLane} {laneQty * perLane === 1 ? "guest" : "guests"}
+              </strong>
+            </p>
+          )}
           {/* At the online lane cap (data-driven from maxQuantityPerBooking):
               say WHY the + stopped instead of a silently dead button. Default
               routes the bigger night to events; a laneCapNote override (when

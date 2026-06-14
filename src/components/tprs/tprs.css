@@ -604,6 +604,21 @@
   padding-top: 12px;
   border-top: 1px solid var(--tw-border);
 }
+/* Live lanes→people readout under the stepper — answers "how many lanes do I
+   need?" by translating the count to seats as the guest steps. The number reads
+   in Glow so it's the scannable thing; sits tight under the stepper row. */
+.tprs-qty-capacity {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--tw-text-muted);
+  margin: 4px 2px 0;
+  text-align: right;
+}
+.tprs-qty-capacity strong {
+  font-family: var(--font-ui);
+  font-weight: 800;
+  color: var(--tw-accent);
+}
 .tprs-stepper-row {
   display: flex;
   align-items: center;
