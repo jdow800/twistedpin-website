@@ -64,6 +64,8 @@ function checkoutErrorMessage(err: unknown): string {
         return "That time just filled up. Go back and choose another.";
       case "payment_intent_invalid":
         return "We couldn't verify the payment. Please try again.";
+      case "amount_mismatch":
+        return "The price changed while you were checking out, so we couldn't finish this booking.";
       default:
         return err.message || "Something went wrong. Please try again.";
     }
@@ -169,6 +171,10 @@ function CheckoutForm({
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Terminal dead-end (amount_mismatch): the captured charge can't be reconciled
+  // and a convert retry would fail identically, so stop offering "Finish
+  // reservation" and block further submits.
+  const [blocked, setBlocked] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   // Set once the charge captures — a retry then re-runs only the idempotent
   // convert (never a second confirmPayment / second charge).
@@ -265,6 +271,20 @@ function CheckoutForm({
       onConverted(booking);
     } catch (err) {
       const charged = paidPid.current !== null;
+      // Amount mismatch (a mid-checkout price change, or a tampered cart): convert
+      // rolled back and the server auto-refunds the captured charge. A retry would
+      // hit the same mismatch, so this is TERMINAL — block further submits; never
+      // offer "Finish reservation" (it can't succeed).
+      if (err instanceof TprsCheckoutError && err.code === "amount_mismatch") {
+        setBlocked(true);
+        setErrorMsg(
+          charged
+            ? "The price changed while you were checking out, so we couldn't finish this booking. Your card was charged and we've issued a refund — please start a new booking at the current price, or call (815) 782-7790."
+            : "The price changed while you were checking out. Please start a new booking at the current price.",
+        );
+        setSubmitting(false);
+        return;
+      }
       // Charged but the hold lapsed before convert (rare with the 60s grace):
       // re-secure capacity, then a tap of "Finish reservation" re-runs convert.
       if (charged && err instanceof TprsCheckoutError && err.code === "cart_hold_expired") {
@@ -337,7 +357,7 @@ function CheckoutForm({
       <button
         type="submit"
         className="tprs-btn tprs-btn--solid tprs-pay-submit"
-        disabled={!stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
+        disabled={blocked || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
       >
         {submitting
           ? "Processing…"
