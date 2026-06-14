@@ -370,26 +370,39 @@
   color: rgba(244, 239, 227, 0.9);
   font-size: 11.5px;
 }
-/* Caution badge on a tile (pageConfig.cardNotes) — e.g. "Limited times" on the
-   intentionally-scarce 1-hour lanes. Top-center pill, copper caution, above the
-   art + scrim. Sets expectations before the click. */
+/* Caution badge on a tile (pageConfig.cardNotes) — "Limited times" on the
+   intentionally-scarce 1-hour lanes. Solid copper pill w/ indigo text (the
+   documented AA copper/#0e0a1f combo), a drop shadow so it lifts cleanly off the
+   photo, and a small dot so it reads as a status "heads-up" rather than a flat
+   label. Sits flush at the top of the tile as a tab. */
 .tprs-tile-badge {
   position: absolute;
-  top: 8px;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(14, 10, 31, 0.74);
-  border: 1px solid rgba(216, 139, 92, 0.55);
-  color: var(--tw-danger);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 0 0 9px 9px; /* flush top edge, rounded bottom — reads as a tab */
+  background: var(--tw-danger);
+  color: var(--tw-sel-text);
   font-family: var(--font-ui);
-  font-weight: 700;
+  font-weight: 800;
   font-size: 10px;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(14, 10, 31, 0.5);
+}
+.tprs-tile-badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--tw-sel-text);
+  opacity: 0.85;
 }
 .tprs-card-list--tiles .tprs-card--skel { min-height: 112px; }
 .tprs-card {

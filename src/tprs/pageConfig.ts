@@ -178,11 +178,12 @@ export const bookingPageConfig: BookingPageConfig = {
     vip_suite_lanes: { base: "/snap/tile-vip", alt: "" },
     traditional_lanes: { base: "/snap/tile-trad", alt: "" },
   },
-  // The 1-hour VIP slot is intentionally scarce — flag it on the card so the
-  // guest is steered to the 2-hour option before they hit the thin time grid
-  // (which already carries the long "LIMITED…check the 2 hour options" note).
-  // To also flag the 1-hour Traditional lane, add `4: "Limited times"`.
+  // The 1-hour slots (both rooms) are intentionally scarce — flag them on the
+  // card so the guest is steered to the 2-hour option before they hit the thin
+  // time grid (which already carries the long "LIMITED…check the 2 hour options"
+  // note). 4 = 1hr Traditional, 121 = 1hr VIP.
   cardNotes: {
+    4: "Limited times",
     121: "Limited times",
   },
   // Generic operational terms only — per-product capacity ("5 / 6 guests per
