@@ -117,21 +117,23 @@ export default function PaymentStep(props: Props) {
       {/* Deferred mode: amount is provisional (server re-sizes at PI creation) —
           renders the card form WITHOUT a PaymentIntent so the 60s grace doesn't
           start until Pay. METHOD FILTERING: `paymentMethodTypes` MUST match the
-          backend PI's `payment_method_types` (both manual now: ['card','link']).
+          backend PI's `payment_method_types` (both manual now: ['card']).
           Stripe forbids confirming when the Elements method config differs from
           the PI's — so if the backend ever changes its `payment_method_types`,
           change this list to match, or confirm will fail with "collected using
-          payment_method_types … cannot be confirmed". This keeps it inline-only
-          (no ACH / Cash App / Klarna / Affirm — which redirect/async and break the
-          inline convert) with NO Stripe-Dashboard dependency; Apple/Google Pay
-          still ride on `card`. */}
+          payment_method_types … cannot be confirmed". Card-only: no ACH / Cash App
+          / Klarna / Affirm (redirect/async — break the inline convert) and no Link
+          (decluttered per the 2026-06-14 payment-methods decision). Apple Pay /
+          Google Pay still ride on `card`. The Stripe Dashboard payment-method
+          toggles are the authoritative surface-control; keep them in sync (Klarna /
+          ACH / Cash App / Affirm / Link OFF, Card + Apple Pay + Google Pay ON). */}
       <Elements
         stripe={getStripe()}
         options={{
           mode: "payment",
           amount: Math.max(50, props.totalCents),
           currency: "usd",
-          paymentMethodTypes: ["card", "link"],
+          paymentMethodTypes: ["card"],
           appearance: STRIPE_APPEARANCE,
         }}
       >
