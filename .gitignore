@@ -48,3 +48,8 @@ Context/og images/
 # think they're submodules and creates phantom "modified" entries on
 # every status. Always ignored.
 .claude/worktrees/
+
+# Local scratch — ad-hoc API dumps made while debugging (e.g. curl of
+# /api/products/bookable). Regenerable; never commit. Keeps `git status` clean
+# and makes a stray `git add -A` safe.
+*_tmp.json
