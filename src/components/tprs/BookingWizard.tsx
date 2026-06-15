@@ -377,6 +377,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           onFormAnswers={handleFormAnswers}
           onFormInvalidIds={setFormInvalidIds}
           submitAttempt={submitAttempt}
+          formInvalidCount={formInvalidIds.length}
         />
       )}
 

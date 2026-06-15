@@ -30,6 +30,10 @@ export const STRIPE_APPEARANCE = {
     colorTextSecondary: "#b7adc6",
     colorDanger: "#ff8a8a",
     fontFamily: "Montserrat, system-ui, sans-serif",
+    // 16px so iOS Safari doesn't zoom the viewport when the card field is
+    // focused (same rule as our own inputs in tprs.css). Stripe sizes the
+    // PaymentElement inputs from fontSizeBase.
+    fontSizeBase: "16px",
     borderRadius: "7px",
     spacingUnit: "4px",
   },

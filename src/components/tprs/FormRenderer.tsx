@@ -152,17 +152,43 @@ export default function FormRenderer({
 
   // A failed Continue (submitAttempt > 0) reveals every required field's error
   // at once — mirrors the guest step. Pure-derived from the prop; no local flag.
-  // TODO(form-launch): the reveal here is currently border/aria only (no per-
-  // field error <p> + aria-describedby like the guest fields, and --tw-danger is
-  // low-contrast copper). Before the first real checkout form ships, add a
-  // per-field message + a non-color affordance so the reveal isn't color-only
-  // (WCAG 1.4.1) — deferred because there's no live form to test against today.
   const showAll = (submitAttempt ?? 0) > 0;
   const fieldInvalid = (field: FormFieldDefinition): boolean =>
     showAll &&
     field.required &&
     fieldVisible(field, answers) &&
     !requiredSatisfied(field, answers[field.id] ?? []);
+
+  // Type-appropriate "what you missed" line under a revealed-invalid field — so
+  // the reveal isn't colour-only (WCAG 1.4.1) and the guest knows exactly what's
+  // needed. The single required checkbox (VIP/NYE booking agreement) is the
+  // common live case; it has no label/legend, so this message + the reddened
+  // choice row are its only visible signal.
+  function invalidMessage(field: FormFieldDefinition): string {
+    switch (field.fieldType) {
+      case "checkbox":
+        return "Please check this to continue.";
+      case "checkbox_list": {
+        const min = Math.max(1, field.minSelections ?? 1);
+        return min === 1 ? "Choose at least one." : `Choose at least ${min}.`;
+      }
+      case "dropdown":
+      case "radio":
+        return "Please choose an option.";
+      default:
+        return "Required.";
+    }
+  }
+  const errorEl = (field: FormFieldDefinition) =>
+    fieldInvalid(field) ? (
+      <p className="tprs-field-error" id={`${field.id}-err`}>
+        {invalidMessage(field)}
+      </p>
+    ) : null;
+  // aria-describedby target for a field's control(s) — links the inline message
+  // so a screen reader reads it on focus (parity with the guest fields).
+  const describedBy = (field: FormFieldDefinition) =>
+    fieldInvalid(field) ? `${field.id}-err` : undefined;
 
   const hasForms = useMemo(() => (forms?.length ?? 0) > 0, [forms]);
   if (!forms || !hasForms) return null;
@@ -233,9 +259,11 @@ export default function FormRenderer({
               type="text"
               placeholder={field.placeholder}
               aria-invalid={fieldInvalid(field) || undefined}
+              aria-describedby={describedBy(field)}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
+            {errorEl(field)}
           </div>
         );
 
@@ -249,9 +277,11 @@ export default function FormRenderer({
               className={`tprs-textarea${fieldInvalid(field) ? " is-invalid" : ""}`}
               placeholder={field.placeholder}
               aria-invalid={fieldInvalid(field) || undefined}
+              aria-describedby={describedBy(field)}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
+            {errorEl(field)}
           </div>
         );
 
@@ -265,9 +295,11 @@ export default function FormRenderer({
               className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
               type="date"
               aria-invalid={fieldInvalid(field) || undefined}
+              aria-describedby={describedBy(field)}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
+            {errorEl(field)}
           </div>
         );
 
@@ -280,6 +312,7 @@ export default function FormRenderer({
               id={field.id}
               className={`tprs-select${fieldInvalid(field) ? " is-invalid" : ""}`}
               aria-invalid={fieldInvalid(field) || undefined}
+              aria-describedby={describedBy(field)}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             >
@@ -290,6 +323,7 @@ export default function FormRenderer({
                 </option>
               ))}
             </select>
+            {errorEl(field)}
           </div>
         );
 
@@ -315,11 +349,13 @@ export default function FormRenderer({
                   value={opt}
                   checked={val[0] === opt}
                   aria-invalid={(i === 0 && fieldInvalid(field)) || undefined}
+                  aria-describedby={i === 0 ? describedBy(field) : undefined}
                   onChange={() => setSingle(field.id, opt)}
                 />
                 <span>{opt}</span>
               </label>
             ))}
+            {errorEl(field)}
           </fieldset>
         );
 
@@ -336,6 +372,7 @@ export default function FormRenderer({
                 type="checkbox"
                 checked={val[0] === "true"}
                 aria-invalid={fieldInvalid(field) || undefined}
+                aria-describedby={describedBy(field)}
                 onChange={(e) =>
                   setSingle(field.id, e.currentTarget.checked ? "true" : "")
                 }
@@ -346,6 +383,7 @@ export default function FormRenderer({
               </span>
             </label>
             {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
+            {errorEl(field)}
           </div>
         );
 
@@ -374,6 +412,7 @@ export default function FormRenderer({
                   value={opt}
                   checked={val.includes(opt)}
                   aria-invalid={(i === 0 && fieldInvalid(field)) || undefined}
+                  aria-describedby={i === 0 ? describedBy(field) : undefined}
                   onChange={(e) =>
                     toggleInList(field, opt, e.currentTarget.checked)
                   }
@@ -381,6 +420,7 @@ export default function FormRenderer({
                 <span>{opt}</span>
               </label>
             ))}
+            {errorEl(field)}
           </fieldset>
         );
       }
@@ -413,6 +453,7 @@ export default function FormRenderer({
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/gif"
                 aria-invalid={fieldInvalid(field) || undefined}
+                aria-describedby={describedBy(field)}
                 disabled={uploadingId === field.id}
                 onChange={async (e) => {
                   const file = e.currentTarget.files?.[0];
@@ -438,6 +479,7 @@ export default function FormRenderer({
             {uploadError[field.id] && (
               <p className="tprs-error">{uploadError[field.id]}</p>
             )}
+            {errorEl(field)}
           </div>
         );
       }

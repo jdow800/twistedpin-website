@@ -37,10 +37,16 @@
   margin: 0 auto;
   min-height: 70vh;                          /* reserve space → less CLS on hydrate */
   color: var(--tw-text);
+  /* Guard against any descendant overflowing horizontally — on iOS that widens
+     the LAYOUT viewport, which both makes the page render "zoomed/cut off" and
+     trips wider media queries (e.g. the field-row going 2-col on a phone).
+     `clip` (not hidden/auto) doesn't create a scroll container, so the desktop
+     sticky cart rail is unaffected. */
+  overflow-x: clip;
   /* Bottom padding tracks the live (collapsed OR expanded) cart-bar height via
      --tprs-cart-h, published by StickySummary, so content always scrolls clear
      of it. Falls back to 150px before JS measures. Desktop overrides below. */
-  padding: 26px 18px calc(var(--tprs-cart-h, 150px) + 24px + var(--safe-bottom));
+  padding: 20px 18px calc(var(--tprs-cart-h, 150px) + 24px + var(--safe-bottom));
 }
 
 /* Scroll anchor — H1 step-change reset stops here, clear of the fixed header. */
@@ -712,20 +718,28 @@
 .tprs-reserving-addon .tprs-reserving-name { font-weight: 600; font-size: 14px; color: var(--tw-text-muted); }
 
 /* ── Forms / guest details (J + M polish) ───────────────────────────── */
-.tprs-field { margin-bottom: 18px; }
+.tprs-field { margin-bottom: 13px; }
 /* Radio / checkbox groups are <fieldset> — kill the rough native border +
    legend cut-through; the legend is styled as a normal label (M). */
-fieldset.tprs-field { border: 0; padding: 0; margin: 0 0 18px; min-width: 0; }
+fieldset.tprs-field { border: 0; padding: 0; margin: 0 0 13px; min-width: 0; }
 fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
+/* First/last name share a row only when there's real width for it. Below 540px
+   (every phone in portrait, and most in landscape) they stack full-width so the
+   inputs aren't cramped — was 460, bumped for margin after the field read as
+   "spread out" on a phone. */
 .tprs-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 460px) { .tprs-field-row { grid-template-columns: 1fr; } }
+@media (max-width: 540px) { .tprs-field-row { grid-template-columns: 1fr; } }
 .tprs-label { display: block; font-family: var(--font-ui); font-size: 12px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--tw-text-muted); margin-bottom: 7px; }
 .tprs-req { color: var(--tw-accent); }
 .tprs-opt { color: var(--tw-text-dim); font-weight: 600; text-transform: none; letter-spacing: 0; }
 .tprs-input, .tprs-select, .tprs-textarea {
   width: 100%;
   font-family: var(--font-body);
-  font-size: 15px;
+  /* >=16px is load-bearing: iOS Safari auto-zooms the viewport when you focus an
+     input below 16px, and never zooms back — that was the "tap a field → screen
+     zooms in, pinch to recover" bug. Do NOT drop below 16 (and don't disable
+     pinch-zoom via the viewport meta — that's an a11y regression). */
+  font-size: 16px;
   color: var(--tw-text);
   background: var(--tw-surface);
   border: 1px solid var(--tw-border-strong);
@@ -752,6 +766,15 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
    the wrapper — redden the label/legend so the miss reads at a glance. */
 .tprs-field.is-invalid > .tprs-label,
 fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
+/* A SINGLE required checkbox (e.g. the VIP "Booking Agreement" acknowledgements)
+   has no .tprs-label or <legend> to redden — so on a failed Continue the reveal
+   would be invisible. Redden the choice text + ring the row so the miss can't be
+   missed. (The inline .tprs-field-error below spells out what to do.) The ring
+   targets a lone checkbox row, not every option in a radio/checkbox_list. */
+.tprs-field.is-invalid .tprs-choice { color: var(--tw-danger); }
+.tprs-field.is-invalid:not(fieldset) > .tprs-choice {
+  box-shadow: inset 0 0 0 1px var(--tw-danger);
+}
 .tprs-field-error { font-family: var(--font-body); font-size: 12px; color: var(--tw-danger); margin-top: 6px; }
 /* Screen-reader-only — for the failed-Continue error summary announcement. */
 .tprs-sr-only {
@@ -768,7 +791,7 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 14.5px; color: var(--tw-text); padding: 9px 12px; border-radius: 8px; }
 .tprs-choice:hover { background: var(--tw-surface); }
 .tprs-choice input { margin-top: 2px; width: 17px; height: 17px; accent-color: var(--tw-accent); }
-.tprs-form-block { border: 1px solid var(--tw-border); border-radius: var(--radius-surface); padding: 18px; margin: 22px 0; background: var(--tw-surface); }
+.tprs-form-block { border: 1px solid var(--tw-border); border-radius: var(--radius-surface); padding: 14px; margin: 16px 0; background: var(--tw-surface); }
 .tprs-form-title { font-family: var(--font-ui); font-weight: 800; font-size: 20px; text-align: center; color: var(--tw-text); margin: 0 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--tw-border); }
 .tprs-form-block > .tprs-field:first-of-type,
 .tprs-form-block > fieldset:first-of-type { margin-top: 16px; }

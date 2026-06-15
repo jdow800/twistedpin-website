@@ -24,6 +24,10 @@ interface Props {
   /** Bumped by a failed Continue → reveal ALL required-field errors at once,
    *  not just blurred ones (the "what did I miss?" fix). 0 = nothing tried yet. */
   submitAttempt: number;
+  /** How many BOOKING-FORM (FormRenderer) required fields are currently
+   *  unsatisfied — folded into the screen-reader "N fields need attention"
+   *  count so a missed VIP/NYE acknowledgement checkbox is announced too. */
+  formInvalidCount: number;
 }
 
 // Input-side limiting so junk never lands in the field (paste-safe slice +
@@ -41,6 +45,7 @@ export default function GuestDetailsStep(props: Props) {
     onFormAnswers,
     onFormInvalidIds,
     submitAttempt,
+    formInvalidCount,
   } = props;
 
   const [touched, setTouched] = useState<Partial<Record<keyof GuestFields, boolean>>>({});
@@ -62,9 +67,13 @@ export default function GuestDetailsStep(props: Props) {
 
   // Screen-reader announcement for a failed Continue — focus moving to the first
   // invalid field announces only THAT one, so this says how many need attention.
-  // Keyed on submitAttempt so a second failed Continue re-announces. (Counts the
-  // guest fields — the live path has no booking form yet; see FormRenderer TODO.)
-  const invalidCount = showAll ? guestInvalidFields(guest).length : 0;
+  // Keyed on submitAttempt so a second failed Continue re-announces. Counts BOTH
+  // guest fields AND booking-form fields (FormRenderer) — booking forms are live
+  // on all products (VIP/NYE rules checkboxes, birthday Kids Party), so a missed
+  // acknowledgement with otherwise-valid guest fields must still announce.
+  const invalidCount = showAll
+    ? guestInvalidFields(guest).length + formInvalidCount
+    : 0;
 
   return (
     <div>
@@ -190,7 +199,9 @@ export default function GuestDetailsStep(props: Props) {
         </div>
       </div>
 
-      {/* ADR-0030 booking-question forms — dormant until a form is attached. */}
+      {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
+          agreement, birthday Kids Party). Bubbles invalid ids up for the gate +
+          first-miss scroll; reveals per-field errors on a failed Continue. */}
       <FormRenderer
         productId={productId}
         onAnswersChange={handleAnswers}
