@@ -120,6 +120,6 @@ offsite, or a fundraiser — start with us. If you're planning a
 Saturday morning or an outdoor day, start with the Riverwalk or the
 park district.
 
-[Reserve a lane](https://ecom.roller.app/twistedpin/openbowl/en-us/home) ·
+[Reserve a lane](/reserve/) ·
 [Plan an event](/events/) ·
 [See the cocktail menu](/menu/cocktails/)

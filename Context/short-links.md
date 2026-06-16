@@ -6,13 +6,13 @@ One-page reference for every short link configured on the production site. All r
 
 ---
 
-## Booking & commerce (Roller)
+## Booking & commerce
 
 | Short link | Destination | Type | Notes |
 |---|---|---|---|
-| `/reserve` | `ecom.roller.app/twistedpin/openbowl/en-us/home` | 301 | Canonical "Reserve a lane" CTA — wired into the site's sticky bar and header |
-| `/book` | `ecom.roller.app/twistedpin/openbowl/en-us/home` | 301 | Alias for `/reserve`. Shorter mnemonic for ads/SMS |
-| `/kb` | `ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products` | 301 | Kids birthday party booking |
+| `/reserve` | **live page** (TPRS booking SPA, `src/pages/reserve.astro`) | — | Canonical "Reserve a lane" destination. NOT a redirect since the Roller→TPRS cutover (2026-06-15) — it's the real booking flow. Every open-bowl CTA points here. |
+| `/book` | `/reserve/` | 301 | Alias for `/reserve`. Shorter mnemonic for ads/SMS. Repointed Roller→`/reserve` at the 2026-06-15 cutover — anything using `twistedpin.com/book` (Avery, Roy, Loyalty drip SMS) auto-follows. |
+| `/kb` | `ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products` | 301 | Kids birthday party booking. STILL on Roller — flips to `/reserve/birthdays` at the Phase-2 birthday cutover. |
 
 ## Menus (subdomain)
 

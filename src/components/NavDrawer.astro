@@ -32,7 +32,7 @@ import { activeSeasonalItems } from "../config/nav-seasonal";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
-const ROLLER_URL = "https://ecom.roller.app/twistedpin/openbowl/en-us/home";
+const RESERVE_URL = "/reserve/";
 
 interface DrawerItem {
   href: string;
@@ -71,7 +71,7 @@ const drawerSections: DrawerSection[] = [
     items: [
       // Reserve / Plan duplicated from sticky CTA bar. Intentional —
       // hamburger-hunters expect to find primary CTAs in the menu too.
-      { href: ROLLER_URL,                   label: "Reserve a Lane",  icon: "calendar-check", external: true },
+      { href: RESERVE_URL,                  label: "Reserve a Lane",  icon: "calendar-check" },
       { href: PLAN_EVENT_URL,              label: "Plan an Event",   icon: "message-square", external: true },
       { href: "/birthday-parties-booking/", label: "Birthday Parties",icon: "cake"           },
       { href: "/corporate-events/",         label: "Corporate Events",icon: "building-2"     },
@@ -268,7 +268,7 @@ for (const seasonal of activeSeasonalItems()) {
         92vw — these duplicate the same Reserve / Plan recipe so users
         can convert without closing the drawer first. */}
     <div class="nav-drawer-cta">
-      <a class="btn btn-solid" href={ROLLER_URL} target="_blank" rel="noopener">Reserve a Lane</a>
+      <a class="btn btn-solid" href={RESERVE_URL}>Reserve a Lane</a>
       <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an Event</a>
     </div>
     <p class="nav-meta">15610 Joliet Rd · Plainfield, IL</p>

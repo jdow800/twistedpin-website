@@ -1,32 +1,20 @@
 ---
 /**
- * /reserve-preview — PARKED customer-facing preview of the new TPRS booking flow.
+ * /reserve — LIVE customer-facing TPRS booking flow (Roller→TPRS cutover, Phase 1,
+ * 2026-06-15). Canonical "Reserve a lane" destination — every open-bowl CTA across
+ * the site points here, and /book + /reservations alias-redirect to it.
  *
- * This is the temp home of the real booking experience while the backend runs on
- * Stripe TEST mode + the temp Supabase staging DB. It is the customer-facing
- * sibling of the internal /tprs sandbox: same <BookingWizard>, but at the URL
- * that mirrors its final home so the cutover is a clean slide-over.
+ * Was /reserve-preview (parked, noindexed) until the lane cutover; promoted via
+ * `git mv` once the backend went Stripe LIVE + prod DB. At cutover the old
+ * `/reserve{/}?` → Roller redirect in vercel.json was deleted (a page at /reserve
+ * can't coexist with a redirect), the noindex meta + robots.txt Disallow + sitemap
+ * filter were removed, and the 3 chrome CTAs (StickyCTABar, SiteHeader, NavDrawer)
+ * plus all secondary CTAs were repointed to `/reserve`.
  *
- * Protections (same parked-preview pattern as /coupon-preview):
- *   - noindex,nofollow (the <Fragment slot="head"> below),
- *   - excluded from the sitemap (astro.config.mjs filter),
- *   - Disallow'd in robots.txt,
- *   - unlinked from nav / footer / CTAs (all "Reserve a Lane" CTAs still go to
- *     Roller — the live booking path is unchanged).
- *
- * **Cutover (Roller → TPRS), when the backend is on Stripe LIVE + prod DB:**
- *   1. `git mv` this file → src/pages/reserve.astro (drops the -preview suffix).
- *   2. Remove the `/reserve{/}?` → Roller redirect in vercel.json (a page at
- *      /reserve can't coexist with a redirect — the redirect wins).
- *   3. Repoint the 3 CTA components (StickyCTABar, SiteHeader, NavDrawer) from
- *      the hardcoded Roller URL to `/reserve`.
- *   4. Remove the noindex meta + the robots.txt Disallow + the sitemap filter
- *      entry; add /reserve to the sitemap.
- *
- * Same-origin model (decided 2026-06-08, hosting-recommendation.md §5b): the
- * SPA calls `/tprs-api/*`; dev proxies to localhost:3000 (astro.config.mjs), and
- * the deployed site needs a vercel.json rewrite `/tprs-api/* → the Render
- * backend` for this page to reach the API off-localhost.
+ * Same-origin model (decided 2026-06-08, hosting-recommendation.md §5b): the SPA
+ * calls `/tprs-api/*`; dev proxies to localhost:3000 (astro.config.mjs), and the
+ * deployed site uses the vercel.json rewrite `/tprs-api/* → the Render backend`
+ * for this page to reach the API off-localhost.
  */
 import Base from "../layouts/Base.astro";
 import BookingWizard from "../components/tprs/BookingWizard.tsx";
@@ -43,10 +31,6 @@ const { uxCopy, heroImage } = bookingPageConfig;
   lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
   lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
 >
-  {/* noindex,nofollow — parked preview until the Roller→TPRS cutover. */}
-  <Fragment slot="head">
-    <meta name="robots" content="noindex,nofollow" />
-  </Fragment>
 
   {/* Compact identity hero — photo + scrim melting into the page bg, copy
       overlaid. Deliberately ~40vh (NOT Roller's full-screen collapsing hero):
@@ -113,7 +97,7 @@ const { uxCopy, heroImage } = bookingPageConfig;
      lands exactly on the page bg so the band melts into the booking UI. */
   .tprs-hero {
     position: relative;
-    height: clamp(300px, 42vh, 440px);
+    height: clamp(300px, 42dvh, 440px);
     display: flex;
     align-items: flex-end;
     overflow: hidden;
@@ -122,7 +106,7 @@ const { uxCopy, heroImage } = bookingPageConfig;
      banner ad. Still bounded: the date question stays one short scroll away. */
   @media (min-width: 1025px) {
     .tprs-hero {
-      height: clamp(420px, 52vh, 600px);
+      height: clamp(420px, 52dvh, 600px);
     }
   }
   .tprs-hero-img {
@@ -188,6 +172,6 @@ const { uxCopy, heroImage } = bookingPageConfig;
   /* Reserve space for the client:only island so the footer doesn't jump on
      hydrate (CLS). Matches the wizard's own min-height. */
   .tprs-mount {
-    min-height: 70vh;
+    min-height: 70dvh;
   }
 </style>

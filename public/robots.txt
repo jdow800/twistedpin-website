@@ -8,8 +8,6 @@ Disallow: /api/
 Disallow: /tprs/
 # Parked preview of the new loyalty signup form (replaces /coupon at launch) — unindexed, unlinked.
 Disallow: /coupon-preview/
-# Parked preview of the new TPRS booking flow (slides to /reserve at the Roller→TPRS cutover) — unindexed, unlinked.
-Disallow: /reserve-preview/
 # Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
 Disallow: /reserve-preview2/
 # Parked kids-birthday booking page AT ITS REAL SLUG (specific path on purpose —

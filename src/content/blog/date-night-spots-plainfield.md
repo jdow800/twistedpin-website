@@ -131,7 +131,7 @@ even if we weren't writing this.
 
 ## How to make it work
 
-Most date nights at Twisted Pin take a [lane reservation](https://ecom.roller.app/twistedpin/openbowl/en-us/home)
+Most date nights at Twisted Pin take a [lane reservation](/reserve/)
 and 90 minutes of attention. If you want the suite for an
 anniversary-tier night, start on [the events page](/events/)
 instead — same-week response.
@@ -141,6 +141,6 @@ soft pitch: *we've been doing dinner-and-a-movie for two years; let's
 go bowl two games and have a real cocktail next Friday.* That's most
 of the work.
 
-[Reserve a lane](https://ecom.roller.app/twistedpin/openbowl/en-us/home) ·
+[Reserve a lane](/reserve/) ·
 [See the cocktail menu](/menu/cocktails/) ·
 [Check the food menu](/menu/food/)

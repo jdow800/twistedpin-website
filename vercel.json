@@ -13,8 +13,7 @@
     }
   ],
   "redirects": [
-    { "source": "/reserve{/}?", "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home", "permanent": true },
-    { "source": "/book{/}?", "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home", "permanent": true },
+    { "source": "/book{/}?", "destination": "/reserve/", "permanent": true },
     { "source": "/kb{/}?", "destination": "https://ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products", "permanent": true },
 
     { "source": "/bowling{/}?", "destination": "/bowl/", "permanent": true },
@@ -121,7 +120,7 @@
     { "source": "/daily-specials{/}?", "destination": "/pricing/", "permanent": true },
     { "source": "/promotions{/}?", "destination": "/pricing/", "permanent": true },
     { "source": "/special-event{/}?", "destination": "/events/", "permanent": true },
-    { "source": "/reservations{/}?", "destination": "https://ecom.roller.app/twistedpin/openbowl/en-us/home", "permanent": true },
+    { "source": "/reservations{/}?", "destination": "/reserve/", "permanent": true },
     { "source": "/birthday-parties{/}?", "destination": "/birthday-parties-booking/", "permanent": true },
     { "source": "/pro-shop{/}?", "destination": "/leagues/#pro-shop", "permanent": true },
 

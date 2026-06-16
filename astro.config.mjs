@@ -68,7 +68,6 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/tprs') &&
         !page.includes('/coupon-preview') &&
-        !page.includes('/reserve-preview') &&
         // Parked at its REAL slug (kids birthday bookings) — remove this line
         // at birthday-booking launch so the page enters the sitemap.
         !page.includes('/reserve/birthdays') &&
