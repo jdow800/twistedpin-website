@@ -10,10 +10,6 @@ Disallow: /tprs/
 Disallow: /coupon-preview/
 # Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
 Disallow: /reserve-preview2/
-# Parked NYE party-slot booking page AT ITS REAL SLUG (same mechanic as
-# /reserve/birthdays — specific path, never a broad /reserve/ block). Lift at
-# NYE-booking launch.
-Disallow: /reserve/nye/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml

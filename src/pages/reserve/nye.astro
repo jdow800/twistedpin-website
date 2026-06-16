@@ -6,22 +6,14 @@
  * its final URL from day one: the vercel.json `/reserve{/}?` redirect is
  * EXACT-match, so the nested path never collides.
  *
- * LAUNCH (when ops opens NYE bookings here — independent of the lane cutover):
- *   1. ✅ DONE EARLY (2026-06-11): the /new-years-eve/ lander's booking CTAs
- *      point here. Jon's call — nobody lands on NYE content in June, and the
- *      products carry a pre-order notice until the backend restricts
- *      availability to 12/31. (The /upcoming-events/ NYE entry still routes
- *      to the lander — right funnel: calendar → lander → here.)
- *   2. Remove the noindex meta below + the robots.txt `Disallow: /reserve/nye/`
- *      line + the astro.config.mjs sitemap filter entry.
- *   3. Full launch SEO pass per src/tprs/BOOKING-PAGES-HANDOFF.md (real
- *      title/description are already in, og:image reuses og-vip-suite.jpg —
- *      same shot as the hero band; revisit if a dedicated NYE og crop lands).
- *   No file moves, no redirect changes.
- *
- * Protections until then: noindex,nofollow meta + robots.txt Disallow +
- * sitemap filter exclusion (the parked triad — all still in place; this page
- * is LINKED from the lander but stays out of the index until launch).
+ * INDEXED + LINKED (2026-06-16): the noindex meta + robots.txt Disallow +
+ * sitemap filter were all lifted. The /new-years-eve/ lander's CTAs point here
+ * and the page is crawlable. Online purchase is gated to the products'
+ * `sales_start_at` (12/01) by the TPRS engine's validateSalesStart — the
+ * calendar shows NO slots until sales open, so the page reads "empty" until
+ * Dec 1. Remaining: full launch SEO pass per src/tprs/BOOKING-PAGES-HANDOFF.md
+ * (real title/description are in; og:image reuses og-vip-suite.jpg — revisit
+ * if a dedicated NYE og crop lands).
  *
  * Page mechanics come from nyePageConfig: both NYE party products (VIP 124 +
  * Traditional 126) on standard description cards — the included-list copy
@@ -46,10 +38,6 @@ const { uxCopy, heroImage } = nyePageConfig;
   lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
   lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
 >
-  {/* noindex,nofollow — parked until the NYE-booking launch. */}
-  <Fragment slot="head">
-    <meta name="robots" content="noindex,nofollow" />
-  </Fragment>
 
   {heroImage ? (
     <section class="tprs-hero" data-hero aria-labelledby="tprs-h1">
