@@ -682,11 +682,13 @@
 /* Price RIDES WITH the stepper (one "$15 each  − 0 +" cluster on the right) —
    space-between left them stranded at opposite edges. */
 .tprs-addon-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 12px; }
-.tprs-addon-actions .tprs-addon-price { margin-top: 0; font-size: 14px; color: var(--tw-text); }
+/* "$15 each" at parity with the stepper qty (18px) + bold — it's the price the
+   guest acts on; was small next to the "0". */
+.tprs-addon-actions .tprs-addon-price { margin-top: 0; font-family: var(--font-ui); font-size: 18px; font-weight: 700; color: var(--tw-text); }
 /* 16px — the upsell's headline (read-to-decide-to-buy); add-ons aren't a dense
    ledger like the cart, so the density argument doesn't apply. Let it carry. */
-.tprs-addon-name { font-family: var(--font-ui); font-weight: 700; font-size: 16px; color: var(--tw-text); }
-.tprs-addon-desc { font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); margin-top: 2px; }
+.tprs-addon-name { font-family: var(--font-ui); font-weight: 700; font-size: 16px; color: var(--tw-text); text-align: center; }
+.tprs-addon-desc { font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--tw-text-muted); margin-top: 2px; }
 .tprs-addon-price { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin-top: 2px; }
 .tprs-req { color: var(--tw-accent); }
 .tprs-empty { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); padding: 22px 0; text-align: center; }
