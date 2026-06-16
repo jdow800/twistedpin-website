@@ -134,6 +134,24 @@ export interface BookingPageConfig {
     number,
     { baseGuests: number; addOnCode: number; label?: string }
   >;
+  /**
+   * "Coming soon" beat shown when the page's products EXIST but none are
+   * bookable yet because their sales window hasn't opened (the TPRS engine
+   * gates purchase by sales_start). Instead of the bare "sitting this one out"
+   * list, the canonical date (`defaultDate`) renders this branded notice.
+   * Self-resolving: once sales open and the date goes bookable, the notice
+   * disappears and the normal grid shows. NO date is hardcoded in the frontend
+   * — a moved sales_start needs no code change, so keep `body` copy date-soft
+   * ("late November", not "December 1"). Requires `defaultDate` to be set (the
+   * canonical on-sale day the notice keys off). `body` supports the text
+   * dialect (**bold**, <font color="…">, [link](url)).
+   */
+  presaleNotice?: {
+    heading: string;
+    body: string;
+    ctaLabel?: string;
+    ctaHref?: string;
+  };
 }
 
 /** Defaults when a page doesn't override the quantity wording. */
@@ -334,6 +352,18 @@ export const nyePageConfig: BookingPageConfig = {
   },
   // quantityLabel/quantityHelp left to defaults — "How many lanes?" with the
   // category's own capacity subtitle (the rooms hold different counts).
+  //
+  // Until ops opens NYE sales (TPRS sales_start gate — currently ~12/01, will
+  // move), the calendar shows no bookable slots; rather than the bare "sitting
+  // this one out" list, show a branded "drops late November, follow us" beat on
+  // 12/31. Self-resolves the moment sales open (12/31 goes bookable). Date-soft
+  // copy on purpose — moving sales_start needs no edit here.
+  presaleNotice: {
+    heading: "Not booking NYE just yet.",
+    body: "Our New Year's Eve packages drop in late November — party slots, pricing, the whole night. Follow along and you'll know the second they go live.",
+    ctaLabel: "Follow on Facebook",
+    ctaHref: "https://www.facebook.com/twistedpin",
+  },
 };
 
 // ── How to build a curated booking page (e.g. twistedpin.com/nye) ──────────

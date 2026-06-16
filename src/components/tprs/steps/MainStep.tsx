@@ -14,7 +14,7 @@ import type {
   BookableCategory,
   CustomerProduct,
 } from "../../../tprs/schemas";
-import { formatUsd, todayIso, addDays, formatDateLong } from "../format";
+import { formatUsd, todayIso, addDays, formatDateLong, monthOf } from "../format";
 import Markdown from "../Markdown";
 import { toPlainText } from "../../../tprs/text-dialect";
 import {
@@ -34,6 +34,10 @@ interface Props {
   /** Short caution badge per product code (pageConfig.cardNotes) — e.g.
    *  "Limited times" on the intentionally-scarce 1-hour lanes. */
   cardNotes?: Record<number, string>;
+  /** "Coming soon" beat (pageConfig.presaleNotice) — shown on the canonical
+   *  defaultDate when the page's products aren't on sale yet, in place of the
+   *  bare "sitting this one out" list. */
+  presaleNotice?: BookingPageConfig["presaleNotice"];
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
@@ -73,6 +77,7 @@ export default function MainStep({
   tileCards = false,
   tileArt,
   cardNotes,
+  presaleNotice,
   partyConfig,
   partySize,
   onPartySize,
@@ -203,6 +208,28 @@ export default function MainStep({
     }
   }
 
+  // Pre-sale beat: the page opts in (presaleNotice) and its products exist but
+  // NONE are bookable on the canonical defaultDate yet — the sales window hasn't
+  // opened (TPRS engine gates purchase by sales_start). Show the branded "coming
+  // soon" notice on that date instead of the bare "sitting this one out" list.
+  // Gated on the day's month having LOADED so it never flashes before the
+  // verdicts resolve, and on the day BEING the canonical date so it doesn't fire
+  // when a guest just navigates to a non-offered day post-launch. Self-resolves
+  // once sales open (the date goes bookable → anyBookableToday true). No date is
+  // hardcoded here — a moved sales_start needs no change.
+  const dayMonthLoaded = availability.isMonthLoaded(monthOf(day));
+  const anyBookableToday = !!categories?.some((cat) =>
+    cat.products.some((p) => availability.isProductAvailable(p.id, day) === true),
+  );
+  const showPresale =
+    !!presaleNotice &&
+    defaultDate != null &&
+    day === defaultDate &&
+    categories !== null &&
+    categories.some((c) => c.products.length > 0) &&
+    dayMonthLoaded &&
+    !anyBookableToday;
+
   return (
     <div>
       {/* The in-store question, asked FIRST (guests → date → options): GUESTS,
@@ -255,6 +282,25 @@ export default function MainStep({
         label="When are you attending?"
       />
 
+      {showPresale && presaleNotice ? (
+        <div className="tprs-event-handoff tprs-presale">
+          <h3 className="tprs-event-handoff-h">{presaleNotice.heading}</h3>
+          <p className="tprs-event-handoff-p">
+            <Markdown text={presaleNotice.body} />
+          </p>
+          {presaleNotice.ctaHref && (
+            <a
+              className="tprs-event-handoff-cta"
+              href={presaleNotice.ctaHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {presaleNotice.ctaLabel ?? "Follow along"}
+            </a>
+          )}
+        </div>
+      ) : (
+      <>
       <h2 className="tprs-h2 tprs-products-h">
         {partySize !== null && !overThreshold
           ? `Your options for ${partySize}`
@@ -505,6 +551,8 @@ export default function MainStep({
             </button>
           ))}
         </div>
+      )}
+      </>
       )}
     </div>
   );
