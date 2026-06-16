@@ -102,6 +102,7 @@ export default function GuestDetailsStep(props: Props) {
             className={`tprs-input${fieldError("firstName") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="given-name"
+            enterKeyHint="next"
             aria-invalid={fieldError("firstName") ? true : undefined}
             aria-describedby={fieldError("firstName") ? "g-first-err" : undefined}
             value={guest.firstName}
@@ -121,6 +122,7 @@ export default function GuestDetailsStep(props: Props) {
             className={`tprs-input${fieldError("lastName") ? " is-invalid" : ""}`}
             type="text"
             autoComplete="family-name"
+            enterKeyHint="next"
             aria-invalid={fieldError("lastName") ? true : undefined}
             aria-describedby={fieldError("lastName") ? "g-last-err" : undefined}
             value={guest.lastName}
@@ -143,6 +145,10 @@ export default function GuestDetailsStep(props: Props) {
           type="email"
           inputMode="email"
           autoComplete="email"
+          enterKeyHint="next"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           aria-invalid={fieldError("email") ? true : undefined}
           aria-describedby={fieldError("email") ? "g-email-err" : undefined}
           value={guest.email}
@@ -165,6 +171,7 @@ export default function GuestDetailsStep(props: Props) {
             type="tel"
             inputMode="tel"
             autoComplete="tel"
+            enterKeyHint="next"
             maxLength={20}
             aria-invalid={fieldError("phone") ? true : undefined}
             aria-describedby={fieldError("phone") ? "g-phone-err" : undefined}
@@ -186,6 +193,7 @@ export default function GuestDetailsStep(props: Props) {
             type="text"
             inputMode="numeric"
             autoComplete="postal-code"
+            enterKeyHint="done"
             maxLength={5}
             aria-invalid={fieldError("zip") ? true : undefined}
             aria-describedby={fieldError("zip") ? "g-zip-err" : undefined}

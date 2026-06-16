@@ -35,7 +35,7 @@
   font-family: var(--font-ui);
   max-width: 720px;
   margin: 0 auto;
-  min-height: 70vh;                          /* reserve space → less CLS on hydrate */
+  min-height: 70dvh;                         /* reserve space → less CLS on hydrate (dvh: no jump as the mobile URL bar collapses) */
   color: var(--tw-text);
   /* Guard against any descendant overflowing horizontally — on iOS that widens
      the LAYOUT viewport, which both makes the page render "zoomed/cut off" and
@@ -46,7 +46,10 @@
   /* Bottom padding tracks the live (collapsed OR expanded) cart-bar height via
      --tprs-cart-h, published by StickySummary, so content always scrolls clear
      of it. Falls back to 150px before JS measures. Desktop overrides below. */
-  padding: 20px 18px calc(var(--tprs-cart-h, 150px) + 24px + var(--safe-bottom));
+  /* --tprs-cart-h is the cart bar's offsetHeight, which ALREADY includes its
+     own safe-bottom padding — so don't add --safe-bottom again here (was double
+     counted, wasting ~34px on notched phones). */
+  padding: 20px 18px calc(var(--tprs-cart-h, 150px) + 24px);
 }
 
 /* Scroll anchor — H1 step-change reset stops here, clear of the fixed header. */
@@ -228,7 +231,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
+  /* Safe-area-aware so a notched/home-bar phone (or short landscape) never tucks
+     the modal's Close/legend under system chrome. */
+  padding: max(12px, var(--safe-top)) 12px max(12px, var(--safe-bottom));
 }
 .tprs-modal {
   width: 100%;
@@ -239,6 +244,10 @@
   border-radius: 14px;
   padding: 22px;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+  /* A 6-row month + legend can exceed a short viewport — cap + scroll INSIDE the
+     modal so Close/legend stay reachable instead of pushing off-screen. */
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 24px);
+  overflow-y: auto;
 }
 .tprs-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .tprs-modal-head-actions { display: flex; gap: 6px; }
@@ -636,8 +645,9 @@
 .tprs-details-body { font-family: var(--font-body); font-size: 13.5px; line-height: 1.55; color: var(--tw-text-muted); padding: 12px 0 2px; }
 .tprs-stepper { display: inline-flex; align-items: center; gap: 14px; }
 .tprs-stepper-btn {
-  width: 38px;
-  height: 38px;
+  /* 44px min tap target (HIG) — the most-tapped control in a booking. */
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: 1px solid var(--tw-border-strong);
   background: var(--tw-surface);
@@ -737,8 +747,12 @@ fieldset.tprs-field > legend { padding: 0; margin-bottom: 4px; }
   font-family: var(--font-body);
   /* >=16px is load-bearing: iOS Safari auto-zooms the viewport when you focus an
      input below 16px, and never zooms back — that was the "tap a field → screen
-     zooms in, pinch to recover" bug. Do NOT drop below 16 (and don't disable
-     pinch-zoom via the viewport meta — that's an a11y regression). */
+     zooms in, pinch to recover" bug. Do NOT drop below 16. The booking pages
+     ALSO set maximum-scale=1 (Base.astro `lockViewportZoom`): our inputs are
+     16px, but the Stripe PaymentElement is a cross-origin iframe we can't force
+     to 16px, and the auto-zoom is a top-level viewport action — capping max-scale
+     stops Safari zooming on the iframe's fields too. iOS 10+ still allows manual
+     pinch-zoom regardless, so the cap isn't the user-scalable=no a11y regression. */
   font-size: 16px;
   color: var(--tw-text);
   background: var(--tw-surface);
@@ -788,9 +802,12 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 }
 .tprs-help { font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); margin: 0 0 8px; }
 /* Choice rows grouped in a subtle inset so radio/checkbox sets read as a unit. */
-.tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 14.5px; color: var(--tw-text); padding: 9px 12px; border-radius: 8px; }
+/* min-height 44px = tap target (these are the live VIP/NYE acknowledgement +
+   birthday choices); flex-start keeps the box top-aligned for multi-line rules
+   text. Bigger box (20px) too. */
+.tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 14.5px; color: var(--tw-text); padding: 11px 12px; min-height: 44px; box-sizing: border-box; border-radius: 8px; }
 .tprs-choice:hover { background: var(--tw-surface); }
-.tprs-choice input { margin-top: 2px; width: 17px; height: 17px; accent-color: var(--tw-accent); }
+.tprs-choice input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 .tprs-form-block { border: 1px solid var(--tw-border); border-radius: var(--radius-surface); padding: 14px; margin: 16px 0; background: var(--tw-surface); }
 .tprs-form-title { font-family: var(--font-ui); font-weight: 800; font-size: 20px; text-align: center; color: var(--tw-text); margin: 0 0 4px; padding-bottom: 12px; border-bottom: 1px solid var(--tw-border); }
 .tprs-form-block > .tprs-field:first-of-type,
@@ -876,7 +893,9 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-line-desc { font-family: var(--font-body); font-size: 11.5px; color: var(--tw-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tprs-line-qty { display: inline-flex; align-items: center; gap: 8px; }
 .tprs-line-step {
-  width: 26px; height: 26px;
+  /* Was 26px (a third of the recommended target, ~8px apart → mis-taps editing
+     the cart). 38px is a big improvement while staying compact in the cart row. */
+  width: 38px; height: 38px;
   border-radius: 50%;
   border: 1px solid var(--tw-border-strong);
   background: var(--tw-surface);
@@ -967,8 +986,11 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 /* Real Stripe <PaymentElement> form (replaces the mock above). */
 .tprs-pay-form { display: flex; flex-direction: column; gap: 18px; margin-top: 6px; }
 .tprs-pay-submit { width: 100%; margin-top: 2px; }
-.tprs-terms { display: flex; gap: 10px; align-items: flex-start; font-family: var(--font-body); font-size: 12.5px; line-height: 1.5; color: var(--tw-text-muted); cursor: pointer; }
-.tprs-terms input { margin-top: 2px; width: 16px; height: 16px; accent-color: var(--tw-accent); flex-shrink: 0; }
+/* The gate right before the card is charged — give the row a 44px tap height +
+   a bigger box (20px) so it's never fumbled. align-items:flex-start for the
+   multi-line agreement text. */
+.tprs-terms { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 8px 0; font-family: var(--font-body); font-size: 12.5px; line-height: 1.5; color: var(--tw-text-muted); cursor: pointer; }
+.tprs-terms input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 .tprs-terms-text strong { color: var(--tw-text); }
 .tprs-pay-error { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); text-align: center; padding: 22px 0; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .tprs-pay-error-msg { font-family: var(--font-body); font-size: 13.5px; color: var(--tw-danger); margin: 0; line-height: 1.5; }

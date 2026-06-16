@@ -28,6 +28,7 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
   ogImage="/og/og-birthdays.jpg"
   ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
   hideStickyCTA={true}
+  lockViewportZoom={true}
   lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
   lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
 >
@@ -83,7 +84,7 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
   /* ---------- compact identity hero (image band) ---------- */
   .tprs-hero {
     position: relative;
-    height: clamp(300px, 42vh, 440px);
+    height: clamp(300px, 42dvh, 440px);
     display: flex;
     align-items: flex-end;
     overflow: hidden;
@@ -95,7 +96,7 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
        now rides on flat page indigo like every other inner page. */
     .tprs-hero {
       margin-top: var(--header-height);
-      height: clamp(420px, 52vh, 600px);
+      height: clamp(420px, 52dvh, 600px);
     }
     /* Bias the desktop crop toward the TOP of the shot — the wide band was
        cutting off the LED wall above the lanes. (Mobile crop is fine.) */
@@ -175,6 +176,6 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
     margin: 0;
   }
   .tprs-mount {
-    min-height: 70vh;
+    min-height: 70dvh;
   }
 </style>

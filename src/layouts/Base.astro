@@ -23,6 +23,17 @@ interface Props {
   hideStickyCTA?: boolean;
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
+  /** Lock the viewport at scale 1 (adds maximum-scale=1). For the TPRS booking
+   *  pages only. iOS Safari auto-zooms on focus of any control under 16px and
+   *  never zooms back; our own inputs are 16px, but the Stripe PaymentElement
+   *  renders in a CROSS-ORIGIN iframe we can't force to 16px (fontSizeBase is
+   *  the only lever and it's not enough on iOS). The auto-zoom is a top-level
+   *  viewport action, so capping max-scale here stops Safari zooming on ANY
+   *  focus — ours and the iframe's. iOS 10+ still honors manual pinch-zoom
+   *  regardless (Apple's accessibility override), so this is NOT the old
+   *  user-scalable=no a11y regression. Android Chrome does limit pinch on these
+   *  pages — an acceptable trade on a 3-page payment flow. Default: false. */
+  lockViewportZoom?: boolean;
   /** LCP preload: image href to preload with fetchpriority="high" so the
    *  browser preload-scanner kicks the fetch off immediately (before any JS
    *  parse or IntersectionObserver setup). Used by pages whose LCP element
@@ -77,6 +88,7 @@ const {
   ogType = "website",
   hideStickyCTA = false,
   hideHeader = false,
+  lockViewportZoom = false,
   lcpPreloadHref,
   lcpPreloadMedia,
   lcpPreloadType,
@@ -133,7 +145,10 @@ const webPage = webPageSchema({
 <html lang={inLanguage}>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content={`width=device-width, initial-scale=1, viewport-fit=cover${lockViewportZoom ? ", maximum-scale=1" : ""}`}
+    />
     <meta name="theme-color" content="#0E0A1F" />
 
     {/* Favicons — Pin logo at multiple sizes (Favicon-100p source).
