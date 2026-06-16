@@ -1,6 +1,7 @@
 ---
 title: Paint Night
 start: 2026-07-21T18:00:00-05:00
+end: 2026-07-21T20:30:00-05:00
 location: Twisted Pin · Plainfield, IL
 cta:
   label: Reserve your seat
