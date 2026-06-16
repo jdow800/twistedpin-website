@@ -2,6 +2,7 @@
 // result (invoice number + booking id); the card was charged and the booking +
 // confirmation email are live. Falls back gracefully if booking is somehow null.
 
+import { useEffect } from "react";
 import {
   formatDateLong,
   formatTime12h,
@@ -37,6 +38,13 @@ interface Props {
   onReset: () => void;
 }
 
+// Per-page-load guard so a booking's `purchase` event fires at most once,
+// keyed on the unique invoice number. The confirmation screen can re-render
+// (React re-render / StrictMode double-invoke) without re-firing. A full reload
+// resets the SPA to step 1, so the same booking can't re-reach this screen —
+// an in-memory Set is sufficient and never throws (unlike sessionStorage).
+const trackedPurchases = new Set<string>();
+
 export default function ConfirmationStep({
   product,
   date,
@@ -50,6 +58,24 @@ export default function ConfirmationStep({
   guestEmail,
   onReset,
 }: Props) {
+  // GA4 `purchase` conversion — the TPRS replacement for Roller's purchase
+  // event (Roller's dies at cutover). gtag() is stubbed synchronously in
+  // Base.astro and the gclid auto-attaches from the _gcl_aw cookie, so this
+  // rides the existing GA4 → Google Ads import with no Ads-UI change. value +
+  // transaction_id match the amount + confirmation number shown on this screen.
+  useEffect(() => {
+    const invoice = booking?.invoiceNumber;
+    if (!invoice || trackedPurchases.has(invoice)) return;
+    trackedPurchases.add(invoice);
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "purchase", {
+        transaction_id: invoice,
+        value: Number.isFinite(totalCents) ? totalCents / 100 : 0,
+        currency: "USD",
+      });
+    }
+  }, [booking?.invoiceNumber, totalCents]);
+
   return (
     <div className="tprs-confirm">
       <div className="tprs-confirm-check" aria-hidden="true">✓</div>
