@@ -14,7 +14,7 @@
   ],
   "redirects": [
     { "source": "/book{/}?", "destination": "/reserve/", "permanent": true },
-    { "source": "/kb{/}?", "destination": "https://ecom.roller.app/twistedpin/kidsbirthdayparties/en-us/products", "permanent": true },
+    { "source": "/kb{/}?", "destination": "/reserve/birthdays/", "permanent": true },
 
     { "source": "/bowling{/}?", "destination": "/bowl/", "permanent": true },
     { "source": "/faqs{/}?", "destination": "/faq/", "permanent": true },

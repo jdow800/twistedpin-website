@@ -6,16 +6,10 @@
  * redirect), this page lives at its final URL from day one: the vercel.json
  * `/reserve{/}?` redirect is EXACT-match, so the nested path never collides.
  *
- * LAUNCH (when ops is ready to take birthday bookings here):
- *   1. Repoint ROLLER_KIDS_URL in src/pages/birthday-parties-booking.astro
- *      (the live SEO lander — all its booking CTAs) to /reserve/birthdays/.
- *   2. Remove the noindex meta below + the robots.txt
- *      `Disallow: /reserve/birthdays/` line + the astro.config.mjs sitemap
- *      filter entry.
- *   No file moves, no redirect changes.
- *
- * Protections until then (parked-preview triad): noindex,nofollow meta +
- * robots.txt Disallow + sitemap filter exclusion + unlinked.
+ * LIVE since the Roller→TPRS cutover Phase 2 (2026-06-15): kids-birthday
+ * bookings happen here. The /kb short code 301s here, birthday-parties-booking
+ * .astro CTAs point here, and the noindex meta + robots.txt Disallow + sitemap
+ * filter exclusion were all lifted at launch.
  *
  * Page mechanics come from birthdaysPageConfig: standard cards w/ descriptions
  * (packages sell via copy/art), guest stepper "How many kids?" (base 10 + the
@@ -37,10 +31,6 @@ const { uxCopy, heroImage } = birthdaysPageConfig;
   lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
   lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
 >
-  {/* noindex,nofollow — parked until the birthday-booking launch. */}
-  <Fragment slot="head">
-    <meta name="robots" content="noindex,nofollow" />
-  </Fragment>
 
   {heroImage ? (
     <section class="tprs-hero" data-hero aria-labelledby="tprs-h1">

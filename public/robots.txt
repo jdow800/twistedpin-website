@@ -10,10 +10,6 @@ Disallow: /tprs/
 Disallow: /coupon-preview/
 # Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
 Disallow: /reserve-preview2/
-# Parked kids-birthday booking page AT ITS REAL SLUG (specific path on purpose —
-# never a broad /reserve/ block, which would have to be unwound at the lane
-# cutover). Lift at birthday-booking launch.
-Disallow: /reserve/birthdays/
 # Parked NYE party-slot booking page AT ITS REAL SLUG (same mechanic as
 # /reserve/birthdays — specific path, never a broad /reserve/ block). Lift at
 # NYE-booking launch.
