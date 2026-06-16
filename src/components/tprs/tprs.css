@@ -316,13 +316,19 @@
 .tprs-cat-label { font-family: var(--font-ui); font-weight: 800; font-size: 16px; color: var(--tw-text); margin: 0 0 2px; text-align: center; }
 .tprs-cat-subtitle { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin: 0 0 12px; text-align: center; }
 .tprs-card-list { display: flex; flex-direction: column; gap: 10px; min-height: 120px; }
-/* Duration tiles — same vocabulary as the time-slot grid. 1hr | 2hr sit side
-   by side; widths are CAPPED + the group centers, so a lone survivor reads as
-   a tidy centered chip instead of a barren full-width strip. */
+/* Duration tiles — 1hr | 2hr sit side by side and FILL the content width
+   (auto-fit + 1fr, no cap + no centering), so the pair reads at full size
+   instead of two capped chips marooned in watermark gutters (the "squeezed"
+   report, 2026-06-15). auto-fit COLLAPSES empty tracks, so a lone tile — a
+   sold-out date drops one duration (MainStep `visible` filter), or a
+   single-product page like /reserve/nye — auto-expands to a full-width hero
+   with no :only-child special-casing, and a future 3rd duration just wraps.
+   The 140px floor keeps the 2-up pairing down to ~316px viewports; below that
+   they stack full width. Desktop re-caps these centered (the .tprs-cats
+   override below). gap (10px) comes from .tprs-card-list. */
 .tprs-card-list--tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 250px));
-  justify-content: center;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   min-height: 112px;
 }
 /* .tprs-card.tprs-tile — double class on purpose: .tprs-card's own rules are
@@ -367,7 +373,9 @@
 .tprs-tile-name {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 28px;
+  /* clamp so "2 HOURS" fits the 2-up cell on narrow phones (≈145px) yet stays
+     28px on normal/large widths (caps at 28 above ~400px → desktop unchanged). */
+  font-size: clamp(22px, 7vw, 28px);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -377,7 +385,9 @@
    full-white, shadowed; "from" brightens to warm-white. */
 .tprs-card.tprs-tile .tprs-card-from {
   margin: 0;
-  font-size: 18px;
+  /* clamp so "from $145.95" (the longest price) doesn't crowd the 2-up cell on
+     sub-390px phones; holds at 18px on normal/large widths + desktop. */
+  font-size: clamp(16px, 4.6vw, 18px);
   color: #fff;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
 }
