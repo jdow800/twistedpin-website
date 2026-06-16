@@ -683,7 +683,9 @@
    space-between left them stranded at opposite edges. */
 .tprs-addon-actions { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 12px; }
 .tprs-addon-actions .tprs-addon-price { margin-top: 0; font-size: 14px; color: var(--tw-text); }
-.tprs-addon-name { font-family: var(--font-ui); font-weight: 700; font-size: 14px; color: var(--tw-text); }
+/* 16px — the upsell's headline (read-to-decide-to-buy); add-ons aren't a dense
+   ledger like the cart, so the density argument doesn't apply. Let it carry. */
+.tprs-addon-name { font-family: var(--font-ui); font-weight: 700; font-size: 16px; color: var(--tw-text); }
 .tprs-addon-desc { font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); margin-top: 2px; }
 .tprs-addon-price { font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); margin-top: 2px; }
 .tprs-req { color: var(--tw-accent); }
@@ -815,7 +817,11 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 /* min-height 44px = tap target (these are the live VIP/NYE acknowledgement +
    birthday choices); flex-start keeps the box top-aligned for multi-line rules
    text. Bigger box (20px) too. */
-.tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 14.5px; color: var(--tw-text); padding: 11px 12px; min-height: 44px; box-sizing: border-box; border-radius: 8px; }
+/* 16px (not 14.5) — these radio/checkbox rows carry the VIP/NYE booking-agreement
+   RULES the guest reads to decide + legally consents to: read-to-decide text hits
+   the 16px comfort target (iOS Callout / M3 Body Large / Baymard). line-height 1.45
+   so a multi-line legal rule breathes in the 44px inset box instead of stacking. */
+.tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 16px; line-height: 1.45; color: var(--tw-text); padding: 11px 12px; min-height: 44px; box-sizing: border-box; border-radius: 8px; }
 .tprs-choice:hover { background: var(--tw-surface); }
 .tprs-choice input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 .tprs-form-block { border: 1px solid var(--tw-border); border-radius: var(--radius-surface); padding: 14px; margin: 16px 0; background: var(--tw-surface); }
@@ -823,10 +829,12 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-form-block > .tprs-field:first-of-type,
 .tprs-form-block > fieldset:first-of-type { margin-top: 16px; }
 .tprs-richtext { margin: 16px 0; padding: 12px 14px; border-left: 2px solid var(--tw-border-strong); }
-.tprs-richtext h4 { font-family: var(--font-ui); font-weight: 700; font-size: 14.5px; color: var(--tw-text); margin: 0 0 4px; }
-.tprs-richtext p { font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; color: var(--tw-text-muted); margin: 0; }
+.tprs-richtext h4 { font-family: var(--font-ui); font-weight: 700; font-size: 16px; color: var(--tw-text); margin: 0 0 4px; }
+/* 15px — real policy/details prose the guest reads (was 13.5, under the 14
+   secondary line); h4 above sits one step up at 16 to keep the hierarchy. */
+.tprs-richtext p { font-family: var(--font-body); font-size: 15px; line-height: 1.5; color: var(--tw-text-muted); margin: 0; }
 /* D — loud inline "Read more" on the capped detail copy. */
-.tprs-readmore { font-family: var(--font-ui); font-weight: 700; font-size: 13px; color: var(--tw-accent); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.tprs-readmore { font-family: var(--font-ui); font-weight: 700; font-size: 14px; color: var(--tw-accent); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
 .tprs-readmore::before { content: "… "; color: var(--tw-text-muted); text-decoration: none; }
 .tprs-readmore:hover { opacity: 0.85; }
 
@@ -900,7 +908,9 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-line.is-discount { color: var(--tw-accent); }
 .tprs-line-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .tprs-line-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tprs-line-desc { font-family: var(--font-body); font-size: 11.5px; color: var(--tw-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* 12px clears the Lighthouse/Baymard hard floor (was 11.5, the only sub-floor
+   text in the cart); single-line ellipsis so the 0.5px costs no reflow. */
+.tprs-line-desc { font-family: var(--font-body); font-size: 12px; color: var(--tw-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tprs-line-qty { display: inline-flex; align-items: center; gap: 8px; }
 .tprs-line-step {
   /* Was 26px (a third of the recommended target, ~8px apart → mis-taps editing
@@ -999,7 +1009,9 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 /* The gate right before the card is charged — give the row a 44px tap height +
    a bigger box (20px) so it's never fumbled. align-items:flex-start for the
    multi-line agreement text. */
-.tprs-terms { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 8px 0; font-family: var(--font-body); font-size: 12.5px; line-height: 1.5; color: var(--tw-text-muted); cursor: pointer; }
+/* 14px — financial consent gating the charge (was 12.5); one notch below the
+   16px .tprs-choice rules since this is the shorter "I agree" acknowledgement. */
+.tprs-terms { display: flex; gap: 10px; align-items: flex-start; min-height: 44px; padding: 8px 0; font-family: var(--font-body); font-size: 14px; line-height: 1.5; color: var(--tw-text-muted); cursor: pointer; }
 .tprs-terms input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 .tprs-terms-text strong { color: var(--tw-text); }
 .tprs-pay-error { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); text-align: center; padding: 22px 0; display: flex; flex-direction: column; gap: 12px; align-items: center; }
