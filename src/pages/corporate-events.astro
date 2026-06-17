@@ -14,6 +14,19 @@
  * /events page dilutes (and competes against — same domain, blunter
  * keyword target).
  *
+ * USE-CASE REFRAME (2026-06-16) — see
+ * Context/session-handoffs/2026-06-16-corporate-events-usecase-reframe.md
+ * The Google Ads "Events" campaign pivoted the corporate side away
+ * from generic "event venue / event space" terms (wrong intent,
+ * competed with banquet halls) toward high-intent USE-CASES: "team
+ * outing," "staff outing," "employee appreciation," "company outing."
+ * Paid traffic now arrives searching those phrases, so the page leads
+ * with a use-case block that echoes the live ad-group copy ("Staff
+ * Outings, Done Right," "Not Your Average Team Outing," "Reward Your
+ * Team," "A Day They'll Remember") for keyword↔ad↔page scent
+ * continuity (Quality Score + conversion). The VIP-suite + food/bar
+ * editorial sections stay as the PROOF below the use-case grid.
+ *
  * Replaces the legacy `/corporate-parties/` → `/events/#corporate`
  * 301 (hash drops on 301 so the equity was landing on the generic
  * events page). New redirect target: this page directly.
@@ -22,17 +35,27 @@
  * of nine — .pillar-* CSS hoist is overdue, flagged on every page in
  * this family):
  *   - Hero: typography-led title section (no image)
+ *   - Use-case grid: text-led "this is for YOU" blocks (the reframe)
  *   - Two long-scroll editorial sections (video + copy, alternating)
- *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
+ *   - Closing CTA band → Plan an Event (PLAN_EVENT_URL toggle)
  *   - SnapFooter
  *
+ * LCP note (changed in the 2026-06-16 reframe): the text-led use-case
+ * grid now sits between the hero and the first video section, so the
+ * vip-lanes poster is below the mobile fold and is NO LONGER the LCP
+ * element — LCP is now hero/use-case TEXT (faster, no image to fetch).
+ * Both section videos therefore use lazy `data-poster` and the page
+ * passes NO `lcpPreloadHref` (a high-priority preload of a below-fold
+ * poster is the exact waste-pattern the 2026-05-17 hero-preload fix
+ * removed). If a future redesign moves a video back above the fold,
+ * restore `poster=` + `lcpPreloadHref` on that one section.
+ *
  * Hero videos: same as /vip-suite by user direction (2026-05-17) —
- * the VIP suite IS the corporate event room, so vip-lanes-* (LCP
- * candidate) + buffet-* (lazy below-fold) is the visually correct
- * pairing. Both videos are already canonical on their primary pages
- * (/vip-suite, /events) per src/data/videos.ts; this page reuses
- * them visually only and does NOT emit duplicate VideoObject JSON-LD
- * (single-canonical convention for the video sitemap).
+ * the VIP suite IS the corporate event room, so vip-lanes-* + buffet-*
+ * is the visually correct pairing. Both videos are already canonical
+ * on their primary pages (/vip-suite, /events) per src/data/videos.ts;
+ * this page reuses them visually only and does NOT emit duplicate
+ * VideoObject JSON-LD (single-canonical convention for the sitemap).
  *
  * Voice rules applied (per Context/voice.md):
  *   - Brian Van Flandern named only as "America's Top Mixologist"
@@ -44,8 +67,8 @@
  *   - "Team building" used pointedly (we're not running ropes-course
  *     activities; we're running an offsite that has bowling, food,
  *     and a real bar — the planner can call it team building)
- *   - Specifics > adjectives — 6-lane suite, up to 80, 28 self-serve
- *     taps, LED video wall, full-venue buyouts for larger groups
+ *   - Specifics > adjectives — 6-lane suite, up to 80, up to 200 for
+ *     buyouts, 28 self-serve taps, LED video wall, near Naperville
  *
  * TODOs (non-blocking):
  *   - Capacity number for full-venue buyouts ("more for full-venue
@@ -73,12 +96,12 @@ const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
   "@id": `${BUSINESS_URL}/#corporate-events`,
-  name: "Corporate Event Hosting",
+  name: "Corporate Events & Team Outings",
   url: PAGE_URL,
   description:
-    "Corporate offsites, holiday parties, sales kickoffs, and staff appreciation events at Twisted Pin in Plainfield, IL. The 6-lane VIP suite seats up to 80, or up to 200 for full-venue buyouts. In-house catering and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+    "Team outings, staff outings, employee-appreciation nights, holiday parties, and corporate offsites at Twisted Pin in Plainfield, IL. Bowling in the 6-lane VIP suite (seats up to 80, or up to 200 for full-venue buyouts), in-house catering, and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
   provider: { "@id": BUSINESS_ENTITY_ID },
-  serviceType: "Corporate event hosting",
+  serviceType: "Corporate event & team outing hosting",
   areaServed: [
     { "@type": "City", name: "Plainfield, IL" },
     { "@type": "City", name: "Naperville, IL" },
@@ -92,41 +115,125 @@ const serviceSchema = {
 };
 ---
 <Base
-  title="Corporate Event Venue in Plainfield, IL | Twisted Pin"
-  description="Corporate offsites + holiday parties at Twisted Pin: 6-lane VIP suite (up to 80) or full-venue buyouts (up to 200), in-house catering, craft cocktails. Plainfield, IL — near Naperville, Bolingbrook, Joliet."
+  title="Corporate Events & Team Outings in Plainfield, IL | Twisted Pin"
+  description="Team outings, staff appreciation & holiday parties at Twisted Pin — minutes from Naperville. Bowling in the 6-lane VIP suite, cocktails & catering for 10–200."
   ogImage="/og/og-events.jpg"
-  ogImageAlt="A corporate event in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
-  lcpPreloadHref="/snap/vip-lanes-poster.avif"
-  lcpPreloadMedia="(max-width: 1024px)"
+  ogImageAlt="A corporate team outing in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
 >
 
   {/* ============================================================
       HERO — typography-led title section (no image)
+
+      Leads with the team-outing use-case (the new lead ad group).
+      The H1 is a near-verbatim ad headline ("Not Your Average Team
+      Outing") for maximal click→page scent. The sub packs the
+      use-case cluster + proof points (suite, capacity, location).
       ============================================================ */}
   <section class="corp-hero" data-hero aria-labelledby="corp-hero-h1">
     <div class="corp-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Corporate Events</p>
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Team Outings · Corporate Events</p>
       <h1 class="t-display corp-hero-headline hero-fade" id="corp-hero-h1" data-delay-ms="120">
-        Offsites they actually&nbsp;show up to.
+        Not your average team&nbsp;outing.
       </h1>
       <p class="corp-hero-sub hero-fade" data-delay-ms="320">
-        The 6-lane VIP suite. Catering through the kitchen. A bar
-        program serious enough that someone's still talking about it
-        Monday.
+        Staff outings, holiday parties, and employee-appreciation
+        nights — bowling, craft cocktails, and catering in the 6-lane
+        VIP suite. Groups of 10 to 200, minutes from Naperville.
       </p>
     </div>
   </section>
 
   {/* ============================================================
-      THE ROOM — image left, copy right (desktop)
+      USE-CASE GRID — the reframe. Text-led "this is for YOU" blocks,
+      each echoing a live ad-group headline so paid traffic lands on
+      copy that matches how they searched. No images = fast text LCP.
+      The lead card (Team & Staff Outings) carries a "Most booked"
+      tag + Glow border to signal "start here."
+      ============================================================ */}
+  <section class="corp-usecases" aria-labelledby="corp-uc-h2">
+    <div class="corp-uc-head">
+      <p class="t-eyebrow">What you're planning</p>
+      <h2 class="t-display corp-uc-title" id="corp-uc-h2">
+        One room. However your team runs it.
+      </h2>
+    </div>
 
-      LCP optimization (matches /events + /vip-suite recipe):
-        - poster=/snap/vip-lanes-poster.avif (direct, AVIF Q50)
-        - lcpPreloadHref="/snap/vip-lanes-poster.avif" in Base frontmatter
-        - Bounded media on every <source>: ≤480 → 540w, ≥481 → 1080w
-        - data-src (lazy promotion via sectionVideo() motion module)
-      Video bytes stay deferred until IntersectionObserver promotes
-      the section; only the poster takes the LCP fast path.
+    <ul class="corp-uc-grid">
+      <li class="corp-uc-card corp-uc-card--lead">
+        <span class="corp-uc-tag">Most booked</span>
+        <p class="corp-uc-label">Team &amp; Staff Outings</p>
+        <h3 class="corp-uc-headline">Staff outings, done right.</h3>
+        <p class="corp-uc-body">
+          Your own lanes, a real bar, and catering that isn't sad
+          sandwiches in a conference room. The outing people actually
+          clear their calendar for.
+        </p>
+      </li>
+
+      <li class="corp-uc-card">
+        <p class="corp-uc-label">Employee Appreciation</p>
+        <h3 class="corp-uc-headline">Reward the team.</h3>
+        <p class="corp-uc-body">
+          Show the team you care — and mean it. Take over the suite
+          for a day they'll remember, not another gift card buried in
+          an inbox.
+        </p>
+      </li>
+
+      <li class="corp-uc-card">
+        <p class="corp-uc-label">Team Building</p>
+        <h3 class="corp-uc-headline">Team building, minus the cringe.</h3>
+        <p class="corp-uc-body">
+          No trust falls, no ropes course. Just bowling, a little
+          competition, and the kind of loose night where people
+          actually talk. Call it team building — we won't argue.
+        </p>
+      </li>
+
+      <li class="corp-uc-card">
+        <p class="corp-uc-label">Company &amp; Holiday Parties</p>
+        <h3 class="corp-uc-headline">The holiday party, handled.</h3>
+        <p class="corp-uc-body">
+          December books fast — lock the date by October. Full-venue
+          buyouts for up to 200 when the whole company's coming.
+        </p>
+        <a class="corp-uc-link" href="/holiday-parties/">Holiday parties →</a>
+      </li>
+
+      <li class="corp-uc-card">
+        <p class="corp-uc-label">Meetings &amp; Luncheons</p>
+        <h3 class="corp-uc-headline">Daytime, when you need the room.</h3>
+        <p class="corp-uc-body">
+          A semi-private space with AV and catering for the lunch
+          meeting, the training day, or the quarterly all-hands.
+          Bowling optional.
+        </p>
+      </li>
+
+      <li class="corp-uc-card">
+        <p class="corp-uc-label">Fundraisers</p>
+        <h3 class="corp-uc-headline">Fundraiser nights.</h3>
+        <p class="corp-uc-body">
+          Turn the lanes into a fundraiser — we'll help you structure
+          the night so it actually pays off for the cause.
+        </p>
+        <a class="corp-uc-link" href="/fundraisers/">Fundraisers →</a>
+      </li>
+    </ul>
+
+    <p class="corp-uc-more">
+      Planning something else? We also host <a href="/showers/">showers</a>,
+      <a href="/wedding-receptions/">wedding receptions</a>, and
+      <a href="/events/">all group events</a>.
+    </p>
+  </section>
+
+  {/* ============================================================
+      THE ROOM — image left, copy right (desktop). PROOF for the
+      use-cases above. Below the mobile fold now (use-case grid sits
+      above it), so the poster is lazy `data-poster` — NOT an LCP
+      candidate. Bounded media on every <source>: ≤480 → 540w,
+      ≥481 → 1080w (defense against the v.load() probing double-fetch).
       ============================================================ */}
   <section class="corp-section" aria-labelledby="corp-room-h2">
     <div class="corp-section-grid">
@@ -138,7 +245,7 @@ const serviceSchema = {
           muted
           loop
           playsinline
-          poster="/snap/vip-lanes-poster.avif"
+          data-poster="/snap/vip-lanes-poster.avif"
           aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a group event"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
@@ -166,7 +273,7 @@ const serviceSchema = {
         <p class="corp-section-body">
           Couch seating wraps the lanes for the people who'd rather
           watch than throw. Run the all-hands at 6:30, call it the
-          offsite at 7, let the room handle the rest of the night.
+          outing at 7, let the room handle the rest of the night.
         </p>
 
         <ul class="corp-section-list">
@@ -181,12 +288,8 @@ const serviceSchema = {
   </section>
 
   {/* ============================================================
-      THE FOOD & BAR — image RIGHT, copy LEFT (alternation)
-
-      Second section sits below the mobile fold so the poster is NOT
-      an LCP candidate — data-poster (lazy) is correct here. Bounded
-      media on sources is defense-in-depth for the v.load() probing
-      bug (see /events comment block for full rationale).
+      THE FOOD & BAR — image RIGHT, copy LEFT (alternation).
+      Below the fold — lazy `data-poster`. Bounded media as above.
       ============================================================ */}
   <section class="corp-section corp-section--reverse" aria-labelledby="corp-food-h2">
     <div class="corp-section-grid">
@@ -246,32 +349,11 @@ const serviceSchema = {
   </section>
 
   {/* ============================================================
-      WHAT WE HOST — text-only band, light cross-link to /events
-      for adjacent event types (graduation, birthday, fundraiser).
-      Smaller register than the closing CTA so it doesn't compete.
-      ============================================================ */}
-  <section class="corp-context" aria-labelledby="corp-context-h2">
-    <div class="corp-context-inner">
-      <p class="t-eyebrow">What We Host</p>
-      <h2 class="t-display corp-context-title" id="corp-context-h2">
-        Offsites. Holiday parties. Staff appreciation.
-      </h2>
-      <p class="corp-context-body">
-        Sales kickoffs, board dinners, client entertainment, retirements,
-        farewells, summer outings, and the <a href="/holiday-parties/">holiday
-        party</a> that has to happen by mid-December. December books fast —
-        reach out by October. For non-corporate events (birthdays, fundraisers,
-        <a href="/showers/">showers</a>, <a href="/wedding-receptions/">wedding
-        receptions</a>, graduation parties), see <a href="/events/">all group
-        events</a>.
-      </p>
-    </div>
-  </section>
-
-  {/* ============================================================
-      CLOSING CTA BAND — single dominant "Plan an event" → Heyflow.
-      Same lifted-indigo treatment as /events for visual consistency
-      across the conversion-moment family.
+      CLOSING CTA BAND — single dominant "Plan an event" → inquiry
+      form (PLAN_EVENT_URL). This is THE conversion action (GA4
+      generate_lead); the gclid-passthrough module decorates this
+      href at runtime so ad-driven inquiries attribute back to Ads.
+      Same lifted-indigo treatment as /events.
       ============================================================ */}
   <section class="corp-cta" aria-labelledby="corp-cta-h2">
     <div class="corp-cta-inner">
@@ -280,8 +362,9 @@ const serviceSchema = {
         We'll set it up.
       </h2>
       <p class="corp-cta-body">
-        Quick form. Tour the suite, see the room, get a quote and a
-        catering menu.
+        Plan your staff outing, company party, or appreciation night.
+        Quick form — then a quote, a catering menu, and a tour of the
+        suite.
       </p>
       <a class="btn btn-solid corp-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
         Plan an event
@@ -355,6 +438,139 @@ const serviceSchema = {
   @media (min-width: 1025px) {
     .corp-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
   }
+
+  /* ============================================================
+     USE-CASE GRID — text-led cards. The reframe's scent block.
+     ============================================================ */
+  .corp-usecases {
+    background: transparent;
+    padding: 24px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .corp-usecases { padding: 48px 64px 16px; }
+  }
+
+  .corp-uc-head {
+    max-width: 1100px;
+    margin: 0 auto 24px;
+  }
+  @media (min-width: 1025px) {
+    .corp-uc-head { text-align: center; margin-bottom: 36px; }
+  }
+
+  .corp-uc-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .corp-uc-title { font-size: clamp(38px, 3.8vw, 50px); }
+  }
+
+  .corp-uc-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0;
+    list-style: none;
+  }
+  @media (min-width: 680px) {
+    .corp-uc-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
+  }
+  @media (min-width: 1025px) {
+    .corp-uc-grid { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  }
+
+  .corp-uc-card {
+    position: relative;
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-radius: var(--radius-surface);
+    background: rgba(26, 21, 48, 0.45);
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Lead card — "start here" signal. Glow border + faint glow wash.
+     rgba is var(--glow) #4EECC4 = rgb(78,236,196) at reduced alpha. */
+  .corp-uc-card--lead {
+    border-color: rgba(78, 236, 196, 0.55);
+    background: rgba(26, 21, 48, 0.62);
+  }
+
+  .corp-uc-tag {
+    align-self: flex-start;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--glow);
+    border: 1px solid rgba(78, 236, 196, 0.4);
+    border-radius: 999px;
+    padding: 4px 10px;
+    margin-bottom: 14px;
+  }
+
+  .corp-uc-label {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+  }
+
+  .corp-uc-headline {
+    color: var(--warm-white);
+    font-family: var(--font-display);
+    font-size: clamp(20px, 5.4vw, 24px);
+    line-height: 1.02;
+    letter-spacing: -0.005em;
+    margin-top: 8px;
+  }
+
+  .corp-uc-body {
+    margin-top: 12px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--warm-mid);
+  }
+
+  .corp-uc-link {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+    text-decoration: none;
+    transition: color 200ms ease;
+  }
+  .corp-uc-link:hover { color: var(--glow); }
+
+  .corp-uc-more {
+    max-width: 1100px;
+    margin: 28px auto 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    text-align: center;
+  }
+  .corp-uc-more a {
+    color: var(--warm-white);
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 200ms ease;
+  }
+  .corp-uc-more a:hover { text-decoration-color: var(--glow); }
 
   /* ============================================================
      section pattern (same shape as .events-section etc.)
@@ -482,62 +698,6 @@ const serviceSchema = {
     border-radius: 50%;
     background: var(--glow);
     opacity: 0.85;
-  }
-
-  /* ============================================================
-     WHAT WE HOST context band — sits between editorial sections and
-     the closing CTA. Lighter than the closing-CTA band so it reads
-     as orientation, not conversion.
-     ============================================================ */
-  .corp-context {
-    background: transparent;
-    padding: 48px 22px 8px;
-  }
-  @media (min-width: 1025px) {
-    .corp-context { padding: 72px 64px 24px; }
-  }
-
-  .corp-context-inner {
-    max-width: 760px;
-    margin: 0 auto;
-    text-align: center;
-    color: var(--warm-white);
-  }
-
-  .corp-context-title {
-    color: var(--warm-white);
-    font-size: clamp(28px, 6.5vw, 38px);
-    line-height: 0.98;
-    letter-spacing: -0.005em;
-    margin-top: 10px;
-  }
-  @media (min-width: 1025px) {
-    .corp-context-title { font-size: clamp(36px, 3.6vw, 48px); }
-  }
-
-  .corp-context-body {
-    margin-top: 18px;
-    font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.6;
-    color: var(--warm-mid);
-    max-width: 38em;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  @media (min-width: 1025px) {
-    .corp-context-body { font-size: 17.5px; }
-  }
-
-  .corp-context-body a {
-    color: var(--warm-white);
-    text-decoration: underline;
-    text-decoration-color: rgba(244, 239, 227, 0.4);
-    text-underline-offset: 3px;
-    transition: text-decoration-color 200ms ease;
-  }
-  .corp-context-body a:hover {
-    text-decoration-color: var(--glow);
   }
 
   /* ============================================================

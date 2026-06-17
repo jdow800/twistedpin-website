@@ -416,8 +416,13 @@ const webPage = webPageSchema({
     <script>
       import { initMotion } from "../scripts/motion.client.ts";
       import { initClickTracking } from "../scripts/track-clicks.client.ts";
+      import { initGclidPassthrough } from "../scripts/gclid-passthrough.client.ts";
       initMotion();
       initClickTracking();
+      // Capture gclid/UTMs → sessionStorage and append them to off-site event
+      // -inquiry CTAs (Zite/Heyflow) so ad-driven inquiries attribute back to
+      // Google Ads. Additive to the GA4 linker above. See module docstring.
+      initGclidPassthrough();
     </script>
 
     <style is:global>
