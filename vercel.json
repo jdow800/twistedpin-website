@@ -112,6 +112,7 @@
     { "source": "/contact-us-2{/}?", "destination": "/", "permanent": true },
 
     { "source": "/bar-menu{/}?", "destination": "/menu/", "permanent": true },
+    { "source": "/cocktails{/}?", "destination": "/menu/cocktails/", "permanent": true },
     { "source": "/drinks{/}?", "destination": "/menu/cocktails/", "permanent": true },
     { "source": "/food-drink{/}?", "destination": "/menu/", "permanent": true },
     { "source": "/happy-hour{/}?", "destination": "/bar/", "permanent": true },
