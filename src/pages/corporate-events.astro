@@ -645,7 +645,12 @@ const faqSchema = {
   .corp-uc-headline {
     color: var(--warm-white);
     font-family: var(--font-display);
-    font-size: clamp(20px, 5.4vw, 24px);
+    /* Explicit 900 (matches .t-display; the only loaded display weight). The
+       size cap goes 24→27 so the Black-condensed strokes have a little more room
+       at the small card size, where heavy sentence-case type read soft on
+       desktop. Mobile sits below the cap (5.4vw), so it's unchanged. */
+    font-weight: 900;
+    font-size: clamp(20px, 5.4vw, 27px);
     line-height: 1.02;
     letter-spacing: -0.005em;
     margin-top: 8px;
