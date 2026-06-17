@@ -48,6 +48,16 @@ export const REGION = "IL";
 export const POSTAL_CODE = "60544";
 export const COUNTRY = "US";
 
+/**
+ * Venue geocoordinates — the Google Business Profile place pin
+ * (15610 Joliet Rd, Plainfield, IL). Single source of truth for the
+ * `GeoCoordinates` node in localBusinessBase(), so every
+ * LocalBusiness-subtype page carries a precise lat/long for local-pack
+ * + "near me" map eligibility. Captured from the GBP place URL 2026-06-17.
+ */
+export const GEO_LAT = 41.599276;
+export const GEO_LNG = -88.195328;
+
 export const PHONE_DISPLAY = "(815) 782-7790";
 export const PHONE_TEL = "+18157827790";
 
@@ -365,6 +375,11 @@ export async function localBusinessBase(opts: LocalBusinessBaseOptions) {
     email: EMAIL,
     priceRange: PRICE_RANGE,
     address: addressNAP(),
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: GEO_LAT,
+      longitude: GEO_LNG,
+    },
     hasMap: HAS_MAP_URL,
     sameAs: SOCIAL_SAME_AS,
     openingHoursSpecification: await openingHoursSpec(),

@@ -83,6 +83,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+import { ICON_PATHS } from "../lib/icons";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
@@ -112,6 +113,83 @@ const serviceSchema = {
     { "@type": "City", name: "Shorewood, IL" },
     { "@type": "City", name: "Lockport, IL" },
   ],
+};
+
+// FAQPage schema + on-page FAQ (2026-06-17, on-page SEO spec Phase A).
+// Reuses the /faq accordion pattern — the t2-faq-* classes are global, and
+// the Question/Answer JSON-LD shape matches /faq exactly. Questions are
+// phrased the way a corporate planner actually searches (capacity, buyouts,
+// catering, drink packages, distance) so the page answers the long-tail and
+// feeds AI Overviews / ChatGPT / Perplexity. Answers honor the voice rules:
+// "semi-private" (never "private"), "curated by" Brian, no chef-language, no
+// discount framing, no fabricated drive times.
+interface CorpFaq {
+  q: string;
+  /** Plain-text answer for JSON-LD (no HTML). */
+  schemaA: string;
+  /** Rendered HTML answer (may include <a> links). */
+  htmlA: string;
+}
+
+const corpFaqs: CorpFaq[] = [
+  {
+    q: "Can you host a corporate event or team outing for 10–200 people near Naperville?",
+    schemaA:
+      "Yes. Twisted Pin in Plainfield — minutes from Naperville — hosts team outings, staff appreciation nights, holiday parties, and corporate offsites for groups from about 10 up to 200. The 6-lane VIP suite seats up to 80; full-venue buyouts handle up to 200.",
+    htmlA: `<p>Yes. Twisted Pin in Plainfield — minutes from Naperville — hosts team outings, staff appreciation nights, holiday parties, and corporate offsites for groups from about <strong>10 up to 200</strong>. The <a href="/vip-suite/">6-lane VIP suite</a> seats up to 80; full-venue buyouts handle up to 200.</p>`,
+  },
+  {
+    q: "Do you offer full-venue or VIP-suite buyouts for company events?",
+    schemaA:
+      "Both. Book the semi-private 6-lane VIP suite (up to 80, set apart from the main floor) for a single group, or buy out the whole venue for up to 200 when the entire company is coming.",
+    htmlA: `<p>Both. Book the <strong>semi-private 6-lane VIP suite</strong> (up to 80, set apart from the main floor) for a single group, or <strong>buy out the whole venue</strong> for up to 200 when the entire company's coming.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+  },
+  {
+    q: "What's included in the VIP suite for a corporate group?",
+    schemaA:
+      "Six dedicated lanes set apart from the main floor, an LED video wall with AV hookups for your deck or highlight reel, couch seating around the lanes, and direct access to the 28-tap self-serve beer and wine wall. In-house catering and the cocktail bar round it out.",
+    htmlA: `<p>Six dedicated lanes set apart from the main floor, an <strong>LED video wall with AV hookups</strong> for your deck or highlight reel, couch seating around the lanes, and direct access to the 28-tap self-serve beer &amp; wine wall. In-house catering and the cocktail bar round it out.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+  },
+  {
+    q: "Can you cater a company party, luncheon, or holiday party?",
+    schemaA:
+      "Yes — in-house catering through our kitchen, built to share and scaled to your group, served buffet or plated. Vegetarian, gluten-free, and other dietary accommodations on request. Works for an evening party or a daytime luncheon or training day.",
+    htmlA: `<p>Yes — <a href="/eat/">in-house catering</a> through our kitchen, built to share and scaled to your group, served buffet or plated. Vegetarian, gluten-free, and other dietary accommodations on request. Works for an evening party or a daytime luncheon or training day.</p>`,
+  },
+  {
+    q: "Do you offer drink packages or a bar for corporate events?",
+    schemaA:
+      "Yes. Run a tab, hand out drink tickets, or set a per-head cap — whichever fits the budget. The bar runs the cocktail program curated by Brian Van Flandern, America's Top Mixologist, plus the 28-tap self-serve beer and wine wall.",
+    htmlA: `<p>Yes. Run a tab, hand out drink tickets, or set a per-head cap — whichever fits the budget. The bar runs the cocktail program <a href="/bar/">curated by Brian Van Flandern</a>, <em>America's Top Mixologist</em>, plus the 28-tap self-serve beer &amp; wine wall.</p>`,
+  },
+  {
+    q: "How far is Twisted Pin from Naperville or Joliet?",
+    schemaA:
+      "We're in Plainfield at 15610 Joliet Rd — a short drive from both Naperville and Joliet, and central to Bolingbrook, Romeoville, Oswego, Shorewood, and Lockport. Free on-site parking.",
+    htmlA: `<p>We're in Plainfield at <strong>15610 Joliet Rd</strong> — a short drive from both Naperville and Joliet, and central to Bolingbrook, Romeoville, Oswego, Shorewood, and Lockport. Free on-site parking.</p>`,
+  },
+  {
+    q: "What's the minimum and maximum group size?",
+    schemaA:
+      "Corporate groups generally start around 10 and go up to 80 in the VIP suite, or up to 200 for a full-venue buyout. Tell us your headcount and we'll match the room to it.",
+    htmlA: `<p>Corporate groups generally start around <strong>10</strong> and go up to <strong>80</strong> in the VIP suite, or up to <strong>200</strong> for a full-venue buyout. Tell us your headcount and we'll match the room to it.</p>`,
+  },
+  {
+    q: "Can I plan an employee-appreciation event or team-building day here?",
+    schemaA:
+      "Absolutely — employee-appreciation nights, team-building outings, sales kickoffs, and holiday parties are exactly what the suite is for. No ropes course; just bowling, a real bar, and catering, set up for your group.",
+    htmlA: `<p>Absolutely — employee-appreciation nights, team-building outings, sales kickoffs, and holiday parties are exactly what the suite is for. No ropes course; just bowling, a real bar, and catering, set up for your group.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: corpFaqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.schemaA },
+  })),
 };
 ---
 <Base
@@ -349,6 +427,44 @@ const serviceSchema = {
   </section>
 
   {/* ============================================================
+      FAQ — search-phrased corporate Q&As. Reuses the global .t2-faq*
+      accordion; emits FAQPage JSON-LD (see faqSchema in frontmatter).
+      Sits above the closing CTA so the inquiry button stays the last
+      beat on the page.
+      ============================================================ */}
+  <section class="corp-faq" aria-labelledby="corp-faq-h2">
+    <div class="corp-faq-inner">
+      <p class="t-eyebrow">Questions</p>
+      <h2 class="t-display corp-faq-title" id="corp-faq-h2">
+        Corporate event FAQs.
+      </h2>
+      <div class="t2-faq">
+        {corpFaqs.map((item) => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              <h3 class="t2-faq-q-text">{item.q}</h3>
+              <svg
+                class="t2-faq-chevron"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={ICON_PATHS["chevron-down"]}
+              />
+            </summary>
+            <div class="t2-faq-a" set:html={item.htmlA} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
       CLOSING CTA BAND — single dominant "Plan an event" → inquiry
       form (PLAN_EVENT_URL). This is THE conversion action (GA4
       generate_lead); the gclid-passthrough module decorates this
@@ -375,6 +491,7 @@ const serviceSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Events", path: "/events/" },
@@ -699,6 +816,36 @@ const serviceSchema = {
     background: var(--glow);
     opacity: 0.85;
   }
+
+  /* ============================================================
+     FAQ — reuses the global .t2-faq* accordion (see global.css);
+     only the section wrapper + heading are page-local.
+     ============================================================ */
+  .corp-faq {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .corp-faq { padding: 72px 64px 24px; }
+  }
+
+  .corp-faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .corp-faq-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .corp-faq-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .corp-faq .t2-faq { margin-top: 20px; }
 
   /* ============================================================
      CLOSING CTA BAND — matches /events .events-cta numbers.
