@@ -73,7 +73,7 @@ const drawerSections: DrawerSection[] = [
       // hamburger-hunters expect to find primary CTAs in the menu too.
       { href: RESERVE_URL,                  label: "Reserve a Lane",  icon: "calendar-check" },
       { href: PLAN_EVENT_URL,              label: "Plan an Event",   icon: "message-square", external: true },
-      { href: "/birthday-parties-booking/", label: "Birthday Parties",icon: "cake"           },
+      { href: "/birthday-parties/", label: "Birthday Parties",icon: "cake"           },
       { href: "/corporate-events/",         label: "Corporate Events",icon: "building-2"     },
       { href: "/showers/",                  label: "Showers",         icon: "flower"         },
       { href: "/wedding-receptions/",       label: "Weddings",        icon: "wine"           },
@@ -199,7 +199,7 @@ for (const seasonal of activeSeasonalItems()) {
           remain in their accordion sections too — strip is for exposure,
           accordion for completeness. */}
       <li>
-        <a href="/birthday-parties-booking/">
+        <a href="/birthday-parties/">
           <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["cake"]} />
           <span class="label">Birthdays</span>
         </a>

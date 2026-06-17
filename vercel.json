@@ -121,7 +121,7 @@
     { "source": "/promotions{/}?", "destination": "/pricing/", "permanent": true },
     { "source": "/special-event{/}?", "destination": "/events/", "permanent": true },
     { "source": "/reservations{/}?", "destination": "/reserve/", "permanent": true },
-    { "source": "/birthday-parties{/}?", "destination": "/birthday-parties-booking/", "permanent": true },
+    { "source": "/birthday-parties-booking{/}?", "destination": "/birthday-parties/", "permanent": true },
     { "source": "/pro-shop{/}?", "destination": "/leagues/#pro-shop", "permanent": true },
 
     { "source": "/corporate-party-information-request{/}?", "destination": "/corporate-events/", "permanent": true },

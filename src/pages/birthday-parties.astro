@@ -1,10 +1,12 @@
 ---
 /**
- * /birthday-parties-booking/ — Birthday parties pillar page.
+ * /birthday-parties/ — Birthday parties pillar page.
  *
- * Slug preserved exactly from the legacy twistedpin.com site (any inbound
- * SEO + bookmarks survive — see vercel.json which had a redirect to
- * /events/#birthday that this page now replaces).
+ * Slug flipped to the clean /birthday-parties/ canonical 2026-06-17
+ * (on-page SEO spec Phase B). The legacy /birthday-parties-booking/ slug
+ * now 301s here (vercel.json) — fixes the backwards redirect where the
+ * clean keyword URL was redirecting to the cruft slug. The Birthday ad
+ * group's final URL is repointed to /birthday-parties/ in the Ads cleanup.
  *
  * Architecture follows the established pillar pattern (.bar / .eat /
  * .vip-suite): typography hero → editorial sections (image one side,
@@ -50,6 +52,7 @@ import {
   GOOGLE_RATING,
   GOOGLE_REVIEW_COUNT,
 } from "../lib/schema";
+import { ICON_PATHS } from "../lib/icons";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
@@ -63,11 +66,11 @@ const ROLLER_KIDS_URL = "https://www.twistedpin.com/reserve/birthdays/";
 // for product rich snippets (price + availability in SERP). brand →
 // BUSINESS_ENTITY_ID ties each package back to the venue entity graph.
 // Prices match the page display (confirmed accurate 2026-05-11).
-const PAGE_URL = `${BUSINESS_URL}/birthday-parties-booking/`;
+const PAGE_URL = `${BUSINESS_URL}/birthday-parties/`;
 const SUITE_BIRTHDAY_PRICE = "419.00";
 const EXTRA_SUITE_BIRTHDAY_PRICE = "489.90";
 // Venue-wide Google rating, surfaced on both party Products so SERP
-// results for /birthday-parties-booking can show stars. Clears GSC
+// results for /birthday-parties can show stars. Clears GSC
 // "Missing field 'aggregateRating'" non-critical warning.
 const partyAggregateRating = {
   "@type": "AggregateRating",
@@ -126,10 +129,78 @@ const partyPackagesSchema = {
     },
   ],
 };
+
+// FAQPage + on-page FAQ (2026-06-17, on-page SEO spec Phase B). Reuses the
+// /faq accordion pattern (global t2-faq-* classes) + the Question/Answer
+// JSON-LD shape. Search-phrased for the birthday cluster — kids packages,
+// capacity, cake/decor, milestone (30/40/50), bachelorette, booking, and
+// location. Voice-clean: semi-private, "curated by" Brian, no chef/discount.
+interface BdayFaq {
+  q: string;
+  /** Plain-text answer for JSON-LD (no HTML). */
+  schemaA: string;
+  /** Rendered HTML answer (may include <a> links). */
+  htmlA: string;
+}
+
+const birthdayFaqs: BdayFaq[] = [
+  {
+    q: "Can I host a kids' birthday party at Twisted Pin in Plainfield?",
+    schemaA:
+      "Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages: Suite Birthday ($419) and Extra Suite Birthday ($489.90), each up to 10 kids.",
+    htmlA: `<p>Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages — <strong>Suite Birthday ($419)</strong> and <strong>Extra Suite Birthday ($489.90)</strong> — each up to 10 kids.</p><p><a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">Book a kids' party →</a></p>`,
+  },
+  {
+    q: "How many kids can come to the party?",
+    schemaA:
+      "Each package covers up to 10 kids. Add more guests for $30–$40 per child depending on the package, up to a 14-guest max.",
+    htmlA: `<p>Each package covers up to <strong>10 kids</strong>. Add more guests for $30–$40 per child depending on the package, up to a <strong>14-guest max</strong>.</p>`,
+  },
+  {
+    q: "Can I bring my own cake, cupcakes, or decorations?",
+    schemaA:
+      "Outside cake and decor are welcome for booked, catered parties. Confirm the specifics with your party coordinator when you book.",
+    htmlA: `<p>Outside cake and decor are welcome for booked, catered parties. Confirm the specifics with your party coordinator when you book.</p>`,
+  },
+  {
+    q: "Do you host adult or milestone birthdays — 30th, 40th, 50th?",
+    schemaA:
+      "Yes. Adult and milestone birthdays run in the 6-lane VIP suite, set apart from the main floor — in-house catering, the LED video wall, and the cocktail program curated by Brian Van Flandern, America's Top Mixologist. The events team builds it with you.",
+    htmlA: `<p>Yes. Adult and milestone birthdays run in the <a href="/vip-suite/">6-lane VIP suite</a>, set apart from the main floor — in-house catering, the LED video wall, and the cocktail program curated by Brian Van Flandern, <em>America's Top Mixologist</em>. The events team builds it with you.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+  },
+  {
+    q: "Can I have a bachelorette or bachelor party here?",
+    schemaA:
+      "Absolutely. Take over the semi-private VIP suite for the group — your own lanes, the 28-tap self-serve beer and wine wall, and craft cocktails. Run a tab, hand out drink tickets, or set a per-head cap; the events team sets it up.",
+    htmlA: `<p>Absolutely. Take over the <strong>semi-private VIP suite</strong> for the group — your own lanes, the 28-tap self-serve beer &amp; wine wall, and craft cocktails. Run a tab, hand out drink tickets, or set a per-head cap; the events team sets it up.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+  },
+  {
+    q: "How do I book a birthday party?",
+    schemaA:
+      "Kids' parties book online and pick a time slot directly. Adult, milestone, and bachelorette parties go through the events team so the suite, catering, and bar are set up for your group.",
+    htmlA: `<p>Kids' parties <a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">book online</a> and pick a time slot directly. Adult, milestone, and bachelorette parties go through the <a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">events team</a> so the suite, catering, and bar are set up for your group.</p>`,
+  },
+  {
+    q: "Where are you located, and how far is it from Naperville?",
+    schemaA:
+      "We're in Plainfield at 15610 Joliet Rd — a short drive from Naperville, Joliet, Bolingbrook, Romeoville, Oswego, and Shorewood. Free on-site parking.",
+    htmlA: `<p>We're in Plainfield at <strong>15610 Joliet Rd</strong> — a short drive from Naperville, Joliet, Bolingbrook, Romeoville, Oswego, and Shorewood. Free on-site parking.</p>`,
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: birthdayFaqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.schemaA },
+  })),
+};
 ---
 <Base
-  title="Birthday Parties in Plainfield, IL | Twisted Pin"
-  description="Kids' birthday parties at Twisted Pin: bowling, arcade, a real kitchen — and a bar program for the parents. Two packages, weekend slots, book online. Plainfield, IL."
+  title="Kids & Adult Birthday Parties in Plainfield, IL | Twisted Pin"
+  description="Birthday parties at Twisted Pin in Plainfield, IL — kids' packages, milestone & adult birthdays, bachelorette nights. Bowling, arcade, a real kitchen, full bar."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="A Twisted Pin birthday party set up in the suite — table with Extra Suite Birthday placard, party cups, and reserved signage"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
@@ -343,6 +414,88 @@ const partyPackagesSchema = {
   </section>
 
   {/* ============================================================
+      OCCASIONS — adult birthday flavors. Text-led cards capturing the
+      milestone / bachelorette / teen long-tail (per the on-page SEO
+      spec). All route to the events team (custom suite + catering).
+      ============================================================ */}
+  <section class="birthday-occasions" aria-labelledby="birthday-occasions-h2">
+    <div class="birthday-occasions-inner">
+      <p class="t-eyebrow t-eyebrow--center">More than candles</p>
+      <h2 class="t-display birthday-occasions-title" id="birthday-occasions-h2">
+        Every kind of birthday.
+      </h2>
+      <ul class="birthday-occasions-grid">
+        <li class="birthday-occasion-card">
+          <p class="birthday-occasion-label">Milestone Birthdays</p>
+          <h3 class="birthday-occasion-headline">30th, 40th, 50th — done right.</h3>
+          <p class="birthday-occasion-body">
+            The big ones deserve more than a back table. Take over the
+            VIP suite — catering, the LED video wall, and craft
+            cocktails. No banquet-hall energy.
+          </p>
+          <a class="birthday-occasion-link" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan it →</a>
+        </li>
+        <li class="birthday-occasion-card">
+          <p class="birthday-occasion-label">Bachelorette &amp; Bachelor</p>
+          <h3 class="birthday-occasion-headline">The night before the big one.</h3>
+          <p class="birthday-occasion-body">
+            Your own lanes, the 28-tap self-serve wall, and cocktails
+            curated by America's Top Mixologist. The kind of night the
+            whole group actually remembers.
+          </p>
+          <a class="birthday-occasion-link" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan it →</a>
+        </li>
+        <li class="birthday-occasion-card">
+          <p class="birthday-occasion-label">Sweet 16 &amp; Teen</p>
+          <h3 class="birthday-occasion-headline">Old enough to be picky.</h3>
+          <p class="birthday-occasion-body">
+            Reserved lanes, the arcade, and food they'll actually eat —
+            a teen birthday that doesn't feel like a kids' party.
+          </p>
+          <a class="birthday-occasion-link" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan it →</a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  {/* ============================================================
+      FAQ — search-phrased birthday Q&As. Global .t2-faq* accordion;
+      emits FAQPage JSON-LD (birthdayFaqs in frontmatter). Sits above
+      the closing CTA so the booking buttons stay the last beat.
+      ============================================================ */}
+  <section class="birthday-faq" aria-labelledby="birthday-faq-h2">
+    <div class="birthday-faq-inner">
+      <p class="t-eyebrow">Questions</p>
+      <h2 class="t-display birthday-faq-title" id="birthday-faq-h2">
+        Birthday party FAQs.
+      </h2>
+      <div class="t2-faq">
+        {birthdayFaqs.map((item) => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              <h3 class="t2-faq-q-text">{item.q}</h3>
+              <svg
+                class="t2-faq-chevron"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={ICON_PATHS["chevron-down"]}
+              />
+            </summary>
+            <div class="t2-faq-a" set:html={item.htmlA} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
       CLOSING CTA BAND — split flow: kids → Roller, adult → Zite
       ============================================================ */}
   <section class="birthday-closing" aria-labelledby="birthday-closing-h2">
@@ -364,15 +517,16 @@ const partyPackagesSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(partyPackagesSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
-    { name: "Birthday Parties", path: "/birthday-parties-booking/" },
+    { name: "Birthday Parties", path: "/birthday-parties/" },
   ]} />
 </Base>
 
 <style>
   /* ============================================================
-     /birthday-parties-booking — same pattern as /bar, /eat,
+     /birthday-parties — same pattern as /bar, /eat,
      /vip-suite. Rule-of-four triggered; next refactor should hoist
      shared rules to .pillar-* utilities in global.css (see
      Context/media-needs.md tech debt).
@@ -702,6 +856,111 @@ const partyPackagesSchema = {
     width: 100%;
     text-align: center;
   }
+
+  /* ============================================================
+     occasions — adult birthday flavors (milestone / bachelorette /
+     teen). Text-led cards.
+     ============================================================ */
+  .birthday-occasions {
+    padding: 36px 22px 8px;
+    background: transparent;
+  }
+  @media (min-width: 1025px) {
+    .birthday-occasions { padding: 56px 64px 16px; }
+  }
+  .birthday-occasions-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .birthday-occasions-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 8vw, 44px);
+    line-height: 0.98;
+    margin-top: 8px;
+    margin-bottom: 28px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-occasions-title { font-size: clamp(40px, 4.2vw, 54px); margin-bottom: 36px; }
+  }
+  .birthday-occasions-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 0;
+    list-style: none;
+    text-align: left;
+  }
+  @media (min-width: 768px) {
+    .birthday-occasions-grid { grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+  }
+  .birthday-occasion-card {
+    border: 1px solid rgba(244, 239, 227, 0.10);
+    border-radius: var(--radius-surface);
+    background: rgba(244, 239, 227, 0.03);
+    padding: 24px 22px;
+    display: flex;
+    flex-direction: column;
+  }
+  .birthday-occasion-label {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+  }
+  .birthday-occasion-headline {
+    color: var(--warm-white);
+    font-family: var(--font-display);
+    font-size: clamp(20px, 5.4vw, 24px);
+    line-height: 1.02;
+    letter-spacing: -0.005em;
+    margin-top: 8px;
+  }
+  .birthday-occasion-body {
+    margin-top: 12px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--warm-mid);
+    flex: 1;
+  }
+  .birthday-occasion-link {
+    margin-top: 14px;
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--warm-white);
+    text-decoration: none;
+    transition: color 200ms ease;
+  }
+  .birthday-occasion-link:hover { color: var(--glow); }
+
+  /* ---------- FAQ (reuses the global .t2-faq* accordion) ---------- */
+  .birthday-faq {
+    background: transparent;
+    padding: 36px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-faq { padding: 56px 64px 24px; }
+  }
+  .birthday-faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  .birthday-faq-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .birthday-faq-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+  .birthday-faq .t2-faq { margin-top: 20px; }
 
   /* ============================================================
      closing CTA band
