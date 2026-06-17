@@ -645,15 +645,26 @@ const faqSchema = {
   .corp-uc-headline {
     color: var(--warm-white);
     font-family: var(--font-display);
-    /* Explicit 900 (matches .t-display; the only loaded display weight). The
-       size cap goes 24→27 so the Black-condensed strokes have a little more room
-       at the small card size, where heavy sentence-case type read soft on
-       desktop. Mobile sits below the cap (5.4vw), so it's unchanged. */
     font-weight: 900;
-    font-size: clamp(20px, 5.4vw, 27px);
+    font-size: clamp(20px, 5.4vw, 24px);
     line-height: 1.02;
     letter-spacing: -0.005em;
     margin-top: 8px;
+  }
+  /* Desktop monitors are mostly 1x DPI, where the Black-condensed (900) display
+     font goes soft at this small, sentence-case card size — high-DPI phones mask
+     it (that's why it reads fine on mobile, blurry on desktop). On desktop only,
+     step the card titles down to Montserrat 700: already loaded (no perf cost)
+     and crisp at 1x. Mobile keeps the condensed look; the big section header
+     stays display-condensed where the weight earns it. */
+  @media (min-width: 1025px) {
+    .corp-uc-headline {
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 23px;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
   }
 
   .corp-uc-body {
