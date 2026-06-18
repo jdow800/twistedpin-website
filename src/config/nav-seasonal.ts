@@ -52,10 +52,10 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
    * year-round (legacy slug from twistedpin.com — preserves any inbound
    * SEO). Surfaces in the "Visit" drawer section from Apr 15 → Sep 1
    * so it's promoted across summer-planning + program-running months
-   * without crowding off-season nav. Program window is currently
-   * June 1-30 with a "we'll extend" aside; the drawer window
-   * intentionally brackets that wider so parents can find it before
-   * the program starts and after if it gets extended.
+   * without crowding off-season nav. Program window is June 1 –
+   * August 14 (extended from the original June 1-30); the drawer
+   * window (Apr 15 → Sep 1) brackets it on both ends so parents can
+   * find it before the program starts and just after it ends.
    */
   {
     label: "Free Kids Bowling",

@@ -75,9 +75,9 @@ export interface Promo {
 export const PROMOS: readonly Promo[] = [
   {
     id: "kbf-summer-2026",
-    message: "Free Bowling For Kids — through June 30",
+    message: "Free Bowling For Kids — through August 14",
     href: "/free-kids-bowling/",
-    showUntil: "2026-06-30",
+    showUntil: "2026-08-14",
     homepageOnly: true,
   },
 ];

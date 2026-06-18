@@ -27,8 +27,8 @@
  * dollar amounts, ages, days, hours all named.
  *
  * TODOs (ops-side, non-blocking):
- *   - Confirm the program window if it shifts (currently June 1-30 with
- *     a "we'll extend it if it goes well" aside).
+ *   - Program window June 1 – August 14, 2026 (extended from the
+ *     original June 1-30 after the program ran well).
  *   - Confirm pricing for adults/teens ($6.95/game listed; pulled from
  *     the user-supplied existing copy 2026-05-07).
  *   - Real photography for this page is welcome but not blocking — the
@@ -58,7 +58,7 @@ const freeKidsBowlingSchema = {
     start: `${PROGRAM_START}T11:00:00-05:00`,
     end: `${PROGRAM_END}T16:00:00-05:00`,
     description:
-      "Free summer bowling for kids 12 and under at Twisted Pin in Plainfield, IL. Two games per day, weekdays 11am–4pm, June 1–30, 2026. Open to all Will County families. Sign up via the online form; lane availability is limited per day.",
+      "Free summer bowling for kids 12 and under at Twisted Pin in Plainfield, IL. Two games per day, weekdays 11am–4pm, June 1–August 14, 2026. Open to all Will County families. Sign up via the online form; lane availability is limited per day.",
     image: `${BUSINESS_URL}/snap/events-bg-600.webp`,
     url: PAGE_URL,
   }),
@@ -100,7 +100,7 @@ const freeKidsBowlingSchema = {
 ---
 <Base
   title="Free Kids Bowling in Plainfield, IL | Twisted Pin"
-  description="Free summer bowling for kids 12 and under in Plainfield, IL — two games/day weekdays 11am-4pm, June 1-30. Open to all Will County families."
+  description="Free summer bowling for kids 12 and under in Plainfield, IL — two games/day weekdays 11am-4pm, June 1-August 14. Open to all Will County families."
 >
   {/* Signup iframe loads from c-g.co (same form host as /coupon). Below
       the typography hero, so preconnect is a perceived-perf win on scroll
@@ -122,7 +122,7 @@ const freeKidsBowlingSchema = {
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Two games per day for kids 12 and under.<br />
         Monday&ndash;Friday, 11am&ndash;4pm.<br />
-        June 1&ndash;30.
+        June 1&ndash;August 14.
       </p>
     </div>
   </section>
@@ -265,7 +265,7 @@ const freeKidsBowlingSchema = {
         Twisted Pin sits at 15610 Joliet Rd in Plainfield, IL &mdash;
         ten minutes from Naperville, Bolingbrook, Romeoville, Shorewood,
         Oswego, and Joliet. The free kids bowling program runs
-        <strong>June 1&ndash;30</strong> on the traditional lanes,
+        <strong>June 1&ndash;August 14</strong> on the traditional lanes,
         weekdays 11am to 4pm. No purchase required, no membership,
         no gimmick.
       </p>

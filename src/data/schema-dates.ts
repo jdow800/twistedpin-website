@@ -24,8 +24,9 @@
 export const FREE_KIDS_BOWLING = {
   /** ISO date — first day of the program window (inclusive). */
   programStart: "2026-06-01",
-  /** ISO date — last day of the program window (inclusive). */
-  programEnd: "2026-06-30",
+  /** ISO date — last day of the program window (inclusive). Extended
+   *  from 2026-06-30 → 2026-08-14 (program ran well; ops extended it). */
+  programEnd: "2026-08-14",
 } as const;
 
 export const SUMMER_PIN_PASS = {
