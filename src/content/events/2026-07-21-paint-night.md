@@ -16,6 +16,9 @@ cta:
 lowPrice: "38.00"
 highPrice: "38.00"
 validFrom: 2026-06-16T00:00:00-05:00
+# Promo flyer, encoded via scripts/build-snap-images.mjs. Site-relative;
+# the Event JSON-LD prepends the absolute origin.
+image: /snap/event-paint-night-610.jpg
 ---
 
 Grab a canvas and a drink — a guided, step-by-step session (this round, a Highland

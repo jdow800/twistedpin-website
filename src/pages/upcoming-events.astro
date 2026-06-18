@@ -161,6 +161,9 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
         end: e.data.end,
         description: e.body?.trim(),
         url: eventUrl,
+        // Absolute URL — Google's Event validator wants a fully-qualified
+        // image. Site-relative path in frontmatter, origin prepended here.
+        image: e.data.image ? `${BUSINESS_URL}${e.data.image}` : undefined,
         offers,
       }),
     };

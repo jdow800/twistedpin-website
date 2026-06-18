@@ -45,6 +45,14 @@ const events = defineCollection({
      * have been open since this date."
      */
     validFrom: z.coerce.date().optional(),
+    /**
+     * Optional event image (site-relative path, e.g.
+     * "/snap/event-paint-night-610.jpg"). Emitted as the Event's JSON-LD
+     * `image` on /upcoming-events. Recommended-not-required field — without
+     * it GSC flags "Missing field 'image'" as a non-critical Events warning
+     * (2026-06-18). Encode the source through scripts/build-snap-images.mjs.
+     */
+    image: z.string().optional(),
   }),
 });
 

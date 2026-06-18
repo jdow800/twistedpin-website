@@ -169,6 +169,13 @@ const SOURCES = [
   // proof + award credibility marker. Source is portrait (~9:16); native
   // crop matches our editorial frame pattern.
   { src: "../Pics Social Media/DSC_0289.jpeg", name: "careers-team", aspect: [9, 16], widths: [540, 900] },
+
+  // Event JSON-LD images (referenced from src/content/events/*.md `image`
+  // frontmatter, emitted as Event.image on /upcoming-events). Native aspect
+  // preserved — these are pre-composed promo graphics, not croppable photos.
+  // withoutEnlargement keeps small sources at native size (no upscaling).
+  //   - event-paint-night: Painting Parties by Lucy promo flyer, 610×400.
+  { src: "paintnight (10).png", name: "event-paint-night", widths: [610] },
 ];
 
 async function exists(p) {
