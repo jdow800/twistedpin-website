@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import CalendarModal from "./CalendarModal";
 import type { DayAvailability } from "./useAvailability";
+import type { BookingPageConfig } from "../../tprs/pageConfig";
 import { useMediaQuery, DESKTOP_QUERY } from "./useMediaQuery";
 import {
   addDays,
@@ -43,10 +44,11 @@ interface Props {
   onPick: (date: string) => void;
   /** Section label — "When are you attending?" (main) / "Select a date" (detail). */
   label?: string;
-  /** Short window explainer (pageConfig.windowNotice.calendarHint) shown inside
-   *  the calendar modal by the "Unavailable" legend — counters the "greyed =
-   *  sold out" misread right where it happens. Main screen only; unset = none. */
-  windowHint?: string;
+  /** Window explainer (pageConfig.windowNotice) rendered inside the calendar
+   *  modal — the hint by the "Unavailable" legend plus the same bigger-group /
+   *  outside-food → events handoff shown on the main screen. Main screen only
+   *  (DetailStep omits it); unset = none. */
+  windowNotice?: BookingPageConfig["windowNotice"];
 }
 
 export default function DateStrip({
@@ -55,7 +57,7 @@ export default function DateStrip({
   selected,
   onPick,
   label = "When are you attending?",
-  windowHint,
+  windowNotice,
 }: Props) {
   const today = useMemo(todayIso, []);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -245,7 +247,7 @@ export default function DateStrip({
           availability={availability}
           onPick={manualPick}
           onClose={() => setCalOpen(false)}
-          windowHint={windowHint}
+          windowNotice={windowNotice}
         />
       )}
     </div>

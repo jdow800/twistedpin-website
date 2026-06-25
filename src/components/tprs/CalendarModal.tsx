@@ -14,6 +14,8 @@ import {
   monthOf,
 } from "./format";
 import type { DayAvailability } from "./useAvailability";
+import type { BookingPageConfig } from "../../tprs/pageConfig";
+import Markdown from "./Markdown";
 
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -22,9 +24,10 @@ interface Props {
   availability: DayAvailability;
   onPick: (date: string) => void;
   onClose: () => void;
-  /** Short window explainer next to the "Unavailable" legend — tells the guest
-   *  the greyed back-half of the month is the booking window, not a sellout. */
-  windowHint?: string;
+  /** Window explainer (pageConfig.windowNotice) — the hint by the "Unavailable"
+   *  legend (greyed = window, not sellout) plus the same bigger-group /
+   *  outside-food → events handoff shown on the main screen. */
+  windowNotice?: BookingPageConfig["windowNotice"];
 }
 
 export default function CalendarModal({
@@ -32,7 +35,7 @@ export default function CalendarModal({
   availability,
   onPick,
   onClose,
-  windowHint,
+  windowNotice,
 }: Props) {
   const today = useMemo(todayIso, []);
   const [month, setMonth] = useState<string>(
@@ -139,7 +142,26 @@ export default function CalendarModal({
           <span className="tprs-cal-legend-swatch" /> Unavailable
         </div>
 
-        {windowHint && <p className="tprs-cal-hint">{windowHint}</p>}
+        {windowNotice?.calendarHint && (
+          <p className="tprs-cal-hint">{windowNotice.calendarHint}</p>
+        )}
+        {/* Same bigger-group / outside-food → events handoff as the main-screen
+            notice, mirrored into the modal where the sellout misread happens. */}
+        {windowNotice?.eventLine && (
+          <p className="tprs-window-notice-event tprs-cal-event">
+            <Markdown text={windowNotice.eventLine} />
+          </p>
+        )}
+        {windowNotice?.ctaHref && (
+          <a
+            className="tprs-window-notice-cta"
+            href={windowNotice.ctaHref}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {windowNotice.ctaLabel ?? "Plan your event →"}
+          </a>
+        )}
       </div>
     </div>
   );

@@ -285,7 +285,7 @@ export default function MainStep({
         selected={selectedDate}
         onPick={onPickDate}
         label="When are you attending?"
-        windowHint={windowNotice?.calendarHint}
+        windowNotice={windowNotice}
       />
 
       {showPresale && presaleNotice ? (
