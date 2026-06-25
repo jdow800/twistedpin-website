@@ -153,10 +153,10 @@ const FAQ = [
 
         {/* Child names — formality only; collected, not transmitted. */}
         <fieldset class="kp-field kp-kids">
-          <legend>Your kids <span class="kp-opt">(optional — 12 &amp; under as of 6/30/26)</span></legend>
+          <legend>Your kids <span class="kp-req">*</span> <span class="kp-opt">(at least one — 12 &amp; under as of 6/30/26)</span></legend>
           <input class="kp-kid" name="child1" type="text" autocomplete="off" placeholder="Child's first name" />
-          <input class="kp-kid" name="child2" type="text" autocomplete="off" placeholder="Child's first name" />
-          <input class="kp-kid" name="child3" type="text" autocomplete="off" placeholder="Child's first name" />
+          <input class="kp-kid" name="child2" type="text" autocomplete="off" placeholder="Another child (optional)" />
+          <input class="kp-kid" name="child3" type="text" autocomplete="off" placeholder="Another child (optional)" />
         </fieldset>
 
         {/* Honeypot */}
@@ -409,12 +409,15 @@ const FAQ = [
 
       var first = form.first_name.value.trim();
       var phoneDigits = form.phone.value.replace(/\D/g, "");
+      var kidsEntered = [form.child1.value, form.child2.value, form.child3.value]
+        .map(function (s) { return (s || "").trim(); }).filter(Boolean);
       var consent = form.consent.checked;
       var acks = form.querySelectorAll(".kp-ack-input");
       var allAcked = Array.prototype.every.call(acks, function (a) { return a.checked; });
 
       if (!first) return showError("Please enter your first name.");
       if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
+      if (kidsEntered.length === 0) return showError("Please add at least one child's first name.");
       if (!allAcked) return showError("Please check the three boxes so we know you're set on how the program works.");
       if (!consent) return showError("Please agree to receive texts so we can send your details.");
 
