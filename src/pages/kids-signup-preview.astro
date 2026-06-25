@@ -1,0 +1,661 @@
+---
+/**
+ * /kids-signup-preview — PARKED preview of the native Free Kids Bowling signup.
+ *
+ * Native online signup that enrolls a parent into Twisted Pin's custom loyalty
+ * platform's Free Kids Bowling program. Modeled on /coupon-preview: the form
+ * POSTs to a server-side proxy (/api/kids-signup), which forwards to the n8n
+ * intake webhook. The difference from the $10 coupon — kids enrollment does NOT
+ * grant an offer at signup. The offer is a WINDOWED program: a daily cron
+ * (run_windowed_programs) mints a fresh redeemable grant every weekday 10:45a
+ * that expires 4:10p. Signup only ENROLLS the member (applies the
+ * `program:kids-free-bowl` tag the windowed segment matches); the offer then
+ * shows up at the kiosk on its own each eligible day, all summer through Aug 14.
+ *
+ * ⚠️ BACKEND HALF NOT YET WIRED. The page + proxy are done; for a submission to
+ * actually enroll, n8n's WF-Loyalty-Forms-Intake must handle
+ * form_slug='kids-free-bowl' → upsert customer (offer_slug NULL), APPLY the
+ * program tag (the intake RPC does NOT tag — db/018), send the kids welcome
+ * text, and use the tag the windowed automation segments on. Until then, a
+ * submit upserts the customer but won't tag/text. Keep parked until wired.
+ *
+ * PARKED / UNFINDABLE (same hardening as /coupon-preview, /tprs):
+ *   - noindex,nofollow (Fragment slot="head") + robots.txt Disallow
+ *   - excluded from sitemap (astro.config.mjs filter) + unlinked
+ * At launch, the content moves onto /free-kids-bowling (replacing the iframe),
+ * the preview banner is removed, and this route + its robots/sitemap entries
+ * are deleted.
+ *
+ * Voice/SEO: "free kids bowling" is the program name (matches /free-kids-bowling),
+ * so "free" is accurate program copy, NOT discount-hunting framing. Don't lead
+ * with "family-friendly fun"; keep the adults-first nod (while the kids bowl,
+ * the bar/kitchen are yours). Hyper-local intent in the SEO body.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+
+// The EXACT consent prose shown next to the checkbox. Captured verbatim and
+// passed to the platform as `consent_language` for the TCPA audit trail.
+const CONSENT_TEXT =
+  "By checking this box, you agree to receive recurring automated marketing " +
+  "text messages from Twisted Pin at the number provided. Consent is not a " +
+  "condition of purchase. Message & data rates may apply. Reply STOP to " +
+  "cancel, HELP for help. See our Terms (twistedpin.com/terms) and Privacy " +
+  "Policy (twistedpin.com/privacy).";
+
+// FAQ — doubles as unique body content + an FAQPage entity.
+const FAQ = [
+  {
+    q: "How does free kids bowling work?",
+    a: "Sign up once with your mobile number above. Then bring the kids to Twisted Pin in Plainfield any weekday between 10:45am and 4:10pm and show the text at the front desk — they bowl free. It runs all summer, through August 14.",
+  },
+  {
+    q: "Is it really free?",
+    a: "Yes — kids bowl free on weekdays in that window. Lane shoes, food, and anything from the bar or kitchen order separately on a normal tab.",
+  },
+  {
+    q: "What are the hours?",
+    a: "Monday through Friday, 10:45am to 4:10pm, through August 14. Weekends aren't part of the program — that's when the lanes fill up with leagues and parties.",
+  },
+  {
+    q: "Do I have to sign up every time?",
+    a: "No. Sign up once and you're on the list for the summer. Just show your texts at the front desk each time you come in and we'll take care of the rest.",
+  },
+];
+---
+<Base
+  title="Free Kids Bowling This Summer | Twisted Pin"
+  description="Sign up and your kids bowl free every weekday this summer at Twisted Pin in Plainfield, IL — Monday through Friday, 10:45am to 4:10pm, through August 14."
+  ogImage="/og/og-bowl.jpg"
+  ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
+>
+  {/* PARKED: noindex,nofollow — internal preview, never indexed or crawled.
+      Also robots-disallowed + sitemap-excluded + unlinked. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex,nofollow" />
+  </Fragment>
+
+  <section class="t2-hero" data-hero aria-labelledby="kp-h1">
+    <div class="t2-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Summer 2026 · Plainfield, IL</p>
+      <h1 class="t-display t2-hero-headline hero-fade" id="kp-h1" data-delay-ms="120">
+        Kids bowl free&nbsp;this summer.
+      </h1>
+      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+        Sign up once with your mobile number — then any weekday, bring the kids
+        in and they bowl free. Show the text at the front desk; we take care of
+        the rest. While they bowl, the bar and kitchen are yours.
+      </p>
+    </div>
+  </section>
+
+  <section class="t2-section kp-section" aria-labelledby="kp-form-h2">
+    <div class="t2-section-inner">
+
+      {/* PREVIEW banner — REMOVE when migrating to /free-kids-bowling. */}
+      <p class="kp-preview-flag" role="status">
+        ⚙ Parked preview (noindex, unlinked). The form posts to the loyalty
+        intake, but the kids-enrollment handler (tag + welcome text) is
+        <strong>still being wired on the backend</strong> — a submission won't
+        fully enroll a member yet. Don't rely on it until that's live.
+      </p>
+
+      <h2 class="t-eyebrow" id="kp-form-h2" style="font-size:11px;">Sign Up</h2>
+
+      {/* ---- FORM ---- */}
+      <form id="kp-form" class="kp-form" data-consent={CONSENT_TEXT} novalidate>
+        <div class="kp-row kp-row-2">
+          <div class="kp-field">
+            <label for="kp-first">Your first name <span class="kp-req">*</span></label>
+            <input id="kp-first" name="first_name" type="text" autocomplete="given-name" required />
+          </div>
+          <div class="kp-field">
+            <label for="kp-last">Last name <span class="kp-opt">(optional)</span></label>
+            <input id="kp-last" name="last_name" type="text" autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="kp-field">
+          <label for="kp-mobile">Mobile number <span class="kp-req">*</span></label>
+          <input id="kp-mobile" name="phone" type="tel" inputmode="tel"
+                 autocomplete="tel" placeholder="(815) 555-0123" required />
+          <p class="kp-hint">This is where we text your free-bowling details.</p>
+          <p class="kp-phone-status" id="kp-phone-status" role="status" hidden></p>
+        </div>
+
+        <div class="kp-field">
+          <label for="kp-email">Email <span class="kp-opt">(optional)</span></label>
+          <input id="kp-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" />
+        </div>
+
+        {/* Honeypot — hidden from humans; bots that fill it get rejected
+            server-side as `honeypot`. */}
+        <div class="kp-hp" aria-hidden="true">
+          <label for="kp-website">Website</label>
+          <input id="kp-website" name="website_url" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <label class="kp-consent">
+          <input id="kp-consent" name="consent" type="checkbox" required />
+          <span>
+            By checking this box, you agree to receive recurring automated
+            marketing text messages from Twisted Pin at the number provided.
+            Consent is not a condition of purchase. Message &amp; data rates
+            may apply. Reply STOP to cancel, HELP for help. See our
+            <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
+          </span>
+        </label>
+
+        <p id="kp-error" class="kp-error" role="alert" hidden></p>
+
+        <button type="submit" id="kp-submit" class="kp-submit">Sign my kids up</button>
+      </form>
+
+      {/* ---- SUCCESS PANEL ---- */}
+      <div id="kp-success" class="kp-panel kp-success" hidden>
+        <p class="kp-panel-eyebrow">You're in 🎳</p>
+        <h3 class="kp-panel-title">Check your phone.</h3>
+        <p class="kp-panel-body">
+          We just texted your free-bowling details<span id="kp-success-phone"></span>.
+          Bring the kids in <strong>Monday–Friday, 10:45am–4:10pm</strong> and
+          show the text at the front desk — they bowl free, all summer through
+          August 14. While they bowl, the bar and kitchen are yours.
+        </p>
+      </div>
+
+      {/* ---- ALREADY-ENROLLED PANEL ---- */}
+      <div id="kp-already" class="kp-panel kp-already" hidden>
+        <p class="kp-panel-eyebrow">You're already in 👋</p>
+        <h3 class="kp-panel-title">You're already signed up.</h3>
+        <p class="kp-panel-body">
+          You're already on the list for free kids bowling — no need to sign up
+          twice. Just bring the kids in any weekday, 10:45am–4:10pm, and show
+          your texts at the front desk.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  {/* ============================================================
+      SEO body — unique content beneath the form so the page isn't a
+      thin form-only page. Targets branded + local intent; "free kids
+      bowling" is the program name, not discount framing.
+      ============================================================ */}
+  <section class="t2-section" aria-labelledby="kp-info-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">How it works</p>
+      <h2 class="t-display kp-info-title" id="kp-info-h2">Two steps.</h2>
+      <p class="t2-section-body">
+        Sign up with your mobile number, then bring the kids to
+        <a href="/bowl/">Twisted Pin in Plainfield</a> any weekday between
+        10:45am and 4:10pm. Show the text at the front desk and your kids bowl
+        free — all summer, through August 14. It's open bowling on our 17 lanes;
+        lane shoes and anything from the kitchen or bar run on a normal tab.
+      </p>
+
+      <p class="t-eyebrow" style="margin-top: 36px;">While the kids bowl</p>
+      <h2 class="t-display kp-info-title">You don't have to just watch.</h2>
+      <p class="t2-section-body">
+        The rest of the venue runs in parallel — the
+        <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>,
+        <a href="/bar/">the bar program</a> curated by Brian Van Flandern,
+        America's Top Mixologist, and <a href="/eat/">a from-scratch kitchen</a>.
+        Free kids bowling is the reason to come in on a weekday afternoon; the
+        rest is why you'll want to stay.
+      </p>
+
+      <p class="t-eyebrow" style="margin-top: 36px;">Where</p>
+      <h2 class="t-display kp-info-title">Right off Route 59.</h2>
+      <p class="t2-section-body">
+        Twisted Pin is in Plainfield, IL — an easy drive from Naperville,
+        Romeoville, Shorewood, Bolingbrook, Oswego, and Joliet. Free summer
+        bowling for kids runs Monday through Friday, 10:45am to 4:10pm, now
+        through August 14. Already signed up? Just show your texts at the
+        <a href="/#find-us">front desk</a>.
+      </p>
+    </div>
+  </section>
+
+  {/* ---- FAQ ---- */}
+  <section class="t2-section" aria-labelledby="kp-faq-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">Good to know</p>
+      <h2 class="t-display kp-info-title" id="kp-faq-h2">Questions, answered.</h2>
+      <dl class="kp-faq">
+        {FAQ.map((item) => (
+          <div class="kp-faq-item">
+            <dt>{item.q}</dt>
+            <dd>{item.a}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <SnapFooter />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Free Kids Bowling", path: "/kids-signup-preview/" },
+  ]} />
+  {/* Hand-rolled FAQPage entity (no helper in lib/schema.ts). */}
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": FAQ.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": { "@type": "Answer", "text": item.a },
+    })),
+  })} />
+</Base>
+
+{/* ============================================================
+    Form handler. Posts to the server-side proxy (/api/kids-signup),
+    which forwards to the loyalty intake webhook, and branches on the
+    response. Same shape as /coupon-preview minus the birthday field.
+    ============================================================ */}
+<script is:inline>
+  (function () {
+    var form = document.getElementById("kp-form");
+    if (!form) return;
+    var errorEl = document.getElementById("kp-error");
+    var submitBtn = document.getElementById("kp-submit");
+    var successEl = document.getElementById("kp-success");
+    var alreadyEl = document.getElementById("kp-already");
+    var mobile = document.getElementById("kp-mobile");
+    var phoneStatus = document.getElementById("kp-phone-status");
+
+    // Live mobile-number check state. lastVerified caches the result for the
+    // current 10-digit number so we don't re-hit the verifier on every key.
+    var lastVerified = { digits: "", textable: null, lineType: null };
+    var verifyTimer = null;
+
+    // Idempotency key — one per form render. Reused across retries so a
+    // double-submit can't create a duplicate customer / double text.
+    var submissionId = (window.crypto && window.crypto.randomUUID)
+      ? window.crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.round(performance.now());
+
+    function setPhoneStatus(msg, kind) {
+      if (!msg) { phoneStatus.hidden = true; phoneStatus.textContent = ""; return; }
+      phoneStatus.textContent = msg;
+      phoneStatus.className = "kp-phone-status" + (kind ? " " + kind : "");
+      phoneStatus.hidden = false;
+    }
+
+    function shakePhone() {
+      mobile.classList.add("kp-input-invalid");
+      mobile.classList.remove("kp-shake");
+      void mobile.offsetWidth; // reflow so the animation can re-trigger
+      mobile.classList.add("kp-shake");
+    }
+
+    // Live mobile check — pings the server-side Twilio Lookup proxy once the
+    // number is complete. Fail-open: anything but a CONFIRMED bad result leaves
+    // the field usable, so a verifier blip never blocks signup.
+    function verifyPhone(digits) {
+      if (digits.length !== 10 || digits === lastVerified.digits) return;
+      setPhoneStatus("Checking your number…", "checking");
+      fetch("/api/phone-verify/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: "+1" + digits }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          lastVerified = { digits: digits, textable: r.textable, lineType: r.line_type || null };
+          if (r.textable === false) {
+            shakePhone();
+            setPhoneStatus("That number can't receive texts — double-check your mobile number.", "bad");
+          } else {
+            mobile.classList.remove("kp-input-invalid");
+            setPhoneStatus("", "");
+          }
+        })
+        .catch(function () {
+          lastVerified = { digits: digits, textable: null, lineType: null };
+          setPhoneStatus("", "");
+        });
+    }
+
+    // Cosmetic US phone formatter (raw digits are what we send) + debounced
+    // live verification once 10 digits are present.
+    mobile.addEventListener("input", function () {
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      var out = d;
+      if (d.length > 6) out = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+      else if (d.length > 3) out = "(" + d.slice(0, 3) + ") " + d.slice(3);
+      else if (d.length > 0) out = "(" + d.slice(0, 3);
+      mobile.value = out;
+
+      if (d !== lastVerified.digits) {
+        mobile.classList.remove("kp-input-invalid");
+        setPhoneStatus("", "");
+      }
+      clearTimeout(verifyTimer);
+      if (d.length === 10) verifyTimer = setTimeout(function () { verifyPhone(d); }, 500);
+    });
+
+    // Verify immediately on blur (don't wait out the debounce).
+    mobile.addEventListener("blur", function () {
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      if (d.length === 10) verifyPhone(d);
+    });
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Sign my kids up";
+    }
+
+    function reasonMessage(reason) {
+      if (reason === "missing_phone" || reason === "invalid_phone")
+        return "Please enter a valid 10-digit mobile number.";
+      if (reason === "network_error" || reason === "upstream_error")
+        return "Something went wrong on our end — please try again in a moment.";
+      return "Sorry, that didn't go through. Please try again.";
+    }
+
+    function reveal(panel, phoneText) {
+      form.hidden = true;
+      var flag = document.querySelector(".kp-preview-flag");
+      if (flag) flag.hidden = true;
+      if (phoneText) {
+        var span = document.getElementById("kp-success-phone");
+        if (span) span.textContent = " to " + phoneText;
+      }
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var first = form.first_name.value.trim();
+      var phoneDigits = form.phone.value.replace(/\D/g, "");
+      var consent = form.consent.checked;
+
+      if (!first) return showError("Please enter your first name.");
+      if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
+      if (!consent) return showError("Please agree to receive texts so we can send your details.");
+
+      // Hard-stop only on a CONFIRMED non-textable number for this exact number.
+      if (lastVerified.digits === phoneDigits && lastVerified.textable === false) {
+        shakePhone();
+        return showError("That number can't receive texts — enter a mobile number so we can send your details.");
+      }
+
+      var payload = {
+        first_name: first,
+        last_name: form.last_name.value.trim() || null,
+        phone: "+1" + phoneDigits,
+        email: form.email.value.trim() || null,
+        consent_marketing: true,
+        phone_type: (lastVerified.digits === phoneDigits) ? lastVerified.lineType : null,
+        submission_id: submissionId,
+        consent_language: form.getAttribute("data-consent") || "",
+        page_url: window.location.href,
+        website_url: form.website_url.value || "",
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Signing up…";
+
+      fetch("/api/kids-signup/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (r) {
+          if (!r || r.ok !== true) {
+            // Honeypot → silently no-op (it's a bot); reset quietly.
+            if (r && r.reason === "honeypot") {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Sign my kids up";
+              return;
+            }
+            return showError(reasonMessage(r && r.reason));
+          }
+          // first_join:false (already a loyalty member) still enrolls into the
+          // kids program, so the only "already in" case is an idempotent replay.
+          if (r.replayed) {
+            reveal(alreadyEl);
+          } else {
+            reveal(successEl, form.phone.value.trim());
+          }
+        })
+        .catch(function () {
+          showError("Something went wrong on our end — please try again in a moment.");
+        });
+    });
+  })();
+</script>
+
+<style>
+  /* ============================================================
+     /kids-signup-preview — native loyalty enrollment form + SEO body.
+     Dark brand chrome; self-contained so it lifts cleanly onto
+     /free-kids-bowling at migration. (Mirrors the /coupon-preview recipe.)
+     ============================================================ */
+  .kp-section .t2-section-inner { max-width: 560px; }
+
+  .kp-preview-flag {
+    margin: 0 0 20px;
+    padding: 10px 14px;
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    border-radius: 7px;
+    font-weight: 700;
+  }
+  .kp-preview-flag strong { text-decoration: underline; }
+
+  .kp-form { margin-top: 14px; }
+
+  .kp-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .kp-field {
+    margin: 0 0 16px;
+    border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .kp-field label {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+    padding: 0;
+  }
+  .kp-req { color: var(--glow); }
+  .kp-opt { color: var(--warm-dim); font-weight: 400; }
+
+  .kp-form input[type="text"],
+  .kp-form input[type="tel"],
+  .kp-form input[type="email"] {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+    font-size: 16px; /* 16px avoids iOS zoom-on-focus */
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    border-radius: 7px;
+    padding: 13px 14px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .kp-form input::placeholder { color: var(--warm-dim); }
+  .kp-form input:focus {
+    outline: 2px solid var(--glow);
+    outline-offset: 1px;
+    border-color: transparent;
+  }
+
+  .kp-hint {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    color: var(--warm-dim);
+  }
+
+  /* Live phone-verify status line */
+  .kp-phone-status {
+    margin: 6px 0 0;
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .kp-phone-status.checking { color: var(--warm-dim); }
+  .kp-phone-status.bad { color: #ff8a8a; }
+
+  /* Invalid phone field + shake on a confirmed non-textable number */
+  .kp-input-invalid { border-color: #ff8a8a !important; }
+  @keyframes kp-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-5px); }
+    40%, 60% { transform: translateX(5px); }
+  }
+  .kp-shake { animation: kp-shake 0.5s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .kp-shake { animation: none; }
+  }
+
+  /* Honeypot — visually + assistively hidden, still focusable by bots. */
+  .kp-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .kp-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 4px 0 18px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--warm-dim);
+  }
+  .kp-consent input { margin-top: 2px; flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--glow); }
+  .kp-consent a { color: var(--glow); text-decoration: none; }
+  .kp-consent a:hover { text-decoration: underline; }
+
+  .kp-error {
+    margin: 0 0 14px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ff8a8a;
+  }
+
+  .kp-submit {
+    width: 100%;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    border: 0;
+    border-radius: 7px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
+  }
+  .kp-submit:hover:not(:disabled) { background: var(--glow-dim); transform: scale(1.01); }
+  .kp-submit:disabled { opacity: 0.6; cursor: default; }
+
+  /* Result panels (success / already-enrolled) */
+  .kp-panel {
+    margin-top: 10px;
+    padding: 24px 22px;
+    border-radius: var(--radius-surface);
+  }
+  .kp-success {
+    border: 1px solid rgba(78, 236, 196, 0.35);
+    background: rgba(78, 236, 196, 0.06);
+  }
+  .kp-already {
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .kp-panel-eyebrow {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin: 0 0 6px;
+  }
+  .kp-panel-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--warm-white);
+    margin: 0 0 12px;
+  }
+  .kp-panel-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    margin: 0 0 12px;
+  }
+  .kp-panel-body strong { color: var(--warm-white); }
+  .kp-panel-body a { color: var(--glow); text-decoration: none; }
+  .kp-panel-body a:hover { text-decoration: underline; }
+
+  /* SEO body headings — match the /coupon recipe. */
+  .kp-info-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7.5vw, 42px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin: 10px 0 16px;
+  }
+  @media (min-width: 1025px) {
+    .kp-info-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  /* FAQ */
+  .kp-faq { margin: 14px 0 0; }
+  .kp-faq-item {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  .kp-faq-item:last-child { border-bottom: 0; }
+  .kp-faq dt {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+  }
+  .kp-faq dd {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+  }
+</style>
