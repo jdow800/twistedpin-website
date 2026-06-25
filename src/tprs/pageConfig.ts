@@ -251,7 +251,6 @@ export const bookingPageConfig: BookingPageConfig = {
   // (3 traditional / 2 VIP — mirror each product's maxQuantityPerBooking), and
   // hand bigger groups / outside food / cake / decorations to events (Zite).
   windowNotice: {
-    heading: "Not sold out — just the booking window.",
     body:
       "Lanes open for online reservation **up to 10 days ahead**, with up to " +
       "**3 traditional lanes** or **2 in the VIP suite** per booking — sized for " +
