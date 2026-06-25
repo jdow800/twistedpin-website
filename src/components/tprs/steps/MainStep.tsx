@@ -38,6 +38,10 @@ interface Props {
    *  defaultDate when the page's products aren't on sale yet, in place of the
    *  bare "sitting this one out" list. */
   presaleNotice?: BookingPageConfig["presaleNotice"];
+  /** Always-on booking-window explainer (pageConfig.windowNotice) — tells guests
+   *  the calendar's short window is the online cap, not a sellout, and routes
+   *  bigger groups / outside food to events. Absent = no notice. */
+  windowNotice?: BookingPageConfig["windowNotice"];
   /** Party-size-first mode (pageConfig.partySize) — the /reserve-preview2
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
@@ -78,6 +82,7 @@ export default function MainStep({
   tileArt,
   cardNotes,
   presaleNotice,
+  windowNotice,
   partyConfig,
   partySize,
   onPartySize,
@@ -280,6 +285,7 @@ export default function MainStep({
         selected={selectedDate}
         onPick={onPickDate}
         label="When are you attending?"
+        windowHint={windowNotice?.calendarHint}
       />
 
       {showPresale && presaleNotice ? (
@@ -301,6 +307,36 @@ export default function MainStep({
         </div>
       ) : (
       <>
+      {/* Booking-window explainer (pageConfig.windowNotice) — always on, sits
+          right under the date picker so the guest reads "this is the window,
+          not a sellout" BEFORE concluding the back-half-greyed month means no
+          availability. Also hands bigger groups / outside food to events. */}
+      {windowNotice && (
+        <div className="tprs-window-notice" role="note">
+          {windowNotice.heading && (
+            <p className="tprs-window-notice-h">{windowNotice.heading}</p>
+          )}
+          <p className="tprs-window-notice-p">
+            <Markdown text={windowNotice.body} />
+          </p>
+          {windowNotice.eventLine && (
+            <p className="tprs-window-notice-event">
+              <Markdown text={windowNotice.eventLine} />
+            </p>
+          )}
+          {windowNotice.ctaHref && (
+            <a
+              className="tprs-window-notice-cta"
+              href={windowNotice.ctaHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {windowNotice.ctaLabel ?? "Plan your event →"}
+            </a>
+          )}
+        </div>
+      )}
+
       <h2 className="tprs-h2 tprs-products-h">
         {partySize !== null && !overThreshold
           ? `Your options for ${partySize}`

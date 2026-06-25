@@ -152,6 +152,31 @@ export interface BookingPageConfig {
     ctaLabel?: string;
     ctaHref?: string;
   };
+  /**
+   * Always-on booking-window explainer — the notice that tells guests WHY the
+   * calendar only lights up the next ~10 days: it's the online booking WINDOW,
+   * not a sellout. Counters the "looks sold out" misread the short window
+   * creates (dates past the window grey out exactly like a booked-out day, so
+   * guests read the empty back-half of the month as "no availability"). Also
+   * states the per-booking lane caps and routes anything bigger — larger groups,
+   * or outside food / cake / decorations — to an event inquiry (that's an event,
+   * not a lane reservation). Unset = no notice (birthdays/NYE don't need it, and
+   * NYE's presaleNotice owns its date messaging). `body` + `eventLine` support
+   * the text dialect (**bold**, [link](url)). The window length + lane caps are
+   * stated in COPY here, so keep them in sync with the backend max-advance cap +
+   * each product's `maxQuantityPerBooking` — those are the source of truth; this
+   * is the human-readable mirror.
+   */
+  windowNotice?: {
+    heading?: string;
+    body: string;
+    eventLine?: string;
+    ctaLabel?: string;
+    ctaHref?: string;
+    /** Short one-liner shown inside the calendar modal next to the
+     *  "Unavailable" legend — the exact spot the sellout misread happens. */
+    calendarHint?: string;
+  };
 }
 
 /** Defaults when a page doesn't override the quantity wording. */
@@ -219,6 +244,26 @@ export const bookingPageConfig: BookingPageConfig = {
     // Outlaw register (voice.md) — pokes at the line you skip by reserving.
     // Swap freely; alternates floated in chat (DMV line, "skip the line", etc.).
     sub: "Reserve now — the line's for people who didn't.",
+  },
+  // Always-on window explainer — the short online window (max ~10 days out)
+  // makes the calendar read "sold out" past day 10, when really those dates just
+  // aren't open to book yet. Name that directly, state the per-booking caps
+  // (3 traditional / 2 VIP — mirror each product's maxQuantityPerBooking), and
+  // hand bigger groups / outside food / cake / decorations to events (Zite).
+  windowNotice: {
+    heading: "Not sold out — just the booking window.",
+    body:
+      "Lanes open for online reservation **up to 10 days ahead**, with up to " +
+      "**3 traditional lanes** or **2 in the VIP suite** per booking — sized for " +
+      "smaller groups and near-term plans. Dates past the window aren't sold out; " +
+      "they're just not open to book yet.",
+    eventLine:
+      "Bigger group, or bringing in outside food, cake, or decorations? That's an " +
+      "**event** — not a lane reservation — and we'd love to help make it special.",
+    ctaLabel: "Submit an event inquiry →",
+    ctaHref: CUSTOM_EVENT_URL,
+    calendarHint:
+      "Online booking opens up to 10 days out — greyed dates aren't sold out, just not open yet.",
   },
   // (Birthday guest-stepper mappings live on birthdaysPageConfig below — the
   // stale pre-re-seed copies that sat here were inert on this curated page.)

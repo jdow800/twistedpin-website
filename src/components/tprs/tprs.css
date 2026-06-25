@@ -310,6 +310,9 @@
 .tprs-cal-cell.is-pending .tprs-cal-day { text-decoration: none; }
 .tprs-cal-legend { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-family: var(--font-body); font-size: 12px; color: var(--tw-text-muted); }
 .tprs-cal-legend-swatch { width: 14px; height: 14px; border-radius: 4px; background: var(--tw-surface); border: 1px dashed var(--tw-border-strong); opacity: 0.6; }
+/* Window explainer inside the calendar modal — defuses the "greyed = sold out"
+   read at the exact spot it happens (right by the Unavailable legend). */
+.tprs-cal-hint { margin: 10px 0 0; font-family: var(--font-body); font-size: 12px; line-height: 1.45; color: var(--tw-text-muted); }
 
 /* ── Categories + text-forward cards ────────────────────────────────── */
 .tprs-cat { margin-bottom: 22px; }
@@ -488,6 +491,56 @@
   font-size: 14px;
   text-decoration: none;
 }
+
+/* Always-on booking-window explainer (pageConfig.windowNotice) — sits under the
+   date picker. Informational weight (left-aligned, accent rail), NOT the
+   centered event-handoff alarm: it reassures (window, not sellout) and only
+   then hands the bigger-group / outside-food case off to events. */
+.tprs-window-notice {
+  margin: 4px 0 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--tw-border);
+  border-left: 3px solid var(--tw-accent);
+  border-radius: var(--radius-surface);
+  background: var(--tw-surface);
+}
+.tprs-window-notice-h {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--tw-text);
+  margin: 0 0 6px;
+}
+.tprs-window-notice-p {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tw-text-muted);
+  margin: 0;
+}
+.tprs-window-notice-p strong,
+.tprs-window-notice-event strong { color: var(--tw-text); font-weight: 600; }
+/* The "that's an event" beat — divided from the reassurance above it. */
+.tprs-window-notice-event {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tw-text-muted);
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--tw-border);
+}
+.tprs-window-notice-cta {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tw-accent);
+  text-decoration: none;
+}
+.tprs-window-notice-cta:hover { text-decoration: underline; }
 
 /* Products the selected day can't offer — wayfinding, not bookable options. */
 .tprs-not-today { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--tw-border); }

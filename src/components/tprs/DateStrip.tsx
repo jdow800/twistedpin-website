@@ -43,6 +43,10 @@ interface Props {
   onPick: (date: string) => void;
   /** Section label — "When are you attending?" (main) / "Select a date" (detail). */
   label?: string;
+  /** Short window explainer (pageConfig.windowNotice.calendarHint) shown inside
+   *  the calendar modal by the "Unavailable" legend — counters the "greyed =
+   *  sold out" misread right where it happens. Main screen only; unset = none. */
+  windowHint?: string;
 }
 
 export default function DateStrip({
@@ -51,6 +55,7 @@ export default function DateStrip({
   selected,
   onPick,
   label = "When are you attending?",
+  windowHint,
 }: Props) {
   const today = useMemo(todayIso, []);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -240,6 +245,7 @@ export default function DateStrip({
           availability={availability}
           onPick={manualPick}
           onClose={() => setCalOpen(false)}
+          windowHint={windowHint}
         />
       )}
     </div>

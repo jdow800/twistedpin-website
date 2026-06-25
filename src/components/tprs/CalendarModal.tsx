@@ -22,6 +22,9 @@ interface Props {
   availability: DayAvailability;
   onPick: (date: string) => void;
   onClose: () => void;
+  /** Short window explainer next to the "Unavailable" legend — tells the guest
+   *  the greyed back-half of the month is the booking window, not a sellout. */
+  windowHint?: string;
 }
 
 export default function CalendarModal({
@@ -29,6 +32,7 @@ export default function CalendarModal({
   availability,
   onPick,
   onClose,
+  windowHint,
 }: Props) {
   const today = useMemo(todayIso, []);
   const [month, setMonth] = useState<string>(
@@ -134,6 +138,8 @@ export default function CalendarModal({
         <div className="tprs-cal-legend">
           <span className="tprs-cal-legend-swatch" /> Unavailable
         </div>
+
+        {windowHint && <p className="tprs-cal-hint">{windowHint}</p>}
       </div>
     </div>
   );

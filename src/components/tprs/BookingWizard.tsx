@@ -302,6 +302,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           tileArt={config.tileArt}
           cardNotes={config.cardNotes}
           presaleNotice={config.presaleNotice}
+          windowNotice={config.windowNotice}
           partyConfig={config.partySize}
           partySize={state.partySize}
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
