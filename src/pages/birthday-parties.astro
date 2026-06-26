@@ -359,7 +359,7 @@ const faqSchema = {
   {/* ============================================================
       ADULT BIRTHDAYS — image RIGHT, copy LEFT (reverse)
       ============================================================ */}
-  <section class="birthday-section birthday-section--reverse" aria-labelledby="birthday-adult-h2">
+  <section id="adults" class="birthday-section birthday-section--reverse" aria-labelledby="birthday-adult-h2">
     <div class="birthday-section-grid">
       <div class="birthday-section-frame">
         {/* Adult Birthdays video — buffet clip (matches the /events
@@ -459,9 +459,31 @@ const faqSchema = {
   </section>
 
   {/* ============================================================
+      CLOSING CTA BAND — split flow: kids → Roller, adult → Zite.
+      Sits ABOVE the FAQ (per user 2026-06-26) so the booking buttons
+      come right after the occasions/proof, and the FAQ closes out the
+      page as a quiet reference beat before the footer.
+      ============================================================ */}
+  <section class="birthday-closing" aria-labelledby="birthday-closing-h2">
+    <div class="birthday-closing-inner">
+      <h2 class="t-display birthday-closing-title" id="birthday-closing-h2">
+        Ready when you are.
+      </h2>
+      <div class="birthday-closing-ctas">
+        <a class="btn btn-solid" href={ROLLER_KIDS_URL} target="_blank" rel="noopener">
+          Book a kids' party
+        </a>
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
+          Plan an adult event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
       FAQ — search-phrased birthday Q&As. Global .t2-faq* accordion;
-      emits FAQPage JSON-LD (birthdayFaqs in frontmatter). Sits above
-      the closing CTA so the booking buttons stay the last beat.
+      emits FAQPage JSON-LD (birthdayFaqs in frontmatter). Closes out
+      the page below the booking CTA as a quiet reference beat.
       ============================================================ */}
   <section class="birthday-faq" aria-labelledby="birthday-faq-h2">
     <div class="birthday-faq-inner">
@@ -491,25 +513,6 @@ const faqSchema = {
             <div class="t2-faq-a" set:html={item.htmlA} />
           </details>
         ))}
-      </div>
-    </div>
-  </section>
-
-  {/* ============================================================
-      CLOSING CTA BAND — split flow: kids → Roller, adult → Zite
-      ============================================================ */}
-  <section class="birthday-closing" aria-labelledby="birthday-closing-h2">
-    <div class="birthday-closing-inner">
-      <h2 class="t-display birthday-closing-title" id="birthday-closing-h2">
-        Ready when you are.
-      </h2>
-      <div class="birthday-closing-ctas">
-        <a class="btn btn-solid" href={ROLLER_KIDS_URL} target="_blank" rel="noopener">
-          Book a kids' party
-        </a>
-        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
-          Plan an adult event
-        </a>
       </div>
     </div>
   </section>
@@ -594,6 +597,14 @@ const faqSchema = {
   }
   @media (min-width: 1025px) {
     .birthday-section { padding: 24px 64px; }
+  }
+
+  /* #adults deep-link target (e.g. /birthday-parties/#adults). Offset for
+     the fixed header so the section title doesn't land hidden behind it —
+     same values as the menu/leagues anchor pattern. */
+  #adults { scroll-margin-top: 120px; }
+  @media (min-width: 1025px) {
+    #adults { scroll-margin-top: 140px; }
   }
 
   .birthday-section-grid {
