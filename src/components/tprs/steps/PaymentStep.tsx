@@ -187,6 +187,11 @@ function CheckoutForm({
   const [cartToken, setCartToken] = useState<string | null>(null);
   const [holdExpiresAt, setHoldExpiresAt] = useState<string | null>(null);
   const [holdError, setHoldError] = useState<string | null>(null);
+  // True when the hold failed because the slot is full (capacity_exhausted) —
+  // the stepper cap makes this rare, but a slot can fill in the gap between
+  // selection and payment. Drives a prominent blocker that replaces the card
+  // form (2026-06-27) instead of a tiny error line under a fillable form.
+  const [holdSoldOut, setHoldSoldOut] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -243,10 +248,14 @@ function CheckoutForm({
   async function acquireHold() {
     setRefreshing(true);
     setHoldError(null);
+    setHoldSoldOut(false);
     try {
       await createFreshHold();
     } catch (err) {
       setHoldError(checkoutErrorMessage(err));
+      setHoldSoldOut(
+        err instanceof TprsCheckoutError && err.code === "capacity_exhausted",
+      );
     } finally {
       setRefreshing(false);
     }
@@ -264,6 +273,7 @@ function CheckoutForm({
     void (async () => {
       setRefreshing(true);
       setHoldError(null);
+      setHoldSoldOut(false);
       try {
         const cart = await getCart();
         if (
@@ -278,6 +288,9 @@ function CheckoutForm({
         }
       } catch (err) {
         setHoldError(checkoutErrorMessage(err));
+        setHoldSoldOut(
+          err instanceof TprsCheckoutError && err.code === "capacity_exhausted",
+        );
       } finally {
         setRefreshing(false);
       }
@@ -432,6 +445,31 @@ function CheckoutForm({
 
   const mins = Math.floor(left / 60);
   const secs = left % 60;
+
+  // Sold out (the slot filled between selection and payment): replace the whole
+  // card form with a prominent blocker so the guest never types card details
+  // into a form that can't pay — and knows exactly why. The stepper cap makes
+  // this rare; this is the race backstop. Recovery is the wizard's Back button.
+  if (holdSoldOut) {
+    return (
+      <div className="tprs-pay-blocker" role="alert">
+        <span className="tprs-pay-blocker__title">That time just filled up</span>
+        <p className="tprs-pay-blocker__body">
+          Someone grabbed the last open lane while you were checking out, so we
+          can’t reserve this time. Tap <strong>Back</strong> to pick another
+          time — your card hasn’t been charged.
+        </p>
+        <button
+          type="button"
+          className="tprs-link-btn"
+          onClick={acquireHold}
+          disabled={refreshing}
+        >
+          {refreshing ? "Checking…" : "Try this time again"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="tprs-pay-form">

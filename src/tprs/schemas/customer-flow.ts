@@ -127,6 +127,19 @@ export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 export const availabilityResponseSchema = z.array(availabilitySlotSchema);
 export type AvailabilityResponse = z.infer<typeof availabilityResponseSchema>;
 
+/* ── GET /api/availability/slot ─────────────────────────────────────────── */
+
+/** Per-slot max-bookable-units probe — vendored mirror of @tprs/shared-schemas.
+ *  On-demand (only after a slot is picked); the grid stays boolean (AH-7). */
+export const slotAvailabilityResponseSchema = z.object({
+  /** Max bookable units (lanes) at this slot, uncapped at the online max — the
+   *  client applies min(onlineCap, maxUnits). 0 = the slot just filled. */
+  maxUnits: z.number().int().nonnegative(),
+});
+export type SlotAvailabilityResponse = z.infer<
+  typeof slotAvailabilityResponseSchema
+>;
+
 /* ── GET /api/availability/month ────────────────────────────────────────── */
 
 export const monthAvailabilityQuerySchema = z.object({

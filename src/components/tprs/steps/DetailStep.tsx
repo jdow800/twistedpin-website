@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import DateStrip from "../DateStrip";
 import { useDayAvailability, loadDaySlots } from "../useAvailability";
+import { getSlotMaxUnits } from "../../../tprs/client";
 import type {
   AvailabilitySlot,
   BookableCategory,
@@ -138,6 +139,51 @@ export default function DetailStep({
       stale = true;
     };
   }, [product.id, date]);
+
+  // Per-slot live lane count for the "How many lanes?" cap (2026-06-27). The
+  // grid is boolean (a slot shows green if ≥1 lane is free); this probes the
+  // SELECTED slot for the real count so the stepper can't offer more than is
+  // bookable — which checkout would otherwise reject ("I had 2 in my cart but
+  // couldn't pay"). `null` = unknown (loading / probe failed / party mode) →
+  // fall back to the static online cap so a probe hiccup never blocks a booking.
+  const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
+  const onlineCap = laneMaxFor(product);
+
+  useEffect(() => {
+    // Party mode derives lanes from guests — the lane stepper is hidden there.
+    if (!selectedSlot || partyConfig) {
+      setSlotMaxUnits(null);
+      return;
+    }
+    let stale = false;
+    setSlotMaxUnits(null);
+    const ctrl = new AbortController();
+    getSlotMaxUnits(product.id, date, selectedSlot.time, ctrl.signal)
+      .then((r) => {
+        if (!stale) setSlotMaxUnits(r.maxUnits);
+      })
+      .catch(() => {
+        if (!stale) setSlotMaxUnits(null); // unknown → fall back to static cap
+      });
+    return () => {
+      stale = true;
+      ctrl.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product.id, date, selectedSlot?.time, partyConfig]);
+
+  // Effective ceiling = the lower of the product's online cap and lanes free.
+  const effectiveLaneMax =
+    slotMaxUnits === null ? onlineCap : Math.min(onlineCap, slotMaxUnits);
+
+  // Clamp a carried-over selection down when the chosen slot has fewer free
+  // (e.g. picked 2 at a wide-open slot, then switched to one with 1 left).
+  useEffect(() => {
+    if (slotMaxUnits === null || partyConfig) return;
+    if (laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
+      onLaneQty(effectiveLaneMax);
+    }
+  }, [slotMaxUnits, effectiveLaneMax, laneQty, partyConfig, onLaneQty]);
 
   // PREFETCH the next week: once this date's slots land, warm THIS product's
   // upcoming bookable days in the background — hopping along the date strip
@@ -389,7 +435,7 @@ export default function DetailStep({
                 type="button"
                 className="tprs-stepper-btn"
                 aria-label="More lanes"
-                disabled={laneQty >= laneMaxFor(product)}
+                disabled={laneQty >= effectiveLaneMax}
                 onClick={(e) => {
                   onLaneQty(laneQty + 1);
                   flyToCart(e.currentTarget);
@@ -409,20 +455,32 @@ export default function DetailStep({
               </strong>
             </p>
           )}
-          {/* At the online lane cap (data-driven from maxQuantityPerBooking):
-              say WHY the + stopped instead of a silently dead button. Default
-              routes the bigger night to events; a laneCapNote override (when
-              the cap IS the whole room — NYE VIP) just states the fact. */}
-          {laneQty >= laneMaxFor(product) &&
-            (laneCapNote ? (
+          {/* Why the + stopped — two ceilings (2026-06-27). SCARCITY (this slot
+              has fewer lanes free than the online cap): tell them how many are
+              left + steer to another time, so they don't build a cart checkout
+              rejects. Otherwise the ONLINE CAP message (default routes the
+              bigger night to events; a laneCapNote override — NYE VIP, where the
+              cap IS the whole room — just states the fact). */}
+          {slotMaxUnits !== null &&
+          slotMaxUnits < onlineCap &&
+          laneQty >= effectiveLaneMax ? (
+            <p className="tprs-qty-note" role="status">
+              {slotMaxUnits === 0
+                ? "Sorry — this time just filled up. Pick another time above."
+                : `Sorry — only ${slotMaxUnits} ${
+                    slotMaxUnits === 1 ? "lane is" : "lanes are"
+                  } left at this time. Pick another time above for more.`}
+            </p>
+          ) : laneQty >= onlineCap ? (
+            laneCapNote ? (
               <p className="tprs-qty-note" role="status">
                 {laneCapNote}
               </p>
             ) : (
               <p className="tprs-qty-note" role="status">
-                Online bookings cap at {laneMaxFor(product)}{" "}
-                {laneMaxFor(product) === 1 ? "lane" : "lanes"} here. Need more?
-                That's event territory — we'll set you up.{" "}
+                Online bookings cap at {onlineCap}{" "}
+                {onlineCap === 1 ? "lane" : "lanes"} here. Need more? That's
+                event territory — we'll set you up.{" "}
                 <a
                   className="tprs-inline-link"
                   href={CUSTOM_EVENT_URL}
@@ -432,7 +490,8 @@ export default function DetailStep({
                   Plan your event →
                 </a>
               </p>
-            ))}
+            )
+          ) : null}
         </div>
       )}
     </div>

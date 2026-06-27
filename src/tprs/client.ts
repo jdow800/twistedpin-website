@@ -20,6 +20,7 @@ import {
   bookableProductsResponseSchema,
   productsResponseSchema,
   availabilityResponseSchema,
+  slotAvailabilityResponseSchema,
   monthAvailabilityResponseSchema,
   productFormsResponseSchema,
   couponPreviewResponseSchema,
@@ -30,6 +31,7 @@ import {
   type BookableProductsResponse,
   type ProductsResponse,
   type AvailabilityResponse,
+  type SlotAvailabilityResponse,
   type MonthAvailabilityResponse,
   type ProductFormsResponse,
   type CouponPreviewResponse,
@@ -344,6 +346,26 @@ export async function getAvailability(
   return availabilityResponseSchema.parse(
     await getJson(
       `/api/availability?product_id=${productId}&date=${date}`,
+      signal,
+    ),
+  );
+}
+
+/**
+ * GET /api/availability/slot — max bookable UNITS at one selected slot, for the
+ * "How many lanes?" stepper cap. Returns `maxUnits` (uncapped at the online
+ * max — the caller does `min(onlineCap, maxUnits)`). Advisory; checkout's strict
+ * check stays authoritative. The grid endpoint stays boolean (AH-7).
+ */
+export async function getSlotMaxUnits(
+  productId: string,
+  date: string, // YYYY-MM-DD
+  time: string, // HH:MM
+  signal?: AbortSignal,
+): Promise<SlotAvailabilityResponse> {
+  return slotAvailabilityResponseSchema.parse(
+    await getJson(
+      `/api/availability/slot?product_id=${productId}&date=${date}&time=${time}`,
       signal,
     ),
   );
