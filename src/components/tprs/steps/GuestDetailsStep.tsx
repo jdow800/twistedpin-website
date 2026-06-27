@@ -8,7 +8,7 @@
 // PAYMENT step (CouponField.tsx) — checkout is where guests hunt for it.
 
 import { useState, useCallback } from "react";
-import FormRenderer from "../FormRenderer";
+import FormRenderer, { type UnitQuantities } from "../FormRenderer";
 import type { FormAnswerInput } from "../../../tprs/schemas";
 import { guestFieldError, guestInvalidFields, type GuestFields } from "../state";
 
@@ -28,6 +28,9 @@ interface Props {
    *  unsatisfied — folded into the screen-reader "N fields need attention"
    *  count so a missed VIP/NYE acknowledgement checkbox is announced too. */
   formInvalidCount: number;
+  /** Lanes/guests chosen earlier — drives any per_unit_select form field's
+   *  picker count (NYE one-pizza-per-lane). Passed straight to FormRenderer. */
+  unitQuantities: UnitQuantities;
 }
 
 // Input-side limiting so junk never lands in the field (paste-safe slice +
@@ -46,6 +49,7 @@ export default function GuestDetailsStep(props: Props) {
     onFormInvalidIds,
     submitAttempt,
     formInvalidCount,
+    unitQuantities,
   } = props;
 
   const [touched, setTouched] = useState<Partial<Record<keyof GuestFields, boolean>>>({});
@@ -215,6 +219,7 @@ export default function GuestDetailsStep(props: Props) {
         onAnswersChange={handleAnswers}
         onInvalidIdsChange={onFormInvalidIds}
         submitAttempt={submitAttempt}
+        unitQuantities={unitQuantities}
       />
 
     </div>

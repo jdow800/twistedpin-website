@@ -47,6 +47,16 @@ export const formFieldDefinitionSchema = z.object({
   options: z.array(z.string()),
   minSelections: z.number().int().nullable(),
   maxSelections: z.number().int().nullable(),
+  // per_unit_select derived-count config: N = max(1, ceil(quantity /
+  // countDivisor)), quantity = guest headcount or lane count. NULL elsewhere.
+  // The checkout renderer computes N from this + the lanes/guests already
+  // chosen in the wizard. Kept in lockstep with @tprs/shared-schemas/forms.ts.
+  countSource: z.enum(["guest_count", "lane_count"]).nullable(),
+  countDivisor: z.number().int().nullable(),
+  // per_unit MULTI-topping mode + free base (send-a-form "toppings per pizza").
+  // checkout is single-select only; mirrored to stay a true copy of canonical.
+  perUnitMulti: z.boolean(),
+  baseOption: z.string().nullable(),
   displayOrder: z.number().int(),
   // Conditional visibility — render only when the field `visibleWhenFieldId`
   // has an answer in `visibleWhenValues`. null = always visible. Kept in

@@ -380,6 +380,10 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           onFormInvalidIds={setFormInvalidIds}
           submitAttempt={submitAttempt}
           formInvalidCount={formInvalidIds.length}
+          unitQuantities={{
+            guest_count: state.partySize ?? 0,
+            lane_count: state.laneQty,
+          }}
         />
       )}
 
