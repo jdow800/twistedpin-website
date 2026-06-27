@@ -15,6 +15,7 @@ import {
   couponDiscountCents,
   guestInvalidFields,
   GUEST_FIELD_DOM_ID,
+  laneMaxFor,
 } from "./state";
 import { scrollFocusInvalid } from "./scroll";
 import { useQuote } from "./useQuote";
@@ -26,7 +27,7 @@ import type {
   FormDefinition,
   QuoteRequest,
 } from "../../tprs/schemas";
-import { getProductForms } from "../../tprs/client";
+import { getProductForms, getSlotMaxUnits } from "../../tprs/client";
 import { perUnitCount } from "./FormRenderer";
 import {
   bookingPageConfig,
@@ -174,6 +175,54 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   useEffect(() => {
     if (state.step !== "guest" && submitAttempt !== 0) setSubmitAttempt(0);
   }, [state.step, submitAttempt]);
+
+  // Per-slot live lane count (2026-06-27), lifted to the wizard so BOTH the
+  // "How many lanes?" stepper (DetailStep) and the cart-rail stepper
+  // (StickySummary, shown on addons/guest/payment) cap at it. The grid is
+  // boolean, so without this a guest can bump the lane count past what's free
+  // in the sidebar and only find out at checkout. null = unknown (loading /
+  // probe failed / party mode) → fall back to the static online cap so a hiccup
+  // never blocks a booking. Keyed on the selected (product, date, slot).
+  const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
+  const slotTime = state.slot?.time;
+  useEffect(() => {
+    if (!state.product || !state.date || !slotTime || config.partySize) {
+      setSlotMaxUnits(null);
+      return;
+    }
+    let stale = false;
+    setSlotMaxUnits(null);
+    const ctrl = new AbortController();
+    getSlotMaxUnits(state.product.id, state.date, slotTime, ctrl.signal)
+      .then((r) => {
+        if (!stale) setSlotMaxUnits(r.maxUnits);
+      })
+      .catch(() => {
+        if (!stale) setSlotMaxUnits(null);
+      });
+    return () => {
+      stale = true;
+      ctrl.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.product?.id, state.date, slotTime, config.partySize]);
+
+  // Effective lane ceiling = lower of the product's online cap and lanes free.
+  const effectiveLaneMax = state.product
+    ? slotMaxUnits === null
+      ? laneMaxFor(state.product)
+      : Math.min(laneMaxFor(state.product), slotMaxUnits)
+    : 0;
+
+  // Clamp a carried-over selection down when the chosen slot has fewer free
+  // (picked 2 at a wide-open slot, then switched to a 1-lane slot).
+  useEffect(() => {
+    if (slotMaxUnits === null || config.partySize) return;
+    if (state.laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
+      dispatch({ type: "SET_LANE_QTY", qty: effectiveLaneMax });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize]);
 
   // A "guests" product (base package + per-guest add-on) vs the lane default.
   const guestStepper = useMemo(
@@ -370,6 +419,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           category={state.category}
           product={state.product}
           selectedSlot={state.slot}
+          slotMaxUnits={slotMaxUnits}
           laneQty={state.laneQty}
           quantityLabel={config.quantityLabel ?? DEFAULT_QUANTITY_LABEL}
           quantityHelp={config.quantityHelp}
@@ -465,6 +515,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           }
           formAnswers={state.formAnswers}
           formStale={perUnitStale}
+          onFindNewTime={() => dispatch({ type: "GO_STEP", step: "detail" })}
           termsText={config.termsText}
           totalCents={
             quote
@@ -512,6 +563,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         <StickySummary
           state={state}
           partyGuests={config.partySize ? state.partySize : null}
+          slotMaxUnits={slotMaxUnits}
           quote={quote}
           quoteLoading={quoteLoading}
           quoteUnavailable={quoteUnavailable}

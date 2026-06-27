@@ -31,6 +31,9 @@ interface Props {
    *  count — the cart shows the lane line read-only ("2 lanes · for 8 guests")
    *  instead of lane steppers, so lanes can't drift from the headcount. */
   partyGuests?: number | null;
+  /** Max bookable lanes at the selected slot (wizard-fetched); null = unknown.
+   *  Caps the cart-rail lane stepper so it can't bump past what's free. */
+  slotMaxUnits?: number | null;
   /** Server-authoritative subtotal+tax+total; null until the endpoint responds. */
   quote: QuoteResponse | null;
   quoteLoading: boolean;
@@ -58,9 +61,16 @@ interface Line {
   max: number;
 }
 
-function lineItems(state: WizardState): Line[] {
+function lineItems(state: WizardState, slotMaxUnits: number | null): Line[] {
   const lines: Line[] = [];
   if (state.slot && state.product) {
+    // Cap the cart-rail stepper at the lower of the product's online max and
+    // the lanes actually free at this slot (wizard-fetched) — without this the
+    // sidebar "+" let a guest bump past availability and fail at checkout.
+    const laneMax =
+      slotMaxUnits === null
+        ? laneMaxFor(state.product)
+        : Math.min(laneMaxFor(state.product), slotMaxUnits);
     lines.push({
       key: "lane",
       kind: "lane",
@@ -70,7 +80,7 @@ function lineItems(state: WizardState): Line[] {
       qty: state.laneQty,
       cents: state.slot.priceCents * state.laneQty,
       min: 1,
-      max: laneMaxFor(state.product),
+      max: laneMax,
     });
   }
   if (state.product) {
@@ -108,6 +118,7 @@ function addOnsSelected(state: WizardState): boolean {
 export default function StickySummary({
   state,
   partyGuests = null,
+  slotMaxUnits = null,
   quote,
   quoteLoading,
   quoteUnavailable,
@@ -124,7 +135,7 @@ export default function StickySummary({
   const discount = couponDiscountCents(state);
   const net = Math.max(0, subtotal - discount);
   const count = itemCount(state);
-  const lines = lineItems(state);
+  const lines = lineItems(state, slotMaxUnits);
 
   // Headline = server total (incl. tax) when available, else pre-tax fallback.
   const displayTotal = quote ? quote.totalIncludingTax : net;

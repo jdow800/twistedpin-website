@@ -7,7 +7,6 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import DateStrip from "../DateStrip";
 import { useDayAvailability, loadDaySlots } from "../useAvailability";
-import { getSlotMaxUnits } from "../../../tprs/client";
 import type {
   AvailabilitySlot,
   BookableCategory,
@@ -42,6 +41,8 @@ interface Props {
   category: BookableCategory | null;
   product: CustomerProduct;
   selectedSlot: AvailabilitySlot | null;
+  /** Max bookable lanes at the selected slot (wizard-fetched); null = unknown. */
+  slotMaxUnits: number | null;
   laneQty: number;
   /** Per-page quantity wording (pageConfig). Defaults below when unset. */
   quantityLabel: string;
@@ -73,6 +74,7 @@ export default function DetailStep({
   category,
   product,
   selectedSlot,
+  slotMaxUnits,
   laneQty,
   quantityLabel,
   quantityHelp,
@@ -140,50 +142,25 @@ export default function DetailStep({
     };
   }, [product.id, date]);
 
-  // Per-slot live lane count for the "How many lanes?" cap (2026-06-27). The
-  // grid is boolean (a slot shows green if ≥1 lane is free); this probes the
-  // SELECTED slot for the real count so the stepper can't offer more than is
-  // bookable — which checkout would otherwise reject ("I had 2 in my cart but
-  // couldn't pay"). `null` = unknown (loading / probe failed / party mode) →
-  // fall back to the static online cap so a probe hiccup never blocks a booking.
-  const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
+  // Per-slot live lane count is fetched by the wizard (so the cart-rail stepper
+  // shares it + the clamp lives in one place) and passed in. Here it caps the
+  // "How many lanes?" stepper. null = unknown (loading / probe failed / party
+  // mode) → fall back to the static online cap so a hiccup never blocks a book.
   const onlineCap = laneMaxFor(product);
 
+  // Don't show the scarcity note just because the slot has 1 lane left — that
+  // reads as "no availability." Show it only when the guest actively tries to
+  // add MORE than is free (taps + at the lanes-free ceiling). slotMaxUnits === 0
+  // is the exception: even their current pick is gone, so say so immediately.
+  // Reset on slot / count change.
+  const [scarcityBumped, setScarcityBumped] = useState(false);
   useEffect(() => {
-    // Party mode derives lanes from guests — the lane stepper is hidden there.
-    if (!selectedSlot || partyConfig) {
-      setSlotMaxUnits(null);
-      return;
-    }
-    let stale = false;
-    setSlotMaxUnits(null);
-    const ctrl = new AbortController();
-    getSlotMaxUnits(product.id, date, selectedSlot.time, ctrl.signal)
-      .then((r) => {
-        if (!stale) setSlotMaxUnits(r.maxUnits);
-      })
-      .catch(() => {
-        if (!stale) setSlotMaxUnits(null); // unknown → fall back to static cap
-      });
-    return () => {
-      stale = true;
-      ctrl.abort();
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [product.id, date, selectedSlot?.time, partyConfig]);
-
-  // Effective ceiling = the lower of the product's online cap and lanes free.
-  const effectiveLaneMax =
-    slotMaxUnits === null ? onlineCap : Math.min(onlineCap, slotMaxUnits);
-
-  // Clamp a carried-over selection down when the chosen slot has fewer free
-  // (e.g. picked 2 at a wide-open slot, then switched to one with 1 left).
-  useEffect(() => {
-    if (slotMaxUnits === null || partyConfig) return;
-    if (laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
-      onLaneQty(effectiveLaneMax);
-    }
-  }, [slotMaxUnits, effectiveLaneMax, laneQty, partyConfig, onLaneQty]);
+    setScarcityBumped(false);
+  }, [selectedSlot?.time, slotMaxUnits, laneQty]);
+  const showScarcity =
+    slotMaxUnits !== null &&
+    slotMaxUnits < onlineCap &&
+    (slotMaxUnits === 0 || scarcityBumped);
 
   // PREFETCH the next week: once this date's slots land, warm THIS product's
   // upcoming bookable days in the background — hopping along the date strip
@@ -435,8 +412,16 @@ export default function DetailStep({
                 type="button"
                 className="tprs-stepper-btn"
                 aria-label="More lanes"
-                disabled={laneQty >= effectiveLaneMax}
+                // Disabled only at the hard online cap. At the lanes-free
+                // ceiling the button stays tappable so the tap can REVEAL why
+                // (the scarcity note) instead of greying out by default — which
+                // read like "no availability" even when there's 1 lane to book.
+                disabled={laneQty >= onlineCap}
                 onClick={(e) => {
+                  if (slotMaxUnits !== null && laneQty >= slotMaxUnits) {
+                    setScarcityBumped(true); // hit the lanes-free ceiling
+                    return;
+                  }
                   onLaneQty(laneQty + 1);
                   flyToCart(e.currentTarget);
                 }}
@@ -461,13 +446,12 @@ export default function DetailStep({
               rejects. Otherwise the ONLINE CAP message (default routes the
               bigger night to events; a laneCapNote override — NYE VIP, where the
               cap IS the whole room — just states the fact). */}
-          {slotMaxUnits !== null &&
-          slotMaxUnits < onlineCap &&
-          laneQty >= effectiveLaneMax ? (
-            <p className="tprs-qty-note" role="status">
+          {showScarcity ? (
+            <p className="tprs-qty-note tprs-qty-note--scarce" role="status">
+              <span className="tprs-scarce-lead">Sorry —</span>{" "}
               {slotMaxUnits === 0
-                ? "Sorry — this time just filled up. Pick another time above."
-                : `Sorry — only ${slotMaxUnits} ${
+                ? "this time just filled up. Pick another time above."
+                : `only ${slotMaxUnits} ${
                     slotMaxUnits === 1 ? "lane is" : "lanes are"
                   } left at this time. Pick another time above for more.`}
             </p>

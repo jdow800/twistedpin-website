@@ -52,6 +52,9 @@ interface Props {
    *  guaranteed convert 400 (form_answer_invalid) can't charge-then-fail. Only
    *  ever set for products with a per-lane field (NYE); a no-op otherwise. */
   formStale?: boolean;
+  /** Back to the time picker (detail step) — the sold-out blocker's recovery
+   *  action, so "pick another time" actually lands somewhere they can. */
+  onFindNewTime: () => void;
   termsText: string;
   /** Authoritative total (incl. tax) for the Pay button + deferred amount. */
   totalCents: number;
@@ -161,6 +164,7 @@ function CheckoutForm({
   couponCode,
   formAnswers,
   formStale,
+  onFindNewTime,
   termsText,
   totalCents,
   onConverted,
@@ -192,6 +196,7 @@ function CheckoutForm({
   // selection and payment. Drives a prominent blocker that replaces the card
   // form (2026-06-27) instead of a tiny error line under a fillable form.
   const [holdSoldOut, setHoldSoldOut] = useState(false);
+  const blockerBtnRef = useRef<HTMLButtonElement>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -297,6 +302,13 @@ function CheckoutForm({
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // When the sold-out blocker appears, move focus to its primary action — the
+  // early return removes the previously-focused card field, which would
+  // otherwise drop keyboard/SR users to <body>.
+  useEffect(() => {
+    if (holdSoldOut) blockerBtnRef.current?.focus();
+  }, [holdSoldOut]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -449,24 +461,35 @@ function CheckoutForm({
   // Sold out (the slot filled between selection and payment): replace the whole
   // card form with a prominent blocker so the guest never types card details
   // into a form that can't pay — and knows exactly why. The stepper cap makes
-  // this rare; this is the race backstop. Recovery is the wizard's Back button.
+  // this rare; this is the race backstop. "Find a new time" jumps back to the
+  // time picker (not one step back). Move focus to it since the early return
+  // pulls the previously-focused card field out of the DOM (a11y).
   if (holdSoldOut) {
     return (
       <div className="tprs-pay-blocker" role="alert">
         <span className="tprs-pay-blocker__title">That time just filled up</span>
         <p className="tprs-pay-blocker__body">
           Someone grabbed the last open lane while you were checking out, so we
-          can’t reserve this time. Tap <strong>Back</strong> to pick another
-          time — your card hasn’t been charged.
+          can’t reserve this time — your card hasn’t been charged.
         </p>
-        <button
-          type="button"
-          className="tprs-link-btn"
-          onClick={acquireHold}
-          disabled={refreshing}
-        >
-          {refreshing ? "Checking…" : "Try this time again"}
-        </button>
+        <div className="tprs-pay-blocker__actions">
+          <button
+            ref={blockerBtnRef}
+            type="button"
+            className="tprs-btn tprs-btn--solid"
+            onClick={onFindNewTime}
+          >
+            Find a new time
+          </button>
+          <button
+            type="button"
+            className="tprs-link-btn"
+            onClick={acquireHold}
+            disabled={refreshing}
+          >
+            {refreshing ? "Checking…" : "or try this time again"}
+          </button>
+        </div>
       </div>
     );
   }

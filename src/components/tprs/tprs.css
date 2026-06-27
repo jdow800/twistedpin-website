@@ -685,6 +685,9 @@
   padding-top: 12px;
   border-top: 1px solid var(--tw-border);
 }
+/* Scarcity ("only N left") — louder than the neutral cap note + teal lead. */
+.tprs-qty-note--scarce { font-size: 14px; color: var(--tw-text); }
+.tprs-scarce-lead { color: var(--tw-accent); font-weight: 700; }
 /* Live lanes→people readout under the stepper — answers "how many lanes do I
    need?" by translating the count to seats as the guest steps. The number reads
    in Glow so it's the scannable thing; sits tight under the stepper row. */
@@ -1088,6 +1091,7 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-pay-blocker__title { font-family: var(--font-display, var(--font-body)); font-weight: 800; font-size: 18px; letter-spacing: 0.01em; color: var(--tw-danger); }
 .tprs-pay-blocker__body { margin: 0; font-size: 14px; line-height: 1.55; color: var(--tw-text-muted); }
 .tprs-pay-blocker__body strong { color: var(--tw-text); }
+.tprs-pay-blocker__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 
 /* ── Confirmation (preview) ─────────────────────────────────────────── */
 .tprs-confirm { text-align: center; padding: 20px 4px 8px; max-width: 460px; margin: 0 auto; }
