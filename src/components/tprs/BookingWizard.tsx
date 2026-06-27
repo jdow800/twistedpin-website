@@ -23,8 +23,11 @@ import { toIsoWithOffset } from "./format";
 import type {
   CheckoutItem,
   FormAnswerInput,
+  FormDefinition,
   QuoteRequest,
 } from "../../tprs/schemas";
+import { getProductForms } from "../../tprs/client";
+import { perUnitCount } from "./FormRenderer";
 import {
   bookingPageConfig,
   DEFAULT_QUANTITY_LABEL,
@@ -156,6 +159,10 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // and gate the advance (see guestStepInvalidIds + handleNext). Server also
   // rejects an incomplete set at convert with form_answer_invalid.
   const [formInvalidIds, setFormInvalidIds] = useState<string[]>([]);
+  // The booked product's checkout forms — fetched once per product so the
+  // payment step can detect stale per-lane answers after a lane change (the
+  // FormRenderer that normally guards this is unmounted on the payment step).
+  const [productForms, setProductForms] = useState<FormDefinition[] | null>(null);
   // Bumped by a failed Continue on the guest step → broadcasts "reveal ALL
   // required-field errors" to GuestDetailsStep + FormRenderer.
   const [submitAttempt, setSubmitAttempt] = useState(0);
@@ -196,6 +203,49 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         })),
     ];
   }, [state.product, state.laneQty, state.addOnQtys]);
+
+  // Fetch the product's checkout forms once (cached) so perUnitStale below can
+  // re-derive per-lane completeness on the PAYMENT step, where FormRenderer is
+  // unmounted and can't re-trim. Cleared/refetched when the product changes.
+  // On failure we fall back to [] (→ perUnitStale false → Pay NOT blocked):
+  // perUnitStale is an ADVISORY pre-charge guard, never a hard gate — blocking
+  // Pay on "couldn't load forms" would break ALL checkout if this endpoint ever
+  // went down. The hard money-safety net is server-side: convert re-derives N
+  // and rejects a mismatch (form_answer_invalid) AND auto-refunds the charge.
+  useEffect(() => {
+    const id = state.product?.id;
+    if (!id) {
+      setProductForms(null);
+      return;
+    }
+    const ctrl = new AbortController();
+    getProductForms(id, ctrl.signal)
+      .then((res) => setProductForms(res.forms))
+      .catch(() => setProductForms([])); // advisory — never block on failure
+    return () => ctrl.abort();
+  }, [state.product?.id]);
+
+  // True when a per_unit_select field's stored answer count no longer matches
+  // the chosen lanes — i.e. the guest changed lane count AFTER filling the
+  // per-lane picks (e.g. via the cart on the payment step). Only ever true for
+  // products that HAVE a per_unit_select field (today: NYE pizza/soda), so it's
+  // a no-op for every other product. The payment step blocks Pay on this; the
+  // server independently re-derives N and rejects at convert as the backstop.
+  const perUnitStale = useMemo<boolean>(() => {
+    if (!productForms?.length) return false;
+    const q = { guest_count: state.partySize ?? 0, lane_count: state.laneQty };
+    for (const form of productForms) {
+      for (const field of form.fields) {
+        if (field.fieldType !== "per_unit_select") continue;
+        const expected = perUnitCount(field, q);
+        const have = state.formAnswers.filter(
+          (a) => a.formFieldId === field.id,
+        ).length;
+        if (have !== expected) return true;
+      }
+    }
+    return false;
+  }, [productForms, state.formAnswers, state.partySize, state.laneQty]);
 
   // Server-authoritative quote (subtotal + tax + total) — recomputed whenever
   // the cart contents / time / coupon change. The SPA never computes tax; it
@@ -414,6 +464,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             dispatch({ type: "SET_COUPON_RESULT", result })
           }
           formAnswers={state.formAnswers}
+          formStale={perUnitStale}
           termsText={config.termsText}
           totalCents={
             quote

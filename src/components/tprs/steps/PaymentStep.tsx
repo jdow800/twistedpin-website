@@ -47,6 +47,11 @@ interface Props {
   onCouponCode: (code: string) => void;
   onCouponResult: (result: CouponPreviewResponse | null) => void;
   formAnswers: FormAnswerInput[];
+  /** True when a per-lane (per_unit_select) answer count no longer matches the
+   *  chosen lanes — the guest changed lane count after picking. Blocks Pay so a
+   *  guaranteed convert 400 (form_answer_invalid) can't charge-then-fail. Only
+   *  ever set for products with a per-lane field (NYE); a no-op otherwise. */
+  formStale?: boolean;
   termsText: string;
   /** Authoritative total (incl. tax) for the Pay button + deferred amount. */
   totalCents: number;
@@ -68,6 +73,8 @@ function checkoutErrorMessage(err: unknown): string {
         return "We couldn't verify the payment. Please try again.";
       case "amount_mismatch":
         return "The price changed while you were checking out, so we couldn't finish this booking.";
+      case "form_answer_invalid":
+        return "Your booking details changed and need another look before we can finish.";
       default:
         return err.message || "Something went wrong. Please try again.";
     }
@@ -153,6 +160,7 @@ function CheckoutForm({
   startTime,
   couponCode,
   formAnswers,
+  formStale,
   termsText,
   totalCents,
   onConverted,
@@ -288,6 +296,15 @@ function CheckoutForm({
       setErrorMsg("Your hold ran out — tap Refresh, then Pay.");
       return;
     }
+    // Per-lane picks (NYE pizza/soda) no longer match the lane count — a charge
+    // here would convert-400 (form_answer_invalid) and strand the payment. Block
+    // BEFORE confirmPayment; the guest taps Back to re-pick for the new lanes.
+    if (formStale) {
+      setErrorMsg(
+        "Your lane count changed — tap Back and re-pick the pizza & soda for each lane, then return here to pay.",
+      );
+      return;
+    }
     setSubmitting(true);
     setErrorMsg(null);
     try {
@@ -386,6 +403,23 @@ function CheckoutForm({
         setSubmitting(false);
         return;
       }
+      // Booking details (e.g. per-lane picks) failed convert validation. The
+      // server rolls back AND auto-refunds the captured charge (mirrors the
+      // amount_mismatch path), so a retry would 400 identically — TERMINAL.
+      // Block further submits; the guest goes Back, fixes the picks, starts over
+      // (remounting this step clears `blocked`). The pre-charge formStale guard
+      // above normally prevents ever reaching here for the lane-change case;
+      // this covers the residual causes (stale tab, server-side form edit).
+      if (err instanceof TprsCheckoutError && err.code === "form_answer_invalid") {
+        setBlocked(true);
+        setErrorMsg(
+          charged
+            ? "Your booking details changed, so we couldn't finish — your card was charged and we've issued a refund. Please go back, review your per-lane choices, and start a new booking, or call (815) 782-7790."
+            : "Your booking details need another look — please go back, review your per-lane choices, and try again.",
+        );
+        setSubmitting(false);
+        return;
+      }
       const base = checkoutErrorMessage(err);
       setErrorMsg(
         charged
@@ -439,6 +473,15 @@ function CheckoutForm({
         </span>
       </label>
 
+      {/* Proactive notice (before any Pay click) when the lane count changed and
+          the per-lane picks are now out of sync — points the guest to Back. */}
+      {formStale && !errorMsg && (
+        <p className="tprs-pay-error-msg" role="alert">
+          Your lane count changed since you picked the pizza &amp; soda. Tap Back
+          to choose for each lane, then return here to pay.
+        </p>
+      )}
+
       {errorMsg && (
         <p className="tprs-pay-error-msg" role="alert">
           {errorMsg}
@@ -448,7 +491,7 @@ function CheckoutForm({
       <button
         type="submit"
         className="tprs-btn tprs-btn--solid tprs-pay-submit"
-        disabled={blocked || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
+        disabled={blocked || formStale || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
       >
         {submitting
           ? "Processing…"

@@ -79,7 +79,7 @@ function fieldVisible(field: FormFieldDefinition, answers: AnswerMap): boolean {
  * server's `unitsForField` so the checkout renderer draws exactly the count the
  * convert validator will enforce. (NYE: lane_count ÷ 1 → one per lane.)
  */
-function perUnitCount(field: FormFieldDefinition, q: UnitQuantities): number {
+export function perUnitCount(field: FormFieldDefinition, q: UnitQuantities): number {
   const div = Math.max(1, field.countDivisor ?? 1);
   const base =
     field.countSource === "lane_count"
