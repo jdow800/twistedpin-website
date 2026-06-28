@@ -1,12 +1,12 @@
 {
-  "fetchedAt": "2026-06-27T09:00:32.703Z",
+  "fetchedAt": "2026-06-28T09:00:04.491Z",
   "hours": {
     "sun": {
-      "label": "12pm – 10pm",
+      "label": "7:30pm – 10pm",
       "closed": false,
-      "openMinutes": 720,
+      "openMinutes": 1170,
       "closeMinutes": 1320,
-      "openLabel": "12pm",
+      "openLabel": "7:30pm",
       "closeLabel": "10pm"
     },
     "mon": {
@@ -50,12 +50,12 @@
       "closeLabel": "1am"
     },
     "sat": {
-      "label": "11am – 1am",
-      "closed": false,
-      "openMinutes": 660,
-      "closeMinutes": 1500,
-      "openLabel": "11am",
-      "closeLabel": "1am"
+      "label": "Closed",
+      "closed": true,
+      "openMinutes": 0,
+      "closeMinutes": 0,
+      "openLabel": "",
+      "closeLabel": ""
     }
   },
   "rating": 4.5,
