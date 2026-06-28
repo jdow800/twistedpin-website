@@ -10,6 +10,13 @@ and every `ROLLER_URL` CTA are untouched — the cutover is a separate, gated st
 > bold / color / links / line breaks to TPRS fields (names, descriptions,
 > category subtitles) + the allowed brand-color names (glow, copper, tango, …).
 
+> **Standing up a new booking page, or wondering how inventory checks keep a
+> guest from overselling?** See [BOOKING-PAGE-SETUP.md](BOOKING-PAGE-SETUP.md) —
+> every `BookingPageConfig` knob, the client→endpoint map, the slot-probe /
+> stepper-cap / sold-out-blocker layering, and the "10 days out"
+> (`max_advance_booking_days`) grid-vs-probe gotcha. Backend companion: the
+> TPRS repo's `docs/RESOURCE-CONSUMPTION-CONTRACT.md`.
+
 ## What's here (full flow — real checkout)
 
 `date/slot → grouped product grid → detail (time-slot + lane qty / guest stepper)
