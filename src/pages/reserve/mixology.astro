@@ -1,0 +1,160 @@
+---
+/**
+ * /reserve/mixology — TPRS booking page for "An Evening with America's Top
+ * Mixologist" (single per-seat product, code 500, calendar seeded 7/28).
+ *
+ * Same wizard as /reserve/nye + /reserve/birthdays; the only difference is the
+ * config (mixologyPageConfig). Typography-only hero — the /mixology-experience/
+ * lander owns the atmosphere; this is the checkout surface it links to.
+ *
+ * Availability is gated backend-side: the product is bookable ONLY at 7 PM on
+ * 2026-07-28 (a single product_date_availability_override, no product_schedule),
+ * so the calendar shows nothing on any other day. Capacity (20 seats) is hard-
+ * enforced at cart-add/convert. Two REQUIRED acknowledgment checkboxes (21+,
+ * ticket-only/closed-to-public) render at checkout via the product's form.
+ *
+ * PARKED-INDEX DISCIPLINE: like the other /reserve/* pages, this ships
+ * noindexed (meta robots + robots.txt + sitemap) but is deliberately LINKED
+ * from the /mixology-experience/ lander so guests can buy. Nobody should land
+ * on the raw booking page from search — the lander is the marketing entry.
+ */
+import Base from "../../layouts/Base.astro";
+import BookingWizard from "../../components/tprs/BookingWizard.tsx";
+import { mixologyPageConfig } from "../../tprs/pageConfig";
+
+const { uxCopy, heroImage } = mixologyPageConfig;
+---
+<Base
+  title="Reserve — An Evening with America's Top Mixologist | Twisted Pin"
+  description="Reserve your seat for a one-night mixology experience hosted by Brian Van Flandern at Twisted Pin in Plainfield — Tuesday, July 28 at 7 PM. 20 seats, $119 a person, 21+."
+  ogImage="/og/og-bar.jpg"
+  ogImageAlt="Craft cocktails at Twisted Pin in Plainfield, IL"
+  hideStickyCTA={true}
+  lockViewportZoom={true}
+  lcpPreloadHref={heroImage ? `${heroImage.base}-1080.avif` : undefined}
+  lcpPreloadMedia={heroImage ? "(max-width: 1024px)" : undefined}
+>
+  {/* One-off ephemeral event — noindex the raw booking page so it doesn't
+      compete with the /mixology-experience/ lander (the indexed marketing
+      entry). NOT robots.txt-Disallowed: the lander links here, so crawlers
+      must be able to read this noindex. Also excluded from the sitemap
+      (astro.config.mjs filter). Unlike /reserve/nye + /reserve/birthdays
+      (evergreen, indexed), this page has no lasting SEO value. */}
+  <Fragment slot="head">
+    <meta name="robots" content="noindex" />
+  </Fragment>
+
+  {heroImage ? (
+    <section class="tprs-hero" data-hero aria-labelledby="tprs-h1">
+      <picture>
+        <source type="image/avif" media="(max-width: 1024px)" srcset={`${heroImage.base}-1080.avif`} />
+        <source type="image/avif" media="(min-width: 1025px)" srcset={`${heroImage.base}-1600.avif`} />
+        <source type="image/webp" media="(max-width: 1024px)" srcset={`${heroImage.base}-1080.webp`} />
+        <img class="tprs-hero-img" data-tprs-hero-img src={`${heroImage.base}-1600.webp`} alt={heroImage.alt} fetchpriority="high" decoding="async" />
+      </picture>
+      <div class="tprs-hero-scrim" aria-hidden="true"></div>
+      <div class="tprs-hero-copy">
+        <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+        <h1 class="t-display tprs-hero-headline" id="tprs-h1">{uxCopy.headline}</h1>
+        <p class="tprs-hero-sub">{uxCopy.sub}</p>
+      </div>
+    </section>
+  ) : (
+    <section class="tprs-intro" data-hero aria-labelledby="tprs-h1">
+      <p class="t-eyebrow">{uxCopy.eyebrow}</p>
+      <h1 class="t-display tprs-intro-headline" id="tprs-h1">{uxCopy.headline}</h1>
+      <p class="tprs-intro-sub">{uxCopy.sub}</p>
+    </section>
+  )}
+
+  <div class="tprs-mount">
+    <BookingWizard client:only="react" config={mixologyPageConfig} />
+  </div>
+</Base>
+
+<style>
+  /* ---------- compact identity hero (image band) ---------- */
+  .tprs-hero {
+    position: relative;
+    height: clamp(300px, 42dvh, 440px);
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+  }
+  @media (min-width: 1025px) {
+    .tprs-hero {
+      margin-top: var(--header-height);
+      height: clamp(420px, 52dvh, 600px);
+    }
+    .tprs-hero-scrim {
+      background: linear-gradient(
+        to bottom,
+        rgba(14, 10, 31, 0.3) 0%,
+        rgba(14, 10, 31, 0.15) 38%,
+        rgba(14, 10, 31, 0.62) 72%,
+        #0e0a1f 100%
+      );
+    }
+  }
+  .tprs-hero-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transition: opacity 0.3s ease;
+  }
+  .tprs-hero-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(14, 10, 31, 0.6) 0%,
+      rgba(14, 10, 31, 0.18) 38%,
+      rgba(14, 10, 31, 0.62) 72%,
+      #0e0a1f 100%
+    );
+  }
+  .tprs-hero-copy {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 18px 16px;
+    text-align: center;
+  }
+  .tprs-hero-headline {
+    font-size: clamp(34px, 9vw, 58px);
+    letter-spacing: -0.01em;
+    margin: 4px 0 8px;
+  }
+  .tprs-hero-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+
+  /* ---------- typography hero (no image configured) ------ */
+  .tprs-intro {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: calc(var(--header-height) + 28px) 18px 26px;
+    text-align: center;
+  }
+  .tprs-intro-headline {
+    font-size: clamp(34px, 10vw, 64px);
+    letter-spacing: -0.01em;
+    margin: 6px 0 10px;
+  }
+  .tprs-intro-sub {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--warm-mid);
+    margin: 0;
+  }
+  .tprs-mount {
+    min-height: 70dvh;
+  }
+</style>

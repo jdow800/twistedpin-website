@@ -102,6 +102,23 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     showFrom: "2026-09-01",
     showUntil: "2027-01-05",
   },
+  /**
+   * An Evening with America's Top Mixologist: one-night ticketed cocktail
+   * experience hosted by Brian Van Flandern on Tuesday, July 28, 2026. Page
+   * lives at /mixology-experience/ year-round (evergreen if the event reruns);
+   * surfaces in the "Visit" drawer from the on-sale date through the event day.
+   * Short-lived, tight window — a martini icon distinguishes it from the other
+   * Visit items. Remove or repoint this entry once the night passes (or bump
+   * the dates + swap the lander copy if it becomes a recurring series).
+   */
+  {
+    label: "Mixology Experience",
+    href: "/mixology-experience/",
+    icon: "martini",
+    section: "Visit",
+    showFrom: "2026-07-03",
+    showUntil: "2026-07-28",
+  },
 ];
 
 /** Active items at build time. Returns only items inside their window. */

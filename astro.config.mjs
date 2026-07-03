@@ -69,6 +69,10 @@ export default defineConfig({
         !page.includes('/tprs') &&
         !page.includes('/coupon-preview') &&
         !page.includes('/kids-signup-preview') &&
+        // /reserve/mixology is a noindexed one-off event booking page (the
+        // /mixology-experience/ lander is the indexed entry). Keep it out of
+        // the sitemap so GSC doesn't flag "submitted URL marked noindex".
+        !page.includes('/reserve/mixology') &&
         !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
     }),
     // React islands for the TPRS customer booking flow (ADR-0029 §1 — the

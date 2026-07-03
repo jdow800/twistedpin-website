@@ -410,6 +410,55 @@ export const nyePageConfig: BookingPageConfig = {
   },
 };
 
+/**
+ * /reserve/mixology — "An Evening with America's Top Mixologist," a one-night
+ * ticketed cocktail experience hosted by Brian Van Flandern (2026-07-28, 7 PM,
+ * 20 seats, $119/person). Sells the single per-seat product (code 500) created
+ * in tprs migration 0089.
+ *
+ * DIFFERENT from the lane pages: this is a PER-SEAT event, not lanes. The
+ * product consumes a dedicated 20-seat pool (1 seat per ticket), so the
+ * "quantity" question is seats, not lanes. Single date + single time (7 PM on
+ * 7/28) is enforced backend-side by the product's date override, so the calendar
+ * is seeded at 7/28 (defaultDate) and no other date is bookable.
+ *
+ * Typography-only hero (no heroImage) — the /mixology-experience/ lander owns
+ * the atmosphere; the booking page is the reference/checkout surface. The
+ * booking CTAs on the lander point here.
+ */
+export const mixologyPageConfig: BookingPageConfig = {
+  // 500 → "An Evening with America's Top Mixologist" $119/person · 120min ·
+  // 20-seat pool · bookable ONLY 2026-07-28 19:00. Code 500 is a reserved
+  // special-events value above the auto-assign sequence (see migration 0089).
+  productCodes: [500],
+  // Only bookable on 7/28 (product_date_availability_override) — seed there.
+  defaultDate: "2026-07-28",
+  // Sell by the SEAT, not the lane.
+  quantityLabel: "How many seats?",
+  quantityHelp: "Each seat is one spot at the experience. Up to 10 per order.",
+  // The party end can drift (Brian runs 90 min–2 hr by group), so don't promise
+  // a hard end time on the confirmation — same call as the birthday packages.
+  confirmEndTime: false,
+  // At the 10-seat per-order cap, "need more" isn't event territory — it's just
+  // the cap. Replace the default Zite events nudge with a contact line (no link).
+  laneCapNotes: {
+    500: "Up to 10 seats per order. Booking for a bigger group? Email contactus@twistedpin.com and we'll set it up.",
+  },
+  termsText:
+    "This is a ticketed, 21+ event — please bring a valid government-issued ID. " +
+    "Twisted Pin is closed to the public that evening; the room is reserved for ticket holders, " +
+    "and guests without a ticket can't be admitted (no open bowling, arcade, or walk-in service that night). " +
+    "Each ticket is one seat. " +
+    "Because seats are limited and this is a one-night event, refunds are only available with at least 10 days' notice, " +
+    "or if we're able to resell your seat. " +
+    "Plan for about two hours, and arrive a few minutes early to get settled.",
+  uxCopy: {
+    eyebrow: "Mixology Experience",
+    headline: "Reserve your seat.",
+    sub: "Tuesday, July 28 · 7 PM · only 20 seats. $119 a person, 21+.",
+  },
+};
+
 // ── How to build a curated booking page (e.g. twistedpin.com/nye) ──────────
 //
 // Every booking page reuses the SAME <BookingWizard>; a page is just a config.
