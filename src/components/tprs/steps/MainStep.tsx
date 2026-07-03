@@ -46,6 +46,10 @@ interface Props {
    *  experiment. GUESTS, not bowlers: spectators count, they need a place to
    *  be. Absent = catalog behavior, identical to /reserve-preview. */
   partyConfig?: BookingPageConfig["partySize"];
+  /** Per-page wording for the selection step when the unit isn't "lanes"
+   *  (pageConfig.selectionCopy) — a seated event sells seats. Each field falls
+   *  back to the lane default. */
+  selectionCopy?: BookingPageConfig["selectionCopy"];
   partySize: number | null;
   onPartySize: (size: number | null) => void;
   /** Seed the calendar here instead of today (pageConfig.defaultDate) — for
@@ -84,6 +88,7 @@ export default function MainStep({
   presaleNotice,
   windowNotice,
   partyConfig,
+  selectionCopy,
   partySize,
   onPartySize,
   selectedDate,
@@ -340,15 +345,17 @@ export default function MainStep({
       <h2 className="tprs-h2 tprs-products-h">
         {partySize !== null && !overThreshold
           ? `Your options for ${partySize}`
-          : "Choose your lanes"}
+          : (selectionCopy?.heading ?? "Choose your lanes")}
       </h2>
 
       {error && <p className="tprs-error">{error}</p>}
       {!error && categories === null && (
-        <p className="tprs-loading">Loading lanes…</p>
+        <p className="tprs-loading">{selectionCopy?.loading ?? "Loading lanes…"}</p>
       )}
       {categories?.length === 0 && (
-        <p className="tprs-empty">No lanes are bookable online right now.</p>
+        <p className="tprs-empty">
+          {selectionCopy?.empty ?? "No lanes are bookable online right now."}
+        </p>
       )}
 
       {/* Over the threshold: big crews are event territory — hand off instead

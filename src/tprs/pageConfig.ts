@@ -67,6 +67,23 @@ export interface BookingPageConfig {
   quantityLabel?: string;
   quantityHelp?: string;
   /**
+   * Per-page wording for the product-selection step + cart empty hint when the
+   * unit ISN'T "lanes" — e.g. a seated event sells SEATS, so "Choose your
+   * lanes" / "Pick a date and your lanes" read wrong. Each string falls back to
+   * the lane default when unset. (The quantity-stepper label is separate —
+   * that's `quantityLabel`.)
+   */
+  selectionCopy?: {
+    /** Product-grid heading (default "Choose your lanes"). */
+    heading?: string;
+    /** Loading state (default "Loading lanes…"). */
+    loading?: string;
+    /** Empty state (default "No lanes are bookable online right now."). */
+    empty?: string;
+    /** Cart empty hint (default "Pick a date and your lanes"). */
+    cartHint?: string;
+  };
+  /**
    * Show the product short description on the grid cards + the "What you're
    * reserving" recap (default true). Pages whose products are self-explanatory
    * from the name alone (e.g. "1 Hour w/ Shoes (VIP Suite)") set false — the
@@ -436,6 +453,13 @@ export const mixologyPageConfig: BookingPageConfig = {
   // Sell by the SEAT, not the lane.
   quantityLabel: "How many seats?",
   quantityHelp: "Each seat is one spot at the experience. Up to 10 per order.",
+  // Swap the wizard's "lanes" wording for a seated experience.
+  selectionCopy: {
+    heading: "Reserve your seats",
+    loading: "Loading…",
+    empty: "Not open for booking online right now.",
+    cartHint: "Pick a date and your seats",
+  },
   // The party end can drift (Brian runs 90 min–2 hr by group), so don't promise
   // a hard end time on the confirmation — same call as the birthday packages.
   confirmEndTime: false,

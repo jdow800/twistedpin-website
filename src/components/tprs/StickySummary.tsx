@@ -44,6 +44,9 @@ interface Props {
   onLaneQty: (qty: number) => void;
   onAddOnQty: (addOnId: string, qty: number) => void;
   onRemoveLane: () => void;
+  /** Cart empty hint when the unit isn't "lanes" (pageConfig.selectionCopy.
+   *  cartHint) — a seated event sells seats. Falls back to the lane default. */
+  cartHint?: string;
 }
 
 interface Line {
@@ -127,6 +130,7 @@ export default function StickySummary({
   onLaneQty,
   onAddOnQty,
   onRemoveLane,
+  cartHint,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [taxesOpen, setTaxesOpen] = useState(false);
@@ -144,7 +148,7 @@ export default function StickySummary({
     !!tax && tax.shoesRentalSubtotal > 0 && tax.foodBeverageSubtotal > 0;
   const caption =
     count === 0
-      ? "Pick a date and your lanes"
+      ? (cartHint ?? "Pick a date and your lanes")
       : quote
         ? `${count} item${count === 1 ? "" : "s"} · incl. taxes & fees`
         : quoteLoading && !quoteUnavailable

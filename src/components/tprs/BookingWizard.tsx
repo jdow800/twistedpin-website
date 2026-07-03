@@ -403,6 +403,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           presaleNotice={config.presaleNotice}
           windowNotice={config.windowNotice}
           partyConfig={config.partySize}
+          selectionCopy={config.selectionCopy}
           partySize={state.partySize}
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           selectedDate={state.date}
@@ -574,6 +575,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             dispatch({ type: "SET_ADDON_QTY", addOnId, qty })
           }
           onRemoveLane={() => dispatch({ type: "REMOVE_LANE" })}
+          cartHint={config.selectionCopy?.cartHint}
         />
         )}
       </div>
