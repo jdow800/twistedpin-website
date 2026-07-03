@@ -52,6 +52,9 @@ interface Props {
    *  (NYE VIP: 6 lanes = the entire suite, "need more" routes nowhere).
    *  Plain text, no events link. Unset = the default nudge. */
   laneCapNote?: string;
+  /** Unit noun for scarcity + stepper labels (pageConfig.selectionCopy.unitNoun)
+   *  — a seated event counts seats, not lanes. Defaults to lane/lanes. */
+  unitNoun?: { one: string; many: string };
   /** When set, this product sells a base package + per-guest add-on — show a
    *  "How many guests?" stepper that drives the add-on, not a base counter. */
   guestStepper: ResolvedGuestStepper | null;
@@ -79,6 +82,7 @@ export default function DetailStep({
   quantityLabel,
   quantityHelp,
   laneCapNote,
+  unitNoun = { one: "lane", many: "lanes" },
   guestStepper,
   partyConfig,
   partySize,
@@ -398,7 +402,7 @@ export default function DetailStep({
               <button
                 type="button"
                 className="tprs-stepper-btn"
-                aria-label={laneQty <= 1 ? "Remove lane" : "Fewer lanes"}
+                aria-label={laneQty <= 1 ? `Remove ${unitNoun.one}` : `Fewer ${unitNoun.many}`}
                 onClick={() =>
                   laneQty <= 1 ? onRemoveLane() : onLaneQty(laneQty - 1)
                 }
@@ -411,7 +415,7 @@ export default function DetailStep({
               <button
                 type="button"
                 className="tprs-stepper-btn"
-                aria-label="More lanes"
+                aria-label={`More ${unitNoun.many}`}
                 // Disabled only at the hard online cap. At the lanes-free
                 // ceiling the button stays tappable so the tap can REVEAL why
                 // (the scarcity note) instead of greying out by default — which
@@ -452,7 +456,9 @@ export default function DetailStep({
               {slotMaxUnits === 0
                 ? "this time just filled up. Pick another time above."
                 : `only ${slotMaxUnits} ${
-                    slotMaxUnits === 1 ? "lane is" : "lanes are"
+                    slotMaxUnits === 1
+                      ? `${unitNoun.one} is`
+                      : `${unitNoun.many} are`
                   } left at this time. Pick another time above for more.`}
             </p>
           ) : laneQty >= onlineCap ? (

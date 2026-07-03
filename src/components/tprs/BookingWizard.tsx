@@ -425,6 +425,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           quantityLabel={config.quantityLabel ?? DEFAULT_QUANTITY_LABEL}
           quantityHelp={config.quantityHelp}
           laneCapNote={config.laneCapNotes?.[state.product.code]}
+          unitNoun={config.selectionCopy?.unitNoun}
           guestStepper={guestStepper}
           partyConfig={config.partySize}
           partySize={state.partySize}
@@ -454,6 +455,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             guestStepper={guestStepper}
             partyGuests={config.partySize ? state.partySize : null}
             showDescriptions={config.cardDescriptions !== false}
+            unitNoun={config.selectionCopy?.unitNoun}
             onEdit={() => dispatch({ type: "GO_STEP", step: "detail" })}
           />
         )}

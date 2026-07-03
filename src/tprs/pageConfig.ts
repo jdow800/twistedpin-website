@@ -82,6 +82,9 @@ export interface BookingPageConfig {
     empty?: string;
     /** Cart empty hint (default "Pick a date and your lanes"). */
     cartHint?: string;
+    /** Unit noun for the "What you're reserving" recap quantity (default
+     *  {one:"lane", many:"lanes"}) — a seated event reserves N SEATS, not lanes. */
+    unitNoun?: { one: string; many: string };
   };
   /**
    * Show the product short description on the grid cards + the "What you're
@@ -459,6 +462,7 @@ export const mixologyPageConfig: BookingPageConfig = {
     loading: "Loading…",
     empty: "Not open for booking online right now.",
     cartHint: "Pick a date and your seats",
+    unitNoun: { one: "seat", many: "seats" },
   },
   // The party end can drift (Brian runs 90 min–2 hr by group), so don't promise
   // a hard end time on the confirmation — same call as the birthday packages.

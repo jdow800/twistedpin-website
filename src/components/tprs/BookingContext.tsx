@@ -24,6 +24,9 @@ interface Props {
   partyGuests?: number | null;
   /** Repeat the product/add-on pitch lines here (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
+  /** Unit noun for the quantity (pageConfig.selectionCopy.unitNoun) — a seated
+   *  event reserves N seats, not lanes. Defaults to lane/lanes. */
+  unitNoun?: { one: string; many: string };
   onEdit: () => void;
 }
 
@@ -36,6 +39,7 @@ export default function BookingContext({
   guestStepper,
   partyGuests = null,
   showDescriptions = true,
+  unitNoun = { one: "lane", many: "lanes" },
   onEdit,
 }: Props) {
   // For guest products, the base line reads as a party size, and the linked
@@ -63,8 +67,8 @@ export default function BookingContext({
             {guestCount !== null
               ? `${guestCount} ${guestCount === 1 ? "guest" : "guests"}`
               : partyGuests !== null
-                ? `${partyGuests} guests · ${laneQty} ${laneQty === 1 ? "lane" : "lanes"} · shoes included`
-                : `${laneQty} ${laneQty === 1 ? "lane" : "lanes"}`}
+                ? `${partyGuests} guests · ${laneQty} ${laneQty === 1 ? unitNoun.one : unitNoun.many} · shoes included`
+                : `${laneQty} ${laneQty === 1 ? unitNoun.one : unitNoun.many}`}
           </span>
           {showDescriptions && product.shortDescription && (
             <span className="tprs-reserving-desc">
