@@ -176,6 +176,12 @@ const SOURCES = [
   // desktop hero split panel + the mobile "Your Host" section image.
   { src: "F2_P4.jpg", name: "mixology-host", aspect: [3, 4], widths: [540, 900, 1280] },
 
+  // /reserve/mixology product-card thumbnail (TPRS product 500 `thumbnail_url`
+  // points at the hosted 900px jpg). DSC_0110 = pink craft cocktail w/ orchid +
+  // lime — the "build your own cocktail" hero shot. Native landscape; the card's
+  // object-fit:cover handles both the 84px square + the 150px mobile banner.
+  { src: "DSC_0110.jpg", name: "mixology-card", widths: [540, 900, 1280] },
+
   // Event JSON-LD images (referenced from src/content/events/*.md `image`
   // frontmatter, emitted as Event.image on /upcoming-events). Native aspect
   // preserved — these are pre-composed promo graphics, not croppable photos.
