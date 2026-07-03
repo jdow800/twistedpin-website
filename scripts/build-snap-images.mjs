@@ -170,6 +170,12 @@ const SOURCES = [
   // crop matches our editorial frame pattern.
   { src: "../Pics Social Media/DSC_0289.jpeg", name: "careers-team", aspect: [9, 16], widths: [540, 900] },
 
+  // /mixology-experience host portrait — Brian Van Flandern at the Twisted Pin
+  // bar (pinstripe suit, copper tools, tap wall behind). Source F2_P4 is a big
+  // 4672×7008 portrait; 3:4 attention-crop keeps his face/figure. Used as the
+  // desktop hero split panel + the mobile "Your Host" section image.
+  { src: "F2_P4.jpg", name: "mixology-host", aspect: [3, 4], widths: [540, 900, 1280] },
+
   // Event JSON-LD images (referenced from src/content/events/*.md `image`
   // frontmatter, emitted as Event.image on /upcoming-events). Native aspect
   // preserved — these are pre-composed promo graphics, not croppable photos.

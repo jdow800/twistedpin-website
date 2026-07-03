@@ -9,28 +9,23 @@
  * at /reserve/mixology/ (the TPRS booking page — noindexed but deliberately
  * linked, same convention as /new-years-eve → /reserve/nye).
  *
- * Layout (NYE-lander skeleton):
- *   - Full-bleed cocktails-hero video (reused asset — no VideoObject schema
- *     to avoid duplicating the canonical one on the homepage cocktails block)
- *   - The Experience (what the night is)
- *   - Your Host (Brian's credential — Food Network "America's Top Mixologist",
- *     global consultant, curated OUR program)
- *   - The Details (facts card)
- *   - Closing CTA band → Reserve your seat
- *   - SnapFooter
+ * Section order (per Jon 2026-07-03): Hero → The Details → Your Host →
+ * The Experience → closing CTA → SnapFooter.
+ *
+ * HERO — mobile and desktop are SEPARATE treatments (CLAUDE.md working pref:
+ * "vertical video hero on mobile; hero photograph on desktop — never stretch
+ * the vertical video to fit desktop"). Mobile = the full-bleed vertical
+ * cocktails video (Jon: "mobile is fine"). Desktop = a split: copy on the left,
+ * Brian's portrait (mixology-host-*, from Context/pictures/F2_P4.jpg) on the
+ * right. The stretched-vertical-video desktop hero was the "rough on desktop"
+ * bug this fixes.
  *
  * BRAND COMPLIANCE (load-bearing — see CLAUDE.md):
- *   - NO Per Se / Thomas Keller / Michelin three-star framing ANYWHERE. Fully
- *     retired site-wide. Brian's own materials use it; our page does not.
+ *   - NO Per Se / Thomas Keller / Michelin three-star framing ANYWHERE.
  *   - "America's Top Mixologist" (Food Network) is the lead credential.
- *   - Brian is a CONSULTANT who *curated* our cocktail program; he is *hosting*
- *     this event (true — he's physically in the room), so "hosted by" is fine.
- *   - Not a "cocktail class" — "experience / workshop / hands-on." "Semi-private,"
+ *   - Brian CURATED our program (consultant) and is HOSTING this event.
+ *   - Not a "cocktail class." "Closed to the public / ticket-holders only,"
  *     never "private." No discount vocabulary.
- *
- * Copy is shippable but pre-final: Brian is sending a fuller layout of what the
- * night includes; tighten the Experience list + any prize/consolation specifics
- * when it lands. Ages: 21+ is a placeholder assumption — confirm with ops.
  */
 import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
@@ -39,7 +34,6 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema } from "../lib/schema";
 
 // The TPRS booking page (the $119 per-seat product, calendar seeded 7/28).
-// Parked/noindexed but deliberately linked — see docstring above.
 const BOOK_URL = "/reserve/mixology/";
 
 // JSON-LD: Event. Dates + price pulled from the events content collection so
@@ -56,8 +50,6 @@ const jsonLd = entry
         description: entry.body?.trim(),
         image: `${BUSINESS_URL}/og/og-bar.jpg`,
         url: PAGE_URL,
-        // Flat $119/person → AggregateOffer with lowPrice == highPrice is a
-        // single price point (clears GSC "Missing field 'highPrice'").
         offers: entry.data.lowPrice
           ? {
               "@type": "AggregateOffer",
@@ -69,7 +61,6 @@ const jsonLd = entry
               }),
               availability: "https://schema.org/InStock",
               url: PAGE_URL,
-              // Tickets can't be sold after the night begins.
               validThrough: entry.data.start.toISOString(),
             }
           : undefined,
@@ -86,7 +77,7 @@ const jsonLd = entry
   lcpPreloadMedia="(max-width: 1024px)"
 >
   {/* ============================================================
-      HERO — full-bleed cocktails video, headline overlay
+      HERO — mobile: vertical video · desktop: split (copy + Brian)
       ============================================================ */}
   <section class="mix-hero" data-hero aria-labelledby="mix-hero-h1">
     <video
@@ -105,6 +96,19 @@ const jsonLd = entry
       <source media="(min-width: 481px)" src="/snap/cocktails-hero-mobile-h264-1080.mp4" type="video/mp4" />
     </video>
 
+    {/* Desktop-only split panel — Brian's portrait. media-gated so mobile
+        (where it's display:none) never fetches the big source. */}
+    <picture class="mix-hero-photo">
+      <source type="image/avif" media="(min-width: 1025px)" srcset="/snap/mixology-host-1280.avif" />
+      <source type="image/webp" media="(min-width: 1025px)" srcset="/snap/mixology-host-1280.webp" />
+      <img
+        src="/snap/mixology-host-540.jpg"
+        alt="Brian Van Flandern, America's Top Mixologist, at the Twisted Pin bar"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+
     <div class="mix-hero-scrim" aria-hidden="true"></div>
 
     <div class="mix-hero-copy">
@@ -121,9 +125,75 @@ const jsonLd = entry
   </section>
 
   {/* ============================================================
+      THE DETAILS — facts (leads, per Jon)
+      ============================================================ */}
+  <section class="mix-section mix-details" aria-labelledby="mix-details-h2">
+    <div class="mix-section-inner">
+      <p class="t-eyebrow">The Details</p>
+      <h2 class="t-display mix-section-title" id="mix-details-h2">
+        One night. Twenty seats.
+      </h2>
+
+      <dl class="mix-facts">
+        <div class="mix-fact"><dt>Host</dt><dd>Brian Van Flandern — America's Top Mixologist</dd></div>
+        <div class="mix-fact"><dt>When</dt><dd>Tuesday, July 28 · 7:00 PM</dd></div>
+        <div class="mix-fact"><dt>How long</dt><dd>Plan for about two hours</dd></div>
+        <div class="mix-fact"><dt>Price</dt><dd>$119 per person</dd></div>
+        <div class="mix-fact"><dt>Seats</dt><dd>Only 20 — first come, first served</dd></div>
+        <div class="mix-fact"><dt>Access</dt><dd>Ticket-holders only — Twisted Pin is closed to the public that evening</dd></div>
+        <div class="mix-fact"><dt>Includes</dt><dd>Instruction, all cocktail materials, and the grazing board</dd></div>
+        <div class="mix-fact"><dt>Ages</dt><dd>21+ · valid ID required</dd></div>
+        <div class="mix-fact"><dt>Refunds</dt><dd>Only with 10+ days' notice, or if we can resell your seat</dd></div>
+        <div class="mix-fact"><dt>Where</dt><dd>Twisted Pin · Plainfield, IL</dd></div>
+      </dl>
+
+      <div class="mix-details-cta">
+        <a class="btn btn-solid" href={BOOK_URL}>Reserve your seat</a>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      YOUR HOST — Brian (photo shows on mobile; on desktop he's in the hero)
+      ============================================================ */}
+  <section class="mix-section mix-host" aria-labelledby="mix-host-h2">
+    <div class="mix-section-inner">
+      <p class="t-eyebrow">Your Host</p>
+      <h2 class="t-display mix-section-title" id="mix-host-h2">
+        Brian Van Flandern.
+      </h2>
+
+      <picture class="mix-host-photo">
+        <source type="image/avif" srcset="/snap/mixology-host-540.avif 540w, /snap/mixology-host-900.avif 900w" sizes="(min-width: 1025px) 0px, 92vw" />
+        <source type="image/webp" srcset="/snap/mixology-host-540.webp 540w, /snap/mixology-host-900.webp 900w" sizes="(min-width: 1025px) 0px, 92vw" />
+        <img
+          src="/snap/mixology-host-540.jpg"
+          alt="Brian Van Flandern, America's Top Mixologist, behind the bar at Twisted Pin"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+
+      <p class="mix-section-body">
+        Named America's Top Mixologist by Food Network, Brian is a beverage
+        consultant whose cocktails have been served in more than 40 countries.
+        He's the one who curated the program behind our bar — and for one night,
+        he's behind it with you.
+      </p>
+
+      <ul class="mix-section-list">
+        <li>Food Network's "America's Top Mixologist"</li>
+        <li>Featured on Bar Rescue, Barefoot Contessa, and Property Brothers</li>
+        <li>Cocktail programs built for restaurants, hotels, and resorts worldwide</li>
+        <li>Curated the craft cocktail program at Twisted Pin</li>
+      </ul>
+    </div>
+  </section>
+
+  {/* ============================================================
       THE EXPERIENCE — what the night is
       ============================================================ */}
-  <section class="mix-section" aria-labelledby="mix-exp-h2">
+  <section class="mix-section mix-experience" aria-labelledby="mix-exp-h2">
     <div class="mix-section-inner">
       <p class="t-eyebrow">The Experience</p>
       <h2 class="t-display mix-section-title" id="mix-exp-h2">
@@ -152,60 +222,6 @@ const jsonLd = entry
         <li>A curated charcuterie grazing board out all evening</li>
         <li>Winning team takes home a set of cocktail shakers</li>
       </ul>
-    </div>
-  </section>
-
-  {/* ============================================================
-      YOUR HOST — Brian's credential (compliant framing)
-      ============================================================ */}
-  <section class="mix-section mix-host" aria-labelledby="mix-host-h2">
-    <div class="mix-section-inner">
-      <p class="t-eyebrow">Your Host</p>
-      <h2 class="t-display mix-section-title" id="mix-host-h2">
-        Brian Van Flandern.
-      </h2>
-
-      <p class="mix-section-body">
-        Named America's Top Mixologist by Food Network, Brian is a beverage
-        consultant whose cocktails have been served in more than 40 countries.
-        He's the one who curated the program behind our bar — and for one night,
-        he's behind it with you.
-      </p>
-
-      <ul class="mix-section-list">
-        <li>Food Network's "America's Top Mixologist"</li>
-        <li>Featured on Bar Rescue, Barefoot Contessa, and Property Brothers</li>
-        <li>Cocktail programs built for restaurants, hotels, and resorts worldwide</li>
-        <li>Curated the craft cocktail program at Twisted Pin</li>
-      </ul>
-    </div>
-  </section>
-
-  {/* ============================================================
-      THE DETAILS — facts card
-      ============================================================ */}
-  <section class="mix-section mix-details" aria-labelledby="mix-details-h2">
-    <div class="mix-section-inner">
-      <p class="t-eyebrow">The Details</p>
-      <h2 class="t-display mix-section-title" id="mix-details-h2">
-        One night. Twenty seats.
-      </h2>
-
-      <dl class="mix-facts">
-        <div class="mix-fact"><dt>When</dt><dd>Tuesday, July 28 · 7:00 PM</dd></div>
-        <div class="mix-fact"><dt>How long</dt><dd>Plan for about two hours</dd></div>
-        <div class="mix-fact"><dt>Price</dt><dd>$119 per person</dd></div>
-        <div class="mix-fact"><dt>Seats</dt><dd>Only 20 — first come, first served</dd></div>
-        <div class="mix-fact"><dt>Access</dt><dd>Ticket-holders only — Twisted Pin is closed to the public that evening</dd></div>
-        <div class="mix-fact"><dt>Includes</dt><dd>Instruction, all cocktail materials, and the grazing board</dd></div>
-        <div class="mix-fact"><dt>Ages</dt><dd>21+ · valid ID required</dd></div>
-        <div class="mix-fact"><dt>Refunds</dt><dd>Only with 10+ days' notice, or if we can resell your seat</dd></div>
-        <div class="mix-fact"><dt>Where</dt><dd>Twisted Pin · Plainfield, IL</dd></div>
-      </dl>
-
-      <div class="mix-details-cta">
-        <a class="btn btn-solid" href={BOOK_URL}>Reserve your seat</a>
-      </div>
     </div>
   </section>
 
@@ -240,7 +256,7 @@ const jsonLd = entry
 
 <style>
   /* ============================================================
-     HERO
+     HERO — mobile: full-bleed vertical video · desktop: split
      ============================================================ */
   .mix-hero {
     position: relative;
@@ -249,6 +265,7 @@ const jsonLd = entry
     align-items: flex-end;
     overflow: hidden;
     isolation: isolate;
+    background: var(--indigo-deep);
   }
   .mix-hero-video {
     position: absolute;
@@ -257,6 +274,10 @@ const jsonLd = entry
     height: 100%;
     object-fit: cover;
     z-index: 0;
+  }
+  /* Hidden on mobile — the video is the mobile hero. */
+  .mix-hero-photo {
+    display: none;
   }
   .mix-hero-scrim {
     position: absolute;
@@ -277,13 +298,8 @@ const jsonLd = entry
     color: var(--warm-white);
     max-width: 820px;
   }
-  @media (min-width: 1025px) {
-    .mix-hero-copy {
-      padding: 0 64px 120px;
-    }
-  }
   .mix-hero-headline {
-    font-size: clamp(36px, 10vw, 82px);
+    font-size: clamp(36px, 10vw, 76px);
     line-height: 0.95;
     letter-spacing: -0.015em;
     margin: 8px 0 18px;
@@ -304,16 +320,54 @@ const jsonLd = entry
     max-width: 30em;
   }
 
+  /* Desktop: two-column split. Copy on solid indigo (left), Brian's
+     portrait fills the right cell — no more stretched vertical video. */
+  @media (min-width: 1025px) {
+    .mix-hero {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      align-items: stretch;
+      min-height: clamp(560px, 82vh, 760px);
+      margin-top: var(--header-height);
+    }
+    .mix-hero-video,
+    .mix-hero-scrim {
+      display: none;
+    }
+    .mix-hero-photo {
+      display: block;
+      position: relative;
+      grid-column: 2;
+      grid-row: 1;
+      height: 100%;
+      overflow: hidden;
+    }
+    .mix-hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 26%;
+      display: block;
+    }
+    .mix-hero-copy {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+      max-width: none;
+      padding: 0 clamp(40px, 5vw, 80px);
+    }
+  }
+
   /* ============================================================
      EDITORIAL SECTIONS
      ============================================================ */
   .mix-section {
-    padding: 80px 24px;
+    padding: 78px 24px;
     color: var(--warm-white);
   }
   @media (min-width: 1025px) {
     .mix-section {
-      padding: 110px 64px;
+      padding: 104px 64px;
     }
   }
   .mix-section-inner {
@@ -347,17 +401,10 @@ const jsonLd = entry
   .mix-section-list li + li {
     margin-top: 8px;
   }
-  /* Host section reads as a continuation of the Experience — tighten the seam. */
-  .mix-host {
-    padding-top: 0;
-  }
 
   /* ============================================================
      DETAILS — facts card
      ============================================================ */
-  .mix-details {
-    padding-top: 0;
-  }
   .mix-facts {
     margin: 8px 0 0;
     padding: 0;
@@ -388,6 +435,28 @@ const jsonLd = entry
   }
   .mix-details-cta {
     margin-top: 32px;
+  }
+
+  /* ============================================================
+     HOST — portrait (mobile only; desktop shows Brian in the hero)
+     ============================================================ */
+  .mix-host-photo {
+    display: block;
+    margin: 0 0 24px;
+    max-width: 420px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 252, 245, 0.12);
+  }
+  .mix-host-photo img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  @media (min-width: 1025px) {
+    .mix-host-photo {
+      display: none;
+    }
   }
 
   /* ============================================================
