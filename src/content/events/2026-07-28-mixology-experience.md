@@ -20,7 +20,7 @@ image: /snap/bar-cocktails-900.jpg
 A hands-on mixology experience hosted by Brian Van Flandern, America's Top
 Mixologist (Food Network) and the consultant who curated our bar program. Learn
 the craft, then build your own original cocktail in a team competition judged by
-Brian — the winning team takes home shaker sets. Premium spirits, fresh juices,
+Brian. Premium spirits, fresh juices,
 herbs, and bitters, plus a curated charcuterie grazing board all evening. One
 night only, 20 seats, $119 per person. Ticket-holders only — the venue is
 closed to the public that evening. 21+, valid ID required.
