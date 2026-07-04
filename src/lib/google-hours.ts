@@ -259,18 +259,26 @@ export async function fetchLivePlacesData(): Promise<LivePlacesData> {
  *
  * currentOpeningHours is PREFERRED (it overlays Google Business Profile's
  * holiday / special-day edits onto the next 7 days). BUT that window has a
- * hard horizon: any period whose close lands past the end of the rolling
- * 7-day window gets clipped by Google to 23:59 on the open day. For a venue
- * open past midnight, this clips whichever late-night day is TRAILING in the
- * window — e.g. when the cron runs on a Sunday, Saturday is the last day and
- * its real Sun-1am close is reported as "11:59pm". The artifact is therefore
- * intermittent and depends on which weekday the fetch runs.
+ * hard horizon on BOTH edges, and each edge produces its own artifact for a
+ * venue open past midnight:
  *
- * regularOpeningHours is the canonical weekly schedule with no window horizon,
- * so it always carries the true past-midnight close. We use it to repair any
- * day where current was clipped: when current closes at exactly 23:59 AND the
- * regular schedule for that day genuinely wraps past midnight, we restore the
- * regular close (keeping current's open, which may carry a special-day edit).
+ * TRAILING edge: any period whose close lands past the end of the rolling
+ * 7-day window gets clipped by Google to 23:59 on the open day — e.g. when
+ * the cron runs on a Sunday, Saturday is the last day and its real Sun-1am
+ * close is reported as "11:59pm". Repaired below via regularOpeningHours
+ * (the canonical weekly schedule, no window horizon): when current closes at
+ * exactly 23:59 AND the regular schedule for that day genuinely wraps past
+ * midnight, restore the regular close (keeping current's open, which may
+ * carry a special-day edit).
+ *
+ * LEADING edge: the window starts at midnight TODAY, so the tail of
+ * YESTERDAY's past-midnight period falls inside the window and Google
+ * reports it as a truncated period opening at 12:00am today (e.g. Friday's
+ * 11am–1am hours surface as "Saturday 12am–1am"). On a normal week today's
+ * real period overwrites it in periodsToHours, but when today is specially
+ * CLOSED (holiday edit) the phantom tail is today's ONLY period — it erased
+ * the July 4 2026 closure and Roy announced "open 12am–1am" on a closed
+ * holiday. stripLeadingSpillover() drops these before conversion.
  *
  * Returns null only when neither source has periods (caller falls back to
  * static src/data/hours.ts).
@@ -279,6 +287,7 @@ function mergeHours(
   currentPeriods: PlacesPeriod[],
   regularPeriods: PlacesPeriod[],
 ): LiveHours | null {
+  currentPeriods = stripLeadingSpillover(currentPeriods, regularPeriods);
   const current = currentPeriods.length > 0 ? periodsToHours(currentPeriods) : null;
   const regular = regularPeriods.length > 0 ? periodsToHours(regularPeriods) : null;
   if (!current) return regular;
@@ -302,6 +311,36 @@ function mergeHours(
     }
   }
   return current;
+}
+
+/**
+ * Drop leading-edge window artifacts from currentOpeningHours periods.
+ *
+ * A period that opens at exactly 12:00am and closes later the SAME day is
+ * never a real schedule entry for this venue — it's the window-clipped tail
+ * of the previous day's past-midnight close. Confirm by checking that some
+ * period (regular or current) on the previous weekday wraps past midnight to
+ * at least that close time; only then drop it. A genuine midnight-opening
+ * schedule (never overlapped by the prior day) is left alone.
+ */
+function stripLeadingSpillover(
+  currentPeriods: PlacesPeriod[],
+  regularPeriods: PlacesPeriod[],
+): PlacesPeriod[] {
+  return currentPeriods.filter((p) => {
+    if (!p.open || !p.close) return true;
+    if (p.open.hour !== 0 || p.open.minute !== 0) return true;
+    if (p.close.day !== p.open.day) return true;
+    const prevDay = (p.open.day + 6) % 7;
+    const closeMin = p.close.hour * 60 + p.close.minute;
+    const isPrevDayTail = (q: PlacesPeriod) =>
+      q.open != null &&
+      q.close != null &&
+      q.open.day === prevDay &&
+      q.close.day === p.open!.day &&
+      q.close.hour * 60 + q.close.minute >= closeMin;
+    return !(regularPeriods.some(isPrevDayTail) || currentPeriods.some(isPrevDayTail));
+  });
 }
 
 /** Convert Google's periods array into our weekday-keyed map. */

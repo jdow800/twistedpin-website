@@ -50,12 +50,12 @@
       "closeLabel": "1am"
     },
     "sat": {
-      "label": "12am – 1am",
-      "closed": false,
+      "label": "Closed",
+      "closed": true,
       "openMinutes": 0,
-      "closeMinutes": 60,
-      "openLabel": "12am",
-      "closeLabel": "1am"
+      "closeMinutes": 0,
+      "openLabel": "",
+      "closeLabel": ""
     }
   },
   "rating": 4.5,
