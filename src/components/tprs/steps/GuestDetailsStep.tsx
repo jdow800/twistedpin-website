@@ -211,6 +211,16 @@ export default function GuestDetailsStep(props: Props) {
         </div>
       </div>
 
+      {/* SMS service disclosure (visit-feedback program 2026-07-06): booking-
+          related texts ride transactional consent; this line is the disclosed
+          basis. Marketing opt-in, if/when added, is a separate UNCHECKED
+          checkbox — never bundled into terms (TCPA: consent to marketing can't
+          be a condition of purchase). */}
+      <p className="tprs-help">
+        We'll text you about your booking and visit. Msg &amp; data rates may
+        apply. Reply STOP anytime.
+      </p>
+
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
           agreement, birthday Kids Party). Bubbles invalid ids up for the gate +
           first-miss scroll; reveals per-field errors on a failed Continue. */}
