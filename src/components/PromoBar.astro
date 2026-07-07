@@ -2,9 +2,14 @@
 /**
  * PromoBar — site-wide "attention" overlay for time-bounded campaigns.
  *
- * Server-side selection from src/config/promos.ts. Renders the first active
- * promo or nothing. Auto-hides on the promo's own landing page so we don't
- * tell a /free-kids-bowling visitor about /free-kids-bowling.
+ * Server-side selection from src/config/promos.ts. Renders every active
+ * promo in ONE bar, or nothing. A single promo renders static; two or more
+ * rotate in place — cross-fade every ~7s, paused while hovered/focused so
+ * the link can't swap out from under a cursor mid-click. The bar's height
+ * sizes to the tallest message (slides overlay in a shared grid cell), so
+ * rotation never shifts layout. Each promo auto-hides on its own landing
+ * page so we don't tell a /free-kids-bowling visitor about
+ * /free-kids-bowling — the others keep rotating there.
  *
  * Layout strategy:
  *   - Mobile: thin bar pinned BELOW the persistent SiteHeader (~72px from
@@ -42,9 +47,7 @@
  *   - Dismiss is a real <button> with aria-label
  *   - prefers-reduced-motion: skip the entry slide
  */
-import { getActivePromo } from "../config/promos";
-
-const promo = getActivePromo();
+import { getActivePromos } from "../config/promos";
 
 // Trailing-slash normalize so "/free-kids-bowling" and "/free-kids-bowling/"
 // both match.
@@ -52,33 +55,44 @@ const currentPath = Astro.url.pathname.endsWith("/")
   ? Astro.url.pathname
   : `${Astro.url.pathname}/`;
 
-// Auto-hide on the promo's own landing page.
-const targetPath = promo?.hideOnPath ?? promo?.href;
-const targetPathNormalized = targetPath?.endsWith("/")
-  ? targetPath
-  : targetPath
-    ? `${targetPath}/`
-    : undefined;
-const onLandingPage = targetPathNormalized && currentPath === targetPathNormalized;
+// Per-promo page gates: hide a promo on its own landing page, and hide
+// homepage-only promos everywhere but `/`. The rest keep rotating.
+const promos = getActivePromos().filter((promo) => {
+  const targetPath = promo.hideOnPath ?? promo.href;
+  const targetPathNormalized = targetPath.endsWith("/")
+    ? targetPath
+    : `${targetPath}/`;
+  if (currentPath === targetPathNormalized) return false;
+  if (promo.homepageOnly && currentPath !== "/") return false;
+  return true;
+});
 
-// Homepage-only gate: when promo.homepageOnly is true, render only on `/`.
-const homepageOnlyFiltered = promo?.homepageOnly && currentPath !== "/";
-
-const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
+const shouldRender = promos.length > 0;
 ---
 {shouldRender && (
   <aside
     class="promo-bar"
     data-promo-bar
-    data-promo-id={promo.id}
+    data-promo-id={promos.map((p) => p.id).join(",")}
     role="region"
-    aria-label="Promotion"
+    aria-label={promos.length > 1 ? "Promotions" : "Promotion"}
   >
-    <a class="promo-link" href={promo.href}>
-      <span class="promo-dot" aria-hidden="true"></span>
-      <span class="promo-text">{promo.message}</span>
-      <span class="promo-arrow" aria-hidden="true">&rarr;</span>
-    </a>
+    <div class="promo-stack">
+      {promos.map((promo, i) => (
+        <a
+          class="promo-link"
+          href={promo.href}
+          data-promo-slide
+          data-active={i === 0 ? "" : undefined}
+          aria-hidden={i === 0 ? undefined : "true"}
+          tabindex={i === 0 ? undefined : -1}
+        >
+          <span class="promo-dot" aria-hidden="true"></span>
+          <span class="promo-text">{promo.message}</span>
+          <span class="promo-arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      ))}
+    </div>
     <button
       type="button"
       class="promo-dismiss"
@@ -145,8 +159,16 @@ const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
 
   /* ---------- The message link (full-bleed clickable area) ---------- */
 
-  .promo-link {
+  /* Slides overlay in one grid cell; the row sizes to the tallest message
+     so rotating between promos of different lengths never shifts layout. */
+  .promo-stack {
     flex: 1 1 auto;
+    display: grid;
+    min-width: 0;
+  }
+
+  .promo-link {
+    grid-area: 1 / 1;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -159,6 +181,15 @@ const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
     letter-spacing: 0.01em;
     line-height: 1.25;
     min-width: 0; /* allow text truncation if needed */
+    transition: opacity 300ms ease;
+  }
+
+  /* Inactive rotation slides: invisible but still occupying the shared
+     grid cell (keeps bar height stable). aria-hidden + tabindex are kept
+     in sync by the rotation script. */
+  .promo-link:not([data-active]) {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .promo-dot {
@@ -260,6 +291,11 @@ const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
       opacity: 1;
       transition: none;
     }
+
+    /* Rotation swaps become instant cuts instead of cross-fades. */
+    .promo-link {
+      transition: none;
+    }
   }
 </style>
 
@@ -287,6 +323,8 @@ const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
 
     // Dismiss handler — slide back to initial state then hide entirely
     // once the transition completes so it can't trap pointer events.
+    // Dismissing hides the whole bar (all rotating promos), same
+    // page-view-only semantics as before.
     var dismissBtn = bar.querySelector("[data-promo-dismiss]");
     if (dismissBtn) {
       dismissBtn.addEventListener("click", function () {
@@ -295,6 +333,31 @@ const shouldRender = promo && !onLandingPage && !homepageOnlyFiltered;
           bar.style.display = "none";
         }, 420); // matches transition duration + small slack
       });
+    }
+
+    // Rotation — only when 2+ promos are live. Cross-fade every 7s,
+    // paused while hovered or focused so the click target can't swap
+    // out from under the user, and while the tab is backgrounded.
+    var slides = bar.querySelectorAll("[data-promo-slide]");
+    if (slides.length > 1) {
+      var active = 0;
+      var paused = false;
+      bar.addEventListener("mouseenter", function () { paused = true; });
+      bar.addEventListener("mouseleave", function () { paused = false; });
+      bar.addEventListener("focusin", function () { paused = true; });
+      bar.addEventListener("focusout", function () { paused = false; });
+
+      window.setInterval(function () {
+        if (paused || document.hidden) return;
+        var next = (active + 1) % slides.length;
+        slides[active].removeAttribute("data-active");
+        slides[active].setAttribute("aria-hidden", "true");
+        slides[active].setAttribute("tabindex", "-1");
+        slides[next].setAttribute("data-active", "");
+        slides[next].removeAttribute("aria-hidden");
+        slides[next].removeAttribute("tabindex");
+        active = next;
+      }, 7000);
     }
   })();
 </script>

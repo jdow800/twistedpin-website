@@ -3,8 +3,10 @@
  * surface site-wide for a bounded window.
  *
  * Render contract:
- *   - PromoBar.astro picks the FIRST active promo (or null) at build time
- *     and renders it. One promo on screen at a time, never stacked.
+ *   - PromoBar.astro renders ALL active promos at build time in ONE bar.
+ *     A single promo renders static; two or more rotate in place (cross-fade
+ *     every ~7s, paused on hover/focus). Never stacked — one pill footprint
+ *     regardless of how many promos are live.
  *   - User can dismiss the X; dismissal is stored in localStorage by `id`
  *     and never re-shows that specific promo on that device until the
  *     window closes. Bump the `id` (e.g. `kbf-2026` → `kbf-2027`) to
@@ -13,10 +15,11 @@
  *     overnight without manual deploys (same mechanic as nav-seasonal.ts).
  *
  * Replacement schedule:
- *   - Order matters. The first entry whose window includes `today` wins.
- *   - To "swap" promos on a date, just have the next promo's `showFrom`
- *     equal the previous promo's `showUntil + 1`. Or overlap; the array
- *     order decides the winner.
+ *   - Order matters. Array order = rotation order; the first active entry
+ *     is the one shown on page load (so put the most time-sensitive promo
+ *     first — it gets the entry-beat impression).
+ *   - Windows overlap freely: every promo whose window includes `today`
+ *     joins the rotation, and each drops out on its own `showUntil`.
  *
  * Voice:
  *   - Mobile renders ~36 chars cleanly; desktop toast fits more but keep
@@ -74,7 +77,18 @@ export interface Promo {
  */
 export const PROMOS: readonly Promo[] = [
   {
-    id: "kbf-summer-2026",
+    // One-night ticketed event (20 seats, 21+). Links to the marketing
+    // lander, not /reserve/mixology/ — same convention as social/QR.
+    // Expires end-of-day on the event date; the daily 9 UTC cron build
+    // removes it automatically the morning after.
+    id: "mixology-2026-07-28",
+    message: "An Evening with America's Top Mixologist — July 28",
+    href: "/mixology-experience/",
+    showUntil: "2026-07-28",
+    homepageOnly: true,
+  },
+  {
+    id: "kbf-summer-2026-aug14",
     message: "Free Bowling For Kids — through August 14",
     href: "/free-kids-bowling/",
     showUntil: "2026-08-14",
@@ -83,17 +97,21 @@ export const PROMOS: readonly Promo[] = [
 ];
 
 /**
- * Returns the first active promo for the given date, or null if none.
+ * Returns every active promo for the given date, in array order.
  * Date comparison is ISO-string lexicographic (works because YYYY-MM-DD).
  *
  * Pass an explicit `now` for testing; defaults to current build time.
  */
-export function getActivePromo(now: Date = new Date()): Promo | null {
+export function getActivePromos(now: Date = new Date()): Promo[] {
   const today = now.toISOString().slice(0, 10); // "YYYY-MM-DD"
-  for (const p of PROMOS) {
-    if (p.showFrom && today < p.showFrom) continue;
-    if (p.showUntil && today > p.showUntil) continue;
-    return p;
-  }
-  return null;
+  return PROMOS.filter(
+    (p) =>
+      !(p.showFrom && today < p.showFrom) &&
+      !(p.showUntil && today > p.showUntil),
+  );
+}
+
+/** Returns the first active promo for the given date, or null if none. */
+export function getActivePromo(now: Date = new Date()): Promo | null {
+  return getActivePromos(now)[0] ?? null;
 }
