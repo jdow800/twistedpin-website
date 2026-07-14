@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { uploadInvoice, BarApiError, MAX_INVOICE_PAGES } from "../api";
+import { uploadInvoice, isPdfFile, BarApiError, MAX_INVOICE_PAGES } from "../api";
 
-type Pending = { file: File; url: string; id: string };
+type Pending = { file: File; url: string; id: string; isPdf: boolean };
 
 export default function UploadInvoice({ onDone }: { onDone: () => void }) {
   const [pages, setPages] = useState<Pending[]>([]);
@@ -28,9 +28,10 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
     }
     const next: Pending[] = [];
     for (const file of Array.from(list)) {
-      if (!file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) continue;
+      const pdf = isPdfFile(file);
+      if (!pdf && !file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) continue;
       if (next.length >= room) break; // respect the remaining slots
-      next.push({ file, url: URL.createObjectURL(file), id: `p${seq.current++}` });
+      next.push({ file, url: URL.createObjectURL(file), id: `p${seq.current++}`, isPdf: pdf });
     }
     if (next.length) {
       setPages((p) => [...p, ...next]);
@@ -84,7 +85,7 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
     <div className="lq-upload">
       <p className="lq-muted lq-upload-hint">
         Point the camera at each page and snap it — deposits and fees too. Multi-page: take them
-        all before sending.
+        all before sending. Emailed invoice? Attach the PDF instead.
       </p>
 
       {/* opens the camera app directly (rear camera, one page at a time) */}
@@ -103,7 +104,7 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*,.heic,.heif"
+        accept="image/*,.heic,.heif,application/pdf,.pdf"
         multiple
         style={{ display: "none" }}
         onChange={(e) => {
@@ -128,7 +129,7 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
       </button>
       {pages.length < MAX_INVOICE_PAGES && (
         <button type="button" className="lq-linkbtn" onClick={() => inputRef.current?.click()}>
-          or choose a saved photo
+          or choose a saved photo / PDF
         </button>
       )}
 
@@ -136,7 +137,14 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
         <div className="lq-thumbs">
           {pages.map((p, i) => (
             <div key={p.id} className="lq-thumb">
-              <img src={p.url} alt={`page ${i + 1}`} />
+              {p.isPdf ? (
+                <div className="lq-thumb-pdf">
+                  <span className="lq-thumb-pdf-icon" aria-hidden="true">📄</span>
+                  <span>{p.file.name.length > 18 ? "PDF" : p.file.name}</span>
+                </div>
+              ) : (
+                <img src={p.url} alt={`page ${i + 1}`} />
+              )}
               <span className="lq-thumb-num">{i + 1}</span>
               <button
                 type="button"

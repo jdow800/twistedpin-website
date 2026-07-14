@@ -269,6 +269,32 @@ export async function submitKegCount(sessionId: string): Promise<number> {
   );
   return lineCount;
 }
+export interface KegVoiceItem {
+  kegName: string;
+  qty: number;
+  category: KegCategory;
+}
+/** Run-on keg dictation → {kegName, qty, category} items (open-vocab, learns from prior counts). */
+export async function extractKegVoice(transcript: string): Promise<KegVoiceItem[]> {
+  try {
+    const { items } = await gatedJson<{ items: KegVoiceItem[] }>(
+      "/admin/bar/keg-voice-extract",
+      jsonBody({ transcript }),
+    );
+    return items;
+  } catch (e) {
+    if (e instanceof BarApiError && typeof e.body === "string") {
+      let msg: string | undefined;
+      try {
+        msg = (JSON.parse(e.body) as { message?: string }).message;
+      } catch {
+        /* not json */
+      }
+      if (msg) throw new BarApiError(msg, e.status, e.body);
+    }
+    throw e;
+  }
+}
 
 // ── invoice upload (compress client-side; the Vercel proxy caps bodies ~4.5MB) ──
 const PROXY_SAFE_RAW_BYTES = 3 * 1024 * 1024;
@@ -332,11 +358,14 @@ function blobToBase64(blob: Blob): Promise<string> {
 /** Max pages per invoice — mirrors the backend's images/pages max(6). */
 export const MAX_INVOICE_PAGES = 6;
 
+export const isPdfFile = (f: File): boolean =>
+  f.type === "application/pdf" || /\.pdf$/i.test(f.name);
+
 /**
- * Upload an invoice's page photos → a pending bar_invoice. Uploads ONE page per
- * request (each stays under the ~4.5 MB Vercel proxy body cap — batching all
- * pages in one POST would overflow it), then creates the invoice from the staged
- * page keys. Returns the invoice id.
+ * Upload an invoice's pages → a pending bar_invoice. Photos are compressed to
+ * JPEG; a PDF (emailed / desktop) is sent as-is (Claude reads it natively). One
+ * request per file (each stays under the ~4.5 MB Vercel proxy body cap), then
+ * the invoice is created from the staged keys. Returns the invoice id.
  */
 export async function uploadInvoice(files: File[]): Promise<string> {
   if (files.length === 0) throw new BarApiError("Add at least one page.", 0);
@@ -346,21 +375,36 @@ export async function uploadInvoice(files: File[]): Promise<string> {
       0,
     );
   }
-  const pages: { storageKey: string; contentType: "image/jpeg"; pageNumber: number }[] = [];
+  const pages: { storageKey: string; contentType: "image/jpeg" | "application/pdf"; pageNumber: number }[] = [];
   for (let i = 0; i < files.length; i++) {
-    const compressed = await compressToJpeg(files[i]!);
-    if (!compressed) {
-      throw new BarApiError(`Couldn't read page ${i + 1} — try re-taking that photo.`, 0);
+    const file = files[i]!;
+    let blob: Blob;
+    let contentType: "image/jpeg" | "application/pdf";
+    if (isPdfFile(file)) {
+      blob = file; // PDFs go through as-is
+      contentType = "application/pdf";
+    } else {
+      const compressed = await compressToJpeg(file);
+      if (!compressed) {
+        throw new BarApiError(`Couldn't read page ${i + 1} — try re-taking that photo.`, 0);
+      }
+      blob = compressed.blob;
+      contentType = "image/jpeg";
     }
-    if (compressed.blob.size > PROXY_SAFE_RAW_BYTES) {
-      throw new BarApiError(`Page ${i + 1} is too large even after shrinking — retake it closer.`, 413);
+    if (blob.size > PROXY_SAFE_RAW_BYTES) {
+      throw new BarApiError(
+        contentType === "application/pdf"
+          ? "That PDF is too large (max ~3 MB) — try a smaller/compressed export."
+          : `Page ${i + 1} is too large even after shrinking — retake it closer.`,
+        413,
+      );
     }
-    const data = await blobToBase64(compressed.blob);
+    const data = await blobToBase64(blob);
     const { pageKey } = await gatedJson<{ pageKey: string }>(
       "/admin/bar/invoice-pages",
-      jsonBody({ contentType: "image/jpeg", data }),
+      jsonBody({ contentType, data }),
     );
-    pages.push({ storageKey: pageKey, contentType: "image/jpeg", pageNumber: i + 1 });
+    pages.push({ storageKey: pageKey, contentType, pageNumber: i + 1 });
   }
   const { invoiceId } = await gatedJson<{ invoiceId: string }>(
     "/admin/bar/invoices",

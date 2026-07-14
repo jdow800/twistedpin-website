@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import {
   createKegCount,
+  extractKegVoice,
   getKegKnown,
   saveKegLines,
   submitKegCount,
+  BarApiError,
   type KegCategory,
   type KegKnownItem,
   type KegLineInput,
 } from "../api";
-import { parseQuantity } from "../matcher";
-import { useSpeech } from "../useSpeech";
+import { useDictation } from "../useSpeech";
+
+const CAP_SECONDS = 120; // kegs are few — short bursts; each recording adds more rows
+const WARN_SECONDS = 95;
+const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
 const CATEGORIES: { value: KegCategory; label: string }[] = [
   { value: "beer", label: "Beer" },
@@ -36,6 +41,8 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<number | null>(null);
+  const [voiceBusy, setVoiceBusy] = useState(false);
+  const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const keySeq = useRef(0);
   const nextKey = () => `r${keySeq.current++}`;
 
@@ -110,28 +117,43 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
     patch(key, { kegName: name, ...(hit ? { category: hit.category } : {}) });
   }
 
-  const speech = useSpeech((transcript) => {
-    const qty = parseQuantity(transcript) ?? 1;
-    // strip leading quantity/filler words → keg name
-    const name = transcript
-      .replace(
-        /\b(zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|point|and|a|an|half|full|fulls|case|cases|keg|kegs|backup)\b/gi,
-        " ",
-      )
-      .replace(/[0-9.]+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-    const hit = known.find(
-      (k) => name && (k.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.name.toLowerCase())),
-    );
-    addRow({
-      kegName: hit ? hit.name : titleCase(name),
-      category: hit ? hit.category : "beer",
-      qty: Math.round(qty),
-      source: "voice",
-      raw: transcript,
-    });
-  });
+  // ── run-on voice: record the whole cooler → extract → append editable rows ──
+  const dict = useDictation((t) => void processKegTranscript(t));
+  useEffect(() => {
+    if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dict.seconds, dict.recording]);
+
+  async function processKegTranscript(transcript: string) {
+    if (!transcript.trim()) return;
+    setVoiceBusy(true);
+    setVoiceErr(null);
+    try {
+      const items = await extractKegVoice(transcript);
+      if (items.length === 0) {
+        setVoiceErr("Didn't catch any kegs — try again.");
+        return;
+      }
+      // The rows ARE the review — append each keg; fix name/category/qty inline.
+      setRows((rs) => [
+        ...rs.filter((r) => r.kegName.trim()), // drop the empty starter row
+        ...items.map((it) => ({
+          key: nextKey(),
+          kegName: it.kegName,
+          category: it.category,
+          qty: it.qty > 0 ? it.qty : 1,
+          source: "voice" as const,
+          raw: transcript,
+        })),
+      ]);
+      setSave("idle");
+      scheduleSave();
+    } catch (e) {
+      setVoiceErr(e instanceof BarApiError ? e.message : "Couldn't process that — try again or type them.");
+    } finally {
+      setVoiceBusy(false);
+    }
+  }
 
   async function finish() {
     if (!sessionId || submitting) return;
@@ -173,17 +195,39 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
   const total = validLines(rows).reduce((n, r) => n + r.qty, 0);
   return (
     <div className="lq-count">
-      <div className="lq-toolbar">
-        {speech.supported && (
-          <button
-            type="button"
-            className={`lq-mic${speech.listening ? " lq-mic-on" : ""}`}
-            onClick={() => (speech.listening ? speech.stop() : speech.start())}
-          >
-            {speech.listening ? "● Listening…" : "🎤 Say a keg"}
+      <p className="lq-muted lq-keg-hint">Untapped / backup kegs only.</p>
+      <div className="lq-voicebar">
+        {!dict.supported ? (
+          <p className="lq-muted lq-voice-unsupported">Voice isn't available on this browser — add kegs below.</p>
+        ) : dict.recording ? (
+          <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
+            <div className="lq-rec-head">
+              <span className="lq-rec-dot" aria-hidden="true" />
+              <span className="lq-rec-label">Listening…</span>
+              <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
+            </div>
+            <p className="lq-rec-transcript">
+              {dict.transcript || <span className="lq-muted">Say the kegs and how many — “two Miller Lite, one Kona…”</span>}
+              {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
+            </p>
+            <button type="button" className="lq-btn lq-btn-primary lq-rec-stop" onClick={() => dict.stop()}>
+              ■ Stop &amp; process
+            </button>
+          </div>
+        ) : voiceBusy ? (
+          <div className="lq-rec">
+            <p className="lq-muted">Reading that back…</p>
+          </div>
+        ) : (
+          <button type="button" className="lq-record" onClick={() => { setVoiceErr(null); dict.start(); }}>
+            <span className="lq-record-emoji" aria-hidden="true">🎤</span>
+            <span>Record kegs</span>
           </button>
         )}
-        <p className="lq-muted lq-keg-hint">Untapped / backup kegs only.</p>
+        {voiceErr && <p className="lq-error lq-voice-err">{voiceErr}</p>}
+        {dict.error && !dict.recording && (
+          <p className="lq-muted lq-voice-err">Mic stopped ({dict.error}). Tap record to try again.</p>
+        )}
       </div>
 
       <datalist id="lq-keg-names">
@@ -263,8 +307,4 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
       </div>
     </div>
   );
-}
-
-function titleCase(s: string): string {
-  return s.replace(/\b\w/g, (c) => c.toUpperCase());
 }
