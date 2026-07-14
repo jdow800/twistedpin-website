@@ -195,6 +195,42 @@ export async function submitCount(sessionId: string): Promise<number> {
   return lineCount;
 }
 
+// ── run-on voice extraction (browser transcribes → server maps to catalog) ──
+export interface VoiceMatch {
+  id: string;
+  name: string;
+  sizeMl: number | null;
+}
+export interface VoiceExtractItem {
+  spoken: string;
+  qty: number;
+  match: VoiceMatch | null; // set when exactly one bottle matched
+  candidates: VoiceMatch[]; // 2+ when the name was ambiguous (counter picks one)
+}
+
+/** Send a zone's dictation transcript → catalog-mapped {bottle, qty} items with
+ *  ambiguous names flagged. Surfaces the server's friendly message on 502/503. */
+export async function extractVoice(transcript: string): Promise<VoiceExtractItem[]> {
+  try {
+    const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
+      "/admin/bar/voice-extract",
+      jsonBody({ transcript }),
+    );
+    return items;
+  } catch (e) {
+    if (e instanceof BarApiError && typeof e.body === "string") {
+      let msg: string | undefined;
+      try {
+        msg = (JSON.parse(e.body) as { message?: string }).message;
+      } catch {
+        /* body wasn't JSON */
+      }
+      if (msg) throw new BarApiError(msg, e.status, e.body);
+    }
+    throw e;
+  }
+}
+
 // ── keg counts ──
 export async function getKegKnown(): Promise<KegKnownItem[]> {
   const { kegs } = await gatedJson<{ kegs: KegKnownItem[] }>("/admin/bar/keg-known");

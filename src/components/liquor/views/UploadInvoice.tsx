@@ -7,7 +7,8 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
   const [pages, setPages] = useState<Pending[]>([]);
   const [phase, setPhase] = useState<"idle" | "uploading" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null); // gallery fallback
+  const cameraRef = useRef<HTMLInputElement>(null); // opens the camera directly
   const seq = useRef(0);
 
   useEffect(() => {
@@ -82,10 +83,23 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-upload">
       <p className="lq-muted lq-upload-hint">
-        Snap every page of the invoice — deposits and fees too. Multi-page: add them all before
-        sending.
+        Point the camera at each page and snap it — deposits and fees too. Multi-page: take them
+        all before sending.
       </p>
 
+      {/* opens the camera app directly (rear camera, one page at a time) */}
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          addFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+      {/* fallback: pick already-taken photos from the gallery */}
       <input
         ref={inputRef}
         type="file"
@@ -101,17 +115,22 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
         type="button"
         className="lq-add-pages"
         disabled={pages.length >= MAX_INVOICE_PAGES}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => cameraRef.current?.click()}
       >
-        <span className="lq-action-emoji" aria-hidden="true">📷</span>
+        <span className="lq-action-emoji" aria-hidden="true">📸</span>
         <span>
           {pages.length >= MAX_INVOICE_PAGES
             ? `Max ${MAX_INVOICE_PAGES} pages`
             : pages.length
-              ? `Add more pages (${pages.length}/${MAX_INVOICE_PAGES})`
-              : "Add invoice pages"}
+              ? `Take another page (${pages.length}/${MAX_INVOICE_PAGES})`
+              : "Take a photo of the invoice"}
         </span>
       </button>
+      {pages.length < MAX_INVOICE_PAGES && (
+        <button type="button" className="lq-linkbtn" onClick={() => inputRef.current?.click()}>
+          or choose a saved photo
+        </button>
+      )}
 
       {pages.length > 0 && (
         <div className="lq-thumbs">
