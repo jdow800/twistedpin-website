@@ -3,6 +3,7 @@ import {
   createCount,
   extractVoice,
   getCatalog,
+  getOpenCount,
   getZones,
   saveCountLines,
   submitCount,
@@ -10,6 +11,7 @@ import {
   type BarSkuItem,
   type BarZoneItem,
   type CountLineInput,
+  type OpenCountLine,
   type VoiceMatch,
 } from "../api";
 import { useDictation } from "../useSpeech";
@@ -22,8 +24,8 @@ import { useDictation } from "../useSpeech";
 // not the primary input. Voice ACCUMULATES into the zone total; the number field
 // SETS an exact value (the correction tool).
 
-const CAP_SECONDS = 180; // hard stop — Web Speech gets flaky + review lists get long past ~3 min
-const WARN_SECONDS = 150; // "wrap up this bottle"
+const CAP_SECONDS = 240; // hard stop — you'll usually do shorter bursts (each recording adds to the zone)
+const WARN_SECONDS = 210; // "wrap up this bottle"
 
 type Cell = { qty: number; source: "grid" | "voice"; raw?: string };
 type Counts = Record<string, Record<string, Cell>>; // counts[zoneId][skuId]
@@ -52,6 +54,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<number | null>(null);
+  const [resumed, setResumed] = useState(false);
+  const [confirmSubmit, setConfirmSubmit] = useState<string[] | null>(null); // uncounted zone names
 
   // voice
   const [voiceBusy, setVoiceBusy] = useState(false);
@@ -61,17 +65,23 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
 
-  // ── bootstrap ──
+  // ── bootstrap: resume the staffer's in-progress draft, else start a new one ──
   useEffect(() => {
     let live = true;
     (async () => {
       try {
-        const [sid, z, cat] = await Promise.all([createCount(true), getZones(), getCatalog()]);
+        const [z, cat, open] = await Promise.all([getZones(), getCatalog(), getOpenCount()]);
         if (!live) return;
-        setSessionId(sid);
         setZones(z);
         setCatalog(cat);
         setZoneId(z[0]?.id ?? "");
+        if (open) {
+          setSessionId(open.id);
+          setCounts(rebuildCounts(open.lines));
+          setResumed(true);
+        } else {
+          setSessionId(await createCount(true));
+        }
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
@@ -81,6 +91,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       live = false;
     };
   }, []);
+
+  async function startFresh() {
+    try {
+      const sid = await createCount(true);
+      setSessionId(sid);
+      setCounts({});
+      setResumed(false);
+      setSave("idle");
+    } catch {
+      setSave("error");
+    }
+  }
 
   // ── debounced autosave (survives a tab close mid-count) ──
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -197,7 +219,20 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const reviewResolved = review ? review.filter((r) => r.chosenSkuId).length : 0;
   const reviewPending = review ? review.length - reviewResolved : 0;
 
+  // Warn before submitting an incomplete count — don't close out a full-venue
+  // inventory with a zone never touched (they can still choose to submit).
+  function tryFinish() {
+    if (!sessionId || submitting) return;
+    const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
+    if (uncounted.length > 0) {
+      setConfirmSubmit(uncounted);
+      return;
+    }
+    void finish();
+  }
+
   async function finish() {
+    setConfirmSubmit(null);
     if (!sessionId || submitting) return;
     setSubmitting(true);
     setSave("saving");
@@ -247,6 +282,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-count">
+      {resumed && (
+        <div className="lq-resumed">
+          <span>↩ Picked up your count in progress.</span>
+          <button type="button" className="lq-linkbtn" onClick={startFresh}>Start a new count</button>
+        </div>
+      )}
+
       {/* zone tabs */}
       <div className="lq-zonebar" role="tablist" aria-label="Zones">
         {zones.map((z) => {
@@ -373,6 +415,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 />
                 <button type="button" className="lq-step" aria-label="increase" onClick={() => setQty(skuId, round1(cell.qty + 1))}>+</button>
               </div>
+              <button
+                type="button"
+                className="lq-row-x"
+                aria-label={`remove ${nameById.get(skuId) ?? "bottle"}`}
+                onClick={() => setQty(skuId, 0)}
+              >
+                ✕
+              </button>
             </div>
           ))
         )}
@@ -388,7 +438,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">{capturedHere.length} here · {enteredTotal} total</span>
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Exit</button>
-          <button type="button" className="lq-btn lq-btn-primary" disabled={submitting || enteredTotal === 0} onClick={finish}>
+          <button type="button" className="lq-btn lq-btn-primary" disabled={submitting || enteredTotal === 0} onClick={tryFinish}>
             {submitting ? "Submitting…" : "Finish & submit"}
           </button>
         </div>
@@ -421,6 +471,29 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setReview(null)}>Discard</button>
               <button type="button" className="lq-btn lq-btn-primary" disabled={reviewResolved === 0} onClick={applyReview}>
                 Add {reviewResolved} to {zones.find((z) => z.id === zoneId)?.name ?? "zone"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* incomplete-count confirm */}
+      {confirmSubmit && (
+        <div className="lq-sheet" role="dialog" aria-label="Confirm submit">
+          <div className="lq-sheet-panel lq-confirm">
+            <div className="lq-sheet-head">
+              <h3 className="lq-h2">Submit an incomplete count?</h3>
+              <p className="lq-muted">
+                No bottles counted in: <strong>{confirmSubmit.join(", ")}</strong>. Submitting
+                closes this count out — you can't add to it after.
+              </p>
+            </div>
+            <div className="lq-sheet-foot">
+              <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setConfirmSubmit(null)}>
+                Keep counting
+              </button>
+              <button type="button" className="lq-btn lq-btn-primary" onClick={() => void finish()}>
+                Submit anyway
               </button>
             </div>
           </div>
@@ -525,6 +598,16 @@ function ReviewRow({
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
+}
+
+function rebuildCounts(lines: OpenCountLine[]): Counts {
+  const out: Counts = {};
+  for (const l of lines) {
+    const zone = (out[l.zoneId] ??= {});
+    const qty = Number(l.qtyUnits);
+    if (qty > 0) zone[l.skuId] = { qty, source: l.source, ...(l.rawUtterance ? { raw: l.rawUtterance } : {}) };
+  }
+  return out;
 }
 
 function flatten(counts: Counts): CountLineInput[] {

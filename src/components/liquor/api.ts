@@ -183,6 +183,23 @@ export async function createCount(isFullCount: boolean): Promise<string> {
   );
   return sessionId;
 }
+export interface OpenCountLine {
+  zoneId: string;
+  skuId: string;
+  qtyUnits: string; // numeric → JSON string
+  source: "grid" | "voice";
+  rawUtterance: string | null;
+}
+export interface OpenCount {
+  id: string;
+  startedAt: string;
+  lines: OpenCountLine[];
+}
+/** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
+export async function getOpenCount(): Promise<OpenCount | null> {
+  const { session } = await gatedJson<{ session: OpenCount | null }>("/admin/bar/counts/open");
+  return session;
+}
 export async function saveCountLines(sessionId: string, lines: CountLineInput[]): Promise<void> {
   if (lines.length === 0) return;
   await gatedJson(`/admin/bar/counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
