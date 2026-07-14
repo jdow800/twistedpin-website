@@ -1,0 +1,26 @@
+---
+/**
+ * /liquor — STAFF bar-inventory app (noindex, PIN-gated). Not a marketing page:
+ * full-bleed React island (LiquorApp) that talks same-origin to the TPRS backend
+ * via /tprs-api/admin/bar/* (Vite dev proxy + prod Vercel middleware; the signed
+ * tprs_session cookie rides along). PIN login → count liquor (voice/grid) / count
+ * kegs / upload invoices. Chrome hidden (own header), noindex + robots Disallow +
+ * sitemap-excluded (astro.config.mjs). See dev/Alcohol Pricing/Twisted Pin Bar
+ * Hub/07-inventory-app for the build spec.
+ */
+import Base from "../layouts/Base.astro";
+import LiquorApp from "../components/liquor/LiquorApp.tsx";
+---
+<Base
+  title="Bar Inventory — Twisted Pin"
+  description="Staff bar inventory."
+  hideStickyCTA={true}
+  hideHeader={true}
+  hidePromo={true}
+  lockViewportZoom={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+  <LiquorApp client:only="react" />
+</Base>

@@ -23,6 +23,9 @@ interface Props {
   hideStickyCTA?: boolean;
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
+  /** Hide the floating PromoBar (staff/utility pages like /liquor where a
+   *  marketing promo pill doesn't belong and would float over the app). */
+  hidePromo?: boolean;
   /** Lock the viewport at scale 1 (adds maximum-scale=1). For the TPRS booking
    *  pages only. iOS Safari auto-zooms on focus of any control under 16px and
    *  never zooms back; our own inputs are 16px, but the Stripe PaymentElement
@@ -88,6 +91,7 @@ const {
   ogType = "website",
   hideStickyCTA = false,
   hideHeader = false,
+  hidePromo = false,
   lockViewportZoom = false,
   lcpPreloadHref,
   lcpPreloadMedia,
@@ -398,7 +402,7 @@ const webPage = webPageSchema({
 
     <NavDrawer />
     {!hideStickyCTA && <StickyCTABar />}
-    <PromoBar />
+    {!hidePromo && <PromoBar />}
 
     {/* Vercel Web Analytics — cookieless pageview beacon. Free tier on Pro.
         No PII, no consent banner needed. Auto-detects the project from

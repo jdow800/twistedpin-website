@@ -67,6 +67,9 @@ export default defineConfig({
       // noindex" warnings. Add new offer/preview slugs to the list.
       filter: (page) =>
         !page.includes('/tprs') &&
+        // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
+        // the sitemap alongside its robots.txt Disallow + per-page noindex.
+        !page.includes('/liquor') &&
         !page.includes('/coupon-preview') &&
         !page.includes('/kids-signup-preview') &&
         // /reserve/mixology is a noindexed one-off event booking page (the

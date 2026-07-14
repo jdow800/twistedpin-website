@@ -6,6 +6,8 @@ Allow: /
 Disallow: /api/
 # Internal TPRS booking-flow preview (ADR-0029) — unindexed, unlinked.
 Disallow: /tprs/
+# Staff-only bar-inventory app (PIN-gated) — unindexed, unlinked.
+Disallow: /liquor/
 # Parked preview of the new loyalty signup form (replaces /coupon at launch) — unindexed, unlinked.
 Disallow: /coupon-preview/
 # Parked preview of the native Free Kids Bowling signup form — unindexed, unlinked.
