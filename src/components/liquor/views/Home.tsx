@@ -1,6 +1,6 @@
 import type { BarActor } from "../api";
 
-type Dest = "count" | "keg" | "upload";
+type Dest = "count" | "keg" | "upload" | "invoices";
 
 export default function Home({
   actor,
@@ -28,6 +28,11 @@ export default function Home({
           <span className="lq-action-emoji" aria-hidden="true">🧾</span>
           <span className="lq-action-title">Upload invoice</span>
           <span className="lq-action-sub">Snap the pages — we read it</span>
+        </button>
+        <button type="button" className="lq-action" onClick={() => onGo("invoices")}>
+          <span className="lq-action-emoji" aria-hidden="true">📁</span>
+          <span className="lq-action-title">Recent invoices</span>
+          <span className="lq-action-sub">What we've read — last 60 days</span>
         </button>
       </div>
     </div>

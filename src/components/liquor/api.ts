@@ -296,6 +296,52 @@ export async function extractKegVoice(transcript: string): Promise<KegVoiceItem[
   }
 }
 
+// ── invoice history (read-only review list) ──
+export type BarInvoiceStatus = "pending" | "extracted" | "flagged" | "confirmed";
+export interface InvoiceSummary {
+  id: string;
+  vendorText: string | null;
+  invoiceNumber: string | null;
+  invoiceDate: string | null;
+  status: BarInvoiceStatus;
+  printedTotal: string | null;
+  pageCount: number;
+  createdAt: string;
+}
+export interface InvoiceLine {
+  id: string;
+  lineType: "product" | "deposit" | "fee" | "return" | "keg" | "unknown";
+  rawDescription: string | null;
+  qtyUnits: string | null;
+  unitCost: string | null;
+  extendedAmount: string;
+  needsReview: boolean;
+  matchedName: string | null;
+}
+export interface InvoiceImageRef {
+  id: string;
+  pageNumber: number | null;
+  contentType: string | null;
+}
+export interface InvoiceDetail {
+  invoice: InvoiceSummary & { extractedTotal: string | null };
+  lines: InvoiceLine[];
+  images: InvoiceImageRef[];
+}
+export async function getInvoiceHistory(): Promise<InvoiceSummary[]> {
+  const { invoices } = await gatedJson<{ invoices: InvoiceSummary[] }>("/admin/bar/invoices/history");
+  return invoices;
+}
+export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
+  return gatedJson<InvoiceDetail>(`/admin/bar/invoices/${id}`);
+}
+/** Same-origin URL for an invoice page image — the <img>/link request carries the
+ *  session cookie (the staffer is already authed), so no header is needed. */
+export function invoiceImageUrl(imageId: string): string {
+  const path = `/admin/bar/invoices/images/${imageId}`;
+  return USING_DEV_PROXY ? `${API_BASE}${path}/` : `${API_BASE}${path}`;
+}
+
 // ── invoice upload (compress client-side; the Vercel proxy caps bodies ~4.5MB) ──
 const PROXY_SAFE_RAW_BYTES = 3 * 1024 * 1024;
 
