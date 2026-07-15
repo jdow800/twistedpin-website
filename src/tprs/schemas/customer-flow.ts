@@ -68,6 +68,15 @@ export const customerProductSchema = z.object({
    */
   minQuantityPerBooking: z.number().int().nullable(),
   maxQuantityPerBooking: z.number().int().nullable(),
+  /**
+   * `sales_cutoff_minutes_before` — online sales close this many minutes before
+   * the slot start; null = sellable up to start. The SPA uses it to warn
+   * mid-checkout when the window is about to close and hard-stop Pay once it
+   * has — the server enforces the cutoff at payment-intents + convert
+   * regardless (2026-07-15, post-stranded-charge). `.default(null)` tolerates
+   * an older backend during deploy skew.
+   */
+  salesCutoffMinutesBefore: z.number().int().nullable().default(null),
   /** ADR-0029 §5 — grid card thumbnail; null when unset (SPA falls back). */
   thumbnailUrl: z.string().nullable(),
   /** ADR-0029 §5 — product-detail hero banner; null when unset. */

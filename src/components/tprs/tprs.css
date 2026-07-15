@@ -1086,6 +1086,9 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-hold { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); }
 .tprs-hold strong { color: var(--tw-text); font-variant-numeric: tabular-nums; }
 .tprs-hold-warn { color: var(--tw-danger); }
+/* Online-sales cutoff countdown — the booking window is about to close. */
+.tprs-cutoff-warn { font-family: var(--font-body); font-size: 13.5px; color: var(--tw-danger); margin: 0; line-height: 1.5; }
+.tprs-cutoff-warn strong { font-variant-numeric: tabular-nums; }
 /* Sold-out blocker — replaces the card form when a slot fills before payment. */
 .tprs-pay-blocker { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; padding: 20px 22px; border: 1px solid var(--tw-danger); border-radius: 10px; background: var(--tw-surface); font-family: var(--font-body); }
 .tprs-pay-blocker__title { font-family: var(--font-display, var(--font-body)); font-weight: 800; font-size: 18px; letter-spacing: 0.01em; color: var(--tw-danger); }

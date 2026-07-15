@@ -40,6 +40,11 @@ interface Props {
   checkoutItems: CheckoutItem[];
   eventDate: string; // YYYY-MM-DD
   startTime: string; // ISO-8601 with offset
+  /** Product's online-sales cutoff (minutes before start); null = none. Drives
+   *  the mid-checkout "window closing" countdown + the closed hard-stop — the
+   *  guest can pick a slot while it's sellable and cross the boundary during
+   *  checkout, and the server rejects that at payment-intents/convert. */
+  salesCutoffMinutesBefore: number | null;
   couponCode?: string;
   /** "Have a code?" lives HERE at checkout (CouponField) — code/result state
    *  stays in the wizard so the quote + PI pick it up. */
@@ -76,6 +81,8 @@ function checkoutErrorMessage(err: unknown): string {
         return "We couldn't verify the payment. Please try again.";
       case "amount_mismatch":
         return "The price changed while you were checking out, so we couldn't finish this booking.";
+      case "sales_cutoff_exceeded":
+        return "Online booking for that start time has closed.";
       case "form_answer_invalid":
         return "Your booking details changed and need another look before we can finish.";
       default:
@@ -89,6 +96,11 @@ function secondsLeft(expiresAtIso: string | null): number {
   if (!expiresAtIso) return 0;
   return Math.max(0, Math.floor((Date.parse(expiresAtIso) - Date.now()) / 1000));
 }
+
+/** Show the "online booking closes soon" countdown inside this window. Ten
+ *  minutes: long enough to matter on a ~12-minute checkout (the observed
+ *  stranding shape), short enough not to nag a guest booking days ahead. */
+const CUTOFF_WARN_SECONDS = 600;
 
 export default function PaymentStep(props: Props) {
   if (!STRIPE_AVAILABLE) {
@@ -161,6 +173,7 @@ function CheckoutForm({
   checkoutItems,
   eventDate,
   startTime,
+  salesCutoffMinutesBefore,
   couponCode,
   formAnswers,
   formStale,
@@ -233,6 +246,33 @@ function CheckoutForm({
     return () => clearInterval(t);
   }, [holdExpiresAt]);
   const expired = holdExpiresAt !== null && left <= 0;
+
+  // Online-sales cutoff clock (2026-07-15, post-stranded-charge): a guest who
+  // picked a slot while it was sellable can cross the product's cutoff boundary
+  // mid-checkout — the server rejects that at payment-intents/convert, so
+  // surface the boundary here instead of letting them find out at Pay: a
+  // countdown once the window is inside CUTOFF_WARN_SECONDS, a hard-stop
+  // blocker once it closes.
+  const salesCloseAtMs =
+    salesCutoffMinutesBefore !== null
+      ? Date.parse(startTime) - salesCutoffMinutesBefore * 60_000
+      : null;
+  const [cutoffLeft, setCutoffLeft] = useState(() =>
+    salesCloseAtMs === null
+      ? Number.POSITIVE_INFINITY
+      : Math.floor((salesCloseAtMs - Date.now()) / 1000),
+  );
+  useEffect(() => {
+    if (salesCloseAtMs === null) return;
+    const t = setInterval(
+      () => setCutoffLeft(Math.floor((salesCloseAtMs - Date.now()) / 1000)),
+      1000,
+    );
+    return () => clearInterval(t);
+  }, [salesCloseAtMs]);
+  // Server-confirmed closed (its clock is authoritative; skew can beat the
+  // local timer) — renders the same hard-stop blocker.
+  const [cutoffClosed, setCutoffClosed] = useState(false);
 
   // Create exactly ONE fresh 10-min hold. Release this booking's line(s) first:
   // the backend inserts a NEW hold per add even for the same cartLineRef (verified
@@ -310,6 +350,18 @@ function CheckoutForm({
     if (holdSoldOut) blockerBtnRef.current?.focus();
   }, [holdSoldOut]);
 
+  // Cutoff hard-stop: pre-charge only — once the card captured, the convert
+  // path owns the outcome (auto-refund + `blocked` terminal above). Also never
+  // while a Pay attempt is in flight: unmounting the PaymentElement mid-
+  // confirmPayment can fail the confirm CLIENT-side after Stripe captures —
+  // the exact strand shape this guard exists to prevent. A mid-flight
+  // boundary-cross is the server's residual case (convert auto-refunds).
+  const cutoffBlocked =
+    (cutoffClosed || cutoffLeft <= 0) && !paidPid.current && !submitting;
+  useEffect(() => {
+    if (cutoffBlocked) blockerBtnRef.current?.focus();
+  }, [cutoffBlocked]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!stripe || !elements || submitting) return;
@@ -328,6 +380,12 @@ function CheckoutForm({
       setErrorMsg(
         "Your lane count changed — tap Back and re-pick the pizza & soda for each lane, then return here to pay.",
       );
+      return;
+    }
+    // Online-sales window closed with nothing charged yet — the server rejects
+    // this slot at payment-intents now, so don't validate a card against it.
+    // (The blocker below normally replaces the form before this can fire.)
+    if (!paidPid.current && (cutoffClosed || cutoffLeft <= 0)) {
       return;
     }
     setSubmitting(true);
@@ -445,6 +503,26 @@ function CheckoutForm({
         setSubmitting(false);
         return;
       }
+      // Online-sales cutoff crossed mid-checkout (2026-07-15). Pre-charge
+      // (payment-intents rejected, nothing captured) → the hard-stop blocker.
+      // Post-charge (the PI-mint→confirm race lost; convert rejected AND
+      // auto-refunded server-side) → TERMINAL, mirror the amount_mismatch copy.
+      // Never offer a retry: time only moves forward, it fails identically.
+      if (
+        err instanceof TprsCheckoutError &&
+        err.code === "sales_cutoff_exceeded"
+      ) {
+        if (charged) {
+          setBlocked(true);
+          setErrorMsg(
+            "Online booking for that start time closed while you were checking out, so we couldn't finish this reservation. Your card was charged and we've issued a refund — pick a later time, or call (815) 782-7790.",
+          );
+        } else {
+          setCutoffClosed(true);
+        }
+        setSubmitting(false);
+        return;
+      }
       const base = checkoutErrorMessage(err);
       setErrorMsg(
         charged
@@ -494,6 +572,44 @@ function CheckoutForm({
     );
   }
 
+  // Online-sales window closed before anything was charged: replace the form
+  // with a hard stop — the server rejects this slot at payment-intents now, so
+  // there is no "try again" that can succeed. (No card was charged; the
+  // charged-then-rejected residual lands in the `blocked` terminal instead,
+  // auto-refunded server-side.)
+  if (cutoffBlocked) {
+    return (
+      <div className="tprs-pay-blocker" role="alert">
+        <span className="tprs-pay-blocker__title">
+          Online booking for this time has closed
+        </span>
+        <p className="tprs-pay-blocker__body">
+          {salesCutoffMinutesBefore !== null ? (
+            <>
+              We stop online reservations{" "}
+              <strong>{salesCutoffMinutesBefore} minutes</strong> before a start
+              time, and this one slipped past while you were checking out.
+            </>
+          ) : (
+            <>Online reservations for this start time closed while you were checking out.</>
+          )}{" "}
+          Your card hasn&rsquo;t been charged — pick a later time, or come see
+          us at the counter.
+        </p>
+        <div className="tprs-pay-blocker__actions">
+          <button
+            ref={blockerBtnRef}
+            type="button"
+            className="tprs-btn tprs-btn--solid"
+            onClick={onFindNewTime}
+          >
+            Find a new time
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="tprs-pay-form">
       <PaymentElement options={{ layout: "tabs" }} />
@@ -522,6 +638,21 @@ function CheckoutForm({
           </button>
         )}
       </div>
+
+      {/* Online-sales window countdown — only once it's genuinely close. Past
+          zero the hard-stop blocker replaces the form (see cutoffBlocked). */}
+      {!paidPid.current &&
+        cutoffLeft > 0 &&
+        cutoffLeft <= CUTOFF_WARN_SECONDS && (
+          <p className="tprs-cutoff-warn" role="status" aria-live="polite">
+            Online booking for this time closes in{" "}
+            <strong>
+              {Math.floor(cutoffLeft / 60)}:
+              {(cutoffLeft % 60).toString().padStart(2, "0")}
+            </strong>{" "}
+            — finish up before then.
+          </p>
+        )}
 
       <label className="tprs-terms">
         <input

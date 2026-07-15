@@ -510,6 +510,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           checkoutItems={checkoutItems}
           eventDate={state.date}
           startTime={toIsoWithOffset(state.date, state.slot.time)}
+          salesCutoffMinutesBefore={state.product.salesCutoffMinutesBefore}
           couponCode={state.couponCode.trim() || undefined}
           couponResult={state.couponResult}
           onCouponCode={(code) => dispatch({ type: "SET_COUPON_CODE", code })}
