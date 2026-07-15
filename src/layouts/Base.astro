@@ -125,6 +125,13 @@ const canonicalPath = Astro.url.pathname.endsWith("/")
 const canonicalURL = new URL(canonicalPath, Astro.site).href;
 const ogImageURL = new URL(ogImage, Astro.site).href;
 
+// Staff/utility pages (the /liquor bar-inventory app) get NO marketing
+// trackers: staff sessions pollute GA4 engagement data (30-60min dwell),
+// burn Clarity session-recording quota on inventory counts, and feed Meta
+// remarketing audiences with employees. Noindex already keeps them out of
+// SEO; this keeps them out of analytics too.
+const isStaffPage = canonicalPath.startsWith("/liquor/");
+
 // Auto-detect inLanguage from canonical path. /es/* gets es-US; everything
 // else gets en-US. Drives the WebPage entity below. When/if Spanish
 // localization expands beyond /es/bowl/ (Phase 2 in spanish-localization.md),
@@ -215,14 +222,17 @@ const webPage = webPageSchema({
     {/* Microsoft Clarity — free UX heatmaps + session recordings.
         Async load (t.async=1) so it never blocks LCP. Cookieless by
         default; no consent banner needed. is:inline keeps Astro from
-        processing the script — it ships exactly as Clarity provides. */}
-    <script is:inline>
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "wq8e536e4r");
-    </script>
+        processing the script — it ships exactly as Clarity provides.
+        Skipped on staff pages (isStaffPage) — don't record inventory counts. */}
+    {!isStaffPage && (
+      <script is:inline>
+        (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "wq8e536e4r");
+      </script>
+    )}
 
     {/* ===========================================================
         Google Analytics 4 + Meta Pixel — queue-immediately, fetch-late
@@ -257,7 +267,12 @@ const webPage = webPageSchema({
             (PageView, Contact, Lead, InitiateCheckout, FindLocation)
           - Cross-domain linker preserves click_id across Roller,
             event.twistedpin.com, and Zite (when Avery is on).
+
+        Skipped on staff pages (isStaffPage): staff /liquor sessions would
+        pollute GA4 engagement data and land employees in Meta remarketing
+        audiences. No conversion ever fires from a staff page.
         =========================================================== */}
+    {!isStaffPage && (
     <script is:inline>
       // GA4 + Google Ads stubs — gtag() and dataLayer queue available
       // immediately. Both identifiers route through the same gtag.js
@@ -327,6 +342,7 @@ const webPage = webPageSchema({
         });
       })();
     </script>
+    )}
 
     {/* Hero LCP preloads — poster image is the LCP element, not the video.
         ONLY emitted on the homepage. Was previously unconditional, which
@@ -406,16 +422,18 @@ const webPage = webPageSchema({
 
     {/* Vercel Web Analytics — cookieless pageview beacon. Free tier on Pro.
         No PII, no consent banner needed. Auto-detects the project from
-        the deployment environment. */}
-    <Analytics />
+        the deployment environment. Skipped on staff pages. */}
+    {!isStaffPage && <Analytics />}
 
     {/* Vercel Speed Insights — real-user Core Web Vitals (LCP, INP, CLS,
         FCP, TTFB) per-route, cross-browser, deploy-correlated. Drops in
         ~3 KB of client JS that pushes one beacon per visit. Catches
         regressions CrUX won't surface for 28 days, and covers iOS Safari
         + Firefox traffic which CrUX (Chrome-only) misses entirely.
-        Enabled 2026-05-21 alongside Google Ads landing-page rollout. */}
-    <SpeedInsights />
+        Enabled 2026-05-21 alongside Google Ads landing-page rollout.
+        Skipped on staff pages — /liquor is a heavy interactive app and
+        would drag the marketing site's speed dashboard. */}
+    {!isStaffPage && <SpeedInsights />}
 
     <script>
       import { initMotion } from "../scripts/motion.client.ts";
