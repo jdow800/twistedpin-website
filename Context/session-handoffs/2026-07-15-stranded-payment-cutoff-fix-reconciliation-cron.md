@@ -7,9 +7,11 @@ Fixed same-day at three layers (pre-charge rejection, auto-refund residual, gues
 countdown/hard-stop), plus a **15-minute reconciliation cron** as the universal net for every
 strand class, known or unknown. **Fix A (manual capture) deliberately skipped — see decision.**
 
-**⚠️ THE ONE THING THAT MATTERS IF PICKING THIS UP: tprs PR #7 must be merged by Jon.**
-Until then the backend fixes + cron are NOT deployed (Claude is classifier-blocked from
-`gh pr merge` on this repo). The Website half is already live (`7576f7f`).
+**✅ EVERYTHING IS LIVE (2026-07-15 ~4:49 PM CT).** PR #7 merged (`07940d5`), Render deploy
+`dep-d9c006jeo5us73c96fk0` live, migration 0096 applied in pre-deploy, 12 workers mounted.
+**The cron's FIRST TICK validated end-to-end on real data**: it detected Gwen's strand in the
+Stripe ledger (`refunded=true` — Jon had refunded her by then) and emailed the informational
+alert. Website half live earlier (`7576f7f`).
 
 ---
 
@@ -117,13 +119,14 @@ class too; new failure modes: lingering auth holds on guest cards, capture-fails
 
 ## Open items at session close
 
-1. **Merge tprs PR #7** (Jon — both commits ride together). Post-merge sanity: Render deploy log
-   shows migration 0096 applied in pre-deploy; boot log line `[workers/main] all N workers
-   started` (count +1); first cron ticks are silent (clean ledger = no output).
-2. **Gwen refund** — pending Jon's staff check (he emailed her). If staff honored the lane
-   in person: no refund, but the $78.97 has NO TPRS record → will show as **Unallocated in the
-   monthly CPA reconciliation** (see tprs-cpa-report memory: "Unallocated ≈ $0" ritual) — leave
-   a note for the books; also verify staff didn't double-charge her at POS.
+1. ~~Merge tprs PR #7~~ **DONE** — merged + deployed 2026-07-15; migration 0096 applied
+   (`Migrations applied successfully` 21:48:52Z); boot line `[start] all 12 in-process workers
+   started`; first tick detected + emailed Gwen's strand (real-data validation).
+2. **Gwen refund: ISSUED** (Stripe ledger showed `refunded=true` at the first cron tick —
+   Jon handled it). Residual bookkeeping note: the $78.97 charge+refund pair has NO TPRS record →
+   nets to zero but may surface in the monthly CPA **Unallocated** check (see tprs-cpa-report
+   memory) — expected, explainable. If staff also honored her lane in person, she got both
+   (Jon's call, made).
 3. **Sentry:** TRPS-BACKEND-2 re-resolved by Jon 2026-07-15 ✅ (habit stands: re-resolve after
    every strand).
 4. **TRPS-BACKEND-5 (unrelated, OPEN):** bar-invoice-extraction worker ZodError — LLM returned
