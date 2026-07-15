@@ -1099,6 +1099,22 @@
   align-items: center;
   gap: 10px;
 }
+.lq-newsku-dup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--lq-warn, #c9922e);
+  border-radius: 8px;
+  background: rgba(201, 146, 46, 0.1);
+}
+.lq-newsku-dup-warn {
+  flex: 1 1 100%;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--lq-warn, #c9922e);
+}
 .lq-segbar {
   display: flex;
   gap: 6px;

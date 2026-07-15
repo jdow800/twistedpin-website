@@ -25,6 +25,11 @@ function parseSizeMl(sizeText: string | null): number | null {
   return null;
 }
 
+/** Loose name key for the new-bottle dup-guard: lowercase, alnum-only, collapsed. */
+function normalizeName(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
 // Read-only invoice history — see recent uploads + their status, open the
 // extracted lines and the page image (images are kept 30 days; the data stays).
 
@@ -227,6 +232,14 @@ function MatchControl({
     if (!t) return [];
     return catalog.filter((s) => s.name.toLowerCase().includes(t)).slice(0, 6);
   }, [q, catalog]);
+  // Dup-guard: an existing bottle with the same name (any size). Creating a
+  // near-duplicate silently splits one bottle into several + breaks voice counts,
+  // so surface it loudly and offer a one-tap match instead.
+  const dupes = useMemo(() => {
+    const n = normalizeName(newName);
+    if (!n) return [];
+    return catalog.filter((s) => normalizeName(s.name) === n);
+  }, [newName, catalog]);
 
   async function pick(skuId: string, name: string) {
     setBusy(true);
@@ -308,9 +321,21 @@ function MatchControl({
             />
             <span className="lq-muted lq-newsku-hint">size in ml — leave blank if it's not a bottle</span>
           </div>
+          {dupes.length > 0 && (
+            <div className="lq-newsku-dup">
+              <span className="lq-newsku-dup-warn">
+                You already have this bottle — match it instead of adding a duplicate?
+              </span>
+              {dupes.map((s) => (
+                <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
+                  Match “{s.name}{s.sizeMl != null ? ` · ${s.sizeMl}ml` : ""}”
+                </button>
+              ))}
+            </div>
+          )}
           <div className="lq-newsku-actions">
             <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim()} onClick={createNew}>
-              Create + match
+              {dupes.length > 0 ? "Add anyway" : "Create + match"}
             </button>
             <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(false)}>cancel</button>
           </div>
