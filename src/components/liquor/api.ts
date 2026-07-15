@@ -254,9 +254,12 @@ export async function getKegKnown(): Promise<KegKnownItem[]> {
   return kegs;
 }
 export async function createKegCount(): Promise<string> {
-  const { sessionId } = await gatedJson<{ sessionId: string }>("/admin/bar/keg-counts", {
-    method: "POST",
-  });
+  // Explicit {} body: a bodyless POST arrives at the backend as JSON null via
+  // the proxy, and the route's body schema rejects null (400) — seen in prod.
+  const { sessionId } = await gatedJson<{ sessionId: string }>(
+    "/admin/bar/keg-counts",
+    jsonBody({}),
+  );
   return sessionId;
 }
 export interface OpenKegLine {
