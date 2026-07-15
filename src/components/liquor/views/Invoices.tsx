@@ -142,6 +142,12 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
   // ── detail ──
   if (detail) {
     const inv = detail.invoice;
+    const p = Number(inv.printedTotal);
+    const e = Number(inv.extractedTotal);
+    const totalsDelta =
+      inv.printedTotal != null && inv.extractedTotal != null && Number.isFinite(p) && Number.isFinite(e)
+        ? Math.abs(p - e)
+        : 0;
     return (
       <div className="lq-invd">
         <button type="button" className="lq-back" onClick={() => setDetail(null)}>‹ All invoices</button>
@@ -155,6 +161,13 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
           <div><span className="lq-muted">Printed</span><strong>{money(inv.printedTotal)}</strong></div>
           <div><span className="lq-muted">Extracted</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
+
+        {totalsDelta >= 0.01 && (
+          <p className="lq-muted lq-invd-note">
+            Totals don't tie ({money(totalsDelta.toFixed(2))}) — usually deposits, fees, or return
+            credits, not bottle cost. The line costs are still captured.
+          </p>
+        )}
 
         {(inv.status === "flagged" || inv.status === "extracted") && (
           <div className="lq-invd-reextract">
