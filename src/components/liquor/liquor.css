@@ -252,14 +252,13 @@
   padding-bottom: 84px; /* room for the sticky footer */
 }
 .lq-zonebar {
+  /* All zones visible at once (wrap, no horizontal scroll) — the counter hops
+     zones constantly and the per-zone badges double as a "what's left" gauge;
+     hiding zones behind a slide-over cost both. */
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  overflow-x: auto;
   padding-bottom: 4px;
-  scrollbar-width: none;
-}
-.lq-zonebar::-webkit-scrollbar {
-  display: none;
 }
 .lq-zone {
   flex: 0 0 auto;

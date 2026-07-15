@@ -29,7 +29,8 @@ function when(iso: string | null): string {
 }
 const qty = (s: string) => {
   const n = Number(s);
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+  // Up to 2 decimals, trailing zeros stripped: 3 → "3", 0.5 → "0.5", 0.25 → "0.25".
+  return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2)));
 };
 
 type Mode = "liquor" | "kegs";

@@ -149,7 +149,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setCounts((prev) => {
       const zone = { ...(prev[zoneId] ?? {}) };
       if (qty <= 0) delete zone[skuId];
-      else zone[skuId] = { qty: Math.max(0, round1(qty)), source: "grid", ...(zone[skuId]?.raw ? { raw: zone[skuId]!.raw } : {}) };
+      else zone[skuId] = { qty: Math.max(0, roundQty(qty)), source: "grid", ...(zone[skuId]?.raw ? { raw: zone[skuId]!.raw } : {}) };
       return { ...prev, [zoneId]: zone };
     });
     setSave("idle");
@@ -160,7 +160,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   function addQty(skuId: string, delta: number, source: "grid" | "voice", raw?: string) {
     setCounts((prev) => {
       const zone = { ...(prev[zoneId] ?? {}) };
-      const next = round1((zone[skuId]?.qty ?? 0) + delta);
+      const next = roundQty((zone[skuId]?.qty ?? 0) + delta);
       if (next <= 0) delete zone[skuId];
       else zone[skuId] = { qty: next, source, ...(raw ? { raw } : {}) };
       return { ...prev, [zoneId]: zone };
@@ -210,7 +210,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     for (const it of review) {
       if (!it.chosenSkuId) continue;
       const e = merged.get(it.chosenSkuId);
-      if (e) e.qty = round1(e.qty + it.qty);
+      if (e) e.qty = roundQty(e.qty + it.qty);
       else merged.set(it.chosenSkuId, { qty: it.qty, spoken: it.spoken });
     }
     for (const [skuId, { qty, spoken }] of merged) addQty(skuId, qty, "voice", spoken);
@@ -365,7 +365,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <span className="lq-size">{sizeLabel(s)}</span>
                 </div>
                 <div className="lq-stepper">
-                  <button type="button" className="lq-step" aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, round1(qty - 1))}>−</button>
+                  <button type="button" className="lq-step" aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(qty - 1))}>−</button>
                   <input
                     className="lq-qty-input"
                     type="number"
@@ -376,7 +376,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     placeholder="0"
                     onChange={(e) => setQty(s.id, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
                   />
-                  <button type="button" className="lq-step" aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, round1(qty + 1))}>+</button>
+                  <button type="button" className="lq-step" aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(qty + 1))}>+</button>
                 </div>
               </div>
             );
@@ -403,7 +403,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 {cell.raw && <span className="lq-size lq-heard">heard: “{cell.raw}”</span>}
               </div>
               <div className="lq-stepper">
-                <button type="button" className="lq-step" aria-label="decrease" onClick={() => setQty(skuId, round1(cell.qty - 1))}>−</button>
+                <button type="button" className="lq-step" aria-label="decrease" onClick={() => setQty(skuId, roundQty(cell.qty - 1))}>−</button>
                 <input
                   className="lq-qty-input"
                   type="number"
@@ -413,7 +413,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   value={cell.qty}
                   onChange={(e) => setQty(skuId, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
                 />
-                <button type="button" className="lq-step" aria-label="increase" onClick={() => setQty(skuId, round1(cell.qty + 1))}>+</button>
+                <button type="button" className="lq-step" aria-label="increase" onClick={() => setQty(skuId, roundQty(cell.qty + 1))}>+</button>
               </div>
               <button
                 type="button"
@@ -596,8 +596,10 @@ function ReviewRow({
   );
 }
 
-function round1(n: number): number {
-  return Math.round(n * 10) / 10;
+// 2 decimals: "a quarter bottle" must stay 0.25, not round to 0.3. (The DB
+// column is numeric(12,3) — the client is the only place precision was lost.)
+function roundQty(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 function rebuildCounts(lines: OpenCountLine[]): Counts {
