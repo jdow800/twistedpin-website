@@ -115,11 +115,22 @@ export function useDictation(onFinal?: (transcript: string) => void) {
   });
   const recRef = useRef<any>(null);
   const wantRef = useRef(false); // true while we intend to keep recording (drives restart-on-end)
-  const finalRef = useRef(""); // accumulated final transcript (source of truth)
+  // Transcript accumulation is split in two so Android Chrome's result re-delivery
+  // can't duplicate text. Android re-fires `onresult` with the SAME results again
+  // (growing snapshots, unreliable resultIndex), so appending deltas (`final +=`)
+  // stacks each snapshot — "okay / okay let's see / okay let's see looks like…".
+  // Instead we REBUILD the current session's transcript from the full results
+  // list every event (idempotent — re-delivery yields the same string), and bank
+  // it into `baseRef` only when a session ends (`e.results` resets on the
+  // restart-on-silence, so banked text must live outside the session snapshot).
+  const baseRef = useRef(""); // text finalized in PREVIOUS recognizer sessions (across restarts)
+  const sessionFinalRef = useRef(""); // full final snapshot of the CURRENT session (rebuilt each event)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortingRef = useRef(false); // set during unmount so the teardown abort doesn't fire onFinal
   const onFinalRef = useRef(onFinal);
   onFinalRef.current = onFinal;
+  const fullTranscript = () =>
+    `${baseRef.current}${sessionFinalRef.current}`.replace(/\s+/g, " ").trim();
 
   useEffect(() => {
     const w = window as any;
@@ -134,14 +145,17 @@ export function useDictation(onFinal?: (transcript: string) => void) {
     rec.interimResults = true;
     rec.maxAlternatives = 1;
     rec.onresult = (e: any) => {
+      // Rebuild from index 0 (NOT resultIndex): replace, never append.
+      let fin = "";
       let interim = "";
-      for (let i = e.resultIndex; i < e.results.length; i++) {
+      for (let i = 0; i < e.results.length; i++) {
         const res = e.results[i];
         const txt: string = res?.[0]?.transcript ?? "";
-        if (res?.isFinal) finalRef.current += txt + " ";
+        if (res?.isFinal) fin += txt + " ";
         else interim += txt;
       }
-      setState((s) => ({ ...s, transcript: finalRef.current, interim }));
+      sessionFinalRef.current = fin;
+      setState((s) => ({ ...s, transcript: fullTranscript(), interim }));
     };
     rec.onerror = (e: any) => {
       const err = String(e?.error ?? "");
@@ -153,6 +167,12 @@ export function useDictation(onFinal?: (transcript: string) => void) {
     };
     rec.onend = () => {
       if (abortingRef.current) return; // unmount teardown — don't restart or fire onFinal
+      // The session is over either way — bank its final snapshot before the
+      // recognizer resets `e.results` on the next start.
+      if (sessionFinalRef.current) {
+        baseRef.current = `${baseRef.current}${sessionFinalRef.current}`;
+        sessionFinalRef.current = "";
+      }
       if (wantRef.current) {
         try {
           rec.start();
@@ -160,10 +180,10 @@ export function useDictation(onFinal?: (transcript: string) => void) {
           /* transient double-start — ignore; next onend retries */
         }
       } else {
-        // Truly ended (this onend runs AFTER the final onresult), so finalRef now
-        // includes the last words spoken before stop.
+        // Truly ended (this onend runs AFTER the final onresult), so the banked
+        // text includes the last words spoken before stop.
         setState((s) => ({ ...s, recording: false, interim: "" }));
-        onFinalRef.current?.(finalRef.current.trim());
+        onFinalRef.current?.(fullTranscript());
       }
     };
     recRef.current = rec;
@@ -184,7 +204,8 @@ export function useDictation(onFinal?: (transcript: string) => void) {
   const start = useCallback(() => {
     const rec = recRef.current;
     if (!rec) return;
-    finalRef.current = "";
+    baseRef.current = "";
+    sessionFinalRef.current = "";
     wantRef.current = true;
     setState((s) => ({ ...s, recording: true, transcript: "", interim: "", error: null, seconds: 0 }));
     try {
