@@ -141,18 +141,30 @@ export function useDictation(onFinal?: (transcript: string) => void) {
     }
     const rec = new Ctor();
     rec.lang = "en-US";
-    rec.continuous = true;
+    // Android Chrome's continuous mode is notoriously buggy: mid-utterance it
+    // adds each growing interim snapshot as a NEW result slot (instead of
+    // replacing), so any accumulation staircases ("okay / okay let's see /
+    // okay let's see looks like…"). The battle-tested workaround is
+    // continuous=false there — each utterance is its own session delivering ONE
+    // cumulative result, and our restart-on-onend (already required for
+    // silence) keeps the recording rolling. Desktop Chrome's continuous mode
+    // is well-behaved; keep it (fewer restart gaps).
+    const isAndroid = /android/i.test(navigator.userAgent);
+    rec.continuous = !isAndroid;
     rec.interimResults = true;
     rec.maxAlternatives = 1;
     rec.onresult = (e: any) => {
-      // Rebuild from index 0 (NOT resultIndex): replace, never append.
+      // Rebuild from index 0 (NOT resultIndex): replace, never append. For the
+      // in-flight interim, use ONLY the LAST non-final slot — earlier non-final
+      // slots on Android are stale snapshots of the same words, and
+      // concatenating them is the 3x-duplication bug.
       let fin = "";
       let interim = "";
       for (let i = 0; i < e.results.length; i++) {
         const res = e.results[i];
         const txt: string = res?.[0]?.transcript ?? "";
         if (res?.isFinal) fin += txt + " ";
-        else interim += txt;
+        else interim = txt;
       }
       sessionFinalRef.current = fin;
       setState((s) => ({ ...s, transcript: fullTranscript(), interim }));
