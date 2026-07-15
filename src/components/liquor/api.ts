@@ -362,6 +362,19 @@ export async function matchInvoiceLine(
 ): Promise<{ matchedName: string; aliasLearned: boolean; invoiceConfirmed: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
 }
+/** Re-run extraction on a flagged/extracted invoice (re-reads the stored images
+ *  with current logic). Returns 'images_purged' when the 30-day images are gone. */
+export async function reextractInvoice(
+  invoiceId: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    await gatedJson(`/admin/bar/invoices/${invoiceId}/reextract`, { method: "POST" });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof BarApiError && err.status === 409) return { ok: false, error: "images_purged" };
+    throw err; // NotAuthed / Forbidden / other bubble to the caller
+  }
+}
 /** Create a NEW bottle from an unmatched invoice line (new product or new size),
  *  match the line to it, and learn the alias + seed its cost. */
 export async function newSkuFromLine(

@@ -5,6 +5,7 @@ import {
   getCatalog,
   matchInvoiceLine,
   newSkuFromLine,
+  reextractInvoice,
   invoiceImageUrl,
   type InvoiceSummary,
   type InvoiceDetail,
@@ -56,6 +57,8 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
+  const [reextracting, setReextracting] = useState(false);
+  const [reextractMsg, setReextractMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -92,12 +95,38 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
 
   async function open(id: string) {
     setDetailLoading(true);
+    setReextractMsg(null);
     try {
       setDetail(await getInvoiceDetail(id));
     } catch {
       /* leave list in place */
     } finally {
       setDetailLoading(false);
+    }
+  }
+
+  // Re-run extraction on the stored image (e.g. after an extractor fix) — flips
+  // the invoice back to 'pending'; the worker re-reads it within ~a minute.
+  async function doReextract() {
+    if (!detail || reextracting) return;
+    setReextracting(true);
+    setReextractMsg(null);
+    try {
+      const r = await reextractInvoice(detail.invoice.id);
+      if (r.ok) {
+        setReextractMsg("Re-reading now — check back in about a minute, then reopen it.");
+        getInvoiceHistory().then(setList).catch(() => {});
+      } else {
+        setReextractMsg(
+          r.error === "images_purged"
+            ? "The page image was purged (kept 30 days) — can't re-read this one."
+            : "Couldn't re-extract — try again.",
+        );
+      }
+    } catch {
+      setReextractMsg("Couldn't re-extract — try again.");
+    } finally {
+      setReextracting(false);
     }
   }
 
@@ -126,6 +155,17 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
           <div><span className="lq-muted">Printed</span><strong>{money(inv.printedTotal)}</strong></div>
           <div><span className="lq-muted">Extracted</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
+
+        {(inv.status === "flagged" || inv.status === "extracted") && (
+          <div className="lq-invd-reextract">
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
+              {reextracting ? "Re-reading…" : "Re-extract"}
+            </button>
+            <span className="lq-muted lq-invd-reextract-hint">
+              {reextractMsg ?? "Re-read the image with the latest logic."}
+            </span>
+          </div>
+        )}
 
         <h3 className="lq-cap-title">Lines <span className="lq-cap-n">{detail.lines.length}</span></h3>
         <div className="lq-invd-lines">
