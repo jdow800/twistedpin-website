@@ -544,7 +544,26 @@ export const isPdfFile = (f: File): boolean =>
   f.type === "application/pdf" || /\.pdf$/i.test(f.name);
 
 /**
- * Upload an invoice's pages → a pending bar_invoice. Photos are compressed to
+ * Upload a batch of files as invoices, grouped by what they physically are:
+ * PHOTOS are pages of ONE paper invoice (you photograph page 1, page 2, …);
+ * each PDF is a COMPLETE invoice of its own (emailed invoices arrive one per
+ * PDF — nobody splits one invoice across PDF files). So a mixed selection of
+ * 3 photos + 2 PDFs becomes 3 invoices: [photos], [pdf1], [pdf2]. Returns the
+ * created invoice ids.
+ */
+export async function uploadInvoices(files: File[]): Promise<string[]> {
+  const photos = files.filter((f) => !isPdfFile(f));
+  const pdfs = files.filter(isPdfFile);
+  const groups: File[][] = [];
+  if (photos.length > 0) groups.push(photos);
+  for (const pdf of pdfs) groups.push([pdf]);
+  const ids: string[] = [];
+  for (const g of groups) ids.push(await uploadInvoice(g));
+  return ids;
+}
+
+/**
+ * Upload ONE invoice's pages → a pending bar_invoice. Photos are compressed to
  * JPEG; a PDF (emailed / desktop) is sent as-is (Claude reads it natively). One
  * request per file (each stays under the ~4.5 MB Vercel proxy body cap), then
  * the invoice is created from the staged keys. Returns the invoice id.

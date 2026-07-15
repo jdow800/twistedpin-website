@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { uploadInvoice, isPdfFile, BarApiError, MAX_INVOICE_PAGES } from "../api";
+import { uploadInvoices, isPdfFile, BarApiError, MAX_INVOICE_PAGES } from "../api";
 
 type Pending = { file: File; url: string; id: string; isPdf: boolean };
 
@@ -7,6 +7,7 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
   const [pages, setPages] = useState<Pending[]>([]);
   const [phase, setPhase] = useState<"idle" | "uploading" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [sentCount, setSentCount] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null); // gallery fallback
   const cameraRef = useRef<HTMLInputElement>(null); // opens the camera directly
   const seq = useRef(0);
@@ -51,9 +52,11 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
     setPhase("uploading");
     setError(null);
     try {
-      await uploadInvoice(pages.map((p) => p.file));
+      // Grouping: photos = pages of ONE invoice; each PDF = its own invoice.
+      const ids = await uploadInvoices(pages.map((p) => p.file));
       pages.forEach((p) => URL.revokeObjectURL(p.url));
       setPages([]);
+      setSentCount(ids.length);
       setPhase("done");
     } catch (e) {
       setError(e instanceof BarApiError ? e.message : "Upload failed — try again.");
@@ -65,10 +68,10 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
     return (
       <div className="lq-center">
         <p className="lq-done-emoji" aria-hidden="true">📨</p>
-        <h2 className="lq-h2">Invoice sent</h2>
+        <h2 className="lq-h2">{sentCount > 1 ? `${sentCount} invoices sent` : "Invoice sent"}</h2>
         <p className="lq-muted" style={{ maxWidth: 340, textAlign: "center" }}>
-          We're reading it now. If a line needs a human, the bar inbox gets an email — otherwise
-          it's filed. Nothing else to do.
+          We're reading {sentCount > 1 ? "them" : "it"} now. If a line needs a human, the bar inbox
+          gets an email — otherwise it's filed. Nothing else to do.
         </p>
         <div className="lq-voice-actions">
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
@@ -85,7 +88,8 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
     <div className="lq-upload">
       <p className="lq-muted lq-upload-hint">
         Point the camera at each page and snap it — deposits and fees too. Multi-page: take them
-        all before sending. Emailed invoice? Attach the PDF instead.
+        all before sending. Emailed invoices? Attach the PDFs — each PDF files as its own invoice,
+        so you can send a whole stack at once.
       </p>
 
       {/* opens the camera app directly (rear camera, one page at a time) */}
@@ -173,9 +177,15 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
             disabled={pages.length === 0 || phase === "uploading"}
             onClick={send}
           >
-            {phase === "uploading"
-              ? "Sending…"
-              : `Send ${pages.length || ""} page${pages.length === 1 ? "" : "s"}`.trim()}
+            {(() => {
+              if (phase === "uploading") return "Sending…";
+              // photos = 1 invoice; each PDF = its own invoice
+              const nPdf = pages.filter((p) => p.isPdf).length;
+              const nInv = nPdf + (pages.length > nPdf ? 1 : 0);
+              return nInv > 1
+                ? `Send ${nInv} invoices`
+                : `Send ${pages.length || ""} page${pages.length === 1 ? "" : "s"}`.trim();
+            })()}
           </button>
         </div>
       </div>
