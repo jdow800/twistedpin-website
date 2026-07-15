@@ -1,12 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   getInvoiceHistory,
   getInvoiceDetail,
+  getCatalog,
+  matchInvoiceLine,
   invoiceImageUrl,
   type InvoiceSummary,
   type InvoiceDetail,
+  type InvoiceLine,
   type BarInvoiceStatus,
+  type BarSkuItem,
 } from "../api";
+import { matchSkus } from "../matcher";
 
 // Read-only invoice history — see recent uploads + their status, open the
 // extracted lines and the page image (images are kept 30 days; the data stays).
@@ -33,14 +38,16 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
   const [list, setList] = useState<InvoiceSummary[]>([]);
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
 
   useEffect(() => {
     let live = true;
     (async () => {
       try {
-        const inv = await getInvoiceHistory();
+        const [inv, cat] = await Promise.all([getInvoiceHistory(), getCatalog().catch(() => [])]);
         if (live) {
           setList(inv);
+          setCatalog(cat);
           setPhase("ready");
         }
       } catch {
@@ -51,6 +58,20 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
       live = false;
     };
   }, []);
+
+  // Apply a confirmed match to the open detail (line matched + review cleared;
+  // flip the invoice to Confirmed when the server says nothing's left).
+  function handleMatched(lineId: string, name: string, confirmed: boolean) {
+    setDetail((d) =>
+      d
+        ? {
+            ...d,
+            invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice,
+            lines: d.lines.map((x) => (x.id === lineId ? { ...x, matchedName: name, needsReview: false } : x)),
+          }
+        : d,
+    );
+  }
 
   async function open(id: string) {
     setDetailLoading(true);
@@ -106,6 +127,9 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
                 ) : null}
                 {l.qtyUnits && <span>· {Number(l.qtyUnits)} × {money(l.unitCost)}</span>}
               </div>
+              {l.needsReview && l.lineType === "product" && (
+                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
+              )}
             </div>
           ))}
         </div>
@@ -158,6 +182,74 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Home</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function MatchControl({
+  invoiceId,
+  line,
+  catalog,
+  onMatched,
+}: {
+  invoiceId: string;
+  line: InvoiceLine;
+  catalog: BarSkuItem[];
+  onMatched: (lineId: string, name: string, confirmed: boolean) => void;
+}) {
+  const [q, setQ] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const suggestions = useMemo(
+    () => matchSkus(line.rawDescription ?? "", catalog).slice(0, 3),
+    [line.rawDescription, catalog],
+  );
+  const hits = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    if (!t) return [];
+    return catalog.filter((s) => s.name.toLowerCase().includes(t)).slice(0, 6);
+  }, [q, catalog]);
+
+  async function pick(skuId: string, name: string) {
+    setBusy(true);
+    setErr(null);
+    try {
+      const r = await matchInvoiceLine(invoiceId, line.id, skuId);
+      onMatched(line.id, r.matchedName || name, r.invoiceConfirmed);
+    } catch {
+      setErr("Couldn't save — try again.");
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="lq-match">
+      {suggestions.length > 0 && (
+        <div className="lq-rev-choices">
+          <span className="lq-muted lq-rev-hint">Did you mean</span>
+          {suggestions.map((c) => (
+            <button key={c.sku.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(c.sku.id, c.sku.name)}>
+              {c.sku.name}{c.sku.sizeMl != null ? ` · ${c.sku.sizeMl}ml` : ""}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="lq-rev-assign">
+        <input
+          className="lq-search lq-rev-search"
+          type="search"
+          placeholder="Search a bottle to match…"
+          value={q}
+          disabled={busy}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        {hits.map((s) => (
+          <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
+            {s.name}{s.sizeMl != null ? ` · ${s.sizeMl}ml` : ""}
+          </button>
+        ))}
+      </div>
+      {err && <p className="lq-error">{err}</p>}
     </div>
   );
 }

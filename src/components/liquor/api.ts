@@ -352,6 +352,15 @@ export async function getInvoiceHistory(): Promise<InvoiceSummary[]> {
 export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
   return gatedJson<InvoiceDetail>(`/admin/bar/invoices/${id}`);
 }
+/** Confirm a needs-review invoice line → a SKU. Learns the vendor alias + refreshes
+ *  the SKU cost server-side; returns whether the whole invoice is now confirmed. */
+export async function matchInvoiceLine(
+  invoiceId: string,
+  lineId: string,
+  skuId: string,
+): Promise<{ matchedName: string; aliasLearned: boolean; invoiceConfirmed: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
+}
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */
 export function invoiceImageUrl(imageId: string): string {

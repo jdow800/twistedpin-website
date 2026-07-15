@@ -1053,6 +1053,12 @@
 .lq-invd-unmatched {
   color: #ffcf5c;
 }
+.lq-match {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 .lq-invd-imgs {
   display: flex;
   flex-wrap: wrap;
