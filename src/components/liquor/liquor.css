@@ -1059,6 +1059,46 @@
   flex-direction: column;
   gap: 8px;
 }
+.lq-newsku {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 10px;
+  background: var(--lq-panel-2);
+}
+.lq-newsku-name,
+.lq-newsku-size {
+  border: 1px solid var(--lq-line);
+  border-radius: 8px;
+  background: var(--lq-panel);
+  color: var(--lq-text);
+  font-size: 16px;
+  padding: 9px 11px;
+}
+.lq-newsku-name {
+  width: 100%;
+}
+.lq-newsku-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.lq-newsku-size {
+  width: 90px;
+  flex: 0 0 auto;
+}
+.lq-newsku-hint {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.lq-newsku-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .lq-segbar {
   display: flex;
   gap: 6px;

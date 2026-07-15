@@ -4,6 +4,7 @@ import {
   getInvoiceDetail,
   getCatalog,
   matchInvoiceLine,
+  newSkuFromLine,
   invoiceImageUrl,
   type InvoiceSummary,
   type InvoiceDetail,
@@ -12,6 +13,17 @@ import {
   type BarSkuItem,
 } from "../api";
 import { matchSkus } from "../matcher";
+
+/** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
+function parseSizeMl(sizeText: string | null): number | null {
+  if (!sizeText) return null;
+  const s = sizeText.toUpperCase();
+  let m = s.match(/(\d+(?:\.\d+)?)\s*ML/);
+  if (m) return Math.round(parseFloat(m[1]!));
+  m = s.match(/(\d+(?:\.\d+)?)\s*L(?![A-Z])/);
+  if (m) return Math.round(parseFloat(m[1]!) * 1000);
+  return null;
+}
 
 // Read-only invoice history — see recent uploads + their status, open the
 // extracted lines and the page image (images are kept 30 days; the data stays).
@@ -200,6 +212,12 @@ function MatchControl({
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [newMode, setNewMode] = useState(false);
+  const [newName, setNewName] = useState((line.rawDescription ?? "").trim().slice(0, 120));
+  const [newSize, setNewSize] = useState(() => {
+    const ml = parseSizeMl(line.sizeText);
+    return ml != null ? String(ml) : "";
+  });
   const suggestions = useMemo(
     () => matchSkus(line.rawDescription ?? "", catalog).slice(0, 3),
     [line.rawDescription, catalog],
@@ -218,6 +236,22 @@ function MatchControl({
       onMatched(line.id, r.matchedName || name, r.invoiceConfirmed);
     } catch {
       setErr("Couldn't save — try again.");
+      setBusy(false);
+    }
+  }
+
+  async function createNew() {
+    const nm = newName.trim();
+    if (!nm) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      const n = Number(newSize);
+      const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl);
+      onMatched(line.id, r.matchedName, r.invoiceConfirmed);
+    } catch {
+      setErr("Couldn't create — try again.");
       setBusy(false);
     }
   }
@@ -249,6 +283,39 @@ function MatchControl({
           </button>
         ))}
       </div>
+      {!newMode ? (
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(true)}>
+          + New bottle (not in the list)
+        </button>
+      ) : (
+        <div className="lq-newsku">
+          <input
+            className="lq-newsku-name"
+            placeholder="Bottle name"
+            value={newName}
+            disabled={busy}
+            onChange={(e) => setNewName(e.target.value)}
+          />
+          <div className="lq-newsku-row">
+            <input
+              className="lq-newsku-size"
+              type="number"
+              inputMode="numeric"
+              placeholder="ml"
+              value={newSize}
+              disabled={busy}
+              onChange={(e) => setNewSize(e.target.value)}
+            />
+            <span className="lq-muted lq-newsku-hint">size in ml — leave blank if it's not a bottle</span>
+          </div>
+          <div className="lq-newsku-actions">
+            <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim()} onClick={createNew}>
+              Create + match
+            </button>
+            <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(false)}>cancel</button>
+          </div>
+        </div>
+      )}
       {err && <p className="lq-error">{err}</p>}
     </div>
   );

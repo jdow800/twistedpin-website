@@ -329,6 +329,7 @@ export interface InvoiceLine {
   id: string;
   lineType: "product" | "deposit" | "fee" | "return" | "keg" | "unknown";
   rawDescription: string | null;
+  sizeText: string | null;
   qtyUnits: string | null;
   unitCost: string | null;
   extendedAmount: string;
@@ -360,6 +361,16 @@ export async function matchInvoiceLine(
   skuId: string,
 ): Promise<{ matchedName: string; aliasLearned: boolean; invoiceConfirmed: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
+}
+/** Create a NEW bottle from an unmatched invoice line (new product or new size),
+ *  match the line to it, and learn the alias + seed its cost. */
+export async function newSkuFromLine(
+  invoiceId: string,
+  lineId: string,
+  name: string,
+  sizeMl: number | null,
+): Promise<{ skuId: string; matchedName: string; invoiceConfirmed: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */
