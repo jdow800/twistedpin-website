@@ -405,6 +405,36 @@ export async function getCountHistory(): Promise<CountSummary[]> {
 export async function getCountDetail(id: string): Promise<CountDetail> {
   return gatedJson<CountDetail>(`/admin/bar/counts/${id}`);
 }
+export interface KegCountSummary {
+  id: string;
+  countedBy: string | null;
+  startedAt: string;
+  submittedAt: string | null;
+  totalKegs: number;
+  lineCount: number;
+}
+export interface KegCountDetailLine {
+  kegName: string;
+  category: KegCategory;
+  qty: number;
+}
+export interface KegCountDetail {
+  session: {
+    id: string;
+    status: "draft" | "submitted" | "reconciled";
+    startedAt: string;
+    submittedAt: string | null;
+    countedBy: string | null;
+  };
+  lines: KegCountDetailLine[];
+}
+export async function getKegCountHistory(): Promise<KegCountSummary[]> {
+  const { counts } = await gatedJson<{ counts: KegCountSummary[] }>("/admin/bar/keg-counts/history");
+  return counts;
+}
+export async function getKegCountDetail(id: string): Promise<KegCountDetail> {
+  return gatedJson<KegCountDetail>(`/admin/bar/keg-counts/${id}`);
+}
 
 // ── price watch (liquor $/oz movers) ──
 export interface PriceMover {
