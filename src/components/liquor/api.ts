@@ -259,6 +259,23 @@ export async function createKegCount(): Promise<string> {
   });
   return sessionId;
 }
+export interface OpenKegLine {
+  kegName: string;
+  category: KegCategory;
+  qty: number;
+  source: "grid" | "voice";
+  rawUtterance: string | null;
+}
+export interface OpenKegCount {
+  id: string;
+  startedAt: string;
+  lines: OpenKegLine[];
+}
+/** The staffer's most recent in-progress keg draft (to resume across reload), or null. */
+export async function getOpenKegCount(): Promise<OpenKegCount | null> {
+  const { session } = await gatedJson<{ session: OpenKegCount | null }>("/admin/bar/keg-counts/open");
+  return session;
+}
 export async function saveKegLines(sessionId: string, lines: KegLineInput[]): Promise<void> {
   await gatedJson(`/admin/bar/keg-counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
 }

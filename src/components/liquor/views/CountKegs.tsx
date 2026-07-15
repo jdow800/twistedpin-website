@@ -3,6 +3,7 @@ import {
   createKegCount,
   extractKegVoice,
   getKegKnown,
+  getOpenKegCount,
   saveKegLines,
   submitKegCount,
   BarApiError,
@@ -43,18 +44,38 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
   const [done, setDone] = useState<number | null>(null);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const [resumed, setResumed] = useState(false);
   const keySeq = useRef(0);
   const nextKey = () => `r${keySeq.current++}`;
+  const starterRow = (): Row => ({ key: nextKey(), kegName: "", category: "beer", qty: 1, source: "grid" });
 
+  // Resume the staffer's in-progress keg draft (across a reload), else start new.
   useEffect(() => {
     let live = true;
     (async () => {
       try {
-        const [sid, k] = await Promise.all([createKegCount(), getKegKnown()]);
+        const [k, open] = await Promise.all([getKegKnown(), getOpenKegCount()]);
         if (!live) return;
-        setSessionId(sid);
         setKnown(k);
-        setRows([{ key: nextKey(), kegName: "", category: "beer", qty: 1, source: "grid" }]);
+        if (open) {
+          setSessionId(open.id);
+          if (open.lines.length > 0) {
+            setRows(open.lines.map((l) => ({
+              key: nextKey(),
+              kegName: l.kegName,
+              category: l.category,
+              qty: l.qty,
+              source: l.source,
+              ...(l.rawUtterance ? { raw: l.rawUtterance } : {}),
+            })));
+            setResumed(true);
+          } else {
+            setRows([starterRow()]);
+          }
+        } else {
+          setSessionId(await createKegCount());
+          setRows([starterRow()]);
+        }
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
@@ -64,6 +85,32 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
       live = false;
     };
   }, []);
+
+  async function startFresh() {
+    try {
+      const sid = await createKegCount();
+      setSessionId(sid);
+      setRows([starterRow()]);
+      setResumed(false);
+      setSave("idle");
+    } catch {
+      setSave("error");
+    }
+  }
+
+  // Flush on screen-lock / app-switch so the last edit can't be lost on eviction.
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flush();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onHide);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowsRef = useRef<Row[]>(rows);
@@ -195,6 +242,12 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
   const total = validLines(rows).reduce((n, r) => n + r.qty, 0);
   return (
     <div className="lq-count">
+      {resumed && (
+        <div className="lq-resumed">
+          <span>↩ Picked up your keg count in progress.</span>
+          <button type="button" className="lq-linkbtn" onClick={startFresh}>Start a new count</button>
+        </div>
+      )}
       <p className="lq-muted lq-keg-hint">Untapped / backup kegs only.</p>
       <div className="lq-voicebar">
         {!dict.supported ? (
