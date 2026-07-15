@@ -289,7 +289,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
-      {/* zone tabs */}
+      {/* zone tiles — uniform grid, every zone visible; the badge doubles as a
+          what's-been-counted gauge, the ✓-less tiles are what's left. */}
+      <h3 className="lq-cap-title lq-zonebar-title">Where you're counting</h3>
       <div className="lq-zonebar" role="tablist" aria-label="Zones">
         {zones.map((z) => {
           const n = Object.keys(counts[z.id] ?? {}).length;
@@ -299,10 +301,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               type="button"
               role="tab"
               aria-selected={z.id === zoneId}
-              className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}`}
+              className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}${n > 0 ? " lq-zone-done" : ""}`}
               onClick={() => setZoneId(z.id)}
             >
-              {z.name}
+              <span className="lq-zone-name">{z.name}</span>
               {n > 0 && <span className="lq-zone-badge">{n}</span>}
             </button>
           );

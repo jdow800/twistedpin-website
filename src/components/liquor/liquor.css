@@ -251,33 +251,47 @@
   gap: 12px;
   padding-bottom: 84px; /* room for the sticky footer */
 }
+.lq-zonebar-title {
+  margin-bottom: -2px;
+}
 .lq-zonebar {
-  /* All zones visible at once (wrap, no horizontal scroll) — the counter hops
-     zones constantly and the per-zone badges double as a "what's left" gauge;
-     hiding zones behind a slide-over cost both. */
-  display: flex;
-  flex-wrap: wrap;
+  /* All zones visible at once as a uniform tile grid — equal widths read as
+     designed (ragged wrapped pills read as broken), the counter hops zones
+     constantly, and the per-zone badges double as a "what's left" gauge. */
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 8px;
   padding-bottom: 4px;
 }
 .lq-zone {
-  flex: 0 0 auto;
   background: var(--lq-panel);
   border: 1px solid var(--lq-line);
   color: var(--lq-text);
-  border-radius: 999px;
-  padding: 9px 15px;
+  border-radius: 12px;
+  padding: 13px 10px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   gap: 7px;
+  min-height: 52px;
+  line-height: 1.2;
+}
+/* a zone with bottles counted gets a quiet confirmation tint (badge carries the number) */
+.lq-zone-done {
+  border-color: rgba(61, 220, 175, 0.45);
 }
 .lq-zone-on {
   background: var(--lq-glow);
   color: #10121a;
   border-color: var(--lq-glow);
+}
+/* an odd last tile spans the full row instead of dangling in one column */
+.lq-zone:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
 }
 .lq-zone-badge {
   background: rgba(0, 0, 0, 0.25);
