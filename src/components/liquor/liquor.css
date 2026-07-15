@@ -1070,6 +1070,45 @@
   display: block;
 }
 
+/* home section label + price watch */
+.lq-section-label {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--lq-muted);
+  margin: 10px 4px 0;
+}
+.lq-pw-row {
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: 10px;
+  padding: 11px 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lq-pw-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lq-pw-pct {
+  flex: 0 0 auto;
+  font-size: 15px;
+  font-weight: 800;
+}
+.lq-pw-up {
+  color: var(--lq-danger);
+}
+.lq-pw-down {
+  color: var(--lq-glow);
+}
+.lq-pw-sub {
+  font-size: 12px;
+}
+
 @media (min-width: 560px) {
   .lq-tiles {
     grid-template-columns: repeat(3, 1fr);

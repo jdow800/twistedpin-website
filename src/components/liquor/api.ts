@@ -342,6 +342,62 @@ export function invoiceImageUrl(imageId: string): string {
   return USING_DEV_PROXY ? `${API_BASE}${path}/` : `${API_BASE}${path}`;
 }
 
+// ── completed-inventory history ──
+export interface CountSummary {
+  id: string;
+  countedBy: string | null;
+  isFullCount: boolean;
+  startedAt: string;
+  submittedAt: string | null;
+  lineCount: number;
+}
+export interface CountDetailLine {
+  zoneId: string;
+  zoneName: string | null;
+  skuId: string;
+  skuName: string | null;
+  sizeMl: number | null;
+  qtyUnits: string;
+  source: "grid" | "voice";
+}
+export interface CountDetail {
+  session: {
+    id: string;
+    status: "draft" | "submitted" | "reconciled";
+    isFullCount: boolean;
+    note: string | null;
+    startedAt: string;
+    submittedAt: string | null;
+    countedBy: string | null;
+  };
+  lines: CountDetailLine[];
+}
+export async function getCountHistory(): Promise<CountSummary[]> {
+  const { counts } = await gatedJson<{ counts: CountSummary[] }>("/admin/bar/counts/history");
+  return counts;
+}
+export async function getCountDetail(id: string): Promise<CountDetail> {
+  return gatedJson<CountDetail>(`/admin/bar/counts/${id}`);
+}
+
+// ── price watch (liquor $/oz movers) ──
+export interface PriceMover {
+  skuId: string;
+  name: string;
+  sizeMl: number;
+  oldPpo: number;
+  newPpo: number;
+  oldCost: number;
+  newCost: number;
+  pct: number;
+  oldAt: string;
+  newAt: string;
+}
+export async function getPriceWatch(): Promise<PriceMover[]> {
+  const { movers } = await gatedJson<{ movers: PriceMover[] }>("/admin/bar/price-watch");
+  return movers;
+}
+
 // ── invoice upload (compress client-side; the Vercel proxy caps bodies ~4.5MB) ──
 const PROXY_SAFE_RAW_BYTES = 3 * 1024 * 1024;
 
