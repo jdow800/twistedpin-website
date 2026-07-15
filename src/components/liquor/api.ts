@@ -149,11 +149,11 @@ export async function listPinUsers(): Promise<PinUser[]> {
   const { json } = await publicJson("/admin/bar/pin-users");
   return ((json as { users?: PinUser[] } | undefined)?.users ?? []) as PinUser[];
 }
+/** PIN-only login — the PIN itself identifies the staffer (no name pick). */
 export async function pinLogin(
-  userId: string,
   pin: string,
 ): Promise<{ ok: true; actor: PinUser } | { ok: false; error: string; message?: string }> {
-  const { ok, json } = await publicJson("/admin/bar/pin-login", jsonBody({ userId, pin }));
+  const { ok, json } = await publicJson("/admin/bar/pin-login", jsonBody({ pin }));
   if (ok) {
     const j = json as { actor: PinUser };
     return { ok: true, actor: j.actor };
