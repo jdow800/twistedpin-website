@@ -9,12 +9,13 @@ import UploadInvoice from "./views/UploadInvoice";
 import Invoices from "./views/Invoices";
 import Counts from "./views/Counts";
 import PriceWatch from "./views/PriceWatch";
+import PourCosts from "./views/PourCosts";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "keg" | "upload" | "invoices" | "counts" | "pricewatch" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "keg" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "forbidden";
 
 export default function LiquorApp() {
   const [view, setView] = useState<View>("loading");
@@ -75,6 +76,7 @@ export default function LiquorApp() {
         {view === "invoices" && <Invoices onDone={goHome} />}
         {view === "counts" && <Counts onDone={goHome} />}
         {view === "pricewatch" && <PriceWatch onDone={goHome} />}
+        {view === "pourcosts" && <PourCosts onDone={goHome} />}
       </main>
     </div>
   );

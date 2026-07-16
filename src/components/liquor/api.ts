@@ -481,6 +481,26 @@ export async function getPriceWatch(): Promise<PriceMover[]> {
   return movers;
 }
 
+// ── pour cost (recipe COGS ÷ menu price, live) ──
+export interface PourCostComponent {
+  skuName: string;
+  oz: number;
+  costUsd: number | null; // null = SKU missing size or cost (row incomplete)
+}
+export interface PourCostRow {
+  productId: string;
+  name: string;
+  priceUsd: number | null;
+  costUsd: number;
+  pourCostPct: number | null;
+  overCeiling: boolean;
+  incomplete: boolean;
+  components: PourCostComponent[];
+}
+export async function getPourCosts(): Promise<{ ceiling: number; rows: PourCostRow[] }> {
+  return gatedJson<{ ceiling: number; rows: PourCostRow[] }>("/admin/bar/pour-costs");
+}
+
 // ── invoice upload (compress client-side; the Vercel proxy caps bodies ~4.5MB) ──
 const PROXY_SAFE_RAW_BYTES = 3 * 1024 * 1024;
 
