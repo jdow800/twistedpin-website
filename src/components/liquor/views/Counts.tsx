@@ -4,14 +4,17 @@ import {
   getCountDetail,
   getKegCountHistory,
   getKegCountDetail,
+  getCountVariance,
   type CountSummary,
   type CountDetail,
   type KegCountSummary,
   type KegCountDetail,
+  type VarianceReport,
 } from "../api";
 
 // Read-only inventory history — recent submitted liquor counts (per-zone
-// breakdown) and keg counts (by category), toggled.
+// breakdown) and keg counts (by category), toggled. Full counts also show
+// their variance report (grade + per-bottle loss) once the worker writes it.
 
 const CAT: Record<string, string> = {
   beer: "Beer", red_wine: "Red wine", white_wine: "White wine", non_alcoholic: "N/A", other: "Other",
@@ -43,6 +46,8 @@ export default function Counts({ onDone }: { onDone: () => void }) {
   const [kegs, setKegs] = useState<KegCountSummary[]>([]);
   const [detail, setDetail] = useState<Detail>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [variance, setVariance] = useState<VarianceReport | null>(null);
+  const [showVarianceLines, setShowVarianceLines] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -65,8 +70,15 @@ export default function Counts({ onDone }: { onDone: () => void }) {
 
   async function openLiquor(id: string) {
     setDetailLoading(true);
+    setVariance(null);
+    setShowVarianceLines(false);
     try {
-      setDetail({ kind: "liquor", data: await getCountDetail(id) });
+      const [d, v] = await Promise.all([
+        getCountDetail(id),
+        getCountVariance(id).catch(() => null),
+      ]);
+      setDetail({ kind: "liquor", data: d });
+      setVariance(v);
     } catch {
       /* keep list */
     } finally {
@@ -104,6 +116,74 @@ export default function Counts({ onDone }: { onDone: () => void }) {
         <p className="lq-muted lq-invd-meta">
           {when(s.submittedAt || s.startedAt)}{s.countedBy ? ` · ${s.countedBy}` : ""} · {detail.data.lines.length} line{detail.data.lines.length === 1 ? "" : "s"}
         </p>
+
+        {s.isFullCount && (
+          variance == null ? (
+            <p className="lq-muted" style={{ fontSize: 13 }}>Variance report pending — it lands within a minute of submitting.</p>
+          ) : variance.report.baseline ? (
+            <div className="lq-pw-row">
+              <div className="lq-pw-head">
+                <span className="lq-invrow-vendor">Baseline count</span>
+              </div>
+              <div className="lq-pw-sub lq-muted">
+                Variance starts with the next full inventory — this one is the starting bracket.
+              </div>
+            </div>
+          ) : (
+            <div className="lq-pw-row">
+              <div className="lq-pw-head">
+                <span className="lq-invrow-vendor">
+                  Variance grade{" "}
+                  <span className="lq-pw-pct" style={{ fontSize: 18 }}>
+                    {variance.report.gradePct != null ? `${variance.report.gradePct}%` : "—"}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="lq-btn lq-btn-ghost"
+                  style={{ padding: "4px 10px", fontSize: 13 }}
+                  onClick={() => setShowVarianceLines((v) => !v)}
+                >
+                  {showVarianceLines ? "Hide bottles" : "All bottles"}
+                </button>
+              </div>
+              <div className="lq-pw-sub lq-muted">
+                Missing ${variance.report.totals?.missingCost.toFixed(2) ?? "0.00"} · underpour $
+                {variance.report.totals?.underpourCredit.toFixed(2) ?? "0.00"} ·{" "}
+                {variance.report.totals?.cleanLines ?? 0} clean / {variance.report.totals?.flaggedLines ?? 0} flagged
+              </div>
+              {(variance.report.caveats ?? []).map((c, i) => (
+                <div key={i} className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>• {c}</div>
+              ))}
+              {showVarianceLines && (
+                <div style={{ marginTop: 8 }}>
+                  {(variance.report.lines ?? []).map((l) => (
+                    <div key={l.skuId} className="lq-invd-line">
+                      <div className="lq-invd-line-main">
+                        <span className="lq-invd-desc">
+                          {l.name}
+                          {!l.cleanForRollup && <span className="lq-muted"> · {l.flags.join(", ")}</span>}
+                        </span>
+                        <span className="lq-invd-amt" style={{ whiteSpace: "nowrap" }}>
+                          {l.lossOz > 0 ? `−${l.lossOz}oz` : l.lossOz < 0 ? `+${-l.lossOz}oz` : "0oz"}
+                          {l.missingCost != null && (
+                            <span className={l.missingCost > 0 ? "lq-pw-up" : "lq-pw-down"}>
+                              {" "}{l.missingCost > 0 ? `$${l.missingCost.toFixed(2)}` : `+$${(-l.missingCost).toFixed(2)}`}
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                      <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>
+                        used {l.usedOz}oz · sold {l.soldOz}oz{l.gradePct != null ? ` · ${l.gradePct}%` : ""}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        )}
+
         {detail.data.lines.length === 0 ? (
           <p className="lq-muted">No lines recorded.</p>
         ) : (

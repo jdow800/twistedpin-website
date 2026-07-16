@@ -481,6 +481,56 @@ export async function getPriceWatch(): Promise<PriceMover[]> {
   return movers;
 }
 
+// ── variance report (per submitted full count) ──
+export interface VarianceLine {
+  skuId: string;
+  name: string;
+  sizeMl: number | null;
+  startOz: number;
+  purchasedOz: number;
+  endOz: number;
+  usedOz: number;
+  soldOz: number;
+  lossOz: number; // positive = loss/overpour
+  costPerOz: number | null;
+  missingCost: number | null;
+  gradePct: number | null;
+  flags: string[];
+  cleanForRollup: boolean;
+}
+export interface VarianceReport {
+  priorSessionId: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  gradePct: string | null; // numeric → string over the wire
+  missingCost: string | null;
+  report: {
+    baseline?: boolean;
+    lines?: VarianceLine[];
+    gradePct?: number | null;
+    totals?: {
+      usedOz: number;
+      soldOz: number;
+      lossOz: number;
+      missingCost: number;
+      underpourCredit: number;
+      cleanLines: number;
+      flaggedLines: number;
+    };
+    caveats?: string[];
+  };
+  createdAt: string;
+}
+/** null = no report yet (the worker sweep writes it within ~a tick of submit). */
+export async function getCountVariance(id: string): Promise<VarianceReport | null> {
+  try {
+    return await gatedJson<VarianceReport>(`/admin/bar/counts/${id}/variance`);
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+
 // ── pour cost (recipe COGS ÷ menu price, live) ──
 export interface PourCostComponent {
   skuName: string;
