@@ -44,6 +44,19 @@ function localIso(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/** Naive-local ISO ("2026-07-16T18:30:00") → "6:30p"; null → "?" (open shift). */
+function clockLabel(iso: string | null): string {
+  if (!iso) return "?";
+  const m = iso.match(/T(\d{2}):(\d{2})/);
+  if (!m) return "?";
+  let h = Number(m[1]);
+  const min = m[2];
+  const mer = h >= 12 ? "p" : "a";
+  h %= 12;
+  if (h === 0) h = 12;
+  return `${h}:${min}${mer}`;
+}
+
 export default function CountBags({ onDone, onReview }: { onDone: () => void; onReview: () => void }) {
   const [mode, setMode] = useState<Mode>("loading");
   const [error, setError] = useState<string | null>(null);
@@ -427,6 +440,21 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                           {a.reason ? ` — ${a.reason}` : ""}
                         </span>
                         <span>{money(a.amountCents)}</span>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {detail.roster.length > 0 && (
+                  <>
+                    <p className="lq-section-label">Who worked that day</p>
+                    {detail.roster.map((m, i) => (
+                      <div key={i} className="mn-session-row">
+                        <span>
+                          {m.name}
+                          {m.role ? ` · ${m.role}` : ""}
+                          {m.source === "schedule" ? " (scheduled)" : ""}
+                        </span>
+                        <span className="lq-muted">{clockLabel(m.in)}–{clockLabel(m.out)}</span>
                       </div>
                     ))}
                   </>

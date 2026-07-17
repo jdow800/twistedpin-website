@@ -573,3 +573,31 @@
   font-weight: 800;
   margin: 4px 0 8px;
 }
+
+/* ── admin attribution trends (Phase 4) ── */
+.mn-trend-windows {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+.mn-trends .lq-pill {
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: transparent;
+  color: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mn-trends .lq-pill-on {
+  background: var(--lq-glow, #c9ff3d);
+  color: #0e0a1f;
+  border-color: transparent;
+}
+.mn-trends code {
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+}

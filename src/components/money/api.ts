@@ -156,9 +156,19 @@ export interface ReviewResponse {
   rows: ReviewRow[];
 }
 
+export interface RosterMember {
+  name: string;
+  role: string | null;
+  source: "punch" | "schedule";
+  in: string | null;
+  out: string | null;
+  closingCapable: boolean;
+}
+
 export interface DayDetail {
   registerKey: RegisterKey;
   salesDate: string;
+  roster: RosterMember[];
   tender: {
     cashCents: number;
     checksCents: number;
@@ -290,6 +300,40 @@ export function bankConfirm(
   note?: string,
 ): Promise<{ status: "banked" | "mismatch"; diffCents: number }> {
   return gatedJson(`/admin/cash/deposits/${depositId}/bank`, jsonBody({ bankCreditedCents, ...(note ? { note } : {}) }));
+}
+
+// ── Phase 4 attribution trends (cash.admin) ──────────────────────────────────
+
+export interface Lens1Person {
+  name: string;
+  roles: string[];
+  registers: string[];
+  shifts: number;
+  shortageOnShiftsCents: number;
+  dates: string[];
+}
+
+export interface Lens2Closer {
+  name: string;
+  source: "punch" | "schedule";
+  pairs: number;
+  registers: string[];
+  dates: string[];
+}
+
+export interface TrendsResponse {
+  windowDays: number;
+  start: string;
+  end: string;
+  rosterCoverageDays: number;
+  shortageDays: number;
+  tokenWired: boolean;
+  lens1: { people: Lens1Person[]; shortagesConsidered: number; unmappedRoles: string[] };
+  lens2: { closers: Lens2Closer[]; totalPairs: number; unattributedPairs: number };
+}
+
+export function getTrends(days = 90): Promise<TrendsResponse> {
+  return gatedJson(`/admin/cash/trends?days=${days}`);
 }
 
 // ── formatting helpers (shared by views) ─────────────────────────────────────

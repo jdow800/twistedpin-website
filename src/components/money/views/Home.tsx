@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { dedupeBags, prefetchCountData, type CashActor } from "../api";
 
-type Dest = "count" | "review" | "history" | "deposits" | "oslog";
+type Dest = "count" | "review" | "history" | "deposits" | "oslog" | "trends";
 
 export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: Dest) => void }) {
   const first = (actor.displayName ?? "there").split(" ")[0];
@@ -55,6 +55,11 @@ export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: D
               <span className="lq-action-emoji" aria-hidden="true">📒</span>
               <span className="lq-action-title">Over/short log</span>
               <span className="lq-action-sub">Monthly ledger, kept forever — CPA CSV export</span>
+            </button>
+            <button type="button" className="lq-action" onClick={() => onGo("trends")}>
+              <span className="lq-action-emoji" aria-hidden="true">🧭</span>
+              <span className="lq-action-title">Attribution trends</span>
+              <span className="lq-action-sub">Recurring shortages + count-down errors, by staff</span>
             </button>
           </>
         )}
