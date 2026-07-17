@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { dedupeBags, getOpenSession, type CashActor } from "../api";
+import { dedupeBags, prefetchCountData, type CashActor } from "../api";
 
 type Dest = "count" | "review" | "history" | "deposits" | "oslog";
 
@@ -8,8 +8,10 @@ export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: D
   const [openBags, setOpenBags] = useState<number | null>(null);
 
   useEffect(() => {
-    getOpenSession()
-      .then((r) => setOpenBags(r.session ? dedupeBags(r.bags).length : 0))
+    // Warms the count screen's data while the human reads the tiles — the
+    // "Continue counting" click then lands on already-arrived responses.
+    prefetchCountData()
+      .open.then((r) => setOpenBags(r.session ? dedupeBags(r.bags).length : 0))
       .catch(() => setOpenBags(0));
   }, []);
 

@@ -3,6 +3,7 @@ import {
   commitBag,
   dedupeBags,
   dollarsToCents,
+  takeCountPrefetch,
   getDayDetail,
   getOpenSession,
   getWorklist,
@@ -74,15 +75,23 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
   useEffect(() => {
     (async () => {
       try {
-        const s = await openSession();
+        // Use Home's in-flight prefetch when it exists; else one parallel wave.
+        const pre = takeCountPrefetch();
+        const [s, wl, open] = await Promise.all([
+          pre?.session ?? openSession(),
+          pre?.worklist ?? getWorklist(),
+          pre?.open ?? getOpenSession(),
+        ]);
         setSessionId(s.sessionId);
-        await refresh();
+        setWorklist(wl);
+        setSessionBags(dedupeBags(open.bags));
+        setMode("location");
       } catch (e) {
         setError((e as Error).message);
         setMode("location");
       }
     })();
-  }, [refresh]);
+  }, []);
 
   function startEntry(t: Target) {
     setTarget(t);

@@ -320,6 +320,43 @@ export const REGISTER_LABEL: Record<RegisterKey, string> = {
   kiosk: "Kiosks",
 };
 
+// ── count-screen prefetch ────────────────────────────────────────────────────
+// Every call rides browser → Vercel proxy → Render, so sequential round trips
+// are the whole perceived lag. Home starts these the moment it renders; the
+// count screen consumes the in-flight promises — the click feels instant.
+
+interface CountPrefetch {
+  at: number;
+  session: Promise<{ sessionId: string; resumed: boolean }>;
+  worklist: Promise<WorklistResponse>;
+  open: Promise<{ session: { id: string; startedAt: string } | null; bags: BagView[] }>;
+}
+let countPrefetch: CountPrefetch | null = null;
+
+export function prefetchCountData(): CountPrefetch {
+  if (!countPrefetch || Date.now() - countPrefetch.at > 15_000) {
+    const p: CountPrefetch = {
+      at: Date.now(),
+      session: openSession(),
+      worklist: getWorklist(),
+      open: getOpenSession(),
+    };
+    // A failed prefetch must not poison the real load — drop it quietly.
+    p.session.catch(() => {
+      if (countPrefetch === p) countPrefetch = null;
+    });
+    countPrefetch = p;
+  }
+  return countPrefetch;
+}
+
+/** Consume (and clear) the prefetch so post-commit refreshes always refetch. */
+export function takeCountPrefetch(): CountPrefetch | null {
+  const p = countPrefetch && Date.now() - countPrefetch.at <= 15_000 ? countPrefetch : null;
+  countPrefetch = null;
+  return p;
+}
+
 /**
  * Collapse recounts: latest count per bag identity (register+day, or kiosk
  * window). A recounted bag is ONE bag — the recount supersedes the original.
