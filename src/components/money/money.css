@@ -1,0 +1,237 @@
+/* Money Hub /money SPA — overlay on the shared lq-* system (liquor.css).
+   mn-* = money-specific: bag tiles, the reveal card, variance colors, tables. */
+
+.lq-row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.mn-hint {
+  margin: 0 0 14px;
+  font-size: 14px;
+}
+
+/* ── bag tiles ── */
+.mn-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mn-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mn-tile:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+.mn-tile-date {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.mn-tile-reg {
+  font-size: 17px;
+  font-weight: 700;
+}
+.mn-tile-kiosk {
+  border-style: dashed;
+}
+.mn-zero {
+  font-size: 12.5px;
+  margin: 4px 0 14px;
+}
+
+/* ── entry ── */
+.mn-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+.mn-field span {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.mn-field input,
+.mn-check-row input,
+.mn-note textarea {
+  font-size: 18px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  color: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mn-check-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 40px;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.mn-x {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 16px;
+  opacity: 0.7;
+  cursor: pointer;
+}
+.mn-entry-total {
+  font-size: 17px;
+  margin: 14px 0;
+}
+
+/* ── the reveal ── */
+.mn-card {
+  border-radius: 12px;
+  padding: 18px;
+  margin: 14px 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+.mn-big {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+.mn-card-even .mn-big {
+  color: #a3a3a3;
+}
+.mn-card-over {
+  border-color: rgba(34, 197, 94, 0.5);
+}
+.mn-card-over .mn-big {
+  color: #22c55e;
+}
+.mn-card-short {
+  border-color: rgba(248, 113, 113, 0.55);
+}
+.mn-card-short .mn-big {
+  color: #f87171;
+}
+.mn-card-warn {
+  border-color: rgba(251, 191, 36, 0.55);
+}
+.mn-card-warn .mn-big {
+  color: #fbbf24;
+}
+.mn-offset {
+  margin-top: 10px;
+  font-size: 14px;
+}
+.mn-note textarea {
+  min-height: 80px;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+.mn-detail {
+  margin: 14px 0;
+}
+.mn-detail-body {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 10px;
+}
+.mn-reveal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+.mn-reveal-actions .lq-btn-primary {
+  flex: 1;
+}
+
+/* ── session list / chips ── */
+.mn-session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.mn-session-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 14.5px;
+}
+.mn-chip {
+  font-weight: 700;
+}
+.mn-chip-even {
+  color: #a3a3a3;
+}
+.mn-chip-over,
+.mn-over {
+  color: #22c55e;
+}
+.mn-chip-short,
+.mn-short {
+  color: #f87171;
+}
+.mn-chip-warn,
+.mn-warn {
+  color: #fbbf24;
+}
+.mn-even {
+  color: #a3a3a3;
+}
+
+/* ── review table ── */
+.mn-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0 16px;
+  font-size: 14px;
+}
+.mn-table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  padding: 6px 8px;
+}
+.mn-table td {
+  padding: 9px 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.mn-r {
+  text-align: right;
+  white-space: nowrap;
+}
+.mn-total-row td {
+  font-weight: 800;
+  border-top: 2px solid rgba(255, 255, 255, 0.25);
+}
+.mn-offset-inline {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.mn-card-deposit {
+  text-align: left;
+}
+.mn-sealed-total {
+  font-size: 30px;
+  font-weight: 800;
+  margin: 4px 0 8px;
+}

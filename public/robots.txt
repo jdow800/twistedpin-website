@@ -8,6 +8,8 @@ Disallow: /api/
 Disallow: /tprs/
 # Staff-only bar-inventory app (PIN-gated) — unindexed, unlinked.
 Disallow: /liquor/
+# Staff-only cash-counting app (PIN-gated) — unindexed, unlinked.
+Disallow: /money/
 # Parked preview of the new loyalty signup form (replaces /coupon at launch) — unindexed, unlinked.
 Disallow: /coupon-preview/
 # Parked preview of the native Free Kids Bowling signup form — unindexed, unlinked.

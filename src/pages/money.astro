@@ -1,0 +1,26 @@
+---
+/**
+ * /money — STAFF cash-counting app (noindex, PIN-gated). Money Hub Phase 2
+ * (spec: dev/Money Hub/BUILD-SPEC.md). Full-bleed React island (MoneyApp)
+ * talking same-origin to the TPRS backend via /tprs-api/admin/cash/* — the
+ * shared tprs_session cookie means one PIN covers /liquor AND /money.
+ * Bags-vs-POS layer: worklist → blind count → over/short reveal → session
+ * review → deposit seal (fires Jon's to-bank email). Chrome hidden, noindex +
+ * robots Disallow + sitemap-excluded (astro.config.mjs).
+ */
+import Base from "../layouts/Base.astro";
+import MoneyApp from "../components/money/MoneyApp.tsx";
+---
+<Base
+  title="Cash Counts — Twisted Pin"
+  description="Staff cash counting."
+  hideStickyCTA={true}
+  hideHeader={true}
+  hidePromo={true}
+  lockViewportZoom={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+  <MoneyApp client:only="react" />
+</Base>

@@ -70,6 +70,8 @@ export default defineConfig({
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.
         !page.includes('/liquor') &&
+        // Staff-only cash-counting SPA (Money Hub) — same treatment.
+        !page.includes('/money') &&
         !page.includes('/coupon-preview') &&
         !page.includes('/kids-signup-preview') &&
         // /reserve/mixology is a noindexed one-off event booking page (the
