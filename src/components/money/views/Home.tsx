@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getOpenSession, type CashActor } from "../api";
 
-type Dest = "count" | "review" | "history";
+type Dest = "count" | "review" | "history" | "deposits";
 
 export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: Dest) => void }) {
   const first = (actor.displayName ?? "there").split(" ")[0];
@@ -40,6 +40,17 @@ export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: D
           <span className="lq-action-title">Past sessions</span>
           <span className="lq-action-sub">Previous count days</span>
         </button>
+
+        {actor.isAdmin && (
+          <>
+            <p className="lq-section-label">Admin</p>
+            <button type="button" className="lq-action" onClick={() => onGo("deposits")}>
+              <span className="lq-action-emoji" aria-hidden="true">🏦</span>
+              <span className="lq-action-title">Deposits</span>
+              <span className="lq-action-sub">Bank confirmations — sealed vs credited</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

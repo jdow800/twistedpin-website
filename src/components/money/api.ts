@@ -241,6 +241,33 @@ export function docPdfUrl(docId: string): string {
   return buildUrl(`/admin/cash/docs/${docId}/pdf`);
 }
 
+// ── admin layer (cash.admin — Jon only) ──────────────────────────────────────
+
+export interface AdminDeposit {
+  id: string;
+  sealedAt: string;
+  currencyCents: number;
+  coinCents: number;
+  checksCents: number;
+  totalCents: number;
+  status: "sealed" | "banked" | "mismatch";
+  bankCreditedCents: number | null;
+  bankedAt: string | null;
+  note: string | null;
+}
+
+export function getDeposits(): Promise<{ deposits: AdminDeposit[] }> {
+  return gatedJson("/admin/cash/deposits");
+}
+
+export function bankConfirm(
+  depositId: string,
+  bankCreditedCents: number,
+  note?: string,
+): Promise<{ status: "banked" | "mismatch"; diffCents: number }> {
+  return gatedJson(`/admin/cash/deposits/${depositId}/bank`, jsonBody({ bankCreditedCents, ...(note ? { note } : {}) }));
+}
+
 // ── formatting helpers (shared by views) ─────────────────────────────────────
 
 export function money(cents: number | null | undefined): string {
