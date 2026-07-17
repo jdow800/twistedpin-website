@@ -255,7 +255,6 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
       days.push({ iso: localIso(d), d });
     }
     const leadBlanks = days[0]!.d.getDay();
-    const monthsShown = [...new Set(days.map((x) => x.d.toLocaleString("en-US", { month: "long" })))].join(" / ");
     return (
       <div className="mn-pick">
         <div className="lq-row-between">
@@ -263,7 +262,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
           <button type="button" className="lq-btn" onClick={() => setMode("location")}>← Back</button>
         </div>
         {error && <p className="lq-error">{error}</p>}
-        <p className="lq-muted mn-hint">{monthsShown} — the date on the bag's label. ✓ = already counted (tap to recount).</p>
+        <p className="lq-muted mn-hint">The date on the bag's label. ✓ = already counted (tap to recount).</p>
         <div className="mn-cal">
           {["S", "M", "T", "W", "T", "F", "S"].map((w, i) => (
             <span key={i} className="mn-cal-wd">{w}</span>
@@ -285,6 +284,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                     : startEntry({ kind: "drawer", registerKey: location, salesDate: iso, takesChecks })
                 }
               >
+                <span className="mn-cal-mo">{d.toLocaleString("en-US", { month: "short" })}</span>
                 <span className="mn-cal-num">{d.getDate()}</span>
                 {done && <span className="mn-cal-check">✓</span>}
               </button>

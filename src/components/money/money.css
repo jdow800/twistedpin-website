@@ -292,8 +292,7 @@
 }
 .mn-cal-day {
   position: relative;
-  aspect-ratio: 1 / 0.92;
-  min-height: 52px;
+  min-height: 62px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -301,15 +300,26 @@
   font: inherit;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
+  padding: 8px 2px;
 }
 .mn-cal-day:active {
   border-color: var(--lq-glow, #c9ff3d);
 }
-.mn-cal-num {
-  font-size: 18px;
+.mn-cal-mo {
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.mn-cal-num {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
 }
 .mn-cal-done {
   border-color: rgba(61, 220, 175, 0.5);
