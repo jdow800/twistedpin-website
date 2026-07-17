@@ -12,13 +12,14 @@ import CountBags from "./views/CountBags";
 import Review from "./views/Review";
 import History from "./views/History";
 import Deposits from "./views/Deposits";
+import OverShortLog from "./views/OverShortLog";
 
 // Root island for the staff cash-counting app at twistedpin.com/money
 // (spec: dev/Money Hub/BUILD-SPEC.md §4). Same shell as /liquor: auth
 // bootstrap → view switch; every call same-origin via /tprs-api →
 // /admin/cash/*. The PIN session is SHARED with /liquor.
 
-type View = "loading" | "login" | "home" | "count" | "review" | "history" | "deposits" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "review" | "history" | "deposits" | "oslog" | "forbidden";
 
 export default function MoneyApp() {
   const [view, setView] = useState<View>("loading");
@@ -77,6 +78,7 @@ export default function MoneyApp() {
         {view === "review" && <Review onDone={goHome} />}
         {view === "history" && <History onDone={goHome} />}
         {view === "deposits" && <Deposits onDone={goHome} />}
+        {view === "oslog" && <OverShortLog onDone={goHome} />}
       </main>
     </div>
   );

@@ -510,6 +510,16 @@
   text-align: left;
 }
 
+/* ── admin over/short log ── */
+.mn-osmonth {
+  margin-bottom: 18px;
+}
+.mn-oslog a.lq-btn {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* ── admin deposits ── */
 .mn-dep {
   border: 1px solid rgba(255, 255, 255, 0.12);

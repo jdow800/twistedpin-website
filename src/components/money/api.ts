@@ -260,6 +260,30 @@ export function getDeposits(): Promise<{ deposits: AdminDeposit[] }> {
   return gatedJson("/admin/cash/deposits");
 }
 
+export interface MonthlySummaryMonth {
+  month: string;
+  registers: {
+    registerKey: string;
+    expectedCashCents: number | null;
+    countedCashCents: number | null;
+    varianceCents: number | null;
+    bagsCounted: number | null;
+    bagsExpected: number | null;
+    offsettingPairs: number | null;
+    compsVoidsCents: number | null;
+    refundsCents: number | null;
+  }[];
+  total: { expectedCashCents: number; varianceCents: number; pct: number | null };
+}
+
+export function getMonthlySummary(): Promise<{ months: MonthlySummaryMonth[] }> {
+  return gatedJson("/admin/cash/monthly-summary");
+}
+
+export function monthlySummaryCsvUrl(): string {
+  return buildUrl("/admin/cash/monthly-summary?format=csv");
+}
+
 export function bankConfirm(
   depositId: string,
   bankCreditedCents: number,
