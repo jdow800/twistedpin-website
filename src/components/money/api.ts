@@ -320,6 +320,22 @@ export const REGISTER_LABEL: Record<RegisterKey, string> = {
   kiosk: "Kiosks",
 };
 
+/**
+ * Collapse recounts: latest count per bag identity (register+day, or kiosk
+ * window). A recounted bag is ONE bag — the recount supersedes the original.
+ */
+export function dedupeBags(bags: BagView[]): BagView[] {
+  const sorted = [...bags].sort((a, b) => b.countedAt.localeCompare(a.countedAt));
+  const map = new Map<string, BagView>();
+  for (const b of sorted) {
+    const key = b.registerKey === "kiosk" ? `kiosk|${b.windowStart}|${b.windowEnd}` : `${b.registerKey}|${b.salesDate}`;
+    if (!map.has(key)) map.set(key, b);
+  }
+  return [...map.values()].sort((a, b) =>
+    (a.salesDate ?? a.windowStart ?? "").localeCompare(b.salesDate ?? b.windowStart ?? ""),
+  );
+}
+
 /** Dollars text input → integer cents (null on unparseable). */
 export function dollarsToCents(text: string): number | null {
   const t = text.trim().replace(/[$,]/g, "");

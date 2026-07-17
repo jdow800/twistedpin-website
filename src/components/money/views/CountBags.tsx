@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   commitBag,
+  dedupeBags,
   dollarsToCents,
   getDayDetail,
   getOpenSession,
@@ -65,7 +66,8 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
   const refresh = useCallback(async () => {
     const [wl, open] = await Promise.all([getWorklist(), getOpenSession()]);
     setWorklist(wl);
-    setSessionBags(open.bags);
+    // Recounts supersede their originals — the session list shows each BAG once.
+    setSessionBags(dedupeBags(open.bags));
     setMode("location");
   }, []);
 

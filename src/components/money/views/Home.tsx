@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getOpenSession, type CashActor } from "../api";
+import { dedupeBags, getOpenSession, type CashActor } from "../api";
 
 type Dest = "count" | "review" | "history" | "deposits" | "oslog";
 
@@ -9,7 +9,7 @@ export default function Home({ actor, onGo }: { actor: CashActor; onGo: (dest: D
 
   useEffect(() => {
     getOpenSession()
-      .then((r) => setOpenBags(r.session ? r.bags.length : 0))
+      .then((r) => setOpenBags(r.session ? dedupeBags(r.bags).length : 0))
       .catch(() => setOpenBags(0));
   }, []);
 

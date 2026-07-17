@@ -280,8 +280,8 @@
 .mn-cal {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
-  max-width: 480px;
+  gap: 10px;
+  max-width: 600px;
 }
 .mn-cal-wd {
   text-align: center;
@@ -292,7 +292,7 @@
 }
 .mn-cal-day {
   position: relative;
-  min-height: 62px;
+  min-height: 76px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
@@ -310,26 +310,33 @@
   border-color: var(--lq-glow, #c9ff3d);
 }
 .mn-cal-mo {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   opacity: 0.6;
 }
 .mn-cal-num {
-  font-size: 19px;
+  font-size: 23px;
   font-weight: 700;
   line-height: 1;
 }
+/* Counted day: unmistakable — solid teal tint + strong border + big check. */
 .mn-cal-done {
-  border-color: rgba(61, 220, 175, 0.5);
-  opacity: 0.85;
+  background: rgba(61, 220, 175, 0.16);
+  border: 2px solid #3ddcaf;
+}
+.mn-cal-done .mn-cal-num,
+.mn-cal-done .mn-cal-mo {
+  color: #3ddcaf;
+  opacity: 1;
 }
 .mn-cal-check {
   position: absolute;
   top: 4px;
-  right: 6px;
-  font-size: 11px;
+  right: 7px;
+  font-size: 15px;
+  font-weight: 800;
   color: #3ddcaf;
 }
 
