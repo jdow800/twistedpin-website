@@ -168,6 +168,7 @@ export interface RosterMember {
 export interface DayDetail {
   registerKey: RegisterKey;
   salesDate: string;
+  closer: { name: string; role: string | null; source: "punch" | "schedule" } | null;
   roster: RosterMember[];
   tender: {
     cashCents: number;

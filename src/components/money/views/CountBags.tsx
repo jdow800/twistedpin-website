@@ -106,6 +106,20 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     })();
   }, []);
 
+  // On the reveal, eagerly fetch the day detail so the "closed by + headcount"
+  // line can render without the GM tapping "See the day's POS detail". On a
+  // brand-new count the roster may not be stamped yet (worker stamps within
+  // ~30s) — the summary just stays hidden until it lands. Full detail still
+  // loads behind the button.
+  useEffect(() => {
+    if (mode !== "reveal" || !target || target.kind !== "drawer" || detail) return;
+    let cancelled = false;
+    getDayDetail(target.registerKey, target.salesDate)
+      .then((d) => { if (!cancelled) setDetail(d); })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [mode, target, detail]);
+
   function startEntry(t: Target) {
     setTarget(t);
     setBills("");
@@ -395,6 +409,20 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
               </p>
             )}
             {reveal.kioskCaveat && <p className="lq-muted">{reveal.kioskCaveat}</p>}
+          </div>
+        )}
+        {bag.registerKey !== "kiosk" && detail && detail.roster.length > 0 && (
+          <div className="mn-closer">
+            {detail.closer && (
+              <p className="mn-closer-line">
+                <span className="lq-muted">Closed by</span>&nbsp; {detail.closer.name}
+                {detail.closer.role ? ` · ${detail.closer.role}` : ""}
+                {detail.closer.source === "schedule" ? " (scheduled)" : ""}
+              </p>
+            )}
+            <p className="lq-muted">
+              {detail.roster.length} worked the {REGISTER_LABEL[bag.registerKey]} drawer
+            </p>
           </div>
         )}
         {needsNote && (
