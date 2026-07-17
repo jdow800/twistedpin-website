@@ -370,7 +370,6 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                 not missing money.
               </p>
             )}
-            {!reveal.offset && v !== 0 && <p className="mn-offset lq-muted">No offsetting neighbor found yet — worth a look if it's big.</p>}
             {reveal.kioskCaveat && <p className="lq-muted">{reveal.kioskCaveat}</p>}
           </div>
         )}
