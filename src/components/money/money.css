@@ -614,3 +614,27 @@
   font-weight: 700;
   margin-bottom: 2px;
 }
+
+.mn-roster-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--lq-muted);
+  font: inherit;
+  padding: 6px 0 0;
+  cursor: pointer;
+  text-align: left;
+}
+.mn-roster-caret {
+  font-size: 12px;
+  opacity: 0.7;
+}
+.mn-roster-list {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

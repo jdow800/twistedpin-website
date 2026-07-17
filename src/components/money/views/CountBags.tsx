@@ -76,6 +76,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
   const [noteSaved, setNoteSaved] = useState(false);
   const [detail, setDetail] = useState<DayDetail | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [rosterOpen, setRosterOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     const [wl, open] = await Promise.all([getWorklist(), getOpenSession()]);
@@ -130,6 +131,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     setNoteSaved(false);
     setDetail(null);
     setDetailOpen(false);
+    setRosterOpen(false);
     setError(null);
     setMode("entry");
   }
@@ -420,9 +422,24 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                 {detail.closer.source === "schedule" ? " (scheduled)" : ""}
               </p>
             )}
-            <p className="lq-muted">
-              {detail.roster.length} worked the {REGISTER_LABEL[bag.registerKey]} drawer
-            </p>
+            <button type="button" className="mn-roster-toggle" onClick={() => setRosterOpen((o) => !o)}>
+              <span>{detail.roster.length} worked the {REGISTER_LABEL[bag.registerKey]} drawer</span>
+              <span className="mn-roster-caret" aria-hidden="true">{rosterOpen ? "▾" : "▸"}</span>
+            </button>
+            {rosterOpen && (
+              <div className="mn-roster-list">
+                {detail.roster.map((m, i) => (
+                  <div key={i} className="mn-session-row">
+                    <span>
+                      {m.name}
+                      {m.role ? ` · ${m.role}` : ""}
+                      {m.source === "schedule" ? " (scheduled)" : ""}
+                    </span>
+                    <span className="lq-muted">{clockLabel(m.in)}–{clockLabel(m.out)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
         {needsNote && (
@@ -468,21 +485,6 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                           {a.reason ? ` — ${a.reason}` : ""}
                         </span>
                         <span>{money(a.amountCents)}</span>
-                      </div>
-                    ))}
-                  </>
-                )}
-                {detail.roster.length > 0 && (
-                  <>
-                    <p className="lq-section-label">Who worked that day</p>
-                    {detail.roster.map((m, i) => (
-                      <div key={i} className="mn-session-row">
-                        <span>
-                          {m.name}
-                          {m.role ? ` · ${m.role}` : ""}
-                          {m.source === "schedule" ? " (scheduled)" : ""}
-                        </span>
-                        <span className="lq-muted">{clockLabel(m.in)}–{clockLabel(m.out)}</span>
                       </div>
                     ))}
                   </>
