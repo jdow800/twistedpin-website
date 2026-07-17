@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import "../liquor/liquor.css"; // shared lq-* visual system (PIN pad, tiles, buttons)
+// money.css is SELF-CONTAINED (lq-* base rules copied from liquor.css, mn-*
+// overlay). Do NOT import ../liquor/liquor.css across the island boundary:
+// the cross-tree CSS import made Vite emit a shared pure-CSS chunk whose JS
+// file was elided from the build while this island's bundle still imported it
+// — a 404 that killed hydration silently (blank /money, 2026-07-17).
 import "./money.css";
 import { getMe, logout, ForbiddenError, type CashActor } from "./api";
 import Login from "./views/Login";
