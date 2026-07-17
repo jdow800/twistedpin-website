@@ -11,16 +11,17 @@ import {
 } from "../api";
 
 /**
- * Session review grid + deposit seal (spec §4.5). Sealing submits the session,
- * writes the immutable deposit, and fires Jon's to-bank email in the same
- * transaction — the "I'm done counting" moment.
+ * Review this session's counts — each one INDEPENDENT (deliberately no totals
+ * and no deposit language anywhere on this screen; Jon 2026-07-17). "Done —
+ * heading to the bank" tells the system counting is finished; what happens
+ * server-side after that is not this screen's business.
  */
 export default function Review({ onDone }: { onDone: () => void }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [review, setReview] = useState<ReviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [sealed, setSealed] = useState<{ totalCents: number } | null>(null);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -38,14 +39,14 @@ export default function Review({ onDone }: { onDone: () => void }) {
     })();
   }, []);
 
-  async function seal() {
+  async function finish() {
     if (!sessionId || busy) return;
-    if (!window.confirm("Seal the deposit? This locks the session and emails the to-bank total.")) return;
+    if (!window.confirm("Done counting? This closes out the session.")) return;
     setBusy(true);
     setError(null);
     try {
-      const res = await submitSession(sessionId);
-      setSealed({ totalCents: res.totalCents });
+      await submitSession(sessionId);
+      setDone(true);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -53,13 +54,12 @@ export default function Review({ onDone }: { onDone: () => void }) {
     }
   }
 
-  if (sealed) {
+  if (done) {
     return (
       <div className="lq-center">
-        <p className="mn-big">🏦 Deposit sealed</p>
-        <p className="mn-sealed-total">{money(sealed.totalCents)} to the bank</p>
+        <p className="mn-big">✅ All logged</p>
         <p className="lq-muted" style={{ maxWidth: 340, textAlign: "center" }}>
-          The itemized to-bank email is on its way. Bag it, slip it, done.
+          Counting's closed out. Safe travels to the bank.
         </p>
         <button type="button" className="lq-btn lq-btn-primary" onClick={onDone}>
           Home
@@ -79,17 +79,14 @@ export default function Review({ onDone }: { onDone: () => void }) {
   if (!review) return <div className="lq-center lq-muted">Loading…</div>;
 
   const rows = review.rows;
-  const verified = rows.filter((r) => r.varianceCents != null);
-  const sumExpected = verified.reduce((s, r) => s + (r.expectedCents ?? 0), 0);
-  const sumVariance = verified.reduce((s, r) => s + (r.varianceCents ?? 0), 0);
-  const dep = review.deposit;
 
   return (
     <div className="mn-review">
       <div className="lq-row-between">
-        <h2 className="lq-h2">Review &amp; seal</h2>
-        <button type="button" className="lq-btn" onClick={onDone}>Back</button>
+        <h2 className="lq-h2">This session's counts</h2>
+        <button type="button" className="lq-btn" onClick={onDone}>← Back</button>
       </div>
+      <p className="lq-muted mn-hint">Each count stands on its own — over, short, or even.</p>
 
       <table className="mn-table">
         <thead>
@@ -121,31 +118,11 @@ export default function Review({ onDone }: { onDone: () => void }) {
               </tr>
             );
           })}
-          <tr className="mn-total-row">
-            <td>TOTAL</td>
-            <td className="mn-r">{money(sumExpected)}</td>
-            <td className="mn-r">{money(rows.reduce((s, r) => s + r.totalCents, 0))}</td>
-            <td className={`mn-r ${sumVariance === 0 ? "mn-even" : sumVariance > 0 ? "mn-over" : "mn-short"}`}>
-              {sumVariance === 0 ? "✓ even" : signedMoney(sumVariance)}
-            </td>
-          </tr>
         </tbody>
       </table>
 
-      <div className="mn-card mn-card-deposit">
-        <p className="lq-section-label">Deposit</p>
-        <p className="mn-sealed-total">{money(dep.totalCents)}</p>
-        <p>
-          Currency {money(dep.currencyCents)} · Coin {money(dep.coinCents)}
-          {dep.checks.length > 0 && <> · Checks {money(dep.checksCents)} ({dep.checks.length})</>}
-        </p>
-        {dep.checks.length > 0 && (
-          <p className="lq-muted">{dep.checks.map((c) => `${c.payer} ${money(c.cents)}`).join(" · ")}</p>
-        )}
-      </div>
-
-      <button type="button" className="lq-btn lq-btn-primary lq-btn-wide" disabled={busy} onClick={() => void seal()}>
-        {busy ? "Sealing…" : "Seal deposit & finish"}
+      <button type="button" className="lq-btn lq-btn-primary lq-btn-wide" disabled={busy || rows.length === 0} onClick={() => void finish()}>
+        {busy ? "Closing out…" : "Done — heading to the bank"}
       </button>
     </div>
   );

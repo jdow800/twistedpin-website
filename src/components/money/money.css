@@ -276,6 +276,53 @@
   margin: 4px 0 14px;
 }
 
+/* ── date picker (last 20 days, week-aligned) ── */
+.mn-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  max-width: 480px;
+}
+.mn-cal-wd {
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  opacity: 0.55;
+  padding-bottom: 2px;
+}
+.mn-cal-day {
+  position: relative;
+  aspect-ratio: 1 / 0.92;
+  min-height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mn-cal-day:active {
+  border-color: var(--lq-glow, #c9ff3d);
+}
+.mn-cal-num {
+  font-size: 18px;
+  font-weight: 700;
+}
+.mn-cal-done {
+  border-color: rgba(61, 220, 175, 0.5);
+  opacity: 0.85;
+}
+.mn-cal-check {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  font-size: 11px;
+  color: #3ddcaf;
+}
+
 /* ── entry ── */
 .mn-field {
   display: flex;

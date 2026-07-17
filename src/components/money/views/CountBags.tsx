@@ -19,21 +19,27 @@ import {
 } from "../api";
 
 /**
- * The count flow (spec §4.2–4.4). Blind-count-first: the worklist shows only
- * that a bag-day EXISTS; the expected value appears in the reveal, after the
- * count is committed server-side. Notes are required post-reveal beyond the
- * threshold (|$25| or ≥20%) because the variance isn't knowable pre-commit.
+ * The count flow (Jon's 2026-07-17 redesign): pick a LOCATION (Bar / Bowling /
+ * Arcade / Kiosk pull) → pick a DATE from a 20-day-back calendar (no future —
+ * you can't pre-count money) → enter bills / coin / checks-total → commit →
+ * over/short reveal. Blind-count-first: expected values appear only after the
+ * count is committed. ✓ marks already-counted days; tapping one recounts.
+ * NO deposit totals anywhere on these screens — by design.
  */
 
+type DrawerKey = Exclude<RegisterKey, "kiosk">;
+
 type Target =
-  | { kind: "drawer"; registerKey: Exclude<RegisterKey, "kiosk">; salesDate: string; takesChecks: boolean; recountOf?: string }
+  | { kind: "drawer"; registerKey: DrawerKey; salesDate: string; takesChecks: boolean; recountOf?: string }
   | { kind: "kiosk"; windowStart: string; recountOf?: string };
 
-type Mode = "loading" | "pick" | "entry" | "reveal";
+type Mode = "loading" | "location" | "date" | "entry" | "reveal";
 
-interface CheckDraft {
-  payer: string;
-  amount: string;
+const DAYS_BACK = 20;
+
+/** Local calendar date → "YYYY-MM-DD". */
+function localIso(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 export default function CountBags({ onDone, onReview }: { onDone: () => void; onReview: () => void }) {
@@ -42,11 +48,12 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [worklist, setWorklist] = useState<WorklistResponse | null>(null);
   const [sessionBags, setSessionBags] = useState<BagView[]>([]);
+  const [location, setLocation] = useState<DrawerKey | null>(null);
   const [target, setTarget] = useState<Target | null>(null);
 
   const [bills, setBills] = useState("");
   const [coin, setCoin] = useState("");
-  const [checks, setChecks] = useState<CheckDraft[]>([]);
+  const [checksTotal, setChecksTotal] = useState("");
   const [busy, setBusy] = useState(false);
 
   const [result, setResult] = useState<CommitResponse | null>(null);
@@ -59,7 +66,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     const [wl, open] = await Promise.all([getWorklist(), getOpenSession()]);
     setWorklist(wl);
     setSessionBags(open.bags);
-    setMode("pick");
+    setMode("location");
   }, []);
 
   useEffect(() => {
@@ -70,7 +77,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
         await refresh();
       } catch (e) {
         setError((e as Error).message);
-        setMode("pick");
+        setMode("location");
       }
     })();
   }, [refresh]);
@@ -79,7 +86,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     setTarget(t);
     setBills("");
     setCoin("");
-    setChecks([]);
+    setChecksTotal("");
     setResult(null);
     setNote("");
     setNoteSaved(false);
@@ -89,17 +96,26 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     setMode("entry");
   }
 
+  /** Tapping an already-counted day = recount it (needs the original bag id). */
+  async function startRecount(registerKey: DrawerKey, salesDate: string, takesChecks: boolean) {
+    setBusy(true);
+    try {
+      const d = await getDayDetail(registerKey, salesDate);
+      const original = d.counts.find((c) => !c.recountOf) ?? d.counts[0];
+      if (!original) throw new Error("Couldn't find the original count to recount.");
+      startEntry({ kind: "drawer", registerKey, salesDate, takesChecks, recountOf: original.id });
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const billsCents = dollarsToCents(bills);
   const coinCents = dollarsToCents(coin);
-  const checkItems = checks
-    .map((c) => ({ payer: c.payer.trim(), cents: dollarsToCents(c.amount) }))
-    .filter((c) => c.payer && c.cents != null && c.cents > 0) as { payer: string; cents: number }[];
-  const entryValid =
-    billsCents != null &&
-    coinCents != null &&
-    checks.every((c) => !c.payer.trim() || (dollarsToCents(c.amount) ?? 0) > 0) &&
-    billsCents + coinCents + checkItems.reduce((s, c) => s + c.cents, 0) >= 0;
-  const entryTotal = (billsCents ?? 0) + (coinCents ?? 0) + checkItems.reduce((s, c) => s + c.cents, 0);
+  const checksCents = dollarsToCents(checksTotal) ?? 0;
+  const entryValid = billsCents != null && coinCents != null && dollarsToCents(checksTotal) != null;
+  const entryTotal = (billsCents ?? 0) + (coinCents ?? 0) + checksCents;
 
   async function commit() {
     if (!sessionId || !target || busy || !entryValid) return;
@@ -111,7 +127,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
         ...(target.kind === "drawer" ? { salesDate: target.salesDate } : {}),
         billsCents: billsCents ?? 0,
         coinCents: coinCents ?? 0,
-        checks: checkItems,
+        checks: checksCents > 0 ? [{ payer: "Checks", cents: checksCents }] : [],
         ...(target.recountOf ? { recountOf: target.recountOf, note: note || "recount" } : {}),
       });
       setResult(res);
@@ -159,57 +175,47 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     setMode("loading");
     await refresh().catch((e) => {
       setError((e as Error).message);
-      setMode("pick");
+      setMode("location");
     });
   }
 
-  // ── render ──────────────────────────────────────────────────────────────────
+  // ── screens ─────────────────────────────────────────────────────────────────
 
   if (mode === "loading") return <div className="lq-center lq-muted">Loading…</div>;
 
-  if (mode === "pick" && worklist) {
+  if (mode === "location" && worklist) {
     const counted = sessionBags.length;
+    const locations: { key: DrawerKey; sub: string }[] = [
+      { key: "gotab", sub: "GoTab drawer" },
+      { key: "brunswick", sub: "Front desk drawer — cash & checks" },
+      { key: "arcade", sub: "Arcade counter drawer" },
+    ];
     return (
       <div className="mn-pick">
         <div className="lq-row-between">
-          <h2 className="lq-h2">Pick a bag</h2>
-          <button type="button" className="lq-btn" onClick={onDone}>Done for now</button>
+          <h2 className="lq-h2">Record a count</h2>
+          <button type="button" className="lq-btn" onClick={onDone}>← Home</button>
         </div>
         {error && <p className="lq-error">{error}</p>}
-        <p className="lq-muted mn-hint">Match the bag's label — oldest first. The expected amount stays hidden until you've counted.</p>
-        <div className="mn-tiles">
-          {worklist.uncounted.map((u) => (
-            <button
-              key={`${u.registerKey}|${u.salesDate}`}
-              type="button"
-              className="mn-tile"
-              onClick={() =>
-                startEntry({
-                  kind: "drawer",
-                  registerKey: u.registerKey as Exclude<RegisterKey, "kiosk">,
-                  salesDate: u.salesDate,
-                  takesChecks: worklist.registers.find((r) => r.key === u.registerKey)?.takesChecks ?? false,
-                })
-              }
-            >
-              <span className="mn-tile-date">{shortDate(u.salesDate)}</span>
-              <span className="mn-tile-reg">{REGISTER_LABEL[u.registerKey]}</span>
+        <p className="lq-muted mn-hint">Where's this bag from?</p>
+        <div className="lq-actions">
+          {locations.map((l) => (
+            <button key={l.key} type="button" className="lq-action" onClick={() => { setLocation(l.key); setMode("date"); }}>
+              <span className="lq-action-emoji" aria-hidden="true">{l.key === "gotab" ? "🍺" : l.key === "brunswick" ? "🎳" : "🕹️"}</span>
+              <span className="lq-action-title">{REGISTER_LABEL[l.key]}</span>
+              <span className="lq-action-sub">{l.sub}</span>
             </button>
           ))}
-          <button type="button" className="mn-tile mn-tile-kiosk" onClick={() => startEntry({ kind: "kiosk", windowStart: worklist.kiosk.windowStart })}>
-            <span className="mn-tile-date">since {shortDate(worklist.kiosk.windowStart)}</span>
-            <span className="mn-tile-reg">Kiosk pull</span>
+          <button
+            type="button"
+            className="lq-action"
+            onClick={() => startEntry({ kind: "kiosk", windowStart: worklist.kiosk.windowStart })}
+          >
+            <span className="lq-action-emoji" aria-hidden="true">🪙</span>
+            <span className="lq-action-title">Kiosk pull</span>
+            <span className="lq-action-sub">Emptied the bill acceptors (window open since {shortDate(worklist.kiosk.windowStart)})</span>
           </button>
         </div>
-        {worklist.uncounted.length === 0 && (
-          <p className="lq-muted">No uncounted bags with expected cash — you're caught up. 🎉</p>
-        )}
-        {worklist.zeroDays.length > 0 && (
-          <p className="mn-zero lq-muted">
-            No cash expected (no bag needed):{" "}
-            {worklist.zeroDays.map((z) => `${shortDate(z.salesDate)} ${REGISTER_LABEL[z.registerKey]}`).join(" · ")}
-          </p>
-        )}
         {counted > 0 && (
           <>
             <p className="lq-section-label">Counted this session ({counted})</p>
@@ -227,11 +233,64 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                 </div>
               ))}
             </div>
-            <button type="button" className="lq-btn lq-btn-primary lq-btn-wide" onClick={onReview}>
-              Review &amp; seal deposit →
+            <button type="button" className="lq-btn lq-btn-wide" onClick={onReview}>
+              Review today's counts →
             </button>
           </>
         )}
+      </div>
+    );
+  }
+
+  if (mode === "date" && worklist && location) {
+    const takesChecks = worklist.registers.find((r) => r.key === location)?.takesChecks ?? false;
+    const countedSet = new Set(
+      worklist.counted.filter((c) => c.registerKey === location).map((c) => c.salesDate),
+    );
+    // Last 20 days, oldest first, laid out on a real week grid (Sun–Sat).
+    const today = new Date();
+    const days: { iso: string; d: Date }[] = [];
+    for (let i = DAYS_BACK - 1; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      days.push({ iso: localIso(d), d });
+    }
+    const leadBlanks = days[0]!.d.getDay();
+    const monthsShown = [...new Set(days.map((x) => x.d.toLocaleString("en-US", { month: "long" })))].join(" / ");
+    return (
+      <div className="mn-pick">
+        <div className="lq-row-between">
+          <h2 className="lq-h2">{REGISTER_LABEL[location]} — which day?</h2>
+          <button type="button" className="lq-btn" onClick={() => setMode("location")}>← Back</button>
+        </div>
+        {error && <p className="lq-error">{error}</p>}
+        <p className="lq-muted mn-hint">{monthsShown} — the date on the bag's label. ✓ = already counted (tap to recount).</p>
+        <div className="mn-cal">
+          {["S", "M", "T", "W", "T", "F", "S"].map((w, i) => (
+            <span key={i} className="mn-cal-wd">{w}</span>
+          ))}
+          {Array.from({ length: leadBlanks }).map((_, i) => (
+            <span key={`b${i}`} />
+          ))}
+          {days.map(({ iso, d }) => {
+            const done = countedSet.has(iso);
+            return (
+              <button
+                key={iso}
+                type="button"
+                className={`mn-cal-day${done ? " mn-cal-done" : ""}`}
+                disabled={busy}
+                onClick={() =>
+                  done
+                    ? void startRecount(location, iso, takesChecks)
+                    : startEntry({ kind: "drawer", registerKey: location, salesDate: iso, takesChecks })
+                }
+              >
+                <span className="mn-cal-num">{d.getDate()}</span>
+                {done && <span className="mn-cal-check">✓</span>}
+              </button>
+            );
+          })}
+        </div>
       </div>
     );
   }
@@ -240,12 +299,12 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     const title =
       target.kind === "kiosk"
         ? `Kiosk pull · since ${shortDate(target.windowStart)}`
-        : `${shortDate(target.salesDate)} · ${REGISTER_LABEL[target.registerKey]}${target.recountOf ? " · recount" : ""}`;
+        : `${REGISTER_LABEL[target.registerKey]} · ${shortDate(target.salesDate)}${target.recountOf ? " · recount" : ""}`;
     return (
       <div className="mn-entry">
         <div className="lq-row-between">
           <h2 className="lq-h2">{title}</h2>
-          <button type="button" className="lq-btn" onClick={() => void nextBag()}>Back</button>
+          <button type="button" className="lq-btn" onClick={() => setMode(target.kind === "kiosk" ? "location" : "date")}>← Back</button>
         </div>
         {error && <p className="lq-error">{error}</p>}
         <label className="mn-field">
@@ -257,28 +316,10 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
           <input inputMode="decimal" placeholder="0.00" value={coin} onChange={(e) => setCoin(e.target.value)} />
         </label>
         {target.kind === "drawer" && target.takesChecks && (
-          <div className="mn-checks">
-            <p className="lq-section-label">Checks (each one)</p>
-            {checks.map((c, i) => (
-              <div key={i} className="mn-check-row">
-                <input
-                  placeholder="Who it's from"
-                  value={c.payer}
-                  onChange={(e) => setChecks((cs) => cs.map((x, j) => (j === i ? { ...x, payer: e.target.value } : x)))}
-                />
-                <input
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={c.amount}
-                  onChange={(e) => setChecks((cs) => cs.map((x, j) => (j === i ? { ...x, amount: e.target.value } : x)))}
-                />
-                <button type="button" className="mn-x" onClick={() => setChecks((cs) => cs.filter((_, j) => j !== i))}>✕</button>
-              </div>
-            ))}
-            <button type="button" className="lq-btn" onClick={() => setChecks((cs) => [...cs, { payer: "", amount: "" }])}>
-              + Add a check
-            </button>
-          </div>
+          <label className="mn-field">
+            <span>Checks (total)</span>
+            <input inputMode="decimal" placeholder="0.00" value={checksTotal} onChange={(e) => setChecksTotal(e.target.value)} />
+          </label>
         )}
         {target.recountOf && (
           <label className="mn-field">
@@ -304,7 +345,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
     const title =
       bag.registerKey === "kiosk"
         ? `Kiosks · ${shortDate(bag.windowStart)}–${shortDate(bag.windowEnd)}`
-        : `${shortDate(bag.salesDate)} · ${REGISTER_LABEL[bag.registerKey]}`;
+        : `${REGISTER_LABEL[bag.registerKey]} · ${shortDate(bag.salesDate)}`;
     return (
       <div className="mn-reveal">
         <h2 className="lq-h2">{title}</h2>
@@ -399,7 +440,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                   ? { kind: "kiosk", windowStart: bag.windowStart!, recountOf: bag.recountOf ?? bag.id }
                   : {
                       kind: "drawer",
-                      registerKey: bag.registerKey as Exclude<RegisterKey, "kiosk">,
+                      registerKey: bag.registerKey as DrawerKey,
                       salesDate: bag.salesDate!,
                       takesChecks: (worklist?.registers.find((r) => r.key === bag.registerKey)?.takesChecks) ?? false,
                       recountOf: bag.recountOf ?? bag.id,

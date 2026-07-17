@@ -104,6 +104,7 @@ export interface WorklistResponse {
   registers: { key: RegisterKey; displayName: string; takesChecks: boolean }[];
   uncounted: { registerKey: RegisterKey; salesDate: string; hasCash: boolean }[];
   zeroDays: { registerKey: RegisterKey; salesDate: string }[];
+  counted: { registerKey: RegisterKey; salesDate: string }[];
   kiosk: { windowStart: string; lastPullEnd: string | null };
 }
 
@@ -150,15 +151,9 @@ export interface ReviewRow extends BagView {
   offset: { neighborDate: string; neighborVarianceCents: number } | null;
 }
 
+/** No deposit/totals here by design — each count stands alone for the GM. */
 export interface ReviewResponse {
   rows: ReviewRow[];
-  deposit: {
-    currencyCents: number;
-    coinCents: number;
-    checks: (CheckItem & { salesDate: string | null })[];
-    checksCents: number;
-    totalCents: number;
-  };
 }
 
 export interface DayDetail {
@@ -191,7 +186,7 @@ export interface HistorySession {
   id: string;
   startedAt: string;
   submittedAt: string | null;
-  deposit: { totalCents: number; status: string } | null;
+  bagCount: number;
 }
 
 // ── calls ─────────────────────────────────────────────────────────────────────
@@ -230,7 +225,7 @@ export function getReview(sessionId: string): Promise<ReviewResponse> {
   return gatedJson(`/admin/cash/sessions/${sessionId}/review`);
 }
 
-export function submitSession(sessionId: string): Promise<{ depositId: string; totalCents: number; sealed: true }> {
+export function submitSession(sessionId: string): Promise<{ sealed: true }> {
   return gatedJson(`/admin/cash/sessions/${sessionId}/submit`, jsonBody({}));
 }
 
