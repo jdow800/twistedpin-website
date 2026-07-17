@@ -531,6 +531,33 @@ export async function getCountVariance(id: string): Promise<VarianceReport | nul
   }
 }
 
+// ── recipe gaps (the fix-it queue behind the daily alerts) ──
+export interface UnmappedPour {
+  alertKey: string;
+  label: string;
+  bottleText: string; // label minus the pour size — what gets written as the alias
+  oz: number | null;
+  count: number;
+  products: string[];
+  detectedAt: string;
+}
+export interface MissingRecipe {
+  productId: string;
+  name: string;
+  category: string | null;
+  detectedAt: string;
+}
+export async function getRecipeGaps(): Promise<{ pours: UnmappedPour[]; missingRecipes: MissingRecipe[] }> {
+  return gatedJson<{ pours: UnmappedPour[]; missingRecipes: MissingRecipe[] }>("/admin/bar/recipe-gaps");
+}
+export async function addSkuAlias(skuId: string, alias: string): Promise<string[]> {
+  const { aliases } = await gatedJson<{ aliases: string[] }>(
+    `/admin/bar/skus/${skuId}/aliases`,
+    { method: "POST", ...jsonBody({ alias }) },
+  );
+  return aliases;
+}
+
 // ── pour cost (recipe COGS ÷ menu price, live) ──
 export interface PourCostComponent {
   skuName: string;
