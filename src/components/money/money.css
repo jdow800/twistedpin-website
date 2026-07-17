@@ -497,6 +497,11 @@
   opacity: 0.65;
   padding: 6px 8px;
 }
+/* Numeric headers must right-align to sit over their right-aligned cells —
+   `.mn-table th` (left) otherwise out-specifies a bare `.mn-r`. */
+.mn-table th.mn-r {
+  text-align: right;
+}
 .mn-table td {
   padding: 9px 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
