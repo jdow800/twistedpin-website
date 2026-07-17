@@ -213,7 +213,7 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
           >
             <span className="lq-action-emoji" aria-hidden="true">🪙</span>
             <span className="lq-action-title">Kiosk pull</span>
-            <span className="lq-action-sub">Emptied the bill acceptors (window open since {shortDate(worklist.kiosk.windowStart)})</span>
+            <span className="lq-action-sub">Emptied the arcade bill acceptors? Count it here.</span>
           </button>
         </div>
         {counted > 0 && (
