@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   addSkuAlias,
+  getAutoAliases,
   getCatalog,
   getRecipeGaps,
+  revertAutoAlias,
+  type AutoAlias,
   type BarSkuItem,
   type MissingRecipe,
   type UnmappedPour,
@@ -16,6 +19,11 @@ import { matchSkus } from "../matcher";
 //     every future sale of that button attributes correctly.
 //  2. Missing recipes — cocktails selling with no recipe. Read-only here:
 //     recipes live in the pricing sheet (02-Inputs-Recipes) and get re-seeded.
+//  3. Mapped automatically — labels the daily check resolved on its own because
+//     they covered exactly one bottle. Nothing to do unless one is WRONG, which
+//     is the point of showing them: the matcher can't detect the case where the
+//     right bottle simply isn't in the catalog yet (a "Jameson" button landing
+//     on Jameson Orange), so a human has to be able to see and undo it.
 // Backed by GET /admin/bar/recipe-gaps, which re-checks the alert ledger live
 // so fixed items disappear on their own.
 
@@ -24,6 +32,7 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
   const [pours, setPours] = useState<UnmappedPour[]>([]);
   const [missing, setMissing] = useState<MissingRecipe[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
+  const [autos, setAutos] = useState<AutoAlias[]>([]);
   const [searchFor, setSearchFor] = useState<string | null>(null); // alertKey with open search
   const [search, setSearch] = useState("");
   const [busy, setBusy] = useState<string | null>(null); // alertKey being written
@@ -33,11 +42,18 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
     let live = true;
     (async () => {
       try {
-        const [gaps, cat] = await Promise.all([getRecipeGaps(), getCatalog()]);
+        // Auto-aliases are supplementary — a failure there must not blank the
+        // whole fix-it queue, so it degrades to an empty list.
+        const [gaps, cat, auto] = await Promise.all([
+          getRecipeGaps(),
+          getCatalog(),
+          getAutoAliases().catch(() => [] as AutoAlias[]),
+        ]);
         if (live) {
           setPours(gaps.pours);
           setMissing(gaps.missingRecipes);
           setCatalog(cat.filter((s) => s.trackingMode === "variance"));
+          setAutos(auto);
           setPhase("ready");
         }
       } catch {
@@ -70,6 +86,21 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
       setSearch("");
     } catch {
       setErr(`Couldn't save the mapping for "${p.bottleText}" — try again.`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function undoAuto(a: AutoAlias) {
+    setBusy(a.id);
+    setErr(null);
+    try {
+      await revertAutoAlias(a.id);
+      setAutos((cur) => cur.filter((x) => x.id !== a.id));
+      // It reappears in the unmapped queue after the next daily check, now
+      // permanently exempt from auto-mapping so this correction sticks.
+    } catch {
+      setErr(`Couldn't undo the mapping for "${a.sourceLabel}" — try again.`);
     } finally {
       setBusy(null);
     }
@@ -193,6 +224,36 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">{m.name}</span>
                 <span className="lq-muted" style={{ fontSize: 12 }}>{m.category ?? ""}</span>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {autos.length > 0 && (
+        <>
+          <h3 className="lq-cap-title" style={{ marginTop: 18 }}>Mapped automatically</h3>
+          <p className="lq-muted" style={{ fontSize: 13, margin: "0 0 8px" }}>
+            These matched exactly one bottle, so the daily check mapped them for you. Nothing to do
+            — unless one is wrong. Undo sends it back to the list above and stops it being
+            auto-mapped again.
+          </p>
+          {autos.map((a) => (
+            <div key={a.id} className="lq-pw-row">
+              <div className="lq-pw-head">
+                <span className="lq-invrow-vendor">{a.sourceLabel}</span>
+                <button
+                  type="button"
+                  className="lq-btn lq-btn-ghost"
+                  style={{ padding: "4px 10px", fontSize: 12 }}
+                  disabled={busy === a.id}
+                  onClick={() => void undoAuto(a)}
+                >
+                  {busy === a.id ? "…" : "Undo"}
+                </button>
+              </div>
+              <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>
+                → {a.skuName}
               </div>
             </div>
           ))}

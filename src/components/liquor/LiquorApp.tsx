@@ -18,6 +18,21 @@ import MapPours from "./views/MapPours";
 
 type View = "loading" | "login" | "home" | "count" | "keg" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "forbidden";
 
+// Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
+// email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
+// scope and the param stripped immediately, so a logged-out staffer who has to punch
+// in their PIN first still lands where the email sent them — bootstrap() doubles as
+// Login's onLoggedIn, and a refresh after that goes to Home like any other session.
+const DEEP_LINKABLE: readonly View[] = ["mappours", "pourcosts", "invoices", "pricewatch", "counts"];
+
+const requestedView: View | null = (() => {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get("view");
+  const match = DEEP_LINKABLE.find((v) => v === raw) ?? null;
+  if (raw) window.history.replaceState({}, "", window.location.pathname);
+  return match;
+})();
+
 export default function LiquorApp() {
   const [view, setView] = useState<View>("loading");
   const [actor, setActor] = useState<BarActor | null>(null);
@@ -27,7 +42,7 @@ export default function LiquorApp() {
     try {
       const me = await getMe();
       setActor(me);
-      setView("home");
+      setView(requestedView ?? "home");
     } catch (e) {
       if (e instanceof ForbiddenError) setView("forbidden");
       else setView("login"); // NotAuthed / network → PIN screen

@@ -558,6 +558,26 @@ export async function addSkuAlias(skuId: string, alias: string): Promise<string[
   return aliases;
 }
 
+/** A pour label the daily check mapped on its own (migration 0106). */
+export interface AutoAlias {
+  id: string;
+  alias: string;
+  sourceLabel: string;
+  createdAt: string;
+  skuId: string;
+  skuName: string;
+}
+export async function getAutoAliases(): Promise<AutoAlias[]> {
+  const { autoAliases } = await gatedJson<{ autoAliases: AutoAlias[] }>("/admin/bar/auto-aliases");
+  return autoAliases;
+}
+/** Undo an auto-map. Tombstoned server-side so the next check won't redo it. */
+export async function revertAutoAlias(id: string): Promise<void> {
+  await gatedJson<{ reverted: boolean }>(`/admin/bar/auto-aliases/${id}/revert`, {
+    method: "POST",
+  });
+}
+
 // ── pour cost (recipe COGS ÷ menu price, live) ──
 export interface PourCostComponent {
   skuName: string;
