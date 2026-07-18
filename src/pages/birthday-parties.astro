@@ -18,7 +18,7 @@
  *     activities — we do this well" angle the user articulated
  *     2026-05-11 (no trampolines / go-karts / indoor playground; just
  *     bowling + arcade + a real kitchen + the parent bar program).
- *   - Two kid packages (Suite $419 / Extra Suite $489.90) booked via
+ *   - Two kid packages (Suite $419 / Extra Suite $469.90) booked via
  *     Roller. Prices confirmed accurate 2026-05-11.
  *   - Adult birthdays funnel to the events team (Zite) since they need
  *     custom catering and the VIP suite — distinct from the kid-package
@@ -65,10 +65,14 @@ const ROLLER_KIDS_URL = "https://www.twistedpin.com/reserve/birthdays/";
 // Product + Offer is the right shape for SKU-priced packages — eligible
 // for product rich snippets (price + availability in SERP). brand →
 // BUSINESS_ENTITY_ID ties each package back to the venue entity graph.
-// Prices match the page display (confirmed accurate 2026-05-11).
+// Source of truth is the live TPRS booking catalog at /reserve/birthdays/ --
+// verify against it, not against this page. Extra Suite was stale at $489.90
+// here (catalog said $469.90) until 2026-07-18; the display below now reads
+// EXTRA_SUITE_BIRTHDAY_PRICE so the card and the schema Offer cannot diverge
+// again. SUITE_BIRTHDAY_PRICE stays hardcoded in the card ($419 vs "419.00").
 const PAGE_URL = `${BUSINESS_URL}/birthday-parties/`;
 const SUITE_BIRTHDAY_PRICE = "419.00";
-const EXTRA_SUITE_BIRTHDAY_PRICE = "489.90";
+const EXTRA_SUITE_BIRTHDAY_PRICE = "469.90";
 // Venue-wide Google rating, surfaced on both party Products so SERP
 // results for /birthday-parties can show stars. Clears GSC
 // "Missing field 'aggregateRating'" non-critical warning.
@@ -147,8 +151,8 @@ const birthdayFaqs: BdayFaq[] = [
   {
     q: "Can I host a kids' birthday party at Twisted Pin in Plainfield?",
     schemaA:
-      "Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages: Suite Birthday ($419) and Extra Suite Birthday ($489.90), each up to 10 kids.",
-    htmlA: `<p>Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages — <strong>Suite Birthday ($419)</strong> and <strong>Extra Suite Birthday ($489.90)</strong> — each up to 10 kids.</p><p><a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">Book a kids' party →</a></p>`,
+      "Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages: Suite Birthday ($419) and Extra Suite Birthday ($469.90), each up to 10 kids.",
+    htmlA: `<p>Yes — kids' birthday parties run on a reserved lane with arcade time, a souvenir bag, invitations, and a personal party coordinator. Two packages — <strong>Suite Birthday ($419)</strong> and <strong>Extra Suite Birthday ($469.90)</strong> — each up to 10 kids.</p><p><a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">Book a kids' party →</a></p>`,
   },
   {
     q: "How many kids can come to the party?",
@@ -329,7 +333,7 @@ const faqSchema = {
           <p class="birthday-package-badge">More time, more space</p>
           <h3 class="birthday-package-name">Extra Suite Birthday</h3>
           <p class="birthday-package-price">
-            <span class="birthday-package-amount">$489.90</span>
+            <span class="birthday-package-amount">${EXTRA_SUITE_BIRTHDAY_PRICE}</span>
             <span class="birthday-package-base">up to 10 guests</span>
           </p>
           <p class="birthday-package-meta">$40 per additional guest · 14 guest max</p>
