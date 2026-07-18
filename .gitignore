@@ -53,3 +53,7 @@ Context/og images/
 # /api/products/bookable). Regenerable; never commit. Keeps `git status` clean
 # and makes a stray `git add -A` safe.
 *_tmp.json
+
+# Windows folder metadata — Explorer drops these into any folder it customizes.
+# Would otherwise be committed and served publicly out of public/.
+desktop.ini
