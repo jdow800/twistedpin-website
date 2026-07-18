@@ -73,20 +73,23 @@ export default function Trends({ onDone }: { onDone: () => void }) {
           )}
 
           {/* ── Lens 1 ─────────────────────────────────────────────────── */}
-          <p className="lq-section-label">Recurring shortages — who was working</p>
+          <p className="lq-section-label">Unexplained variances — who was working</p>
           <p className="lq-muted mn-hint">
-            Shorted drawer-days (count-down errors excluded), by everyone who worked that drawer. A name
-            near the top over many weeks is worth a quiet look — one day means nothing.
+            Drawer-days off by a notable amount (over <em>or</em> short) with no ⚖️ offsetting neighbor.{" "}
+            <strong>Index</strong> = their share of those days ÷ their share of all days worked.{" "}
+            <strong>~1.0× just means they work a lot</strong> — only a sustained index well above 1 is a
+            signal, and it's a place to look, never a conclusion.
           </p>
           {data.lens1.people.length === 0 ? (
-            <p className="lq-muted">No recurring shortages to correlate in this window. Good sign.</p>
+            <p className="lq-muted">No flagged drawer-days to correlate in this window. Good sign.</p>
           ) : (
             <table className="mn-table">
               <thead>
                 <tr>
                   <th>Person</th>
-                  <th className="mn-r">Shorted shifts</th>
-                  <th className="mn-r">Σ on those shifts</th>
+                  <th className="mn-r">Index</th>
+                  <th className="mn-r">Flagged / worked</th>
+                  <th className="mn-r">Σ variance</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,8 +102,20 @@ export default function Trends({ onDone }: { onDone: () => void }) {
                         {p.registers.length ? ` · ${p.registers.map(regLabel).join(", ")}` : ""}
                       </span>
                     </td>
-                    <td className="mn-r">{p.shifts}</td>
-                    <td className="mn-r mn-short">{signedMoney(p.shortageOnShiftsCents)}</td>
+                    <td className={`mn-r ${p.index != null && p.index >= 1.75 ? "mn-short" : ""}`}>
+                      {p.lowSample || p.index == null ? (
+                        <span className="lq-muted">low sample</span>
+                      ) : (
+                        <strong>{p.index.toFixed(2)}×</strong>
+                      )}
+                    </td>
+                    <td className="mn-r lq-muted">
+                      {p.shifts}/{p.workedDays} · {Math.round(p.flaggedShare * 100)}% of{" "}
+                      {Math.round(p.baselineShare * 100)}%
+                    </td>
+                    <td className={`mn-r ${p.shortageOnShiftsCents < 0 ? "mn-short" : "mn-over"}`}>
+                      {signedMoney(p.shortageOnShiftsCents)}
+                    </td>
                   </tr>
                 ))}
               </tbody>

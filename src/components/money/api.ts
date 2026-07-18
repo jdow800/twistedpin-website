@@ -310,7 +310,13 @@ export interface Lens1Person {
   roles: string[];
   registers: string[];
   shifts: number;
+  workedDays: number;
   shortageOnShiftsCents: number;
+  flaggedShare: number;
+  baselineShare: number;
+  /** Flagged share ÷ baseline share. ~1.0 = "they just work a lot". null = thin sample. */
+  index: number | null;
+  lowSample: boolean;
   dates: string[];
 }
 
@@ -329,7 +335,13 @@ export interface TrendsResponse {
   rosterCoverageDays: number;
   shortageDays: number;
   tokenWired: boolean;
-  lens1: { people: Lens1Person[]; shortagesConsidered: number; unmappedRoles: string[] };
+  lens1: {
+    people: Lens1Person[];
+    shortagesConsidered: number;
+    countedDaysConsidered: number;
+    worstDays: { registerKey: string; salesDate: string; varianceCents: number }[];
+    unmappedRoles: string[];
+  };
   lens2: { closers: Lens2Closer[]; totalPairs: number; unattributedPairs: number };
 }
 
