@@ -1,11 +1,12 @@
 // Step 6 — REAL payment (ADR-0025 §4 two-step checkout), deferred-PaymentElement
 // pattern. The cart-hold is acquired on mount (10-min capacity reservation) and
 // the card form renders immediately. The rail PaymentIntent is created only when
-// the guest hits Pay — because `/checkout/payment-intents` resets the hold to a
-// 60-SECOND grace window (it's meant to fire AT payment, with convert seconds
-// later). Creating it on mount would give the guest only 60s to type a card and
-// risk a charge-then-expired trap. So: Pay → elements.submit() → createPaymentIntent
-// (server sizes the amount; 60s grace starts) → stripe.confirmPayment (inline for
+// the guest hits Pay — `/checkout/payment-intents` floors the hold at a 180-second
+// grace window (GREATEST(existing, now+180s) since 2026-07-18 — it EXTENDS a
+// nearly-out hold and never shortens a healthy one; it was a hard reset to 60s
+// before, which cut a mid-hold guest to a minute right before the 3DS-length
+// confirm step). So: Pay → elements.submit() → createPaymentIntent (server sizes
+// the amount; ≥180s of hold guaranteed) → stripe.confirmPayment (inline for
 // cards/3DS) → convert (idempotent). A visible countdown + "Refresh hold" handle
 // the 10-minute budget.
 
@@ -289,18 +290,24 @@ function CheckoutForm({
     setHoldExpiresAt(cart.holdExpiresAt);
   }
 
-  // Explicit "Refresh hold" button — always mint a clean fresh hold.
-  async function acquireHold() {
+  // Explicit "Refresh hold" button — always mint a clean fresh hold. Returns
+  // whether the hold was actually re-secured, so post-charge callers can tell
+  // the guest the truth instead of asserting "re-secured" unconditionally
+  // (2026-07-18 — the old void return had the cart_hold_expired recovery path
+  // claiming success while capacity was gone).
+  async function acquireHold(): Promise<boolean> {
     setRefreshing(true);
     setHoldError(null);
     setHoldSoldOut(false);
     try {
       await createFreshHold();
+      return true;
     } catch (err) {
       setHoldError(checkoutErrorMessage(err));
       setHoldSoldOut(
         err instanceof TprsCheckoutError && err.code === "capacity_exhausted",
       );
+      return false;
     } finally {
       setRefreshing(false);
     }
@@ -399,8 +406,8 @@ function CheckoutForm({
           setSubmitting(false);
           return;
         }
-        // Create the PI for this attempt (server sizes amount; 60s grace starts
-        // here). Reused while clientSecretRef is set; a DECLINE clears it below so
+        // Create the PI for this attempt (server sizes amount; hold floored to
+        // ≥180s here). Reused while clientSecretRef is set; a DECLINE clears it below so
         // the next Pay mints a FRESH intent — Stripe.js won't cleanly re-confirm a
         // declined deferred PaymentIntent in place (verified on live), but a fresh
         // one works (it's what a page refresh did).
@@ -431,7 +438,7 @@ function CheckoutForm({
           // Pay mints a genuinely FRESH PaymentIntent (the backend folds attemptKey
           // into the idempotency key) — a reused declined intent re-confirms with its
           // already-attached payment method, ignoring the corrected card. Also
-          // re-secure the hold (createPaymentIntent dropped it to a 60s grace) so the
+          // re-secure the hold (the 180s payment grace may be nearly spent) so the
           // retry has time. The guest just fixes their card and taps Pay once.
           clientSecretRef.current = null;
           piIdRef.current = null;
@@ -476,13 +483,38 @@ function CheckoutForm({
         setSubmitting(false);
         return;
       }
-      // Charged but the hold lapsed before convert (rare with the 60s grace):
-      // re-secure capacity, then a tap of "Finish reservation" re-runs convert.
+      // Charged but the hold lapsed before convert (rare with the 180s grace).
+      // Post-reorder (2026-07-18) the server only returns this when capacity
+      // STILL EXISTS — capacity-gone surfaces as capacity_exhausted (refunded,
+      // terminal, below) — so re-secure and retry genuinely works. The
+      // re-acquire itself can still lose a same-second race; only claim
+      // "re-secured" when it's true, and route the guest to Finish either way
+      // (a convert against gone capacity comes back refunded + terminal).
       if (charged && err instanceof TprsCheckoutError && err.code === "cart_hold_expired") {
-        await acquireHold();
+        const reSecured = await acquireHold();
         setErrorMsg(
-          'Re-secured your lanes — tap "Finish reservation" to complete it (you won\'t be charged twice).',
+          reSecured
+            ? 'Re-secured your lanes — tap "Finish reservation" to complete it (you won\'t be charged twice).'
+            : 'Tap "Finish reservation" to complete your booking (you won\'t be charged twice).',
         );
+        setSubmitting(false);
+        return;
+      }
+      // The slot genuinely filled while the guest was paying (their hold
+      // lapsed mid-payment and another cart converted first). TERMINAL when
+      // charged: capacity is physical — the server refunded the charge in the
+      // same request (2026-07-18) — so say exactly that and stop; a retry
+      // re-throws identically forever (the old generic-tail handling looped
+      // "tap Finish reservation" against a lane that no longer existed).
+      if (err instanceof TprsCheckoutError && err.code === "capacity_exhausted") {
+        if (charged) {
+          setBlocked(true);
+          setErrorMsg(
+            "That time filled up while you were checking out, so we couldn't finish this reservation. Your card was charged and we've issued a full refund — it'll land back on your card in a few business days. Pick another time, or call (815) 782-7790.",
+          );
+        } else {
+          setHoldSoldOut(true);
+        }
         setSubmitting(false);
         return;
       }
@@ -503,11 +535,13 @@ function CheckoutForm({
         setSubmitting(false);
         return;
       }
-      // Online-sales cutoff crossed mid-checkout (2026-07-15). Pre-charge
-      // (payment-intents rejected, nothing captured) → the hard-stop blocker.
-      // Post-charge (the PI-mint→confirm race lost; convert rejected AND
-      // auto-refunded server-side) → TERMINAL, mirror the amount_mismatch copy.
-      // Never offer a retry: time only moves forward, it fails identically.
+      // Online-sales cutoff crossed mid-checkout (2026-07-15; reworked
+      // 2026-07-18). Pre-charge (payment-intents rejected, nothing captured) →
+      // the hard-stop blocker — this is the cutoff's only live rejection path
+      // now. Post-charge, convert LANDS the booking flagged for ops instead of
+      // rejecting, so the `charged` sub-branch below is defensive-only (kept
+      // for deploy skew / a future rethrow); its refund copy stays correct for
+      // that hypothetical.
       if (
         err instanceof TprsCheckoutError &&
         err.code === "sales_cutoff_exceeded"
@@ -542,7 +576,16 @@ function CheckoutForm({
   // this rare; this is the race backstop. "Find a new time" jumps back to the
   // time picker (not one step back). Move focus to it since the early return
   // pulls the previously-focused card field out of the DOM (a11y).
-  if (holdSoldOut) {
+  //
+  // NEVER when charged (2026-07-18): this blocker asserts "your card hasn't
+  // been charged," which was a LIE on the post-charge path (charged →
+  // cart_hold_expired → re-acquire fails capacity_exhausted → this rendered,
+  // hiding the "Finish reservation" button behind false reassurance). When
+  // money has moved, stay on the form: the guest either Finishes (convert
+  // succeeds, or comes back capacity_exhausted → refunded + terminal above)
+  // or reads the terminal refund message. `!paidPid.current` keeps the
+  // blocker exclusively pre-charge, where its copy is true.
+  if (holdSoldOut && !paidPid.current) {
     return (
       <div className="tprs-pay-blocker" role="alert">
         <span className="tprs-pay-blocker__title">That time just filled up</span>
