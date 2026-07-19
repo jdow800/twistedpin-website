@@ -572,7 +572,15 @@ const FAQ = [
 
   .kp-form { margin-top: 14px; }
 
-  .kp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* align-items: end keeps the two inputs level if a label ever wraps
+     to a second line (cells bottom-align instead of top-align). */
+  .kp-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+  /* Phones: "First name — parent/guardian" wraps in a half-width column
+     and staggers the two boxes — stack the row instead. gap drops to 0
+     because .kp-field's own 16px margin carries the vertical rhythm. */
+  @media (max-width: 600px) {
+    .kp-row-2 { grid-template-columns: 1fr; gap: 0; }
+  }
 
   .kp-field { margin: 0 0 16px; border: 0; padding: 0; min-width: 0; }
   .kp-field label,
@@ -596,7 +604,11 @@ const FAQ = [
     font-family: var(--font-body);
     font-size: 16px; /* 16px avoids iOS zoom-on-focus */
     color: var(--warm-white);
-    background: rgba(244, 239, 227, 0.04);
+    /* Opaque: exact composite of the old rgba(244,239,227,0.04) over
+       Indigo Deep. An alpha background let the fixed Pin Tilt watermark
+       show through the field interiors — loud on OLED phones, read as
+       smudges inside the boxes. */
+    background: #171327;
     border: 1px solid rgba(244, 239, 227, 0.18);
     border-radius: 7px;
     padding: 13px 14px;
