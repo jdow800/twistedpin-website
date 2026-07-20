@@ -21,13 +21,16 @@
  *     phone, matches the design, and readable by a screen reader. Content is
  *     verbatim from the slide; attribution kept.
  *
- * ⚠️ ONE WORD CHANGED, FLAGGED FOR JON: the source says "Private Event
- * Gratuities" / "Gratuities from private events." CLAUDE.md bans "private" on
- * every surface, and this one matters more than most — the Guidebook is where
- * teammates LEARN the house vocabulary, so a staff-facing "private event"
- * becomes a guest-facing "private event" within a week. Changed to "catered
- * events," matching what TPRS already calls them. Revert if you'd rather keep
- * your wording.
+ * ⚠️ THE SITE-WIDE WORDING BANS DO NOT APPLY IN HERE. Jon's ruling, 2026-07-20:
+ * "ignore wording bans when it comes to play/guide books." The `private` and
+ * `cheap/discount/value/deals` bans in CLAUDE.md + voice.md are MARKETING
+ * POSITIONING rules for guest-facing surfaces; the Playbook and Guidebook are
+ * internal documents describing how the business actually runs, and "private
+ * event" is simply what the operation calls it.
+ *
+ * So: "Private Event Gratuities" stands as written. A brand sweep that greps
+ * for banned words WILL flag this file — leave it alone. If you're tempted to
+ * "fix" it, you're re-litigating a decision the owner already made.
  */
 
 export type GBlock =
@@ -459,9 +462,9 @@ export const GUIDEBOOK: GChapter[] = [
         ],
       },
       {
-        title: 'Event Gratuities',
+        title: 'Private Event Gratuities',
         blocks: [
-          'Gratuities from catered events are distributed separately from the regular GoTab tip pool.',
+          'Gratuities from private events are distributed separately from the regular GoTab tip pool.',
           'Event gratuities are manually distributed to the teammates who helped make the event successful, based on the roles they performed during the event. This typically includes the Event Host, Kitchen Team, Bar Team (when applicable), and teammates assisting with bussing or dishes.',
           'If you have questions about an event gratuity, please speak with a manager.',
         ],
