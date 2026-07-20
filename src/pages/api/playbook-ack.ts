@@ -32,8 +32,15 @@ import { PLAYBOOK_COOKIE, verifyToken } from '../../lib/playbook-auth';
  *   RESEND_API_KEY              — same Resend account TPRS sends from
  * OPTIONAL:
  *   PLAYBOOK_NOTIFY_TO   (default info@twistedpin.com)
- *   PLAYBOOK_NOTIFY_FROM (default Twisted Pin <noreply@twistedpin.com> —
- *                         must be a Resend-verified sending domain)
+ *   PLAYBOOK_NOTIFY_FROM (default Twisted Pin <playbook@mail.twistedpin.com>)
+ *
+ * ⚠️ THE SENDING DOMAIN IS `mail.twistedpin.com`, NOT `twistedpin.com`.
+ * Resend matches the sending domain EXACTLY, and only the `mail.` subdomain is
+ * verified on the account. Sending from anything @twistedpin.com returns
+ * 403 "domain is not verified" — which, because notification failure is
+ * non-fatal here, shows up as a signature that saved fine and an email that
+ * never arrived. Cost us two test rounds on 2026-07-20 to spot. The local part
+ * (`playbook@`) is arbitrary and needs no real mailbox; only the domain matters.
  */
 
 const TABLE = 'playbook_acknowledgments';
@@ -144,8 +151,10 @@ async function notify(name: string, signedAt: Date): Promise<void> {
   }
 
   const to = import.meta.env.PLAYBOOK_NOTIFY_TO || 'info@twistedpin.com';
+  // Must be @mail.twistedpin.com — the apex is NOT verified on Resend.
   const from =
-    import.meta.env.PLAYBOOK_NOTIFY_FROM || 'Twisted Pin <noreply@twistedpin.com>';
+    import.meta.env.PLAYBOOK_NOTIFY_FROM ||
+    'Twisted Pin <playbook@mail.twistedpin.com>';
   const stamp = centralStamp(signedAt);
 
   const res = await fetch('https://api.resend.com/emails', {
