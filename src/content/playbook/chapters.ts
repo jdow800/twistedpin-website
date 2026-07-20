@@ -7,6 +7,15 @@
  * short lines, heavy white space, one thought per paragraph. It's built to be
  * read like a keynote, not a document.
  *
+ * AUTHORIZED REVISIONS TO LOCKED COPY (Jon asked for these directly — "do not
+ * rewrite unless specifically instructed" is exactly what that means):
+ *   · 2026-07-20 — "Details Matter", the proposal story: the three-sentence
+ *     "One teammate stayed with him…" passage became the "It was a true team
+ *     effort…" version, adding the phone, the photos, and the hand-off to the
+ *     teammate at the computer. `Context/Twisted Pin Playbook.txt` was updated
+ *     in the same commit so the two never drift — if you find them
+ *     disagreeing, the source file is stale, not this one.
+ *
  * ONE FORMATTING NOTE (not a rewrite): the "Notice The Moments" story arrived
  * in the source file as a single run-on paragraph — clearly a paste that lost
  * its line breaks, since every other story in the book uses the beat rhythm.
@@ -685,7 +694,7 @@ export const CHAPTERS: Chapter[] = [
           'He was nervous.',
           'Really nervous.',
           'Friends and family were in on the surprise, and a photo was sent over so we could have everything ready on the video wall.',
-          'One teammate stayed with him, giving him a final pep talk. Another stood nearby, ready to give the signal. Someone else waited at the computer, ready to change the screen at just the right moment.',
+          'It was a true team effort. One teammate stayed with him, offering a final pep talk. Another stood nearby on the phone, ready to give the signal (while snapping a few photos!) to a teammate waiting at the computer, prepared to switch the screen at exactly the right moment.',
           'She stepped up to bowl.',
           'The ball rolled down the lane.',
           'The screen changed.',
