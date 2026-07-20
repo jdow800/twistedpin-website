@@ -101,6 +101,20 @@ const BEAT_MAX_CHARS = 52;
 const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
 
 /* ────────────────────────────────────────────────────────────────────────
+   CHAPTER PHOTOGRAPHY (Jon's picks, 2026-07-20)
+   Encoded by scripts/build-playbook-images.mjs to /public/playbook/<name>-{w}.
+   One photo → full-width 3:2 hero; two+ → a two-up gallery; 'timeline' → the
+   captioned Our Story arc. Every photo is lazy and lives above the fold of a
+   `hidden` page, so nothing here competes with first paint. The CSS frame
+   (aspect-ratio + object-fit:cover) enforces the crop, so the small sources
+   that couldn't upscale to the larger width still render uniformly. */
+const PB_IMG = '/playbook';
+const pbWidths = (kind: 'single' | 'gallery' | 'timeline'): number[] =>
+  kind === 'single' ? [640, 1280] : kind === 'timeline' ? [520, 1040] : [440, 880];
+const pbSrcset = (name: string, ext: string, widths: number[]): string =>
+  widths.map((w) => `${PB_IMG}/${name}-${w}.${ext} ${w}w`).join(', ');
+
+/* ────────────────────────────────────────────────────────────────────────
    SEARCH
    ────────────────────────────────────────────────────────────────────────
    Built because paging BROKE BROWSER FIND. Every chapter that isn't open is
@@ -383,6 +397,32 @@ if (ORPHANS.length) {
         {CHAPTERS.map((ch, i) => (
           <article class="pb-page" data-pb-page={i + 1} data-chapter={ch.id} hidden>
             <div class="pb-body">
+              {ch.photos && ch.photos.length > 0 && (() => {
+                const single = ch.photos.length === 1;
+                const kind = single ? 'single' : ch.photoLayout === 'timeline' ? 'timeline' : 'gallery';
+                const widths = pbWidths(kind);
+                const sizes = single
+                  ? '(min-width: 1025px) 544px, calc(100vw - 48px)'
+                  : '(min-width: 1025px) 250px, 45vw';
+                return (
+                  <div class={`pb-photos pb-photos--${kind}`}>
+                    {ch.photos.map((ph) => (
+                      <figure class="pb-photo">
+                        <picture>
+                          <source type="image/avif" srcset={pbSrcset(ph.name, 'avif', widths)} sizes={sizes} />
+                          <source type="image/webp" srcset={pbSrcset(ph.name, 'webp', widths)} sizes={sizes} />
+                          <img src={`${PB_IMG}/${ph.name}-${widths[0]}.jpg`}
+                               srcset={pbSrcset(ph.name, 'jpg', widths)} sizes={sizes}
+                               alt={ph.alt} loading="lazy" decoding="async" />
+                        </picture>
+                        {kind === 'timeline' && ph.caption && (
+                          <figcaption class="pb-photo-cap">{ph.caption}</figcaption>
+                        )}
+                      </figure>
+                    ))}
+                  </div>
+                );
+              })()}
               <p class="pb-count">
                 <span>{String(i + 1).padStart(2, '0')}</span> / {CHAPTERS.length}
               </p>
@@ -878,6 +918,49 @@ if (ORPHANS.length) {
     letter-spacing: 0.18em; color: var(--warm-dim); margin-bottom: 12px;
   }
   .pb-count span { color: var(--glow); }
+
+  /* ---------- chapter photography ---------- */
+  /* The frame (border / radius / shadow / aspect) always lives on <picture>,
+     so a <figure> can carry a caption below without inheriting the crop. The
+     aspect-ratio container + object-fit:cover is what enforces a uniform crop
+     even for the few small sources that couldn't upscale to the wide width. */
+  .pb-photos { width: 100%; margin: 0 0 30px; }
+  .pb-photo { margin: 0; min-width: 0; }
+  .pb-photo picture {
+    display: block; width: 100%; overflow: hidden;
+    border-radius: var(--radius-surface);
+    border: 1px solid rgba(244, 239, 227, 0.12);
+    background: var(--indigo-deep);
+  }
+  .pb-photo img {
+    display: block; width: 100%; height: 100%;
+    object-fit: cover; object-position: center;
+  }
+  /* Single hero — 3:2, full column width, the deeper two-tier shadow. */
+  .pb-photos--single .pb-photo picture {
+    aspect-ratio: 3 / 2;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.30), 0 24px 48px rgba(0, 0, 0, 0.36);
+  }
+  /* Galleries + timeline — two-up tiles, lighter shadow. */
+  .pb-photos--gallery, .pb-photos--timeline {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  }
+  .pb-photos--gallery .pb-photo picture,
+  .pb-photos--timeline .pb-photo picture {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
+  }
+  .pb-photos--gallery .pb-photo picture { aspect-ratio: 4 / 5; }
+  /* A lone odd tile on the last row spans full width (3 photos → the third
+     goes wide) instead of sitting half-empty. */
+  .pb-photos--gallery .pb-photo:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .pb-photos--gallery .pb-photo:last-child:nth-child(odd) picture { aspect-ratio: 3 / 2; }
+  /* Our Story timeline — 3:2 landscape tiles, era caption under each. */
+  .pb-photos--timeline .pb-photo picture { aspect-ratio: 3 / 2; }
+  .pb-photo-cap {
+    font-family: var(--font-ui); font-size: 10.5px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--warm-dim); margin-top: 8px; text-align: center;
+  }
 
   /* The story→principle turn. A diamond rather than a rule: it reads as a
      deliberate beat break instead of a horizontal divider slicing the page. */

@@ -40,6 +40,19 @@ export interface Section {
   blocks: Block[];
 }
 
+/**
+ * A chapter photograph. `name` is the base filename under
+ * `/public/playbook/<name>-{w}.{avif,webp,jpg}` produced by
+ * `scripts/build-playbook-images.mjs`. `alt` is required (staff page, but
+ * screen-reader teammates still read it). `caption` is shown only in the
+ * timeline layout (Our Story).
+ */
+export interface Photo {
+  name: string;
+  alt: string;
+  caption?: string;
+}
+
 export interface Chapter {
   id: string;
   part: 'front' | 'one' | 'two';
@@ -52,6 +65,15 @@ export interface Chapter {
   /** Art direction from the source Developer Notes — kept in code so whoever
    *  drops real photography in later knows what the chapter is asking for. */
   imageNote?: string;
+  /**
+   * Real photography, rendered at the top of the chapter (2026-07-20, Jon's
+   * picks). One entry → full-width 3:2 hero. Two or more → a two-up gallery of
+   * 4:5 tiles. `photoLayout: 'timeline'` switches the gallery to 3:2 landscape
+   * tiles with visible captions (Our Story's Pioneer → Plainfield → Twisted
+   * Pin arc). Presentational only — the SEARCH index never reads these.
+   */
+  photos?: Photo[];
+  photoLayout?: 'gallery' | 'timeline';
 }
 
 export const CHAPTERS: Chapter[] = [
@@ -87,6 +109,12 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'How It All Began',
     imageNote:
       'Candid photo of teammates laughing, celebrating, or helping one another. Avoid posed corporate-style photos.',
+    photos: [
+      {
+        name: 'welcome',
+        alt: 'The Twisted Pin team together in Halloween costumes, arms around one another and laughing.',
+      },
+    ],
     sections: [
       {
         blocks: [
@@ -112,6 +140,12 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'Discover Our History',
     imageNote:
       'A collage of real Twisted Pin moments—teammates, guests celebrating, league nights, birthday parties, community events, behind-the-scenes teamwork. Authentic and lived-in rather than staged.',
+    photos: [
+      {
+        name: 'dedication',
+        alt: 'Twisted Pin teammates holding the Herald-News "Best Bowling Alley in Will County 2025" plaque.',
+      },
+    ],
     sections: [
       {
         blocks: [
@@ -135,6 +169,13 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'Why We Exist',
     imageNote:
       'Horizontal timeline with three milestones: Pioneer Lanes → Plainfield Lanes → Twisted Pin, each with a historic photo and short caption. Plus a photo of brothers Chris & Jon.',
+    photoLayout: 'timeline',
+    photos: [
+      { name: 'our-story-pioneer', alt: 'The Pioneer Lanes storefront, the bowling center as it was when the Dow brothers bought it in 2014.', caption: 'Pioneer Lanes — 2014' },
+      { name: 'our-story-plainfield', alt: 'The same building rebranded as Plainfield Lanes, with new grey siding and signage.', caption: 'Plainfield Lanes' },
+      { name: 'our-story-twistedpin', alt: 'The Twisted Pin sign being installed on the building at sunset by a North Shore Sign crane crew.', caption: 'Twisted Pin — 2023' },
+      { name: 'our-story-brothers', alt: 'Brothers Jon and Chris Dow together, dressed up and smiling in a field.', caption: 'Jon & Chris Dow' },
+    ],
     sections: [
       {
         blocks: [
@@ -184,6 +225,12 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'The Way We Show Up',
     imageNote:
       'Real guests celebrating—a child blowing out birthday candles, friends laughing at the lanes, a couple sharing a toast, teammates high-fiving after a successful event. Focus on emotion more than bowling.',
+    photos: [
+      {
+        name: 'our-purpose',
+        alt: 'A mother and her son sharing a toast at a table, both grinning at the camera.',
+      },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -248,6 +295,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Our Culture',
     nextLabel: 'One Goal. One Team. One Family.',
+    photos: [
+      {
+        name: 'our-culture',
+        alt: 'Teammates and guests building tall pyramids of stacking cups together at an event.',
+      },
+    ],
     sections: [
       {
         blocks: [
@@ -285,6 +338,11 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Better Together',
     nextLabel: 'Own the Outcome',
+    photos: [
+      { name: 'better-together-1', alt: 'A teammate plating fresh pizza along a catered buffet line during an event.' },
+      { name: 'better-together-2', alt: 'The VIP suite mid-event: families eating pizza at the lanes under the VIP 1–3 signs.' },
+      { name: 'better-together-3', alt: 'Two teammates smiling as they serve pizza and salad at an event setup.' },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -363,6 +421,10 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Own the Outcome',
     nextLabel: 'Protect the Experience',
+    photos: [
+      { name: 'own-the-outcome-1', alt: 'A young boy giving a thumbs up while wearing a balloon octopus hat at the lanes.' },
+      { name: 'own-the-outcome-2', alt: 'Two teammates in Harley Quinn and Batgirl costumes posing with a delighted birthday girl.' },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -431,6 +493,10 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Protect the Experience',
     nextLabel: 'Notice the Moments',
+    photos: [
+      { name: 'protect-1', alt: 'Two small kids hugging and proudly holding up their Twisted Pin arcade game cards.' },
+      { name: 'protect-2', alt: 'A birthday girl in her crown ribbon and glowing light-up necklace, smiling by the lanes.' },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -499,6 +565,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Notice the Moments',
     nextLabel: 'Everyone Belongs',
+    photos: [
+      {
+        name: 'notice-the-moments',
+        alt: 'An older guest on his feet mid-celebration, raising a glass and cheering at the lanes.',
+      },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -559,6 +631,10 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Everyone Belongs',
     nextLabel: 'Communicate Early',
+    photos: [
+      { name: 'everyone-belongs-1', alt: 'Joe behind the bar, grinning as he finishes a bubble-domed craft cocktail.' },
+      { name: 'everyone-belongs-2', alt: 'A couple laughing together over a game of skeeball in the arcade.' },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -626,6 +702,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Communicate Early',
     nextLabel: 'Details Matter',
+    photos: [
+      {
+        name: 'communicate-early',
+        alt: 'A mother and daughter cheek to cheek, both smiling for a photo at the lanes.',
+      },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -683,6 +765,10 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Details Matter',
     nextLabel: 'Safety Matters',
+    photos: [
+      { name: 'details-matter-1', alt: 'A guest down on one knee proposing at the VIP lanes as his partner reacts with joy.' },
+      { name: 'details-matter-2', alt: 'A newly engaged couple in front of the "Will you marry me?" video wall, showing off the ring.' },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -737,6 +823,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Safety Matters',
     nextLabel: 'Growing Together',
+    photos: [
+      {
+        name: 'safety-matters',
+        alt: 'The Twisted Pin team crowded together for a happy group selfie between shifts.',
+      },
+    ],
     sections: [
       {
         eyebrow: 'Twisted Pin Moment',
@@ -809,6 +901,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'Growing Together',
     nextLabel: 'One Last Thing',
+    photos: [
+      {
+        name: 'growing-together',
+        alt: 'A group of young teammates on a team outing, lined up and giving thumbs up.',
+      },
+    ],
     sections: [
       {
         blocks: [
@@ -838,6 +936,12 @@ export const CHAPTERS: Chapter[] = [
     part: 'one',
     title: 'One Last Thing...',
     nextLabel: 'Sign the Playbook',
+    photos: [
+      {
+        name: 'one-last-thing',
+        alt: 'Four teammates with their arms around each other, smiling together at the bar.',
+      },
+    ],
     sections: [
       {
         blocks: [
