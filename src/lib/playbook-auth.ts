@@ -221,6 +221,22 @@ export function whoCookie(token: string, isDev: boolean): string {
   return buildCookie(WHO_COOKIE, token, isDev);
 }
 
+/**
+ * Expire the identity cookie — "Not you?" on a shared device.
+ *
+ * Clears WHO ONLY, deliberately leaving the team session intact. The next
+ * teammate at the front-desk computer is still authorized (the password is
+ * shared and the machine is in a staff area); what must not carry over is the
+ * NAME, because it pre-fills the signature field. Making them retype the team
+ * password would be friction with no security benefit, and friction is what
+ * makes someone skip the reset and sign under the wrong name.
+ */
+export function clearWhoCookie(isDev: boolean): string {
+  const attrs = [`${WHO_COOKIE}=`, 'Path=/', 'HttpOnly', 'SameSite=Lax', 'Max-Age=0'];
+  if (!isDev) attrs.push('Secure');
+  return attrs.join('; ');
+}
+
 /* ────────────────────────────────────────────────────────────────────────
    ADMIN — the manager-only status page (/playbook/status).
    ────────────────────────────────────────────────────────────────────────

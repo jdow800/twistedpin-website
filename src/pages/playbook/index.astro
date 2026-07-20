@@ -355,6 +355,15 @@ if (ORPHANS.length) {
           If you can't find an answer in either one, ask.
           We'd rather answer a question than have you wonder.
         </p>
+
+        {/* "Not you?" — the shared front-desk case. Quiet by design: the
+            teammate it's for is looking for it, and everyone else should not
+            be nudged toward clearing their own progress. */}
+        <form class="pb-notyou" method="POST" action="/api/playbook-who-reset/">
+          <button type="submit">
+            Not {firstName || 'you'}? Switch teammate
+          </button>
+        </form>
       </section>
 
       {/* ── 3b. THE PLAYBOOK (paged) ── */}
@@ -421,6 +430,14 @@ if (ORPHANS.length) {
               <label class="pb-ack-label" for="ack-name">Your full name</label>
               <input id="ack-name" name="name" type="text" autocomplete="name" required
                      placeholder="First and last" value={who.name} />
+              {/* The pre-filled name is the one real risk on a shared device.
+                  Editing the field alone would sign under a fresh name but keep
+                  the previous teammate's reading session, so the escape hatch
+                  here resets identity properly rather than just retyping. */}
+              <p class="pb-ack-hint">
+                Signing as <b>{who.name}</b>.
+                <button type="button" class="pb-linkbtn" data-not-you>Not you?</button>
+              </p>
 
               {/* Honeypot — hidden from humans, filled by naive bots. */}
               <div class="pb-hp" aria-hidden="true">
@@ -665,38 +682,54 @@ if (ORPHANS.length) {
     -webkit-appearance: none; appearance: none;
   }
   .pb-search input::placeholder { color: var(--warm-dim); }
-  .pb-results { padding: 4px 0 8px; }
+  /* ⚠️ THESE MUST BE :global().
+     Search results are built with document.createElement at runtime, and
+     Astro scopes styles by stamping a data-astro-cid-* attribute onto elements
+     AT BUILD TIME. Runtime-created nodes never get that attribute, so scoped
+     rules silently don't match them — the spans fell back to display:inline at
+     inherited size, and every result rendered as one run-on line of big
+     centered text ("GuidebookWork SchedulesShowing Up for Success — ...").
+     The class names are unique enough that going global costs nothing.
+     If you ever restyle a result, check it in the browser, not just the file. */
+  .pb-results { padding: 4px 0 10px; }
   .pb-results[hidden] { display: none; }
-  .pb-results-empty {
+  :global(.pb-results-empty) {
     padding: 10px 16px 14px; font-size: 13px; line-height: 1.55;
-    color: var(--warm-dim);
+    color: var(--warm-dim); text-align: left;
   }
-  .pb-results-empty[hidden] { display: none; }
-  .pb-results-list { list-style: none; margin: 0; padding: 0; }
-  .pb-results-list button {
+  :global(.pb-results-empty[hidden]) { display: none; }
+  :global(.pb-results-list) { list-style: none; margin: 0; padding: 0; }
+  :global(.pb-results-list li) { margin: 0; padding: 0; }
+  :global(.pb-results-list button) {
     display: block; width: 100%; text-align: left;
-    padding: 11px 16px; min-height: 44px;
+    padding: 12px 16px; min-height: 44px;
     background: transparent; border: none; cursor: pointer;
     border-left: 2px solid transparent;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.07);
+    font-family: var(--font-ui);
   }
-  .pb-results-list button:hover {
+  :global(.pb-results-list button:hover) {
     background: rgba(244, 239, 227, 0.04); border-left-color: var(--glow);
   }
-  .pb-res-book {
-    display: block; font-family: var(--font-ui); font-size: 10px;
+  :global(.pb-res-book) {
+    display: block; font-size: 9.5px; font-weight: 700;
     letter-spacing: 0.16em; text-transform: uppercase;
-    color: var(--glow); margin-bottom: 3px;
+    color: var(--glow); margin: 0 0 4px; line-height: 1.2;
   }
-  .pb-res-title {
-    display: block; font-family: var(--font-ui); font-weight: 700;
-    font-size: 14px; line-height: 1.3; color: var(--warm-white); margin-bottom: 3px;
+  :global(.pb-res-title) {
+    display: block; font-weight: 700; font-size: 14px; line-height: 1.3;
+    color: var(--warm-white); margin: 0 0 4px;
   }
-  .pb-res-snip {
-    display: block; font-size: 12px; line-height: 1.45; color: var(--warm-dim);
-    /* Two-line clamp keeps every result the same height, so the list stays
+  :global(.pb-res-where) {
+    display: block; font-size: 11px; line-height: 1.3;
+    color: var(--warm-dim); margin: 0 0 4px;
+  }
+  :global(.pb-res-snip) {
+    /* Two-line clamp keeps every row the same height so the list stays
        scannable instead of ragged. */
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     overflow: hidden;
+    font-size: 12px; line-height: 1.45; color: var(--warm-mid); margin: 0;
   }
 
   /* Brief highlight on the section a search result landed on — without it,
@@ -780,6 +813,20 @@ if (ORPHANS.length) {
     margin-top: 22px; max-width: 34ch; font-size: 13px;
     line-height: 1.6; color: var(--warm-dim);
   }
+  .pb-notyou { margin-top: 18px; }
+  .pb-notyou button, .pb-linkbtn {
+    background: none; border: none; padding: 6px 4px;
+    font-family: var(--font-ui); font-size: 12.5px;
+    color: var(--warm-dim); text-decoration: underline;
+    text-underline-offset: 3px; cursor: pointer;
+  }
+  .pb-notyou button:hover, .pb-linkbtn:hover { color: var(--warm-white); }
+  .pb-ack-hint {
+    font-family: var(--font-ui); font-size: 12.5px; color: var(--warm-dim);
+    margin-top: -4px;
+  }
+  .pb-ack-hint b { color: var(--warm-mid); font-weight: 700; }
+  .pb-linkbtn { padding: 6px 0 6px 6px; }
 
   /* ---------- pages (both books) ---------- */
   /* Vertical centering via AUTO MARGINS, not `justify-content: center`. With
@@ -1052,7 +1099,11 @@ if (ORPHANS.length) {
     const tocBook = root.querySelector<HTMLElement>('[data-toc-book]');
     const tocPb = root.querySelector<HTMLElement>('[data-toc-list-pb]');
     const tocGb = root.querySelector<HTMLElement>('[data-toc-list-gb]');
-    const PROGRESS_KEY = 'tp-playbook-progress';
+    /* Session-scoped like the reading counters. It was global, which meant a
+       shared front-desk browser resumed the NEXT teammate at the previous
+       one's chapter — and it would have been wiped by the foreign-key cleanup
+       below. Everything we persist is now keyed by session id, uniformly. */
+    const PROGRESS_KEY = `tp-playbook-progress-${root.dataset.sid || 'anon'}`;
 
     const pbLast = pbPages.length - 1;   // confirmation page
     const pbSign = pbLast - 1;           // signature page
@@ -1083,6 +1134,20 @@ if (ORPHANS.length) {
     const SID = root.dataset.sid || 'anon';
     const TIME_KEY = `tp-playbook-time-${SID}`;
     const PAGES_KEY = `tp-playbook-pages-${SID}`;
+
+    /* Drop any tp-playbook-* keys belonging to a DIFFERENT session id.
+       Two reasons: on a shared front-desk browser it guarantees the previous
+       teammate's reading position and time can't bleed into this one even if
+       "Not you?" was never used; and it stops per-session keys accumulating
+       forever on a device the whole team touches. */
+    try {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('tp-playbook-') && !k.endsWith(SID)) {
+          localStorage.removeItem(k);
+        }
+      }
+    } catch { /* private mode */ }
 
     let activeMs = 0;
     const seenPbPages = new Set<number>();
@@ -1218,6 +1283,17 @@ if (ORPHANS.length) {
     });
 
     root.querySelector<HTMLElement>('[data-go-hub]')?.addEventListener('click', () => go('hub'));
+
+    // "Not you?" beside the signature — same server reset as the hub button,
+    // posted from JS because it sits inside the acknowledgment <form> and a
+    // nested form isn't valid HTML.
+    root.querySelector<HTMLElement>('[data-not-you]')?.addEventListener('click', () => {
+      const f = document.createElement('form');
+      f.method = 'POST';
+      f.action = '/api/playbook-who-reset/';
+      document.body.appendChild(f);
+      f.submit();
+    });
 
     /* ── contents drawer ── */
     function openToc() {
@@ -1367,15 +1443,23 @@ if (ORPHANS.length) {
         const li = document.createElement('li');
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.innerHTML =
-          `<span class="pb-res-book">${e.book === 'pb' ? 'Playbook' : 'Guidebook'}</span>` +
-          `<span class="pb-res-title"></span>` +
-          `<span class="pb-res-snip"></span>`;
-        // textContent, not innerHTML — book copy is trusted but this keeps the
-        // renderer incapable of injecting markup regardless of what's added later.
-        btn.querySelector('.pb-res-title')!.textContent = e.section || e.chapter;
-        btn.querySelector('.pb-res-snip')!.textContent =
-          (e.section ? `${e.chapter} — ` : '') + e.snippet + '…';
+
+        // Four distinct lines rather than one run-on string: which book, the
+        // section, which chapter it lives in, then a preview. Built as separate
+        // elements with textContent — never innerHTML — so the renderer stays
+        // incapable of injecting markup no matter what content is added later.
+        const mk = (cls: string, text: string) => {
+          const s = document.createElement('span');
+          s.className = cls;
+          s.textContent = text;
+          return s;
+        };
+
+        btn.appendChild(mk('pb-res-book', e.book === 'pb' ? 'The Playbook' : 'The Guidebook'));
+        btn.appendChild(mk('pb-res-title', e.section || e.chapter));
+        if (e.section) btn.appendChild(mk('pb-res-where', `in ${e.chapter}`));
+        btn.appendChild(mk('pb-res-snip', trimSnippet(e.snippet)));
+
         btn.addEventListener('click', () => {
           pendingAnchor = e.anchor;
           go(e.book, e.page);
@@ -1389,6 +1473,17 @@ if (ORPHANS.length) {
     searchInput?.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') { searchInput.value = ''; runSearch(''); }
     });
+
+    /** Cut the preview at a word boundary rather than mid-word — the index
+     *  stores a hard 150-char slice, which produced things like "...responsibi".
+     *  Two clamped lines is all that's visible anyway. */
+    function trimSnippet(s: string): string {
+      const t = s.trim();
+      if (t.length <= 110) return t;
+      const cut = t.slice(0, 110);
+      const sp = cut.lastIndexOf(' ');
+      return (sp > 60 ? cut.slice(0, sp) : cut).replace(/[,;:—-]$/, '') + '…';
+    }
 
     /** After a result jump, scroll the matched section into view. */
     function consumeAnchor() {
