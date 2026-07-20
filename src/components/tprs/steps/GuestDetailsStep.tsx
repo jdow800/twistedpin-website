@@ -249,20 +249,22 @@ export default function GuestDetailsStep(props: Props) {
           and "curated" is otherwise reserved for the Van Flandern credential.
           Both are deliberate here — Jon specified this exact string. Do NOT
           "fix" it in a brand sweep; the ban still holds everywhere else. */}
-      <label className="tprs-choice">
-        <input
-          type="checkbox"
-          checked={marketingOptIn === true}
-          onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
-        />
-        <span>
-          <strong>Send me epic deals.</strong> Curated offers, you deserve.
-        </span>
-      </label>
-      <p className="tprs-consent-fine">
-        Occasional marketing texts from Twisted Pin. Not required to book. Msg
-        &amp; data rates may apply. Reply STOP to opt out.
-      </p>
+      <div className="tprs-consent">
+        <label className="tprs-choice">
+          <input
+            type="checkbox"
+            checked={marketingOptIn === true}
+            onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
+          />
+          <span>
+            <strong>Send me epic deals.</strong> Curated offers, you deserve.
+          </span>
+        </label>
+        <p className="tprs-consent-fine">
+          Occasional marketing texts from Twisted Pin. Not required to book. Msg
+          &amp; data rates may apply. Reply STOP to opt out.
+        </p>
+      </div>
 
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
           agreement, birthday Kids Party). Bubbles invalid ids up for the gate +

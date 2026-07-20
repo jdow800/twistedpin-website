@@ -884,17 +884,48 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
    so a multi-line legal rule breathes in the 44px inset box instead of stacking. */
 .tprs-choice { display: flex; align-items: flex-start; gap: 11px; font-family: var(--font-body); font-size: 16px; line-height: 1.45; color: var(--tw-text); padding: 11px 12px; min-height: 44px; box-sizing: border-box; border-radius: 8px; }
 .tprs-choice:hover { background: var(--tw-surface); }
+/* Marketing opt-in callout (2026-07-20). Shipped chrome-less first, which buried
+   it: sandwiched between the booking disclosure above and its own fine print
+   below, all three read as one block of muted legal text and the eye skipped
+   the only line that mattered.
+
+   Glow border + faint wash so it reads as an OFFER rather than more paperwork.
+   Deliberately a DIFFERENT treatment from .tprs-form-block below it (plain
+   --tw-border, neutral surface): that block is REQUIRED agreements, this one is
+   optional. Keeping them in two visual classes is what lets this gain
+   prominence without ever implying it must be ticked — required-ness is
+   signalled by asterisks and validation, not by having a background.
+
+   Border + 6% wash ONLY, never a solid Glow fill: Continue is the primary CTA
+   in this viewport and a filled Glow block would compete with it. Follows the
+   established Glow-bordered-callout pattern (Summer Pin Pass upsell on
+   /free-kids-bowling, Penny A Pin specials on /pricing). */
+.tprs-consent {
+  margin: 22px 0 18px;
+  padding: 2px 0 4px;
+  border: 1px solid var(--tw-accent);
+  border-radius: var(--radius-surface);
+  background: rgba(78, 236, 196, 0.06);
+}
+/* Neutral .tprs-choice hover would flash grey inside a Glow box — tint it. */
+.tprs-consent .tprs-choice:hover { background: rgba(78, 236, 196, 0.08); }
+
 /* Fine print under the marketing opt-in. Indented to the checkbox's TEXT column
    (12px pad + 20px box + 11px gap = 43px) so it reads as that row's disclosure
-   rather than a new field. 12px = the Lighthouse legibility floor, which is the
-   right tier here: this is scan-not-decide text and the decision itself sits in
-   the 16px .tprs-choice label above it. */
+   rather than a new field, with a right gutter so it never touches the border.
+   12px = the Lighthouse legibility floor, which is the right tier here: this is
+   scan-not-decide text and the decision itself sits in the 16px .tprs-choice
+   label above it.
+
+   Indent holds on mobile — at 360px that still leaves ~270px (~45 characters),
+   comfortably readable, and dropping it would break the visual tie to the
+   checkbox it belongs to. */
 .tprs-consent-fine {
   font-family: var(--font-body);
   font-size: 12px;
   line-height: 1.45;
   color: var(--tw-text-muted);
-  margin: 0 0 8px 43px;
+  margin: -2px 14px 6px 43px;
 }
 .tprs-choice input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 /* per_unit_select — one labeled single-select per lane/guest (NYE buys one
