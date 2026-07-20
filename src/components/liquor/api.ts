@@ -316,6 +316,113 @@ export async function extractKegVoice(transcript: string): Promise<KegVoiceItem[
   }
 }
 
+// ── empty-keg reports ──
+// The owner's weekly verbal question ("a lot of empties from any one brand?")
+// as a 30-second flow. Deliberately separate from the keg COUNT above: that one
+// counts full backup stock, this one reports which brands are piling up spent.
+// The amount is a band, not a number — nobody counts the stack.
+
+export type EmptyAmount = "a_few" | "some" | "a_lot";
+
+export interface KegBrand {
+  id: string;
+  name: string;
+  brewery: string;
+  isOnTap: boolean;
+  lastOnTap: string | null;
+}
+export interface KegBrandList {
+  brands: KegBrand[];
+  /** When the PourMyBeer export was last imported — shown so a stale list is visible. */
+  importedAt: string | null;
+}
+/** Tap-wall brands, most-recently-pulled first (the likeliest empties). */
+export async function getKegBrands(): Promise<KegBrandList> {
+  return gatedJson<KegBrandList>("/admin/bar/keg-brands");
+}
+
+export interface EmptyKegLineInput {
+  brandId?: string | null;
+  label: string;
+  brewery?: string | null;
+  amount: EmptyAmount;
+  qty?: number | null;
+  source: "grid" | "voice";
+  rawUtterance?: string;
+}
+export async function createEmptyKegReport(): Promise<string> {
+  // Explicit {} body — same proxy/null-body trap as createKegCount above.
+  const { sessionId } = await gatedJson<{ sessionId: string }>(
+    "/admin/bar/empty-kegs",
+    jsonBody({}),
+  );
+  return sessionId;
+}
+export interface OpenEmptyKegLine {
+  brandId: string | null;
+  label: string;
+  brewery: string | null;
+  amount: EmptyAmount;
+  qty: number | null;
+  source: "grid" | "voice";
+  rawUtterance: string | null;
+}
+export interface OpenEmptyKegReport {
+  id: string;
+  startedAt: string;
+  lines: OpenEmptyKegLine[];
+}
+/** The staffer's in-progress empties draft (to resume across a reload), or null. */
+export async function getOpenEmptyKegReport(): Promise<OpenEmptyKegReport | null> {
+  const { session } = await gatedJson<{ session: OpenEmptyKegReport | null }>(
+    "/admin/bar/empty-kegs/open",
+  );
+  return session;
+}
+export async function saveEmptyKegLines(
+  sessionId: string,
+  lines: EmptyKegLineInput[],
+): Promise<void> {
+  await gatedJson(`/admin/bar/empty-kegs/${sessionId}/lines`, {
+    ...jsonBody({ lines }),
+    method: "PUT",
+  });
+}
+export async function submitEmptyKegReport(sessionId: string): Promise<number> {
+  const { brandCount } = await gatedJson<{ brandCount: number }>(
+    `/admin/bar/empty-kegs/${sessionId}/submit`,
+    { method: "POST" },
+  );
+  return brandCount;
+}
+export interface EmptyKegVoiceItem {
+  brandId: string | null;
+  label: string;
+  amount: EmptyAmount;
+  qty: number | null;
+}
+/** Run-on empties dictation → brand-matched {label, amount} items. */
+export async function extractEmptyKegVoice(transcript: string): Promise<EmptyKegVoiceItem[]> {
+  try {
+    const { items } = await gatedJson<{ items: EmptyKegVoiceItem[] }>(
+      "/admin/bar/empty-keg-voice-extract",
+      jsonBody({ transcript }),
+    );
+    return items;
+  } catch (e) {
+    if (e instanceof BarApiError && typeof e.body === "string") {
+      let msg: string | undefined;
+      try {
+        msg = (JSON.parse(e.body) as { message?: string }).message;
+      } catch {
+        /* not json */
+      }
+      if (msg) throw new BarApiError(msg, e.status, e.body);
+    }
+    throw e;
+  }
+}
+
 // ── invoice history (read-only review list) ──
 export type BarInvoiceStatus = "pending" | "extracted" | "flagged" | "confirmed";
 export interface InvoiceSummary {

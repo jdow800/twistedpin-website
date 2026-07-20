@@ -1224,7 +1224,151 @@
   font-size: 12px;
 }
 
+/* ── empty-keg report ──────────────────────────────────────────────────────
+   Tap-first: the brand chips carry the flow, the band buttons are the answer.
+   Bands are colour-coded to the same scale the email uses (a lot = hot), so
+   what the reporter taps looks like what the owner opens. */
+.lq-empty-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.lq-empty-row {
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: var(--lq-radius);
+  padding: 12px;
+}
+.lq-empty-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.lq-empty-names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.lq-empty-label {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.lq-empty-brewery {
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-band {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.lq-band-btn {
+  min-height: 44px;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: var(--lq-muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.lq-band-btn:active {
+  transform: translateY(1px);
+}
+/* Selected state only — an unselected band stays neutral so the chosen one
+   reads at a glance on a phone held at arm's length in a dark back room. */
+.lq-band-on.lq-band-a_few {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: var(--lq-line-strong);
+  color: var(--lq-text);
+}
+.lq-band-on.lq-band-some {
+  background: #b45309;
+  border-color: #f59e0b;
+  color: #fff;
+}
+.lq-band-on.lq-band-a_lot {
+  background: #b91c1c;
+  border-color: #f87171;
+  color: #fff;
+}
+.lq-empty-qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.lq-empty-qty input {
+  width: 110px;
+  /* 16px keeps iOS from zooming the viewport on focus. */
+  font-size: 16px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: var(--lq-text);
+}
+.lq-brandpick {
+  margin-bottom: 14px;
+}
+.lq-brandsearch {
+  width: 100%;
+  font-size: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: var(--lq-text);
+  margin-bottom: 10px;
+}
+.lq-brandgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.lq-brandchip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  min-height: 52px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line);
+  background: var(--lq-panel);
+  color: var(--lq-text);
+  cursor: pointer;
+}
+.lq-brandchip:active {
+  border-color: var(--lq-glow);
+}
+.lq-brandchip-name {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.lq-brandchip-meta {
+  font-size: 11px;
+  color: var(--lq-muted);
+  line-height: 1.3;
+}
+.lq-brand-stale {
+  font-size: 12px;
+  margin-top: 10px;
+}
+
 @media (min-width: 560px) {
+  .lq-brandgrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .lq-tiles {
     grid-template-columns: repeat(3, 1fr);
   }

@@ -1,6 +1,6 @@
 import type { BarActor } from "../api";
 
-type Dest = "count" | "keg" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours";
+type Dest = "count" | "keg" | "empties" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours";
 
 export default function Home({
   actor,
@@ -23,6 +23,11 @@ export default function Home({
           <span className="lq-action-emoji" aria-hidden="true">🛢️</span>
           <span className="lq-action-title">Count kegs</span>
           <span className="lq-action-sub">Backup / untapped kegs</span>
+        </button>
+        <button type="button" className="lq-action" onClick={() => onGo("empties")}>
+          <span className="lq-action-emoji" aria-hidden="true">♻️</span>
+          <span className="lq-action-title">Empty kegs</span>
+          <span className="lq-action-sub">What's piling up out back</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("upload")}>
           <span className="lq-action-emoji" aria-hidden="true">🧾</span>
