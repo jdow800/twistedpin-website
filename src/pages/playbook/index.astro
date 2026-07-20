@@ -61,7 +61,18 @@ const nameStoreFailed = params.get('n') === '2';
 
 /** cover + chapters + sign + done */
 const PB_PAGES = CHAPTERS.length + 3;
-const firstName = who?.name?.split(' ')[0] ?? '';
+/**
+ * Greeting name. Uppercases ONLY the first character — deliberately not
+ * title-case. Naive title-casing corrupts real names ("McDonald" → "Mcdonald",
+ * "O'Brien" → "O'brien"), and mangling someone's own name to tidy a greeting
+ * is a worse outcome than a lowercase "george".
+ *
+ * This is display-only. The STORED name stays exactly as typed — it's their
+ * signature, and we don't edit those. Most phones send it capitalized anyway
+ * (autocapitalize="words" on the input), so this only catches desktop typing.
+ */
+const rawFirst = who?.name?.split(' ')[0] ?? '';
+const firstName = rawFirst ? rawFirst[0].toUpperCase() + rawFirst.slice(1) : '';
 
 /**
  * "Walls of text" mitigation (Jon + wife's feedback, 2026-07-20).
