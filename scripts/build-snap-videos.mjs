@@ -6,9 +6,13 @@
  *   public/snap/<name>-mobile-{av1,h264}-540.mp4
  *   public/snap/<name>-poster.{webp,jpg}
  *
- * Mirrors the per-video bash scripts (build-snap-video.sh, build-nye-
- * video.sh, build-buffet-video.sh) but config-driven so additional
- * videos are one line in the SOURCES table — no new shell file.
+ * Replaces the old per-video bash scripts — config-driven, so an additional
+ * video is one line in the SOURCES table rather than a new shell file.
+ * build-snap-video.sh (beerwall) and build-buffet-video.sh have been migrated
+ * here and deleted; they'd have silently reverted their assets if re-run.
+ * build-nye-video.sh still exists but is already broken (its SRC is a stale
+ * absolute path from an old machine) — nye passes check-av1-sizes.mjs, so it
+ * was left alone rather than migrated blind.
  *
  * Skip-on-missing-source pattern matches build-snap-images.mjs:
  * gitignored Context/videos/ isn't always populated on a fresh worktree.
@@ -114,11 +118,35 @@ const SOURCES = [
   // swap the video, keep the poster. Regenerating it here would silently
   // change the /menu/taps hero photo as a side effect of a video edit.
   { src: "TWP_The_Tap_Wall_V1.mp4", name: "beerwall", trimStart: 0, trimDur: 10.5, crfAv1: 46, crfH264: 32, skipPoster: true },
+
+  // Migrated from scripts/build-buffet-video.sh 2026-07-20 (settings were
+  // identical to this pipeline's defaults, so this is a like-for-like move).
+  // Brought in during the av1Bump pass because buffet-540 was the #2 offender
+  // at +15%, and it couldn't be fixed while it lived in its own script.
+  // skipPoster: buffet-poster.* is already shipped and tuned — this migration
+  // is about the mp4s only.
+  { src: "Buffet Before & After.mov", name: "buffet", trimStart: 6.3, trimDur: 7, skipPoster: true },
 ];
 
+/**
+ * av1Bump — added to the entry's crfAv1 at this width.
+ *
+ * AV1 needs a HIGHER crf (= lower quality target) at small frame sizes to stay
+ * smaller than its own H.264 fallback. libaom's per-frame overhead doesn't
+ * shrink proportionally with resolution, so one crf tuned at 1080 is far too
+ * generous at 540. Measured 2026-07-20: at the shared default, AV1 encoded
+ * LARGER than H.264 at 540 on 5 of 10 videos (arcade worst at +29%) while
+ * winning at 1080 on all 10. Since AV1 is the first <source>, that meant
+ * AV1-capable phones — the narrow ones, on the 540 variant — were downloading
+ * the HEAVIER file. +9 puts arcade 20% under H.264 with no visible difference
+ * against the H.264 those phones already receive.
+ *
+ * Invariant worth preserving: av1 < h264 at BOTH widths for every entry.
+ * `node scripts/check-av1-sizes.mjs` verifies it.
+ */
 const WIDTHS = [
-  { w: 540,  h: 960 },
-  { w: 1080, h: 1920 },
+  { w: 540,  h: 960,  av1Bump: 9 },
+  { w: 1080, h: 1920, av1Bump: 0 },
 ];
 
 function run(cmd, args) {
@@ -181,8 +209,9 @@ async function encodeOne({ src, name, trimStart = 0, trimDur, crfAv1 = 36, crfH2
   }
 
   // ---- MP4 variants ----
-  for (const { w, h } of WIDTHS) {
+  for (const { w, h, av1Bump = 0 } of WIDTHS) {
     const vf = `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`;
+    const av1CrfAtWidth = Math.min(63, crfAv1 + av1Bump); // 63 = libaom max
 
     // AV1
     await run("ffmpeg", [
@@ -190,7 +219,7 @@ async function encodeOne({ src, name, trimStart = 0, trimDur, crfAv1 = 36, crfH2
       "-ss", String(trimStart), "-i", srcPath, "-t", String(trimDur),
       "-an",
       "-vf", vf,
-      "-c:v", "libaom-av1", "-b:v", "0", "-crf", String(crfAv1),
+      "-c:v", "libaom-av1", "-b:v", "0", "-crf", String(av1CrfAtWidth),
       "-cpu-used", "6", "-row-mt", "1", "-tile-columns", "2", "-tile-rows", "1",
       "-movflags", "+faststart",
       path.join(OUT, `${name}-mobile-av1-${w}.mp4`),
@@ -219,10 +248,23 @@ async function encodeOne({ src, name, trimStart = 0, trimDur, crfAv1 = 36, crfH2
 async function main() {
   await mkdir(OUT, { recursive: true });
 
+  // `--no-posters` regenerates ONLY the mp4s. Use it for any re-encode pass
+  // over already-shipped videos.
+  //
+  // ⚠️ Posters have been hand-tuned AFTER this script generated them and this
+  // script does NOT know about it. arcade-poster.avif is 720x1280, not 1080 —
+  // deliberately downscaled (2026-05-17) because arcade content compresses
+  // 3-5x worse than the others; that took it 209 KB -> 79 KB, and it is the
+  // LCP element on /game. Regenerating posters here would silently restore it
+  // to 1080 and undo the win. Same risk for any poster touched by
+  // scripts/reencode-posters.mjs. Until per-entry posterWidth exists, a video
+  // re-encode should pass --no-posters.
+  const noPosters = process.argv.includes("--no-posters");
+
   // Optional name filter: `node scripts/build-snap-videos.mjs beerwall arcade`.
   // Without it every source re-encodes, which is slow and needlessly rewrites
   // assets that are already shipped and immutable-cached.
-  const only = process.argv.slice(2);
+  const only = process.argv.slice(2).filter((a) => !a.startsWith("--"));
   const queue = only.length ? SOURCES.filter((s) => only.includes(s.name)) : SOURCES;
 
   if (only.length && queue.length !== only.length) {
@@ -232,7 +274,9 @@ async function main() {
     process.exit(1);
   }
 
-  for (const entry of queue) await encodeOne(entry);
+  for (const entry of queue) {
+    await encodeOne(noPosters ? { ...entry, skipPoster: true } : entry);
+  }
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });
