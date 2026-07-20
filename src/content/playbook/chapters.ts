@@ -828,7 +828,7 @@ export const CHAPTERS: Chapter[] = [
     id: 'one-last-thing',
     part: 'one',
     title: 'One Last Thing...',
-    nextLabel: 'On to the Guidebook',
+    nextLabel: 'Sign the Playbook',
     sections: [
       {
         blocks: [
@@ -863,35 +863,16 @@ export const CHAPTERS: Chapter[] = [
     ],
   },
 
-  // ─────────────────────────────────────────── PART TWO: THE GUIDEBOOK
-  // Written chapter by chapter with Jon. First entry is the bridge from
-  // Part One — it deliberately picks up the "if you're ever unsure, ask"
-  // line so the handoff between the two halves feels intentional.
-  {
-    id: 'how-to-use',
-    part: 'two',
-    title: 'How to Use This Guidebook',
-    nextLabel: "I've Read the Playbook",
-    sections: [
-      {
-        blocks: [
-          "You've already read who we are.",
-          'This section is about how we work.',
-          'Think of it as your reference guide.',
-          "You'll probably come back to it often, and that's okay.",
-          "Nobody memorizes this on day one. Nobody is expected to.",
-          "The Playbook you just finished is the part we hope you carry with you. This part is the part you look things up in.",
-          "You'll find schedules, time off, uniforms, safety, and all the practical answers that come up in a real shift.",
-          "Wherever we can, we'll tell you why a policy exists — not just what it is. Because a rule you understand is a rule you can apply when the situation doesn't look exactly like the example.",
-          "And if you can't find an answer here, ask.",
-          "We'd rather answer a question than have you wonder.",
-        ],
-      },
-    ],
-  },
+  // NOTE: Part Two (The Guidebook) is NOT in this array. It lives in
+  // `./guidebook.ts` and is reached from the hub as a separate, unsigned
+  // reference book. An interim "How to Use This Guidebook" chapter briefly sat
+  // at the end of this flow (2026-07-20) and was removed when the two-book hub
+  // shipped — Jon's own "Welcome to the Guidebook" opens Part Two now, and the
+  // Playbook must end on "One Last Thing..." → signature so the last thing a
+  // teammate reads before signing is the closing, not a table of contents.
 ];
 
-/** Front matter + Part One + Part Two, in reading order. */
+/** Front matter + Part One, in reading order. */
 export const CHAPTER_IDS = CHAPTERS.map((c) => c.id);
 
 export function chapterIndex(id: string): number {

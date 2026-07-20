@@ -4,40 +4,89 @@ export const prerender = false;
 /**
  * /playbook — the internal Twisted Pin Playbook + Guidebook.
  *
- * NOT a marketing page. This is the culture book new teammates read during
- * onboarding, then acknowledge at the end. It is:
- *   - noindex, nofollow (meta below) + robots.txt Disallow + sitemap-excluded
- *   - behind a shared team password (see src/lib/playbook-auth.ts)
- *   - rendered on demand (prerender = false) so the gate check happens on the
- *     SERVER — an unauthenticated request never receives chapter content, which
- *     a client-side gate could not promise (View Source would spill the book).
+ * NOT a marketing page. This is what new teammates read during onboarding.
+ * noindex + robots Disallow + sitemap-excluded + isStaffPage (no analytics).
  *
- * READING MODEL
- * The source brief called for an "almost Apple-esque" feel, and every chapter
- * in the source doc ends with a "Next CTA" line. So this is PAGED, not one long
- * scroll: one chapter per screen, advanced by a single button. That does three
- * things a long scroll can't — it enforces the pacing the writing was built for
- * (short lines, lots of air), it makes "did they reach the end?" a real signal,
- * and it keeps the acknowledgment genuinely at the end rather than a scroll-jump
- * away.
+ * ── FLOW ────────────────────────────────────────────────────────────────
+ *   cover + password  →  "who are we talking to?"  →  hub
+ *                                                      ├─ The Playbook  (read + sign)
+ *                                                      └─ The Guidebook (reference, unsigned)
  *
- * All chapters ship in one HTML document and are shown/hidden client-side. The
- * whole book is ~60KB of text — far cheaper than a round-trip per chapter, and
- * it makes Back/Forward and progress-restore trivial.
+ * The gate is checked SERVER-SIDE in this frontmatter (prerender = false), so
+ * an unauthenticated request never receives a word of either book. A
+ * client-side gate would ship the whole thing in View Source.
  *
- * PROGRESS is saved to localStorage so a teammate can read across shifts. It's
- * a convenience, not a security control — the acknowledgment is the record.
+ * ── WHY TWO DIFFERENT READING MODELS ────────────────────────────────────
+ * The Playbook is PAGED — one chapter per screen, one button forward. Every
+ * chapter in the source doc ends with a "Next CTA", the short-line pacing is
+ * the voice, and paging makes "did they reach the end?" a real signal instead
+ * of a scroll position. The Guidebook opens on its CONTENTS instead: nobody
+ * reads a policy reference front to back, they arrive with a question.
+ *
+ * Both share a contents drawer (Jon's wife's feedback, 2026-07-20: "a table of
+ * contents like sidebar situation would be good, so that things could easily
+ * be re-referenced"). Drawer on phones, persistent sidebar ≥1025px.
+ *
+ * ── SIGNATURE ───────────────────────────────────────────────────────────
+ * Only the Playbook is signed. The name typed at the door PRE-FILLS the
+ * signature but never auto-submits it — an acknowledgment has to be an act
+ * taken after reading, or it's just a login with extra steps.
+ *
+ * ── PHOTOGRAPHY (not yet supplied) ──────────────────────────────────────
+ * Every Part One chapter carries an `imageNote` in chapters.ts describing the
+ * shot it wants. When Jon picks photos, drop them in `/public/playbook/` named
+ * `<chapter-id>.avif` and render above `.pb-title`; the layout already leaves
+ * room. Deliberately shipping text-only rather than with stock filler.
  */
 
 import Base from '../../layouts/Base.astro';
 import { CHAPTERS } from '../../content/playbook/chapters';
-import { PLAYBOOK_COOKIE, verifyToken } from '../../lib/playbook-auth';
+import { GUIDEBOOK } from '../../content/playbook/guidebook';
+import {
+  PLAYBOOK_COOKIE,
+  PLAYBOOK_WHO_COOKIE,
+  verifyToken,
+  verifyWhoToken,
+} from '../../lib/playbook-auth';
 
 const authed = await verifyToken(Astro.cookies.get(PLAYBOOK_COOKIE)?.value);
+const who = authed
+  ? await verifyWhoToken(Astro.cookies.get(PLAYBOOK_WHO_COOKIE)?.value)
+  : null;
 
-// Surfaced to the gate so a failed POST can re-render with an error without
-// needing client-side state.
-const failed = Astro.url.searchParams.get('e') === '1';
+const params = Astro.url.searchParams;
+const badPassword = params.get('e') === '1';
+const badName = params.get('n') === '1';
+const nameStoreFailed = params.get('n') === '2';
+
+/** cover + chapters + sign + done */
+const PB_PAGES = CHAPTERS.length + 3;
+const firstName = who?.name?.split(' ')[0] ?? '';
+
+/**
+ * "Walls of text" mitigation (Jon + wife's feedback, 2026-07-20).
+ *
+ * The irony of this book is that it's written almost entirely in short lines —
+ * and that's exactly WHY it can read as a wall. Twenty single-line paragraphs
+ * at identical size, weight, and spacing produce a uniform grey block; the eye
+ * gets no landmark and the page reads as undifferentiated. The fix isn't to
+ * cut words (Part One is locked, and the pacing is the voice) — it's to give
+ * the page a visual hierarchy it currently lacks.
+ *
+ * Three moves, all typographic, none of which touch a single word:
+ *
+ *  1. BEATS get more air. A line under ~52 characters is a rhetorical beat,
+ *     not a paragraph, so it gets extra breathing room. This is what turns a
+ *     list of equal lines into cadence.
+ *  2. The chapter's OPENING line is set as a lede — larger and lighter. Every
+ *     page now has one obvious entry point instead of twenty equal ones.
+ *  3. A diamond marks the story→principle turn, replacing a plain rule.
+ *
+ * Real photography (see the header note) is the fourth move and the biggest,
+ * but Jon hasn't picked images yet and stock filler would be worse than none.
+ */
+const BEAT_MAX_CHARS = 52;
+const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
 ---
 
 <Base
@@ -51,31 +100,19 @@ const failed = Astro.url.searchParams.get('e') === '1';
     <meta name="robots" content="noindex, nofollow" />
   </Fragment>
 
+  {/* ═══════════════════════ 1. GATE ═══════════════════════ */}
   {!authed && (
     <main class="pb-gate">
-      <img
-        class="pb-gate-logo"
-        src="/logo/twisted-pin-horizontal-glow.png"
-        alt="Twisted Pin"
-        width="260"
-        height="70"
-      />
+      <img class="pb-gate-logo" src="/logo/twisted-pin-horizontal-glow.png"
+           alt="Twisted Pin" width="260" height="70" />
       <p class="pb-gate-kicker">2026 Playbook</p>
       <h1 class="pb-gate-title">Because Every Lane Has a Story.</h1>
       <form class="pb-gate-form" method="POST" action="/api/playbook-auth/">
         <label class="pb-gate-label" for="pb-pw">Team password</label>
-        <input
-          id="pb-pw"
-          name="password"
-          type="password"
-          autocomplete="current-password"
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-          required
-          aria-describedby={failed ? 'pb-gate-err' : undefined}
-        />
-        {failed && (
+        <input id="pb-pw" name="password" type="password" autocomplete="current-password"
+               autocapitalize="off" autocorrect="off" spellcheck="false" required
+               aria-describedby={badPassword ? 'pb-gate-err' : undefined} />
+        {badPassword && (
           <p class="pb-gate-err" id="pb-gate-err" role="alert">
             That's not it. Check with your manager and try again.
           </p>
@@ -89,125 +126,283 @@ const failed = Astro.url.searchParams.get('e') === '1';
     </main>
   )}
 
-  {authed && (
-    <main class="pb">
-      {/* Progress rail — thin, quiet, always visible. */}
+  {/* ═══════════════════════ 2. WHO ═══════════════════════ */}
+  {authed && !who && (
+    <main class="pb-gate">
+      <img class="pb-gate-logo" src="/logo/twisted-pin-horizontal-glow.png"
+           alt="Twisted Pin" width="260" height="70" />
+      <h1 class="pb-gate-title pb-who-title">Before we start — who are we talking to?</h1>
+      <form class="pb-gate-form" method="POST" action="/api/playbook-who/">
+        <label class="pb-gate-label" for="pb-name">Your name</label>
+        <input id="pb-name" name="name" type="text" autocomplete="name"
+               autocapitalize="words" required placeholder="First and last"
+               aria-describedby={badName || nameStoreFailed ? 'pb-name-err' : undefined} />
+        {badName && (
+          <p class="pb-gate-err" id="pb-name-err" role="alert">
+            We just need a first and last name.
+          </p>
+        )}
+        {nameStoreFailed && (
+          <p class="pb-gate-err" id="pb-name-err" role="alert">
+            Something went wrong on our end. Try again, or grab a manager.
+          </p>
+        )}
+        <button type="submit">That's me</button>
+      </form>
+      <p class="pb-gate-help">
+        We ask so we know you've had a chance to read this — and so we can stop
+        calling you "teammate" for the next twenty minutes.
+      </p>
+    </main>
+  )}
+
+  {/* ═══════════════════════ 3. THE BOOKS ═══════════════════════ */}
+  {authed && who && (
+    <main class="pb" data-pb-pages={PB_PAGES} data-gb-pages={GUIDEBOOK.length}>
+
+      {/* ── top chrome: shared by both readers ── */}
+      <div class="pb-bar" data-bar hidden>
+        <button class="pb-bar-btn" type="button" data-toc-open aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+          Contents
+        </button>
+        <button class="pb-bar-btn pb-bar-home" type="button" data-go-hub>Home</button>
+      </div>
       <div class="pb-rail" aria-hidden="true"><span class="pb-rail-fill"></span></div>
 
-      <button class="pb-back" type="button" aria-label="Previous page" hidden>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
+      {/* ── contents drawer / sidebar ── */}
+      <div class="pb-toc-scrim" data-toc-scrim hidden></div>
+      <nav class="pb-toc" data-toc hidden aria-label="Contents">
+        <div class="pb-toc-head">
+          <span class="pb-toc-title" data-toc-book>Contents</span>
+          <button class="pb-toc-close" type="button" data-toc-close aria-label="Close contents">✕</button>
+        </div>
+        <ol class="pb-toc-list" data-toc-list-pb>
+          {CHAPTERS.map((ch, i) => (
+            <li><button type="button" data-jump="pb" data-index={i + 1}>{ch.title}</button></li>
+          ))}
+          <li><button type="button" data-jump="pb" data-index={CHAPTERS.length + 1}>Sign the Playbook</button></li>
+        </ol>
+        <ol class="pb-toc-list" data-toc-list-gb hidden>
+          {GUIDEBOOK.map((ch, i) => (
+            <li>
+              <button type="button" data-jump="gb" data-index={i}>
+                {ch.title}
+                <span class="pb-toc-blurb">{ch.blurb}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
 
-      {/* ── Page 0: cover ── */}
-      <section class="pb-page pb-cover is-active" data-page="0">
-        <img
-          class="pb-cover-logo"
-          src="/logo/twisted-pin-horizontal-glow.png"
-          alt="Twisted Pin"
-          width="300"
-          height="81"
-        />
-        <p class="pb-cover-year">2026 Playbook</p>
-        <h1 class="pb-cover-line">Because Every Lane Has a Story.</h1>
-        <button class="pb-next pb-next--cover" type="button" data-next>
-          <span class="pb-arrow" aria-hidden="true">↓</span>
-          Begin Your Story
+      {/* ── 3a. HUB ── */}
+      <section class="pb-view pb-hub is-active" data-view="hub">
+        <img class="pb-hub-logo" src="/logo/twisted-pin-horizontal-glow.png"
+             alt="Twisted Pin" width="220" height="59" />
+        <p class="pb-hub-hi">Welcome{firstName ? `, ${firstName}` : ''}.</p>
+        <h1 class="pb-hub-title">Two halves. One story.</h1>
+
+        <button class="pb-card" type="button" data-open-book="pb">
+          <span class="pb-card-eyebrow">Part One</span>
+          <span class="pb-card-title">The Playbook</span>
+          <span class="pb-card-desc">
+            Who we are, how we think, and the moments that made us. Read it once,
+            end to end, then sign at the bottom.
+          </span>
+          <span class="pb-card-meta" data-pb-status>Start reading →</span>
         </button>
+
+        <button class="pb-card pb-card--alt" type="button" data-open-book="gb">
+          <span class="pb-card-eyebrow">Part Two</span>
+          <span class="pb-card-title">The Guidebook</span>
+          <span class="pb-card-desc">
+            How we work. Scheduling, time off, uniforms, pay, safety, and perks.
+            No signature needed — come back whenever a question comes up.
+          </span>
+          <span class="pb-card-meta">Browse the contents →</span>
+        </button>
+
+        <p class="pb-hub-foot">
+          If you can't find an answer in either one, ask.
+          We'd rather answer a question than have you wonder.
+        </p>
       </section>
 
-      {/* ── Chapters ── */}
-      {CHAPTERS.map((ch, i) => (
-        <section class="pb-page" data-page={i + 1} data-chapter={ch.id} hidden>
-          <article class="pb-body">
-            {ch.part === 'two' && i > 0 && CHAPTERS[i - 1].part !== 'two' && (
-              <p class="pb-part">Part Two — The Guidebook</p>
-            )}
-            {ch.part === 'one' && i > 0 && CHAPTERS[i - 1].part !== 'one' && (
-              <p class="pb-part">Part One — The Playbook</p>
-            )}
+      {/* ── 3b. THE PLAYBOOK (paged) ── */}
+      <section class="pb-view" data-view="pb" hidden>
+        {/* cover */}
+        <article class="pb-page is-active" data-pb-page="0">
+          <img class="pb-cover-logo" src="/logo/twisted-pin-horizontal-glow.png"
+               alt="Twisted Pin" width="300" height="81" />
+          <p class="pb-cover-year">Part One</p>
+          <h1 class="pb-cover-line">Because Every Lane Has a Story.</h1>
+          <button class="pb-next pb-next--cover" type="button" data-next>
+            <span class="pb-arrow" aria-hidden="true">↓</span>
+            Begin Your Story
+          </button>
+        </article>
 
-            <h2 class="pb-title">{ch.title}</h2>
-
-            {ch.sections.map((sec, si) => (
-              <div class={`pb-section${si > 0 ? ' pb-section--sub' : ''}`}>
-                {sec.eyebrow && <p class="pb-eyebrow">{sec.eyebrow}</p>}
-                {sec.title && sec.title !== ch.title && (
-                  <h3 class="pb-subtitle">{sec.title}</h3>
-                )}
-                {sec.title && sec.title === ch.title && si > 0 && (
-                  <hr class="pb-rule" />
-                )}
-                {sec.blocks.map((b) =>
-                  typeof b === 'string' ? (
-                    <p class="pb-p">{b}</p>
-                  ) : 'q' in b ? (
-                    <p class="pb-quote">{b.q}</p>
-                  ) : (
-                    <p class="pb-h">{b.h}</p>
-                  ),
-                )}
-              </div>
-            ))}
+        {CHAPTERS.map((ch, i) => (
+          <article class="pb-page" data-pb-page={i + 1} data-chapter={ch.id} hidden>
+            <div class="pb-body">
+              <p class="pb-count">
+                <span>{String(i + 1).padStart(2, '0')}</span> / {CHAPTERS.length}
+              </p>
+              <h2 class="pb-title">{ch.title}</h2>
+              {ch.sections.map((sec, si) => (
+                <div class={`pb-section${si > 0 ? ' pb-section--sub' : ''}`}>
+                  {sec.eyebrow && <p class="pb-eyebrow">{sec.eyebrow}</p>}
+                  {sec.title && sec.title !== ch.title && (
+                    <h3 class="pb-subtitle">{sec.title}</h3>
+                  )}
+                  {sec.blocks.map((b, bi) =>
+                    typeof b === 'string' ? (
+                      <p
+                        class:list={[
+                          'pb-p',
+                          { 'pb-p--lede': si === 0 && bi === 0 },
+                          { 'pb-p--beat': isBeat(b) },
+                        ]}
+                      >{b}</p>
+                    )
+                    : 'q' in b ? <p class="pb-quote">{b.q}</p>
+                    : <p class="pb-h">{b.h}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button class="pb-next" type="button" data-next>
+              {ch.nextLabel ?? 'Continue'}
+              <span class="pb-arrow" aria-hidden="true">→</span>
+            </button>
           </article>
-          <button class="pb-next" type="button" data-next>
-            {ch.nextLabel ?? 'Continue'}
+        ))}
+
+        {/* signature */}
+        <article class="pb-page pb-ack" data-pb-page={CHAPTERS.length + 1} hidden>
+          <div class="pb-body">
+            <h2 class="pb-title">One Signature.</h2>
+            <p class="pb-p">You've read the whole thing. Thank you for that.</p>
+            <p class="pb-p">
+              Sign below so we know you've had the chance to read it — and so you
+              know where to find it when a question comes up.
+            </p>
+
+            <form class="pb-ack-form" id="pb-ack-form" novalidate>
+              <label class="pb-ack-label" for="ack-name">Your full name</label>
+              <input id="ack-name" name="name" type="text" autocomplete="name" required
+                     placeholder="First and last" value={who.name} />
+
+              {/* Honeypot — hidden from humans, filled by naive bots. */}
+              <div class="pb-hp" aria-hidden="true">
+                <label for="ack-website">Website</label>
+                <input id="ack-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+              </div>
+
+              <label class="pb-check">
+                <input id="ack-agree" name="agree" type="checkbox" required />
+                <span>
+                  I've read the Twisted Pin Playbook. I understand that if I'm
+                  ever unsure about something, I should ask.
+                </span>
+              </label>
+
+              <button type="submit" id="pb-ack-submit">Sign the Playbook</button>
+              <p class="pb-ack-msg" id="pb-ack-msg" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </article>
+
+        {/* confirmation */}
+        <article class="pb-page pb-done" data-pb-page={CHAPTERS.length + 2} hidden>
+          <p class="pb-done-mark" aria-hidden="true">✓</p>
+          <h2 class="pb-title">Welcome to the Fam.</h2>
+          <p class="pb-p" id="pb-done-name"></p>
+          <p class="pb-p pb-done-sub">Every lane has a story. Thank you for becoming part of ours.</p>
+          <p class="pb-p pb-done-sub">Now go be part of someone else's.</p>
+          <button class="pb-next" type="button" data-open-book="gb">
+            Have a look at the Guidebook
             <span class="pb-arrow" aria-hidden="true">→</span>
           </button>
-        </section>
-      ))}
-
-      {/* ── Final page: acknowledgment ── */}
-      <section class="pb-page pb-ack" data-page={CHAPTERS.length + 1} hidden>
-        <article class="pb-body">
-          <h2 class="pb-title">One Signature.</h2>
-          <p class="pb-p">You've read the whole thing. Thank you for that.</p>
-          <p class="pb-p">
-            Sign below so we know you've had the chance to read it — and so you
-            know where to find it when a question comes up.
-          </p>
-
-          <form class="pb-ack-form" id="pb-ack-form" novalidate>
-            <label class="pb-ack-label" for="ack-name">Your full name</label>
-            <input
-              id="ack-name"
-              name="name"
-              type="text"
-              autocomplete="name"
-              required
-              placeholder="First and last"
-            />
-
-            {/* Honeypot — same pattern as /api/kids-signup. Hidden from humans,
-                filled by naive bots. Non-empty = silently accepted, never stored. */}
-            <div class="pb-hp" aria-hidden="true">
-              <label for="ack-website">Website</label>
-              <input id="ack-website" name="website" type="text" tabindex="-1" autocomplete="off" />
-            </div>
-
-            <label class="pb-check">
-              <input id="ack-agree" name="agree" type="checkbox" required />
-              <span>
-                I've read the Twisted Pin Playbook and Guidebook. I understand
-                that if I'm ever unsure about something, I should ask.
-              </span>
-            </label>
-
-            <button type="submit" id="pb-ack-submit">Sign the Playbook</button>
-            <p class="pb-ack-msg" id="pb-ack-msg" role="status" aria-live="polite"></p>
-          </form>
         </article>
       </section>
 
-      {/* ── Confirmation ── */}
-      <section class="pb-page pb-done" data-page={CHAPTERS.length + 2} hidden>
-        <p class="pb-done-mark" aria-hidden="true">✓</p>
-        <h2 class="pb-title">Welcome to the Fam.</h2>
-        <p class="pb-p" id="pb-done-name"></p>
-        <p class="pb-p pb-done-sub">
-          Every lane has a story. Thank you for becoming part of ours.
-        </p>
-        <p class="pb-p pb-done-sub">Now go be part of someone else's.</p>
-        <a class="pb-restart" href="/playbook/#0">Read it again</a>
+      {/* ── 3c. THE GUIDEBOOK (contents-first) ── */}
+      <section class="pb-view" data-view="gb" hidden>
+        <article class="pb-gb-page is-active" data-gb-page="-1">
+          <div class="pb-body">
+            <p class="pb-part">Part Two</p>
+            <h2 class="pb-title">The Guidebook</h2>
+            <p class="pb-p pb-gb-lede">
+              How we work. Pick what you need — you're not expected to read this
+              front to back.
+            </p>
+            <ol class="pb-gb-index">
+              {GUIDEBOOK.map((ch, i) => (
+                <li>
+                  <button type="button" data-jump="gb" data-index={i}>
+                    <span class="pb-gb-index-n">{String(i + 1).padStart(2, '0')}</span>
+                    <span>
+                      <span class="pb-gb-index-t">{ch.title}</span>
+                      <span class="pb-gb-index-b">{ch.blurb}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </article>
+
+        {GUIDEBOOK.map((ch, i) => (
+          <article class="pb-gb-page" data-gb-page={i} hidden>
+            <div class="pb-body">
+              <p class="pb-part">Part Two — The Guidebook</p>
+              <h2 class="pb-title">{ch.title}</h2>
+              {ch.sections.map((sec) => (
+                <div class="pb-section pb-section--gb">
+                  {sec.title && <h3 class="pb-subtitle">{sec.title}</h3>}
+                  {sec.blocks.map((b) => {
+                    if (typeof b === 'string') {
+                      return <p class:list={['pb-p', { 'pb-p--beat': isBeat(b) }]}>{b}</p>;
+                    }
+                    if ('h' in b) return <p class="pb-h">{b.h}</p>;
+                    if ('note' in b) return <p class="pb-note">{b.note}</p>;
+                    if ('list' in b) return (
+                      <ul class="pb-list">{b.list.map((li) => <li>{li}</li>)}</ul>
+                    );
+                    if ('callout' in b) return (
+                      <div class="pb-callout">{b.callout.map((c) => <p>{c}</p>)}</div>
+                    );
+                    return (
+                      <div class="pb-table-wrap">
+                        <table class="pb-table">
+                          <thead><tr>{b.table.head.map((h) => <th>{h}</th>)}</tr></thead>
+                          <tbody>
+                            {b.table.rows.map((r) => <tr>{r.map((c) => <td>{c}</td>)}</tr>)}
+                          </tbody>
+                        </table>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+              <div class="pb-gb-nav">
+                {i > 0 && (
+                  <button class="pb-gb-navbtn" type="button" data-jump="gb" data-index={i - 1}>
+                    ← {GUIDEBOOK[i - 1].title}
+                  </button>
+                )}
+                {i < GUIDEBOOK.length - 1 && (
+                  <button class="pb-gb-navbtn pb-gb-navbtn--next" type="button"
+                          data-jump="gb" data-index={i + 1}>
+                    {GUIDEBOOK[i + 1].title} →
+                  </button>
+                )}
+              </div>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
   )}
@@ -216,344 +411,428 @@ const failed = Astro.url.searchParams.get('e') === '1';
 <style>
   /* ============================================================
      Playbook — full-bleed reading experience.
-     Deliberately quiet: the writing is the design. Type does the
-     work; there is almost no chrome.
+     The writing is the design. Almost no chrome on purpose.
      ============================================================ */
 
-  /* ---------- gate ---------- */
+  /* ---------- gate + who ---------- */
   .pb-gate {
     min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
     text-align: center;
     padding: 40px 24px calc(40px + var(--safe-bottom));
-    gap: 0;
   }
   .pb-gate-logo { width: min(260px, 62vw); height: auto; margin-bottom: 38px; }
   .pb-gate-kicker {
-    font-family: var(--font-ui);
-    font-size: 12px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
-    margin-bottom: 14px;
+    font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--warm-dim); margin-bottom: 14px;
   }
   .pb-gate-title {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: clamp(19px, 4.6vw, 24px);
-    line-height: 1.45;
-    color: var(--warm-white);
-    max-width: 20ch;
-    margin-bottom: 44px;
+    font-family: var(--font-body); font-weight: 400;
+    font-size: clamp(19px, 4.6vw, 24px); line-height: 1.45;
+    color: var(--warm-white); max-width: 20ch; margin-bottom: 44px;
   }
+  .pb-who-title { max-width: 17ch; }
   .pb-gate-form { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
   .pb-gate-label {
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
-    text-align: left;
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--warm-dim); text-align: left;
   }
   .pb-gate-form input {
-    /* 16px minimum — anything smaller and iOS Safari auto-zooms on focus
-       and never zooms back out. */
-    font-size: 16px;
-    font-family: var(--font-ui);
-    padding: 13px 14px;
-    border-radius: var(--radius-button);
+    /* 16px minimum — below that iOS Safari auto-zooms on focus and never
+       zooms back out. */
+    font-size: 16px; font-family: var(--font-ui);
+    padding: 13px 14px; border-radius: var(--radius-button);
     border: 1px solid rgba(244, 239, 227, 0.18);
-    /* Opaque, not translucent — the global Pin Tilt watermark sits behind
-       every page and shows through transparent form fields as visual noise. */
-    background: #171327;
-    color: var(--warm-white);
-    text-align: center;
-    letter-spacing: 0.08em;
+    /* Opaque, not translucent: the global Pin Tilt watermark is fixed behind
+       every page and shows through transparent fields as smudges. */
+    background: #171327; color: var(--warm-white);
+    text-align: center; letter-spacing: 0.02em;
   }
   .pb-gate-form button {
-    margin-top: 6px;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.04em;
-    padding: 14px 20px;
-    border: none;
-    border-radius: var(--radius-button);
-    background: var(--glow);
-    color: var(--indigo-deep);
-    cursor: pointer;
+    margin-top: 6px; font-family: var(--font-ui); font-weight: 700;
+    font-size: 14px; letter-spacing: 0.04em; padding: 14px 20px;
+    border: none; border-radius: var(--radius-button);
+    background: var(--glow); color: var(--indigo-deep); cursor: pointer;
   }
-  .pb-gate-err {
-    font-family: var(--font-ui);
-    font-size: 13px;
-    color: var(--copper);
-    text-align: left;
-  }
+  .pb-gate-err { font-family: var(--font-ui); font-size: 13px; color: var(--copper); text-align: left; }
   .pb-gate-help {
-    margin-top: 30px;
-    max-width: 34ch;
-    font-size: 13px;
-    line-height: 1.6;
-    color: var(--warm-dim);
+    margin-top: 30px; max-width: 34ch; font-size: 13px;
+    line-height: 1.6; color: var(--warm-dim);
   }
 
-  /* ---------- paged reader ---------- */
+  /* ---------- shared chrome ---------- */
   .pb { position: relative; }
-  /* Vertical centering via AUTO MARGINS, not `justify-content: center`.
-     This matters and it's the difference between working and broken on a
-     phone. With `justify-content: center`, a page taller than the viewport
-     (most chapters — "Our Story" is 30+ lines, and 90% of readers are on a
-     phone) overflows in BOTH directions, and the overflow above the top edge
-     is unreachable: you cannot scroll up to it. Auto margins collapse to 0
-     the moment content exceeds the container, so short chapters center and
-     long ones simply scroll from the top. */
-  .pb-page {
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 72px 24px calc(48px + var(--safe-bottom));
-  }
-  .pb-page > *:first-child { margin-top: auto; }
-  .pb-page > *:last-child { margin-bottom: auto; }
-  .pb-page[hidden] { display: none; }
+  .pb-view { min-height: 100dvh; }
+  .pb-view[hidden] { display: none; }
 
   .pb-rail {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: rgba(244, 239, 227, 0.10);
-    z-index: 40;
+    position: fixed; top: 0; left: 0; right: 0; height: 2px;
+    background: rgba(244, 239, 227, 0.10); z-index: 40;
   }
   .pb-rail-fill {
-    display: block;
-    height: 100%;
-    width: 0%;
+    display: block; height: 100%; width: 0%;
     background: var(--glow);
     transition: width 400ms cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* 44px — the iOS/WCAG minimum tap target. This is the one piece of
-     persistent chrome on a touch screen; it has to be reliably hittable. */
-  .pb-back {
-    position: fixed;
-    top: 14px; left: 10px;
-    z-index: 40;
-    width: 44px; height: 44px;
-    display: grid; place-items: center;
-    border: none; border-radius: 50%;
-    background: transparent;
-    color: var(--warm-dim);
+
+  .pb-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 39;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; padding: 8px 10px calc(8px);
+    background: rgba(14, 10, 31, 0.82);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  .pb-bar[hidden] { display: none; }
+  .pb-bar-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    /* 44px min tap target — this is the only persistent chrome on a phone. */
+    min-height: 44px; padding: 0 12px;
+    font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+    letter-spacing: 0.03em; color: var(--warm-mid);
+    background: transparent; border: none; border-radius: var(--radius-button);
     cursor: pointer;
   }
-  .pb-back:hover { color: var(--warm-white); }
+  .pb-bar-btn:hover { color: var(--warm-white); }
 
-  /* ---------- cover ---------- */
-  .pb-cover { text-align: center; }
+  /* ---------- contents ---------- */
+  .pb-toc-scrim {
+    position: fixed; inset: 0; z-index: 44;
+    background: rgba(6, 4, 14, 0.6); backdrop-filter: blur(2px);
+  }
+  .pb-toc-scrim[hidden] { display: none; }
+  .pb-toc {
+    position: fixed; top: 0; bottom: 0; left: 0; z-index: 45;
+    width: min(320px, 86vw);
+    background: #120E24;
+    border-right: 1px solid rgba(244, 239, 227, 0.10);
+    overflow-y: auto; overscroll-behavior: contain;
+    padding-bottom: calc(24px + var(--safe-bottom));
+  }
+  .pb-toc[hidden] { display: none; }
+  .pb-toc-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 14px 12px; position: sticky; top: 0;
+    background: #120E24; border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  .pb-toc-title {
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--warm-dim);
+  }
+  .pb-toc-close {
+    width: 40px; height: 40px; border: none; background: transparent;
+    color: var(--warm-dim); font-size: 16px; cursor: pointer;
+  }
+  .pb-toc-list { list-style: none; margin: 0; padding: 8px 0; }
+  .pb-toc-list[hidden] { display: none; }
+  .pb-toc-list button {
+    display: block; width: 100%; text-align: left;
+    padding: 12px 16px; min-height: 44px;
+    font-family: var(--font-ui); font-size: 14px; line-height: 1.35;
+    color: var(--warm-mid); background: transparent; border: none;
+    border-left: 2px solid transparent; cursor: pointer;
+  }
+  .pb-toc-list button:hover { color: var(--warm-white); background: rgba(244,239,227,0.04); }
+  .pb-toc-list button[aria-current="true"] {
+    color: var(--glow); border-left-color: var(--glow);
+  }
+  .pb-toc-blurb {
+    display: block; margin-top: 3px; font-size: 12px;
+    color: var(--warm-dim); line-height: 1.4;
+  }
+
+  /* ---------- hub ---------- */
+  .pb-hub {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; text-align: center;
+    padding: 56px 20px calc(48px + var(--safe-bottom));
+  }
+  .pb-hub > *:first-child { margin-top: auto; }
+  .pb-hub > *:last-child { margin-bottom: auto; }
+  .pb-hub-logo { width: min(220px, 56vw); height: auto; margin-bottom: 30px; }
+  .pb-hub-hi {
+    font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--glow); margin-bottom: 10px;
+  }
+  .pb-hub-title {
+    font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+    font-size: clamp(30px, 8vw, 46px); line-height: 1; letter-spacing: -0.012em;
+    margin-bottom: 30px;
+  }
+  .pb-card {
+    display: block; width: 100%; max-width: 30rem; text-align: left;
+    padding: 20px 18px; margin-bottom: 14px;
+    background: #171327; border: 1px solid rgba(244, 239, 227, 0.14);
+    border-radius: var(--radius-surface); cursor: pointer;
+    color: var(--warm-white);
+  }
+  .pb-card:hover { border-color: rgba(78, 236, 196, 0.5); }
+  .pb-card--alt { background: transparent; }
+  .pb-card-eyebrow {
+    display: block; font-family: var(--font-ui); font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--warm-dim); margin-bottom: 7px;
+  }
+  .pb-card-title {
+    display: block; font-family: var(--font-display); font-weight: 900;
+    text-transform: uppercase; font-size: clamp(24px, 6.5vw, 32px);
+    line-height: 1; margin-bottom: 10px;
+  }
+  .pb-card-desc {
+    display: block; font-size: 14px; line-height: 1.55;
+    color: var(--warm-mid); margin-bottom: 12px;
+  }
+  .pb-card-meta {
+    display: block; font-family: var(--font-ui); font-size: 13px;
+    font-weight: 700; color: var(--glow);
+  }
+  .pb-hub-foot {
+    margin-top: 22px; max-width: 34ch; font-size: 13px;
+    line-height: 1.6; color: var(--warm-dim);
+  }
+
+  /* ---------- pages (both books) ---------- */
+  /* Vertical centering via AUTO MARGINS, not `justify-content: center`. With
+     center, a page taller than the viewport — most chapters, and ~90% of
+     readers are on a phone — overflows in BOTH directions and the part above
+     the top edge is unreachable: you cannot scroll up to it. Auto margins
+     collapse to 0 the moment content overflows, so short pages center and long
+     ones scroll from the top. */
+  .pb-page, .pb-gb-page {
+    min-height: 100dvh;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start;
+    padding: 84px 24px calc(48px + var(--safe-bottom));
+  }
+  .pb-page > *:first-child, .pb-gb-page > *:first-child { margin-top: auto; }
+  .pb-page > *:last-child, .pb-gb-page > *:last-child { margin-bottom: auto; }
+  .pb-page[hidden], .pb-gb-page[hidden] { display: none; }
+  /* Reference pages read from the top, not vertically centered — a policy
+     chapter isn't a dramatic beat. */
+  .pb-gb-page { justify-content: flex-start; }
+  .pb-gb-page > *:first-child { margin-top: 0; }
+  .pb-gb-page > *:last-child { margin-bottom: 0; }
+
   .pb-cover-logo { width: min(300px, 68vw); height: auto; margin-bottom: 44px; }
   .pb-cover-year {
-    font-family: var(--font-ui);
-    font-size: 12px;
-    letter-spacing: 0.24em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
-    margin-bottom: 20px;
+    font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.24em;
+    text-transform: uppercase; color: var(--warm-dim); margin-bottom: 20px;
   }
   .pb-cover-line {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: clamp(20px, 5vw, 27px);
-    line-height: 1.45;
-    max-width: 18ch;
-    margin: 0 auto 56px;
+    font-family: var(--font-body); font-weight: 400;
+    font-size: clamp(20px, 5vw, 27px); line-height: 1.45;
+    max-width: 18ch; margin: 0 auto 56px; text-align: center;
   }
 
-  /* ---------- chapter body ---------- */
-  .pb-body {
-    width: 100%;
-    max-width: 34rem;
-    margin: 0 auto;
-  }
+  .pb-body { width: 100%; max-width: 34rem; margin: 0 auto; }
   .pb-part {
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--glow);
-    margin-bottom: 22px;
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--glow); margin-bottom: 22px;
   }
   .pb-title {
-    font-family: var(--font-display);
-    font-weight: 900;
-    text-transform: uppercase;
-    font-size: clamp(34px, 9vw, 56px);
-    line-height: 0.98;
-    letter-spacing: -0.012em;
-    margin-bottom: 34px;
+    font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+    font-size: clamp(34px, 9vw, 56px); line-height: 0.98;
+    letter-spacing: -0.012em; margin-bottom: 34px;
   }
-  .pb-section--sub { margin-top: 52px; }
+  /* Chapter position. Cheap orientation — "03 / 17" tells a reader how much
+     is left, which is most of what makes a long read feel endless. */
+  .pb-count {
+    font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; color: var(--warm-dim); margin-bottom: 12px;
+  }
+  .pb-count span { color: var(--glow); }
+
+  /* The story→principle turn. A diamond rather than a rule: it reads as a
+     deliberate beat break instead of a horizontal divider slicing the page. */
+  .pb-section--sub { margin-top: 56px; }
+  .pb-section--sub::before {
+    content: ""; display: block;
+    width: 7px; height: 7px; margin: 0 auto 42px;
+    background: var(--glow); opacity: 0.55;
+    transform: rotate(45deg); border-radius: 1px;
+  }
+  .pb-section--gb { margin-bottom: 42px; }
   .pb-eyebrow {
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
-    margin-bottom: 10px;
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--warm-dim); margin-bottom: 10px;
   }
   .pb-subtitle {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: clamp(19px, 4.4vw, 23px);
-    line-height: 1.3;
-    color: var(--warm-white);
-    margin-bottom: 26px;
+    font-family: var(--font-ui); font-weight: 700;
+    font-size: clamp(19px, 4.4vw, 23px); line-height: 1.3;
+    color: var(--warm-white); margin-bottom: 20px;
   }
-  .pb-rule {
-    border: none;
-    border-top: 1px solid rgba(244, 239, 227, 0.14);
-    margin: 0 0 30px;
-    width: 56px;
-  }
-  /* The signature rhythm of this book: one thought per line, generous air.
-     Do not tighten this — the pacing IS the voice. */
+  /* The signature rhythm of Part One: one thought per line, generous air.
+     Do NOT tighten this — the pacing IS the voice. */
   .pb-p { margin-bottom: 1.15em; font-size: 17px; line-height: 1.62; }
   .pb-p:last-child { margin-bottom: 0; }
+
+  /* A line under ~52 characters is a rhetorical BEAT, not a paragraph, and it
+     gets more room to land. This is the main lever against the wall-of-text
+     read: twenty identically-spaced short lines are a grey block, the same
+     twenty with cadence are a keynote. Applied automatically by length — no
+     hand-tagging, so it keeps working as Part Two grows. */
+  .pb-p--beat { margin-bottom: 1.5em; }
+
+  /* Every chapter gets ONE obvious entry point instead of twenty equal ones. */
+  .pb-p--lede {
+    font-size: clamp(19px, 4.6vw, 21px);
+    line-height: 1.5;
+    color: var(--warm-white);
+    margin-bottom: 1.35em;
+  }
+  .pb-p--lede.pb-p--beat { margin-bottom: 1.6em; }
   .pb-h {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 17px;
-    letter-spacing: 0.02em;
-    color: var(--glow);
-    margin: 2em 0 0.9em;
+    font-family: var(--font-ui); font-weight: 700; font-size: 17px;
+    letter-spacing: 0.02em; color: var(--glow); margin: 1.8em 0 0.8em;
   }
   .pb-quote {
-    font-size: clamp(21px, 5vw, 26px);
-    line-height: 1.4;
-    color: var(--warm-white);
-    border-left: 2px solid var(--glow);
-    padding-left: 18px;
-    margin: 1.6em 0;
+    font-size: clamp(21px, 5vw, 26px); line-height: 1.4; color: var(--warm-white);
+    border-left: 2px solid var(--glow); padding-left: 18px; margin: 1.6em 0;
   }
+
+  /* ---------- guidebook-specific blocks ---------- */
+  .pb-list { margin: 0 0 1.15em 1.1em; padding: 0; }
+  .pb-list li { margin-bottom: 0.5em; font-size: 16px; line-height: 1.55; }
+  .pb-list li::marker { color: var(--glow); }
+  .pb-callout {
+    border: 1px solid rgba(78, 236, 196, 0.42);
+    background: rgba(78, 236, 196, 0.06);
+    border-radius: var(--radius-surface);
+    padding: 14px 16px; margin: 1.4em 0;
+  }
+  .pb-callout p { font-size: 15px; line-height: 1.55; }
+  .pb-callout p + p { margin-top: 0.7em; }
+  .pb-note {
+    font-family: var(--font-ui); font-size: 13px; color: var(--warm-dim);
+    word-break: break-word; margin-bottom: 1.15em;
+  }
+  /* Tables scroll inside their own container so the page body never scrolls
+     horizontally on a phone. */
+  .pb-table-wrap { overflow-x: auto; margin: 1.2em 0; }
+  .pb-table { border-collapse: collapse; width: 100%; min-width: 260px; }
+  .pb-table th, .pb-table td {
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.12);
+    font-size: 15px;
+  }
+  .pb-table th {
+    font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-dim);
+  }
+  .pb-table td:last-child { color: var(--glow); font-weight: 600; white-space: nowrap; }
+
+  /* ---------- guidebook index ---------- */
+  .pb-gb-lede { color: var(--warm-mid); margin-bottom: 28px; }
+  .pb-gb-index { list-style: none; margin: 0; padding: 0; }
+  .pb-gb-index button {
+    display: flex; gap: 14px; width: 100%; text-align: left;
+    padding: 15px 0; background: transparent; border: none;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+    color: var(--warm-white); cursor: pointer;
+  }
+  .pb-gb-index li:last-child button { border-bottom: 1px solid rgba(244, 239, 227, 0.10); }
+  .pb-gb-index button:hover .pb-gb-index-t { color: var(--glow); }
+  .pb-gb-index-n {
+    font-family: var(--font-ui); font-size: 12px; font-weight: 700;
+    color: var(--glow); padding-top: 3px; flex: none;
+  }
+  .pb-gb-index-t {
+    display: block; font-family: var(--font-ui); font-weight: 700;
+    font-size: 17px; line-height: 1.25; margin-bottom: 3px;
+  }
+  .pb-gb-index-b { display: block; font-size: 13px; color: var(--warm-dim); line-height: 1.45; }
+
+  .pb-gb-nav {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between;
+    margin-top: 40px; padding-top: 22px;
+    border-top: 1px solid rgba(244, 239, 227, 0.10);
+  }
+  .pb-gb-navbtn {
+    font-family: var(--font-ui); font-size: 13px; font-weight: 600;
+    color: var(--warm-mid); background: transparent; border: none;
+    padding: 10px 0; min-height: 44px; cursor: pointer; text-align: left;
+    max-width: 48%;
+  }
+  .pb-gb-navbtn--next { text-align: right; color: var(--glow); }
+  .pb-gb-navbtn:hover { color: var(--warm-white); }
 
   /* ---------- next button ---------- */
   .pb-next {
-    margin-top: 52px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.04em;
-    padding: 14px 26px;
-    border: none;
-    border-radius: var(--radius-button);
-    background: var(--glow);
-    color: var(--indigo-deep);
-    cursor: pointer;
-    align-self: center;
+    margin-top: 52px; display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--font-ui); font-weight: 700; font-size: 14px;
+    letter-spacing: 0.04em; padding: 14px 26px;
+    border: none; border-radius: var(--radius-button);
+    background: var(--glow); color: var(--indigo-deep);
+    cursor: pointer; align-self: center;
   }
   .pb-next--cover {
-    flex-direction: column;
-    gap: 8px;
-    background: transparent;
-    color: var(--warm-white);
-    border: 1px solid rgba(244, 239, 227, 0.28);
-    padding: 18px 30px;
-    margin-top: 0;
+    flex-direction: column; gap: 8px; background: transparent;
+    color: var(--warm-white); border: 1px solid rgba(244, 239, 227, 0.28);
+    padding: 18px 30px; margin-top: 0;
   }
   .pb-arrow { font-size: 16px; }
 
-  /* ---------- acknowledgment ---------- */
+  /* ---------- signature ---------- */
   .pb-ack-form { display: flex; flex-direction: column; gap: 12px; margin-top: 34px; }
   .pb-ack-label {
-    font-family: var(--font-ui);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--warm-dim);
   }
   .pb-ack-form input[type='text'] {
-    font-size: 16px;
-    font-family: var(--font-ui);
-    padding: 13px 14px;
+    font-size: 16px; font-family: var(--font-ui); padding: 13px 14px;
     border-radius: var(--radius-button);
     border: 1px solid rgba(244, 239, 227, 0.18);
-    background: #171327;
-    color: var(--warm-white);
+    background: #171327; color: var(--warm-white);
   }
   .pb-check {
-    display: flex;
-    gap: 11px;
-    align-items: flex-start;
-    /* 14px — secondary read-to-decide text. This is consent copy, so it sits
-       above the 12px floor deliberately. */
-    font-size: 14px;
-    line-height: 1.55;
-    color: var(--warm-mid);
-    margin-top: 6px;
+    display: flex; gap: 11px; align-items: flex-start;
+    /* 14px — consent copy sits above the 12px floor deliberately. */
+    font-size: 14px; line-height: 1.55; color: var(--warm-mid); margin-top: 6px;
   }
-  .pb-check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--glow); flex: none; }
+  .pb-check input {
+    margin-top: 3px; width: 18px; height: 18px;
+    accent-color: var(--glow); flex: none;
+  }
   .pb-ack-form button {
-    margin-top: 12px;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.04em;
-    padding: 15px 22px;
-    border: none;
-    border-radius: var(--radius-button);
-    background: var(--glow);
-    color: var(--indigo-deep);
-    cursor: pointer;
+    margin-top: 12px; font-family: var(--font-ui); font-weight: 700;
+    font-size: 14px; letter-spacing: 0.04em; padding: 15px 22px;
+    border: none; border-radius: var(--radius-button);
+    background: var(--glow); color: var(--indigo-deep); cursor: pointer;
   }
   .pb-ack-form button[disabled] { opacity: 0.5; cursor: default; }
   .pb-ack-msg { font-family: var(--font-ui); font-size: 13px; color: var(--copper); }
   .pb-ack-msg:empty { display: none; }
-  /* Honeypot: off-screen rather than display:none — some bots skip hidden
-     fields but happily fill positioned ones. */
+  /* Off-screen rather than display:none — some bots skip hidden fields but
+     happily fill positioned ones. */
   .pb-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
-  /* ---------- confirmation ---------- */
   .pb-done { text-align: center; }
-  .pb-done-mark {
-    font-size: 40px;
-    color: var(--glow);
-    margin-bottom: 18px;
-  }
+  .pb-done-mark { font-size: 40px; color: var(--glow); margin-bottom: 18px; }
   .pb-done .pb-title { margin-bottom: 20px; }
   .pb-done-sub { color: var(--warm-mid); }
-  .pb-restart {
-    margin-top: 34px;
-    font-family: var(--font-ui);
-    font-size: 13px;
-    color: var(--warm-dim);
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
 
-  /* Phone: the advance button becomes a full-width thumb target rather than a
-     small centered pill. This is the single control the whole reading
-     experience depends on, and ~90% of readers are one-handed on a phone. */
+  /* ---------- phone ---------- */
   @media (max-width: 600px) {
-    .pb-next {
-      width: 100%;
-      max-width: 34rem;
-      justify-content: center;
-      padding: 16px 20px;
-    }
+    .pb-next { width: 100%; max-width: 34rem; justify-content: center; padding: 16px 20px; }
     .pb-ack-form button { padding: 17px 22px; }
+    .pb-gb-navbtn { max-width: 100%; flex: 1 1 100%; text-align: left; }
+    .pb-gb-navbtn--next { text-align: left; }
   }
 
+  /* ---------- desktop: contents becomes a persistent sidebar ---------- */
   @media (min-width: 1025px) {
-    .pb-page { padding: 96px 40px 72px; }
+    .pb-page, .pb-gb-page { padding: 104px 40px 72px; }
     .pb-p { font-size: 18px; }
+    .pb-has-toc .pb-toc { display: block !important; box-shadow: none; }
+    .pb-has-toc .pb-toc-scrim { display: none !important; }
+    .pb-has-toc .pb-toc-close { display: none; }
+    .pb-has-toc [data-toc-open] { display: none; }
+    .pb-has-toc .pb-view[data-view='pb'],
+    .pb-has-toc .pb-view[data-view='gb'] { padding-left: min(320px, 86vw); }
+    .pb-has-toc .pb-bar { padding-left: calc(min(320px, 86vw) + 10px); }
   }
 
-  /* Respect reduced-motion: the progress rail is the only animated thing. */
   @media (prefers-reduced-motion: reduce) {
     .pb-rail-fill { transition: none; }
   }
@@ -561,72 +840,195 @@ const failed = Astro.url.searchParams.get('e') === '1';
 
 <script>
   /**
-   * Paged reader. All pages are in the DOM; we toggle [hidden] and keep the
-   * page index in location.hash so Back/Forward work like a reader expects.
+   * Playbook client. Five views (hub / playbook / guidebook), hash-routed so
+   * Back and Forward behave the way a reader expects.
+   *
+   * Hash scheme:  #hub  ·  #pb/<n>  ·  #gb/<n>   (gb/-1 is the contents page)
    */
-  const root = document.querySelector<HTMLElement>('.pb');
-  if (root) {
-    const pages = Array.from(root.querySelectorAll<HTMLElement>('.pb-page'));
+  const rootEl = document.querySelector<HTMLElement>('.pb');
+  if (rootEl) {
+    // Re-bind as a definitely-non-null const: TS loses the narrowing inside
+    // the nested callbacks below.
+    const root: HTMLElement = rootEl;
+    const views = new Map<string, HTMLElement>();
+    root.querySelectorAll<HTMLElement>('.pb-view').forEach((v) =>
+      views.set(v.dataset.view!, v),
+    );
+    const pbPages = Array.from(root.querySelectorAll<HTMLElement>('[data-pb-page]'));
+    const gbPages = Array.from(root.querySelectorAll<HTMLElement>('[data-gb-page]'));
+    const bar = root.querySelector<HTMLElement>('[data-bar]');
     const fill = root.querySelector<HTMLElement>('.pb-rail-fill');
-    const backBtn = root.querySelector<HTMLButtonElement>('.pb-back');
-    const STORAGE_KEY = 'tp-playbook-progress';
-    const last = pages.length - 1;
+    const toc = root.querySelector<HTMLElement>('[data-toc]');
+    const tocScrim = root.querySelector<HTMLElement>('[data-toc-scrim]');
+    const tocBook = root.querySelector<HTMLElement>('[data-toc-book]');
+    const tocPb = root.querySelector<HTMLElement>('[data-toc-list-pb]');
+    const tocGb = root.querySelector<HTMLElement>('[data-toc-list-gb]');
+    const PROGRESS_KEY = 'tp-playbook-progress';
 
-    function show(i: number, push: boolean) {
-      const idx = Math.max(0, Math.min(last, i));
-      pages.forEach((p, n) => { p.hidden = n !== idx; p.classList.toggle('is-active', n === idx); });
-      if (fill) fill.style.width = `${(idx / last) * 100}%`;
-      if (backBtn) backBtn.hidden = idx === 0;
-      // 'instant' explicitly: global CSS sets `html { scroll-behavior: smooth }`,
-      // which would otherwise animate this jump — so tapping Next would scroll
-      // the OUTGOING page away before the new one appeared. Turning a page
-      // should be instantaneous.
-      window.scrollTo({ top: 0, behavior: 'instant' });
+    const pbLast = pbPages.length - 1;   // confirmation page
+    const pbSign = pbLast - 1;           // signature page
 
-      // Remember progress, but never past the acknowledgment — someone who
-      // already signed should land back on the cover, not the sign page.
+    let view: 'hub' | 'pb' | 'gb' = 'hub';
+    let pbIndex = 0;
+    let gbIndex = -1;
+
+    /* ── reading time ──────────────────────────────────────────────────
+       Accumulates ONLY while the tab is visible. Wall-clock would call a
+       teammate who read across two shifts a 19-hour scholar and rate a
+       speed-runner the same as someone who actually read it. This is
+       client-reported and therefore forgeable — it's a coaching signal, not
+       evidence, and the server clamps it. */
+    let activeMs = 0;
+    let lastTick = document.visibilityState === 'visible' ? Date.now() : 0;
+    const seenPbPages = new Set<number>();
+
+    function flushTime() {
+      if (lastTick) { activeMs += Date.now() - lastTick; lastTick = Date.now(); }
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') lastTick = Date.now();
+      else { flushTime(); lastTick = 0; }
+    });
+
+    /* ── rendering ── */
+    function render(push: boolean) {
+      views.forEach((el, name) => { el.hidden = name !== view; });
+
+      if (view === 'pb') {
+        pbPages.forEach((p, n) => { p.hidden = n !== pbIndex; });
+        seenPbPages.add(pbIndex);
+        if (fill) fill.style.width = `${(pbIndex / pbLast) * 100}%`;
+      } else if (view === 'gb') {
+        gbPages.forEach((p) => {
+          p.hidden = Number(p.dataset.gbPage) !== gbIndex;
+        });
+        if (fill) fill.style.width = '0%';
+      } else if (fill) {
+        fill.style.width = '0%';
+      }
+
+      if (bar) bar.hidden = view === 'hub';
+      root.classList.toggle('pb-has-toc', view !== 'hub');
+      if (tocBook) tocBook.textContent = view === 'gb' ? 'The Guidebook' : 'The Playbook';
+      if (tocPb) tocPb.hidden = view !== 'pb';
+      if (tocGb) tocGb.hidden = view !== 'gb';
+      markCurrent();
+
+      // Progress: remember where they were in the Playbook, never on the
+      // signature or confirmation page — someone who already signed should
+      // land back on the hub, not be dropped onto a sign form again.
       try {
-        if (idx > 0 && idx < last - 1) localStorage.setItem(STORAGE_KEY, String(idx));
-        else if (idx >= last - 1) localStorage.removeItem(STORAGE_KEY);
+        if (view === 'pb' && pbIndex > 0 && pbIndex < pbSign) {
+          localStorage.setItem(PROGRESS_KEY, String(pbIndex));
+        } else if (view === 'pb' && pbIndex >= pbSign) {
+          localStorage.removeItem(PROGRESS_KEY);
+        }
       } catch { /* private mode — progress is a convenience, not a requirement */ }
 
-      if (push) history.pushState({ pb: idx }, '', `#${idx}`);
+      updateHubStatus();
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      if (push) history.pushState({}, '', hash());
     }
 
-    root.querySelectorAll<HTMLElement>('[data-next]').forEach((btn) => {
+    function hash() {
+      if (view === 'pb') return `#pb/${pbIndex}`;
+      if (view === 'gb') return `#gb/${gbIndex}`;
+      return '#hub';
+    }
+
+    function markCurrent() {
+      root.querySelectorAll<HTMLElement>('[data-jump]').forEach((b) => {
+        const isCur =
+          (view === 'pb' && b.dataset.jump === 'pb' && Number(b.dataset.index) === pbIndex) ||
+          (view === 'gb' && b.dataset.jump === 'gb' && Number(b.dataset.index) === gbIndex);
+        if (b.closest('.pb-toc-list')) b.setAttribute('aria-current', String(isCur));
+      });
+    }
+
+    function updateHubStatus() {
+      const el = root.querySelector<HTMLElement>('[data-pb-status]');
+      if (!el) return;
+      let saved = 0;
+      try { saved = parseInt(localStorage.getItem(PROGRESS_KEY) || '0', 10) || 0; } catch {}
+      el.textContent = saved > 0 ? 'Pick up where you left off →' : 'Start reading →';
+    }
+
+    /* ── navigation ── */
+    function go(next: 'hub' | 'pb' | 'gb', index?: number) {
+      view = next;
+      if (next === 'pb' && index !== undefined) pbIndex = Math.max(0, Math.min(pbLast, index));
+      if (next === 'gb' && index !== undefined) gbIndex = Math.max(-1, Math.min(gbPages.length - 2, index));
+      closeToc();
+      render(true);
+    }
+
+    root.querySelectorAll<HTMLElement>('[data-open-book]').forEach((btn) => {
       btn.addEventListener('click', () => {
-        const cur = pages.findIndex((p) => !p.hidden);
-        show(cur + 1, true);
+        const book = btn.dataset.openBook as 'pb' | 'gb';
+        if (book === 'pb') {
+          let saved = 0;
+          try { saved = parseInt(localStorage.getItem(PROGRESS_KEY) || '0', 10) || 0; } catch {}
+          go('pb', saved || 0);
+        } else {
+          go('gb', -1);
+        }
       });
     });
 
-    backBtn?.addEventListener('click', () => {
-      const cur = pages.findIndex((p) => !p.hidden);
-      show(cur - 1, true);
+    root.querySelectorAll<HTMLElement>('[data-jump]').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        go(btn.dataset.jump as 'pb' | 'gb', Number(btn.dataset.index)),
+      );
     });
 
-    window.addEventListener('popstate', () => {
-      show(parseInt(location.hash.slice(1) || '0', 10) || 0, false);
+    root.querySelectorAll<HTMLElement>('[data-next]').forEach((btn) => {
+      btn.addEventListener('click', () => go('pb', pbIndex + 1));
     });
 
-    document.addEventListener('keydown', (e) => {
-      if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
-      const cur = pages.findIndex((p) => !p.hidden);
-      if (e.key === 'ArrowRight') show(cur + 1, true);
-      if (e.key === 'ArrowLeft') show(cur - 1, true);
-    });
+    root.querySelector<HTMLElement>('[data-go-hub]')?.addEventListener('click', () => go('hub'));
 
-    // Restore: explicit hash wins over saved progress (so a shared "#4" link
-    // or the "Read it again" link behaves predictably).
-    const fromHash = location.hash ? parseInt(location.hash.slice(1), 10) : NaN;
-    let start = 0;
-    if (!Number.isNaN(fromHash)) start = fromHash;
-    else {
-      try { start = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10) || 0; } catch {}
+    /* ── contents drawer ── */
+    function openToc() {
+      toc?.removeAttribute('hidden');
+      tocScrim?.removeAttribute('hidden');
+      root.querySelector('[data-toc-open]')?.setAttribute('aria-expanded', 'true');
     }
-    show(start, false);
+    function closeToc() {
+      // On desktop the sidebar is CSS-forced visible via .pb-has-toc, so
+      // toggling [hidden] here is harmless there and correct on phones.
+      toc?.setAttribute('hidden', '');
+      tocScrim?.setAttribute('hidden', '');
+      root.querySelector('[data-toc-open]')?.setAttribute('aria-expanded', 'false');
+    }
+    root.querySelector('[data-toc-open]')?.addEventListener('click', openToc);
+    root.querySelector('[data-toc-close]')?.addEventListener('click', closeToc);
+    tocScrim?.addEventListener('click', closeToc);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeToc();
+      if ((e.target as HTMLElement)?.tagName === 'INPUT') return;
+      if (view !== 'pb') return;
+      if (e.key === 'ArrowRight') go('pb', pbIndex + 1);
+      if (e.key === 'ArrowLeft') go('pb', pbIndex - 1);
+    });
 
-    /* ---------- acknowledgment submit ---------- */
+    /* ── restore from hash / back-forward ── */
+    function applyHash(push: boolean) {
+      const h = location.hash.slice(1);
+      const [book, n] = h.split('/');
+      if (book === 'pb') { view = 'pb'; pbIndex = clamp(Number(n), 0, pbLast); }
+      else if (book === 'gb') { view = 'gb'; gbIndex = clamp(Number(n), -1, gbPages.length - 2); }
+      else view = 'hub';
+      render(push);
+    }
+    function clamp(n: number, lo: number, hi: number) {
+      return Number.isFinite(n) ? Math.max(lo, Math.min(hi, n)) : lo;
+    }
+    window.addEventListener('popstate', () => applyHash(false));
+
+    if (location.hash) applyHash(false);
+    else render(false);
+
+    /* ── signature ── */
     const form = document.getElementById('pb-ack-form') as HTMLFormElement | null;
     const msg = document.getElementById('pb-ack-msg');
     const submit = document.getElementById('pb-ack-submit') as HTMLButtonElement | null;
@@ -645,19 +1047,26 @@ const failed = Astro.url.searchParams.get('e') === '1';
       msg.textContent = '';
       submit.disabled = true;
       submit.textContent = 'Signing...';
+      flushTime();
 
       try {
         const res = await fetch('/api/playbook-ack/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, agree, website, page_url: location.href }),
+          body: JSON.stringify({
+            name, agree, website,
+            page_url: location.href,
+            active_seconds: Math.round(activeMs / 1000),
+            pages_viewed: seenPbPages.size,
+            total_pages: pbPages.length,
+          }),
         });
         const data = await res.json().catch(() => ({ ok: false }));
         if (data.ok) {
           const out = document.getElementById('pb-done-name');
           if (out) out.textContent = `Signed by ${name}.`;
-          try { localStorage.removeItem(STORAGE_KEY); } catch {}
-          show(last, true);
+          try { localStorage.removeItem(PROGRESS_KEY); } catch {}
+          go('pb', pbLast);
         } else {
           msg.textContent = "That didn't go through. Try again, or let a manager know.";
           submit.disabled = false;

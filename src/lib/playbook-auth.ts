@@ -137,13 +137,97 @@ export async function verifyToken(
  *  read it; SameSite=Lax so it survives a normal link click into /playbook/.
  *  Secure is omitted on localhost — Chrome rejects Secure cookies over http. */
 export function sessionCookie(token: string, isDev: boolean): string {
-  const maxAge = Math.floor(SESSION_TTL_MS / 1000);
+  return buildCookie(COOKIE_NAME, token, isDev);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   WHO — the teammate's name + reading-session id.
+   ────────────────────────────────────────────────────────────────────────
+   Collected on the "Who are we talking to?" screen after the password. Kept
+   in its own signed cookie so the hub can greet them, the signature field can
+   be pre-filled, and the completion can be tied back to the session row.
+
+   ⚠️ THIS IS NOT AUTHENTICATION. The gate is a SHARED password, so a typed
+   name is a claim, not an identity. Signing the cookie only stops someone
+   editing their own name/session id after the fact — it does not make the
+   name true. Everything downstream (the signature, the email, the telemetry)
+   inherits that limitation, which is the same standard as a typical e-signed
+   handbook and is fine for the job. Do not build anything that needs real
+   identity on top of this without adding per-teammate links first.
+
+   Deliberately NOT auto-signing from this name: pre-fill the signature, but
+   still require the checkbox and an explicit tap at the end. A name typed at
+   minute zero is a login; the acknowledgment has to be an act taken AFTER
+   reading or it isn't an acknowledgment. */
+
+const WHO_COOKIE = 'tp_playbook_who';
+export const PLAYBOOK_WHO_COOKIE = WHO_COOKIE;
+
+export interface PlaybookWho {
+  /** Name as typed. Trimmed + collapsed whitespace, never otherwise altered. */
+  name: string;
+  /** playbook_sessions.id — ties the eventual signature to the reading session. */
+  sid: string;
+}
+
+function b64urlEncode(s: string): string {
+  return btoa(unescape(encodeURIComponent(s)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+function b64urlDecode(s: string): string {
+  const pad = s.length % 4 === 0 ? '' : '='.repeat(4 - (s.length % 4));
+  const b64 = s.replace(/-/g, '+').replace(/_/g, '/') + pad;
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+/** Normalize a submitted name: trim, collapse internal whitespace, cap length.
+ *  Returns null if it can't plausibly be a name. */
+export function normalizeName(input: unknown): string | null {
+  if (typeof input !== 'string') return null;
+  const name = input.replace(/\s+/g, ' ').trim();
+  if (name.length < 2 || name.length > 80) return null;
+  return name;
+}
+
+export async function issueWhoToken(who: PlaybookWho): Promise<string> {
+  const payload = b64urlEncode(JSON.stringify(who));
+  return `${payload}.${await hmac(payload)}`;
+}
+
+export async function verifyWhoToken(
+  token: string | undefined,
+): Promise<PlaybookWho | null> {
+  if (!token) return null;
+  const dot = token.lastIndexOf('.');
+  if (dot <= 0) return null;
+  const payload = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!safeEqual(sig, await hmac(payload))) return null;
+  try {
+    const parsed = JSON.parse(b64urlDecode(payload));
+    if (typeof parsed?.name !== 'string' || typeof parsed?.sid !== 'string') {
+      return null;
+    }
+    return { name: parsed.name, sid: parsed.sid };
+  } catch {
+    return null;
+  }
+}
+
+export function whoCookie(token: string, isDev: boolean): string {
+  return buildCookie(WHO_COOKIE, token, isDev);
+}
+
+function buildCookie(name: string, value: string, isDev: boolean): string {
   const attrs = [
-    `${COOKIE_NAME}=${token}`,
+    `${name}=${value}`,
     'Path=/',
     'HttpOnly',
     'SameSite=Lax',
-    `Max-Age=${maxAge}`,
+    `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`,
   ];
   if (!isDev) attrs.push('Secure');
   return attrs.join('; ');
