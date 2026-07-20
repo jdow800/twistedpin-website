@@ -72,6 +72,8 @@ export default defineConfig({
         !page.includes('/liquor') &&
         // Staff-only cash-counting SPA (Money Hub) — same treatment.
         !page.includes('/money') &&
+        // Internal teammate culture book (password-gated) — same treatment.
+        !page.includes('/playbook') &&
         !page.includes('/coupon-preview') &&
         !page.includes('/kids-signup-preview') &&
         // /reserve/mixology is a noindexed one-off event booking page (the

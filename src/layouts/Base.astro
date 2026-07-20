@@ -125,12 +125,21 @@ const canonicalPath = Astro.url.pathname.endsWith("/")
 const canonicalURL = new URL(canonicalPath, Astro.site).href;
 const ogImageURL = new URL(ogImage, Astro.site).href;
 
-// Staff/utility pages (the /liquor bar-inventory app) get NO marketing
-// trackers: staff sessions pollute GA4 engagement data (30-60min dwell),
-// burn Clarity session-recording quota on inventory counts, and feed Meta
-// remarketing audiences with employees. Noindex already keeps them out of
-// SEO; this keeps them out of analytics too.
-const isStaffPage = canonicalPath.startsWith("/liquor/");
+// Staff/utility pages get NO marketing trackers: staff sessions pollute GA4
+// engagement data (30-60min dwell), burn Clarity session-recording quota on
+// inventory counts, and feed Meta remarketing audiences with employees.
+// Noindex already keeps them out of SEO; this keeps them out of analytics too.
+//
+// /money (Money Hub cash counting) was missing from this list until 2026-07-19
+// — it shipped with the noindex + robots + sitemap exclusions but never got
+// added here, so GM cash-counting sessions were being recorded by Clarity and
+// counted by GA4. Same class of staff page as /liquor; same treatment.
+//
+// /playbook is the internal teammate culture book — same reasoning, plus one
+// more: teammates type their legal name into the acknowledgment form, and
+// Clarity session recordings should never capture that.
+const STAFF_PATHS = ["/liquor/", "/money/", "/playbook/"];
+const isStaffPage = STAFF_PATHS.some((p) => canonicalPath.startsWith(p));
 
 // Auto-detect inLanguage from canonical path. /es/* gets es-US; everything
 // else gets en-US. Drives the WebPage entity below. When/if Spanish

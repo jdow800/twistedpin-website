@@ -1,0 +1,150 @@
+/**
+ * Playbook gate — signed-cookie session helpers.
+ *
+ * /playbook/ is the internal culture book (Part One: The Playbook, Part Two:
+ * The Guidebook). It's for teammates, not the public: noindex + robots
+ * Disallow + sitemap-excluded, behind a single shared team password.
+ *
+ * WHY A SHARED PASSWORD, NOT ACCOUNTS
+ * Per-teammate accounts would mean provisioning and password resets for every
+ * seasonal hire, and would buy us nothing — the thing that actually identifies
+ * a reader is the acknowledgment they type at the end (see /api/playbook-ack).
+ * The gate's job is "keep this off the open internet," not "prove identity."
+ * Be honest about what that means: a signature behind a shared password proves
+ * SOMEONE WITH THE PASSWORD typed that name. That's the same evidentiary
+ * weight as most e-signed handbooks and it's sufficient for the real job here
+ * (knowing whether a new hire actually read it). If we ever need it to hold up
+ * harder, the upgrade path is emailing each hire a unique one-time link — that
+ * changes this file only, not the reading experience.
+ *
+ * WHY SERVER-SIDE
+ * A client-side password check ships the whole book in the page source to
+ * anyone who hits View Source. The gate is checked in the Astro frontmatter of
+ * /playbook/ (prerender = false), so unauthenticated requests never receive
+ * chapter content at all.
+ *
+ * COOKIE FORMAT
+ *   tp_playbook = <expiresAtMs>.<base64url HMAC-SHA256(expiresAtMs)>
+ *
+ * The expiry is IN the signed payload, so a tampered or stale value fails the
+ * signature check rather than relying on the browser to honor Max-Age. Signed
+ * with PLAYBOOK_SESSION_SECRET; rotating that secret invalidates every live
+ * session (useful if the password ever leaks).
+ */
+
+const COOKIE_NAME = 'tp_playbook';
+
+/** 30 days. Long enough that a teammate reading across several shifts isn't
+ *  re-prompted; short enough that a shared/kiosk browser doesn't stay open
+ *  forever. Re-entering the password is a 5-second cost, so we bias short. */
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+export const PLAYBOOK_COOKIE = COOKIE_NAME;
+
+/**
+ * The shared team password. Case-insensitive and whitespace-trimmed on
+ * comparison (see `passwordMatches`) — a teammate typing it on a phone gets
+ * autocapitalize and a trailing space from autocomplete, and neither should
+ * lock them out of an employee handbook.
+ *
+ * Default is the real password rather than a throwaway: this page is worthless
+ * to an attacker (it's a culture book, not customer data) and a missing env var
+ * silently locking out the whole team on a Friday hire is the worse failure.
+ * Override via PLAYBOOK_PASSWORD on Vercel if it ever needs to change.
+ */
+function expectedPassword(): string {
+  return import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
+}
+
+/**
+ * HMAC key. Falls back to a build-stable constant when unset so local dev and
+ * preview deploys work without env setup. In production PLAYBOOK_SESSION_SECRET
+ * SHOULD be set — without it, anyone who reads this repo can forge a session
+ * cookie and skip the password. That's a low-stakes bypass (they'd still have
+ * to know the URL, and the content is an employee handbook), which is why it
+ * degrades rather than throws.
+ */
+function sessionSecret(): string {
+  return (
+    import.meta.env.PLAYBOOK_SESSION_SECRET ||
+    'tp-playbook-dev-secret-set-PLAYBOOK_SESSION_SECRET-in-prod'
+  );
+}
+
+/** Constant-time-ish string compare. The password is low-value and the
+ *  endpoint is rate-limited by Vercel's own concurrency, but comparing
+ *  digests rather than raw strings costs nothing and avoids leaking length
+ *  or prefix information through timing. */
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/**
+ * Normalize + compare a submitted password.
+ * Case-insensitive, trimmed, and NBSP-tolerant (iOS smart punctuation and
+ * some password managers paste a non-breaking space).
+ */
+export function passwordMatches(submitted: unknown): boolean {
+  if (typeof submitted !== 'string') return false;
+  const norm = (s: string) =>
+    s.replace(/ /g, ' ').trim().toLowerCase();
+  return safeEqual(norm(submitted), norm(expectedPassword()));
+}
+
+async function hmac(payload: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(sessionSecret()),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(payload));
+  // base64url — cookie-safe without escaping.
+  return btoa(String.fromCharCode(...new Uint8Array(sig)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+/** Mint a signed session token valid for SESSION_TTL_MS. */
+export async function issueToken(now = Date.now()): Promise<string> {
+  const expiresAt = String(now + SESSION_TTL_MS);
+  return `${expiresAt}.${await hmac(expiresAt)}`;
+}
+
+/** Verify a cookie value: signature must match AND the embedded expiry must
+ *  still be in the future. Returns false for anything malformed. */
+export async function verifyToken(
+  token: string | undefined,
+  now = Date.now(),
+): Promise<boolean> {
+  if (!token) return false;
+  const dot = token.indexOf('.');
+  if (dot <= 0) return false;
+  const expiresAt = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!/^\d+$/.test(expiresAt)) return false;
+  if (Number(expiresAt) <= now) return false;
+  return safeEqual(sig, await hmac(expiresAt));
+}
+
+/** Set-Cookie header value for a fresh session. HttpOnly so page JS can't
+ *  read it; SameSite=Lax so it survives a normal link click into /playbook/.
+ *  Secure is omitted on localhost — Chrome rejects Secure cookies over http. */
+export function sessionCookie(token: string, isDev: boolean): string {
+  const maxAge = Math.floor(SESSION_TTL_MS / 1000);
+  const attrs = [
+    `${COOKIE_NAME}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${maxAge}`,
+  ];
+  if (!isDev) attrs.push('Secure');
+  return attrs.join('; ');
+}
