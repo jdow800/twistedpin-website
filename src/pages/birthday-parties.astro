@@ -73,6 +73,13 @@ const ROLLER_KIDS_URL = "https://www.twistedpin.com/reserve/birthdays/";
 const PAGE_URL = `${BUSINESS_URL}/birthday-parties/`;
 const SUITE_BIRTHDAY_PRICE = "419.00";
 const EXTRA_SUITE_BIRTHDAY_PRICE = "469.90";
+// Offer.validFrom — Google's Merchant-listing validator wants it on every
+// Offer (same warning class GSC raised on /summer-pin-pass, 2026-07-12).
+// The packages are always-on, so the honest anchor is the day this page
+// (and online booking for these packages) launched: 2026-05-11 (0e3d173).
+// No validThrough on purpose — these offers don't expire, and a fake end
+// date would just become a stale-schema landmine (see schema-dates.ts).
+const BIRTHDAY_OFFERS_VALID_FROM = "2026-05-11";
 // Venue-wide Google rating, surfaced on both party Products so SERP
 // results for /birthday-parties can show stars. Clears GSC
 // "Missing field 'aggregateRating'" non-critical warning.
@@ -104,6 +111,7 @@ const partyPackagesSchema = {
           price: SUITE_BIRTHDAY_PRICE,
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
+          validFrom: BIRTHDAY_OFFERS_VALID_FROM,
           url: ROLLER_KIDS_URL,
           seller: { "@id": BUSINESS_ENTITY_ID },
         },
@@ -126,6 +134,7 @@ const partyPackagesSchema = {
           price: EXTRA_SUITE_BIRTHDAY_PRICE,
           priceCurrency: "USD",
           availability: "https://schema.org/InStock",
+          validFrom: BIRTHDAY_OFFERS_VALID_FROM,
           url: ROLLER_KIDS_URL,
           seller: { "@id": BUSINESS_ENTITY_ID },
         },

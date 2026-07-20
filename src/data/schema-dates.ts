@@ -30,6 +30,11 @@ export const FREE_KIDS_BOWLING = {
 } as const;
 
 export const SUMMER_PIN_PASS = {
+  /** ISO date — first day the offer is purchasable. Sales open mid-April
+   *  each year (first 2026 member was created Apr 18). Required by Google's
+   *  Merchant-listing validator: "Missing field 'validFrom' (in offers)"
+   *  (GSC, first detected 2026-07-12). */
+  validFrom: "2026-04-15",
   /** ISO date — last day the pass is valid (inclusive). */
   validThrough: "2026-09-01",
 } as const;
