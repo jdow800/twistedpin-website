@@ -8,6 +8,7 @@ import {
   verifyWhoToken,
 } from '../../lib/playbook-auth';
 import { insert, storeConfig, updateWhere } from '../../lib/playbook-store';
+import { playbookVersion } from '../../lib/playbook-version';
 
 /**
  * /api/playbook-ack — records that a teammate signed the Playbook.
@@ -96,6 +97,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     user_agent: userAgent,
     page_url: typeof input.page_url === 'string' ? input.page_url : null,
     session_id: who?.sid ?? null,
+    // Computed HERE, never taken from the request — a client-supplied version
+    // would be forgeable, and the point is an honest record of what was on
+    // screen when they signed.
+    playbook_version: playbookVersion(),
   });
   if (!stored) return json({ ok: false, reason: 'store_failed' }, 200);
 

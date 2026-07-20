@@ -1,0 +1,177 @@
+---
+export const prerender = false;
+
+/**
+ * /playbook/poster — the printable 8.5×11 sign for the wall by the time clock.
+ *
+ * Print to Letter, no scaling, background graphics ON (Chrome: More settings →
+ * Background graphics), then drop it in a frame.
+ *
+ * DESIGN NOTES, because "it doesn't have to be wild" is the brief and restraint
+ * here is deliberate:
+ *  · LIGHT background, not the brand's dark indigo. A framed dark poster looks
+ *    great and drinks an entire ink cartridge on an office printer, and any
+ *    banding shows badly under glass. White prints crisp on anything.
+ *  · The QR is the hero and sits at optical center. Someone walking past with a
+ *    phone in one hand should understand it in about a second.
+ *  · The password is ON the poster on purpose. This hangs in a staff-only area
+ *    by the time clock; a sign that sends you to a locked door you can't open
+ *    is worse than no sign. (If it ever moves somewhere guests can see it,
+ *    remove the password block — that's the one line to change.)
+ *  · Error-correction level H on the QR (30% recoverable) so it still scans
+ *    through glare, a scuffed frame, or a smudge.
+ *  · Nothing here is gated: it's a poster, and printing it requires knowing
+ *    this URL. It's noindexed like everything else under /playbook.
+ */
+
+// Only the faces this page uses. Not the site's global.css — that paints the
+// dark indigo background onto html/body, which is exactly wrong for a sheet of
+// paper (and would fight the print styles below).
+import '@fontsource/barlow-condensed/latin-900.css';
+import '@fontsource/montserrat/latin-600.css';
+import '@fontsource/montserrat/latin-700.css';
+
+const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Playbook — Printable Sign</title>
+  </head>
+  <body>
+    <div class="sheet">
+      <img class="logo" src="/logo/twisted-pin-horizontal-indigo.png" alt="Twisted Pin" />
+
+      <p class="eyebrow">Every lane has a story</p>
+      <h1>The Playbook</h1>
+      <p class="sub">
+        Who we are, how we work, and everything you need to know —
+        in one place, on your phone.
+      </p>
+
+      <div class="qr-wrap">
+        <img class="qr" src="/playbook/welcome-qr.svg" alt="QR code linking to twistedpin.com/welcome" />
+        <p class="scan">Point your camera here</p>
+        <p class="url">twistedpin.com/welcome</p>
+      </div>
+
+      <div class="pw">
+        <span class="pw-label">Password</span>
+        <span class="pw-value">{TEAM_PASSWORD}</span>
+      </div>
+
+      <div class="cols">
+        <div>
+          <h2>Part One — The Playbook</h2>
+          <p>Our story and what we stand for. Read it once, then sign at the end.</p>
+        </div>
+        <div>
+          <h2>Part Two — The Guidebook</h2>
+          <p>Schedules, time off, uniforms, pay, safety, perks. Search it any time.</p>
+        </div>
+      </div>
+
+      <p class="foot">
+        New here? Start with Part One — it takes about twenty minutes.<br />
+        Stuck on something? Ask. We'd rather answer a question than have you wonder.
+      </p>
+    </div>
+
+    <div class="hint no-print">
+      Print to Letter (8.5×11), no scaling, and turn ON "Background graphics" in
+      your printer settings so the panels aren't blank.
+    </div>
+
+    <style is:inline>
+      :root {
+        --indigo: #200F53;
+        --indigo-deep: #0E0A1F;
+        --glow: #12A98A;      /* darkened from #4EECC4 — the screen Glow is too
+                                 pale to read as text on white paper */
+        --ink: #1A1526;
+        --muted: #5C5470;
+        --rule: #DDD8E4;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        background: #EDEAF2;
+        font-family: 'Montserrat', system-ui, sans-serif;
+        color: var(--ink);
+        padding: 24px 16px 60px;
+        display: flex; flex-direction: column; align-items: center;
+      }
+      .sheet {
+        width: 8.5in; min-height: 11in;
+        background: #fff;
+        padding: 0.72in 0.75in 0.6in;
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+      }
+      .logo { width: 2.6in; height: auto; margin-bottom: 0.34in; }
+      .eyebrow {
+        font-size: 10.5pt; letter-spacing: 0.22em; text-transform: uppercase;
+        color: var(--muted); margin-bottom: 0.1in; font-weight: 600;
+      }
+      h1 {
+        font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+        font-weight: 900; text-transform: uppercase;
+        font-size: 62pt; line-height: 0.9; letter-spacing: -0.01em;
+        color: var(--indigo); margin-bottom: 0.13in;
+      }
+      .sub {
+        font-size: 13pt; line-height: 1.45; color: var(--muted);
+        max-width: 5.4in; margin-bottom: 0.34in;
+      }
+      .qr-wrap {
+        border: 2px solid var(--indigo); border-radius: 10px;
+        padding: 0.22in 0.22in 0.16in; margin-bottom: 0.26in;
+      }
+      .qr { width: 2.5in; height: 2.5in; display: block; }
+      .scan {
+        font-size: 11pt; font-weight: 700; color: var(--indigo);
+        margin-top: 0.11in; letter-spacing: 0.02em;
+      }
+      .url { font-size: 10pt; color: var(--muted); margin-top: 0.02in; }
+      .pw {
+        display: inline-flex; align-items: center; gap: 0.14in;
+        border: 1.5px dashed var(--glow); border-radius: 8px;
+        padding: 0.11in 0.24in; margin-bottom: 0.34in;
+      }
+      .pw-label {
+        font-size: 9.5pt; letter-spacing: 0.18em; text-transform: uppercase;
+        color: var(--muted); font-weight: 600;
+      }
+      .pw-value {
+        font-size: 19pt; font-weight: 700; color: var(--glow); letter-spacing: 0.04em;
+      }
+      .cols {
+        display: flex; gap: 0.42in; width: 100%;
+        border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+        padding: 0.24in 0; margin-bottom: 0.26in;
+      }
+      .cols > div { flex: 1; text-align: left; }
+      .cols h2 {
+        font-size: 11pt; font-weight: 700; color: var(--indigo);
+        margin-bottom: 0.06in;
+      }
+      .cols p { font-size: 10.5pt; line-height: 1.45; color: var(--muted); }
+      .foot {
+        font-size: 10.5pt; line-height: 1.6; color: var(--muted); margin-top: auto;
+      }
+      .hint {
+        max-width: 8.5in; margin-top: 20px; font-size: 13px; line-height: 1.5;
+        color: #4b4459; text-align: center;
+      }
+      @media print {
+        @page { size: letter; margin: 0; }
+        body { background: #fff; padding: 0; }
+        .sheet { box-shadow: none; width: 100%; min-height: 100vh; }
+        .no-print { display: none; }
+      }
+    </style>
+  </body>
+</html>

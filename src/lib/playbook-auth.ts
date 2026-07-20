@@ -221,6 +221,70 @@ export function whoCookie(token: string, isDev: boolean): string {
   return buildCookie(WHO_COOKIE, token, isDev);
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+   ADMIN — the manager-only status page (/playbook/status).
+   ────────────────────────────────────────────────────────────────────────
+   A SEPARATE password from the team one, and that separation is the point:
+   every teammate knows the team password, and the status page lists everyone's
+   name, whether they've finished, and how long they read. Putting it behind the
+   shared password would publish the whole team's reading habits to the whole
+   team.
+
+   ⚠️ NO DEFAULT, ON PURPOSE — THIS REPO IS PUBLIC. Any fallback baked in here
+   is readable by anyone who finds the repository, so an unset
+   PLAYBOOK_ADMIN_PASSWORD disables the status page entirely rather than
+   guarding it with a known string. Fails closed, never open.
+   (The team password's `onefamily` fallback has exactly this problem and
+   should be overridden with PLAYBOOK_PASSWORD on Vercel.) */
+
+const ADMIN_COOKIE = 'tp_playbook_admin';
+export const PLAYBOOK_ADMIN_COOKIE = ADMIN_COOKIE;
+
+/** Admin sessions are short — this is a management view, not a place to live. */
+const ADMIN_TTL_MS = 12 * 60 * 60 * 1000;
+
+export function adminConfigured(): boolean {
+  return !!import.meta.env.PLAYBOOK_ADMIN_PASSWORD;
+}
+
+export function adminPasswordMatches(submitted: unknown): boolean {
+  const expected = import.meta.env.PLAYBOOK_ADMIN_PASSWORD;
+  if (!expected || typeof submitted !== 'string') return false;
+  const norm = (s: string) => s.replace(/ /g, ' ').trim();
+  return safeEqual(norm(submitted), norm(expected));
+}
+
+/** Namespaced payload so a team-session cookie can never be replayed as an
+ *  admin one — they're signed with the same key. */
+export async function issueAdminToken(now = Date.now()): Promise<string> {
+  const expiresAt = String(now + ADMIN_TTL_MS);
+  return `${expiresAt}.${await hmac(`admin:${expiresAt}`)}`;
+}
+
+export async function verifyAdminToken(
+  token: string | undefined,
+  now = Date.now(),
+): Promise<boolean> {
+  if (!token || !adminConfigured()) return false;
+  const dot = token.indexOf('.');
+  if (dot <= 0) return false;
+  const expiresAt = token.slice(0, dot);
+  if (!/^\d+$/.test(expiresAt) || Number(expiresAt) <= now) return false;
+  return safeEqual(token.slice(dot + 1), await hmac(`admin:${expiresAt}`));
+}
+
+export function adminCookie(token: string, isDev: boolean): string {
+  const attrs = [
+    `${ADMIN_COOKIE}=${token}`,
+    'Path=/',
+    'HttpOnly',
+    'SameSite=Lax',
+    `Max-Age=${Math.floor(ADMIN_TTL_MS / 1000)}`,
+  ];
+  if (!isDev) attrs.push('Secure');
+  return attrs.join('; ');
+}
+
 function buildCookie(name: string, value: string, isDev: boolean): string {
   const attrs = [
     `${name}=${value}`,

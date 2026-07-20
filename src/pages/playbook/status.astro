@@ -1,0 +1,335 @@
+---
+export const prerender = false;
+
+/**
+ * /playbook/status — manager view: who's signed, who started and stalled, who
+ * signed an older version of the books.
+ *
+ * WHY THIS EXISTS: the entire point of the Playbook system is knowing who
+ * HASN'T finished, and until this page that question required someone with
+ * database access to run SQL. A system whose core purpose depends on a
+ * developer being available isn't finished.
+ *
+ * SEPARATE PASSWORD from the team one (PLAYBOOK_ADMIN_PASSWORD). Every
+ * teammate knows the team password; this page shows the whole team's names,
+ * completion state and reading time. Fails closed when unset — the repo is
+ * public, so there is deliberately no default.
+ *
+ * Reading times are shown ONLY when plausible. They're client-reported and
+ * lossy (a bug on day one reported a full read as "17 seconds"), so a low
+ * number means the telemetry broke, not that someone skimmed. See
+ * playbook-ack.ts readingSummary() for the same rule on the email side.
+ */
+
+import Base from '../../layouts/Base.astro';
+import {
+  PLAYBOOK_ADMIN_COOKIE,
+  adminConfigured,
+  verifyAdminToken,
+} from '../../lib/playbook-auth';
+import { selectRows, storeConfig } from '../../lib/playbook-store';
+import { playbookVersion, playbookShape } from '../../lib/playbook-version';
+
+const configured = adminConfigured();
+const authed = configured
+  ? await verifyAdminToken(Astro.cookies.get(PLAYBOOK_ADMIN_COOKIE)?.value)
+  : false;
+
+const err = Astro.url.searchParams.get('e');
+const sent = Astro.url.searchParams.get('sent') === '1';
+
+interface SessionRow {
+  id: string;
+  full_name: string;
+  started_at: string;
+  completed_at: string | null;
+  active_seconds: number | null;
+  pages_viewed: number | null;
+  total_pages: number | null;
+}
+interface AckRow {
+  full_name: string;
+  signed_at: string;
+  session_id: string | null;
+  playbook_version: string | null;
+}
+
+let sessions: SessionRow[] = [];
+let acks: AckRow[] = [];
+let loadFailed = false;
+
+if (authed) {
+  const cfg = storeConfig();
+  if (cfg) {
+    [sessions, acks] = await Promise.all([
+      selectRows<SessionRow>(
+        cfg,
+        'playbook_sessions',
+        'select=id,full_name,started_at,completed_at,active_seconds,pages_viewed,total_pages&order=started_at.desc&limit=300',
+      ),
+      selectRows<AckRow>(
+        cfg,
+        'playbook_acknowledgments',
+        'select=full_name,signed_at,session_id,playbook_version&order=signed_at.desc&limit=300',
+      ),
+    ]);
+  } else {
+    loadFailed = true;
+  }
+}
+
+const CURRENT = playbookVersion();
+const shape = playbookShape();
+
+const ackBySession = new Map(acks.filter((a) => a.session_id).map((a) => [a.session_id!, a]));
+
+const fmt = (iso: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true,
+  }).format(new Date(iso));
+
+const daysAgo = (iso: string) =>
+  Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+
+/** Same honesty rule as the email: don't print a number we don't believe. */
+function readTime(s: SessionRow): string {
+  if (s.active_seconds === null || s.pages_viewed === null) return 'not captured';
+  const tooFew = !!s.total_pages && s.pages_viewed < Math.min(4, s.total_pages);
+  if (tooFew || s.active_seconds < 60) return 'not captured';
+  const mins = Math.round(s.active_seconds / 60);
+  return `${mins} min · ${s.pages_viewed}/${s.total_pages ?? '?'} pages`;
+}
+
+const completed = sessions.filter((s) => s.completed_at);
+const stalled = sessions.filter((s) => !s.completed_at);
+// Signatures with no matching session row (pre-dating sessions, or a cleared cookie).
+const orphanAcks = acks.filter((a) => !a.session_id || !sessions.some((s) => s.id === a.session_id));
+const outdated = acks.filter(
+  (a) => a.playbook_version && a.playbook_version !== CURRENT,
+);
+---
+
+<Base
+  title="Playbook Status — Twisted Pin"
+  description="Manager view."
+  hideStickyCTA={true}
+  hideHeader={true}
+  hidePromo={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+
+  {!authed && (
+    <main class="st-gate">
+      <p class="st-kicker">Twisted Pin</p>
+      <h1 class="st-gate-title">Playbook Status</h1>
+      {!configured ? (
+        <p class="st-note">
+          This page is turned off. Set <code>PLAYBOOK_ADMIN_PASSWORD</code> in
+          the Vercel environment to enable it. There's deliberately no default —
+          the repository is public, so a built-in password would be a published one.
+        </p>
+      ) : (
+        <form class="st-form" method="POST" action="/api/playbook-admin-auth/">
+          <label class="st-label" for="st-pw">Manager password</label>
+          <input id="st-pw" name="password" type="password" autocomplete="current-password"
+                 autocapitalize="off" spellcheck="false" required />
+          {err === '1' && <p class="st-err" role="alert">Not quite. Try again.</p>}
+          {err === '2' && <p class="st-err" role="alert">This page isn't configured yet.</p>}
+          <button type="submit">View status</button>
+        </form>
+      )}
+      <p class="st-foot">This is a management view. Teammates use the team password at /playbook.</p>
+    </main>
+  )}
+
+  {authed && (
+    <main class="st">
+      <header class="st-head">
+        <div>
+          <p class="st-kicker">Twisted Pin</p>
+          <h1 class="st-title">Playbook Status</h1>
+        </div>
+        <a class="st-link" href="/playbook/">Open the books →</a>
+      </header>
+
+      {loadFailed && (
+        <p class="st-err">Couldn't reach the database. Everything below may be incomplete.</p>
+      )}
+      {sent && <p class="st-ok">Sent. Check info@twistedpin.com.</p>}
+
+      <div class="st-stats">
+        <div class="st-stat"><b>{completed.length}</b><span>signed</span></div>
+        <div class="st-stat"><b>{stalled.length}</b><span>started, not finished</span></div>
+        <div class="st-stat"><b>{outdated.length}</b><span>signed an older version</span></div>
+      </div>
+
+      {/* The list this page exists for. */}
+      <section class="st-sec">
+        <h2>Started but never finished</h2>
+        {stalled.length === 0 ? (
+          <p class="st-empty">Nobody's mid-read. Everyone who started, finished.</p>
+        ) : (
+          <ul class="st-list">
+            {stalled.map((s) => (
+              <li>
+                <span class="st-name">{s.full_name}</span>
+                <span class="st-meta">
+                  started {fmt(s.started_at)}
+                  {daysAgo(s.started_at) >= 3 && (
+                    <b class="st-flag"> · {daysAgo(s.started_at)} days ago</b>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section class="st-sec">
+        <h2>Signed</h2>
+        {completed.length === 0 ? (
+          <p class="st-empty">No signatures yet.</p>
+        ) : (
+          <ul class="st-list">
+            {completed.map((s) => {
+              const ack = ackBySession.get(s.id);
+              const stale = ack?.playbook_version && ack.playbook_version !== CURRENT;
+              return (
+                <li>
+                  <span class="st-name">{s.full_name}</span>
+                  <span class="st-meta">
+                    {fmt(s.completed_at!)} · {readTime(s)}
+                    {stale && <b class="st-flag"> · signed an older version</b>}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {orphanAcks.length > 0 && (
+        <section class="st-sec">
+          <h2>Signatures without a reading session</h2>
+          <p class="st-empty">
+            Signed, but the reading session couldn't be matched — usually a cleared
+            browser or a signature from before sessions were tracked. The signature
+            still counts.
+          </p>
+          <ul class="st-list">
+            {orphanAcks.map((a) => (
+              <li>
+                <span class="st-name">{a.full_name}</span>
+                <span class="st-meta">{fmt(a.signed_at)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section class="st-sec">
+        <h2>Current version</h2>
+        <p class="st-empty">
+          <code>{CURRENT}</code> — {shape.chapters} Playbook chapters,
+          {' '}{shape.guidebookChapters} Guidebook chapters. This stamp changes
+          automatically whenever a word of either book changes, and every signature
+          records the version it was made against. Anyone flagged "signed an older
+          version" agreed to a document that has since been edited — worth a
+          re-read if the change was material (pay, tips, safety).
+        </p>
+      </section>
+
+      <section class="st-sec">
+        <form method="POST" action="/api/playbook-brief/">
+          <button class="st-send" type="submit">Email the access details to info@</button>
+        </form>
+        <p class="st-empty">
+          Sends managers the link, both passwords, and how this works.
+        </p>
+      </section>
+    </main>
+  )}
+</Base>
+
+<style>
+  .st-gate {
+    min-height: 100dvh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: 40px 24px;
+  }
+  .st-kicker {
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.22em;
+    text-transform: uppercase; color: var(--warm-dim); margin-bottom: 10px;
+  }
+  .st-gate-title, .st-title {
+    font-family: var(--font-display); font-weight: 900; text-transform: uppercase;
+    font-size: clamp(30px, 8vw, 44px); line-height: 1; margin-bottom: 26px;
+  }
+  .st-form { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+  .st-label {
+    font-family: var(--font-ui); font-size: 11px; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--warm-dim); text-align: left;
+  }
+  .st-form input {
+    font-size: 16px; font-family: var(--font-ui); padding: 13px 14px;
+    border-radius: var(--radius-button); border: 1px solid rgba(244,239,227,0.18);
+    background: #171327; color: var(--warm-white); text-align: center;
+  }
+  .st-form button, .st-send {
+    font-family: var(--font-ui); font-weight: 700; font-size: 14px;
+    padding: 14px 20px; border: none; border-radius: var(--radius-button);
+    background: var(--glow); color: var(--indigo-deep); cursor: pointer;
+  }
+  .st-err { font-family: var(--font-ui); font-size: 13px; color: var(--copper); }
+  .st-ok { font-family: var(--font-ui); font-size: 13px; color: var(--glow); margin-bottom: 18px; }
+  .st-note, .st-foot {
+    margin-top: 24px; max-width: 46ch; font-size: 13px; line-height: 1.6;
+    color: var(--warm-dim);
+  }
+
+  .st { max-width: 46rem; margin: 0 auto; padding: 40px 20px 80px; }
+  .st-head {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .st-title { margin-bottom: 0; }
+  .st-link { font-family: var(--font-ui); font-size: 13px; color: var(--glow); }
+
+  .st-stats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 34px; }
+  .st-stat {
+    flex: 1 1 150px; background: #171327; border: 1px solid rgba(244,239,227,0.12);
+    border-radius: var(--radius-surface); padding: 14px 16px;
+  }
+  .st-stat b {
+    display: block; font-family: var(--font-display); font-weight: 900;
+    font-size: 34px; line-height: 1; color: var(--glow);
+  }
+  .st-stat span {
+    font-family: var(--font-ui); font-size: 12px; color: var(--warm-dim);
+  }
+
+  .st-sec { margin-bottom: 38px; }
+  .st-sec h2 {
+    font-family: var(--font-ui); font-weight: 700; font-size: 13px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--warm-dim);
+    margin-bottom: 12px; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(244,239,227,0.12);
+  }
+  .st-list { list-style: none; margin: 0; padding: 0; }
+  .st-list li {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+    padding: 11px 0; border-bottom: 1px solid rgba(244,239,227,0.07);
+  }
+  .st-name { font-family: var(--font-ui); font-weight: 700; font-size: 15px; }
+  .st-meta { font-family: var(--font-ui); font-size: 12.5px; color: var(--warm-dim); }
+  .st-flag { color: var(--copper); font-weight: 700; }
+  .st-empty { font-size: 13.5px; line-height: 1.6; color: var(--warm-dim); }
+  .st-empty code {
+    font-family: ui-monospace, monospace; color: var(--glow);
+    background: rgba(78,236,196,0.08); padding: 1px 6px; border-radius: 4px;
+  }
+  .st-send { margin-bottom: 10px; }
+</style>

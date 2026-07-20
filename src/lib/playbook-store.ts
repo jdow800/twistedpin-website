@@ -72,6 +72,27 @@ export async function insert(
   return true;
 }
 
+/** Raw PostgREST GET. `query` is the part after `?`, e.g.
+ *  "select=*&order=started_at.desc&limit=200". */
+export async function selectRows<T>(
+  cfg: StoreConfig,
+  table: string,
+  query: string,
+): Promise<T[]> {
+  const res = await fetch(`${cfg.url}/rest/v1/${table}?${query}`, {
+    headers: {
+      apikey: cfg.key,
+      Authorization: `Bearer ${cfg.key}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    console.error(`[playbook-store] select ${table} failed`, res.status, await res.text());
+    return [];
+  }
+  return (await res.json()) as T[];
+}
+
 /** PATCH rows matching `?<column>=eq.<value>`. */
 export async function updateWhere(
   cfg: StoreConfig,

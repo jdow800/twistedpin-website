@@ -158,6 +158,7 @@
     { "source": "/review{/}?", "destination": "https://search.google.com/local/writereview?placeid=ChIJURI15Tr1DogRLKYdPWWuY-M", "permanent": false },
     { "source": "/avery{/}?", "destination": "https://script.google.com/macros/s/AKfycbxbykQ0_ryJSIPVs-ZWcaiWnAxSL1VR5f0WrXcSVDgLJxXqM-DElt477SmR3F6gdqwxtQ/exec", "permanent": false },
     { "source": "/feedback{/}?", "destination": "https://app.giveme5.ai/twisted-pin", "permanent": false },
+    { "source": "/welcome{/}?", "destination": "/playbook/", "permanent": false },
     { "source": "/paint-night{/}?", "destination": "https://paintingpartiesbylucy.com/events/rod-farm-market-west-brooklyn-harvest-haul-274-498-830-836-650-243-758-733-520-395-701-720-771-995-976-739-853-178-739-572-752-732-649-735-518-288-629-847/", "permanent": false },
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true },
