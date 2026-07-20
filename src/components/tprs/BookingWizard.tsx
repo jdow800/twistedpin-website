@@ -502,11 +502,11 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             email: state.guest.email.trim(),
             phone: state.guest.phone.trim(),
             zip: state.guest.zip.trim(),
-            // One checkbox, two channel consents — its disclosure names texts
-            // AND emails, so the same explicit decision is recorded per channel.
-            // Left `undefined` when untouched so no consent_event is written
-            // (see WizardState.marketingOptIn).
-            marketingOptIn: state.marketingOptIn,
+            // SMS ONLY — the guest-step checkbox discloses marketing TEXTS and
+            // nothing else, so `marketingOptIn` (email) is deliberately NOT
+            // sent: recording an email consent the guest was never shown would
+            // make the consent record broader than the disclosure. Left
+            // `undefined` when untouched so no consent_event is written at all.
             smsMarketingOptIn: state.marketingOptIn,
           }}
           cartHoldItems={[

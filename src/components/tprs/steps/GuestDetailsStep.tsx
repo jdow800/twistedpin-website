@@ -233,13 +233,22 @@ export default function GuestDetailsStep(props: Props) {
           purchase, so it has to be its own affirmative act the guest can skip
           while still booking. Never pre-checked.
 
-          One box, both channels: the fine print names texts AND emails, and
-          BookingWizard sends the value as both `marketingOptIn` (email) and
-          `smsMarketingOptIn`. Splitting into two boxes is a UI change only —
-          the wire shape already carries them separately.
+          SMS ONLY (2026-07-20 — Jon: "we ain't emailing them"). The fine print
+          below names texts and nothing else, so BookingWizard sends ONLY
+          `smsMarketingOptIn`; `marketingOptIn` (email) is deliberately absent.
+          **The recorded consent must never be broader than what this copy
+          discloses** — if the fine print ever names email again, re-add that
+          field in the SAME commit. The wire carries both channels, so it's one
+          line either way.
 
-          Untouched → stays `undefined` → the payload omits both fields, so no
-          consent_event is written at all (see WizardState.marketingOptIn). */}
+          Untouched → stays `undefined` → the payload omits the field, so no
+          consent_event is written at all (see WizardState.marketingOptIn).
+
+          ⚠️ OWNER-APPROVED VOICE EXCEPTION (Jon, 2026-07-20): "deals" is on the
+          banned Words-to-Avoid list (cheap/discount/value/deals/budget-friendly)
+          and "curated" is otherwise reserved for the Van Flandern credential.
+          Both are deliberate here — Jon specified this exact string. Do NOT
+          "fix" it in a brand sweep; the ban still holds everywhere else. */}
       <label className="tprs-choice">
         <input
           type="checkbox"
@@ -247,13 +256,12 @@ export default function GuestDetailsStep(props: Props) {
           onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
         />
         <span>
-          <strong>Send me the good stuff.</strong> First dibs on offers and
-          events.
+          <strong>Send me epic deals.</strong> Curated offers, you deserve.
         </span>
       </label>
       <p className="tprs-consent-fine">
-        Occasional marketing texts and emails from Twisted Pin. Not required to
-        book. Msg &amp; data rates may apply. Reply STOP to opt out.
+        Occasional marketing texts from Twisted Pin. Not required to book. Msg
+        &amp; data rates may apply. Reply STOP to opt out.
       </p>
 
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking

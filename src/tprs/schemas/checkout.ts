@@ -29,8 +29,10 @@ export const checkoutCustomerPayloadSchema = z.object({
    * NOT the same as an opt-out (the backend records an explicit `false` as a
    * decision in the consent-evidence record).
    *
-   * The guest step renders ONE checkbox whose disclosure names both channels,
-   * so both fields currently arrive with the same value.
+   * The guest step's checkbox currently discloses TEXTS ONLY, so it sends this
+   * field alone and leaves `marketingOptIn` (email) absent. The two stay
+   * separate fields on the wire precisely so the UI can disclose — and record
+   * — one channel without implying the other.
    */
   smsMarketingOptIn: z.boolean().optional(),
   claimsTaxExempt: z.boolean().optional(),

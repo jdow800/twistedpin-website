@@ -75,10 +75,11 @@ export interface WizardState {
   addOnQtys: Record<string, number>;
   guest: GuestFields;
   /**
-   * Marketing-consent checkbox on the guest step (2026-07-19). ONE box covers
-   * both channels — its fine print names texts AND emails — so this single
-   * value feeds both `marketingOptIn` (email) and `smsMarketingOptIn` on the
-   * checkout payload.
+   * Marketing-consent checkbox on the guest step (2026-07-19). **SMS ONLY** as
+   * of 2026-07-20 — the fine print discloses marketing texts and nothing else,
+   * so this feeds ONLY `smsMarketingOptIn`. Email consent is deliberately not
+   * recorded: the consent on file must never be broader than what the guest
+   * was actually shown.
    *
    * `undefined` = the guest never touched it, and that is deliberately NOT
    * `false`: the backend treats an explicit `false` as a recorded opt-out
