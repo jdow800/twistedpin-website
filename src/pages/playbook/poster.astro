@@ -81,8 +81,12 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
     </div>
 
     <div class="hint no-print">
-      Print to Letter (8.5×11), no scaling, and turn ON "Background graphics" in
-      your printer settings so the panels aren't blank.
+      <b>To print:</b> Ctrl&nbsp;+&nbsp;P (Cmd&nbsp;+&nbsp;P on Mac) → Letter → Margins:&nbsp;None → Scale:&nbsp;100%.<br />
+      Colors and panels print automatically — you don't need to touch
+      "Background graphics."<br /><br />
+      <b>For a print shop or a frame service:</b> same dialog, choose
+      <b>Destination:&nbsp;Save as PDF</b>. That gives a true 8.5×11 vector PDF —
+      sharp at any size, and the format every print shop prefers.
     </div>
 
     <style is:inline>
@@ -168,9 +172,27 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       }
       @media print {
         @page { size: letter; margin: 0; }
-        body { background: #fff; padding: 0; }
-        .sheet { box-shadow: none; width: 100%; min-height: 100vh; }
+        html, body { background: #fff; padding: 0; margin: 0; }
+        /* Exact 8.5x11 with border-box sizing (the * reset above) means the
+           padding is INSIDE the sheet, so this is precisely one page — no
+           stray blank second sheet from padding pushing past the boundary. */
+        .sheet {
+          box-shadow: none;
+          width: 8.5in; height: 11in; min-height: 11in;
+          break-after: avoid; page-break-after: avoid;
+        }
         .no-print { display: none; }
+      }
+
+      /* Force backgrounds and colors to print WITHOUT anyone remembering to
+         tick "Background graphics" in the print dialog. That checkbox defaults
+         OFF in Chrome, and with it off the QR frame, the dashed password box
+         and the rules all vanish — the poster prints as a column of plain
+         text. A sign nobody can fix at print time isn't finished, so this is a
+         property of the page rather than an instruction in an email. */
+      html, body, .sheet, .qr-wrap, .pw, .cols {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
     </style>
   </body>
