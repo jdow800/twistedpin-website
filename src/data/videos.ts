@@ -105,11 +105,14 @@ export const BEERWALL_VIDEO: VideoEntry = {
   slug: "beerwall",
   name: "The 28-Tap Self-Serve Wall",
   description:
-    "The 28-tap self-serve beer and wine wall at Twisted Pin in Plainfield, IL — the only one in the immediate area. Customers grab a card, pour their own, pay by the ounce.",
+    "The 28-tap self-serve beer and wine wall at Twisted Pin in Plainfield, IL — the only one in the immediate area. Bowling-pin tap handles, the live tap list, a guest pouring their own by the ounce, and the bar beyond it.",
   thumbnailPath: "/snap/beerwall-poster.avif",
   contentPath: "/snap/beerwall-mobile-h264-1080.mp4",
-  durationSeconds: 12,
-  uploadDate: "2026-04-15",
+  // 10.47s actual, floored. Source swapped 2026-07-20 to the produced
+  // TWP_The_Tap_Wall_V1 montage; the prior 12 was already wrong (that clip
+  // was a 5s recut). Google reads this as VideoObject `duration`.
+  durationSeconds: 10,
+  uploadDate: "2026-07-20",
   primaryPagePath: "/bar/",
 };
 

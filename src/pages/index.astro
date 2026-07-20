@@ -217,7 +217,8 @@ const websiteSchema = {
       >
         {/* Narrow-viewport variants (≤480px CSS width) come first — first-match-wins
             means phones fetch the 540w files instead of the 1080w. Saves ~50%
-            bandwidth on this lazy-loaded section. Encoded by build-snap-video.sh. */}
+            bandwidth on this lazy-loaded section. Encoded by
+            `node scripts/build-snap-videos.mjs beerwall`. */}
         <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
         <source media="(max-width: 480px)" data-src="/snap/beerwall-mobile-h264-540.mp4" type="video/mp4" />
         <source data-src="/snap/beerwall-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
