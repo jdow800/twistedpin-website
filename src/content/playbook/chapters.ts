@@ -70,10 +70,13 @@ export interface Chapter {
    * picks). One entry → full-width 3:2 hero. Two or more → a two-up gallery of
    * 4:5 tiles. `photoLayout: 'timeline'` switches the gallery to 3:2 landscape
    * tiles with visible captions (Our Story's Pioneer → Plainfield → Twisted
-   * Pin arc). Presentational only — the SEARCH index never reads these.
+   * Pin arc). `photoLayout: 'stack'` renders each photo full-width at its
+   * NATURAL aspect, stacked — for chapters whose photos include a wide group
+   * pano that no tile crop can hold without chopping someone. Presentational
+   * only — the SEARCH index never reads these.
    */
   photos?: Photo[];
-  photoLayout?: 'gallery' | 'timeline';
+  photoLayout?: 'gallery' | 'timeline' | 'stack';
 }
 
 export const CHAPTERS: Chapter[] = [
@@ -826,7 +829,7 @@ export const CHAPTERS: Chapter[] = [
     photos: [
       {
         name: 'safety-matters',
-        alt: 'The Twisted Pin team crowded together for a happy group selfie between shifts.',
+        alt: 'A family lined up arm in arm at the lanes in their bowling shoes, all smiles for the camera.',
       },
     ],
     sections: [
@@ -903,10 +906,15 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'One Last Thing',
     photos: [
       {
-        name: 'growing-together',
+        name: 'growing-together-1',
         alt: 'A group of young teammates on a team outing, lined up and giving thumbs up.',
       },
+      {
+        name: 'growing-together-2',
+        alt: 'Two teammates in their Twisted Pin gear, side by side and smiling in front of the lanes.',
+      },
     ],
+    photoLayout: 'stack',
     sections: [
       {
         blocks: [
@@ -938,10 +946,15 @@ export const CHAPTERS: Chapter[] = [
     nextLabel: 'Sign the Playbook',
     photos: [
       {
-        name: 'one-last-thing',
+        name: 'one-last-thing-1',
         alt: 'Four teammates with their arms around each other, smiling together at the bar.',
       },
+      {
+        name: 'one-last-thing-2',
+        alt: 'A teammate and a guest grinning as they hold up custom face-print socks and a matching mini figure.',
+      },
     ],
+    photoLayout: 'stack',
     sections: [
       {
         blocks: [

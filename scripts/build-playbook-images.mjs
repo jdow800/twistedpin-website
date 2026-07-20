@@ -17,6 +17,15 @@
  *                    portraits, so 4:5 keeps faces without heavy cropping)
  *   - our-story    → 3:2 timeline tiles (storefront signage is landscape;
  *                    a 4:5 crop would clip the sign)
+ *   - stack        → `aspect: null`, natural aspect, width-only resize. For
+ *                    chapters pairing a panorama with a second photo: a 2.2:1
+ *                    group pano cannot survive a 4:5 tile (it amputates half
+ *                    the people), so those chapters render full-frame, stacked.
+ *
+ * Crop control: sharp's `attention` auto-crop guesses wrong on a few faces
+ * (2026-07-20 Jon review pass). An entry may set `focus: {x?, y?}` (fractions
+ * of source width/height) to pin the crop window's center instead — the
+ * window is computed and `extract`ed before resize, deterministically.
  *
  * Sources missing from the worktree are warned and skipped — the photo folder
  * is gitignored and won't exist on a fresh clone. Re-run after adding photos:
@@ -66,19 +75,32 @@ const SOURCES = [
   { src: "part 2/cheering.jpg", name: "notice-the-moments", aspect: [3, 2], widths: HERO_W },
   // Communicate Early: a mom-and-daughter pair, cheek to cheek.
   { src: "part 3/CVd6eC2rK6pmRv7hrC1gHzzVp6HGhXct_photo-1782606211294.jpg", name: "communicate-early", aspect: [3, 2], widths: HERO_W },
-  // Safety Matters: the crew together — looking out for one another.
-  { src: "part 3/521005013_10233341707619024_7104302299671272924_n.jpg", name: "safety-matters", aspect: [3, 2], widths: HERO_W },
-  // Growing Together: young teammates on a team outing, thumbs up.
-  { src: "part 3/501301141_10232245267168698_3509539140919044520_n.jpg", name: "growing-together", aspect: [3, 2], widths: HERO_W },
-  // One Last Thing: four teammates, arms around each other, at the bar.
-  { src: "part 3/516217304_10233231058732871_4526837853465303424_n.jpg", name: "one-last-thing", aspect: [3, 2], widths: HERO_W },
+  // Safety Matters: a family lined up at the lanes — the "family gathered for
+  // a photo" the chapter's first story is about. Portrait source; the 3:2 band
+  // is pinned on the row of faces (~47% down).
+  { src: "part 3/VQRGJ7Fe9bTCD39jvGqQn0hNqU4MEKJH_photo-1782081867773.jpg", name: "safety-matters", aspect: [3, 2], widths: HERO_W, focus: { y: 0.47 } },
+
+  // Growing Together — stacked full-frame pair: the Topgolf team outing is a
+  // 2.2:1 pano (5 people shoulder to shoulder; any crop loses someone), plus
+  // the two teammates in their Twisted Pin gear.
+  { src: "part 3/501301141_10232245267168698_3509539140919044520_n.jpg", name: "growing-together-1", aspect: null, widths: HERO_W },
+  { src: "part 1/AIV01745.jpg",                                          name: "growing-together-2", aspect: null, widths: HERO_W },
+
+  // One Last Thing — stacked full-frame pair: four teammates at the bar (also
+  // a wide pano — the guy in pink lives at the right edge and every crop was
+  // chopping him), plus the face-print-socks gift moment.
+  { src: "part 3/516217304_10233231058732871_4526837853465303424_n.jpg",     name: "one-last-thing-1", aspect: null, widths: HERO_W },
+  { src: "part 3/4b3toUZIczZQy3250zRWYoE9rOeSTT95_photo-1777931047087.jpg",  name: "one-last-thing-2", aspect: null, widths: HERO_W },
 
   // ── part one: galleries (4:5 portrait tiles) ──────────────────────────
   // Better Together — three simultaneous-event beats: pizza buffet being
   // served, the VIP suite mid-event, teammates plating at the setup.
+  // NOTE: -3 is the odd last tile, which the reader CSS displays full-width at
+  // 3:2 — so it must be ENCODED 3:2, or object-fit re-crops it live and chops
+  // faces (the 2026-07-20 bug). Portrait source → band pinned on both faces.
   { src: "part 2/pizzaevent.jpg", name: "better-together-1", aspect: [4, 5], widths: TILE_W },
   { src: "part 2/eventvip.jpg",   name: "better-together-2", aspect: [4, 5], widths: TILE_W },
-  { src: "part 2/F6_P26.jpg",     name: "better-together-3", aspect: [4, 5], widths: TILE_W },
+  { src: "part 2/F6_P26.jpg",     name: "better-together-3", aspect: [3, 2], widths: TILE_W, focus: { y: 0.32 } },
 
   // Own the Outcome — a kid in a balloon octopus hat, and hosts in Harley
   // Quinn / Batgirl costumes with a birthday girl.
@@ -86,13 +108,15 @@ const SOURCES = [
   { src: "part 2/73031957_2434785676741835_1173350280327069696_n-1.jpg",    name: "own-the-outcome-2", aspect: [4, 5], widths: TILE_W },
 
   // Protect the Experience — two kids showing off their arcade game cards,
-  // and a birthday girl in her crown and light-up necklace.
-  { src: "part 2/CWqIbQ6SHiJ83bm7AHgvmbVzVxEq098w_photo-1778895588589.jpg", name: "protect-1", aspect: [4, 5], widths: TILE_W },
+  // and a birthday girl in her crown and light-up necklace. Focus x keeps the
+  // boy on the left in frame (attention was crowding him off the edge).
+  { src: "part 2/CWqIbQ6SHiJ83bm7AHgvmbVzVxEq098w_photo-1778895588589.jpg", name: "protect-1", aspect: [4, 5], widths: TILE_W, focus: { x: 0.42 } },
   { src: "part 2/486192165_1467876741159670_2484706368459718746_n.jpg",     name: "protect-2", aspect: [4, 5], widths: TILE_W },
 
   // Everyone Belongs — Joe finishing a bubble-domed cocktail, and a couple
-  // laughing over skeeball.
-  { src: "part 3/518323430_10233239951795192_8410202378991626080_n.jpg", name: "everyone-belongs-1", aspect: [4, 5], widths: TILE_W },
+  // laughing over skeeball. Focus y lifts the window so Joe's face gets
+  // headroom while the bubble dome stays in frame.
+  { src: "part 3/518323430_10233239951795192_8410202378991626080_n.jpg", name: "everyone-belongs-1", aspect: [4, 5], widths: TILE_W, focus: { y: 0.34 } },
   { src: "part 3/DSC08838.jpg",                                          name: "everyone-belongs-2", aspect: [4, 5], widths: TILE_W },
 
   // Details Matter — two proposals: mid-kneel at the VIP lanes, and the
@@ -105,7 +129,19 @@ async function exists(p) {
   try { await stat(p); return true; } catch { return false; }
 }
 
-async function encodeOne({ src, name, aspect, widths }) {
+/** Largest window of `aspect` that fits the source, centered on the fractional
+ *  focus point and clamped to the frame. */
+function focusWindow(srcW, srcH, [aw, ah], focus) {
+  let winW = srcW, winH = Math.round((srcW * ah) / aw);
+  if (winH > srcH) { winH = srcH; winW = Math.round((srcH * aw) / ah); }
+  const cx = (focus?.x ?? 0.5) * srcW;
+  const cy = (focus?.y ?? 0.5) * srcH;
+  const left = Math.max(0, Math.min(srcW - winW, Math.round(cx - winW / 2)));
+  const top  = Math.max(0, Math.min(srcH - winH, Math.round(cy - winH / 2)));
+  return { left, top, width: winW, height: winH };
+}
+
+async function encodeOne({ src, name, aspect, widths, focus }) {
   const srcPath = path.join(PICS, src);
   if (!(await exists(srcPath))) {
     console.warn(`SKIP  ${name}: source missing at ${srcPath}`);
@@ -113,19 +149,34 @@ async function encodeOne({ src, name, aspect, widths }) {
   }
 
   const meta = await sharp(srcPath).metadata();
-  console.log(`source: ${src}  ${meta.width}×${meta.height} (${meta.format})  → ${name}-*  [crop ${aspect[0]}:${aspect[1]}]`);
+  const cropLabel = aspect ? `crop ${aspect[0]}:${aspect[1]}${focus ? ` focus(${focus.x ?? "·"},${focus.y ?? "·"})` : ""}` : "natural aspect";
+  console.log(`source: ${src}  ${meta.width}×${meta.height} (${meta.format})  → ${name}-*  [${cropLabel}]`);
+
+  const extract = aspect && focus ? focusWindow(meta.width, meta.height, aspect, focus) : null;
 
   for (const w of widths) {
-    const h = Math.round((w * aspect[1]) / aspect[0]);
-    const resizeOpts = { width: w, height: h, fit: "cover", position: "attention", withoutEnlargement: true };
+    let pipe = () => {
+      let s = sharp(srcPath);
+      if (extract) {
+        // Deterministic focal crop, then scale the window to the target width.
+        s = s.extract(extract).resize({ width: w, withoutEnlargement: true });
+      } else if (aspect) {
+        const h = Math.round((w * aspect[1]) / aspect[0]);
+        s = s.resize({ width: w, height: h, fit: "cover", position: "attention", withoutEnlargement: true });
+      } else {
+        // Natural aspect (stack layout) — width-only resize, no crop at all.
+        s = s.resize({ width: w, withoutEnlargement: true });
+      }
+      return s;
+    };
 
     const avifOut = path.join(OUT, `${name}-${w}.avif`);
     const webpOut = path.join(OUT, `${name}-${w}.webp`);
     const jpgOut  = path.join(OUT, `${name}-${w}.jpg`);
 
-    await sharp(srcPath).resize(resizeOpts).avif({ quality: 50, effort: 4 }).toFile(avifOut);
-    await sharp(srcPath).resize(resizeOpts).webp({ quality: 72, effort: 5 }).toFile(webpOut);
-    await sharp(srcPath).resize(resizeOpts).jpeg({ quality: 76, progressive: true, mozjpeg: true }).toFile(jpgOut);
+    await pipe().avif({ quality: 50, effort: 4 }).toFile(avifOut);
+    await pipe().webp({ quality: 72, effort: 5 }).toFile(webpOut);
+    await pipe().jpeg({ quality: 76, progressive: true, mozjpeg: true }).toFile(jpgOut);
 
     const [a, wp, j] = await Promise.all([stat(avifOut), stat(webpOut), stat(jpgOut)]);
     const om = await sharp(webpOut).metadata();

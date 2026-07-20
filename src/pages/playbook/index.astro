@@ -104,13 +104,15 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
    CHAPTER PHOTOGRAPHY (Jon's picks, 2026-07-20)
    Encoded by scripts/build-playbook-images.mjs to /public/playbook/<name>-{w}.
    One photo → full-width 3:2 hero; two+ → a two-up gallery; 'timeline' → the
-   captioned Our Story arc. Every photo is lazy and lives above the fold of a
+   captioned Our Story arc; 'stack' → full-width natural-aspect photos, one
+   per row (chapters that pair a group pano with a portrait shot — no tile
+   crop can hold a 2.2:1 pano). Every photo is lazy and lives above the fold of a
    `hidden` page, so nothing here competes with first paint. The CSS frame
    (aspect-ratio + object-fit:cover) enforces the crop, so the small sources
    that couldn't upscale to the larger width still render uniformly. */
 const PB_IMG = '/playbook';
-const pbWidths = (kind: 'single' | 'gallery' | 'timeline'): number[] =>
-  kind === 'single' ? [640, 1280] : kind === 'timeline' ? [520, 1040] : [440, 880];
+const pbWidths = (kind: 'single' | 'gallery' | 'timeline' | 'stack'): number[] =>
+  kind === 'single' || kind === 'stack' ? [640, 1280] : kind === 'timeline' ? [520, 1040] : [440, 880];
 const pbSrcset = (name: string, ext: string, widths: number[]): string =>
   widths.map((w) => `${PB_IMG}/${name}-${w}.${ext} ${w}w`).join(', ');
 
@@ -399,9 +401,13 @@ if (ORPHANS.length) {
             <div class="pb-body">
               {ch.photos && ch.photos.length > 0 && (() => {
                 const single = ch.photos.length === 1;
-                const kind = single ? 'single' : ch.photoLayout === 'timeline' ? 'timeline' : 'gallery';
+                const kind = single
+                  ? 'single'
+                  : ch.photoLayout === 'timeline' ? 'timeline'
+                  : ch.photoLayout === 'stack' ? 'stack'
+                  : 'gallery';
                 const widths = pbWidths(kind);
-                const sizes = single
+                const sizes = single || kind === 'stack'
                   ? '(min-width: 1025px) 544px, calc(100vw - 48px)'
                   : '(min-width: 1025px) 250px, 45vw';
                 return (
@@ -956,6 +962,14 @@ if (ORPHANS.length) {
   .pb-photos--gallery .pb-photo:last-child:nth-child(odd) picture { aspect-ratio: 3 / 2; }
   /* Our Story timeline — 3:2 landscape tiles, era caption under each. */
   .pb-photos--timeline .pb-photo picture { aspect-ratio: 3 / 2; }
+  /* Stack — each photo full-width at its NATURAL encoded aspect, one column.
+     Used where a wide group pano shares a chapter with a portrait shot: no
+     aspect-ratio frame, so object-fit never re-crops anyone out of the photo. */
+  .pb-photos--stack { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .pb-photos--stack .pb-photo picture {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.30), 0 24px 48px rgba(0, 0, 0, 0.36);
+  }
+  .pb-photos--stack .pb-photo img { height: auto; }
   .pb-photo-cap {
     font-family: var(--font-ui); font-size: 10.5px; font-weight: 700;
     letter-spacing: 0.1em; text-transform: uppercase;
