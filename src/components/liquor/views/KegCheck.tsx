@@ -90,8 +90,10 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
           onClick={() => setOpen(open === "backups" ? null : "backups")}
         >
           <span className="lq-kc-caret" aria-hidden="true">{open === "backups" ? "▾" : "▸"}</span>
-          <span className="lq-kc-title">Backup kegs</span>
-          <span className="lq-kc-sub">full / untapped</span>
+          <span className="lq-kc-names">
+            <span className="lq-kc-title">Backup kegs</span>
+            <span className="lq-kc-sub">full / untapped</span>
+          </span>
           <span className={`lq-kc-badge${backups.count > 0 ? " lq-kc-badge-on" : ""}`}>
             {backups.count}
           </span>
@@ -111,8 +113,10 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
           onClick={() => setOpen(open === "empties" ? null : "empties")}
         >
           <span className="lq-kc-caret" aria-hidden="true">{open === "empties" ? "▾" : "▸"}</span>
-          <span className="lq-kc-title">Empty kegs</span>
-          <span className="lq-kc-sub">piling up out back</span>
+          <span className="lq-kc-names">
+            <span className="lq-kc-title">Empty kegs</span>
+            <span className="lq-kc-sub">let me know what we have a lot of</span>
+          </span>
           <span className={`lq-kc-badge${empties.count > 0 ? " lq-kc-badge-on" : ""}`}>
             {empties.count}
           </span>
