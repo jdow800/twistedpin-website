@@ -74,6 +74,25 @@ export interface WizardState {
   /** addOnProductId → quantity (0 = not selected). */
   addOnQtys: Record<string, number>;
   guest: GuestFields;
+  /**
+   * Marketing-consent checkbox on the guest step (2026-07-19). ONE box covers
+   * both channels — its fine print names texts AND emails — so this single
+   * value feeds both `marketingOptIn` (email) and `smsMarketingOptIn` on the
+   * checkout payload.
+   *
+   * `undefined` = the guest never touched it, and that is deliberately NOT
+   * `false`: the backend treats an explicit `false` as a recorded opt-out
+   * decision (ADR-0005 §4 step 4 — "default-without-touch ≠ explicit
+   * opt-out"), writing a consent_event that claims a choice the guest never
+   * made. Since most guests will simply ignore the box, sending `false` would
+   * bury the real opt-outs under noise in the one record that has to hold up
+   * as consent evidence. Untouched stays untouched.
+   *
+   * NOT part of GuestFields — that type is all-strings and drives the
+   * required-field validation/scroll machinery, which this must stay out of
+   * (it is optional by law: consent can't be a condition of purchase).
+   */
+  marketingOptIn: boolean | undefined;
   couponCode: string;
   couponResult: CouponPreviewResponse | null;
   /** ADR-0030 captured answers, submitted at convert. */
@@ -92,6 +111,7 @@ export const initialState: WizardState = {
   laneQty: 1,
   addOnQtys: {},
   guest: EMPTY_GUEST,
+  marketingOptIn: undefined,
   couponCode: "",
   couponResult: null,
   formAnswers: [],
@@ -126,6 +146,7 @@ export type WizardAction =
   | { type: "SET_LANE_QTY"; qty: number }
   | { type: "SET_ADDON_QTY"; addOnId: string; qty: number }
   | { type: "SET_GUEST_FIELD"; field: keyof GuestFields; value: string }
+  | { type: "SET_MARKETING_OPT_IN"; value: boolean }
   | { type: "SET_COUPON_CODE"; code: string }
   | { type: "SET_COUPON_RESULT"; result: CouponPreviewResponse | null }
   | { type: "SET_FORM_ANSWERS"; answers: FormAnswerInput[] }
@@ -190,6 +211,10 @@ export function wizardReducer(
         ...state,
         guest: { ...state.guest, [action.field]: action.value },
       };
+    case "SET_MARKETING_OPT_IN":
+      // Only ever dispatched by an actual toggle, so reaching here always means
+      // an explicit decision — `undefined` (untouched) can't be re-entered.
+      return { ...state, marketingOptIn: action.value };
     case "SET_COUPON_CODE":
       // Editing the code invalidates the prior preview result.
       return { ...state, couponCode: action.code, couponResult: null };

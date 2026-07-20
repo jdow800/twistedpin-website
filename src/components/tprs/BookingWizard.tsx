@@ -478,6 +478,10 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           onGuestField={(field, value) =>
             dispatch({ type: "SET_GUEST_FIELD", field, value })
           }
+          marketingOptIn={state.marketingOptIn}
+          onMarketingOptIn={(value) =>
+            dispatch({ type: "SET_MARKETING_OPT_IN", value })
+          }
           productId={state.product.id}
           onFormAnswers={handleFormAnswers}
           onFormInvalidIds={setFormInvalidIds}
@@ -498,6 +502,12 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             email: state.guest.email.trim(),
             phone: state.guest.phone.trim(),
             zip: state.guest.zip.trim(),
+            // One checkbox, two channel consents — its disclosure names texts
+            // AND emails, so the same explicit decision is recorded per channel.
+            // Left `undefined` when untouched so no consent_event is written
+            // (see WizardState.marketingOptIn).
+            marketingOptIn: state.marketingOptIn,
+            smsMarketingOptIn: state.marketingOptIn,
           }}
           cartHoldItems={[
             {

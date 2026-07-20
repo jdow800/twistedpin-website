@@ -15,6 +15,10 @@ import { guestFieldError, guestInvalidFields, type GuestFields } from "../state"
 interface Props {
   guest: GuestFields;
   onGuestField: (field: keyof GuestFields, value: string) => void;
+  /** Marketing-consent checkbox value. `undefined` = never toggled — rendered
+   *  unchecked, but distinct from an explicit `false` on the wire. */
+  marketingOptIn: boolean | undefined;
+  onMarketingOptIn: (value: boolean) => void;
   /** For the ADR-0030 booking-question forms lookup. */
   productId: string;
   onFormAnswers: (answers: FormAnswerInput[]) => void;
@@ -44,6 +48,8 @@ export default function GuestDetailsStep(props: Props) {
   const {
     guest,
     onGuestField,
+    marketingOptIn,
+    onMarketingOptIn,
     productId,
     onFormAnswers,
     onFormInvalidIds,
@@ -219,6 +225,35 @@ export default function GuestDetailsStep(props: Props) {
       <p className="tprs-help">
         We'll text you about your booking and visit. Msg &amp; data rates may
         apply. Reply STOP anytime.
+      </p>
+
+      {/* Marketing opt-in (2026-07-19) — the separate UNCHECKED checkbox the
+          disclosure above anticipated. Deliberately NOT merged into the payment
+          step's terms checkbox: consent to marketing can't be a condition of
+          purchase, so it has to be its own affirmative act the guest can skip
+          while still booking. Never pre-checked.
+
+          One box, both channels: the fine print names texts AND emails, and
+          BookingWizard sends the value as both `marketingOptIn` (email) and
+          `smsMarketingOptIn`. Splitting into two boxes is a UI change only —
+          the wire shape already carries them separately.
+
+          Untouched → stays `undefined` → the payload omits both fields, so no
+          consent_event is written at all (see WizardState.marketingOptIn). */}
+      <label className="tprs-choice">
+        <input
+          type="checkbox"
+          checked={marketingOptIn === true}
+          onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
+        />
+        <span>
+          <strong>Send me the good stuff.</strong> First dibs on offers and
+          events.
+        </span>
+      </label>
+      <p className="tprs-consent-fine">
+        Occasional marketing texts and emails from Twisted Pin. Not required to
+        book. Msg &amp; data rates may apply. Reply STOP to opt out.
       </p>
 
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking

@@ -22,6 +22,17 @@ export const checkoutCustomerPayloadSchema = z.object({
   phone: z.string().min(1).max(64),
   zip: z.string().min(1).max(32),
   marketingOptIn: z.boolean().optional(),
+  /**
+   * SMS marketing consent — a SEPARATE channel decision from `marketingOptIn`
+   * (email) per the ADR-0005 amendment 2026-05-17 Decision B per-channel
+   * consent matrix. Absent = the guest never touched the checkbox, which is
+   * NOT the same as an opt-out (the backend records an explicit `false` as a
+   * decision in the consent-evidence record).
+   *
+   * The guest step renders ONE checkbox whose disclosure names both channels,
+   * so both fields currently arrive with the same value.
+   */
+  smsMarketingOptIn: z.boolean().optional(),
   claimsTaxExempt: z.boolean().optional(),
 });
 export type CheckoutCustomerPayload = z.infer<
