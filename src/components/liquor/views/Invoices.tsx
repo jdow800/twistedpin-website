@@ -51,7 +51,18 @@ function shortDate(iso: string): string {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export default function Invoices({ onDone }: { onDone: () => void }) {
+// Deep-link auto-open (the flagged-invoice email's "Review invoice →" button lands
+// on /liquor?invoice=<id>). Consumed once per page load so leaving the detail and
+// coming back to Invoices later in the session shows the normal list.
+let deepLinkConsumed = false;
+
+export default function Invoices({
+  onDone,
+  initialInvoiceId = null,
+}: {
+  onDone: () => void;
+  initialInvoiceId?: string | null;
+}) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [list, setList] = useState<InvoiceSummary[]>([]);
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
@@ -69,6 +80,10 @@ export default function Invoices({ onDone }: { onDone: () => void }) {
           setList(inv);
           setCatalog(cat);
           setPhase("ready");
+          if (initialInvoiceId && !deepLinkConsumed) {
+            deepLinkConsumed = true;
+            void open(initialInvoiceId); // bad/expired id: open() fails quietly, list stays
+          }
         }
       } catch {
         if (live) setPhase("error");

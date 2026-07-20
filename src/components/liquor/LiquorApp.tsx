@@ -20,17 +20,22 @@ type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "in
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
-// scope and the param stripped immediately, so a logged-out staffer who has to punch
+// scope and the params stripped immediately, so a logged-out staffer who has to punch
 // in their PIN first still lands where the email sent them — bootstrap() doubles as
 // Login's onLoggedIn, and a refresh after that goes to Home like any other session.
+// ?invoice=<id> (the flagged-invoice email's "Review invoice" button) additionally
+// opens that invoice's detail inside the Invoices view, and implies view=invoices
+// on its own so the email URL stays short.
 const DEEP_LINKABLE: readonly View[] = ["mappours", "pourcosts", "invoices", "pricewatch", "counts"];
 
-const requestedView: View | null = (() => {
-  if (typeof window === "undefined") return null;
-  const raw = new URLSearchParams(window.location.search).get("view");
-  const match = DEEP_LINKABLE.find((v) => v === raw) ?? null;
-  if (raw) window.history.replaceState({}, "", window.location.pathname);
-  return match;
+const { requestedView, requestedInvoiceId } = ((): { requestedView: View | null; requestedInvoiceId: string | null } => {
+  if (typeof window === "undefined") return { requestedView: null, requestedInvoiceId: null };
+  const params = new URLSearchParams(window.location.search);
+  const rawView = params.get("view");
+  const rawInvoice = params.get("invoice");
+  if (rawView || rawInvoice) window.history.replaceState({}, "", window.location.pathname);
+  const view = DEEP_LINKABLE.find((v) => v === rawView) ?? (rawInvoice ? "invoices" : null);
+  return { requestedView: view, requestedInvoiceId: rawInvoice };
 })();
 
 export default function LiquorApp() {
@@ -89,7 +94,7 @@ export default function LiquorApp() {
         {view === "count" && <CountLiquor onDone={goHome} />}
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
-        {view === "invoices" && <Invoices onDone={goHome} />}
+        {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}
         {view === "counts" && <Counts onDone={goHome} />}
         {view === "pricewatch" && <PriceWatch onDone={goHome} />}
         {view === "pourcosts" && <PourCosts onDone={goHome} />}
