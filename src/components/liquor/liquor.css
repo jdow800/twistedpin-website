@@ -1224,6 +1224,74 @@
   font-size: 12px;
 }
 
+/* ── keg check (backups + empties in one pass) ─────────────────────────────
+   The two halves are accordion sections sharing one Send. Collapsed sections
+   stay MOUNTED (hidden, not unmounted) so each half keeps its draft session
+   and autosave — tearing them down would lose unflushed edits. */
+.lq-kegcheck {
+  padding-bottom: 96px;
+}
+.lq-kc-section {
+  border: 1px solid var(--lq-line);
+  border-radius: var(--lq-radius);
+  background: var(--lq-panel);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.lq-kc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  background: none;
+  border: 0;
+  color: var(--lq-text);
+  text-align: left;
+  cursor: pointer;
+}
+.lq-kc-caret {
+  color: var(--lq-muted);
+  font-size: 12px;
+}
+.lq-kc-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+.lq-kc-sub {
+  flex: 1;
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-kc-badge {
+  flex-shrink: 0;
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--lq-panel-2);
+  border: 1px solid var(--lq-line);
+  color: var(--lq-muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
+.lq-kc-badge-on {
+  background: var(--lq-glow);
+  border-color: var(--lq-glow);
+  color: var(--indigo-deep, #0e0a1f);
+}
+.lq-kc-body {
+  padding: 0 12px 12px;
+}
+.lq-kc-hidden {
+  display: none;
+}
+/* Embedded halves lose their own bottom padding — the parent footer owns it. */
+.lq-count-embedded {
+  padding-bottom: 0;
+}
+
 /* ── empty-keg report ──────────────────────────────────────────────────────
    Tap-first: the brand chips carry the flow, the band buttons are the answer.
    Bands are colour-coded to the same scale the email uses (a lot = hot), so

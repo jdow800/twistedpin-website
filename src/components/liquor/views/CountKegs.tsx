@@ -34,7 +34,23 @@ type Row = {
   raw?: string;
 };
 
-export default function CountKegs({ onDone }: { onDone: () => void }) {
+/**
+ * Also runs EMBEDDED as the backup half of the Keg Check screen. In that mode
+ * it still owns its own session + autosave (that part is battle-tested and
+ * unchanged) but hides its footer and hands the parent a flush handle + live
+ * stats, so ONE Send closes both halves and sends one email.
+ */
+export default function CountKegs({
+  onDone,
+  embedded = false,
+  onEmbedState,
+  embedFlushRef,
+}: {
+  onDone?: () => void;
+  embedded?: boolean;
+  onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
+  embedFlushRef?: { current: (() => Promise<void>) | null };
+}) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [known, setKnown] = useState<KegKnownItem[]>([]);
@@ -111,6 +127,12 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  // Hand the parent a live flush handle — reassigned every render so it always
+  // closes over the current rows.
+  useEffect(() => {
+    if (embedFlushRef) embedFlushRef.current = flush;
+  });
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowsRef = useRef<Row[]>(rows);
@@ -217,6 +239,15 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
     }
   }
 
+  // Running total, hoisted above the early returns so the parent-reporting
+  // effect below is unconditional (hooks cannot live after a conditional return).
+  const total = validLines(rows).reduce((n, r) => n + r.qty, 0);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    onEmbedState?.({ sessionId, count: total });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, total]);
+
   if (phase === "loading") return <div className="lq-center lq-muted">Starting keg count…</div>;
   if (phase === "error")
     return (
@@ -239,9 +270,8 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
       </div>
     );
 
-  const total = validLines(rows).reduce((n, r) => n + r.qty, 0);
   return (
-    <div className="lq-count">
+    <div className={embedded ? "lq-count lq-count-embedded" : "lq-count"}>
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your keg count in progress.</span>
@@ -342,6 +372,7 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
         + Add a keg
       </button>
 
+      {!embedded && (
       <div className="lq-footer">
         <div className="lq-savestate">
           {save === "saving" && "Saving…"}
@@ -350,7 +381,7 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
         </div>
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">{total} keg{total === 1 ? "" : "s"}</span>
-          <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
+          <button type="button" className="lq-btn lq-btn-ghost" onClick={() => onDone?.()}>
             Exit
           </button>
           <button type="button" className="lq-btn lq-btn-primary" disabled={submitting} onClick={finish}>
@@ -358,6 +389,7 @@ export default function CountKegs({ onDone }: { onDone: () => void }) {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

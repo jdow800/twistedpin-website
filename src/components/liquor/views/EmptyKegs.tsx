@@ -60,7 +60,18 @@ function whenPulled(b: KegBrand): string {
   return `pulled ${Math.round(days / 30)}mo ago`;
 }
 
-export default function EmptyKegs({ onDone }: { onDone: () => void }) {
+export default function EmptyKegs({
+  onDone,
+  embedded = false,
+  onEmbedState,
+  embedFlushRef,
+}: {
+  onDone?: () => void;
+  /** Embedded as the empties half of Keg Check: own session + autosave, parent owns Send. */
+  embedded?: boolean;
+  onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
+  embedFlushRef?: { current: (() => Promise<void>) | null };
+}) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [brands, setBrands] = useState<KegBrand[]>([]);
@@ -139,6 +150,11 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
+
+  // Live flush handle for the embedding parent, reassigned every render.
+  useEffect(() => {
+    if (embedFlushRef) embedFlushRef.current = flush;
+  });
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rowsRef = useRef<Row[]>(rows);
@@ -293,12 +309,20 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
     }
   }
 
+  // Reported to the parent for its section header. Declared above the early
+  // returns so the effect stays unconditional.
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    onEmbedState?.({ sessionId, count: rows.length });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, rows.length]);
+
   if (phase === "loading") return <div className="lq-center lq-muted">Starting empty-keg report…</div>;
   if (phase === "error")
     return (
       <div className="lq-center">
         <p className="lq-error">Couldn't start the empty-keg report.</p>
-        <button className="lq-btn" onClick={onDone}>
+        <button className="lq-btn" onClick={() => onDone?.()}>
           Back
         </button>
       </div>
@@ -311,7 +335,7 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
         <p className="lq-muted">
           {done} brand{done === 1 ? "" : "s"} sent.
         </p>
-        <button className="lq-btn lq-btn-primary" onClick={onDone}>
+        <button className="lq-btn lq-btn-primary" onClick={() => onDone?.()}>
           Done
         </button>
       </div>
@@ -333,7 +357,7 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
   const canAddFreeText = needle.length >= 2 && suggestions.length === 0;
 
   return (
-    <div className="lq-count lq-empties">
+    <div className={embedded ? "lq-count lq-empties lq-count-embedded" : "lq-count lq-empties"}>
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your empty-keg report in progress.</span>
@@ -503,6 +527,7 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
         )}
       </div>
 
+      {!embedded && (
       <div className="lq-footer">
         <div className="lq-savestate">
           {save === "saving" && "Saving…"}
@@ -513,7 +538,7 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
           <span className="lq-muted lq-count-tally">
             {rows.length} brand{rows.length === 1 ? "" : "s"}
           </span>
-          <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
+          <button type="button" className="lq-btn lq-btn-ghost" onClick={() => onDone?.()}>
             Exit
           </button>
           <button
@@ -526,6 +551,7 @@ export default function EmptyKegs({ onDone }: { onDone: () => void }) {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }

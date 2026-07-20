@@ -395,6 +395,22 @@ export async function submitEmptyKegReport(sessionId: string): Promise<number> {
   );
   return brandCount;
 }
+/**
+ * Close both halves of a keg check and send ONE email. Either id may be null —
+ * a backups-only or empties-only trip is normal. This exists because two
+ * independent submits can't produce one email: send-on-first means the second
+ * is silent, so the merge has to happen at submit time.
+ */
+export async function submitKegCheck(args: {
+  kegCountId: string | null;
+  emptyReportId: string | null;
+}): Promise<{ totalKegs: number; brandCount: number; emailed: boolean }> {
+  return gatedJson<{ totalKegs: number; brandCount: number; emailed: boolean }>(
+    "/admin/bar/keg-check/submit",
+    jsonBody(args),
+  );
+}
+
 export interface EmptyKegVoiceItem {
   brandId: string | null;
   label: string;
