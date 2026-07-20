@@ -172,9 +172,17 @@ an open code window).
   tag** — a permanent exclusion the lift will not clear. Campaign queries must filter
   `do_not_market` themselves; the tag does not cover it, and Avery's n8n rail does not
   inherit the loyalty base-segment predicate that would.
-- **Still unverified: does `Avery - Visit Feedback` (TtRzMtdpMR6dsfw4) check
-  `do_not_market`?** It runs daily and the import put 66 booking customers into that state
-  on Jul 19. If it doesn't check, the quarantine is already leaking through Avery's number
-  — and it's the designated gate for the Part B fast arm. Cheap to rule out; do it first.
+- **`Avery - Visit Feedback` (TtRzMtdpMR6dsfw4) — VERIFIED 2026-07-19. Not leaking.** Its
+  `Find Eligible Visits` node filters `AND NOT COALESCE(c.do_not_market,false)`, so the
+  quarantine holds. Inverted side-effect instead: VF is now *suppressed* for quarantined
+  bookers — **9 guests with visits Jul 18–28 get no feedback text**. Self-heals at the lift.
+- **⚠️ THE TRAP FOR PART B: that query does NOT check `sms_marketing_opt_in`.** Correct for
+  VF — it's transactional, riding the guest-step booking disclosure, not marketing consent.
+  But the fast arm is designed to CHAIN off VF, and copying its predicate list verbatim
+  (the obvious move — it already pre-qualifies on positive sentiment) would send marketing
+  to non-consented guests. **The rebook nudge query must add `sms_marketing_opt_in` on top
+  of VF's filters.** Reuse the rest: its 90-day campaign dedupe + 14-day conversation-
+  recency guard already implement §5's per-guest dedupe / never-nudge-mid-conversation
+  rules.
 - Part A window: mid-September (build during late Aug).
 - Nothing here touches the walk-in loyalty ecosystem (separate memory/doctrine).
