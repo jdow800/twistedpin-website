@@ -74,15 +74,38 @@ SUSTAINED promotion (Mela 1997/98) → keep touches rare + unpredictable.
 
 ### Part B — evergreen nudges (the build)
 
-**Fast bounce-back** (Jon's spec, research-converged):
-- Trigger: ~3 weeks after an attended booking, **gated on POSITIVE Visit Feedback
-  sentiment** (pre-qualified; aggressive offer only reaches people who said they had fun).
-- Offer: **"Second hour on us"** (≡ Jon's 50%-off-2hr instinct, winning frame). Implement:
-  fixed_amount = 1-hour price scoped to 2-hour lane products (or 50% w/ max_discount cap —
-  decide at build; NEVER communicate as a percentage).
-- Window: **~10-day BOOK-BY** (expiry gates the checkout date, NOT the visit date — frame
-  as "lock it in by Fri the 14th"; the visit can be any future slot).
-- **T-2 days: Avery reminder with live availability** ("code's up Friday — Sat 7pm has
+**⚠️ 2026-07-20 REVISION — Jon rejected the original offer designs below ("don't love
+these, we will revisit"). His locked simpler spec for the fast nudge:**
+
+- **Trigger: attended (not-refunded) booking → 21 days later.** NO Visit-Feedback
+  sentiment gate — deliberately simpler than the original design; the feedback-gate
+  dependency chain is dropped.
+- **Offer: 50% off ONE lane reservation** — communicated as 50% (Jon's call; the
+  earlier "never say a percentage" rule-of-100 guidance is overruled for this offer).
+  Booking link in the SMS.
+- **Mechanics (TPRS lever SHIPPED 2026-07-20, PR #10 / migration 0110, live in prod):**
+  `discounts.max_discounted_quantity` — mint via /api/avery/coupons with
+  `discount_type: percentage, value: 0.5, max_discounted_quantity: 1,
+  product_scope: specific` + the 4 lane products (codes 4/5/121/123), `usage_end`
+  +10d, `generate_count: 1, max_uses: 1`. The engine discounts the single most
+  expensive lane-unit in the cart no matter how many lanes are booked (2 VIP → half
+  off one VIP; 3 Trad → half off one Trad; mixed → the priciest). Guest sees the
+  exact number at coupon-preview. The original "eligible for only 1-2 lanes" idea is
+  OBSOLETE — no eligibility gate needed, bigger carts just pay full price on the rest.
+- **Window: 10-day BOOK-BY** (~2 weekends; expiry gates the checkout date, NOT the
+  visit date — frame "lock it in by Fri the 14th"; visit can be any future slot).
+- **Track redemption rates**: `v_campaign_results` + /admin/discounts per-code counts;
+  send-denominator via avery_campaign_log (Visit Feedback pattern).
+- Still recommended at build (not yet re-confirmed w/ Jon): T-2 reminder w/ live
+  availability · season gate (Jun–Aug sends defer to Sept) · holdout slice ·
+  group-aware copy. Copy itself = open workstream ("the copy we need to work on").
+
+*Original design (superseded, kept for reference):*
+- Trigger: ~3 weeks after an attended booking, gated on POSITIVE Visit Feedback
+  sentiment. **NOTE: gate dropped in the 2026-07-20 revision.**
+- Offer: "Second hour on us" — fixed_amount = 1-hour price scoped to 2-hour lane
+  products. **Superseded by 50%-off-one-lane via max_discounted_quantity.**
+- T-2 days: Avery reminder with live availability ("code's up Friday — Sat 7pm has
   lanes, want it?") — harvests the second redemption mode; Avery-only capability.
 - Season gate: nudges whose send-date lands Jun–Aug defer to early September.
 - Group-aware copy from the booking's guest_count.
@@ -152,7 +175,10 @@ an open code window).
 
 ## 6. Open decisions (Jon)
 
-- Final offer economics per arm (amounts, VIP-upgrade value, Part A tiering).
+- ~~Fast-nudge offer economics~~ **DECIDED 2026-07-20: 50% off one lane, 10-day
+  book-by, no feedback gate** (see Part B revision). Copy still open.
+- Part A arm designs + anniversary offer: Jon rejected the drafted set 2026-07-20
+  ("don't love these — we will revisit"). Re-design before the late-Aug build.
 - Expiry A/B (research open question: ~2-3wk vs 5-6wk with reminder — could BE one of
   the Part A arms).
 - Holdout size (power question vs 2,508 base; ~10-15% per arm is a sane default).
