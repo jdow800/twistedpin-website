@@ -42,6 +42,7 @@ export const prerender = false;
 import Base from '../../layouts/Base.astro';
 import { CHAPTERS } from '../../content/playbook/chapters';
 import { GUIDEBOOK } from '../../content/playbook/guidebook';
+import { SEARCH_ALIASES } from '../../content/playbook/search-aliases';
 import {
   PLAYBOOK_COOKIE,
   PLAYBOOK_WHO_COOKIE,
@@ -98,6 +99,104 @@ const firstName = rawFirst ? rawFirst[0].toUpperCase() + rawFirst.slice(1) : '';
  */
 const BEAT_MAX_CHARS = 52;
 const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
+
+/* ────────────────────────────────────────────────────────────────────────
+   SEARCH
+   ────────────────────────────────────────────────────────────────────────
+   Built because paging BROKE BROWSER FIND. Every chapter that isn't open is
+   `hidden`, so Ctrl-F / "Find on page" can't see it — fine for Part One (read
+   once, front to back) but a real defect in a reference book, where someone
+   arrives at 6am with a question and no idea which chapter holds the answer.
+
+   Deliberately NOT an LLM. This is employment policy — PTO accrual, at-will
+   employment, harassment reporting, workers' comp. A model that paraphrases
+   those will eventually tell an hourly teammate they get 40 hours of PTO when
+   they accrue closer to 12. So search FINDS the passage and we render the
+   book's own words verbatim; nothing here ever writes policy prose.
+
+   The index is built here at request time (the page is already server-rendered)
+   and serialized into the page, so filtering is instant and offline-safe. */
+
+interface SearchEntry {
+  book: 'pb' | 'gb';
+  /** Page index to open. */
+  page: number;
+  /** DOM id of the section to scroll to. */
+  anchor: string;
+  chapter: string;
+  section: string;
+  /** Lowercased haystack: chapter + section titles + body. NO synonyms — see
+   *  search-aliases.ts for why smearing them over the corpus was wrong. */
+  hay: string;
+  /** Colloquial phrasings that should land here (search-aliases.ts). Matched
+   *  against the QUERY and weighted above any text match. */
+  aliases: string[];
+  /** Short preview shown under the result. */
+  snippet: string;
+}
+
+function pbText(blocks: (typeof CHAPTERS)[number]['sections'][number]['blocks']): string {
+  return blocks
+    .map((b) => (typeof b === 'string' ? b : 'q' in b ? b.q : b.h))
+    .join(' ');
+}
+
+function gbText(blocks: (typeof GUIDEBOOK)[number]['sections'][number]['blocks']): string {
+  return blocks
+    .map((b) => {
+      if (typeof b === 'string') return b;
+      if ('h' in b) return b.h;
+      if ('note' in b) return b.note;
+      if ('list' in b) return b.list.join(' ');
+      if ('callout' in b) return b.callout.join(' ');
+      return [...b.table.head, ...b.table.rows.flat()].join(' ');
+    })
+    .join(' ');
+}
+
+const SEARCH: SearchEntry[] = [];
+
+CHAPTERS.forEach((ch, ci) => {
+  ch.sections.forEach((sec, si) => {
+    const body = pbText(sec.blocks);
+    const title = sec.title && sec.title !== ch.title ? sec.title : '';
+    SEARCH.push({
+      book: 'pb',
+      page: ci + 1,
+      anchor: `s-pb-${ci}-${si}`,
+      chapter: ch.title,
+      section: title,
+      hay: `${ch.title} ${title} ${body}`.toLowerCase(),
+      aliases: SEARCH_ALIASES[title] ?? [],
+      snippet: body.slice(0, 150),
+    });
+  });
+});
+
+GUIDEBOOK.forEach((ch, ci) => {
+  ch.sections.forEach((sec, si) => {
+    const body = gbText(sec.blocks);
+    const title = sec.title ?? '';
+    SEARCH.push({
+      book: 'gb',
+      page: ci,
+      anchor: `s-gb-${ci}-${si}`,
+      chapter: ch.title,
+      section: title,
+      hay: `${ch.title} ${ch.blurb} ${title} ${body}`.toLowerCase(),
+      aliases: SEARCH_ALIASES[title] ?? [],
+      snippet: body.slice(0, 150),
+    });
+  });
+});
+
+// Surface alias keys that don't match any section title — a typo here would
+// otherwise fail silently, leaving a dead alias nobody notices.
+const MATCHED = new Set(SEARCH.map((e) => e.section).filter(Boolean));
+const ORPHANS = Object.keys(SEARCH_ALIASES).filter((k) => !MATCHED.has(k));
+if (ORPHANS.length) {
+  console.warn('[playbook/search] aliases with no matching section:', ORPHANS.join(', '));
+}
 ---
 
 <Base
@@ -169,7 +268,7 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
 
   {/* ═══════════════════════ 3. THE BOOKS ═══════════════════════ */}
   {authed && who && (
-    <main class="pb" data-pb-pages={PB_PAGES} data-gb-pages={GUIDEBOOK.length}>
+    <main class="pb" data-pb-pages={PB_PAGES} data-gb-pages={GUIDEBOOK.length} data-sid={who.sid}>
 
       {/* ── top chrome: shared by both readers ── */}
       <div class="pb-bar" data-bar hidden>
@@ -189,6 +288,24 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
           <span class="pb-toc-title" data-toc-book>Contents</span>
           <button class="pb-toc-close" type="button" data-toc-close aria-label="Close contents">✕</button>
         </div>
+
+        {/* Search. Covers BOTH books regardless of which one you're in — a
+            teammate looking for "call off" shouldn't have to know it lives in
+            the Guidebook. */}
+        <div class="pb-search">
+          <input type="search" id="pb-search-input" placeholder="Search both books…"
+                 autocomplete="off" autocapitalize="off" spellcheck="false"
+                 aria-label="Search the Playbook and Guidebook" />
+        </div>
+        <div class="pb-results" data-results hidden>
+          <p class="pb-results-empty" data-results-empty hidden>
+            Nothing matched that. Try a different word — or just ask a manager.
+            We'd rather answer a question than have you wonder.
+          </p>
+          <ul class="pb-results-list" data-results-list></ul>
+        </div>
+
+        <script is:inline type="application/json" data-search-index set:html={JSON.stringify(SEARCH)}></script>
         <ol class="pb-toc-list" data-toc-list-pb>
           {CHAPTERS.map((ch, i) => (
             <li><button type="button" data-jump="pb" data-index={i + 1}>{ch.title}</button></li>
@@ -262,7 +379,7 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
               </p>
               <h2 class="pb-title">{ch.title}</h2>
               {ch.sections.map((sec, si) => (
-                <div class={`pb-section${si > 0 ? ' pb-section--sub' : ''}`}>
+                <div class={`pb-section${si > 0 ? ' pb-section--sub' : ''}`} id={`s-pb-${i}-${si}`}>
                   {sec.eyebrow && <p class="pb-eyebrow">{sec.eyebrow}</p>}
                   {sec.title && sec.title !== ch.title && (
                     <h3 class="pb-subtitle">{sec.title}</h3>
@@ -370,8 +487,8 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
             <div class="pb-body">
               <p class="pb-part">Part Two — The Guidebook</p>
               <h2 class="pb-title">{ch.title}</h2>
-              {ch.sections.map((sec) => (
-                <div class="pb-section pb-section--gb">
+              {ch.sections.map((sec, si) => (
+                <div class="pb-section pb-section--gb" id={`s-gb-${i}-${si}`}>
                   {sec.title && <h3 class="pb-subtitle">{sec.title}</h3>}
                   {sec.blocks.map((b) => {
                     if (typeof b === 'string') {
@@ -535,6 +652,67 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
     width: 40px; height: 40px; border: none; background: transparent;
     color: var(--warm-dim); font-size: 16px; cursor: pointer;
   }
+  /* ---------- search ---------- */
+  .pb-search { padding: 12px 14px 8px; }
+  .pb-search input {
+    width: 100%;
+    /* 16px minimum, always — below it iOS zooms on focus and never returns,
+       and this input is the first thing a hurried teammate taps. */
+    font-size: 16px; font-family: var(--font-ui);
+    padding: 11px 12px; border-radius: var(--radius-button);
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    background: #171327; color: var(--warm-white);
+    -webkit-appearance: none; appearance: none;
+  }
+  .pb-search input::placeholder { color: var(--warm-dim); }
+  .pb-results { padding: 4px 0 8px; }
+  .pb-results[hidden] { display: none; }
+  .pb-results-empty {
+    padding: 10px 16px 14px; font-size: 13px; line-height: 1.55;
+    color: var(--warm-dim);
+  }
+  .pb-results-empty[hidden] { display: none; }
+  .pb-results-list { list-style: none; margin: 0; padding: 0; }
+  .pb-results-list button {
+    display: block; width: 100%; text-align: left;
+    padding: 11px 16px; min-height: 44px;
+    background: transparent; border: none; cursor: pointer;
+    border-left: 2px solid transparent;
+  }
+  .pb-results-list button:hover {
+    background: rgba(244, 239, 227, 0.04); border-left-color: var(--glow);
+  }
+  .pb-res-book {
+    display: block; font-family: var(--font-ui); font-size: 10px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--glow); margin-bottom: 3px;
+  }
+  .pb-res-title {
+    display: block; font-family: var(--font-ui); font-weight: 700;
+    font-size: 14px; line-height: 1.3; color: var(--warm-white); margin-bottom: 3px;
+  }
+  .pb-res-snip {
+    display: block; font-size: 12px; line-height: 1.45; color: var(--warm-dim);
+    /* Two-line clamp keeps every result the same height, so the list stays
+       scannable instead of ragged. */
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Brief highlight on the section a search result landed on — without it,
+     jumping mid-chapter leaves you unsure which part matched. */
+  .pb-flash {
+    animation: pb-flash 1.6s ease-out;
+    border-radius: var(--radius-surface);
+  }
+  @keyframes pb-flash {
+    0%, 25% { background: rgba(78, 236, 196, 0.13); box-shadow: 0 0 0 10px rgba(78, 236, 196, 0.13); }
+    100%    { background: transparent; box-shadow: 0 0 0 10px transparent; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pb-flash { animation: none; outline: 2px solid var(--glow); outline-offset: 6px; }
+  }
+
   .pb-toc-list { list-style: none; margin: 0; padding: 8px 0; }
   .pb-toc-list[hidden] { display: none; }
   .pb-toc-list button {
@@ -886,20 +1064,59 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
     /* ── reading time ──────────────────────────────────────────────────
        Accumulates ONLY while the tab is visible. Wall-clock would call a
        teammate who read across two shifts a 19-hour scholar and rate a
-       speed-runner the same as someone who actually read it. This is
-       client-reported and therefore forgeable — it's a coaching signal, not
-       evidence, and the server clamps it. */
+       speed-runner the same as someone who actually read it.
+
+       ⚠️ PERSISTED TO localStorage, and it MUST be. The first version kept
+       these in memory only, which silently reset on every page load — so
+       Shanna, who read for ~20 minutes across the whole book, was reported as
+       "17 seconds, 2 of 19 pages" because two deploys and an iOS tab eviction
+       reloaded the page under her. A metric about someone's diligence that
+       resets without telling anyone is worse than no metric: it doesn't just
+       lose data, it makes a confident false claim about a real person.
+
+       Keyed by SESSION ID so a shared front-desk device can't hand one
+       teammate's reading time to the next.
+
+       Still client-reported and therefore forgeable, and still lossy (private
+       browsing, cleared storage, a different device). Treat a HIGH number as
+       meaningful and a LOW one as unknown — never as evidence. */
+    const SID = root.dataset.sid || 'anon';
+    const TIME_KEY = `tp-playbook-time-${SID}`;
+    const PAGES_KEY = `tp-playbook-pages-${SID}`;
+
     let activeMs = 0;
-    let lastTick = document.visibilityState === 'visible' ? Date.now() : 0;
     const seenPbPages = new Set<number>();
+    try {
+      activeMs = parseInt(localStorage.getItem(TIME_KEY) || '0', 10) || 0;
+      JSON.parse(localStorage.getItem(PAGES_KEY) || '[]').forEach((n: number) =>
+        seenPbPages.add(n),
+      );
+    } catch { /* private mode — we just start from zero */ }
+
+    let lastTick = document.visibilityState === 'visible' ? Date.now() : 0;
+
+    function persist() {
+      try {
+        localStorage.setItem(TIME_KEY, String(activeMs));
+        localStorage.setItem(PAGES_KEY, JSON.stringify([...seenPbPages]));
+      } catch { /* nothing we can do; the signature still records */ }
+    }
 
     function flushTime() {
       if (lastTick) { activeMs += Date.now() - lastTick; lastTick = Date.now(); }
+      persist();
     }
+
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') lastTick = Date.now();
       else { flushTime(); lastTick = 0; }
     });
+    // pagehide, not beforeunload — iOS Safari fires pagehide reliably and
+    // beforeunload barely at all, and iOS is where the tab eviction happens.
+    window.addEventListener('pagehide', flushTime);
+    // Periodic flush so even a hard kill (OS reclaiming the tab, battery
+    // death) loses at most a few seconds rather than the whole session.
+    setInterval(flushTime, 5000);
 
     /* ── rendering ── */
     function render(push: boolean) {
@@ -908,6 +1125,7 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
       if (view === 'pb') {
         pbPages.forEach((p, n) => { p.hidden = n !== pbIndex; });
         seenPbPages.add(pbIndex);
+        persist();
         if (fill) fill.style.width = `${(pbIndex / pbLast) * 100}%`;
       } else if (view === 'gb') {
         gbPages.forEach((p) => {
@@ -938,6 +1156,9 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
 
       updateHubStatus();
       window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      // Then, if we arrived from a search result, scroll on to that section.
+      // Order matters: top-first, then anchor, or the anchor scroll is undone.
+      consumeAnchor();
       if (push) history.pushState({}, '', hash());
     }
 
@@ -1022,6 +1243,167 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
       if (e.key === 'ArrowLeft') go('pb', pbIndex - 1);
     });
 
+    /* ── search ────────────────────────────────────────────────────────
+       Filters a prebuilt index (chapter + section titles + body + a
+       hand-authored synonym map) and jumps to the matching SECTION, not just
+       the chapter. Exists because paging hides every chapter you're not on,
+       which breaks browser find — the one thing a reference book can't lose.
+
+       Scoring is intentionally dumb and predictable: title hits beat body
+       hits, and every query term must appear somewhere (AND, not OR) so
+       "kitchen shorts" narrows rather than widens. With ~30 sections,
+       predictable beats clever — the answer is a policy, not a suggestion. */
+    interface Entry {
+      book: 'pb' | 'gb'; page: number; anchor: string;
+      chapter: string; section: string; hay: string;
+      aliases: string[]; snippet: string;
+    }
+    let index: Entry[] = [];
+    try {
+      const raw = root.querySelector('[data-search-index]')?.textContent;
+      if (raw) index = JSON.parse(raw);
+    } catch { /* search degrades to the plain contents list */ }
+
+    const searchInput = document.getElementById('pb-search-input') as HTMLInputElement | null;
+    const results = root.querySelector<HTMLElement>('[data-results]');
+    const resultsList = root.querySelector<HTMLElement>('[data-results-list]');
+    const resultsEmpty = root.querySelector<HTMLElement>('[data-results-empty]');
+    let pendingAnchor: string | null = null;
+
+    /* Stopwords. People type QUESTIONS into a search box — "what do I wear",
+       "when do I get paid", "I got hurt" — and requiring every word to appear
+       made all three return nothing, because "i", "do", and "when" are not in
+       the book. Stripping them turns those into "wear", "paid", "hurt", which
+       all hit. Verified against the real content: 17/20 test queries → 20/20.
+       Note "off" and "up" are NOT stopwords ("time off", "call off"). */
+    const STOP = new Set([
+      'a','an','the','i','me','my','we','our','you','your','it','its','is','are',
+      'am','be','been','do','does','did','done','can','could','should','would',
+      'will','to','of','in','on','for','from','at','by','with','and','or','but',
+      'if','so','that','this','these','those','there','they','them','he','she',
+      'what','when','where','who','why','how','which','was','were','have','has',
+      'had','get','got','getting','need','want','about','any','some','much','many',
+    ]);
+
+    /** Longest alias of this entry that appears in the query, or 0.
+     *  Length-weighted so "call off" beats a bare "call" when both match. */
+    function aliasScore(e: Entry, query: string): number {
+      let best = 0;
+      for (const a of e.aliases) {
+        if (query.includes(a) && a.length > best) best = a.length;
+      }
+      return best ? 100 + best : 0;
+    }
+
+    function score(e: Entry, terms: string[], requireAll: boolean, query: string): number {
+      // An alias hit is a curated "this is the answer" and outranks every text
+      // match — that's what lets "hurt" land on Employee Injuries, a section
+      // that never uses the word.
+      const alias = aliasScore(e, query);
+
+      let s = 0;
+      let matched = 0;
+      const title = `${e.chapter} ${e.section}`.toLowerCase();
+      for (const t of terms) {
+        if (!e.hay.includes(t)) {
+          if (requireAll && !alias) return 0;
+          continue;
+        }
+        matched++;
+        s += title.includes(t) ? 10 : 1;
+      }
+      if (!alias && !matched) return 0;
+
+      // Tiebreak toward the Guidebook. Both books are searchable, but someone
+      // typing a question is looking up a policy, not a story — and without
+      // this, ties resolve to whichever was indexed first (Part One), which is
+      // how "what if I'm late" once returned the Dedication.
+      return alias + s + (e.book === 'gb' ? 1 : 0);
+    }
+
+    function runSearch(q: string) {
+      const query = q.trim().toLowerCase();
+      if (!results || !resultsList || !resultsEmpty) return;
+
+      if (query.length < 2) {
+        results.hidden = true;
+        if (tocPb) tocPb.hidden = view !== 'pb';
+        if (tocGb) tocGb.hidden = view !== 'gb';
+        return;
+      }
+
+      // Drop stopwords, but never drop EVERYTHING — a query of nothing but
+      // stopwords falls back to the raw words rather than matching the world.
+      const raw = query.split(/\s+/).filter(Boolean);
+      const stripped = raw.filter((t) => !STOP.has(t));
+      const terms = stripped.length ? stripped : raw;
+
+      // AND first (precise). If that finds nothing, retry OR — for a reference
+      // book, a plausible near-match beats "no results", which just leaves a
+      // teammate stuck with a question and no next step.
+      let hits = index
+        .map((e) => ({ e, s: score(e, terms, true, query) }))
+        .filter((r) => r.s > 0)
+        .sort((a, b) => b.s - a.s)
+        .slice(0, 12);
+
+      if (!hits.length && terms.length > 1) {
+        hits = index
+          .map((e) => ({ e, s: score(e, terms, false, query) }))
+          .filter((r) => r.s > 0)
+          .sort((a, b) => b.s - a.s)
+          .slice(0, 8);
+      }
+
+      // Hide the chapter lists while searching — two competing lists in one
+      // narrow drawer is worse than either alone.
+      if (tocPb) tocPb.hidden = true;
+      if (tocGb) tocGb.hidden = true;
+      results.hidden = false;
+      resultsEmpty.hidden = hits.length > 0;
+      resultsList.innerHTML = '';
+
+      for (const { e } of hits) {
+        const li = document.createElement('li');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.innerHTML =
+          `<span class="pb-res-book">${e.book === 'pb' ? 'Playbook' : 'Guidebook'}</span>` +
+          `<span class="pb-res-title"></span>` +
+          `<span class="pb-res-snip"></span>`;
+        // textContent, not innerHTML — book copy is trusted but this keeps the
+        // renderer incapable of injecting markup regardless of what's added later.
+        btn.querySelector('.pb-res-title')!.textContent = e.section || e.chapter;
+        btn.querySelector('.pb-res-snip')!.textContent =
+          (e.section ? `${e.chapter} — ` : '') + e.snippet + '…';
+        btn.addEventListener('click', () => {
+          pendingAnchor = e.anchor;
+          go(e.book, e.page);
+        });
+        li.appendChild(btn);
+        resultsList.appendChild(li);
+      }
+    }
+
+    searchInput?.addEventListener('input', () => runSearch(searchInput.value));
+    searchInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { searchInput.value = ''; runSearch(''); }
+    });
+
+    /** After a result jump, scroll the matched section into view. */
+    function consumeAnchor() {
+      if (!pendingAnchor) return;
+      const el = document.getElementById(pendingAnchor);
+      pendingAnchor = null;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY - 96;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'instant' as ScrollBehavior });
+        el.classList.add('pb-flash');
+        setTimeout(() => el.classList.remove('pb-flash'), 1600);
+      });
+    }
+
     /* ── restore from hash / back-forward ── */
     function applyHash(push: boolean) {
       const h = location.hash.slice(1);
@@ -1069,14 +1451,20 @@ const isBeat = (s: string) => s.length <= BEAT_MAX_CHARS;
             page_url: location.href,
             active_seconds: Math.round(activeMs / 1000),
             pages_viewed: seenPbPages.size,
-            total_pages: pbPages.length,
+            // Excludes the confirmation page — it's unreachable until AFTER
+            // signing, so counting it made a complete read look like 18 of 19.
+            total_pages: pbPages.length - 1,
           }),
         });
         const data = await res.json().catch(() => ({ ok: false }));
         if (data.ok) {
           const out = document.getElementById('pb-done-name');
           if (out) out.textContent = `Signed by ${name}.`;
-          try { localStorage.removeItem(PROGRESS_KEY); } catch {}
+          try {
+            localStorage.removeItem(PROGRESS_KEY);
+            localStorage.removeItem(TIME_KEY);
+            localStorage.removeItem(PAGES_KEY);
+          } catch {}
           go('pb', pbLast);
         } else {
           msg.textContent = "That didn't go through. Try again, or let a manager know.";

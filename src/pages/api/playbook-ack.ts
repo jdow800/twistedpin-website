@@ -140,19 +140,38 @@ function centralStamp(d: Date): string {
   return `${date} at ${time}`;
 }
 
+/**
+ * Human summary of the reading metrics — or an honest refusal to give one.
+ *
+ * ⚠️ THIS FUNCTION EXISTS TO AVOID ACCUSING SOMEONE. On day one it reported
+ * "17 seconds of reading, 2 of 19 pages" for a reader who had genuinely gone
+ * through the whole book over ~20 minutes: her counters were in-memory and got
+ * wiped by two deploys and an iOS tab eviction. The storage bug is fixed, but
+ * the metric is inherently lossy — private browsing, cleared storage, reading
+ * on two devices — and it will undercount again.
+ *
+ * So the rule: a LOW number is never reported as fact. If someone reached the
+ * end but the data says they barely looked, the data is far more likely to be
+ * wrong than the person, and we say the data is missing. Overstating diligence
+ * costs nothing; understating it accuses a teammate of skimming their handbook.
+ */
 function readingSummary(
   activeSeconds: number | null,
   pagesViewed: number | null,
   totalPages: number | null,
 ): string {
-  if (activeSeconds === null) return '';
+  if (activeSeconds === null || pagesViewed === null) return '';
+
+  // Implausible-but-signed = almost certainly lost telemetry, not a skimmer.
+  // Anyone who actually clicked through to the signature saw the pages; the
+  // signature page is only reachable by advancing through the book.
+  const tooFewPages = !!totalPages && pagesViewed < Math.min(4, totalPages);
+  const tooFast = activeSeconds < 60;
+  if (tooFewPages || tooFast) return ' — reading time not captured';
+
   const mins = Math.round(activeSeconds / 60);
-  const time =
-    activeSeconds < 90 ? `${activeSeconds} seconds` : `${mins} minute${mins === 1 ? '' : 's'}`;
-  const pages =
-    pagesViewed !== null && totalPages
-      ? `, ${pagesViewed} of ${totalPages} pages`
-      : '';
+  const time = `${mins} minute${mins === 1 ? '' : 's'}`;
+  const pages = totalPages ? `, ${pagesViewed} of ${totalPages} pages` : '';
   return ` — ${time} of reading${pages}`;
 }
 
@@ -189,9 +208,12 @@ async function notify(
       subject: `${name} signed the Playbook${summary}`,
       text:
         `${name} signed the Twisted Pin Playbook on ${stamp} (Central)${summary}.\n\n` +
-        `Reading time counts only while the page was actually open and in front of them, ` +
-        `so it survives someone reading across two shifts. It is a coaching signal, not evidence — ` +
-        `a very low number is worth a friendly "give it a proper read," nothing more.\n\n` +
+        `Reading time counts only while the page was actually open in front of them, so it ` +
+        `survives someone reading across two shifts. It is lossy by nature — reading on two ` +
+        `devices, private browsing, or clearing site data all lose it — so it is a coaching ` +
+        `signal, never evidence. When the numbers look implausible we say "not captured" ` +
+        `rather than report a low figure, because a teammate who reached the signature page ` +
+        `got there by advancing through the book.\n\n` +
         `This is an automatic notification. If a new teammate hasn't triggered one of these, ` +
         `they haven't finished the Playbook yet.`,
     }),
