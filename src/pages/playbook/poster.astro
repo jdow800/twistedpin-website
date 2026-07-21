@@ -173,12 +173,19 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       @media print {
         @page { size: letter; margin: 0; }
         html, body { background: #fff; padding: 0; margin: 0; }
-        /* Exact 8.5x11 with border-box sizing (the * reset above) means the
-           padding is INSIDE the sheet, so this is precisely one page — no
-           stray blank second sheet from padding pushing past the boundary. */
+        /* One sheet, always. The earlier height:11in anchored the footer (via
+           margin-top:auto) exactly on the 11in page-break line, and sub-pixel
+           rounding tipped that last block onto a blank second page — page 1
+           printed with trailing whitespace, page 2 held only the footer.
+           Capping a hair under a full page keeps the bottom-anchored footer
+           safely inside page 1 (the gap below is white paper, invisible since
+           the sheet is white too); overflow:hidden + break-inside:avoid make a
+           single page a guarantee, not a hope. */
         .sheet {
           box-shadow: none;
-          width: 8.5in; height: 11in; min-height: 11in;
+          width: 8.5in; height: 10.5in; min-height: 0;
+          overflow: hidden;
+          break-inside: avoid; page-break-inside: avoid;
           break-after: avoid; page-break-after: avoid;
         }
         .no-print { display: none; }
