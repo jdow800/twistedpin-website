@@ -110,40 +110,40 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       .sheet {
         width: 8.5in; min-height: 11in;
         background: #fff;
-        padding: 0.72in 0.75in 0.6in;
+        padding: 0.55in 0.75in 0.35in;
         display: flex; flex-direction: column; align-items: center;
         text-align: center;
         box-shadow: 0 10px 40px rgba(0,0,0,0.18);
       }
-      .logo { width: 2.6in; height: auto; margin-bottom: 0.34in; }
+      .logo { width: 2.15in; height: auto; margin-bottom: 0.24in; }
       .eyebrow {
         font-size: 10.5pt; letter-spacing: 0.22em; text-transform: uppercase;
-        color: var(--muted); margin-bottom: 0.1in; font-weight: 600;
+        color: var(--muted); margin-bottom: 0.08in; font-weight: 600;
       }
       h1 {
         font-family: 'Barlow Condensed', 'Arial Narrow', sans-serif;
         font-weight: 900; text-transform: uppercase;
-        font-size: 62pt; line-height: 0.9; letter-spacing: -0.01em;
-        color: var(--indigo); margin-bottom: 0.13in;
+        font-size: 54pt; line-height: 0.9; letter-spacing: -0.01em;
+        color: var(--indigo); margin-bottom: 0.1in;
       }
       .sub {
         font-size: 13pt; line-height: 1.45; color: var(--muted);
-        max-width: 5.4in; margin-bottom: 0.34in;
+        max-width: 5.4in; margin-bottom: 0.22in;
       }
       .qr-wrap {
         border: 2px solid var(--indigo); border-radius: 10px;
-        padding: 0.22in 0.22in 0.16in; margin-bottom: 0.26in;
+        padding: 0.17in 0.17in 0.12in; margin-bottom: 0.2in;
       }
-      .qr { width: 2.5in; height: 2.5in; display: block; }
+      .qr { width: 2in; height: 2in; display: block; }
       .scan {
         font-size: 11pt; font-weight: 700; color: var(--indigo);
-        margin-top: 0.11in; letter-spacing: 0.02em;
+        margin-top: 0.1in; letter-spacing: 0.02em;
       }
       .url { font-size: 10pt; color: var(--muted); margin-top: 0.02in; }
       .pw {
         display: inline-flex; align-items: center; gap: 0.14in;
         border: 1.5px dashed var(--glow); border-radius: 8px;
-        padding: 0.11in 0.24in; margin-bottom: 0.34in;
+        padding: 0.1in 0.24in; margin-bottom: 0.18in;
       }
       .pw-label {
         font-size: 9.5pt; letter-spacing: 0.18em; text-transform: uppercase;
@@ -155,7 +155,7 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       .cols {
         display: flex; gap: 0.42in; width: 100%;
         border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
-        padding: 0.24in 0; margin-bottom: 0.26in;
+        padding: 0.2in 0; margin-bottom: 0.16in;
       }
       .cols > div { flex: 1; text-align: left; }
       .cols h2 {
@@ -164,7 +164,7 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       }
       .cols p { font-size: 10.5pt; line-height: 1.45; color: var(--muted); }
       .foot {
-        font-size: 10.5pt; line-height: 1.6; color: var(--muted); margin-top: auto;
+        font-size: 10.5pt; line-height: 1.6; color: var(--muted); margin-top: 0.2in;
       }
       .hint {
         max-width: 8.5in; margin-top: 20px; font-size: 13px; line-height: 1.5;
@@ -173,18 +173,26 @@ const TEAM_PASSWORD = import.meta.env.PLAYBOOK_PASSWORD || 'onefamily';
       @media print {
         @page { size: letter; margin: 0; }
         html, body { background: #fff; padding: 0; margin: 0; }
-        /* One sheet, always. The earlier height:11in anchored the footer (via
-           margin-top:auto) exactly on the 11in page-break line, and sub-pixel
-           rounding tipped that last block onto a blank second page — page 1
-           printed with trailing whitespace, page 2 held only the footer.
-           Capping a hair under a full page keeps the bottom-anchored footer
-           safely inside page 1 (the gap below is white paper, invisible since
-           the sheet is white too); overflow:hidden + break-inside:avoid make a
-           single page a guarantee, not a hope. */
+        /* One sheet, always — guaranteed by FIT, not by clipping. The content
+           stack measures ~9.5in tall, which stays comfortably inside the
+           printable area under every browser's default print margins (Chrome/
+           Edge ~0.4in each → 10.2in usable; Firefox ~0.5in → 10.0in usable), so
+           it can't paginate no matter how someone's margins happen to be set.
+           History / DO NOT "fix" back: an earlier version filled the page —
+           footer pinned to the bottom with margin-top:auto — and forced
+           height:10.5in + overflow:hidden to "guarantee" one page. That
+           backfired. Whenever the print margins were non-zero (the default in
+           every browser), the 10.5in sheet was TALLER than the usable area, so
+           the sheet itself broke across two pages and the bottom-anchored
+           footer rode onto a near-blank page 2. There is no single safe fixed
+           height, because the usable area depends on the user's margin setting.
+           The only robust guarantee is to keep the content short and let the
+           sheet size to it (min-height:0 collapses the screen-only 11in). If
+           you add or enlarge content here, RE-MEASURE and keep the stack under
+           ~9.7in, or it can spill again. */
         .sheet {
           box-shadow: none;
-          width: 8.5in; height: 10.5in; min-height: 0;
-          overflow: hidden;
+          width: 8.5in; min-height: 0;
           break-inside: avoid; page-break-inside: avoid;
           break-after: avoid; page-break-after: avoid;
         }
