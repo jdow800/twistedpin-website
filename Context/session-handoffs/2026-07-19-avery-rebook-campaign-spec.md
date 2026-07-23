@@ -173,6 +173,17 @@ an open code window).
    Avery's existing booking/visit texts are unaffected either way — they ride the
    transactional disclosure already on the guest step, not marketing consent.
 
+   **✅ SHIPPED + PROVEN.** tprs PR #9 + Website live. SMS-ONLY (Jon: "we ain't
+   emailing them") — payload sends only `smsMarketingOptIn`. Chain proven
+   end-to-end 2026-07-22 via a real ticked booking → `consent_event`
+   (channel=sms, source=checkout). First 8 real bookings opted out (0/8) —
+   a normal low unincentivized rate, not a bug. Opt-in-rate optimization is
+   PARKED (Jon: "leave it, hope people sign up"); levers if revisited: name the
+   reward in the copy (biggest cheap lever), post-purchase confirmation-screen
+   ask (higher ceiling), never pre-check. Do NOT move the checkbox into the
+   ADR-0030 booking-form system — form answers write to booking_form_answers
+   and record no consent; the checkout-payload wiring is load-bearing.
+
 ## 6. Open decisions (Jon)
 
 - ~~Fast-nudge offer economics~~ **DECIDED 2026-07-20: 50% off one lane, 10-day
