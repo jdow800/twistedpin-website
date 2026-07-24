@@ -25,10 +25,19 @@ Background/detail lives in memory: `loyalty-patch-cutover-plan`, `loyalty-rebook
 
 ## Phase 0 — Before cutover day
 
-- [ ] **URL swaps branch (Website)** — `/coupon` iframe → native form (promote
-      `/coupon-preview`), `/free-kids-bowling` iframe → native kids form, repoint `/free`,
-      un-noindex + sitemap, and **kill the `/rewards` Text Club block** (it advertises
-      "text BOWL123 to 85775", a Patch shortcode that dies at cancellation).
+- [x] ~~URL swaps branch (Website)~~ **BUILT + COMMITTED 2026-07-24 — branch
+      `feat/loyalty-url-cutover`, commit `6e8cbd6`. NOT merged, NOT deployed.**
+      Both preview pages promoted onto `/coupon` and `/free-kids-bowling` (iframes,
+      preview banners, noindex, robots Disallow + sitemap exclusions all gone), `/free`
+      repointed, preview routes deleted, `/rewards` BOWL123→85775 Text Club join replaced
+      with a link to the native `/coupon` signup. Build-verified.
+      **→ Cutover day step 1 is now literally `git merge feat/loyalty-url-cutover`.**
+      ⚠️ Two copy decisions carried over from the preview page, worth 30 seconds of
+      Jon's eyes before merge: (a) the `/coupon` `<title>` became *"Get $10 Toward Your
+      Next Lane | Twisted Pin"*, dropping the geo the old live title carried (*"Free $10
+      Lane Credit in Plainfield, IL"*) — the description still says Plainfield, IL;
+      (b) `/rewards` now reads *"Sign up here — takes about twenty seconds, and we'll
+      text you a $10 lane credit to start."*
 - [ ] **Venue signage walk (Jon)** — hunt the same `BOWL123 / 85775` keyword promo on the
       **Brunswick Sync screens** and the **road sign**. Jon's ruling: these are useless,
       kill them; do NOT rebuild keyword joins on the new platform.
