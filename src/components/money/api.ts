@@ -137,6 +137,8 @@ export interface Reveal {
   severity?: { severity: "even" | "minor" | "notable" | "major"; pct: number | null } | null;
   offset?: { neighborDate: string; neighborVarianceCents: number } | null;
   kioskCaveat?: string | null;
+  /** Payouts the report deducted that never left the drawer (fundraiser checks). */
+  payoutAddBack?: { totalCents: number; names: string[] } | null;
   snapshot?: unknown;
   unverified?: boolean;
   message?: string;
@@ -175,7 +177,7 @@ export interface DayDetail {
     checksCents: number;
     checkCount: number;
     refundsCashCents: number;
-    payouts: { name: string; cents: number }[];
+    payouts: { name: string; cents: number; settlement?: "drawer_cash" | "external" }[];
     gratuityPaidOutCents: number;
     paymentLines: { label: string; cents: number; class: string }[];
     source: string;

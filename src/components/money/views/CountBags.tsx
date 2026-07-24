@@ -410,6 +410,12 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                 not missing money.
               </p>
             )}
+            {reveal.payoutAddBack && (
+              <p className="mn-addback">
+                Includes {money(reveal.payoutAddBack.totalCents)} of {reveal.payoutAddBack.names.join(" · ")} — rung out of
+                this register but paid by check, so that cash never left the drawer. Already added back to expected.
+              </p>
+            )}
             {reveal.kioskCaveat && <p className="lq-muted">{reveal.kioskCaveat}</p>}
           </div>
         )}
@@ -471,7 +477,15 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
                       </div>
                     ))}
                     {detail.tender.payouts.length > 0 && (
-                      <p className="lq-muted">Payouts: {detail.tender.payouts.map((p) => `${p.name} ${money(p.cents)}`).join(" · ")}</p>
+                      <p className="lq-muted">
+                        Payouts:{" "}
+                        {detail.tender.payouts
+                          .map(
+                            (p) =>
+                              `${p.name} ${money(p.cents)}${p.settlement === "external" ? " (paid by check — added back)" : ""}`,
+                          )
+                          .join(" · ")}
+                      </p>
                     )}
                   </>
                 )}

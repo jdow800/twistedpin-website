@@ -423,6 +423,13 @@
   margin-top: 10px;
   font-size: 14px;
 }
+/* Explains an expectation that was adjusted before the GM saw it — calm, not
+   alarming, same weight as the ⚖️ offsetting-pair line. */
+.mn-addback {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.85;
+}
 .mn-note textarea {
   min-height: 80px;
   font-size: 16px;
