@@ -56,8 +56,33 @@ Background/detail lives in memory: `loyalty-patch-cutover-plan`, `loyalty-rebook
 - [ ] **Zite "Program Health" dashboard** — acceptance check when the build lands
       (liability ≈ 815,569; segments ≈ 23.8k never / 6.5k lapsed / 1.3k cooling / ~1k
       active; NULL metrics render "—" not 0).
-- [ ] Kiosk hardware plan — Zite kiosk URL pinned on the iPads (PWA + Guided Access, or a
-      kiosk-browser app), **screen-sleep disabled**, wifi-drop behavior tested.
+- [ ] **Kiosk hardware — the counter iPads.** Jon is doing this on site at cutover.
+      **Zite kiosk URL: `https://7hgf6juzff.zite.so`**
+
+      Per-iPad recipe (~5 min each):
+      1. **Settings → Display & Brightness → Auto-Lock → _Never_.** Do this FIRST — it's
+         the one everybody forgets, and a sleeping kiosk shows a lock screen at 8pm Friday.
+      2. Plug in / keep on power. Confirm wifi is the venue network, not a guest SSID.
+      3. Safari → open the URL → Share → **Add to Home Screen**. Tap the new icon.
+         - **No address bar? ** Zite ships a proper manifest — you're done, it's app-like.
+         - **Address bar visible?** No standalone manifest. Fall back to running it in
+           Safari and letting Guided Access hide the furniture, or a kiosk-browser app
+           (Kiosk Pro ~$20, adds auto-reload + wake-lock + idle reset).
+      4. **Settings → Accessibility → Guided Access → On**, set a passcode staff knows
+         (NOT the GM PIN). Open the kiosk, triple-click the home/top button → Start.
+         Device is now locked to the kiosk; triple-click + passcode to exit.
+      5. Retire the Patch iPad app in the same motion (see Phase 1 step 3).
+
+      ⚠️ **Test these before walking away — none are about how it looks:**
+      - **Session reset between guests.** After a check-in, does it return to the start
+        screen on its own, or only via "I'M DONE — KEEP SAVING"? If a guest walks away
+        mid-session, guest #2 must NOT land on their name, points and offers. If there's
+        no idle timeout, that's a Zite ask (privacy + someone redeeming another guest's
+        offer).
+      - **Walk-up NEW guest signup** on the production device — the one kiosk path never
+        tested on real hardware.
+      - **Wifi blip** — unplug the AP or toggle wifi; confirm it recovers rather than
+        parking on an error screen a guest can't clear inside Guided Access.
 
 ## Phase 1 — Cutover day (Jul 27) — ORDER MATTERS
 
