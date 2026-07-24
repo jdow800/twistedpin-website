@@ -22,6 +22,15 @@
  * The first_join gate is load-bearing: Patch-imported members carry
  * joined_loyalty_at, so a returning guest can never double-dip the $10.
  *
+ * TITLE (2026-07-24, per seo.md): keyword first, geo, brand last, under 60
+ * chars — "$10 Lane Credit in Plainfield, IL | Twisted Pin" (47). Deliberately
+ * NOT the old live title "Free $10 Lane Credit in Plainfield, IL": `free` is an
+ * explicit seo.md negative keyword (cheap/free/discount as modifiers on
+ * bowling) that pulls deal-hunters instead of the branded + local intent this
+ * page wants. The parked-preview title dropped `free` correctly but also lost
+ * the geo; this keeps both fixes. Losing whatever "free bowling"-flavored
+ * traffic the old title caught is the intended trade, not a regression.
+ *
  * Voice/SEO: "$10 lane credit" — NEVER "$10 off" (discount-language ban)
  * and NOT framed around "free/cheap bowling" (seo.md negative keywords).
  * Target is branded + local intent, not deal-hunters. SEO body copy below
@@ -70,7 +79,7 @@ const FAQ = [
 ];
 ---
 <Base
-  title="Get $10 Toward Your Next Lane | Twisted Pin"
+  title="$10 Lane Credit in Plainfield, IL | Twisted Pin"
   description="Sign up and we'll text you a $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL — good on a walk-in visit or with code SAVE10 online."
   ogImage="/og/og-bowl.jpg"
   ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
