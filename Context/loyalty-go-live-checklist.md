@@ -32,12 +32,17 @@ Background/detail lives in memory: `loyalty-patch-cutover-plan`, `loyalty-rebook
       repointed, preview routes deleted, `/rewards` BOWL123→85775 Text Club join replaced
       with a link to the native `/coupon` signup. Build-verified.
       **→ Cutover day step 1 is now literally `git merge feat/loyalty-url-cutover`.**
-      ⚠️ Two copy decisions carried over from the preview page, worth 30 seconds of
-      Jon's eyes before merge: (a) the `/coupon` `<title>` became *"Get $10 Toward Your
-      Next Lane | Twisted Pin"*, dropping the geo the old live title carried (*"Free $10
-      Lane Credit in Plainfield, IL"*) — the description still says Plainfield, IL;
-      (b) `/rewards` now reads *"Sign up here — takes about twenty seconds, and we'll
+      **`/coupon` title resolved 2026-07-24** (Jon: "whatever is better SEO"):
+      **"$10 Lane Credit in Plainfield, IL | Twisted Pin"** — 47 chars, keyword first,
+      geo, brand last per seo.md's under-60 rule. The *old live* title led with
+      "Free", which seo.md §Negative Keywords bans as a modifier on bowling (pulls
+      deal-hunters, not the branded + local intent this page wants); the preview title
+      fixed that but lost the geo — this keeps both fixes. Losing any "free
+      bowling"-flavored traffic the old title caught is the intended trade.
+      FYI `/rewards` now reads *"Sign up here — takes about twenty seconds, and we'll
       text you a $10 lane credit to start."*
+      *(`/free-kids-bowling` keeps "Free Kids Bowling This Summer" — "free" there is
+      the program's actual name and the legacy slug, a deliberate standing exception.)*
 - [ ] **Venue signage walk (Jon)** — hunt the same `BOWL123 / 85775` keyword promo on the
       **Brunswick Sync screens** and the **road sign**. Jon's ruling: these are useless,
       kill them; do NOT rebuild keyword joins on the new platform.
