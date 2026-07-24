@@ -2,234 +2,665 @@
 /**
  * /coupon — $10 lane credit signup.
  *
- * 2026-05-07: reverted from native Astro form + Patch Retention API to
- * an embedded iframe wrapper. The Patch trigger pattern (DOI + coupon
- * SMS dispatch) was open pending Patch support response, and the user
- * wanted to abandon that integration for now and ship something that
- * matches the legacy live behavior. The iframe URL points at the same
- * hosted form behind the live twistedpin.com page, so the existing
- * SMS/email automation continues to work end-to-end without us
- * re-implementing it.
+ * 2026-07-24 LOYALTY CUTOVER: replaced the Patch Retention iframe
+ * (c-g.co/xORo1J) with the native form promoted verbatim from the parked
+ * /coupon-preview page, which was built + proven against the live loyalty
+ * platform before the swap. The old iframe wrapper (and the 2026-05-07
+ * decision behind it) is in git history; Patch is cancelled, so it is not
+ * revivable and should not be revived.
  *
- * Architecture: brand chrome + iframe. Same wrap pattern as /waitlist.
+ * Native online $10-signup form that funnels into Twisted Pin's custom
+ * loyalty platform. Wired per Loyalty/docs/coupon-page-intake-spec.md:
+ * the form POSTs to our server-side proxy (/api/coupon-signup), which
+ * forwards to the n8n intake webhook. All loyalty logic (create customer,
+ * grant signup-10off, send the $10 welcome text, enforce first-join) is
+ * server-side; this page just branches on the JSON response:
+ *   - ok:false              → inline form error (honeypot → silent)
+ *   - first_join:true        → success ("check your texts for your $10")
+ *   - first_join:false       → already-a-member panel → /rewards
  *
- * Future revisit: when Patch support clarifies the API trigger pattern,
- * the native-form version (commit history, before this commit) can be
- * revived. For now, the iframe is the pragmatic ship.
+ * The first_join gate is load-bearing: Patch-imported members carry
+ * joined_loyalty_at, so a returning guest can never double-dip the $10.
  *
- * Voice rule: live page headline is "$10 OFF Open Bowling Certificate!"
- * which clashes with the hard ban on discount/off/deals language.
- * Reframed to "$10 lane credit" — same reframe pattern used on /rewards.
+ * Voice/SEO: "$10 lane credit" — NEVER "$10 off" (discount-language ban)
+ * and NOT framed around "free/cheap bowling" (seo.md negative keywords).
+ * Target is branded + local intent, not deal-hunters. SEO body copy below
+ * the form keeps the page off the thin-content list.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-const COUPON_FORM_URL = "https://c-g.co/xORo1J";
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
+
+// The EXACT consent prose shown next to the checkbox. Captured verbatim and
+// passed to the platform as `consent_language` for the TCPA audit trail
+// (spec §6). Keep this string and the rendered label identical.
+const CONSENT_TEXT =
+  "By checking this box, you agree to receive recurring automated marketing " +
+  "text messages from Twisted Pin at the number provided. Consent is not a " +
+  "condition of purchase. Message & data rates may apply. Reply STOP to " +
+  "cancel, HELP for help. See our Terms (twistedpin.com/terms) and Privacy " +
+  "Policy (twistedpin.com/privacy).";
+
+// FAQ — doubles as unique body content + an FAQPage entity. (FAQ rich
+// results are deprecated for commercial sites, so this is for content depth
+// / AI overviews, not a SERP dropdown.)
+const FAQ = [
+  {
+    q: "How do I get my $10 lane credit?",
+    a: "Drop your name and mobile number in the form above. We text you the $10 lane credit within a few minutes — use code SAVE10 to book open bowling online, or just show the text at the front desk in Plainfield.",
+  },
+  {
+    q: "What can I use it on?",
+    a: "Bowling — open bowling or the VIP suite, walk-in or reserved online with code SAVE10. It comes off your lane time; lane shoes and anything from the bar or kitchen run on a normal tab.",
+  },
+  {
+    q: "Does the $10 credit expire?",
+    a: "Yes — your $10 is good for 21 days from the day you sign up, so don't sit on it too long. One credit per customer.",
+  },
+  {
+    q: "Can I use it on an online reservation?",
+    a: "Yes — apply code SAVE10 when you reserve a lane online, and the $10 comes off your booking total. Or use it on a walk-in visit at the desk.",
+  },
+];
 ---
 <Base
-  title="Free $10 Lane Credit in Plainfield, IL | Twisted Pin"
-  description="Get a free $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL. Sign up — we'll text the credit to your phone in a few minutes."
+  title="Get $10 Toward Your Next Lane | Twisted Pin"
+  description="Sign up and we'll text you a $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL — good on a walk-in visit or with code SAVE10 online."
+  ogImage="/og/og-bowl.jpg"
+  ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
 >
-  {/* Signup iframe loads from c-g.co (Patch Retention). Preconnect kicks
-      off TCP+TLS in parallel with HTML parse so the lazy iframe lands
-      faster when the user scrolls. Iframe is below the typography hero
-      (~250-300px on mobile) so it's not in the LCP path itself — this is
-      a perceived-perf win, not an LCP fix. */}
-  <Fragment slot="head">
-    <link rel="preconnect" href="https://c-g.co" />
-  </Fragment>
+  {/* INDEXABLE as of the 2026-07-24 cutover — the noindex/nofollow Fragment,
+      robots.txt Disallow and sitemap exclusion that hid /coupon-preview were
+      all removed in the same commit. This is a public conversion page. */}
 
-  <section class="t2-hero" data-hero aria-labelledby="coupon-h1">
+  <section class="t2-hero" data-hero aria-labelledby="cp-h1">
     <div class="t2-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">For Regulars (and the soon-to-be)</p>
-      <h1 class="t-display t2-hero-headline hero-fade" id="coupon-h1" data-delay-ms="120">
+      <h1 class="t-display t2-hero-headline hero-fade" id="cp-h1" data-delay-ms="120">
         $10 toward your next&nbsp;lane.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Drop your number below. We'll text you a free $10 lane credit
-        good on walk-in open bowling — or use it on a
+        Drop your number below and we'll text you a $10 lane credit good on
+        open bowling in Plainfield, IL — use it on a walk-in visit, or with
+        code SAVE10 on a
         <a href="/reserve/" target="_blank" rel="noopener">lane reservation online</a>.
       </p>
     </div>
   </section>
 
-  <section class="t2-section coupon-section" aria-labelledby="coupon-form-h2">
+  <section class="t2-section cp-section" aria-labelledby="cp-form-h2">
     <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="coupon-form-h2" style="font-size:11px;">Sign Up</h2>
 
-      <div class="coupon-frame">
-        <iframe
-          src={COUPON_FORM_URL}
-          title="Sign up to receive your $10 lane credit"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-          class="coupon-iframe"
-        ></iframe>
+      <h2 class="t-eyebrow" id="cp-form-h2" style="font-size:11px;">Sign Up</h2>
+
+      {/* ---- FORM ---- */}
+      <form id="cp-form" class="cp-form" data-consent={CONSENT_TEXT} novalidate>
+        <div class="cp-row cp-row-2">
+          <div class="cp-field">
+            <label for="cp-first">First name <span class="cp-req">*</span></label>
+            <input id="cp-first" name="first_name" type="text" autocomplete="given-name" required />
+          </div>
+          <div class="cp-field">
+            <label for="cp-last">Last name <span class="cp-opt">(optional)</span></label>
+            <input id="cp-last" name="last_name" type="text" autocomplete="family-name" />
+          </div>
+        </div>
+
+        <div class="cp-field">
+          <label for="cp-mobile">Mobile number <span class="cp-req">*</span></label>
+          <input id="cp-mobile" name="phone" type="tel" inputmode="tel"
+                 autocomplete="tel" placeholder="(815) 555-0123" required />
+          <p class="cp-hint">This is where we text your $10 credit.</p>
+          <p class="cp-phone-status" id="cp-phone-status" role="status" hidden></p>
+        </div>
+
+        <fieldset class="cp-field cp-birthday">
+          <legend>Birthday <span class="cp-opt">(optional — we'll send a gift)</span></legend>
+          <div class="cp-row cp-row-2">
+            <select id="cp-bmonth" name="birthday_month" aria-label="Birthday month">
+              <option value="">Month</option>
+              {MONTHS.map((m, i) => <option value={i + 1}>{m}</option>)}
+            </select>
+            <select id="cp-bday" name="birthday_day" aria-label="Birthday day">
+              <option value="">Day</option>
+              {DAYS.map((d) => <option value={d}>{d}</option>)}
+            </select>
+          </div>
+        </fieldset>
+
+        <div class="cp-field">
+          <label for="cp-email">Email <span class="cp-opt">(optional)</span></label>
+          <input id="cp-email" name="email" type="email" autocomplete="email" placeholder="you@email.com" />
+        </div>
+
+        {/* Honeypot — hidden from humans; bots that fill it get rejected
+            server-side as `honeypot`. (spec §2 / §6) */}
+        <div class="cp-hp" aria-hidden="true">
+          <label for="cp-website">Website</label>
+          <input id="cp-website" name="website_url" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <label class="cp-consent">
+          <input id="cp-consent" name="consent" type="checkbox" required />
+          <span>
+            By checking this box, you agree to receive recurring automated
+            marketing text messages from Twisted Pin at the number provided.
+            Consent is not a condition of purchase. Message &amp; data rates
+            may apply. Reply STOP to cancel, HELP for help. See our
+            <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
+          </span>
+        </label>
+
+        <p id="cp-error" class="cp-error" role="alert" hidden></p>
+
+        <button type="submit" id="cp-submit" class="cp-submit">Text me my $10</button>
+      </form>
+
+      {/* ---- SUCCESS PANEL (first_join) ---- */}
+      <div id="cp-success" class="cp-panel cp-success" hidden>
+        <p class="cp-panel-eyebrow">You're in 🎉</p>
+        <h3 class="cp-panel-title">Check your phone.</h3>
+        <p class="cp-panel-body">
+          We just texted your $10 lane credit<span id="cp-success-phone"></span>.
+          Use code <strong>SAVE10</strong> to
+          <a href="/reserve/" target="_blank" rel="noopener">book open bowling online</a>,
+          or show the text at the front desk. It's good for 21 days, so
+          don't wait too long.
+        </p>
       </div>
 
-      <p class="coupon-fallback">
-        Form not loading?
-        <a href={COUPON_FORM_URL} target="_blank" rel="noopener noreferrer">
-          Open it in a new tab &rarr;
-        </a>
-      </p>
+      {/* ---- ALREADY-A-MEMBER PANEL (first_join:false) ---- */}
+      <div id="cp-already" class="cp-panel cp-already" hidden>
+        <p class="cp-panel-eyebrow">You're already in 👋</p>
+        <h3 class="cp-panel-title">You're already a member.</h3>
+        <p class="cp-panel-body">
+          The $10 is a new-member welcome, so we didn't add another — but your
+          rewards are waiting. Check your points and current perks.
+        </p>
+        <p><a class="cp-rewards-link" href="/rewards/">See your rewards →</a></p>
+      </div>
 
-      <p class="coupon-fineprint">
-        Cannot be combined with other offers. Valid for open bowling
-        only &mdash; not events, leagues, or the VIP suite. One redemption
-        per customer.
-      </p>
     </div>
   </section>
 
   {/* ============================================================
-      SEO body block — explanatory copy beneath the iframe so the
-      page has indexable content beyond the form chrome. Voice-aligned,
-      no discount/off framing in the headline (the canonical reframe
-      is "$10 lane credit"). Two redemption paths kept simple — the
-      operational details (lookup mechanic, overage handling) live
-      at the front desk, not in copy that could go stale.
-
-      2026-05-18: expanded from ~150 words to ~400 words for Stage 5
-      thin-content safety. New sections: "What the $10 actually does"
-      (operational specifics), "What you'll find when you walk in"
-      (venue context — taps, kitchen, bar program), "Who this is for"
-      (audience framing). Distinct copy from /waitlist + /free-kids-
-      bowling per the duplicate-content rule.
+      SEO body — unique content beneath the form so the page isn't a
+      thin form-only page (seo.md: 300+ words, internal links). Adapted
+      from the current /coupon. Targets branded + local intent; avoids
+      "free/cheap/discount bowling" per the negative-keyword list.
       ============================================================ */}
-  <section class="t2-section" aria-labelledby="coupon-info-h2">
+  <section class="t2-section" aria-labelledby="cp-info-h2">
     <div class="t2-section-inner">
       <p class="t-eyebrow">How it works</p>
-      <h2 class="t-display coupon-info-title" id="coupon-info-h2">
-        Two ways to use it.
-      </h2>
+      <h2 class="t-display cp-info-title" id="cp-info-h2">Two ways to use it.</h2>
       <p class="t2-section-body">
-        Walk in and bring your phone to the front desk. We apply the
-        $10 lane credit to your bowling tab. Or use it on a
+        Sign up and we text the $10 lane credit to your phone. Walk in and
+        show it at the front desk and we apply it to your bowling tab — or
+        use code <strong>SAVE10</strong> on a
         <a href="/reserve/" target="_blank" rel="noopener">lane reservation online</a>
-        and the $10 comes off the booking total. Either way, it's for
-        open bowling specifically &mdash; not group events, leagues, or
-        the VIP suite.
-      </p>
-      <p class="t2-section-body">
-        Plainfield's where we are; Will County's where most of our
-        regulars come from. The credit's a low-friction way to test
-        the place if you haven't been in. Date night, a Saturday with
-        friends, the in-laws-are-in-town problem &mdash; the $10
-        applies to whatever the lane rate is when you arrive, and the
-        rest of the night runs as a normal visit.
+        and the $10 comes off your booking total. Use it on
+        <a href="/bowl/">open bowling</a> or take over the
+        <a href="/vip-suite/">VIP suite</a> — walk in or reserve online,
+        either works.
       </p>
 
       <p class="t-eyebrow" style="margin-top: 36px;">What the $10 covers</p>
-      <h2 class="t-display coupon-info-title">
-        Lane time. Not the rest of the night.
-      </h2>
+      <h2 class="t-display cp-info-title">Lane time. Not the rest of the night.</h2>
       <p class="t2-section-body">
-        The credit comes off the lane time line on your tab. Lane
-        rentals at Twisted Pin run by the hour or by the lane &mdash;
-        see <a href="/pricing/">walk-in pricing</a> for the rate that
-        applies the night you're coming in (Wednesday is different
-        than Saturday). Lane shoes are included in the rental. Food
-        and drinks order separately, either at the lane or at the
-        bar, and run on a normal tab.
-      </p>
-      <p class="t2-section-body">
-        If your lane time exceeds $10, you pay the difference. If it
-        doesn't (a quick weeknight stop, say), the remainder stays on
-        the lane line &mdash; we don't apply leftover credit to food,
-        drinks, or arcade play. Keeps the math simple at the desk.
+        The credit comes off your lane time. Lane rentals at Twisted Pin run
+        by the hour — see <a href="/pricing/">walk-in pricing</a> for the rate
+        that applies the night you're coming in (Wednesday is different than
+        Saturday). Lane shoes, food, and drinks order separately on a normal
+        tab. If your lane time runs over $10 you pay the difference; we don't
+        apply leftover credit to food, drinks, or arcade play.
       </p>
 
-      <p class="t-eyebrow" style="margin-top: 36px;">What you'll find when you walk in</p>
-      <h2 class="t-display coupon-info-title">
-        It's not just lanes.
-      </h2>
+      <p class="t-eyebrow" style="margin-top: 36px;">More than the $10</p>
+      <h2 class="t-display cp-info-title">It's not just lanes.</h2>
       <p class="t2-section-body">
-        While you're here for the bowling, the rest of the venue runs
-        in parallel. <a href="/bar/">The bar program</a> was curated
-        by Brian Van Flandern, America's Top Mixologist &mdash; same
-        drinks at the lane as at the bar. The
-        <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>
-        is around the corner; grab a card, pour your own, pay by the
-        ounce. <a href="/eat/">The kitchen</a> runs from-scratch
-        shareable plates &mdash; not the heat-lamp food a bowling
-        alley menu usually implies.
+        While you're here, the rest of the venue runs in parallel —
+        <a href="/bar/">the bar program</a> curated by Brian Van Flandern,
+        America's Top Mixologist, the
+        <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>, and
+        <a href="/eat/">a from-scratch kitchen</a>. Signing up for the $10
+        also joins our text list — the fastest way to hear about what's next.
+        Already a member? Check your <a href="/rewards/">rewards</a>.
       </p>
+    </div>
+  </section>
 
-      <p class="t2-section-body" style="margin-top: 20px;">
-        One credit per customer. See <a href="/pricing/">walk-in pricing</a>
-        for what the lane time costs on the day you're planning,
-        <a href="/waitlist/">live wait status</a> if you're walking in
-        without a reservation, or <a href="/bowl/">more on bowling here</a>
-        before you book.
-      </p>
+  {/* ---- FAQ ---- */}
+  <section class="t2-section" aria-labelledby="cp-faq-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow">Good to know</p>
+      <h2 class="t-display cp-info-title" id="cp-faq-h2">Questions, answered.</h2>
+      <dl class="cp-faq">
+        {FAQ.map((item) => (
+          <div class="cp-faq-item">
+            <dt>{item.q}</dt>
+            <dd>{item.a}</dd>
+          </div>
+        ))}
+      </dl>
     </div>
   </section>
 
   <SnapFooter />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
-    { name: "Coupon", path: "/coupon/" },
+    { name: "$10 Lane Credit", path: "/coupon/" },
   ]} />
+  {/* Hand-rolled FAQPage entity (no helper in lib/schema.ts). */}
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": FAQ.map((item) => ({
+      "@type": "Question",
+      "name": item.q,
+      "acceptedAnswer": { "@type": "Answer", "text": item.a },
+    })),
+  })} />
 </Base>
+
+{/* ============================================================
+    Form handler. Posts to the server-side proxy (/api/coupon-signup),
+    which forwards to the loyalty intake webhook, and branches on the
+    response per the intake spec.
+    ============================================================ */}
+<script is:inline>
+  (function () {
+    var form = document.getElementById("cp-form");
+    if (!form) return;
+    var errorEl = document.getElementById("cp-error");
+    var submitBtn = document.getElementById("cp-submit");
+    var successEl = document.getElementById("cp-success");
+    var alreadyEl = document.getElementById("cp-already");
+    var mobile = document.getElementById("cp-mobile");
+    var phoneStatus = document.getElementById("cp-phone-status");
+
+    // Live mobile-number check state. lastVerified caches the result for the
+    // current 10-digit number so we don't re-hit the verifier on every key.
+    var lastVerified = { digits: "", textable: null, lineType: null };
+    var verifyTimer = null;
+
+    // Idempotency key — one per form render. Reused across retries so a
+    // double-submit can't create a duplicate customer / double text.
+    var submissionId = (window.crypto && window.crypto.randomUUID)
+      ? window.crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.round(performance.now());
+
+    function setPhoneStatus(msg, kind) {
+      if (!msg) { phoneStatus.hidden = true; phoneStatus.textContent = ""; return; }
+      phoneStatus.textContent = msg;
+      phoneStatus.className = "cp-phone-status" + (kind ? " " + kind : "");
+      phoneStatus.hidden = false;
+    }
+
+    function shakePhone() {
+      mobile.classList.add("cp-input-invalid");
+      mobile.classList.remove("cp-shake");
+      void mobile.offsetWidth; // reflow so the animation can re-trigger
+      mobile.classList.add("cp-shake");
+    }
+
+    // Live mobile check — pings the server-side Twilio Lookup proxy once the
+    // number is complete. Fail-open: anything but a CONFIRMED bad result
+    // leaves the field usable (the endpoint returns textable:true on
+    // errors / when unconfigured), so a verifier blip never blocks signup.
+    function verifyPhone(digits) {
+      if (digits.length !== 10 || digits === lastVerified.digits) return;
+      setPhoneStatus("Checking your number…", "checking");
+      fetch("/api/phone-verify/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: "+1" + digits }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          lastVerified = { digits: digits, textable: r.textable, lineType: r.line_type || null };
+          if (r.textable === false) {
+            shakePhone();
+            setPhoneStatus("That number can't receive texts — double-check your mobile number.", "bad");
+          } else {
+            mobile.classList.remove("cp-input-invalid");
+            setPhoneStatus("", "");
+          }
+        })
+        .catch(function () {
+          // Network error → fail open, don't block.
+          lastVerified = { digits: digits, textable: null, lineType: null };
+          setPhoneStatus("", "");
+        });
+    }
+
+    // Cosmetic US phone formatter (raw digits are what we send) + debounced
+    // live verification once 10 digits are present.
+    mobile.addEventListener("input", function () {
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      var out = d;
+      if (d.length > 6) out = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+      else if (d.length > 3) out = "(" + d.slice(0, 3) + ") " + d.slice(3);
+      else if (d.length > 0) out = "(" + d.slice(0, 3);
+      mobile.value = out;
+
+      if (d !== lastVerified.digits) {
+        mobile.classList.remove("cp-input-invalid");
+        setPhoneStatus("", "");
+      }
+      clearTimeout(verifyTimer);
+      if (d.length === 10) verifyTimer = setTimeout(function () { verifyPhone(d); }, 500);
+    });
+
+    // Verify immediately on blur (don't wait out the debounce).
+    mobile.addEventListener("blur", function () {
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      if (d.length === 10) verifyPhone(d);
+    });
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Text me my $10";
+    }
+
+    function reasonMessage(reason) {
+      if (reason === "missing_phone" || reason === "invalid_phone")
+        return "Please enter a valid 10-digit mobile number.";
+      if (reason === "network_error" || reason === "upstream_error")
+        return "Something went wrong on our end — please try again in a moment.";
+      return "Sorry, that didn't go through. Please try again.";
+    }
+
+    function reveal(panel, phoneText) {
+      form.hidden = true;
+      if (phoneText) {
+        var span = document.getElementById("cp-success-phone");
+        if (span) span.textContent = " to " + phoneText;
+      }
+      panel.hidden = false;
+      panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var first = form.first_name.value.trim();
+      var phoneDigits = form.phone.value.replace(/\D/g, "");
+      var consent = form.consent.checked;
+
+      if (!first) return showError("Please enter your first name.");
+      if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
+      if (!consent) return showError("Please agree to receive texts so we can send your credit.");
+
+      // Hard-stop only on a CONFIRMED non-textable number (verifier said so
+      // for this exact number). Unknown / unverified / fail-open → proceed.
+      if (lastVerified.digits === phoneDigits && lastVerified.textable === false) {
+        shakePhone();
+        return showError("That number can't receive texts — enter a mobile number so we can send your $10.");
+      }
+
+      var payload = {
+        first_name: first,
+        last_name: form.last_name.value.trim() || null,
+        phone: "+1" + phoneDigits,
+        email: form.email.value.trim() || null,
+        birthday_month: form.birthday_month.value ? parseInt(form.birthday_month.value, 10) : null,
+        birthday_day: form.birthday_day.value ? parseInt(form.birthday_day.value, 10) : null,
+        consent_marketing: true,
+        phone_type: (lastVerified.digits === phoneDigits) ? lastVerified.lineType : null,
+        submission_id: submissionId,
+        consent_language: form.getAttribute("data-consent") || "",
+        page_url: window.location.href,
+        website_url: form.website_url.value || "",
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending…";
+
+      fetch("/api/coupon-signup/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (r) {
+          if (!r || r.ok !== true) {
+            // Honeypot → silently no-op (it's a bot); reset quietly.
+            if (r && r.reason === "honeypot") {
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Text me my $10";
+              return;
+            }
+            return showError(reasonMessage(r && r.reason));
+          }
+          if (r.first_join || r.replayed) {
+            reveal(successEl, form.phone.value.trim());
+          } else {
+            reveal(alreadyEl);
+          }
+        })
+        .catch(function () {
+          showError("Something went wrong on our end — please try again in a moment.");
+        });
+    });
+  })();
+</script>
 
 <style>
   /* ============================================================
-     /coupon iframe frame — same chrome register as /waitlist.
-     Kept Indigo Deep backstop so any load-state gap reads dark,
-     not blank white.
+     /coupon — native loyalty signup form + SEO body. Dark brand
+     chrome (indigo surface, warm-white text, glow accents).
+     The cp-* prefix is a holdover from /coupon-preview, kept at the
+     2026-07-24 migration so the promoted markup/JS/CSS stayed
+     byte-identical apart from the preview scaffolding.
      ============================================================ */
+  .cp-section .t2-section-inner { max-width: 560px; }
 
-  .coupon-section .t2-section-inner {
-    max-width: 560px;
+  .cp-form { margin-top: 14px; }
+
+  .cp-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    /* Keeps side-by-side inputs level if a label ever wraps to a second
+       line (cells bottom-align instead of top-align). */
+    align-items: end;
   }
 
-  .coupon-frame {
-    position: relative;
-    margin-top: 16px;
-    overflow: hidden;
-    border-radius: var(--radius-surface);
-    border: 1px solid rgba(244, 239, 227, 0.12);
-    box-shadow:
-      0 8px 16px rgba(0, 0, 0, 0.30),
-      0 24px 48px rgba(0, 0, 0, 0.45);
-    background: #0E0A1F;
-  }
-
-  .coupon-iframe {
-    display: block;
-    width: 100%;
-    height: 1100px; /* matches the legacy live embed sizing */
+  .cp-field {
+    margin: 0 0 16px;
     border: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .cp-field label,
+  .cp-birthday legend {
+    display: block;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+    padding: 0;
+  }
+  .cp-req { color: var(--glow); }
+  .cp-opt { color: var(--warm-dim); font-weight: 400; }
+
+  .cp-form input[type="text"],
+  .cp-form input[type="tel"],
+  .cp-form input[type="email"],
+  .cp-form select {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body);
+    font-size: 16px; /* 16px avoids iOS zoom-on-focus */
+    color: var(--warm-white);
+    /* Opaque: exact composite of the old rgba(244,239,227,0.04) over
+       Indigo Deep. An alpha background let the fixed Pin Tilt watermark
+       show through the field interiors — loud on OLED phones, read as
+       smudges inside the boxes. Same fix as /kids-signup-preview. */
+    background: #171327;
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    border-radius: 7px;
+    padding: 13px 14px;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .cp-form select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a89eb6' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  /* Open-dropdown option list — the native popup renders on a light
+     background, so the inherited warm-white text was invisible. Give the
+     options an explicit dark background + light text (respected on
+     Windows/Linux Chrome; macOS uses its native menu rendering). */
+  .cp-form select option {
+    background-color: var(--indigo);
+    color: var(--warm-white);
+  }
+  .cp-form input::placeholder { color: var(--warm-dim); }
+  .cp-form input:focus,
+  .cp-form select:focus {
+    outline: 2px solid var(--glow);
+    outline-offset: 1px;
+    border-color: transparent;
   }
 
-  .coupon-fallback {
-    margin-top: 14px;
-    font-family: var(--font-ui);
-    font-size: 13px;
+  .cp-hint {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-size: 12.5px;
     color: var(--warm-dim);
   }
-  .coupon-fallback a {
-    color: var(--glow);
-    text-decoration: none;
-    margin-left: 6px;
-  }
-  .coupon-fallback a:hover { text-decoration: underline; }
 
-  .coupon-fineprint {
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(244, 239, 227, 0.08);
+  /* Live phone-verify status line */
+  .cp-phone-status {
+    margin: 6px 0 0;
+    font-family: var(--font-ui);
+    font-size: 12.5px;
+    font-weight: 700;
+  }
+  .cp-phone-status.checking { color: var(--warm-dim); }
+  .cp-phone-status.bad { color: #ff8a8a; }
+
+  /* Invalid phone field + shake on a confirmed non-textable number */
+  .cp-input-invalid { border-color: #ff8a8a !important; }
+  @keyframes cp-shake {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(3px); }
+    30%, 50%, 70% { transform: translateX(-5px); }
+    40%, 60% { transform: translateX(5px); }
+  }
+  .cp-shake { animation: cp-shake 0.5s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .cp-shake { animation: none; }
+  }
+
+  /* Honeypot — visually + assistively hidden, still focusable by bots. */
+  .cp-hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .cp-consent {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin: 4px 0 18px;
     font-family: var(--font-body);
-    font-size: 12px;
+    font-size: 12.5px;
     line-height: 1.55;
     color: var(--warm-dim);
   }
+  .cp-consent input { margin-top: 2px; flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--glow); }
+  .cp-consent a { color: var(--glow); text-decoration: none; }
+  .cp-consent a:hover { text-decoration: underline; }
 
-  /* SEO body block heading — same recipe as .fkb-section-title.
-     Will fold into the .pillar-* CSS hoist when that lands. */
-  .coupon-info-title {
+  .cp-error {
+    margin: 0 0 14px;
+    font-family: var(--font-ui);
+    font-size: 13px;
+    font-weight: 700;
+    color: #ff8a8a;
+  }
+
+  .cp-submit {
+    width: 100%;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--indigo-deep);
+    background: var(--glow);
+    border: 0;
+    border-radius: 7px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 120ms ease, transform 120ms ease;
+  }
+  .cp-submit:hover:not(:disabled) { background: var(--glow-dim); transform: scale(1.01); }
+  .cp-submit:disabled { opacity: 0.6; cursor: default; }
+
+  /* Result panels (success / already-member) */
+  .cp-panel {
+    margin-top: 10px;
+    padding: 24px 22px;
+    border-radius: var(--radius-surface);
+  }
+  .cp-success {
+    border: 1px solid rgba(78, 236, 196, 0.35);
+    background: rgba(78, 236, 196, 0.06);
+  }
+  .cp-already {
+    border: 1px solid rgba(244, 239, 227, 0.18);
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .cp-panel-eyebrow {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--glow);
+    margin: 0 0 6px;
+  }
+  .cp-panel-title {
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: 32px;
+    line-height: 1;
+    color: var(--warm-white);
+    margin: 0 0 12px;
+  }
+  .cp-panel-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
+    margin: 0 0 12px;
+  }
+  .cp-panel-body strong { color: var(--warm-white); }
+  .cp-panel-body a,
+  .cp-rewards-link { color: var(--glow); text-decoration: none; }
+  .cp-panel-body a:hover,
+  .cp-rewards-link:hover { text-decoration: underline; }
+  .cp-rewards-link { font-family: var(--font-ui); font-weight: 700; font-size: 15px; }
+
+  /* SEO body headings — match the /coupon recipe. */
+  .cp-info-title {
     color: var(--warm-white);
     font-size: clamp(28px, 7.5vw, 42px);
     line-height: 0.98;
@@ -237,6 +668,28 @@ const COUPON_FORM_URL = "https://c-g.co/xORo1J";
     margin: 10px 0 16px;
   }
   @media (min-width: 1025px) {
-    .coupon-info-title { font-size: clamp(40px, 4.2vw, 56px); }
+    .cp-info-title { font-size: clamp(40px, 4.2vw, 56px); }
+  }
+
+  /* FAQ */
+  .cp-faq { margin: 14px 0 0; }
+  .cp-faq-item {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(244, 239, 227, 0.08);
+  }
+  .cp-faq-item:last-child { border-bottom: 0; }
+  .cp-faq dt {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--warm-white);
+    margin: 0 0 6px;
+  }
+  .cp-faq dd {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--warm-mid);
   }
 </style>
