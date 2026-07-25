@@ -114,6 +114,9 @@ export interface BarSkuItem {
   sizeMl: number | null;
   trackingMode: "variance" | "stock_count";
   wacCost: string | null;
+  /** Containers per purchase case. null = unknown — the UI must ASK, never
+   *  assume (a wrong multiplier silently scales the whole count). */
+  unitsPerCase: number | null;
 }
 export interface BarZoneItem {
   id: string;
@@ -127,9 +130,16 @@ export interface KegKnownItem {
 export interface CountLineInput {
   zoneId: string;
   skuId: string;
+  /** ALWAYS individual containers — the canonical unit. Cases are expanded
+   *  before this is sent, and the server re-derives it from the two fields
+   *  below when they're present (it owns the conversion, not the client). */
   qtyUnits: number;
   source: "grid" | "voice";
   rawUtterance?: string;
+  /** What the counter actually typed, so the count round-trips on resume. */
+  enteredCases?: number;
+  /** The multiplier FROZEN at entry — never re-read from the catalog later. */
+  caseSizeAtEntry?: number | null;
 }
 export interface KegLineInput {
   kegName: string;
@@ -187,6 +197,8 @@ export interface OpenCountLine {
   zoneId: string;
   skuId: string;
   qtyUnits: string; // numeric → JSON string
+  enteredCases: string | null; // numeric → JSON string
+  caseSizeAtEntry: number | null;
   source: "grid" | "voice";
   rawUtterance: string | null;
 }
@@ -217,12 +229,40 @@ export interface VoiceMatch {
   id: string;
   name: string;
   sizeMl: number | null;
+  unitsPerCase: number | null;
 }
 export interface VoiceExtractItem {
   spoken: string;
+  /** Whole cases heard ("two cases" → 2). 0 when none were spoken. */
+  cases: number;
+  /** Loose containers heard, incl. fractions ("point eight" → 0.8). */
+  units: number;
+  /** The matched SKU's case size, or null when we don't know it. */
+  unitsPerCase: number | null;
+  /** Server-computed containers = cases × unitsPerCase + units. When
+   *  needsCaseSize is true this carries the LOOSE units only — the cases are
+   *  deliberately NOT converted, because guessing is what produced 93, 27
+   *  and 1 from three case utterances on 2026-07-24. */
   qty: number;
+  /** Cases were spoken but we have no case size for this bottle. The row is
+   *  NOT applyable until the counter answers "how many in a case?". */
+  needsCaseSize: boolean;
+  /** The model appears to have multiplied cases out despite being told not to
+   *  (it returned cases AND a units figure ≥ a full case). Strand, don't add. */
+  suspectPreMultiplied: boolean;
   match: VoiceMatch | null; // set when exactly one bottle matched
   candidates: VoiceMatch[]; // 2+ when the name was ambiguous (counter picks one)
+}
+
+/** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
+ *  per bottle ever; marks the value 'manual', which invoice learning will
+ *  never overwrite. Pass null to clear it back to unknown. */
+export async function setCaseSize(skuId: string, unitsPerCase: number | null): Promise<number | null> {
+  const res = await gatedJson<{ unitsPerCase: number | null }>(
+    `/admin/bar/skus/${skuId}/case-size`,
+    { ...jsonBody({ unitsPerCase }), method: "PATCH" },
+  );
+  return res.unitsPerCase;
 }
 
 /** Send a zone's dictation transcript → catalog-mapped {bottle, qty} items with
