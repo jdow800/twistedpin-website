@@ -4,7 +4,8 @@ import type { APIRoute } from 'astro';
 
 /**
  * /api/kids-signup — server-side intake proxy for the Free Kids Bowling signup
- * (the /kids-signup-preview page → future native form on /free-kids-bowling).
+ * (the native form on /free-kids-bowling; promoted from /kids-signup-preview
+ * at the 2026-07-24 loyalty cutover).
  *
  * Mirrors /api/coupon-signup (same n8n intake webhook, same consent-evidence
  * relay), with TWO differences specific to the kids program:
@@ -25,7 +26,7 @@ import type { APIRoute } from 'astro';
  * welcome text ("you're in — see the front desk", no offer link). It must also
  * match the windowed automation's segment tag. Until that handler exists,
  * a submission upserts the customer but won't tag or send the right text.
- * Keep /kids-signup-preview parked (noindex, unlinked) until it's live.
+ * LIVE as of 2026-07-24 — the page is public and indexable.
  *
  * Override the endpoint in non-prod via LOYALTY_INTAKE_URL if ever needed.
  */

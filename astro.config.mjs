@@ -74,8 +74,9 @@ export default defineConfig({
         !page.includes('/money') &&
         // Internal teammate culture book (password-gated) — same treatment.
         !page.includes('/playbook') &&
-        !page.includes('/coupon-preview') &&
-        !page.includes('/kids-signup-preview') &&
+        // (/coupon-preview + /kids-signup-preview exclusions removed 2026-07-24
+        //  — promoted onto /coupon + /free-kids-bowling at the loyalty cutover;
+        //  both live pages are meant to be indexed and in the sitemap.)
         // /reserve/mixology is a noindexed one-off event booking page (the
         // /mixology-experience/ lander is the indexed entry). Keep it out of
         // the sitemap so GSC doesn't flag "submitted URL marked noindex".

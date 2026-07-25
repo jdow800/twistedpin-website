@@ -9,10 +9,12 @@
  *   1. Rewards program — front-desk kiosk check-in earns 50 points per
  *      visit. Points stack against a ladder of rewards (free shoes,
  *      lane credit, bonus hours).
- *   2. Text Club — separate SMS opt-in (BOWL123 → 85775) for inside-line
- *      content (events, lineup changes, league openings). Distinct from
- *      the rewards-program SMS (which is transactional re: the program
- *      itself).
+ *   2. Text Club — SMS opt-in for inside-line content (events, lineup
+ *      changes, league openings). **2026-07-24: the join mechanic changed.**
+ *      Was a Patch Retention shared shortcode (text BOWL123 → 85775), which
+ *      dies with that account; per Jon, keyword joins are NOT being rebuilt
+ *      on the loyalty platform. The native signup at /coupon IS the join
+ *      now, and it carries the $10 lane credit as the incentive.
  *
  * Voice: the live page uses "Score Stellar Deals + Exclusive Discounts!"
  * and "$10 OFF Any Open Bowling" framing — both clash with the locked
@@ -32,10 +34,10 @@
  *     belongs in fine print on this page.
  *   - Confirm 50 pts/visit is the only earn rate. If there are bonus
  *     events ("double points Tuesdays") add them.
- *   - Text Club shortcode "BOWL123 → 85775" — verify keyword + shortcode
- *     match the current SMS provider config. If they're hitting any
- *     volume thresholds, consider a click-to-text link
- *     (sms:&body=BOWL123 to:85775) for mobile UX.
+ *   - The same retired BOWL123 → 85775 promo is still printed on the
+ *     Brunswick Sync screens and (possibly) the road sign — those are on
+ *     the go-live checklist for a physical scrub. Nothing on this page
+ *     references it any more.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -123,8 +125,15 @@ const rewardTiers: RewardTier[] = [
         upcoming events, and the rare drop. One inbox you'll actually
         read.
       </p>
+      {/* 2026-07-24 loyalty cutover: the old "Text BOWL123 to 85775" keyword
+          join was a Patch Retention shared shortcode and dies with that
+          account. Per Jon, keyword joins are NOT being rebuilt on the new
+          platform — the native signup form IS the join, and it hands over the
+          $10 credit as the incentive. Same physical promo lives on the
+          Brunswick Sync screens + road sign; those are being scrubbed too. */}
       <p class="t2-section-body">
-        <strong>Text BOWL123 to 85775</strong> to opt in.
+        <a href="/coupon/">Sign up here</a> — takes about twenty seconds, and
+        we'll text you a $10 lane credit to start.
       </p>
       <p class="t2-section-body" style="font-size: 13px; color: var(--warm-dim);">
         Standard message and data rates apply. Message frequency varies.

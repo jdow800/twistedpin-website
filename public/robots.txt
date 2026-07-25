@@ -10,10 +10,9 @@ Disallow: /tprs/
 Disallow: /liquor/
 # Staff-only cash-counting app (PIN-gated) — unindexed, unlinked.
 Disallow: /money/
-# Parked preview of the new loyalty signup form (replaces /coupon at launch) — unindexed, unlinked.
-Disallow: /coupon-preview/
-# Parked preview of the native Free Kids Bowling signup form — unindexed, unlinked.
-Disallow: /kids-signup-preview/
+# (/coupon-preview + /kids-signup-preview removed 2026-07-24 — those previews
+#  were promoted onto /coupon and /free-kids-bowling at the loyalty cutover and
+#  the preview routes deleted. Both live pages are intentionally indexable.)
 # Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
 Disallow: /reserve-preview2/
 # Internal teammate culture book (password-gated) — unindexed, unlinked.

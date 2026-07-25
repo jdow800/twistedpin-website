@@ -4,7 +4,8 @@ import type { APIRoute } from 'astro';
 
 /**
  * /api/coupon-signup — server-side intake proxy for the loyalty $10 signup
- * form (the /coupon-preview page → future /coupon).
+ * form (the native form on /coupon; promoted from /coupon-preview at the
+ * 2026-07-24 loyalty cutover).
  *
  * Per Loyalty/docs/coupon-page-intake-spec.md, the page collects the form
  * and POSTs to ONE loyalty endpoint; all loyalty logic (create customer,
