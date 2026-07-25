@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   getCountHistory,
   getCountDetail,
@@ -39,7 +39,16 @@ const qty = (s: string) => {
 type Mode = "liquor" | "kegs";
 type Detail = { kind: "liquor"; data: CountDetail } | { kind: "kegs"; data: KegCountDetail } | null;
 
-export default function Counts({ onDone }: { onDone: () => void }) {
+export default function Counts({
+  onDone,
+  initialCountId,
+}: {
+  onDone: () => void;
+  /** From an email deep link (?count=<id>) — open THAT count's detail straight
+   *  away, including its variance table, instead of landing on a list the
+   *  reader has to search. Mirrors Invoices' initialInvoiceId. */
+  initialCountId?: string | null;
+}) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [mode, setMode] = useState<Mode>("liquor");
   const [liquor, setLiquor] = useState<CountSummary[]>([]);
@@ -48,6 +57,7 @@ export default function Counts({ onDone }: { onDone: () => void }) {
   const [detailLoading, setDetailLoading] = useState(false);
   const [variance, setVariance] = useState<VarianceReport | null>(null);
   const [showVarianceLines, setShowVarianceLines] = useState(false);
+  const openedDeepLink = useRef(false);
 
   useEffect(() => {
     let live = true;
@@ -58,6 +68,12 @@ export default function Counts({ onDone }: { onDone: () => void }) {
           setLiquor(lq);
           setKegs(kg);
           setPhase("ready");
+          // Consumed once per mount. A stale or purged id falls through to the
+          // list quietly rather than erroring — same contract as ?invoice=.
+          if (initialCountId && !openedDeepLink.current) {
+            openedDeepLink.current = true;
+            void openLiquor(initialCountId);
+          }
         }
       } catch {
         if (live) setPhase("error");

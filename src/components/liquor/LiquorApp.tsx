@@ -25,17 +25,28 @@ type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "in
 // Login's onLoggedIn, and a refresh after that goes to Home like any other session.
 // ?invoice=<id> (the flagged-invoice email's "Review invoice" button) additionally
 // opens that invoice's detail inside the Invoices view, and implies view=invoices
-// on its own so the email URL stays short.
+// on its own so the email URL stays short. ?count=<id> is the same idea for the
+// count-report and variance-report emails — land on THAT count's detail (and its
+// variance table), not on a list the reader then has to search.
 const DEEP_LINKABLE: readonly View[] = ["mappours", "pourcosts", "invoices", "pricewatch", "counts"];
 
-const { requestedView, requestedInvoiceId } = ((): { requestedView: View | null; requestedInvoiceId: string | null } => {
-  if (typeof window === "undefined") return { requestedView: null, requestedInvoiceId: null };
+const { requestedView, requestedInvoiceId, requestedCountId } = ((): {
+  requestedView: View | null;
+  requestedInvoiceId: string | null;
+  requestedCountId: string | null;
+} => {
+  if (typeof window === "undefined")
+    return { requestedView: null, requestedInvoiceId: null, requestedCountId: null };
   const params = new URLSearchParams(window.location.search);
   const rawView = params.get("view");
   const rawInvoice = params.get("invoice");
-  if (rawView || rawInvoice) window.history.replaceState({}, "", window.location.pathname);
-  const view = DEEP_LINKABLE.find((v) => v === rawView) ?? (rawInvoice ? "invoices" : null);
-  return { requestedView: view, requestedInvoiceId: rawInvoice };
+  const rawCount = params.get("count");
+  if (rawView || rawInvoice || rawCount)
+    window.history.replaceState({}, "", window.location.pathname);
+  const view =
+    DEEP_LINKABLE.find((v) => v === rawView) ??
+    (rawInvoice ? "invoices" : rawCount ? "counts" : null);
+  return { requestedView: view, requestedInvoiceId: rawInvoice, requestedCountId: rawCount };
 })();
 
 export default function LiquorApp() {
@@ -95,7 +106,7 @@ export default function LiquorApp() {
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
         {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}
-        {view === "counts" && <Counts onDone={goHome} />}
+        {view === "counts" && <Counts onDone={goHome} initialCountId={requestedCountId} />}
         {view === "pricewatch" && <PriceWatch onDone={goHome} />}
         {view === "pourcosts" && <PourCosts onDone={goHome} />}
         {view === "mappours" && <MapPours onDone={goHome} />}
