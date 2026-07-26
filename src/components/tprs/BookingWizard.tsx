@@ -336,9 +336,14 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         : null,
     email: state.guest.email,
     phone: state.guest.phone,
+    // guestFieldError is (field, guest) — ARG ORDER MATTERS. The reversed call
+    // compiled fine (this repo runs no type-checking; TypeScript is not even a
+    // dependency) and then threw at MOUNT ("email"[guestObject].trim()), which
+    // killed the entire island: /reserve rendered a hero and nothing else, in
+    // production, 2026-07-26. If you touch this line, load /reserve after.
     contactReady:
-      guestFieldError(state.guest, "email") === null &&
-      guestFieldError(state.guest, "phone") === null,
+      guestFieldError("email", state.guest) === null &&
+      guestFieldError("phone", state.guest) === null,
   });
   const {
     quote,
