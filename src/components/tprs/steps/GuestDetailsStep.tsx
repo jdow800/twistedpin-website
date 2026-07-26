@@ -35,6 +35,16 @@ interface Props {
   /** Lanes/guests chosen earlier — drives any per_unit_select form field's
    *  picker count (NYE one-pizza-per-lane). Passed straight to FormRenderer. */
   unitQuantities: UnitQuantities;
+  /**
+   * Cents off for opting in, when the reward is available to THIS guest; null
+   * when it isn't (already redeemed / not started / expired / off / doesn't
+   * match this cart — all indistinguishable on purpose).
+   *
+   * null renders the original plain callout. We never name a number we might
+   * have to withdraw, so there is no failure state to explain and nothing to
+   * generate a "why won't my discount work" call.
+   */
+  rewardAmountCents: number | null;
 }
 
 // Input-side limiting so junk never lands in the field (paste-safe slice +
@@ -56,7 +66,15 @@ export default function GuestDetailsStep(props: Props) {
     submitAttempt,
     formInvalidCount,
     unitQuantities,
+    rewardAmountCents,
   } = props;
+
+  // Whole dollars — the reward is configured in round dollars and "$10" reads
+  // better than "$10.00" in a one-line offer.
+  const rewardLabel =
+    rewardAmountCents != null && rewardAmountCents > 0
+      ? `$${Math.round(rewardAmountCents / 100)}`
+      : null;
 
   const [touched, setTouched] = useState<Partial<Record<keyof GuestFields, boolean>>>({});
 
@@ -257,12 +275,25 @@ export default function GuestDetailsStep(props: Props) {
             onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
           />
           <span>
-            <strong>Send me epic deals.</strong> Curated offers, you deserve.
+            {rewardLabel ? (
+              <>
+                <strong>Save {rewardLabel} on this reservation.</strong> Text me
+                epic deals — curated offers, you deserve.
+              </>
+            ) : (
+              <>
+                <strong>Send me epic deals.</strong> Curated offers, you deserve.
+              </>
+            )}
           </span>
         </label>
         <p className="tprs-consent-fine">
+          {rewardLabel && `${rewardLabel} comes off your total right away, once per guest. `}
           Occasional marketing texts from Twisted Pin. Not required to book. Msg
-          &amp; data rates may apply. Reply STOP to opt out.
+          &amp; data rates may apply. Reply STOP to opt out, HELP for help. See{" "}
+          <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms</a>
+          {" & "}
+          <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy</a>.
         </p>
       </div>
 

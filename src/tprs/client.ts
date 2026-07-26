@@ -24,6 +24,7 @@ import {
   monthAvailabilityResponseSchema,
   productFormsResponseSchema,
   couponPreviewResponseSchema,
+  optInRewardPreviewResponseSchema,
   quoteResponseSchema,
   cartStateSchema,
   paymentIntentCreateResponseSchema,
@@ -36,6 +37,8 @@ import {
   type ProductFormsResponse,
   type CouponPreviewResponse,
   type CouponPreviewRequest,
+  type OptInRewardPreviewResponse,
+  type OptInRewardPreviewRequest,
   type QuoteRequest,
   type QuoteResponse,
   type CartAddRequest,
@@ -405,6 +408,34 @@ export async function previewCoupon(
     status,
     ok ? json : json,
   );
+}
+
+/**
+ * POST /api/checkout/optin-reward-preview — is the SMS-marketing opt-in reward
+ * still available to this guest, for this cart?
+ *
+ * NEVER THROWS. Every failure — network, 4xx, 5xx, an older backend that 404s
+ * because this endpoint isn't deployed yet — resolves to
+ * `{ available: false }`, which renders the plain opt-in box. Failing closed is
+ * the entire point: not showing a $10 offer is a non-event, while showing one we
+ * then withdraw at payment is the support call we are designing this to avoid.
+ */
+export async function previewOptInReward(
+  req: OptInRewardPreviewRequest,
+  signal?: AbortSignal,
+): Promise<OptInRewardPreviewResponse> {
+  const unavailable = { available: false, amountCents: 0 };
+  try {
+    const { json } = await postJson(
+      "/api/checkout/optin-reward-preview",
+      req,
+      signal,
+    );
+    const parsed = optInRewardPreviewResponseSchema.safeParse(json);
+    return parsed.success ? parsed.data : unavailable;
+  } catch {
+    return unavailable;
+  }
 }
 
 /**

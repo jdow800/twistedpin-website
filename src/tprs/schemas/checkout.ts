@@ -157,6 +157,38 @@ export const couponPreviewRequestSchema = z.object({
 });
 export type CouponPreviewRequest = z.infer<typeof couponPreviewRequestSchema>;
 
+/**
+ * Request for `POST /api/checkout/optin-reward-preview` (2026-07-26) — "is the
+ * SMS-marketing opt-in reward still available to this guest, for this cart?"
+ *
+ * Its own endpoint rather than a coupon-preview call, because that route takes
+ * the code in the body — which would put the reward's code in the browser,
+ * where it can be pasted into the manual coupon field and grant the $10 with no
+ * opt-in. Here the code never leaves the server.
+ *
+ * Contact is REQUIRED (coupon-preview's is optional): the engine skips the
+ * once-per-guest cap when identity is absent, so an identity-less answer would
+ * fail OPEN and promise the reward to someone who already redeemed it.
+ */
+export const optInRewardPreviewRequestSchema = z.object({
+  startTime: startTimeSchema,
+  items: z.array(checkoutItemSchema).min(1),
+  email: z.string().max(255),
+  phone: z.string().max(64),
+});
+export type OptInRewardPreviewRequest = z.infer<
+  typeof optInRewardPreviewRequestSchema
+>;
+
+/** Response for `POST /api/checkout/optin-reward-preview`. Boolean + amount only. */
+export const optInRewardPreviewResponseSchema = z.object({
+  available: z.boolean(),
+  amountCents: z.number().int().nonnegative().default(0),
+});
+export type OptInRewardPreviewResponse = z.infer<
+  typeof optInRewardPreviewResponseSchema
+>;
+
 /** Response for `POST /api/checkout/coupon-preview` (ADR-0028 §4). */
 export const couponPreviewResponseSchema = z.object({
   valid: z.boolean(),
@@ -189,6 +221,14 @@ export const quoteRequestSchema = z.object({
   startTime: startTimeSchema,
   couponCode: z.string().min(1).max(64).optional(),
   claimsTaxExempt: z.boolean().optional(),
+  /**
+   * Guest has ticked the SMS-marketing opt-in (2026-07-26). DISPLAY ONLY — this
+   * is the client's claim and the quote is a read, so trusting it here is safe.
+   * The actual charge re-derives eligibility from the PERSISTED
+   * `customers.sms_marketing_opt_in` at /payment-intents and again at convert,
+   * so a forged flag moves the previewed number and nothing else.
+   */
+  smsMarketingOptIn: z.boolean().optional(),
 });
 export type QuoteRequest = z.infer<typeof quoteRequestSchema>;
 
@@ -226,6 +266,14 @@ export const quoteResponseSchema = z.object({
    * the client — decouples backend/frontend deploy order.
    */
   fees: z.array(quoteFeeSchema).default([]),
+  /**
+   * Server-applied discounts the guest did NOT type — today just the SMS opt-in
+   * reward. Label + amount only: the CODE is deliberately never sent to the
+   * browser, because anything the client can see it can also paste into the
+   * manual coupon field, which would grant the reward with no opt-in.
+   * `.default([])` mirrors `fees` so an older backend response still parses.
+   */
+  autoDiscounts: z.array(quoteFeeSchema).default([]),
   totalIncludingTax: z.number().int(),
 });
 export type QuoteResponse = z.infer<typeof quoteResponseSchema>;

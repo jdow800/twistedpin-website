@@ -14,11 +14,13 @@ import {
   lineItemSubtotalCents,
   couponDiscountCents,
   guestInvalidFields,
+  guestFieldError,
   GUEST_FIELD_DOM_ID,
   laneMaxFor,
 } from "./state";
 import { scrollFocusInvalid } from "./scroll";
 import { useQuote } from "./useQuote";
+import { useOptInReward } from "./useOptInReward";
 import { useStepHistory } from "./useStepHistory";
 import { toIsoWithOffset } from "./format";
 import type {
@@ -306,9 +308,38 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       items: checkoutItems,
       startTime: toIsoWithOffset(state.date, state.slot.time),
       couponCode: state.couponCode.trim() || undefined,
+      // Ticking the marketing opt-in re-quotes, so the cart total drops the
+      // moment the box is checked (and returns if unchecked). That visible
+      // movement IS the persuasion — the label alone tests far weaker.
+      // Display-only: the charge re-derives eligibility server-side from the
+      // persisted consent row, so a forged flag here changes nothing real.
+      smsMarketingOptIn: state.marketingOptIn === true ? true : undefined,
       // claimsTaxExempt: no tax-exempt checkbox in the UI yet → omitted.
     };
-  }, [state.slot, state.product, state.date, checkoutItems, state.couponCode]);
+  }, [
+    state.slot,
+    state.product,
+    state.date,
+    checkoutItems,
+    state.couponCode,
+    state.marketingOptIn,
+  ]);
+  // Is the opt-in reward available to THIS guest? Gated on both contact fields
+  // being VALID (not merely non-empty) so it never fires mid-typing on a
+  // half-entered address, and so the once-per-guest check runs against the
+  // contact the booking will actually use.
+  const optInReward = useOptInReward({
+    items: checkoutItems,
+    startTime:
+      state.date && state.slot
+        ? toIsoWithOffset(state.date, state.slot.time)
+        : null,
+    email: state.guest.email,
+    phone: state.guest.phone,
+    contactReady:
+      guestFieldError(state.guest, "email") === null &&
+      guestFieldError(state.guest, "phone") === null,
+  });
   const {
     quote,
     loading: quoteLoading,
@@ -487,6 +518,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           onFormInvalidIds={setFormInvalidIds}
           submitAttempt={submitAttempt}
           formInvalidCount={formInvalidIds.length}
+          rewardAmountCents={optInReward.amountCents}
           unitQuantities={{
             guest_count: state.partySize ?? 0,
             lane_count: state.laneQty,
