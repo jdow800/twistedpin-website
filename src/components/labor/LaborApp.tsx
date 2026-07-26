@@ -104,7 +104,13 @@ export default function LaborApp() {
   );
 
   if (view === "loading") return chrome(<div className="lq-center"><p className="lq-muted">Loading…</p></div>);
-  if (view === "login") return chrome(<div className="lq-center"><Login onLoggedIn={() => void bootstrap()} /></div>);
+  // Login goes DIRECTLY in lq-main — do NOT wrap it in lq-center (LiquorApp:93
+  // and MoneyApp:65 both render it bare, and lq-center is for the loading/
+  // forbidden states only). lq-center sets `align-items: center`, which makes
+  // .lq-login shrink to its content width; .lq-numpad's `width: 100%` then
+  // resolves against that shrunken box instead of the column, so the pad
+  // collapsed to roughly half size and the keys came out narrow and tall.
+  if (view === "login") return chrome(<Login onLoggedIn={() => void bootstrap()} />);
   if (view === "forbidden")
     return chrome(
       <div className="lq-center">
