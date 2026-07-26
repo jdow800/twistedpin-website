@@ -549,9 +549,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   />
                   <button type="button" className="lq-step" aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(loose + 1))}>+</button>
                 </div>
-                {(cell?.cases ?? 0) > 0 && (
-                  <span className="lq-case-total">= {qty} {qty === 1 ? "each" : "each"}</span>
-                )}
+                {(cell?.cases ?? 0) > 0 && <span className="lq-case-sum">= {qty} each</span>}
               </div>
             );
           })}

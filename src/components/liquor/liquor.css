@@ -412,6 +412,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  /* wrap so the case box (flex-basis 100%, order 4) drops to its own line
+     instead of overflowing the row off the right edge of the phone */
+  flex-wrap: wrap;
   gap: 12px;
   padding: 10px 12px;
   border: 1px solid var(--lq-line);
@@ -484,6 +487,55 @@
 .lq-qty-input::placeholder {
   color: var(--lq-muted);
   font-weight: 400;
+}
+
+/* case entry — a SECOND quantity box beside the each-count.
+   .lq-row is a 3-child flex (name / stepper / x) sized for a ~390px phone, so
+   a 4th inline child does not fit: the case box gets its own wrapped line via
+   order + 100% basis. Without this the unstyled input takes browser-default
+   width and shreds the row (it did, in production, for about an hour). */
+.lq-casebox {
+  order: 4;
+  flex: 0 0 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.lq-case-input {
+  width: 58px;
+  height: 38px;
+  text-align: center;
+  border-radius: 9px;
+  /* Deliberately tinted differently from .lq-qty-input — two identical boxes
+     side by side is its own 24x hazard. */
+  border: 1px solid var(--lq-glow);
+  background: var(--lq-bg);
+  color: var(--lq-text);
+  font-size: 16px;
+  font-weight: 700;
+}
+.lq-case-input::placeholder {
+  color: var(--lq-muted);
+  font-weight: 400;
+}
+.lq-case-unit {
+  font-size: 12px;
+  color: var(--lq-muted);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+/* The running total, when the case box is a direct child of .lq-row. */
+.lq-case-sum {
+  order: 5;
+  flex: 0 0 100%;
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+/* The same figure nested inside .lq-row-name (a COLUMN flex) — typography
+   only, no flex sizing, or `flex: 0 0 100%` would stretch it vertically. */
+.lq-case-total {
+  white-space: normal;
 }
 
 /* keg rows */
@@ -874,6 +926,13 @@
   align-items: center;
   gap: 8px;
   flex: 0 0 auto;
+}
+/* "4 cs x24 +" ahead of the review row's quantity box. Small and unwrapped so
+   it cannot push the input or the x off a narrow phone. */
+.lq-rev-casemath {
+  font-size: 12px;
+  color: var(--lq-muted);
+  white-space: nowrap;
 }
 .lq-rev-x {
   width: 34px;
