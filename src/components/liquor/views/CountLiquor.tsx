@@ -59,6 +59,33 @@ type ReviewItem = {
 };
 
 const sizeLabel = (s: BarSkuItem) => (s.sizeMl != null ? `${s.sizeMl} ml` : "each");
+
+/** Emoji marker for the handful of things on a "liquor" count that AREN'T a
+ *  bottle of liquor — Luxardo cherries, Angostura, Red Bull, ginger beer, the
+ *  canned cocktails. 14 of 115 SKUs today.
+ *
+ *  The rule is the whole point: a marker appears IF AND ONLY IF the item is not
+ *  a bottle. That makes it self-documenting with no legend — an emoji on the row
+ *  means "don't count this in tenths, count whole units" — and it stays
+ *  meaningful precisely because 101 rows don't have one. Marking everything
+ *  would mark nothing.
+ *
+ *  Keyed on CATEGORY rather than per-SKU so a new mixer inherits it for free.
+ *  sizeMl == null is the gate: it correlates 1:1 with count_unit 'each' /
+ *  tracking_mode 'stock_count' across the whole live catalog, so a bottle can
+ *  never pick one up by accident. 📦 backs up an unmapped category, because the
+ *  not-a-bottle signal disappearing is worse than a generic marker. */
+const NON_BOTTLE_EMOJI: Record<string, string> = {
+  Garnish: "🍒",
+  Bitters: "🌿",
+  Mixers: "🥤",
+  "Energy Drinks": "🐂", // Red Bull. Yes, really.
+  "Canned Cocktails": "🥫",
+};
+function nonBottleEmoji(s: { sizeMl: number | null; category: string | null }): string | null {
+  if (s.sizeMl != null) return null;
+  return (s.category ? NON_BOTTLE_EMOJI[s.category] : null) ?? "📦";
+}
 const skuLabel = (m: VoiceMatch) => `${m.name}${m.sizeMl != null ? ` · ${m.sizeMl}ml` : ""}`;
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -667,10 +694,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             // The steppers and the number field edit the LOOSE count. Feeding
             // them cell.qty would re-add the cases on every keystroke.
             const loose = looseOf(cell);
+            const emoji = nonBottleEmoji(s);
             return (
               <div key={s.id} className={`lq-row${qty > 0 ? " lq-row-set" : ""}`}>
                 <div className="lq-row-name">
-                  <span className="lq-name">{s.name}</span>
+                  <span className="lq-name">
+                    {emoji && (
+                      <span className="lq-kind-tag" title="counted in whole units, not tenths" aria-hidden="true">
+                        {emoji}{" "}
+                      </span>
+                    )}
+                    {s.name}
+                  </span>
                   <span className="lq-size">{sizeLabel(s)}</span>
                 </div>
                 {/* Cell-first, exactly like the captured row and like setCases
@@ -688,11 +723,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 )}
                 <div className="lq-stepper">
                   <button type="button" className="lq-step" aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(loose - 1))}>−</button>
+                  {/* A can or a jar has no tenths. Whole-number step + a numeric
+                      keypad on non-bottles removes the "2.3 Red Bulls" typo
+                      outright, rather than catching it downstream. */}
                   <input
                     className="lq-qty-input"
                     type="number"
-                    inputMode="decimal"
-                    step="0.1"
+                    inputMode={emoji ? "numeric" : "decimal"}
+                    step={emoji ? "1" : "0.1"}
                     min={0}
                     value={loose || ""}
                     placeholder="0"
@@ -719,11 +757,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           capturedHere.map(([skuId, cell]) => {
             const caseSize = cell.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
             const loose = looseOf(cell);
+            const sku = skuById.get(skuId);
+            const emoji = sku ? nonBottleEmoji(sku) : null;
             return (
             <div key={skuId} className="lq-row lq-row-set">
               <div className="lq-row-name">
                 <span className="lq-name">
                   {cell.source === "voice" && <span className="lq-voice-tag" title="added by voice" aria-hidden="true">🎤 </span>}
+                  {emoji && (
+                    <span className="lq-kind-tag" title="counted in whole units, not tenths" aria-hidden="true">
+                      {emoji}{" "}
+                    </span>
+                  )}
                   {nameById.get(skuId) ?? "—"}
                 </span>
                 {cell.raw && <span className="lq-size lq-heard">heard: “{cell.raw}”</span>}
@@ -744,8 +789,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 <input
                   className="lq-qty-input"
                   type="number"
-                  inputMode="decimal"
-                  step="0.1"
+                  // Non-bottles step in whole units — no tenths of a can.
+                  inputMode={emoji ? "numeric" : "decimal"}
+                  step={emoji ? "1" : "0.1"}
                   min={0}
                   // Render 0 as EMPTY, not "0". A literal zero sitting in the
                   // box means tapping in and typing 3 gives "03" — the value
