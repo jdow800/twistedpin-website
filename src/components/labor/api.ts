@@ -118,8 +118,38 @@ export const saveNote = (body: {
 export const undoNote = (groupId: string) =>
   call<{ ok: true }>("/admin/labor/notes/undo", { method: "POST", body: JSON.stringify({ groupId }) });
 
+/**
+ * PIN login. Deliberately the SAME backend route the bar/cash apps use
+ * (`/admin/bar/pin-login`): it issues the one signed `tprs_session` cookie every
+ * `requirePermission` gate trusts, so one PIN opens /liquor, /money and /labor.
+ * Not gated (it IS the gate), so no HX/401 handling here — a wrong PIN comes
+ * back as a normal non-2xx with a message.
+ */
+export async function pinLogin(
+  pin: string,
+): Promise<{ ok: true } | { ok: false; message?: string }> {
+  let res: Response;
+  try {
+    res = await fetch(buildUrl("/admin/bar/pin-login"), {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json", ...HX },
+      body: JSON.stringify({ pin }),
+    });
+  } catch {
+    return { ok: false, message: "Couldn't reach the server." };
+  }
+  if (res.ok) return { ok: true };
+  let message: string | undefined;
+  try {
+    const j = (await res.json()) as { message?: string };
+    message = j.message;
+  } catch { /* non-JSON error body */ }
+  return { ok: false, message };
+}
+
 export async function logout(): Promise<void> {
   try {
-    await fetch(buildUrl("/admin/logout"), { method: "POST", credentials: "include", headers: HX });
+    await fetch(buildUrl("/admin/bar/logout"), { method: "POST", credentials: "include", headers: HX });
   } catch { /* best effort */ }
 }
