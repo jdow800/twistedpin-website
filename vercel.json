@@ -61,6 +61,9 @@
     { "source": "/epic-nye-parties-now-reserving-for-2025{/}?", "destination": "/new-years-eve/", "permanent": true },
     { "source": "/events/nye-twisted-pin{/}?", "destination": "/new-years-eve/", "permanent": true },
 
+    { "source": "/mixology-experience{/}?", "destination": "/upcoming-events/", "permanent": false },
+    { "source": "/reserve/mixology{/}?", "destination": "/upcoming-events/", "permanent": false },
+
     { "source": "/craft-beer-craft-cocktails-let-twisted-pin-be-your-next-restaurant-stop{/}?", "destination": "/bar/", "permanent": true },
     { "source": "/craft-beer-paradise-inspired-menu-in-plainfield{/}?", "destination": "/bar/", "permanent": true },
     { "source": "/beer-technology-next-level-fun-our-28-tap-self-serve-system{/}?", "destination": "/bar/#tap-wall", "permanent": true },

@@ -170,17 +170,11 @@ const SOURCES = [
   // crop matches our editorial frame pattern.
   { src: "../Pics Social Media/DSC_0289.jpeg", name: "careers-team", aspect: [9, 16], widths: [540, 900] },
 
-  // /mixology-experience host portrait — Brian Van Flandern at the Twisted Pin
-  // bar (pinstripe suit, copper tools, tap wall behind). Source F2_P4 is a big
-  // 4672×7008 portrait; 3:4 attention-crop keeps his face/figure. Used as the
-  // desktop hero split panel + the mobile "Your Host" section image.
-  { src: "F2_P4.jpg", name: "mixology-host", aspect: [3, 4], widths: [540, 900, 1280] },
-
-  // /reserve/mixology product-card thumbnail (TPRS product 500 `thumbnail_url`
-  // points at the hosted 900px jpg). DSC_0110 = pink craft cocktail w/ orchid +
-  // lime — the "build your own cocktail" hero shot. Native landscape; the card's
-  // object-fit:cover handles both the 84px square + the 150px mobile banner.
-  { src: "DSC_0110.jpg", name: "mixology-card", widths: [540, 900, 1280] },
+  // (mixology-host / mixology-card sources removed 2026-07-26 — the 7/28 Brian
+  // Van Flandern event was cancelled and both pages are gone. The already-built
+  // /public/snap/mixology-*.{avif,webp,jpg} files are left in place so the
+  // hosted URLs keep resolving for anything still pointing at them; delete them
+  // once the TPRS product-500 thumbnail is confirmed unused.)
 
   // Event JSON-LD images (referenced from src/content/events/*.md `image`
   // frontmatter, emitted as Event.image on /upcoming-events). Native aspect

@@ -77,17 +77,6 @@ export interface Promo {
  */
 export const PROMOS: readonly Promo[] = [
   {
-    // One-night ticketed event (20 seats, 21+). Links to the marketing
-    // lander, not /reserve/mixology/ — same convention as social/QR.
-    // Expires end-of-day on the event date; the daily 9 UTC cron build
-    // removes it automatically the morning after.
-    id: "mixology-2026-07-28",
-    message: "An Evening with America's Top Mixologist — July 28",
-    href: "/mixology-experience/",
-    showUntil: "2026-07-28",
-    homepageOnly: true,
-  },
-  {
     id: "kbf-summer-2026-aug14",
     message: "Free Bowling For Kids — through August 14",
     href: "/free-kids-bowling/",
