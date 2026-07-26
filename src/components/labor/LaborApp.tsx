@@ -257,6 +257,10 @@ function DayCard({
             {day.depts.map((d) => (
               <li key={d.dept}>
                 {d.summary}
+                {/* What the punches say the overage was SHAPED like — an extra
+                    body vs the same crew staying late. Computed, never guessed:
+                    it states what happened and leaves the why to him. */}
+                {d.shape && <span className="lb-shape">{d.shape}</span>}
                 {d.note && <em className="lb-already"> — you said: {d.note.reasonText}</em>}
               </li>
             ))}

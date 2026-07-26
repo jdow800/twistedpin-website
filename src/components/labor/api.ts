@@ -75,6 +75,10 @@ export interface DayDept {
   hours: number;
   norm: number;
   overHours: number;
+  /** Computed from the punch times — "The same 3 people, out around 11:50pm
+   *  against a usual 10:30pm." Empty when the data can't support a claim. */
+  shape: string;
+  shapeKind: "extra_body" | "fewer_people" | "late_finish" | "early_start" | "longer_shifts" | "unclear";
   summary: string;
   note: ExistingNote | null;
 }

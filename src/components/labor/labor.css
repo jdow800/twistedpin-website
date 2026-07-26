@@ -139,6 +139,15 @@
 
 .lb-facts { margin: 0 0 14px; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #cfc9db; }
 .lb-already { color: #8ee0a8; font-style: italic; }
+/* The computed shape of an overage — a fact from the punch clock, so it reads
+   as evidence rather than as the system's opinion. */
+.lb-shape {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--lq-muted);
+}
 
 /* ── voice capture ── */
 .lb-mic-wrap { margin-bottom: 12px; }
