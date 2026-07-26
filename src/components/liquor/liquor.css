@@ -869,6 +869,13 @@
 .lq-voice-tag {
   font-size: 12px;
 }
+/* The not-a-bottle marker (🍒 cherries, 🐂 Red Bull, 🥤 mixers...). Slightly
+   larger than the 🎤 tag because this one changes how you COUNT the thing,
+   where the mic only says where the number came from. Emoji ignore `color`, so
+   there is nothing to theme. */
+.lq-kind-tag {
+  font-size: 14px;
+}
 .lq-heard {
   font-style: italic;
   opacity: 0.85;
