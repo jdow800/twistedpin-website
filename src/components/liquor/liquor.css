@@ -538,6 +538,32 @@
   white-space: normal;
 }
 
+/* "+ case size" — what a row shows when we don't know its bottle's case size
+   yet (~97 of 115 SKUs today; pack size is a BRAND fact, not a size fact, so
+   it can't be guessed: Grey Goose 1L is 6/case, Tito's 1L is 12).
+   It shares .lq-casebox's slot, so learning a size mid-count swaps this for
+   the real box with no layout shift under the counter's thumb. */
+.lq-caseask {
+  /* The open editor is input + Save + Cancel; wrapping keeps it, and the error
+     below it, from ever shredding .lq-row on a 390px phone. */
+  flex-wrap: wrap;
+}
+/* .lq-linkbtn's 4px padding is a ~22px target — too small for a thumb an hour
+   into a count. Sized here so no other link button moves. */
+.lq-caseask-open {
+  font-size: 13px;
+  padding: 8px 2px;
+  min-height: 34px;
+}
+/* Own line, and NOT .lq-error: that rule is declared far earlier in this file
+   and a later muted rule would quietly win the cascade, rendering a failure in
+   grey. A save that failed has to look like one. */
+.lq-caseask-err {
+  flex: 0 0 100%;
+  font-size: 13px;
+  color: var(--lq-danger);
+}
+
 /* keg rows */
 .lq-keg-hint {
   font-size: 13px;
