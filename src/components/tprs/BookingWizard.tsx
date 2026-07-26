@@ -345,6 +345,20 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       guestFieldError("email", state.guest) === null &&
       guestFieldError("phone", state.guest) === null,
   });
+  // REVEAL is gated on ZIP, separately from the FETCH above (owner call,
+  // 2026-07-26): on mobile, when the phone number completes, focus moves to
+  // ZIP with the keyboard up and the callout sits directly BELOW the ZIP
+  // field — firing the upgrade there wastes the one-shot entrance pulse a
+  // field too early. ZIP is the last field before the box, so revealing on
+  // its 5th digit lands the pulse dead-center in view. Fetching early +
+  // revealing late means the amount is already in hand and the upgrade is
+  // INSTANT at that moment — no debounce or server round-trip in the beat.
+  // (Autofill fills everything at once; then the reveal waits only on the
+  // fetch, ~1s, which is fine — the keyboard is down and the box visible.)
+  const rewardRevealed =
+    guestFieldError("zip", state.guest) === null
+      ? optInReward.amountCents
+      : null;
   const {
     quote,
     loading: quoteLoading,
@@ -523,7 +537,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           onFormInvalidIds={setFormInvalidIds}
           submitAttempt={submitAttempt}
           formInvalidCount={formInvalidIds.length}
-          rewardAmountCents={optInReward.amountCents}
+          rewardAmountCents={rewardRevealed}
           unitQuantities={{
             guest_count: state.partySize ?? 0,
             lane_count: state.laneQty,
