@@ -135,11 +135,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }
   async function flush() {
     if (!sessionId) return;
+    // An empty list is SENT, not skipped — it is how "I removed the last
+    // bottle" reaches the server. Skipping it left the deleted rows alive.
     const lines = flatten(countsRef.current);
-    if (lines.length === 0) {
-      setSave("saved");
-      return;
-    }
     setSave("saving");
     try {
       await saveCountLines(sessionId, lines);
@@ -193,13 +191,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  never re-read later, so editing a SKU's case size can't rescale a count
    *  that's already been entered. */
   function setCases(skuId: string, casesRaw: number) {
-    const sku = skuById.get(skuId);
-    const caseSize = sku?.unitsPerCase ?? null;
-    if (caseSize == null) return; // no case size → the UI offers "set case size" instead
     const cases = Math.max(0, roundQty(casesRaw));
     setCounts((prev) => {
       const zone = { ...(prev[zoneId] ?? {}) };
       const cur = zone[skuId];
+      // A size ALREADY stamped on this cell wins over the catalog's current
+      // value. Reading the catalog here would rescale a line entered earlier
+      // under a different case size — e.g. resume a draft entered at 2x12,
+      // correct the SKU to 24, touch the box, and 24 becomes 48 silently.
+      const caseSize = cur?.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
+      if (caseSize == null) return prev; // no size → the UI offers "set case size"
       const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
       const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases));
       const qty = roundQty(cases * caseSize + loose);
@@ -636,7 +637,26 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   key={it.key}
                   item={it}
                   catalog={catalog}
-                  onQty={(q) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, qty: q } : x)))}
+                  onResolve={(res) =>
+                    setReview((r) =>
+                      r &&
+                      r.map((x, i) => {
+                        if (i !== idx) return x;
+                        const ups = x.unitsPerCase ?? 0;
+                        // The human has now stated the quantity explicitly, so
+                        // the model's cases/units are superseded and the
+                        // pre-multiply suspicion is answered — clearing the flag
+                        // is what makes the row applyable again.
+                        return {
+                          ...x,
+                          cases: res.cases,
+                          units: res.units,
+                          qty: roundQty(res.cases * ups + res.units),
+                          suspectPreMultiplied: false,
+                        };
+                      }),
+                    )
+                  }
                   onPick={(skuId) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, chosenSkuId: skuId, assignOpen: false } : x)))}
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
                   onRemove={() => setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null))}
@@ -683,7 +703,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 function ReviewRow({
   item,
   catalog,
-  onQty,
+  onResolve,
   onPick,
   onToggleAssign,
   onRemove,
@@ -691,7 +711,10 @@ function ReviewRow({
 }: {
   item: ReviewItem;
   catalog: BarSkuItem[];
-  onQty: (q: number) => void;
+  /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
+   *  single total — applyReview reads those two fields, so a handler that only
+   *  set `qty` would render a corrected number and then apply the old one. */
+  onResolve: (res: { cases: number; units: number }) => void;
   onPick: (skuId: string) => void;
   onToggleAssign: () => void;
   onRemove: () => void;
@@ -738,7 +761,9 @@ function ReviewRow({
             step="0.1"
             min={0}
             value={item.qty}
-            onChange={(e) => onQty(Math.max(0, Number(e.target.value)))}
+            // A typed number is a plain each-count and REPLACES whatever the
+            // model heard — cases go to 0 so cases x size can't be added on top.
+            onChange={(e) => onResolve({ cases: 0, units: Math.max(0, Number(e.target.value)) })}
           />
           <button type="button" className="lq-rev-x" aria-label="remove" onClick={onRemove}>✕</button>
         </div>
@@ -784,10 +809,12 @@ function ReviewRow({
           <span className="lq-error lq-rev-hint">
             Heard {item.cases} case{item.cases === 1 ? "" : "s"} AND {item.units} each — which did you mean?
           </span>
-          <button type="button" className="lq-chip" onClick={() => onQty(item.cases * (item.unitsPerCase ?? 0))}>
+          {/* Keep the case provenance on the "cases" branch so the count detail
+              can still show "4 cs x 24"; the "each" branch is loose by definition. */}
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: 0 })}>
             {item.cases} case{item.cases === 1 ? "" : "s"} ({item.cases * (item.unitsPerCase ?? 0)})
           </button>
-          <button type="button" className="lq-chip" onClick={() => onQty(item.units)}>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
             {item.units} each
           </button>
         </div>
