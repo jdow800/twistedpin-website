@@ -927,6 +927,16 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
   color: var(--tw-text-muted);
   margin: -2px 14px 6px 43px;
 }
+/* Terms/Privacy links inside the fine print (CTIA point-of-consent elements,
+   2026-07-26). Inherit the muted color — browser-default link blue is
+   unreadable on Indigo Deep — and mark linkness with the underline alone.
+   Offset keeps the underline clear of descenders at 12px. */
+.tprs-consent-fine a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.tprs-consent-fine a:hover { color: var(--tw-text); }
 .tprs-choice input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 /* per_unit_select — one labeled single-select per lane/guest (NYE buys one
    pizza + one soda pitcher PER LANE). A fixed number column keeps the selects
