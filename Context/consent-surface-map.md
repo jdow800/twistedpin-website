@@ -381,6 +381,43 @@ marketing send.**
 carrier block or hard bounce on Avery's rail remains invisible. The inline-PAT exposure is broader than the
 audit found — WF2 alone holds ~20 Missive HTTP nodes, several carrying the literal token.
 
+## 13. Patch cutover — the subtractive pass (RUN THIS ON CUTOVER DAY)
+
+**`patch_import_commit()` cannot turn consent off.** It merges with a one-way ratchet:
+
+```sql
+sms_marketing_opt_in = c.sms_marketing_opt_in OR agg.wants_sms
+```
+
+After the 2026-07-19 import every Patch contact already sits at `true`, so on a fresh export
+`true OR false = true` — **anyone who texted STOP to Patch's number (833-260-2926) after 07-19 is
+silently kept opted-in.** Patch's inbound number dies with the account (~07-27/28), after which that
+opt-out is unrecoverable and we would keep marketing to someone who explicitly left.
+
+**Cutover sequence:**
+
+```
+1. Export the FINAL contact list from Patch (do this BEFORE cancelling — the export dies with the account)
+2. node scripts/patch-import/load-staging.mjs "Patch Export/cleaned"    # Loyalty repo
+3. select patch_import_commit();                    -- additive delta (new contacts, new opt-ins)
+4. select patch_reconcile_optouts();                -- DRY RUN, reports what it would do
+5. select patch_reconcile_optouts(false);           -- applies the subtractive delta
+```
+
+`patch_reconcile_optouts()` (shipped 2026-07-26) mirrors the importer's own `wants_sms` predicate
+exactly, so the two can never disagree about who is textable. It flips Patch-marked opt-outs to
+`sms_marketing_opt_in = false` and writes a `consent_event` per person, `source_ref =
+'patch-final-optout-reconcile'` so the subtractive pass stays separable in an audit.
+
+**Safety:** it only touches customers whose opt-in is sourced `csv_import_patch` — i.e. Patch's word is
+the *only* reason we believe they consented. A guest who later opted in first-party (checkout /
+web_form / kiosk / avery_inbound) has fresher, better evidence and is never overridden by a stale
+export. Currently 18,370 of 18,379 opt-ins are Patch-sourced; 9 are first-party and protected.
+
+Dry run against the 07-19 staging snapshot returns **0**, which is correct — the 388 customers whose
+staging rows show `sms_on=false` all have a duplicate Patch record still showing opted-in, and
+`bool_or` keeps them in (the same tie-break the importer uses).
+
 ## 10. Operating rule on revocation scope
 
 47 CFR 64.1200(a)(10): revocation may be made "by using any reasonable method" and must be honored
