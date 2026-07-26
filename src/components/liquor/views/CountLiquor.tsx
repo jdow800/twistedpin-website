@@ -88,6 +88,22 @@ function nonBottleEmoji(s: { sizeMl: number | null; category: string | null }): 
   if (s.sizeMl != null) return null;
   return (s.category ? NON_BOTTLE_EMOJI[s.category] : null) ?? "📦";
 }
+/** Every case size this venue has ever recorded — 38 observations across three
+ *  independent sources (bar_sku.units_per_case, the invoice pack columns, and
+ *  entered count lines) — is 6, 12 or 24. Nothing else has appeared, ever. The
+ *  Owens "6/4P" is six four-packs, normalised to 24 cans.
+ *
+ *  So these are QUICK PICKS, and anything else warns. Three EQUAL options, never
+ *  a pre-filled default: a default invites tapping through, and a wrong case
+ *  size is sticky forever because invoices deliberately never overwrite a
+ *  hand-entered one. Picking fills the box rather than saving, so the number is
+ *  still confirmed on the Save button.
+ *
+ *  A warning, NOT a block — a genuinely odd case exists somewhere and this must
+ *  not be the reason it can't be entered. */
+const COMMON_CASE_SIZES = [6, 12, 24] as const;
+const isOddCaseSize = (n: number) => !COMMON_CASE_SIZES.includes(n as 6 | 12 | 24);
+
 const skuLabel = (m: VoiceMatch) => `${m.name}${m.sizeMl != null ? ` · ${m.sizeMl}ml` : ""}`;
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
@@ -518,6 +534,28 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         >
           Cancel
         </button>
+        {/* Fills the box; does NOT save. The number still gets confirmed on the
+            Save button, because a wrong case size can't be corrected later. */}
+        <span className="lq-caseask-quick">
+          {COMMON_CASE_SIZES.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="lq-chip lq-caseask-pick"
+              onClick={() => {
+                setCaseAskVal(String(c));
+                setCaseAskErr(null);
+              }}
+            >
+              {c}
+            </button>
+          ))}
+        </span>
+        {valid && isOddCaseSize(n) && (
+          <span className="lq-caseask-warn">
+            {n} per case? Every case here has been 6, 12 or 24 — worth a look at the box.
+          </span>
+        )}
         {err && <span className="lq-caseask-err">{err}</span>}
       </div>
     );
@@ -1139,6 +1177,19 @@ function ReviewRow({
               value={caseAnswer}
               onChange={(e) => setCaseAnswer(e.target.value)}
             />
+            {/* Same three picks as the grid. This is the likelier entry point —
+                it fires the moment someone says "four cases of X" for a bottle
+                we have no size on file for. */}
+            {COMMON_CASE_SIZES.map((c) => (
+              <button
+                key={c}
+                type="button"
+                className="lq-chip lq-caseask-pick"
+                onClick={() => setCaseAnswer(String(c))}
+              >
+                {c}
+              </button>
+            ))}
             <button
               type="button"
               className="lq-chip"
@@ -1154,9 +1205,17 @@ function ReviewRow({
               }
               onClick={() => onCaseSize(Number(caseAnswer))}
             >
-              Save
+              {Number(caseAnswer) >= 2 ? `Save ${Number(caseAnswer)}/case` : "Save"}
             </button>
           </div>
+          {caseAnswer.trim() !== "" &&
+            Number.isInteger(Number(caseAnswer)) &&
+            Number(caseAnswer) >= 2 &&
+            isOddCaseSize(Number(caseAnswer)) && (
+              <span className="lq-caseask-warn lq-rev-hint">
+                {Number(caseAnswer)} per case? Every case here has been 6, 12 or 24 — worth a look at the box.
+              </span>
+            )}
           {caseErr && <span className="lq-error lq-rev-hint">{caseErr}</span>}
         </div>
       )}

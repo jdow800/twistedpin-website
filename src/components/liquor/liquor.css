@@ -563,6 +563,28 @@
   font-size: 13px;
   color: var(--lq-danger);
 }
+/* Quick picks. Every case size this venue has ever recorded is 6, 12 or 24, so
+   the common answer is a tap — but they FILL the box rather than saving, so the
+   number is still confirmed on Save. Own line: input + Save + Cancel already
+   fills the first one at 390px. */
+.lq-caseask-quick {
+  flex: 0 0 100%;
+  display: flex;
+  gap: 8px;
+}
+.lq-caseask-pick {
+  min-width: 46px;
+  text-align: center;
+}
+/* A warning, not a block — a genuinely odd case exists somewhere and this must
+   not be why it can't be entered. Amber, not danger red: red is the vocabulary
+   of "this failed", and this one is "are you sure". */
+.lq-caseask-warn {
+  flex: 0 0 100%;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #f0c674;
+}
 
 /* keg rows */
 .lq-keg-hint {
