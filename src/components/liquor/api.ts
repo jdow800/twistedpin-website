@@ -217,6 +217,35 @@ export async function getOpenCount(): Promise<OpenCount | null> {
 export async function saveCountLines(sessionId: string, lines: CountLineInput[]): Promise<void> {
   await gatedJson(`/admin/bar/counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
 }
+/** One flagged bottle from the pre-submit sanity check. */
+export interface PrecheckFinding {
+  /** impossible = more on the shelf than you started with plus deliveries (the
+   *  case-vs-bottle slip, or an unscanned invoice — the two are indistinguishable,
+   *  which is why the copy must offer both). not_counted = had it last period,
+   *  no line this time. overuse = the mirror slip; nearly everything gone. */
+  kind: "impossible" | "not_counted" | "overuse";
+  skuId: string;
+  name: string;
+  counted: number | null;
+  prior: number;
+  purchased: number;
+  used: number | null;
+  unitsPerCase: number | null;
+  dollars: number;
+  detail: string;
+}
+export interface PrecheckResult {
+  /** No prior submitted count — nothing to compare against, so no findings. */
+  baseline: boolean;
+  findings: PrecheckFinding[];
+  truncated?: number;
+}
+/** Sanity-check an OPEN draft before submit. Read-only on the server; it must
+ *  never write bar_variance_report (see the route's docstring — the report is a
+ *  one-way door and a stray row there would kill the real one). */
+export async function precheckCount(sessionId: string): Promise<PrecheckResult> {
+  return gatedJson<PrecheckResult>(`/admin/bar/counts/${sessionId}/precheck`);
+}
 export async function submitCount(sessionId: string): Promise<number> {
   const { lineCount } = await gatedJson<{ lineCount: number }>(
     `/admin/bar/counts/${sessionId}/submit`,

@@ -5,6 +5,7 @@ import {
   getCatalog,
   getOpenCount,
   getZones,
+  precheckCount,
   saveCountLines,
   setCaseSize,
   submitCount,
@@ -13,6 +14,7 @@ import {
   type BarZoneItem,
   type CountLineInput,
   type OpenCountLine,
+  type PrecheckFinding,
   type VoiceMatch,
 } from "../api";
 import { useDictation } from "../useSpeech";
@@ -101,7 +103,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<number | null>(null);
   const [resumed, setResumed] = useState(false);
-  const [confirmSubmit, setConfirmSubmit] = useState<string[] | null>(null); // uncounted zone names
+  // Pre-submit review: uncounted zones (client-side) + flagged bottles (server).
+  const [confirmSubmit, setConfirmSubmit] = useState<{ zones: string[]; findings: PrecheckFinding[]; truncated: number } | null>(null);
+  const [checking, setChecking] = useState(false);
 
   // voice
   const [voiceBusy, setVoiceBusy] = useState(false);
@@ -559,11 +563,33 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   // Warn before submitting an incomplete count — don't close out a full-venue
   // inventory with a zone never touched (they can still choose to submit).
-  function tryFinish() {
-    if (!sessionId || submitting) return;
+  /** The last moment anything can be fixed. The variance report is computed once
+   *  ~30s after submit and can never be regenerated, so every check has to
+   *  happen HERE — after that, a wrong number is permanent for the period. */
+  async function tryFinish() {
+    if (!sessionId || submitting || checking) return;
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
-    if (uncounted.length > 0) {
-      setConfirmSubmit(uncounted);
+    setChecking(true);
+    let findings: PrecheckFinding[] = [];
+    let truncated = 0;
+    try {
+      // Flush FIRST — the check runs server-side against saved lines, so an
+      // unsaved last edit would be checked in its old form.
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      await saveCountLines(sessionId, flatten(countsRef.current));
+      setSave("saved");
+      const res = await precheckCount(sessionId);
+      findings = res.findings;
+      truncated = res.truncated ?? 0;
+    } catch {
+      // A sanity check must never be able to prevent closing out a count. If it
+      // fails we fall through to the zone confirmation exactly as before.
+      findings = [];
+    } finally {
+      setChecking(false);
+    }
+    if (uncounted.length > 0 || findings.length > 0) {
+      setConfirmSubmit({ zones: uncounted, findings, truncated });
       return;
     }
     void finish();
@@ -837,8 +863,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">{capturedHere.length} here · {enteredTotal} total</span>
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Exit</button>
-          <button type="button" className="lq-btn lq-btn-primary" disabled={submitting || enteredTotal === 0} onClick={tryFinish}>
-            {submitting ? "Submitting…" : "Finish & submit"}
+          <button
+            type="button"
+            className="lq-btn lq-btn-primary"
+            disabled={submitting || checking || enteredTotal === 0}
+            onClick={() => void tryFinish()}
+          >
+            {submitting ? "Submitting…" : checking ? "Checking…" : "Finish & submit"}
           </button>
         </div>
       </div>
@@ -942,21 +973,57 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
-      {/* incomplete-count confirm */}
+      {/* pre-submit review: uncounted zones + flagged bottles */}
       {confirmSubmit && (
-        <div className="lq-sheet" role="dialog" aria-label="Confirm submit">
+        <div className="lq-sheet" role="dialog" aria-label="Before you submit">
           <div className="lq-sheet-panel lq-confirm">
             <div className="lq-sheet-head">
-              <h3 className="lq-h2">Submit an incomplete count?</h3>
+              <h3 className="lq-h2">
+                {confirmSubmit.findings.length > 0 ? "Double-check these first?" : "Submit an incomplete count?"}
+              </h3>
               <p className="lq-muted">
-                No bottles counted in: <strong>{confirmSubmit.join(", ")}</strong>. Submitting
-                closes this count out — you can't add to it after.
+                {confirmSubmit.zones.length > 0 && (
+                  <>
+                    No bottles counted in: <strong>{confirmSubmit.zones.join(", ")}</strong>.{" "}
+                  </>
+                )}
+                Submitting closes this count out — you can't add to it after.
               </p>
             </div>
+            {confirmSubmit.findings.length > 0 && (
+              <div className="lq-precheck">
+                {confirmSubmit.findings.map((f) => (
+                  <div key={f.skuId} className="lq-precheck-row">
+                    <span className="lq-precheck-name">{f.name}</span>
+                    <span className="lq-precheck-detail">{f.detail}</span>
+                    {/* NEVER "recount this". An impossible number and an unscanned
+                        delivery produce the identical symptom, and only one of
+                        them is the counter's mistake — telling him to recount
+                        invites him to bend a CORRECT number until the warning
+                        clears, which corrupts good data with confident-looking
+                        advice. Name both causes; let him decide. */}
+                    <span className="lq-precheck-why">
+                      {f.kind === "impossible" &&
+                        (f.unitsPerCase
+                          ? `Either the count is off — cases vs bottles? ${f.unitsPerCase} per case — or a delivery hasn't been scanned.`
+                          : "Either the count is off, or a delivery hasn't been scanned.")}
+                      {f.kind === "not_counted" && "Still on the shelf, or gone? A missing line drops it out of the report entirely — a zero counts, nothing doesn't."}
+                      {f.kind === "overuse" && "That's a lot to pour in one period. Worth a second look, unless it really moved."}
+                    </span>
+                  </div>
+                ))}
+                {confirmSubmit.truncated > 0 && (
+                  <p className="lq-precheck-more">+ {confirmSubmit.truncated} more not shown.</p>
+                )}
+              </div>
+            )}
             <div className="lq-sheet-foot">
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setConfirmSubmit(null)}>
-                Keep counting
+                Go back
               </button>
+              {/* Always dismissible. The check is advice, not a gate — if the
+                  count is right and an invoice is simply missing, forcing a
+                  change here would be the worst outcome available. */}
               <button type="button" className="lq-btn lq-btn-primary" onClick={() => void finish()}>
                 Submit anyway
               </button>

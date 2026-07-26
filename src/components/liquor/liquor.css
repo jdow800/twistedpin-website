@@ -1033,6 +1033,51 @@
   line-height: 1.45;
 }
 
+/* Pre-submit sanity check — the flagged-bottle list inside the confirm sheet.
+   Submit is the last moment anything can be fixed (the variance report computes
+   once and can never be regenerated), so this is the one screen where reading
+   carefully is worth the seconds it costs. Scrolls rather than growing, so the
+   Go back / Submit buttons are never pushed off a phone. */
+.lq-precheck {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 0 2px;
+  max-height: 46vh;
+  overflow-y: auto;
+}
+.lq-precheck-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-danger);
+  background: rgba(255, 138, 138, 0.07);
+}
+.lq-precheck-name {
+  font-weight: 700;
+  font-size: 15px;
+}
+/* The numbers. 14px is the secondary tier from the type rubric — this is
+   read-to-decide text, not a dense list, so it does not go to the 12px floor. */
+.lq-precheck-detail {
+  font-size: 14px;
+  line-height: 1.4;
+}
+/* The two possible causes. Deliberately quieter than the numbers: it is the
+   interpretation, not the evidence. */
+.lq-precheck-why {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--lq-muted);
+}
+.lq-precheck-more {
+  margin: 0;
+  font-size: 13px;
+  color: var(--lq-muted);
+}
+
 /* invoice history */
 .lq-invlist,
 .lq-invd {
