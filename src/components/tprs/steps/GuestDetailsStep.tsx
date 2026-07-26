@@ -267,50 +267,72 @@ export default function GuestDetailsStep(props: Props) {
           and "curated" is otherwise reserved for the Van Flandern credential.
           Both are deliberate here — Jon specified this exact string. Do NOT
           "fix" it in a brand sweep; the ban still holds everywhere else. */}
-      {/* `key` swap deliberately REMOUNTS this div when the offer appears, so
-          the .tprs-consent--offer entrance animation replays exactly once at
-          that moment — the box upgrades right after the guest finishes typing
-          a valid phone, i.e. while their eyes are one field above it. That
-          single beat is the attention treatment (owner request 2026-07-26).
-          A LOOPING flash was considered and rejected: it reads as a coupon
-          banner (the exact promo-y register the retired CouponBanner died
-          for), and looping motion gets banner-blindness-filtered within
-          seconds. Motion-once-at-change is what eyes actually track.
-          prefers-reduced-motion users get the color pop with no motion. */}
+      {/* `key` swap deliberately REMOUNTS this div when the offer appears
+          (ZIP completion — see BookingWizard's reveal gate), so the card's
+          entrance + breathe animations replay from zero at that moment. */}
+      {/* Owner direction 2026-07-26: short punchy copy, the mechanics behind a
+          `*` footnote at the bottom of this step, and a breathing glow so the
+          card pulls the eye. Guardrails that survived the shortening, on
+          purpose — do not "simplify" them away:
+          - The ACTION ROW still names texts ("...& text me offers"). That five
+            words is the consent. If the label ever says only "$10 off", the
+            stored consent evidences a discount, not text marketing, and the
+            record is worthless in a TCPA dispute.
+          - The `*` footnote (below, end of this step) stays on the SAME screen
+            as the box — point-of-consent adjacency.
+          - The breathe runs ~4 cycles then rests, stops immediately once
+            checked, and is disabled under prefers-reduced-motion. Never an
+            infinite loop: looping motion gets banner-blindness-filtered and
+            reads promo-cheap against the moody thesis.
+          When consent-evidence stamping lands (~Sept), consent_language must
+          capture the box text AND the footnote text together. */}
       <div
-        className={rewardLabel ? "tprs-consent tprs-consent--offer" : "tprs-consent"}
+        className={rewardLabel ? "tprs-consent tprs-consent--card" : "tprs-consent"}
         key={rewardLabel ? "offer" : "plain"}
       >
-        <label className="tprs-choice">
-          <input
-            type="checkbox"
-            checked={marketingOptIn === true}
-            onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
-          />
-          <span>
-            {rewardLabel ? (
-              <>
-                <strong>
-                  Save <span className="tprs-consent-amt">{rewardLabel}</span> on
-                  this reservation.
-                </strong>{" "}
-                Text me epic deals — curated offers, you deserve.
-              </>
-            ) : (
-              <>
-                <strong>Send me epic deals.</strong> Curated offers, you deserve.
-              </>
-            )}
-          </span>
-        </label>
-        <p className="tprs-consent-fine">
-          {rewardLabel && `${rewardLabel} comes off your total right away, once per guest. `}
-          Occasional marketing texts from Twisted Pin. Not required to book. Msg
-          &amp; data rates may apply. Reply STOP to opt out, HELP for help. See{" "}
-          <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms</a>
-          {" & "}
-          <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy</a>.
-        </p>
+        {rewardLabel ? (
+          <>
+            <div className="tprs-consent-head">
+              <div className="tprs-consent-copy">
+                <div className="tprs-consent-headline">
+                  {rewardLabel} OFF this reservation.
+                </div>
+                <div className="tprs-consent-sub">
+                  Literally save {rewardLabel} — plus the occasional epic offer
+                  by text.*
+                </div>
+              </div>
+              <div className="tprs-consent-tag" aria-hidden="true">
+                <div className="tprs-consent-tag-amt">{rewardLabel}</div>
+                <div className="tprs-consent-tag-off">OFF</div>
+              </div>
+            </div>
+            <label className="tprs-choice tprs-consent-act">
+              <input
+                type="checkbox"
+                checked={marketingOptIn === true}
+                onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
+              />
+              <span>
+                <strong>Yes — {rewardLabel} off &amp; text me offers</strong>
+              </span>
+            </label>
+          </>
+        ) : (
+          <>
+            <label className="tprs-choice">
+              <input
+                type="checkbox"
+                checked={marketingOptIn === true}
+                onChange={(e) => onMarketingOptIn(e.currentTarget.checked)}
+              />
+              <span>
+                <strong>Send me epic deals.</strong> Curated offers, you
+                deserve.*
+              </span>
+            </label>
+          </>
+        )}
       </div>
 
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
@@ -323,6 +345,23 @@ export default function GuestDetailsStep(props: Props) {
         submitAttempt={submitAttempt}
         unitQuantities={unitQuantities}
       />
+
+      {/* The `*` footnote for the marketing opt-in above. MUST stay on this
+          step (same screen as the checkbox = point-of-consent adjacency); the
+          only disclosure that may never move down here is "you're agreeing to
+          texts", which lives in the checkbox label itself. */}
+      <p className="tprs-consent-footnote">
+        * Occasional marketing texts from Twisted Pin. Optional — not required
+        to book.{" "}
+        {rewardAmountCents != null && rewardAmountCents > 0
+          ? "The reward comes off this reservation's total, once per guest. "
+          : ""}
+        Msg &amp; data rates may apply. Reply STOP to opt out, HELP for help.
+        See{" "}
+        <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms</a>
+        {" & "}
+        <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy</a>.
+      </p>
 
     </div>
   );
