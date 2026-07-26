@@ -974,13 +974,19 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
   60%  { transform: scale(1.12) rotate(2deg); opacity: 1; }
   100% { transform: scale(1) rotate(0); }
 }
-/* Breathe: glow swells + settles. 4 iterations ≈ 11s, then static. */
+/* Breathe: the whole card swells (scale is perceptible where shadow-alone
+   was not — the card already glows at rest, so a 38%-alpha halo was under
+   the perception floor on phone OLEDs) + a stronger halo. 5 iterations
+   ≈ 12.5s, delayed 600ms so the tag-pop entrance lands first. */
 @keyframes tprs-consent-breathe {
-  0%   { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); }
-  50%  { box-shadow: 0 0 20px 3px rgba(78, 236, 196, 0.38); }
-  100% { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); transform: scale(1); }
+  50%  { box-shadow: 0 0 26px 5px rgba(78, 236, 196, 0.55); transform: scale(1.016); }
+  100% { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); transform: scale(1); }
 }
-.tprs-consent--card { animation: tprs-consent-breathe 2.8s ease-in-out 4; }
+.tprs-consent--card {
+  animation: tprs-consent-breathe 2.5s ease-in-out 5;
+  animation-delay: 600ms;
+}
 .tprs-consent--card .tprs-consent-tag-amt,
 .tprs-consent--card .tprs-consent-tag-off {
   animation: tprs-consent-tag-in 550ms cubic-bezier(0.2, 1.4, 0.4, 1) 1;
