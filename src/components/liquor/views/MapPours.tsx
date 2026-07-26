@@ -7,30 +7,27 @@ import {
   revertAutoAlias,
   type AutoAlias,
   type BarSkuItem,
-  type MissingRecipe,
   type UnmappedPour,
 } from "../api";
 import { matchSkus } from "../matcher";
 
-// The fix-it queue behind the daily recipe alerts. Two sections:
+// The pour-mapping fix-it queue. Two sections:
 //  1. Unmapped pours — spirit option labels ("Buffalo Trace (1.5oz)") whose
 //     bottle text doesn't match any catalog bottle. Suggestions come from the
 //     same fuzzy matcher the voice count uses; one tap writes the alias and
 //     every future sale of that button attributes correctly.
-//  2. Missing recipes — cocktails selling with no recipe. Read-only here:
-//     recipes live in the pricing sheet (02-Inputs-Recipes) and get re-seeded.
-//  3. Mapped automatically — labels the daily check resolved on its own because
+//  2. Mapped automatically — labels the daily check resolved on its own because
 //     they covered exactly one bottle. Nothing to do unless one is WRONG, which
 //     is the point of showing them: the matcher can't detect the case where the
 //     right bottle simply isn't in the catalog yet (a "Jameson" button landing
 //     on Jameson Orange), so a human has to be able to see and undo it.
 // Backed by GET /admin/bar/recipe-gaps, which re-checks the alert ledger live
-// so fixed items disappear on their own.
+// so fixed items disappear on their own. (Products/options that need a RECIPE
+// live in the Recipes view, not here — this screen is only bottle mapping.)
 
 export default function MapPours({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [pours, setPours] = useState<UnmappedPour[]>([]);
-  const [missing, setMissing] = useState<MissingRecipe[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [autos, setAutos] = useState<AutoAlias[]>([]);
   const [searchFor, setSearchFor] = useState<string | null>(null); // alertKey with open search
@@ -51,7 +48,6 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
         ]);
         if (live) {
           setPours(gaps.pours);
-          setMissing(gaps.missingRecipes);
           setCatalog(cat.filter((s) => s.trackingMode === "variance"));
           setAutos(auto);
           setPhase("ready");
@@ -210,24 +206,6 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
             </div>
           );
         })
-      )}
-
-      {missing.length > 0 && (
-        <>
-          <h3 className="lq-cap-title" style={{ marginTop: 18 }}>Need a recipe (fix in the sheet)</h3>
-          <p className="lq-muted" style={{ fontSize: 13, margin: "0 0 8px" }}>
-            These sell with no recipe, so their liquor can't be attributed. Add them to
-            02-Inputs-Recipes in the pricing sheet and re-seed.
-          </p>
-          {missing.map((m) => (
-            <div key={m.productId} className="lq-pw-row">
-              <div className="lq-pw-head">
-                <span className="lq-invrow-vendor">{m.name}</span>
-                <span className="lq-muted" style={{ fontSize: 12 }}>{m.category ?? ""}</span>
-              </div>
-            </div>
-          ))}
-        </>
       )}
 
       {autos.length > 0 && (

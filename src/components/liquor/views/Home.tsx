@@ -1,6 +1,6 @@
 import type { BarActor } from "../api";
 
-type Dest = "count" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours";
+type Dest = "count" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes";
 
 export default function Home({
   actor,
@@ -55,6 +55,11 @@ export default function Home({
           <span className="lq-action-emoji" aria-hidden="true">🔗</span>
           <span className="lq-action-title">Map pours</span>
           <span className="lq-action-sub">Match spirit buttons to bottles</span>
+        </button>
+        <button type="button" className="lq-action" onClick={() => onGo("recipes")}>
+          <span className="lq-action-emoji" aria-hidden="true">📝</span>
+          <span className="lq-action-title">Recipes</span>
+          <span className="lq-action-sub">Give drinks & options a recipe</span>
         </button>
       </div>
     </div>

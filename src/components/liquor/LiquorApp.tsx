@@ -11,12 +11,13 @@ import Counts from "./views/Counts";
 import PriceWatch from "./views/PriceWatch";
 import PourCosts from "./views/PourCosts";
 import MapPours from "./views/MapPours";
+import RecipeBuilder from "./views/RecipeBuilder";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -28,7 +29,7 @@ type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "in
 // on its own so the email URL stays short. ?count=<id> is the same idea for the
 // count-report and variance-report emails — land on THAT count's detail (and its
 // variance table), not on a list the reader then has to search.
-const DEEP_LINKABLE: readonly View[] = ["mappours", "pourcosts", "invoices", "pricewatch", "counts"];
+const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts"];
 
 const { requestedView, requestedInvoiceId, requestedCountId } = ((): {
   requestedView: View | null;
@@ -110,6 +111,7 @@ export default function LiquorApp() {
         {view === "pricewatch" && <PriceWatch onDone={goHome} />}
         {view === "pourcosts" && <PourCosts onDone={goHome} />}
         {view === "mappours" && <MapPours onDone={goHome} />}
+        {view === "recipes" && <RecipeBuilder onDone={goHome} />}
       </main>
     </div>
   );

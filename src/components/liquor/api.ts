@@ -710,8 +710,27 @@ export interface MissingRecipe {
   category: string | null;
   detectedAt: string;
 }
-export async function getRecipeGaps(): Promise<{ pours: UnmappedPour[]; missingRecipes: MissingRecipe[] }> {
-  return gatedJson<{ pours: UnmappedPour[]; missingRecipes: MissingRecipe[] }>("/admin/bar/recipe-gaps");
+/**
+ * A choose-your-spirit OPTION (Bar Mods → "Vegas Bomb") that sold but isn't
+ * classified yet — either build it a recipe or mark it a no-liquor mixer.
+ * productId lives only in the alert key (recovered server-side); optionLabel is
+ * the raw label to write back.
+ */
+export interface NeedsClassifyOption {
+  alertKey: string;
+  productId: string;
+  productName: string;
+  optionLabel: string;
+  count: number;
+  netCents: number;
+  detectedAt: string;
+}
+export async function getRecipeGaps(): Promise<{
+  pours: UnmappedPour[];
+  missingRecipes: MissingRecipe[];
+  needsClassify: NeedsClassifyOption[];
+}> {
+  return gatedJson("/admin/bar/recipe-gaps");
 }
 export async function addSkuAlias(skuId: string, alias: string): Promise<string[]> {
   const { aliases } = await gatedJson<{ aliases: string[] }>(
@@ -719,6 +738,60 @@ export async function addSkuAlias(skuId: string, alias: string): Promise<string[
     { method: "POST", ...jsonBody({ alias }) },
   );
   return aliases;
+}
+
+// ── recipe builder (write path to bar_recipe — options + whole-product) ──
+export interface RecipeComponentInput {
+  skuId: string;
+  oz: number;
+}
+/** Build/replace a recipe. optionLabel '' = a whole-product recipe (a cocktail). */
+export async function saveRecipe(
+  productId: string,
+  optionLabel: string,
+  productName: string | null,
+  components: RecipeComponentInput[],
+): Promise<void> {
+  await gatedJson("/admin/bar/option-recipes", {
+    method: "POST",
+    ...jsonBody({ productId, optionLabel, productName, components }),
+  });
+}
+/** Mark an option as a no-liquor mixer (Red Bull) — attribute nothing. */
+export async function markOptionMixer(
+  productId: string,
+  optionLabel: string,
+  productName: string | null,
+): Promise<void> {
+  await gatedJson("/admin/bar/option-recipes/mixer", {
+    method: "POST",
+    ...jsonBody({ productId, optionLabel, productName }),
+  });
+}
+/** Undo a classification — delete the row so the item returns to the queue. */
+export async function unclassifyOption(productId: string, optionLabel: string): Promise<void> {
+  await gatedJson("/admin/bar/option-recipes/unclassify", {
+    method: "POST",
+    ...jsonBody({ productId, optionLabel }),
+  });
+}
+export interface RecipeTemplateComponent {
+  skuId: string;
+  skuName: string;
+  sizeMl: number | null;
+  oz: number;
+}
+export interface RecipeTemplate {
+  recipeId: string;
+  productName: string | null;
+  components: RecipeTemplateComponent[];
+}
+/** Same-named standalone recipe(s) to prefill from (e.g. an existing Strawberry Limeade). */
+export async function getRecipeTemplates(label: string): Promise<RecipeTemplate[]> {
+  const { matches } = await gatedJson<{ matches: RecipeTemplate[] }>(
+    `/admin/bar/recipe-templates?label=${encodeURIComponent(label)}`,
+  );
+  return matches;
 }
 
 /** A pour label the daily check mapped on its own (migration 0106). */
