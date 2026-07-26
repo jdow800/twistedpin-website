@@ -59,7 +59,13 @@ export interface LaborActor {
   permissions: string[];
 }
 
-export type NoteKind = "one_off" | "new_normal";
+/**
+ * `one_off`    — a FACT ("that was training"). Leaves the baseline.
+ * `new_normal` — a CLAIM arguing staffing UP. Moves no number.
+ * `lean_trial` — a CLAIM arguing the leaner level held. Moves no number either;
+ *                it becomes trial evidence the engine can test later.
+ */
+export type NoteKind = "one_off" | "new_normal" | "lean_trial";
 export type NoteCategory =
   | "training" | "deep_clean" | "inventory" | "callout" | "event" | "weather" | "other";
 
@@ -74,7 +80,13 @@ export interface DayDept {
   deptLabel: string;
   hours: number;
   norm: number;
-  overHours: number;
+  /** SIGNED — negative on a lean day. Never prefix a bare "+" when rendering. */
+  deltaHours: number;
+  /** Percent of norm, signed. The frame Jon reads first: "+14% ($230)". */
+  deltaPct: number;
+  /** Absolute dollars: over on a hot day, SAVED on a lean one. */
+  deltaDollars: number;
+  direction: "hot" | "lean";
   /** Computed from the punch times — "The same 3 people, out around 11:50pm
    *  against a usual 10:30pm." Empty when the data can't support a claim. */
   shape: string;

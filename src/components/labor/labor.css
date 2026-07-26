@@ -231,3 +231,18 @@
   font-size: 14px; color: #cfc9db;
 }
 .lb-answered-row strong { color: #efecf4; }
+
+/* A lean day leads with the saving — the card asks "did it cost you anything?"
+   rather than "explain this". Green because it is genuinely good news. */
+.lb-saved {
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: rgba(92, 212, 138, 0.10);
+  border-left: 3px solid #5cd48a;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: #d8f3e2;
+}
+.lb-saved strong { color: #8ee0a8; }
+.lb-what-lean { color: #5cd48a; }

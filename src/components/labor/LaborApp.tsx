@@ -128,10 +128,12 @@ export default function LaborApp() {
   return chrome(
     <div className="lb-shell">
       <header className="lb-head">
-        <h1 className="lb-h1">Why was this day busy?</h1>
+        {/* Neutral on direction now that lean days appear too — "why was this
+            day busy?" can't host a card about a day that ran under. */}
+        <h1 className="lb-h1">Days worth a word</h1>
         <p className="lq-muted lb-sub">
-          These days ran well over their usual. A word from you keeps a one-off from
-          becoming the new "normal" in the weekly report.
+          These ran well off their usual — some over, some under. A word from you
+          keeps a one-off from becoming the new "normal" in the weekly report.
         </p>
       </header>
 
@@ -195,6 +197,13 @@ function DayCard({
   const [err, setErr] = useState<string | null>(null);
   const [picked, setPicked] = useState<string[]>(day.depts.map((d) => d.dept));
 
+  // A day is "lean" when every unanswered department ran UNDER — that reframes
+  // the whole card from "explain this cost" to "you saved something, did it
+  // hurt?" (Jon: "he gets to POTENTIALLY see the fruit of his efforts").
+  const unanswered = day.depts.filter((d) => !d.note);
+  const lean = unanswered.length > 0 && unanswered.every((d) => d.direction === "lean");
+  const saved = unanswered.reduce((s, d) => s + d.deltaDollars, 0);
+
   const dictation = useDictation();
 
   const heard = `${dictation.transcript} ${dictation.interim}`.trim();
@@ -246,13 +255,25 @@ function DayCard({
     <div className={open ? "lb-card lb-card-open" : "lb-card"}>
       <button className="lb-card-head" onClick={onToggle} aria-expanded={open}>
         <span className="lb-date">{day.label}</span>
-        <span className="lb-what">
-          {day.depts.filter((d) => !d.note).map((d) => `${d.deptLabel} +${d.overHours}h`).join(" · ")}
+        {/* Percent first, then dollars — the frame that gives a number instant
+            perspective ("+14% · $230"). The sign is FORMATTED, never a hardcoded
+            "+": a lean day would otherwise render "+-5.2h". */}
+        <span className={lean ? "lb-what lb-what-lean" : "lb-what"}>
+          {day.depts
+            .filter((d) => !d.note)
+            .map((d) => `${d.deptLabel} ${d.deltaPct > 0 ? "+" : "−"}${Math.abs(d.deltaPct)}% · $${d.deltaDollars}${d.direction === "lean" ? " saved" : ""}`)
+            .join(" · ")}
         </span>
       </button>
 
       {open && (
         <div className="lb-body">
+          {lean && (
+            <p className="lb-saved">
+              You ran this one lean — about <strong>${saved}</strong> under a normal{" "}
+              {day.label.split(" ")[0]}. Did it cost you anything?
+            </p>
+          )}
           <ul className="lb-facts">
             {day.depts.map((d) => (
               <li key={d.dept}>
@@ -303,6 +324,7 @@ function DayCard({
               picked={picked}
               setPicked={setPicked}
               busy={busy}
+              lean={lean}
               onBack={() => setProposed(null)}
               onCommit={commit}
             />
@@ -322,13 +344,15 @@ function DayCard({
  * which is the honest option for a day that was simply busy.
  */
 function Confirm({
-  proposed, day, picked, setPicked, busy, onBack, onCommit,
+  proposed, day, picked, setPicked, busy, lean, onBack, onCommit,
 }: {
   proposed: ProposedNote;
   day: FlaggedDay;
   picked: string[];
   setPicked: (d: string[]) => void;
   busy: boolean;
+  /** Lean day => a different question, and a different pair of answers. */
+  lean: boolean;
   onBack: () => void;
   onCommit: (kind: NoteKind, category: NoteCategory | null, reason: string) => void;
 }) {
@@ -369,27 +393,52 @@ function Confirm({
         ))}
       </div>
 
+      {/* The answers differ by direction, because the QUESTION differs. A hot day
+          asks "should this count as normal?"; a lean day asks "did running thin
+          cost you anything?" — and a deliberate trial that held is the one piece
+          of evidence the engine can never manufacture for itself. */}
       <div className="lb-choices">
-        <button
-          className="lb-primary"
-          disabled={busy || !picked.length}
-          onClick={() => onCommit("one_off", category, reason)}
-        >
-          One-off — don't count it as normal
-        </button>
-        <button
-          className="lb-secondary"
-          disabled={busy || !picked.length}
-          onClick={() => onCommit("new_normal", category, reason)}
-        >
-          This is the new normal
-        </button>
+        {lean ? (
+          <>
+            <button
+              className="lb-primary"
+              disabled={busy || !picked.length}
+              onClick={() => onCommit("lean_trial", category, reason)}
+            >
+              Ran it lean on purpose — it held up
+            </button>
+            <button
+              className="lb-secondary"
+              disabled={busy || !picked.length}
+              onClick={() => onCommit("one_off", category, reason)}
+            >
+              We were short-handed — don't count it
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="lb-primary"
+              disabled={busy || !picked.length}
+              onClick={() => onCommit("one_off", category, reason)}
+            >
+              One-off — don't count it as normal
+            </button>
+            <button
+              className="lb-secondary"
+              disabled={busy || !picked.length}
+              onClick={() => onCommit("new_normal", category, reason)}
+            >
+              This is the new normal
+            </button>
+          </>
+        )}
         <button className="lb-linkbtn" onClick={onBack} disabled={busy}>Back</button>
       </div>
       <p className="lb-fineprint">
-        “One-off” leaves the day out of the usual-hours averages. “New normal” doesn't
-        change any numbers — it flags the claim so we can check it against what the
-        days actually earned.
+        {lean
+          ? "“Ran it lean on purpose” changes no numbers on its own — it records the trial so we can check it against what that day actually earned. “Short-handed” leaves the day out of the usual-hours averages."
+          : "“One-off” leaves the day out of the usual-hours averages. “New normal” doesn’t change any numbers — it flags the claim so we can check it against what the days actually earned."}
       </p>
     </div>
   );
