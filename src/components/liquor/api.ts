@@ -212,8 +212,9 @@ export async function getOpenCount(): Promise<OpenCount | null> {
   const { session } = await gatedJson<{ session: OpenCount | null }>("/admin/bar/counts/open");
   return session;
 }
+/** Replace the draft's lines with exactly these. An EMPTY array is meaningful —
+ *  it means the counter removed everything — so it is sent, not skipped. */
 export async function saveCountLines(sessionId: string, lines: CountLineInput[]): Promise<void> {
-  if (lines.length === 0) return;
   await gatedJson(`/admin/bar/counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
 }
 export async function submitCount(sessionId: string): Promise<number> {
