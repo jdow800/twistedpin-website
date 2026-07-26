@@ -1,0 +1,134 @@
+/* /labor — the "why was this day busy?" surface. Layers on top of liquor.css
+   (imported first) so the PIN pad, shell and type scale are shared; only the
+   day-card + capture flow is new. Phone-first: the GM answers this standing at
+   the desk, one thumb. */
+
+.lb-shell { padding-bottom: 48px; }
+
+.lb-head { margin-bottom: 18px; }
+.lb-sub { margin-top: 6px; max-width: 46ch; }
+
+.lb-empty {
+  margin: 24px 0;
+  padding: 18px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #b9b3c7;
+  font-size: 15px;
+}
+
+/* ── the undo strip — a saved answer must be reversible in one tap ── */
+.lb-undo {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 14px; padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(92, 212, 138, 0.12);
+  color: #5cd48a; font-size: 14px; font-weight: 600;
+}
+
+/* ── day cards ── */
+.lb-card {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.03);
+}
+.lb-card-open { border-color: rgba(255, 255, 255, 0.22); }
+
+.lb-card-head {
+  display: flex; flex-direction: column; gap: 4px;
+  width: 100%; padding: 14px 16px;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  color: inherit; font: inherit;
+}
+.lb-date { font-size: 16px; font-weight: 700; }
+.lb-what { font-size: 13px; color: #c9a227; }
+
+.lb-body { padding: 0 16px 16px; }
+
+.lb-facts { margin: 0 0 14px; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #cfc9db; }
+.lb-already { color: #8ee0a8; font-style: italic; }
+
+/* ── voice capture ── */
+.lb-mic-wrap { margin-bottom: 12px; }
+.lb-mic {
+  width: 100%; padding: 16px;
+  border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff; font-size: 16px; font-weight: 600; cursor: pointer;
+}
+.lb-mic-on {
+  background: rgba(214, 77, 77, 0.18);
+  border-color: #d64d4d;
+  animation: lb-pulse 1.6s ease-in-out infinite;
+}
+@keyframes lb-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+@media (prefers-reduced-motion: reduce) { .lb-mic-on { animation: none; } }
+
+.lb-heard {
+  margin: 10px 0 0; padding: 10px 12px;
+  border-radius: 8px; background: rgba(255, 255, 255, 0.05);
+  font-size: 15px; line-height: 1.5; color: #efecf4;
+}
+
+.lb-textarea {
+  width: 100%; margin: 10px 0; padding: 12px;
+  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.25); color: #fff;
+  /* 16px minimum — anything smaller triggers iOS zoom-on-focus. */
+  font-size: 16px; font-family: inherit; resize: vertical;
+}
+
+.lb-note { font-size: 14px; margin: 4px 0 8px; }
+
+.lb-primary, .lb-secondary {
+  width: 100%; padding: 15px;
+  border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+}
+.lb-primary { background: #c9a227; border: 0; color: #17121f; }
+.lb-primary:disabled { opacity: 0.45; cursor: default; }
+.lb-secondary {
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.30); color: #fff;
+  margin-top: 8px;
+}
+.lb-secondary:disabled { opacity: 0.45; cursor: default; }
+
+.lb-linkbtn {
+  background: none; border: 0; padding: 8px 0;
+  color: #b9b3c7; font-size: 14px; text-decoration: underline; cursor: pointer;
+}
+
+/* ── read-back + confirm ── */
+.lb-confirm { margin-top: 4px; }
+.lb-readback {
+  margin: 0 0 10px; font-size: 17px; line-height: 1.5; color: #fff;
+}
+.lb-edit {
+  width: 100%; margin-bottom: 12px; padding: 11px 12px;
+  border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.25); color: #fff; font-size: 16px; font-family: inherit;
+}
+
+.lb-label { display: block; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: #948da3; margin-bottom: 6px; }
+.lb-depts, .lb-cats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.lb-chip {
+  padding: 8px 13px; border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent; color: #cfc9db; font-size: 14px; cursor: pointer;
+}
+.lb-chip-on { background: #c9a227; border-color: #c9a227; color: #17121f; font-weight: 700; }
+
+.lb-choices { display: flex; flex-direction: column; gap: 4px; }
+
+.lb-fineprint { margin: 12px 0 0; font-size: 12.5px; line-height: 1.5; color: #948da3; }
+
+/* ── what you've told us ── */
+.lb-answered { margin-top: 30px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.lb-h2 { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #948da3; margin: 0 0 12px; }
+.lb-answered-row {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 9px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px; color: #cfc9db;
+}
+.lb-answered-row strong { color: #efecf4; }

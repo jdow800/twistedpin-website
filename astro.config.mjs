@@ -72,6 +72,8 @@ export default defineConfig({
         !page.includes('/liquor') &&
         // Staff-only cash-counting SPA (Money Hub) — same treatment.
         !page.includes('/money') &&
+        // Staff-only labor-notes surface (PIN-gated) — same treatment.
+        !page.includes('/labor') &&
         // Internal teammate culture book (password-gated) — same treatment.
         !page.includes('/playbook') &&
         // (/coupon-preview + /kids-signup-preview exclusions removed 2026-07-24

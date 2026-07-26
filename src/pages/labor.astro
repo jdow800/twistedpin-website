@@ -1,0 +1,34 @@
+---
+/**
+ * /labor — STAFF labor-notes surface (noindex, PIN-gated). Not a marketing page.
+ *
+ * One job: the GM says WHY a day ran unusually, in his own voice, in about ten
+ * seconds. The weekly labor report can see that a Wednesday ran 16 hours over;
+ * only he knows it was a training day, and until he says so that day teaches the
+ * baseline that the higher number is normal.
+ *
+ * Full-bleed React island (LaborApp) talking same-origin to the TPRS backend via
+ * /tprs-api/admin/labor/* (Vite dev proxy + prod Vercel middleware; the signed
+ * tprs_session cookie rides along). Same PIN pad as /liquor — the login issues
+ * the same session cookie — but gated on `labor.annotate` (admin + front_desk),
+ * deliberately NOT cash.admin, which is structurally invisible to the GM.
+ *
+ * Chrome hidden (own header), noindex + robots Disallow + sitemap-excluded.
+ */
+import Base from "../layouts/Base.astro";
+import LaborApp from "../components/labor/LaborApp.tsx";
+---
+
+<Base
+  title="Labor Notes — Twisted Pin"
+  description="Staff labor notes."
+  hideStickyCTA={true}
+  hideHeader={true}
+  hidePromo={true}
+  lockViewportZoom={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+  <LaborApp client:only="react" />
+</Base>

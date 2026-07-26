@@ -10,6 +10,8 @@ Disallow: /tprs/
 Disallow: /liquor/
 # Staff-only cash-counting app (PIN-gated) — unindexed, unlinked.
 Disallow: /money/
+# Staff-only labor-notes surface (PIN-gated) — unindexed, unlinked.
+Disallow: /labor/
 # (/coupon-preview + /kids-signup-preview removed 2026-07-24 — those previews
 #  were promoted onto /coupon and /free-kids-bowling at the loyalty cutover and
 #  the preview routes deleted. Both live pages are intentionally indexable.)
