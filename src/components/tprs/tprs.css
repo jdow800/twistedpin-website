@@ -937,6 +937,37 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
   text-underline-offset: 2px;
 }
 .tprs-consent-fine a:hover { color: var(--tw-text); }
+
+/* ── Opt-in reward attention treatment (2026-07-26) ─────────────────────────
+   The dollar amount is the ONE colored thing in the sentence — Glow, matching
+   the "−$10" line it produces in the cart, so the offer and its receipt rhyme.
+   The entrance animation fires ONCE, when the box upgrades from the plain copy
+   to the $10 version (a keyed remount replays it): a border-glow swell and a
+   slight scale tick on the amount, ~700ms, then everything settles. Looping /
+   flashing was deliberately rejected — it reads as a coupon banner (the
+   promo-y register the retired CouponBanner died for), triggers
+   banner-blindness, and WCAG 2.2.2 starts caring past 5s of motion. */
+.tprs-consent-amt { color: var(--tw-accent); font-weight: 800; }
+
+@keyframes tprs-consent-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); background: rgba(78, 236, 196, 0.06); }
+  35%  { box-shadow: 0 0 18px 2px rgba(78, 236, 196, 0.35); background: rgba(78, 236, 196, 0.14); }
+  100% { box-shadow: 0 0 0 0 rgba(78, 236, 196, 0); background: rgba(78, 236, 196, 0.06); }
+}
+@keyframes tprs-consent-amt-pop {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+.tprs-consent--offer { animation: tprs-consent-glow 700ms ease-out 1; }
+.tprs-consent--offer .tprs-consent-amt {
+  display: inline-block; /* transform needs a box */
+  animation: tprs-consent-amt-pop 700ms ease-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tprs-consent--offer,
+  .tprs-consent--offer .tprs-consent-amt { animation: none; }
+}
 .tprs-choice input { margin-top: 1px; width: 20px; height: 20px; accent-color: var(--tw-accent); flex-shrink: 0; }
 /* per_unit_select — one labeled single-select per lane/guest (NYE buys one
    pizza + one soda pitcher PER LANE). A fixed number column keeps the selects

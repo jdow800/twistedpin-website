@@ -267,7 +267,20 @@ export default function GuestDetailsStep(props: Props) {
           and "curated" is otherwise reserved for the Van Flandern credential.
           Both are deliberate here — Jon specified this exact string. Do NOT
           "fix" it in a brand sweep; the ban still holds everywhere else. */}
-      <div className="tprs-consent">
+      {/* `key` swap deliberately REMOUNTS this div when the offer appears, so
+          the .tprs-consent--offer entrance animation replays exactly once at
+          that moment — the box upgrades right after the guest finishes typing
+          a valid phone, i.e. while their eyes are one field above it. That
+          single beat is the attention treatment (owner request 2026-07-26).
+          A LOOPING flash was considered and rejected: it reads as a coupon
+          banner (the exact promo-y register the retired CouponBanner died
+          for), and looping motion gets banner-blindness-filtered within
+          seconds. Motion-once-at-change is what eyes actually track.
+          prefers-reduced-motion users get the color pop with no motion. */}
+      <div
+        className={rewardLabel ? "tprs-consent tprs-consent--offer" : "tprs-consent"}
+        key={rewardLabel ? "offer" : "plain"}
+      >
         <label className="tprs-choice">
           <input
             type="checkbox"
@@ -277,8 +290,11 @@ export default function GuestDetailsStep(props: Props) {
           <span>
             {rewardLabel ? (
               <>
-                <strong>Save {rewardLabel} on this reservation.</strong> Text me
-                epic deals — curated offers, you deserve.
+                <strong>
+                  Save <span className="tprs-consent-amt">{rewardLabel}</span> on
+                  this reservation.
+                </strong>{" "}
+                Text me epic deals — curated offers, you deserve.
               </>
             ) : (
               <>
