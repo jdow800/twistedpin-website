@@ -1,9 +1,99 @@
-/* /labor — the "why was this day busy?" surface. Layers on top of liquor.css
-   (imported first) so the PIN pad, shell and type scale are shared; only the
-   day-card + capture flow is new. Phone-first: the GM answers this standing at
-   the desk, one thumb. */
+/* /labor — the "why was this day busy?" surface.
+   Phone-first: the GM answers this standing at the desk, one thumb.
 
-.lb-shell { padding-bottom: 48px; }
+   SELF-CONTAINED BY REQUIREMENT. The shared `lq-*` foundation below is copied
+   from money.css rather than imported from liquor.css, because a cross-tree CSS
+   import across the island boundary made Vite emit a shared pure-CSS chunk whose
+   JS file was elided from the build (documented at the top of MoneyApp.tsx).
+   money.css duplicates it for the same reason. Keep the values in sync by hand
+   if the bar app's look changes — the duplication is deliberate. */
+
+/* ── shared shell / PIN pad (mirror of money.css) ───────────────────────────── */
+.lq-app {
+  --lq-bg: var(--indigo-deep, #0e0a1f);
+  --lq-panel: #191430;
+  --lq-panel-2: #221a3d;
+  --lq-line: rgba(255, 255, 255, 0.12);
+  --lq-line-strong: rgba(255, 255, 255, 0.22);
+  --lq-text: #f5f2ea;
+  --lq-muted: var(--warm-mid, #b3aac6);
+  --lq-glow: var(--glow, #c9ff3d);
+  --lq-danger: #ff8a8a;
+  --lq-radius: 12px;
+
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--lq-bg);
+  color: var(--lq-text);
+  font-family: var(--font-body, "Roboto Slab", system-ui, sans-serif);
+  -webkit-tap-highlight-color: transparent;
+}
+.lq-app *, .lq-app *::before, .lq-app *::after { box-sizing: border-box; }
+
+.lq-header {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(14, 10, 31, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--lq-line);
+}
+.lq-brand {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; font-size: 16px;
+}
+.lq-logout {
+  background: none; border: 1px solid var(--lq-line-strong);
+  color: var(--lq-muted); border-radius: 7px; padding: 7px 12px;
+  font-size: 13px; cursor: pointer;
+}
+.lq-main { flex: 1; width: 100%; max-width: 640px; margin: 0 auto; padding: 16px 14px 32px; }
+.lq-center {
+  min-height: 60dvh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+}
+.lq-muted { color: var(--lq-muted); }
+.lq-error { color: var(--lq-danger); font-size: 14px; margin: 4px 0; }
+.lq-h2 {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em;
+  font-size: 26px; margin: 4px 0 14px; text-align: center;
+}
+.lq-btn {
+  appearance: none; border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2); color: var(--lq-text);
+  border-radius: 7px; padding: 13px 18px;
+  font-size: 16px; font-weight: 700; cursor: pointer; min-height: 48px;
+}
+.lq-btn:disabled { opacity: 0.45; cursor: default; }
+.lq-btn-primary { background: var(--lq-glow); color: #10121a; border-color: var(--lq-glow); }
+.lq-btn-wide { width: 100%; margin-top: 12px; }
+
+.lq-login { display: flex; flex-direction: column; align-items: center; padding-top: 8px; }
+.lq-pin-dots { display: flex; gap: 12px; margin: 8px 0 16px; min-height: 18px; }
+.lq-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--lq-line-strong); }
+.lq-dot-on { background: var(--lq-glow); border-color: var(--lq-glow); }
+.lq-numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 320px; }
+.lq-key {
+  background: var(--lq-panel); border: 1px solid var(--lq-line);
+  border-radius: var(--lq-radius); color: var(--lq-text);
+  font-size: 26px; font-weight: 700; padding: 18px 0; cursor: pointer; min-height: 62px;
+}
+.lq-key-alt { font-size: 15px; color: var(--lq-muted); }
+.lq-key:active { background: var(--lq-panel-2); }
+
+/* Keyboard hint under the pad — desktop-only affordance, quiet on phones. */
+.lb-kbdhint { font-size: 12.5px; margin: 14px 0 0; text-align: center; }
+
+/* ── the labor surface itself ───────────────────────────────────────────────── */
+.lb-shell { padding-bottom: 8px; }
+.lb-h1 {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em;
+  font-size: clamp(26px, 7vw, 34px); line-height: 1.05; margin: 4px 0 0;
+}
 
 .lb-head { margin-bottom: 18px; }
 .lb-sub { margin-top: 6px; max-width: 46ch; }
@@ -43,7 +133,7 @@
   color: inherit; font: inherit;
 }
 .lb-date { font-size: 16px; font-weight: 700; }
-.lb-what { font-size: 13px; color: #c9a227; }
+.lb-what { font-size: 13px; color: #e5a24a; }
 
 .lb-body { padding: 0 16px 16px; }
 
@@ -86,7 +176,7 @@
   width: 100%; padding: 15px;
   border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
 }
-.lb-primary { background: #c9a227; border: 0; color: #17121f; }
+.lb-primary { background: var(--lq-glow); border: 0; color: #10121a; }
 .lb-primary:disabled { opacity: 0.45; cursor: default; }
 .lb-secondary {
   background: transparent; border: 1px solid rgba(255, 255, 255, 0.30); color: #fff;
@@ -117,7 +207,7 @@
   border: 1px solid rgba(255, 255, 255, 0.22);
   background: transparent; color: #cfc9db; font-size: 14px; cursor: pointer;
 }
-.lb-chip-on { background: #c9a227; border-color: #c9a227; color: #17121f; font-weight: 700; }
+.lb-chip-on { background: var(--lq-glow); border-color: var(--lq-glow); color: #10121a; font-weight: 700; }
 
 .lb-choices { display: flex; flex-direction: column; gap: 4px; }
 

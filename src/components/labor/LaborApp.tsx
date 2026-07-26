@@ -1,13 +1,21 @@
-import { useCallback, useEffect, useState } from "react";
-import "../liquor/liquor.css";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+// Own stylesheet ONLY. Do NOT import ../liquor/liquor.css across the island
+// boundary — MoneyApp documents a real Vite failure from exactly that (a shared
+// pure-CSS chunk whose JS file got elided while the island still imported it).
+// labor.css therefore carries its own copy of the shared `lq-*` foundation, the
+// same way money.css does.
 import "./labor.css";
-import Login from "../liquor/views/Login";
+import Login from "./views/Login";
+// JS-only cross-import is fine (it bundles to a normal shared chunk, verified in
+// the deployed build) and duplicating 350 lines of subtle Android speech
+// workarounds would only invite drift.
 import { useDictation } from "../liquor/useSpeech";
 import {
   ForbiddenError,
   extractNote,
   getDays,
   getMe,
+  logout,
   saveNote,
   undoNote,
   type FlaggedDay,
@@ -76,23 +84,45 @@ export default function LaborApp() {
 
   useEffect(() => { void bootstrap(); }, [bootstrap]);
 
-  if (view === "loading") return <div className="lq-shell"><p className="lq-muted">Loading…</p></div>;
-  if (view === "login") return <div className="lq-shell"><Login onLoggedIn={() => void bootstrap()} /></div>;
+  // Shell structure mirrors LiquorApp/MoneyApp exactly: lq-app > lq-header +
+  // lq-main, with lq-center for the pre-auth states. (The first cut invented
+  // `lq-shell`/`lq-h1`, which no stylesheet defines — so the PIN pad rendered
+  // with no container, no centering and no padding, which is what made it
+  // unusable.)
+  const chrome = (body: ReactNode, showLogout = false) => (
+    <div className="lq-app">
+      <header className="lq-header">
+        <span className="lq-brand">Twisted Pin · Labor</span>
+        {showLogout && (
+          <button type="button" className="lq-logout" onClick={async () => { await logout(); setView("login"); }}>
+            Log out
+          </button>
+        )}
+      </header>
+      <main className="lq-main">{body}</main>
+    </div>
+  );
+
+  if (view === "loading") return chrome(<div className="lq-center"><p className="lq-muted">Loading…</p></div>);
+  if (view === "login") return chrome(<div className="lq-center"><Login onLoggedIn={() => void bootstrap()} /></div>);
   if (view === "forbidden")
-    return (
-      <div className="lq-shell">
-        <h2 className="lq-h2">Not your area</h2>
-        <p className="lq-muted">This login doesn't have access to labor notes. Ask Jon to add it.</p>
-      </div>
+    return chrome(
+      <div className="lq-center">
+        <p className="lq-error">This account doesn't have labor-notes access.</p>
+        <p className="lq-muted" style={{ maxWidth: 320, textAlign: "center" }}>
+          Ask Jon to add it, then log in again.
+        </p>
+      </div>,
+      true,
     );
 
   const unanswered = days.filter((d) => d.depts.some((x) => !x.note));
   const answered = days.filter((d) => d.depts.every((x) => x.note));
 
-  return (
-    <div className="lq-shell lb-shell">
+  return chrome(
+    <div className="lb-shell">
       <header className="lb-head">
-        <h1 className="lq-h1">Why was this day busy?</h1>
+        <h1 className="lb-h1">Why was this day busy?</h1>
         <p className="lq-muted lb-sub">
           These days ran well over their usual. A word from you keeps a one-off from
           becoming the new "normal" in the weekly report.
@@ -140,7 +170,8 @@ export default function LaborApp() {
           ))}
         </section>
       )}
-    </div>
+    </div>,
+    true,
   );
 }
 
