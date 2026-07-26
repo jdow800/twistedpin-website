@@ -311,6 +311,19 @@ export default function StickySummary({
             <span className="tprs-line-remove tprs-line-remove--empty" />
           </div>
         )}
+        {/* Server-applied discounts the guest never typed (the SMS opt-in
+            reward). Rendered from the QUOTE, not from client state, so the line
+            can only appear when the server actually applied it — the number and
+            the label can never disagree. Its own line rather than folded into
+            "Code applied" so a guest using both sees each one. */}
+        {(quote?.autoDiscounts ?? []).map((d, i) => (
+          <div className="tprs-line is-discount" key={`auto-${i}`}>
+            <span className="tprs-line-name">{d.name}</span>
+            <span />
+            <span className="tprs-line-price">−{formatUsd(d.amountCents)}</span>
+            <span className="tprs-line-remove tprs-line-remove--empty" />
+          </div>
+        ))}
 
         {/* Server-authoritative totals — only when the quote endpoint responds.
             Fees (online booking fee) are untaxed lines folded into
