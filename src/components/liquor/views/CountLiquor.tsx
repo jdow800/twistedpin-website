@@ -397,6 +397,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   unitsPerCase,
                   needsCaseSize: false,
                   qty: roundQty(x.cases * unitsPerCase + x.units),
+                  // And re-arm the pre-multiply guard, for the same reason
+                  // onPick has to. The server can only set that flag when it
+                  // ALREADY knows the case size (cases > 0 && ups != null &&
+                  // units >= ups), so on a needs_case row it is always false —
+                  // which made the guard structurally unreachable on every
+                  // bottle whose case size we don't know, i.e. exactly the
+                  // population this ask-flow exists for. "Four cases of Tito's"
+                  // heard as {cases: 4, units: 48} answers "12 per case" and
+                  // applies as 4 x 12 + 48 = 96, double the truth.
+                  suspectPreMultiplied: x.cases > 0 && x.units >= unitsPerCase,
                 }
               : x,
           )
@@ -729,8 +739,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <input
                     className="lq-qty-input"
                     type="number"
-                    inputMode={emoji ? "numeric" : "decimal"}
-                    step={emoji ? "1" : "0.1"}
+                    inputMode="decimal"
+                    step="0.1"
                     min={0}
                     value={loose || ""}
                     placeholder="0"
@@ -790,8 +800,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   className="lq-qty-input"
                   type="number"
                   // Non-bottles step in whole units — no tenths of a can.
-                  inputMode={emoji ? "numeric" : "decimal"}
-                  step={emoji ? "1" : "0.1"}
+                  inputMode="decimal"
+                  step="0.1"
                   min={0}
                   // Render 0 as EMPTY, not "0". A literal zero sitting in the
                   // box means tapping in and typing 3 gives "03" — the value
@@ -1203,13 +1213,20 @@ function rebuildCounts(lines: OpenCountLine[]): Counts {
     // size while a draft is open, reopening that draft must not rescale it.
     const cases = l.enteredCases != null ? Number(l.enteredCases) : 0;
     const caseSize = l.caseSizeAtEntry;
-    if (qty > 0)
-      zone[l.skuId] = {
-        qty,
-        ...(cases > 0 && caseSize ? { cases, caseSize } : {}),
-        source: l.source,
-        ...(l.rawUtterance ? { raw: l.rawUtterance } : {}),
-      };
+    // Zeros are RESTORED, not dropped. `flatten` sends a 0 row, so the server
+    // stores it — but dropping it here meant the next autosave omitted it and
+    // the PUT's "delete everything not in the payload" quietly removed it. A
+    // deliberate 0 is a real answer ("I looked, there are none"), and it is a
+    // gradeable data point; an ABSENT row is an exclusion — the bottle goes
+    // not_in_end, falls out of cleanForRollup, and leaves the grade and both
+    // leader lists entirely. On a full-venue count, "we're out of X" is exactly
+    // the kind of thing that gets discovered.
+    zone[l.skuId] = {
+      qty,
+      ...(cases > 0 && caseSize ? { cases, caseSize } : {}),
+      source: l.source,
+      ...(l.rawUtterance ? { raw: l.rawUtterance } : {}),
+    };
   }
   return out;
 }
