@@ -172,7 +172,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const caseSize = cur?.caseSize ?? null;
       const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
       const qty = roundQty(Math.max(0, loose) + fromCases);
-      if (qty <= 0) delete zone[skuId];
+      // A cell that ALREADY EXISTS survives at 0 rather than being deleted.
+      // Deleting unmounted the input mid-edit, which closed the Android
+      // keyboard — so backspacing the field to type "0.8" destroyed the row
+      // before the decimal could be typed, on the one surface the counter is
+      // told to use for corrections and for exactly that fractional case.
+      // Removal is the explicit ✕ (clearCell), not an empty field.
+      // It also records a real distinction: 0 means "I looked, none here",
+      // where an absent row means "I never looked".
+      if (qty <= 0 && !cur) delete zone[skuId];
       else
         zone[skuId] = {
           qty,
@@ -204,7 +212,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
       const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases));
       const qty = roundQty(cases * caseSize + loose);
-      if (qty <= 0) delete zone[skuId];
+      // Same rule as setQty: an existing cell survives at 0 so backspacing the
+      // case box doesn't unmount the input mid-edit. ✕ is the way to remove.
+      if (qty <= 0 && !cur) delete zone[skuId];
       else
         zone[skuId] = {
           qty,
