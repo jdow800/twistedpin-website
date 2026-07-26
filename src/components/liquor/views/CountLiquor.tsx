@@ -80,6 +80,17 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [review, setReview] = useState<ReviewItem[] | null>(null);
+  // "+ case size" on a grid row. Keyed "<where>:<skuId>" — a bottle can be on
+  // screen twice at once (search result AND counted row), and a bare skuId
+  // would open both editors with two inputs fighting over autoFocus.
+  const [caseAsk, setCaseAsk] = useState<string | null>(null);
+  // A STRING, so backspacing to empty renders empty instead of snapping to "0"
+  // — the leading-zero problem the qty boxes already had to be fixed for.
+  const [caseAskVal, setCaseAskVal] = useState("");
+  const [caseAskBusy, setCaseAskBusy] = useState(false);
+  const [caseAskErr, setCaseAskErr] = useState<{ skuId: string; msg: string } | null>(null);
+  // Review-sheet case-size error, rendered inside the sheet (see answerCaseSize).
+  const [caseErr, setCaseErr] = useState<{ idx: number; msg: string } | null>(null);
   const dict = useDictation((t) => void processTranscript(t));
 
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
@@ -208,7 +219,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // under a different case size — e.g. resume a draft entered at 2x12,
       // correct the SKU to 24, touch the box, and 24 becomes 48 silently.
       const caseSize = cur?.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
-      if (caseSize == null) return prev; // no size → the UI offers "set case size"
+      if (caseSize == null) return prev; // no size → the row shows "+ case size" instead of this box
       const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
       const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases));
       const qty = roundQty(cases * caseSize + loose);
@@ -252,7 +263,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setCounts((prev) => {
       const zone = { ...(prev[zoneId] ?? {}) };
       const cur = zone[skuId];
-      const caseSize = delta.caseSize ?? cur?.caseSize ?? null;
+      // SAME FREEZE RULE AS setCases: a size already stamped on this cell wins
+      // over whatever the incoming delta carries. This used to read
+      // `delta.caseSize ?? cur?.caseSize`, which silently rescaled bottles that
+      // were already counted — because line 3 below re-multiplies the SUMMED
+      // cases at whichever size wins. Enter 2 cases of Tito's at 12 (=24), let
+      // the catalog learn 24 from an invoice, then say "two more cases": cases
+      // becomes 4, and 4 x 24 = 96 is stored where the truth is 72. The DB
+      // CHECK passes (96 >= 4x24) and the count detail reads "4 cs x 24", so
+      // nothing anywhere shows the first 24 bottles were re-priced.
+      const caseSize = cur?.caseSize ?? delta.caseSize ?? null;
       const cases = roundQty((cur?.cases ?? 0) + delta.cases);
       const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
       const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases)) + delta.units;
@@ -313,21 +333,34 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     }
   }
 
-  /** Answer "how many in a case?" for the bottle on review row `idx`.
-   *  Persists to the SKU (so this is asked ONCE, ever), updates the local
-   *  catalog, and re-resolves EVERY pending row for that bottle — not just the
-   *  one that asked, since a long dictation can mention it more than once. */
-  async function answerCaseSize(idx: number, unitsPerCase: number) {
-    const row = review?.[idx];
-    const skuId = row?.chosenSkuId;
-    if (!skuId || !Number.isFinite(unitsPerCase) || unitsPerCase < 2) return;
+  /** THE one path that learns a case size. Both surfaces that can teach us a
+   *  case size — the voice review sheet and the "+ case size" button on a grid
+   *  row — go through here, so the re-resolve below cannot be implemented on
+   *  one and forgotten on the other.
+   *
+   *  Persists to the SKU (asked once, ever), updates the local catalog, and
+   *  re-resolves EVERY pending review row for that bottle, not just the one
+   *  that asked — a long dictation can name it more than once.
+   *
+   *  Deliberately does NOT touch `counts`. A cell that already stamped a case
+   *  size keeps it (setCases and addQty both freeze); a cell with no cases
+   *  carries no stamp and correctly picks the new size up on its next touch.
+   *
+   *  Never throws. Returns a message to show the counter, or null on success. */
+  async function persistCaseSize(skuId: string, unitsPerCase: number): Promise<string | null> {
+    // Mirror the server's zod (int, 2..500) exactly. A bare `< 2` check lets
+    // 2.5 and 600 through to a 400 whose message is "PATCH … failed (400)".
+    if (!Number.isInteger(unitsPerCase) || unitsPerCase < 2 || unitsPerCase > 500)
+      return "Whole number, 2 to 500.";
     try {
       await setCaseSize(skuId, unitsPerCase);
     } catch (e) {
-      setVoiceErr(e instanceof BarApiError ? e.message : "Couldn't save that case size.");
-      return;
+      if (e instanceof BarApiError && e.status === 400) return "Whole number, 2 to 500.";
+      return "Couldn't save that case size — try again.";
     }
     setCatalog((prev) => prev.map((s) => (s.id === skuId ? { ...s, unitsPerCase } : s)));
+    // A pending row holding `cases: 4` still has qty = units. Miss this and
+    // four cases silently become ZERO.
     setReview((r) =>
       r
         ? r.map((x) =>
@@ -342,14 +375,124 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           )
         : r,
     );
+    return null;
+  }
+
+  /** Review-sheet caller. Errors render INSIDE the sheet — voiceErr paints in
+   *  page content, underneath the sheet's own scrim, so a failure there was
+   *  indistinguishable from the button doing nothing. */
+  async function answerCaseSize(idx: number, unitsPerCase: number) {
+    const skuId = review?.[idx]?.chosenSkuId;
+    if (!skuId) return;
+    const msg = await persistCaseSize(skuId, unitsPerCase);
+    setCaseErr(msg ? { idx, msg } : null);
+  }
+
+  /** Grid caller — the "+ case size" button on a row whose bottle has none. */
+  async function submitCaseAsk(skuId: string) {
+    setCaseAskBusy(true);
+    setCaseAskErr(null);
+    const msg = await persistCaseSize(skuId, Number(caseAskVal));
+    setCaseAskBusy(false);
+    if (msg) {
+      setCaseAskErr({ skuId, msg });
+      return;
+    }
+    setCaseAsk(null);
+    setCaseAskVal("");
+  }
+
+  /** The slot a row gets when its bottle's case size is UNKNOWN — the same
+   *  wrapped full-width line CaseBox occupies once we know it, so learning a
+   *  size mid-count swaps a link for the real box with no layout shift under
+   *  the counter's thumb.
+   *
+   *  ADD-ONLY BY CONSTRUCTION: this renders only where there is no case size,
+   *  so it can only ever write null → N. It is never an editor for an existing
+   *  value, which is what keeps a catalog change from being able to disagree
+   *  with a cell that already stamped its own size.
+   *
+   *  A plain function, not a <Component> — React reconciles it by position, so
+   *  autoFocus fires once on the input's real mount rather than on every
+   *  keystroke's re-render. */
+  function renderCaseAsk(askKey: string, skuId: string) {
+    const err = caseAskErr?.skuId === skuId ? caseAskErr.msg : null;
+    if (caseAsk !== askKey)
+      return (
+        <div className="lq-casebox lq-caseask">
+          <button
+            type="button"
+            className="lq-linkbtn lq-caseask-open"
+            onClick={() => {
+              setCaseAsk(askKey);
+              setCaseAskVal("");
+              setCaseAskErr(null);
+            }}
+          >
+            + case size
+          </button>
+          {err && <span className="lq-caseask-err">{err}</span>}
+        </div>
+      );
+    const n = Number(caseAskVal);
+    const valid = caseAskVal.trim() !== "" && Number.isInteger(n) && n >= 2 && n <= 500;
+    return (
+      <div className="lq-casebox lq-caseask">
+        <input
+          className="lq-case-input"
+          type="number"
+          inputMode="numeric"
+          step="1"
+          min={2}
+          placeholder="12"
+          aria-label="bottles per case"
+          autoFocus
+          value={caseAskVal}
+          onChange={(e) => {
+            setCaseAskVal(e.target.value);
+            setCaseAskErr(null);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && valid && !caseAskBusy) void submitCaseAsk(skuId);
+          }}
+        />
+        {/* The number rides ON the button. A case size is sticky once set —
+            invoices deliberately never overwrite a hand-entered one — so
+            confirm the NUMBER, not just the intent. */}
+        <button
+          type="button"
+          className="lq-chip"
+          disabled={!valid || caseAskBusy}
+          onClick={() => void submitCaseAsk(skuId)}
+        >
+          {caseAskBusy ? "Saving…" : valid ? `Save ${n}/case` : "Save"}
+        </button>
+        <button
+          type="button"
+          className="lq-linkbtn lq-caseask-open"
+          onClick={() => {
+            setCaseAsk(null);
+            setCaseAskErr(null);
+          }}
+        >
+          Cancel
+        </button>
+        {err && <span className="lq-caseask-err">{err}</span>}
+      </div>
+    );
   }
 
   /** A row can only be applied once it's matched to a bottle AND its quantity
    *  is unambiguous. An unanswered case size or a suspected pre-multiply keeps
    *  the row on screen rather than letting a guessed number through — that
    *  silent path is exactly what produced 93, 27 and 1 on 2026-07-24. */
+  //  The qty > 0 clause is load-bearing alongside onResolve clearing
+  //  needsCaseSize: without it, backspacing that box to empty makes a blocked
+  //  row applyable at ZERO, and applyReview drops applied rows — so a spoken
+  //  "four cases of Tito's" would vanish off the sheet having recorded nothing.
+  //  A zeroed row stays on screen instead, where the counter can see it.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied;
+    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && r.qty > 0;
 
   function applyReview() {
     if (!review) return;
@@ -460,7 +603,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               role="tab"
               aria-selected={z.id === zoneId}
               className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}${n > 0 ? " lq-zone-done" : ""}`}
-              onClick={() => setZoneId(z.id)}
+              // Close any open "+ case size" editor — otherwise one left open
+              // on Tito's in Back Bar reappears open on Tito's in Well.
+              onClick={() => { setZoneId(z.id); setCaseAsk(null); setCaseAskErr(null); }}
             >
               <span className="lq-zone-name">{z.name}</span>
               {n > 0 && <span className="lq-zone-badge">{n}</span>}
@@ -528,12 +673,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <span className="lq-name">{s.name}</span>
                   <span className="lq-size">{sizeLabel(s)}</span>
                 </div>
-                {s.unitsPerCase != null && (
+                {/* Cell-first, exactly like the captured row and like setCases
+                    itself. Reading the catalog alone would label a resumed
+                    2x12 row "cs ×24" after the catalog learned 24, while the
+                    math correctly stayed at 12 — a label that lies. */}
+                {(cell?.caseSize ?? s.unitsPerCase) != null ? (
                   <CaseBox
                     cases={cell?.cases ?? 0}
-                    caseSize={s.unitsPerCase}
+                    caseSize={(cell?.caseSize ?? s.unitsPerCase)!}
                     onChange={(n) => setCases(s.id, n)}
                   />
+                ) : (
+                  renderCaseAsk(`s:${s.id}`, s.id)
                 )}
                 <div className="lq-stepper">
                   <button type="button" className="lq-step" aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(loose - 1))}>−</button>
@@ -583,8 +734,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   </span>
                 )}
               </div>
-              {caseSize != null && (
+              {caseSize != null ? (
                 <CaseBox cases={cell.cases ?? 0} caseSize={caseSize} onChange={(n) => setCases(skuId, n)} />
+              ) : (
+                renderCaseAsk(`c:${skuId}`, skuId)
               )}
               <div className="lq-stepper">
                 <button type="button" className="lq-step" aria-label="decrease" onClick={() => setQty(skuId, roundQty(loose - 1))}>−</button>
@@ -666,6 +819,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           units: res.units,
                           qty: roundQty(res.cases * ups + res.units),
                           suspectPreMultiplied: false,
+                          // A row with no cases cannot need a case size — that
+                          // is the server's own rule (cases > 0 && ups == null).
+                          // Without this, typing an each-count to escape the
+                          // "how many in a case?" prompt zeroed cases but left
+                          // the row needing a size forever: permanently
+                          // un-applyable, still showing the prompt, and the only
+                          // exit was ✕ — which drops the bottle from the count.
+                          needsCaseSize: res.cases > 0 ? x.needsCaseSize : false,
                         };
                       }),
                     )
@@ -689,18 +850,34 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           unitsPerCase: ups,
                           needsCaseSize: x.cases > 0 && ups == null,
                           qty: roundQty(x.cases * (ups ?? 0) + x.units),
+                          // The pre-multiply guard has to be recomputed here for
+                          // the same reason the case size is. The server decides
+                          // it with `cases > 0 && ups != null && units >= ups`
+                          // (admin/bar.ts) — but on an AMBIGUOUS row there is no
+                          // SKU yet, so ups is null and the flag comes back
+                          // false no matter what was said. "Four cases of
+                          // Bulleit" heard as {cases: 4, units: 96} then picks
+                          // Bulleit Bourbon (24/case) and resolves to
+                          // 4 x 24 + 96 = 192, when 96 IS the multiplied-out
+                          // number and the truth is 96. The one guard built to
+                          // catch exactly that never fired, because it was
+                          // evaluated before we knew which bottle it was.
+                          suspectPreMultiplied: x.cases > 0 && ups != null && x.units >= ups,
                         };
                       }),
                     )
                   }
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
-                  onRemove={() => setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null))}
+                  // Indices shift on removal, so a stale error would re-attach
+                  // itself to whichever row slid into this slot.
+                  onRemove={() => { setCaseErr(null); setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null)); }}
                   onCaseSize={(n) => void answerCaseSize(idx, n)}
+                  caseErr={caseErr?.idx === idx ? caseErr.msg : null}
                 />
               ))}
             </div>
             <div className="lq-sheet-foot">
-              <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setReview(null)}>Discard</button>
+              <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setReview(null); setCaseErr(null); }}>Discard</button>
               <button type="button" className="lq-btn lq-btn-primary" disabled={reviewResolved === 0} onClick={applyReview}>
                 Add {reviewResolved} to {zones.find((z) => z.id === zoneId)?.name ?? "zone"}
               </button>
@@ -743,6 +920,7 @@ function ReviewRow({
   onToggleAssign,
   onRemove,
   onCaseSize,
+  caseErr,
 }: {
   item: ReviewItem;
   catalog: BarSkuItem[];
@@ -754,6 +932,10 @@ function ReviewRow({
   onToggleAssign: () => void;
   onRemove: () => void;
   onCaseSize: (n: number) => void;
+  /** Rendered INSIDE the sheet. The old path reported through voiceErr, which
+   *  paints in page content — underneath this sheet's own fixed scrim — so a
+   *  rejected save looked exactly like the button doing nothing. */
+  caseErr: string | null;
 }) {
   const [q, setQ] = useState("");
   const [caseAnswer, setCaseAnswer] = useState("");
@@ -837,12 +1019,22 @@ function ReviewRow({
             <button
               type="button"
               className="lq-chip"
-              disabled={Number(caseAnswer) < 2}
+              // Mirror the server's zod (int, 2..500). A bare `< 2` let 2.5 and
+              // 600 through to a 400 that used to render where nobody saw it.
+              disabled={
+                !(
+                  caseAnswer.trim() !== "" &&
+                  Number.isInteger(Number(caseAnswer)) &&
+                  Number(caseAnswer) >= 2 &&
+                  Number(caseAnswer) <= 500
+                )
+              }
               onClick={() => onCaseSize(Number(caseAnswer))}
             >
               Save
             </button>
           </div>
+          {caseErr && <span className="lq-error lq-rev-hint">{caseErr}</span>}
         </div>
       )}
 
