@@ -575,6 +575,10 @@ export interface CountDetailLine {
   skuName: string | null;
   sizeMl: number | null;
   qtyUnits: string;
+  /** How the counter EXPRESSED it. The backend has always sent these; showing
+   *  them is the only place a wrong case multiplier is visible after submit. */
+  enteredCases: string | null;
+  caseSizeAtEntry: number | null;
   source: "grid" | "voice";
 }
 export interface CountDetail {

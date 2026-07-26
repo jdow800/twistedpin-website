@@ -657,7 +657,29 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       }),
                     )
                   }
-                  onPick={(skuId) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, chosenSkuId: skuId, assignOpen: false } : x)))}
+                  onPick={(skuId) =>
+                    setReview((r) =>
+                      r &&
+                      r.map((x, i) => {
+                        if (i !== idx) return x;
+                        // Re-evaluate the case size against the bottle just
+                        // chosen. Without this, a row that spoke cases resolves
+                        // with unitsPerCase still null: needsCaseSize stays
+                        // false-y, cases get multiplied by 0, and "four cases"
+                        // silently becomes ZERO. The whole point of picking the
+                        // bottle is that we now know its case size.
+                        const ups = skuById.get(skuId)?.unitsPerCase ?? null;
+                        return {
+                          ...x,
+                          chosenSkuId: skuId,
+                          assignOpen: false,
+                          unitsPerCase: ups,
+                          needsCaseSize: x.cases > 0 && ups == null,
+                          qty: roundQty(x.cases * (ups ?? 0) + x.units),
+                        };
+                      }),
+                    )
+                  }
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
                   onRemove={() => setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null))}
                   onCaseSize={(n) => void answerCaseSize(idx, n)}
@@ -731,15 +753,21 @@ function ReviewRow({
 
   // needs_case outranks everything: the bottle may be perfectly matched, but
   // without a case size the quantity is unknowable and must not be applied.
-  const state: "needs_case" | "suspect" | "matched" | "ambiguous" | "unmatched" = item.needsCaseSize
-    ? "needs_case"
-    : item.suspectPreMultiplied
-      ? "suspect"
-      : item.chosenSkuId
-        ? "matched"
-        : item.candidates.length > 0
-          ? "ambiguous"
-          : "unmatched";
+  // IDENTIFY THE BOTTLE FIRST. needs_case used to outrank everything, so
+  // "four cases of Bulleit" (Bourbon and 95 Rye both in the catalog) showed
+  // "how many in a case?" with no way to say WHICH Bulleit — and the Save
+  // button silently did nothing, because answering a case size requires a
+  // chosen SKU. The row became a dead end whose only exit was deleting it,
+  // which drops that bottle from the count entirely.
+  const state: "needs_case" | "suspect" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
+    ? item.candidates.length > 0
+      ? "ambiguous"
+      : "unmatched"
+    : item.needsCaseSize
+      ? "needs_case"
+      : item.suspectPreMultiplied
+        ? "suspect"
+        : "matched";
 
   return (
     <div className={`lq-rev lq-rev-${state}`}>

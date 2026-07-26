@@ -216,6 +216,18 @@ export default function Counts({
                         {l.source === "voice" && <span aria-hidden="true">🎤 </span>}
                         {l.skuName ?? "—"}
                         {l.sizeMl != null && <span className="lq-muted"> · {l.sizeMl}ml</span>}
+                        {/* Show the case math, not just the product. A line
+                            entered as 4 cases x 24 otherwise reads as a bare
+                            "96" — and this screen is the only place a wrong
+                            multiplier can be caught after the count closes. */}
+                        {l.enteredCases != null && l.caseSizeAtEntry != null && Number(l.enteredCases) > 0 && (
+                          <span className="lq-muted">
+                            {" · "}
+                            {Number(l.enteredCases)} cs × {l.caseSizeAtEntry}
+                            {Number(l.qtyUnits) - Number(l.enteredCases) * l.caseSizeAtEntry > 0 &&
+                              ` + ${qty(String(Number(l.qtyUnits) - Number(l.enteredCases) * l.caseSizeAtEntry))}`}
+                          </span>
+                        )}
                       </span>
                       <span className="lq-invd-amt">{qty(l.qtyUnits)}</span>
                     </div>
