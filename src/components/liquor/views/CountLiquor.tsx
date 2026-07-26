@@ -596,7 +596,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   inputMode="decimal"
                   step="0.1"
                   min={0}
-                  value={loose}
+                  // Render 0 as EMPTY, not "0". A literal zero sitting in the
+                  // box means tapping in and typing 3 gives "03" — the value
+                  // parses to 3, but it reads broken and invites a backspace
+                  // war on a phone. The placeholder carries the meaning.
+                  value={loose || ""}
+                  placeholder="0"
                   onChange={(e) => setQty(skuId, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
                 />
                 <button type="button" className="lq-step" aria-label="increase" onClick={() => setQty(skuId, roundQty(loose + 1))}>+</button>
@@ -798,7 +803,10 @@ function ReviewRow({
             inputMode="decimal"
             step="0.1"
             min={0}
-            value={item.qty}
+            // Empty rather than "0" — see the captured-row input. This is the
+            // correction surface, so a stray leading zero is worst here.
+            value={item.qty || ""}
+            placeholder="0"
             // A typed number is a plain each-count and REPLACES whatever the
             // model heard — cases go to 0 so cases x size can't be added on top.
             onChange={(e) => onResolve({ cases: 0, units: Math.max(0, Number(e.target.value)) })}
