@@ -88,6 +88,16 @@ function friendlyError(e: unknown): string {
 export interface RecorderDictationOptions {
   /** Keyterm bias for the transcriber: liquor SKU names vs recent keg names. */
   vocabulary: "liquor" | "kegs";
+  /**
+   * Fires once per rotation segment as its transcript lands — DURING the
+   * recording, before onFinal. Lets the caller start the (slow, ~3-13s) LLM
+   * extraction per segment in the background, so tapping Stop only ever waits
+   * on the LAST segment instead of the whole take. `index` is the segment's
+   * spoken-order position (transcripts can complete out of order on a retry —
+   * key any accumulation by index, not arrival). Every successful segment's
+   * callback fires before onFinal does; failed segments never fire.
+   */
+  onSegment?: (text: string, index: number) => void;
 }
 
 type Segment = { text: string | null; failed: boolean };
@@ -119,6 +129,8 @@ export function useRecorderDictation(
   onFinalRef.current = onFinal;
   const vocabRef = useRef(opts.vocabulary);
   vocabRef.current = opts.vocabulary;
+  const onSegmentRef = useRef(opts.onSegment);
+  onSegmentRef.current = opts.onSegment;
 
   useEffect(() => {
     const mime = navigator.mediaDevices?.getUserMedia ? pickMimeType() : null;
@@ -158,7 +170,10 @@ export function useRecorderDictation(
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
           seg.text = await transcribeAudio(contentType, b64, vocabRef.current);
-          if (!abortingRef.current) setState((s) => ({ ...s, transcript: joined() }));
+          if (!abortingRef.current) {
+            setState((s) => ({ ...s, transcript: joined() }));
+            onSegmentRef.current?.(seg.text, idx);
+          }
           return;
         } catch (e) {
           if (attempt === 1) {

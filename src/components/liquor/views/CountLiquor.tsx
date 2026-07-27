@@ -15,6 +15,7 @@ import {
   type CountLineInput,
   type OpenCountLine,
   type PrecheckFinding,
+  type VoiceExtractItem,
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
@@ -138,7 +139,22 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [caseAskErr, setCaseAskErr] = useState<{ skuId: string; msg: string } | null>(null);
   // Review-sheet case-size error, rendered inside the sheet (see answerCaseSize).
   const [caseErr, setCaseErr] = useState<{ idx: number; msg: string } | null>(null);
-  const dict = useVoiceDictation((t) => void processTranscript(t), { vocabulary: "liquor" });
+  // Per-segment extraction: the recorder hands each ~60s segment's transcript
+  // over DURING the recording, and the slow part (the LLM extraction call,
+  // 3-13s) runs in the background per segment — so tapping Stop only ever
+  // waits on the LAST segment, making stop→review-sheet time roughly constant
+  // no matter how long the take was. Keyed by segment index (NOT arrival
+  // order — a retried upload can complete late) so the review sheet preserves
+  // spoken order. The Web Speech fallback engine never fires onSegment; its
+  // takes go through processTranscript whole, as before.
+  const segExtractsRef = useRef<Map<number, Promise<VoiceExtractItem[] | null>>>(new Map());
+  const dict = useVoiceDictation((t) => void finalizeVoice(t), {
+    vocabulary: "liquor",
+    onSegment: (text, idx) => {
+      if (!text.trim()) return;
+      segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
+    },
+  });
 
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
@@ -347,6 +363,55 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
 
+  function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
+    return items.map((it, i) => ({
+      key: `v${i}`,
+      spoken: it.spoken,
+      // Don't default a case-bearing row to 1 — its qty legitimately
+      // carries only the loose part until the case size is answered.
+      qty: it.qty > 0 || it.cases > 0 ? it.qty : 1,
+      cases: it.cases,
+      units: it.units,
+      unitsPerCase: it.unitsPerCase,
+      needsCaseSize: it.needsCaseSize,
+      suspectPreMultiplied: it.suspectPreMultiplied,
+      chosenSkuId: it.match?.id ?? null,
+      candidates: it.candidates,
+    }));
+  }
+
+  /** Recording ended. Segment extractions were launched as each transcript
+   *  landed (see onSegment above) — assemble them in spoken order; only the
+   *  last segment's extraction is typically still in flight here. */
+  async function finalizeVoice(fullTranscript: string) {
+    const pending = [...segExtractsRef.current.entries()].sort(([a], [b]) => a - b);
+    segExtractsRef.current = new Map();
+    // No segments → the Web Speech fallback engine (or an all-silence take):
+    // the original whole-transcript path.
+    if (pending.length === 0) return void processTranscript(fullTranscript);
+    setVoiceBusy(true);
+    setVoiceErr(null);
+    try {
+      const results = await Promise.all(pending.map(([, p]) => p));
+      const items = results.filter((r): r is VoiceExtractItem[] => r != null).flat();
+      const failed = results.some((r) => r == null);
+      if (items.length === 0) {
+        setVoiceErr(
+          failed
+            ? "Couldn't process that — try again or type it."
+            : "Didn't catch any bottles — try again, closer to the shelf.",
+        );
+        return;
+      }
+      setReview(toReviewItems(items));
+      // Partial loss must not be silent: the sheet still opens with what
+      // survived, but the counter is told a piece is missing.
+      if (failed) setVoiceErr("Part of the recording couldn't be processed — double-check the list.");
+    } finally {
+      setVoiceBusy(false);
+    }
+  }
+
   async function processTranscript(transcript: string) {
     if (!transcript.trim()) return;
     setVoiceBusy(true);
@@ -357,22 +422,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         setVoiceErr("Didn't catch any bottles — try again, closer to the shelf.");
         return;
       }
-      setReview(
-        items.map((it, i) => ({
-          key: `v${i}`,
-          spoken: it.spoken,
-          // Don't default a case-bearing row to 1 — its qty legitimately
-          // carries only the loose part until the case size is answered.
-          qty: it.qty > 0 || it.cases > 0 ? it.qty : 1,
-          cases: it.cases,
-          units: it.units,
-          unitsPerCase: it.unitsPerCase,
-          needsCaseSize: it.needsCaseSize,
-          suspectPreMultiplied: it.suspectPreMultiplied,
-          chosenSkuId: it.match?.id ?? null,
-          candidates: it.candidates,
-        })),
-      );
+      setReview(toReviewItems(items));
     } catch (e) {
       setVoiceErr(e instanceof BarApiError ? e.message : "Couldn't process that — try again or type it.");
     } finally {
