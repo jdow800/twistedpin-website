@@ -11,7 +11,7 @@ import {
   type EmptyKegLineInput,
   type KegBrand,
 } from "../api";
-import { useDictation } from "../useSpeech";
+import { useVoiceDictation } from "../useRecorderDictation";
 
 /**
  * "Do you have a lot of empty kegs from any particular brand?" — the owner's
@@ -242,7 +242,7 @@ export default function EmptyKegs({
   }
 
   // ── voice: say the whole answer at once ──────────────────────────────────
-  const dict = useDictation((t) => void processTranscript(t));
+  const dict = useVoiceDictation((t) => void processTranscript(t), { vocabulary: "kegs" });
   useEffect(() => {
     if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps

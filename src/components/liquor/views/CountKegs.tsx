@@ -11,7 +11,7 @@ import {
   type KegKnownItem,
   type KegLineInput,
 } from "../api";
-import { useDictation } from "../useSpeech";
+import { useVoiceDictation } from "../useRecorderDictation";
 
 const CAP_SECONDS = 120; // kegs are few — short bursts; each recording adds more rows
 const WARN_SECONDS = 95;
@@ -187,7 +187,7 @@ export default function CountKegs({
   }
 
   // ── run-on voice: record the whole cooler → extract → append editable rows ──
-  const dict = useDictation((t) => void processKegTranscript(t));
+  const dict = useVoiceDictation((t) => void processKegTranscript(t), { vocabulary: "kegs" });
   useEffect(() => {
     if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps

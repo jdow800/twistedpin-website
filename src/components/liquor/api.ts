@@ -295,6 +295,21 @@ export async function setCaseSize(skuId: string, unitsPerCase: number | null): P
   return res.unitsPerCase;
 }
 
+/** Transcribe one recorded audio clip (a whole take or one ~60s rotation
+ *  segment) server-side. `vocabulary` picks the keyterm bias: liquor SKU names
+ *  vs recent keg names. Returns plain text; "" when the clip was silence. */
+export async function transcribeAudio(
+  contentType: string,
+  base64Data: string,
+  vocabulary: "liquor" | "kegs",
+): Promise<string> {
+  const { transcript } = await gatedJson<{ transcript: string }>(
+    "/admin/bar/transcribe-audio",
+    jsonBody({ contentType, data: base64Data, vocabulary }),
+  );
+  return transcript;
+}
+
 /** Send a zone's dictation transcript → catalog-mapped {bottle, qty} items with
  *  ambiguous names flagged. Surfaces the server's friendly message on 502/503. */
 export async function extractVoice(transcript: string): Promise<VoiceExtractItem[]> {

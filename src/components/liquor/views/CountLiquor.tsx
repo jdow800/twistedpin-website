@@ -17,7 +17,7 @@ import {
   type PrecheckFinding,
   type VoiceMatch,
 } from "../api";
-import { useDictation } from "../useSpeech";
+import { useVoiceDictation } from "../useRecorderDictation";
 
 // Voice-first zone counting. Stand in a zone, hit Record, talk out the shelf in a
 // run-on ("three Tito's, four Bulleit, a half Grey Goose…"); the browser
@@ -138,7 +138,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [caseAskErr, setCaseAskErr] = useState<{ skuId: string; msg: string } | null>(null);
   // Review-sheet case-size error, rendered inside the sheet (see answerCaseSize).
   const [caseErr, setCaseErr] = useState<{ idx: number; msg: string } | null>(null);
-  const dict = useDictation((t) => void processTranscript(t));
+  const dict = useVoiceDictation((t) => void processTranscript(t), { vocabulary: "liquor" });
 
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
