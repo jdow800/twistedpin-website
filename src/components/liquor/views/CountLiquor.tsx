@@ -777,7 +777,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             <p className="lq-rec-transcript">
-              {dict.transcript || <span className="lq-muted">Say the bottles and how many — “three Tito’s, four Bulleit…”</span>}
+              {dict.transcript ||
+                (!dict.armed ? (
+                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
+                ) : (
+                  <span className="lq-muted">Say the bottles and how many — “three Tito’s, four Bulleit…”</span>
+                ))}
               {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
             </p>
             {near && <p className="lq-rec-warntext">Wrap up this bottle — stopping at {mmss(CAP_SECONDS)}.</p>}

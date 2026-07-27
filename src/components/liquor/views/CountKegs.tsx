@@ -290,7 +290,13 @@ export default function CountKegs({
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             <p className="lq-rec-transcript">
-              {dict.transcript || <span className="lq-muted">Say the kegs and how many — “two Miller Lite, one Kona…”</span>}
+              {dict.transcript ||
+                (!dict.armed ? (
+                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
+                ) : (
+                  <span className="lq-muted">Say the kegs and how many — “two Miller Lite, one Kona…”</span>
+                ))}
               {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
             </p>
             <button type="button" className="lq-btn lq-btn-primary lq-rec-stop" onClick={() => dict.stop()}>

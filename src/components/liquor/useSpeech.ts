@@ -86,6 +86,11 @@ export function useSpeech(onResult: (transcript: string) => void) {
 export interface DictationState {
   supported: boolean;
   recording: boolean;
+  /** Audio is actually flowing. On the recorder engine this goes true only
+   *  once the mic route (Bluetooth SCO!) is delivering real samples — the
+   *  window between tap and armed is where spoken words get LOST. Web Speech
+   *  has no such gap worth surfacing; it reports true whenever recording. */
+  armed: boolean;
   transcript: string; // accumulated FINAL results
   interim: string; // in-flight partial (not yet final)
   error: string | null;
@@ -108,6 +113,7 @@ export function useDictation(onFinal?: (transcript: string) => void) {
   const [state, setState] = useState<DictationState>({
     supported: false,
     recording: false,
+    armed: true, // Web Speech engine: no arming gap worth surfacing
     transcript: "",
     interim: "",
     error: null,

@@ -385,11 +385,15 @@ export default function EmptyKegs({
               </span>
             </div>
             <p className="lq-rec-transcript">
-              {dict.transcript || (
-                <span className="lq-muted">
-                  “Lots of empty Modelo, a bunch of Werk Force, couple Emancipation…”
-                </span>
-              )}
+              {dict.transcript ||
+                (!dict.armed ? (
+                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
+                ) : (
+                  <span className="lq-muted">
+                    “Lots of empty Modelo, a bunch of Werk Force, couple Emancipation…”
+                  </span>
+                ))}
               {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
             </p>
             <button
