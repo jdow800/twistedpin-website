@@ -74,6 +74,30 @@ SUSTAINED promotion (Mela 1997/98) → keep touches rare + unpredictable.
 
 ### Part B — evergreen nudges (the build)
 
+**⚠️⚠️ 2026-07-27 UPDATE — READ BEFORE BUILDING. Three things changed since this spec was written:**
+
+1. **Offer RE-CONFIRMED by Jon 2026-07-27, verbatim intent:** *"50% off (1) lane (I don't care if
+   its vip or traditional) shortly after (3 or 4 weeks) their reservation if opted in."* Matches the
+   2026-07-20 lock below; "any lane type" needs no logic — `max_discounted_quantity: 1` already
+   discounts the single most expensive lane-unit in the cart.
+2. **The "if opted in" gate is now REAL and enforceable.** The checkout $10 opt-in reward is LIVE
+   (2026-07-26, proven end-to-end) and mass-produces `sms_marketing_opt_in = true` with CTIA-shaped
+   evidence (verbatim consent_language, IP, UA, contact snapshot — tprs #45). The §7 trap still
+   holds: the campaign query must check `sms_marketing_opt_in` itself (VF's predicates don't).
+3. **CHANNEL AMENDMENT — this supersedes §2's "all rebook messaging comes from Avery" for LANE
+   rebooks.** Ruling 2026-07-23/26: lane retargeting closes with a LINK (no conversation needed), so
+   it sends from the **LOYALTY number** (+1 779-234-4062) — which has the proven STOP handler AND the
+   21610 carrier-STOP→opt-out feed (2026-07-27). Avery's number keeps EVENT rebooking
+   (`annual_rebook`/`fundraiser_loyalty`), which closes conversationally. Rationale: a carrier STOP
+   gags a number permanently and per-number; solicitation stays off the sales line. Avery's number
+   ALSO now has STOP/START/HELP (WF-Avery-Consent-Inbound, proven on handset).
+   Consequence: mint codes via `/api/avery/coupons` as spec'd, but the SEND rides the loyalty
+   scheduled_message rail, not Missive.
+   Also note: rebook recipients have typically already consumed their once-ever $10 opt-in reward,
+   so the 50% code won't stack with it in practice; if it ever does, stacking is now legal
+   (migration 0122) and the typed code resolves first at full value.
+   Ground truth for all consent/opt-out machinery: [Context/consent-surface-map.md](../consent-surface-map.md).
+
 **⚠️ 2026-07-20 REVISION — Jon rejected the original offer designs below ("don't love
 these, we will revisit"). His locked simpler spec for the fast nudge:**
 
