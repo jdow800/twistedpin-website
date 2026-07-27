@@ -1,5 +1,17 @@
 # Loyalty Platform — Go-Live Checklist
 
+> ## 🟢 CUTOVER EXECUTED 2026-07-27 — PLATFORM IS LIVE
+> Forms swapped, Patch automations off, Patch kiosk retired + Zite kiosk live, delta
+> imported, **quarantine LIFTED → 18,349 marketable.** All guest paths verified with real
+> signups + a test blast.
+> **⚠️ Proactive marketing is DELIBERATELY PAUSED:** birthday + winbacks were re-disabled
+> after the lift (Jon's call — "don't fire to real guests yet"). Only `kids-free-bowl-window`
+> is on. **Re-enabling those 5 automations is the switch to go fully live.** Guest-initiated
+> welcome texts + silent kids grants already fire (intended).
+> **Remaining:** cancel Patch before Aug 15; re-enable automations when ready; post-cutover
+> perf/dupe items (see `loyalty-patch-cutover-plan` memory). Kids window already restored to
+> real 10:45–4:10, blackouts empty.
+
 **The running list.** Cutover target **Mon Jul 27 2026** (venue closed for training 27–29;
 Mixology event evening of the 28th → do heavy lifting the 27th, keep the 29th as buffer;
 doors reopen Thu Jul 30).
