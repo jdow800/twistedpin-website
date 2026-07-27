@@ -21,6 +21,7 @@ import {
 import { scrollFocusInvalid } from "./scroll";
 import { useQuote } from "./useQuote";
 import { useOptInReward } from "./useOptInReward";
+import { consentLanguageFor } from "./consentCopy";
 import { useStepHistory } from "./useStepHistory";
 import { toIsoWithOffset } from "./format";
 import type {
@@ -585,6 +586,14 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             // make the consent record broader than the disclosure. Left
             // `undefined` when untouched so no consent_event is written at all.
             smsMarketingOptIn: state.marketingOptIn,
+            // Evidence (2026-07-27): the verbatim copy the guest saw, sent
+            // only when a marketing decision rides along. Variant-aware — the
+            // "$10 OFF" card and the plain box are different disclosures, and
+            // only the client knows which one rendered. See consentCopy.ts's
+            // tripwire before editing the rendered copy.
+            ...(state.marketingOptIn !== undefined && {
+              consentLanguage: consentLanguageFor(rewardRevealed),
+            }),
           }}
           cartHoldItems={[
             {

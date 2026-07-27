@@ -267,6 +267,9 @@ export default function GuestDetailsStep(props: Props) {
           and "curated" is otherwise reserved for the Van Flandern credential.
           Both are deliberate here — Jon specified this exact string. Do NOT
           "fix" it in a brand sweep; the ban still holds everywhere else. */}
+      {/* ⚠️ COPY TRIPWIRE: consentCopy.ts transcribes this box + the footnote
+          verbatim as consent evidence — change the rendered copy ONLY together
+          with consentLanguageFor() in the same commit. */}
       {/* `key` swap deliberately REMOUNTS this div when the offer appears
           (ZIP completion — see BookingWizard's reveal gate), so the card's
           entrance + breathe animations replay from zero at that moment. */}

@@ -23,6 +23,13 @@ export const checkoutCustomerPayloadSchema = z.object({
   zip: z.string().min(1).max(32),
   marketingOptIn: z.boolean().optional(),
   /**
+   * VERBATIM consent copy rendered next to the checkbox (2026-07-27) — sent
+   * only when a marketing decision rides along. Evidence field: the UI copy
+   * varies (the "$10 OFF" reward card vs the plain box) and only the client
+   * knows which variant rendered. Lands in consent_event.metadata.
+   */
+  consentLanguage: z.string().max(2000).optional(),
+  /**
    * SMS marketing consent — a SEPARATE channel decision from `marketingOptIn`
    * (email) per the ADR-0005 amendment 2026-05-17 Decision B per-channel
    * consent matrix. Absent = the guest never touched the checkbox, which is
