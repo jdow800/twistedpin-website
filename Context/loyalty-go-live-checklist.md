@@ -86,21 +86,21 @@ Background/detail lives in memory: `loyalty-patch-cutover-plan`, `loyalty-rebook
 
 ## Phase 1 — Cutover day (Jul 27) — ORDER MATTERS
 
-1. [ ] **Swap the URLs first** — this stops new contacts entering Patch. (Patch was still
-       acquiring signups at 12:36am and checking guests in at 12:20pm on 7/19; a pre-swap
-       export guarantees stragglers.)
-2. [ ] **KILL EVERY PATCH AUTOMATION** — birthday, check-in, coupon flows. Both platforms
-       live = guests double-texted. *(Jon asked explicitly to be reminded of this.)*
-3. [ ] **Retire the Patch kiosk iPad** the same moment the Zite kiosk goes on the counter —
-       automations-off does NOT stop the kiosk from texting on check-in.
-4. [ ] **Delta exports from Patch** — two small pulls: contacts `created_at` > bulk-export
-       date, and contacts whose `last_checkin_at` > bulk date (points/visits move).
-5. [ ] **Re-run the import pipeline** — `clean-contacts.mjs` → `load-staging.mjs` →
-       `patch_import_dryrun()` → `patch_import_commit(prefix)` per digit. Counters apply
-       as **diffs** (`*_applied`), so Patch points earned since 7/19 come across correctly.
-6. [ ] Verify: 0 unprocessed staging rows, no unexpected new customers, spot-check a
-       known guest.
-7. [ ] **Re-point the Frame social-wall free-game coupons** off Patch (see memory
+1. [x] ~~Swap the URLs first~~ **DONE — merged + deployed; verified native forms live on
+       prod `/coupon` + `/free-kids-bowling` (no iframe). Welcome texts confirmed firing:
+       11 sent to real new signups over 7/26–27 (7 coupon, 4 kids), TEST_MODE off.**
+2. [x] ~~KILL EVERY PATCH AUTOMATION~~ **DONE (Jon, 2026-07-27).**
+3. [~] **Retire the Patch kiosk iPad** — Jon converting the iPads to the Zite kiosk on site
+       2026-07-27. Confirm the Patch app is fully off each device (it texts on check-in
+       independent of automations).
+4. [x] ~~Delta export + import~~ **DONE 2026-07-27.** Jon pulled `patch final.csv` (most
+       recent ~500, dupes expected — full re-export deliberately skipped, gaps accepted).
+       Pipeline run on that file only: 500 unique → 438 keep → committed **54 new customers,
+       435 refreshed, +1,200 points** of week's check-in activity. All 54 new import
+       quarantined. Staging 0 unprocessed. Kids members 3,228 → 3,262. **This was the final
+       Patch export — forms now feed Supabase, kiosk being retired; Patch is read-only.**
+5. [x] ~~Verify~~ **DONE — see above (0 unprocessed, 32,409 imports all quarantined).**
+6. [ ] **Re-point the Frame social-wall free-game coupons** off Patch (see memory
        `frame-social-wall-coupons-to-loyalty`).
 
 ## Phase 2 — Go live (only when the above is green)
