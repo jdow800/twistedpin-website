@@ -298,36 +298,14 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     return false;
   }, [productForms, state.formAnswers, state.partySize, state.laneQty]);
 
-  // Server-authoritative quote (subtotal + tax + total) — recomputed whenever
-  // the cart contents / time / coupon change. The SPA never computes tax; it
-  // displays the returned totals. Null (→ pre-tax fallback) until a slot exists.
-  const quoteRequest: QuoteRequest | null = useMemo(() => {
-    if (!state.slot || !state.product || !state.date || checkoutItems.length === 0)
-      return null;
-    return {
-      items: checkoutItems,
-      startTime: toIsoWithOffset(state.date, state.slot.time),
-      couponCode: state.couponCode.trim() || undefined,
-      // Ticking the marketing opt-in re-quotes, so the cart total drops the
-      // moment the box is checked (and returns if unchecked). That visible
-      // movement IS the persuasion — the label alone tests far weaker.
-      // Display-only: the charge re-derives eligibility server-side from the
-      // persisted consent row, so a forged flag here changes nothing real.
-      smsMarketingOptIn: state.marketingOptIn === true ? true : undefined,
-      // claimsTaxExempt: no tax-exempt checkbox in the UI yet → omitted.
-    };
-  }, [
-    state.slot,
-    state.product,
-    state.date,
-    checkoutItems,
-    state.couponCode,
-    state.marketingOptIn,
-  ]);
   // Is the opt-in reward available to THIS guest? Gated on both contact fields
   // being VALID (not merely non-empty) so it never fires mid-typing on a
   // half-entered address, and so the once-per-guest check runs against the
   // contact the booking will actually use.
+  //
+  // DECLARED ABOVE the quote memo on purpose: the memo's callback reads
+  // `optInReward` during render, and a `const` below it would be a TDZ
+  // ReferenceError at mount — the blank-island incident class (2026-07-26).
   const optInReward = useOptInReward({
     items: checkoutItems,
     startTime:
@@ -359,6 +337,54 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     guestFieldError("zip", state.guest) === null
       ? optInReward.amountCents
       : null;
+
+  // Server-authoritative quote (subtotal + tax + total) — recomputed whenever
+  // the cart contents / time / coupon change. The SPA never computes tax; it
+  // displays the returned totals. Null (→ pre-tax fallback) until a slot exists.
+  const quoteRequest: QuoteRequest | null = useMemo(() => {
+    if (!state.slot || !state.product || !state.date || checkoutItems.length === 0)
+      return null;
+    // Contact rides along whenever a discount is in play (typed coupon OR the
+    // opt-in flag), so the backend can run its per-guest caps at PREVIEW too —
+    // without it the engine skips them and an already-redeemed guest saw a
+    // phantom −$10 the charge would then refuse (2026-07-27).
+    const email = state.guest.email.trim();
+    const phone = state.guest.phone.trim();
+    const couponCode = state.couponCode.trim() || undefined;
+    // The opt-in flag is ALSO gated on eligibility (not just the checkbox):
+    // an ineligible guest ticking the plain consent box is pure consent, and
+    // must not move the previewed total at all.
+    const smsMarketingOptIn =
+      state.marketingOptIn === true && optInReward.amountCents != null
+        ? true
+        : undefined;
+    return {
+      items: checkoutItems,
+      startTime: toIsoWithOffset(state.date, state.slot.time),
+      couponCode,
+      // Ticking the marketing opt-in re-quotes, so the cart total drops the
+      // moment the box is checked (and returns if unchecked). That visible
+      // movement IS the persuasion — the label alone tests far weaker.
+      // Display-only: the charge re-derives eligibility server-side from the
+      // persisted consent row, so a forged flag here changes nothing real.
+      smsMarketingOptIn,
+      ...((couponCode !== undefined || smsMarketingOptIn !== undefined) && {
+        ...(email !== "" && { email }),
+        ...(phone !== "" && { phone }),
+      }),
+      // claimsTaxExempt: no tax-exempt checkbox in the UI yet → omitted.
+    };
+  }, [
+    state.slot,
+    state.product,
+    state.date,
+    checkoutItems,
+    state.couponCode,
+    state.marketingOptIn,
+    state.guest.email,
+    state.guest.phone,
+    optInReward.amountCents,
+  ]);
   const {
     quote,
     loading: quoteLoading,

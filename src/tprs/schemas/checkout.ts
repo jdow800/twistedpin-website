@@ -229,6 +229,14 @@ export const quoteRequestSchema = z.object({
    * so a forged flag moves the previewed number and nothing else.
    */
   smsMarketingOptIn: z.boolean().optional(),
+  /**
+   * Guest contact (2026-07-27) — lets the quote run the SAME per-guest checks
+   * the charge will run, so the preview can never promise a discount that
+   * sizing/convert then refuse (the already-redeemed phantom −$10). Mirrors
+   * couponPreviewRequestSchema's optional contact.
+   */
+  email: z.string().max(255).optional(),
+  phone: z.string().max(64).optional(),
 });
 export type QuoteRequest = z.infer<typeof quoteRequestSchema>;
 
