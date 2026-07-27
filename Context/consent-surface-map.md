@@ -394,6 +394,21 @@ After the 2026-07-19 import every Patch contact already sits at `true`, so on a 
 silently kept opted-in.** Patch's inbound number dies with the account (~07-27/28), after which that
 opt-out is unrecoverable and we would keep marketing to someone who explicitly left.
 
+**⚖️ OWNER RULING 2026-07-26 — the opt-out gap is ACCEPTED, not closed.** Jon is exporting recent
+signups only, not a full list or the unsubscribed segment. That catches new contacts but *structurally
+cannot* catch opt-outs, because an opt-out changes an existing record and never changes its created
+date. Measured exposure: 4,447 opt-outs across an 8.3-year list ≈ **1.5/day ≈ ~15 people** in the gap
+between the 07-19 export and cancellation.
+
+Judged acceptable, and the reasoning holds: those contacts stay behind `do_not_market` with all three
+SMS lifecycle automations disabled, so nothing reaches them today; and when marketing does go live,
+anyone wrongly texted replies STOP — which now works and is recorded on both numbers — so it
+self-corrects on first contact. ~15 of ~18k is 0.08%, inside carrier complaint-rate noise.
+
+Residual risk, for the record: recent opt-outs are the *most* likely to report spam, and first-send
+complaint rate is what carriers score a 10DLC campaign on. If deliverability ever degrades after the
+first big send, this is a candidate cause.
+
 **Cutover sequence:**
 
 ```
@@ -417,6 +432,30 @@ export. Currently 18,370 of 18,379 opt-ins are Patch-sourced; 9 are first-party 
 Dry run against the 07-19 staging snapshot returns **0**, which is correct — the 388 customers whose
 staging rows show `sms_on=false` all have a duplicate Patch record still showing opted-in, and
 `bool_or` keeps them in (the same tie-break the importer uses).
+
+## 14. Gap 4 + the DLR feed — CLOSED 2026-07-27
+
+**Consent evidence (gap 4):** checkout consent events now carry CTIA-shaped evidence (tprs #45 +
+Website `b0066d1`): verbatim `consent_language` (variant-aware — the "$10 OFF" card and the plain box
+are different disclosures, sent by the client which alone knows what rendered; transcription
+single-sourced in `consentCopy.ts` with tripwire comments both sides), real client IP (first
+x-forwarded-for hop — `request.ip` is Render's LB), user-agent, route, a phone/email snapshot (the
+customers row's PII is overwritten every checkout), and `sourceRef` = cart token. Evidence is
+additive: absent evidence writes the old bare row (test-locked). Urgency came from the $10 reward
+making checkout the platform's highest-volume consent writer.
+
+**21610 feed:** `record_delivery_status()` now converts a carrier-enforced STOP (error 21610 on a
+loyalty-rail delivery receipt) into a real opt-out — flag false + `consent_event`
+(`signalwire_dlr`, source_ref = message SID) — closing the "carrier honors it, DB never learns"
+divergence on the one rail that has DLRs. Deliberately NOT `sms_bounced`: 21610 is consent, bounce
+is capability; conflating them buries a legal signal in a deliverability flag. Idempotent on webhook
+replay (event dedupe + the consent_event partial unique index). Capability codes
+(30005/30006/21211/21614 → `sms_bounced`) unchanged. Avery's rail still has no DLR feed (Missive
+exposes none) — that residual stands, mitigated by the lane-marketing-on-loyalty-number doctrine.
+
+**Remaining before the first marketing send:** the rebook campaign build itself (new session; spec =
+[2026-07-19 handoff](session-handoffs/2026-07-19-avery-rebook-campaign-spec.md)) · quarantine lift +
+parked-cohort release (owner) · drip-don't-blast the accumulated opt-in backlog · watch STOP rate.
 
 ## 10. Operating rule on revocation scope
 
