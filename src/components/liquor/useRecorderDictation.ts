@@ -134,6 +134,13 @@ export function useRecorderDictation(
   const armedRef = useRef(false);
   const quietRef = useRef(false);
   const lastLoudAtRef = useRef(0);
+  // Screen wake lock for the take. Field-proven necessity (2026-07-28): a
+  // ~103s backstock count had a 38-SECOND capture blackout mid-take that
+  // recovered spontaneously — the screen-lock/battery-optimization suspend
+  // pattern (dimming alone was separately proven harmless). Keeping the
+  // screen awake removes the whole class, and keeps the level meter visible.
+  const wakeLockRef = useRef<{ release: () => Promise<void> } | null>(null);
+  const reacquireWakeLockRef = useRef<(() => void) | null>(null);
   const onFinalRef = useRef(onFinal);
   onFinalRef.current = onFinal;
   const vocabRef = useRef(opts.vocabulary);
@@ -159,6 +166,9 @@ export function useRecorderDictation(
       }
       if (armPollRef.current) clearTimeout(armPollRef.current);
       if (audioCtxRef.current) void audioCtxRef.current.close().catch(() => {});
+      if (reacquireWakeLockRef.current)
+        document.removeEventListener("visibilitychange", reacquireWakeLockRef.current);
+      if (wakeLockRef.current) void wakeLockRef.current.release().catch(() => {});
       stopStream(streamRef.current);
       streamRef.current = null;
     };
@@ -195,6 +205,30 @@ export function useRecorderDictation(
       }
     })();
     uploadsRef.current.push(p);
+  };
+
+  const acquireWakeLock = () => {
+    const wl = (navigator as { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } })
+      .wakeLock;
+    if (!wl) return; // unsupported — fail open, the watchdog still covers us
+    wl.request("screen")
+      .then((sentinel) => {
+        if (!wantRef.current) void sentinel.release().catch(() => {});
+        else wakeLockRef.current = sentinel;
+      })
+      .catch(() => {
+        /* denied (low battery etc.) — fail open */
+      });
+  };
+
+  const releaseWakeLock = () => {
+    if (reacquireWakeLockRef.current) {
+      document.removeEventListener("visibilitychange", reacquireWakeLockRef.current);
+      reacquireWakeLockRef.current = null;
+    }
+    const wl = wakeLockRef.current;
+    wakeLockRef.current = null;
+    if (wl) void wl.release().catch(() => {});
   };
 
   const stopLevelWatch = () => {
@@ -304,6 +338,7 @@ export function useRecorderDictation(
     if (timerRef.current) clearInterval(timerRef.current);
     if (rotateRef.current) clearInterval(rotateRef.current);
     stopLevelWatch();
+    releaseWakeLock();
     stopStream(streamRef.current); // SCO drops here — the ONE release per take
     streamRef.current = null;
     recorderRef.current = null;
@@ -383,7 +418,11 @@ export function useRecorderDictation(
       seconds: 0,
     }));
     navigator.mediaDevices
-      .getUserMedia({ audio: true })
+      // Chrome's software noise-suppression / echo-cancellation can GATE quiet
+      // or distant speech into silence — Deepgram wants raw audio and handles
+      // noise itself. AGC stays on: it's what keeps level up when the counter
+      // turns away from the mic.
+      .getUserMedia({ audio: { noiseSuppression: false, echoCancellation: false, autoGainControl: true } })
       .then((stream) => {
         if (!wantRef.current) {
           // Stopped (or unmounted) while the permission prompt was up.
@@ -394,6 +433,17 @@ export function useRecorderDictation(
         streamRef.current = stream;
         startSegment(stream);
         startLevelWatch(stream);
+        acquireWakeLock();
+        // A wake lock auto-releases if the page is ever hidden (task switch,
+        // notification shade) — re-acquire when it comes back so one glance
+        // at another app doesn't leave the rest of the count lockable.
+        const reacquire = () => {
+          if (document.visibilityState !== "visible" || !wantRef.current) return;
+          wakeLockRef.current = null; // any prior sentinel auto-released on hide
+          acquireWakeLock();
+        };
+        reacquireWakeLockRef.current = reacquire;
+        document.addEventListener("visibilitychange", reacquire);
         // Bluetooth drop mid-take: the track tells us the instant it happens —
         // far better than inferring it from silence. `ended` = gone for good:
         // close out gracefully so the partial count reaches the review sheet
