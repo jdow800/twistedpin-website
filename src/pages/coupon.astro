@@ -168,6 +168,16 @@ const FAQ = [
 
         <p id="cp-error" class="cp-error" role="alert" hidden></p>
 
+        {/* Typo-catch: echo the number back right above the button so a fat-fingered
+            digit is obvious before submit. Shows once 10 digits are entered. */}
+        <div id="cp-echo" class="cp-echo" hidden>
+          <div class="cp-echo-body">
+            <span class="cp-echo-label">We'll text your $10 to</span>
+            <strong class="cp-echo-num" id="cp-echo-num"></strong>
+          </div>
+          <button type="button" class="cp-echo-edit" id="cp-echo-edit">Edit</button>
+        </div>
+
         <button type="submit" id="cp-submit" class="cp-submit">Text me my $10</button>
       </form>
 
@@ -364,12 +374,32 @@ const FAQ = [
       }
       clearTimeout(verifyTimer);
       if (d.length === 10) verifyTimer = setTimeout(function () { verifyPhone(d); }, 500);
+      updateEcho();
     });
 
     // Verify immediately on blur (don't wait out the debounce).
     mobile.addEventListener("blur", function () {
       var d = mobile.value.replace(/\D/g, "").slice(0, 10);
       if (d.length === 10) verifyPhone(d);
+    });
+
+    // Echo the entered number back just above the submit button (typo catch).
+    var echoEl = document.getElementById("cp-echo");
+    var echoNum = document.getElementById("cp-echo-num");
+    var echoEdit = document.getElementById("cp-echo-edit");
+    function updateEcho() {
+      if (!echoEl) return;
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      if (d.length === 10) {
+        echoNum.textContent = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+        echoEl.hidden = false;
+      } else {
+        echoEl.hidden = true;
+      }
+    }
+    if (echoEdit) echoEdit.addEventListener("click", function () {
+      mobile.focus();
+      mobile.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
     function showError(msg) {
@@ -605,6 +635,33 @@ const FAQ = [
     font-weight: 700;
     color: #ff8a8a;
   }
+
+  /* Phone echo (typo catch) — restates the number right above the button */
+  .cp-echo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 0 0 14px;
+    border: 1px solid rgba(244, 239, 227, 0.14);
+    border-radius: 10px;
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .cp-echo-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .cp-echo-label {
+    font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.02em; color: var(--warm-dim);
+  }
+  .cp-echo-num {
+    font-family: var(--font-ui); font-size: 18px; font-weight: 700;
+    color: var(--warm-white); letter-spacing: 0.01em;
+  }
+  .cp-echo-edit {
+    flex: none; background: none; border: 0; padding: 6px 4px; cursor: pointer;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 700; color: var(--glow);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .cp-echo-edit:hover { color: var(--glow-dim); }
 
   .cp-submit {
     width: 100%;

@@ -187,6 +187,16 @@ const FAQ = [
 
         <p id="kp-error" class="kp-error" role="alert" hidden></p>
 
+        {/* Typo-catch: echo the number back right above the button so a fat-fingered
+            digit is obvious before submit. Shows once 10 digits are entered. */}
+        <div id="kp-echo" class="kp-echo" hidden>
+          <div class="kp-echo-body">
+            <span class="kp-echo-label">We'll text you at</span>
+            <strong class="kp-echo-num" id="kp-echo-num"></strong>
+          </div>
+          <button type="button" class="kp-echo-edit" id="kp-echo-edit">Edit</button>
+        </div>
+
         <button type="submit" id="kp-submit" class="kp-submit">Register my kids</button>
       </form>
 
@@ -363,11 +373,31 @@ const FAQ = [
       }
       clearTimeout(verifyTimer);
       if (d.length === 10) verifyTimer = setTimeout(function () { verifyPhone(d); }, 500);
+      updateEcho();
     });
 
     mobile.addEventListener("blur", function () {
       var d = mobile.value.replace(/\D/g, "").slice(0, 10);
       if (d.length === 10) verifyPhone(d);
+    });
+
+    // Echo the entered number back just above the submit button (typo catch).
+    var echoEl = document.getElementById("kp-echo");
+    var echoNum = document.getElementById("kp-echo-num");
+    var echoEdit = document.getElementById("kp-echo-edit");
+    function updateEcho() {
+      if (!echoEl) return;
+      var d = mobile.value.replace(/\D/g, "").slice(0, 10);
+      if (d.length === 10) {
+        echoNum.textContent = "(" + d.slice(0, 3) + ") " + d.slice(3, 6) + "-" + d.slice(6);
+        echoEl.hidden = false;
+      } else {
+        echoEl.hidden = true;
+      }
+    }
+    if (echoEdit) echoEdit.addEventListener("click", function () {
+      mobile.focus();
+      mobile.scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
     function showError(msg) {
@@ -399,14 +429,38 @@ const FAQ = [
       panel.scrollIntoView({ behavior: "smooth", block: "center" });
     }
 
+    // Auto-grow the kid inputs: once the LAST box has a name, reveal another
+    // (up to KID_MAX). Only grows when typing in the last box, so editing an
+    // earlier name doesn't spawn a field. Names stay formality-only, never sent.
+    var KID_MAX = 8;
+    var kidsWrap = form.querySelector(".kp-kids");
+    if (kidsWrap) {
+      kidsWrap.addEventListener("input", function (e) {
+        if (!e.target.classList || !e.target.classList.contains("kp-kid")) return;
+        var boxes = kidsWrap.querySelectorAll(".kp-kid");
+        var last = boxes[boxes.length - 1];
+        if (last === e.target && last.value.trim() && boxes.length < KID_MAX) {
+          var el = document.createElement("input");
+          el.className = "kp-kid";
+          el.type = "text";
+          el.name = "child" + (boxes.length + 1);
+          el.setAttribute("autocomplete", "off");
+          el.placeholder = "Another child (optional)";
+          kidsWrap.appendChild(el);
+        }
+      });
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       errorEl.hidden = true;
 
       var first = form.first_name.value.trim();
       var phoneDigits = form.phone.value.replace(/\D/g, "");
-      var kidsEntered = [form.child1.value, form.child2.value, form.child3.value]
-        .map(function (s) { return (s || "").trim(); }).filter(Boolean);
+      var kidsEntered = Array.prototype.map.call(
+        form.querySelectorAll(".kp-kid"),
+        function (el) { return (el.value || "").trim(); }
+      ).filter(Boolean);
       var consent = form.consent.checked;
       var acks = form.querySelectorAll(".kp-ack-input");
       var allAcked = Array.prototype.every.call(acks, function (a) { return a.checked; });
@@ -663,6 +717,33 @@ const FAQ = [
   .kp-consent a:hover { text-decoration: underline; }
 
   .kp-error { margin: 0 0 14px; font-family: var(--font-ui); font-size: 13px; font-weight: 700; color: #ff8a8a; }
+
+  /* Phone echo (typo catch) — restates the number right above the button */
+  .kp-echo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 0 0 14px;
+    border: 1px solid rgba(244, 239, 227, 0.14);
+    border-radius: 10px;
+    background: rgba(244, 239, 227, 0.04);
+  }
+  .kp-echo-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .kp-echo-label {
+    font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.02em; color: var(--warm-dim);
+  }
+  .kp-echo-num {
+    font-family: var(--font-ui); font-size: 18px; font-weight: 700;
+    color: var(--warm-white); letter-spacing: 0.01em;
+  }
+  .kp-echo-edit {
+    flex: none; background: none; border: 0; padding: 6px 4px; cursor: pointer;
+    font-family: var(--font-ui); font-size: 14px; font-weight: 700; color: var(--glow);
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .kp-echo-edit:hover { color: var(--glow-dim); }
 
   .kp-submit {
     width: 100%;
