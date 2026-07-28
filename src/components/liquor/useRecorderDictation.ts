@@ -207,6 +207,35 @@ export function useRecorderDictation(
     uploadsRef.current.push(p);
   };
 
+  /** Audible cues THROUGH THE HEADSET (2026-07-28): vibration-only alerts are
+   *  useless with the phone on a shelf and earbuds in — the counter never felt
+   *  a single one. The level-watch AudioContext doubles as the beeper; with
+   *  SCO active the tone plays in the Beats. Short and gentle: the mic will
+   *  pick a little of it up, and Deepgram shrugs at tones. */
+  const beep = (pattern: Array<[freq: number, ms: number]>, gapMs = 90) => {
+    const ctx = audioCtxRef.current;
+    if (!ctx) return;
+    try {
+      if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+      let t = ctx.currentTime + 0.03;
+      for (const [freq, ms] of pattern) {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + ms / 1000 + 0.02);
+        t += ms / 1000 + gapMs / 1000;
+      }
+    } catch {
+      /* cue only — never let it break the take */
+    }
+  };
+
   const acquireWakeLock = () => {
     const wl = (navigator as { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } })
       .wakeLock;
@@ -265,6 +294,7 @@ export function useRecorderDictation(
       armedRef.current = true;
       lastLoudAtRef.current = Date.now();
       setState((s) => (s.armed ? s : { ...s, armed: true }));
+      beep([[880, 140]]); // "go" — in the headset, where the counter's ears are
       try {
         navigator.vibrate?.(80);
       } catch {
@@ -300,6 +330,7 @@ export function useRecorderDictation(
           if (quietRef.current) {
             quietRef.current = false;
             setState((s) => ({ ...s, quiet: false, level: Math.min(1, dev / 64) }));
+            beep([[660, 110]]); // hearing you again
             armPollRef.current = setTimeout(poll, 120);
             return;
           }
@@ -314,6 +345,7 @@ export function useRecorderDictation(
           // the moment sound returns.
           quietRef.current = true;
           setState((s) => ({ ...s, quiet: true, level: 0 }));
+          beep([[330, 200], [330, 200]]); // "mic isn't hearing anything"
           try {
             navigator.vibrate?.([120, 90, 120]);
           } catch {
@@ -465,6 +497,7 @@ export function useRecorderDictation(
             if (!wantRef.current || quietRef.current) return;
             quietRef.current = true;
             setState((s) => ({ ...s, quiet: true, level: 0 }));
+            beep([[330, 200], [330, 200]]);
             try {
               navigator.vibrate?.([120, 90, 120]);
             } catch {
@@ -476,6 +509,7 @@ export function useRecorderDictation(
             if (quietRef.current) {
               quietRef.current = false;
               setState((s) => ({ ...s, quiet: false }));
+              beep([[660, 110]]);
             }
           });
         }
