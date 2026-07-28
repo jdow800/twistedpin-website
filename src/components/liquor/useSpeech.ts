@@ -91,6 +91,14 @@ export interface DictationState {
    *  window between tap and armed is where spoken words get LOST. Web Speech
    *  has no such gap worth surfacing; it reports true whenever recording. */
   armed: boolean;
+  /** Recorder engine only: live input level 0..1 for the meter. */
+  level: number;
+  /** Recorder engine only: the mic has heard nothing for a while mid-take —
+   *  the 2026-07-28 failure mode (Bluetooth feed goes quiet, recording keeps
+   *  "running", words are lost silently). */
+  quiet: boolean;
+  /** True when level/quiet are real signals (recorder engine). */
+  metering: boolean;
   transcript: string; // accumulated FINAL results
   interim: string; // in-flight partial (not yet final)
   error: string | null;
@@ -114,6 +122,9 @@ export function useDictation(onFinal?: (transcript: string) => void) {
     supported: false,
     recording: false,
     armed: true, // Web Speech engine: no arming gap worth surfacing
+    level: 0,
+    quiet: false,
+    metering: false, // Web Speech gives no audio-level access
     transcript: "",
     interim: "",
     error: null,

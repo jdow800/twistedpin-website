@@ -379,11 +379,19 @@ export default function EmptyKegs({
           <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">Listening…</span>
+              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
               <span className="lq-rec-timer">
                 {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
               </span>
             </div>
+            {dict.metering && (
+              <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
+                <div className="lq-mic-meter-fill" style={{ width: `${Math.round(dict.level * 100)}%` }} />
+              </div>
+            )}
+            {dict.quiet && (
+              <p className="lq-rec-warntext">Mic hasn’t heard anything for a bit — check the headset if you’re still counting.</p>
+            )}
             <p className="lq-rec-transcript">
               {dict.transcript ||
                 (!dict.armed ? (

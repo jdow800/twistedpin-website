@@ -852,6 +852,23 @@
   color: #ffcf5c;
   font-weight: 600;
 }
+/* Live input level — proof the mic is hearing you. Goes amber when the
+   quiet watchdog fires (nothing heard for a while mid-take). */
+.lq-mic-meter {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+.lq-mic-meter-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--lq-glow);
+  transition: width 110ms linear;
+}
+.lq-mic-meter.is-quiet .lq-mic-meter-fill {
+  background: #ffcf5c;
+}
 .lq-rec-stop {
   width: 100%;
 }

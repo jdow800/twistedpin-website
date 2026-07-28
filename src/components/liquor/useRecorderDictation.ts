@@ -109,7 +109,10 @@ export function useRecorderDictation(
   const [state, setState] = useState<DictationState>({
     supported: false,
     recording: false,
-    armed: false, // true once the mic route is delivering real samples — see startArmWatch
+    armed: false, // true once the mic route is delivering real samples — see startLevelWatch
+    level: 0,
+    quiet: false,
+    metering: true,
     transcript: "",
     interim: "",
     error: null,
@@ -128,6 +131,9 @@ export function useRecorderDictation(
   const mimeRef = useRef<string>("");
   const audioCtxRef = useRef<AudioContext | null>(null);
   const armPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const armedRef = useRef(false);
+  const quietRef = useRef(false);
+  const lastLoudAtRef = useRef(0);
   const onFinalRef = useRef(onFinal);
   onFinalRef.current = onFinal;
   const vocabRef = useRef(opts.vocabulary);
@@ -191,7 +197,7 @@ export function useRecorderDictation(
     uploadsRef.current.push(p);
   };
 
-  const stopArmWatch = () => {
+  const stopLevelWatch = () => {
     if (armPollRef.current) {
       clearTimeout(armPollRef.current);
       armPollRef.current = null;
@@ -202,21 +208,28 @@ export function useRecorderDictation(
   };
 
   /**
-   * The UI must not invite speech before the mic is really live. On Bluetooth,
-   * the SCO route takes ~1s to come up after getUserMedia resolves; the
-   * recorder is already "recording" but receives flat silence, and anything
-   * spoken in that window is LOST (field-verified 2026-07-27: a keg count's
-   * transcript began mid-word — "K." — and the first keg named never made it).
-   * Watch the stream with an AnalyserNode and flip `armed` on the first real
-   * samples; a vibration tells the counter "go" without looking at the screen.
-   * Fail-open everywhere: if audio inspection isn't available or nothing is
-   * ever heard (aggressive noise suppression in a silent room), arm anyway
-   * after a short grace so the UI can't wedge on "connecting".
+   * Mic-truth monitoring for the WHOLE take (2026-07-28 rewrite — was
+   * arm-and-quit). Three jobs, all born from field failures:
+   *
+   * 1. ARM — the UI must not invite speech before the mic route (Bluetooth
+   *    SCO) is delivering real samples; the tap→armed window ate the first
+   *    keg named on 2026-07-27. One short buzz when live.
+   * 2. METER — expose a live input level so the counter can SEE the mic
+   *    hearing them. The 2026-07-28 liquor count lost bottles to a feed that
+   *    went quiet mid-take with zero feedback.
+   * 3. QUIET WATCHDOG — nothing heard for a while mid-take → double buzz +
+   *    on-screen warning. A dead Bluetooth feed records perfect silence; the
+   *    recorder can't tell, but the counter can once told.
+   *
+   * Fail-open everywhere: no AudioContext, any error, or 3.5s of flat silence
+   * at the start arms anyway — the recorder captures regardless; this layer
+   * only informs.
    */
-  const startArmWatch = (stream: MediaStream) => {
+  const startLevelWatch = (stream: MediaStream) => {
     const arm = () => {
-      stopArmWatch();
-      if (abortingRef.current) return;
+      if (armedRef.current || abortingRef.current) return;
+      armedRef.current = true;
+      lastLoudAtRef.current = Date.now();
       setState((s) => (s.armed ? s : { ...s, armed: true }));
       try {
         navigator.vibrate?.(80);
@@ -236,7 +249,7 @@ export function useRecorderDictation(
       const buf = new Uint8Array(analyser.fftSize);
       const startedAt = Date.now();
       const poll = () => {
-        if (!wantRef.current) return stopArmWatch();
+        if (!wantRef.current) return stopLevelWatch();
         analyser.getByteTimeDomainData(buf);
         let dev = 0;
         for (let i = 0; i < buf.length; i++) {
@@ -245,8 +258,38 @@ export function useRecorderDictation(
         }
         // A dead route reads flat 128s; any real capture (even room tone at a
         // bar) deviates. Threshold 3 rejects quantization jitter only.
-        if (dev > 3 || Date.now() - startedAt > 3500) return arm();
-        armPollRef.current = setTimeout(poll, 100);
+        if (!armedRef.current && (dev > 3 || Date.now() - startedAt > 3500)) arm();
+        // dev > 6 = actual signal (voice / room), not just route noise.
+        const now = Date.now();
+        if (dev > 6) {
+          lastLoudAtRef.current = now;
+          if (quietRef.current) {
+            quietRef.current = false;
+            setState((s) => ({ ...s, quiet: false, level: Math.min(1, dev / 64) }));
+            armPollRef.current = setTimeout(poll, 120);
+            return;
+          }
+        } else if (
+          armedRef.current &&
+          !quietRef.current &&
+          lastLoudAtRef.current > 0 &&
+          now - lastLoudAtRef.current > 10_000
+        ) {
+          // Ten seconds of nothing mid-take. Could be a pause between zones —
+          // or the 2026-07-28 dead-feed. Double buzz; warning clears itself
+          // the moment sound returns.
+          quietRef.current = true;
+          setState((s) => ({ ...s, quiet: true, level: 0 }));
+          try {
+            navigator.vibrate?.([120, 90, 120]);
+          } catch {
+            /* ignore */
+          }
+          armPollRef.current = setTimeout(poll, 120);
+          return;
+        }
+        setState((s) => ({ ...s, level: Math.min(1, dev / 64) }));
+        armPollRef.current = setTimeout(poll, 120);
       };
       poll();
     } catch {
@@ -260,7 +303,7 @@ export function useRecorderDictation(
     finishedRef.current = true;
     if (timerRef.current) clearInterval(timerRef.current);
     if (rotateRef.current) clearInterval(rotateRef.current);
-    stopArmWatch();
+    stopLevelWatch();
     stopStream(streamRef.current); // SCO drops here — the ONE release per take
     streamRef.current = null;
     recorderRef.current = null;
@@ -325,10 +368,15 @@ export function useRecorderDictation(
     errMsgRef.current = null;
     finishedRef.current = false;
     wantRef.current = true;
+    armedRef.current = false;
+    quietRef.current = false;
+    lastLoudAtRef.current = 0;
     setState((s) => ({
       ...s,
       recording: true,
       armed: false,
+      level: 0,
+      quiet: false,
       transcript: "",
       interim: "",
       error: null,
@@ -345,7 +393,42 @@ export function useRecorderDictation(
         }
         streamRef.current = stream;
         startSegment(stream);
-        startArmWatch(stream);
+        startLevelWatch(stream);
+        // Bluetooth drop mid-take: the track tells us the instant it happens —
+        // far better than inferring it from silence. `ended` = gone for good:
+        // close out gracefully so the partial count reaches the review sheet
+        // instead of recording minutes of nothing. `mute` = feed paused (route
+        // renegotiation, battery-save): warn immediately, keep recording.
+        for (const track of stream.getAudioTracks()) {
+          track.addEventListener("ended", () => {
+            if (!wantRef.current) return;
+            errMsgRef.current = "mic disconnected — recording closed with what was captured";
+            setState((s) => ({ ...s, error: "mic disconnected", quiet: true, level: 0 }));
+            try {
+              navigator.vibrate?.([200, 90, 200]);
+            } catch {
+              /* ignore */
+            }
+            stop();
+          });
+          track.addEventListener("mute", () => {
+            if (!wantRef.current || quietRef.current) return;
+            quietRef.current = true;
+            setState((s) => ({ ...s, quiet: true, level: 0 }));
+            try {
+              navigator.vibrate?.([120, 90, 120]);
+            } catch {
+              /* ignore */
+            }
+          });
+          track.addEventListener("unmute", () => {
+            lastLoudAtRef.current = Date.now();
+            if (quietRef.current) {
+              quietRef.current = false;
+              setState((s) => ({ ...s, quiet: false }));
+            }
+          });
+        }
         rotateRef.current = setInterval(() => {
           const r = recorderRef.current;
           // stop() → onstop uploads the segment and starts the next one.
