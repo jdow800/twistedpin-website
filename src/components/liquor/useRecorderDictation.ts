@@ -223,8 +223,12 @@ export function useRecorderDictation(
         const gain = ctx.createGain();
         osc.type = "sine";
         osc.frequency.value = freq;
+        // Loud on purpose (2026-07-28: 0.22 was inaudible in the field —
+        // Android parks "media" output in a weird mix while the Bluetooth
+        // mic link is active). If it's ever too hot, media volume is the
+        // user-side knob.
         gain.gain.setValueAtTime(0.0001, t);
-        gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.6, t + 0.02);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
         osc.connect(gain).connect(ctx.destination);
         osc.start(t);
