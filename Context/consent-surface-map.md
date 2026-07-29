@@ -453,9 +453,11 @@ replay (event dedupe + the consent_event partial unique index). Capability codes
 (30005/30006/21211/21614 → `sms_bounced`) unchanged. Avery's rail still has no DLR feed (Missive
 exposes none) — that residual stands, mitigated by the lane-marketing-on-loyalty-number doctrine.
 
-**Remaining before the first marketing send:** the rebook campaign build itself (new session; spec =
-[2026-07-19 handoff](session-handoffs/2026-07-19-avery-rebook-campaign-spec.md)) · quarantine lift +
-parked-cohort release (owner) · drip-don't-blast the accumulated opt-in backlog · watch STOP rate.
+**Remaining before the first marketing send:** ~~the rebook campaign build itself~~ **BUILT
+2026-07-27 armed-but-dark** (n8n `WF-Lane-Rebook-Campaign` / `SRMB0xdrcKmZuigE`; drip cap +
+holdout + self-owned consent predicates baked in — runbook `scripts/rebook-campaign/README.md`) ·
+SMS copy approval (owner) · quarantine lift + parked-cohort release (owner) · watch STOP rate
+(measurement.sql query 6).
 
 ## 10. Operating rule on revocation scope
 

@@ -74,6 +74,15 @@ SUSTAINED promotion (Mela 1997/98) → keep touches rare + unpredictable.
 
 ### Part B — evergreen nudges (the build)
 
+**✅✅ BUILT 2026-07-27 — the fast nudge SHIPPED ARMED-BUT-DARK.** n8n `WF-Lane-Rebook-Campaign`
+(`SRMB0xdrcKmZuigE`, inactive + `ARMED=false`): daily eligibility (consent-checked itself, per the
+§7 trap), oldest-first drip (cap 15/day), 15% deterministic holdout, one parent discount per daily
+cohort via `/api/avery/coupons`, sends via the loyalty `scheduled_message` rail per the channel
+amendment below, T-2 reminder (`cap_exempt`). Runbook + arming ritual:
+`scripts/rebook-campaign/README.md` · measurement: `scripts/rebook-campaign/measurement.sql`.
+Dry-run at build: 88 in window → 20 opted-in → 0 addressable until the park/quarantine lifts.
+Copy is DRAFT pending Jon. Anniversary nudge + Part A remain unbuilt (offers still unapproved).
+
 **⚠️⚠️ 2026-07-27 UPDATE — READ BEFORE BUILDING. Three things changed since this spec was written:**
 
 1. **Offer RE-CONFIRMED by Jon 2026-07-27, verbatim intent:** *"50% off (1) lane (I don't care if
