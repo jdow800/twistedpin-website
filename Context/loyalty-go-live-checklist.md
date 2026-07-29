@@ -8,9 +8,59 @@
 > after the lift (Jon's call — "don't fire to real guests yet"). Only `kids-free-bowl-window`
 > is on. **Re-enabling those 5 automations is the switch to go fully live.** Guest-initiated
 > welcome texts + silent kids grants already fire (intended).
-> **Remaining:** cancel Patch before Aug 15; re-enable automations when ready; post-cutover
-> perf/dupe items (see `loyalty-patch-cutover-plan` memory). Kids window already restored to
-> real 10:45–4:10, blackouts empty.
+> **Remaining:** see the dated **Current to-do** section immediately below — it's the live
+> source of truth. Kids window already restored to real 10:45–4:10, blackouts empty.
+
+---
+
+## Current to-do (as of 2026-07-27 evening — Jon picking back up in a few hours)
+
+Everything under the cutover is verified: base marketable (18,349), points **earning confirmed
+live** (kiosk check-in → +50, once/day, `America/Chicago`; proven by Shanna's real check-in),
+STOP/START verified (7/19), quiet-hours guard shipped (below). Only `kids-free-bowl-window` is
+enabled; all proactive marketing is still OFF by design.
+
+**A. Go-live switch (the main thing)**
+- [ ] **Enable the automations:** `birthday` + `winback-50-initial` + `winback-330-initial`
+      (+ the two `*-reminder` variants). Runner (`loyalty-lifecycle-daily` pg_cron, 11am
+      Central) is live, so flipping `enabled=true` works immediately. Metered, not a blast
+      (~50/day birthday, ~58/week winback). **Stagger:** birthday first, watch a day, then
+      the winbacks on a morning you can watch the first-Thursday wave.
+
+**B. Patch teardown**
+- [x] ~~Repoint the Frame social-wall free-game coupons off Patch~~ **RESOLVED BY REMOVAL
+      2026-07-27** — Jon deleted the "send a free game to a friend" feature from Frame entirely
+      (few redemptions; simpler than repointing). No coupons land in Patch anymore. Memory
+      `frame-social-wall-coupons-to-loyalty` is now closed/obsolete.
+- [~] **Cancel Patch — deliberately held ~1 week as a warm fallback (Jon, 2026-07-27).**
+      Everything in Patch is turned OFF (automations + kiosk), but billing is NOT cancelled yet
+      — kept as a read-only archive / rollback option while the new platform proves out.
+      **Target cancel ~Aug 3; HARD DEADLINE Aug 15** (~$580/mo — miss it = another month billed).
+      Only risk is forgetting → set a phone reminder for ~Aug 10 as "cancel by," Aug 15 = drop-dead.
+
+**C. Shipped this session (done)**
+- [x] **Marketing quiet-hours guard — migration `067_marketing_quiet_hours` LIVE.** BEFORE
+      INSERT trigger on `scheduled_message` holds `cap_exempt=false` (marketing) sends outside
+      **11am–6pm Central** to the next 11am; `cap_exempt=true` (welcomes/tests/overrides) sent
+      immediately, any hour. DST-correct (verified CDT + CST). Caveat: any *new* transactional
+      message type must set `cap_exempt=true` or it'll be held to morning.
+
+**D. Open / your call (none blocking)**
+- [ ] **`visit_count_lifetime` bump** in `earn_points_on_checkin()` — the earn trigger awards
+      points but doesn't increment the lifetime visit counter (stays 0 for everyone). One-line
+      add if you want it for tiering/frequency segments.
+- [ ] **Program Health dashboard** — acceptance-check the numbers now that it landed.
+- [ ] **Avery-consent flag** — re-check whether the "parked checkout cohort" blocker actually
+      cleared; the 7/24 `avery_inbound` opt_in/opt_out events suggest Avery's number may now be
+      recording consent (Phase 3 note may be stale).
+- [ ] **STOP/START re-run** — optional; already covered by the 7/19 test.
+- [ ] Zite asks pending: kiosk **nightly 4am auto-reload** + **manual refresh button**
+      (prompts sent); blast composer **test-mode fix** (approved their plan + sent 2 corrections:
+      "Sarah"→"Shanna", and a hard recipient-count gate on the live send).
+
+**Kiosk earning note:** Jon's own record shows 0 points despite 18 check-ins today — that's a
+test artifact (he wiped his number mid-day after an early check-in already earned; the once/day
+dedup correctly won't re-award same day). Not a bug. Shanna: 2 check-ins today → 50 points.
 
 **The running list.** Cutover target **Mon Jul 27 2026** (venue closed for training 27–29;
 Mixology event evening of the 28th → do heavy lifting the 27th, keep the 29th as buffer;
