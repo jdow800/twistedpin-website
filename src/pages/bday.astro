@@ -12,6 +12,15 @@
  * present during the visit (same kiosk redemption as /1hr — no "claim"
  * step, which removes the "do I need to click something?" friction).
  *
+ * The page PRESENTS the two options; it is deliberately NOT a picker.
+ * The choice is made in person at the front desk. Copy pass 2026-07-29
+ * (Jon) tightened this: "pick one below" and "Choose one" both implied an
+ * on-page action and sent guests hunting for buttons that don't exist —
+ * now "here are your two options" / "Your two options", with a leading
+ * "Nothing to claim here" so the do-I-click question dies in three words.
+ * Keep the H1 "Pick your present" — it matches the SMS hook verbatim and
+ * changing one without the other creates a scent mismatch.
+ *
  * Voice: "$30 off" is reframed to "$30 toward open bowling" — the hard ban
  * on discount/"off"/deals language applies (same reframe as /coupon's
  * "$10 lane credit"). The bowling credit is WALK-IN only (not valid on
@@ -53,8 +62,8 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
         Happy birthday. Pick your&nbsp;present.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Our gift to you — pick one below, then come in and make a night
-        of it.
+        Our gift to you — here are your two options. You'll pick the one
+        you want at the front desk.
       </p>
     </div>
   </section>
@@ -70,12 +79,12 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
       </p>
 
       <p class="offer-redeem">
-        Good news — it's already on your account. Just log in to the kiosk
-        at the front desk with your phone number and pick your present
-        during your visit.
+        <strong>Nothing to claim here</strong> — it's already on your account.
+        Come in, log in at the front-desk kiosk with your phone number, and
+        tell us which one you want.
       </p>
 
-      <h2 class="t-eyebrow" id="offer-details-h2" style="font-size:11px;">Choose one</h2>
+      <h2 class="t-eyebrow" id="offer-details-h2" style="font-size:11px;">Your two options</h2>
 
       <div class="offer-choices">
         <div class="offer-choice">
@@ -200,6 +209,9 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
     line-height: 1.6;
     color: var(--warm-mid);
   }
+  /* "Nothing to claim here" answers the do-I-click-something question up
+     front — lift it out of the body grey so it reads first. */
+  .offer-redeem strong { color: var(--warm-white); }
 
   .offer-fineprint {
     margin-top: 28px;
