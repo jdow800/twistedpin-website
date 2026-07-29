@@ -12,6 +12,14 @@
  * the front-desk kiosk with their phone number and pick during the visit
  * (same kiosk redemption as /1hr + /bday — no "claim" step).
  *
+ * The page PRESENTS the two options; it is deliberately NOT a picker — the
+ * choice is made in person. Copy pass 2026-07-29 (Jon), mirroring /bday:
+ * "pick one below" and "Choose one" both implied an on-page action and sent
+ * guests hunting for buttons that don't exist. Now "here are your two
+ * options" / "Your two options", led by "Nothing to claim here". Keep the
+ * H1 "Pick your free fun." — it matches the SMS hook; changing one without
+ * the other creates a scent mismatch.
+ *
  * Voice: "free" is fine (the ban is on cheap/discount/off/deals). The
  * bowling option is TRADITIONAL lanes only (never the VIP suite).
  *
@@ -50,7 +58,8 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
         Pick your free&nbsp;fun.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Our treat — pick one below, then walk in and play.
+        Our treat — here are your two options. You'll pick the one you
+        want at the front desk.
       </p>
     </div>
   </section>
@@ -66,12 +75,12 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
       </p>
 
       <p class="offer-redeem">
-        Good news — it's already on your account. Just log in to the kiosk
-        at the front desk with your phone number and pick yours during
-        your visit.
+        <strong>Nothing to claim here</strong> — it's already on your account.
+        Come in, log in at the front-desk kiosk with your phone number, and
+        tell us which one you want.
       </p>
 
-      <h2 class="t-eyebrow" id="offer-details-h2" style="font-size:11px;">Choose one</h2>
+      <h2 class="t-eyebrow" id="offer-details-h2" style="font-size:11px;">Your two options</h2>
 
       <div class="offer-choices">
         <div class="offer-choice">
@@ -146,6 +155,10 @@ const MAPS_URL = "https://www.google.com/maps/dir/?api=1&destination=" +
     border-radius: 0 8px 8px 0;
   }
   .offer-expiry strong { color: var(--glow); }
+
+  /* "Nothing to claim here" answers the do-I-click-something question up
+     front — lift it out of the body grey so it reads first. */
+  .offer-redeem strong { color: var(--warm-white); }
 
   .offer-redeem {
     margin: 0 0 8px;
