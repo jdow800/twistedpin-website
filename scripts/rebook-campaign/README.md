@@ -2,7 +2,8 @@
 
 **Built 2026-07-27, ARMED-BUT-DARK. Cadence retimed 2026-07-30 per Jon.** The evergreen fast
 nudge from the 2026-07-19 rebook spec (Part B, as amended by the 2026-07-27 update block):
-attended, non-refunded lane booking → **~4 weeks later (28–56d window)** → **50% off ONE lane**
+attended, non-refunded lane booking → **~4 weeks later** (28–34d in the normal weekly-run case;
+42d hard age-out — first touch never lands past 6 weeks, Jon 2026-07-30) → **50% off ONE lane**
 (either type), single-use code via the `twistedpin.com/book/<CODE>` magic link, **14-day book-by
 window**, sent from the **loyalty number (+1 779-234-4062)** via the `scheduled_message` rail.
 Sends go out **Thursdays at 6pm CT** — family at dinner, planning the weekend. Only to guests
@@ -69,7 +70,7 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 - **No per-run cap** (Jon 2026-07-30 — expected volume is ~25–100/week and he wants every
   eligible guest reached). Pacing safety still exists at the rail: WF-Loyalty-Send drains 1
   message per ~4s and re-checks consent per message. The backlog drains oldest-first and anything
-  older than `max_days` (56) ages out silently.
+  older than `max_days` (42) ages out silently.
 - **Per-guest dedupe**: one campaign entry per phone per 365 days (holdout counts as the entry);
   skip if rebooked since the visit (incl. an upcoming reservation); skip inside an open code window
   (the 365-day rule subsumes it); < 2 loyalty-rail marketing sends in the last 365 days; 14-day
@@ -113,7 +114,7 @@ preference, the 4-week offer is the first touch; do NOT add a welcome/thanks tex
 
 | Knob | Default | Meaning |
 |---|---|---|
-| `min_days` / `max_days` | 28 / 56 | offer window after the attended visit (~4 weeks, Jon 2026-07-30); >56d ages out |
+| `min_days` / `max_days` | 28 / 42 | first touch 28–34d after the visit in practice (first Thursday past day 28); 42d = hard ceiling so a temporarily-blocked guest never gets a stale offer |
 | `holdout_pct` | 15 | no-offer measurement slice |
 | `book_by_days` | 14 | code expiry (2 weeks, Jon 2026-07-30) — gates the **checkout** date, not the visit date |
 | `reminder_enabled` | true | final-Thursday 6pm reminder (fires on the book-by day — "expires tonight") |
