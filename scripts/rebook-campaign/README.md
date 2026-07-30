@@ -23,7 +23,7 @@ judge against the holdout, not against hopes.
    returns zero items, halting everything.
 2. **Reconcile Log Status** — syncs `avery_campaign_log` rows (`queued` → `sent`/`failed`/`skipped`)
    from what the rail actually did. The rail is delivery truth; the log is the campaign ledger.
-3. **Offer chain**: eligibility query → weekly slice (`daily_cap` per run, oldest visit first) →
+3. **Offer chain**: eligibility query (uncapped per Jon 2026-07-30; oldest visit first) →
    deterministic holdout split (phone-hash bucket, `holdout_pct`) → ONE mint call to TPRS
    `POST /api/avery/coupons` (`generate_count` = send-arm size → one parent discount **per run
    cohort**, named `Lane Rebook YYYY-MM-DD`, so `/admin/discounts` + `v_campaign_results` show
@@ -61,8 +61,10 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 - **Newest-explicit-decision rule**: if the most recent SMS consent event on the *phone* (across all
   customer rows sharing it) is an opt-out, no send — a STOP that landed on a different customer row
   sharing the number still wins.
-- **Drip, never blast**: `daily_cap` (default 30 per weekly run) bounds each run's entries; the backlog drains
-  oldest-first and anything older than `max_days` (56) ages out silently.
+- **No per-run cap** (Jon 2026-07-30 — expected volume is ~25–100/week and he wants every
+  eligible guest reached). Pacing safety still exists at the rail: WF-Loyalty-Send drains 1
+  message per ~4s and re-checks consent per message. The backlog drains oldest-first and anything
+  older than `max_days` (56) ages out silently.
 - **Per-guest dedupe**: one campaign entry per phone per 365 days (holdout counts as the entry);
   skip if rebooked since the visit (incl. an upcoming reservation); skip inside an open code window
   (the 365-day rule subsumes it); < 2 loyalty-rail marketing sends in the last 365 days; 14-day
@@ -73,12 +75,14 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 
 ## Arming ritual (Jon)
 
-Dark today by THREE independent layers: workflow inactive · `ARMED=false` · the eligibility query
-returns 0 while the `do_not_market` park/quarantine holds (dry-run 2026-07-27: 88 in window → 20
-opted-in → 0 addressable).
+**⚠️ Dark by TWO layers only (as of 2026-07-30): workflow inactive · `ARMED=false`.** The third
+layer is GONE — the Patch-import park was lifted between 7/27 and 7/30, and the 2026-07-30 dry-run
+shows **73 in the 28–56d window → 16 opted-in → 16 addressable** (all Patch-sourced consent).
+Arming now = ~16 real texts the next Thursday 6pm. The 2026-07-27 "0 addressable" note is
+historical.
 
-0. Confirm tprs PR #54 (package discount basis) is merged + deployed to Render — without it the
-   50% computes on the lane-time carve-out, not the sticker price.
+0. ~~Confirm tprs PR #54 (package discount basis) is merged + deployed~~ DONE 2026-07-30 — live
+   on Render, verified via coupon-preview (50% of full sticker on all four lane products).
 1. SMS copy: **offer APPROVED verbatim (Jon 2026-07-30**, headline-first, 2 segments OK, no "on
    us" phrasing — implied a free visit). Reminder is a draft matching that voice — approve or edit
    it in Campaign Config. Both use the `twistedpin.com/book/{code}` magic link.
@@ -86,7 +90,9 @@ opted-in → 0 addressable).
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
    provided his row is opted-in and not parked.)
-3. Lift the park/quarantine for whatever slice you want addressable (owner decision, separate step).
+3. ~~Lift the park/quarantine~~ DONE — lifted between 7/27 and 7/30 (see warning above); the
+   addressable pool is live. If you want a SMALLER first cohort than the query returns, say so
+   before arming.
 4. Set `ARMED = true` in Campaign Config **and** activate the workflow. Two deliberate flips.
 5. Watch week one: `measurement.sql` query 6 (STOP rate) and query 1 (funnel). Kill switch =
    deactivate the workflow (or `ARMED=false`); in-flight queued messages can be killed with
@@ -97,7 +103,6 @@ opted-in → 0 addressable).
 | Knob | Default | Meaning |
 |---|---|---|
 | `min_days` / `max_days` | 28 / 56 | offer window after the attended visit (~4 weeks, Jon 2026-07-30); >56d ages out |
-| `daily_cap` | 30 | max guests entered per weekly Thursday run (send + holdout from the same slice) |
 | `holdout_pct` | 15 | no-offer measurement slice |
 | `book_by_days` | 14 | code expiry (2 weeks, Jon 2026-07-30) — gates the **checkout** date, not the visit date |
 | `reminder_enabled` | true | final-Thursday 6pm reminder (fires on the book-by day — "expires tonight") |
