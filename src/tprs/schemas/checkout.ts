@@ -289,6 +289,19 @@ export const quoteResponseSchema = z.object({
    * `.default([])` mirrors `fees` so an older backend response still parses.
    */
   autoDiscounts: z.array(quoteFeeSchema).default([]),
+  /**
+   * The TYPED coupon's resolved discount, when one is in the quote (2026-07-30,
+   * tprs PR #55). Unlike `autoDiscounts`, the code IS echoed — the guest
+   * supplied it (typed or via a /book/<CODE> magic link). Lets the cart render
+   * "Code X − $Y" on every step instead of silently netting the subtotal.
+   * `.optional()` so an older backend response still parses.
+   */
+  couponDiscount: z
+    .object({
+      code: z.string(),
+      amountCents: z.number().int().nonnegative(),
+    })
+    .optional(),
   totalIncludingTax: z.number().int(),
 });
 export type QuoteResponse = z.infer<typeof quoteResponseSchema>;

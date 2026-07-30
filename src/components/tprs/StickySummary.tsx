@@ -136,7 +136,14 @@ export default function StickySummary({
   const [taxesOpen, setTaxesOpen] = useState(false);
   const [bumping, setBumping] = useState(false);
   const subtotal = lineItemSubtotalCents(state);
-  const discount = couponDiscountCents(state);
+  // Coupon line: prefer the QUOTE's resolved figure (tprs PR #55 — carries the
+  // code, present on every step once the quote nets it, and can never disagree
+  // with the total). Fall back to the payment-step preview result when the
+  // quote hasn't returned / older backend.
+  const quoteCoupon = quote?.couponDiscount ?? null;
+  const discount = quoteCoupon
+    ? quoteCoupon.amountCents
+    : couponDiscountCents(state);
   const net = Math.max(0, subtotal - discount);
   const count = itemCount(state);
   const lines = lineItems(state, slotMaxUnits);
@@ -305,7 +312,9 @@ export default function StickySummary({
         )}
         {discount > 0 && (
           <div className="tprs-line is-discount">
-            <span className="tprs-line-name">Code applied</span>
+            <span className="tprs-line-name">
+              {quoteCoupon ? `Code ${quoteCoupon.code}` : "Code applied"}
+            </span>
             <span />
             <span className="tprs-line-price">−{formatUsd(discount)}</span>
             <span className="tprs-line-remove tprs-line-remove--empty" />
