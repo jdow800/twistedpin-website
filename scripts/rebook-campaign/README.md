@@ -7,7 +7,9 @@ sent from the **loyalty number (+1 779-234-4062)** via the `scheduled_message` r
 Only to guests with `sms_marketing_opt_in = true`. No Visit-Feedback sentiment gate.
 
 - n8n workflow: **`WF-Lane-Rebook-Campaign`** (`SRMB0xdrcKmZuigE`), daily 11:30 CT, currently **inactive**
-- Measurement: [`measurement.sql`](measurement.sql) (holdout comparison = query 3)
+- Measurement: [`measurement.sql`](measurement.sql) (holdout comparison = query 3). Day-to-day glance:
+  **/admin/discounts** rolls the daily cohorts into one campaign row — Σ codes, Σ redemptions,
+  redemption rate — with Expand for per-day rows (tprs PR #56)
 - Spec of record: `Context/session-handoffs/2026-07-19-avery-rebook-campaign-spec.md`
 - Consent ground truth: `Context/consent-surface-map.md`
 
