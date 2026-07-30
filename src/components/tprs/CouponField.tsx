@@ -4,7 +4,7 @@
 // it — after starting life collapsed on the guest-details step, where it was
 // easy to miss (Jon, 2026-06-10). Extracted so any step can mount it.
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { previewCoupon, TprsApiError } from "../../tprs/client";
 import type { CouponPreviewResponse } from "../../tprs/schemas";
 import { formatUsd } from "./format";
@@ -48,7 +48,22 @@ export default function CouponField({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function applyCode() {
+  // [MAGIC LINK 2026-07-30] A code pre-filled by /book/<CODE> (BookingWizard's
+  // URL read) auto-previews once on mount so the link-tapping guest sees
+  // "Code applied — $X off" without touching the field. Once only — after
+  // that the guest owns the field (clearing/retyping behaves as always).
+  const autoApplied = useRef(false);
+  useEffect(() => {
+    if (autoApplied.current) return;
+    if (couponCode.trim() !== "" && couponResult === null) {
+      autoApplied.current = true;
+      void applyCode(true);
+    }
+    // Mount-only by design; applyCode closes over current props.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function applyCode(auto = false) {
     const code = couponCode.trim();
     if (code === "") return;
     setBusy(true);
@@ -68,6 +83,11 @@ export default function CouponField({
         ...(phone?.trim() && { phone: phone.trim() }),
       });
       onCouponResult(res);
+      // A link-landed code the guest never typed must not poison the field:
+      // an invalid auto-applied code would keep riding the quote + payment
+      // requests (both 400 on it) with the guest unaware they should clear
+      // it. Show the reason (couponResult renders below), empty the input.
+      if (auto && !res.valid) onCouponCode("");
     } catch (e) {
       const msg =
         e instanceof TprsApiError
@@ -99,7 +119,7 @@ export default function CouponField({
           type="button"
           className="tprs-btn tprs-btn--ghost tprs-btn--small"
           disabled={busy || couponCode.trim() === ""}
-          onClick={applyCode}
+          onClick={() => applyCode()}
         >
           {busy ? "Checking…" : "Apply"}
         </button>

@@ -60,6 +60,18 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // page (critical on mobile). State-only history — URL stays /reserve-preview/.
   useStepHistory(state, dispatch);
 
+  // [MAGIC LINK 2026-07-30] twistedpin.com/book/<CODE> (vercel.json redirect →
+  // /reserve/?code=<CODE>) pre-fills the coupon so an SMS offer link lands with
+  // the discount ready. Read once on mount — the param stays in the address
+  // bar, so a reload re-seeds it. The code is only PREVIEWED when the guest
+  // reaches checkout (CouponField auto-applies); nothing redeems until pay.
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get("code");
+    if (code && code.trim() !== "") {
+      dispatch({ type: "SET_COUPON_CODE", code: code.trim().toUpperCase() });
+    }
+  }, []);
+
   // Party-size pages seed the guest stepper from config (≈4 — groups are almost
   // never 1-2). Re-seeds after RESET; the stepper floors at 1, so null is
   // otherwise unreachable once seeded.
@@ -464,6 +476,20 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       >
         <span className="tprs-progress-fill" style={{ width: `${progressPct}%` }} />
       </div>
+
+      {/* [MAGIC LINK] Reassurance beat for link-landed codes: the coupon field
+          doesn't appear until checkout, so without this a guest who tapped a
+          "50% off" link wonders where their discount went. Hidden once the
+          code has previewed (checkout shows the real dollar drop instead). */}
+      {state.couponCode.trim() !== "" &&
+        state.couponResult === null &&
+        state.step !== "payment" &&
+        state.step !== "confirmation" && (
+          <p className="tprs-prefill-note">
+            Code <strong>{state.couponCode.trim().toUpperCase()}</strong> is
+            ready — it applies at checkout.
+          </p>
+        )}
 
       {/* Desktop: 2-col (flow + sticky cart rail). Mobile: single column with
           the cart as a fixed bottom bar (CSS-driven). */}

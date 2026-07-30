@@ -1052,6 +1052,23 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-code-msg.is-ok { color: var(--tw-accent); }
 .tprs-code-msg.is-err { color: var(--tw-danger); }
 
+/* [MAGIC LINK] Pre-filled-code reassurance beat (steps before checkout). */
+.tprs-prefill-note {
+  font-family: var(--font-body);
+  font-size: 13.5px;
+  color: var(--tw-text);
+  background: var(--tw-surface);
+  border: 1px solid var(--tw-accent);
+  border-radius: var(--radius-surface);
+  padding: 10px 14px;
+  margin: 0 0 16px;
+}
+.tprs-prefill-note strong {
+  font-family: var(--font-ui);
+  color: var(--tw-accent);
+  letter-spacing: 0.04em;
+}
+
 /* ── Buttons ────────────────────────────────────────────────────────── */
 .tprs-btn {
   display: inline-flex;
