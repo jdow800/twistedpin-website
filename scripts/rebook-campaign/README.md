@@ -32,11 +32,19 @@ Everything is idempotent: `log_id` and `idempotency_key` are unique; re-runs no-
 aborts **before** any write. Codes minted then orphaned by a later-step failure are harmless
 (single-use, never distributed).
 
-## Why the guest's SMS carries a typed code, not a magic link
+## The SMS carries a magic link (built 2026-07-30, supersedes the typed-code plan)
 
-The /reserve checkout has no `?code=` prefill (deliberately unbuilt — the wizard is fragile and
-shared across sessions). The coupon field at checkout accepts the code; `coupon-preview` shows the
-guest the exact dollar drop before paying. Prefill is a small follow-up if redemption friction shows.
+`twistedpin.com/book/<CODE>` 302s to `/reserve/?code=<CODE>` (vercel.json); the wizard pre-fills
+the coupon, shows a "code is ready" note until checkout, and auto-previews the dollar drop at the
+payment step (Website `b48b76a`). An invalid/stale link-landed code shows its reason once and
+clears itself. The URL itself carries the code, so a guest reading the text aloud still has
+everything they need. Redemption timing unchanged — preview only; nothing redeems until pay.
+
+**Discount basis (tprs PR #54, 2026-07-30):** every lane product is a carve_out package (lane time
++ 4 shoe rentals), and the engine originally discounted only the lane-time remainder — a $99.95
+lane showed −$38.08, not −$49.98. PR #54 makes a rule scoped to a package cover the package's full
+sticker, with `max_discounted_quantity` counting PACKAGES. Do not arm the campaign before that PR
+is deployed, or the SMS's "50% off" under-delivers at checkout.
 
 ## Hard guardrails (all implemented in the eligibility query — do not relax)
 
@@ -61,7 +69,10 @@ Dark today by THREE independent layers: workflow inactive · `ARMED=false` · th
 returns 0 while the `do_not_market` park/quarantine holds (dry-run 2026-07-27: 88 in window → 20
 opted-in → 0 addressable).
 
-1. Approve the SMS copy (in Campaign Config; drafts also in the session handoff).
+0. Confirm tprs PR #54 (package discount basis) is merged + deployed to Render — without it the
+   50% computes on the lane-time carve-out, not the sticker price.
+1. Approve the SMS copy (in Campaign Config; drafts also in the session handoff). Current drafts
+   use the `twistedpin.com/book/{code}` magic link.
 2. Optional dress rehearsal: set `TEST_MODE=true` (only Jon's cell eligible, no holdout), activate,
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
