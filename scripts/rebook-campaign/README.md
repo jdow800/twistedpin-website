@@ -79,8 +79,9 @@ opted-in → 0 addressable).
 
 0. Confirm tprs PR #54 (package discount basis) is merged + deployed to Render — without it the
    50% computes on the lane-time carve-out, not the sticker price.
-1. Approve the SMS copy (in Campaign Config; drafts also in the session handoff). Current drafts
-   use the `twistedpin.com/book/{code}` magic link.
+1. SMS copy: **offer APPROVED verbatim (Jon 2026-07-30**, headline-first, 2 segments OK, no "on
+   us" phrasing — implied a free visit). Reminder is a draft matching that voice — approve or edit
+   it in Campaign Config. Both use the `twistedpin.com/book/{code}` magic link.
 2. Optional dress rehearsal: set `TEST_MODE=true` (only Jon's cell eligible, no holdout), activate,
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
