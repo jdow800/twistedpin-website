@@ -1,34 +1,40 @@
 # Lane Rebook Campaign — Runbook
 
-**Built 2026-07-27, ARMED-BUT-DARK.** The evergreen fast nudge from the 2026-07-19 rebook spec
-(Part B, as amended by the 2026-07-27 update block): attended, non-refunded lane booking →
-21–56 days later → **50% off ONE lane** (either type), single-use code, **10-day book-by window**,
-sent from the **loyalty number (+1 779-234-4062)** via the `scheduled_message` rail.
-Only to guests with `sms_marketing_opt_in = true`. No Visit-Feedback sentiment gate.
+**Built 2026-07-27, ARMED-BUT-DARK. Cadence retimed 2026-07-30 per Jon.** The evergreen fast
+nudge from the 2026-07-19 rebook spec (Part B, as amended by the 2026-07-27 update block):
+attended, non-refunded lane booking → **~4 weeks later (28–56d window)** → **50% off ONE lane**
+(either type), single-use code via the `twistedpin.com/book/<CODE>` magic link, **14-day book-by
+window**, sent from the **loyalty number (+1 779-234-4062)** via the `scheduled_message` rail.
+Sends go out **Thursdays at 6pm CT** — family at dinner, planning the weekend. Only to guests
+with `sms_marketing_opt_in = true`. No Visit-Feedback sentiment gate. Jon's 3yr baseline (80%
+never rebook, ~0% rebook quickly) means redemptions ≈ pure lift; expect low single digits and
+judge against the holdout, not against hopes.
 
-- n8n workflow: **`WF-Lane-Rebook-Campaign`** (`SRMB0xdrcKmZuigE`), daily 11:30 CT, currently **inactive**
+- n8n workflow: **`WF-Lane-Rebook-Campaign`** (`SRMB0xdrcKmZuigE`), weekly Thursdays 6pm CT, currently **inactive**
 - Measurement: [`measurement.sql`](measurement.sql) (holdout comparison = query 3). Day-to-day glance:
   **/admin/discounts** rolls the daily cohorts into one campaign row — Σ codes, Σ redemptions,
   redemption rate — with Expand for per-day rows (tprs PR #56)
 - Spec of record: `Context/session-handoffs/2026-07-19-avery-rebook-campaign-spec.md`
 - Consent ground truth: `Context/consent-surface-map.md`
 
-## How it works (one daily run, three chains)
+## How it works (one weekly Thursday-6pm run, three chains)
 
 1. **Campaign Config** (Code node) — `ARMED` master switch + every knob + the SMS copy. `ARMED=false`
    returns zero items, halting everything.
 2. **Reconcile Log Status** — syncs `avery_campaign_log` rows (`queued` → `sent`/`failed`/`skipped`)
    from what the rail actually did. The rail is delivery truth; the log is the campaign ledger.
-3. **Offer chain**: eligibility query → daily slice (`daily_cap`, oldest visit first) → deterministic
-   holdout split (phone-hash bucket, `holdout_pct`) → ONE mint call to TPRS
-   `POST /api/avery/coupons` (`generate_count` = send-arm size → one parent discount **per daily
+3. **Offer chain**: eligibility query → weekly slice (`daily_cap` per run, oldest visit first) →
+   deterministic holdout split (phone-hash bucket, `holdout_pct`) → ONE mint call to TPRS
+   `POST /api/avery/coupons` (`generate_count` = send-arm size → one parent discount **per run
    cohort**, named `Lane Rebook YYYY-MM-DD`, so `/admin/discounts` + `v_campaign_results` show
    per-cohort rows) → per-guest ledger rows (`LR-<invoice>` offers, `LRH-<invoice>` holdouts) →
    `scheduled_message` inserts. `cron_flush_due_messages()` drains within ~5 min;
    **WF-Loyalty-Send re-checks consent at send time** (opt-in, do_not_market, bounced, 14-day cap).
-4. **Reminder chain**: offers expiring in 1–2 days, unredeemed, guest hasn't rebooked, still
-   `marketing_sms_sendable()` → T-2 reminder (`LR-<invoice>-R`), `cap_exempt=true` (the offer 8 days
-   earlier would otherwise trip the rail's 14-day frequency cap; cap_exempt never bypasses consent).
+4. **Reminder chain**: offers expiring within 7 days (with the 14-day window that is the book-by
+   Thursday itself — the **last Thursday prior to expiration**, 6pm, "expires tonight"), unredeemed,
+   guest hasn't rebooked, still `marketing_sms_sendable()` → reminder (`LR-<invoice>-R`),
+   `cap_exempt=true` (the offer 14 days earlier would otherwise trip the rail's 14-day frequency
+   cap; cap_exempt never bypasses consent).
 
 Everything is idempotent: `log_id` and `idempotency_key` are unique; re-runs no-op. A failed mint
 aborts **before** any write. Codes minted then orphaned by a later-step failure are harmless
@@ -55,7 +61,7 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 - **Newest-explicit-decision rule**: if the most recent SMS consent event on the *phone* (across all
   customer rows sharing it) is an opt-out, no send — a STOP that landed on a different customer row
   sharing the number still wins.
-- **Drip, never blast**: `daily_cap` (default 15) bounds each day's entries; the backlog drains
+- **Drip, never blast**: `daily_cap` (default 30 per weekly run) bounds each run's entries; the backlog drains
   oldest-first and anything older than `max_days` (56) ages out silently.
 - **Per-guest dedupe**: one campaign entry per phone per 365 days (holdout counts as the entry);
   skip if rebooked since the visit (incl. an upcoming reservation); skip inside an open code window
@@ -89,11 +95,11 @@ opted-in → 0 addressable).
 
 | Knob | Default | Meaning |
 |---|---|---|
-| `min_days` / `max_days` | 21 / 56 | offer window after the attended visit; >56d ages out |
-| `daily_cap` | 15 | max guests entered per day (send + holdout from the same slice) |
+| `min_days` / `max_days` | 28 / 56 | offer window after the attended visit (~4 weeks, Jon 2026-07-30); >56d ages out |
+| `daily_cap` | 30 | max guests entered per weekly Thursday run (send + holdout from the same slice) |
 | `holdout_pct` | 15 | no-offer measurement slice |
-| `book_by_days` | 10 | code expiry — gates the **checkout** date, not the visit date |
-| `reminder_enabled` | true | T-2 pre-expiry reminder |
+| `book_by_days` | 14 | code expiry (2 weeks, Jon 2026-07-30) — gates the **checkout** date, not the visit date |
+| `reminder_enabled` | true | final-Thursday 6pm reminder (fires on the book-by day — "expires tonight") |
 | `discount_value` | 0.5 | 50%, communicated as 50% (Jon 2026-07-27, locked) |
 
 `usage_end` is set to just past midnight CT after the book-by day, so "Book by Fri Aug 14" holds
