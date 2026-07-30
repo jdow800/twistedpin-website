@@ -85,14 +85,13 @@ checkout-only scope (2026-07-30) the 7/30 dry-run returns **0 eligible today** �
 checkout opt-ins (visits 7/22+) enter the 28-day window ~Aug 19, so the first live cohort is the
 **Thu Aug 20, 6pm** run. (The 16 Patch-consent guests the park-lift had exposed are scope-excluded.)
 
-**⚠️ OPEN BLOCKER — the checkout-optin park trigger (`customers_park_checkout_optin_tg`).** A DB
-trigger sets `do_not_market = true` on every checkout-sourced opt-in who hasn't joined loyalty
-(release = joining loyalty). As of 7/30 it holds 8 of the 13 checkout opt-in phones — i.e. most of
-this campaign's audience — and the send rail hard-skips `do_not_market` at send time, correctly.
-Before arming, Jon must decide: drop the trigger + unpark the checkout-parked guests (side effect:
-they also become eligible for loyalty lifecycle/blast rails, whose predicates include any unparked
-opt-in), or keep them out of loyalty rails some other way first. Do NOT weaken the rail's
-`do_not_market` gate — it is also the staff kill-switch.
+**✅ RESOLVED 2026-07-30 — the checkout-optin park is gone.** Jon's ruling: the checkout SMS box
+IS marketing consent. Trigger `trg_customers_park_checkout_optin` + function dropped; its 8 holds
+released (all 13 checkout opt-in phones sendable; kill-switch + Patch-quarantine parks untouched).
+Verified before release that NO enabled lifecycle automation targets these guests (only the
+tag-gated kids program is on) and welcome texts fire only on loyalty JOINS — so per Jon's explicit
+preference, the 4-week offer is the first touch; do NOT add a welcome/thanks text. The rail's
+`do_not_market` gate stays sacred (staff kill-switch).
 
 0. ~~Confirm tprs PR #54 (package discount basis) is merged + deployed~~ DONE 2026-07-30 — live
    on Render, verified via coupon-preview (50% of full sticker on all four lane products).
@@ -103,8 +102,8 @@ opt-in), or keep them out of loyalty rails some other way first. Do NOT weaken t
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
    provided his row is opted-in and not parked.)
-3. Resolve the checkout-optin park trigger (see OPEN BLOCKER above) — without it, most of the
-   checkout-opt-in audience stays `do_not_market` and the rail will skip them at send.
+3. ~~Resolve the checkout-optin park trigger~~ DONE 2026-07-30 — trigger dropped, holds released,
+   all 13 audience phones sendable.
 4. Set `ARMED = true` in Campaign Config **and** activate the workflow. Two deliberate flips.
 5. Watch week one: `measurement.sql` query 6 (STOP rate) and query 1 (funnel). Kill switch =
    deactivate the workflow (or `ARMED=false`); in-flight queued messages can be killed with

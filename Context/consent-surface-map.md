@@ -243,8 +243,14 @@ The pattern that *is* CTIA-shaped already exists — the Website web-form/kiosk 
 - The **Missive personal access token is hardcoded in plaintext** on at least three live send nodes.
 - Three dormant loyalty senders (`WF-Loyalty-Welcome`, `WF-Loyalty-Lifecycle`,
   `WF-Loyalty-Blast-Dispatch`) are superseded by the pg_cron path and would **double-send** if reactivated.
-- `do_not_market` now carries three unrelated meanings (staff kill-switch, import quarantine,
-  checkout-optin park) with no provenance column.
+- `do_not_market` carries multiple meanings with no provenance column. ~~Three~~ **Two as of
+  2026-07-30** (staff kill-switch, import quarantine): the **checkout-optin park was REMOVED** —
+  trigger `trg_customers_park_checkout_optin` + its function dropped, and its holds (8 phones,
+  checkout-sourced opt-in + never joined loyalty + no kill-switch evidence) released. Jon's
+  ruling: ticking the SMS box at /reserve checkout IS marketing consent — those guests are the
+  Lane Rebook campaign's exclusive audience, and no enabled lifecycle automation targets them
+  (only the tag-gated kids program is on), so the 4-week rebook offer is their first touch by
+  design (Jon explicitly voted AGAINST a welcome text).
 - `apps/backend/scripts/create-teacher-group-bookings.ts:352` writes `do_not_market` directly, bypassing
   the single-write-path helper; it ran in prod (customer `ea608c31…`, 2026-07-03) with no evidence row.
 - `/free` publishes `/kids-signup-preview/`, whose own handler docstring says to keep it parked and
