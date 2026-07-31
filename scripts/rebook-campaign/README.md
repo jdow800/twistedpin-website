@@ -71,11 +71,16 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
   eligible guest reached). Pacing safety still exists at the rail: WF-Loyalty-Send drains 1
   message per ~4s and re-checks consent per message. The backlog drains oldest-first and anything
   older than `max_days` (42) ages out silently.
-- **Per-guest dedupe**: one campaign entry per phone per 365 days (holdout counts as the entry);
-  skip if rebooked since the visit (incl. an upcoming reservation); skip inside an open code window
-  (the 365-day rule subsumes it); < 2 loyalty-rail marketing sends in the last 365 days; 14-day
-  outbound pre-check; never over an active Avery conversation (14-day recency); never when
-  human-paused.
+- **Per-VISIT re-entry, capped (Jon 2026-07-30)**: a guest who redeems and bowls again is
+  re-armed — each new attended visit earns its own 4-week offer (the 2-visits/yr bowler becoming
+  a 4-visits/yr one IS the campaign working). One entry per visit cycle (no visit is ever offered
+  twice; holdout counts as the entry, and the deterministic phone-hash means holdout guests stay
+  holdout across every cycle — a permanent control group), with a **max of 3 entries per phone
+  per 365 days** as the backstop. This replaced the original one-entry-per-365d rule AND the
+  generic <2-loyalty-sends budget (which would have starved repeat cycles once birthday/winback
+  automations went live). Still enforced: skip if rebooked since the visit (incl. an upcoming
+  reservation); 14-day outbound pre-check; never over an active Avery conversation (14-day
+  recency); never when human-paused.
 - **Holdout always**: ~15% of each daily slice, deterministic on phone hash, logged (`LRH-*`) and
   measured, never sent.
 
