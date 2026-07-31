@@ -94,21 +94,29 @@ SID logged.
 **✅ RESOLVED 2026-07-30 — the checkout-optin park is gone.** Jon's ruling: the checkout SMS box
 IS marketing consent. Trigger `trg_customers_park_checkout_optin` + function dropped; its 8 holds
 released (all 13 checkout opt-in phones sendable; kill-switch + Patch-quarantine parks untouched).
-Verified before release that NO enabled lifecycle automation targets these guests (only the
-tag-gated kids program is on) and welcome texts fire only on loyalty JOINS — so per Jon's explicit
-preference, the 4-week offer is the first touch; do NOT add a welcome/thanks text. The rail's
-`do_not_market` gate stays sacred (staff kill-switch).
+Per Jon's explicit preference there is NO welcome/thanks text — the 4-week offer is the first
+touch. The rail's `do_not_market` gate stays sacred (staff kill-switch).
+
+**⚠️ Interplay note (2026-07-30, late):** the same day, the loyalty platform's proactive
+automations went LIVE in a parallel workstream (birthday daily + Thursday winbacks, incl.
+winback-50 targeting last visit 49–56d). So the "nothing else texts these guests" claim holds
+only through the rebook window: a checkout guest who does NOT redeem can get the free-hour
+winback ~7 weeks after their visit, ~2–3 weeks after the 50%-off offer expires. Read as an
+escalation ladder (50% at 4wk → free hour at 7wk) this is arguably good sequencing — but it is
+EMERGENT, not designed. If it should not happen, exclude open/recent lane_rebook entries from
+the winback segments (loyalty side). A birthday text can also land at any point.
 
 0. ~~Confirm tprs PR #54 (package discount basis) is merged + deployed~~ DONE 2026-07-30 — live
    on Render, verified via coupon-preview (50% of full sticker on all four lane products).
 1. SMS copy: **offer + reminder APPROVED (Jon 2026-07-30**, headline-first, 2 segments OK, no "on
    us" phrasing — implied a free visit). Both use the `twistedpin.com/book/{code}` magic link and
    end with **"Questions? Just reply."** (Jon 2026-07-30: route questions to the loyalty inbox,
-   not staff) — backed by WF-Loyalty-Inbound's question loop: non-keyword replies now get an
-   instant auto-ack ("a real person reads these") AND email the full message to info@ in real
-   time (Gmail node; the daily report's needs_human count remains the backstop). Two small trims
-   ("lane" for "lane reservation", "any date" for "for any available date") keep the questions
-   line inside 2 GSM-7 segments for long first names.
+   not staff) — monitored via **Zite admin**, which surfaces loyalty-number inbound and emails
+   Jon at least daily on unread messages (Jon's call; the auto-ack + info@ email loop built
+   earlier that evening was REVERTED as redundant — WF-Loyalty-Inbound is back to its original
+   shape: keywords handled, non-keyword replies stored + visible in Zite, no auto-reply). Two
+   small trims ("lane" for "lane reservation", "any date" for "for any available date") keep the
+   questions line inside 2 GSM-7 segments for long first names.
 2. Optional dress rehearsal: set `TEST_MODE=true` (only Jon's cell eligible, no holdout), activate,
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
