@@ -101,9 +101,14 @@ preference, the 4-week offer is the first touch; do NOT add a welcome/thanks tex
 
 0. ~~Confirm tprs PR #54 (package discount basis) is merged + deployed~~ DONE 2026-07-30 — live
    on Render, verified via coupon-preview (50% of full sticker on all four lane products).
-1. SMS copy: **offer APPROVED verbatim (Jon 2026-07-30**, headline-first, 2 segments OK, no "on
-   us" phrasing — implied a free visit). Reminder is a draft matching that voice — approve or edit
-   it in Campaign Config. Both use the `twistedpin.com/book/{code}` magic link.
+1. SMS copy: **offer + reminder APPROVED (Jon 2026-07-30**, headline-first, 2 segments OK, no "on
+   us" phrasing — implied a free visit). Both use the `twistedpin.com/book/{code}` magic link and
+   end with **"Questions? Just reply."** (Jon 2026-07-30: route questions to the loyalty inbox,
+   not staff) — backed by WF-Loyalty-Inbound's question loop: non-keyword replies now get an
+   instant auto-ack ("a real person reads these") AND email the full message to info@ in real
+   time (Gmail node; the daily report's needs_human count remains the backstop). Two small trims
+   ("lane" for "lane reservation", "any date" for "for any available date") keep the questions
+   line inside 2 GSM-7 segments for long first names.
 2. Optional dress rehearsal: set `TEST_MODE=true` (only Jon's cell eligible, no holdout), activate,
    run once, confirm the text arrives from +1 779-234-4062 with a working code, then `TEST_MODE=false`.
    (Jon's own INV-2026-00287 booking makes him genuinely eligible ~3 weeks after his 7/27 visit,
