@@ -81,10 +81,15 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 
 ## Arming ritual (Jon)
 
-Dark by workflow-inactive + `ARMED=false`, and additionally by audience timing: under the
-checkout-only scope (2026-07-30) the 7/30 dry-run returns **0 eligible today** — the earliest
-checkout opt-ins (visits 7/22+) enter the 28-day window ~Aug 19, so the first live cohort is the
-**Thu Aug 20, 6pm** run. (The 16 Patch-consent guests the park-lift had exposed are scope-excluded.)
+**⚠️ CURRENT POSTURE (since 2026-07-30 evening): workflow ACTIVE + `ARMED=true` + `TEST_MODE=true`.**
+TEST_MODE is the guest-proof interlock — only the allowlist (Jon's cell) can ever receive; real
+guests are filtered pre-log and simply retry weekly. Thu **Aug 6** 6pm is a scheduled zero-send
+dry-fire (verify the execution succeeded in n8n). **Going fully live = ONE flip: `TEST_MODE=false`,
+before Thu Aug 20 6pm** — the earliest checkout opt-ins (visits 7/22+) enter the 28-day window
+~Aug 19, so Aug 20 is the first real cohort. Leaving TEST_MODE=true past Aug 20 silently delays
+the launch (no harm, no sends). The 2026-07-30 rail test (`lane-rebook-TESTFIRE-jon-2026-07-30`)
+sent the production offer template + XS7G9BWS to Jon's cell via the real rail: rendered, sent,
+SID logged.
 
 **✅ RESOLVED 2026-07-30 — the checkout-optin park is gone.** Jon's ruling: the checkout SMS box
 IS marketing consent. Trigger `trg_customers_park_checkout_optin` + function dropped; its 8 holds
