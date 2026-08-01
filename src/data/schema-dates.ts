@@ -35,6 +35,9 @@ export const SUMMER_PIN_PASS = {
    *  Merchant-listing validator: "Missing field 'validFrom' (in offers)"
    *  (GSC, first detected 2026-07-12). */
   validFrom: "2026-04-15",
-  /** ISO date — last day the pass is valid (inclusive). */
-  validThrough: "2026-09-01",
+  /** ISO date — last day the pass is valid (inclusive). Corrected
+   *  2026-09-01 → 2026-08-14 per Jon 2026-08-01: the 2026 pass ends
+   *  August 14, same day as the Free Kids Bowling window — not Labor
+   *  Day as the header comment previously assumed. */
+  validThrough: "2026-08-14",
 } as const;

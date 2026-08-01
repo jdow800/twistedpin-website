@@ -14,9 +14,8 @@ Disallow: /money/
 Disallow: /labor/
 # (/coupon-preview + /kids-signup-preview removed 2026-07-24 — those previews
 #  were promoted onto /coupon and /free-kids-bowling at the loyalty cutover and
-#  the preview routes deleted. Both live pages are intentionally indexable.)
-# Parked A/B variant (party-size-first) of the booking flow — unindexed, unlinked.
-Disallow: /reserve-preview2/
+#  the preview routes deleted. Both live pages are intentionally indexable.
+#  /reserve-preview2 — the parked party-size A/B — deleted 2026-08-01.)
 # Internal teammate culture book (password-gated) — unindexed, unlinked.
 Disallow: /playbook/
 

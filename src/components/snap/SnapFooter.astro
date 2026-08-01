@@ -143,6 +143,27 @@ const UTILITY_LINKS = [
   { label: "SMS",           href: "/sms/" },
   { label: "Accessibility", href: "/accessibility/" },
 ];
+
+// Nearby cities + local guides — added 2026-08-01. The 7 /why-us/
+// service-area pages and the 3 blog guides were internal-link ORPHANS
+// (SiteGuru audit + code verification: zero inbound links site-wide
+// except naperville's 3). Footer placement gives every page a path to
+// them — orphan fix + a service-area signal on every URL. Kept to a
+// single compact flex-wrap row (label desktop-only) because this
+// footer's mobile height is 100dvh-sensitive (see IG-grid and
+// proof-card comments below).
+const EXPLORE_LINKS = [
+  { label: "Naperville",        href: "/why-us/naperville-il/" },
+  { label: "Bolingbrook",       href: "/why-us/bolingbrook-il/" },
+  { label: "Romeoville",        href: "/why-us/romeoville-il/" },
+  { label: "Joliet",            href: "/why-us/joliet-il/" },
+  { label: "Shorewood",         href: "/why-us/shorewood-il/" },
+  { label: "Oswego",            href: "/why-us/oswego-il/" },
+  { label: "Lockport",          href: "/why-us/lockport-il/" },
+  { label: "Things To Do",      href: "/blog/things-to-do-plainfield-il/" },
+  { label: "Date Night",        href: "/blog/date-night-spots-plainfield/" },
+  { label: "Corporate Venues",  href: "/blog/corporate-event-venue-near-naperville/" },
+];
 ---
 <section id="find-us" class="snap-section snap-footer" aria-labelledby="footer-h2">
   {/* Back-to-top — anchored to the snap's top-right corner so it reads as
@@ -294,6 +315,15 @@ const UTILITY_LINKS = [
          A second logo here was visual redundancy in a footer that already
          needs to make every line earn its space. */}
     <div class="footer-bottom">
+      <nav class="footer-explore" aria-label="Nearby cities and local guides">
+        <span class="footer-explore-label" aria-hidden="true">Explore</span>
+        <ul class="footer-explore-links">
+          {EXPLORE_LINKS.map((l) => (
+            <li><a href={l.href}>{l.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+
       <ul class="utility-links" aria-label="Utility navigation">
         {UTILITY_LINKS.map((l) => (
           <li><a href={l.href}>{l.label}</a></li>
@@ -717,14 +747,63 @@ const UTILITY_LINKS = [
     .footer-bottom {
       display: grid;
       grid-template-columns: 1fr auto;
-      grid-template-rows: auto auto;
+      grid-template-rows: auto auto auto;
       align-items: center;
       gap: 18px 32px;
     }
-    .footer-bottom .utility-links { grid-column: 1; grid-row: 1; }
-    .footer-bottom .social-icons  { grid-column: 2; grid-row: 1; }
-    .footer-bottom .copyright     { grid-column: 1 / -1; grid-row: 2; }
+    .footer-bottom .footer-explore { grid-column: 1 / -1; grid-row: 1; }
+    .footer-bottom .utility-links  { grid-column: 1; grid-row: 2; }
+    .footer-bottom .social-icons   { grid-column: 2; grid-row: 2; }
+    .footer-bottom .copyright      { grid-column: 1 / -1; grid-row: 3; }
   }
+
+  /* Explore row — orphan-fix links (7 city pages + 3 guides). Mirrors
+     the .utility-links treatment one size down; label desktop-only to
+     keep the mobile footer inside its height budget. */
+  .footer-explore {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+  }
+  .footer-explore-label {
+    display: none;
+  }
+  @media (min-width: 1025px) {
+    .footer-explore-label {
+      display: inline;
+      font-family: var(--font-ui);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--warm-dim);
+      flex-shrink: 0;
+    }
+  }
+  .footer-explore-links {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  @media (min-width: 1025px) {
+    .footer-explore-links { gap: 10px 20px; }
+  }
+  .footer-explore-links a {
+    font-family: var(--font-ui);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+    transition: color 150ms ease-out;
+  }
+  @media (min-width: 1025px) {
+    .footer-explore-links a { font-size: 13px; color: var(--warm-mid); }
+  }
+  .footer-explore-links a:hover { color: var(--glow); }
 
   .utility-links {
     list-style: none;

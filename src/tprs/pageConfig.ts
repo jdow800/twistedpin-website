@@ -288,38 +288,13 @@ export const bookingPageConfig: BookingPageConfig = {
   // stale pre-re-seed copies that sat here were inert on this curated page.)
 };
 
-/**
- * /reserve-preview2 — the PARTY-SIZE-FIRST experiment (A/B against
- * /reserve-preview, parked). Same four lane products; the difference is the
- * "How many bowlers?" stepper driving computed lanes + group totals + the
- * over-threshold events handoff. Compare on a phone; whichever wins becomes
- * /reserve at cutover and the other config is deleted.
- */
-export const bookingPage2Config: BookingPageConfig = {
-  ...bookingPageConfig,
-  uxCopy: {
-    // "Book Bowling", not "Reserve a Lane" — guests reserve bowling for a
-    // GROUP; lanes are our unit, not theirs (the whole thesis of this variant).
-    eyebrow: "Book Bowling",
-    headline: "Book your night.",
-    // The variant's thesis in one line — the page does the lane math.
-    sub: "Tell us the crew size — we'll handle the lane math.",
-  },
-  partySize: {
-    // Guests-per-lane by category slug (mirrors each category's subtitle copy:
-    // VIP couches seat 6, traditional lanes 5). Slugs from /api/products/bookable.
-    capacities: { vip_suite_lanes: 6, traditional_lanes: 5 },
-    // Over this many guests → events handoff (3+ traditional lanes territory;
-    // ops can tune — it's just this number).
-    threshold: 15,
-    // Seed at 4 — groups are almost never 1-2; guests step from a realistic start.
-    default: 4,
-    // GUESTS, not bowlers (ops): 15 people with 5 bowling still need space for
-    // 15 — everyone gets counted so the lanes fit the whole group.
-    label: "How many guests?",
-    help: "Count everyone — bowling or not, they need a place to be. We'll size the lanes to fit.",
-  },
-};
+/* (bookingPage2Config — the parked /reserve-preview2 party-size-first A/B
+   variant — deleted 2026-08-01 along with its page. The experiment was
+   retired: /reserve shipped with the lane-led flow and the preview page was
+   both dead weight and leaking into the sitemap. The partySize field on
+   BookingPageConfig and its MainStep branch remain — harmless with no
+   config setting them — in case the party-size idea ever returns.
+   Recoverable from git history if needed.) */
 
 /**
  * /reserve/birthdays — kids birthday party bookings (PARKED at its REAL slug:

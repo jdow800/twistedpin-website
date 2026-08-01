@@ -15,6 +15,46 @@
 @import "@fontsource/roboto-slab/latin-400.css";
 /* Roboto Slab ships no italic — browser synthesizes italics for <em>. Production swap to Yorkten Slab will need to verify italic availability. */
 
+/* ------------------------------------------------------------
+   Size-adjusted fallback faces (CLS fix, 2026-08-01).
+   The fontsource faces load with font-display: swap; before the swap
+   the browser renders the next resolving family in the stack. Plain
+   Arial/Georgia occupy different space than our faces (Barlow
+   CONDENSED especially — the swap visibly re-wrapped text-led heroes:
+   Lighthouse measured CLS 0.10–0.18 on /holiday-parties, 100%
+   attributed to the four web fonts landing). These @font-face rules
+   take universally-present system fonts and squeeze them to the web
+   fonts' metrics (values computed from @capsizecss/metrics via the
+   fontaine formula), so the pre-swap frame occupies near-identical
+   space and the swap stops shifting layout. Zero visual change after
+   fonts load. If the Adobe kit swap ever happens, recompute these
+   three blocks for the new faces.
+   ------------------------------------------------------------ */
+@font-face {
+  font-family: "Barlow Condensed Fallback";
+  src: local("Arial");
+  size-adjust: 76.4916%;
+  ascent-override: 130.7334%;
+  descent-override: 26.1467%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Montserrat Fallback";
+  src: local("Arial");
+  size-adjust: 112.8307%;
+  ascent-override: 85.7923%;
+  descent-override: 22.2457%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Roboto Slab Fallback";
+  src: local("Georgia");
+  size-adjust: 106.4622%;
+  ascent-override: 98.4247%;
+  descent-override: 25.4547%;
+  line-gap-override: 0%;
+}
+
 :root {
   /* palette */
   --indigo:        #200F53;
@@ -27,10 +67,13 @@
   --glow-dim:      #3dd4af;
   --copper:        #D88B5C;
 
-  /* type stack — substitutes; production swap is just these three vars */
-  --font-display:  'Barlow Condensed', 'Proxima Nova Extra Condensed', 'Arial Narrow', sans-serif;
-  --font-ui:       'Montserrat', 'Proxima Nova', system-ui, sans-serif;
-  --font-body:     'Roboto Slab', 'Yorkten Slab', Georgia, serif;
+  /* type stack — substitutes; production swap is just these three vars.
+     The "* Fallback" families are the size-adjusted system faces above
+     (CLS fix) — they must sit after the web font (and the aspirational
+     Adobe faces, which never resolve locally) so they render pre-swap. */
+  --font-display:  'Barlow Condensed', 'Proxima Nova Extra Condensed', 'Barlow Condensed Fallback', 'Arial Narrow', sans-serif;
+  --font-ui:       'Montserrat', 'Proxima Nova', 'Montserrat Fallback', system-ui, sans-serif;
+  --font-body:     'Roboto Slab', 'Yorkten Slab', 'Roboto Slab Fallback', Georgia, serif;
 
   /* layout tokens */
   --radius-button: 7px;
