@@ -27,8 +27,16 @@
  *     the Monday IBT season (Aug 31 meeting / Sept 14 start) is real
  *     for Fall 2026. When Tuesday firms up, swap "TBD" lines for
  *     real dates.
- *   - Signup form / contact email currently routes to
- *     contactus@twistedpin.com per the SnapFooter pattern.
+ *   - IN-SEASON UPDATE ~Sep 15: the Fall cards' "Organizational
+ *     meeting Aug 31 / starts Sept 14 / Space still available" lines
+ *     read as past events once the season is underway — reframe to
+ *     mid-season-entry or next-season framing (flagged 2026-08-01).
+ *
+ * League interest form added 2026-08-01 (Jon): name/email + structured
+ * solo-vs-team + preferred-night selects + message box, POSTing to
+ * /api/league-interest → Resend email to contactus@ (reply-to the
+ * submitter). Sits above the Pro Shop so league intent converts before
+ * the gear content.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -140,7 +148,8 @@ const leaguesSchema = {
       </p>
 
       <p class="t2-section-body">
-        Want in? Email
+        Want in? <a href="#league-interest">The quick form below</a> gets
+        you a callback — or email
         <a href={`mailto:contactus@twistedpin.com?subject=${encodeURIComponent("Bowling League Inquiry")}&body=${encodeURIComponent("Hi,\n\nI'd like to learn more about leagues at Twisted Pin.\n\n")}`}>contactus@twistedpin.com</a>
         or call the front desk.
       </p>
@@ -149,6 +158,87 @@ const leaguesSchema = {
         Looking for one-time group bookings or fundraisers instead?
         <a href="/events/">See group events →</a>
       </p>
+    </div>
+  </section>
+
+  {/* ============================================================
+      LEAGUE INTEREST FORM — added 2026-08-01 (Jon). Lead capture for
+      the league coordinator: who they are, solo-or-team, preferred
+      night — enough to route the callback without a phone-tag round.
+      Posts to /api/league-interest → Resend email to contactus@
+      (Freshdesk triage), reply-to the submitter. Sits ABOVE the Pro
+      Shop per Jon's placement call.
+      ============================================================ */}
+  <section class="t2-section" id="league-interest" aria-labelledby="leagues-form-h2">
+    <div class="t2-section-inner">
+      <p class="t-eyebrow" style="font-size:11px;">Get In</p>
+      <h2 class="t-display league-section-title" id="leagues-form-h2">
+        Tell us you're interested.
+      </h2>
+      <p class="t2-section-body">
+        Thirty seconds. We'll get back to you with the details for the
+        league that fits.
+      </p>
+
+      <form id="lg-form" class="lg-form" novalidate>
+        <div class="lg-row">
+          <div class="lg-field">
+            <label for="lg-name">Name <span class="lg-req">*</span></label>
+            <input id="lg-name" name="name" type="text" autocomplete="name" required />
+          </div>
+          <div class="lg-field">
+            <label for="lg-email">Email <span class="lg-req">*</span></label>
+            <input id="lg-email" name="email" type="email" autocomplete="email" required />
+          </div>
+        </div>
+
+        <div class="lg-row">
+          <div class="lg-field">
+            <label for="lg-who">Signing up as</label>
+            <select id="lg-who" name="signup_as">
+              <option value="Just me">Just me</option>
+              <option value="A partial team">A partial team — we need a few more</option>
+              <option value="A full team">A full team</option>
+              <option value="Not sure yet">Not sure yet</option>
+            </select>
+          </div>
+          <div class="lg-field">
+            <label for="lg-night">Preferred night</label>
+            <select id="lg-night" name="night">
+              <option value="Either / flexible">Either / flexible</option>
+              <option value="Monday (IBT, 5-person)">Monday — IBT, 5-person</option>
+              <option value="Tuesday (mixed, 4-person)">Tuesday — mixed, 4-person</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="lg-field">
+          <label for="lg-message">Anything else <span class="lg-opt">(optional)</span></label>
+          <textarea
+            id="lg-message"
+            name="message"
+            rows="4"
+            placeholder="Team name, how many bowlers you already have, experience level, questions…"
+          ></textarea>
+        </div>
+
+        {/* Honeypot */}
+        <div class="lg-hp" aria-hidden="true">
+          <label for="lg-website">Website</label>
+          <input id="lg-website" name="website_url" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <p id="lg-error" class="lg-error" role="alert" hidden></p>
+        <button type="submit" id="lg-submit" class="btn btn-solid lg-submit">Send it</button>
+      </form>
+
+      <div id="lg-success" class="lg-success" hidden>
+        <p class="lg-success-title">Got it — you're on the list. 🎳</p>
+        <p class="t2-section-body">
+          We'll reach back out with league details and next steps. Want a
+          faster answer? Call the front desk any afternoon.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -193,6 +283,66 @@ const leaguesSchema = {
     { name: "Leagues", path: "/leagues/" },
   ]} />
 </Base>
+
+{/* League interest form handler — posts to /api/league-interest.
+    Named-control access goes through form.elements: form.name is the
+    FORM's name attribute on HTMLFormElement, not the "name" input. */}
+<script is:inline>
+  (function () {
+    var form = document.getElementById("lg-form");
+    if (!form) return;
+    var els = form.elements;
+    var errorEl = document.getElementById("lg-error");
+    var btn = document.getElementById("lg-submit");
+    var successEl = document.getElementById("lg-success");
+
+    function showError(msg) {
+      errorEl.textContent = msg;
+      errorEl.hidden = false;
+      btn.disabled = false;
+      btn.textContent = "Send it";
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      errorEl.hidden = true;
+
+      var name = els["name"].value.trim();
+      var email = els["email"].value.trim();
+      if (!name) return showError("Please enter your name.");
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
+        return showError("Please enter a valid email address.");
+
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+
+      fetch("/api/league-interest/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name,
+          email: email,
+          signup_as: els["signup_as"].value,
+          night: els["night"].value,
+          message: els["message"].value.trim(),
+          website_url: els["website_url"].value || "",
+          page_url: window.location.href,
+        }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (!r || r.ok !== true)
+            return showError("That didn't go through — try again, or email contactus@twistedpin.com.");
+          form.hidden = true;
+          successEl.hidden = false;
+          successEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        })
+        .catch(function () {
+          showError("That didn't go through — try again, or email contactus@twistedpin.com.");
+        });
+    });
+  })();
+</script>
 
 <style>
   /* Anchor offset for /leagues/#pro-shop (and any future in-page anchors).
@@ -298,6 +448,98 @@ const leaguesSchema = {
     font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
+    color: var(--glow);
+  }
+
+  /* ============================================================
+     League interest form (2026-08-01). Inputs ≥16px — iOS auto-zoom
+     rule (type rubric, 2026-06-17). Anchor offset matches #pro-shop.
+     ============================================================ */
+  #league-interest {
+    scroll-margin-top: 120px;
+  }
+  @media (min-width: 1025px) {
+    #league-interest { scroll-margin-top: 140px; }
+  }
+
+  .lg-form {
+    margin-top: 24px;
+    display: grid;
+    gap: 16px;
+    max-width: 640px;
+  }
+  .lg-row { display: grid; gap: 16px; }
+  @media (min-width: 640px) {
+    .lg-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  .lg-field { display: grid; gap: 6px; }
+  .lg-field label {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--warm-dim);
+  }
+  .lg-req { color: var(--glow); }
+  .lg-opt {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 600;
+    color: var(--warm-dim);
+  }
+
+  .lg-field input,
+  .lg-field select,
+  .lg-field textarea {
+    font-family: var(--font-body);
+    font-size: 16px; /* never below 16px — iOS input-zoom rule */
+    color: var(--warm-white);
+    background: rgba(244, 239, 227, 0.04);
+    border: 1px solid rgba(244, 239, 227, 0.16);
+    border-radius: var(--radius-surface);
+    padding: 12px 14px;
+    width: 100%;
+  }
+  .lg-field textarea { resize: vertical; }
+  .lg-field select option { color: #1a1530; background: #f4efe3; }
+
+  /* Honeypot — visually removed, still in the accessibility-hidden DOM. */
+  .lg-hp {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  .lg-error {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: #ff9d9d;
+  }
+
+  .lg-submit {
+    justify-self: start;
+    padding: 14px 28px;
+  }
+
+  .lg-success {
+    margin-top: 24px;
+    max-width: 640px;
+    border: 1px solid rgba(78, 236, 196, 0.35);
+    border-radius: var(--radius-surface);
+    background: rgba(78, 236, 196, 0.06);
+    padding: 20px 22px;
+  }
+  .lg-success-title {
+    margin: 0 0 8px;
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 15px;
     color: var(--glow);
   }
 </style>

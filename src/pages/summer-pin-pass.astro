@@ -45,6 +45,26 @@ const summerPassVideoSchema = videoObjectSchema(SUMMER_PASS_VIDEO);
 const PIN_PASS_URL = "https://ecom.roller.app/twistedpin/summerpinpass/en-us/home";
 const PRICE = "$159.95";
 
+// ---- OFF-SEASON MODE (pre-staged 2026-08-01) ------------------------------
+// The 2026 pass is valid through Aug 14 (Jon 2026-08-01 — same end date as
+// Free Kids Bowling). From midnight CT Aug 15 the page flips itself to the
+// off-season state on the next daily cron rebuild: buy CTAs → walk-in
+// pricing, hero/CTA copy → "back spring 2027", Offer availability →
+// OutOfStock (an expired InStock offer draws GSC merchant-validator flags).
+// Deliberately informational-only — no waitlist form (similar-but-different
+// to the FKB waitlist per Jon; sales reopen ~mid-April and the 2027 plan
+// moves off Roller — see memory summer-pin-pass-2027-plan). To relaunch:
+// update schema-dates.ts + the date below + PIN_PASS_URL if the platform
+// changes.
+const OFF_SEASON = new Date() >= new Date("2026-08-15T00:00:00-05:00");
+
+const PAGE_TITLE = OFF_SEASON
+  ? "Summer Pin Pass — Back Spring 2027 | Twisted Pin"
+  : "Summer Pin Pass — Unlimited Bowling in Plainfield, IL | Twisted Pin";
+const PAGE_DESC = OFF_SEASON
+  ? "The 2026 Summer Pin Pass wrapped August 14. Unlimited-summer-bowling passes return spring 2027 at Twisted Pin in Plainfield, IL — walk-in lanes and leagues carry the fall."
+  : "The Summer Pin Pass: $159.95 for unlimited 1.5-hour bowling visits every day all summer. Weekends and evenings included. Twisted Pin in Plainfield, IL.";
+
 // JSON-LD: Product + Offer. The Pin Pass is a real SKU sold on Roller
 // — Product is the right shape, eligible for product rich snippets
 // (price + availability in SERP). validThrough caps the offer at
@@ -75,7 +95,9 @@ const pinPassSchema = {
     "@type": "Offer",
     price: PIN_PASS_NUMERIC_PRICE,
     priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
+    availability: OFF_SEASON
+      ? "https://schema.org/OutOfStock"
+      : "https://schema.org/InStock",
     validFrom: PIN_PASS_VALID_FROM,
     validThrough: PIN_PASS_VALID_THROUGH,
     url: PIN_PASS_URL,
@@ -84,8 +106,8 @@ const pinPassSchema = {
 };
 ---
 <Base
-  title="Summer Pin Pass — Unlimited Bowling in Plainfield, IL | Twisted Pin"
-  description="The Summer Pin Pass: $159.95 for unlimited 1.5-hour bowling visits every day all summer. Weekends and evenings included. Twisted Pin in Plainfield, IL."
+  title={PAGE_TITLE}
+  description={PAGE_DESC}
   lcpPreloadHref="/snap/summer-pass-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
@@ -97,13 +119,14 @@ const pinPassSchema = {
       ============================================================ */}
   <section class="t2-hero" data-hero aria-labelledby="spp-h1">
     <div class="t2-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Summer 2026</p>
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">{OFF_SEASON ? "Back Spring 2027" : "Summer 2026"}</p>
       <h1 class="t-display t2-hero-headline hero-fade" id="spp-h1" data-delay-ms="120">
         Unlimited summer bowling.
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        One pass. {PRICE}. Bowl every day, all summer — weekends and
-        evenings included.
+        {OFF_SEASON
+          ? "The 2026 pass wrapped August 14. Passes return spring 2027 — here's the program while you wait."
+          : `One pass. ${PRICE}. Bowl every day, all summer — weekends and evenings included.`}
       </p>
     </div>
   </section>
@@ -153,9 +176,13 @@ const pinPassSchema = {
           <li>Covers the whole household</li>
           <li>One flat price, no per-visit costs</li>
         </ul>
-        <a class="btn btn-solid" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
-          Get the Summer Pin Pass
-        </a>
+        {OFF_SEASON ? (
+          <a class="btn btn-solid" href="/pricing/">See walk-in pricing</a>
+        ) : (
+          <a class="btn btn-solid" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
+            Get the Summer Pin Pass
+          </a>
+        )}
       </div>
     </div>
   </section>
@@ -173,8 +200,9 @@ const pinPassSchema = {
       </h2>
       <p class="spp-section-body">
         <a href="/free-kids-bowling/">Free Summer Bowling for Kids</a> is
-        a separate program — free, weekdays 11am–4pm only, kids 12 &amp;
-        under, June 1–August 14. Limited daily lane availability.
+        a separate program — {OFF_SEASON
+          ? "it also wrapped August 14 and returns summer 2027 (the waitlist is open on its page)."
+          : "free, weekdays 11am–4pm only, kids 12 & under, June 1–August 14. Limited daily lane availability."}
       </p>
       <p class="spp-section-body">
         The Summer Pin Pass is the upgrade for families that want to
@@ -189,19 +217,36 @@ const pinPassSchema = {
       CLOSING CTA BAND — single dominant button, $-tagged so the
       price is the last thing they see before clicking.
       ============================================================ */}
-  <section class="spp-cta-band" aria-labelledby="spp-cta-h2">
-    <div class="spp-cta-inner">
-      <h2 class="t-display spp-cta-title" id="spp-cta-h2">
-        Buy once. Bowl all summer.
-      </h2>
-      <p class="spp-cta-sub">
-        Valid through August 14, 2026.
-      </p>
-      <a class="btn btn-solid spp-cta-btn" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
-        Get the Summer Pin Pass · {PRICE}
-      </a>
-    </div>
-  </section>
+  {OFF_SEASON ? (
+    <section class="spp-cta-band" aria-labelledby="spp-cta-h2">
+      <div class="spp-cta-inner">
+        <h2 class="t-display spp-cta-title" id="spp-cta-h2">
+          Back spring 2027.
+        </h2>
+        <p class="spp-cta-sub">
+          The 2026 pass wrapped August 14. Until passes return, the lanes
+          are walk-in.
+        </p>
+        <a class="btn btn-solid spp-cta-btn" href="/pricing/">
+          See walk-in pricing
+        </a>
+      </div>
+    </section>
+  ) : (
+    <section class="spp-cta-band" aria-labelledby="spp-cta-h2">
+      <div class="spp-cta-inner">
+        <h2 class="t-display spp-cta-title" id="spp-cta-h2">
+          Buy once. Bowl all summer.
+        </h2>
+        <p class="spp-cta-sub">
+          Valid through August 14, 2026.
+        </p>
+        <a class="btn btn-solid spp-cta-btn" href={PIN_PASS_URL} target="_blank" rel="noopener noreferrer">
+          Get the Summer Pin Pass · {PRICE}
+        </a>
+      </div>
+    </section>
+  )}
 
   {/* ============================================================
       SEO BODY — hyper-local. Per 2026-05-07 SEO research,

@@ -29,10 +29,25 @@ import type { APIRoute } from 'astro';
  * LIVE as of 2026-07-24 — the page is public and indexable.
  *
  * Override the endpoint in non-prod via LOYALTY_INTAKE_URL if ever needed.
+ *
+ * ---- 2027 WAITLIST MODE (pre-staged 2026-08-01) --------------------------
+ * The 2026 program ends EOD Aug 14. This endpoint is serverless (prerender
+ * false), so the date gate below evaluates at REQUEST time: from midnight CT
+ * Aug 15 every submission is a 2027-WAITLIST join — form_slug
+ * 'kids-free-bowl-waitlist-2027', tag 'program:kids-free-bowl-2027-waitlist',
+ * still no offer_slug. The waitlist tag is marketing + early-access only
+ * (per Jon 2026-08-01: NO rollover — 2027 enrollment is a separate tag the
+ * 2027 grant cron will match on; everyone re-registers).
+ * ⚠️ n8n WF-Loyalty-Forms-Intake needs the waitlist form_slug branch
+ * (upsert + tag from payload + waitlist welcome text, NO grant) BEFORE
+ * Aug 15. The page (/free-kids-bowling) flips itself the same midnight via
+ * the daily cron rebuild.
  */
 const INTAKE_URL =
   import.meta.env.LOYALTY_INTAKE_URL ??
   'https://n8n.twistedpin.com/webhook/loyalty/forms/intake';
+
+const WAITLIST_MODE = () => new Date() >= new Date('2026-08-15T00:00:00-05:00');
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   let input: Record<string, unknown>;
@@ -53,11 +68,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
   // Trusted fields (source_channel / form_slug / offer_slug / program_tag) are
   // set HERE, never trusted from the client. The rest pass through; n8n
   // normalizes the phone + validates.
+  const waitlist = WAITLIST_MODE();
   const payload = {
     source_channel: 'web_form',
-    form_slug: 'kids-free-bowl',
-    offer_slug: null,                       // windowed program grants daily — NOT at signup
-    program_tag: 'program:kids-free-bowl',  // enrollment tag the windowed segment matches on
+    form_slug: waitlist ? 'kids-free-bowl-waitlist-2027' : 'kids-free-bowl',
+    offer_slug: null,                       // windowed program grants daily — NOT at signup (waitlist: never)
+    program_tag: waitlist
+      ? 'program:kids-free-bowl-2027-waitlist' // marketing + early-access only — NOT enrollment
+      : 'program:kids-free-bowl',              // enrollment tag the windowed segment matches on
     phone: input.phone ?? null,
     first_name: input.first_name ?? null,
     last_name: input.last_name ?? null,

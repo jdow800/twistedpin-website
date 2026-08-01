@@ -53,6 +53,11 @@ const ROLLER_URL = "/reserve/";
 // arcade). Page-specific @type tells AI Overviews "this page is the
 // bowling-facing view of the venue."
 const PAGE_URL = `${BUSINESS_URL}/bowl/`;
+
+// Kids-program cross-link card flips to waitlist framing after the 2026
+// season ends (EOD Aug 14) — same self-flip mechanic as /free-kids-bowling
+// itself (daily cron rebuild re-evaluates at build time).
+const KIDS_OFF_SEASON = new Date() >= new Date("2026-08-15T00:00:00-05:00");
 const bowlingAlleySchema = {
   ...(await localBusinessBase({
     url: PAGE_URL,
@@ -165,7 +170,7 @@ const bowlingAlleySchema = {
             <strong>Leagues</strong> &middot; weekly mixed leagues, casual + competitive
           </a>
           <a href="/free-kids-bowling/">
-            <strong>Free summer kids bowling</strong> &middot; 2 games/day, weekdays 11&ndash;4, June 1&ndash;August 14
+            <strong>Free summer kids bowling</strong> &middot; {KIDS_OFF_SEASON ? "back summer 2027 — the waitlist is open" : "2 games/day, weekdays 11–4, June 1–August 14"}
           </a>
         </div>
       </div>

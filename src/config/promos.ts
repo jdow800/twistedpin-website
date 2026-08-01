@@ -76,6 +76,26 @@ export interface Promo {
  * during an overlap window.
  */
 export const PROMOS: readonly Promo[] = [
+  // NYE first — when both Q4 promos are active (Nov 15 → Dec 15 overlap)
+  // the more time-sensitive one gets the entry beat; the two rotate.
+  {
+    id: "nye-2026",
+    message: "NYE party slots are open — book yours",
+    href: "/new-years-eve/",
+    showFrom: "2026-11-15",
+    showUntil: "2026-12-31",
+    homepageOnly: true,
+  },
+  // Holiday parties — picks up the day after the kids promo expires so the
+  // bar never goes dark into the season (Jon-approved copy 2026-08-01).
+  {
+    id: "holiday-parties-2026",
+    message: "Holiday parties — December books fast",
+    href: "/holiday-parties/",
+    showFrom: "2026-08-15",
+    showUntil: "2026-12-15",
+    homepageOnly: true,
+  },
   {
     id: "kbf-summer-2026-aug14",
     message: "Free Bowling For Kids — through August 14",

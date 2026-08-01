@@ -81,7 +81,7 @@ The traditional lanes at Twisted Pin work for families — 17 of them.
 The arcade is set up with redemption, skee-ball, and a row of jackpot
 machines worth playing through. If the kids are 12 and under, our
 [Free Summer Bowling for Kids](/free-kids-bowling/) program runs
-weekday afternoons June 1–August 14 — two games per day, free for the kids,
+weekday afternoons each summer — two games per day, free for the kids,
 adults bowl alongside at a reduced rate.
 
 For non-bowling family options, Plainfield has a few playgrounds and

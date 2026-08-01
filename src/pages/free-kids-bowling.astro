@@ -33,6 +33,26 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
+// ---- 2027 WAITLIST MODE (pre-staged 2026-08-01) ---------------------------
+// The 2026 program ends EOD Aug 14. From midnight CT Aug 15 this page flips
+// itself to the 2027-waitlist state on the next build (daily 9 UTC cron —
+// the same self-flip mechanic as promos.ts / nav-seasonal.ts; no human
+// step, no branch merge). /api/kids-signup carries the SAME date gate at
+// REQUEST time, switching form_slug → 'kids-free-bowl-waitlist-2027' and
+// program_tag → 'program:kids-free-bowl-2027-waitlist'.
+//
+// Cohort rules (Jon 2026-08-01, see memory fkb-2027-transition-plan): NO
+// rollover — 2026 members re-register in 2027 (re-signup fires the welcome
+// text + keeps YoY analysis clean). The waitlist tag is marketing + the
+// promised early-signup day ONLY, never enrollment; the 2027 grant cron and
+// kiosk will key off a separate program:kids-free-bowl-2027 tag.
+//
+// ⚠️ BEFORE AUG 15: n8n WF-Loyalty-Forms-Intake needs a branch for
+// form_slug 'kids-free-bowl-waitlist-2027' — upsert + apply the payload's
+// program_tag + a waitlist welcome text ("you're on the list"), NO grant.
+// Until it exists, waitlist submissions upsert but mis-text.
+const WAITLIST_MODE = new Date() >= new Date("2026-08-15T00:00:00-05:00");
+
 const CONSENT_TEXT =
   "By checking this box, you agree to receive recurring automated marketing " +
   "text messages from Twisted Pin at the number provided. Consent is not a " +
@@ -65,10 +85,40 @@ const FAQ = [
     a: "No. Sign up once and you're on the list all summer. Just give your phone number at the front desk kiosk each visit and we take care of the rest.",
   },
 ];
+
+// Waitlist-mode FAQ — replaces the live-program FAQ (and its FAQPage
+// JSON-LD, which is generated from the same array) after Aug 14.
+const WAITLIST_FAQ = [
+  {
+    q: "When does free summer bowling for kids come back?",
+    a: "Summer 2027. Exact dates get announced in spring — waitlist families hear first. In 2026 the program ran June 1 through August 14, weekdays 11am–4pm.",
+  },
+  {
+    q: "What do I get for joining the waitlist?",
+    a: "First word when 2027 dates are set, and signup opens for waitlist families before the public window. One text when it matters — that's it.",
+  },
+  {
+    q: "Do 2026 registrations carry over?",
+    a: "No — everyone re-registers each summer, which keeps the front-desk list clean and current. Joining the waitlist is the fastest path to a 2027 spot.",
+  },
+  {
+    q: "Who's the program for?",
+    a: "Kids 12 & under bowl free — 2 games a day on weekday afternoons — while adults and teens bowl alongside at the walk-in rate. Free summer bowling for kids is the program name and the whole idea.",
+  },
+];
+
+const ACTIVE_FAQ = WAITLIST_MODE ? WAITLIST_FAQ : FAQ;
+
+const PAGE_TITLE = WAITLIST_MODE
+  ? "Free Summer Bowling for Kids — Back in 2027 | Twisted Pin"
+  : "Free Kids Bowling This Summer | Twisted Pin";
+const PAGE_DESC = WAITLIST_MODE
+  ? "The 2026 season wrapped August 14. Join the waitlist at Twisted Pin in Plainfield, IL and get first word — and first signup — when free summer bowling for kids returns in 2027."
+  : "Register your kids and they bowl free every weekday this summer at Twisted Pin in Plainfield, IL — 2 free games a day for kids 12 & under, Mon–Fri 11am–4pm, June 1 through August 14.";
 ---
 <Base
-  title="Free Kids Bowling This Summer | Twisted Pin"
-  description="Register your kids and they bowl free every weekday this summer at Twisted Pin in Plainfield, IL — 2 free games a day for kids 12 & under, Mon–Fri 11am–4pm, June 1 through August 14."
+  title={PAGE_TITLE}
+  description={PAGE_DESC}
   ogImage="/og/og-bowl.jpg"
   ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
 >
@@ -77,51 +127,96 @@ const FAQ = [
 
   <section class="t2-hero" data-hero aria-labelledby="kp-h1">
     <div class="t2-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Summer 2026 · Plainfield, IL</p>
-      <h1 class="t-display t2-hero-headline hero-fade" id="kp-h1" data-delay-ms="120">
-        Kids bowl free&nbsp;this summer.
-      </h1>
-      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Register your kids once and they bowl free every weekday all summer —
-        2 free games a day, no coupons, no printing. While they bowl, the bar
-        and kitchen are yours.
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">
+        {WAITLIST_MODE ? "Back Summer 2027 · Plainfield, IL" : "Summer 2026 · Plainfield, IL"}
       </p>
+      {WAITLIST_MODE ? (
+        <h1 class="t-display t2-hero-headline hero-fade" id="kp-h1" data-delay-ms="120">
+          Free summer bowling for kids. Back&nbsp;in&nbsp;2027.
+        </h1>
+      ) : (
+        <h1 class="t-display t2-hero-headline hero-fade" id="kp-h1" data-delay-ms="120">
+          Kids bowl free&nbsp;this summer.
+        </h1>
+      )}
+      {WAITLIST_MODE ? (
+        <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+          The 2026 season wrapped August 14. Leave your number and you get
+          first word — and a first-day signup spot — when it comes back
+          next summer.
+        </p>
+      ) : (
+        <p class="t2-hero-sub hero-fade" data-delay-ms="320">
+          Register your kids once and they bowl free every weekday all summer —
+          2 free games a day, no coupons, no printing. While they bowl, the bar
+          and kitchen are yours.
+        </p>
+      )}
     </div>
   </section>
 
   <section class="t2-section kp-section" aria-labelledby="kp-form-h2">
     <div class="t2-section-inner">
 
-      {/* ---- PROGRAM DETAILS (mirrors the live form) ---- */}
-      <div class="kp-details">
-        <p class="kp-details-h">The program</p>
-        <ul class="kp-details-list">
-          <li><strong>2 free games per day</strong> for kids 12 &amp; under</li>
-          <li><strong>June 1 – August 14</strong> <span class="kp-muted">(closed July 4 &amp; July 27–29)</span></li>
-          <li><strong>Mon–Fri, 11am–4pm</strong></li>
-          <li><strong>To redeem:</strong> just give your registered phone number at the front desk kiosk. No coupons, no printing.</li>
-        </ul>
-        <p class="kp-details-note">
-          <strong>Adults &amp; teens (13+):</strong> bowl right alongside the kids for
-          <strong>$6.95 a game</strong> during program hours.
-        </p>
-        <p class="kp-details-fine">
-          Can't be combined with other offers. Not valid for groups or reservations.
-          Doesn't include shoe rental.
-        </p>
-      </div>
+      {/* ---- PROGRAM DETAILS (live) / HOW IT WORKS WHEN IT'S BACK (waitlist) ---- */}
+      {WAITLIST_MODE ? (
+        <div class="kp-details">
+          <p class="kp-details-h">How it works when it's back</p>
+          <ul class="kp-details-list">
+            <li><strong>2 free games per day</strong> for kids 12 &amp; under</li>
+            <li><strong>Weekday afternoons, all summer</strong> — 2027 dates announced in spring</li>
+            <li><strong>Sign up once</strong> each summer, then just give your number at the front desk</li>
+          </ul>
+          <p class="kp-details-note">
+            <strong>Waitlist perk:</strong> you hear first when dates are set —
+            and signup opens for waitlist families before the public window.
+          </p>
+        </div>
+      ) : (
+        <div class="kp-details">
+          <p class="kp-details-h">The program</p>
+          <ul class="kp-details-list">
+            <li><strong>2 free games per day</strong> for kids 12 &amp; under</li>
+            <li><strong>June 1 – August 14</strong> <span class="kp-muted">(closed July 4 &amp; July 27–29)</span></li>
+            <li><strong>Mon–Fri, 11am–4pm</strong></li>
+            <li><strong>To redeem:</strong> just give your registered phone number at the front desk kiosk. No coupons, no printing.</li>
+          </ul>
+          <p class="kp-details-note">
+            <strong>Adults &amp; teens (13+):</strong> bowl right alongside the kids for
+            <strong>$6.95 a game</strong> during program hours.
+          </p>
+          <p class="kp-details-fine">
+            Can't be combined with other offers. Not valid for groups or reservations.
+            Doesn't include shoe rental.
+          </p>
+        </div>
+      )}
 
-      {/* ---- SUMMER PIN PASS upsell ---- */}
-      <div class="kp-upsell">
-        <p class="kp-upsell-h">Want unlimited bowling all summer?</p>
-        <p class="kp-upsell-body">
-          The <strong>Summer Pin Pass</strong> covers the whole family — weekends,
-          evenings, no restrictions.
-        </p>
-        <a class="kp-upsell-link" href="/summer-pin-pass/">See the Summer Pin Pass →</a>
-      </div>
+      {/* ---- SUMMER PIN PASS upsell (live) / UNTIL-NEXT-SUMMER cross-sell (waitlist) ---- */}
+      {WAITLIST_MODE ? (
+        <div class="kp-upsell">
+          <p class="kp-upsell-h">Until next summer</p>
+          <p class="kp-upsell-body">
+            Kids' <strong>birthday parties</strong> run year-round — two hours
+            in the VIP suite with a host who handles it. Or check
+            <a href="/pricing/">walk-in pricing</a> for a family afternoon.
+          </p>
+          <a class="kp-upsell-link" href="/birthday-parties/">See birthday parties →</a>
+        </div>
+      ) : (
+        <div class="kp-upsell">
+          <p class="kp-upsell-h">Want unlimited bowling all summer?</p>
+          <p class="kp-upsell-body">
+            The <strong>Summer Pin Pass</strong> covers the whole family — weekends,
+            evenings, no restrictions.
+          </p>
+          <a class="kp-upsell-link" href="/summer-pin-pass/">See the Summer Pin Pass →</a>
+        </div>
+      )}
 
-      <h2 class="t-eyebrow" id="kp-form-h2" style="font-size:11px;">Register your kids</h2>
+      <h2 class="t-eyebrow" id="kp-form-h2" style="font-size:11px;">
+        {WAITLIST_MODE ? "Join the 2027 waitlist" : "Register your kids"}
+      </h2>
 
       {/* ---- FORM ---- */}
       <form id="kp-form" class="kp-form" data-consent={CONSENT_TEXT} novalidate>
@@ -140,7 +235,11 @@ const FAQ = [
           <label for="kp-mobile">Mobile number <span class="kp-req">*</span></label>
           <input id="kp-mobile" name="phone" type="tel" inputmode="tel"
                  autocomplete="tel" placeholder="(815) 555-0123" required />
-          <p class="kp-hint">The number you'll give at the front desk when you visit.</p>
+          <p class="kp-hint">
+            {WAITLIST_MODE
+              ? "The number we'll text when 2027 signups open."
+              : "The number you'll give at the front desk when you visit."}
+          </p>
           <p class="kp-phone-status" id="kp-phone-status" role="status" hidden></p>
         </div>
 
@@ -151,7 +250,7 @@ const FAQ = [
 
         {/* Child names — formality only; collected, not transmitted. */}
         <fieldset class="kp-field kp-kids">
-          <legend>Your kids <span class="kp-req">*</span> <span class="kp-opt">(at least one — 12 &amp; under as of 6/30/26)</span></legend>
+          <legend>Your kids <span class="kp-req">*</span> <span class="kp-opt">{WAITLIST_MODE ? "(at least one — 12 & under)" : "(at least one — 12 & under as of 6/30/26)"}</span></legend>
           <input class="kp-kid" name="child1" type="text" autocomplete="off" placeholder="Child's first name" />
           <input class="kp-kid" name="child2" type="text" autocomplete="off" placeholder="Another child (optional)" />
           <input class="kp-kid" name="child3" type="text" autocomplete="off" placeholder="Another child (optional)" />
@@ -163,16 +262,20 @@ const FAQ = [
           <input id="kp-website" name="website_url" type="text" tabindex="-1" autocomplete="off" />
         </div>
 
-        {/* Required acknowledgments */}
-        <fieldset class="kp-acks">
-          <legend class="kp-acks-legend">Before you sign up</legend>
-          {ACKS.map((text, i) => (
-            <label class="kp-ack">
-              <input class="kp-ack-input" type="checkbox" name={`ack${i + 1}`} required />
-              <span>{text}</span>
-            </label>
-          ))}
-        </fieldset>
+        {/* Required acknowledgments — live program only. The waitlist has no
+            program expectations to set; the submit handler's ack check
+            passes vacuously when the fieldset isn't rendered. */}
+        {!WAITLIST_MODE && (
+          <fieldset class="kp-acks">
+            <legend class="kp-acks-legend">Before you sign up</legend>
+            {ACKS.map((text, i) => (
+              <label class="kp-ack">
+                <input class="kp-ack-input" type="checkbox" name={`ack${i + 1}`} required />
+                <span>{text}</span>
+              </label>
+            ))}
+          </fieldset>
+        )}
 
         <label class="kp-consent">
           <input id="kp-consent" name="consent" type="checkbox" required />
@@ -197,31 +300,57 @@ const FAQ = [
           <button type="button" class="kp-echo-edit" id="kp-echo-edit">Edit</button>
         </div>
 
-        <button type="submit" id="kp-submit" class="kp-submit">Register my kids</button>
+        <button type="submit" id="kp-submit" class="kp-submit">
+          {WAITLIST_MODE ? "Join the waitlist" : "Register my kids"}
+        </button>
       </form>
 
       {/* ---- SUCCESS PANEL ---- */}
-      <div id="kp-success" class="kp-panel kp-success" hidden>
-        <p class="kp-panel-eyebrow">You're in 🎳</p>
-        <h3 class="kp-panel-title">Check your phone.</h3>
-        <p class="kp-panel-body">
-          We just texted your details<span id="kp-success-phone"></span>. Bring the
-          kids in <strong>Monday–Friday, 11am–4pm</strong> and give your number at
-          the front desk — they get <strong>2 free games each</strong>, all summer
-          through August 14. While they bowl, the bar and kitchen are yours
-          (and you can bowl alongside them for $6.95 a game).
-        </p>
-      </div>
+      {WAITLIST_MODE ? (
+        <div id="kp-success" class="kp-panel kp-success" hidden>
+          <p class="kp-panel-eyebrow">You're on the list 🎳</p>
+          <h3 class="kp-panel-title">First word is yours.</h3>
+          <p class="kp-panel-body">
+            We just texted a confirmation<span id="kp-success-phone"></span>.
+            When 2027 dates are set you hear first, and waitlist signup opens
+            <strong>before the public window</strong>. One text when it
+            matters — that's it.
+          </p>
+        </div>
+      ) : (
+        <div id="kp-success" class="kp-panel kp-success" hidden>
+          <p class="kp-panel-eyebrow">You're in 🎳</p>
+          <h3 class="kp-panel-title">Check your phone.</h3>
+          <p class="kp-panel-body">
+            We just texted your details<span id="kp-success-phone"></span>. Bring the
+            kids in <strong>Monday–Friday, 11am–4pm</strong> and give your number at
+            the front desk — they get <strong>2 free games each</strong>, all summer
+            through August 14. While they bowl, the bar and kitchen are yours
+            (and you can bowl alongside them for $6.95 a game).
+          </p>
+        </div>
+      )}
 
       {/* ---- ALREADY-ENROLLED PANEL ---- */}
-      <div id="kp-already" class="kp-panel kp-already" hidden>
-        <p class="kp-panel-eyebrow">You're already in 👋</p>
-        <h3 class="kp-panel-title">You're already registered.</h3>
-        <p class="kp-panel-body">
-          You're already on the list for free kids bowling — no need to sign up
-          twice. Just give your number at the front desk any weekday, 11am–4pm.
-        </p>
-      </div>
+      {WAITLIST_MODE ? (
+        <div id="kp-already" class="kp-panel kp-already" hidden>
+          <p class="kp-panel-eyebrow">You're already on it 👋</p>
+          <h3 class="kp-panel-title">You're already on the waitlist.</h3>
+          <p class="kp-panel-body">
+            No need to sign up twice — we'll text you when 2027 signups open,
+            and waitlist families go first.
+          </p>
+        </div>
+      ) : (
+        <div id="kp-already" class="kp-panel kp-already" hidden>
+          <p class="kp-panel-eyebrow">You're already in 👋</p>
+          <h3 class="kp-panel-title">You're already registered.</h3>
+          <p class="kp-panel-body">
+            You're already on the list for free kids bowling — no need to sign up
+            twice. Just give your number at the front desk any weekday, 11am–4pm.
+          </p>
+        </div>
+      )}
 
     </div>
   </section>
@@ -230,41 +359,67 @@ const FAQ = [
       SEO body — unique content beneath the form. "Free kids bowling"
       is the program name, not discount framing.
       ============================================================ */}
-  <section class="t2-section" aria-labelledby="kp-info-h2">
-    <div class="t2-section-inner">
-      <p class="t-eyebrow">How it works</p>
-      <h2 class="t-display kp-info-title" id="kp-info-h2">Register once. Bowl all summer.</h2>
-      <p class="t2-section-body">
-        Sign up with your mobile number, then bring the kids to
-        <a href="/bowl/">Twisted Pin in Plainfield</a> any weekday between 11am
-        and 4pm. Give your number at the front desk kiosk and each kid 12 &amp;
-        under gets 2 free games — June 1 through August 14, no coupons or
-        printing. Adults and teens 13+ bowl alongside them for $6.95 a game.
-      </p>
+  {WAITLIST_MODE ? (
+    <section class="t2-section" aria-labelledby="kp-info-h2">
+      <div class="t2-section-inner">
+        <p class="t-eyebrow">What it is</p>
+        <h2 class="t-display kp-info-title" id="kp-info-h2">Free summer bowling. Every year.</h2>
+        <p class="t2-section-body">
+          Each summer, kids 12 &amp; under bowl free at
+          <a href="/bowl/">Twisted Pin in Plainfield</a> — 2 games a day on
+          weekday afternoons, no coupons or printing. Adults and teens bowl
+          alongside at the walk-in rate. The 2026 season ran June 1 through
+          August 14; 2027 dates land in spring, and the waitlist hears first.
+        </p>
 
-      <p class="t-eyebrow" style="margin-top: 36px;">While the kids bowl</p>
-      <h2 class="t-display kp-info-title">You don't have to just watch.</h2>
-      <p class="t2-section-body">
-        The rest of the venue runs in parallel — the
-        <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>,
-        <a href="/bar/">the bar program</a> curated by Brian Van Flandern,
-        America's Top Mixologist, and <a href="/eat/">a from-scratch kitchen</a>.
-        Free kids bowling is the reason to come in on a weekday afternoon; the
-        rest is why you'll want to stay.
-      </p>
+        <p class="t-eyebrow" style="margin-top: 36px;">While you wait</p>
+        <h2 class="t-display kp-info-title">The lanes didn't go anywhere.</h2>
+        <p class="t2-section-body">
+          Walk-in bowling runs year-round — see <a href="/pricing/">pricing</a> —
+          and <a href="/birthday-parties/">kids' birthday parties</a> book every
+          week. The <a href="/menu/taps/">28-tap self-serve beer &amp; wine
+          wall</a> and <a href="/bar/">the bar program</a> curated by Brian Van
+          Flandern, America's Top Mixologist, don't take summers off either.
+        </p>
+      </div>
+    </section>
+  ) : (
+    <section class="t2-section" aria-labelledby="kp-info-h2">
+      <div class="t2-section-inner">
+        <p class="t-eyebrow">How it works</p>
+        <h2 class="t-display kp-info-title" id="kp-info-h2">Register once. Bowl all summer.</h2>
+        <p class="t2-section-body">
+          Sign up with your mobile number, then bring the kids to
+          <a href="/bowl/">Twisted Pin in Plainfield</a> any weekday between 11am
+          and 4pm. Give your number at the front desk kiosk and each kid 12 &amp;
+          under gets 2 free games — June 1 through August 14, no coupons or
+          printing. Adults and teens 13+ bowl alongside them for $6.95 a game.
+        </p>
 
-      <p class="t-eyebrow" style="margin-top: 36px;">Where</p>
-      <h2 class="t-display kp-info-title">Right off Route 59.</h2>
-      <p class="t2-section-body">
-        Twisted Pin is in Plainfield, IL — an easy drive from Naperville,
-        Romeoville, Shorewood, Bolingbrook, Oswego, and Joliet. Free summer
-        bowling for kids runs Monday through Friday, 11am to 4pm, June 1 through
-        August 14 (closed July 4 and July 27–29). Want unlimited bowling for the
-        whole family — weekends and evenings included? Look at the
-        <a href="/summer-pin-pass/">Summer Pin Pass</a>.
-      </p>
-    </div>
-  </section>
+        <p class="t-eyebrow" style="margin-top: 36px;">While the kids bowl</p>
+        <h2 class="t-display kp-info-title">You don't have to just watch.</h2>
+        <p class="t2-section-body">
+          The rest of the venue runs in parallel — the
+          <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>,
+          <a href="/bar/">the bar program</a> curated by Brian Van Flandern,
+          America's Top Mixologist, and <a href="/eat/">a from-scratch kitchen</a>.
+          Free kids bowling is the reason to come in on a weekday afternoon; the
+          rest is why you'll want to stay.
+        </p>
+
+        <p class="t-eyebrow" style="margin-top: 36px;">Where</p>
+        <h2 class="t-display kp-info-title">Right off Route 59.</h2>
+        <p class="t2-section-body">
+          Twisted Pin is in Plainfield, IL — an easy drive from Naperville,
+          Romeoville, Shorewood, Bolingbrook, Oswego, and Joliet. Free summer
+          bowling for kids runs Monday through Friday, 11am to 4pm, June 1 through
+          August 14 (closed July 4 and July 27–29). Want unlimited bowling for the
+          whole family — weekends and evenings included? Look at the
+          <a href="/summer-pin-pass/">Summer Pin Pass</a>.
+        </p>
+      </div>
+    </section>
+  )}
 
   {/* ---- FAQ ---- */}
   <section class="t2-section" aria-labelledby="kp-faq-h2">
@@ -272,7 +427,7 @@ const FAQ = [
       <p class="t-eyebrow">Good to know</p>
       <h2 class="t-display kp-info-title" id="kp-faq-h2">Questions, answered.</h2>
       <dl class="kp-faq">
-        {FAQ.map((item) => (
+        {ACTIVE_FAQ.map((item) => (
           <div class="kp-faq-item">
             <dt>{item.q}</dt>
             <dd>{item.a}</dd>
@@ -290,7 +445,7 @@ const FAQ = [
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": FAQ.map((item) => ({
+    "mainEntity": ACTIVE_FAQ.map((item) => ({
       "@type": "Question",
       "name": item.q,
       "acceptedAnswer": { "@type": "Answer", "text": item.a },
@@ -308,6 +463,9 @@ const FAQ = [
     if (!form) return;
     var errorEl = document.getElementById("kp-error");
     var submitBtn = document.getElementById("kp-submit");
+    // Button label is mode-dependent (live vs waitlist) — capture the
+    // rendered label once so error/reset paths restore the right text.
+    var submitLabel = submitBtn ? submitBtn.textContent.trim() : "Submit";
     var successEl = document.getElementById("kp-success");
     var alreadyEl = document.getElementById("kp-already");
     var mobile = document.getElementById("kp-mobile");
@@ -404,7 +562,7 @@ const FAQ = [
       errorEl.textContent = msg;
       errorEl.hidden = false;
       submitBtn.disabled = false;
-      submitBtn.textContent = "Register my kids";
+      submitBtn.textContent = submitLabel;
     }
 
     function reasonMessage(reason) {
@@ -491,7 +649,7 @@ const FAQ = [
       };
 
       submitBtn.disabled = true;
-      submitBtn.textContent = "Registering…";
+      submitBtn.textContent = "Sending…";
 
       fetch("/api/kids-signup/", {
         method: "POST",
@@ -503,7 +661,7 @@ const FAQ = [
           if (!r || r.ok !== true) {
             if (r && r.reason === "honeypot") {
               submitBtn.disabled = false;
-              submitBtn.textContent = "Register my kids";
+              submitBtn.textContent = submitLabel;
               return;
             }
             return showError(reasonMessage(r && r.reason));

@@ -66,6 +66,7 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
+import { ICON_PATHS } from "../lib/icons";
 
 // JSON-LD: Service (parallel to /corporate-events + /fundraisers).
 // provider → #business links to the canonical entity via @id.
@@ -93,6 +94,74 @@ const serviceSchema = {
     { "@type": "City", name: "Shorewood, IL" },
     { "@type": "City", name: "Lockport, IL" },
   ],
+};
+
+// On-page FAQ + FAQPage JSON-LD (added 2026-08-01, Jon-approved copy —
+// same recipe as /corporate-events: schemaA = plain text for the schema,
+// htmlA = the rendered answer, may carry links). Written to be quoted
+// verbatim by Ask Maps / AI answers. Voice rules hold: semi-private
+// (never "private"), "curated by" Brian, no discount framing, no
+// fabricated drive times, urgency only where real (December genuinely
+// books fast).
+interface HolidayFaq {
+  q: string;
+  schemaA: string;
+  htmlA: string;
+}
+
+const faqs: HolidayFaq[] = [
+  {
+    q: "How far in advance should we book a holiday party?",
+    schemaA:
+      "December Fridays and Saturdays go first — reach out by October for a real choice of dates. Weeknights and early-December dates stay open longer, and January end-of-year parties are a real move when December fills.",
+    htmlA:
+      "December Fridays and Saturdays go first — reach out by October for a real choice of dates. Weeknights and early-December dates stay open longer, and January “we finally got the team together” parties are a real move when December fills.",
+  },
+  {
+    q: "How many people can you host?",
+    schemaA:
+      "Up to 80 in the 6-lane VIP suite. Past that, full-venue buyouts take up to 200. Smaller crew? Reserved lanes and a table work without the suite.",
+    htmlA:
+      `Up to 80 in the <a href="/vip-suite/">6-lane VIP suite</a>. Past that, full-venue buyouts take up to 200. Smaller crew? Reserved lanes and a table work without the suite.`,
+  },
+  {
+    q: "What does a holiday party cost?",
+    schemaA:
+      "Quotes are built per group — headcount, menu, bar model. Send the inquiry and you'll have a real number fast, not a brochure.",
+    htmlA:
+      `Quotes are built per group — headcount, menu, bar model. <a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Send the inquiry</a> and you'll have a real number fast, not a brochure.`,
+  },
+  {
+    q: "Can you handle catering and dietary needs?",
+    schemaA:
+      "In-house, through the kitchen — buffet, plated, or family-style. Vegetarian, gluten-free, and accommodations on request; December tables run mixed and we plan for it.",
+    htmlA:
+      "In-house, through the kitchen — buffet, plated, or family-style. Vegetarian, gluten-free, and accommodations on request; December tables run mixed and we plan for it.",
+  },
+  {
+    q: "How does the bar work for a company party?",
+    schemaA:
+      "Run a tab, hand out drink tickets, or set a per-head cap. The 28-tap self-serve beer and wine wall sits next door, and the cocktail program is curated by Brian Van Flandern, America's Top Mixologist.",
+    htmlA:
+      `Run a tab, hand out drink tickets, or set a per-head cap. The <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a> sits next door, and the cocktail program is curated by Brian Van Flandern, <em>America's Top Mixologist</em>.`,
+  },
+  {
+    q: "Is the suite actually ours for the night?",
+    schemaA:
+      "Semi-private and set apart from the main floor — yours from setup to last call, with the LED video wall for the year-in-review reel. No shared room, no overlapping reservation.",
+    htmlA:
+      "Semi-private and set apart from the main floor — yours from setup to last call, with the LED video wall for the year-in-review reel. No shared room, no overlapping reservation.",
+  },
+];
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.schemaA },
+  })),
 };
 ---
 <Base
@@ -273,6 +342,44 @@ const serviceSchema = {
   </section>
 
   {/* ============================================================
+      FAQ — search-phrased holiday Q&As (2026-08-01). Reuses the
+      global .t2-faq* accordion + emits FAQPage JSON-LD (frontmatter).
+      Sits above the closing CTA so the inquiry button stays the last
+      beat on the page — same convention as /corporate-events.
+      ============================================================ */}
+  <section class="holiday-faq" aria-labelledby="holiday-faq-h2">
+    <div class="holiday-faq-inner">
+      <p class="t-eyebrow">Questions</p>
+      <h2 class="t-display holiday-faq-title" id="holiday-faq-h2">
+        Holiday party FAQs.
+      </h2>
+      <div class="t2-faq">
+        {faqs.map((item) => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              <h3 class="t2-faq-q-text">{item.q}</h3>
+              <svg
+                class="t2-faq-chevron"
+                viewBox="0 0 24 24"
+                width="18"
+                height="18"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={ICON_PATHS["chevron-down"]}
+              />
+            </summary>
+            <div class="t2-faq-a" set:html={item.htmlA} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
       CLOSING CTA BAND — urgency as headline (rare; earned because
       the constraint is real — December genuinely books fast).
       Same lifted-indigo treatment as /corporate-events for the
@@ -297,6 +404,7 @@ const serviceSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Events", path: "/events/" },
@@ -542,6 +650,36 @@ const serviceSchema = {
   .holiday-context-body a:hover {
     text-decoration-color: var(--glow);
   }
+
+  /* ============================================================
+     FAQ — reuses the global .t2-faq* accordion; wrapper + heading
+     page-local (mirrors /corporate-events .corp-faq numbers).
+     ============================================================ */
+  .holiday-faq {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .holiday-faq { padding: 72px 64px 24px; }
+  }
+
+  .holiday-faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .holiday-faq-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .holiday-faq-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .holiday-faq .t2-faq { margin-top: 20px; }
 
   /* ============================================================
      CLOSING CTA BAND — matches /corporate-events .corp-cta numbers.
