@@ -86,15 +86,15 @@ is deployed, or the SMS's "50% off" under-delivers at checkout.
 
 ## Arming ritual (Jon)
 
-**⚠️ CURRENT POSTURE (since 2026-07-30 evening): workflow ACTIVE + `ARMED=true` + `TEST_MODE=true`.**
-TEST_MODE is the guest-proof interlock — only the allowlist (Jon's cell) can ever receive; real
-guests are filtered pre-log and simply retry weekly. Thu **Aug 6** 6pm is a scheduled zero-send
-dry-fire (verify the execution succeeded in n8n). **Going fully live = ONE flip: `TEST_MODE=false`,
-before Thu Aug 20 6pm** — the earliest checkout opt-ins (visits 7/22+) enter the 28-day window
-~Aug 19, so Aug 20 is the first real cohort. Leaving TEST_MODE=true past Aug 20 silently delays
-the launch (no harm, no sends). The 2026-07-30 rail test (`lane-rebook-TESTFIRE-jon-2026-07-30`)
-sent the production offer template + XS7G9BWS to Jon's cell via the real rail: rendered, sent,
-SID logged.
+**🟢 FULLY LIVE since 2026-08-01 (Jon's go): workflow ACTIVE + `ARMED=true` + `TEST_MODE=false`.**
+No human step remains. Dry-run at go-live: 0 eligible (all gates, checkout scope) — so Thu Aug 6
+and Aug 13 execute as zero-send runs (verify the Aug 6 execution succeeded in n8n), and **Thu Aug
+20 6pm is the first real cohort** (earliest checkout opt-ins, visits 7/22+, cross day 28 ~Aug 19).
+Audit the Aug 20 run next morning: ledger rows, "Lane Rebook 2026-08-20" rollup row in
+/admin/discounts, delivery statuses, STOP rate (measurement.sql query 6). Kill switch = deactivate
+the workflow or ARMED=false; TEST_MODE=true returns to allowlist-only rehearsal mode. The
+2026-07-30 rail test (`lane-rebook-TESTFIRE-jon-2026-07-30`) sent the production offer template +
+XS7G9BWS to Jon's cell via the real rail: rendered, sent, delivered (DLR).
 
 **✅ RESOLVED 2026-07-30 — the checkout-optin park is gone.** Jon's ruling: the checkout SMS box
 IS marketing consent. Trigger `trg_customers_park_checkout_optin` + function dropped; its 8 holds
