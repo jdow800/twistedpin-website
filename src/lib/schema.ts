@@ -105,7 +105,11 @@ export const MAPS_VENUE_URL = `https://www.google.com/maps/search/?api=1&query=T
  * Distinct from MAPS_VENUE_URL: that one shows the listing (informational),
  * this one asks for a review (an action).
  *
- * Used by: /signatures (the Google badge on every email signature).
+ * NOT currently used by /signatures — the Google badge there points at the
+ * listing instead (Jon's call 2026-08-02: a review-ask aimed at someone you
+ * are mid-conversation with reads pushy, and the listing shows the reviews
+ * anyway plus hours and directions). Kept for review-ask surfaces where the
+ * ask is the point — post-visit follow-ups and the Avery review flow.
  */
 export const GOOGLE_REVIEW_URL = `https://search.google.com/local/writereview?placeid=${PLACE_ID}`;
 

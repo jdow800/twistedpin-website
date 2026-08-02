@@ -28,9 +28,12 @@
  *     /twistedpinplainfield.
  *   - Street address → STREET from schema.ts ("15610 Joliet Rd"), not
  *     "15610 S. Joliet Rd".
- *   - Google badge → GOOGLE_REVIEW_URL, derived from PLACE_ID. The design
- *     hardcoded `maps.app.goo.gl/yyiVoLzTsHA2TNGW8`, a Firebase Dynamic Link
- *     Google sunset in Aug 2025 — it is dead, do not restore it.
+ *   - Google badge → MAPS_VENUE_URL, derived from PLACE_ID (see
+ *     GOOGLE_BADGE_URL below). The design hardcoded
+ *     `maps.app.goo.gl/yyiVoLzTsHA2TNGW8`, a Firebase Dynamic Link Google
+ *     sunset in Aug 2025 — it is dead, do not restore it. A `share.google/…`
+ *     link is no substitute either: it resolves to a search-results page and
+ *     carries share-flow `utm_source` tracking.
  * All are visible on the page and editable in step 1.
  *
  * The signature markup is TABLE-BASED with inline styles ON PURPOSE. That is the
@@ -42,7 +45,17 @@
  * (astro.config.mjs) + `isStaffPage` in Base.astro (no GA4/Clarity/Meta).
  */
 import Base from "../layouts/Base.astro";
-import { STREET, LOCALITY, REGION, PHONE_DISPLAY, GOOGLE_REVIEW_URL } from "../lib/schema";
+import { STREET, LOCALITY, REGION, PHONE_DISPLAY, MAPS_VENUE_URL } from "../lib/schema";
+
+/**
+ * Where the Google badge points. The LISTING, not the review form — a
+ * review-ask aimed at someone you're mid-thread with reads pushy, and the
+ * listing surfaces the reviews anyway alongside hours and directions.
+ * Same destination the SnapFooter "see reviews on Google" card uses, so the
+ * signature and the site agree. `GOOGLE_REVIEW_URL` in schema.ts is the
+ * one-line swap if this should ever become an ask.
+ */
+const GOOGLE_BADGE_URL = MAPS_VENUE_URL;
 
 // Public base for the hosted signature images. The preview uses the
 // site-absolute `/email/` prefix; the clipboard copy swaps it for this.
@@ -177,14 +190,14 @@ const tdWidth = (px: number) => ({ width: String(px) });
           ))}
           <label class="sig-field" style="flex: 1 1 100%">
             <span class="sig-label">
-              Google review link — pre-filled with our listing's review form.
-              Clear this field to leave the Google badge off.
+              Google link — pre-filled with our Google listing (reviews, hours,
+              directions). Clear this field to leave the Google badge off.
             </span>
             <input
               class="sig-input sig-input--mono"
               data-field="googleUrl"
-              value={GOOGLE_REVIEW_URL}
-              placeholder="https://search.google.com/local/writereview?placeid=…"
+              value={GOOGLE_BADGE_URL}
+              placeholder="https://www.google.com/maps/search/?api=1&query=…"
             />
           </label>
           <label class="sig-field" style="flex: 1 1 300px">
@@ -332,7 +345,7 @@ const tdWidth = (px: number) => ({ width: String(px) });
                                 state never rides along into the clipboard. */}
                             <td style="padding:0" data-google-slot>
                               <a data-bind-href="googleUrl" href="" style="text-decoration:none">
-                                <img src="/email/icon-google.png" width="26" height="26" alt="Google reviews" style="display:block; width:26px; height:26px; border:0" />
+                                <img src="/email/icon-google.png" width="26" height="26" alt="Google" style="display:block; width:26px; height:26px; border:0" />
                               </a>
                             </td>
                           </tr>
