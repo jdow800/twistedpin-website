@@ -49,8 +49,9 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 //
 // ⚠️ BEFORE AUG 15: n8n WF-Loyalty-Forms-Intake needs a branch for
 // form_slug 'kids-free-bowl-waitlist-2027' — upsert + apply the payload's
-// program_tag + a waitlist welcome text ("you're on the list"), NO grant.
-// Until it exists, waitlist submissions upsert but mis-text.
+// program_tag + respond ok. NO welcome text (Jon 2026-08-01: the success
+// panel IS the confirmation — saves the send and preserves consent; the
+// one text this cohort gets is the spring "signups open") and NO grant.
 const WAITLIST_MODE = new Date() >= new Date("2026-08-15T00:00:00-05:00");
 
 const CONSENT_TEXT =
@@ -305,16 +306,22 @@ const PAGE_DESC = WAITLIST_MODE
         </button>
       </form>
 
-      {/* ---- SUCCESS PANEL ---- */}
+      {/* ---- SUCCESS PANEL ----
+           Waitlist mode sends NO confirmation text (Jon 2026-08-01): the
+           panel IS the confirmation — saves the send and, more importantly,
+           preserves consent (every extra text is a STOP opportunity months
+           before the one spring send that matters). The kp-success-phone
+           span is deliberately omitted in the waitlist branch; reveal()'s
+           null-check skips it. */}
       {WAITLIST_MODE ? (
         <div id="kp-success" class="kp-panel kp-success" hidden>
           <p class="kp-panel-eyebrow">You're on the list 🎳</p>
-          <h3 class="kp-panel-title">First word is yours.</h3>
+          <h3 class="kp-panel-title">That's it — spot saved.</h3>
           <p class="kp-panel-body">
-            We just texted a confirmation<span id="kp-success-phone"></span>.
-            When 2027 dates are set you hear first, and waitlist signup opens
-            <strong>before the public window</strong>. One text when it
-            matters — that's it.
+            No confirmation text, no inbox clutter. When 2027 dates are set
+            you hear first, and waitlist signup opens <strong>before the
+            public window</strong>. One text when it matters — that's the
+            whole deal.
           </p>
         </div>
       ) : (

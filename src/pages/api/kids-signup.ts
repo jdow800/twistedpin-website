@@ -39,9 +39,10 @@ import type { APIRoute } from 'astro';
  * (per Jon 2026-08-01: NO rollover — 2027 enrollment is a separate tag the
  * 2027 grant cron will match on; everyone re-registers).
  * ⚠️ n8n WF-Loyalty-Forms-Intake needs the waitlist form_slug branch
- * (upsert + tag from payload + waitlist welcome text, NO grant) BEFORE
- * Aug 15. The page (/free-kids-bowling) flips itself the same midnight via
- * the daily cron rebuild.
+ * (upsert + tag from payload + respond ok — NO welcome text per Jon
+ * 2026-08-01, the page's success panel is the confirmation; NO grant)
+ * BEFORE Aug 15. The page (/free-kids-bowling) flips itself the same
+ * midnight via the daily cron rebuild.
  */
 const INTAKE_URL =
   import.meta.env.LOYALTY_INTAKE_URL ??
