@@ -2,9 +2,10 @@
 /**
  * /signatures — STAFF email-signature install guide (noindex, unlinked).
  *
- * One job: John and Shanna each get the Twisted Pin Gmail signature into their
- * own account without anyone hand-editing HTML. Four steps: confirm the values,
- * host the images, copy, paste.
+ * One job: each person gets the Twisted Pin Gmail signature into their own
+ * account without anyone hand-editing HTML. Four steps: confirm the values,
+ * host the images, copy, paste. Add a teammate by adding one entry to PEOPLE —
+ * step 1's fields, the preview, and the Copy button all generate from it.
  *
  * Implemented from the Claude Design project "Gmail signature optimization"
  * (`Signature Install.dc.html`). Layout, copy, and colours are carried over
@@ -51,23 +52,43 @@ const FB_URL = "https://www.facebook.com/twistedpin";
 const ADDRESS_LINE = `${STREET}, ${LOCALITY} ${REGION}`;
 
 interface Person {
+  /** Prefix for this person's state keys and their `#sig-<key>` element.
+   *  Deliberately NOT "jon"/"john" — two people here are Jon Dow and John
+   *  Valianos, and a one-letter difference between binding keys is a bug
+   *  waiting to happen. */
   key: string;
+  /** Short heading in step 3. */
   label: string;
+  /** Disambiguating prefix on the step-1 field labels. */
+  fieldLabel: string;
   email: string;
-  /** Extra qualifier shown next to the address in the step-3 header. */
+  /** Extra qualifier shown beside the address in the step-3 header. */
   note?: string;
   name: string;
   title: string;
-  /** John's first contact row is a click-to-call; Shanna's is a booking link. */
+  /** First contact row is a click-to-call when `phone` is set, or a booking
+   *  link when `scheduleUrl` is. Exactly one of the two. */
   phone?: string;
   scheduleUrl?: string;
 }
 
-/** The two signature owners. Everything editable in step 1 lives here. */
+/** The signature owners. Everything editable in step 1 is generated from here.
+ *  Jon and John share the venue's main line — each gets its own field so a
+ *  future direct line for either doesn't force a code change. */
 const PEOPLE: Person[] = [
   {
-    key: "john",
+    key: "jonDow",
+    label: "Jon",
+    fieldLabel: "Jon Dow",
+    email: "jon@twistedpin.com",
+    name: "Jon Dow",
+    title: "Owner & Founder",
+    phone: PHONE_DISPLAY,
+  },
+  {
+    key: "johnV",
     label: "John",
+    fieldLabel: "John V",
     email: "john@twistedpin.com",
     name: "John Valianos",
     title: "General Manager",
@@ -76,6 +97,7 @@ const PEOPLE: Person[] = [
   {
     key: "shanna",
     label: "Shanna",
+    fieldLabel: "Shanna",
     email: "shanna@twistedpin.com",
     note: "includes a Schedule a Call link",
     name: "Shanna Dow",
@@ -130,26 +152,26 @@ const tdWidth = (px: number) => ({ width: String(px) });
         </p>
 
         <div class="sig-fields">
-          <label class="sig-field" style="flex: 1 1 180px">
-            <span class="sig-label">John — name</span>
-            <input class="sig-input" data-field="johnName" value="John Valianos" />
-          </label>
-          <label class="sig-field" style="flex: 1 1 180px">
-            <span class="sig-label">John — title</span>
-            <input class="sig-input" data-field="johnTitle" value="General Manager" />
-          </label>
-          <label class="sig-field" style="flex: 1 1 160px">
-            <span class="sig-label">John — phone</span>
-            <input class="sig-input" data-field="johnPhone" value={PHONE_DISPLAY} />
-          </label>
-          <label class="sig-field" style="flex: 1 1 180px">
-            <span class="sig-label">Shanna — name</span>
-            <input class="sig-input" data-field="shannaName" value="Shanna Dow" />
-          </label>
-          <label class="sig-field" style="flex: 1 1 180px">
-            <span class="sig-label">Shanna — title</span>
-            <input class="sig-input" data-field="shannaTitle" value="Director of Experiences" />
-          </label>
+          {/* Per-person fields are generated so adding someone to PEOPLE can
+              never leave step 1 and the previews out of sync. */}
+          {PEOPLE.map((p) => (
+            <>
+              <label class="sig-field" style="flex: 1 1 180px">
+                <span class="sig-label">{p.fieldLabel} — name</span>
+                <input class="sig-input" data-field={`${p.key}Name`} value={p.name} />
+              </label>
+              <label class="sig-field" style="flex: 1 1 180px">
+                <span class="sig-label">{p.fieldLabel} — title</span>
+                <input class="sig-input" data-field={`${p.key}Title`} value={p.title} />
+              </label>
+              {p.phone && (
+                <label class="sig-field" style="flex: 1 1 160px">
+                  <span class="sig-label">{p.fieldLabel} — phone</span>
+                  <input class="sig-input" data-field={`${p.key}Phone`} value={p.phone} />
+                </label>
+              )}
+            </>
+          ))}
           <label class="sig-field" style="flex: 1 1 100%">
             <span class="sig-label">
               Google review link — paste the "Share review form" URL from your
@@ -247,12 +269,12 @@ const tdWidth = (px: number) => ({ width: String(px) });
                           {p.phone ? (
                             <tr>
                               <td {...tdWidth(38)} style="width:38px; padding:0 0 5px">
-                                <a data-bind-href="johnPhoneHref" href={telHref(p.phone)} style="text-decoration:none">
+                                <a data-bind-href={`${p.key}PhoneHref`} href={telHref(p.phone)} style="text-decoration:none">
                                   <img src="/email/icon-phone.png" width="26" height="26" alt="" style="display:block; width:26px; height:26px; border:0" />
                                 </a>
                               </td>
                               <td valign="middle" style="padding:0 0 5px; font-family:Arial, sans-serif; font-size:14px; font-weight:bold">
-                                <a data-bind-href="johnPhoneHref" data-bind="johnPhone" href={telHref(p.phone)} style="color:#111111; text-decoration:none">{p.phone}</a>
+                                <a data-bind-href={`${p.key}PhoneHref`} data-bind={`${p.key}Phone`} href={telHref(p.phone)} style="color:#111111; text-decoration:none">{p.phone}</a>
                               </td>
                             </tr>
                           ) : (
@@ -680,8 +702,8 @@ const tdWidth = (px: number) => ({ width: String(px) });
    * copies a signature to the clipboard as rich HTML.
    *
    * Bindings are declarative: `data-bind="key"` sets textContent,
-   * `data-bind-href="key"` sets href. Derived keys (johnPhoneHref, checkUrl,
-   * checkHref) are computed in `derive()`.
+   * `data-bind-href="key"` sets href. Derived keys (`<person>PhoneHref`,
+   * checkUrl, checkHref) are computed in `derive()`.
    */
   function init(page: HTMLElement) {
     // Fallback for browsers without :has() — see the global style block.
@@ -713,12 +735,14 @@ const tdWidth = (px: number) => ({ width: String(px) });
     function derive(): Record<string, string> {
       const base = cleanBase();
       const check = `${base}/tp-logo-black.png`;
-      return {
-        ...state,
-        johnPhoneHref: `tel:+1${(state.johnPhone || "").replace(/\D/g, "")}`,
-        checkUrl: check,
-        checkHref: check,
-      };
+      const vals: Record<string, string> = { ...state, checkUrl: check, checkHref: check };
+      // Every `<key>Phone` field gets a matching `<key>PhoneHref`. Derived by
+      // suffix rather than by name so adding a person to PEOPLE needs no edit
+      // here — and so two people sharing a number can't cross-wire.
+      for (const [k, v] of Object.entries(state)) {
+        if (k.endsWith("Phone")) vals[`${k}Href`] = `tel:+1${v.replace(/\D/g, "")}`;
+      }
+      return vals;
     }
 
     function render() {
