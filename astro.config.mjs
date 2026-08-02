@@ -76,6 +76,8 @@ export default defineConfig({
         !page.includes('/labor') &&
         // Internal teammate culture book (password-gated) — same treatment.
         !page.includes('/playbook') &&
+        // Internal email-signature install guide (unlinked) — same treatment.
+        !page.includes('/signatures') &&
         // (/coupon-preview + /kids-signup-preview exclusions removed 2026-07-24
         //  — promoted onto /coupon + /free-kids-bowling at the loyalty cutover;
         //  both live pages are meant to be indexed and in the sitemap.)

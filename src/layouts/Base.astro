@@ -138,7 +138,10 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 // /playbook is the internal teammate culture book — same reasoning, plus one
 // more: teammates type their legal name into the acknowledgment form, and
 // Clarity session recordings should never capture that.
-const STAFF_PATHS = ["/liquor/", "/money/", "/playbook/"];
+//
+// /signatures is the internal email-signature install guide — two people, a
+// handful of visits, and the values typed into it are staff contact details.
+const STAFF_PATHS = ["/liquor/", "/money/", "/playbook/", "/signatures/"];
 const isStaffPage = STAFF_PATHS.some((p) => canonicalPath.startsWith(p));
 
 // Auto-detect inLanguage from canonical path. /es/* gets es-US; everything

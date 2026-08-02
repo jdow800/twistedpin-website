@@ -1,0 +1,810 @@
+---
+/**
+ * /signatures — STAFF email-signature install guide (noindex, unlinked).
+ *
+ * One job: John and Shanna each get the Twisted Pin Gmail signature into their
+ * own account without anyone hand-editing HTML. Four steps: confirm the values,
+ * host the images, copy, paste.
+ *
+ * Implemented from the Claude Design project "Gmail signature optimization"
+ * (`Signature Install.dc.html`). Layout, copy, and colours are carried over
+ * verbatim; the reactive `{{ }}` bindings of the design runtime are re-done here
+ * as plain `data-bind` attributes + one vanilla script, so the page ships with
+ * no framework island.
+ *
+ * THE LOAD-BEARING PART is `public/email/` — Gmail only renders images that live
+ * at a public URL, so the eight PNGs imported from the design project are
+ * committed there and served by Vercel at https://www.twistedpin.com/email/*.
+ * The preview below points at the site-absolute `/email/…` path so it renders
+ * here; the Copy button rewrites that prefix to the absolute base (step 2 field)
+ * on the way to the clipboard, because a relative src pasted into Gmail resolves
+ * against mail.google.com and breaks. Never re-host these on Drive/Dropbox/Docs
+ * — Gmail blocks those and recipients see empty boxes.
+ *
+ * Two values deliberately differ from the design file, both to match this repo's
+ * single source of truth rather than re-typing a second copy of a NAP fact:
+ *   - Facebook URL → /twistedpin (schema.ts `sameAs` + SnapFooter), not
+ *     /twistedpinplainfield.
+ *   - Street address → STREET from schema.ts ("15610 Joliet Rd"), not
+ *     "15610 S. Joliet Rd".
+ * Both are visible on the page; the FB one is editable in step 1.
+ *
+ * The signature markup is TABLE-BASED with inline styles ON PURPOSE. That is the
+ * only thing Gmail and Outlook both keep. Do not refactor it to flexbox/grid, do
+ * not move its styles into the <style> block below, and do not add classes to it
+ * — the Copy button ships `innerHTML`, so anything not inline is lost.
+ *
+ * Indexability: noindex,nofollow + robots.txt Disallow + sitemap-excluded
+ * (astro.config.mjs) + `isStaffPage` in Base.astro (no GA4/Clarity/Meta).
+ */
+import Base from "../layouts/Base.astro";
+import { STREET, LOCALITY, REGION, PHONE_DISPLAY } from "../lib/schema";
+
+// Public base for the hosted signature images. The preview uses the
+// site-absolute `/email/` prefix; the clipboard copy swaps it for this.
+const IMAGE_BASE = "https://www.twistedpin.com/email";
+
+// Canonical socials — same constants the footer and LocalBusiness `sameAs` use.
+const IG_URL = "https://www.instagram.com/twistedpinplainfield/";
+const FB_URL = "https://www.facebook.com/twistedpin";
+
+const ADDRESS_LINE = `${STREET}, ${LOCALITY} ${REGION}`;
+
+interface Person {
+  key: string;
+  label: string;
+  email: string;
+  /** Extra qualifier shown next to the address in the step-3 header. */
+  note?: string;
+  name: string;
+  title: string;
+  /** John's first contact row is a click-to-call; Shanna's is a booking link. */
+  phone?: string;
+  scheduleUrl?: string;
+}
+
+/** The two signature owners. Everything editable in step 1 lives here. */
+const PEOPLE: Person[] = [
+  {
+    key: "john",
+    label: "John",
+    email: "john@twistedpin.com",
+    name: "John Valianos",
+    title: "General Manager",
+    phone: PHONE_DISPLAY,
+  },
+  {
+    key: "shanna",
+    label: "Shanna",
+    email: "shanna@twistedpin.com",
+    note: "includes a Schedule a Call link",
+    name: "Shanna Dow",
+    title: "Director of Experiences",
+    scheduleUrl: "https://lunacal.ai/twistedpin",
+  },
+];
+
+const telHref = (display: string) => `tel:+1${display.replace(/\D/g, "")}`;
+
+/**
+ * `<td width>` is a presentational HTML4 attribute that Astro's JSX types don't
+ * model — but Outlook's Word rendering engine honours it and frequently ignores
+ * the CSS equivalent, so the signature tables need both. Spread it in.
+ */
+const tdWidth = (px: number) => ({ width: String(px) });
+---
+
+<Base
+  title="Email signature setup — Twisted Pin"
+  description="Internal: install the Twisted Pin Gmail signature."
+  hideHeader={true}
+  hideStickyCTA={true}
+  hidePromo={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+
+  <div class="sig-page">
+    <header class="sig-masthead">
+      <div class="sig-masthead-inner">
+        <p class="sig-eyebrow">Twisted Pin · Internal</p>
+        <h1 class="sig-h1">Email signature setup</h1>
+        <p class="sig-lede">
+          Four steps, about five minutes. Confirm the details, host the images
+          once, then each person copies their own signature into Gmail.
+        </p>
+      </div>
+    </header>
+
+    <div class="sig-body">
+      {/* ---------------------------------------------------------------- 1 */}
+      <section class="sig-card sig-card--warn">
+        <h2 class="sig-step">
+          <span class="sig-num sig-num--warn">1</span>
+          <span>Check these details before anyone copies anything</span>
+        </h2>
+        <p class="sig-note sig-note--warn">
+          Every value below goes out on real email. Fix anything that's wrong
+          here first — the signatures update as you type.
+        </p>
+
+        <div class="sig-fields">
+          <label class="sig-field" style="flex: 1 1 180px">
+            <span class="sig-label">John — name</span>
+            <input class="sig-input" data-field="johnName" value="John Valianos" />
+          </label>
+          <label class="sig-field" style="flex: 1 1 180px">
+            <span class="sig-label">John — title</span>
+            <input class="sig-input" data-field="johnTitle" value="General Manager" />
+          </label>
+          <label class="sig-field" style="flex: 1 1 160px">
+            <span class="sig-label">John — phone</span>
+            <input class="sig-input" data-field="johnPhone" value={PHONE_DISPLAY} />
+          </label>
+          <label class="sig-field" style="flex: 1 1 180px">
+            <span class="sig-label">Shanna — name</span>
+            <input class="sig-input" data-field="shannaName" value="Shanna Dow" />
+          </label>
+          <label class="sig-field" style="flex: 1 1 180px">
+            <span class="sig-label">Shanna — title</span>
+            <input class="sig-input" data-field="shannaTitle" value="Director of Experiences" />
+          </label>
+          <label class="sig-field" style="flex: 1 1 100%">
+            <span class="sig-label">
+              Google review link — paste the "Share review form" URL from your
+              Google Business Profile. Left blank, the Google badge is left off.
+            </span>
+            <input
+              class="sig-input sig-input--mono"
+              data-field="googleUrl"
+              value=""
+              placeholder="https://g.page/r/…"
+            />
+          </label>
+          <label class="sig-field" style="flex: 1 1 300px">
+            <span class="sig-label">Instagram URL</span>
+            <input class="sig-input sig-input--mono" data-field="igUrl" value={IG_URL} />
+          </label>
+          <label class="sig-field" style="flex: 1 1 300px">
+            <span class="sig-label">Facebook URL</span>
+            <input class="sig-input sig-input--mono" data-field="fbUrl" value={FB_URL} />
+          </label>
+        </div>
+      </section>
+
+      {/* ---------------------------------------------------------------- 2 */}
+      <section class="sig-card">
+        <h2 class="sig-step">
+          <span class="sig-num">2</span>
+          <span>Host the images — one time, by whoever manages the website</span>
+        </h2>
+        <p class="sig-note">
+          Gmail can only show pictures that live at a public web address. The
+          eight files in this site's <code>public/email/</code> folder are what
+          every signature points at.
+        </p>
+        <ol class="sig-list">
+          <li>
+            The files are already committed to the website repo at
+            <code>public/email/</code>, so a push to <code>main</code> deploys
+            them — nothing to upload by hand.
+          </li>
+          <li>
+            Check it worked: open
+            <a data-bind-href="checkHref" href={`${IMAGE_BASE}/tp-logo-black.png`} target="_blank" rel="noopener">
+              <span data-bind="checkUrl">{IMAGE_BASE}/tp-logo-black.png</span>
+            </a>
+            in a browser. If you see the logo, this step is done.
+          </li>
+        </ol>
+        <label class="sig-field" style="padding-top: 4px">
+          <span class="sig-label sig-label--plain">
+            Image folder address — only change this if you put the files
+            somewhere else
+          </span>
+          <input class="sig-input sig-input--base" data-field="base" value={IMAGE_BASE} />
+        </label>
+        <p class="sig-note sig-note--quiet">
+          Never link the images from Google Drive, Dropbox or a Google Doc —
+          Gmail blocks those and recipients see broken boxes.
+        </p>
+      </section>
+
+      {/* ---------------------------------------------------------------- 3 */}
+      <section class="sig-card">
+        <h2 class="sig-step">
+          <span class="sig-num">3</span>
+          <span>Find your name and hit Copy</span>
+        </h2>
+
+        {PEOPLE.map((p, i) => (
+          <>
+            {i > 0 && <div class="sig-rule" />}
+            <div class="sig-person">
+              <div class="sig-person-head">
+                <span class="sig-person-name">{p.label}</span>
+                <span class="sig-person-meta">
+                  {p.email}{p.note ? ` · ${p.note}` : ""}
+                </span>
+              </div>
+
+              <div class="sig-preview">
+                {/* ==== SIGNATURE MARKUP — inline styles only, see docstring ==== */}
+                <div id={`sig-${p.key}`}>
+                  <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse; width:460px; font-family:Arial, Helvetica, sans-serif">
+                    <tr>
+                      <td valign="top" {...tdWidth(200)} style="width:200px; padding:0 22px 0 0; border-right:3px solid #200F53">
+                        <a href="https://www.twistedpin.com/" style="text-decoration:none">
+                          <img src="/email/tp-logo-black.png" width="200" alt="Twisted Pin" style="display:block; width:200px; height:auto; border:0" />
+                        </a>
+                      </td>
+                      <td valign="top" style="padding:0 0 0 22px">
+                        <div data-bind={`${p.key}Name`} style="font-family:'Arial Black', Arial, sans-serif; font-size:21px; line-height:1.1; color:#111111; letter-spacing:-0.4px">{p.name}</div>
+                        <div data-bind={`${p.key}Title`} style="font-family:Arial, sans-serif; font-size:14px; line-height:1.3; color:#52525b; padding-top:5px">{p.title}</div>
+                        <div style="height:12px; line-height:12px; font-size:0">&nbsp;</div>
+                        <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse">
+                          {p.phone ? (
+                            <tr>
+                              <td {...tdWidth(38)} style="width:38px; padding:0 0 5px">
+                                <a data-bind-href="johnPhoneHref" href={telHref(p.phone)} style="text-decoration:none">
+                                  <img src="/email/icon-phone.png" width="26" height="26" alt="" style="display:block; width:26px; height:26px; border:0" />
+                                </a>
+                              </td>
+                              <td valign="middle" style="padding:0 0 5px; font-family:Arial, sans-serif; font-size:14px; font-weight:bold">
+                                <a data-bind-href="johnPhoneHref" data-bind="johnPhone" href={telHref(p.phone)} style="color:#111111; text-decoration:none">{p.phone}</a>
+                              </td>
+                            </tr>
+                          ) : (
+                            <tr>
+                              <td {...tdWidth(38)} style="width:38px; padding:0 0 5px">
+                                <a href={p.scheduleUrl} style="text-decoration:none">
+                                  <img src="/email/icon-calendar.png" width="26" height="26" alt="" style="display:block; width:26px; height:26px; border:0" />
+                                </a>
+                              </td>
+                              <td valign="middle" style="padding:0 0 5px; font-family:Arial, sans-serif; font-size:14px; font-weight:bold">
+                                <a href={p.scheduleUrl} style="color:#128198; text-decoration:none">Schedule a Call</a>
+                              </td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td {...tdWidth(38)} style="width:38px; padding:0 0 5px">
+                              <a href={`mailto:${p.email}`} style="text-decoration:none">
+                                <img src="/email/icon-mail.png" width="26" height="26" alt="" style="display:block; width:26px; height:26px; border:0" />
+                              </a>
+                            </td>
+                            <td valign="middle" style="padding:0 0 5px; font-family:Arial, sans-serif; font-size:14px; font-weight:bold">
+                              <a href={`mailto:${p.email}`} style="color:#111111; text-decoration:none">Email Me</a>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td {...tdWidth(38)} style="width:38px; padding:0">
+                              <a href="https://www.twistedpin.com/" style="text-decoration:none">
+                                <img src="/email/icon-web.png" width="26" height="26" alt="" style="display:block; width:26px; height:26px; border:0" />
+                              </a>
+                            </td>
+                            <td valign="middle" style="padding:0; font-family:Arial, sans-serif; font-size:14px; font-weight:bold">
+                              <a href="https://www.twistedpin.com/" style="color:#111111; text-decoration:none">Our Website</a>
+                            </td>
+                          </tr>
+                        </table>
+                        <div style="height:10px; line-height:10px; font-size:0">&nbsp;</div>
+                        <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse">
+                          <tr>
+                            <td style="padding:0 9px 0 0">
+                              <a data-bind-href="igUrl" href={IG_URL} style="text-decoration:none">
+                                <img src="/email/icon-ig.png" width="26" height="26" alt="Instagram" style="display:block; width:26px; height:26px; border:0" />
+                              </a>
+                            </td>
+                            <td style="padding:0 9px 0 0">
+                              <a data-bind-href="fbUrl" href={FB_URL} style="text-decoration:none">
+                                <img src="/email/icon-fb.png" width="26" height="26" alt="Facebook" style="display:block; width:26px; height:26px; border:0" />
+                              </a>
+                            </td>
+                            {/* Google badge is dropped entirely when the review
+                                URL is blank — the script removes this cell's
+                                contents rather than hiding them, so the empty
+                                state never rides along into the clipboard. */}
+                            <td style="padding:0" data-google-slot>
+                              <a data-bind-href="googleUrl" href="" style="text-decoration:none">
+                                <img src="/email/icon-google.png" width="26" height="26" alt="Google reviews" style="display:block; width:26px; height:26px; border:0" />
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="2" style="padding:12px 0 0">
+                        <div style="border-top:1px solid #E4E4E8; padding-top:9px; font-family:Arial, sans-serif; font-size:10px; letter-spacing:0.9px; text-transform:uppercase; color:#8a8a92">{ADDRESS_LINE}<span style="color:#d0d0d6">&nbsp;&nbsp;·&nbsp;&nbsp;</span><span style="color:#128198; font-weight:bold">Let's Get Twisted</span></div>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                {/* ==== end signature markup ==== */}
+              </div>
+
+              <div class="sig-actions">
+                <button type="button" class="sig-btn" data-copy={p.key}>
+                  Copy {p.label}'s signature
+                </button>
+                <span class="sig-hint">Then follow step 4</span>
+              </div>
+            </div>
+          </>
+        ))}
+      </section>
+
+      {/* ---------------------------------------------------------------- 4 */}
+      <section class="sig-card">
+        <h2 class="sig-step">
+          <span class="sig-num">4</span>
+          <span>Paste it into Gmail</span>
+        </h2>
+        <ol class="sig-list sig-list--airy">
+          <li>In Gmail, click the <strong>gear icon</strong> (top right) → <strong>See all settings</strong>.</li>
+          <li>Stay on the <strong>General</strong> tab and scroll down to <strong>Signature</strong>.</li>
+          <li>Click <strong>Create new</strong>, name it <em>Twisted Pin</em>, click <strong>Create</strong>.</li>
+          <li>
+            Click inside the big empty signature box and paste with
+            <strong>⌘V</strong> (Mac) or <strong>Ctrl+V</strong> (Windows). The
+            whole thing should appear with the logo — don't retype anything.
+          </li>
+          <li>
+            Under <strong>Signature defaults</strong>, set both dropdowns —
+            <em>For new emails</em> and <em>On reply/forward</em> — to
+            <strong>Twisted Pin</strong>.
+          </li>
+          <li>
+            Scroll to the very bottom and click <strong>Save Changes</strong>.
+            Gmail does not save on its own.
+          </li>
+        </ol>
+        <p class="sig-callout">
+          Send yourself a test email, then click every icon in it to make sure
+          each link goes where it should. On your phone the signature will look
+          slightly smaller — that's Gmail shrinking the message to fit, not a
+          mistake.
+        </p>
+      </section>
+
+      {/* ------------------------------------------------------ troubleshoot */}
+      <section class="sig-card">
+        <p class="sig-kicker">If something looks wrong</p>
+        <div class="sig-trouble">
+          <p>
+            <strong>Empty boxes instead of the logo and icons.</strong> The
+            images aren't live yet — go back to step 2 and open the check link.
+            If that link doesn't show the logo, the folder hasn't deployed.
+          </p>
+          <p>
+            <strong>Only some of it pasted.</strong> Paste again with the plain
+            keyboard shortcut. Don't use right-click → Paste as plain text, and
+            don't paste into the Gmail compose window — it has to go in the
+            Settings signature box.
+          </p>
+          <p>
+            <strong>A name, title, phone number or link is wrong.</strong> Fix it
+            in step 1 above, copy again, and re-paste over the old signature in
+            Gmail. Don't hand-edit inside Gmail — that usually breaks the
+            spacing.
+          </p>
+          <p>
+            <strong>Recipients see the images as attachments.</strong> Harmless —
+            some versions of Outlook do that with all signature images. Nothing
+            to fix on our end.
+          </p>
+        </div>
+      </section>
+    </div>
+  </div>
+</Base>
+
+{/*
+  `is:global`, NOT Astro's default scoping — and that is load-bearing, not
+  laziness. Scoping works by stamping `class="astro-…"` onto every element a
+  selector matches, and `.sig-page a` matches the anchors INSIDE the signature
+  tables. Those classes then ride into the clipboard on `innerHTML`. Global is
+  safe here because every selector below is prefixed with a `.sig-*` class that
+  exists on no other page.
+*/}
+<style is:global>
+  /* This page is a light-mode document inside a dark-mode site. `:has()` paints
+     correctly on the first frame (no dark flash); the `.sig-light` class is
+     added by the script so browsers without `:has()` still land light. */
+  html:has(.sig-page),
+  body:has(.sig-page),
+  html.sig-light,
+  body.sig-light {
+    background: #f6f6f8;
+  }
+  body:has(.sig-page)::before,
+  body.sig-light::before {
+    display: none;
+  }
+
+  /* The signature tables are deliberately NOT styled from here — see the
+     docstring at the top of this file. */
+  .sig-page {
+    min-height: 100%;
+    background: #f6f6f8;
+    font-family: Helvetica, Arial, sans-serif;
+    color: #18181b;
+    padding: 0 0 90px;
+  }
+  .sig-page a { color: #128198; }
+  .sig-page a:hover { color: #0d6478; }
+
+  .sig-masthead { background: #200f53; padding: 34px 24px 30px; }
+  .sig-masthead-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sig-eyebrow {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 2.6px;
+    text-transform: uppercase;
+    color: #4eecc4;
+    font-weight: 700;
+  }
+  .sig-h1 {
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.7px;
+    color: #ffffff;
+    line-height: 1.08;
+  }
+  .sig-lede {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #b9b3d4;
+    max-width: 640px;
+    text-wrap: pretty;
+  }
+
+  .sig-body {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 34px 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    /* The signature preview holds a fixed 460px table. Flex items default to
+       `min-width: auto`, so without this the table's intrinsic width props the
+       whole column open and the page scrolls sideways on a phone. Every flex
+       ancestor between here and `.sig-preview` needs it. */
+    min-width: 0;
+  }
+
+  .sig-card {
+    background: #ffffff;
+    border: 1px solid #e6e6ea;
+    border-radius: 14px;
+    padding: 26px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+  }
+  .sig-card--warn {
+    background: #fffbeb;
+    border-color: #f2dd9a;
+    gap: 18px;
+  }
+
+  .sig-step {
+    display: flex;
+    /* flex-start, not center: these headings wrap to 2-3 lines on a phone and
+       a vertically-centred badge then floats beside the middle line. The 2px
+       nudge optically centres it on line one. */
+    align-items: flex-start;
+    gap: 12px;
+    margin: 0;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+    text-transform: none;
+    color: #18181b;
+  }
+  .sig-card--warn .sig-step { color: #78350f; }
+  .sig-num {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #200f53;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+  .sig-num--warn { background: #b45309; }
+
+  .sig-note {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #52525b;
+    text-wrap: pretty;
+  }
+  .sig-note--warn { color: #7c5a1e; }
+  .sig-note--quiet { font-size: 13px; line-height: 1.65; color: #8a8a92; }
+
+  .sig-page code {
+    background: #f1f1f4;
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  .sig-list {
+    margin: 0;
+    padding-left: 20px;
+    font-size: 14px;
+    line-height: 1.85;
+    color: #3f3f46;
+  }
+  .sig-list--airy { line-height: 1.9; }
+  .sig-list li::marker { color: #8a8a92; }
+  /* The check link is a long unbroken URL — let it wrap on a phone. */
+  .sig-list a { overflow-wrap: anywhere; }
+
+  .sig-fields { display: flex; flex-wrap: wrap; gap: 14px 16px; min-width: 0; }
+  .sig-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .sig-label {
+    font-size: 10px;
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+    color: #8a6d2f;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .sig-label--plain { color: #8a8a92; letter-spacing: 1.7px; }
+  .sig-input {
+    border: 1px solid #e3d3a6;
+    border-radius: 7px;
+    padding: 10px 12px;
+    /* 16px: iOS Safari auto-zooms on focus of anything smaller and never
+       zooms back out. Design specified 13px; that trade isn't worth it on a
+       page whose whole job is typing values. */
+    font-size: 16px;
+    background: #ffffff;
+    color: #18181b;
+    outline: none;
+    font-family: Helvetica, Arial, sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .sig-input:focus-visible { border-color: #200f53; box-shadow: 0 0 0 2px rgba(32, 15, 83, 0.15); }
+  .sig-input--mono { font-family: ui-monospace, Menlo, monospace; }
+  .sig-input--base {
+    border-color: #dcdce2;
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-family: ui-monospace, Menlo, monospace;
+    color: #200f53;
+    background: #fbfbfc;
+  }
+
+  .sig-rule { height: 1px; background: #eeeef1; }
+  .sig-person { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .sig-person-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .sig-person-name {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: #128198;
+  }
+  .sig-person-meta { font-size: 13px; color: #8a8a92; }
+
+  .sig-preview {
+    border: 1px solid #e6e6ea;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 24px 22px;
+    /* The signature is a fixed 460px table — scroll it inside the card rather
+       than let it widen the page. `min-width: 0` is what actually permits the
+       shrink; `overflow-x` alone does nothing against `min-width: auto`. */
+    overflow-x: auto;
+    min-width: 0;
+  }
+
+  .sig-actions { display: flex; gap: 11px; align-items: center; flex-wrap: wrap; }
+  .sig-btn {
+    background: #200f53;
+    color: #ffffff;
+    border: 0;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: Helvetica, Arial, sans-serif;
+  }
+  .sig-btn:hover { background: #128198; }
+  .sig-btn[data-copied] { background: #128198; }
+  .sig-hint { font-size: 12px; color: #8a8a92; }
+
+  .sig-callout {
+    margin: 0;
+    background: #f8f8fa;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #52525b;
+    text-wrap: pretty;
+  }
+
+  .sig-kicker {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    color: #128198;
+    font-weight: 700;
+  }
+  .sig-trouble {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #3f3f46;
+  }
+  .sig-trouble p { margin: 0; }
+
+  @media (min-width: 700px) {
+    .sig-masthead { padding: 34px 40px 30px; }
+    .sig-body { padding: 34px 40px 0; }
+    .sig-card { padding: 26px 28px; }
+  }
+</style>
+
+<script>
+  /**
+   * Live-binds the step-1 / step-2 fields into both signature previews, and
+   * copies a signature to the clipboard as rich HTML.
+   *
+   * Bindings are declarative: `data-bind="key"` sets textContent,
+   * `data-bind-href="key"` sets href. Derived keys (johnPhoneHref, checkUrl,
+   * checkHref) are computed in `derive()`.
+   */
+  function init(page: HTMLElement) {
+    // Fallback for browsers without :has() — see the global style block.
+    document.documentElement.classList.add("sig-light");
+    document.body.classList.add("sig-light");
+
+    /** Preview prefix that the clipboard copy rewrites to the hosted base. */
+    const PREVIEW_PREFIX = 'src="/email/';
+
+    // Astro stamps `class="astro-…"` onto any element carrying a spread prop
+    // (the `<td>` width attributes) and onto anything a scoped selector
+    // matches. Those classes reference no CSS here and would ride into the
+    // clipboard on innerHTML. Strip them before anything reads the markup —
+    // this also future-proofs the payload if someone adds a scoped style.
+    for (const el of page.querySelectorAll<HTMLElement>('[id^="sig-"] [class*="astro-"]')) {
+      el.removeAttribute("class");
+    }
+
+    const inputs = Array.from(
+      page.querySelectorAll<HTMLInputElement>("input[data-field]"),
+    );
+
+    const state: Record<string, string> = {};
+    for (const el of inputs) state[el.dataset.field!] = el.value;
+
+    /** Trailing slash on the base would double up in the rewritten src. */
+    const cleanBase = () => (state.base || "").replace(/\/+$/, "");
+
+    function derive(): Record<string, string> {
+      const base = cleanBase();
+      const check = `${base}/tp-logo-black.png`;
+      return {
+        ...state,
+        johnPhoneHref: `tel:+1${(state.johnPhone || "").replace(/\D/g, "")}`,
+        checkUrl: check,
+        checkHref: check,
+      };
+    }
+
+    function render() {
+      const vals = derive();
+
+      for (const el of page.querySelectorAll<HTMLElement>("[data-bind]")) {
+        const v = vals[el.dataset.bind!];
+        if (v !== undefined) el.textContent = v;
+      }
+      for (const el of page.querySelectorAll<HTMLElement>("[data-bind-href]")) {
+        const v = vals[el.dataset.bindHref!];
+        if (v !== undefined) el.setAttribute("href", v);
+      }
+
+      // Google badge: present only when a review URL is set. Detached rather
+      // than hidden so a blank URL can't ride along into the clipboard.
+      const hasGoogle = (state.googleUrl || "").trim().length > 0;
+      for (const slot of page.querySelectorAll<HTMLElement>("[data-google-slot]")) {
+        if (!slot.dataset.stash) slot.dataset.stash = slot.innerHTML;
+        slot.innerHTML = hasGoogle ? slot.dataset.stash : "";
+      }
+      if (hasGoogle) {
+        for (const el of page.querySelectorAll<HTMLElement>('[data-bind-href="googleUrl"]')) {
+          el.setAttribute("href", (state.googleUrl || "").trim());
+        }
+      }
+    }
+
+    for (const el of inputs) {
+      el.addEventListener("input", () => {
+        state[el.dataset.field!] = el.value;
+        render();
+      });
+    }
+
+    const timers = new Map<string, number>();
+
+    async function copy(btn: HTMLButtonElement) {
+      const key = btn.dataset.copy!;
+      const src = document.getElementById(`sig-${key}`);
+      if (!src) return;
+
+      // Absolutize the image srcs — a relative path pasted into Gmail resolves
+      // against mail.google.com and renders as broken boxes.
+      const html = src.innerHTML.split(PREVIEW_PREFIX).join(`src="${cleanBase()}/`);
+
+      try {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([html], { type: "text/html" }),
+            "text/plain": new Blob([src.innerText], { type: "text/plain" }),
+          }),
+        ]);
+      } catch {
+        // Safari <13.1 and any non-secure context: fall back to selecting the
+        // live nodes and letting execCommand carry the rich text. The images
+        // stay relative in this path, hence the check-link step.
+        const range = document.createRange();
+        range.selectNodeContents(src);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        document.execCommand("copy");
+        sel?.removeAllRanges();
+      }
+
+      const label = btn.textContent;
+      btn.textContent = "Copied ✓";
+      btn.dataset.copied = "1";
+      window.clearTimeout(timers.get(key));
+      timers.set(
+        key,
+        window.setTimeout(() => {
+          btn.textContent = label;
+          delete btn.dataset.copied;
+        }, 2000),
+      );
+    }
+
+    for (const btn of page.querySelectorAll<HTMLButtonElement>("button[data-copy]")) {
+      btn.addEventListener("click", () => void copy(btn));
+    }
+
+    render();
+  }
+
+  const root = document.querySelector<HTMLElement>(".sig-page");
+  if (root) init(root);
+</script>
