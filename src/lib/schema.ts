@@ -91,6 +91,25 @@ export const PLACE_ID = "ChIJURI15Tr1DogRLKYdPWWuY-M";
 export const MAPS_VENUE_URL = `https://www.google.com/maps/search/?api=1&query=Twisted+Pin&query_place_id=${PLACE_ID}`;
 
 /**
+ * Canonical "write a review" deep link — Google's documented
+ * `search.google.com/local/writereview` form, keyed by PLACE_ID. A
+ * signed-in recipient lands directly on the review dialog for the venue.
+ *
+ * Derived from PLACE_ID rather than pasted as a short link on purpose.
+ * Short links rot: the `maps.app.goo.gl` URL this codebase used to carry
+ * died with Firebase Dynamic Links (see MAPS_VENUE_URL above), and a
+ * `share.google/…` link is a redirector to a *search results* page that
+ * also carries share-flow `utm_source` tracking — neither belongs on a
+ * surface as long-lived as an email signature.
+ *
+ * Distinct from MAPS_VENUE_URL: that one shows the listing (informational),
+ * this one asks for a review (an action).
+ *
+ * Used by: /signatures (the Google badge on every email signature).
+ */
+export const GOOGLE_REVIEW_URL = `https://search.google.com/local/writereview?placeid=${PLACE_ID}`;
+
+/**
  * @deprecated Use MAPS_VENUE_URL instead. Kept as an alias only because
  * `hasMap` already references this name in schema callers — single
  * source of truth, just one identifier short of consolidated.

@@ -22,13 +22,16 @@
  * against mail.google.com and breaks. Never re-host these on Drive/Dropbox/Docs
  * — Gmail blocks those and recipients see empty boxes.
  *
- * Two values deliberately differ from the design file, both to match this repo's
- * single source of truth rather than re-typing a second copy of a NAP fact:
+ * Three values deliberately differ from the design file, all to match this
+ * repo's single source of truth rather than re-typing a second copy of a fact:
  *   - Facebook URL → /twistedpin (schema.ts `sameAs` + SnapFooter), not
  *     /twistedpinplainfield.
  *   - Street address → STREET from schema.ts ("15610 Joliet Rd"), not
  *     "15610 S. Joliet Rd".
- * Both are visible on the page; the FB one is editable in step 1.
+ *   - Google badge → GOOGLE_REVIEW_URL, derived from PLACE_ID. The design
+ *     hardcoded `maps.app.goo.gl/yyiVoLzTsHA2TNGW8`, a Firebase Dynamic Link
+ *     Google sunset in Aug 2025 — it is dead, do not restore it.
+ * All are visible on the page and editable in step 1.
  *
  * The signature markup is TABLE-BASED with inline styles ON PURPOSE. That is the
  * only thing Gmail and Outlook both keep. Do not refactor it to flexbox/grid, do
@@ -39,7 +42,7 @@
  * (astro.config.mjs) + `isStaffPage` in Base.astro (no GA4/Clarity/Meta).
  */
 import Base from "../layouts/Base.astro";
-import { STREET, LOCALITY, REGION, PHONE_DISPLAY } from "../lib/schema";
+import { STREET, LOCALITY, REGION, PHONE_DISPLAY, GOOGLE_REVIEW_URL } from "../lib/schema";
 
 // Public base for the hosted signature images. The preview uses the
 // site-absolute `/email/` prefix; the clipboard copy swaps it for this.
@@ -174,14 +177,14 @@ const tdWidth = (px: number) => ({ width: String(px) });
           ))}
           <label class="sig-field" style="flex: 1 1 100%">
             <span class="sig-label">
-              Google review link — paste the "Share review form" URL from your
-              Google Business Profile. Left blank, the Google badge is left off.
+              Google review link — pre-filled with our listing's review form.
+              Clear this field to leave the Google badge off.
             </span>
             <input
               class="sig-input sig-input--mono"
               data-field="googleUrl"
-              value=""
-              placeholder="https://g.page/r/…"
+              value={GOOGLE_REVIEW_URL}
+              placeholder="https://search.google.com/local/writereview?placeid=…"
             />
           </label>
           <label class="sig-field" style="flex: 1 1 300px">
