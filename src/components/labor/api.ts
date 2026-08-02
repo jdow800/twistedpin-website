@@ -112,6 +112,16 @@ export const getMe = () => call<{ actor: LaborActor | null }>("/admin/labor/me")
 
 export const getDays = () => call<{ days: FlaggedDay[] }>("/admin/labor/days").then((r) => r.days);
 
+/** The standard "normal week" staffing shapes — the reference card the weekly
+ *  email printed in full until 2026-08-02, when it collapsed to changes-only
+ *  and pointed here instead. Static server-side data; rarely changes. */
+export interface ReferenceGroup {
+  label: string; // "Mon–Thu" | "Fri" | "Sat" | "Sun"
+  rows: { dept: string; detail: string }[];
+}
+export const getReference = () =>
+  call<{ groups: ReferenceGroup[] }>("/admin/labor/reference").then((r) => r.groups);
+
 export const extractNote = (salesDate: string, transcript: string) =>
   call<{ proposed: ProposedNote; degraded?: boolean }>("/admin/labor/notes/extract", {
     method: "POST",

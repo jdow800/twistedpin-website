@@ -15,6 +15,7 @@ import {
   extractNote,
   getDays,
   getMe,
+  getReference,
   logout,
   saveNote,
   undoNote,
@@ -23,6 +24,7 @@ import {
   type NoteCategory,
   type NoteKind,
   type ProposedNote,
+  type ReferenceGroup,
 } from "./api";
 
 /**
@@ -178,8 +180,51 @@ export default function LaborApp() {
           ))}
         </section>
       )}
+
+      <ReferenceCard />
     </div>,
     true,
+  );
+}
+
+/**
+ * The standard "normal week" staffing shapes — the reference card the weekly
+ * email printed in full until 2026-08-02, when it collapsed to changes-only and
+ * pointed here instead. Collapsed by default (the annotation cards are the
+ * surface's one job); fetched on first open so the default load stays lean.
+ */
+function ReferenceCard() {
+  const [groups, setGroups] = useState<ReferenceGroup[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <details
+      className="lb-ref"
+      onToggle={(e) => {
+        if (!(e.target as HTMLDetailsElement).open || groups || failed) return;
+        getReference().then(setGroups).catch(() => setFailed(true));
+      }}
+    >
+      <summary className="lb-ref-summary">The normal week — staffing reference</summary>
+      <p className="lq-muted lb-ref-note">
+        What a normal week of this type has actually run, as a starting point —
+        not a 7shifts draft, not a recommendation. The weekly email calls out
+        what changes on top of this: booked events and the seasonal push.
+      </p>
+      {failed && <p className="lq-error">Couldn't load the reference — try again later.</p>}
+      {!groups && !failed && <p className="lq-muted lb-ref-note">Loading…</p>}
+      {groups?.map((g) => (
+        <div key={g.label} className="lb-ref-group">
+          <h3 className="lb-ref-label">{g.label}</h3>
+          {g.rows.map((r) => (
+            <div key={r.dept} className="lb-ref-row">
+              <span className="lb-ref-dept">{r.dept}</span>
+              <span>{r.detail}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </details>
   );
 }
 

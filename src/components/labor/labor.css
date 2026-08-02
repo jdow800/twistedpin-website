@@ -232,6 +232,27 @@
 }
 .lb-answered-row strong { color: #efecf4; }
 
+/* ── the normal week (staffing reference, collapsed by default) ── */
+.lb-ref { margin-top: 30px; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.10); }
+.lb-ref-summary {
+  cursor: pointer; list-style: none;
+  font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #948da3;
+}
+.lb-ref-summary::-webkit-details-marker { display: none; }
+.lb-ref-summary::after { content: " ▾"; }
+.lb-ref[open] .lb-ref-summary::after { content: " ▴"; }
+.lb-ref-note { font-size: 13px; line-height: 1.5; margin: 10px 0 4px; }
+.lb-ref-group { margin-top: 14px; }
+.lb-ref-label { font-size: 14px; margin: 0 0 6px; color: #efecf4; }
+.lb-ref-row {
+  display: flex; gap: 10px; align-items: baseline;
+  padding: 4px 0; font-size: 13.5px; line-height: 1.5; color: #cfc9db;
+}
+.lb-ref-dept {
+  flex: 0 0 78px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em; color: #948da3;
+}
+
 /* A lean day leads with the saving — the card asks "did it cost you anything?"
    rather than "explain this". Green because it is genuinely good news. */
 .lb-saved {
