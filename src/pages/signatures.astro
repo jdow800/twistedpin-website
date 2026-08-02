@@ -371,7 +371,15 @@ const tdWidth = (px: number) => ({ width: String(px) });
                     </tr>
                     <tr>
                       <td colspan="2" style="padding:12px 0 0">
-                        <div style="border-top:1px solid #E4E4E8; padding-top:9px; font-family:Arial, sans-serif; font-size:10px; letter-spacing:0.9px; text-transform:uppercase; color:#8a8a92">{ADDRESS_LINE}<span style="color:#d0d0d6">&nbsp;&nbsp;·&nbsp;&nbsp;</span><span style="color:#128198; font-weight:bold">Let's Get Twisted</span></div>
+                        {/* Two DELIBERATE lines, not one line that wraps. On a
+                            phone this string can't fit beside the address, and
+                            Gmail Android renders Arial as Roboto (wider), so a
+                            one-liner that measures fine in a browser still
+                            broke mid-phrase on a real device. An explicit <br>
+                            makes the break intentional and width-proof.
+                            line-height is stated in px because Outlook ignores
+                            unitless values. */}
+                        <div style="border-top:1px solid #E4E4E8; padding-top:9px; font-family:Arial, sans-serif; font-size:10px; line-height:17px; letter-spacing:0.9px; text-transform:uppercase; color:#8a8a92">{ADDRESS_LINE}<br /><span style="color:#128198; font-weight:bold">Let's Get Twisted</span></div>
                       </td>
                     </tr>
                   </table>
