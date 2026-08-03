@@ -715,4 +715,15 @@ const dateModified = new Date().toISOString().split("T")[0];
     border-radius: 999px;
     line-height: 1.4;
   }
+  /* Desktop size pass (2026-08-03 batch, Jon-approved) — KEEP LAST
+     (equal-specificity overrides win by source order; /pricing lesson).
+     The item dialog rendered as a 480px phone sheet on 1920px screens —
+     same disease as the TPRS calendar modal. 640px keeps the stacked
+     layout but reads as a desktop card. Close button to a 44px target;
+     the 9px badge was below the hard floor even for a badge. */
+  @media (min-width: 1025px) {
+    dialog.menu-dialog { max-width: min(92vw, 640px); }
+    .menu-dialog-close { width: 44px; height: 44px; }
+    .food-card-badge { font-size: 11px; }
+  }
 </style>

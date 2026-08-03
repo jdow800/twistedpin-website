@@ -975,3 +975,27 @@ body.nav-open [data-cta-bar] {
   margin: 0;
   color: inherit;
 }
+
+/* ============================================================
+   DESKTOP SIZE PASS (2026-08-03, Jon-approved batch) — KEEP LAST.
+   Equal-specificity overrides win by source order only (the
+   /pricing dead-CSS lesson from the same day).
+   ============================================================ */
+@media (min-width: 1025px) {
+  /* Every CTA site-wide rendered 12px uppercase on a 1920px monitor —
+     the systemic root of the sizing audit. 14px matches the approved
+     /pricing quick-actions and header treatment. Mobile keeps 12px
+     per Jon's ruling. Component-scoped .btn rules (SiteHeader cluster,
+     /pricing quick-actions) out-rank this and keep their tuned values. */
+  .btn {
+    font-size: 14px;
+    padding: 15px 26px;
+  }
+  /* Eyebrows: 11px reads as lint at desktop — 14px approved on
+     /pricing 2026-08-03, promoted global. NOTE: ~12 pages hardcode
+     inline style="font-size:11px" on section-level t-eyebrow H2s;
+     inline beats this rule — those are a separate cleanup. */
+  .t-eyebrow {
+    font-size: 14px;
+  }
+}

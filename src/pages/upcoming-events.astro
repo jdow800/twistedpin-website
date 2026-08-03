@@ -519,4 +519,15 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
   .ev-handoff {
     padding-top: 0;
   }
+  /* Desktop size pass (2026-08-03 batch, Jon-approved) — KEEP LAST
+     (equal-specificity overrides win by source order; /pricing lesson).
+     The desktop MQ rebuilt the card layout but carried zero type rules.
+     .ev-cta keeps its smaller-than-global intent (cards in a stack),
+     just at desktop proportion; When/Where lines are read-to-decide. */
+  @media (min-width: 1025px) {
+    .ev-meta { font-size: 16px; }
+    .ev-meta-glyph { font-size: 14px; }
+    .ev-desc { font-size: 16px; }
+    .ev-cta { font-size: 13.5px; padding: 12px 24px; }
+  }
 </style>

@@ -446,4 +446,12 @@ const bowlingAlleySchema = {
     /* Inline with body text — same font-family inheritance, lifts
        the lead word visually so the link reads "[Word] · description". */
   }
+  /* Desktop size pass (2026-08-03 batch, Jon-approved): the section list
+     is read-to-decide spec copy at 13px while the section body runs
+     ~17.5px on desktop. 15.5px matches the fundraisers / why-us pattern.
+     KEEP LAST in this style block: equal-specificity overrides win by
+     source order only (the /pricing dead-CSS lesson). Mobile unchanged. */
+  @media (min-width: 1025px) {
+    .bowl-section-list { font-size: 15.5px; }
+  }
 </style>
