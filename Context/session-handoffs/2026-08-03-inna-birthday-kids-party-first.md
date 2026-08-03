@@ -58,3 +58,12 @@ Inna Batsala (E-9127481, conv `175c77bc-0607-497d-9ce5-2d7b436b5391`), evening o
 - Marketing Avery: `n8n/workflows/WF1.changelog.md`, `WF2.changelog.md`, `AfterHoursRelease.changelog.md`, `kb/CHANGELOG.md` (all 2026-08-03) + `after-hours-handling.md` update. Live workflow JSON is truth; brain/ mirrors synced.
 - Memory: `wf1-birthday-selfbook-regression` (durable cross-session summary + links).
 - Key execs for archaeology: WF1 12082 (the bad first touch), WF2 12097 (numberless price turn — TPRS availability probe had $415/$210 computed), 12099 (after-hours park), 12144 (the 9:10 double-bind exhaustion).
+
+---
+
+## Same-day addendum — the "B" thread (E-4978475, Group Event "Good kid party", FB paid)
+
+First live intake after the overhaul surfaced two separate things:
+
+1. **Routing watch (deliberately NOT changed, Jon's call):** guest self-filed as Group Event with notes "Good kid party" → got the self-book fork. Working as currently specified (Group Event is fork-eligible; "kid" is not in the event-signal regex; bare "party" deliberately excluded). Exec 12254 confirmed the patched Clean and Flag runs clean in prod. The open design question: should kid-language in the notes trigger the kids-qualification play regardless of the guest-chosen form type? Pre-scoped candidate fixes if evidence accumulates: add kid-party language to cateringSignal, and/or key the birthday qualify-then-route branch on kid-language notes. Jon voted watch-only.
+2. **`ack_dropped_requested_item` "&" vs "and" false positive — FIXED live same day** (WF2.changelog.md second 2026-08-03 entry, commit 1a496f6): guest "stars and strikes" vs draft "Stars & Strikes" was a retry-proof check failure (both attempts died, good draft stranded in NA, buying signal unanswered). `_adNorm` now maps & -> and in both check nodes. Follow-up owed: golden case from the 11:54am exec via capture.mjs asserting `failures_must_not_include: ack_dropped_requested_item`. B handled manually by Jon.
