@@ -882,6 +882,14 @@ function specialsForDay(day: DayKey) {
      was correct — he was looking at un-bumped type).
      ============================================================ */
   @media (min-width: 1025px) {
+    /* Hero: tighten the hero→card gap (was 64px bottom padding — read
+       as a void between the sub line and the card) and rescue the
+       "PRICING" eyebrow from its global 11px (Jon: "hellatiously
+       small" at desktop). Page-scoped; the global .t-eyebrow question
+       is separate. */
+    .pricing-hero { padding-bottom: 28px; }
+    .pricing-hero .t-eyebrow { font-size: 14px; }
+
     /* The calendar sits on a solid raised card — deliberately
        overrides the 2026-05-06 "transparent, no boxing" direction
        FOR DESKTOP. That call was judged on mobile, where dense
