@@ -457,67 +457,10 @@ function specialsForDay(day: DayKey) {
     max-width: 760px;
     margin: 0 auto 64px;
   }
-  @media (min-width: 1025px) {
-    /* DESKTOP ONLY: the calendar sits on a solid raised card. This
-       deliberately overrides the 2026-05-06 "transparent, no boxing"
-       direction FOR DESKTOP — that call was judged on mobile, where
-       dense content over small watermark tiles reads as texture. At
-       desktop width the giant pin doodles run straight behind a sparse
-       table of low-opacity text and it reads as noise (Jon: "overall
-       just hard to read", 2026-08-03). Background is OPAQUE on purpose —
-       an alpha surface would let the watermark bleed through as smudges
-       (the 2026-07-19 form-inputs lesson). #141029 = the established
-       raised-dark (TPRS modal). Mobile keeps the transparent treatment. */
-    .pricing-calendar {
-      padding: 52px 64px 56px;
-      max-width: 880px;
-      background: #141029;
-      border: 1px solid rgba(255, 252, 245, 0.13);
-      border-radius: 18px;
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
-    }
-    /* Contrast lifts to match — hairlines and 55–78% text were tuned
-       against the busy transparent bg; on the solid card they can carry
-       more presence without shouting. */
-    .today-hours { color: rgba(255, 252, 245, 0.9); }
-    .today-table th { border-bottom-color: rgba(255, 252, 245, 0.18); }
-    .today-table td { border-bottom-color: rgba(255, 252, 245, 0.1); }
-    .today-td-time { color: rgba(255, 252, 245, 0.92); }
-    .today-th-cap { color: rgba(255, 252, 245, 0.72); }
-    .today-shoe-line { color: rgba(255, 252, 245, 0.88); }
-    .today-holiday-note {
-      color: rgba(255, 252, 245, 0.68);
-      border-top-color: rgba(255, 252, 245, 0.12);
-    }
-
-    /* ── Desktop size pass (2026-08-03, Jon: "pricing on desktop isn't
-       great") — the page had desktop padding but zero desktop type; the
-       whole calendar rendered at phone scale on 1920px. Same rubric as
-       the TPRS wizard pass: read-to-decide 15–16 · secondary 14. Rate
-       cells are tabular but they're THE content here, so they scale too. */
-    .today-pills { max-width: 680px; }
-    .today-pill { font-size: 16px; padding: 17px 0 15px; }
-    .today-pill-today { font-size: 12px; padding: 5px 11px; }
-    .today-day-name { font-size: 72px; }
-    .today-hours { font-size: 19px; }
-    .today-special-name { font-size: 16px; }
-    .today-special-hours { font-size: 16px; }
-    .today-special-tagline { font-size: 18px; }
-    .today-special-body { font-size: 16px; }
-    .today-special { padding: 18px 22px; }
-    .today-th-name,
-    .today-th-time { font-size: 16px; }
-    .today-th-cap { font-size: 15px; }
-    .today-table td { padding: 26px 8px; }
-    .today-td-time { font-size: 17px; }
-    .today-rate-num { font-size: 48px; }
-    .today-rate-unit { font-size: 16px; }
-    .today-rate-special { font-size: 13px; }
-    .today-shoe-line { font-size: 18px; margin-top: 16px; }
-    .today-quick-actions { max-width: 580px; margin-top: 30px; }
-    .today-quick-actions .btn { font-size: 15px; padding: 16px 28px; }
-    .today-holiday-note { font-size: 15px; max-width: 600px; }
-  }
+  /* (Desktop calendar overrides live at the BOTTOM of this style block —
+     they must come after the base rules below or equal-specificity
+     cascade order silently defeats them; that exact bug shipped in
+     rounds 1–2 of the 2026-08-03 desktop pass.) */
 
   /* Day pills — segmented control */
   .today-pills {
@@ -928,5 +871,66 @@ function specialsForDay(day: DayKey) {
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+
+  /* ============================================================
+     DESKTOP CALENDAR PASS (2026-08-03) — MUST STAY LAST IN THIS
+     STYLE BLOCK. These override base rules above at equal
+     specificity, so source order is the only thing making them
+     win; rounds 1–2 shipped this block ABOVE the base rules and
+     every size rule was silently dead (Jon's "still hard to read"
+     was correct — he was looking at un-bumped type).
+     ============================================================ */
+  @media (min-width: 1025px) {
+    /* The calendar sits on a solid raised card — deliberately
+       overrides the 2026-05-06 "transparent, no boxing" direction
+       FOR DESKTOP. That call was judged on mobile, where dense
+       content over small watermark tiles reads as texture; at
+       desktop width the giant pin doodles run straight behind a
+       sparse table of low-opacity text (Jon: "overall just hard
+       to read"). Background is OPAQUE on purpose — an alpha
+       surface lets the watermark bleed through as smudges (the
+       2026-07-19 form-inputs lesson). #141029 = the established
+       raised-dark (TPRS modal). Mobile keeps the transparent look. */
+    .pricing-calendar {
+      padding: 52px 64px 56px;
+      max-width: 880px;
+      background: #141029;
+      border: 1px solid rgba(255, 252, 245, 0.13);
+      border-radius: 18px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
+    }
+
+    /* Size pass — the page had desktop padding but zero desktop
+       type. Rates are tabular but they're THE content here, so
+       they scale too. */
+    .today-pills { max-width: 680px; }
+    .today-pill { font-size: 16px; padding: 17px 0 15px; }
+    .today-pill-today { font-size: 12px; padding: 5px 11px; }
+    .today-day-name { font-size: 72px; }
+    .today-hours { font-size: 19px; color: rgba(255, 252, 245, 0.9); }
+    .today-special { padding: 18px 22px; }
+    .today-special-name { font-size: 16px; }
+    .today-special-hours { font-size: 16px; }
+    .today-special-tagline { font-size: 18px; }
+    .today-special-body { font-size: 16px; }
+    .today-th-name,
+    .today-th-time { font-size: 16px; }
+    .today-th-cap { font-size: 15px; color: rgba(255, 252, 245, 0.72); }
+    .today-table th { border-bottom-color: rgba(255, 252, 245, 0.18); }
+    .today-table td { padding: 26px 8px; border-bottom-color: rgba(255, 252, 245, 0.1); }
+    .today-td-time { font-size: 17px; color: rgba(255, 252, 245, 0.92); }
+    .today-rate-num { font-size: 48px; }
+    .today-rate-unit { font-size: 16px; }
+    .today-rate-special { font-size: 13px; }
+    .today-shoe-line { font-size: 18px; margin-top: 16px; color: rgba(255, 252, 245, 0.88); }
+    .today-quick-actions { max-width: 580px; margin-top: 30px; }
+    .today-quick-actions .btn { font-size: 15px; padding: 16px 28px; }
+    .today-holiday-note {
+      font-size: 15px;
+      max-width: 600px;
+      color: rgba(255, 252, 245, 0.68);
+      border-top-color: rgba(255, 252, 245, 0.12);
+    }
   }
 </style>
