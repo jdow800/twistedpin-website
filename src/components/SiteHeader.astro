@@ -228,6 +228,18 @@ const isActive = (href: string) => {
     }
     /* Underline tracks the link's horizontal padding. */
     .site-nav > ul > li > a.active::after { left: 12px; right: 12px; }
-    .site-cta-cluster .btn { padding: 14px 24px; font-size: 14px; }
+    .site-cta-cluster .btn { padding: 15px 26px; font-size: 15px; }
+    .site-cta-cluster { gap: 10px; }
+  }
+  /* Full-width monitors: room is abundant — let the nav read at real
+     desktop scale (first pass at 14px was imperceptible next to 13px;
+     Jon: "not noticing a big difference"). */
+  @media (min-width: 1440px) {
+    .site-nav > ul > li > a {
+      font-size: 15px;
+      padding: 10px 14px;
+    }
+    .site-nav > ul > li > a.active::after { left: 14px; right: 14px; }
+    .site-nav > ul { gap: 6px; }
   }
 </style>
