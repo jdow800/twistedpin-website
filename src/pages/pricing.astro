@@ -460,7 +460,33 @@ function specialsForDay(day: DayKey) {
   @media (min-width: 1025px) {
     .pricing-calendar {
       padding: 32px 64px 48px;
+      max-width: 820px;
     }
+
+    /* ── Desktop size pass (2026-08-03, Jon: "pricing on desktop isn't
+       great") — the page had desktop padding but zero desktop type; the
+       whole calendar rendered at phone scale on 1920px. Same rubric as
+       the TPRS wizard pass: read-to-decide 15–16 · secondary 14. Rate
+       cells are tabular but they're THE content here, so they scale too. */
+    .today-pills { max-width: 620px; }
+    .today-pill { font-size: 15px; padding: 15px 0 13px; }
+    .today-hours { font-size: 17px; }
+    .today-special-name { font-size: 15px; }
+    .today-special-hours { font-size: 15px; }
+    .today-special-tagline { font-size: 17px; }
+    .today-special-body { font-size: 15px; }
+    .today-th-name,
+    .today-th-time { font-size: 15px; }
+    .today-th-cap { font-size: 14px; }
+    .today-table td { padding: 22px 8px; }
+    .today-td-time { font-size: 15px; }
+    .today-rate-num { font-size: 40px; }
+    .today-rate-unit { font-size: 15px; }
+    .today-rate-special { font-size: 12px; }
+    .today-shoe-line { font-size: 16.5px; }
+    .today-quick-actions { max-width: 520px; }
+    .today-quick-actions .btn { font-size: 14px; padding: 14px 24px; }
+    .today-holiday-note { font-size: 14.5px; max-width: 560px; }
   }
 
   /* Day pills — segmented control */
