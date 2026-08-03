@@ -531,4 +531,13 @@ const dateModified = new Date().toISOString().split("T")[0];
   @media (min-width: 1025px) {
     .menu-seo p { font-size: 15px; line-height: 1.65; }
   }
+  /* Desktop legibility round 2 (2026-08-03, Jon: "a little hard to
+     read, kind of small") — KEEP LAST (source-order cascade). The
+     brewery/style metadata was both 15px AND var(--warm-dim), the
+     dimmest text tier; size + one color step up. Name/ABV up a notch. */
+  @media (min-width: 1025px) {
+    .tap-name { font-size: 20px; }
+    .tap-abv { font-size: 15px; }
+    .tap-line-2 { font-size: 16px; color: var(--warm-mid); }
+  }
 </style>

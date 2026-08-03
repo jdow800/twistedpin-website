@@ -432,4 +432,18 @@ const vipSuiteSchema = {
   @media (min-width: 1025px) {
     .vip-section-list { font-size: 15.5px; }
   }
+  /* Desktop dead-air fix (2026-08-03, Jon): the typography hero pinned
+     min-height 55vh/640px around ~290px of copy with flex centering —
+     the slack rendered as big voids above the eyebrow and below the
+     sub. Let the content + padding define the height instead. KEEP
+     LAST (source-order cascade). Representative fix — /bar, /eat, and
+     the other pillar heroes share this copied recipe; sweep them if
+     Jon approves the look here. */
+  @media (min-width: 1025px) {
+    .vip-hero {
+      min-height: 0;
+      padding: calc(var(--header-height) + 56px) 64px 40px;
+    }
+    .vip-section { padding-top: 32px; }
+  }
 </style>
