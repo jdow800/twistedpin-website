@@ -208,4 +208,26 @@ const isActive = (href: string) => {
     .site-cta-cluster { display: inline-flex; }
   }
   .site-cta-cluster .btn { padding: 12px 18px; font-size: 12px; }
+
+  /* ---------- desktop size pass (2026-08-03, Jon) ----------
+     KEEP LAST in this style block — equal-specificity overrides win by
+     source order only (the /pricing dead-CSS lesson from the same day).
+     The CTA pair was the site's worst offender relative to its job:
+     desktop-only elements at 12px with LESS padding than the same
+     buttons' mobile default. Nav words go 13→14px — but only at ≥1280px,
+     because the 2026-05-05 padding tightening exists precisely because
+     7 items barely fit at the 1025px breakpoint; the squeeze zone
+     (1025–1279) keeps 13px nav and gets a modest CTA bump only. */
+  @media (min-width: 1025px) {
+    .site-cta-cluster .btn { padding: 13px 20px; font-size: 13px; }
+  }
+  @media (min-width: 1280px) {
+    .site-nav > ul > li > a {
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+    /* Underline tracks the link's horizontal padding. */
+    .site-nav > ul > li > a.active::after { left: 12px; right: 12px; }
+    .site-cta-cluster .btn { padding: 14px 24px; font-size: 14px; }
+  }
 </style>
