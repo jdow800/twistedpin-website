@@ -430,4 +430,16 @@ const restaurantSchema = {
 
   /* Food-menu styles moved to /menu/food on 2026-05-05 — they live with
      the page that owns them. /eat is editorial-only. */
+  /* Desktop hero dead-air fix (2026-08-03 sweep — approved on
+     /vip-suite): the typography hero pinned min-height 55vh/640px
+     around ~300px of copy; flex-centered slack rendered as voids above
+     the eyebrow and below the sub. Content + padding define height now.
+     KEEP LAST (source-order cascade; the /pricing dead-CSS lesson). */
+  @media (min-width: 1025px) {
+    .eat-hero {
+      min-height: 0;
+      padding: calc(var(--header-height) + 56px) 64px 40px;
+    }
+    .eat-section { padding-top: 32px; }
+  }
 </style>

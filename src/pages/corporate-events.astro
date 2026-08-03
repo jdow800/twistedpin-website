@@ -925,4 +925,16 @@ const faqSchema = {
   @media (min-width: 1025px) {
     .corp-section-list { font-size: 15.5px; }
   }
+  /* Desktop hero dead-air fix (2026-08-03 sweep — approved on
+     /vip-suite): the typography hero pinned min-height 55vh/640px
+     around ~300px of copy; flex-centered slack rendered as voids above
+     the eyebrow and below the sub. Content + padding define height now.
+     KEEP LAST (source-order cascade; the /pricing dead-CSS lesson). */
+  @media (min-width: 1025px) {
+    .corp-hero {
+      min-height: 0;
+      padding: calc(var(--header-height) + 56px) 64px 40px;
+    }
+    .corp-section { padding-top: 32px; }
+  }
 </style>
