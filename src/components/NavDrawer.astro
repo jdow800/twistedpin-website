@@ -644,12 +644,20 @@ for (const seasonal of activeSeasonalItems()) {
         transparent 100%
       );
       transform: skewX(-18deg) translateX(0);
-      animation: nav-vip-glint 6.5s ease-in-out infinite;
       pointer-events: none;
     }
+    /* The animation is keyed to the drawer being OPEN (aria-hidden
+       flips to false), not to page load — otherwise the clock starts
+       at load and opening the drawer lands mid-rest, so the first
+       glint could be ~5s away (Jon: "takes awhile for it to do it").
+       Sweep sits at the FRONT of the cycle: open → 500ms → glint →
+       ~5.6s rest → repeat while open. Closing resets it. */
+    .nav-drawer[aria-hidden="false"] .nav-drawer-list a.is-shine::after {
+      animation: nav-vip-glint 6.5s ease-in-out 500ms infinite;
+    }
     @keyframes nav-vip-glint {
-      0%, 74% { transform: skewX(-18deg) translateX(0); }
-      90%, 100% { transform: skewX(-18deg) translateX(340%); }
+      0% { transform: skewX(-18deg) translateX(0); }
+      14%, 100% { transform: skewX(-18deg) translateX(340%); }
     }
   }
 </style>
