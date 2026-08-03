@@ -1457,4 +1457,29 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
     min-height: 150px;
   }
   .tprs-desktop-pilot .tprs-tile-name { font-size: 30px; }
+
+  /* Date chips — the FIRST control a guest touches; next to the 36px
+     headings the phone-scale chips read smallest-on-page (Jon, round 2). */
+  .tprs-desktop-pilot .tprs-chip { padding: 14px 6px; gap: 3px; }
+  .tprs-desktop-pilot .tprs-chip-dow { font-size: 12px; }
+  .tprs-desktop-pilot .tprs-chip-day { font-size: 22px; }
+  .tprs-desktop-pilot .tprs-cal-arrow { width: 48px; font-size: 20px; }
+
+  /* Calendar button — was a 12px pill marooned at the strip's right edge. */
+  .tprs-desktop-pilot .tprs-cal-open { font-size: 13.5px; padding: 10px 18px; }
+  .tprs-desktop-pilot .tprs-cal-open-icon { font-size: 16px; }
+
+  /* Calendar modal — was the 440px phone sheet floating in a 1920px void
+     (16px days / 10.5px prices). Renders inside the wizard tree (no portal),
+     so the pilot gate reaches it. ~77px cells at 600px width. */
+  .tprs-desktop-pilot .tprs-modal { max-width: 600px; padding: 28px 30px; }
+  .tprs-desktop-pilot .tprs-cal-month { font-size: 26px; }
+  .tprs-desktop-pilot .tprs-cal-grid { gap: 8px; }
+  .tprs-desktop-pilot .tprs-cal-dow { font-size: 12.5px; }
+  .tprs-desktop-pilot .tprs-cal-cell { font-size: 19px; gap: 4px; }
+  .tprs-desktop-pilot .tprs-cal-price { font-size: 12.5px; }
+  .tprs-desktop-pilot .tprs-modal-head-actions .tprs-cal-arrow { width: 42px; height: 42px; }
+  .tprs-desktop-pilot .tprs-cal-legend { font-size: 13px; margin-top: 16px; }
+  .tprs-desktop-pilot .tprs-cal-hint,
+  .tprs-desktop-pilot .tprs-cal-event { font-size: 13.5px; }
 }
