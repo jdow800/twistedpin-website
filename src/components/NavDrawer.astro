@@ -40,6 +40,8 @@ interface DrawerItem {
   icon: IconKey;
   external?: boolean;
   seasonal?: boolean;
+  /** Periodic light-sweep glint on the row (VIP Suite). */
+  shine?: boolean;
 }
 
 interface DrawerSection {
@@ -63,7 +65,7 @@ const drawerSections: DrawerSection[] = [
       { href: "/bowl/",      label: "Bowl",      icon: "bowling-ball" },
       { href: "/game/",      label: "Game",      icon: "gamepad"     },
       { href: "/events/",    label: "Events",    icon: "calendar"    },
-      { href: "/vip-suite/", label: "VIP Suite", icon: "crown"       },
+      { href: "/vip-suite/", label: "VIP Suite", icon: "crown", shine: true },
     ],
   },
   {
@@ -236,6 +238,7 @@ for (const seasonal of activeSeasonalItems()) {
               <li class:list={[item.seasonal && "is-seasonal"]}>
                 <a
                   href={item.href}
+                  class:list={[item.shine && "is-shine"]}
                   {...(item.external ? { target: "_blank", rel: "noopener" } : {})}
                 >
                   <svg
@@ -612,5 +615,41 @@ for (const seasonal of activeSeasonalItems()) {
   @media (prefers-reduced-motion: reduce) {
     .nav-drawer { transition: opacity 100ms ease-out; }
     body.nav-open .nav-drawer { transform: translateX(0); }
+  }
+  /* ---------- VIP Suite glint (2026-08-03, Jon) ----------
+     A narrow light sweep crosses the row every ~6.5s — light catching
+     a bottle, not a loop of glitter. Deliberately: long rest between
+     sweeps (banner-blindness kicks in on constant motion, and looping
+     shimmer reads promo-cheap against the moody thesis), low alpha
+     (warm-white with a Glow edge), and fully disabled under
+     prefers-reduced-motion. Covers icon + label since it sweeps the
+     whole row; hover/active states are unaffected. */
+  @media (prefers-reduced-motion: no-preference) {
+    .nav-drawer-list a.is-shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .nav-drawer-list a.is-shine::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: -45%;
+      width: 45%;
+      background: linear-gradient(
+        105deg,
+        transparent 0%,
+        rgba(244, 239, 227, 0.14) 42%,
+        rgba(78, 236, 196, 0.10) 58%,
+        transparent 100%
+      );
+      transform: skewX(-18deg) translateX(0);
+      animation: nav-vip-glint 6.5s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes nav-vip-glint {
+      0%, 74% { transform: skewX(-18deg) translateX(0); }
+      90%, 100% { transform: skewX(-18deg) translateX(340%); }
+    }
   }
 </style>
