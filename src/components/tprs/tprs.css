@@ -1397,3 +1397,64 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
   .tprs-summary-actions { width: 100%; }
   .tprs-summary-actions .tprs-btn { flex: 1; }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   DESKTOP SIZE PILOT (2026-08-03) — /reserve ONLY, pending Jon's verdict.
+   Gated behind .tprs-desktop-pilot on the page's .tprs-mount div (only
+   reserve.astro carries it) per the "mock new design language on one page
+   before baking it in" rule. The mobile sizes below 16px were tuned for
+   phone DPI at arm's length; at 1× on a monitor they read a class too
+   small. Rubric (2026-06-17): read-to-decide 15–16 · secondary 14 · 12
+   floor — applied here at desktop scale. Cart rail deliberately EXEMPT
+   (dense ledger; 13.5px density is correct there). If approved: delete
+   this block, fold the values into the shared desktop block above, and
+   drop the class from reserve.astro. */
+@media (min-width: 1025px) {
+  .tprs-desktop-pilot .tprs-wizard { max-width: 1200px; }
+
+  /* Type scale */
+  .tprs-desktop-pilot .tprs-h2 { font-size: 36px; }
+  .tprs-desktop-pilot .tprs-sub { font-size: 15.5px; }
+  .tprs-desktop-pilot .tprs-datestrip-label { font-size: 18px; }
+  .tprs-desktop-pilot .tprs-cat-label { font-size: 18px; }
+  .tprs-desktop-pilot .tprs-cat-subtitle { font-size: 14.5px; }
+  .tprs-desktop-pilot .tprs-card-name { font-size: 19px; }
+  .tprs-desktop-pilot .tprs-card-desc { font-size: 15px; }
+  .tprs-desktop-pilot .tprs-card-from { font-size: 15px; }
+  /* The "What's included" sell on the detail step — read-to-decide copy. */
+  .tprs-desktop-pilot .tprs-details-body { font-size: 15.5px; }
+  .tprs-desktop-pilot .tprs-window-notice-h { font-size: 14px; }
+  .tprs-desktop-pilot .tprs-window-notice-p,
+  .tprs-desktop-pilot .tprs-window-notice-event { font-size: 14.5px; }
+  .tprs-desktop-pilot .tprs-addon-name { font-size: 17px; }
+  .tprs-desktop-pilot .tprs-addon-desc { font-size: 15px; }
+  .tprs-desktop-pilot .tprs-stepper-help { font-size: 14px; }
+  .tprs-desktop-pilot .tprs-qty-note { font-size: 14px; }
+  .tprs-desktop-pilot .tprs-help { font-size: 13.5px; }
+  .tprs-desktop-pilot .tprs-btn { font-size: 14px; }
+
+  /* Time slots — the pick-a-time moment earns bigger cells + 16px times. */
+  .tprs-desktop-pilot .tprs-slot-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+  .tprs-desktop-pilot .tprs-slot { padding: 13px 10px; }
+  .tprs-desktop-pilot .tprs-slot-time { font-size: 16px; }
+  .tprs-desktop-pilot .tprs-slot-price { font-size: 13px; }
+
+  /* Duration tiles fill their category column, one per row (~380px wide
+     at the 1200px frame). The shared minmax(150px, 220px) cap leaves the
+     four purchase tiles rendering ~165×112px on a 1920 screen — postage
+     stamps marooned in dead space. Stacked was ALREADY how auto-fit
+     resolved inside a ~340px column (one 220px track fits), so this keeps
+     the arrangement and just lets the tiles claim the width; the room-shot
+     art finally reads as a photo. A lone tile on a single-category page
+     would go full flow-width — the same "hero tile" behavior mobile ships
+     deliberately (see the mobile --tiles comment). */
+  .tprs-desktop-pilot .tprs-cats .tprs-card-list--tiles {
+    grid-template-columns: minmax(0, 1fr);
+    justify-content: stretch;
+  }
+  .tprs-desktop-pilot .tprs-cats .tprs-card-list--tiles .tprs-card.tprs-tile,
+  .tprs-desktop-pilot .tprs-cats .tprs-card-list--tiles .tprs-card--skel {
+    min-height: 150px;
+  }
+  .tprs-desktop-pilot .tprs-tile-name { font-size: 30px; }
+}

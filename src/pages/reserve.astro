@@ -86,7 +86,10 @@ const { uxCopy, heroImage } = bookingPageConfig;
       page (no productCodes → full bookable catalog). Curated children
       (/reserve-preview/vip-suite, /reserve-preview/birthdays) are copies of this
       file importing their own pageConfig with productCodes set. */}
-  <div class="tprs-mount">
+  {/* tprs-desktop-pilot: desktop size pass (bigger type/tiles/slots ≥1025px)
+      piloting on THIS page only — see the gated block at the bottom of
+      tprs.css. Approved → fold into the shared desktop block + drop this. */}
+  <div class="tprs-mount tprs-desktop-pilot">
     <BookingWizard client:only="react" config={bookingPageConfig} />
   </div>
 </Base>
