@@ -34,6 +34,14 @@ Context/videos/
 Context/pictures/
 Context/Pics Social Media/
 Context/og images/
+# Playbook/Guidebook source photos (2026-08-03). CLAUDE.md has described this
+# directory as gitignored since the 2026-07-20 build, but no rule ever matched
+# it — `git status` listed it as plain untracked, so a stray `git add -A` would
+# have committed real photographs of the team to a PUBLIC repo. Same
+# encoded-derivatives-are-committed pattern as the entries above: the served
+# files live in public/playbook/ and ARE committed (a fresh clone renders fine
+# but can't re-encode). Pipeline: scripts/build-playbook-images.mjs
+Context/Playbook and guidebook photos/
 
 
 .vercel
