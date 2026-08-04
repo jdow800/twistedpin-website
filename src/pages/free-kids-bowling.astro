@@ -278,8 +278,14 @@ const PAGE_DESC = WAITLIST_MODE
           </fieldset>
         )}
 
+        {/* OPTIONAL since 2026-08-04 (Jon's ruling: consent gates messaging
+            only, never enrollment). The n8n intake enrolls unconditionally and
+            only the welcome text sits behind its SMS Consent? gate, so an
+            unchecked box = enrolled, tagged, granted — just no text. Do NOT
+            re-add `required`: pre-062 that combo silently manufactured members
+            whose kiosk never showed a grant. */}
         <label class="kp-consent">
-          <input id="kp-consent" name="consent" type="checkbox" required />
+          <input id="kp-consent" name="consent" type="checkbox" />
           <span>
             By checking this box, you agree to receive recurring automated
             marketing text messages from Twisted Pin at the number provided.
@@ -288,6 +294,11 @@ const PAGE_DESC = WAITLIST_MODE
             <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
           </span>
         </label>
+        <p class="kp-consent-note">
+          {WAITLIST_MODE
+            ? "Optional — but skip it and we can't text you when 2027 signups open."
+            : "Optional — skip it and you won't get a confirmation text. Your number still works at the front desk either way."}
+        </p>
 
         <p id="kp-error" class="kp-error" role="alert" hidden></p>
 
@@ -295,7 +306,7 @@ const PAGE_DESC = WAITLIST_MODE
             digit is obvious before submit. Shows once 10 digits are entered. */}
         <div id="kp-echo" class="kp-echo" hidden>
           <div class="kp-echo-body">
-            <span class="kp-echo-label">We'll text you at</span>
+            <span class="kp-echo-label">Your number</span>
             <strong class="kp-echo-num" id="kp-echo-num"></strong>
           </div>
           <button type="button" class="kp-echo-edit" id="kp-echo-edit">Edit</button>
@@ -327,9 +338,11 @@ const PAGE_DESC = WAITLIST_MODE
       ) : (
         <div id="kp-success" class="kp-panel kp-success" hidden>
           <p class="kp-panel-eyebrow">You're in 🎳</p>
-          <h3 class="kp-panel-title">Check your phone.</h3>
+          <h3 class="kp-panel-title" id="kp-success-title">Check your phone.</h3>
           <p class="kp-panel-body">
-            We just texted your details<span id="kp-success-phone"></span>. Bring the
+            {/* The lede is JS-swapped when no welcome text will arrive
+                (consent declined, or a landline) — see the submit handler. */}
+            <span id="kp-success-lede">We just texted your details<span id="kp-success-phone"></span>.</span> Bring the
             kids in <strong>Monday–Friday, 11am–4pm</strong> and give your number at
             the front desk — they get <strong>2 free games each</strong>, all summer
             through August 14. While they bowl, the bar and kitchen are yours
@@ -492,13 +505,6 @@ const PAGE_DESC = WAITLIST_MODE
       phoneStatus.hidden = false;
     }
 
-    function shakePhone() {
-      mobile.classList.add("kp-input-invalid");
-      mobile.classList.remove("kp-shake");
-      void mobile.offsetWidth;
-      mobile.classList.add("kp-shake");
-    }
-
     function verifyPhone(digits) {
       if (digits.length !== 10 || digits === lastVerified.digits) return;
       setPhoneStatus("Checking your number…", "checking");
@@ -511,8 +517,11 @@ const PAGE_DESC = WAITLIST_MODE
         .then(function (r) {
           lastVerified = { digits: digits, textable: r.textable, lineType: r.line_type || null };
           if (r.textable === false) {
-            shakePhone();
-            setPhoneStatus("That number can't receive texts — double-check your mobile number.", "bad");
+            // Soft warning, NOT a block (2026-08-04): a landline works fine at
+            // the kiosk — its number is the lookup key; textability only
+            // affects whether texts arrive. The pre-change hard-stop here is
+            // what locked out the one genuinely broken native registrant.
+            setPhoneStatus("Heads up — this number can't receive texts. You can still sign up; your number works at the front desk either way.", "warn");
           } else {
             mobile.classList.remove("kp-input-invalid");
             setPhoneStatus("", "");
@@ -634,12 +643,9 @@ const PAGE_DESC = WAITLIST_MODE
       if (phoneDigits.length !== 10) return showError("Please enter a valid 10-digit mobile number.");
       if (kidsEntered.length === 0) return showError("Please add at least one child's first name.");
       if (!allAcked) return showError("Please check the three boxes so we know you're set on how the program works.");
-      if (!consent) return showError("Please agree to receive texts so we can send your details.");
-
-      if (lastVerified.digits === phoneDigits && lastVerified.textable === false) {
-        shakePhone();
-        return showError("That number can't receive texts — enter a mobile number so we can send your details.");
-      }
+      // Consent + textability are deliberately NOT submit gates (2026-08-04):
+      // consent is optional (gates only the welcome text, via n8n), and a
+      // landline still enrolls fine — the kiosk keys on the number itself.
 
       // Child names are intentionally NOT included — formality only.
       var payload = {
@@ -647,7 +653,7 @@ const PAGE_DESC = WAITLIST_MODE
         last_name: form.last_name.value.trim() || null,
         phone: "+1" + phoneDigits,
         email: form.email.value.trim() || null,
-        consent_marketing: true,
+        consent_marketing: consent,
         phone_type: (lastVerified.digits === phoneDigits) ? lastVerified.lineType : null,
         submission_id: submissionId,
         consent_language: form.getAttribute("data-consent") || "",
@@ -676,7 +682,18 @@ const PAGE_DESC = WAITLIST_MODE
           if (r.replayed) {
             reveal(alreadyEl);
           } else {
-            reveal(successEl, form.phone.value.trim());
+            // No welcome text arrives when consent was declined OR the number
+            // can't receive texts — make the panel the confirmation instead of
+            // promising a text that never comes (waitlist mode already works
+            // this way; its panel has no lede/title ids so the swaps no-op).
+            var willText = consent && lastVerified.textable !== false;
+            if (!willText) {
+              var st = document.getElementById("kp-success-title");
+              var sl = document.getElementById("kp-success-lede");
+              if (st) st.textContent = "You're all set.";
+              if (sl) sl.textContent = "This screen is your confirmation — no text needed.";
+            }
+            reveal(successEl, willText ? form.phone.value.trim() : null);
           }
         })
         .catch(function () {
@@ -832,6 +849,8 @@ const PAGE_DESC = WAITLIST_MODE
   .kp-phone-status { margin: 6px 0 0; font-family: var(--font-ui); font-size: 12.5px; font-weight: 700; }
   .kp-phone-status.checking { color: var(--warm-dim); }
   .kp-phone-status.bad { color: #ff8a8a; }
+  /* Non-blocking heads-up (landline) — amber, not error red. */
+  .kp-phone-status.warn { color: #ffc46b; }
 
   .kp-input-invalid { border-color: #ff8a8a !important; }
   @keyframes kp-shake {
@@ -879,6 +898,7 @@ const PAGE_DESC = WAITLIST_MODE
   }
   .kp-consent input { margin-top: 2px; flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--glow); }
   .kp-consent a { color: var(--glow); text-decoration: none; }
+  .kp-consent-note { margin: 6px 0 0; font-family: var(--font-ui); font-size: 12.5px; font-weight: 700; color: var(--warm-dim); }
   .kp-consent a:hover { text-decoration: underline; }
 
   .kp-error { margin: 0 0 14px; font-family: var(--font-ui); font-size: 13px; font-weight: 700; color: #ff8a8a; }
