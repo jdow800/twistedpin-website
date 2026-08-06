@@ -562,6 +562,32 @@ const leaguesSchema = {
      burned three rounds on exactly that.
      ============================================================ */
   @media (min-width: 1025px) {
+    /* The card grid breaks out of the 720px prose measure. Two
+       problems, one fix:
+
+       (1) ALIGNMENT. At 720px a card is ~340px wide, which can't fit
+           "ORGANIZATIONAL MEETING" and "Aug 31, 6:30pm" on one line.
+           The label wraps in the Monday card but NOT in the Tuesday
+           card (whose value is just "TBD"), so a matched pair ends up
+           ~38px out of step — "Season starts" sits at a different
+           height in each card. Same for the format line. Give the row
+           enough width to stay on one line and every card aligns for
+           free, at any content length.
+       (2) SCALE. A 720px column of cards on a 2000px monitor was most
+           of why this page still read small even after the type bump.
+
+       Prose stays at 720px — 75ch is the right measure for reading.
+       A spec grid is not prose, so it gets its own width.
+
+       margin-left:50% + translateX(-50%) re-centers on the viewport
+       from inside the narrower parent; the min() clamps to the
+       section's 64px gutters so it can never overflow at 1025. */
+    .league-cards {
+      width: min(940px, calc(100vw - 128px));
+      margin-left: 50%;
+      transform: translateX(-50%);
+    }
+
     /* Card title — section titles run to 52px here; 28px left the
        cards reading like captions next to them. */
     .league-card-eyebrow { font-size: 32px; }
@@ -574,7 +600,12 @@ const leaguesSchema = {
        values get read-to-decide size, not the dense-ledger 13.5px
        the cart rails use. */
     .league-card-meta dd { font-size: 16px; }
-    .league-card-meta dt { font-size: 13px; }
+    /* Tracking eases 0.14 → 0.10em. At 13px the looser value costs
+       ~17px of width on "ORGANIZATIONAL MEETING" — enough to force
+       the wrap back at viewports just above 1025, where the grid is
+       still clamped to the gutters. Keeps the one-line fit honest
+       across the whole desktop range, and 0.14em was loose anyway. */
+    .league-card-meta dt { font-size: 13px; letter-spacing: 0.1em; }
     .league-card-meta { gap: 12px; padding-top: 16px; margin-bottom: 20px; }
 
     .league-card-status { font-size: 13px; }
