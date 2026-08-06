@@ -542,4 +542,46 @@ const leaguesSchema = {
     font-size: 15px;
     color: var(--glow);
   }
+
+  /* ============================================================
+     DESKTOP TYPE PASS (2026-08-06) — extends the 2026-08-03 batch
+     to this page. The global t2-* chrome (hero sub 18px, section
+     body 17px, eyebrow 14px) already scaled at 1025; everything
+     page-scoped below — the league cards and the interest form —
+     was still shipping mobile values on a 1900px screen, which is
+     why the page read small. Rubric per 2026-06-17: read-to-decide
+     15-16 / secondary 14 / 12 floor, applied at desktop scale.
+
+     Mobile is deliberately untouched — Jon reviewed and CLOSED the
+     mobile floor list on 2026-08-03 (the 11px labels here were
+     explicitly ruled fine). This is desktop-only by design.
+
+     THIS BLOCK MUST STAY LAST IN THE STYLE BLOCK. Page-scoped
+     desktop queries that sit above their base rules silently lose
+     on cascade order (same specificity, later wins) — /pricing
+     burned three rounds on exactly that.
+     ============================================================ */
+  @media (min-width: 1025px) {
+    /* Card title — section titles run to 52px here; 28px left the
+       cards reading like captions next to them. */
+    .league-card-eyebrow { font-size: 32px; }
+
+    /* Format descriptor — matches the 15.5px the pillar-page
+       -section-list rows landed on in the 8/03 batch. */
+    .league-card-format { font-size: 15.5px; margin-bottom: 20px; }
+
+    /* The dates and times ARE the reason this page exists, so the
+       values get read-to-decide size, not the dense-ledger 13.5px
+       the cart rails use. */
+    .league-card-meta dd { font-size: 16px; }
+    .league-card-meta dt { font-size: 13px; }
+    .league-card-meta { gap: 12px; padding-top: 16px; margin-bottom: 20px; }
+
+    .league-card-status { font-size: 13px; }
+
+    /* Form: labels off the 11px floor, feedback copy to body scale. */
+    .lg-field label { font-size: 13px; }
+    .lg-error { font-size: 15.5px; }
+    .lg-success-title { font-size: 17px; }
+  }
 </style>
