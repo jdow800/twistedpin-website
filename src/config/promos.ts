@@ -76,8 +76,25 @@ export interface Promo {
  * during an overlap window.
  */
 export const PROMOS: readonly Promo[] = [
-  // NYE first — when both Q4 promos are active (Nov 15 → Dec 15 overlap)
-  // the more time-sensitive one gets the entry beat; the two rotate.
+  // Leagues first. Two reasons:
+  //   1. Aug 7-14 it runs alone (the kids promo was pulled early — see
+  //      below), so it is the whole bar.
+  //   2. Aug 15-31 it rotates with holiday-parties, and it is by far the
+  //      more time-sensitive of the two: Monday IBT's organizational
+  //      meeting is Aug 31 and Tuesday's is Sept 8, versus a December
+  //      party that books months out. First position = entry beat.
+  // Expires Aug 31, so it never coexists with NYE (opens Nov 15) — the
+  // NYE-vs-holiday ordering below is unaffected by sitting under this.
+  {
+    id: "leagues-fall-2026",
+    message: "Leagues Now Forming!",
+    href: "/leagues/",
+    showUntil: "2026-08-31",
+    homepageOnly: true,
+  },
+  // NYE before holiday-parties — when both Q4 promos are active
+  // (Nov 15 → Dec 15 overlap) the more time-sensitive one gets the entry
+  // beat; the two rotate.
   {
     id: "nye-2026",
     message: "NYE party slots are open — book yours",
@@ -96,13 +113,15 @@ export const PROMOS: readonly Promo[] = [
     showUntil: "2026-12-15",
     homepageOnly: true,
   },
-  {
-    id: "kbf-summer-2026-aug14",
-    message: "Free Bowling For Kids — through August 14",
-    href: "/free-kids-bowling/",
-    showUntil: "2026-08-14",
-    homepageOnly: true,
-  },
+  // NOTE: the Free-Kids-Bowling promo ("Free Bowling For Kids — through
+  // August 14", id kbf-summer-2026-aug14) was PULLED EARLY on Jon's call
+  // 2026-08-07, a week before its own Aug 14 expiry, to give the bar to
+  // leagues. It is deliberately gone, not lost — the Aug-15 handoff
+  // choreography described in CLAUDE.md expects a kids→holiday-parties
+  // baton pass, and this is why that baton now starts at leagues instead.
+  // The /free-kids-bowling PAGE is untouched: it still flips itself to
+  // 2027-waitlist mode at midnight CT Aug 15 via its own build-time date
+  // gate, which never depended on this bar.
 ];
 
 /**
