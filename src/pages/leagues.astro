@@ -26,6 +26,14 @@
  *   Monday IBT           meeting Aug 31 6:30pm · starts Sept 14 · practice 6:15pm
  *   Tuesday Night Mixed  meeting Sept 8 6:30pm · starts Sept 15 · practice 6:45pm
  *
+ * Weekly fee (Jon 2026-08-07): ~$23 per person, both leagues. Deliberately
+ * framed as an ESTIMATE — the tilde and the "Estimated" label are load-
+ * bearing, because the exact figure is set by the league secretary and
+ * varies with team size and USBC sanction timing. Do NOT promote it to an
+ * exact price, and do NOT add it to the Service schema as an Offer: a
+ * structured-data price is a firm commitment, and Google flags a mismatch
+ * between marked-up price and what a bowler is actually told at the desk.
+ *
  * TODOs (non-blocking):
  *   - IN-SEASON UPDATE ~Sep 15: once both seasons are underway the
  *     cards' "Organizational meeting / Season starts / Space still
@@ -112,6 +120,10 @@ const leaguesSchema = {
               <dt>Practice</dt>
               <dd>6:15pm</dd>
             </div>
+            <div>
+              <dt>Estimated weekly fee</dt>
+              <dd>~$23 per person</dd>
+            </div>
           </dl>
           <p class="league-card-status">Space still available</p>
         </li>
@@ -131,6 +143,10 @@ const leaguesSchema = {
             <div>
               <dt>Practice</dt>
               <dd>6:45pm</dd>
+            </div>
+            <div>
+              <dt>Estimated weekly fee</dt>
+              <dd>~$23 per person</dd>
             </div>
           </dl>
           <p class="league-card-status">Space still available</p>
