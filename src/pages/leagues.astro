@@ -22,9 +22,12 @@
  * Context/seo.md (Naperville is the #1 paid market, near-zero
  * organic presence to capture).
  *
- * Fall 2026 dates (Tuesday confirmed by Jon 2026-08-06, was TBD):
- *   Monday IBT           meeting Aug 31 6:30pm · starts Sept 14 · practice 6:15pm
- *   Tuesday Night Mixed  meeting Sept 8 6:30pm · starts Sept 15 · practice 6:45pm
+ * 2026-27 season (Tuesday dates confirmed by Jon 2026-08-06, was TBD;
+ * season ends supplied 2026-08-09):
+ *   Monday IBT           meeting Aug 31 6:30pm · Sept 14 – Apr 5 2027 · practice 6:15pm
+ *   Tuesday Night Mixed  meeting Sept 8 6:30pm · Sept 15 – Apr 6 2027 · practice 6:45pm
+ * Both run 30 sessions. The season is only surfaced in structured data
+ * (the cards show meeting / start / practice / fee, not the end date).
  *
  * Weekly fee (Jon 2026-08-07): ~$23 per person, both leagues. Deliberately
  * framed as an ESTIMATE — the tilde and the "Estimated" label are load-
@@ -89,19 +92,24 @@ const leaguesSchema = {
  * seasons, which is why it was chosen originally. These describe this
  * season's dated instances. Both belong on the page.
  *
- * SEASON_END gates the recurring weekly markup (`eventSchedule.byDay`,
- * the other half of the original ask). It is deliberately NOT emitted
- * with a guessed date: a Schedule with no endDate asserts "repeats
- * forever", and a wrong endDate leaves Google advertising league
- * nights after the season closes. Set it to the last league date and
- * both season events go live with no other change.
+ * Season end dates supplied by Jon 2026-08-09 as an estimate, but they
+ * hold up: each lands on its own league weekday and yields exactly 30
+ * sessions, which is a standard league length. If the real last night
+ * moves, edit `seasonEnd` — nothing else derives from it.
  *
- * Offsets are explicit -05:00 because Aug 31 and Sept 8 2026 both fall
- * inside US DST (Mar 8 - Nov 1), and a bare local time is read as UTC —
- * which would advertise a 6:30pm meeting as 1:30pm Central.
+ * TIMEZONE, the subtle part. Two different mechanisms, on purpose:
+ *   - The MEETING and season `startDate` carry an explicit -05:00.
+ *     Aug 31 / Sept 8 / Sept 14 2026 all fall inside US DST, and a bare
+ *     local time is read as UTC — which would advertise a 6:30pm
+ *     meeting as 1:30pm Central.
+ *   - The recurring schedule uses a BARE `startTime` plus
+ *     `scheduleTimezone`. This season crosses two DST boundaries
+ *     (CDT -> CST on Nov 1 2026, back to CDT on Mar 14 2027), so any
+ *     fixed offset would misreport league night by an hour for the
+ *     whole Nov-Mar stretch. `scheduleTimezone` resolves each
+ *     occurrence in local time, which is the entire reason it exists.
+ *     Do NOT "fix" that startTime by adding an offset to it.
  */
-const SEASON_END: string | null = null;
-
 const FALL_2026_LEAGUES = [
   {
     key: "monday-ibt",
@@ -109,6 +117,7 @@ const FALL_2026_LEAGUES = [
     format: "5-person mixed league, USBC sanctioned",
     meetingStart: "2026-08-31T18:30:00-05:00",
     seasonStart: "2026-09-14",
+    seasonEnd: "2027-04-05",
     practiceTime: "18:15",
     byDay: "https://schema.org/Monday",
   },
@@ -118,6 +127,7 @@ const FALL_2026_LEAGUES = [
     format: "4-person teams, USBC sanctioned",
     meetingStart: "2026-09-08T18:30:00-05:00",
     seasonStart: "2026-09-15",
+    seasonEnd: "2027-04-06",
     practiceTime: "18:45",
     byDay: "https://schema.org/Tuesday",
   },
@@ -143,32 +153,36 @@ const leagueEvents: Record<string, unknown>[] = [
     }),
     "@id": `${BUSINESS_URL}/#${l.key}-meeting-fall-2026`,
   })),
-  ...(SEASON_END === null
-    ? []
-    : FALL_2026_LEAGUES.map((l) => ({
-        ...eventSchema({
-          name: `${l.league} Bowling League — Fall 2026 Season`,
-          start: `${l.seasonStart}T${l.practiceTime}:00-05:00`,
-          end: SEASON_END,
-          url: PAGE_URL,
-          description: `${l.format}. Bowls weekly at Twisted Pin, practice at ${l.practiceTime}.`,
-        }),
-        "@id": `${BUSINESS_URL}/#${l.key}-season-fall-2026`,
-        eventSchedule: {
-          "@type": "Schedule",
-          byDay: l.byDay,
-          startTime: l.practiceTime,
-          repeatFrequency: "P1W",
-          startDate: l.seasonStart,
-          endDate: SEASON_END,
-          scheduleTimezone: "America/Chicago",
-        },
-      }))),
+  // Season events drop out the day after their own last night, same
+  // build-time gate as the meetings above.
+  ...FALL_2026_LEAGUES.filter((l) => l.seasonEnd >= TODAY).map((l) => ({
+    ...eventSchema({
+      name: `${l.league} Bowling League — 2026-27 Season`,
+      start: `${l.seasonStart}T${l.practiceTime}:00-05:00`,
+      end: l.seasonEnd,
+      url: PAGE_URL,
+      description: `${l.format}. Bowls weekly at Twisted Pin through ${l.seasonEnd}, practice at ${l.practiceTime}.`,
+    }),
+    "@id": `${BUSINESS_URL}/#${l.key}-season-2026-27`,
+    eventSchedule: {
+      "@type": "Schedule",
+      byDay: l.byDay,
+      // Bare local time — resolved by scheduleTimezone below, NOT by an
+      // offset. See the timezone note above: this season crosses two
+      // DST boundaries.
+      startTime: l.practiceTime,
+      repeatFrequency: "P1W",
+      startDate: l.seasonStart,
+      endDate: l.seasonEnd,
+      scheduleTimezone: "America/Chicago",
+    },
+  })),
 ];
 
-// Null (not an empty ItemList) once every meeting has passed and no
-// season end is set — an ItemList with zero members is not worth
-// emitting. Mirrors the /upcoming-events empty-state handling.
+// Null (not an empty ItemList) once every meeting AND both seasons
+// have passed — i.e. from 2027-04-07 until someone adds next season's
+// dates. An ItemList with zero members is not worth emitting. Mirrors
+// the /upcoming-events empty-state handling.
 const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
   "@context": "https://schema.org",
   "@type": "ItemList",
