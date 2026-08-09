@@ -222,8 +222,12 @@ export interface PrecheckFinding {
   /** impossible = more on the shelf than you started with plus deliveries (the
    *  case-vs-bottle slip, or an unscanned invoice — the two are indistinguishable,
    *  which is why the copy must offer both). not_counted = had it last period,
-   *  no line this time. overuse = the mirror slip; nearly everything gone. */
-  kind: "impossible" | "not_counted" | "overuse";
+   *  no line this time. overuse = the mirror slip; nearly everything gone.
+   *  zone_missed = counted SOMEWHERE this time, but a zone that held >=1 unit
+   *  last period has no line now AND the total dropped — the walked-past-shelf
+   *  signature (Casamigos backstock, 2026-08-07: $321 of fake shrinkage that
+   *  SKU-level checks structurally cannot see). */
+  kind: "impossible" | "not_counted" | "overuse" | "zone_missed";
   skuId: string;
   name: string;
   counted: number | null;
@@ -731,6 +735,11 @@ export interface VarianceReport {
     };
     caveats?: string[];
   };
+  /** Review gate (0136): 'draft' = correctable — fix count lines, then finalize
+   *  (which RECOMPUTES from the corrected lines and freezes). Auto-finalizes
+   *  24h after the draft landed. Baselines and pre-gate history are 'final'. */
+  status: "draft" | "final";
+  finalizedAt: string | null;
   createdAt: string;
 }
 /** null = no report yet (the worker sweep writes it within ~a tick of submit). */
@@ -741,6 +750,14 @@ export async function getCountVariance(id: string): Promise<VarianceReport | nul
     if (e instanceof BarApiError && e.status === 404) return null;
     throw e;
   }
+}
+/** Freeze a DRAFT variance report. The server RECOMPUTES from the count lines
+ *  as they stand now, then locks — so fix any wrong lines FIRST; after this
+ *  there is no second chance (409 = already final). */
+export async function finalizeCountReport(
+  id: string,
+): Promise<{ ok: boolean; gradePct: number | null; missingCost: number }> {
+  return gatedJson(`/admin/bar/counts/${id}/report/finalize`, { method: "POST" });
 }
 
 // ── recipe gaps (the fix-it queue behind the daily alerts) ──

@@ -45,6 +45,18 @@ type Cell = {
 };
 type Counts = Record<string, Record<string, Cell>>; // counts[zoneId][skuId]
 
+/** A voice take that ADDED onto a cell an earlier take already filled — maybe a
+ *  second bottle, maybe the same one re-said. Surfaced at submit; never
+ *  auto-resolved (the app can't know which; the counter can). */
+type Restatement = {
+  key: string; // `${zoneId}:${skuId}`
+  name: string;
+  zone: string;
+  before: number;
+  added: number;
+  after: number;
+};
+
 type ReviewItem = {
   key: string;
   spoken: string;
@@ -120,8 +132,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<number | null>(null);
   const [resumed, setResumed] = useState(false);
-  // Pre-submit review: uncounted zones (client-side) + flagged bottles (server).
-  const [confirmSubmit, setConfirmSubmit] = useState<{ zones: string[]; findings: PrecheckFinding[]; truncated: number } | null>(null);
+  // Pre-submit review: uncounted zones (client-side) + flagged bottles (server)
+  // + voice restatements (client-side — see restatementsRef).
+  const [confirmSubmit, setConfirmSubmit] = useState<{
+    zones: string[];
+    findings: PrecheckFinding[];
+    truncated: number;
+    doubles: Restatement[];
+  } | null>(null);
   const [checking, setChecking] = useState(false);
 
   // voice
@@ -202,6 +220,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countsRef = useRef<Counts>(counts);
   countsRef.current = counts;
+
+  // Voice restatements — the Empress 1908 double-count (2026-08-07). The GM
+  // said "Empress 1.1", wasn't sure it registered, and said it again in a
+  // separate take two minutes later; applyReview ADDs by design (a second
+  // Tito's found later in the zone must add), so the cell silently became 2.2.
+  // The app cannot tell "another bottle" from "the same one re-said" — but the
+  // counter can, so a cross-TAKE add onto an occupied cell is recorded here and
+  // ASKED about at submit. Within-take repeats are exempt: one clip listing
+  // "Tanqueray, point one … Tanqueray, one" is two rail spots, and applyReview
+  // already merged them before this sees anything. Keyed zone:sku; a later
+  // restatement of the same cell overwrites (latest state is what matters).
+  const restatementsRef = useRef<Map<string, Restatement>>(new Map());
   function scheduleSave() {
     if (!sessionId) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -640,6 +670,23 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       }
     }
     for (const [skuId, { cases, units, caseSize, spoken }] of merged) {
+      // Cross-take add onto an occupied cell → remember it for the submit
+      // dialog (the Empress double-count shape). Recorded BEFORE addQty so
+      // `before` is what the earlier take(s) left, not the summed result.
+      const cur = countsRef.current[zoneId]?.[skuId];
+      if (cur && cur.qty > 0) {
+        const added = roundQty(units + cases * (caseSize ?? cur.caseSize ?? 0));
+        if (added > 0) {
+          restatementsRef.current.set(`${zoneId}:${skuId}`, {
+            key: `${zoneId}:${skuId}`,
+            name: skuById.get(skuId)?.name ?? "?",
+            zone: zones.find((z) => z.id === zoneId)?.name ?? "?",
+            before: cur.qty,
+            added,
+            after: roundQty(cur.qty + added),
+          });
+        }
+      }
       addQty(skuId, { cases, units, caseSize }, "voice", spoken);
     }
     // Keep any row that couldn't be applied, so nothing is silently dropped.
@@ -651,9 +698,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   // Warn before submitting an incomplete count — don't close out a full-venue
   // inventory with a zone never touched (they can still choose to submit).
-  /** The last moment anything can be fixed. The variance report is computed once
-   *  ~30s after submit and can never be regenerated, so every check has to
-   *  happen HERE — after that, a wrong number is permanent for the period. */
+  /** The cheapest moment to fix anything: the counter is still standing at the
+   *  shelf. The variance report lands ~30s after submit as a 24h-correctable
+   *  DRAFT (review gate, 0136) — the draft window is the net, this check is the
+   *  plan. After finalize, a wrong number is permanent for the period. */
   async function tryFinish() {
     if (!sessionId || submitting || checking) return;
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
@@ -676,8 +724,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     } finally {
       setChecking(false);
     }
-    if (uncounted.length > 0 || findings.length > 0) {
-      setConfirmSubmit({ zones: uncounted, findings, truncated });
+    if (uncounted.length > 0 || findings.length > 0 || restatementsRef.current.size > 0) {
+      setConfirmSubmit({ zones: uncounted, findings, truncated, doubles: [...restatementsRef.current.values()] });
       return;
     }
     void finish();
@@ -692,6 +740,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saveCountLines(sessionId, flatten(countsRef.current));
       const n = await submitCount(sessionId);
+      restatementsRef.current.clear(); // spent — must not leak into a later session
       setDone(n);
     } catch {
       setSave("error");
@@ -1081,7 +1130,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           <div className="lq-sheet-panel lq-confirm">
             <div className="lq-sheet-head">
               <h3 className="lq-h2">
-                {confirmSubmit.findings.length > 0 ? "Double-check these first?" : "Submit an incomplete count?"}
+                {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0
+                  ? "Double-check these first?"
+                  : "Submit an incomplete count?"}
               </h3>
               <p className="lq-muted">
                 {confirmSubmit.zones.length > 0 && (
@@ -1095,7 +1146,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             {confirmSubmit.findings.length > 0 && (
               <div className="lq-precheck">
                 {confirmSubmit.findings.map((f) => (
-                  <div key={f.skuId} className="lq-precheck-row">
+                  // kind in the key: one SKU can carry two findings (e.g. a
+                  // zone_missed on a bottle that is also overused).
+                  <div key={`${f.kind}:${f.skuId}`} className="lq-precheck-row">
                     <span className="lq-precheck-name">{f.name}</span>
                     <span className="lq-precheck-detail">{f.detail}</span>
                     {/* NEVER "recount this". An impossible number and an unscanned
@@ -1111,11 +1164,33 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           : "Either the count is off, or a delivery hasn't been scanned.")}
                       {f.kind === "not_counted" && "Still on the shelf, or gone? A missing line drops it out of the report entirely — a zero counts, nothing doesn't."}
                       {f.kind === "overuse" && "That's a lot to pour in one period. Worth a second look, unless it really moved."}
+                      {f.kind === "zone_missed" && "If the shelf really emptied, submit as-is. If it never got walked, count it now — a missed shelf reads as pure loss."}
                     </span>
                   </div>
                 ))}
                 {confirmSubmit.truncated > 0 && (
                   <p className="lq-precheck-more">+ {confirmSubmit.truncated} more not shown.</p>
+                )}
+              </div>
+            )}
+            {confirmSubmit.doubles.length > 0 && (
+              // Same never-say-recount discipline as the findings above: a
+              // second bottle found later and a re-said first bottle produce
+              // the identical cell state, and only the counter knows which.
+              <div className="lq-precheck">
+                {confirmSubmit.doubles.slice(0, 6).map((d) => (
+                  <div key={d.key} className="lq-precheck-row">
+                    <span className="lq-precheck-name">{d.name}</span>
+                    <span className="lq-precheck-detail">
+                      {d.zone}: voice added {d.added} onto an existing {d.before} — now {d.after}.
+                    </span>
+                    <span className="lq-precheck-why">
+                      Another bottle, or the same one said twice? If it was a re-say, set the cell to {d.before >= d.added ? d.before : d.added} before submitting.
+                    </span>
+                  </div>
+                ))}
+                {confirmSubmit.doubles.length > 6 && (
+                  <p className="lq-precheck-more">+ {confirmSubmit.doubles.length - 6} more not shown.</p>
                 )}
               </div>
             )}

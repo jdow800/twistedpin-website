@@ -5,6 +5,7 @@ import {
   getKegCountHistory,
   getKegCountDetail,
   getCountVariance,
+  finalizeCountReport,
   type CountSummary,
   type CountDetail,
   type KegCountSummary,
@@ -57,6 +58,7 @@ export default function Counts({
   const [detailLoading, setDetailLoading] = useState(false);
   const [variance, setVariance] = useState<VarianceReport | null>(null);
   const [showVarianceLines, setShowVarianceLines] = useState(false);
+  const [finalizing, setFinalizing] = useState(false);
   const openedDeepLink = useRef(false);
 
   useEffect(() => {
@@ -147,6 +149,42 @@ export default function Counts({
             </div>
           ) : (
             <div className="lq-pw-row">
+              {variance.status === "draft" && (
+                // Review gate (0136): the window in which 8/07's $730 of
+                // clicked-through errors and $321 of invisible ones would have
+                // been fixable. Finalize RECOMPUTES from the lines as they
+                // stand, so the instruction order matters: fix first, then lock.
+                <div className="lq-pw-sub" style={{ marginBottom: 8, padding: "8px 10px", border: "1px solid rgba(230,180,60,0.5)", borderRadius: 6 }}>
+                  <strong>Draft — numbers below can still be corrected.</strong>{" "}
+                  Spot a wrong line? Fix the count first; finalizing recomputes from the corrected
+                  lines, locks the report for good, and sends the summary email. Left alone, it
+                  locks itself in 24 hours.
+                  <div style={{ marginTop: 6 }}>
+                    <button
+                      type="button"
+                      className="lq-btn"
+                      disabled={finalizing}
+                      style={{ padding: "5px 12px", fontSize: 13 }}
+                      onClick={async () => {
+                        setFinalizing(true);
+                        try {
+                          await finalizeCountReport(s.id);
+                          // Re-fetch rather than patching state: the recompute
+                          // may have CHANGED the grade, and showing the draft's
+                          // numbers under a "final" badge would be a lie.
+                          setVariance(await getCountVariance(s.id));
+                        } catch {
+                          /* leave draft banner; retry is safe (409 = already final) */
+                        } finally {
+                          setFinalizing(false);
+                        }
+                      }}
+                    >
+                      {finalizing ? "Finalizing…" : "Finalize & lock"}
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">
                   Variance grade{" "}
