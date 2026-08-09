@@ -109,7 +109,7 @@ A short list, and the answers we give for the VIP suite:
    when you take the whole suite.
 2. **Is the space exclusive to my group or shared?** — Six lanes are
    exclusive to your group; bar and arcade access is shared with the
-   main floor (semi-private).
+   rest of the venue (semi-private).
 3. **What's the AV setup?** — Hookups for slideshows and walk-in music.
 4. **Catering — in-house or external?** — In-house, custom-built per
    event from the kitchen.

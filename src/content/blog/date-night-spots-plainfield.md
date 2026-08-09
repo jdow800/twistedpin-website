@@ -89,7 +89,7 @@ experience, and a meal at the rail — it's available, and the night has
 the kind of weight that an anniversary deserves.
 
 For most anniversaries and milestones, the simpler version of the
-above (table reservation at the bar, two games on the main floor)
+above (table reservation at the bar, two games on the traditional lanes)
 gets you 80% of the same effect at 20% of the price. We'll be honest
 — that's the right call most of the time.
 
