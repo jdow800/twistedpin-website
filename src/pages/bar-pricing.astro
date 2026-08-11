@@ -88,6 +88,7 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
     <nav class="bp-jump">
       {groups.map((g) => <a href={`#cat-${g.name.replace(/\W+/g, "-")}`}>{g.name}</a>)}
       <a href="#cocktails">Cocktails</a>
+      <a href="#requests">Requests</a>
       <a href="#decisions">Decisions</a>
     </nav>
 
@@ -196,6 +197,38 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
           </table>
         </div>
       ))}
+    </section>
+
+    <section class="bp-cat" id="requests">
+      <h2>Button requests <span class="bp-catn">from staff</span></h2>
+      <p class="bp-sub">
+        Parked here so they don't get lost while the rework is happening — both are button
+        work, not pricing-ladder work.
+      </p>
+      <ul class="bp-list">
+        <li>
+          <strong>Grenadine button</strong> — staff report guests adding it to Pepsi.
+          <br />There was <strong>no grenadine SKU at all</strong> (same blind spot agave syrup
+          and bitters had before they were added), so it was invisible to every count and every
+          report. Created 2026-08-11 as a stock-count mixer; <strong>needs a cost and a brand
+          on the next invoice.</strong>
+          <br />The natural home is the existing <code>Bar Mods</code> group, which already
+          carries Purée / Bloody / Ginger Beer / Margarita / Red Bull at a flat +$2.00 —
+          though $2 on a fountain soda is worth a second thought.
+        </li>
+        <li>
+          <strong>Shirley Temple pitcher.</strong> The product is
+          <code>Hand Crafted Shirley Temple</code>, base $0.00 with a <em>required</em> Size
+          group — Small $4.95 / Large $5.95. A pitcher is a third option in that group, and it
+          has to be added on <strong>all three live menus</strong> (Drinks, Liquors, Mocktails).
+          <br />⚠ <strong>Don't price it off the existing curve.</strong> Small → Large is only
+          +$1 for a meaningful volume step; extending that logic to a pitcher would badly
+          underprice it. Price the pitcher off pour volume, not off the Large.
+          <br />Note this is one of the 29 zero-base products where all the money lives in the
+          options — and modifier groups are the part of GoTab the API cannot reach, so this is
+          manual keying either way.
+        </li>
+      </ul>
     </section>
 
     <section class="bp-cat" id="decisions">
