@@ -2005,6 +2005,27 @@
    "noNeat": false
   },
   {
+   "name": "Chartreuse Green",
+   "category": "Liqueurs/Cordials",
+   "tier": "premium",
+   "cost": 66.5,
+   "ml": 700,
+   "costOz": 2.809,
+   "nowShot": null,
+   "nowMixed": null,
+   "p125": null,
+   "pct125": null,
+   "p150": 22,
+   "pct150": 19.2,
+   "p200": 29,
+   "pct200": 19.4,
+   "mixed": 24,
+   "move": "new button",
+   "draining": false,
+   "tierDisputed": true,
+   "noNeat": false
+  },
+  {
    "name": "Lillet Blanc",
    "category": "Other-Aperitif",
    "tier": "call",
@@ -2427,10 +2448,16 @@
  ],
  "uncosted": [
   {
-   "name": "Chartreuse Green",
-   "category": "Liqueurs/Cordials",
-   "tier": "premium",
-   "missing": "bottle cost"
+   "name": "Macallan 12 Year",
+   "category": "Whiskey",
+   "tier": "superPremium (assumed)",
+   "missing": "bottle cost — and which 12yr expression is on the shelf (Double Cask / Sherry Oak / Triple Cask price differently)"
+  },
+  {
+   "name": "Screwball Peanut Butter Whiskey",
+   "category": "Whiskey",
+   "tier": "flavored (assumed)",
+   "missing": "bottle cost — and confirm bottle size (750ml assumed)"
   }
  ],
  "disagreements": [

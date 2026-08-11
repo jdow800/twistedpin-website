@@ -212,9 +212,8 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
           <h3 class="bp-h3">Can't be priced — no cost on file</h3>
           <ul class="bp-list">
             {data.uncosted.map((u: any) => (
-              <li><strong>{u.name}</strong> ({u.category}) — missing {u.missing}</li>
+              <li><strong>{u.name}</strong> ({u.category}, {u.tier}) — needs {u.missing}</li>
             ))}
-            <li><strong>Macallan 12yr</strong> and <strong>PB Screwball</strong> — sell on the POS with no inventory record at all. Add as SKUs or pull the buttons.</li>
           </ul>
         </>
       )}
