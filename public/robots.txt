@@ -20,6 +20,8 @@ Disallow: /labor/
 Disallow: /playbook/
 # Internal email-signature install guide — unindexed, unlinked.
 Disallow: /signatures/
+# Internal bar repricing worksheet (costs + margins) — unindexed, unlinked.
+Disallow: /bar-pricing/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml
