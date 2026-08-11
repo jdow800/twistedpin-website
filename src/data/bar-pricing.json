@@ -1564,6 +1564,27 @@
    "noNeat": false
   },
   {
+   "name": "The Macallan 12 Year Double Cask",
+   "category": "Whiskey",
+   "tier": "superPremium",
+   "cost": 68.08,
+   "ml": 750,
+   "costOz": 2.684,
+   "nowShot": null,
+   "nowMixed": null,
+   "p125": 16,
+   "pct125": 21,
+   "p150": 19,
+   "pct150": 21.2,
+   "p200": 25,
+   "pct200": 21.5,
+   "mixed": null,
+   "move": "no mixed button (super-premium)",
+   "draining": false,
+   "tierDisputed": false,
+   "noNeat": false
+  },
+  {
    "name": "Harvey's Bristol Cream Solera Sherry",
    "category": "Liqueurs/Cordials",
    "tier": "call",
