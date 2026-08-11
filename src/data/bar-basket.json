@@ -1,0 +1,233 @@
+{
+ "days": 60,
+ "from": "2026-06-12",
+ "to": "2026-08-10",
+ "cocktailUnits": 796,
+ "cocktailRev": 11010,
+ "cocktailCogs": 1476,
+ "weighted": 13.4,
+ "unweighted": 14.5,
+ "headroom": 285,
+ "headroomYear": 1734,
+ "luxuryFunded": 3167,
+ "pourRev": 11232,
+ "pourUnits": 1487,
+ "rows": [
+  {
+   "name": "Watermelon Sugar Strike",
+   "qty": 108,
+   "rev": 1620,
+   "pct": 12.3,
+   "gross": 1420,
+   "vs16": 59,
+   "seasonal": true
+  },
+  {
+   "name": "Pin Split Punch",
+   "qty": 86,
+   "rev": 1204,
+   "pct": 12.1,
+   "gross": 1059,
+   "vs16": 47,
+   "seasonal": true
+  },
+  {
+   "name": "Blackberry Gutter Ball Mojito",
+   "qty": 57,
+   "rev": 855,
+   "pct": 9.9,
+   "gross": 771,
+   "vs16": 52,
+   "seasonal": true
+  },
+  {
+   "name": "Front 9 Iced Tea",
+   "qty": 62,
+   "rev": 868,
+   "pct": 15.4,
+   "gross": 734,
+   "vs16": 5,
+   "seasonal": false
+  },
+  {
+   "name": "Black Cherry Sling",
+   "qty": 56,
+   "rev": 728,
+   "pct": 11.8,
+   "gross": 642,
+   "vs16": 31,
+   "seasonal": false
+  },
+  {
+   "name": "Roy Munson",
+   "qty": 56,
+   "rev": 728,
+   "pct": 11.9,
+   "gross": 641,
+   "vs16": 30,
+   "seasonal": false
+  },
+  {
+   "name": "Modern Old Fashioned",
+   "qty": 53,
+   "rev": 742,
+   "pct": 14.5,
+   "gross": 634,
+   "vs16": 11,
+   "seasonal": false
+  },
+  {
+   "name": "Throwing Rocks Margarita",
+   "qty": 51,
+   "rev": 663,
+   "pct": 10,
+   "gross": 597,
+   "vs16": 40,
+   "seasonal": false
+  },
+  {
+   "name": "S'mores White Russian",
+   "qty": 32,
+   "rev": 512,
+   "pct": 15.8,
+   "gross": 431,
+   "vs16": 1,
+   "seasonal": true
+  },
+  {
+   "name": "Perfect Spare",
+   "qty": 41,
+   "rev": 492,
+   "pct": 17.8,
+   "gross": 404,
+   "vs16": -9,
+   "seasonal": false
+  },
+  {
+   "name": "Kingpin Bellini",
+   "qty": 39,
+   "rev": 468,
+   "pct": 14.1,
+   "gross": 402,
+   "vs16": 9,
+   "seasonal": false
+  },
+  {
+   "name": "Traditional 10 Pin Mule",
+   "qty": 19,
+   "rev": 247,
+   "pct": 12.3,
+   "gross": 217,
+   "vs16": 9,
+   "seasonal": false
+  },
+  {
+   "name": "VIP Suite Mojito",
+   "qty": 15,
+   "rev": 225,
+   "pct": 9.9,
+   "gross": 203,
+   "vs16": 14,
+   "seasonal": false
+  },
+  {
+   "name": "Perfect 300 Paloma",
+   "qty": 18,
+   "rev": 252,
+   "pct": 24.7,
+   "gross": 190,
+   "vs16": -22,
+   "seasonal": false
+  },
+  {
+   "name": "Anchor Man",
+   "qty": 15,
+   "rev": 195,
+   "pct": 9.1,
+   "gross": 177,
+   "vs16": 14,
+   "seasonal": false
+  },
+  {
+   "name": "Twisted Aperol Spritz",
+   "qty": 16,
+   "rev": 208,
+   "pct": 24.1,
+   "gross": 158,
+   "vs16": -17,
+   "seasonal": false
+  },
+  {
+   "name": "Amaretto Sour",
+   "qty": 13,
+   "rev": 182,
+   "pct": 17.7,
+   "gross": 150,
+   "vs16": -3,
+   "seasonal": false
+  },
+  {
+   "name": "XXX Julep",
+   "qty": 11,
+   "rev": 165,
+   "pct": 14.1,
+   "gross": 142,
+   "vs16": 3,
+   "seasonal": false
+  },
+  {
+   "name": "Amaretto Stone Sour",
+   "qty": 12,
+   "rev": 168,
+   "pct": 17.7,
+   "gross": 138,
+   "vs16": -3,
+   "seasonal": false
+  },
+  {
+   "name": "Lane Whisperer",
+   "qty": 12,
+   "rev": 156,
+   "pct": 11.3,
+   "gross": 138,
+   "vs16": 7,
+   "seasonal": false
+  },
+  {
+   "name": "7-10 Split",
+   "qty": 9,
+   "rev": 126,
+   "pct": 10,
+   "gross": 113,
+   "vs16": 8,
+   "seasonal": false
+  },
+  {
+   "name": "Whiskey Sour",
+   "qty": 8,
+   "rev": 112,
+   "pct": 14.5,
+   "gross": 96,
+   "vs16": 2,
+   "seasonal": false
+  },
+  {
+   "name": "Cosmopolitan",
+   "qty": 4,
+   "rev": 52,
+   "pct": 14.6,
+   "gross": 44,
+   "vs16": 1,
+   "seasonal": false
+  },
+  {
+   "name": "Another League Negroni",
+   "qty": 3,
+   "rev": 42,
+   "pct": 22.6,
+   "gross": 33,
+   "vs16": -3,
+   "seasonal": false
+  }
+ ]
+}

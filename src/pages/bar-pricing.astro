@@ -34,6 +34,7 @@
  */
 import Base from "../layouts/Base.astro";
 import data from "../data/bar-pricing.json";
+import basket from "../data/bar-basket.json";
 
 const CORE = ["Vodka", "Gin", "Rum", "Tequila", "Whiskey", "Liqueurs/Cordials"];
 const cats = [...new Set(data.spirits.map((s: any) => s.category))];
@@ -100,6 +101,7 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
 
     <nav class="bp-jump">
       {groups.map((g) => <a href={`#cat-${g.name.replace(/\W+/g, "-")}`}>{g.name}</a>)}
+      <a href="#basket">Basket</a>
       <a href="#cocktails">Cocktails</a>
       <a href="#requests">Requests</a>
       <a href="#decisions">Decisions</a>
@@ -233,6 +235,76 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
           </table>
         </div>
       ))}
+    </section>
+
+    <section class="bp-cat" id="basket">
+      <h2>The basket <span class="bp-catn">{basket.days} days · {basket.from} → {basket.to}</span></h2>
+      <p class="bp-sub">
+        Real GoTab sales, weighted by what actually sold. This is the view that matters — no
+        single drink needs to hit a target, the <em>blend</em> does. Wins fund drags.
+      </p>
+
+      <div class="bp-kpis">
+        <div class="bp-kpi">
+          <span class="bp-k-n">{basket.weighted}%</span>
+          <span class="bp-k-l">volume-weighted cocktail pour cost</span>
+          <span class="bp-k-s">{basket.unweighted}% if you average the drinks instead — the mix
+            is working <strong>for</strong> you, because the best sellers are the cheapest builds</span>
+        </div>
+        <div class="bp-kpi">
+          <span class="bp-k-n">${basket.headroom}</span>
+          <span class="bp-k-l">headroom vs a 16% target, {basket.days} days</span>
+          <span class="bp-k-s">≈ ${basket.headroomYear.toLocaleString()}/yr of budget the cocktails
+            EARN — money available to spend on pours that can't reach 16%</span>
+        </div>
+        <div class="bp-kpi">
+          <span class="bp-k-n">${basket.luxuryFunded.toLocaleString()}</span>
+          <span class="bp-k-l">of 25% luxury pour revenue that surplus funds, per {basket.days} days</span>
+          <span class="bp-k-s">at $35–50 a pour that's ~1+ luxury pour a day before the blend
+            moves — the top shelf is affordable</span>
+        </div>
+      </div>
+
+      <div class="bp-note" style="max-width:820px;margin:14px 0;">
+        <strong>The drags are not worth chasing.</strong> All three cocktails over 20% —
+        Perfect 300 Paloma, Twisted Aperol Spritz, Another League Negroni — cost a combined
+        <strong>$42 against a 16% benchmark over {basket.days} days</strong>. That is noise.
+        Percentage flags them; dollars say ignore them.
+        <br /><br />
+        <strong>Seasonals are the margin engine, not a novelty.</strong> They're
+        <strong>39% of all cocktail gross profit</strong> — the top three gross-profit drinks are
+        all seasonal, all under 12.5%. Rotating them is a pricing lever.
+        <br /><br />
+        <strong>⚠ The real gap: pour buttons did ${basket.pourRev.toLocaleString()} over
+        {basket.pourUnits.toLocaleString()} units</strong> and have no cost model at all — roughly
+        the same revenue as every costed cocktail combined. Half the spirit basket is unmeasured,
+        so the {basket.weighted}% above describes the half we can see.
+      </div>
+
+      <h3 class="bp-h3">Ranked by gross profit dollars, not percentage</h3>
+      <div class="bp-scroll">
+        <table>
+          <thead>
+            <tr><th class="l">Drink</th><th class="r">Units</th><th class="r">Revenue</th>
+              <th class="r">Pour %</th><th class="r hi">Gross $</th><th class="r">vs a 16% drink</th></tr>
+          </thead>
+          <tbody>
+            {basket.rows.map((r: any) => (
+              <tr data-name={r.name.toLowerCase()} data-draining="0">
+                <td class="l">
+                  <span class="bp-name">{r.name}</span>
+                  {r.seasonal && <span class="bp-chip drain">seasonal</span>}
+                </td>
+                <td class="r">{r.qty}</td>
+                <td class="r">${r.rev.toLocaleString()}</td>
+                <td class={`r ${r.pct > 20 ? "dim" : ""}`}>{r.pct}%</td>
+                <td class="r hi">${r.gross.toLocaleString()}</td>
+                <td class={`r ${r.vs16 >= 0 ? "" : "dim"}`}>{r.vs16 >= 0 ? `+$${r.vs16}` : `−$${Math.abs(r.vs16)}`}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
 
     <section class="bp-cat" id="requests">
@@ -412,6 +484,14 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
     }
     .bp-jump a:hover { border-color: var(--glow); color: var(--glow); }
     .bp-cat { max-width: 1200px; margin: 0 auto 40px; }
+    .bp-kpis { display: flex; gap: 12px; flex-wrap: wrap; margin: 14px 0; }
+    .bp-kpi {
+      flex: 1 1 260px; padding: 14px 16px; border-radius: 9px;
+      background: var(--paper); border: 1px solid var(--line);
+    }
+    .bp-k-n { display: block; font-size: 34px; font-weight: 800; color: var(--glow); line-height: 1.05; }
+    .bp-k-l { display: block; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); margin: 6px 0 8px; }
+    .bp-k-s { display: block; font-size: 12px; line-height: 1.5; color: rgba(244,241,234,0.8); }
     .bp-cat h2 { font-size: 22px; margin: 0 0 4px; display: flex; align-items: baseline; gap: 10px; }
     .bp-catn { font-size: 12px; color: var(--muted); font-weight: 400; }
     .bp-h3 { font-size: 15px; margin: 22px 0 6px; color: var(--glow); }
