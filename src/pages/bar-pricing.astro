@@ -118,6 +118,7 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
                     <span class="bp-name">{r.name}</span>
                     {r.draining && <span class="bp-chip drain">draining</span>}
                     {r.tierDisputed && <span class="bp-chip warn" title="the two classification passes disagreed on this tier — see Decisions">tier?</span>}
+                    {r.market && <span class="bp-market">{r.market}</span>}
                   </td>
                   <td><span class={`bp-tier t-${r.tier}`}>{r.tier === "superPremium" ? "super" : r.tier}</span></td>
                   <td class="r">${r.cost.toFixed(2)}</td>
@@ -339,6 +340,10 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
     .bp-chip {
       display: inline-block; margin-left: 6px; font-size: 9px; letter-spacing: 0.06em;
       text-transform: uppercase; padding: 2px 5px; border-radius: 4px; vertical-align: middle;
+    }
+    .bp-market {
+      display: block; white-space: normal; max-width: 460px; margin-top: 4px;
+      font-size: 11px; line-height: 1.45; color: #9ad4ff;
     }
     .bp-chip.drain { background: rgba(255,255,255,0.08); color: var(--muted); }
     .bp-chip.warn { background: rgba(240,180,41,0.16); color: var(--warn); white-space: normal; }

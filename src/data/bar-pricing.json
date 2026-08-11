@@ -889,7 +889,8 @@
    "move": "no mixed button (super-premium)",
    "draining": false,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "Best evidence set. Ancho & Agave NAPERVILLE $26.25 (04/2026), Hooters IL $29.95 / $49.99 at a stated 2oz, Gibsons $38, Del Toro Chicago $25 at 1oz. Suggested $34 / $44 — or $32 at a 1.25oz pour, same economics, mid-market shelf number."
   },
   {
    "name": "Clase Azul Reposado",
@@ -910,7 +911,8 @@
    "move": "no mixed button (super-premium)",
    "draining": false,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "Market is bimodal — upscale $42–57, casual $25–32, nothing between. Chicago: Gibsons $30, Ocean Prime $46. Suggested $36 / $46. Sanity check: it runs 2.5–2.8× the venue's Casamigos Reposado everywhere."
   },
   {
    "name": "Seagram's 7",
@@ -1582,7 +1584,8 @@
    "move": "no mixed button (super-premium)",
    "draining": false,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "Comps: Bar Siena Chicago $25, Sundance Steakhouse $30. Current POS ($13.65/1oz, $21/1.5oz) already sits at 19–20% pour cost — this one is priced right."
   },
   {
    "name": "Harvey's Bristol Cream Solera Sherry",
@@ -2191,7 +2194,8 @@
    "move": "no mixed button (super-premium)",
    "draining": false,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "Market $25–40; three upscale venues cluster at $38–40. Chicago casual $28. Suggested $34 / $44. LOW CONFIDENCE — only 5 data points, no stated pours."
   },
   {
    "name": "Remy Martin XO",
@@ -2212,7 +2216,8 @@
    "move": "no mixed button (super-premium)",
    "draining": false,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "Market $35–60. Closest comp: Hugo's Naperville / Gibsons $36 (pour unstated). Suggested $38 shot / $48 neat (23–25%). ⚠ Our $43 is built on a DEAL cost ($150.43 vs $182.50 list) — price off list, not the deal."
   },
   {
    "name": "HERRADURA AGAVE NECTAR SYRUP",
@@ -2469,10 +2474,10 @@
  ],
  "uncosted": [
   {
-   "name": "Screwball Peanut Butter Whiskey",
+   "name": "Skrewball Peanut Butter Whiskey",
    "category": "Whiskey",
    "tier": "flavored (assumed)",
-   "missing": "bottle cost — and confirm bottle size (750ml assumed)"
+   "missing": "bottle cost. Market research estimates ~$18/750ml IL wholesale, which would price to $8 at 1.5oz (13.4%). ⚠ Ask the rep whether the Aug 1 2026 supplier price cut flowed through — NC published FOB dropped ~24% ($15.74 → $11.99)"
   }
  ],
  "disagreements": [
