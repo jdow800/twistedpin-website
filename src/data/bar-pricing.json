@@ -497,6 +497,28 @@
    "market": "ORDERED BY MISTAKE (Jon 2026-08-11) — he meant the 109p at $37.08 and is trying to cancel/swap. 1 bottle at $62.96, item #9308597. If the swap lands, deactivate this SKU; if it does not, one bottle drains and this row goes away on its own. ⚠ The 109p bare \"Worthy Park\" alias was briefly restored and has been RE-NARROWED while this bottle is in flight — a Single Estate invoice line matching the bare name would overwrite the 109p cost with $62.96 and corrupt Alley Oop Swizzle plus every 109p pour price. Restore the bare alias only once this is confirmed gone."
   },
   {
+   "name": "Jose Cuervo Tradicional Silver 1L",
+   "category": "Tequila",
+   "tier": "well",
+   "cost": 24.17,
+   "ml": 1000,
+   "costOz": 0.715,
+   "nowShot": null,
+   "nowMixed": null,
+   "p125": null,
+   "pct125": null,
+   "p150": 7,
+   "pct150": 15.3,
+   "p200": 10,
+   "pct200": 14.3,
+   "mixed": 9,
+   "move": "new button",
+   "draining": false,
+   "tierDisputed": false,
+   "noNeat": true,
+   "market": "NEW well tequila, replacing El Jimador on reorder (Southern, item 445487). ⚠ TAKE THE 1L, NOT THE 750ml — the 750 is $0.858/oz vs the liter at $0.715/oz, 20% worse, AND it is Limited Availability. Deal ladder per case of 12: list $24.17 · 1 CSE $20.75 · 3 CSE $18.50 · 5 CSE $17.42 · 10 CSE $14.25. BUY ONE CASE TO START — El Jimador runs ~2.9 cases/yr, so 1 case is 4.2 months (inside the 26-week rule) while 3 cases is 12.6 months of a bottle whose guest reception you have not tested yet. HOLD THE CURRENT WELL PRICE ($9 at 1.5oz); do NOT drop to the ladder $7. Guests do not know the bottle changed, and at $9 Cuervo realizes 11.9% at list / 10.2% on the 1-case deal — a manufactured win. The swap alone is worth ~$177/yr in margin at the 1-case deal before any price change."
+  },
+  {
    "name": "El Jimador Silver",
    "category": "Tequila",
    "tier": "well",
@@ -2499,14 +2521,7 @@
    "noNeat": false
   }
  ],
- "uncosted": [
-  {
-   "name": "Jose Cuervo Tradicional Silver",
-   "category": "Tequila",
-   "tier": "well",
-   "missing": "bottle cost"
-  }
- ],
+ "uncosted": [],
  "disagreements": [
   {
    "sku_name": "Aperol Aperitivo",
