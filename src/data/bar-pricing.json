@@ -2469,12 +2469,6 @@
  ],
  "uncosted": [
   {
-   "name": "Macallan 12 Year",
-   "category": "Whiskey",
-   "tier": "superPremium (assumed)",
-   "missing": "bottle cost — and which 12yr expression is on the shelf (Double Cask / Sherry Oak / Triple Cask price differently)"
-  },
-  {
    "name": "Screwball Peanut Butter Whiskey",
    "category": "Whiskey",
    "tier": "flavored (assumed)",
