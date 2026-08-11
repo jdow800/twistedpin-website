@@ -492,7 +492,7 @@
    "draining": true,
    "tierDisputed": false,
    "noNeat": false,
-   "market": "DROPPED (Jon 2026-08-11). The 109p is the only Worthy Park going forward, and its bare \"Worthy Park\" alias has been restored now that there is no second bottle to confuse it with. It entered our records from the 8/08 Breakthru cart screenshot; no invoice has ever matched it, but only 24 of 135 SKUs ever have, so that is weak evidence either way — the shelf will settle it."
+   "market": "ORDERED BY MISTAKE (Jon 2026-08-11) — he meant the 109p at $37.08 and is trying to cancel/swap. 1 bottle at $62.96, item #9308597. If the swap lands, deactivate this SKU; if it does not, one bottle drains and this row goes away on its own. ⚠ The 109p bare \"Worthy Park\" alias was briefly restored and has been RE-NARROWED while this bottle is in flight — a Single Estate invoice line matching the bare name would overwrite the 109p cost with $62.96 and corrupt Alley Oop Swizzle plus every 109p pour price. Restore the bare alias only once this is confirmed gone."
   },
   {
    "name": "El Jimador Silver",
