@@ -252,9 +252,9 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
             is working <strong>for</strong> you, because the best sellers are the cheapest builds</span>
         </div>
         <div class="bp-kpi">
-          <span class="bp-k-n">${basket.headroom}</span>
+          <span class="bp-k-n">${basket.totalHeadroom}</span>
           <span class="bp-k-l">headroom vs a 16% target, {basket.days} days</span>
-          <span class="bp-k-s">≈ ${basket.headroomYear.toLocaleString()}/yr of budget the cocktails
+          <span class="bp-k-s">≈ ${basket.totalHeadroomYear.toLocaleString()}/yr of budget the cocktails
             EARN — money available to spend on pours that can't reach 16%</span>
         </div>
         <div class="bp-kpi">
@@ -275,10 +275,17 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
         <strong>39% of all cocktail gross profit</strong> — the top three gross-profit drinks are
         all seasonal, all under 12.5%. Rotating them is a pricing lever.
         <br /><br />
-        <strong>⚠ The real gap: pour buttons did ${basket.pourRev.toLocaleString()} over
-        {basket.pourUnits.toLocaleString()} units</strong> and have no cost model at all — roughly
-        the same revenue as every costed cocktail combined. Half the spirit basket is unmeasured,
-        so the {basket.weighted}% above describes the half we can see.
+        <strong>Pour buttons are costed now too.</strong> They run {basket.pourWeighted}% on
+        ${basket.pourRevMatched.toLocaleString()} of matched revenue — close to neutral against a
+        16% target, so <em>the cocktails are doing the winning</em>. Only ${basket.pourUnmatchedRev}
+        of option revenue couldn't be matched to a bottle.
+        <br /><br />
+        <strong>The agave premiums are the one real drag, and they're small.</strong> Don Julio,
+        Patrón, Herradura and Casamigos pours total ${basket.agaveRev.toLocaleString()} at 21–22%,
+        costing <strong>${basket.agaveDrag} against a 16% benchmark over {basket.days} days</strong>.
+        Worth pricing deliberately; not worth losing sleep over.
+        <br /><br />
+        ⚠ <strong>{basket.structureNote}</strong>
       </div>
 
       <h3 class="bp-h3">Ranked by gross profit dollars, not percentage</h3>

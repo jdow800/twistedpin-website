@@ -9,7 +9,7 @@
  "unweighted": 14.5,
  "headroom": 285,
  "headroomYear": 1734,
- "luxuryFunded": 3167,
+ "luxuryFunded": 3267,
  "pourRev": 11232,
  "pourUnits": 1487,
  "rows": [
@@ -229,5 +229,154 @@
    "vs16": -3,
    "seasonal": false
   }
- ]
+ ],
+ "pourRevMatched": 9700,
+ "pourCogs": 1544,
+ "pourWeighted": 15.9,
+ "pourUnmatchedRev": 495,
+ "pourRows": [
+  {
+   "spirit": "Tito's",
+   "oz": 1.5,
+   "qty": 274,
+   "rev": 2055,
+   "pct": 12.7,
+   "gross": 1794,
+   "matched": true
+  },
+  {
+   "spirit": "Jack Daniels",
+   "oz": 1.5,
+   "qty": 64,
+   "rev": 640,
+   "pct": 16.8,
+   "gross": 533,
+   "matched": true
+  },
+  {
+   "spirit": "El Jimador",
+   "oz": 1.5,
+   "qty": 52,
+   "rev": 468,
+   "pct": 12.8,
+   "gross": 408,
+   "matched": true
+  },
+  {
+   "spirit": "Tito's",
+   "oz": 1,
+   "qty": 73,
+   "rev": 365,
+   "pct": 12.7,
+   "gross": 319,
+   "matched": true
+  },
+  {
+   "spirit": "Don Reposado",
+   "oz": 1,
+   "qty": 38,
+   "rev": 342,
+   "pct": 21.1,
+   "gross": 270,
+   "matched": true
+  },
+  {
+   "spirit": "Don Reposado",
+   "oz": 1.5,
+   "qty": 26,
+   "rev": 338,
+   "pct": 21.9,
+   "gross": 264,
+   "matched": true
+  },
+  {
+   "spirit": "Captain",
+   "oz": 1.5,
+   "qty": 41,
+   "rev": 287,
+   "pct": 15.8,
+   "gross": 242,
+   "matched": true
+  },
+  {
+   "spirit": "Jameson",
+   "oz": 1.5,
+   "qty": 27,
+   "rev": 284,
+   "pct": 15.5,
+   "gross": 240,
+   "matched": true
+  },
+  {
+   "spirit": "Malibu",
+   "oz": 1.5,
+   "qty": 35,
+   "rev": 245,
+   "pct": 10.8,
+   "gross": 219,
+   "matched": true
+  },
+  {
+   "spirit": "El Jimador",
+   "oz": 1,
+   "qty": 39,
+   "rev": 234,
+   "pct": 12.8,
+   "gross": 204,
+   "matched": true
+  },
+  {
+   "spirit": "Woodford Res",
+   "oz": 1,
+   "qty": 24,
+   "rev": 216,
+   "pct": 18.8,
+   "gross": 175,
+   "matched": true
+  },
+  {
+   "spirit": "Patron Reposado",
+   "oz": 1,
+   "qty": 22,
+   "rev": 198,
+   "pct": 20.9,
+   "gross": 157,
+   "matched": true
+  },
+  {
+   "spirit": "Dos Hombres Mezcal",
+   "oz": 1,
+   "qty": 19,
+   "rev": 190,
+   "pct": 19.2,
+   "gross": 154,
+   "matched": true
+  },
+  {
+   "spirit": "Crown Royal",
+   "oz": 1.5,
+   "qty": 17,
+   "rev": 179,
+   "pct": 14.7,
+   "gross": 152,
+   "matched": true
+  },
+  {
+   "spirit": "Don Blanco",
+   "oz": 1.5,
+   "qty": 15,
+   "rev": 188,
+   "pct": 21.4,
+   "gross": 147,
+   "matched": true
+  }
+ ],
+ "totalRev": 20710,
+ "totalCogs": 3020,
+ "totalWeighted": 14.6,
+ "totalHeadroom": 294,
+ "totalHeadroomYear": 1789,
+ "agaveRev": 2484,
+ "agaveDrag": -95,
+ "structureNote": "Prices and pour sizes below are the OUTGOING structure (pre-rework). The MIX — which spirits sell, in what proportion — is the durable part and survives the repricing."
 }
