@@ -120,7 +120,7 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
                     {r.tierDisputed && <span class="bp-chip warn" title="the two classification passes disagreed on this tier — see Decisions">tier?</span>}
                     {r.market && <span class="bp-market">{r.market}</span>}
                   </td>
-                  <td><span class={`bp-tier t-${r.tier}`}>{r.tier === "superPremium" ? "super" : r.tier}</span></td>
+                  <td><span class={`bp-tier t-${r.tier}`}>{r.tier === "superPremium" ? "super" : r.tier}</span></td>{/* luxury = the 2026-08-11 5th tier, cost/oz > $5 */}
                   <td class="r">${r.cost.toFixed(2)}</td>
                   <td class="r">${r.costOz.toFixed(2)}</td>
                   <td class="r dim">{r.nowShot == null ? "—" : `$${r.nowShot.toFixed(2)}`}</td>
@@ -232,7 +232,14 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
       <p>
         Tier targets — well {data.targets.well}% · call {data.targets.call}% ·
         premium {data.targets.premium}% · super-premium {data.targets.superPremium}% ·
-        flavored {data.targets.flavored}%. A lower target means a higher price.
+        <strong>luxury {data.targets.luxury}%</strong> · flavored {data.targets.flavored}%.
+        A lower target means a higher price.
+      </p>
+      <p>
+        <strong>Luxury</strong> is a 2026-08-11 addition to the May ladder, for the four bottles
+        above $5/oz. It isn't an arbitrary knob: the next bottle down costs $2.81/oz — a $2.64
+        gap — and a 25% target independently reproduces the live market comps to within $10
+        across eight price points, where 22% was $52 off.
       </p>
     </footer>
   </div>
@@ -354,6 +361,7 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
     .t-well { color: #9ad4ff; } .t-call { color: #b9f5a0; }
     .t-premium { color: var(--glow); } .t-superPremium { color: var(--warn); }
     .t-flavored { color: #d9a8ff; }
+    .t-luxury { color: #ffd9a8; background: rgba(240,180,41,0.18); font-weight: 700; }
     .bp td.move { font-size: 11px; color: var(--muted); }
     .bp td.move.up { color: var(--glow); font-weight: 600; }
     .bp td.move.new { color: #9ad4ff; }
