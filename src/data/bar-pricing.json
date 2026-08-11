@@ -489,9 +489,10 @@
    "pct200": 19.9,
    "mixed": 21,
    "move": "new button",
-   "draining": false,
+   "draining": true,
    "tierDisputed": false,
-   "noNeat": false
+   "noNeat": false,
+   "market": "DROPPED (Jon 2026-08-11). The 109p is the only Worthy Park going forward, and its bare \"Worthy Park\" alias has been restored now that there is no second bottle to confuse it with. It entered our records from the 8/08 Breakthru cart screenshot; no invoice has ever matched it, but only 24 of 135 SKUs ever have, so that is weak evidence either way — the shelf will settle it."
   },
   {
    "name": "El Jimador Silver",
@@ -510,9 +511,10 @@
    "pct200": 15.3,
    "mixed": 10,
    "move": "raise mixed +$1.00",
-   "draining": false,
+   "draining": true,
    "tierDisputed": false,
-   "noNeat": true
+   "noNeat": true,
+   "market": "PHASING OUT on reorder — Jose Cuervo Tradicional replaces it as the well tequila (Jon 2026-08-11). It touches more than the pour buttons: it is 0.5oz in Front 9 Iced Tea AND in Pin Split Punch, the #2 gross-profit cocktail. Its pour options did $702 over 60 days at 12.8%, so the swap moves a genuine win — re-cost both cocktails once Cuervo has a real price."
   },
   {
    "name": "Herradura Silver",
@@ -2495,7 +2497,14 @@
    "noNeat": false
   }
  ],
- "uncosted": [],
+ "uncosted": [
+  {
+   "name": "Jose Cuervo Tradicional Silver",
+   "category": "Tequila",
+   "tier": "well",
+   "missing": "bottle cost"
+  }
+ ],
  "disagreements": [
   {
    "sku_name": "Aperol Aperitivo",
