@@ -2658,7 +2658,9 @@
    "cost": 1.47,
    "price": 13,
    "pct": 11.3,
-   "live": true
+   "live": true,
+   "retiring": true,
+   "warn": "RETIRING — being removed from the menu"
   },
   {
    "name": "Smokin' Bagger",
@@ -2689,7 +2691,9 @@
    "cost": 1.18,
    "price": 13,
    "pct": 9.1,
-   "live": true
+   "live": true,
+   "retiring": true,
+   "warn": "RETIRING — being removed from the menu"
   },
   {
    "name": "Perfect 300 Paloma",
@@ -2934,6 +2938,18 @@
    "price": null,
    "pct": 7.3,
    "live": false
+  },
+  {
+   "name": "Bowled Fashioned",
+   "id": "18469036",
+   "group": "Original Craft",
+   "build": "the bacon-batch Old Fashioned — uses (BATCH) Basil Hayden Bacon",
+   "cost": null,
+   "price": 15,
+   "pct": null,
+   "live": false,
+   "retiring": true,
+   "warn": "RETIRING — already toggled off in GoTab"
   }
  ]
 }

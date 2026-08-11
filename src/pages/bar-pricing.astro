@@ -148,6 +148,22 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
         Recipe coverage is 100% — every sellable cocktail has a recipe. Aggregate spirit-only
         pour cost across the live menu is <strong>14.4%</strong>.
       </p>
+      <div class="bp-note" style="max-width:820px;margin-bottom:14px;">
+        <strong>Three retiring:</strong> Lane Whisperer · Anchor Man · Bowled Fashioned (the
+        bacon Old Fashioned — already toggled off in GoTab). Priced below anyway so the
+        numbers are there while they sell through.
+        <br /><br />
+        <strong>⚠ Watch the pisco.</strong> Anchor Man is the <em>only</em> recipe using
+        Pisco Caravedo Quebranta, and the other three piscos already have no recipe at all.
+        Pisco has <strong>no pour button either</strong> — so when Anchor Man goes, all four
+        bottles (~$116) have nowhere to be sold. Junipero Gin and Basil Hayden also lose their
+        only recipe, but both sell by the pour, so they're fine.
+        <br /><br />
+        The order guide runs a <strong>Pisco substitute group</strong> and will keep
+        recommending purchases regardless. Either give pisco a home — a pour button or the
+        next new cocktail — or add it to <code>DISCONTINUED_SKUS</code> so the guide stops
+        asking.
+      </div>
       {cocktailGroups.map((grp) => (
         <div class="bp-scroll">
           <h3 class="bp-h3">{grp}</h3>
@@ -169,9 +185,11 @@ const money = (n: number | null) => (n == null ? "—" : `$${n}`);
                     {c.warn && <span class="bp-chip warn">{c.warn}</span>}
                   </td>
                   <td class="l dim">{c.build}</td>
-                  <td class="r">${c.cost.toFixed(2)}</td>
+                  <td class="r">{c.cost == null ? "—" : `$${c.cost.toFixed(2)}`}</td>
                   <td class="r">{c.price == null ? "off" : `$${c.price}`}</td>
-                  <td class={`r hi ${c.pct >= 22 ? "bad" : c.pct <= 10 ? "low" : ""}`}>{c.pct}%</td>
+                  <td class={`r hi ${c.pct >= 22 ? "bad" : c.pct != null && c.pct <= 10 ? "low" : ""}`}>
+                    {c.pct == null ? "—" : `${c.pct}%`}
+                  </td>
                 </tr>
               ))}
             </tbody>
