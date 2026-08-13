@@ -43,6 +43,7 @@ Flagship case: **E-8243279 / Ornella Dian / INV-2026-00400** ($1,316.49 total, $
 - **First money question on a booked row** → expect $-figures stated with cents and passing checks (not an NA bounce).
 - **First commit-shaped turn on a live-booked row** → expect the deterministic ack + NA flag, never silence.
 - ~~Digest day 2+ noise~~ — resolved same day (v2 money-clock-only). Remaining open item on the fossils: the 70 paused-no-label contacts still have every campaign silently off; surfacing them is now on-demand, and clearing them is a one-time SQL under Jon's own ruling if he ever wants it.
+- **Prose-fact drift, data point #1 (2026-08-12, live test #1):** Ornella's SMS package switch (Italiano→Stars & Strikes) never reached `food_package` — structurally unreachable (NA blindness is rule-level; SMS picks are prose; post-resume extraction reads the latest message only). The receipt note surfaced it and Jon corrected it by hand within the first minute — the designed loop worked. **Pre-specced next step IF this recurs:** a deterministic package-mention scan on the WF3 receipt chain — fetch the staff-era messages at label removal, string-match the four package names, and when the last-mentioned package differs from the column, annotate the receipt line ("heads up, the recent thread mentions X"). No LLM, never writes. Build only on data point #2+.
 
 ## Rollback
 
