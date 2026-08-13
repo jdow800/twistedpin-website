@@ -39,7 +39,7 @@ Flagship case: **E-8243279 / Ornella Dian / INV-2026-00400** ($1,316.49 total, $
 ## Watch list
 
 - **First real NA removal** → expect the receipt note in-thread within seconds; check `WF3` execution + the healed fields it renders.
-- **Ornella (E-8243279):** said she'd pay "tomorrow" (8/13). If NA is still on at 4:50am 8/13, the digest's money-clock line is the countdown (link dies Fri 8/15 9:05pm CT). If staff clear NA, the 22h reminder becomes eligible immediately (all predicates now pass except `ai_status`).
+- **Ornella (E-8243279):** said she'd pay "tomorrow" (8/13). If NA is still on at 4:50am 8/13, the digest's money-clock line is the countdown (link dies Fri 8/14 9:05pm CT (2026-08-15 02:05Z)). If staff clear NA, the 22h reminder becomes eligible immediately (all predicates now pass except `ai_status`).
 - **First money question on a booked row** → expect $-figures stated with cents and passing checks (not an NA bounce).
 - **First commit-shaped turn on a live-booked row** → expect the deterministic ack + NA flag, never silence.
 - ~~Digest day 2+ noise~~ — resolved same day (v2 money-clock-only). Remaining open item on the fossils: the 70 paused-no-label contacts still have every campaign silently off; surfacing them is now on-demand, and clearing them is a one-time SQL under Jon's own ruling if he ever wants it.
