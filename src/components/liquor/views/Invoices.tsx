@@ -6,6 +6,7 @@ import {
   matchInvoiceLine,
   newSkuFromLine,
   reextractInvoice,
+  setInvoiceLineReceived,
   invoiceImageUrl,
   type InvoiceSummary,
   type InvoiceDetail,
@@ -215,6 +216,24 @@ export default function Invoices({
               {l.needsReview && l.lineType === "product" && (
                 <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
               )}
+              {(l.lineType === "product" || l.lineType === "keg") && l.qtyUnits && (
+                <ReceivedControl
+                  invoiceId={detail.invoice.id}
+                  line={l}
+                  onChanged={(lineId, receivedQty) =>
+                    setDetail((d) =>
+                      !d
+                        ? d
+                        : {
+                            ...d,
+                            lines: d.lines.map((x) =>
+                              x.id === lineId ? { ...x, receivedQty: receivedQty == null ? null : String(receivedQty) } : x,
+                            ),
+                          },
+                    )
+                  }
+                />
+              )}
             </div>
           ))}
         </div>
@@ -267,6 +286,123 @@ export default function Invoices({
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Home</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * "Came up short?" — records what actually came off the truck.
+ *
+ * Collapsed to a single link until used, because the overwhelming majority of
+ * lines arrive complete and a box on every row would be noise. The value is
+ * NEVER pre-filled with the billed quantity: a delivery someone checked and a
+ * delivery nobody looked at have to stay distinguishable, and pre-filling makes
+ * them identical.
+ *
+ * Why it matters more than the credit it surfaces: purchases feed the variance
+ * grade as used = start + purchased − end, so stock billed but never delivered
+ * shows up at the next count as consumption with no sales behind it — which
+ * reads exactly like theft. Breakthru #128349267 billed 3 bottles of Carpano Dry
+ * and delivered none.
+ */
+function ReceivedControl({
+  invoiceId,
+  line,
+  onChanged,
+}: {
+  invoiceId: string;
+  line: InvoiceLine;
+  onChanged: (lineId: string, receivedQty: number | null) => void;
+}) {
+  const billed = Number(line.qtyUnits);
+  const recorded = line.receivedQty == null ? null : Number(line.receivedQty);
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState(recorded == null ? "" : String(recorded));
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function save(next: number | null) {
+    setBusy(true);
+    setErr(null);
+    try {
+      await setInvoiceLineReceived(invoiceId, line.id, next);
+      onChanged(line.id, next);
+      setOpen(false);
+    } catch {
+      setErr("Didn't save — try again.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Settled state: a discrepancy is on file. Show it with the money it's worth,
+  // since that is the number someone has to take to the rep.
+  if (recorded != null && !open) {
+    const shortBy = billed - recorded;
+    const unit = line.unitCost == null ? null : Number(line.unitCost);
+    const credit = shortBy > 0 && unit != null ? shortBy * unit : null;
+    return (
+      <div className="lq-invd-recvd">
+        <span className="lq-invd-recvd-flag">
+          {shortBy > 0
+            ? `Short ${+shortBy.toFixed(3)} of ${billed}`
+            : shortBy < 0
+              ? `Over by ${+Math.abs(shortBy).toFixed(3)}`
+              : `Confirmed all ${billed}`}
+        </span>
+        {credit != null && <span className="lq-invd-recvd-credit">credit due {money(credit.toFixed(2))}</span>}
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setVal(String(recorded)); setOpen(true); }}>
+          change
+        </button>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <div className="lq-invd-recvd">
+        <button type="button" className="lq-linkbtn lq-muted" onClick={() => setOpen(true)}>
+          Came up short?
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lq-invd-recvd lq-invd-recvd-edit">
+      <label>
+        Actually received
+        <input
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step="any"
+          value={val}
+          autoFocus
+          onChange={(e) => setVal(e.target.value)}
+          placeholder={String(billed)}
+        />
+        <span className="lq-muted">of {billed} billed</span>
+      </label>
+      <div className="lq-invd-recvd-actions">
+        <button
+          type="button"
+          className="lq-btn"
+          disabled={busy || val.trim() === "" || !Number.isFinite(Number(val)) || Number(val) < 0}
+          onClick={() => void save(Number(val))}
+        >
+          {busy ? "Saving…" : "Save"}
+        </button>
+        {recorded != null && (
+          <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save(null)}>
+            clear
+          </button>
+        )}
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setOpen(false); setErr(null); }}>
+          cancel
+        </button>
+      </div>
+      {err && <p className="lq-invd-recvd-err">{err}</p>}
     </div>
   );
 }

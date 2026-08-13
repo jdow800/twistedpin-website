@@ -1242,6 +1242,66 @@
 .lq-invd-unmatched {
   color: #ffcf5c;
 }
+/* "Came up short?" — collapsed to a link until used. Almost every line arrives
+   complete, so a permanent input on each row would be noise on a 20-line
+   invoice. Same collapse/expand shape as .lq-caseask. */
+.lq-invd-recvd {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+/* Mirrors the .lq-caseask-open lesson: .lq-linkbtn's 4px padding is a ~22px
+   target, too small for a thumb. Scoped so no other link button moves. */
+.lq-invd-recvd .lq-linkbtn {
+  font-size: 12px;
+  padding: 6px 2px;
+  min-height: 32px;
+}
+/* A recorded discrepancy is a standing fact about this delivery, not a hint —
+   it gets the same warning colour as an unmatched line so it reads at a glance
+   when someone scrolls the invoice weeks later. */
+.lq-invd-recvd-flag {
+  color: #ffcf5c;
+  font-weight: 700;
+}
+.lq-invd-recvd-credit {
+  background: var(--lq-panel-2);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+.lq-invd-recvd-edit label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* 16px: anything smaller and iOS Safari zooms the whole page on focus. */
+.lq-invd-recvd-edit input {
+  width: 5.5em;
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+}
+.lq-invd-recvd-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Own line, and deliberately NOT .lq-error — that rule sits far earlier in this
+   file and a later muted rule would win the cascade, rendering a failed save in
+   grey. Same trap already documented on .lq-caseask-err. */
+.lq-invd-recvd-err {
+  flex: 0 0 100%;
+  font-size: 13px;
+  color: var(--lq-danger);
+  margin: 0;
+}
 .lq-match {
   margin-top: 8px;
   display: flex;

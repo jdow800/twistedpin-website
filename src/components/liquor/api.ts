@@ -548,6 +548,10 @@ export interface InvoiceLine {
   qtyUnits: string | null;
   unitCost: string | null;
   extendedAmount: string;
+  /** What actually arrived, when someone said it differed from the bill. null =
+   *  nobody has said otherwise, so billed IS received. Never pre-filled — a
+   *  confirmed delivery and an unexamined one must not look the same. */
+  receivedQty: string | null;
   needsReview: boolean;
   matchedName: string | null;
 }
@@ -576,6 +580,20 @@ export async function matchInvoiceLine(
   skuId: string,
 ): Promise<{ matchedName: string; aliasLearned: boolean; invoiceConfirmed: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
+}
+/** Record what a delivery ACTUALLY contained, when it came up short (or over).
+ *  Pass null to clear it back to "as billed".
+ *
+ *  This is what keeps a short shipment from reading as theft: purchases feed the
+ *  variance grade as used = start + purchased − end, so stock billed but never
+ *  delivered shows up later as consumption with no sales behind it. The server
+ *  returns the credit the short is worth, so the UI never computes money. */
+export async function setInvoiceLineReceived(
+  invoiceId: string,
+  lineId: string,
+  receivedQty: number | null,
+): Promise<{ receivedQty: number | null; billedQty: number | null; shortBy: number | null; creditDue: number | null }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/received`, jsonBody({ receivedQty }));
 }
 /** Re-run extraction on a flagged/extracted invoice (re-reads the stored images
  *  with current logic). Returns 'images_purged' when the 30-day images are gone. */
