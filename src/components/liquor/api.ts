@@ -552,6 +552,11 @@ export interface InvoiceLine {
    *  nobody has said otherwise, so billed IS received. Never pre-filled — a
    *  confirmed delivery and an unexamined one must not look the same. */
   receivedQty: string | null;
+  /** Handwriting or marks on this printed row, DESCRIBED not interpreted.
+   *  Null for a clean row. Never a number — it exists to send someone to the
+   *  shelf, because a short marked by the driver is the one discrepancy where
+   *  the invoice and the vendor order email agree and are both wrong. */
+  annotation: string | null;
   needsReview: boolean;
   matchedName: string | null;
 }

@@ -1242,6 +1242,22 @@
 .lq-invd-unmatched {
   color: #ffcf5c;
 }
+/* Ink on the paper. Same warning colour as an unmatched line, because it wants
+   the same thing — a human — even though the action is different (count the
+   shelf, not pick a bottle). The hint spells that out so the row can't be read
+   as "we already handled it". */
+.lq-invd-annot {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #ffcf5c;
+  font-weight: 700;
+}
+.lq-invd-annot-hint {
+  display: block;
+  font-weight: 400;
+  color: var(--lq-muted);
+}
 /* "Came up short?" — collapsed to a link until used. Almost every line arrives
    complete, so a permanent input on each row would be noise on a 20-line
    invoice. Same collapse/expand shape as .lq-caseask. */

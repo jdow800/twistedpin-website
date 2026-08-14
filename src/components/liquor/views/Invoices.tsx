@@ -216,6 +216,14 @@ export default function Invoices({
               {l.needsReview && l.lineType === "product" && (
                 <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
               )}
+              {l.annotation && (
+                <p className="lq-invd-annot">
+                  ✍️ {l.annotation}
+                  <span className="lq-invd-annot-hint">
+                    — printed numbers were kept. Count the shelf and record what actually arrived.
+                  </span>
+                </p>
+              )}
               {(l.lineType === "product" || l.lineType === "keg") && l.qtyUnits && (
                 <ReceivedControl
                   invoiceId={detail.invoice.id}
@@ -316,7 +324,10 @@ function ReceivedControl({
 }) {
   const billed = Number(line.qtyUnits);
   const recorded = line.receivedQty == null ? null : Number(line.receivedQty);
-  const [open, setOpen] = useState(false);
+  // Someone wrote on this row and nobody has recorded a count yet — open the box
+  // rather than making them find it. The alert told them to count; landing on a
+  // collapsed link would ask them to go looking for where to put the answer.
+  const [open, setOpen] = useState(() => Boolean(line.annotation) && recorded == null);
   const [val, setVal] = useState(recorded == null ? "" : String(recorded));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
