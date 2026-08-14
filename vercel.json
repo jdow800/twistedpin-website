@@ -164,7 +164,7 @@
     { "source": "/feedback{/}?", "destination": "https://www.gm5.ai/twisted-pin", "permanent": false },
     { "source": "/welcome{/}?", "destination": "/playbook/", "permanent": false },
     { "source": "/book/:code{/}?", "destination": "/reserve/?code=:code", "permanent": false },
-    { "source": "/paint-night{/}?", "destination": "https://paintingpartiesbylucy.com/events/rod-farm-market-west-brooklyn-harvest-haul-274-498-830-836-650-243-758-733-520-395-701-720-771-995-976-739-853-178-739-572-752-732-649-735-518-288-629-847/", "permanent": false },
+    { "source": "/paint-night{/}?", "destination": "https://paintingpartiesbylucy.com/events/rod-farm-market-west-brooklyn-harvest-haul-274-498-830-836-650-243-758-733-520-395-701-720-771-995-976-739-853-178-739-572-752-732-649-735-518-288-629-847-134-863-242-154-802-261-187-403-345/", "permanent": false },
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true },
     { "source": "/nye{/}?", "destination": "/new-years-eve/", "permanent": true },

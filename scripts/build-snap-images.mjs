@@ -181,7 +181,10 @@ const SOURCES = [
   // preserved — these are pre-composed promo graphics, not croppable photos.
   // withoutEnlargement keeps small sources at native size (no upscaling).
   //   - event-paint-night: Painting Parties by Lucy promo flyer, 610×400.
+  //     (July 2026 "Highland cow" round — event past, outputs left in place.)
   { src: "paintnight (10).png", name: "event-paint-night", widths: [610] },
+  //   - event-paint-night-autumn: "Autumn Harvest Glow" flyer (Sep 15 2026), 610×400.
+  { src: "autumnpaintnight.png", name: "event-paint-night-autumn", widths: [610] },
 ];
 
 async function exists(p) {
