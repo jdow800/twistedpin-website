@@ -44,16 +44,41 @@ const events = (await getCollection("events"))
   .filter((e) => e.data.start <= lookaheadCutoff)
   .sort((a, b) => a.data.start.getTime() - b.data.start.getTime());
 
-// Group by year-month (UTC keys for stability across DST).
+// Every calendar-date part below is read in America/Chicago, never via
+// Date#getDate()/getMonth()/getFullYear() — those use the *build server's*
+// zone, and Vercel builds in UTC. A 6:00–8:30pm CT event ends at 01:30 UTC
+// the NEXT day, so the naive form rendered a phantom two-day range
+// ("15–16 SEP") in production while a Central-time dev machine showed the
+// correct single day. Caught live 2026-08-14 on Paint Night; every evening
+// event since the calendar shipped had the same defect. The time range was
+// always right because timeFmt below pins timeZone explicitly — do the same
+// for date parts. NOTE: the past-event and lookahead filters compare Date
+// objects directly (absolute instants), so they're zone-agnostic and fine.
+const ctPartsFmt = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Chicago",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+function ctParts(d: Date) {
+  const parts = ctPartsFmt.formatToParts(d);
+  const get = (type: string) => parts.find((p) => p.type === type)!.value;
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+// Group by year-month, keyed on the venue's calendar date. A 7pm CT event on
+// Dec 31 is Jan 1 UTC — the naive form filed it under the wrong month AND year.
 type Group = { key: string; label: string; events: typeof events };
 const groups: Group[] = [];
 const monthFmt = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
+  timeZone: "America/Chicago",
 });
 for (const e of events) {
   const d = e.data.start;
-  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+  const { year, month } = ctParts(d);
+  const key = `${year}-${month}`;
   const label = monthFmt.format(d).toUpperCase();
   let g = groups.find((x) => x.key === key);
   if (!g) {
@@ -63,17 +88,22 @@ for (const e of events) {
   g.events.push(e);
 }
 
-const monthShort = (d: Date) =>
-  new Intl.DateTimeFormat("en-US", { month: "short" }).format(d).toUpperCase();
-const dayNum = (d: Date) => String(d.getDate());
+const monthShortFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: "America/Chicago",
+});
+const monthShort = (d: Date) => monthShortFmt.format(d).toUpperCase();
+// Number() strips the "2-digit" leading zero — the date block reads "5", not "05".
+const dayNum = (d: Date) => String(Number(ctParts(d).day));
 
 // Day block — handles single day, multi-day same-month, multi-day cross-month.
 function dayBlock(start: Date, end?: Date) {
   if (!end || sameDay(start, end)) {
     return { day: dayNum(start), month: monthShort(start), range: false };
   }
-  const sameMonth =
-    start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+  const s = ctParts(start);
+  const e = ctParts(end);
+  const sameMonth = s.month === e.month && s.year === e.year;
   if (sameMonth) {
     return {
       day: `${dayNum(start)}–${dayNum(end)}`,
@@ -89,11 +119,9 @@ function dayBlock(start: Date, end?: Date) {
 }
 
 function sameDay(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  const pa = ctParts(a);
+  const pb = ctParts(b);
+  return pa.year === pb.year && pa.month === pb.month && pa.day === pb.day;
 }
 
 // Time formatting — Plainfield IL is Central Time. Hardcode CT label
