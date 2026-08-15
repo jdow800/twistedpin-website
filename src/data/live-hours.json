@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-08-14T09:00:01.506Z",
+  "fetchedAt": "2026-08-15T09:00:41.560Z",
   "hours": {
     "sun": {
       "label": "12pm – 10pm",
@@ -10,43 +10,43 @@
       "closeLabel": "10pm"
     },
     "mon": {
-      "label": "11am – 10pm",
+      "label": "3pm – 10pm",
       "closed": false,
-      "openMinutes": 660,
+      "openMinutes": 900,
       "closeMinutes": 1320,
-      "openLabel": "11am",
+      "openLabel": "3pm",
       "closeLabel": "10pm"
     },
     "tue": {
-      "label": "11am – 10pm",
+      "label": "3pm – 10pm",
       "closed": false,
-      "openMinutes": 660,
+      "openMinutes": 900,
       "closeMinutes": 1320,
-      "openLabel": "11am",
+      "openLabel": "3pm",
       "closeLabel": "10pm"
     },
     "wed": {
-      "label": "11am – 10pm",
+      "label": "3pm – 10pm",
       "closed": false,
-      "openMinutes": 660,
+      "openMinutes": 900,
       "closeMinutes": 1320,
-      "openLabel": "11am",
+      "openLabel": "3pm",
       "closeLabel": "10pm"
     },
     "thu": {
-      "label": "11am – 10pm",
+      "label": "3pm – 10pm",
       "closed": false,
-      "openMinutes": 660,
+      "openMinutes": 900,
       "closeMinutes": 1320,
-      "openLabel": "11am",
+      "openLabel": "3pm",
       "closeLabel": "10pm"
     },
     "fri": {
-      "label": "11am – 1am",
+      "label": "2pm – 1am",
       "closed": false,
-      "openMinutes": 660,
+      "openMinutes": 840,
       "closeMinutes": 1500,
-      "openLabel": "11am",
+      "openLabel": "2pm",
       "closeLabel": "1am"
     },
     "sat": {
