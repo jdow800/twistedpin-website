@@ -65,3 +65,11 @@ Context/Playbook and guidebook photos/
 # Windows folder metadata — Explorer drops these into any folder it customizes.
 # Would otherwise be committed and served publicly out of public/.
 desktop.ini
+
+# booking-tiles: rendered PNGs + tmp HTML are regenerable output; only the
+# generator script is source. early-open: punches-page2.json is a 7shifts punch
+# export with REAL EMPLOYEE WAGE DATA - this repo is PUBLIC, it must never be
+# committed (re-pullable from the 7shifts API).
+scripts/booking-tiles/out/
+scripts/booking-tiles/.tmp/
+scripts/early-open/punches-page2.json
