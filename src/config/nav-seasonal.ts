@@ -31,6 +31,13 @@ export interface SeasonalNavItem {
   showFrom: string;
   /** ISO date string. Item shows through end-of-day in build server tz. */
   showUntil: string;
+  /**
+   * Where the item renders within its section. "top" (default) is the
+   * promo slot — first rows, Glow-tinted icon. "bottom" is for items
+   * still worth surfacing but past their active window (e.g. a program
+   * page now in waitlist/interest-list mode): last rows, no Glow lift.
+   */
+  placement?: "top" | "bottom";
 }
 
 /**
@@ -56,6 +63,10 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
    * August 14 (extended from the original June 1-30); the drawer
    * window (Apr 15 → Sep 1) brackets it on both ends so parents can
    * find it before the program starts and just after it ends.
+   *
+   * 2026-08-15: program complete for the year; the page self-flipped
+   * to 2027-waitlist mode. Demoted to bottom placement (Jon) — still
+   * findable for parents joining the 2027 list, no longer promoted.
    */
   {
     label: "Free Kids Bowling",
@@ -64,6 +75,7 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     section: "Visit",
     showFrom: "2026-04-15",
     showUntil: "2026-09-01",
+    placement: "bottom",
   },
   /**
    * Summer Pin Pass: page lives at /summer-pin-pass/ year-round.
@@ -74,6 +86,10 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
    * (weekdays 11-4 only, kids only, registration required). Both
    * use the Apr 15 -> Sep 1 window so they appear together during
    * the summer-planning + program-running months.
+   *
+   * 2026-08-15: 2026 sales closed (passes redeemable through Aug 31);
+   * page self-flipped to off-season mode. Demoted to bottom placement
+   * (Jon) alongside Free Kids Bowling.
    */
   {
     label: "Summer Pin Pass",
@@ -82,6 +98,7 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
     section: "Visit",
     showFrom: "2026-04-15",
     showUntil: "2026-09-01",
+    placement: "bottom",
   },
   /**
    * Holiday Parties: page lives at /holiday-parties/ year-round.

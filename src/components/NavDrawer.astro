@@ -75,13 +75,17 @@ const drawerSections: DrawerSection[] = [
       // hamburger-hunters expect to find primary CTAs in the menu too.
       { href: RESERVE_URL,                  label: "Reserve a Lane",  icon: "calendar-check" },
       { href: PLAN_EVENT_URL,              label: "Plan an Event",   icon: "message-square", external: true },
+      // Waitlist promoted from last to third (Jon, 2026-08-15) — it's
+      // the "coming in tonight" companion to Reserve; sits right after
+      // the Reserve/Plan CTA pair (kept adjacent to mirror the global
+      // CTA hierarchy in the sticky bar + header).
+      { href: "/waitlist/",                 label: "Waitlist",        icon: "clock"          },
       { href: "/birthday-parties/", label: "Birthday Parties",icon: "cake"           },
       { href: "/corporate-events/",         label: "Corporate Events",icon: "building-2"     },
       { href: "/showers/",                  label: "Showers",         icon: "flower"         },
       { href: "/wedding-receptions/",       label: "Weddings",        icon: "wine"           },
       { href: "/upcoming-events/",          label: "Upcoming Events", icon: "calendar"       },
       { href: "/coupon/",                   label: "Coupon",          icon: "ticket"         },
-      { href: "/waitlist/",                 label: "Waitlist",        icon: "clock"          },
     ],
   },
   {
@@ -102,18 +106,25 @@ const drawerSections: DrawerSection[] = [
   },
 ];
 
-// Merge active seasonal items into their target section. Seasonal items
-// render at the TOP of their section (most recent / time-bound first),
-// flagged with `.is-seasonal` so the CSS can lift them visually.
+// Merge active seasonal items into their target section. Default
+// placement is the TOP of the section (most recent / time-bound first)
+// with the `.is-seasonal` Glow lift. Items marked `placement: "bottom"`
+// (past their active window, e.g. waitlist-mode program pages) render
+// LAST and skip the Glow — still findable, no longer promoted.
 for (const seasonal of activeSeasonalItems()) {
   const section = drawerSections.find((s) => s.label === seasonal.section);
   if (!section) continue;
-  section.items.unshift({
+  const item = {
     href: seasonal.href,
     label: seasonal.label,
     icon: seasonal.icon as IconKey,
-    seasonal: true,
-  });
+    seasonal: seasonal.placement !== "bottom",
+  };
+  if (seasonal.placement === "bottom") {
+    section.items.push(item);
+  } else {
+    section.items.unshift(item);
+  }
 }
 ---
 <div class="nav-backdrop" data-nav-backdrop aria-hidden="true"></div>
