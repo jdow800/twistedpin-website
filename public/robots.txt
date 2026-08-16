@@ -22,6 +22,8 @@ Disallow: /playbook/
 Disallow: /signatures/
 # Internal bar repricing worksheet (costs + margins) — unindexed, unlinked.
 Disallow: /bar-pricing/
+# Avery review dashboard (password-gated; guest-conversation excerpts) — unindexed, unlinked.
+Disallow: /avery-review/
 
 Sitemap: https://www.twistedpin.com/sitemap-index.xml
 Sitemap: https://www.twistedpin.com/sitemap-videos.xml

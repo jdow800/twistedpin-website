@@ -80,6 +80,8 @@ export default defineConfig({
         !page.includes('/signatures') &&
         // Internal bar repricing worksheet (unlinked) — same treatment.
         !page.includes('/bar-pricing') &&
+        // Avery review dashboard (password-gated) — same treatment.
+        !page.includes('/avery-review') &&
         // (/coupon-preview + /kids-signup-preview exclusions removed 2026-07-24
         //  — promoted onto /coupon + /free-kids-bowling at the loyalty cutover;
         //  both live pages are meant to be indexed and in the sitemap.)

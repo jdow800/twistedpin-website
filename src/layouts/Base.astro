@@ -141,7 +141,7 @@ const ogImageURL = new URL(ogImage, Astro.site).href;
 //
 // /signatures is the internal email-signature install guide — two people, a
 // handful of visits, and the values typed into it are staff contact details.
-const STAFF_PATHS = ["/liquor/", "/money/", "/playbook/", "/signatures/", "/bar-pricing/"];
+const STAFF_PATHS = ["/liquor/", "/money/", "/playbook/", "/signatures/", "/bar-pricing/", "/avery-review/"];
 const isStaffPage = STAFF_PATHS.some((p) => canonicalPath.startsWith(p));
 
 // Auto-detect inLanguage from canonical path. /es/* gets es-US; everything

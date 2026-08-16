@@ -1,0 +1,381 @@
+---
+export const prerender = false;
+
+/**
+ * /avery-review/ — the Avery review platform dashboard (Phase 3 of the review
+ * platform; spec of record: Marketing Avery review/SPEC.md).
+ *
+ * Lists monthly review reports written by review/run-review.mjs, renders the
+ * summary, and lets Jon Accept / Reject each recommendation. Accepted items
+ * surface as a copy-paste session brief — "apply these diffs to brain/, run
+ * golden, deploy" — which a Claude session executes (Apply v1; the GitHub
+ * Action auto-apply stays deferred until a real cycle has run).
+ *
+ * Gated by AVERY_REVIEW_ADMIN_PASSWORD (fails closed when unset — public
+ * repo, no default). Shows guest conversation excerpts, hence its own
+ * password and the full staff-page unindexing treatment.
+ */
+
+import Base from '../../layouts/Base.astro';
+import {
+  AVERY_REVIEW_COOKIE,
+  reviewConfigured,
+  verifyReviewToken,
+} from '../../lib/avery-review-auth';
+import { selectRows, storeConfig } from '../../lib/playbook-store';
+
+const configured = reviewConfigured();
+const authed = configured
+  ? await verifyReviewToken(Astro.cookies.get(AVERY_REVIEW_COOKIE)?.value)
+  : false;
+
+const err = Astro.url.searchParams.get('e');
+
+interface ReportRow {
+  id: string;
+  review_month: string;
+  status: string;
+  conversations_reviewed: number;
+  scoring_failures: number;
+  na_count: number | null;
+  staff_intervention_count: number | null;
+  kb_gap_count: number | null;
+  funnel: Record<string, unknown> | null;
+  avg_correctness: number | null;
+  avg_sales_voice: number | null;
+  summary_md: string | null;
+  cost_estimate_usd: number | null;
+  created_at: string;
+}
+interface ItemRow {
+  id: string;
+  rank: number | null;
+  priority: string;
+  category: string | null;
+  title: string;
+  recommendation: string;
+  diff_target: string | null;
+  diff_proposed: string | null;
+  evidence: { conversation_id?: string; event_id?: string; quote?: string }[] | null;
+  status: string;
+  decided_at: string | null;
+}
+
+let reports: ReportRow[] = [];
+let items: ItemRow[] = [];
+let report: ReportRow | null = null;
+let loadFailed = false;
+
+if (authed) {
+  const cfg = storeConfig();
+  if (cfg) {
+    reports = await selectRows<ReportRow>(
+      cfg,
+      'avery_review_report',
+      'select=*&order=created_at.desc&limit=36',
+    );
+    const requested = Astro.url.searchParams.get('report');
+    report =
+      (requested && reports.find((r) => r.id === requested)) || reports[0] || null;
+    if (report) {
+      items = await selectRows<ItemRow>(
+        cfg,
+        'avery_review_item',
+        `select=*&report_id=eq.${report.id}&order=rank.asc.nullslast`,
+      );
+    }
+  } else {
+    loadFailed = true;
+  }
+}
+
+const accepted = items.filter((i) => i.status === 'accepted');
+const monthLabel = (r: ReportRow) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone: 'UTC', month: 'long', year: 'numeric',
+  }).format(new Date(r.review_month));
+const fmtDay = (iso: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago', month: 'short', day: 'numeric',
+  }).format(new Date(iso));
+const num = (v: number | string | null) =>
+  v === null || v === undefined ? '—' : Number(v).toFixed(2);
+
+/** Tiny markdown renderer for summary_md — headings, bold, lists, paragraphs.
+ *  Input is our own runner's output, but escape everything anyway. */
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function mdToHtml(md: string): string {
+  const inline = (s: string) => s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  const out: string[] = [];
+  let list: 'ol' | 'ul' | null = null;
+  const closeList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+  for (const raw of md.split('\n')) {
+    const line = esc(raw.trimEnd());
+    if (!line.trim()) { closeList(); continue; }
+    const h = line.match(/^(#{1,3})\s+(.*)$/);
+    const ol = line.match(/^\d+[.)]\s+(.*)$/);
+    const ul = line.match(/^[-*]\s+(.*)$/);
+    if (h) { closeList(); const lvl = h[1].length + 1; out.push(`<h${lvl}>${inline(h[2])}</h${lvl}>`); }
+    else if (ol) { if (list !== 'ol') { closeList(); out.push('<ol>'); list = 'ol'; } out.push(`<li>${inline(ol[1])}</li>`); }
+    else if (ul) { if (list !== 'ul') { closeList(); out.push('<ul>'); list = 'ul'; } out.push(`<li>${inline(ul[1])}</li>`); }
+    else { closeList(); out.push(`<p>${inline(line)}</p>`); }
+  }
+  closeList();
+  return out.join('\n');
+}
+
+/** The Apply v1 session brief, built from accepted items only. */
+function sessionBrief(): string {
+  if (!report || accepted.length === 0) return '';
+  const lines = [
+    `Apply the accepted Avery review recommendations (report ${report.id}, ${monthLabel(report)}).`,
+    `Repo: Marketing Avery. Ritual: node brain/deploy/drift-check.mjs FIRST; edit the targets below in git; the golden suite gates the deploy; then deploy-n8n.mjs / deploy-kb.mjs --yes.`,
+    `When each item ships, set avery_review_item.status='applied' + applied_at=now() for its id.`,
+    '',
+  ];
+  accepted.forEach((i, n) => {
+    lines.push(`${n + 1}. [${i.diff_target || 'ops — no brain diff'}] ${i.title}  (item ${i.id})`);
+    lines.push(`   ${i.recommendation}`);
+    if (i.diff_proposed) lines.push(`   PROPOSED DIFF: ${i.diff_proposed}`);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+const brief = sessionBrief();
+const prioRank: Record<string, number> = { high: 0, mid: 1, low: 2 };
+const sortedItems = [...items].sort(
+  (a, b) => (a.rank ?? 99) - (b.rank ?? 99) || (prioRank[a.priority] ?? 3) - (prioRank[b.priority] ?? 3),
+);
+---
+
+<Base
+  title="Avery Review — Twisted Pin"
+  description="Internal review dashboard."
+  hideStickyCTA={true}
+  hideHeader={true}
+  hidePromo={true}
+>
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+  </Fragment>
+
+  {!authed && (
+    <main class="ar-gate">
+      <p class="ar-kicker">Twisted Pin</p>
+      <h1 class="ar-gate-title">Avery Review</h1>
+      {!configured ? (
+        <p class="ar-note">
+          This page is turned off. Set <code>AVERY_REVIEW_ADMIN_PASSWORD</code> in
+          Vercel to enable it.
+        </p>
+      ) : (
+        <form method="POST" action="/api/avery-review-auth" class="ar-form">
+          {err === '1' && <p class="ar-err">That's not it. Try again.</p>}
+          {err === '2' && <p class="ar-err">Page not configured.</p>}
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="submit">Open</button>
+        </form>
+      )}
+    </main>
+  )}
+
+  {authed && (
+    <main class="ar-main">
+      <header class="ar-head">
+        <div>
+          <p class="ar-kicker">Avery review platform</p>
+          <h1>{report ? monthLabel(report) : 'No reports yet'}</h1>
+        </div>
+        {reports.length > 1 && (
+          <nav class="ar-reports">
+            {reports.map((r) => (
+              <a
+                href={`/avery-review/?report=${r.id}`}
+                class={report && r.id === report.id ? 'is-current' : ''}
+              >{monthLabel(r)} · {fmtDay(r.created_at)}</a>
+            ))}
+          </nav>
+        )}
+      </header>
+
+      {err === '4' && <p class="ar-err">That decision didn't save — try again.</p>}
+      {loadFailed && <p class="ar-err">Supabase isn't configured on this deploy.</p>}
+      {!report && !loadFailed && (
+        <p class="ar-note">
+          Run <code>node review/run-review.mjs YYYY-MM</code> in Marketing Avery to
+          generate the first report.
+        </p>
+      )}
+
+      {report && (
+        <>
+          <section class="ar-stats">
+            <div><b>{report.conversations_reviewed}</b><span>conversations</span></div>
+            <div><b>{num(report.avg_correctness)}</b><span>correctness /5</span></div>
+            <div><b>{num(report.avg_sales_voice)}</b><span>sales voice /5</span></div>
+            <div><b>{report.na_count ?? '—'}</b><span>needs attention</span></div>
+            <div><b>{report.staff_intervention_count ?? '—'}</b><span>staff steps-in</span></div>
+            <div><b>{report.kb_gap_count ?? '—'}</b><span>KB gaps</span></div>
+          </section>
+
+          {report.summary_md && (
+            <section class="ar-summary" set:html={mdToHtml(report.summary_md)} />
+          )}
+
+          <section class="ar-items">
+            <h2>Recommendations <span class="ar-count">{items.length}</span></h2>
+            {sortedItems.map((i) => (
+              <article class={`ar-item is-${i.status}`} id={`item-${i.id}`}>
+                <div class="ar-item-head">
+                  <span class={`ar-prio ar-prio-${i.priority}`}>{i.priority}</span>
+                  {i.category && <span class="ar-cat">{i.category}</span>}
+                  <h3>{i.rank ? `${i.rank}. ` : ''}{i.title}</h3>
+                  <span class={`ar-status ar-status-${i.status}`}>{i.status}</span>
+                </div>
+                <p class="ar-rec">{i.recommendation}</p>
+                {i.diff_target && (
+                  <p class="ar-target">→ <code>{i.diff_target}</code></p>
+                )}
+                {i.diff_proposed && <pre class="ar-diff">{i.diff_proposed}</pre>}
+                {i.evidence && i.evidence.length > 0 && (
+                  <ul class="ar-evidence">
+                    {i.evidence.map((e) => (
+                      <li>
+                        <span class="ar-eid">{e.event_id || e.conversation_id}</span>
+                        {e.quote && <q>{e.quote}</q>}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <form method="POST" action="/api/avery-review-decide" class="ar-actions">
+                  <input type="hidden" name="item_id" value={i.id} />
+                  <input type="hidden" name="report" value={report.id} />
+                  {i.status === 'proposed' ? (
+                    <>
+                      <button name="decision" value="accept" class="ar-btn ar-accept">Accept</button>
+                      <button name="decision" value="reject" class="ar-btn ar-reject">Reject</button>
+                    </>
+                  ) : i.status === 'applied' ? (
+                    <span class="ar-applied-note">applied — hands off</span>
+                  ) : (
+                    <button name="decision" value="reset" class="ar-btn">Undo ({i.status})</button>
+                  )}
+                </form>
+              </article>
+            ))}
+          </section>
+
+          {brief && (
+            <section class="ar-brief">
+              <h2>Apply brief <span class="ar-count">{accepted.length} accepted</span></h2>
+              <p class="ar-note">
+                Paste this into a Claude session in the Marketing Avery repo. Nothing
+                is auto-applied — the golden suite gates the deploy.
+              </p>
+              <pre id="ar-brief-text">{brief}</pre>
+              <button class="ar-btn" id="ar-copy" type="button">Copy brief</button>
+            </section>
+          )}
+        </>
+      )}
+    </main>
+  )}
+</Base>
+
+<script>
+  const btn = document.getElementById('ar-copy');
+  btn?.addEventListener('click', async () => {
+    const text = document.getElementById('ar-brief-text')?.textContent ?? '';
+    await navigator.clipboard.writeText(text);
+    btn.textContent = 'Copied';
+    setTimeout(() => (btn.textContent = 'Copy brief'), 1500);
+  });
+</script>
+
+<style>
+  .ar-gate, .ar-main {
+    min-height: 100dvh;
+    padding: 48px 20px 96px;
+    max-width: 880px;
+    margin: 0 auto;
+    color: var(--warm-white, #f5efe6);
+  }
+  .ar-gate { display: grid; place-content: center; text-align: center; gap: 12px; }
+  .ar-kicker {
+    font-family: var(--font-ui, sans-serif);
+    font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+    opacity: 0.6; margin: 0 0 4px;
+  }
+  .ar-gate-title, .ar-head h1 {
+    font-family: var(--font-display, sans-serif);
+    text-transform: uppercase; font-size: clamp(30px, 6vw, 44px); margin: 0;
+  }
+  .ar-form { display: grid; gap: 10px; width: min(320px, 88vw); margin: 12px auto 0; }
+  .ar-form input {
+    font-size: 16px; padding: 12px 14px; border-radius: 7px;
+    border: 1px solid rgba(245, 239, 230, 0.25);
+    background: rgba(245, 239, 230, 0.06); color: inherit;
+  }
+  .ar-form button, .ar-btn {
+    font-family: var(--font-ui, sans-serif); font-weight: 700; font-size: 14px;
+    padding: 11px 18px; border-radius: 7px; border: 1px solid rgba(245, 239, 230, 0.3);
+    background: transparent; color: inherit; cursor: pointer;
+  }
+  .ar-err { color: #ff9d7a; font-size: 14px; margin: 8px 0; }
+  .ar-note { opacity: 0.75; font-size: 14.5px; line-height: 1.55; }
+  .ar-note code, .ar-target code { font-size: 13px; background: rgba(245,239,230,0.09); padding: 2px 6px; border-radius: 4px; }
+
+  .ar-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: end; justify-content: space-between; margin-bottom: 22px; }
+  .ar-reports { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12.5px; }
+  .ar-reports a { color: inherit; opacity: 0.65; text-decoration: none; border: 1px solid rgba(245,239,230,0.2); border-radius: 999px; padding: 5px 12px; }
+  .ar-reports a.is-current { opacity: 1; border-color: var(--glow, #d7ff3e); }
+
+  .ar-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 26px; }
+  .ar-stats div { border: 1px solid rgba(245,239,230,0.14); border-radius: 10px; padding: 12px 14px; display: grid; gap: 2px; }
+  .ar-stats b { font-size: 22px; font-family: var(--font-ui, sans-serif); }
+  .ar-stats span { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
+
+  .ar-summary { line-height: 1.62; font-size: 15.5px; margin-bottom: 34px; }
+  .ar-summary :global(h2) { font-family: var(--font-ui, sans-serif); font-size: 17px; text-transform: uppercase; letter-spacing: 0.06em; margin: 26px 0 8px; }
+  .ar-summary :global(h3) { font-family: var(--font-ui, sans-serif); font-size: 15.5px; margin: 20px 0 6px; }
+  .ar-summary :global(p), .ar-summary :global(li) { margin: 0 0 10px; opacity: 0.92; }
+  .ar-summary :global(ol), .ar-summary :global(ul) { padding-left: 22px; margin: 0 0 12px; }
+
+  .ar-items h2, .ar-brief h2 { font-family: var(--font-ui, sans-serif); font-size: 18px; text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 14px; }
+  .ar-count { font-size: 12px; opacity: 0.6; margin-left: 6px; }
+  .ar-item { border: 1px solid rgba(245,239,230,0.14); border-radius: 12px; padding: 16px 18px; margin-bottom: 14px; }
+  .ar-item.is-accepted { border-color: rgba(160, 255, 140, 0.45); }
+  .ar-item.is-rejected { opacity: 0.55; }
+  .ar-item.is-applied { border-color: rgba(160, 255, 140, 0.7); }
+  .ar-item-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .ar-item-head h3 { font-size: 15.5px; margin: 0; flex: 1 1 260px; font-family: var(--font-ui, sans-serif); }
+  .ar-prio, .ar-cat, .ar-status { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; border: 1px solid rgba(245,239,230,0.25); }
+  .ar-prio-high { border-color: #ff9d7a; color: #ff9d7a; }
+  .ar-prio-mid { border-color: #ffd47a; color: #ffd47a; }
+  .ar-status-accepted, .ar-status-applied { border-color: rgba(160,255,140,0.6); color: #b8ffa5; }
+  .ar-status-rejected { color: #ff9d7a; }
+  .ar-rec { font-size: 14.5px; line-height: 1.55; margin: 0 0 8px; opacity: 0.92; }
+  .ar-target { font-size: 13px; margin: 0 0 8px; opacity: 0.85; }
+  .ar-diff, .ar-brief pre {
+    font-size: 12.5px; line-height: 1.5; background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(245,239,230,0.12); border-radius: 8px;
+    padding: 12px 14px; overflow-x: auto; white-space: pre-wrap; margin: 0 0 10px;
+  }
+  .ar-evidence { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 6px; }
+  .ar-evidence li { font-size: 13px; opacity: 0.85; }
+  .ar-eid { font-family: var(--font-ui, sans-serif); font-size: 11px; opacity: 0.7; margin-right: 8px; }
+  .ar-evidence q { font-style: italic; }
+  .ar-actions { display: flex; gap: 8px; }
+  .ar-accept { border-color: rgba(160,255,140,0.6); color: #b8ffa5; }
+  .ar-reject { border-color: rgba(255,157,122,0.55); color: #ff9d7a; }
+  .ar-applied-note { font-size: 12px; opacity: 0.7; align-self: center; }
+  .ar-brief { margin-top: 36px; }
+</style>
