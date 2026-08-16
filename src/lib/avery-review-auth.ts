@@ -21,11 +21,17 @@ export const AVERY_REVIEW_COOKIE = COOKIE_NAME;
 /** Short session — this is a monthly management view, not a place to live. */
 const TTL_MS = 12 * 60 * 60 * 1000;
 
-function sessionSecret(): string {
-  return (
-    import.meta.env.PLAYBOOK_SESSION_SECRET ||
-    'tp-playbook-dev-secret-set-PLAYBOOK_SESSION_SECRET-in-prod'
-  );
+/**
+ * Unlike playbook-auth (which documents its dev fallback as an acceptable
+ * trade for a culture book), THIS gate fronts guest conversation excerpts —
+ * so a missing signing secret disables the page rather than silently signing
+ * with a constant published in this public repo (audit 2026-08-15: the
+ * fallback made verifyReviewToken fail OPEN if the env var ever went missing).
+ */
+function sessionSecret(): string | null {
+  const s = import.meta.env.PLAYBOOK_SESSION_SECRET;
+  if (s) return s;
+  return import.meta.env.DEV ? 'tp-avery-review-dev-only-secret' : null;
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -36,10 +42,12 @@ function safeEqual(a: string, b: string): boolean {
 }
 
 async function hmac(payload: string): Promise<string> {
+  const secret = sessionSecret();
+  if (!secret) throw new Error('avery-review: signing secret unavailable (fails closed)');
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey(
     'raw',
-    enc.encode(sessionSecret()),
+    enc.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],
@@ -52,7 +60,9 @@ async function hmac(payload: string): Promise<string> {
 }
 
 export function reviewConfigured(): boolean {
-  return !!import.meta.env.AVERY_REVIEW_ADMIN_PASSWORD;
+  // BOTH the password and the signing secret must exist — a set password with
+  // a missing secret would otherwise verify tokens against a public constant.
+  return !!import.meta.env.AVERY_REVIEW_ADMIN_PASSWORD && sessionSecret() !== null;
 }
 
 export function reviewPasswordMatches(submitted: unknown): boolean {

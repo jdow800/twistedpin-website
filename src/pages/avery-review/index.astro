@@ -135,7 +135,7 @@ function sessionBrief(): string {
   if (!report || accepted.length === 0) return '';
   const lines = [
     `Apply the accepted Avery review recommendations (report ${report.id}, ${monthLabel(report)}).`,
-    `Repo: Marketing Avery. Ritual: node brain/deploy/drift-check.mjs FIRST; edit the targets below in git; the golden suite gates the deploy; then deploy-n8n.mjs / deploy-kb.mjs --yes.`,
+    `Repo: Marketing Avery. Ritual: node brain/deploy/drift-check.mjs FIRST; edit the targets below in git; deploy with deploy-n8n.mjs / deploy-kb.mjs --yes. Goldens are SELECTIVE per the 2026-08-03 ruling: run targeted golden cases only for changes that touch routing/behavior, and bump date-rotted cases rather than skipping them.`,
     `When each item ships, set avery_review_item.status='applied' + applied_at=now() for its id.`,
     '',
   ];
@@ -210,7 +210,9 @@ const sortedItems = [...items].sort(
         )}
       </header>
 
+      {err === '3' && <p class="ar-err">That decision didn't parse — try again.</p>}
       {err === '4' && <p class="ar-err">That decision didn't save — try again.</p>}
+      {err === '5' && <p class="ar-err">That item's state changed since you loaded the page (another tab or a review run) — showing the current state now.</p>}
       {loadFailed && <p class="ar-err">Supabase isn't configured on this deploy.</p>}
       {!report && !loadFailed && (
         <p class="ar-note">
@@ -290,7 +292,8 @@ const sortedItems = [...items].sort(
               <h2>Apply brief <span class="ar-count">{accepted.length} accepted</span></h2>
               <p class="ar-note">
                 Paste this into a Claude session in the Marketing Avery repo. Nothing
-                is auto-applied — the golden suite gates the deploy.
+                is auto-applied — a session applies each diff by hand, drift-check
+                first, targeted golden cases where behavior changes.
               </p>
               <pre id="ar-brief-text">{brief}</pre>
               <button class="ar-btn" id="ar-copy" type="button">Copy brief</button>
