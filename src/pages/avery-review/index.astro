@@ -59,6 +59,10 @@ interface ItemRow {
   evidence: { conversation_id?: string; event_id?: string; quote?: string }[] | null;
   status: string;
   decided_at: string | null;
+  months_running: number | null;
+  regression: boolean | null;
+  carried_from: string | null;
+  superseded_by: string | null;
 }
 
 let reports: ReportRow[] = [];
@@ -144,7 +148,7 @@ function sessionBrief(): string {
   return lines.join('\n');
 }
 const brief = sessionBrief();
-const prioRank: Record<string, number> = { high: 0, mid: 1, low: 2 };
+const prioRank: Record<string, number> = { ultra: -1, high: 0, mid: 1, low: 2 };
 const sortedItems = [...items].sort(
   (a, b) => (a.rank ?? 99) - (b.rank ?? 99) || (prioRank[a.priority] ?? 3) - (prioRank[b.priority] ?? 3),
 );
@@ -236,6 +240,10 @@ const sortedItems = [...items].sort(
               <article class={`ar-item is-${i.status}`} id={`item-${i.id}`}>
                 <div class="ar-item-head">
                   <span class={`ar-prio ar-prio-${i.priority}`}>{i.priority}</span>
+                  {i.regression && <span class="ar-regression">regression</span>}
+                  {(i.months_running ?? 1) > 1 && (
+                    <span class="ar-months">{i.months_running} months running</span>
+                  )}
                   {i.category && <span class="ar-cat">{i.category}</span>}
                   <h3>{i.rank ? `${i.rank}. ` : ''}{i.title}</h3>
                   <span class={`ar-status ar-status-${i.status}`}>{i.status}</span>
@@ -265,6 +273,10 @@ const sortedItems = [...items].sort(
                     </>
                   ) : i.status === 'applied' ? (
                     <span class="ar-applied-note">applied — hands off</span>
+                  ) : i.status === 'superseded' ? (
+                    <span class="ar-applied-note">carried into a newer report</span>
+                  ) : i.status === 'stale' ? (
+                    <button name="decision" value="reset" class="ar-btn">Revive (no fresh evidence last run)</button>
                   ) : (
                     <button name="decision" value="reset" class="ar-btn">Undo ({i.status})</button>
                   )}
@@ -358,8 +370,14 @@ const sortedItems = [...items].sort(
   .ar-item-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
   .ar-item-head h3 { font-size: 15.5px; margin: 0; flex: 1 1 260px; font-family: var(--font-ui, sans-serif); }
   .ar-prio, .ar-cat, .ar-status { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; border: 1px solid rgba(245,239,230,0.25); }
+  .ar-prio-ultra { border-color: #ff5d5d; color: #ff5d5d; background: rgba(255, 93, 93, 0.12); font-weight: 700; }
   .ar-prio-high { border-color: #ff9d7a; color: #ff9d7a; }
   .ar-prio-mid { border-color: #ffd47a; color: #ffd47a; }
+  .ar-regression { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; border: 1px solid #ff5d5d; color: #ff5d5d; }
+  .ar-months { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; border: 1px solid rgba(255, 212, 122, 0.6); color: #ffd47a; }
+  .ar-item.is-stale { opacity: 0.5; }
+  .ar-item.is-superseded { opacity: 0.45; border-style: dashed; }
+  .ar-status-stale, .ar-status-superseded { opacity: 0.8; }
   .ar-status-accepted, .ar-status-applied { border-color: rgba(160,255,140,0.6); color: #b8ffa5; }
   .ar-status-rejected { color: #ff9d7a; }
   .ar-rec { font-size: 14.5px; line-height: 1.55; margin: 0 0 8px; opacity: 0.92; }
