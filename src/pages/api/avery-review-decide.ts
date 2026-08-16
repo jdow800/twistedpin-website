@@ -33,11 +33,16 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   let itemId = '';
   let decision = '';
   let report = '';
+  let reason = '';
   try {
     const form = await request.formData();
     itemId = String(form.get('item_id') ?? '');
     decision = String(form.get('decision') ?? '');
     report = String(form.get('report') ?? '');
+    // Optional one-liner. Rejection reasons feed the next review's carryover
+    // block (a re-proposal must address them) and are the raw material for
+    // future taste-learning — unlabeled rejections can't carry taste.
+    reason = String(form.get('reason') ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);
   } catch {
     return redirect('/avery-review/?e=3', 303);
   }
@@ -64,6 +69,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
         status: d.status,
         decided_at: d.stamp ? new Date().toISOString() : null,
         decided_by: d.stamp ? 'jon' : null,
+        decided_reason: d.stamp && reason ? reason : null,
       }),
     },
   );

@@ -59,6 +59,7 @@ interface ItemRow {
   evidence: { conversation_id?: string; event_id?: string; quote?: string }[] | null;
   status: string;
   decided_at: string | null;
+  decided_reason: string | null;
   months_running: number | null;
   regression: boolean | null;
   carried_from: string | null;
@@ -136,6 +137,7 @@ function sessionBrief(): string {
   const lines = [
     `Apply the accepted Avery review recommendations (report ${report.id}, ${monthLabel(report)}).`,
     `Repo: Marketing Avery. Ritual: node brain/deploy/drift-check.mjs FIRST; edit the targets below in git; deploy with deploy-n8n.mjs / deploy-kb.mjs --yes. Goldens are SELECTIVE per the 2026-08-03 ruling: run targeted golden cases only for changes that touch routing/behavior, and bump date-rotted cases rather than skipping them.`,
+    `Regression pinning (Path B, owner decision 2026-08-15): when a fix changes a deterministic check or a prompt rule, add a FREE offline assertion — replay the check function on the offending input via golden/shim.mjs runNode (no API spend, no calendar rot) — so the fixed behavior is pinned without re-arming the paid golden gate.`,
     `When each item ships, set avery_review_item.status='applied' + applied_at=now() for its id.`,
     '',
   ];
@@ -265,11 +267,21 @@ const sortedItems = [...items].sort(
                     ))}
                   </ul>
                 )}
+                {i.decided_reason && (
+                  <p class="ar-reason-note">"{i.decided_reason}"</p>
+                )}
                 <form method="POST" action="/api/avery-review-decide" class="ar-actions">
                   <input type="hidden" name="item_id" value={i.id} />
                   <input type="hidden" name="report" value={report.id} />
                   {i.status === 'proposed' ? (
                     <>
+                      <input
+                        type="text"
+                        name="reason"
+                        maxlength="300"
+                        placeholder="why? (optional — a rejection reason binds next month's review)"
+                        class="ar-reason"
+                      />
                       <button name="decision" value="accept" class="ar-btn ar-accept">Accept</button>
                       <button name="decision" value="reject" class="ar-btn ar-reject">Reject</button>
                     </>
@@ -394,7 +406,13 @@ const sortedItems = [...items].sort(
   .ar-evidence li { font-size: 13px; opacity: 0.85; }
   .ar-eid { font-family: var(--font-ui, sans-serif); font-size: 11px; opacity: 0.7; margin-right: 8px; }
   .ar-evidence q { font-style: italic; }
-  .ar-actions { display: flex; gap: 8px; }
+  .ar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ar-reason {
+    flex: 1 1 260px; min-width: 0; font-size: 13px; padding: 9px 12px;
+    border-radius: 7px; border: 1px solid rgba(245, 239, 230, 0.2);
+    background: rgba(245, 239, 230, 0.05); color: inherit;
+  }
+  .ar-reason-note { font-size: 13px; font-style: italic; opacity: 0.75; margin: 0 0 8px; }
   .ar-accept { border-color: rgba(160,255,140,0.6); color: #b8ffa5; }
   .ar-reject { border-color: rgba(255,157,122,0.55); color: #ff9d7a; }
   .ar-applied-note { font-size: 12px; opacity: 0.7; align-self: center; }
