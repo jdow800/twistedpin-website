@@ -229,7 +229,7 @@ export interface PrecheckFinding {
    *  SKU-level checks structurally cannot see). first_count = never counted
    *  before but DELIVERIES exist this period and the first count exceeds them
    *  (Antica 375ml, 2026-08-17: 6 counted, 2 delivered — old stock finally
-   *  cataloged and a double-spoken bottle look identical from here). */
+   *  cataloged and a double-spoken bottle look identical from here).
    *  sibling_swap = one variant of a brand impossibly OVER while a sibling
    *  dropped by a similar amount — a variant mix-up wearing a shrinkage
    *  costume (the Añejo counted as a second Reposado, 2026-08-17). */
