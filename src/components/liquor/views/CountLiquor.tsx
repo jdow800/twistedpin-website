@@ -1165,6 +1165,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "not_counted" && "Still on the shelf, or gone? A missing line drops it out of the report entirely — a zero counts, nothing doesn't."}
                       {f.kind === "overuse" && "That's a lot to pour in one period. Worth a second look, unless it really moved."}
                       {f.kind === "zone_missed" && "If the shelf really emptied, submit as-is. If it never got walked, count it now — a missed shelf reads as pure loss."}
+                      {f.kind === "first_count" && "First time this bottle's been counted, and it's more than what was delivered. Older stock that predates the catalog is fine — but if it got said twice, fix the number now."}
                     </span>
                   </div>
                 ))}

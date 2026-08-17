@@ -226,8 +226,11 @@ export interface PrecheckFinding {
    *  zone_missed = counted SOMEWHERE this time, but a zone that held >=1 unit
    *  last period has no line now AND the total dropped — the walked-past-shelf
    *  signature (Casamigos backstock, 2026-08-07: $321 of fake shrinkage that
-   *  SKU-level checks structurally cannot see). */
-  kind: "impossible" | "not_counted" | "overuse" | "zone_missed";
+   *  SKU-level checks structurally cannot see). first_count = never counted
+   *  before but DELIVERIES exist this period and the first count exceeds them
+   *  (Antica 375ml, 2026-08-17: 6 counted, 2 delivered — old stock finally
+   *  cataloged and a double-spoken bottle look identical from here). */
+  kind: "impossible" | "not_counted" | "overuse" | "zone_missed" | "first_count";
   skuId: string;
   name: string;
   counted: number | null;
