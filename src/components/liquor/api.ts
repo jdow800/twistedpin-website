@@ -823,6 +823,21 @@ export interface NeedsClassifyOption {
   count: number;
   netCents: number;
   detectedAt: string;
+  /**
+   * The server's read that this option is a SPIRIT SWAP on a drink that
+   * already has a recipe — a $0 option naming a bottle we stock, matched to
+   * the one same-category component it stood in for. Advisory: it pre-fills
+   * the confirm, it never writes on its own. Null when the label names no
+   * bottle (a real mixer), carries an upcharge, or the parent pours two of
+   * that category and the label can't say which.
+   */
+  likelySubstitution: {
+    skuId: string;
+    skuName: string;
+    replacesSkuId: string;
+    replacesSkuName: string;
+    oz: number;
+  } | null;
 }
 export async function getRecipeGaps(): Promise<{
   pours: UnmappedPour[];
@@ -865,6 +880,24 @@ export async function markOptionMixer(
   await gatedJson("/admin/bar/option-recipes/mixer", {
     method: "POST",
     ...jsonBody({ productId, optionLabel, productName }),
+  });
+}
+/**
+ * Classify an option as a spirit SUBSTITUTION: it poured `components` instead
+ * of the parent recipe's `substitutesSkuId`, not on top of it. Neither of the
+ * other two verbs fits — a recipe would double-count the drink and a mixer
+ * would leave the parent's bottle wearing a pour that never happened.
+ */
+export async function markOptionSubstitution(
+  productId: string,
+  optionLabel: string,
+  productName: string | null,
+  substitutesSkuId: string,
+  components: RecipeComponentInput[],
+): Promise<void> {
+  await gatedJson("/admin/bar/option-recipes/substitution", {
+    method: "POST",
+    ...jsonBody({ productId, optionLabel, productName, substitutesSkuId, components }),
   });
 }
 /** Undo a classification — delete the row so the item returns to the queue. */

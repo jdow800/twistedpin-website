@@ -4,6 +4,7 @@ import {
   getRecipeGaps,
   getRecipeTemplates,
   markOptionMixer,
+  markOptionSubstitution,
   saveRecipe,
   unclassifyOption,
   type BarSkuItem,
@@ -15,10 +16,12 @@ import {
 
 // The recipe home — the write path behind the daily "needs a recipe" alerts.
 // Two queues, both actioned in-app (the pricing sheet is retired):
-//  1. Options needing a recipe — a choose-your-spirit option (Bar Mods →
-//     "Vegas Bomb") that carries liquor and needs its own recipe, OR a mixer
-//     (Red Bull) that carries none. One tap marks a mixer; a short form builds
-//     a recipe. Offers to prefill from a same-named standalone recipe.
+//  1. Options needing a recipe — three shapes, not two. A choose-your-spirit
+//     option (Bar Mods → "Vegas Bomb") that carries liquor and needs its own
+//     recipe; a mixer (Red Bull) that carries none; or a SPIRIT SWAP on a drink
+//     that already has a recipe (a Sling poured with Basil Hayden instead of
+//     its Bulleit). The server reads which one it looks like and the swap comes
+//     pre-filled — confirming is one tap. Everything else is a short form.
 //  2. Cocktails needing a recipe — a fixed drink selling with no recipe. Same
 //     builder, stored as a whole-product recipe (option label '').
 // Backed by GET /admin/bar/recipe-gaps, which re-checks live so classified
@@ -74,6 +77,34 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
       ]);
     } catch {
       setErr(`Couldn't mark "${o.optionLabel}" a mixer — try again.`);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function classifySubstitution(o: NeedsClassifyOption) {
+    const sub = o.likelySubstitution;
+    if (!sub) return;
+    setBusy(o.alertKey);
+    setErr(null);
+    try {
+      await markOptionSubstitution(o.productId, o.optionLabel, o.productName, sub.replacesSkuId, [
+        { skuId: sub.skuId, oz: sub.oz },
+      ]);
+      setOptions((cur) => cur.filter((x) => x.alertKey !== o.alertKey));
+      setDone((d) => [
+        {
+          key: o.alertKey,
+          label: o.optionLabel,
+          sub: `${sub.skuName} instead of ${sub.replacesSkuName} · under ${o.productName}`,
+          productId: o.productId,
+          optionLabel: o.optionLabel,
+          option: o,
+        },
+        ...d,
+      ]);
+    } catch {
+      setErr(`Couldn't record the swap for "${o.optionLabel}" — try again.`);
     } finally {
       setBusy(null);
     }
@@ -145,7 +176,8 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
     <div className="lq-invlist">
       <p className="lq-muted lq-upload-hint">
         Drinks and options selling with no recipe, so their liquor isn't attributed. Give each one a
-        recipe — or mark an option a mixer if it pours no liquor.
+        recipe, mark an option a mixer if it pours no liquor, or confirm a swap where one spirit went
+        in instead of another.
       </p>
       {err && <p className="lq-error">{err}</p>}
 
@@ -167,6 +199,7 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
               catalog={catalog}
               busy={busy === o.alertKey}
               onMixer={() => void classifyMixer(o)}
+              onSubstitution={() => void classifySubstitution(o)}
               onSave={(comps) => saveOptionRecipe(o, comps)}
             />
           ))}
@@ -224,21 +257,28 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
   );
 }
 
-// ── option row: mark-mixer or build-recipe ───────────────────────────────────
+// ── option row: confirm-swap, mark-mixer, or build-recipe ────────────────────
+// The swap only leads when the server is confident (see NeedsClassifyOption
+// .likelySubstitution). When it isn't — a typo'd label, an upcharge, two rums
+// in the parent — this row is exactly what it was before, because a guess
+// presented as an answer is worse than no guess.
 function OptionRow({
   option,
   catalog,
   busy,
   onMixer,
+  onSubstitution,
   onSave,
 }: {
   option: NeedsClassifyOption;
   catalog: BarSkuItem[];
   busy: boolean;
   onMixer: () => void;
+  onSubstitution: () => void;
   onSave: (components: RecipeComponentInput[]) => Promise<void>;
 }) {
   const [building, setBuilding] = useState(false);
+  const sub = option.likelySubstitution;
   return (
     <div className="lq-pw-row">
       <div className="lq-pw-head">
@@ -246,11 +286,38 @@ function OptionRow({
         <span className="lq-muted" style={{ fontSize: 12 }}>{option.count}×</span>
       </div>
       <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>under {option.productName}</div>
+      {sub && !building && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: "8px 10px",
+            borderRadius: 8,
+            background: "rgba(45, 212, 191, 0.10)",
+            border: "1px solid rgba(45, 212, 191, 0.35)",
+            fontSize: 13,
+            lineHeight: 1.45,
+          }}
+        >
+          Looks like a swap: <strong>{sub.skuName}</strong> poured instead of{" "}
+          <strong>{sub.replacesSkuName}</strong> {sub.oz}oz.
+        </div>
+      )}
       {!building ? (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+          {sub && (
+            <button
+              type="button"
+              className="lq-btn lq-btn-primary"
+              style={{ padding: "6px 12px", fontSize: 13 }}
+              disabled={busy}
+              onClick={onSubstitution}
+            >
+              {busy ? "…" : "Confirm swap"}
+            </button>
+          )}
           <button
             type="button"
-            className="lq-btn lq-btn-primary"
+            className={sub ? "lq-btn lq-btn-ghost" : "lq-btn lq-btn-primary"}
             style={{ padding: "6px 12px", fontSize: 13 }}
             disabled={busy}
             onClick={() => setBuilding(true)}
