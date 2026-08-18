@@ -232,8 +232,12 @@ export interface PrecheckFinding {
    *  cataloged and a double-spoken bottle look identical from here).
    *  sibling_swap = one variant of a brand impossibly OVER while a sibling
    *  dropped by a similar amount — a variant mix-up wearing a shrinkage
-   *  costume (the Añejo counted as a second Reposado, 2026-08-17). */
-  kind: "impossible" | "not_counted" | "overuse" | "zone_missed" | "first_count" | "sibling_swap";
+   *  costume (the Añejo counted as a second Reposado, 2026-08-17).
+   *  big_loss = the sales-aware question: the variance brain (GoTab sales +
+   *  purchases) expected meaningfully more left than this count found. The
+   *  server computes it fail-open with a time budget, so it may be absent on
+   *  a slow pull — the arithmetic kinds above always run. */
+  kind: "impossible" | "not_counted" | "overuse" | "zone_missed" | "first_count" | "sibling_swap" | "big_loss";
   skuId: string;
   name: string;
   counted: number | null;

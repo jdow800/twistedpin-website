@@ -1020,7 +1020,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             disabled={submitting || checking || enteredTotal === 0}
             onClick={() => void tryFinish()}
           >
-            {submitting ? "Submitting…" : checking ? "Checking…" : "Finish & submit"}
+            {submitting ? "Submitting…" : checking ? "Spot-checking the count…" : "Finish & submit"}
           </button>
         </div>
       </div>
@@ -1167,6 +1167,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "zone_missed" && "If the shelf really emptied, submit as-is. If it never got walked, count it now — a missed shelf reads as pure loss."}
                       {f.kind === "first_count" && "First time this bottle's been counted, and it's more than what was delivered. Older stock that predates the catalog is fine — but if it got said twice, fix the number now."}
                       {f.kind === "sibling_swap" && "Two variants of the same brand, off in opposite directions — worth a glance at the labels. If each bottle really is what it says, submit as-is."}
+                      {f.kind === "big_loss" && "Sales math says more should be left than this count found. If the shelf was walked and it's really gone, submit — it lands on the grade as loss. If a spot got skipped (backstock? the cooler?), count it now."}
                     </span>
                   </div>
                 ))}
