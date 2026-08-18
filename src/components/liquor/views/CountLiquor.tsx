@@ -699,7 +699,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // Warn before submitting an incomplete count — don't close out a full-venue
   // inventory with a zone never touched (they can still choose to submit).
   /** The cheapest moment to fix anything: the counter is still standing at the
-   *  shelf. The variance report lands ~30s after submit as a 24h-correctable
+   *  shelf. The variance report lands ~30s after submit as a 3h-correctable
    *  DRAFT (review gate, 0136) — the draft window is the net, this check is the
    *  plan. After finalize, a wrong number is permanent for the period. */
   async function tryFinish() {

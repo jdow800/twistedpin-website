@@ -770,7 +770,7 @@ export interface VarianceReport {
   };
   /** Review gate (0136): 'draft' = correctable — fix count lines, then finalize
    *  (which RECOMPUTES from the corrected lines and freezes). Auto-finalizes
-   *  24h after the draft landed. Baselines and pre-gate history are 'final'. */
+   *  3h after the draft landed. Baselines and pre-gate history are 'final'. */
   status: "draft" | "final";
   finalizedAt: string | null;
   createdAt: string;

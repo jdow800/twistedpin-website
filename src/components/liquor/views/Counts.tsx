@@ -158,7 +158,7 @@ export default function Counts({
                   <strong>Draft — numbers below can still be corrected.</strong>{" "}
                   Spot a wrong line? Fix the count first; finalizing recomputes from the corrected
                   lines, locks the report for good, and sends the summary email. Left alone, it
-                  locks itself in 24 hours.
+                  locks itself in 3 hours.
                   <div style={{ marginTop: 6 }}>
                     <button
                       type="button"
