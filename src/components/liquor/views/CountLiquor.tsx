@@ -1016,11 +1016,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Exit</button>
           <button
             type="button"
-            className="lq-btn lq-btn-primary"
+            className={`lq-btn lq-btn-primary${checking ? " lq-btn-spotchecking" : ""}`}
             disabled={submitting || checking || enteredTotal === 0}
             onClick={() => void tryFinish()}
           >
             {submitting ? "Submitting…" : checking ? "Spot-checking the count…" : "Finish & submit"}
+            {/* Progress over the server's 15s worst-case budget — never a fake
+                "almost done". A typical check lands ~5s in with the bar ~40%
+                full, which reads as finishing early rather than stalling. */}
+            {checking && <span className="lq-spotbar" aria-hidden="true" />}
           </button>
         </div>
       </div>

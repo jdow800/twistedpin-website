@@ -1711,3 +1711,38 @@
     padding-bottom: 12px;
   }
 }
+
+/* Spot-check progress — the wait between "Finish & submit" and the questions
+   sheet, while the server runs the sales-aware pass (GoTab pull, hard 15s
+   budget, fail-open). The bar animates over that WORST-CASE budget: a typical
+   ~5s check completes with the bar ~40% along, which reads as finishing early.
+   It deliberately never reaches the end on its own — a bar that hits 100% and
+   sits there is a lie the next second exposes. CSS-only: mounts with
+   `checking`, unmounts when the sheet opens; no timers to clean up. */
+.lq-btn-spotchecking {
+  position: relative;
+  overflow: hidden;
+}
+.lq-spotbar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 0;
+  /* Dark ink on the Glow-solid primary — the one place a glow bar would vanish. */
+  background: #10121a;
+  opacity: 0.55;
+  border-radius: 0 2px 2px 0;
+  animation: lq-spotbar-fill 15s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+@keyframes lq-spotbar-fill {
+  0% { width: 0; }
+  100% { width: 92%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-spotbar {
+    animation: none;
+    width: 100%;
+    opacity: 0.35;
+  }
+}
