@@ -1,4 +1,4 @@
-# Staged n8n edits — approved 2026-08-21, NOT YET APPLIED
+# Staged n8n edits — approved 2026-08-21 · ✅ APPLIED + VERIFIED 2026-08-21 evening
 
 Jon approved this build 2026-08-21. Application is **blocked on the n8n MCP dashboard
 config** (server responds `not_configured` — the instance API URL + key dropped off
@@ -138,3 +138,31 @@ offer row's phone10 and its `created_at` are the anchors):
    minutes inside the rail's 14-day frequency cap — cap_exempt is the only reason it
    sends). Remember: **check `scheduled_message`/`message_event`, NOT the ledger** —
    ledger rows sit `queued` until the NEXT run's reconcile ([[lane-rebook-campaign-built]]).
+
+---
+
+## ✅ APPLIED 2026-08-21 ~7:55pm CT — verification results
+
+Connector fix: the n8n-mcp session was bound to a stale instance context (`f17cb75a`);
+Jon's MCP reconnect rebound it to the real instance (`d80a20dc` / n8n-twistedpin-com).
+
+Applied as 3 atomic `updateNode` ops (full jsCode replacement, no fuzzy patches).
+**The published graph carries the edits** (activeVersionId `29af7fde` stamped at the
+update — the partial update auto-published; verified via mode='active', not the draft).
+
+- Edit 1 (Campaign Config: both copy v2 strings, tripwire_max 150, book_by guard) ✓ read back
+- Edit 2 (tripwire in Prep Cohort, thrown BEFORE the mint) ✓ read back
+- {visit_date} render landed in **Assign Codes + Build Rows** (the body is built there,
+  not Prep Cohort as this file guessed) ✓ read back
+- **Edit 3 was already live** — the full-price-rebook skip has been in Find Due
+  Reminders since the original build (`b2.created_at > l.created_at`, cancelled
+  excluded). No write needed; semantics verified identical to the staged clause.
+- Node order ✓ (Config → Reconcile → both chains; ledger heals before reminder selects)
+- `marketing_sms_sendable(c)` verified: opt_in AND NOT do_not_market AND NOT bounced
+  AND NOT loyalty_sms_opt_out — the reminder honours the loyalty STOP overlay.
+- Knobs untouched ✓ (ARMED=true, TEST_MODE=false, cron 0 18 * * 4 America/Chicago,
+  holdout 15, window 28/42, book_by 14, 4 product UUIDs, reminder cap_exempt=true)
+- Reminder dry-run stands (predicate unchanged): 0 now / 0 Aug 27 / 1 (Michelle) Sep 3.
+- Aug 27 offer forecast: 2 guests — the dress rehearsal for the new offer copy.
+
+Remaining = the two morning audits (steps 6–7 above): Fri Aug 28 + Fri Sep 4.
