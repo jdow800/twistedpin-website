@@ -146,6 +146,59 @@ the winback segments (loyalty side). A birthday text can also land at any point.
 `usage_end` is set to just past midnight CT after the book-by day, so "Book by Fri Aug 14" holds
 through Friday evening.
 
+## Changing things later (read BEFORE editing — the traps are non-obvious)
+
+Everything editable lives in ONE place: the **Campaign Config** Code node in n8n
+`WF-Lane-Rebook-Campaign` (`SRMB0xdrcKmZuigE`). Edit mechanics that matter:
+
+- **n8n has a draft/publish split.** After any MCP edit, verify with
+  `n8n_get_workflow mode='active'` that the PUBLISHED graph carries the change —
+  the 2026-08-21 partial update auto-published, but never assume; a drafted-only
+  edit silently runs the OLD code on Thursday.
+- Replace the whole `jsCode` / `query` parameter; never fuzzy find-replace (the MCP
+  patch matcher false-matches similar sentences, and `$'`-family tokens expand).
+- Edits any day but Thursday afternoon are risk-free — the trigger only fires
+  Thu 6:00pm CT. Avoid editing 5–7pm CT Thursday.
+
+**Copy changes** (`offer_body` / `reminder_body`):
+
+- Budget: **306 GSM-7 chars = 2 segments**, measured with an 11-char first name.
+  Current slack: offer 34, reminder 37. Check with plain `${#s}` bash math before
+  saving; an em dash or curly quote silently switches to UCS-2 and HALVES the
+  budget — straight ASCII punctuation only.
+- Tokens and who renders them: `{{first_name}}` = the send rail (NEVER render it in
+  the workflow — a literal `{{first_name}}` in `scheduled_message.body` is normal);
+  `{code}` `{book_by}` `{visit_date}` = Assign Codes + Build Rows; `{expires}` =
+  Build Reminder Rows. A new token needs its `.split().join()` added in the right
+  node or it ships literally.
+- "50%" appears in BOTH bodies and is also `discount_value` — change together.
+  Same for "VIP or traditional lane" vs `product_ids`, and the reminder's
+  "10 days" vs the products' `max_advance_booking_days` in TPRS.
+
+**Timing changes:**
+
+- Send **hour**: safe — edit the cron (`0 18 * * 4`) hour freely.
+- Send **day** or `book_by_days`: COUPLED to the reminder's hardcoded "expires
+  tonight". Send-day + book_by (multiple of 7) + past-midnight usage_end = every
+  expiry lands on the send weekday, so the 7-day band catches each code exactly
+  once, on its expiry day. Change either off that pattern and the last-call fires
+  early while still claiming "tonight". Re-derive band + copy together.
+- `min_days`/`max_days`: free-standing, but keep max−min ≥ 7 or Thursday runs can
+  skip visits entirely.
+
+**Volume / audience changes:**
+
+- `tripwire_max` (150): raise DELIBERATELY if the audience legitimately grows
+  (e.g. beyond checkout opt-ins). It's a halt-don't-truncate bug fuse, not a cap.
+- Audience is defined by the `consent_event(source='checkout')` gate in Find
+  Eligible Guests — widening it is an eligibility-SQL edit + a Jon ruling, not a knob.
+
+**Verify after ANY edit** (the 2026-08-21 pattern): read back the published node,
+re-run the reminder 3-timepoint dry-run + next-Thursday offer forecast (see
+`staged-edits-2026-08-21.md` for both queries), confirm ARMED/TEST_MODE untouched.
+Audit the morning after the next run: check `scheduled_message`/`message_event` —
+**not the ledger**, which sits `queued` until the NEXT run reconciles it.
+
 ## Known limits / future hardening
 
 - If a run dies between ledger insert and enqueue, that guest stays `queued` in the ledger with no
