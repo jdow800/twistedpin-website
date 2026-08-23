@@ -120,6 +120,12 @@ const isActive = (href: string) => {
     border-bottom: 1px solid rgba(244, 239, 227, 0.08);
   }
   @media (min-width: 1025px) {
+    .site-header { padding: 2px 18px; }
+  }
+  @media (min-width: 1180px) {
+    .site-header { padding: 2px 28px; }
+  }
+  @media (min-width: 1440px) {
     .site-header { padding: 2px 40px; }
   }
 
@@ -130,24 +136,51 @@ const isActive = (href: string) => {
     gap: 16px;
   }
   @media (min-width: 1025px) {
-    .header-left { gap: 32px; }
+    .header-left { gap: 16px; }
+    .header-right { gap: 8px; }
+  }
+  @media (min-width: 1180px) {
+    .header-left { gap: 24px; }
+    .header-right { gap: 12px; }
+  }
+  @media (min-width: 1280px) {
+    .header-left { gap: 28px; }
     .header-right { gap: 16px; }
+  }
+  @media (min-width: 1440px) {
+    .header-left { gap: 32px; }
   }
 
   /* ---------- logo ---------- */
+  /* Width-driven, stepped per tier (2026-08-23). A flex-shrink valve was
+     tried and rejected: a flex item's min-content CONTRIBUTION to its
+     parent group is its width, not its min-width, so the shrink never
+     engaged through the nested flex — deterministic stepping is the only
+     reliable mechanism. Aspect 360:154 → width = height × 2.34. */
   .site-logo {
     line-height: 0;
     display: inline-flex;
     flex: 0 0 auto;
+    width: 133px;      /* ≈57px tall — mobile */
     filter: drop-shadow(0 1px 6px rgba(14, 10, 31, 0.5));
   }
+  .site-logo picture {
+    display: block;
+    width: 100%;
+  }
   .site-logo img {
-    height: 57px;
-    width: auto;
+    width: 100%;
+    height: auto;
     display: block;
   }
   @media (min-width: 1025px) {
-    .site-logo img { height: 78px; }
+    .site-logo { width: 104px; }   /* ≈45px tall — every px goes to the nav */
+  }
+  @media (min-width: 1180px) {
+    .site-logo { width: 159px; }   /* ≈68px tall — compact desktop */
+  }
+  @media (min-width: 1280px) {
+    .site-logo { width: 182px; }   /* 78px tall — the approved desktop size */
   }
 
   /* ---------- inline nav (desktop only) ---------- */
@@ -160,22 +193,25 @@ const isActive = (href: string) => {
     padding: 0;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
   }
 
-  /* Inline nav-link styling. Horizontal padding tightened from 12 → 10
-     2026-05-05 to fit 7 items in the desktop chrome at the 1025px
-     breakpoint without overflowing past the CTA cluster. Underline
-     left/right matches the padding. */
+  /* Inline nav-link styling. white-space: nowrap is load-bearing: without
+     it flexbox resolves any header overflow by silently wrapping the
+     widest label ("VIP SUITE") to two lines — which is exactly what was
+     happening at every viewport below ~1470px until 2026-08-23. With
+     nowrap, an overflow is visible and honest, and the logo's shrink
+     valve is the sanctioned release instead. */
   .site-nav > ul > li > a {
     display: inline-block;
     position: relative;
-    padding: 10px 10px;
+    padding: 10px 6px;
     font-family: var(--font-ui);
     font-weight: 700;
     font-size: 13px;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.10em;
     text-transform: uppercase;
+    white-space: nowrap;
     color: var(--warm-mid);
     background: transparent;
     border: 0;
@@ -191,8 +227,8 @@ const isActive = (href: string) => {
   .site-nav > ul > li > a.active::after {
     content: "";
     position: absolute;
-    left: 10px;
-    right: 10px;
+    left: 6px;
+    right: 6px;
     bottom: 4px;
     height: 1px;
     background: var(--glow);
@@ -202,31 +238,57 @@ const isActive = (href: string) => {
   .site-cta-cluster {
     display: none;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   @media (min-width: 1025px) {
     .site-cta-cluster { display: inline-flex; }
   }
-  .site-cta-cluster .btn { padding: 12px 18px; font-size: 12px; }
+  .site-cta-cluster .btn { padding: 12px 12px; font-size: 12px; }
 
-  /* ---------- desktop size pass (2026-08-03, Jon) ----------
+  /* ---------- width tiers (2026-08-23 retune of the 2026-08-03 pass) ----------
      KEEP LAST in this style block — equal-specificity overrides win by
-     source order only (the /pricing dead-CSS lesson from the same day).
-     The CTA pair was the site's worst offender relative to its job:
-     desktop-only elements at 12px with LESS padding than the same
-     buttons' mobile default. Nav words go 13→14px — but only at ≥1280px,
-     because the 2026-05-05 padding tightening exists precisely because
-     7 items barely fit at the 1025px breakpoint; the squeeze zone
-     (1025–1279) keeps 13px nav and gets a modest CTA bump only. */
-  @media (min-width: 1025px) {
-    .site-cta-cluster .btn { padding: 13px 20px; font-size: 13px; }
+     source order only (the /pricing dead-CSS lesson from 2026-08-03).
+
+     Each tier's recipe was MEASURED (headless Chrome, single-line nowrap
+     natural width) to fit at its own min-width — the 2026-08-03 tiers
+     didn't: the 14px recipe needed 1398px but fired at 1280px, so on any
+     1920px laptop at Windows 150% scale (= exactly 1280 CSS px) the nav
+     collided with the Reserve CTA; flexbox hid smaller overflows at every
+     width below ~1470px by wrapping VIP SUITE to two lines. Natural
+     single-line widths of the recipes below:
+       x-compact (base above) ≈1005px → tier 1025–1179 (44px logo, rare tablets)
+       compact 13px nav       ≈1147px → tier 1180–1279 (68px logo, iPads land.)
+       squeeze 13px nav/CTA   ≈1250px → tier 1280–1439 ← 1920@150% laptops
+       mid 14px nav/15px CTA  ≈1398px → tier 1440–1535
+       wide 15px nav          ≈1467px → tier ≥1536     ← 1920@125%, big monitors
+     If a nav item or CTA is ever added/renamed, re-measure before trusting
+     these boundaries (scripts pattern: headless Chrome, compare last nav
+     link's right edge to the CTA cluster's left edge — container boxes lie). */
+  @media (min-width: 1180px) {
+    .site-nav > ul { gap: 3px; }
+    .site-nav > ul > li > a {
+      padding: 10px 8px;
+      letter-spacing: 0.12em;
+    }
+    .site-nav > ul > li > a.active::after { left: 8px; right: 8px; }
+    .site-cta-cluster { gap: 8px; }
+    .site-cta-cluster .btn { padding: 12px 14px; }
   }
   @media (min-width: 1280px) {
+    .site-nav > ul { gap: 4px; }
+    .site-nav > ul > li > a {
+      padding: 10px 10px;
+      letter-spacing: 0.16em;
+    }
+    /* Underline tracks the link's horizontal padding. */
+    .site-nav > ul > li > a.active::after { left: 10px; right: 10px; }
+    .site-cta-cluster .btn { padding: 13px 20px; font-size: 13px; }
+  }
+  @media (min-width: 1440px) {
     .site-nav > ul > li > a {
       font-size: 14px;
       padding: 10px 12px;
     }
-    /* Underline tracks the link's horizontal padding. */
     .site-nav > ul > li > a.active::after { left: 12px; right: 12px; }
     .site-cta-cluster .btn { padding: 15px 26px; font-size: 15px; }
     .site-cta-cluster { gap: 10px; }
@@ -234,7 +296,7 @@ const isActive = (href: string) => {
   /* Full-width monitors: room is abundant — let the nav read at real
      desktop scale (first pass at 14px was imperceptible next to 13px;
      Jon: "not noticing a big difference"). */
-  @media (min-width: 1440px) {
+  @media (min-width: 1536px) {
     .site-nav > ul > li > a {
       font-size: 15px;
       padding: 10px 14px;
