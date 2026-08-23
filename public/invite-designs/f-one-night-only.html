@@ -244,7 +244,7 @@
     /* ---- the tear line ---- */
     .tear {
       position: relative;
-      margin: 26px calc(var(--pad) * -1) 0;
+      margin: 26px calc(var(--pad) * -1) 16px;
       border-top: 2px dashed rgba(32,15,83,0.42);
       height: 0;
     }
@@ -266,14 +266,17 @@
     .stub {
       display: grid; grid-template-columns: 42px 1fr;
       margin: 0 calc(var(--pad) * -1);
+      /* Detached from the tear line (Jon, 2026-08-22: the copper rail read as
+         overlapping the scissors) - a separated stub also reads MORE like a
+         torn ticket, so the fix is the better design. */
       background:
         linear-gradient(rgba(216,139,92,0.075), rgba(216,139,92,0.075)),
         var(--paper);
-      border-radius: 0 0 6px 6px;
+      border-radius: 6px;
     }
     .rail {
       background: var(--copper); color: var(--night);
-      border-radius: 0 0 0 6px;
+      border-radius: 6px 0 0 6px;
       display: flex; align-items: center; justify-content: center;
       writing-mode: vertical-rl; transform: rotate(180deg);
       font-family: var(--ui); font-weight: 700; font-size: 12px;
