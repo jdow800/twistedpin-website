@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Marcus Turns 40</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Danielle Okafor invited you: Marcus Turns 40" />
+  <meta property="og:description" content="Saturday, September 19, 2026 at 8:00 PM · Twisted Pin, Plainfield" />
+  <meta name="twitter:card" content="summary" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Montserrat:wght@500;600;700&family=Roboto+Slab:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ================================================================
+       THE TYPE BRUTALIST — the invitation as a poster you can answer.
+       No photography. No ornament. Scale, weight, and spacing carry
+       everything; the only permitted decoration is a 1px hairline.
+       Accent budget: Glow on the number + the answer. Copper once.
+       ================================================================ */
+    :root {
+      --indigo: #0E0A1F;
+      --glow: #4EECC4;
+      --copper: #D88B5C;
+      --warm: #F5F1E8;
+      --warm-dim: rgba(245, 241, 232, 0.68);
+      --warm-faint: rgba(245, 241, 232, 0.42);
+      --hairline: rgba(245, 241, 232, 0.16);
+      --hairline-strong: rgba(245, 241, 232, 0.30);
+      --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif;
+      --ui: "Montserrat", "Segoe UI", Helvetica, Arial, sans-serif;
+      --body: "Roboto Slab", Georgia, "Times New Roman", serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { background: var(--indigo); }
+    body {
+      background: var(--indigo);
+      color: var(--warm);
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      padding: 0 0 8px;
+    }
+    ::selection { background: var(--glow); color: var(--indigo); }
+
+    .poster {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: clamp(28px, 7vw, 72px) clamp(22px, 6vw, 56px) clamp(28px, 5vw, 56px);
+    }
+
+    /* ---------- micro label ---------- */
+    .micro {
+      font-family: var(--ui);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--warm-faint);
+    }
+
+    /* ---------- hero: the poster ---------- */
+    .host {
+      font-family: var(--ui);
+      font-weight: 700;
+      font-size: clamp(12px, 3.2vw, 14px);
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--warm-dim);
+      margin: 0 0 clamp(18px, 5vw, 34px);
+    }
+    h1.title {
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.84;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+    .t-line {
+      display: block;
+      font-size: clamp(64px, 23vw, 168px);
+    }
+    .t-num {
+      display: block;
+      font-size: clamp(140px, 56vw, 340px);
+      line-height: 0.82;
+      color: var(--glow);
+      letter-spacing: -0.02em;
+      margin-top: clamp(2px, 1vw, 10px);
+    }
+    .host-note {
+      font-family: var(--body);
+      font-style: italic;
+      font-size: clamp(17px, 4.6vw, 22px);
+      color: var(--copper);
+      margin: clamp(20px, 5vw, 36px) 0 0;
+    }
+
+    /* ---------- section rhythm ---------- */
+    section { margin-top: clamp(44px, 11vw, 84px); }
+    .rule { border: 0; border-top: 1px solid var(--hairline); margin: 0 0 clamp(18px, 4.5vw, 28px); }
+    .sec-h {
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.9;
+      letter-spacing: 0;
+      font-size: clamp(44px, 13vw, 92px);
+      margin: 0 0 clamp(16px, 4vw, 26px);
+    }
+
+    /* ---------- when & where ---------- */
+    .when-day {
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 0.88;
+      font-size: clamp(52px, 16vw, 112px);
+    }
+    .when-date {
+      font-family: var(--display);
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1;
+      font-size: clamp(28px, 8.4vw, 54px);
+      letter-spacing: 0.02em;
+      color: var(--warm);
+      margin-top: 4px;
+    }
+    .when-time {
+      font-family: var(--ui);
+      font-weight: 700;
+      font-size: clamp(15px, 4vw, 18px);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: clamp(14px, 3.5vw, 20px);
+    }
+    .when-addr {
+      font-family: var(--body);
+      font-size: 16px;
+      color: var(--warm-dim);
+      margin-top: 8px;
+    }
+
+    .cal-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: clamp(22px, 5vw, 30px);
+    }
+    .cal-row a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 52px;
+      padding: 12px 10px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: 7px;
+      text-decoration: none;
+      color: var(--warm);
+      font-family: var(--ui);
+      font-weight: 600;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .cal-row a:hover { border-color: var(--warm); }
+    .cal-row .cal-k { display: block; }
+    @media (max-width: 359px) { .cal-row { grid-template-columns: 1fr; } }
+
+    /* ---------- rsvp ---------- */
+    .lead {
+      font-family: var(--body);
+      font-size: 17px;
+      margin: 0 0 clamp(18px, 4.5vw, 26px);
+      color: var(--warm-dim);
+    }
+    .lead strong { color: var(--warm); font-weight: 500; }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .choice { position: relative; display: block; }
+    .choice input { position: absolute; opacity: 0; }
+    .choice span {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      min-height: 72px;
+      padding: 12px 8px;
+      border: 1px solid var(--hairline-strong);
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.045em;
+      font-size: clamp(22px, 6.4vw, 30px);
+      line-height: 0.95;
+      color: var(--warm);
+    }
+    .choice input:checked + span {
+      border-color: var(--glow);
+      color: var(--glow);
+      background: rgba(78, 236, 196, 0.06);
+    }
+    .choice input:focus-visible + span {
+      outline: 2px solid var(--glow);
+      outline-offset: 3px;
+    }
+
+    .field { margin-top: clamp(24px, 6vw, 34px); }
+    .field label {
+      display: block;
+      font-family: var(--ui);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--warm-dim);
+      margin-bottom: 6px;
+    }
+    .field label .opt { font-weight: 500; color: var(--warm-faint); letter-spacing: 0.14em; }
+    .field input {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: 0;
+      border-bottom: 1px solid var(--hairline-strong);
+      border-radius: 0;
+      color: var(--warm);
+      font-family: var(--body);
+      font-size: 18px;
+      padding: 12px 2px 14px;
+      caret-color: var(--glow);
+    }
+    .field input::placeholder { color: var(--warm-faint); }
+    .field input:focus { outline: none; border-bottom-color: var(--glow); box-shadow: 0 1px 0 0 var(--glow); }
+    .field input:focus-visible { outline: 2px solid var(--glow); outline-offset: 4px; }
+    .hint {
+      font-family: var(--body);
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--warm-faint);
+      margin-top: 8px;
+    }
+
+    .rsvp button {
+      display: block;
+      width: 100%;
+      min-height: 62px;
+      margin-top: clamp(28px, 7vw, 40px);
+      background: var(--glow);
+      color: var(--indigo);
+      border: 0;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 28px;
+      line-height: 1;
+      padding: 14px 10px;
+    }
+    .rsvp button:hover { background: #63f0cd; }
+    .rsvp button:active { transform: translateY(1px); }
+    .rsvp button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
+
+    /* ---------- before you come ---------- */
+    ul.know { list-style: none; }
+    ul.know li {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: clamp(16px, 4.5vw, 26px);
+      align-items: start;
+      padding: clamp(16px, 4vw, 22px) 0;
+      border-top: 1px solid var(--hairline);
+    }
+    ul.know li:last-child { border-bottom: 1px solid var(--hairline); }
+    ul.know .num {
+      font-family: var(--display);
+      font-weight: 900;
+      font-size: clamp(34px, 9vw, 44px);
+      line-height: 0.9;
+      color: var(--warm-faint);
+      min-width: 1.6em;
+    }
+    ul.know .txt {
+      font-family: var(--body);
+      font-size: 16px;
+      line-height: 1.62;
+      color: var(--warm-dim);
+      padding-top: 3px;
+    }
+
+    /* ---------- footer ---------- */
+    footer { margin-top: clamp(48px, 12vw, 88px); }
+    .foot-mark {
+      font-family: var(--display);
+      font-weight: 900;
+      text-transform: uppercase;
+      font-size: clamp(30px, 8vw, 40px);
+      line-height: 1;
+      letter-spacing: 0.01em;
+      margin-top: clamp(18px, 4.5vw, 26px);
+    }
+    .foot-addr {
+      font-family: var(--body);
+      font-size: 14px;
+      color: var(--warm-dim);
+      margin-top: 6px;
+    }
+    .foot-tag {
+      font-family: var(--ui);
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: var(--warm-faint);
+      margin-top: 16px;
+    }
+
+    a:focus-visible { outline: 2px solid var(--glow); outline-offset: 3px; border-radius: 4px; }
+
+    /* ---------- motion (opt-in only) ---------- */
+    @media (prefers-reduced-motion: no-preference) {
+      .rise { animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+      .rise.d1 { animation-delay: 0.06s; }
+      .rise.d2 { animation-delay: 0.12s; }
+      .rise.d3 { animation-delay: 0.18s; }
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: none; }
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="poster">
+
+    <!-- (a) host attribution + (b) title -->
+    <header class="rise">
+      <p class="host">Danielle Okafor invited you to</p>
+      <h1 class="title">
+        <span class="t-line">Marcus</span>
+        <span class="t-line">Turns</span>
+        <span class="t-num">40</span>
+      </h1>
+      <p class="host-note">He said no party. Ignore that.</p>
+    </header>
+
+    <!-- (c) when-card + (d) calendar buttons -->
+    <section class="rise d1" aria-label="When and where">
+      <hr class="rule" />
+      <p class="micro">The when &amp; where</p>
+      <div style="margin-top: 14px;">
+        <div class="when-day">Saturday</div>
+        <div class="when-date">September 19, 2026</div>
+        <p class="when-time">8:00 PM &ndash; 11:00 PM</p>
+        <p class="when-addr">15610 Joliet Rd, Plainfield, IL 60544</p>
+      </div>
+      <div class="cal-row">
+        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Marcus%20Turns%2040&amp;dates=20260920T010000Z/20260920T040000Z&amp;location=15610%20Joliet%20Rd%2C%20Plainfield%2C%20IL%2060544">
+          <span class="cal-k">Google Calendar</span>
+        </a>
+        <a href="#">
+          <span class="cal-k">Apple / Outlook (.ics)</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- (e) RSVP -->
+    <section class="rise d2" aria-label="RSVP">
+      <hr class="rule" />
+      <h2 class="sec-h">RSVP</h2>
+      <form class="rsvp" method="POST" action="#" onsubmit="return false">
+        <p class="lead"><strong>Can you make it?</strong> Let Danielle know.</p>
+
+        <div class="choices" role="radiogroup" aria-label="Are you coming?">
+          <label class="choice">
+            <input type="radio" name="attending" value="yes" required />
+            <span>I'll be there</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="attending" value="no" />
+            <span>Can't make it</span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label for="rsvp-name">Your name</label>
+          <input id="rsvp-name" type="text" name="name" required maxlength="80" autocomplete="name" />
+        </div>
+
+        <div class="field">
+          <label for="rsvp-email">Email <span class="opt">(optional)</span></label>
+          <input id="rsvp-email" type="email" name="email" maxlength="254" autocomplete="email" inputmode="email" />
+          <p class="hint">We'll send you one reminder before the event. Nothing else, and it's gone after.</p>
+        </div>
+
+        <button type="submit">Send RSVP</button>
+      </form>
+    </section>
+
+    <!-- (f) before you come -->
+    <section class="rise d3" aria-label="Before you come">
+      <h2 class="sec-h">Before you come</h2>
+      <ul class="know">
+        <li>
+          <span class="num" aria-hidden="true">01</span>
+          <span class="txt">Socks aren't required, but they beat the alternative &mdash; we sell them at the desk.</span>
+        </li>
+        <li>
+          <span class="num" aria-hidden="true">02</span>
+          <span class="txt">Outside food and drink aren't permitted &mdash; the kitchen and bar have you covered.</span>
+        </li>
+        <li>
+          <span class="num" aria-hidden="true">03</span>
+          <span class="txt">Give yourself a few minutes to park and check in at the desk.</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- (g) footer -->
+    <footer>
+      <hr class="rule" style="margin-bottom: 0;" />
+      <p class="foot-mark">Twisted Pin</p>
+      <p class="foot-addr">15610 Joliet Rd, Plainfield, IL 60544</p>
+      <p class="foot-tag">Game &middot; Bowl &middot; Eat &middot; Drink</p>
+    </footer>
+
+  </main>
+</body>
+</html>
