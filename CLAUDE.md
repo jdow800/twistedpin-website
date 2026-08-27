@@ -32,6 +32,7 @@ All context lives in `Context/`. Read all four for any meaningful work.
 | **`Context/brand-guidelines.md`** | Logo system, typography roster, hex values, "the Pin" / Formation marks. Mood description partially deprecated (see header note); everything else is authoritative. |
 | **`Context/seo.md`** | Keywords, page structure, URL migration plan, page-speed targets, meta requirements |
 | **`Context/media-needs.md`** | Running list of imagery / video / copy / data assets needed for inner pages. Update whenever a new pillar ships — flag any homepage-reuse stubs, placeholders, or missing real assets so the user can source / brief / replace. |
+| **`Context/adding-events.md`** | **How to put a night on `/upcoming-events/`** — one-off vs weekly-recurring frontmatter, the DST offset table, the traps (never drop a non-event `.md` in `src/content/events/`; quote `skip` dates, don't quote `until`), CTA rules, and why event art is schema-only. Read before adding any event. |
 | **`Context/launch-checklist.md`** | Historical launch checklist. Site is live at twistedpin.com (2026-05-17). Retained for the 301 redirect map of record + any residual ops-data placeholders / counsel review items still open. |
 
 Supporting assets:
