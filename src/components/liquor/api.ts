@@ -623,6 +623,42 @@ export async function reextractInvoice(
     throw err; // NotAuthed / Forbidden / other bubble to the caller
   }
 }
+/**
+ * Settle a flag that has nothing left to act on — the only way out of
+ * `flagged` for an invoice whose lines are all matched (a count flag from
+ * handwriting or an order divergence). Matters because a flagged invoice is
+ * excluded from the variance purchase math AND the pre-submit check, so a
+ * stuck flag quietly erases the delivery from inventory.
+ */
+export async function clearInvoiceFlag(
+  invoiceId: string,
+): Promise<
+  { ok: true } | { ok: false; error: "lines_need_match" | "not_flagged" | "duplicate" | "unknown" }
+> {
+  try {
+    await gatedJson(`/admin/bar/invoices/${invoiceId}/clear-flag`, { method: "POST" });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof BarApiError && err.status === 409) {
+      // gatedJson stashes the RAW TEXT body, not parsed JSON — parse it here.
+      let reason: string | undefined;
+      try {
+        reason = (JSON.parse(String(err.body ?? "")) as { error?: string }).error;
+      } catch {
+        reason = undefined;
+      }
+      return {
+        ok: false,
+        error:
+          reason === "lines_need_match" || reason === "not_flagged" || reason === "duplicate"
+            ? reason
+            : "unknown",
+      };
+    }
+    throw err; // NotAuthed / Forbidden / other bubble to the caller
+  }
+}
+
 /** Create a NEW bottle from an unmatched invoice line (new product or new size),
  *  match the line to it, and learn the alias + seed its cost. */
 export async function newSkuFromLine(

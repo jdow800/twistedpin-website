@@ -1397,6 +1397,22 @@
   line-height: 1.35;
   flex: 1 1 160px;
 }
+/* Settle a count-flag. Deliberately the SOLID button, not the ghost used by
+   Re-extract: this is the action that puts the delivery back into the variance
+   math, and it is the only one available on an all-matched flagged invoice. */
+.lq-invd-clear {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.lq-invd-clear-hint {
+  font-size: 13px;
+  line-height: 1.35;
+  flex: 1 1 160px;
+}
+
 .lq-segbar {
   display: flex;
   gap: 6px;

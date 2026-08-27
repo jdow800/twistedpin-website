@@ -6,6 +6,7 @@ import {
   matchInvoiceLine,
   newSkuFromLine,
   reextractInvoice,
+  clearInvoiceFlag,
   setInvoiceLineReceived,
   invoiceImageUrl,
   type InvoiceSummary,
@@ -71,6 +72,8 @@ export default function Invoices({
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [reextracting, setReextracting] = useState(false);
   const [reextractMsg, setReextractMsg] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
+  const [clearMsg, setClearMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -112,6 +115,7 @@ export default function Invoices({
   async function open(id: string) {
     setDetailLoading(true);
     setReextractMsg(null);
+    setClearMsg(null);
     try {
       setDetail(await getInvoiceDetail(id));
     } catch {
@@ -143,6 +147,37 @@ export default function Invoices({
       setReextractMsg("Couldn't re-extract — try again.");
     } finally {
       setReextracting(false);
+    }
+  }
+
+  // Settle a count-flag that has nothing left to act on. Without this an invoice
+  // flagged for handwriting or an order divergence, whose lines are all matched,
+  // has NO available action — and a flagged invoice is excluded from the variance
+  // purchase math, so the delivery silently vanishes from inventory.
+  async function doClearFlag() {
+    if (!detail || clearing) return;
+    setClearing(true);
+    setClearMsg(null);
+    try {
+      const r = await clearInvoiceFlag(detail.invoice.id);
+      if (r.ok) {
+        setDetail((d) => (d ? { ...d, invoice: { ...d.invoice, status: "confirmed" } } : d));
+        getInvoiceHistory().then(setList).catch(() => {});
+      } else {
+        setClearMsg(
+          r.error === "lines_need_match"
+            ? "Match the bottles below first — those still need a home."
+            : r.error === "duplicate"
+              ? "This is a duplicate of an invoice already on file — it has to stay out of the count."
+              : r.error === "not_flagged"
+                ? "Already settled."
+                : "Could not confirm — try again.",
+        );
+      }
+    } catch {
+      setClearMsg("Could not confirm — try again.");
+    } finally {
+      setClearing(false);
     }
   }
 
@@ -196,6 +231,18 @@ export default function Invoices({
           </div>
         )}
 
+        {inv.status === "flagged" && !detail.lines.some((l) => l.needsReview) && (
+          <div className="lq-invd-clear">
+            <button type="button" className="lq-btn" disabled={clearing} onClick={doClearFlag}>
+              {clearing ? "Confirming…" : "Counted it — confirm invoice"}
+            </button>
+            <span className="lq-muted lq-invd-clear-hint">
+              {clearMsg ??
+                "Every bottle is matched. Confirm once you have checked what actually arrived — until then this invoice is left out of your next variance report."}
+            </span>
+          </div>
+        )}
+
         <h3 className="lq-cap-title">Lines <span className="lq-cap-n">{detail.lines.length}</span></h3>
         <div className="lq-invd-lines">
           {detail.lines.map((l) => (
@@ -211,6 +258,7 @@ export default function Invoices({
                 ) : l.lineType === "product" ? (
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
+                {l.sizeText && <span>· {l.sizeText}</span>}
                 {l.qtyUnits && <span>· {Number(l.qtyUnits)} × {money(l.unitCost)}</span>}
               </div>
               {l.needsReview && l.lineType === "product" && (
