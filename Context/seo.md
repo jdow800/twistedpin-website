@@ -218,7 +218,14 @@ These words attract the wrong customer or imply services we don't offer. Avoid i
 
 - `cheap`, `free`, `discount` (modifiers on bowling)
 - `escape room`, `laser tag`, `mini golf`, `go karts`, `axe throwing`, `roller skating` — we don't have these
-- `karaoke` — unless we explicitly run karaoke nights
+- ~~`karaoke`~~ — **no longer negative as of 2026-08-27.** The condition
+  attached to this entry ("unless we explicitly run karaoke nights") is
+  now met: free karaoke runs Thursdays 7–11pm with host Joe Son,
+  Sep 10 2026 → May 27 2027. It's on `/upcoming-events/` as a recurring
+  event with a `Schedule` in the JSON-LD. Treat `karaoke plainfield` /
+  `karaoke near me` / `karaoke bar near me` as targetable — currently
+  only surfaced on the calendar, so a dedicated page is the open
+  opportunity if the night proves out.
 - `duckpin bowling` — we don't have duckpin
 - `casino`, `strip club`, `adult entertainment` — wrong intent entirely
 

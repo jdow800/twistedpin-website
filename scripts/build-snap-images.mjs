@@ -185,6 +185,13 @@ const SOURCES = [
   { src: "paintnight (10).png", name: "event-paint-night", widths: [610] },
   //   - event-paint-night-autumn: "Autumn Harvest Glow" flyer (Sep 15 2026), 610×400.
   { src: "autumnpaintnight.png", name: "event-paint-night-autumn", widths: [610] },
+  //   - event-karaoke: weekly Karaoke Night flyer (Thursdays, Sep 2026 – May 2027).
+  //     Source is 810×450 — exactly 16:9, one of the three aspect ratios
+  //     Google's Event rich-result validator accepts. Encoded at its native
+  //     810 (no upscale, no crop). JSON-LD `image` only: the calendar card
+  //     doesn't render event art, so the neon flyer never lands on a brand
+  //     surface where the moody thesis applies.
+  { src: "karaoke-cover.jpg", name: "event-karaoke", widths: [810] },
 ];
 
 async function exists(p) {

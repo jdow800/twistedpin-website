@@ -7,6 +7,14 @@
  * Daily 4am cron rebuild keeps the page fresh; past events fall off
  * automatically after their end (or start, if no end) is in the past.
  *
+ * Two shapes of event:
+ *   - one-shot (Paint Night, NYE) — listed at its own date
+ *   - recurring (Karaoke Thursdays) — a `recurring` block in the
+ *     frontmatter makes it ONE card showing the next non-skipped night,
+ *     re-resolved on every rebuild, plus a schema.org `Schedule` with
+ *     the dark nights in `exceptDate`. See the recurrence section below
+ *     before touching any of it; the DST trap there is a real one.
+ *
  * Layout: typography hero → month-grouped cards → bottom hand-off
  * (host-your-own-night + leagues). Empty state replaces the cards
  * grid when nothing is scheduled.
@@ -20,6 +28,19 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema } from "../lib/schema";
 import { PLAN_EVENT_URL } from "../lib/links";
+// Venue-local date math + weekly recurrence. Lives in its own module so
+// the DST behaviour is exercisable: `node scripts/check-recurrence.mjs`.
+import {
+  VENUE_TZ,
+  ctParts,
+  ctClock,
+  ctDateKey,
+  weekdayOf,
+  isOneLateNight,
+  resolveOccurrence,
+  upcomingSkips,
+  type Occurrence,
+} from "../lib/recurrence";
 
 // At-build cutoff: an event is "past" when its end (or start, if no
 // end) is before today. Cron rebuilds nightly at 9 UTC so this re-runs
@@ -35,14 +56,7 @@ const LOOKAHEAD_DAYS = 60;
 const now = new Date();
 const lookaheadCutoff = new Date(now.getTime() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000);
 
-const events = (await getCollection("events"))
-  .filter((e) => !e.data.draft)
-  .filter((e) => {
-    const cutoff = e.data.end ?? e.data.start;
-    return cutoff >= now;
-  })
-  .filter((e) => e.data.start <= lookaheadCutoff)
-  .sort((a, b) => a.data.start.getTime() - b.data.start.getTime());
+const rawEvents = (await getCollection("events")).filter((e) => !e.data.draft);
 
 // Every calendar-date part below is read in America/Chicago, never via
 // Date#getDate()/getMonth()/getFullYear() — those use the *build server's*
@@ -54,17 +68,15 @@ const events = (await getCollection("events"))
 // always right because timeFmt below pins timeZone explicitly — do the same
 // for date parts. NOTE: the past-event and lookahead filters compare Date
 // objects directly (absolute instants), so they're zone-agnostic and fine.
-const ctPartsFmt = new Intl.DateTimeFormat("en-US", {
-  timeZone: "America/Chicago",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-function ctParts(d: Date) {
-  const parts = ctPartsFmt.formatToParts(d);
-  const get = (type: string) => parts.find((p) => p.type === type)!.value;
-  return { year: get("year"), month: get("month"), day: get("day") };
-}
+
+// Resolve every event to its listable occurrence, drop the ones with
+// none left, apply the lookahead to that occurrence (a recurring night
+// is always within a week of now once its season is open), and sort.
+const events = rawEvents
+  .map((e) => ({ entry: e, occ: resolveOccurrence(e.data, now) }))
+  .filter((x): x is { entry: typeof x.entry; occ: Occurrence } => x.occ !== null)
+  .filter((x) => x.occ.start <= lookaheadCutoff)
+  .sort((a, b) => a.occ.start.getTime() - b.occ.start.getTime());
 
 // Group by year-month, keyed on the venue's calendar date. A 7pm CT event on
 // Dec 31 is Jan 1 UTC — the naive form filed it under the wrong month AND year.
@@ -73,10 +85,12 @@ const groups: Group[] = [];
 const monthFmt = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
-  timeZone: "America/Chicago",
+  timeZone: VENUE_TZ,
 });
 for (const e of events) {
-  const d = e.data.start;
+  // The OCCURRENCE date, not the markdown `start` — a recurring night
+  // files under the month it next runs, not the month the season opened.
+  const d = e.occ.start;
   const { year, month } = ctParts(d);
   const key = `${year}-${month}`;
   const label = monthFmt.format(d).toUpperCase();
@@ -90,7 +104,7 @@ for (const e of events) {
 
 const monthShortFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
-  timeZone: "America/Chicago",
+  timeZone: VENUE_TZ,
 });
 const monthShort = (d: Date) => monthShortFmt.format(d).toUpperCase();
 // Number() strips the "2-digit" leading zero — the date block reads "5", not "05".
@@ -98,7 +112,7 @@ const dayNum = (d: Date) => String(Number(ctParts(d).day));
 
 // Day block — handles single day, multi-day same-month, multi-day cross-month.
 function dayBlock(start: Date, end?: Date) {
-  if (!end || sameDay(start, end)) {
+  if (!end || sameDay(start, end) || isOneLateNight(start, end)) {
     return { day: dayNum(start), month: monthShort(start), range: false };
   }
   const s = ctParts(start);
@@ -131,7 +145,7 @@ const timeFmt = new Intl.DateTimeFormat("en-US", {
   hour: "numeric",
   minute: "2-digit",
   hour12: true,
-  timeZone: "America/Chicago",
+  timeZone: VENUE_TZ,
 });
 
 function timeRange(start: Date, end?: Date) {
@@ -147,23 +161,46 @@ function timeRange(start: Date, end?: Date) {
 //   - eventStatus: EventScheduled (default; flip via markdown if needed)
 //   - eventAttendanceMode: OfflineEventAttendanceMode
 //   - location + organizer reference the venue via @id
-//   - url prefers the cta.href when it's an internal page (lets crawlers
-//     follow to the dedicated detail page e.g. /new-years-eve/), falls
-//     back to the upcoming-events page itself.
+//   - url prefers the cta.href when it's an internal DETAIL page (lets
+//     crawlers follow to e.g. /new-years-eve/), falls back to the
+//     upcoming-events page itself.
 const upcomingEventsJsonLd = events.length === 0 ? null : {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  itemListElement: events.map((e, i) => {
+  itemListElement: events.map(({ entry: e, occ }, i) => {
     const cta = e.data.cta?.href;
-    const ctaIsInternal = cta && cta.startsWith("/");
-    const eventUrl = ctaIsInternal
+    // Google reads Event.url as "the page describing this event," so it
+    // only inherits the CTA when the CTA points at a detail PAGE. The
+    // booking wizard is a tool, not a description — a card whose CTA is
+    // "Reserve a lane" (walk-in nights with nothing to book) would
+    // otherwise name /reserve/ as the karaoke page.
+    const ctaIsDetailPage =
+      cta && cta.startsWith("/") && !cta.startsWith("/reserve");
+    const eventUrl = ctaIsDetailPage
       ? `${BUSINESS_URL}${cta}`
       : `${BUSINESS_URL}/upcoming-events/`;
     // `offers` sourced from the event's `lowPrice` frontmatter when set.
     // AggregateOffer floor pattern — clears GSC "Missing field 'offers'"
     // and keeps each Event eligible for rich results in this ItemList.
-    const offers = e.data.lowPrice
+    //
+    // Free events (low == high == "0") emit a plain Offer at $0 instead.
+    // An "AggregateOffer" over a price RANGE of zero width is the wrong
+    // shape for a no-cover night, and Google reads a single Offer with
+    // price 0 as free — which is the fact we want in the SERP.
+    const isFree = e.data.lowPrice === "0" && e.data.highPrice === "0";
+    const offers = !e.data.lowPrice
+      ? undefined
+      : isFree
       ? {
+          "@type": "Offer",
+          priceCurrency: "USD",
+          price: "0",
+          availability: "https://schema.org/InStock",
+          url: eventUrl,
+          ...(e.data.validFrom && { validFrom: e.data.validFrom.toISOString() }),
+          validThrough: occ.start.toISOString(),
+        }
+      : {
           "@type": "AggregateOffer",
           priceCurrency: "USD",
           lowPrice: e.data.lowPrice,
@@ -177,23 +214,48 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
           availability: "https://schema.org/InStock",
           url: eventUrl,
           // validThrough = event start: no sales after kickoff.
-          validThrough: e.data.start.toISOString(),
-        }
-      : undefined;
+          validThrough: occ.start.toISOString(),
+        };
+    const rec = e.data.recurring;
     return {
       "@type": "ListItem",
       position: i + 1,
-      item: eventSchema({
-        name: e.data.title,
-        start: e.data.start,
-        end: e.data.end,
-        description: e.body?.trim(),
-        url: eventUrl,
-        // Absolute URL — Google's Event validator wants a fully-qualified
-        // image. Site-relative path in frontmatter, origin prepended here.
-        image: e.data.image ? `${BUSINESS_URL}${e.data.image}` : undefined,
-        offers,
-      }),
+      item: {
+        ...eventSchema({
+          name: e.data.title,
+          // The NEXT occurrence, not the season opener. Keeps the Event
+          // from advertising a start date that's already in the past for
+          // eight months of a nine-month run; `eventSchedule` below
+          // carries the full recurrence.
+          start: occ.start,
+          end: occ.end,
+          description: e.body?.trim(),
+          url: eventUrl,
+          // Absolute URL — Google's Event validator wants a fully-qualified
+          // image. Site-relative path in frontmatter, origin prepended here.
+          image: e.data.image ? `${BUSINESS_URL}${e.data.image}` : undefined,
+          offers,
+        }),
+        ...(rec && {
+          eventSchedule: {
+            "@type": "Schedule",
+            byDay: `https://schema.org/${weekdayOf(e.data.start)}`,
+            // BARE local times under `scheduleTimezone` — never an offset.
+            // This season crosses two DST boundaries; a fixed offset would
+            // misreport the night by an hour all winter. Identical
+            // reasoning to /leagues.
+            startTime: ctClock(e.data.start),
+            ...(e.data.end && { endTime: ctClock(e.data.end) }),
+            repeatFrequency: "P1W",
+            startDate: ctDateKey(e.data.start),
+            endDate: rec.until.toISOString().slice(0, 10),
+            // Dark nights. This is precisely what exceptDate is for —
+            // without it the schema promises karaoke on Thanksgiving.
+            ...(rec.skip.length && { exceptDate: rec.skip }),
+            scheduleTimezone: "America/Chicago",
+          },
+        }),
+      },
     };
   }),
 };
@@ -233,9 +295,15 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
         <div class="ev-month">
           <h2 class="ev-month-label">{group.label}</h2>
           <ul class="ev-cards" role="list">
-            {group.events.map((e) => {
-              const block = dayBlock(e.data.start, e.data.end);
-              const time = timeRange(e.data.start, e.data.end);
+            {group.events.map(({ entry: e, occ }) => {
+              const block = dayBlock(occ.start, occ.end);
+              const rec = e.data.recurring;
+              // Recurring nights lead with the cadence; the date block
+              // beside it is the next one up.
+              const time = rec
+                ? `Every ${weekdayOf(e.data.start)} · ${timeRange(occ.start, occ.end)}`
+                : timeRange(occ.start, occ.end);
+              const skips = upcomingSkips(e.data, now, lookaheadCutoff);
               const desc = e.body?.trim();
               return (
                 <li class="ev-card">
@@ -262,6 +330,15 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
                       </p>
                     )}
                     {desc && <p class="ev-desc">{desc}</p>}
+                    {/* Dark nights inside the lookahead. Title-agnostic
+                        wording so any future recurring night inherits it. */}
+                    {skips.length > 0 && (
+                      <p class="ev-skips">
+                        Skipping {skips.length === 1
+                          ? skips[0]
+                          : `${skips.slice(0, -1).join(", ")} and ${skips[skips.length - 1]}`}.
+                      </p>
+                    )}
                     {e.data.cta && (
                       <a
                         class="btn btn-outline ev-cta"
@@ -509,6 +586,18 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     margin: 14px 0 0;
   }
 
+  /* Dark-night note on a recurring card. Quieter than .ev-desc — it's a
+     caveat on the cadence line above, not part of the pitch. */
+  .ev-skips {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #f0b289; /* Copper, lifted for contrast — same tone as .ev-flag-tentative */
+    margin: 12px 0 0;
+  }
+
   .ev-cta {
     margin-top: 18px;
     /* Smaller than the global .btn-outline default — cards already
@@ -556,6 +645,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     .ev-meta { font-size: 16px; }
     .ev-meta-glyph { font-size: 14px; }
     .ev-desc { font-size: 16px; }
+    .ev-skips { font-size: 13px; }
     .ev-cta { font-size: 13.5px; padding: 12px 24px; }
   }
 </style>

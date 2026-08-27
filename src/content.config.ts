@@ -53,6 +53,36 @@ const events = defineCollection({
      * (2026-06-18). Encode the source through scripts/build-snap-images.mjs.
      */
     image: z.string().optional(),
+    /**
+     * Optional weekly-recurrence block. Present = this is a standing
+     * night (Karaoke Thursdays), not a dated one-shot.
+     *
+     * `start`/`end` still carry the FIRST occurrence — including the
+     * times, which every later occurrence inherits. The calendar then
+     * renders ONE card showing the next upcoming night rather than 38
+     * near-identical cards, and emits a schema.org `Schedule` instead
+     * of 38 Events.
+     *
+     * `skip` is the dark-night list (holidays, conflicts). Dates are
+     * plain YYYY-MM-DD read in America/Chicago — a skipped night is a
+     * *calendar date* at the venue, not an instant, so no offset. They
+     * flow to the Schedule's `exceptDate`, which is exactly what that
+     * field is for.
+     *
+     * Weekly is the only frequency supported. Anything else (monthly,
+     * every-other-week) should extend this rather than be faked with
+     * one file per date.
+     */
+    recurring: z
+      .object({
+        /** Only "weekly" today — see the note above before adding more. */
+        frequency: z.literal("weekly").default("weekly"),
+        /** Last possible occurrence, inclusive. Season end. */
+        until: z.coerce.date(),
+        /** Dark nights, YYYY-MM-DD, venue-local. */
+        skip: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).default([]),
+      })
+      .optional(),
   }),
 });
 

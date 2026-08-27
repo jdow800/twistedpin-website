@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "prebuild": "node scripts/check-translation-freshness.mjs",
+    "prebuild": "node scripts/check-translation-freshness.mjs && node scripts/check-recurrence.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
