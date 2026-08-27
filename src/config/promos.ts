@@ -92,6 +92,24 @@ export const PROMOS: readonly Promo[] = [
     showUntil: "2026-08-31",
     homepageOnly: true,
   },
+  // Karaoke takes the bar the day leagues expires (Sept 1), per Jon
+  // 2026-08-27. Split into a launch beat and a season beat for two reasons:
+  //   1. The copy genuinely differs — "starts Sept 10" is news, "every
+  //      Thursday" is a standing fact.
+  //   2. Dismissal is stored per `id`, so one id spanning nine months would
+  //      mean a single X-tap kills karaoke on that device until June. The
+  //      split gives the season promo a fresh id partway through. Bump
+  //      `karaoke-thursdays-2026` to `-2027` in January if it needs another
+  //      re-show; the copy can stay identical.
+  // Both point at /upcoming-events/, which auto-hides the bar on that page.
+  {
+    id: "karaoke-launch-2026",
+    message: "Karaoke Thursdays start Sept 10",
+    href: "/upcoming-events/",
+    showFrom: "2026-09-01",
+    showUntil: "2026-09-10",
+    homepageOnly: true,
+  },
   // NYE before holiday-parties — when both Q4 promos are active
   // (Nov 15 → Dec 15 overlap) the more time-sensitive one gets the entry
   // beat; the two rotate.
@@ -111,6 +129,19 @@ export const PROMOS: readonly Promo[] = [
     href: "/holiday-parties/",
     showFrom: "2026-08-15",
     showUntil: "2026-12-15",
+    homepageOnly: true,
+  },
+  // Season beat, LAST in the array on purpose. Sept 11 → the end of the
+  // run, so it deliberately sits behind holiday-parties and NYE during Q4:
+  // those two are the revenue promos in the corporate-ramp window, and this
+  // one is a free weekly night that will still be there next Thursday.
+  // From Dec 16 (holiday-parties expires) through the spring it runs alone.
+  {
+    id: "karaoke-thursdays-2026",
+    message: "Free karaoke every Thursday, 7pm",
+    href: "/upcoming-events/",
+    showFrom: "2026-09-11",
+    showUntil: "2027-05-27",
     homepageOnly: true,
   },
   // NOTE: the Free-Kids-Bowling promo ("Free Bowling For Kids — through

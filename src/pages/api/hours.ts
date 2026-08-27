@@ -1,7 +1,9 @@
 export const prerender = false;
 
 import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
 import liveHoursFile from '../../data/live-hours.json';
+import { buildProgram, programTags, type ProgramEvent } from '../../lib/programs';
 import {
   todayKey,
   previousDay,
@@ -74,9 +76,33 @@ export const GET: APIRoute = async () => {
     todayCloseLabel = todayLive?.closeLabel ?? '';
   }
 
+  // Standing programs (karaoke, and anything else tagged later), assembled
+  // from the same event markdown the public calendar renders. Roy's pre-call
+  // webhook reads `programs.karaoke.answer` and injects it as a dynamic
+  // variable, so cancelling a night updates the website AND what the phone
+  // agent says in a single edit. Date reasoning happens HERE, not in the LLM.
+  const nowDate = new Date();
+  const programEvents: ProgramEvent[] = (await getCollection('events'))
+    .filter((e) => !e.data.draft && e.data.tags.length > 0)
+    .map((e) => ({
+      id: e.id,
+      title: e.data.title,
+      tags: e.data.tags,
+      start: e.data.start,
+      end: e.data.end,
+      recurring: e.data.recurring,
+    }));
+
+  const programs: Record<string, unknown> = {};
+  for (const tag of programTags(programEvents)) {
+    const p = buildProgram(programEvents, tag, nowDate);
+    if (p) programs[tag] = p;
+  }
+
   const body = {
     fetchedAt: snap.fetchedAt ?? null,
     hours,
+    programs,
     now: {
       is_open: isOpen,
       today,

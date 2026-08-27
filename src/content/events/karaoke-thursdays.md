@@ -12,6 +12,9 @@ title: Karaoke Night
 start: 2026-09-10T19:00:00-05:00
 end: 2026-09-10T23:00:00-05:00
 location: Twisted Pin · Plainfield, IL
+# Groups this with the other karaoke nights for /api/hours -> Roy (the
+# phone agent). Not rendered on the site.
+tags: ["karaoke"]
 recurring:
   frequency: weekly
   # Last night of the season. Card + schema self-expire the morning

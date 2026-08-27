@@ -116,6 +116,7 @@ how Thanksgiving works — Nov 26 is skipped and
 | `end` | | Omit for open-ended. Crossing midnight is fine — see below. |
 | `location` | | Defaults to "Twisted Pin". We use `Twisted Pin · Plainfield, IL`. |
 | `cta` | | `label` + `href`. See CTA rules below. |
+| `tags` | | Machine-readable grouping, never rendered. Feeds `/api/hours` → Roy, the phone agent. See "Roy" below. |
 | `tentative` | | `true` → amber "Tentative" chip. |
 | `virtual` | | `true` → "Virtual" chip. |
 | `draft` | | `true` → written but not published. Use this instead of deleting. |
@@ -162,6 +163,28 @@ Google accepts 16:9, 4:3 or 1:1. Don't upscale — encode at the source width.
 
 ⚠️ Running that script re-encodes **every** source and will dirty unrelated
 `public/snap/*` files. `git checkout` the ones you didn't mean to touch.
+
+---
+
+## Roy, the phone agent, reads these events too
+
+Any event carrying a `tags:` entry is assembled into `/api/hours/` under
+`programs.<tag>` — a block containing **a finished sentence Roy can speak**
+("Yes — karaoke night is this Thursday, October 8, seven PM to eleven PM").
+Roy's pre-call webhook already fetches that endpoint for `is_open`.
+
+This is why cancelling a night is one edit: adding a date to `skip:` updates
+the calendar card, the schema, **and what the phone says**, together. Never
+put a date list in Roy's knowledge base — it rots silently.
+
+`scripts/check-programs.mjs` asserts the spoken answers across ~47 caller
+scenarios (each weekday of a normal week, a dark week, Thanksgiving's moved
+night, the holiday gap, pre-season, post-season, both DST crossings). It runs
+on every build. **If you change the karaoke schedule, update the `EVENTS`
+fixture at the top of that script to match.**
+
+Full wiring notes, including the n8n and Retell steps:
+`~/dev/Twisted Pin Full System/Retell Phone System/Roy_Karaoke_Awareness.md`
 
 ---
 

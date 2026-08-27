@@ -10,6 +10,9 @@ title: Karaoke Night — Black Wednesday Edition
 start: 2026-11-25T21:00:00-06:00
 end: 2026-11-26T01:00:00-06:00
 location: Twisted Pin · Plainfield, IL
+# Groups this with the other karaoke nights for /api/hours -> Roy (the
+# phone agent). Not rendered on the site.
+tags: ["karaoke"]
 lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-08-27T00:00:00-05:00

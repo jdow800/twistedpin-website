@@ -73,6 +73,17 @@ const events = defineCollection({
      * every-other-week) should extend this rather than be faked with
      * one file per date.
      */
+    /**
+     * Machine-readable grouping. Not rendered anywhere — this exists so
+     * `/api/hours` can assemble a "program" feed for Roy, the phone agent,
+     * without matching on event titles (which are copy and will change).
+     *
+     * Every event that is part of the same standing program shares a tag,
+     * including one-offs that stand in for it: the Black Wednesday karaoke
+     * night is tagged `karaoke` so Roy names it as the next karaoke night
+     * on Thanksgiving week, with its own late hours.
+     */
+    tags: z.array(z.string()).default([]),
     recurring: z
       .object({
         /** Only "weekly" today — see the note above before adding more. */
