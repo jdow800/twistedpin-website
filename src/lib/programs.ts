@@ -172,11 +172,25 @@ export function buildProgram(
   const started = todayKey >= seasonStart;
   const overForSeason = all.length === 0;
 
+  // "September through May" — derived from the dates, not written down, so it
+  // can't disagree with them. Used only to describe a season that has ended;
+  // it is a statement about the season we have data for, never a forecast.
+  const monthNameFmt = new Intl.DateTimeFormat("en-US", { month: "long", timeZone: "UTC" });
+  const seasonMonths =
+    base.recurring && seasonEnd
+      ? `${monthNameFmt.format(new Date(seasonStart + "T12:00:00Z"))} through ${monthNameFmt.format(new Date(seasonEnd + "T12:00:00Z"))}`
+      : null;
+
   // The finished sentence. Roy speaks this rather than reasoning about dates.
   let answer: string;
   if (overForSeason) {
-    answer = weekday
-      ? `${base.title} is finished for the season. It runs ${weekday} nights, ${usualSpoken}, and comes back in the fall.`
+    // Describe the season we KNOW about; never promise a next one. "Comes
+    // back in the fall" shipped here first and was wrong to say — nothing in
+    // the data supports it, and Roy's own prompt bans claims he can't source.
+    // If the program does return, the markdown gets new dates and this
+    // branch stops firing on its own.
+    answer = weekday && seasonMonths
+      ? `${base.title} is finished for the season. It runs ${weekday} nights, ${usualSpoken}, ${seasonMonths}.`
       : `${base.title} isn't on the schedule right now.`;
   } else if (!started && next) {
     answer = `${base.title} starts ${next.spoken_date}. After that it's every ${weekday}, ${usualSpoken}.`;

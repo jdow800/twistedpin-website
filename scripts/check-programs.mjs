@@ -136,7 +136,10 @@ console.log("\nBefore the season opens, and after it closes");
 
   const after = ask("2027-06-02");
   check("season over", after.season.in_season, "false");
-  contains("says so, and that it returns", after.answer, "finished for the season");
+  contains("says so plainly", after.answer, "finished for the season");
+  contains("...and names the season window from the DATA", after.answer, "September through May");
+  check("...and promises NO next season (nothing in the data supports one)", /comes back|next (season|fall|year)|will return/i.test(after.answer), "false");
+  contains("...and still states the night and hours", after.answer, "Thursday nights, seven PM to eleven PM");
   check("no next occurrence", after.next, "null");
 }
 
