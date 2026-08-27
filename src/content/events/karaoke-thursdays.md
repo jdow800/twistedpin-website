@@ -40,9 +40,6 @@ lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-08-27T00:00:00-05:00
 image: /snap/event-karaoke-810.jpg
-cta:
-  label: Reserve a lane
-  href: /reserve/
 ---
 
 Free karaoke every Thursday, hosted by Joe Son. Sing it straight or absolutely

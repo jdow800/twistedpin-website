@@ -111,6 +111,36 @@ export function isOneLateNight(start: Date, end: Date) {
   return end.getTime() < ctInstant(ctDateKey(end), 5, 0).getTime();
 }
 
+/**
+ * The venue-local months the calendar offers, starting with the one
+ * we're in. `key` is "YYYY-MM" (sorts lexicographically, and is what the
+ * `?month=` deep link carries).
+ *
+ * Month-based rather than a rolling day count: the pills ARE the
+ * horizon, so "four months" has to mean whole calendar months or the
+ * last pill would show a half-empty month whose contents changed daily.
+ */
+export function monthHorizon(now: Date, count: number) {
+  const { year, month } = ctParts(now);
+  let y = Number(year);
+  let m = Number(month);
+  const out: { key: string; start: Date; end: Date }[] = [];
+  for (let i = 0; i < count; i++) {
+    const key = `${y}-${String(m).padStart(2, "0")}`;
+    // First instant of this month, and the last instant before the next
+    // one starts — both anchored to the venue's wall clock, so a month
+    // boundary lands at local midnight rather than 7pm the day before.
+    const start = ctInstant(`${key}-01`, 0, 0);
+    const ny = m === 12 ? y + 1 : y;
+    const nm = m === 12 ? 1 : m + 1;
+    const end = new Date(ctInstant(`${ny}-${String(nm).padStart(2, "0")}-01`, 0, 0).getTime() - 1);
+    out.push({ key, start, end });
+    y = ny;
+    m = nm;
+  }
+  return out;
+}
+
 export type RecurringSpec = {
   frequency: "weekly";
   /** Last possible occurrence, inclusive. YAML hands this over as UTC midnight. */
@@ -128,19 +158,29 @@ export type EventTiming = {
 export type Occurrence = { start: Date; end?: Date };
 
 /**
- * The occurrence an event should be listed under, relative to `now`:
- * itself for a one-shot, or the next non-skipped night for a recurring
- * one. `null` = nothing left (season over, or the one-shot has passed).
+ * Every occurrence of an event that falls in [`from`, `to`] — one entry
+ * for a one-shot, one per non-skipped night for a recurring one.
  *
- * A night already in progress still counts as tonight — the cutoff is
- * the occurrence's END, matching the one-shot rule.
+ * Recurring nights are listed INDIVIDUALLY rather than as a single
+ * rolling "next Thursday" card. That's what lets a dark night explain
+ * itself: October shows the 1st, 8th, 15th and 29th, and the 22nd is
+ * simply absent — no "skipping Oct 22" caveat needed anywhere.
+ *
+ * A night already in progress still counts as current — the lower
+ * cutoff tests the occurrence's END, so an event doesn't vanish from
+ * the page at the moment it starts. The upper cutoff tests its START,
+ * so a late night at the horizon's edge isn't dropped for ending past
+ * it.
  */
-export function resolveOccurrence(data: EventTiming, now: Date): Occurrence | null {
+export function expandOccurrences(data: EventTiming, from: Date, to: Date): Occurrence[] {
+  const inRange = (o: Occurrence) => (o.end ?? o.start) >= from && o.start <= to;
+
   const rec = data.recurring;
   if (!rec) {
-    const cutoff = data.end ?? data.start;
-    return cutoff >= now ? { start: data.start, end: data.end } : null;
+    const one = { start: data.start, end: data.end };
+    return inRange(one) ? [one] : [];
   }
+
   // Wall-clock time-of-day and duration come from the first occurrence and
   // are held constant; only the calendar date advances. Holding the WALL
   // time (not the UTC instant) is what keeps 7pm at 7pm across a DST shift.
@@ -152,6 +192,7 @@ export function resolveOccurrence(data: EventTiming, now: Date): Occurrence | nu
   const untilKey = rec.until.toISOString().slice(0, 10);
   const skip = new Set(rec.skip);
 
+  const out: Occurrence[] = [];
   let key = ctDateKey(data.start);
   // ~38 occurrences in the longest season here; the bound is a runaway
   // stop, not a real limit (520 weeks = 10 years).
@@ -159,29 +200,9 @@ export function resolveOccurrence(data: EventTiming, now: Date): Occurrence | nu
     if (skip.has(key)) continue;
     const start = ctInstant(key, w.hour, w.minute);
     const end = durationMs ? new Date(start.getTime() + durationMs) : undefined;
-    if ((end ?? start) >= now) return { start, end };
+    const occ = { start, end };
+    if (occ.start > to) break; // dates only ascend — nothing further can qualify
+    if (inRange(occ)) out.push(occ);
   }
-  return null;
-}
-
-const skipLabelFmt = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  timeZone: VENUE_TZ,
-});
-
-/**
- * Skipped nights that are still ahead and inside the lookahead window —
- * the ones worth warning people about on the card. Returns display
- * labels ("Oct 22"), already sorted.
- */
-export function upcomingSkips(data: EventTiming, now: Date, lookaheadCutoff: Date) {
-  const rec = data.recurring;
-  if (!rec) return [];
-  const todayKey = ctDateKey(now);
-  const cutoffKey = ctDateKey(lookaheadCutoff);
-  return rec.skip
-    .filter((k) => k >= todayKey && k <= cutoffKey)
-    .sort()
-    .map((k) => skipLabelFmt.format(ctInstant(k, 12, 0)));
+  return out;
 }

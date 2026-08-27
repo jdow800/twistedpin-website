@@ -10,14 +10,20 @@
  * Two shapes of event:
  *   - one-shot (Paint Night, NYE) — listed at its own date
  *   - recurring (Karaoke Thursdays) — a `recurring` block in the
- *     frontmatter makes it ONE card showing the next non-skipped night,
- *     re-resolved on every rebuild, plus a schema.org `Schedule` with
- *     the dark nights in `exceptDate`. See the recurrence section below
- *     before touching any of it; the DST trap there is a real one.
+ *     frontmatter, listed at EVERY date it runs inside the horizon.
+ *     Listing each night individually is what lets a dark night explain
+ *     itself: October shows the 1st, 8th, 15th and 29th, and the 22nd
+ *     is simply absent, so no "skipping Oct 22" caveat is needed. The
+ *     schema still ships ONE Event with a `Schedule` + `exceptDate`.
+ *     See src/lib/recurrence.ts before touching any of it — the DST
+ *     trap documented there is a real one.
  *
- * Layout: typography hero → month-grouped cards → bottom hand-off
- * (host-your-own-night + leagues). Empty state replaces the cards
- * grid when nothing is scheduled.
+ * Layout: typography hero → month pills → one panel per month → bottom
+ * hand-off (host-your-own-night + leagues). Every panel is
+ * server-rendered and stays in the DOM (crawlers see all of it); JS only
+ * swaps which is visible, via the same aria-pressed/aria-hidden pattern
+ * as the /pricing day tabs. Empty state replaces the whole calendar when
+ * nothing at all is scheduled.
  *
  * Per launch-checklist.md: legacy /event-directory/ also gets a 301
  * to /upcoming-events/ at launch (consolidation).
@@ -37,24 +43,26 @@ import {
   ctDateKey,
   weekdayOf,
   isOneLateNight,
-  resolveOccurrence,
-  upcomingSkips,
-  type Occurrence,
+  expandOccurrences,
+  monthHorizon,
 } from "../lib/recurrence";
 
 // At-build cutoff: an event is "past" when its end (or start, if no
-// end) is before today. Cron rebuilds nightly at 9 UTC so this re-runs
+// end) is before now. Cron rebuilds nightly at 9 UTC so this re-runs
 // once a day in production — close enough to "live."
 //
-// Lookahead window: events also have to start within LOOKAHEAD_DAYS to
-// surface here. Keeps the calendar focused on imminent nights instead
-// of advertising things 6+ months out (NYE etc.) all year. The seasonal
-// nav system also gates promotion of those pages independently. If a
-// specific event ever needs a longer runway, add an optional
-// `lookaheadDays` field in the markdown frontmatter and override here.
-const LOOKAHEAD_DAYS = 60;
+// Horizon: the month pills ARE the lookahead. Four whole calendar
+// months (this one + three) keeps the deliberately short runway the
+// page has always had — we don't post six months ahead because the
+// calendar shifts — while still letting people look past "what's next."
+// December, and with it NYE, comes into view from September 1.
+//
+// Whole months rather than a rolling day count on purpose: the last
+// pill would otherwise show a half-month whose contents changed daily.
+const HORIZON_MONTHS = 4;
 const now = new Date();
-const lookaheadCutoff = new Date(now.getTime() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000);
+const months = monthHorizon(now, HORIZON_MONTHS);
+const horizonEnd = months[months.length - 1].end;
 
 const rawEvents = (await getCollection("events")).filter((e) => !e.data.draft);
 
@@ -66,41 +74,50 @@ const rawEvents = (await getCollection("events")).filter((e) => !e.data.draft);
 // correct single day. Caught live 2026-08-14 on Paint Night; every evening
 // event since the calendar shipped had the same defect. The time range was
 // always right because timeFmt below pins timeZone explicitly — do the same
-// for date parts. NOTE: the past-event and lookahead filters compare Date
-// objects directly (absolute instants), so they're zone-agnostic and fine.
+// for date parts.
 
-// Resolve every event to its listable occurrence, drop the ones with
-// none left, apply the lookahead to that occurrence (a recurring night
-// is always within a week of now once its season is open), and sort.
-const events = rawEvents
-  .map((e) => ({ entry: e, occ: resolveOccurrence(e.data, now) }))
-  .filter((x): x is { entry: typeof x.entry; occ: Occurrence } => x.occ !== null)
-  .filter((x) => x.occ.start <= lookaheadCutoff)
+// Flatten every event into its individual occurrences inside the horizon.
+// A recurring night contributes one entry per date it actually runs, which
+// is what makes a dark night self-explanatory: it's simply not in the list.
+const occurrences = rawEvents
+  .flatMap((e) => expandOccurrences(e.data, now, horizonEnd).map((occ) => ({ entry: e, occ })))
   .sort((a, b) => a.occ.start.getTime() - b.occ.start.getTime());
 
-// Group by year-month, keyed on the venue's calendar date. A 7pm CT event on
-// Dec 31 is Jan 1 UTC — the naive form filed it under the wrong month AND year.
-type Group = { key: string; label: string; events: typeof events };
-const groups: Group[] = [];
-const monthFmt = new Intl.DateTimeFormat("en-US", {
+// One panel per horizon month, keyed on the venue's calendar date. A 7pm CT
+// event on Dec 31 is Jan 1 UTC — the naive form filed it under the wrong
+// month AND year.
+const monthLongFmt = new Intl.DateTimeFormat("en-US", {
   month: "long",
   year: "numeric",
   timeZone: VENUE_TZ,
 });
-for (const e of events) {
-  // The OCCURRENCE date, not the markdown `start` — a recurring night
-  // files under the month it next runs, not the month the season opened.
-  const d = e.occ.start;
-  const { year, month } = ctParts(d);
-  const key = `${year}-${month}`;
-  const label = monthFmt.format(d).toUpperCase();
-  let g = groups.find((x) => x.key === key);
-  if (!g) {
-    g = { key, label, events: [] };
-    groups.push(g);
-  }
-  g.events.push(e);
-}
+const monthPillFmt = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  timeZone: VENUE_TZ,
+});
+const thisYear = ctParts(now).year;
+
+const panels = months.map((m) => {
+  const events = occurrences.filter((o) => {
+    const p = ctParts(o.occ.start);
+    return `${p.year}-${p.month}` === m.key;
+  });
+  return {
+    key: m.key,
+    label: monthLongFmt.format(m.start).toUpperCase(),
+    // Pills stay terse — "OCT" — but carry the year once the horizon
+    // crosses into the next one, so DEC and JAN can't be confused.
+    pill: monthPillFmt.format(m.start).toUpperCase(),
+    pillYear: m.key.slice(0, 4) === thisYear ? null : m.key.slice(2, 4),
+    events,
+  };
+});
+
+// Open on the first month that actually has something. Usually the
+// current one; late in a quiet month it's the next one, so nobody lands
+// on an empty panel when the page isn't empty.
+const activeKey = (panels.find((p) => p.events.length > 0) ?? panels[0]).key;
+const hasAnyEvents = occurrences.length > 0;
 
 const monthShortFmt = new Intl.DateTimeFormat("en-US", {
   month: "short",
@@ -110,10 +127,30 @@ const monthShort = (d: Date) => monthShortFmt.format(d).toUpperCase();
 // Number() strips the "2-digit" leading zero — the date block reads "5", not "05".
 const dayNum = (d: Date) => String(Number(ctParts(d).day));
 
+const weekdayShortFmt = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: VENUE_TZ,
+});
+// Spoken form of the date, for the visually-hidden half of the When line.
+const srDateFmt = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  month: "long",
+  day: "numeric",
+  timeZone: VENUE_TZ,
+});
+
 // Day block — handles single day, multi-day same-month, multi-day cross-month.
+// The weekday rides in the chip rather than the meta line below: "Thursday ·
+// 7:00 pm – 11:00 pm CT" wraps at 390px, and the weekday is date information,
+// which is what the chip is for. Ranges get no weekday — it spans several.
 function dayBlock(start: Date, end?: Date) {
   if (!end || sameDay(start, end) || isOneLateNight(start, end)) {
-    return { day: dayNum(start), month: monthShort(start), range: false };
+    return {
+      day: dayNum(start),
+      month: monthShort(start),
+      weekday: weekdayShortFmt.format(start).toUpperCase(),
+      range: false,
+    };
   }
   const s = ctParts(start);
   const e = ctParts(end);
@@ -122,12 +159,14 @@ function dayBlock(start: Date, end?: Date) {
     return {
       day: `${dayNum(start)}–${dayNum(end)}`,
       month: monthShort(start),
+      weekday: null,
       range: true,
     };
   }
   return {
     day: `${dayNum(start)}–${dayNum(end)}`,
     month: `${monthShort(start)}/${monthShort(end)}`,
+    weekday: null,
     range: true,
   };
 }
@@ -152,22 +191,39 @@ function timeRange(start: Date, end?: Date) {
   const s = timeFmt.format(start).toLowerCase();
   if (!end) return `${s} CT`;
   const e = timeFmt.format(end).toLowerCase();
-  return `${s} – ${e} CT`;
+  // Drop the opening meridiem when both ends share it — "7:00 – 11:00 pm CT"
+  // rather than "7:00 pm – 11:00 pm CT". Saves a wrap at 390px, and it's the
+  // conventional form. A night that crosses noon or midnight (Black
+  // Wednesday's 9:00 pm – 1:00 am) keeps both, because there it's the
+  // load-bearing detail.
+  const sm = s.slice(-2);
+  return sm === e.slice(-2) ? `${s.slice(0, -3)} – ${e} CT` : `${s} – ${e} CT`;
 }
 
-// JSON-LD: ItemList of Events. Same `events` array the page renders —
-// schema and display can't drift. Skipped when no events are scheduled
-// (calendar's clear → no ItemList to ship). Each Event:
+// JSON-LD: ItemList of Events, built from the same occurrences the page
+// renders — schema and display can't drift. Skipped when nothing is
+// scheduled (calendar's clear → no ItemList to ship). Each Event:
 //   - eventStatus: EventScheduled (default; flip via markdown if needed)
 //   - eventAttendanceMode: OfflineEventAttendanceMode
 //   - location + organizer reference the venue via @id
 //   - url prefers the cta.href when it's an internal DETAIL page (lets
 //     crawlers follow to e.g. /new-years-eve/), falls back to the
 //     upcoming-events page itself.
-const upcomingEventsJsonLd = events.length === 0 ? null : {
+//
+// ONE Event per markdown entry, not per occurrence: a recurring night is
+// a single Event carrying an `eventSchedule`, which is the shape Google
+// documents for recurrence. Twenty near-identical Karaoke Events — one
+// per Thursday the cards happen to show — would be duplicate entities
+// competing with each other for the same query.
+const schemaEntries = rawEvents
+  .map((entry) => ({ entry, first: occurrences.find((o) => o.entry.id === entry.id)?.occ }))
+  .filter((x): x is { entry: typeof x.entry; first: NonNullable<typeof x.first> } => !!x.first)
+  .sort((a, b) => a.first.start.getTime() - b.first.start.getTime());
+
+const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  itemListElement: events.map(({ entry: e, occ }, i) => {
+  itemListElement: schemaEntries.map(({ entry: e, first: occ }, i) => {
     const cta = e.data.cta?.href;
     // Google reads Event.url as "the page describing this event," so it
     // only inherits the CTA when the CTA points at a detail PAGE. The
@@ -223,9 +279,9 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
       item: {
         ...eventSchema({
           name: e.data.title,
-          // The NEXT occurrence, not the season opener. Keeps the Event
-          // from advertising a start date that's already in the past for
-          // eight months of a nine-month run; `eventSchedule` below
+          // The next occurrence in view, not the season opener. Keeps the
+          // Event from advertising a start date that's already in the past
+          // for eight months of a nine-month run; `eventSchedule` below
           // carries the full recurrence.
           start: occ.start,
           end: occ.end,
@@ -277,7 +333,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     </div>
   </section>
 
-  {events.length === 0 ? (
+  {!hasAnyEvents ? (
     <section class="t2-section ev-empty" aria-labelledby="ev-empty-h2">
       <div class="t2-section-inner">
         <h2 id="ev-empty-h2" class="ev-empty-headline">Calendar's clear right now.</h2>
@@ -290,28 +346,56 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
       </div>
     </section>
   ) : (
-    <section class="ev-list" aria-label="Upcoming events">
-      {groups.map((group) => (
-        <div class="ev-month">
-          <h2 class="ev-month-label">{group.label}</h2>
+    <section class="ev-list" aria-label="Upcoming events" data-ev-calendar data-active-month={activeKey}>
+      {/* Month pills. Every panel is server-rendered and all of them stay
+          in the DOM — crawlers (and no-JS readers, via :target) see every
+          event; JS only decides which panel is on screen. Months with
+          nothing scheduled are rendered disabled rather than hidden, so
+          the strip doesn't reflow as events get added and a reader can
+          see at a glance that December is empty without tapping it. */}
+      <nav class="ev-pills" aria-label="Pick a month">
+        {panels.map((p) => (
+          <button
+            type="button"
+            class="ev-pill"
+            data-pill-month={p.key}
+            aria-pressed={p.key === activeKey ? "true" : "false"}
+            disabled={p.events.length === 0}
+            aria-label={`${p.label}${p.events.length === 0 ? " — nothing scheduled" : ""}`}
+          >
+            <span class="ev-pill-label">{p.pill}</span>
+            {p.pillYear && <span class="ev-pill-year">&apos;{p.pillYear}</span>}
+          </button>
+        ))}
+      </nav>
+
+      {panels.map((panel) => (
+        <div
+          class="ev-month"
+          data-view-month={panel.key}
+          aria-hidden={panel.key === activeKey ? "false" : "true"}
+        >
+          <h2 class="ev-month-label">{panel.label}</h2>
+          {panel.events.length === 0 ? (
+            <p class="ev-month-empty">Nothing on the books for {panel.label.split(" ")[0].toLowerCase()} yet.</p>
+          ) : (
           <ul class="ev-cards" role="list">
-            {group.events.map(({ entry: e, occ }) => {
+            {panel.events.map(({ entry: e, occ }, i) => {
               const block = dayBlock(occ.start, occ.end);
-              const rec = e.data.recurring;
-              // Recurring nights lead with the cadence; the date block
-              // beside it is the next one up.
-              const time = rec
-                ? `Every ${weekdayOf(e.data.start)} · ${timeRange(occ.start, occ.end)}`
-                : timeRange(occ.start, occ.end);
-              const skips = upcomingSkips(e.data, now, lookaheadCutoff);
-              const desc = e.body?.trim();
+              // A recurring night lists every date it runs, so within one
+              // month the same description would repeat four or five
+              // times. Full card on its first appearance; the repeats stay
+              // compact — the date and time are the only new information.
+              const isRepeat = panel.events.slice(0, i).some((o) => o.entry.id === e.id);
+              const desc = isRepeat ? null : e.body?.trim();
               return (
-                <li class="ev-card">
+                <li class="ev-card" class:list={[isRepeat && "is-repeat"]}>
                   <div class="ev-date" aria-hidden="true">
                     <div class="ev-date-day" class:list={[block.range && "is-range"]}>
                       {block.day}
                     </div>
                     <div class="ev-date-month">{block.month}</div>
+                    {block.weekday && <div class="ev-date-weekday">{block.weekday}</div>}
                   </div>
                   <div class="ev-body">
                     <div class="ev-flags">
@@ -321,25 +405,21 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
                     <h3 class="ev-title">{e.data.title}</h3>
                     <p class="ev-meta ev-meta-time">
                       <span class="ev-meta-glyph" aria-hidden="true">&#9719;</span>
-                      <span class="visually-hidden">When: </span>{time}
+                      {/* The date chip beside this is aria-hidden (it's a
+                          graphic), so the spoken version carries the full
+                          date — otherwise a screen reader announces a time
+                          with no day attached to it. */}
+                      <span class="visually-hidden">When: {srDateFmt.format(occ.start)}, </span>
+                      {timeRange(occ.start, occ.end)}
                     </p>
-                    {e.data.location && (
+                    {e.data.location && !isRepeat && (
                       <p class="ev-meta ev-meta-loc">
                         <span class="ev-meta-glyph" aria-hidden="true">&#9678;</span>
                         <span class="visually-hidden">Where: </span>{e.data.location}
                       </p>
                     )}
                     {desc && <p class="ev-desc">{desc}</p>}
-                    {/* Dark nights inside the lookahead. Title-agnostic
-                        wording so any future recurring night inherits it. */}
-                    {skips.length > 0 && (
-                      <p class="ev-skips">
-                        Skipping {skips.length === 1
-                          ? skips[0]
-                          : `${skips.slice(0, -1).join(", ")} and ${skips[skips.length - 1]}`}.
-                      </p>
-                    )}
-                    {e.data.cta && (
+                    {e.data.cta && !isRepeat && (
                       <a
                         class="btn btn-outline ev-cta"
                         href={e.data.cta.href}
@@ -355,6 +435,7 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
               );
             })}
           </ul>
+          )}
         </div>
       ))}
     </section>
@@ -370,12 +451,13 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     <div class="t2-section-inner">
       <h2 class="t-eyebrow" id="upcoming-info-h2">What Goes On The Calendar</h2>
       <p class="t2-section-body">
-        The calendar above tracks the bigger nights: themed events,
-        holiday programming, seasonal pop-ups, and one-off
-        collaborations. Most fall in the 4&ndash;8 weeks out window;
-        we don't post six months ahead because the calendar tends to
-        shift, and stale dates do nobody any favors. New things get
-        added as we lock them in.
+        The calendar above tracks the bigger nights: weekly
+        programming like karaoke, themed events, holiday parties,
+        seasonal pop-ups, and one-off collaborations. Tap a month to
+        see what's on it. We run about four months ahead &mdash; not
+        six, because the calendar tends to shift that far out and
+        stale dates do nobody any favors. New things get added as we
+        lock them in.
       </p>
       <p class="t2-section-body">
         Standard programming runs even when the calendar's empty.
@@ -423,6 +505,67 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
   ]} />
 </Base>
 
+<script>
+  // Month-pill toggle. Same shape as the /pricing day pills: every panel
+  // is server-rendered, aria-pressed drives the pill, aria-hidden drives
+  // the panel, and JS only swaps attributes.
+  //
+  // Deep links: /upcoming-events/?month=2026-10 or #2026-10, so a promo
+  // or SMS can point straight at a month. Falls back silently to the
+  // server-rendered month when the value is missing, malformed, or names
+  // a month outside the horizon.
+  const root = document.querySelector<HTMLElement>("[data-ev-calendar]");
+  if (root) {
+    const pills = Array.from(root.querySelectorAll<HTMLButtonElement>("[data-pill-month]"));
+    const views = Array.from(root.querySelectorAll<HTMLElement>("[data-view-month]"));
+
+    function activate(month: string, focusPill = false) {
+      const pill = pills.find((p) => p.getAttribute("data-pill-month") === month);
+      // Refuse unknown months AND empty ones — activating a disabled pill
+      // would strand the reader on "nothing on the books" with no visible
+      // cue as to which pill they're on.
+      if (!pill || pill.disabled) return;
+      root!.setAttribute("data-active-month", month);
+      pills.forEach((p) =>
+        p.setAttribute("aria-pressed", p === pill ? "true" : "false"),
+      );
+      views.forEach((v) =>
+        v.setAttribute(
+          "aria-hidden",
+          v.getAttribute("data-view-month") === month ? "false" : "true",
+        ),
+      );
+      if (focusPill) pill.focus();
+      // Keep the chosen pill in view on phones, where the strip scrolls.
+      pill.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+
+    pills.forEach((p) =>
+      p.addEventListener("click", () => activate(p.getAttribute("data-pill-month")!)),
+    );
+
+    // Left/right arrows walk the strip, skipping empty months — standard
+    // behaviour for a group of toggle buttons.
+    root.addEventListener("keydown", (ev) => {
+      const key = (ev as KeyboardEvent).key;
+      if (key !== "ArrowLeft" && key !== "ArrowRight") return;
+      const active = pills.findIndex((p) => p.getAttribute("aria-pressed") === "true");
+      if (active < 0) return;
+      const step = key === "ArrowRight" ? 1 : -1;
+      for (let i = active + step; i >= 0 && i < pills.length; i += step) {
+        if (pills[i].disabled) continue;
+        ev.preventDefault();
+        activate(pills[i].getAttribute("data-pill-month")!, true);
+        return;
+      }
+    });
+
+    const url = new URL(location.href);
+    const requested = url.searchParams.get("month") || location.hash.slice(1);
+    if (/^\d{4}-\d{2}$/.test(requested)) activate(requested);
+  }
+</script>
+
 <style>
   /* List wrapper. Same horizontal rhythm as t2-section but with its
      own vertical pacing — month headers and cards stack tighter than
@@ -438,8 +581,70 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     }
   }
 
-  .ev-month + .ev-month {
-    margin-top: 48px;
+  /* Month pills. Horizontal strip so four months fit at 360px without
+     wrapping; overflow-x is the safety valve if the horizon ever grows
+     or a year suffix widens a pill. Tap targets are 44px+ tall. */
+  .ev-pills {
+    display: flex;
+    gap: 4px;
+    margin: 0 0 28px;
+    padding: 4px;
+    background: rgba(255, 252, 245, 0.05);
+    border: 1px solid rgba(255, 252, 245, 0.10);
+    border-radius: 999px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ev-pills::-webkit-scrollbar { display: none; }
+
+  .ev-pill {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 252, 245, 0.65);
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.10em;
+    line-height: 1;
+    padding: 15px 0 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    flex: 1 0 auto;
+    min-width: 64px;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 3px;
+    transition: color 150ms ease, background-color 150ms ease;
+  }
+  .ev-pill:hover:not(:disabled) { color: var(--warm-white); }
+  .ev-pill[aria-pressed="true"] {
+    background: var(--glow);
+    color: var(--indigo-deep);
+  }
+  /* An empty month reads as unavailable rather than disappearing — the
+     strip keeps a stable shape as events get added. */
+  .ev-pill:disabled {
+    color: rgba(255, 252, 245, 0.28);
+    cursor: default;
+  }
+  .ev-pill-year {
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    opacity: 0.7;
+  }
+
+  /* One panel per month — only the active one is on screen. */
+  .ev-month[aria-hidden="true"] { display: none; }
+
+  .ev-month-empty {
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    color: rgba(255, 252, 245, 0.66);
+    margin: 0;
   }
 
   .ev-month-label {
@@ -515,6 +720,16 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     letter-spacing: 0.12em;
     margin-top: 4px;
   }
+  /* Weekday sits under the month, quieter than both — it's orienting
+     detail ("that's a Thursday"), not the headline of the chip. */
+  .ev-date-weekday {
+    font-family: var(--font-ui);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: rgba(255, 252, 245, 0.5);
+    margin-top: 6px;
+  }
 
   .ev-body {
     min-width: 0; /* let text wrap inside grid */
@@ -586,17 +801,21 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     margin: 14px 0 0;
   }
 
-  /* Dark-night note on a recurring card. Quieter than .ev-desc — it's a
-     caveat on the cadence line above, not part of the pitch. */
-  .ev-skips {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #f0b289; /* Copper, lifted for contrast — same tone as .ev-flag-tentative */
-    margin: 12px 0 0;
+  /* Repeat night of a recurring event inside the same month — the date
+     and time are the only new information, so the card sheds its
+     description and tightens up. Keeps four Karaoke Thursdays from
+     reading as four separate pitches. */
+  .ev-card.is-repeat {
+    padding-top: 14px;
+    padding-bottom: 14px;
+    background: transparent;
   }
+  .ev-card.is-repeat .ev-title {
+    font-size: clamp(17px, 4vw, 20px);
+    margin-bottom: 8px;
+    color: rgba(255, 252, 245, 0.82);
+  }
+  .ev-card.is-repeat .ev-date-day { font-size: clamp(30px, 7vw, 40px); }
 
   .ev-cta {
     margin-top: 18px;
@@ -645,7 +864,10 @@ const upcomingEventsJsonLd = events.length === 0 ? null : {
     .ev-meta { font-size: 16px; }
     .ev-meta-glyph { font-size: 14px; }
     .ev-desc { font-size: 16px; }
-    .ev-skips { font-size: 13px; }
+    .ev-pills { max-width: 420px; margin-bottom: 32px; }
+    .ev-pill { font-size: 14px; padding: 16px 0 15px; }
+    .ev-pill-year { font-size: 11px; }
+    .ev-month-empty { font-size: 16px; }
     .ev-cta { font-size: 13.5px; padding: 12px 24px; }
   }
 </style>

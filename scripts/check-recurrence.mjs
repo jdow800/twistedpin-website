@@ -1,6 +1,6 @@
 /**
  * Verifies src/lib/recurrence.ts — the venue-local date math behind the
- * events calendar's recurring nights.
+ * events calendar's recurring nights and its month navigation.
  *
  * Worth having because the failure mode is silent and seasonal: a
  * recurrence stepped by fixed milliseconds keeps working perfectly until
@@ -18,8 +18,8 @@ import {
   ctInstant,
   weekdayOf,
   isOneLateNight,
-  resolveOccurrence,
-  upcomingSkips,
+  expandOccurrences,
+  monthHorizon,
 } from "../src/lib/recurrence.ts";
 
 let failures = 0;
@@ -49,28 +49,31 @@ const KARAOKE = {
   },
 };
 
+const SEASON_END = new Date("2027-07-01T00:00:00Z");
+/** The next night at or after `from` — what a given day's build would show first. */
+const next = (from) => expandOccurrences(KARAOKE, from, SEASON_END)[0] ?? null;
+/** Every night in a given venue-local month, as day-of-month numbers. */
+const nightsIn = (key) => {
+  const [y, m] = key.split("-").map(Number);
+  const start = ctInstant(`${key}-01`, 0, 0);
+  const ny = m === 12 ? y + 1 : y;
+  const nm = m === 12 ? 1 : m + 1;
+  const end = new Date(ctInstant(`${ny}-${String(nm).padStart(2, "0")}-01`, 0, 0).getTime() - 1);
+  return expandOccurrences(KARAOKE, start, end).map((o) => Number(ctDateKey(o.start).slice(8)));
+};
+
 console.log("\nEvery occurrence is a Thursday at 7:00pm local");
 {
-  // Walk the whole season by asking "what's next?" from the morning after
-  // each answer. This is exactly how the daily cron rebuild sees it.
-  const seen = [];
-  let cursor = new Date("2026-09-01T12:00:00Z");
-  for (let i = 0; i < 60; i++) {
-    const occ = resolveOccurrence(KARAOKE, cursor);
-    if (!occ) break;
-    seen.push(occ);
-    // Advance to just after this occurrence ends.
-    cursor = new Date((occ.end ?? occ.start).getTime() + 60_000);
-  }
+  const all = expandOccurrences(KARAOKE, new Date("2026-09-01T12:00:00Z"), SEASON_END);
 
-  check("occurrence count (38 Thursdays - 5 dark)", seen.length, 33);
-  check("first night", ctDateKey(seen[0].start), "2026-09-10");
-  check("last night", ctDateKey(seen[seen.length - 1].start), "2027-05-27");
+  check("occurrence count (38 Thursdays - 5 dark)", all.length, 33);
+  check("first night", ctDateKey(all[0].start), "2026-09-10");
+  check("last night", ctDateKey(all[all.length - 1].start), "2027-05-27");
 
-  const badDay = seen.find((o) => weekdayOf(o.start) !== "Thursday");
+  const badDay = all.find((o) => weekdayOf(o.start) !== "Thursday");
   check("no occurrence drifts off Thursday", badDay ? ctDateKey(badDay.start) : "none", "none");
 
-  const badTime = seen.find((o) => ctClock(o.start) !== "19:00" || ctClock(o.end) !== "23:00");
+  const badTime = all.find((o) => ctClock(o.start) !== "19:00" || ctClock(o.end) !== "23:00");
   check(
     "no occurrence drifts off 19:00-23:00 local",
     badTime ? `${ctDateKey(badTime.start)} ${ctClock(badTime.start)}-${ctClock(badTime.end)}` : "none",
@@ -78,21 +81,38 @@ console.log("\nEvery occurrence is a Thursday at 7:00pm local");
   );
 
   const dark = new Set(KARAOKE.recurring.skip);
-  const hitDark = seen.find((o) => dark.has(ctDateKey(o.start)));
+  const hitDark = all.find((o) => dark.has(ctDateKey(o.start)));
   check("no occurrence lands on a dark night", hitDark ? ctDateKey(hitDark.start) : "none", "none");
+
+  const ascending = all.every((o, i) => i === 0 || o.start > all[i - 1].start);
+  check("occurrences come back in order", ascending, "true");
 }
 
-console.log("\nThe DST crossings specifically (this is the whole point)");
+console.log("\nA dark night explains itself by absence (why no 'skipping' note)");
+{
+  // This is the whole reason recurring events list every date rather than
+  // one rolling card: the reader sees the gap, so nothing has to say
+  // "skipping Oct 22."
+  check("October: Bears night (22nd) is just missing", nightsIn("2026-10").join(", "), "1, 8, 15, 29");
+  check("November: Thanksgiving (26th) is just missing", nightsIn("2026-11").join(", "), "5, 12, 19");
+  check("December: Christmas Eve + NYE both missing", nightsIn("2026-12").join(", "), "3, 10, 17");
+  check("April: the 1st is missing", nightsIn("2027-04").join(", "), "8, 15, 22, 29");
+  check("September: opens on the 10th, nothing dark", nightsIn("2026-09").join(", "), "10, 17, 24");
+  check("May: season stops after the 27th", nightsIn("2027-05").join(", "), "6, 13, 20, 27");
+  check("June: season is over, month is empty", nightsIn("2027-06").length, 0);
+}
+
+console.log("\nThe DST crossings specifically (this is the point of the module)");
 {
   // CDT -> CST lands Sun Nov 1 2026. Naive +7*24h stepping puts the
   // Nov 12 occurrence at 6pm on WEDNESDAY Nov 11 — both wrong.
-  const afterFall = resolveOccurrence(KARAOKE, new Date("2026-11-06T12:00:00Z"));
+  const afterFall = next(new Date("2026-11-06T12:00:00Z"));
   check("first night after the fall-back is Thu Nov 12", ctDateKey(afterFall.start), "2026-11-12");
   check("...still 19:00 local", ctClock(afterFall.start), "19:00");
   check("...which is 01:00Z (CST = UTC-6)", afterFall.start.toISOString(), "2026-11-13T01:00:00.000Z");
 
   // CST -> CDT lands Sun Mar 14 2027.
-  const afterSpring = resolveOccurrence(KARAOKE, new Date("2027-03-15T12:00:00Z"));
+  const afterSpring = next(new Date("2027-03-15T12:00:00Z"));
   check("first night after the spring-forward is Thu Mar 18", ctDateKey(afterSpring.start), "2027-03-18");
   check("...still 19:00 local", ctClock(afterSpring.start), "19:00");
   check("...which is 00:00Z (CDT = UTC-5)", afterSpring.start.toISOString(), "2027-03-19T00:00:00.000Z");
@@ -100,30 +120,19 @@ console.log("\nThe DST crossings specifically (this is the whole point)");
 
 console.log("\nSeason boundaries and in-progress nights");
 {
-  const beforeSeason = resolveOccurrence(KARAOKE, new Date("2026-08-27T12:00:00Z"));
-  check("before the season opens, next = opening night", ctDateKey(beforeSeason.start), "2026-09-10");
+  check("before the season opens, next = opening night", ctDateKey(next(new Date("2026-08-27T12:00:00Z")).start), "2026-09-10");
 
-  // Mid-night on the final Thursday: still tonight, not null.
-  const midFinal = resolveOccurrence(KARAOKE, new Date("2027-05-28T02:00:00Z")); // 9pm CT May 27
-  check("a night in progress still resolves to tonight", ctDateKey(midFinal.start), "2027-05-27");
+  // Mid-night on the final Thursday: still tonight, not dropped.
+  check("a night in progress is still listed", ctDateKey(next(new Date("2027-05-28T02:00:00Z")).start), "2027-05-27");
 
   // `until` is UTC midnight; reading it in CT would rewind a day and drop
   // the final night. This asserts it doesn't.
-  const afterFinal = resolveOccurrence(KARAOKE, new Date("2027-05-28T05:00:00Z")); // just past 11pm CT
-  check("season is over after the last night", afterFinal, "null");
+  check("season is over after the last night", next(new Date("2027-05-28T05:00:00Z")), "null");
 
   // Christmas Eve + NYE are both Thursdays, so the holidays open a
   // three-week hole — the longest gap in the season, and it crosses a
   // year boundary (the same place the month-grouping bug once lived).
-  const holidayGap = resolveOccurrence(KARAOKE, new Date("2026-12-18T12:00:00Z"));
-  check("Dec 17 -> next is Jan 7 (Dec 24 + 31 dark)", ctDateKey(holidayGap.start), "2027-01-07");
-  const holidaySkips = upcomingSkips(KARAOKE, new Date("2026-12-18T12:00:00Z"), new Date("2027-01-10T12:00:00Z"));
-  check("...and both holidays are named on the card", holidaySkips.join(" | "), "Dec 24 | Dec 31");
-
-  const skips = upcomingSkips(KARAOKE, new Date("2026-10-01T12:00:00Z"), new Date("2026-11-30T12:00:00Z"));
-  check("dark nights inside the window are listed", skips.join(" | "), "Oct 22 | Nov 26");
-  const noSkips = upcomingSkips(KARAOKE, new Date("2027-01-05T12:00:00Z"), new Date("2027-02-05T12:00:00Z"));
-  check("...and none outside it", noSkips.length, 0);
+  check("Dec 17 -> next is Jan 7", ctDateKey(next(new Date("2026-12-18T12:00:00Z")).start), "2027-01-07");
 }
 
 console.log("\nOne-shots are untouched by any of this");
@@ -132,9 +141,32 @@ console.log("\nOne-shots are untouched by any of this");
     start: new Date("2026-09-15T18:00:00-05:00"),
     end: new Date("2026-09-15T20:30:00-05:00"),
   };
-  const before = resolveOccurrence(paintNight, new Date("2026-09-01T12:00:00Z"));
-  check("upcoming one-shot resolves to itself", ctDateKey(before.start), "2026-09-15");
-  check("past one-shot resolves to null", resolveOccurrence(paintNight, new Date("2026-09-20T12:00:00Z")), "null");
+  const far = new Date("2027-01-01T00:00:00Z");
+  check("upcoming one-shot yields itself, once", expandOccurrences(paintNight, new Date("2026-09-01T12:00:00Z"), far).length, 1);
+  check("past one-shot yields nothing", expandOccurrences(paintNight, new Date("2026-09-20T12:00:00Z"), far).length, 0);
+  check(
+    "a one-shot past the horizon yields nothing",
+    expandOccurrences(paintNight, new Date("2026-09-01T12:00:00Z"), new Date("2026-09-10T00:00:00Z")).length,
+    0,
+  );
+}
+
+console.log("\nMonth horizon (the pills)");
+{
+  const h = monthHorizon(new Date("2026-08-27T12:00:00Z"), 4);
+  check("starts with the month we're in", h.map((m) => m.key).join(" "), "2026-08 2026-09 2026-10 2026-11");
+  check("month starts at local midnight", ctClock(h[1].start), "00:00");
+  check("...on the 1st", ctDateKey(h[1].start), "2026-09-01");
+  check("month ends just before the next begins", ctDateKey(h[1].end), "2026-09-30");
+
+  // The horizon has to roll across December without resetting the year.
+  const yearEnd = monthHorizon(new Date("2026-11-15T12:00:00Z"), 4);
+  check("crosses the year boundary", yearEnd.map((m) => m.key).join(" "), "2026-11 2026-12 2027-01 2027-02");
+
+  // A build running late on the last night of a month must not roll the
+  // horizon early: 11pm CT Aug 31 is Sep 1 in UTC.
+  const lateNight = monthHorizon(new Date("2026-09-01T04:00:00Z"), 4);
+  check("11pm CT on Aug 31 is still August", lateNight[0].key, "2026-08");
 }
 
 console.log("\nLate nights that cross midnight are ONE night, not a range");

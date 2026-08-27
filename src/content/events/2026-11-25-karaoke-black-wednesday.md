@@ -14,9 +14,6 @@ lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-08-27T00:00:00-05:00
 image: /snap/event-karaoke-810.jpg
-cta:
-  label: Reserve a lane
-  href: /reserve/
 ---
 
 The night before Thanksgiving, karaoke runs late — 9pm to 1am with Joe Son on
