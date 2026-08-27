@@ -13,7 +13,15 @@ location: Twisted Pin · Plainfield, IL
 lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-08-27T00:00:00-05:00
+# Schema only — never rendered on the card. See karaoke-thursdays.md for
+# the full reasoning (ruling 2026-08-27).
 image: /snap/event-karaoke-810.jpg
+# Same Facebook event as the weekly night — it covers this one too (Jon,
+# 2026-08-27). Duplicated rather than shared because the events collection
+# has no cross-file references; if the URL dies, BOTH karaoke files change.
+cta:
+  label: See it on Facebook
+  href: https://www.facebook.com/share/19PaKBkqdg/
 ---
 
 The night before Thanksgiving, karaoke runs late — 9pm to 1am with Joe Son on
