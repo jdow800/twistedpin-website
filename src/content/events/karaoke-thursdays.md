@@ -39,7 +39,20 @@ recurring:
 lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-08-27T00:00:00-05:00
+# Schema only — the neon promo flyer is what Google and Facebook show when
+# they surface this Event. Deliberately NOT rendered on the card: with every
+# night listed it would repeat four or five times a month, its baked-in text
+# duplicates the card copy (and goes stale silently), and the neon fights the
+# site's moody direction. Ruling 2026-08-27.
 image: /snap/event-karaoke-810.jpg
+# The host's Facebook event — the only place with more detail than this card.
+# Supplied by Jon 2026-08-27. NOTE: Facebook login-walls automated requests,
+# so this URL cannot be verified from CI or by fetching it; it takes a human
+# with the page open. It's a /share/ redirect wrapper, so if it ever dies,
+# this is the one line to change.
+cta:
+  label: See it on Facebook
+  href: https://www.facebook.com/share/19PaKBkqdg/
 ---
 
 Free karaoke every Thursday, hosted by Joe Son. Sing it straight or absolutely

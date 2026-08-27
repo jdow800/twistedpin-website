@@ -10,13 +10,18 @@
  * Two shapes of event:
  *   - one-shot (Paint Night, NYE) — listed at its own date
  *   - recurring (Karaoke Thursdays) — a `recurring` block in the
- *     frontmatter, listed at EVERY date it runs inside the horizon.
- *     Listing each night individually is what lets a dark night explain
- *     itself: October shows the 1st, 8th, 15th and 29th, and the 22nd
- *     is simply absent, so no "skipping Oct 22" caveat is needed. The
- *     schema still ships ONE Event with a `Schedule` + `exceptDate`.
- *     See src/lib/recurrence.ts before touching any of it — the DST
- *     trap documented there is a real one.
+ *     frontmatter, listed at EVERY date it runs inside the horizon,
+ *     each as a FULL card. Listing each night individually is what lets
+ *     a dark night explain itself: October shows the 1st, 8th, 15th and
+ *     29th, and the 22nd is simply absent, so no "skipping Oct 22"
+ *     caveat is needed anywhere. The schema still ships ONE Event with
+ *     a `Schedule` + `exceptDate`. See src/lib/recurrence.ts before
+ *     touching any of it — the DST trap documented there is a real one.
+ *
+ * Event art (`image` in the frontmatter) is SCHEMA ONLY, never rendered
+ * on a card — one flyer repeated down a month of recurring nights reads
+ * worse than the text does, and promo art with baked-in times drifts out
+ * of sync with the copy beside it. Ruling 2026-08-27.
  *
  * Layout: typography hero → month pills → one panel per month → bottom
  * hand-off (host-your-own-night + leagues). Every panel is
@@ -380,16 +385,16 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
             <p class="ev-month-empty">Nothing on the books for {panel.label.split(" ")[0].toLowerCase()} yet.</p>
           ) : (
           <ul class="ev-cards" role="list">
-            {panel.events.map(({ entry: e, occ }, i) => {
+            {panel.events.map(({ entry: e, occ }) => {
               const block = dayBlock(occ.start, occ.end);
-              // A recurring night lists every date it runs, so within one
-              // month the same description would repeat four or five
-              // times. Full card on its first appearance; the repeats stay
-              // compact — the date and time are the only new information.
-              const isRepeat = panel.events.slice(0, i).some((o) => o.entry.id === e.id);
-              const desc = isRepeat ? null : e.body?.trim();
+              // EVERY night of a recurring event gets the full card, repeats
+              // included. A first cut rendered later nights compact, which
+              // read as second-class next to a one-off event's full card —
+              // the recurring night is not a lesser event, and a stripped
+              // row makes it look like one (Jon, 2026-08-27).
+              const desc = e.body?.trim();
               return (
-                <li class="ev-card" class:list={[isRepeat && "is-repeat"]}>
+                <li class="ev-card">
                   <div class="ev-date" aria-hidden="true">
                     <div class="ev-date-day" class:list={[block.range && "is-range"]}>
                       {block.day}
@@ -412,14 +417,14 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
                       <span class="visually-hidden">When: {srDateFmt.format(occ.start)}, </span>
                       {timeRange(occ.start, occ.end)}
                     </p>
-                    {e.data.location && !isRepeat && (
+                    {e.data.location && (
                       <p class="ev-meta ev-meta-loc">
                         <span class="ev-meta-glyph" aria-hidden="true">&#9678;</span>
                         <span class="visually-hidden">Where: </span>{e.data.location}
                       </p>
                     )}
                     {desc && <p class="ev-desc">{desc}</p>}
-                    {e.data.cta && !isRepeat && (
+                    {e.data.cta && (
                       <a
                         class="btn btn-outline ev-cta"
                         href={e.data.cta.href}
@@ -800,22 +805,6 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
     color: rgba(255, 252, 245, 0.86);
     margin: 14px 0 0;
   }
-
-  /* Repeat night of a recurring event inside the same month — the date
-     and time are the only new information, so the card sheds its
-     description and tightens up. Keeps four Karaoke Thursdays from
-     reading as four separate pitches. */
-  .ev-card.is-repeat {
-    padding-top: 14px;
-    padding-bottom: 14px;
-    background: transparent;
-  }
-  .ev-card.is-repeat .ev-title {
-    font-size: clamp(17px, 4vw, 20px);
-    margin-bottom: 8px;
-    color: rgba(255, 252, 245, 0.82);
-  }
-  .ev-card.is-repeat .ev-date-day { font-size: clamp(30px, 7vw, 40px); }
 
   .ev-cta {
     margin-top: 18px;
