@@ -18,8 +18,6 @@ Disallow: /labor/
 #  /reserve-preview2 — the parked party-size A/B — deleted 2026-08-01.)
 # Internal teammate culture book (password-gated) — unindexed, unlinked.
 Disallow: /playbook/
-# Internal invitation-design review gallery (unlinked, temporary) — unindexed.
-Disallow: /invite-designs/
 # Internal email-signature install guide — unindexed, unlinked.
 Disallow: /signatures/
 # Internal bar repricing worksheet (costs + margins) — unindexed, unlinked.
