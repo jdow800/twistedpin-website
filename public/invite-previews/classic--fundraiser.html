@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Awesome Organization Fundraiser Night</title>
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Victoria Conner invited you: Awesome Organization Fundraiser Night" />
+  <meta property="og:description" content="Thursday, September 3, 2026 at 5:00 PM · Twisted Pin, Plainfield" />
+  <meta property="og:image" content="https://www.twistedpin.com/snap/fundraiser-lanes-900.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://www.twistedpin.com/snap/fundraiser-lanes-900.jpg" />
+  <style>
+    :root { --ink: #1a1a1a; --muted: #666; --line: #e2e2e2; --indigo: #200F53; --teal: #128198; --err: #b91c1c; --sand: #F4EFE3; --sand-line: #998E7A; }
+    * { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--ink); background: #f4f4f6; margin: 0; padding: 24px 16px; -webkit-font-smoothing: antialiased; }
+    .sheet { max-width: 560px; margin: 0 auto; background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .eyebrow { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+    h1 { text-wrap: pretty; font-size: 26px; line-height: 1.2; margin: 0 0 18px; color: var(--indigo); }
+    .when { background: var(--sand); border-left: 4px solid var(--sand-line); border-radius: 0 6px 6px 0; padding: 16px; margin: 0 0 18px; }
+    .when .d { font-size: 18px; font-weight: 700; margin: 0 0 2px; }
+    .when .t { font-size: 16px; margin: 0; }
+    .when .a { font-size: 14px; color: var(--muted); margin: 8px 0 0; }
+    .banner { border-radius: 6px; padding: 14px; font-size: 15px; margin: 0 0 18px; line-height: 1.5; }
+    .banner.warn { background: #fef2f2; color: var(--err); border: 1px solid #fecaca; }
+    .banner.note { background: #f0f7f8; border: 1px solid rgba(18,129,152,0.28); }
+    .banner.ok { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .cal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 20px; }
+    .cal-row a {
+      display: flex; align-items: center; justify-content: center; min-height: 44px;
+      padding: 10px 8px; border: 1px solid var(--line); border-radius: 7px;
+      font-size: 14px; font-weight: 600; text-align: center; text-decoration: none;
+      color: var(--indigo); background: #fbfbfc;
+    }
+    /* RSVP form. Inputs stay >=16px — below that iOS zooms the viewport on
+       focus, and this page's entire life is a phone inside a group chat. */
+    .rsvp { border: 1px solid var(--line); border-radius: 8px; padding: 18px 16px; margin: 0 0 20px; }
+    .rsvp .lead { font-size: 15px; margin: 0 0 14px; }
+    .rsvp label.f { display: block; font-weight: 600; font-size: 15px; margin: 14px 0 6px; }
+    .rsvp label.f:first-of-type { margin-top: 0; }
+    .rsvp .hint { font-size: 13px; color: var(--muted); margin: 4px 0 0; line-height: 1.45; }
+    .rsvp input[type="text"], .rsvp input[type="email"], .rsvp select {
+      width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--line);
+      border-radius: 6px; background: #fbfbfc; color: var(--ink);
+    }
+    .rsvp input:focus-visible, .rsvp select:focus-visible, .rsvp .choice input:focus-visible + span {
+      outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 6px;
+    }
+    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .choice { position: relative; display: block; }
+    .choice input { position: absolute; opacity: 0; }
+    .choice span {
+      display: flex; align-items: center; justify-content: center; min-height: 48px;
+      padding: 10px 8px; border: 2px solid var(--line); border-radius: 8px;
+      font-size: 16px; font-weight: 600; text-align: center; cursor: pointer;
+      background: #fbfbfc; color: var(--ink);
+    }
+    .choice input:checked + span { border-color: var(--teal); background: #f0f7f8; color: var(--indigo); }
+    .rsvp button {
+      width: 100%; min-height: 48px; margin-top: 18px; background: var(--indigo);
+      color: #fff; border: 0; border-radius: 7px; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    .rsvp button:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
+    h2 { font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 24px 0 8px; }
+    ul.know { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.6; }
+    ul.know li { margin-bottom: 5px; }
+    a:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; border-radius: 4px; }
+    .foot { text-align: center; font-size: 12px; color: var(--muted); margin-top: 20px; line-height: 1.6; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+  </style>
+  <style>
+    .photo { display: block; width: 100%; height: auto; max-height: 320px; object-fit: cover; border-radius: 6px; margin: 0 0 18px; }
+    .sub { font-size: 16px; line-height: 1.55; color: var(--muted); margin: -4px 0 16px; }
+    .note { font-size: 14px; color: var(--muted); font-style: italic; margin: 0 0 18px; }
+    .preview-ribbon { position: fixed; top: 10px; right: -34px; z-index: 50; background: var(--indigo); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; padding: 6px 44px; transform: rotate(35deg); pointer-events: none; }
+    .slot-hint { outline: 2px dashed var(--teal); outline-offset: 4px; position: relative; }
+    .slot-hint::after { content: attr(data-slot); position: absolute; top: -18px; left: 0; background: var(--teal); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; }
+  </style>
+</head>
+<body data-theme="classic" data-shape="fundraiser" class="is-preview">
+  <div class="preview-ribbon" aria-hidden="true">Preview</div>    <main class="sheet">
+              <p class="eyebrow " data-slot="Host name">
+    Victoria Conner invited you to a fundraiser  </p>
+  <h1 class="" data-slot="Event name">Awesome Organization Fundraiser Night</h1>
+  <p class="sub " data-slot="Tagline">Bowl for a cause. Make sure to tell the front desk you are there for our fundraiser!</p>
+  <p class="note " data-slot="Note">lanes are first come, first served</p>
+
+      <div class="when">
+        <p class="d">Thursday, September 3, 2026</p>
+        <p class="t">5:00 PM &ndash; 9:00 PM</p>
+        <p class="a">15610 Joliet Rd, Plainfield, IL 60544</p>
+      </div>
+
+                    <div class="cal-row">
+          <a href="#" target="_blank" rel="noopener">Add to Google&nbsp;Calendar</a>
+          <a href="#">Apple&nbsp;/&nbsp;Outlook (.ics)</a>
+        </div>
+      
+      
+      
+              <form class="rsvp" onsubmit="return false">
+          <p class="lead"><strong>Can you make it?</strong> Let Victoria Conner know.</p>
+          <div class="choices" role="radiogroup"><label class="choice"><input type="radio" disabled /><span>I'll be there</span></label><label class="choice"><input type="radio" disabled /><span>Can't make it</span></label></div>
+          <label class="f">Your name</label><input type="text" disabled placeholder="(your guests fill this in)" />
+          <button type="button" disabled>Send RSVP</button>
+        </form>
+      
+            <h2>Before you come</h2>
+      <ul class="know">
+        <li>Socks aren't required, but they beat the alternative &mdash; we sell them at the desk.</li>
+                            <li>
+            <strong>Mention the fundraiser when you check in</strong> &mdash;
+            that's how your lanes, shoes and arcade cards get counted toward
+            the total.
+          </li>
+                    <li>
+            Lanes are first come, first served &mdash; we don't hold them
+            for the fundraiser, so earlier is easier.
+          </li>
+                <li>Outside food and drink aren't permitted &mdash; the kitchen and bar have you covered.</li>
+        <li>Give yourself a few minutes to park and check in at the desk.</li>
+      </ul>
+    
+    <p class="foot">
+      Twisted Pin &middot; 15610 Joliet Rd, Plainfield, IL 60544    </p>
+  </main>
+    <script>
+    /* Strip the post-RSVP flash param from the address bar so a guest copying
+       the URL onward doesn't hand the next person a false "you're in" banner.
+       The banner itself stays — this only cleans what gets re-shared. */
+    if (window.history && window.location.search.indexOf('rsvp=') !== -1) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
+    /* Email is required only when COMING (server-enforced either way) — the
+       required flag and the "(optional)" tag follow the radios so a decliner
+       is never blocked on a field that would go nowhere. */
+    (function () {
+      var email = document.getElementById('rsvp-email');
+      var opt = document.getElementById('rsvp-email-opt');
+      var radios = document.querySelectorAll('input[name="attending"]');
+      if (!email || radios.length === 0) return;
+      function sync() {
+        var yes = document.querySelector('input[name="attending"][value="yes"]');
+        var coming = !!(yes && yes.checked);
+        email.required = coming;
+        if (opt) opt.hidden = coming;
+      }
+      for (var i = 0; i < radios.length; i++) {
+        radios[i].addEventListener('change', sync);
+      }
+      sync();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,139 @@
+---
+/**
+ * /invite-previews — INTERNAL preview gallery of the LIVE invitation looks
+ * (2026-08-28). Replaces the retired /invite-designs mockup gallery.
+ *
+ * Each file in public/invite-previews/ is the REAL TPRS guest template
+ * (apps/backend/views/guest/invitation.eta + its theme partial) rendered
+ * statically in preview mode — sample event, ribbon, inert RSVP form — for
+ * every look × event type. Published so Jon can share one twistedpin.com
+ * link (with Shanna & co.) without handing out a real booking's link.
+ *
+ * Re-render after any theme change:
+ *   scratch render-themes.cjs → public/invite-previews/<look>--<shape>.html
+ *
+ * Unindexed the standard four ways (per-page noindex, robots.txt Disallow,
+ * sitemap filter in astro.config.mjs, X-Robots-Tag in vercel.json) and
+ * orphaned. Deliberately STANDALONE (no Base.astro): no site chrome, no
+ * GA4/Clarity/Meta.
+ */
+const looks = [
+  { id: "classic", name: "Classic", line: "Clean and quiet. Just the facts, nicely set." },
+  { id: "confetti-strike", name: "Confetti Strike", line: "Loud, tilted, celebratory. Confetti and a Polaroid." },
+  { id: "one-night-only", name: "One Night Only", line: "A torn ticket stub. Big night energy." },
+  { id: "answered-poster", name: "Answered Poster", line: "Low-key typographic poster. Understated." },
+  { id: "morning-light", name: "Morning Light", line: "Soft, warm, daytime. Gentle." },
+  { id: "letterpress-ceremony", name: "Letterpress Ceremony", line: "Formal, pressed, a crest. Room for a logo." },
+  { id: "eight-oclock-cover", name: "Eight O’Clock Cover", line: "Magazine cover. Bold headline, cover lines." },
+];
+const shapes = [
+  { id: "catered", name: "Company / catered", sample: "Marcus Turns 40 · hosted by Danielle Ortiz" },
+  { id: "kids", name: "Kids birthday", sample: "Maya’s 8th Birthday · hosted by Priya Raman" },
+  { id: "fundraiser", name: "Fundraiser", sample: "Awesome Organization Fundraiser Night · Victoria Conner" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Invitation looks — preview</title>
+  <style>
+    :root {
+      --bg: #0E0A1F; --panel: #17122C; --line: rgba(245,241,232,0.14);
+      --ink: #F5F1E8; --muted: rgba(245,241,232,0.6); --glow: #4EECC4; --copper: #D88B5C;
+    }
+    * { box-sizing: border-box; margin: 0; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden;
+    }
+    header { padding: 12px 14px 0; flex: 0 0 auto; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    header h1 { font-size: 15px; font-weight: 700; }
+    header a { font-size: 12px; color: var(--glow); white-space: nowrap; }
+    nav {
+      display: flex; gap: 8px; overflow-x: auto; padding: 10px 14px 0;
+      flex: 0 0 auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+    nav button {
+      flex: 0 0 auto; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+      font-size: 13px; font-weight: 600; white-space: nowrap;
+    }
+    nav.looks button.on { background: var(--glow); color: var(--bg); border-color: var(--glow); }
+    nav.shapes button { padding: 6px 12px; font-size: 12px; }
+    nav.shapes button.on { background: var(--copper); color: var(--bg); border-color: var(--copper); }
+    .meta { padding: 8px 14px 10px; flex: 0 0 auto; }
+    .meta .line { font-size: 12.5px; color: var(--muted); line-height: 1.45; max-width: 60ch; }
+    .stage {
+      flex: 1 1 auto; min-height: 0; display: flex; justify-content: center;
+      padding: 0 0 8px; background: #080614;
+    }
+    .frame { width: min(430px, 100%); height: 100%; border: 0; background: #fff; }
+    @media (min-width: 700px) {
+      .stage { padding: 14px 0 18px; }
+      .frame {
+        width: 400px; border-radius: 24px; border: 1px solid var(--line);
+        box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+      }
+    }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Invitation looks</h1>
+    <a id="full" href="/invite-previews/classic--catered.html" target="_blank" rel="noopener">Open full size ↗</a>
+  </header>
+  <nav class="looks" role="tablist" aria-label="Look">
+    {looks.map((l, i) => (
+      <button role="tab" data-look={l.id} data-line={l.line} class={i === 0 ? "on" : ""} aria-selected={i === 0 ? "true" : "false"}>{l.name}</button>
+    ))}
+  </nav>
+  <nav class="shapes" role="tablist" aria-label="Event type">
+    {shapes.map((s, i) => (
+      <button role="tab" data-shape={s.id} data-sample={s.sample} class={i === 0 ? "on" : ""} aria-selected={i === 0 ? "true" : "false"}>{s.name}</button>
+    ))}
+  </nav>
+  <div class="meta"><p class="line" id="line">{looks[0].line} — {shapes[0].sample}</p></div>
+  <div class="stage">
+    <iframe id="frame" class="frame" src="/invite-previews/classic--catered.html" title="Invitation preview"></iframe>
+  </div>
+  <script>
+    (function () {
+      var look = 'classic', shape = 'catered';
+      var frame = document.getElementById('frame');
+      var full = document.getElementById('full');
+      var line = document.getElementById('line');
+      function sync() {
+        var src = '/invite-previews/' + look + '--' + shape + '.html';
+        frame.src = src; full.href = src;
+        var lb = document.querySelector('nav.looks button.on');
+        var sb = document.querySelector('nav.shapes button.on');
+        line.textContent = (lb ? lb.getAttribute('data-line') : '') + ' — ' + (sb ? sb.getAttribute('data-sample') : '');
+        try { history.replaceState(null, '', '#' + look + '/' + shape); } catch (e) {}
+      }
+      function wire(sel, attr, set) {
+        var btns = document.querySelectorAll(sel + ' button');
+        for (var i = 0; i < btns.length; i++) btns[i].addEventListener('click', function () {
+          for (var j = 0; j < btns.length; j++) { btns[j].classList.remove('on'); btns[j].setAttribute('aria-selected', 'false'); }
+          this.classList.add('on'); this.setAttribute('aria-selected', 'true');
+          set(this.getAttribute(attr)); sync();
+        });
+      }
+      wire('nav.looks', 'data-look', function (v) { look = v; });
+      wire('nav.shapes', 'data-shape', function (v) { shape = v; });
+      var h = (location.hash || '').replace('#', '').split('/');
+      if (h[0] && h[1]) {
+        var lb = document.querySelector('nav.looks button[data-look="' + h[0] + '"]');
+        var sb = document.querySelector('nav.shapes button[data-shape="' + h[1] + '"]');
+        if (lb && sb) { lb.click(); sb.click(); }
+      }
+    })();
+  </script>
+</body>
+</html>

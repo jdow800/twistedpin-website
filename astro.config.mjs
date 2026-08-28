@@ -78,6 +78,8 @@ export default defineConfig({
         !page.includes('/playbook') &&
         // Internal email-signature install guide (unlinked) — same treatment.
         !page.includes('/signatures') &&
+        // Internal invitation-look preview gallery (unlinked) — same treatment.
+        !page.includes('/invite-previews') &&
         // Internal bar repricing worksheet (unlinked) — same treatment.
         !page.includes('/bar-pricing') &&
         // Avery review dashboard (password-gated) — same treatment.
