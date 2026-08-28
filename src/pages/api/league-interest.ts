@@ -6,6 +6,11 @@ import type { APIRoute } from 'astro';
  * /api/league-interest — league interest form on /leagues (added 2026-08-01
  * per Jon: name, email, and structured fields that actually yield routing
  * info — single bowler vs team, preferred night — plus a free-text box).
+ * PHONE added + REQUIRED 2026-08-28 per Jon: the coordinator closes these
+ * on a call, so an email-only lead costs a round trip just to get a number.
+ * Validated on BOTH sides (a client-only check is a suggestion, not a rule)
+ * and normalized to (815) 555-0123 in the notification so it is tappable
+ * from a phone.
  *
  * Delivery is EMAIL, not the loyalty rail: league interest is a lead for a
  * human conversation (league coordinator / front desk), not a marketing-list
@@ -40,6 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   const name = str(input.name);
   const email = str(input.email);
+  const phone = str(input.phone);
   const signupAs = str(input.signup_as) || 'Not specified';
   const night = str(input.night) || 'Not specified';
   const message = str(input.message);
@@ -47,6 +53,8 @@ export const POST: APIRoute = async ({ request }) => {
   if (!name) return json({ ok: false, reason: 'missing_name' }, 200);
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
     return json({ ok: false, reason: 'invalid_email' }, 200);
+  const phonePretty = normalizePhone(phone);
+  if (!phonePretty) return json({ ok: false, reason: 'invalid_phone' }, 200);
 
   const key = import.meta.env.RESEND_API_KEY;
   if (!key) {
@@ -74,6 +82,7 @@ export const POST: APIRoute = async ({ request }) => {
           `New league interest from the website (/leagues):\n\n` +
           `Name:            ${name}\n` +
           `Email:           ${email}\n` +
+          `Phone:           ${phonePretty}\n` +
           `Signing up as:   ${signupAs}\n` +
           `Preferred night: ${night}\n` +
           (message ? `\nMessage:\n${message}\n` : `\n(No message left.)\n`) +
@@ -90,6 +99,18 @@ export const POST: APIRoute = async ({ request }) => {
     return json({ ok: false, reason: 'network_error' }, 200);
   }
 };
+
+/**
+ * Returns a display-formatted US number, or '' if it isn't one.
+ * Accepts 10 digits, or 11 with a leading country code — the two shapes a
+ * US visitor actually types. Anything else fails rather than guessing.
+ */
+function normalizePhone(v: string): string {
+  let d = v.replace(/[^0-9]/g, '');
+  if (d.length === 11 && d.startsWith('1')) d = d.slice(1);
+  if (d.length !== 10) return '';
+  return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+}
 
 function str(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';

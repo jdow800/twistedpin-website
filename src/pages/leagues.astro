@@ -46,6 +46,11 @@
  *
  * League interest form added 2026-08-01 (Jon): name/email + structured
  * solo-vs-team + preferred-night selects + message box, POSTing to
+ * Phone is REQUIRED alongside name + email (2026-08-28, Jon) — the
+ * coordinator's fastest close is a call back, and an email-only lead
+ * costs a round trip just to get the number. Validated to 10 digits on
+ * both sides; the server normalizes it in the notification email.
+ *
  * /api/league-interest → Resend email to contactus@ (reply-to the
  * submitter). Sits above the Pro Shop so league intent converts before
  * the gear content.
@@ -299,8 +304,9 @@ const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
 
   {/* ============================================================
       LEAGUE INTEREST FORM — added 2026-08-01 (Jon). Lead capture for
-      the league coordinator: who they are, solo-or-team, preferred
-      night — enough to route the callback without a phone-tag round.
+      the league coordinator: who they are, how to reach them (email
+      AND phone, both required), solo-or-team, preferred night — enough
+      to route the callback without a phone-tag round.
       Posts to /api/league-interest → Resend email to contactus@
       (Freshdesk triage), reply-to the submitter. Sits ABOVE the Pro
       Shop per Jon's placement call.
@@ -330,6 +336,18 @@ const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
 
         <div class="lg-row">
           <div class="lg-field">
+            <label for="lg-phone">Phone <span class="lg-req">*</span></label>
+            <input
+              id="lg-phone"
+              name="phone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel"
+              placeholder="(815) 555-0123"
+              required
+            />
+          </div>
+          <div class="lg-field">
             <label for="lg-who">Signing up as</label>
             <select id="lg-who" name="signup_as">
               <option value="Just me">Just me</option>
@@ -338,14 +356,15 @@ const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
               <option value="Not sure yet">Not sure yet</option>
             </select>
           </div>
-          <div class="lg-field">
-            <label for="lg-night">Preferred night</label>
-            <select id="lg-night" name="night">
-              <option value="Either / flexible">Either / flexible</option>
-              <option value="Monday (IBT, 5-person)">Monday — IBT, 5-person</option>
-              <option value="Tuesday (mixed, 4-person)">Tuesday — mixed, 4-person</option>
-            </select>
-          </div>
+        </div>
+
+        <div class="lg-field">
+          <label for="lg-night">Preferred night</label>
+          <select id="lg-night" name="night">
+            <option value="Either / flexible">Either / flexible</option>
+            <option value="Monday (IBT, 5-person)">Monday — IBT, 5-person</option>
+            <option value="Tuesday (mixed, 4-person)">Tuesday — mixed, 4-person</option>
+          </select>
         </div>
 
         <div class="lg-field">
@@ -448,9 +467,15 @@ const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
 
       var name = els["name"].value.trim();
       var email = els["email"].value.trim();
+      var phone = els["phone"].value.trim();
       if (!name) return showError("Please enter your name.");
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
         return showError("Please enter a valid email address.");
+      // Digits only; accept 10, or 11 with a leading US country code.
+      var digits = phone.replace(/[^0-9]/g, "");
+      if (digits.length === 11 && digits.charAt(0) === "1") digits = digits.slice(1);
+      if (digits.length !== 10)
+        return showError("Please enter a 10-digit phone number.");
 
       btn.disabled = true;
       btn.textContent = "Sending…";
@@ -461,6 +486,7 @@ const leagueEventsJsonLd = leagueEvents.length === 0 ? null : {
         body: JSON.stringify({
           name: name,
           email: email,
+          phone: phone,
           signup_as: els["signup_as"].value,
           night: els["night"].value,
           message: els["message"].value.trim(),
