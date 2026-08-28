@@ -29,7 +29,8 @@ Before: a fundraiser inquiry got ONE scripted first touch, was flagged Needs Att
 - **`fundraiser_availability_claim_unverified`** fires only on affirmative "X is open" sentences with no system read this turn; questions/promises to check pass.
 - **The 2026-08-27 LATE SIDE work** (Jon / Rachel Smith, Sun Dec 6) was found authored-but-undeployed in the same brain files and shipped WITH this release; its changelog entries are dated 2026-08-27.
 - **n8n public API PUT rejects GET-only settings keys** — every plumbing script uses `sanitizeSettings` from `lib.mjs`. And `tail` masks a script's exit code (`set -e` did not stop the deploy sequence) — capture `$?` explicitly.
-- **Deliberately not built:** auto re-typing a Group Event that reveals fundraiser signals (still NA + staff re-type); Avery mentioning the invitation host link (`invitation_host_url` IS returned — `createStaffDirectBooking` auto-mints fundraiser invitations — but WF2 says nothing until Jon's invitations work is live).
+- **Deliberately not built:** auto re-typing a Group Event that reveals fundraiser signals (still NA + staff re-type).
+- **INVITATIONS ARE LIVE (same evening, other session) — read [2026-08-28-invitations-brief-for-fundraiser-session.md](2026-08-28-invitations-brief-for-fundraiser-session.md) before touching the booking reply.** The confirmation's invitation sentence is a PATCH on the `Fundraiser Booked Reply` node (`Marketing Avery/brain/deploy/patch-wf2-fundraiser-booked-reply.mjs`), not KB text and not in `add-fundraiser-nodes.mjs`'s `BOOKED_REPLY_CODE`. Any edit to that node — or a re-run of `add-fundraiser-nodes.mjs` on a fresh workflow — must be followed by re-running the patch and a clean drift-check. `ctx.invitation_host_url` comes from TPRS via `pre-assemble-context.js`; `link_not_from_tprs` whitelists exactly that URL.
 
 ## Rollback pointers
 
