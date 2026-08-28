@@ -2,7 +2,7 @@
 
 **Read this first for anything touching invitations, RSVPs, guest email, the host dashboard, the seven looks, or Avery's invitation knowledge.** It is the map; the append-only chronology lives in memory `tprs-invitations-rsvp-build`, the rulings in CLAUDE.md's In Progress bullet, and the KB text in `Marketing Avery/brain/kb/Avery_KB.md` (Section 20 subsection "Digital invitations and RSVPs").
 
-Status at hand-off: **LIVE for real guests** (allowlist removed 8/28 evening). Everything below is deployed on tprs `main` (last PR #131) and Render `srv-d8i3mgmrnols73baqth0`.
+Status at hand-off: **LIVE for real guests** (allowlist removed 8/28 evening). Everything below is deployed on tprs `main` (last PR #132; the hardening commits #128-#131 had their own adversarial second pass, #132) and Render `srv-d8i3mgmrnols73baqth0`.
 
 ---
 
@@ -49,9 +49,10 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 8. **Reminder is once-only** via `UPDATE … WHERE reminder_sent_at IS NULL RETURNING`; reschedule clears stamps; the tick re-reads the window under the stamp.
 9. **Purge at 14 days past event END** deletes invitee rows, the photo blob, and redacts guest addresses/names from `guest.*` outbox rows. A stamped invitation is never re-scanned; a reschedule into the future clears the stamp; RSVPs refuse while purged.
 10. **Re-mint is fresh**: rotates both tokens, resets title/host/theme/tagline/note, deletes invitee rows, nulls + deletes the photo, clears the purge stamp, re-resolves shape/cap.
-11. **Rate limits key on `clientIp()`** (first `x-forwarded-for` hop) — `request.ip` is Render's load balancer.
-12. **The guest-page money-leak test bans the literal words `$`, `balance`, `total`** in the rendered HTML. `text-wrap: balance` cannot ship; use `pretty`.
-13. **Theme ids are duplicated in a SQL CHECK (0156).** Adding a look in `invitation-themes.ts` without a migration makes the host's Save 500.
+11. **Host dashboard and guest page both key "cancelled" on `isInvitationTerminalStatus`** (`HostDashboardView.cancelled`), never on the raw status string.
+12. **Rate limits key on `clientIp()`** (first `x-forwarded-for` hop) — `request.ip` is Render's load balancer.
+13. **The guest-page money-leak test bans the literal words `$`, `balance`, `total`** in the rendered HTML. `text-wrap: balance` cannot ship; use `pretty`.
+14. **Theme ids are duplicated in a SQL CHECK (0156).** Adding a look in `invitation-themes.ts` without a migration makes the host's Save 500.
 
 ---
 
@@ -60,7 +61,7 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 - Guest emails: **in the CSV download, disclosed to the guest on the form** ("shared with your event host, who may reach out"); never on the dashboard screen. Reversed the earlier "never" ruling the same night.
 - **No host blast through our platform, ever.** Hosts use the download and their own email ("they can CC ppl, that is their problem").
 - Party-size caps: kids **6** (count kids only), fundraiser **12** (people), catered **4** (a colleague plus coworkers, migration 0158). Clamp, never reject.
-- RSVPs close at START for kids/catered, at **END for fundraisers** (walk-up = staffing signal). Nothing is ever reserved off a tally; RSVP counts are never the booked headcount.
+- RSVPs close at START for kids/catered, at **END for fundraisers** (walk-up = staffing signal). A **can't-make-it on an existing row stays allowed until END** on every shape (the day-of reminder's manage link exists for that; declines never add heads). Nothing is ever reserved off a tally; RSVP counts are never the booked headcount.
 - Late-addition alert: **catered only**, after final payment, head-adding yes → sticky tag + host banner + one staff email.
 - Fundraisers get invitations **at creation regardless of deposit/full-pay setup**. Catered full-pay never gets one automatically (staff mint by hand).
 - Retention **14 days** ("2 weeks of an off-ramp").
@@ -82,6 +83,7 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 | "Link not found" | Revoked + re-minted (old links die), or a malformed slug. Host re-shares the new link. |
 | "Guest list cleared / empty" | 14-day purge (`invitees_purged_at` set). Unrecoverable by design. CSV must be downloaded inside the window. |
 | "Photo didn't show / upload failed" | 25 MB, PNG/JPEG/WebP/GIF, 30 MP decode ceiling, rate-limited. Stored in the public Supabase bucket (`SUPABASE_PUBLIC_BUCKET`); dev serves `/api/product-images/`. Answered Poster never shows it. |
+| "This invitation has hit its RSVP limit" | `MAX_INVITEES_PER_INVITATION` (300 rows). Raise the constant or clean junk rows. |
 | "Too many attempts" for real guests | `clientIp()` — confirm `x-forwarded-for` is present in prod; 30 writes/min per client. |
 | "Preview looks different from the link" | Host didn't press **Save details**; tagline/note don't change the title. |
 | "RSVP count ≠ headcount" | By design; late additions tagged. |
@@ -100,7 +102,7 @@ Prod checks: `select shape, max_party_size, invitees_purged_at, revoked_at, them
 
 **Change Avery's invitation knowledge.** Edit `brain/kb/Avery_KB.md` (facts in her voice, no numbered scripts, no em dashes), add a `kb/CHANGELOG.md` entry, `node brain/deploy/deploy-kb.mjs --yes --skip-golden`. Prompt changes: `brain/prompts/build-avery-request.js` then `node brain/deploy/deploy-n8n.mjs --only WF2 --skip-golden --yes`. The deposit-ack and fundraiser Booked Reply link sentences are **patch scripts on n8n nodes**, not KB text — re-run them after editing those nodes. Deploy KB text about a feature only after the Render deploy is live.
 
-**Guest email rail env (Render).** `INVITATIONS_RESEND_API_KEY` (second Resend team), `INVITATION_BASE_URL` (falls back to `MAGIC_LINK_BASE_URL`), `INVITATIONS_RESEND_WEBHOOK_SECRET` (webhook at `/webhooks/email/resend/invitations`). `INVITATIONS_EMAIL_ALLOWLIST` = test mode only; **absent in prod since 8/28**. Setting it again silently suppresses guest mail to everyone not listed.
+**Guest email rail env (Render).** `INVITATIONS_RESEND_API_KEY` (second Resend team), `INVITATION_BASE_URL` (falls back to `MAGIC_LINK_BASE_URL`), `INVITATIONS_RESEND_WEBHOOK_SECRET` (webhook at `/webhooks/email/resend/invitations`; mounts independently of the main `RESEND_WEBHOOK_SECRET`). `INVITATIONS_EMAIL_ALLOWLIST` = test mode only; **absent in prod since 8/28**. Setting it again silently suppresses guest mail to everyone not listed.
 
 **Retention / caps knobs.** `RETENTION_DAYS` (purge cron), `KIDS/FUNDRAISER/CATERED_STEPPER_MAX` (invitations.ts; changing only affects new mints — backfill with SQL), `MAX_INVITEES_PER_INVITATION`, `TAGLINE_MAX`/`NOTE_MAX`.
 
