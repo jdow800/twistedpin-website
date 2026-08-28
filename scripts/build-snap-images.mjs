@@ -152,6 +152,11 @@ const SOURCES = [
   // can actually do here" shot the slot has been waiting for.
   { src: "events-catering/IMG_9617.jpg", name: "vip-energy", aspect: [9, 16], widths: [540, 900] },
 
+  // Invitation theme plate for FUNDRAISERS (2026-08-28, Jon): fundraisers are
+  // walk-in traditional lanes, so the VIP-suite shot is the wrong room. Hotlinked
+  // by the TPRS Confetti Strike partial as /snap/fundraiser-lanes-540.webp.
+  { src: "More Images/DSC00795.JPG", name: "fundraiser-lanes", aspect: [9, 16], widths: [540, 900] },
+
   // /game top — full-neon arcade environment. visual-direction.md
   // explicitly endorses neon-saturated arcade shots on /game (off-limits
   // on homepage). Replaces a wrong-content events-bg reuse.
