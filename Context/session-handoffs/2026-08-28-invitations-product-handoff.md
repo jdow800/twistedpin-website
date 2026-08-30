@@ -2,7 +2,7 @@
 
 **Read this first for anything touching invitations, RSVPs, guest email, the host dashboard, the seven looks, or Avery's invitation knowledge.** It is the map; the append-only chronology lives in memory `tprs-invitations-rsvp-build`, the rulings in CLAUDE.md's In Progress bullet, and the KB text in `Marketing Avery/brain/kb/Avery_KB.md` (Section 20 subsection "Digital invitations and RSVPs").
 
-Status at hand-off: **LIVE for real guests** (allowlist removed 8/28 evening). Everything below is deployed on tprs `main` (last PR #132; the hardening commits #128-#131 had their own adversarial second pass, #132) and Render `srv-d8i3mgmrnols73baqth0`.
+Status at hand-off: **LIVE for real guests** (allowlist removed 8/28 evening). Everything below is deployed on tprs `main` (last PR #138; the hardening commits #128-#131 had their own adversarial second pass, #132; #137 Customize open by default; #138 naming gate) and Render `srv-d8i3mgmrnols73baqth0`.
 
 ---
 
@@ -66,6 +66,8 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 - Fundraisers get invitations **at creation regardless of deposit/full-pay setup**. Catered full-pay never gets one automatically (staff mint by hand).
 - Retention **14 days** ("2 weeks of an off-ramp").
 - Kicker: "*Host* invited you to a fundraiser / a party" (kids) / plain for catered. Looks are vibes, not occasion categories; the title carries the occasion.
+- **Naming gate (2026-08-30, tprs #138):** the invitation link (dashboard share box AND the confirmation-email guest link) is withheld until the host saves an Event name. Tagline/note/photo stay optional. Trigger: the first real host read the fallback "<First name>'s event at Twisted Pin" as a name we chose. The fallback is never shown as the input placeholder any more (example names per shape instead).
+- Customize the wording fold opens by default (#137).
 - Defaults: kids → Confetti Strike, else Classic (Jon hasn't ruled further).
 - Answered Poster ignores the host photo **by design**.
 - Reactivation after cancel → guests re-notified as "moved" (#131). Package change after mint → ignored by ruling.
@@ -85,6 +87,7 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 | "Photo didn't show / upload failed" | 25 MB, PNG/JPEG/WebP/GIF, 30 MP decode ceiling, rate-limited. Stored in the public Supabase bucket (`SUPABASE_PUBLIC_BUCKET`); dev serves `/api/product-images/`. Answered Poster never shows it. |
 | "This invitation has hit its RSVP limit" | `MAX_INVITEES_PER_INVITATION` (300 rows). Raise the constant or clean junk rows. |
 | "Too many attempts" for real guests | `clientIp()` — confirm `x-forwarded-for` is present in prod; 30 writes/min per client. |
+| "Where is my invitation link?" / "it says my name for the event" | Naming gate: the host has not saved an Event name yet. Dashboard shows Step 1; link appears after Save. The fallback title is never a choice. |
 | "Preview looks different from the link" | Host didn't press **Save details**; tagline/note don't change the title. |
 | "RSVP count ≠ headcount" | By design; late additions tagged. |
 | Dashboard shows money to the wrong person | The host URL was shared beyond the booker — revoke + re-mint from the admin card. |
