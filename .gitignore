@@ -73,3 +73,6 @@ desktop.ini
 scripts/booking-tiles/out/
 scripts/booking-tiles/.tmp/
 scripts/early-open/punches-page2.json
+
+# Captured pricing-engine response (internal fee structure) — local only; this repo is public.
+scripts/fixtures/estimate-engine-sample.json
