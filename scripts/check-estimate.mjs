@@ -41,7 +41,7 @@ import {
   rateCardFromQuotes,
   rateProbeConfigs,
 } from "../src/lib/estimate/engine.ts";
-import { LANE_COUNT_IN_LABEL, roundTo5, shapeOption } from "../src/lib/estimate/shape.ts";
+import { LANE_COUNT_IN_LABEL, neighborEntries, roundTo5, shapeOption } from "../src/lib/estimate/shape.ts";
 import { originAllowed, rateLimited } from "../src/lib/estimate/http.ts";
 
 let failures = 0;
@@ -208,6 +208,13 @@ check("residual lands in bowling", (() => {
   return o && o.lines[0].amount === 1030 && o.lines.reduce((a, l) => a + l.amount, 0) === 2740;
 })());
 check("roundTo5", roundTo5(2426.5) === 2425 && roundTo5(1367.5) === 1370);
+check("option carries lane_label (the page compares by it)", opt && opt.lane_label === opt.lines[0].label);
+check("neighbors is an EMPTY ARRAY when not requested — null crashed the live panel 8/31", Array.isArray(neighborEntries([], [], "stars_strikes")) && neighborEntries([], [], "stars_strikes").length === 0);
+check("neighbors entries carry guests/total/lane_label", (() => {
+  const n = neighborEntries([{ guests: 35, key: "vip_2h", spec: optionSpec("vip_2h") }], [sample], "stars_strikes");
+  return n.length === 1 && n[0].guests === 35 && n[0].total === 2735 && typeof n[0].lane_label === "string";
+})());
+check("neighbors skips a failed quote instead of emitting null", neighborEntries([{ guests: 35, key: "vip_2h", spec: optionSpec("vip_2h") }], [{ success: false }], "stars_strikes").length === 0);
 
 const fixturePath = path.join(path.dirname(fileURLToPath(import.meta.url)), "fixtures", "estimate-engine-sample.json");
 if (fs.existsSync(fixturePath)) {

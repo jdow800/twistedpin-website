@@ -13,7 +13,7 @@ import {
   type OptionKey,
 } from "../../../lib/estimate/rules.ts";
 import { EngineError, buildConfig, callEngine, type EngineQuote } from "../../../lib/estimate/engine.ts";
-import { describeFailure, shapeOption, type EstimateOption } from "../../../lib/estimate/shape.ts";
+import { describeFailure, neighborEntries, shapeOption, type EstimateOption } from "../../../lib/estimate/shape.ts";
 import {
   CACHE_NONE,
   CACHE_OK,
@@ -82,16 +82,17 @@ export const GET: APIRoute = async ({ request, url }) => {
   const mainConfigs = keys.map((k) => buildConfig(req, optionSpec(k)));
 
   // Optional ±5 strip (`n=1`): the default option re-priced at g−5 and g+5.
-  // Off unless asked — it is a second engine call per estimate.
+  // Off unless asked — it is a second engine call per estimate. The response
+  // field is ALWAYS an array (empty when off): the page reads `.length`.
   const wantNeighbors = url.searchParams.get("n") === "1";
-  const neighborGuests = wantNeighbors
-    ? [req.guests - 5, req.guests + 5].filter((g) => g >= MIN_GUESTS && g <= MAX_GUESTS)
-    : [];
-  const neighborConfigs = neighborGuests.map((g) => {
+  const neighborRequests = (
+    wantNeighbors ? [req.guests - 5, req.guests + 5].filter((g) => g >= MIN_GUESTS && g <= MAX_GUESTS) : []
+  ).map((g) => {
     const p = planFor(g);
-    const k = keys.includes(p.default) ? p.default : p.keys.find((x) => keys.includes(x)) ?? p.default;
-    return buildConfig({ ...req, guests: g }, optionSpec(k));
+    const k = keys.includes(p.default) ? p.default : (p.keys.find((x) => keys.includes(x)) ?? p.default);
+    return { guests: g, key: k, spec: optionSpec(k) };
   });
+  const neighborConfigs = neighborRequests.map((r) => buildConfig({ ...req, guests: r.guests }, r.spec));
 
   let main: EngineQuote[];
   let neighborQuotes: EngineQuote[] = [];
@@ -138,13 +139,7 @@ export const GET: APIRoute = async ({ request, url }) => {
     );
   }
 
-  const neighbors = wantNeighbors
-    ? {
-        option: defaultKey,
-        minus: neighborTotal(neighborGuests, neighborQuotes, req.guests - 5),
-        plus: neighborTotal(neighborGuests, neighborQuotes, req.guests + 5),
-      }
-    : null;
+  const neighbors = neighborEntries(neighborRequests, neighborQuotes, req.food);
 
   const engineVersion = main.find((q) => q?.calculation_context?.engine_version)?.calculation_context?.engine_version;
 
@@ -171,11 +166,3 @@ export const GET: APIRoute = async ({ request, url }) => {
     CACHE_OK,
   );
 };
-
-function neighborTotal(guestsList: number[], quotes: EngineQuote[], guests: number) {
-  const i = guestsList.indexOf(guests);
-  if (i < 0) return null;
-  const q = quotes[i];
-  const total = q?.success ? q.avery_total?.estimated_total : undefined;
-  return typeof total === "number" ? { guests, total } : null;
-}

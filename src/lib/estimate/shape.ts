@@ -42,6 +42,8 @@ export interface EstimateOption {
   /** Engine lane count — for the Send payload and Avery, not for display. */
   lanes: number;
   whole_suite: boolean;
+  /** Same string as the bowling line's label — the page compares options by it. */
+  lane_label: string;
   lines: EstimateLine[];
   /** avery_total.estimated_total — already rounded to $5 by the engine. */
   total: number;
@@ -144,12 +146,40 @@ export function shapeOption(
     hours: spec.hours,
     lanes,
     whole_suite,
+    lane_label: bl.label,
     lines,
     total,
     deposit,
     includes_service_and_tax: true,
     food_billed_for: billedFor,
   };
+}
+
+export interface NeighborEntry {
+  key: OptionKey;
+  guests: number;
+  total: number;
+  deposit: number;
+  lane_label: string;
+}
+
+/**
+ * The optional ±5 strip. ALWAYS an array — the page renders it with
+ * `neighbors.length > 0 && …`, and a `null` here crashed the whole panel on
+ * the day the live API replaced the mock (2026-08-31). Empty when the strip
+ * wasn't requested or nothing priced.
+ */
+export function neighborEntries(
+  requested: Array<{ guests: number; key: OptionKey; spec: { lane_type: LaneType; hours: Hours } }>,
+  quotes: EngineQuote[],
+  food: FoodPackage,
+): NeighborEntry[] {
+  const out: NeighborEntry[] = [];
+  requested.forEach((r, i) => {
+    const o = shapeOption(r.key, r.spec, quotes[i], { guests: r.guests, food });
+    if (o) out.push({ key: r.key, guests: r.guests, total: o.total, deposit: o.deposit, lane_label: o.lane_label });
+  });
+  return out;
 }
 
 /** For logs only — why an option came back null. Never sent to the browser. */
