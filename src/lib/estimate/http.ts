@@ -66,6 +66,8 @@ export function jsonResponse(body: unknown, status: number, cache: string, extra
     status,
     headers: {
       "Content-Type": "application/json; charset=utf-8",
+      // Same convention as the other /api routes: robots.txt already disallows /api/, this covers a linked URL.
+      "X-Robots-Tag": "noindex, nofollow, noarchive",
       "Cache-Control": cache,
       ...corsHeaders(),
       ...extra,
