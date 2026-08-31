@@ -325,18 +325,23 @@ export type ErrorCode =
   | "forbidden"
   | "rate_limited";
 
-/** Guest-facing copy. No "slot" / "window", no schedule explanations, no discount vocabulary. */
+/**
+ * Guest-facing copy. No "slot" / "window", no schedule explanations, no
+ * discount vocabulary. VOICE (Jon, 2026-08-31): the page speaks as the venue
+ * ("we"), never as Avery — she is the person who signs the reply, not a
+ * feature of the page. Don't reintroduce "text Avery" / "send to Avery" here.
+ */
 export const MESSAGES = {
   bad_date: "Pick a date to see an estimate.",
   bad_time: "Pick a start time to see an estimate.",
   bad_guests: "Tell us how many guests to plan for.",
   under_min: `Groups under ${MIN_GUESTS} book lanes directly at twistedpin.com/reserve/.`,
-  too_large: `For groups over ${MAX_GUESTS}, send your picks to Avery and she'll build it by hand.`,
-  too_soon: `For dates this close, text Avery at ${AVERY_PHONE_DISPLAY} and she'll build it with you.`,
-  too_far: `We book events up to a year out. For anything later, text Avery at ${AVERY_PHONE_DISPLAY}.`,
+  too_large: `For groups over ${MAX_GUESTS}, send your picks over and we'll build it by hand.`,
+  too_soon: `For dates this close, text us at ${AVERY_PHONE_DISPLAY} and we'll build it with you.`,
+  too_far: `We book events up to a year out. For anything later, text us at ${AVERY_PHONE_DISPLAY}.`,
   outside_hours: "That start time is outside our regular hours for that day.",
   closed: (label: string) => `We're closed on ${label}. Pick another date.`,
-  christmas_eve: `Christmas Eve hours vary — text Avery at ${AVERY_PHONE_DISPLAY} and she'll sort it out.`,
+  christmas_eve: `Christmas Eve hours vary — text us at ${AVERY_PHONE_DISPLAY} and we'll sort it out.`,
   nye: "New Year's Eve is a ticketed night — see twistedpin.com/new-years-eve/.",
   bad_food: "Pick a food package to see an estimate.",
   pizza_pop_blocked:
@@ -344,7 +349,7 @@ export const MESSAGES = {
   bad_bar: "That drink option isn't one we offer.",
   bad_addon: "One of those add-ons isn't on our list.",
   engine_unavailable:
-    "Our pricing engine didn't answer. Try again in a moment, or send your picks to Avery.",
+    "Our pricing engine didn't answer. Try again in a moment — or send your picks over and we'll price it for you.",
   forbidden: "This estimate service is only available from twistedpin.com.",
   rate_limited: "Slow down a touch — try again in a minute.",
 } as const;
