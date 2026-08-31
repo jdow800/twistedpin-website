@@ -266,7 +266,7 @@ export interface RegimePlan {
 }
 
 export const TRADITIONAL_NOTICE =
-  "Estimates at this size run on the traditional lanes. Avery confirms the exact layout — and whether the VIP Suite can be part of it.";
+  "Estimates at this size run on the traditional lanes. We'll confirm the exact layout — and whether the VIP Suite can be part of it.";
 export const VIP_THREE_HOUR_NOTICE = "Groups this size run 3 hours in the suite.";
 
 export function planFor(guests: number): RegimePlan {
