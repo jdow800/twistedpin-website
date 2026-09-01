@@ -25,25 +25,28 @@
  *   - Section 8: CTIA-mandated "no mobile sharing" boilerplate
  *   - Re-enroll path now includes verbal phone request
  *
- * The live page is narrowly scoped to the SMS messaging program —
- * TCPA / CTIA compliance scaffold, not a full website-use ToS.
- * Preserving that scope.
+ * The live page is scoped to the SMS messaging programs (TCPA / CTIA
+ * compliance scaffold) PLUS, as of 2026-08-31, Section 10: the deposit
+ * and cancellation terms for event bookings (owner ruling that day —
+ * catered events refundable until final payment, 72 hours for
+ * everything paid in full at booking, discretion clause). Jon
+ * explicitly declined a counsel pass ("pluck the low-hanging fruit in
+ * terms of coverage and call it a day") — these are the same operative
+ * sentences the TPRS pay page, booking emails and /faq state, so a
+ * wording change on any of those surfaces should be mirrored here.
  *
- * Structural note: if a broader ToS is needed pre-launch (covering
- * website use, reservation cancellation, gift card terms, prize /
- * promotion rules, governing law, liability disclaimers), it should
- * either:
- *   (a) live on a separate /terms-of-use page and link to here from
- *       the SMS section, OR
+ * Structural note: if a full website-use ToS is ever needed (gift card
+ * terms, prize / promotion rules, governing law, liability
+ * disclaimers), it should either:
+ *   (a) live on a separate /terms-of-use page and link to here, OR
  *   (b) replace this page with a comprehensive ToS that retains the
  *       SMS sections at the back
- * Flagging in launch-checklist.md for ops decision.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-const LAST_UPDATED = "May 23, 2026";
+const LAST_UPDATED = "August 31, 2026";
 ---
 <Base
   title="Terms and Conditions | Twisted Pin"
@@ -62,9 +65,11 @@ const LAST_UPDATED = "May 23, 2026";
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Last updated {LAST_UPDATED}. The terms below govern both
         Twisted Pin SMS messaging programs — the transactional/event
-        inquiry program and the marketing/loyalty program. By opting in
-        to either program via any of the consent paths described in
-        Section 3, you agree to these terms.
+        inquiry program and the marketing/loyalty program — and the
+        deposit and cancellation terms for reservations and event
+        bookings (Section 10). By opting in to either SMS program via
+        any of the consent paths described in Section 3, you agree to
+        these terms.
       </p>
     </div>
   </section>
@@ -139,10 +144,23 @@ const LAST_UPDATED = "May 23, 2026";
       <h2 class="legal-h2" id="terms-h2-9">9. Eligibility</h2>
       <p>Both SMS programs are available to users with a valid mobile phone number in the United States. By opting in, you represent that you are 18 years of age or older and are the account holder of the mobile number provided, or have authorization from the account holder to enroll.</p>
 
-      <h2 class="legal-h2" id="terms-h2-10">10. Changes to These Terms</h2>
-      <p>Twisted Pin reserves the right to modify these Terms and Conditions at any time. Changes will be posted at twistedpin.com/terms/. Continued participation in either SMS program after changes are posted constitutes your acceptance of the updated terms.</p>
+      {/* Event booking terms (2026-08-31, owner ruling — no counsel pass by
+          Jon's explicit call; plain-language coverage is the goal). These are
+          the SAME operative sentences the payment page, booking emails and FAQ
+          state, transcribed rather than re-invented — the drift risk lives in
+          paraphrase. The discretion clause is load-bearing: Jon will refund a
+          pushed-to-shove late cancellation as a courtesy, and this lets him do
+          that without the exception rewriting the rule. */}
+      <h2 class="legal-h2" id="terms-h2-10">10. Event Deposits &amp; Cancellations</h2>
+      <p>The terms in this section apply to reservations and event bookings made with Twisted Pin.</p>
+      <p><strong>Catered events.</strong> A catered event is confirmed with a 50% deposit. Approximately one week before the event date, Twisted Pin confirms the final guest count, updates the total to reflect that count, and collects the remaining balance (the &ldquo;final payment&rdquo;). A catered event cancelled at any time <strong>before the final payment is collected</strong> receives a full refund of the deposit. Once the final payment has been collected, all payments for the event are final and non-refundable. Date changes requested before the final payment is collected are accommodated at no charge, subject to availability.</p>
+      <p><strong>Lane reservations and other bookings paid in full at booking</strong> (including online birthday party packages): cancellations must be made at least 72 hours before the reservation to avoid forfeiting payment. Within 72 hours of the reservation, payment is final.</p>
+      <p><strong>Exceptions.</strong> Twisted Pin may, at its sole discretion, offer a refund, credit, or date change outside these terms. Any such accommodation is a courtesy and does not modify these terms or create an entitlement to future exceptions.</p>
 
-      <h2 class="legal-h2" id="terms-h2-11">11. Contact Us</h2>
+      <h2 class="legal-h2" id="terms-h2-11">11. Changes to These Terms</h2>
+      <p>Twisted Pin reserves the right to modify these Terms and Conditions at any time. Changes will be posted at twistedpin.com/terms/. Continued participation in either SMS program, and any booking made after changes are posted, constitutes your acceptance of the updated terms.</p>
+
+      <h2 class="legal-h2" id="terms-h2-12">12. Contact Us</h2>
       <p>If you have questions about these Terms and Conditions or our SMS programs, please contact us:</p>
       <ul class="legal-contact">
         <li><strong>Twisted Pin (operated by Dow Holdings Inc)</strong></li>
