@@ -5,6 +5,9 @@ import {
   FOOD_LABELS,
   FOOD_PACKAGES,
   MESSAGES,
+  TRADITIONAL_ONLY_FLOOR,
+  VIP_ASK_CEILING,
+  VIP_THREE_HOUR_FLOOR,
   closureFor,
   parseClock,
   parseDateKey,
@@ -122,6 +125,18 @@ export const GET: APIRoute = async ({ request, url }) => {
         packages: rates.packages,
       },
       rates_source: rates.source,
+      // Band thresholds the page used to hard-code (Zite plan 2026-09-01 reads
+      // these at mount and falls back to its literals 49/60/80 when absent).
+      // Key names are Zite's; values are the proxy's own constants, so a bands
+      // change is a value edit in rules.ts and needs no page redeploy.
+      //   vip_3h_floor    - from this count the 3-hour option is the default/suggested
+      //   trad_only_floor - from this count the VIP tile greys and Traditional is selected
+      //   vip_ceiling     - above this count the VIP tile is hidden entirely
+      rules: {
+        vip_3h_floor: VIP_THREE_HOUR_FLOOR,
+        trad_only_floor: TRADITIONAL_ONLY_FLOOR,
+        vip_ceiling: VIP_ASK_CEILING,
+      },
     },
     200,
     rates.source === "engine" ? CACHE_OK : "public, s-maxage=300",
