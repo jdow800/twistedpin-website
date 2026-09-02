@@ -88,7 +88,7 @@
 
 ## 2026-09-02 (evening) — The "I just sent it" hold is built (rollout A1 + A2) — clone-staged, prod pending one rehearsal lap
 
-**What Jon asked for (9/1 evening, brief §2.2c):** never "nothing on my end yet"; at most *"Okay, let me check on that."*; a timer; Needs Attention if nothing lands; the guest is never told to resend. Plus rollout A1: the Builder Submit Collision Gate was losing the quote whenever a guest texted inside the 5-minute settle wait.
+**What Jon asked for (9/1 evening, brief §2.2c):** never "nothing on my end yet"; at most *"Great - that should land on my end shortly, I will review and message you back."*; a timer; Needs Attention if nothing lands; the guest is never told to resend. Plus rollout A1: the Builder Submit Collision Gate was losing the quote whenever a guest texted inside the 5-minute settle wait.
 
 **Shape of the build (details in `Marketing Avery/n8n/workflows/WF2.changelog.md` and `BuilderSubmit.changelog.md`, 2026-09-02 evening):**
 - Pre-Assemble computes `submission_state` on inbound turns: did a Send land recently (builder vs legacy menu), was it quoted after landing, is THIS message a claim (build / deposit), is the claim pure, is a hold already open.
@@ -102,7 +102,7 @@
 **State:** WF2 CLONE `1cr3uefJsCvca9S4` at `16d1d1ee` (brain refreshed + patch). PROD WF2 still `117c87fd` (no claim logic yet). Builder Submit reinstalled `d71d8dfe` → re-pointed at the clone `9ad1126a` → fast mode on `3b79e650`. Watcher ACTIVE against the shared DB (zero open holds, so its ticks are no-ops until the rehearsal).
 
 **Rehearsal lap to run (Jon, on the 779 thread, rehearsal routing still in place):**
-1. Text `just sent it` WITHOUT pressing Send → expect *"Okay, let me check on that."* within ~1 min (fast mode) → ~15–20 min later a Needs Attention note on the thread ("says they sent their event build - nothing has landed"). Then remove the NA label.
+1. Text `just sent it` WITHOUT pressing Send → expect *"Great - that should land on my end shortly, I will review and message you back."* within ~1 min (fast mode) → ~15–20 min later a Needs Attention note on the thread ("says they sent their event build - nothing has landed"). Then remove the NA label.
 2. Press Send on /build and within a minute text `just sent that over` → expect NO reply to the text and the crossroads from the builder turn ~1 min later (fast mode).
 3. Optional: text `did you get it?` after the crossroads → a normal answer pointing at the number.
 Then: `patch-wf2-claim-hold.mjs --yes` + `deploy-n8n.mjs --only WF2 --yes --skip-golden` for prod, drift-check.
