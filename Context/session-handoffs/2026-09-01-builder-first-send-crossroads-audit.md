@@ -29,7 +29,7 @@
 - Availability: recourse is mandatory (earlier/later/traditional); Tier 1 = day-level closures from TPRS (no Zite work); Tier 2 = slot alternatives (TPRS endpoint + WF2 ladder); page popup only after Tier 2.
 - Refund = an ANSWER when asked, never announced. Headcount: **say "seven days" to guests; day 6 is internal.** Copy audit owed (KB 14 lines, WF2 2 files, WF5/FP/fundraiser templates, tprs 5 files, pay page date) — as one pass with the KB §7 rewrite. Open: does "answer not announcement" retire the 8/31 refundable line on the STANDARD quote too?
 - "I just sent it" race: never "nothing on my end yet"; hold line + 10–15 min timer + NA. Collision Gate CONFIRMED to eat the builder quote when a guest texts in the 5-min window (fix with the hold).
-- WF1 first touch = deliver the build link (routing questions first); form drops date + time-of-day post-widen. Big light switch: KB deploy + WF1 flip + menu-link constants + Builder Submit armed + proxy constants in one window, old links/KB kept as revert.
+- WF1 first touch = greet + ONE routing question, **NO link** (REVERSED late 9/1: a linked first message that gets silence is unreadable - spam vs unseen vs objection - so the link lands on WF2 turn 1 after the guest's first reply; first-touch theory in brief §2.3a); form still drops date + time-of-day post-widen. Big light switch: KB deploy + WF1/WF2-turn-1 flip + menu-link constants + Builder Submit armed + proxy constants in one window, old links/KB kept as revert.
 
 ## Next (plan of record: `builder-rollout-review-2026-09-01.md` §6 + §6a)
 
