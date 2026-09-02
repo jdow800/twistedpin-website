@@ -108,7 +108,11 @@ export default function BottledBeer({
           }),
         );
         if (open && open.lines.length > 0) setResumed(true);
-        setSessionId(open ? open.id : await createCount(false));
+        // Only open a draft once there is something to count. Without this the
+        // section mints an empty partial session on every visit — including
+        // before the beer SKUs exist at all, which is exactly the window where
+        // the frontend can ship ahead of its migration.
+        if (beers.length > 0) setSessionId(open ? open.id : await createCount(false));
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
