@@ -1762,3 +1762,156 @@
     opacity: 0.35;
   }
 }
+
+/* ── bottled beer (0162) ───────────────────────────────────────────────────
+   The third section of the keg check. A fixed five-row grid with three
+   steppers each — cases / six-packs / loose bottles — deliberately NOT voice.
+
+   Layout note, learned the hard way from CaseBox: the steppers get their own
+   full-width line under the beer name rather than sharing a flex row with it.
+   Three number controls plus a name do not fit across a 360px phone, and a
+   flex row that "almost" fits is how the ✕ ends up off-screen. */
+.lq-beer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 2px;
+}
+.lq-beer-resumed {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--lq-muted);
+}
+.lq-beer-row {
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: var(--lq-radius);
+  padding: 12px 12px 10px;
+}
+.lq-beer-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.lq-beer-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--lq-text);
+}
+.lq-beer-total {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--lq-muted);
+}
+.lq-beer-total.on {
+  color: var(--lq-glow);
+  font-weight: 700;
+}
+.lq-beer-clear {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: transparent;
+  color: var(--lq-muted);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lq-beer-clear:hover {
+  color: var(--lq-danger);
+  border-color: var(--lq-danger);
+}
+.lq-beer-steppers {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lq-step {
+  flex: 1 1 96px;
+  min-width: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lq-step-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lq-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lq-step-ctl {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--lq-panel-2);
+}
+.lq-step-ctl button {
+  flex: 0 0 40px;
+  min-height: 44px; /* thumb target — this is used one-handed in a cooler */
+  border: 0;
+  background: transparent;
+  color: var(--lq-text);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+.lq-step-ctl button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.lq-step-ctl input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  border-left: 1px solid var(--lq-line);
+  border-right: 1px solid var(--lq-line);
+  background: transparent;
+  color: var(--lq-text);
+  /* 16px minimum or iOS zooms the whole page on focus. */
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 8px 2px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.lq-step-ctl input::-webkit-outer-spin-button,
+.lq-step-ctl input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.lq-step-ctl input:focus {
+  outline: 2px solid var(--lq-glow);
+  outline-offset: -2px;
+}
+.lq-beer-foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 0;
+  font-size: 13.5px;
+  color: var(--lq-text);
+  font-variant-numeric: tabular-nums;
+}
+.lq-beer-save {
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-beer-note {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--lq-muted);
+}
