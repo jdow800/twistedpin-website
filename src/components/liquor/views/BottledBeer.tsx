@@ -273,9 +273,9 @@ export default function BottledBeer({
                   { f: "loose" as const, label: "bottles", disabled: false },
                 ]
               ).map(({ f, label, disabled }) => (
-                <div className="lq-step" key={f}>
-                  <span className="lq-step-label">{label}</span>
-                  <div className="lq-step-ctl">
+                <div className="lq-bstep" key={f}>
+                  <span className="lq-bstep-label">{label}</span>
+                  <div className="lq-bstep-ctl">
                     <button
                       type="button"
                       onClick={() => bump(r.skuId, f, -1)}

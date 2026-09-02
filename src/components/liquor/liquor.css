@@ -1832,14 +1832,24 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-.lq-step {
+/* ⚠ NAMESPACED `-bstep-`, NOT `-step-`. `.lq-step` is already taken, ~1400
+   lines up: the 42x42 +/- button in the liquor count grid. Appending a second
+   `.lq-step` block here won the properties it declared and silently INHERITED
+   the rest — height:42px, a border, a background and font-size:24px — which
+   crushed each label into its own control on a real phone. Same class of bug
+   as the unstyled CaseBox: check whether a class already has OTHER rules, not
+   just whether it has rules. */
+.lq-bstep {
   flex: 1 1 96px;
   min-width: 96px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  /* Explicit: the label sits ABOVE its control and neither is clipped. */
+  height: auto;
+  min-height: 0;
 }
-.lq-step-label {
+.lq-bstep-label {
   font-size: 11px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -1848,7 +1858,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.lq-step-ctl {
+.lq-bstep-ctl {
   display: flex;
   align-items: stretch;
   border: 1px solid var(--lq-line-strong);
@@ -1856,7 +1866,7 @@
   overflow: hidden;
   background: var(--lq-panel-2);
 }
-.lq-step-ctl button {
+.lq-bstep-ctl button {
   flex: 0 0 40px;
   min-height: 44px; /* thumb target — this is used one-handed in a cooler */
   border: 0;
@@ -1866,11 +1876,11 @@
   line-height: 1;
   cursor: pointer;
 }
-.lq-step-ctl button:disabled {
+.lq-bstep-ctl button:disabled {
   opacity: 0.3;
   cursor: default;
 }
-.lq-step-ctl input {
+.lq-bstep-ctl input {
   flex: 1 1 auto;
   width: 100%;
   min-width: 0;
@@ -1887,12 +1897,12 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
-.lq-step-ctl input::-webkit-outer-spin-button,
-.lq-step-ctl input::-webkit-inner-spin-button {
+.lq-bstep-ctl input::-webkit-outer-spin-button,
+.lq-bstep-ctl input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-.lq-step-ctl input:focus {
+.lq-bstep-ctl input:focus {
   outline: 2px solid var(--lq-glow);
   outline-offset: -2px;
 }
