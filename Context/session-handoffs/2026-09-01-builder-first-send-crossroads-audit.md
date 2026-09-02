@@ -85,3 +85,26 @@
 - **TO-DO (Jon, 9/2): readback + pre-payment edits** - (1) "what did I choose?" -> deterministic "your picks" render from the row (slugs humanized, channel-aware), KB rule; (2) "change the beer wall cards to X" on a pending_deposit booking -> new Set Route branch calling the EXISTING `POST /api/avery/edit-booking` (re-prices, capacity re-check, magic link URL byte-identical -> "same link, just refresh it"); scope bar/add-ons/food only, unpaid only, row written before the edit request; today this raises Needs Attention. Rollout review §6d.
 - **Next:** Jon's Missive-label decision for turn two (DONE 9/2 - label rule + prod exclusion in place); the visitor-mode Send on the WF1 clone (`test-builder-visitor.mjs --send`, creates a row on Jon's cell — archive after); a BLOCKED-slot Send (`--date 2026-12-31`) to see the bad-news turn; then the pre-flip plumbing list above. Builder Submit stays pointed at the clone (disarm with `test-builder-send.mjs --disarm` when the window closes).
 
+
+## 2026-09-02 (evening) — The "I just sent it" hold is built (rollout A1 + A2) — clone-staged, prod pending one rehearsal lap
+
+**What Jon asked for (9/1 evening, brief §2.2c):** never "nothing on my end yet"; at most *"Okay, let me check on that."*; a timer; Needs Attention if nothing lands; the guest is never told to resend. Plus rollout A1: the Builder Submit Collision Gate was losing the quote whenever a guest texted inside the 5-minute settle wait.
+
+**Shape of the build (details in `Marketing Avery/n8n/workflows/WF2.changelog.md` and `BuilderSubmit.changelog.md`, 2026-09-02 evening):**
+- Pre-Assemble computes `submission_state` on inbound turns: did a Send land recently (builder vs legacy menu), was it quoted after landing, is THIS message a claim (build / deposit), is the claim pure, is a hold already open.
+- Set Route: claim + nothing landed → the fixed hold line + `claim_hold_*` columns (15 min). Pure claim on a pending build → silence (the builder turn answers). Repeat claim during an open hold → silence, deadline pulled to now. Escalations, bookings, fundraiser and fp-link routes always outrank.
+- Freshness gate: builder turns are never superseded; a hold line is dropped when a message of ours (crossroads, deposit ack) already landed after the claim.
+- Merge New Details writes the hold columns post-send. `Avery - Claim Hold Watcher` (n8n `3Ycte48ZMnNoYdS3`, active, every 5 min) closes holds: landed → quiet; not landed → one Missive note + Needs Attention.
+- Prompt: SUBMISSION IN FLIGHT block (never deny, never quote the build, answer only what else was asked; a changed detail is the one case that quotes). Checks: `receipt_denial` + retry entry.
+- Builder Submit Collision Gate: look-back kept as a log line, the fire always goes out.
+- Columns: `Loyalty/db/076-avery-claim-hold.sql` (applied). Harness `brain/checks/test-claim-hold.mjs` 69/69; all sibling harnesses green.
+
+**State:** WF2 CLONE `1cr3uefJsCvca9S4` at `16d1d1ee` (brain refreshed + patch). PROD WF2 still `117c87fd` (no claim logic yet). Builder Submit reinstalled `d71d8dfe` → re-pointed at the clone `9ad1126a` → fast mode on `3b79e650`. Watcher ACTIVE against the shared DB (zero open holds, so its ticks are no-ops until the rehearsal).
+
+**Rehearsal lap to run (Jon, on the 779 thread, rehearsal routing still in place):**
+1. Text `just sent it` WITHOUT pressing Send → expect *"Okay, let me check on that."* within ~1 min (fast mode) → ~15–20 min later a Needs Attention note on the thread ("says they sent their event build - nothing has landed"). Then remove the NA label.
+2. Press Send on /build and within a minute text `just sent that over` → expect NO reply to the text and the crossroads from the builder turn ~1 min later (fast mode).
+3. Optional: text `did you get it?` after the crossroads → a normal answer pointing at the number.
+Then: `patch-wf2-claim-hold.mjs --yes` + `deploy-n8n.mjs --only WF2 --yes --skip-golden` for prod, drift-check.
+
+**Deliberately not done:** an ordinary question during an open hold is answered normally (only claims are intercepted); count changes on a pending build quote the changed version (two numbers a minute apart beats a broken promise); email-origin claims share the code but were not rehearsed.
