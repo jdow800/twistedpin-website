@@ -8,6 +8,7 @@ import {
   TRADITIONAL_ONLY_FLOOR,
   VIP_ASK_CEILING,
   VIP_THREE_HOUR_FLOOR,
+  VIP_THREE_HOUR_RECOMMENDED_FROM,
   closureFor,
   parseClock,
   parseDateKey,
