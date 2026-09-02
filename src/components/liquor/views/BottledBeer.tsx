@@ -129,12 +129,18 @@ export default function BottledBeer({
 
   function validLines(rs: Row[]): CountLineInput[] {
     if (!zoneId) return [];
-    // A ZERO is a real observation — "we are out of Bud Light" is precisely the
-    // reading that should trigger an order — so a touched row at 0 is sent.
-    // Rows nobody touched are not, because an untouched row means "not counted",
-    // which is a different claim from "none on the shelf".
+    // A ZERO IS A REAL OBSERVATION, and it is the strongest order signal there
+    // is — "we are out of Bud Light" is exactly what should trigger a case.
+    //
+    // The whole beer list is FIVE rows on one screen, so unlike the liquor
+    // count there is no such thing as counting some of it: if anything was
+    // entered, the counter looked at the cooler and the empty rows are empty
+    // shelves. So the moment ANY row has a number, every row is sent, zeros
+    // included. Until then nothing is sent — an untouched section means "not
+    // counted", which is a different claim from "none on the shelf", and the
+    // two must not collapse into each other.
+    if (!rs.some((r) => r.cases > 0 || r.packs > 0 || r.loose > 0)) return [];
     return rs
-      .filter((r) => r.cases > 0 || r.packs > 0 || r.loose > 0)
       .map((r) => ({
         zoneId,
         skuId: r.skuId,
@@ -204,7 +210,10 @@ export default function BottledBeer({
 
   // Hoisted above the early returns — hooks cannot live after a conditional one.
   const total = validLines(rows).reduce((n, l) => n + l.qtyUnits, 0);
-  const touched = validLines(rows).length;
+  // The accordion badge counts beers with an actual NUMBER, not the rows that
+  // will be sent — validLines sends all five (zeros included) the moment one is
+  // filled in, so using its length would flash "5" after the first entry.
+  const touched = rows.filter((r) => r.cases > 0 || r.packs > 0 || r.loose > 0).length;
   useEffect(() => {
     onEmbedState?.({ sessionId, count: touched });
     // eslint-disable-next-line react-hooks/exhaustive-deps
