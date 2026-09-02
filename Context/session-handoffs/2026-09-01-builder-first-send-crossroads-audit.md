@@ -86,7 +86,7 @@
 - **Next:** Jon's Missive-label decision for turn two (DONE 9/2 - label rule + prod exclusion in place); the visitor-mode Send on the WF1 clone (`test-builder-visitor.mjs --send`, creates a row on Jon's cell — archive after); a BLOCKED-slot Send (`--date 2026-12-31`) to see the bad-news turn; then the pre-flip plumbing list above. Builder Submit stays pointed at the clone (disarm with `test-builder-send.mjs --disarm` when the window closes).
 
 
-## 2026-09-02 (evening) — The "I just sent it" hold is built (rollout A1 + A2) — clone-staged, prod pending one rehearsal lap
+## 2026-09-02 (evening) — The "I just sent it" hold is built (rollout A1 + A2) — rehearsed on the clone, LIVE ON PROD WF2 `684ddff0`
 
 **What Jon asked for (9/1 evening, brief §2.2c):** never "nothing on my end yet"; at most *"Great - that should land on my end shortly, I will review and message you back."*; a timer; Needs Attention if nothing lands; the guest is never told to resend. Plus rollout A1: the Builder Submit Collision Gate was losing the quote whenever a guest texted inside the 5-minute settle wait.
 
@@ -99,12 +99,12 @@
 - Builder Submit Collision Gate: look-back kept as a log line, the fire always goes out.
 - Columns: `Loyalty/db/076-avery-claim-hold.sql` (applied). Harness `brain/checks/test-claim-hold.mjs` 69/69; all sibling harnesses green.
 
-**State:** WF2 CLONE `1cr3uefJsCvca9S4` at `16d1d1ee` (brain refreshed + patch). PROD WF2 still `117c87fd` (no claim logic yet). Builder Submit reinstalled `d71d8dfe` → re-pointed at the clone `9ad1126a` → fast mode on `3b79e650`. Watcher ACTIVE against the shared DB (zero open holds, so its ticks are no-ops until the rehearsal).
+**State:** both laps PASSED on the clone (`339e4b54`), then PROD WF2 `117c87fd` -> `47f34f93` (brain: Pre-Assemble, checks, prompts) -> `684ddff0` (patch: Set Route, all three freshness gates, Merge New Details), drift clean. Lap 2 first try exposed that only one of THREE freshness gates (reply / Quote / Escalation) carried the builder exemption - the crossroads was dropped at the Quote twin (exec 25272); fixed on all three before prod. Hold line is now Jon's wording: *"Great - that should land on my end shortly, I will review and message you back."* **Live for real guests today: the deposit-claim hold and legacy-menu "sent it" handling; builder paths unreachable until the flip.** Watcher `3Ycte48ZMnNoYdS3` ACTIVE. Builder Submit reinstalled `d71d8dfe` → re-pointed at the clone `9ad1126a` → fast mode on `3b79e650`. Watcher ACTIVE against the shared DB (zero open holds, so its ticks are no-ops until the rehearsal).
 
-**Rehearsal lap to run (Jon, on the 779 thread, rehearsal routing still in place):**
+**Rehearsal lap (RUN 9/2, both passed; kept as the re-test recipe):**
 1. Text `just sent it` WITHOUT pressing Send → expect *"Great - that should land on my end shortly, I will review and message you back."* within ~1 min (fast mode) → ~15–20 min later a Needs Attention note on the thread ("says they sent their event build - nothing has landed"). Then remove the NA label.
 2. Press Send on /build and within a minute text `just sent that over` → expect NO reply to the text and the crossroads from the builder turn ~1 min later (fast mode).
 3. Optional: text `did you get it?` after the crossroads → a normal answer pointing at the number.
-Then: `patch-wf2-claim-hold.mjs --yes` + `deploy-n8n.mjs --only WF2 --yes --skip-golden` for prod, drift-check.
+Prod deploy done 9/2 ~4:20pm CT (brain deploy + patch + drift-check clean).
 
 **Deliberately not done:** an ordinary question during an open hold is answered normally (only claims are intercepted); count changes on a pending build quote the changed version (two numbers a minute apart beats a broken promise); email-origin claims share the code but were not rehearsed.
