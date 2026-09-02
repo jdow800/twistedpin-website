@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { submitKegCheck } from "../api";
 import CountKegs from "./CountKegs";
 import EmptyKegs from "./EmptyKegs";
+import BottledBeer from "./BottledBeer";
 
 /**
  * Keg check — backups and empties in one pass, one Send, ONE email.
@@ -13,6 +14,12 @@ import EmptyKegs from "./EmptyKegs";
  * goes out silently. Merging at the UI layer removes the problem instead of
  * papering over it with a delayed batch job.
  *
+ * Bottled beer joined as a THIRD half (0162): we only sell it on league
+ * nights, it lives in the walk-in beside the kegs, and it is the same trip.
+ * Unlike the keg halves its rows are real liquor-count lines against real SKUs,
+ * in a session flagged is_full_count = false — so it reaches costs, invoices
+ * and the order guide without ever bracketing a spirits variance period.
+ *
  * Each half keeps its own draft session and autosave (unchanged, and each
  * still resumes independently after a reload). This screen only owns the
  * accordion, the running totals, and the single submit that closes whichever
@@ -23,19 +30,23 @@ import EmptyKegs from "./EmptyKegs";
 type Half = { sessionId: string | null; count: number };
 
 export default function KegCheck({ onDone }: { onDone: () => void }) {
-  const [open, setOpen] = useState<"backups" | "empties" | null>("backups");
+  const [open, setOpen] = useState<"backups" | "empties" | "beer" | null>("backups");
   const [backups, setBackups] = useState<Half>({ sessionId: null, count: 0 });
   const [empties, setEmpties] = useState<Half>({ sessionId: null, count: 0 });
+  const [beer, setBeer] = useState<Half>({ sessionId: null, count: 0 });
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [done, setDone] = useState<{ totalKegs: number; brandCount: number } | null>(null);
+  const [done, setDone] = useState<
+    { totalKegs: number; brandCount: number; totalBottles: number } | null
+  >(null);
 
   // Flush handles the children reassign on every render, so Send always
   // persists what is on screen right now rather than the last autosave tick.
   const flushBackups = useRef<(() => Promise<void>) | null>(null);
   const flushEmpties = useRef<(() => Promise<void>) | null>(null);
+  const flushBeer = useRef<(() => Promise<void>) | null>(null);
 
-  const nothingEntered = backups.count === 0 && empties.count === 0;
+  const nothingEntered = backups.count === 0 && empties.count === 0 && beer.count === 0;
 
   async function send() {
     if (submitting || nothingEntered) return;
@@ -46,13 +57,19 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
       // would otherwise submit as empty and silently lose the trip.
       await flushBackups.current?.();
       await flushEmpties.current?.();
+      await flushBeer.current?.();
       const res = await submitKegCheck({
         // Only send a half that actually has something in it, so an untouched
         // draft is left open rather than closed empty.
         kegCountId: backups.count > 0 ? backups.sessionId : null,
         emptyReportId: empties.count > 0 ? empties.sessionId : null,
+        beerCountId: beer.count > 0 ? beer.sessionId : null,
       });
-      setDone({ totalKegs: res.totalKegs, brandCount: res.brandCount });
+      setDone({
+        totalKegs: res.totalKegs,
+        brandCount: res.brandCount,
+        totalBottles: res.totalBottles,
+      });
     } catch {
       setErr("Couldn't send that — check your connection and try again.");
       setSubmitting(false);
@@ -63,6 +80,9 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
     const parts = [
       done.totalKegs > 0 ? `${done.totalKegs} backup keg${done.totalKegs === 1 ? "" : "s"}` : null,
       done.brandCount > 0 ? `${done.brandCount} brand${done.brandCount === 1 ? "" : "s"} empty` : null,
+      done.totalBottles > 0
+        ? `${done.totalBottles} bottle${done.totalBottles === 1 ? "" : "s"} of beer`
+        : null,
     ].filter(Boolean);
     return (
       <div className="lq-center">
@@ -79,7 +99,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-kegcheck">
       <p className="lq-muted lq-keg-hint">
-        Both halves are optional — fill in whatever you looked at. One email goes out.
+        Every section is optional — fill in whatever you looked at. One email goes out.
       </p>
 
       <section className="lq-kc-section">
@@ -126,11 +146,33 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
         </div>
       </section>
 
+      <section className="lq-kc-section">
+        <button
+          type="button"
+          className="lq-kc-head"
+          aria-expanded={open === "beer"}
+          onClick={() => setOpen(open === "beer" ? null : "beer")}
+        >
+          <span className="lq-kc-caret" aria-hidden="true">{open === "beer" ? "▾" : "▸"}</span>
+          <span className="lq-kc-names">
+            <span className="lq-kc-title">Bottled beer</span>
+            <span className="lq-kc-sub">cases, six-packs, bottles</span>
+          </span>
+          <span className={`lq-kc-badge${beer.count > 0 ? " lq-kc-badge-on" : ""}`}>
+            {beer.count}
+          </span>
+        </button>
+        <div className={open === "beer" ? "lq-kc-body" : "lq-kc-body lq-kc-hidden"}>
+          <BottledBeer embedded onEmbedState={setBeer} embedFlushRef={flushBeer} />
+        </div>
+      </section>
+
       <div className="lq-footer">
         <div className="lq-savestate">{err && <span className="lq-error">{err}</span>}</div>
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">
-            {backups.count} keg{backups.count === 1 ? "" : "s"} · {empties.count} empty
+            {backups.count} keg{backups.count === 1 ? "" : "s"} · {empties.count} empty ·{" "}
+            {beer.count} beer
           </span>
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
             Exit

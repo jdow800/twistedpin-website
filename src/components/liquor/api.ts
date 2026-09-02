@@ -140,6 +140,10 @@ export interface CountLineInput {
   enteredCases?: number;
   /** The multiplier FROZEN at entry — never re-read from the catalog later. */
   caseSizeAtEntry?: number | null;
+  /** The intermediate pack tier — a six-pack of beer, a four-pack of Owen's.
+   *  Same (count x size) shape as the case pair, one rung down. */
+  enteredPacks?: number;
+  packSizeAtEntry?: number | null;
 }
 export interface KegLineInput {
   kegName: string;
@@ -199,6 +203,8 @@ export interface OpenCountLine {
   qtyUnits: string; // numeric → JSON string
   enteredCases: string | null; // numeric → JSON string
   caseSizeAtEntry: number | null;
+  enteredPacks: string | null; // numeric → JSON string
+  packSizeAtEntry: number | null;
   source: "grid" | "voice";
   rawUtterance: string | null;
 }
@@ -208,8 +214,14 @@ export interface OpenCount {
   lines: OpenCountLine[];
 }
 /** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
-export async function getOpenCount(): Promise<OpenCount | null> {
-  const { session } = await gatedJson<{ session: OpenCount | null }>("/admin/bar/counts/open");
+export async function getOpenCount(full = true): Promise<OpenCount | null> {
+  // `full` picks WHICH kind of draft to resume. The liquor count owns full
+  // drafts, the bottled-beer section owns partial ones; without the split one
+  // screen resumes the other screen's draft and a full count lands in a session
+  // the variance worker never reads.
+  const { session } = await gatedJson<{ session: OpenCount | null }>(
+    `/admin/bar/counts/open?full=${full ? "true" : "false"}`,
+  );
   return session;
 }
 /** Replace the draft's lines with exactly these. An EMPTY array is meaningful —
@@ -503,11 +515,14 @@ export async function submitEmptyKegReport(sessionId: string): Promise<number> {
 export async function submitKegCheck(args: {
   kegCountId: string | null;
   emptyReportId: string | null;
-}): Promise<{ totalKegs: number; brandCount: number; emailed: boolean }> {
-  return gatedJson<{ totalKegs: number; brandCount: number; emailed: boolean }>(
-    "/admin/bar/keg-check/submit",
-    jsonBody(args),
-  );
+  beerCountId?: string | null;
+}): Promise<{ totalKegs: number; brandCount: number; totalBottles: number; emailed: boolean }> {
+  return gatedJson<{
+    totalKegs: number;
+    brandCount: number;
+    totalBottles: number;
+    emailed: boolean;
+  }>("/admin/bar/keg-check/submit", jsonBody(args));
 }
 
 export interface EmptyKegVoiceItem {
