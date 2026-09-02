@@ -112,11 +112,14 @@ check("Sat May 2 allowed", !gate("2026-05-02", "15:00"));
 
 console.log("regimes");
 check("10 → four options, VIP 2h default", eq(planFor(10).keys, ["vip_2h", "vip_3h", "trad_2h", "trad_3h"]) && planFor(10).default === "vip_2h");
-check("48 → four options", planFor(48).keys.length === 4);
-check("49 → VIP 3h only", eq(planFor(49).keys, ["vip_3h", "trad_2h", "trad_3h"]) && planFor(49).default === "vip_3h");
-check("49 → 3-hour notice", planFor(49).notices.length === 1);
-check("59 still standard", planFor(59).regime === "standard");
-check("60 → traditional only + ask", planFor(60).regime === "traditional_only" && planFor(60).vip_ask === true);
+// Re-banding 2026-09-02: 3h RECOMMENDED from 43 (never required - all four options priced),
+// VIP to 75 for everyone, traditional-only from 76.
+check("42 → four options, VIP 2h default, no notice", planFor(42).keys.length === 4 && planFor(42).default === "vip_2h" && planFor(42).notices.length === 0);
+check("43 → four options still (2h stays priceable), VIP 3h default", planFor(43).keys.length === 4 && planFor(43).default === "vip_3h");
+check("43 → 3-hour recommendation notice", planFor(43).notices.length === 1 && /recommend/i.test(planFor(43).notices[0]));
+check("60 still standard, VIP priced", planFor(60).regime === "standard" && planFor(60).keys.includes("vip_3h"));
+check("75 still standard, VIP priced", planFor(75).regime === "standard" && planFor(75).keys.includes("vip_2h"));
+check("76 → traditional only + ask", planFor(76).regime === "traditional_only" && planFor(76).vip_ask === true);
 check("80 → ask", planFor(80).vip_ask === true);
 check("85 → no ask", planFor(85).vip_ask === false);
 check("100 → traditional only", eq(planFor(100).keys, ["trad_2h", "trad_3h"]));

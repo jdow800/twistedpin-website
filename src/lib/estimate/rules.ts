@@ -73,11 +73,25 @@ export const ADD_ON_ITEMS: ReadonlySet<string> = new Set([
 
 export const MIN_GUESTS = 10;
 export const MAX_GUESTS = 100;
-/** KB density rule: 49+ in the suite runs 3 hours (vip_2h is not offered). */
+/**
+ * Re-banding (Jon, 2026-09-01/02): 3 hours is RECOMMENDED in the suite from 43
+ * guests, never required — every option is priced at every size; the page
+ * preselects 3h and labels it "Recommended for your group size" (Paste B).
+ */
+export const VIP_THREE_HOUR_RECOMMENDED_FROM = 43;
+/**
+ * LEGACY page key (`rules.vip_3h_floor`): the live page still HIDES 2h from
+ * this count. Frozen at 49 until Zite reads `vip_3h_recommended_from`; do
+ * not lower it — that would make the page require 3h from 43, the opposite
+ * of the ruling. Retire with Paste B.
+ */
 export const VIP_THREE_HOUR_FLOOR = 49;
-/** Jon, 2026-08-30: 60+ estimates run on the traditional lanes only. */
-export const TRADITIONAL_ONLY_FLOOR = 60;
-/** 60–80: VIP chip greyed with "sometimes possible at this size. Ask Avery." */
+/**
+ * Re-banding: the suite prices to 75 for everyone (the page is type-blind;
+ * WF2 sorts company vs non-company at Send). Traditional-only from 76.
+ */
+export const TRADITIONAL_ONLY_FLOOR = 76;
+/** 76–80: VIP chip greyed with "sometimes possible at this size — ask us." */
 export const VIP_ASK_CEILING = 80;
 export const MIN_LEAD_DAYS = 3;
 /** Under 10 days out the total is shown without the word "deposit" (KB short-lead rule). */
@@ -267,7 +281,7 @@ export interface RegimePlan {
 
 export const TRADITIONAL_NOTICE =
   "Estimates at this size run on the traditional lanes. We'll confirm the exact layout — and whether the VIP Suite can be part of it.";
-export const VIP_THREE_HOUR_NOTICE = "Groups this size run 3 hours in the suite.";
+export const VIP_THREE_HOUR_NOTICE = "We recommend 3 hours in the suite for groups this size.";
 
 export function planFor(guests: number): RegimePlan {
   if (guests >= TRADITIONAL_ONLY_FLOOR) {
@@ -279,21 +293,15 @@ export function planFor(guests: number): RegimePlan {
       notices: [TRADITIONAL_NOTICE],
     };
   }
-  if (guests >= VIP_THREE_HOUR_FLOOR) {
-    return {
-      regime: "standard",
-      keys: ["vip_3h", "trad_2h", "trad_3h"],
-      default: "vip_3h",
-      vip_ask: false,
-      notices: [VIP_THREE_HOUR_NOTICE],
-    };
-  }
+  // Standard regime prices all four options at every size (3 hours is never
+  // required); from 43 the suite defaults to 3 hours with the recommendation.
+  const recommendThree = guests >= VIP_THREE_HOUR_RECOMMENDED_FROM;
   return {
     regime: "standard",
     keys: ["vip_2h", "vip_3h", "trad_2h", "trad_3h"],
-    default: "vip_2h",
+    default: recommendThree ? "vip_3h" : "vip_2h",
     vip_ask: false,
-    notices: [],
+    notices: recommendThree ? [VIP_THREE_HOUR_NOTICE] : [],
   };
 }
 

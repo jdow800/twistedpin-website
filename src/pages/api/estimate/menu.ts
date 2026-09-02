@@ -132,8 +132,13 @@ export const GET: APIRoute = async ({ request, url }) => {
       //   vip_3h_floor    - from this count the 3-hour option is the default/suggested
       //   trad_only_floor - from this count the VIP tile greys and Traditional is selected
       //   vip_ceiling     - above this count the VIP tile is hidden entirely
+      //   vip_3h_recommended_from (2026-09-02, re-banding) - from this count 3h is
+      //                     PRESELECTED + labelled "Recommended for your group size";
+      //                     2h stays selectable. Replaces vip_3h_floor once the page
+      //                     reads it (Paste B); vip_3h_floor is frozen at 49 until then.
       rules: {
         vip_3h_floor: VIP_THREE_HOUR_FLOOR,
+        vip_3h_recommended_from: VIP_THREE_HOUR_RECOMMENDED_FROM,
         trad_only_floor: TRADITIONAL_ONLY_FLOOR,
         vip_ceiling: VIP_ASK_CEILING,
       },
