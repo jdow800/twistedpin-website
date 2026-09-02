@@ -108,3 +108,13 @@
 Prod deploy done 9/2 ~4:20pm CT (brain deploy + patch + drift-check clean).
 
 **Deliberately not done:** an ordinary question during an open hold is answered normally (only claims are intercepted); count changes on a pending build quote the changed version (two numbers a minute apart beats a broken promise); email-origin claims share the code but were not rehearsed.
+
+## 2026-09-02 (late evening) — First touch redesigned for the builder world: open-ended OFFER in WF1, link on WF2's first reply turn — BUILT, GATED, inert on prod
+
+**Jon's rulings tonight:** the Zite event form goes back to type + name + phone + guest count + notes (date and time-of-day removed); WF1 is the Zite landing workflow and NEVER sends the build link; the first touch is a fallback offer that invites a reply (*"...If you'd like, I can send over menu options and pricing for you to put together and review. Let me know."*); WF2 delivers the builder link after the guest answers; "build" is banned to guests ("your event submission").
+
+**Built (all behind constants that are OFF - prod behaves as today):** WF1 `builder_opener` (Clean and Flag + OPENER MODE prompt + Parse and Check enforcement/exemptions via the new mirror-aware patch script); WF2 `builder_link` (Pre-Assemble gate + prompt block with `builder_link_hold` + Set Route append + links_sent_food stamp); `brain/config/gates.json` "event_builder_switch" lists every constant; KB draft Section 6 + 21.8 rewritten; harness `test-builder-link-turn.mjs` 51/51. Versions: WF1 prod 6400aa81 / clone 4c224449; WF2 prod 35978960 / clone 2552c87f; drift clean. Details: WF1.changelog + WF2.changelog 2026-09-02 evening entries; memory `avery-builder-first-touch-opener`.
+
+**Decisions I made that Jon should confirm:** the opener says "menu options and pricing" (his draft said "menu information and other details" - the number is the lever); a question-reply still gets the link on that same turn; a conversational quote on the link turn is dropped in favor of the page; nudges never carry the link. **Not built:** Engagement Nudge variants for offer-no-reply and link-no-Send; the Zite form change; the /b/ short routes (Zite); Paste B.
+
+**Rehearsal recipe for this piece (clones):** flip the two constants in git, `rehearsal-clones.mjs refresh-brain`, inject an inquiry into the WF1 clone (form webhook c2da1ed0-…) with Jon's phone and no date, expect the offer; reply "sure" on the 779 thread, expect an answer + the /build?eid= link; press Send, expect the crossroads. Flip the constants back before any prod deploy (drift-check will flag them otherwise).
