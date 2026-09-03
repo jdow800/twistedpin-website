@@ -150,3 +150,8 @@ A builder Send that comes in at 75% of the count on file or less, and at least 5
 ## 9/3 addendum 6 - a Claude outage on a builder Send has a way back
 
 Congruence audit #3 closed. WF2's `Queue API Failure` no longer reads the Missive webhook unconditionally (that crashed the producer on every menu/builder/EN-shaped run, so a builder Send hitting API exhaustion wrote no pending row and died into one Gmail). It now finds whichever entry webhook executed, records its path in `avery_pending_response.origin_path` (Loyalty/db/078, applied), and "Avery — API Replay Queue" POSTs the payload back to that path - legacy NULL rows replay to the Missive webhook exactly as before, and rehearsal-clone rows carry the clone's own `rh-*` paths. Installer `brain/deploy/patch-api-failure-replay-routing.mjs`, harness 12/12; WF2 prod `cdc06183`, clone `63ac46f5`, replay queue `9131c24e`.
+
+
+## 9/3 addendum 7 - metrics can see builder turns; the pre-flip build list is closed
+
+`avery_metrics_buffer.trigger_type` (Loyalty/db/079) is stamped by WF2's three metrics nodes (`inbound_message` / `menu_submission` / `builder_submission` / `en_nudge`), prod `e9a48a93` + clone. Format Quote is not canary-watched (three snippet installers own it); the flip preflight now runs the crossroads installer's dry run and refuses to flip unless the live render matches git. With this, every build item from the 9/2 "what is left" list is done: Engagement Nudge variants, flip runbook (rehearsed), headcount-shrink check (own turn), Queue API Failure replay, metrics label. Remaining before `--go`: Zite's build (Paste 1 published, Paste 2 held), the joint window (visitor path + linked re-run on the clones), the Missive rule exception and Zite form release at the flip.
