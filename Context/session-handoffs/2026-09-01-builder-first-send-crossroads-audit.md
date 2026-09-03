@@ -145,3 +145,8 @@ A builder Send that comes in at 75% of the count on file or less, and at least 5
 
 
 **Addendum 5, revised the same night:** Jon read the one-turn render and ruled the count question is its OWN message ("she separates these conversations"), in his wording: *"Got your event submission! This sounds like an awesome event. / Question - the inquiry originally landed at 40, and the submission is for 20. How many guests do you plan to actually attend? We count everyone attending, bowling or not - so we can provide proper amount of space, seating and food."* The crossroads paragraph was reverted; the model now writes that turn (prompt lane e, `builder_decline: "count_check"`), the forced-quote rule stands down on a flagged shrink, and `builder_count_check_missing` (both check nodes + a retry entry) holds the shape: both numbers, a question, no dollar figure, no link, no quote. The quote follows on the guest's answer. Prod brain `fe621314`, clone in step, harness 217.
+
+
+## 9/3 addendum 6 - a Claude outage on a builder Send has a way back
+
+Congruence audit #3 closed. WF2's `Queue API Failure` no longer reads the Missive webhook unconditionally (that crashed the producer on every menu/builder/EN-shaped run, so a builder Send hitting API exhaustion wrote no pending row and died into one Gmail). It now finds whichever entry webhook executed, records its path in `avery_pending_response.origin_path` (Loyalty/db/078, applied), and "Avery — API Replay Queue" POSTs the payload back to that path - legacy NULL rows replay to the Missive webhook exactly as before, and rehearsal-clone rows carry the clone's own `rh-*` paths. Installer `brain/deploy/patch-api-failure-replay-routing.mjs`, harness 12/12; WF2 prod `cdc06183`, clone `63ac46f5`, replay queue `9131c24e`.
