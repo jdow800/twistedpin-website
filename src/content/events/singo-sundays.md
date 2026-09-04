@@ -47,11 +47,14 @@ validFrom: 2026-09-04T00:00:00-05:00
 # the flyer's background rather than cropping off the headline or the
 # Twisted Pin logo (see the SOURCES note in scripts/build-snap-images.mjs).
 image: /snap/event-singo-810.jpg
-#
-# No `cta` yet. A free walk-in night should have no CTA unless
-# there's somewhere real to send people — the host's Facebook event would
-# be that (karaoke-thursdays.md does this). Add `cta: { label: See it on
-# Facebook, href: ... }` once Jon supplies the post's /share/ link.
+# The Facebook event — Tone Bar Games created it on their page and Twisted
+# Pin is an accepted co-host, so it also lists under our page's Events.
+# Supplied by Jon 2026-09-04. Facebook login-walls automated fetches, so
+# this URL cannot be verified from CI; it takes a human with the page open.
+# It's a /share/ redirect wrapper — if it ever dies, this is the line.
+cta:
+  label: See it on Facebook
+  href: https://www.facebook.com/share/19PSw9ADn9/
 ---
 
 Music bingo every Sunday night, hosted by Tone Bar Games. The caller plays
