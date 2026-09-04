@@ -207,3 +207,27 @@ close at `submitted_at`. Anything uploaded after a count is submitted credits
 the following period, which is correct for scan-lag but wrong for a backfill
 of a delivery the count already saw. Symptom: a consumable with one row of
 history showing used == purchased. Fix is the cell, not the code.
+
+**Paste #1 landed (Jon, ~5pm) and exposed trap 10 — then a SECOND paste is
+owed.** Live re-fetch after the paste: El Jimador gone from could-add (correct)
+but **Maschio Prosecco moved 5.61 → 4.55 wk with no data change** (audits 61 →
+50, days 595 → 483). Cause: the first-cut merge re-keyed EVERY sheet row by
+(sku, audit_end) and SUMMED collisions. The 8/22 rename reunified families
+that had two rows per audit, and `computeWoS_` already handles those
+(used and days both summed = same burn); collapsing them keeps used but
+maxes days → burn inflates. **Fixed: the merge now folds only MOVED rows into
+the successor's own same-window row and touches nothing else; two original
+rows are never summed.** Test gained three regression cases (14 green).
+**⚠ Jon must paste Code.gs AGAIN (~1089 lines).** Until then Prosecco and
+any other double-row SKU read slightly hot.
+
+**Trap 10 — never "normalize" the whole velocity sheet inside a feature.**
+Duplicate rows per window are a known, handled shape. A merge that is meant
+for one family must be scoped to that family's rows.
+
+**Wk Burn column on COULD ADD (Jon: "helps me figure out how much").**
+`Format Email` in `TP Order Guide — Weekly` renders the planning burn (oz/wk
++ btl/wk) in the ride-along table too, same recipe as ORDER NOW. Deployed via
+`patch-guide-could-burn.mjs` (sanitized full PUT; offline render check
+against the live payload first, 9 burn cells = 9 rows). Rollback: versionId
+`60ace5bd` → `5387efba`.
