@@ -303,7 +303,12 @@ export interface PrecheckFinding {
     | "sibling_swap"
     | "big_loss"
     | "beer_not_counted"
-    | "batch_not_counted";
+    | "batch_not_counted"
+    /** Deliveries landed this period and the SKU has no count line at all,
+     *  ever. The invoice gives it standing (a never-counted SKU with no
+     *  invoice stays silent). How a newly tracked consumable gets its first
+     *  count instead of staying dark (2026-09-04, Boylan). */
+    | "purchased_not_counted";
   skuId: string;
   name: string;
   counted: number | null;

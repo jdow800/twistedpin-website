@@ -1335,6 +1335,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "big_loss" && "Sales math says more should be left than this count found. If the shelf was walked and it's really gone, submit — it lands on the grade as loss. If a spot got skipped (backstock? the cooler?), count it now."}
                       {f.kind === "beer_not_counted" && "Bottled beer is counted on the keg check, not here. Without it the beer report has nothing to bracket and the order guide flies blind — league nights are the whole season for it."}
                       {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
+                      {f.kind === "purchased_not_counted" && "This came in on an invoice this period and has never been counted. Count it now — even a zero — so its velocity starts and the order guide can see it."}
                     </span>
                     {/* The ONLY finding with a one-tap remedy, because it is
                         the only one where the honest answer is often simply
