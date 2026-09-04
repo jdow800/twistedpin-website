@@ -23,22 +23,43 @@ const EID_RE = /^E-\d{7}$/;
 const OPTION_RE = /^(vip|trad)[23]$/;
 const CALC_NOTE_WEBHOOK = "https://n8n.twistedpin.com/webhook/builder-calc-note";
 
-export const OPTIONS: APIRoute = () => new Response(null, { status: 204, headers: corsHeaders() });
+/**
+ * CREDENTIALED CORS (2026-09-04, found live): `navigator.sendBeacon` sends cookies, and a browser refuses a
+ * credentialed cross-origin response that carries `Access-Control-Allow-Origin: *` - the preflight passed
+ * and the POST never left the browser. So this route echoes the (allowlisted) origin and allows credentials,
+ * instead of the wildcard the cached GET route uses. `Vary: Origin` keeps any intermediary honest.
+ */
+function beaconCors(origin: string | null): Record<string, string> {
+  const h = { ...corsHeaders(), "Access-Control-Allow-Methods": "POST, OPTIONS" };
+  if (origin) {
+    h["Access-Control-Allow-Origin"] = origin;
+    h["Access-Control-Allow-Credentials"] = "true";
+    h["Vary"] = "Origin";
+  }
+  return h;
+}
+
+export const OPTIONS: APIRoute = ({ request }) => {
+  const origin = request.headers.get("origin");
+  const ok = originAllowed(origin, parseAllowedOrigins(import.meta.env.ESTIMATE_ALLOWED_ORIGINS));
+  return new Response(null, { status: ok ? 204 : 403, headers: ok ? beaconCors(origin) : corsHeaders() });
+};
 
 export const POST: APIRoute = async ({ request }) => {
   const origin = request.headers.get("origin");
   if (!originAllowed(origin, parseAllowedOrigins(import.meta.env.ESTIMATE_ALLOWED_ORIGINS))) {
     return jsonResponse({ ok: false, code: "forbidden" }, 403, CACHE_NONE);
   }
+  const cors = beaconCors(origin);
   const ip = clientIp(request);
-  if (rateLimited(ip)) return jsonResponse({ ok: false, code: "rate_limited" }, 429, CACHE_NONE);
+  if (rateLimited(ip)) return jsonResponse({ ok: false, code: "rate_limited" }, 429, CACHE_NONE, cors);
 
   let body: any = null;
   try { body = await request.json(); } catch { body = null; }
-  if (!body || typeof body !== "object") return jsonResponse({ ok: false, code: "invalid" }, 200, CACHE_NONE);
+  if (!body || typeof body !== "object") return jsonResponse({ ok: false, code: "invalid" }, 200, CACHE_NONE, cors);
 
   const eid = typeof body.eid === "string" ? body.eid.trim() : "";
-  if (!EID_RE.test(eid)) return jsonResponse({ ok: false, code: "invalid" }, 200, CACHE_NONE);
+  if (!EID_RE.test(eid)) return jsonResponse({ ok: false, code: "invalid" }, 200, CACHE_NONE, cors);
   const tier = body.tier === "es" || body.tier === "el" ? body.tier : null;
   const option = typeof body.option === "string" && OPTION_RE.test(body.option) ? body.option : null;
   const total = numOrNull(body.total);
@@ -48,7 +69,7 @@ export const POST: APIRoute = async ({ request }) => {
   const cfg = storeConfig();
   if (!cfg) {
     console.error("[estimate/track] SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set");
-    return jsonResponse({ ok: false, code: "not_configured" }, 200, CACHE_NONE);
+    return jsonResponse({ ok: false, code: "not_configured" }, 200, CACHE_NONE, cors);
   }
 
   let count = -1;
@@ -69,14 +90,14 @@ export const POST: APIRoute = async ({ request }) => {
     });
     if (!res.ok) {
       console.error("[estimate/track] rpc failed", res.status, (await res.text()).slice(0, 300));
-      return jsonResponse({ ok: false, code: "store_failed" }, 200, CACHE_NONE);
+      return jsonResponse({ ok: false, code: "store_failed" }, 200, CACHE_NONE, cors);
     }
     count = Number(await res.json());
   } catch (err) {
     console.error("[estimate/track] rpc error", err);
-    return jsonResponse({ ok: false, code: "store_failed" }, 200, CACHE_NONE);
+    return jsonResponse({ ok: false, code: "store_failed" }, 200, CACHE_NONE, cors);
   }
-  if (count < 1) return jsonResponse({ ok: false, code: "unknown_eid" }, 200, CACHE_NONE);
+  if (count < 1) return jsonResponse({ ok: false, code: "unknown_eid" }, 200, CACHE_NONE, cors);
 
   // First press only: n8n reads the stored row and posts the one Missive note.
   // Best-effort with a short timeout; the log row is the record, the note is a convenience.
@@ -92,7 +113,7 @@ export const POST: APIRoute = async ({ request }) => {
       console.warn("[estimate/track] calc-note webhook failed", err);
     }
   }
-  return jsonResponse({ ok: true, count }, 200, CACHE_NONE);
+  return jsonResponse({ ok: true, count }, 200, CACHE_NONE, cors);
 };
 
 function numOrNull(v: unknown): number | null {
