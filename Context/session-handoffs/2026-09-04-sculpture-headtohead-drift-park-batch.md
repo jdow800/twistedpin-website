@@ -267,3 +267,62 @@ against the live payload first, 9 burn cells = 9 rows). Rollback: versionId
   Prosecco).
 - Burn answers given: DJ Blanco 10.5 oz/wk planning (0.31 btl), Casamigos
   Repo 19.7 oz/wk (0.58 btl, 2× its lifetime).
+
+---
+
+## QA pass (end of day) — two reviewers over every diff + live infra checks
+
+**Infra: clean.** Render live, /health 200, only errors in 5h = the Stripe
+webhook's designed retry race (both payments settled seconds later). Ledger
+164 = journal 164. Both batches seeded (5 components each), 0 batch counts
+(expected). n8n feeder + guide validate clean, Limit node wired, Saturday cron
+off, exec trigger wired. Sheet cells J5055=0 and F5090=Southern read back.
+Finalize log line matches the email (16 parked / 0 persistent / 96.5%).
+
+**Confirmed and FIXED:**
+1. **`purchased_not_counted` fired per beer brand (tprs #164).** Beer lives only
+   in keg-check partial sessions, so in a full count its start is always null;
+   any beer invoice in the period tripped the finding per brand with a false
+   "never counted", and the remedy (a line in the full count) would satisfy
+   the `beer_not_counted` gate and silence the nudge that is right. Now
+   skips `beverage_class='beer'`. Reachable in prod (168 units, 3 brands,
+   invoiced 9/3) — it didn't fire today only because that invoice fell in the
+   prior bracket.
+2. **Code.gs orphan-host bug.** A moved row with no successor host joined
+   `kept` and then HOSTED the next moved row for the same window → two
+   original replaced-SKU rows in one window summed (used doubled, +50% burn).
+   Trap 10 on the other side. Hosts are now a snapshot of `kept` taken before
+   the fold; test 15/15. **⚠ Third paste owed (Code.gs ~1093 lines).** Latent,
+   not live: El Jimador / Owen's were never renamed, so no duplicate-window
+   rows are expected for them today.
+3. **Dead button (Website `c17cc9b`).** "No batch bottles" rendered even when
+   the batch list failed to load, and the handler no-ops on an empty list.
+   Hidden when `batches.length === 0`.
+
+**Plausible, NOT fixed (watch list):**
+- Batch entry is zone-keyed in the UI but venue-summed on the server; a
+  counter re-typing the same prep bottle in a second zone doubles it. Header
+  wording is the only guard. Fix if it happens once: show other zones' totals.
+- Mirror-yield can un-park a tick on a walk-in FOUND line in the same class,
+  and greedy pairing can leave a rescued tick graded but unpaired. Both err
+  toward a LOWER grade, never inflation.
+- Persistence check is silently off when counts are ≥30 days apart (anchor ==
+  prior). Fail-open by design; monthly cadence never flags persistence.
+- Manual finalize now runs the 30-day GoTab pull synchronously (~45-60s);
+  no Fastify timeout set, Render proxy tolerance unverified. Background sweep
+  is unaffected.
+- Both-ends gate counts JOINED rows (active batch+component+sku); the precheck
+  counts RAW `bar_batch_count` rows. A session whose only rows point at a
+  later-deactivated batch passes the check but the bracket refuses to expand.
+- First ~2 emails: the emailed fortnight/trailing grade gets no batch credit
+  until the ANCHOR session has batch rows, while the frozen bracket does.
+- `batchBottleEquivalents`' both-ends refusal has no DB test; only the pure
+  expansion is tested. `PUT /counts/:id/batches` with a bad zone/batch id →
+  FK 500 not 4xx.
+- Code.gs: `String(audit_end)` key won't fold a Date against a string (uniform
+  today); canon = latest successor row (brittle if a second "jose cuervo
+  tradicional" variant appears); a Script Property `REPLACEMENTS` without
+  `successor` would silently disable inheritance (SETUP.md still documents
+  the 2-field shape); successor substrings are name-fragile ("5oz").
+- 14 stale draft count sessions (July tests + Sept 2 partials). Harmless.
+- A typed batch value > 99 fails submit with no message (server cap).
