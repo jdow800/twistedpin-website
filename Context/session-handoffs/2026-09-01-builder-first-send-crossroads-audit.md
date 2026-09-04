@@ -180,3 +180,22 @@ Zite published Paste 1 (bundle `index-BBz4Z94R.js`), Jon removed the Missive reh
 ## 2026-09-04 09:11-09:50 CT - first LIVE thread, and what it taught
 
 Jon's own inquiry through the new five-field form: opener 09:11 (exec 26666, the exact approved text) -> "Sure" -> link turn 09:17 (`/b/el/E-0976401`) -> Send 09:19 (Builder Submit 26679) -> WF2 builder turn 26681 -> crossroads quote 09:28 (~$2,025 / $1,015). Checks clean, quote pinned. Three fixes came out of reading it: (1) Jon: the opener should be ONE SMS segment - now "Got your inquiry for the company event. Want me to send over our menu and pricing to look through?" (<=146 chars for any realistic name); (2) 8-10 minutes from Send to quote was too long - Builder Submit's collision wait is 60s (was 5 min) and WF2's humanize wait on builder turns is 45-90s SMS (`patch-wf2-builder-pacing.mjs`), so a Send is answered in ~2-3 minutes; (3) two latent defects: `_prior` in Builder Submit read the parsed BUILD instead of the pre-build row (null count - the count check could never fire live; fixed), and the TPRS availability call hit its 15s timeout on the morning's cold path (now 30s). Memory [[feedback-avery-sms-delays-fine]] refined.
+
+
+## 2026-09-04 10:00-13:30 CT - first live day: nine fixes from Jon reading real threads (all LIVE, Marketing Avery)
+
+Order matters less than the shape: every one of these came from Jon reading a real reply and saying what a guest would feel. Commits `86edac7` -> `b8ba504` in marketing-avery; each has a WF1/WF2.changelog entry with the exec id.
+
+1. **Missive routing (ops):** Jon's replies had been going to the REHEARSAL clone via the "SMS (SIGNAL WIRE) Webhook to n8n (build build)" rule (webhook `bea7ff61-...`); while hunting for it he switched OFF the real rule "SMS (SIGNAL WIRE) Webhook to n8n" (`751509cc-...` -> `cf8f5d3c-...`). Both fixed by hand (real rule ON, From-exception removed, rehearsal rule deleted). No guest text was lost in the gap (no executions either side).
+2. **Blocked-slot beat stands down once the guest MOVED OFF THE TIME** (validator-forced defect #16, clone exec 26694).
+3. **Opener v4:** EMAIL gets Jon's paragraph version ("This is Avery...", "your company event", hype line, "Thanks,"); Parse and Check's sign-off stripper skips enforced texts; harness reads the Parse and Check MIRROR.
+4. **SMS-vs-email audit (Sonnet):** kids lane-first email variant; fundraiser chase email greeting line; Format Quote + Nudge greeting guard ported (Eric Stoudt "Hi Stoudt," pattern was still live on the QUOTE email).
+5. **Availability gate PROBES the time the guest just named** (`tprs_probe_time`, exec 26707) + `availability_check_offered` (ungated) + `builder_word_leak` verb form on every turn.
+6. **The AVAILABLE calendar line names the time from the READ's key** (exec 26847 silent-escalated a correctly-checked 7:30pm because the line printed the start on file). Lesson: every consumer of the read anchors on the KEY, never the row.
+7. **A restated price says what it covers** (`restated_price_scope_missing`, WHAT THE NUMBER COVERS prompt rule).
+8. **SMS reflow:** two sentences per block, blank line between, segment-safe, in the three SMS builders + SHAPE prompt rule.
+9. **Re-quotes render compact** (two paragraphs, includes clause; no Budget estimate block) when a quote is already on file.
+
+**Verified live on Jon's thread at 11:49:** "Actually can we do 7:45pm?" -> "Yes! 7:45pm on Sat, Sept 26 is open in the VIP suite. So 7:45-9:45pm, 2 hours with the Twisted Italiano and the meat and cheese board, about $1,725 ($865 deposit). Want me to send the payment link over? It stays active for 48 hours." (probe + scope rule, before the reflow shipped).
+
+**Open / for Jon:** whether ordinary model-written EMAILS should close with "Thanks," (today they end on the last sentence + signature block, by a deliberate prompt rule; the two fixed first-touch texts now carry "Thanks,"). Robin Bartoli (80-guest holiday party, email) is the first stranger on the opener - her Send lands on the over-75 company path, worth a look. Rehearsal clones still ACTIVE (`rehearsal-clones.mjs deactivate` when the watch is over).
