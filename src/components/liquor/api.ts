@@ -288,7 +288,12 @@ export interface PrecheckFinding {
    *  no prior full-count line, and the never-counted gate keeps first_count
    *  quiet. On 2026-09-04, 168 bottles arrived and none were counted, and
    *  nothing said so. Fires once for the category, only when beer is
-   *  demonstrably stocked and was missed on EVERY session this period. */
+   *  demonstrably stocked and was missed on EVERY session this period.
+   *  batch_not_counted = nobody walked the prep shelf. Unlike every other
+   *  finding this cannot be inferred after the fact: the server refuses to
+   *  expand a bracket unless BOTH ends carry batch rows, so the period goes
+   *  silently un-correctable rather than wrong-and-visible. Fires on ABSENCE
+   *  of rows, never on a zero — a zero IS the answer. */
   kind:
     | "impossible"
     | "not_counted"
@@ -297,7 +302,8 @@ export interface PrecheckFinding {
     | "first_count"
     | "sibling_swap"
     | "big_loss"
-    | "beer_not_counted";
+    | "beer_not_counted"
+    | "batch_not_counted";
   skuId: string;
   name: string;
   counted: number | null;

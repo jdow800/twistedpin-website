@@ -1111,6 +1111,16 @@
   line-height: 1.4;
   color: var(--lq-muted);
 }
+/* The one-tap remedy on a batch_not_counted finding. Full-width and
+   inside the row so it reads as the answer to THAT question rather than a
+   dialog-level action — tapping it makes a claim ("none anywhere"), and it
+   must never sit close enough to the footer to be mistaken for Submit. */
+.lq-precheck-action {
+  align-self: stretch;
+  margin-top: 8px;
+  min-height: 40px;
+  font-size: 14px;
+}
 .lq-precheck-more {
   margin: 0;
   font-size: 13px;

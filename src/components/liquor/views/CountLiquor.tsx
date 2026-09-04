@@ -786,6 +786,28 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     void finish();
   }
 
+  /** "There are no batch bottles right now." Writes an explicit ZERO for every
+   *  active batch, which is a different thing from leaving them blank: zero
+   *  means the shelf was walked and found empty, blank means nobody looked,
+   *  and the server refuses to expand a bracket built on the latter.
+   *
+   *  Re-runs the whole pre-submit check rather than just closing — the answer
+   *  should be re-verified by the same code that raised the question, and any
+   *  OTHER finding in the dialog has to survive. The ref is updated alongside
+   *  state because tryFinish flushes from the REF and React has not re-rendered
+   *  yet at that point. */
+  async function recordNoBatches() {
+    if (!zoneId || batches.length === 0) return;
+    const zeros = Object.fromEntries(batches.map((b) => [b.id, 0]));
+    setBatchCounts((prev) => ({ ...prev, [zoneId]: { ...(prev[zoneId] ?? {}), ...zeros } }));
+    batchCountsRef.current = {
+      ...batchCountsRef.current,
+      [zoneId]: { ...(batchCountsRef.current[zoneId] ?? {}), ...zeros },
+    };
+    setConfirmSubmit(null);
+    await tryFinish();
+  }
+
   async function finish() {
     setConfirmSubmit(null);
     if (!sessionId || submitting) return;
@@ -1312,7 +1334,28 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "sibling_swap" && "Two variants of the same brand, off in opposite directions — worth a glance at the labels. If each bottle really is what it says, submit as-is."}
                       {f.kind === "big_loss" && "Sales math says more should be left than this count found. If the shelf was walked and it's really gone, submit — it lands on the grade as loss. If a spot got skipped (backstock? the cooler?), count it now."}
                       {f.kind === "beer_not_counted" && "Bottled beer is counted on the keg check, not here. Without it the beer report has nothing to bracket and the order guide flies blind — league nights are the whole season for it."}
+                      {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
                     </span>
+                    {/* The ONLY finding with a one-tap remedy, because it is
+                        the only one where the honest answer is often simply
+                        "none" and the counter would otherwise have to leave the
+                        dialog, find the section and type two zeros. Every other
+                        finding needs a judgement he can only make at the shelf.
+
+                        Zone is bookkeeping here — the server sums batch rows
+                        across zones — so this writes the zeros into whichever
+                        zone he is on, and the label says plainly that it is a
+                        claim about the whole venue, not this shelf. */}
+                    {f.kind === "batch_not_counted" && (
+                      <button
+                        type="button"
+                        className="lq-btn lq-btn-ghost lq-precheck-action"
+                        disabled={checking || submitting}
+                        onClick={() => void recordNoBatches()}
+                      >
+                        No batch bottles anywhere right now — record zero
+                      </button>
+                    )}
                   </div>
                 ))}
                 {confirmSubmit.truncated > 0 && (
