@@ -55,7 +55,9 @@ export function originAllowed(origin: string | null, extra: readonly string[] = 
 export function corsHeaders(): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    // POST added 2026-09-04: the Calculate beacon (POST /api/estimate/track/) preflights, and a preflight that omits
+    // POST is refused by the browser - the beacon then drops silently (curl never preflights, so the live test passed).
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
   };
