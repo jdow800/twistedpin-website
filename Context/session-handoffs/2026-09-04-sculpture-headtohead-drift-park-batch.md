@@ -231,3 +231,39 @@ for one family must be scoped to that family's rows.
 `patch-guide-could-burn.mjs` (sanitized full PUT; offline render check
 against the live payload first, 9 burn cells = 9 rows). Rollback: versionId
 `60ace5bd` → `5387efba`.
+
+---
+
+## Evening — Boylan tracked, `purchased_not_counted`, Prosecco vendor, the 9/9 cart
+
+- **Boylan Black Cherry is now a WebstaurantStore item** (Jon; portal item 103BK0125,
+  12 oz, 24/cs, $37.49 → $1.56/btl; last bought there Jun 21). bar_sku: vendor,
+  cost, 24/cs, aliases carrying the invoice line text. It was the only Boylan and
+  the only Heartland SKU; zero Heartland invoices and ZERO count lines ever — every
+  Boylan number the guide showed was Sculpture history (their 34 vs our 14 = an
+  unrecorded delivery). Its Sculpture rows are in UNITS, ours will be OUNCES;
+  the first count's row reads negative (no prior) and the 56-day window flushes
+  the old rows by late October. Not worth a 40-row sheet edit.
+- **New precheck finding `purchased_not_counted` (tprs #162, Website `1004c46`):**
+  never counted before + in-window purchase + no line this session. The
+  never-counted gate had this exact shape silent (first_count needs a line).
+  The invoice gives it standing; no invoice = still silent. This is the
+  mechanism by which "start tracking X" actually happens: order it, the crawler
+  books the invoice, the GM's next submit asks for the count. Fires for Boylan
+  and the Fever-Tree tonic on their first delivery. **#162 merged with "no
+  checks reported" — typecheck green locally, vitest not run on it.**
+- **Maschio Prosecco → Breakthru** (reverses 8/22). The June invoice was
+  genuinely Southern; Jon buys it from Breakthru now at the same $2.50 deal.
+  bar_sku + sheet row 5090 col F patched, live engine confirms. Side-find:
+  bar_vendor has two Southern rows ("SOUTHERN GLAZER'S OF IL" from invoice
+  text + the canonical one). Not fixed.
+- **Cart review (Breakthru, delivers 9/9):** every line matched the burn data
+  except **Captain Morgan at 3 cases = 56–117 weeks** (one case advised; check
+  whether Diageo "Mix and Match" lets the DJ cases hit the tier). **Two size
+  mismatches**: cart has Captain 750 (we count a 1L) and Tanqueray 1L (we
+  count a 750) — Jon to switch sizes or ask for new-size SKUs before 9/9,
+  else the next count misreads those bottles by a third. Bartender's list
+  scored 4 right / 7 not needed / 4 missed (Baileys, Casamigos Repo, Zacapa,
+  Prosecco).
+- Burn answers given: DJ Blanco 10.5 oz/wk planning (0.31 btl), Casamigos
+  Repo 19.7 oz/wk (0.58 btl, 2× its lifetime).
