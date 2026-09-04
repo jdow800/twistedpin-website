@@ -208,10 +208,44 @@ export interface OpenCountLine {
   source: "grid" | "voice";
   rawUtterance: string | null;
 }
+export interface OpenCountBatch {
+  zoneId: string;
+  batchId: string;
+  fullEquivalents: string; // numeric → JSON string
+}
 export interface OpenCount {
   id: string;
   startedAt: string;
   lines: OpenCountLine[];
+  /** Batch rows resume alongside the lines — a draft that came back without
+   *  them would look like nobody walked the prep shelf, and the next save
+   *  (authoritative, not a patch) would erase them for real. */
+  batches?: OpenCountBatch[];
+}
+/** A named prep batch and what ONE FULL container holds. */
+export interface BarBatchItem {
+  id: string;
+  name: string;
+  notes: string | null;
+  components: { skuId: string; skuName: string; oz: number }[];
+}
+export async function getBatches(): Promise<BarBatchItem[]> {
+  const { batches } = await gatedJson<{ batches: BarBatchItem[] }>("/admin/bar/batches");
+  return batches;
+}
+/** Replace the draft's batch rows with exactly these.
+ *
+ *  A ZERO is a real answer and must be sent — "we looked, there are none" is
+ *  what makes a bracket symmetric, and the server refuses to expand a bracket
+ *  where either end has no rows at all. An EMPTY ARRAY therefore means
+ *  something different from a list of zeros: it means nobody walked the prep
+ *  shelf. Only the counter can say which he means, so the screen sends a row
+ *  for every batch he has touched and nothing for the ones he has not. */
+export async function saveBatchCounts(
+  sessionId: string,
+  batches: { zoneId: string; batchId: string; fullEquivalents: number }[],
+): Promise<void> {
+  await gatedJson(`/admin/bar/counts/${sessionId}/batches`, { ...jsonBody({ batches }), method: "PUT" });
 }
 /** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
 export async function getOpenCount(full = true): Promise<OpenCount | null> {

@@ -3,14 +3,17 @@ import {
   createCount,
   extractVoice,
   getCatalog,
+  getBatches,
   getOpenCount,
   getZones,
   precheckCount,
+  saveBatchCounts,
   saveCountLines,
   setCaseSize,
   submitCount,
   BarApiError,
   type BarSkuItem,
+  type BarBatchItem,
   type BarZoneItem,
   type CountLineInput,
   type OpenCountLine,
@@ -140,6 +143,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
+  const [batches, setBatches] = useState<BarBatchItem[]>([]);
+  /** zoneId -> batchId -> full-container equivalents. A key EXISTS only once
+   *  the counter has touched that batch in that zone, because an absent row
+   *  and a zero mean different things to the bracket (see saveBatchCounts). */
+  const [batchCounts, setBatchCounts] = useState<Record<string, Record<string, number>>>({});
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [zoneId, setZoneId] = useState<string>("");
   const [counts, setCounts] = useState<Counts>({});
@@ -198,14 +206,27 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     let live = true;
     (async () => {
       try {
-        const [z, cat, open] = await Promise.all([getZones(), getCatalog(), getOpenCount()]);
+        const [z, cat, open, bs] = await Promise.all([
+          getZones(),
+          getCatalog(),
+          getOpenCount(),
+          // A batch list that fails to load must not block a liquor count —
+          // the section simply does not render, exactly as before it existed.
+          getBatches().catch(() => [] as BarBatchItem[]),
+        ]);
         if (!live) return;
         setZones(z);
         setCatalog(cat);
+        setBatches(bs);
         setZoneId(z[0]?.id ?? "");
         if (open) {
           setSessionId(open.id);
           setCounts(rebuildCounts(open.lines));
+          const bc: Record<string, Record<string, number>> = {};
+          for (const b of open.batches ?? []) {
+            (bc[b.zoneId] ??= {})[b.batchId] = Number(b.fullEquivalents);
+          }
+          setBatchCounts(bc);
           setResumed(true);
         } else {
           setSessionId(await createCount(true));
@@ -225,6 +246,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const sid = await createCount(true);
       setSessionId(sid);
       setCounts({});
+      setBatchCounts({});
       setResumed(false);
       setSave("idle");
     } catch {
@@ -236,6 +258,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countsRef = useRef<Counts>(counts);
   countsRef.current = counts;
+  const batchCountsRef = useRef(batchCounts);
+  batchCountsRef.current = batchCounts;
 
   // Voice restatements — the Empress 1908 double-count (2026-08-07). The GM
   // said "Empress 1.1", wasn't sure it registered, and said it again in a
@@ -253,6 +277,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => void flush(), 1400);
   }
+  /** Batch rows in the wire shape. Sends only batches the counter has
+   *  TOUCHED — an untouched batch has no row, which is how the server learns
+   *  nobody walked the prep shelf. A zero he typed IS a row. */
+  function flattenBatches(bc: Record<string, Record<string, number>>) {
+    const out: { zoneId: string; batchId: string; fullEquivalents: number }[] = [];
+    for (const [zid, byBatch] of Object.entries(bc)) {
+      for (const [bid, n] of Object.entries(byBatch)) {
+        out.push({ zoneId: zid, batchId: bid, fullEquivalents: n });
+      }
+    }
+    return out;
+  }
+
   async function flush() {
     if (!sessionId) return;
     // An empty list is SENT, not skipped — it is how "I removed the last
@@ -261,6 +298,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setSave("saving");
     try {
       await saveCountLines(sessionId, lines);
+      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       setSave("saved");
     } catch {
       setSave("error");
@@ -729,6 +767,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // unsaved last edit would be checked in its old form.
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saveCountLines(sessionId, flatten(countsRef.current));
+      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       setSave("saved");
       const res = await precheckCount(sessionId);
       findings = res.findings;
@@ -755,6 +794,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     try {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saveCountLines(sessionId, flatten(countsRef.current));
+      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       const n = await submitCount(sessionId);
       restatementsRef.current.clear(); // spent — must not leak into a later session
       setDone(n);
@@ -770,6 +810,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (!q) return [];
     return catalog.filter((s) => s.name.toLowerCase().includes(q)).slice(0, 30);
   }, [catalog, search]);
+
+  /** Full-container equivalents for one batch in the CURRENT zone. Touching a
+   *  batch creates its key even at zero — that is the counter saying "I looked
+   *  and there are none", which is what keeps the bracket symmetric. */
+  function setBatch(batchId: string, n: number) {
+    setBatchCounts((prev) => {
+      const zone = { ...(prev[zoneId] ?? {}), [batchId]: Math.max(0, n) };
+      return { ...prev, [zoneId]: zone };
+    });
+    scheduleSave();
+  }
+  const batchCells = batchCounts[zoneId] ?? {};
 
   const zoneCells = counts[zoneId] ?? {};
   const capturedHere = Object.entries(zoneCells).sort((a, b) =>
@@ -942,6 +994,77 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <button type="button" className="lq-step" aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(loose + 1))}>+</button>
                 </div>
                 {(cell?.cases ?? 0) > 0 && <span className="lq-case-sum">= {qty} each</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* PREP BATCHES (2026-09-04) — liquor already poured OUT of its bottles.
+          Its own shelf, so its own block: the source bottle is low and recorded
+          while the prep container holds ounces nothing counts, which reads as
+          loss. Sept 4: Cointreau used 0.0oz against 7.0 rung, Tito's 175.8
+          against 172.0 — the same distortion in both directions.
+
+          The counter enters FULL CONTAINERS, never ounces. He already eyeballs
+          a spirit bottle in tenths, so 2.5 is a shape he owns; the recipe and
+          every conversion live on the server. Typing a value — INCLUDING a
+          zero — is what tells the bracket somebody walked this shelf. */}
+      {batches.length > 0 && (
+        <div className="lq-captured">
+          <h3 className="lq-cap-title">
+            Batch bottles in {zones.find((z) => z.id === zoneId)?.name ?? "this zone"}
+            <span className="lq-cap-n">{Object.keys(batchCells).length}</span>
+          </h3>
+          <p className="lq-muted lq-cap-empty">
+            How many FULL batches’ worth are here? Half a bottle is 0.5. Enter 0 if there are none —
+            skipping it isn’t the same as counting zero.
+          </p>
+          {batches.map((b) => {
+            const v = batchCells[b.id];
+            const touched = v != null;
+            return (
+              <div key={b.id} className={`lq-row${touched ? " lq-row-set" : ""}`}>
+                <div className="lq-row-name">
+                  <span className="lq-name">
+                    <span className="lq-kind-tag" title="prep batch — counted in full containers" aria-hidden="true">
+                      🧪{" "}
+                    </span>
+                    {b.name}
+                  </span>
+                  <span className="lq-size">
+                    {b.components.map((c) => `${c.oz}oz ${c.skuName}`).join(" · ") || "no recipe on file"}
+                  </span>
+                </div>
+                <div className="lq-stepper">
+                  <button
+                    type="button"
+                    className="lq-step"
+                    aria-label={`decrease ${b.name}`}
+                    onClick={() => setBatch(b.id, roundQty(Math.max(0, (v ?? 0) - 0.5)))}
+                  >
+                    −
+                  </button>
+                  <input
+                    className="lq-qty-input"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.5"
+                    min={0}
+                    value={touched ? v : ""}
+                    placeholder="—"
+                    aria-label={`${b.name} full containers`}
+                    onChange={(e) => setBatch(b.id, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                  />
+                  <button
+                    type="button"
+                    className="lq-step"
+                    aria-label={`increase ${b.name}`}
+                    onClick={() => setBatch(b.id, roundQty((v ?? 0) + 0.5))}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             );
           })}
