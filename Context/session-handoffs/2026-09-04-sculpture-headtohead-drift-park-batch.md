@@ -163,3 +163,47 @@ Hendrick's→Gin, Risata→Wine. `size_ml` on consumables: Owen's ×2 = 251, Red
 - **Sculpture cancellation** is an ops action.
 - **NOT built, deliberately:** spot-recount mode (a random-dozen blind recount);
   archiving the dead `TP Sculpture Audit Ingest` workflow.
+
+---
+
+## Late afternoon — the guide checked against Sculpture's inteliPar (Jon: "hey order these type vibes")
+
+**Verdict: directionally right and more conservative than theirs** (their whole
+guide was "order one Baileys"; ours called Don Julio Reposado / Baileys /
+Tanqueray, with DJ Blanco, Casamigos Repo, Prosecco agreeing on the could-add
+band). Two rows were wrong, both traced to data, not the engine:
+
+| Row | What the guide said | Truth | Cause |
+|---|---|---|---|
+| Ginger Beer (family) | ORDER NOW, 2.32 wk | ~5 wk (Owen's only) | Phantom: Fever-Tree 5oz counted 72 on 8/21 AND 9/4, but its 72-can invoice (dated 8/08) was uploaded by the mail crawler's 8/21 BACKFILL *after* the 8/21 count was submitted, so `start + purchased − end` read 72 used. Consumable rows started today, so there was no history to average it out. **Fixed by hand: velocity sheet row 5055 col J (used_oz) 365.2 → 0.** Live GAS re-fetch: family no longer flagged. No code change — the crawler now uploads next-day, so the window can't skew like that again. |
+| Ron Zacapa 23 | absent | ~4.5–5 wk → should be could-add | A bottle appeared between 8/07 (1.6) and 8/17 (2.1) with NO invoice in the system → that window read negative use → 56-day trailing burn ~7 wk. Sculpture had it at 29 days and as their #1 loss line. Jon told: add one to the Breakthru order. |
+
+**Successor inheritance (Code.gs, Jon's ask: "stop alerting on El Jimador, run
+it to 0, alert off Jose's velocity, which should inherit El Jimador's").**
+`REPLACEMENTS` entries gain an optional `successor` (substring of the
+successor's velocity-sheet name). New `mergeReplacedRows_` runs inside
+`loadVelocity_`: once the successor has ANY velocity row, the replaced SKU's
+rows are re-tagged as the successor's and merged per window (on_hand + used
+summed, successor's size/vendor/cost) — the old bottle vanishes from every list
+and the successor plans on the family's history plus the old bottle still on
+the shelf. Before the successor is counted, behavior is unchanged ("order X
+instead"). Defaults: El Jimador → Jose Cuervo Tradicional; Owen's Tonic →
+Fever-Tree Tonic 5oz; Owen's Ginger Beer → Fever-Tree Ginger Beer 5oz (Jon:
+converting to Fever-Tree). Smoke test: `06-engine/tests/successor-inheritance.test.mjs`
+(11 green). **⚠ Code.gs deploy is MANUAL — Jon pastes
+`Alcohol Pricing/Twisted Pin Bar Hub/06-engine/Code.gs` (now ~1084 lines) into
+`BAR - TP Pricing Calc - BAR` + Deploy → New version. NOT the
+`gas-pricing-engine/Code.gs` decoy.** Until pasted, El Jimador keeps showing
+in could-add with the "order Jose instead" line.
+
+**New SKU (prod):** `Fever-Tree Tonic Water 5oz Can` (`c6da0894`, WebstaurantStore,
+150 ml, stock_count, 24/cs, $0.85, alias carries the invoice line text
+"Fever-Tree Premium Tonic Water Can 5 fl. oz." + item # 103FVRTONIC) so the
+crawler's invoice matches and the count grid shows it. WebstaurantStore
+emails ARE scraped (API-key ingest since 8/21; Jon was right).
+
+**Trap 9 — a backfilled invoice lands in the NEXT window.** Purchase windows
+close at `submitted_at`. Anything uploaded after a count is submitted credits
+the following period, which is correct for scan-lag but wrong for a backfill
+of a delivery the count already saw. Symptom: a consumable with one row of
+history showing used == purchased. Fix is the cell, not the code.
