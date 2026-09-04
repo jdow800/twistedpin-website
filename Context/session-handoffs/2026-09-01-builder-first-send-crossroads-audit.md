@@ -199,3 +199,14 @@ Order matters less than the shape: every one of these came from Jon reading a re
 **Verified live on Jon's thread at 11:49:** "Actually can we do 7:45pm?" -> "Yes! 7:45pm on Sat, Sept 26 is open in the VIP suite. So 7:45-9:45pm, 2 hours with the Twisted Italiano and the meat and cheese board, about $1,725 ($865 deposit). Want me to send the payment link over? It stays active for 48 hours." (probe + scope rule, before the reflow shipped).
 
 **Open / for Jon:** whether ordinary model-written EMAILS should close with "Thanks," (today they end on the last sentence + signature block, by a deliberate prompt rule; the two fixed first-touch texts now carry "Thanks,"). Robin Bartoli (80-guest holiday party, email) is the first stranger on the opener - her Send lands on the over-75 company path, worth a look. Rehearsal clones still ACTIVE (`rehearsal-clones.mjs deactivate` when the watch is over).
+
+## 2026-09-04 13:45-14:00 CT - Builder CALC TRACKING (Jon: "see that guests are using the platform ... what quote scared them off")
+
+Every Calculate press on a LINKED builder page is now recorded; the Send is not (Builder Submit owns it). Pieces, all live and verified with two real beacons on E-0976401 (count 1 -> note exec 26909 posted Missive post 914ef7ed; count 2 -> counters only; unknown eid -> ignored; bad origin -> 403):
+- Loyalty/db/081 (applied to prod): `avery_builder_calc` log (purged after 90 days by pg_cron 4:17am), six counters on `avery_event` (count / first_at / last_at / first_total / last_total / max_total), `record_builder_calc()` (one call per press, returns the new count, -1 for an unknown eid), view `avery_builder_calc_funnel`. Explicit grants (MCP-created objects get none).
+- Website `POST /api/estimate/track/` (commit 7bcd1d1): same CORS allowlist + rate limit as the price call; validates eid / option / inputs / totals; calls the RPC; on count 1 pings n8n. Always 200 for the beacon's sake.
+- n8n `Avery - Builder Calc Note` (`dArzQcDUtjIpDRQh`, installer `create-builder-calc-note.mjs`): reads the STORED first press (never the request) and posts one line: "Priced it on the site 1:43pm: Sat, Sep 26 7:45pm, 25 guests, VIP 2h, Twisted Italiano, Meat & Cheese Board - about $1,725 ($865 deposit)."
+- Builder Submit Send note: "_Priced it N times before sending (first ~$X, last ~$Y, high ~$Z)._" (installer re-run, versionId ed91a35f).
+- `brain/analysis/builder-calc-funnel.sql`: adoption, the scare-off list (priced, never sent, silent since), first-vs-last inputs.
+- Avery never reads any of it (Jon: pre-calculations; she only needs the actual submission).
+**Waiting on Zite Paste 3** (`zite-event-builder-brief-2026-08-30.md`, bottom): the beacon on the Menu Selector app. Until it ships nothing fires. Jon's test thread already carries one note + two counters from the verification.
