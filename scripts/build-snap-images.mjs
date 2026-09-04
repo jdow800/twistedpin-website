@@ -197,13 +197,20 @@ const SOURCES = [
   //     doesn't render event art, so the neon flyer never lands on a brand
   //     surface where the moody thesis applies.
   { src: "karaoke-cover.jpg", name: "event-karaoke", widths: [810] },
+  //   - event-singo: Tone Bar Games' Singo Chicago music bingo flyer (Sundays,
+  //     Sep 13 – Nov 29 2026 trial). Source is 1080×1350 — 4:5 portrait, which
+  //     Google's Event validator does NOT accept, and every 1:1 crop of it
+  //     loses either the headline or the Twisted Pin logo. So it is PADDED to
+  //     1:1 on a near-white that matches the flyer's own background (the bars
+  //     read as margin, not letterbox). JSON-LD `image` only, never on-card.
+  { src: "singo-flyer.jpg", name: "event-singo", pad: [1, 1], background: "#f1f1f3", widths: [810] },
 ];
 
 async function exists(p) {
   try { await stat(p); return true; } catch { return false; }
 }
 
-async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
+async function encodeOne({ src, name, aspect, pad, background = "#ffffff", widths = WIDTHS }) {
   const srcPath = path.join(PICS, src);
   if (!(await exists(srcPath))) {
     console.warn(`SKIP  ${name}: source missing at ${srcPath}`);
@@ -225,6 +232,12 @@ async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
 
     // If `aspect` is specified, force a fit:'cover' crop to that ratio
     // with smart focal-point positioning. Without aspect, preserve native.
+    // If `aspect` is specified, force a fit:'cover' crop to that ratio
+    // with smart focal-point positioning. If `pad` is specified instead,
+    // letterbox to that ratio on `background` (fit:'contain') — for
+    // pre-composed flyers whose every pixel is copy, where any crop loses
+    // a headline or a logo but Google's Event validator still wants
+    // 16:9 / 4:3 / 1:1. Without either, preserve native.
     const resizeOpts = aspect
       ? {
           width: w,
@@ -233,7 +246,15 @@ async function encodeOne({ src, name, aspect, widths = WIDTHS }) {
           position: "attention",
           withoutEnlargement: true,
         }
-      : { width: w, withoutEnlargement: true };
+      : pad
+        ? {
+            width: w,
+            height: Math.round((w * pad[1]) / pad[0]),
+            fit: "contain",
+            background,
+            withoutEnlargement: true,
+          }
+        : { width: w, withoutEnlargement: true };
 
     // AVIF — best compression, modern browsers (Chrome 85+, Safari 16.4+,
     // Firefox 113+). Quality 50 in AVIF roughly matches WebP quality 72

@@ -3,10 +3,9 @@ title: Singo Music Bingo
 # First occurrence. Every later Sunday inherits these times via the
 # `recurring` block below.
 #
-# 7pm start is from Tone Bar Games' own announcement (Facebook, 2026-09-04).
-# The 9pm END is an assumption — a two-hour music bingo is the usual shape
-# and the venue closes at 10pm on Sundays — and nobody has confirmed it.
-# Fix it here if it's wrong; the card, the schema and Roy all move together.
+# 7pm start is from Tone Bar Games' own announcement (Facebook, 2026-09-04);
+# 9pm end confirmed by Jon 2026-09-04. Change either here and the card, the
+# schema and Roy all move together.
 #
 # TIMEZONE: this is a dated instant, so it carries -05:00 (Sept 13 2026 is
 # inside US DST). The recurring schedule itself carries NO offset — the run
@@ -36,19 +35,20 @@ recurring:
   # Empty for now. Jon 2026-09-04: "I'll need to look up which weeks we're
   # going to skip — maybe not." Add a quoted "YYYY-MM-DD" per dark Sunday.
   skip: []
-# Free to play. lowPrice == highPrice == 0 collapses to a plain Offer at $0
-# in the JSON-LD. (Assumed — the announcement doesn't state a cover, and bar
-# music bingo is free-to-play as a rule. Confirm with Tone Bar Games.)
+# Free to play (Jon, 2026-09-04). lowPrice == highPrice == 0 collapses to a
+# plain Offer at $0 in the JSON-LD.
 lowPrice: "0"
 highPrice: "0"
 validFrom: 2026-09-04T00:00:00-05:00
-# No `image` yet. Google flags Events without art; the Singo Chicago flyer
-# from Tone Bar Games' announcement is the obvious candidate — drop the
-# source in Context/pictures/, add a SOURCES line to
-# scripts/build-snap-images.mjs, encode, and reference /snap/event-singo-810.jpg
-# here. Never rendered on the card either way (ruling 2026-08-27).
+# Schema only — the Singo Chicago flyer (Jon, 2026-09-04) is what Google and
+# Facebook show when they surface this Event. Never rendered on the card
+# (ruling 2026-08-27). The source is 4:5 portrait, which Google's Event
+# validator rejects, so the encoder PADS it to 1:1 on a near-white matching
+# the flyer's background rather than cropping off the headline or the
+# Twisted Pin logo (see the SOURCES note in scripts/build-snap-images.mjs).
+image: /snap/event-singo-810.jpg
 #
-# No `cta` yet either. A free walk-in night should have no CTA unless
+# No `cta` yet. A free walk-in night should have no CTA unless
 # there's somewhere real to send people — the host's Facebook event would
 # be that (karaoke-thursdays.md does this). Add `cta: { label: See it on
 # Facebook, href: ... }` once Jon supplies the post's /share/ link.
