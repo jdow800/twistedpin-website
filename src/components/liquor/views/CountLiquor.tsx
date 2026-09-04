@@ -73,7 +73,14 @@ type ReviewItem = {
   assignOpen?: boolean; // unmatched → inline search open
 };
 
-const sizeLabel = (s: BarSkuItem) => (s.sizeMl != null ? `${s.sizeMl} ml` : "each");
+/** A stock_count item is counted in WHOLE UNITS, so it reads "each" even when a
+ *  size is on file. Sizes were added to the cans/bottles in 2026-09-04 so the
+ *  order-guide velocity export can emit OUNCES for them (Sculpture's history for
+ *  those SKUs is in oz, and mixing units inside one SKU's history corrupts its
+ *  burn rate) — that is a data fact for the export, never a counting
+ *  instruction. Keyed on tracking_mode, not sizeMl, for exactly that reason. */
+const sizeLabel = (s: BarSkuItem) =>
+  s.trackingMode === "stock_count" || s.sizeMl == null ? "each" : `${s.sizeMl} ml`;
 
 /** Emoji marker for the handful of things on a "liquor" count that AREN'T a
  *  bottle of liquor — Luxardo cherries, Angostura, Red Bull, ginger beer, the
@@ -86,10 +93,15 @@ const sizeLabel = (s: BarSkuItem) => (s.sizeMl != null ? `${s.sizeMl} ml` : "eac
  *  would mark nothing.
  *
  *  Keyed on CATEGORY rather than per-SKU so a new mixer inherits it for free.
- *  sizeMl == null is the gate: it correlates 1:1 with count_unit 'each' /
- *  tracking_mode 'stock_count' across the whole live catalog, so a bottle can
- *  never pick one up by accident. 📦 backs up an unmapped category, because the
- *  not-a-bottle signal disappearing is worse than a generic marker. */
+ *  tracking_mode 'stock_count' is the gate, so a bottle can never pick one up by
+ *  accident. 📦 backs up an unmapped category, because the not-a-bottle signal
+ *  disappearing is worse than a generic marker.
+ *
+ *  ⚠ This USED to gate on sizeMl == null, which correlated 1:1 with
+ *  stock_count — until 2026-09-04, when sizes were put on the cans so the
+ *  velocity export could emit ounces. That silently deleted the marker from
+ *  every mixer and energy drink. Gate on the mode, which is what actually means
+ *  "not a bottle"; a size is just a fact about the container. */
 const NON_BOTTLE_EMOJI: Record<string, string> = {
   Garnish: "🍒",
   Bitters: "🌿",
@@ -97,8 +109,12 @@ const NON_BOTTLE_EMOJI: Record<string, string> = {
   "Energy Drinks": "🐂", // Red Bull. Yes, really.
   "Canned Cocktails": "🥫",
 };
-function nonBottleEmoji(s: { sizeMl: number | null; category: string | null }): string | null {
-  if (s.sizeMl != null) return null;
+function nonBottleEmoji(s: {
+  sizeMl: number | null;
+  category: string | null;
+  trackingMode?: BarSkuItem["trackingMode"];
+}): string | null {
+  if (s.trackingMode !== "stock_count" && s.sizeMl != null) return null;
   return (s.category ? NON_BOTTLE_EMOJI[s.category] : null) ?? "📦";
 }
 /** Every case size this venue has ever recorded — 38 observations across three
