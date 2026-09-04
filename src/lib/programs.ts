@@ -95,6 +95,15 @@ function weekBounds(now: Date) {
   return { start: sunday.toISOString().slice(0, 10), end: saturday.toISOString().slice(0, 10) };
 }
 
+/** Whole venue-local days from one YYYY-MM-DD key to another. */
+function daysBetween(fromKey: string, toKey: string) {
+  const at = (k: string) => {
+    const [Y, M, D] = k.split("-").map(Number);
+    return Date.UTC(Y, M - 1, D);
+  };
+  return Math.round((at(toKey) - at(fromKey)) / 86400000);
+}
+
 export type ProgramOccurrence = {
   date: string;
   spoken_date: string;
@@ -150,6 +159,7 @@ export function buildProgram(
   const nextRaw = all[0]?.occ ?? null;
   const isToday = !!next && next.date === todayKey;
   const inProgress = !!nextRaw && nextRaw.start <= now;
+  const daysUntilNext = next ? daysBetween(todayKey, next.date) : null;
 
   const week = weekBounds(now);
   const thisWeekEntry = all.find((x) => {
@@ -198,11 +208,30 @@ export function buildProgram(
     answer = `Yes — ${base.title.toLowerCase()} is going on right now, until ${spokenTime(nextRaw!.end ?? nextRaw!.start)}.`;
   } else if (isToday && next) {
     answer = `Yes — ${base.title.toLowerCase()} is tonight, ${next.spoken_time}.`;
+  } else if (next && daysUntilNext === 1) {
+    // "Tomorrow" beats any week-relative phrasing. This also fixes a
+    // Sunday-night program: a Saturday caller is in the same Sun–Sat week
+    // as LAST Sunday, so the this-week branch below can't see tomorrow's
+    // night and the answer used to open with "Not this week" about a night
+    // that is 20 hours away.
+    answer = next.is_variant
+      ? `Yes — tomorrow, ${next.spoken_date}, it's our ${next.title}, ${next.spoken_time}.`
+      : `Yes — ${base.title.toLowerCase()} is tomorrow, ${next.spoken_date}, ${next.spoken_time}.`;
   } else if (thisWeek) {
     answer = thisWeek.is_variant
       ? `Yes — this week it's ${thisWeek.spoken_date}, our ${thisWeek.title}, ${thisWeek.spoken_time}.`
       : `Yes — ${base.title.toLowerCase()} is this ${thisWeek.spoken_date}, ${thisWeek.spoken_time}.`;
+  } else if (next && daysUntilNext !== null && daysUntilNext <= 6) {
+    // Inside the coming seven days but past this Sun–Sat week's edge.
+    // "Not this week" is TRUE here by the calendar and wrong by the ear —
+    // a Wednesday caller asking about a Sunday program, or a Friday caller
+    // asking about Thursday karaoke, means the week ahead. Just name it.
+    answer = next.is_variant
+      ? `The next one is ${next.spoken_date} — that's our ${next.title}, ${next.spoken_time}.`
+      : `The next ${base.title.toLowerCase()} is ${next.spoken_date}, ${next.spoken_time}.`;
   } else if (next) {
+    // A genuine gap — a dark week, or a holiday hole. Say so, so a caller
+    // who heard "every Thursday" doesn't turn up on the skipped one.
     answer = next.is_variant
       ? `Not this week. The next one is ${next.spoken_date} — that's our ${next.title}, ${next.spoken_time}.`
       : `Not this week. The next ${base.title.toLowerCase()} is ${next.spoken_date}, ${next.spoken_time}.`;

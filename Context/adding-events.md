@@ -183,8 +183,19 @@ night, the holiday gap, pre-season, post-season, both DST crossings). It runs
 on every build. **If you change the karaoke schedule, update the `EVENTS`
 fixture at the top of that script to match.**
 
-Full wiring notes, including the n8n and Retell steps:
+**Two programs are live: `karaoke` (Thursdays) and `music-bingo` (Singo,
+Sundays, trial run to Nov 29 2026 — `singo-sundays.md`).** Each has a
+dedicated endpoint Roy's tool calls (`/api/karaoke/`, `/api/music-bingo/`),
+both three-line files over `src/lib/program-endpoint.ts`. A third program
+is: tag the markdown, add `src/pages/api/<slug>.ts`, give Roy a
+`check_<slug>` tool and a line in his Rule 13.
+
+**If you change EITHER schedule, update the `EVENTS` fixture at the top of
+`scripts/check-programs.mjs` to match** — it mirrors both files.
+
+Full wiring notes, including the Retell steps:
 `~/dev/Twisted Pin Full System/Retell Phone System/Roy_Karaoke_Awareness.md`
+and `Roy_Music_Bingo_Awareness.md` (the Sunday-program wrinkle lives there).
 
 ---
 

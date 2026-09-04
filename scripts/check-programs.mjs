@@ -26,8 +26,20 @@ function contains(label, actual, needle) {
 }
 
 // Mirrors src/content/events/karaoke-thursdays.md + the Black Wednesday
-// one-off. Keep in sync with those files.
+// one-off + singo-sundays.md. Keep in sync with those files.
 const EVENTS = [
+  {
+    id: "singo-sundays",
+    title: "Singo Music Bingo",
+    tags: ["music-bingo"],
+    start: new Date("2026-09-13T19:00:00-05:00"),
+    end: new Date("2026-09-13T21:00:00-05:00"),
+    recurring: {
+      frequency: "weekly",
+      until: new Date("2026-11-29T00:00:00.000Z"),
+      skip: [],
+    },
+  },
   {
     id: "karaoke-thursdays",
     title: "Karaoke Night",
@@ -92,7 +104,11 @@ console.log("\n\"Is there karaoke this week?\" — a normal week (Thu Oct 8 is o
 
   const fri = ask("2026-10-09");
   check("Friday caller -> not this week any more", fri.this_week.has, "false");
-  contains("...and points at the next one", fri.answer, "Not this week. The next karaoke night is Thursday, October 15");
+  contains("...and points at the next one", fri.answer, "The next karaoke night is Thursday, October 15");
+  check("...WITHOUT 'Not this week' — it's six days out, not a dark week", fri.answer.startsWith("Not this week"), "false");
+
+  const wed = ask("2026-10-07");
+  contains("Wednesday caller hears 'tomorrow'", wed.answer, "is tomorrow, Thursday, October 8, seven PM to eleven PM");
 }
 
 console.log("\nA DARK week — the answer that stops a wasted drive (Oct 22, Bears)");
@@ -150,6 +166,80 @@ console.log("\nDST does not shift the spoken time (the whole point of recurrence
     const occ = p.this_week.occurrence ?? p.next;
     check(`week of ${key}: still seven PM to eleven PM`, occ.spoken_time, "seven PM to eleven PM");
   }
+}
+
+// ---------------------------------------------------------------------
+// Singo Music Bingo — a SUNDAY program. The Sun–Sat week that "this week"
+// is computed against starts on the program's own night, so every caller
+// from Monday to Saturday is asking about a night in NEXT week's bounds.
+// These cases pin the phrasing that makes that sound natural.
+// ---------------------------------------------------------------------
+const askBingo = (dateKey, hourCT) => buildProgram(EVENTS, "music-bingo", callAt(dateKey, hourCT), 400);
+
+console.log("\n\"Do you have music bingo?\" — the standing answer");
+{
+  check("summary", askBingo("2026-10-06").summary, "Singo Music Bingo runs every Sunday, seven PM to nine PM.");
+  check("weekday", askBingo("2026-10-06").weekday, "Sunday");
+}
+
+console.log("\nBefore Singo launches (Sept 13)");
+{
+  const pre = askBingo("2026-09-08");
+  check("not started yet", pre.season.started, "false");
+  contains("says when it starts", pre.answer, "starts Sunday, September 13");
+  contains("...and the cadence after that", pre.answer, "every Sunday, seven PM to nine PM");
+}
+
+console.log("\nA normal Singo week (Sun Sept 20)");
+{
+  const sat = askBingo("2026-09-19");
+  check("Saturday caller: NOT in this Sun–Sat week (the trap)", sat.this_week.has, "false");
+  contains("...but hears 'tomorrow', never 'Not this week'", sat.answer, "Yes — singo music bingo is tomorrow, Sunday, September 20, seven PM to nine PM.");
+
+  const wed = askBingo("2026-09-16");
+  contains("Wednesday caller: plain 'the next one is'", wed.answer, "The next singo music bingo is Sunday, September 20, seven PM to nine PM.");
+  check("...no 'Not this week' four days out", wed.answer.startsWith("Not this week"), "false");
+
+  const mon = askBingo("2026-09-14");
+  check("Monday caller: six days out, still no 'Not this week'", mon.answer.startsWith("Not this week"), "false");
+  contains("...names Sunday the 20th", mon.answer, "Sunday, September 20");
+
+  const sunPm = askBingo("2026-09-20", 14);
+  check("Sunday 2pm -> tonight", sunPm.next_is_today, "true");
+  contains("...and says tonight", sunPm.answer, "is tonight, seven PM to nine PM");
+
+  const during = askBingo("2026-09-20", 20);
+  check("Sunday 8pm -> in progress", during.next_in_progress, "true");
+  contains("...until nine PM", during.answer, "going on right now, until nine PM");
+}
+
+console.log("\nSingo across the Nov 1 DST crossing");
+{
+  for (const key of ["2026-10-28", "2026-11-04", "2026-11-18"]) {
+    const occ = askBingo(key).next;
+    check(`week of ${key}: still seven PM to nine PM`, occ.spoken_time, "seven PM to nine PM");
+  }
+  check("Nov 1 itself is a night (the DST-change Sunday)", askBingo("2026-10-27").next.date, "2026-11-01");
+}
+
+console.log("\nThe November 29 trial-run end");
+{
+  const last = askBingo("2026-11-24");
+  check("final Sunday is the 29th", last.next.date, "2026-11-29");
+  const after = askBingo("2026-11-30");
+  check("trial over", after.season.in_season, "false");
+  contains("says so plainly", after.answer, "finished for the season");
+  contains("...names the run from the DATA", after.answer, "September through November");
+  check("...and promises NO continuation", /comes back|next (season|fall|year)|will return|continue/i.test(after.answer), "false");
+}
+
+console.log("\nTwo programs, no bleed");
+{
+  const k = ask("2026-09-16");
+  check("karaoke answer never mentions Singo", /singo|bingo/i.test(k.answer + k.summary), "false");
+  const b = askBingo("2026-09-16");
+  check("bingo answer never mentions karaoke", /karaoke/i.test(b.answer + b.summary), "false");
+  check("bingo upcoming is all Sundays", b.upcoming.every((o) => o.spoken_date.startsWith("Sunday")), "true");
 }
 
 console.log("\nUnknown tag returns nothing rather than a hallucinated program");
