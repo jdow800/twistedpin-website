@@ -110,6 +110,15 @@ Hendrick's→Gin, Risata→Wine. `size_ml` on consumables: Owen's ×2 = 251, Red
    `sanitizeSettings` from `Marketing Avery/brain/deploy/lib.mjs`.
 7. **Auto-finalize is 3h**, swept every 30s inside the invoice-extraction worker
    loop. A draft freezes on its own schedule whether or not your fix has shipped.
+8. **An n8n Execute Workflow node fires ONCE PER ITEM.** The first real run of
+   the finalize chain wired `Append to Velocity Sheet` (113 rows out) straight
+   into `Run Order Guide`, so the guide ran 113 times, hammered the GAS endpoint
+   past its concurrency limit, and Jon got ~112 "[Pricing Engine] order-guide
+   failed" emails plus exactly ONE correct guide. Fixed with a Limit(1) node
+   named "Only once (113 rows in, 1 call out)" between them. **Never wire a
+   fan-out output into an Execute Workflow / HTTP node without collapsing it
+   first.** The parent execution reported success the whole time — a chain
+   that looks green while doing the wrong thing, the second one today.
 
 ---
 
@@ -136,9 +145,14 @@ Hendrick's→Gin, Risata→Wine. `size_ml` on consumables: Owen's ×2 = 251, Red
 
 ## Open / watch
 
-- **Untested link:** the feeder → guide `Run Order Guide` hop has never actually
-  fired (the smoke test hit the dedup gate one node short). The 3:20pm finalize
-  is its first real run.
+- ~~Untested link~~ **FIRED at 3:21pm.** Grade email: B, 96.5%, net −$3.98 (a
+  surplus), 16 drift rows, 4 swaps — slightly ABOVE the 95.8 preview because the
+  real run had the trailing-persistence map. Order guide landed 3:23pm with Last
+  Audit 9/4: DJ Reposado 2.09wk, Baileys 2.22wk (<1 btl), Tanqueray 2.74wk,
+  Bitter Truth on the bottle floor. Its 56-day burn agrees with the 42-day read
+  given to Jon earlier (DJ Repo + Tanqueray tight, DJ Blanco next). See trap 8
+  for what ELSE that run did. The Limit(1) fix is validated but cannot be
+  exercised until the next count (dedup blocks the hop on a re-run).
 - **First real batch count** — nothing credits until the SECOND one.
 - **First time the GM sees the two nudges** (beer + batch, possibly on the same
   submit). Jon: *"lets see what he thinks of it first time he hits it."* If it
