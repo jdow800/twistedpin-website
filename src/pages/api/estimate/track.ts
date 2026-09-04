@@ -99,14 +99,15 @@ export const POST: APIRoute = async ({ request }) => {
   }
   if (count < 1) return jsonResponse({ ok: false, code: "unknown_eid" }, 200, CACHE_NONE, cors);
 
-  // First press only: n8n reads the stored row and posts the one Missive note.
-  // Best-effort with a short timeout; the log row is the record, the note is a convenience.
-  if (count === 1) {
+  // Every press pings n8n (Jon 2026-09-04: "I want to see that... at least until I am convinced"). The workflow
+  // decides what to post - NOTE_MODE in create-builder-calc-note.mjs: "every" (numbered note per press) or
+  // "first" (one note per event). Best-effort with a short timeout; the log row is the record.
+  {
     try {
       await fetch(CALC_NOTE_WEBHOOK, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ eid }),
+        body: JSON.stringify({ eid, count }),
         signal: AbortSignal.timeout(3000),
       });
     } catch (err) {
