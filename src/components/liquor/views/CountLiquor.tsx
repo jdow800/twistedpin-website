@@ -1347,7 +1347,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         across zones — so this writes the zeros into whichever
                         zone he is on, and the label says plainly that it is a
                         claim about the whole venue, not this shelf. */}
-                    {f.kind === "batch_not_counted" && (
+                    {/* Hidden when the batch list failed to load — the handler
+                        no-ops on an empty list, and a button that does nothing
+                        is worse than none (QA 2026-09-04). */}
+                    {f.kind === "batch_not_counted" && batches.length > 0 && (
                       <button
                         type="button"
                         className="lq-btn lq-btn-ghost lq-precheck-action"
