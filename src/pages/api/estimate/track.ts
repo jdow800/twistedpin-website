@@ -97,6 +97,9 @@ export const POST: APIRoute = async ({ request }) => {
     console.error("[estimate/track] rpc error", err);
     return jsonResponse({ ok: false, code: "store_failed" }, 200, CACHE_NONE, cors);
   }
+  // -2 = identical press within 5s of the last one (Zite fires the beacon twice on an option switch, db/082):
+  // nothing recorded, no note - answer ok so the page never retries.
+  if (count === -2) return jsonResponse({ ok: true, duplicate: true }, 200, CACHE_NONE, cors);
   if (count < 1) return jsonResponse({ ok: false, code: "unknown_eid" }, 200, CACHE_NONE, cors);
 
   // Every press pings n8n (Jon 2026-09-04: "I want to see that... at least until I am convinced"). The workflow
