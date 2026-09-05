@@ -15,10 +15,10 @@ She asked to nail down Fri Oct 9 (deposit) and to stop in when back in town Wedn
 ## The date-first first touch (Jon's design, shipped)
 
 Jon: the first touch should gather the date when the notes do not carry one - it is the pre-qualifier for short notice - but the date is never REQUIRED for the link ("we don't have a date yet, just wanted to review pricing" -> send it; never argue). Shipped as opener v5 in WF1 (`builder_opener_kind` date_ask | offer):
-- SMS, no date: "Hi [First], this is Avery from Twisted Pin! Got your inquiry [for the birthday / for your company event / for your group of N]. What date are you thinking? No date yet is fine, I can still send pricing."
-- Email, no date: the v4 paragraphs with "What date are you looking at? If you do not have one yet, no problem - I can still send over our menu and pricing to look through."
+- SMS, no date: "Hi [First], this is Avery from Twisted Pin! Got your inquiry [for the birthday / for your company event / for your group of N]. What date are you thinking?"
+- Email, no date: the v4 paragraphs with "What date are you thinking?" in place of the offer.
 - Date known (form or notes): the v4 offer, unchanged.
-WF2 reads the answer: a date -> LATE HORIZON (a date named this turn now feeds the horizon bands and the link gate - it used to reach the row one turn too late) -> short notice (lanes / protocol, no link) or the link; "no date yet" / a bare month / "flexible" -> engaged -> the link; "tonight" / "tomorrow" -> RELATIVE DAY -> short notice. **The SMS copy is mine, not Jon's** - one string in `brain/wf1/clean-and-flag.js` (and the KB Section 6 paragraph) if he wants different words.
+WF2 reads the answer: a date -> LATE HORIZON (a date named this turn now feeds the horizon bands and the link gate - it used to reach the row one turn too late) -> short notice (lanes / protocol, no link) or the link; "no date yet" / a bare month / "flexible" -> engaged -> the link; "tonight" / "tomorrow" -> RELATIVE DAY -> short notice. **Copy is Jon's (12:55 CT):** SMS = "...What date are you thinking?" (no reassurance clause), email the same question in paragraph form. A vague or several-dates reply gets DATE OPEN on WF2's link turn: no re-ask, no pick, "Ok great, let me send over the menu and pricing" + the link (WF2 `7a1c2d1c`, WF1 `7324cd67`, KB 315,896 chars).
 
 ## Verification
 
