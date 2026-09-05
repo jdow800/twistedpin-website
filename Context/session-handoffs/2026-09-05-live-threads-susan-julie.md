@@ -22,7 +22,7 @@ WF2 reads the answer: a date -> LATE HORIZON (a date named this turn now feeds t
 
 ## Hanna (~12:10 CT) - the age question outranks the date question, so the link had no date gate
 
-Birthday/Family, 13 guests, notes "birthday", no date. WF1 sent the age question (its play outranks the date-ask opener); she answered "14"; the link turn had no date at all. Jon: it could be tomorrow. **Built (WF2 ):** gate reason  - no date on file, none this turn, Avery never asked in this thread (her own outbound messages are scanned for the date question), the guest did not say "no date" or float several, not a browse re-offer -> DATE FIRST flag: answer, then "What date are you thinking?", hold the link, never twice. Decline / call / wrong number / question-only still win. Harness G1-G7.
+Birthday/Family, 13 guests, notes "birthday", no date. WF1 sent the age question (its play outranks the date-ask opener); she answered "14"; the link turn had no date at all. Jon: it could be tomorrow. **Built (WF2 `0d0116c1`):** gate reason `date_ask` - no date on file, none this turn, Avery never asked in this thread (her own outbound messages are scanned for the date question), the guest did not say "no date" or float several, not a browse re-offer -> DATE FIRST flag: answer, then "What date are you thinking?", hold the link, never twice. Decline / call / wrong number / question-only still win. Harness G1-G7.
 
 ## Verification
 
