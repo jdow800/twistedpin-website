@@ -24,6 +24,10 @@ WF2 reads the answer: a date -> LATE HORIZON (a date named this turn now feeds t
 
 Birthday/Family, 13 guests, notes "birthday", no date. WF1 sent the age question (its play outranks the date-ask opener); she answered "14"; the link turn had no date at all. Jon: it could be tomorrow. **Built (WF2 `0d0116c1`):** gate reason `date_ask` - no date on file, none this turn, Avery never asked in this thread (her own outbound messages are scanned for the date question), the guest did not say "no date" or float several, not a browse re-offer -> DATE FIRST flag: answer, then "What date are you thinking?", hold the link, never twice. Decline / call / wrong number / question-only still win. Harness G1-G7.
 
+## Elizabeth Mooney (~12:24 CT) - "no discount for fewer", volunteered, to a 14-kid party
+
+Her check-in reply asked about pricing for a smaller party; Avery answered with KB line 466's own words ("priced for up to 10 kids - there is no discount for fewer"), to a guest above the floor who never asked whether fewer costs less. **Built (WF2 `dec6c327`, KB 317,4xx chars):** the flat-up-to-10 fact is stated only when asked, never with the word "discount"; above-10 guests asking about smaller get the per-kid math with their number; FAQ answer rewritten; the phrase removed from the KB; new `discount_word` check + retry entry in both check nodes. Second KB-own-text leak of the day (the first was the hours anchor).
+
 ## Verification
 
 `brain/checks/test-live-threads-2026-09-05.mjs` 45/45; `test-builder-link-turn.mjs` 59/59 (adapted to v5 with a date-known control); the full offline set green or at its pre-existing reds (late-night-span improved 63/10 -> 65/8; kb-cancellation 15/1, kb-engine-lane-policy 8/2, wf1 late-close 24/3 identical at HEAD in a throwaway worktree). Golden --dry ALL PASS. Staged on a fresh clone with six assertions before prod; drift CLEAN after.
