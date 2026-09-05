@@ -20,6 +20,10 @@ Jon: the first touch should gather the date when the notes do not carry one - it
 - Date known (form or notes): the v4 offer, unchanged.
 WF2 reads the answer: a date -> LATE HORIZON (a date named this turn now feeds the horizon bands and the link gate - it used to reach the row one turn too late) -> short notice (lanes / protocol, no link) or the link; "no date yet" / a bare month / "flexible" -> engaged -> the link; "tonight" / "tomorrow" -> RELATIVE DAY -> short notice. **Copy is Jon's (12:55 CT):** SMS = "...What date are you thinking?" (no reassurance clause), email the same question in paragraph form. A vague or several-dates reply gets DATE OPEN on WF2's link turn: no re-ask, no pick, "Ok great, let me send over the menu and pricing" + the link (WF2 `7a1c2d1c`, WF1 `7324cd67`, KB 315,896 chars).
 
+## Hanna (~12:10 CT) - the age question outranks the date question, so the link had no date gate
+
+Birthday/Family, 13 guests, notes "birthday", no date. WF1 sent the age question (its play outranks the date-ask opener); she answered "14"; the link turn had no date at all. Jon: it could be tomorrow. **Built (WF2 ):** gate reason  - no date on file, none this turn, Avery never asked in this thread (her own outbound messages are scanned for the date question), the guest did not say "no date" or float several, not a browse re-offer -> DATE FIRST flag: answer, then "What date are you thinking?", hold the link, never twice. Decline / call / wrong number / question-only still win. Harness G1-G7.
+
 ## Verification
 
 `brain/checks/test-live-threads-2026-09-05.mjs` 45/45; `test-builder-link-turn.mjs` 59/59 (adapted to v5 with a date-known control); the full offline set green or at its pre-existing reds (late-night-span improved 63/10 -> 65/8; kb-cancellation 15/1, kb-engine-lane-policy 8/2, wf1 late-close 24/3 identical at HEAD in a throwaway worktree). Golden --dry ALL PASS. Staged on a fresh clone with six assertions before prod; drift CLEAN after.
