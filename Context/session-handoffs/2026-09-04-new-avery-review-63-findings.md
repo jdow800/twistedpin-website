@@ -47,3 +47,21 @@ Plus the Astra KB read (Jon pasted GPT's critique): confirmed — custom-menu ha
 ## Not done
 - No fixes built. No deploys. Nothing changed on prod tonight after `c5a0b44`.
 - The small-kids first-touch harness (`test-first-touch-small-kids.mjs`) is RED in its Parse and Check section ("anchor found 0x" — the patch script's anchor no longer matches the already-patched mirror). Harness bug, not prod.
+
+## BUILT (2026-09-05 ~00:00-03:30 CT) - the fix batch, five deploys, all live
+
+Rulings taken (Jon, 9/4 night): A short notice + small party = lanes online, no NA, cake add-on mentioned, notice explanation only as needed; B the link is the preferred path not the only one (LINK OUT redirect RETIRED; details by reply = building with Avery; add-ons ask-once; "what do you have?" = link again as browsing); C 61-75 non-company Traditional = the team's number, Avery's 8-lane ceiling stays ("keep it human, for now"); D the first link turn reads the message (engaged -> link; decline/price objection -> "Okay, I understand. If you ever want to look at how we price events, let me know and I can send it over"; call/wrong number -> no link; question only -> answer, re-offer once, link on the yes). Count check: thresholds stay (75% and 5 fewer); turn two branches on the answer; watchers -> philosophy + "Should I quote it for the full N?" and WAIT; a number quotes, further pushback = Needs Attention (silent, Section 7/13 shape); Avery never quotes a number the guest did not give. AI question: keep the shared-inbox deflection (some replies are staff). Stored-read TTL: 6h on every turn.
+
+| Batch | Clusters | Prod | Harness |
+|---|---|---|---|
+| 1 | C1 builder-link turn stand-down, C2 fp_send forwarded | WF2 194395cc | test-builder-link-turn-checks 13/13 |
+| 2 | C3 time parser, C4 count check end to end (+ Loyalty db/083 count_check_philosophy_at, Merge patch) | WF2 cb9cf712 -> 998189f6, KB | test-time-parse 16/16, test-count-check-flow 37/37 |
+| 3 | C5 probe + blocked template, C6/C7 LINK OUT retired -> link-turn read + browse re-offer, C12 build-verb | WF2 f13ed339 -> efe79650 (3 node patches), KB | test-link-turn-gate 21/21, test-probe-blocked 16/16 |
+| 4 | C8 traps, C14, C9 + ruling A, C10 #42, C11, C13, C15, KB items, rulings A/C/D, TTL every turn; WF1 clean-and-flag + Parse and Check carves | WF2 a48554b1 -> 1550edd2, WF1 0ba81786 -> fa536c6f, KB | test-review-batch4 58/58 |
+| 5 | 2b sign-off auto-fix, kids prompt line, builder re-quote includes clause | WF2 679a0300 -> aa4a918c | signoff 17/17, requote-compact 10/10 |
+
+Evidence + changelogs: Marketing Avery `n8n/workflows/WF2.changelog.md` (five entries 2026-09-04 23:30 -> 2026-09-05 03:10) and `WF1.changelog.md` (02:30). Every batch staged on a WF2 clone first (stage-on-clone asserts + node count), drift CLEAN after each. Harness expectations moved to the new rulings with notes: late-night-span (bare-hour AM default), builder-link-turn F3 (fallback wording), first-touch-small-group-fork B2 (relation words), builder-turn (every-turn TTL), signoff-horizon (auto-fix). Patch scripts gained upgrade paths: blocked-reply-template (v1 -> v2 key-time-first), availability-gate-builder-ttl (v1 -> v2 + E3 tolerance for the probe patch's later reshape). New: `patch-wf1-parse-and-check-fixed-text-hours.mjs`.
+
+**Watch list:** the first real ask7/warn9 headcount confirm (fp_send now reaches Set Route - the route has never fired live); the first builder Send with a shrink (count question, then the answer turn); the first "what add-ons do you have?" after a link (browse re-offer); the first decline after the opener (door-open close, no link); the first before-opening ask on a 9-11 bare hour (no flag now - Avery reads it); any fundraiser turn (flags trimmed).
+
+**Still open from the ledger:** #4/#53/#54 date-list resolvers; #47; PartiallyPaid = deposit met? (TPRS read). Not touched: the two pre-existing red sets (late-night-span x10, builder-turn armed-state x1).
