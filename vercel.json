@@ -20,6 +20,7 @@
     { "source": "/faqs{/}?", "destination": "/faq/", "permanent": true },
     { "source": "/join-our-team{/}?", "destination": "/careers/", "permanent": true },
     { "source": "/free-10{/}?", "destination": "/coupon/", "permanent": true },
+    { "source": "/liquor{/}?", "destination": "/cogs/", "permanent": true },
 
     { "source": "/craft-bar{/}?", "destination": "/bar/#cocktails", "permanent": true },
     { "source": "/self-serve-tap-wall{/}?", "destination": "/bar/#tap-wall", "permanent": true },

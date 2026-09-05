@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./liquor.css";
-import { getMe, logout, ForbiddenError, type BarActor } from "./api";
+import { getMe, logout, ForbiddenError, SECTIONS, type BarActor, type Section } from "./api";
 import Login from "./views/Login";
 import Home from "./views/Home";
 import CountLiquor from "./views/CountLiquor";
@@ -31,24 +31,62 @@ type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "in
 // variance table), not on a list the reader then has to search.
 const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts"];
 
-const { requestedView, requestedInvoiceId, requestedCountId } = ((): {
+// Which catalog the app is working in (BUILD-SPEC decision 6 / migration 0166).
+// ABSENT MEANS 'bar', and that default is load-bearing rather than a
+// convenience: six alert-email templates have been sending
+// /liquor?count=<uuid> and ?view=<v> links for weeks, those live in Jon's
+// inbox, and /liquor now 301s here carrying its query string. Anything that
+// made an unspecified section ambiguous would break every one of them.
+//
+// P0 is plumbing only, so nothing reads this yet beyond passing it to the API.
+// It is parsed here so the URL contract is fixed BEFORE food views exist and
+// the first food email is ever sent.
+export type { Section };
+
+const { requestedView, requestedInvoiceId, requestedCountId, requestedSection } = ((): {
   requestedView: View | null;
   requestedInvoiceId: string | null;
   requestedCountId: string | null;
+  requestedSection: Section;
 } => {
   if (typeof window === "undefined")
-    return { requestedView: null, requestedInvoiceId: null, requestedCountId: null };
+    return {
+      requestedView: null,
+      requestedInvoiceId: null,
+      requestedCountId: null,
+      requestedSection: "bar",
+    };
   const params = new URLSearchParams(window.location.search);
   const rawView = params.get("view");
   const rawInvoice = params.get("invoice");
   const rawCount = params.get("count");
-  if (rawView || rawInvoice || rawCount)
+  const rawSection = params.get("section");
+  if (rawView || rawInvoice || rawCount || rawSection)
     window.history.replaceState({}, "", window.location.pathname);
   const view =
     DEEP_LINKABLE.find((v) => v === rawView) ??
     (rawInvoice ? "invoices" : rawCount ? "counts" : null);
-  return { requestedView: view, requestedInvoiceId: rawInvoice, requestedCountId: rawCount };
+  // An unrecognised value falls back to 'bar' rather than erroring: a typo in
+  // a hand-edited URL should land somewhere real, and 'bar' is the only
+  // section that has any views at all in P0.
+  const section = SECTIONS.find((x) => x === rawSection) ?? "bar";
+  return {
+    requestedView: view,
+    requestedInvoiceId: rawInvoice,
+    requestedCountId: rawCount,
+    requestedSection: section,
+  };
 })();
+
+/**
+ * The section this tab is working in. Read once from the URL, then fixed for
+ * the life of the tab — the catalog, the zone list and (in phase 1) the count
+ * session all hang off it, and letting it change under a half-entered count
+ * would silently re-point rows at the other catalog.
+ */
+export function activeSection(): Section {
+  return requestedSection;
+}
 
 export default function LiquorApp() {
   const [view, setView] = useState<View>("loading");

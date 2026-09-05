@@ -1,5 +1,16 @@
+/**
+ * Which catalog a call is about (migration 0166). Defined HERE because it is a
+ * property of the API contract, not of any one screen.
+ *
+ * Every section-aware endpoint defaults to "bar" server-side when the param is
+ * absent, so an older cached bundle and every alert email already sitting in
+ * someone's inbox keep working untouched.
+ */
+export type Section = "bar" | "food";
+export const SECTIONS: readonly Section[] = ["bar", "food"];
+
 // Typed client for the bar-inventory `/admin/bar/*` JSON API, consumed by the
-// staff /liquor SPA. Same-origin model identical to src/tprs/client.ts: the SPA
+// staff /cogs SPA. Same-origin model identical to src/tprs/client.ts: the SPA
 // fetches relative `/tprs-api/...`, which the Vite dev proxy (astro.config.mjs)
 // and the prod Vercel middleware forward to the TPRS backend, so the signed
 // `tprs_session` cookie is same-origin (no CORS). Every call carries
@@ -180,12 +191,21 @@ export async function logout(): Promise<void> {
 }
 
 // ── catalog + zones ──
-export async function getCatalog(): Promise<BarSkuItem[]> {
-  const { items } = await gatedJson<{ items: BarSkuItem[] }>("/admin/bar/catalog");
+//
+// Both take the active section (migration 0166). The server defaults to 'bar'
+// when the param is absent, so an older cached bundle keeps working unchanged
+// — the two catalogs are separate namespaces, and asking for the wrong one
+// would show a liquor counter 108 food items they never walk.
+export async function getCatalog(section: Section = "bar"): Promise<BarSkuItem[]> {
+  const { items } = await gatedJson<{ items: BarSkuItem[] }>(
+    `/admin/bar/catalog?section=${section}`,
+  );
   return items;
 }
-export async function getZones(): Promise<BarZoneItem[]> {
-  const { zones } = await gatedJson<{ zones: BarZoneItem[] }>("/admin/bar/zones");
+export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]> {
+  const { zones } = await gatedJson<{ zones: BarZoneItem[] }>(
+    `/admin/bar/zones?section=${section}`,
+  );
   return zones;
 }
 

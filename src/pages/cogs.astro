@@ -1,19 +1,26 @@
 ---
 /**
- * /liquor — STAFF bar-inventory app (noindex, PIN-gated). Not a marketing page:
+ * /cogs — STAFF inventory + COGS app (noindex, PIN-gated). Not a marketing page:
  * full-bleed React island (LiquorApp) that talks same-origin to the TPRS backend
  * via /tprs-api/admin/bar/* (Vite dev proxy + prod Vercel middleware; the signed
  * tprs_session cookie rides along). PIN login → count liquor (voice/grid) / count
  * kegs / upload invoices. Chrome hidden (own header), noindex + robots Disallow +
  * sitemap-excluded (astro.config.mjs). See dev/Alcohol Pricing/Twisted Pin Bar
- * Hub/07-inventory-app for the build spec.
+ * Hub/07-inventory-app for the build spec, and dev/Opsi/BUILD-SPEC.md for
+ * the food/COGS extension.
+ *
+ * Renamed from /liquor 2026-09-05 (BUILD-SPEC decision 6). /liquor 301s here,
+ * and Vercel forwards the query string on a redirect — which is load-bearing,
+ * because six already-sent alert emails carry /liquor?count=<uuid> deep links
+ * into a specific count. The app reads ?section=, absent meaning "bar", so
+ * every one of those links lands exactly where it does today.
  */
 import Base from "../layouts/Base.astro";
 import LiquorApp from "../components/liquor/LiquorApp.tsx";
 ---
 <Base
-  title="Bar Inventory — Twisted Pin"
-  description="Staff bar inventory."
+  title="Inventory & COGS — Twisted Pin"
+  description="Staff inventory and cost of goods."
   hideStickyCTA={true}
   hideHeader={true}
   hidePromo={true}

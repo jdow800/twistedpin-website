@@ -69,6 +69,7 @@ export default defineConfig({
         !page.includes('/tprs') &&
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.
+        !page.includes('/cogs') &&
         !page.includes('/liquor') &&
         // Staff-only cash-counting SPA (Money Hub) — same treatment.
         !page.includes('/money') &&
