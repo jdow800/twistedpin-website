@@ -8,7 +8,7 @@ Shared context for every repo under `dev\` lives in `../CLAUDE.md` — read that
 
 ## Context Files (the brief)
 
-All context lives in `Context/`. Read all seven for any meaningful work.
+All context lives in `Context/`. Read all eight for any meaningful work.
 
 | File | What it owns |
 |---|---|
@@ -18,6 +18,7 @@ All context lives in `Context/`. Read all seven for any meaningful work.
 | **`Context/seo.md`** | Keywords, page structure, URL migration plan, page-speed targets, meta requirements |
 | **`Context/media-needs.md`** | Running list of imagery / video / copy / data assets needed for inner pages. Update whenever a new pillar ships — flag any homepage-reuse stubs, placeholders, or missing real assets so the user can source / brief / replace. |
 | **`Context/adding-events.md`** | **How to put a night on `/upcoming-events/`** — one-off vs weekly-recurring frontmatter, the DST offset table, the traps (never drop a non-event `.md` in `src/content/events/`; quote `skip` dates, don't quote `until`), CTA rules, and why event art is schema-only. Read before adding any event. |
+| **`Context/waitlist-theory.md`** | Why `/waitlist` is an iframe today, and the webhook-derived-state design to revive if the vendor plan tier ever changes. Read before touching `/waitlist`. |
 | **`Context/launch-checklist.md`** | Historical launch checklist. Site is live at twistedpin.com (2026-05-17). Retained for the 301 redirect map of record + any residual ops-data placeholders / counsel review items still open. |
 
 Supporting assets:
@@ -112,6 +113,9 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 
 ## Open / watch
 
+- **Counsel review of `/privacy`, `/terms`, `/accessibility` was never confirmed.** Flagged "unknown / open" when they shipped 2026-05-05; the site went live 05-17 with the question still open. `/terms` §10 was written in-house 2026-08-31 with a discretion clause, and counsel was explicitly declined for that one.
+- **The VIP suite hero photo reads as regular lanes** (tester V4, 2026-05-11) — it undercuts the one differentiator that page exists to sell. Needs a real suite shot.
+- **Named perf backlog** (none blocking): ~60 KiB unused GTM JS (Partytown territory), forced reflow on `/game`, homepage hero still WebP not AVIF, `/menu/taps` iframe slowness.
 - **Real photography** — pillar pages still use placeholders / homepage reuses. Encoder pipeline ready (`scripts/build-snap-images.mjs`); when sources land in `Context/pictures/`, AVIFs auto-generate.
 - **Outstanding ops confirmations (post-launch sweep):** VIP suite capacity, fundraiser stat, NYE packages. Phone number is real (`(815) 782-7790` in `PHONE_DISPLAY`/`PHONE_TEL` in `src/lib/schema.ts`).
 - **Post-cutover GSC actions:** (1) Validate Fix on `/events` Review-Snippets error (per 2026-05-17 schema-LCP handoff). (2) Submit `/sitemap-videos.xml` (shipped in Stage 4 of 2026-05-17 punch list). (3) Spot-check that the 18 production 301 redirects are firing on real traffic. **All four GSC fixes validated 2026-05-19** — Review Snippets (from 2026-05-17), Videos uploadDate timezone, Events organizer.url+performer, Redirect error on apex `twistedpin.com`. Resolutions expected in 3-10 days via Google's natural re-crawl cadence.
