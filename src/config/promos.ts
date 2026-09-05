@@ -110,6 +110,18 @@ export const PROMOS: readonly Promo[] = [
     showUntil: "2026-09-10",
     homepageOnly: true,
   },
+  // Singo music bingo launch beat (Jon 2026-09-04) — same two-beat shape as
+  // karaoke. Sits BEHIND the karaoke launch (Sept 10 lands first, so it
+  // gets the entry beat) and AHEAD of the Q4 revenue promos for its nine
+  // days, because "starts Sunday" is news and December is not yet. No
+  // showFrom: live on the next deploy. Expires the night it launches.
+  {
+    id: "singo-launch-2026",
+    message: "Music bingo Sundays start Sept 13",
+    href: "/upcoming-events/",
+    showUntil: "2026-09-13",
+    homepageOnly: true,
+  },
   // NYE before holiday-parties — when both Q4 promos are active
   // (Nov 15 → Dec 15 overlap) the more time-sensitive one gets the entry
   // beat; the two rotate.
@@ -142,6 +154,18 @@ export const PROMOS: readonly Promo[] = [
     href: "/upcoming-events/",
     showFrom: "2026-09-11",
     showUntil: "2027-05-27",
+    homepageOnly: true,
+  },
+  // Singo season beat, very last — same reasoning as karaoke's: a free
+  // weekly night that will still be there next Sunday yields to NYE and
+  // holiday parties during the corporate ramp. Ends with the trial run
+  // (singo-sundays.md `until`); if Jon extends the program, move BOTH.
+  {
+    id: "singo-sundays-2026",
+    message: "Free music bingo every Sunday, 7pm",
+    href: "/upcoming-events/",
+    showFrom: "2026-09-14",
+    showUntil: "2026-11-29",
     homepageOnly: true,
   },
   // NOTE: the Free-Kids-Bowling promo ("Free Bowling For Kids — through
