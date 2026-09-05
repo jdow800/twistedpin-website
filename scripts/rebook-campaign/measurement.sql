@@ -125,12 +125,12 @@ GROUP BY 1, 2 ORDER BY 3 DESC;
 -- ----------------------------------------------------------------------------
 WITH eval_points AS (
   SELECT 'now' AS label, now() AS at_time
-  UNION ALL SELECT 'next Thu 6pm', date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date
-    + ((10 - extract(isodow FROM now() AT TIME ZONE 'America/Chicago')::int) % 7) * interval '1 day'
-    + interval '18 hours' AT TIME ZONE 'America/Chicago'
-  UNION ALL SELECT 'Thu after that', date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date
-    + (((10 - extract(isodow FROM now() AT TIME ZONE 'America/Chicago')::int) % 7) + 7) * interval '1 day'
-    + interval '18 hours' AT TIME ZONE 'America/Chicago'
+  UNION ALL SELECT 'next Thu 6pm', ((now() AT TIME ZONE 'America/Chicago')::date
+    + ((4 - extract(isodow FROM (now() AT TIME ZONE 'America/Chicago')::date)::int + 7) % 7) * interval '1 day'
+    + interval '18 hours') AT TIME ZONE 'America/Chicago'
+  UNION ALL SELECT 'Thu after that', ((now() AT TIME ZONE 'America/Chicago')::date
+    + (((4 - extract(isodow FROM (now() AT TIME ZONE 'America/Chicago')::date)::int + 7) % 7) + 7) * interval '1 day'
+    + interval '18 hours') AT TIME ZONE 'America/Chicago'
 ),
 offers AS (
   SELECT l.log_id, l.created_at, l.notes::jsonb->>'code' AS code,
@@ -169,8 +169,8 @@ GROUP BY e.label, e.at_time ORDER BY e.at_time;
 --    >= tripwire_max (150), next run ABORTS: investigate before Thursday.
 -- ----------------------------------------------------------------------------
 WITH next_run AS (
-  SELECT (date_trunc('week', now() AT TIME ZONE 'America/Chicago')::date
-    + ((10 - extract(isodow FROM now() AT TIME ZONE 'America/Chicago')::int) % 7) * interval '1 day')::date AS run_date
+  SELECT ((now() AT TIME ZONE 'America/Chicago')::date
+    + ((4 - extract(isodow FROM (now() AT TIME ZONE 'America/Chicago')::date)::int + 7) % 7) * interval '1 day')::date AS run_date
 ),
 lane_visits AS (
   SELECT right(regexp_replace(coalesce(c0.phone,''),'\D','','g'),10) AS phone10,
