@@ -319,10 +319,22 @@ export const birthdaysPageConfig: BookingPageConfig = {
     base: "/snap/birthdays-hero",
     alt: "The VIP suite set for a party at Twisted Pin",
   },
+  // THE CHECKBOX THE GUEST TICKS TO AUTHORIZE THE CHARGE (PaymentStep.tsx
+  // renders it inline). Whatever it says is what they agreed to, so it is the
+  // highest-stakes string on this page.
+  // 2026-09-05 (owner ruling): kids parties are their OWN rail — paid in full,
+  // 14 days, move or refund at the guest's choice. NOT the 72-hour lane rule
+  // that used to sit here, and NOT "deposit" or "final payment", which are
+  // banned on every pay-in-full rail because there is neither. The 72-hour
+  // strings at :257 (/reserve lanes) and the NYE block below are DIFFERENT
+  // rails — do not sweep them together with a find-and-replace.
+  // The 14-day line is deliberately not paired with the 7-day booking cutoff
+  // as a number here: that cutoff is live catalog data read off the product,
+  // and a literal would drift silently.
   termsText:
-    "Reservations hold your party space for the scheduled window. " +
+    "Reservations hold your party space for the scheduled party time. " +
     "Packages are for ages 4–12, with a max of 14 kids. " +
-    "Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment. " +
+    "Cancel 14 or more days before the party and we'll move you to another date or refund you in full, whichever you'd rather; within 14 days, payment is final. " +
     "Arrive a few minutes early so your party host can get everyone set up.",
   uxCopy: {
     eyebrow: "Kids Birthday Parties",
@@ -375,10 +387,18 @@ export const nyePageConfig: BookingPageConfig = {
   },
   // No per-lane capacity here — it differs by room (VIP 6 / traditional 5) and
   // the category subtitles + product copy carry the accurate numbers.
+  // 2026-09-05 (owner ruling): NYE is its OWN rail, not the 72-hour lane rule
+  // that used to sit here. Both live TPRS NYE forms already carry a REQUIRED
+  // "No refunds!" checkbox with these exact terms (form_fields display_order 5
+  // on 6b6bc005 and 420143ce), ported from the Roller-era form — so the forms
+  // were right and this string was wrong, and an NYE guest was ticking two
+  // contradictory required boxes on one purchase. Jon confirmed the stance:
+  // strict stated term, generosity delivered through the /terms discretion
+  // clause rather than by softening the term.
   termsText:
-    "Reservations hold your lanes for the party time slot you select. " +
+    "Reservations hold your lanes for the party time you select. " +
     "Each lane comes with shoes, a large pizza, and a pitcher of soda. " +
-    "Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment. " +
+    "Cancellations aren't available for this event. Contact us 14 or more days before and we'll issue a gift certificate for the reservation amount, less the service fee; cancellations after that forfeit payment. " +
     "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
     "Arrive a few minutes early to get your group set up.",
   uxCopy: {

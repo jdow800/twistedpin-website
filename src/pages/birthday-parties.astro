@@ -190,18 +190,24 @@ const birthdayFaqs: BdayFaq[] = [
   {
     q: "How do I book a birthday party?",
     schemaA:
-      "Kids' parties book online and pick a time slot directly. Adult, milestone, and bachelorette parties go through the events team so the suite, catering, and bar are set up for your group.",
-    htmlA: `<p>Kids' parties <a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">book online</a> and pick a time slot directly. Adult, milestone, and bachelorette parties go through the <a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">events team</a> so the suite, catering, and bar are set up for your group.</p>`,
+      "Kids' parties book online and pick a start time directly. Adult, milestone, and bachelorette parties go through the events team so the suite, catering, and bar are set up for your group.",
+    htmlA: `<p>Kids' parties <a href="${ROLLER_KIDS_URL}" target="_blank" rel="noopener">book online</a> and pick a start time directly. Adult, milestone, and bachelorette parties go through the <a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">events team</a> so the suite, catering, and bar are set up for your group.</p>`,
   },
-  // Cancellation terms (owner ruling 2026-08-31). Kids parties pay in full at
-  // booking, so they run on the same 72-hour rule as lane reservations — the
-  // rule the payment flow already applies; this just states it. Catered adult
-  // events are the refundable-until-final-payment rule covered on /faq.
+  // Cancellation terms. SUPERSEDED 2026-09-05 (owner ruling): kids parties are
+  // their OWN rail at 14 DAYS, not the 72-hour lane rule stated here before.
+  // The refund at 14+ days is UNCONDITIONAL and the date move is deliberately
+  // UNBOUNDED (Jon declined the two-month bound carried by the Roller-era
+  // policy and the legacy TPRS confirmation email). "Deposit" and "final
+  // payment" are banned on this rail — there is neither — so the catered
+  // contrast below names the deposit only because catered IS that rail.
+  // ⚠ schemaA feeds the FAQPage JSON-LD emitted further down this file, so the
+  // old answer was published as structured data Google can serve in a rich
+  // result. Both fields must move together; there is no second literal.
   {
     q: "What if I need to cancel or move the party?",
     schemaA:
-      "Kids' parties are paid in full at booking and can be cancelled up to 72 hours before the party for a full refund; within 72 hours, payment is final. Need a different date? Reach out and we'll move you, subject to availability. Catered adult events follow their own terms — the deposit is refundable in full any time before final payment.",
-    htmlA: `<p>Kids' parties are paid in full at booking and can be cancelled up to <strong>72 hours before the party</strong> for a full refund; within 72 hours, payment is final. Need a different date instead? Reach out and we'll move you, subject to availability.</p><p>Catered adult events follow their own terms — the 50% deposit is refundable in full any time before final payment. <a href="/faq/">Details in the FAQ</a>.</p>`,
+      "Kids' parties are paid in full when you book. Cancel 14 or more days before the party and we'll move you to another date or refund you in full, whichever you'd rather. If you want the money back, you get the money back. Within 14 days, payment is final, and a party booked within 14 days is final as soon as you book. Catered adult events follow their own terms: the 50% deposit is refundable in full any time before the final payment.",
+    htmlA: `<p>Kids' parties are paid in full when you book. Cancel <strong>14 or more days before the party</strong> and we'll move you to another date or refund you in full, whichever you'd rather. If you want the money back, you get the money back.</p><p>Within 14 days, payment is final, and a party booked within 14 days is final as soon as you book.</p><p>Catered adult events follow their own terms: the 50% deposit is refundable in full any time before the final payment. <a href="/faq/">Details in the FAQ</a>.</p>`,
   },
   {
     q: "Where are you located, and how far is it from Naperville?",
