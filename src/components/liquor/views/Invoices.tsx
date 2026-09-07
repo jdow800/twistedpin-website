@@ -3,6 +3,7 @@ import {
   getInvoiceHistory,
   getInvoiceDetail,
   getCatalog,
+  applyHeldCost,
   matchInvoiceLine,
   newSkuFromLine,
   reextractInvoice,
@@ -100,16 +101,43 @@ export default function Invoices({
 
   // Apply a confirmed match to the open detail (line matched + review cleared;
   // flip the invoice to Confirmed when the server says nothing's left).
-  function handleMatched(lineId: string, name: string, confirmed: boolean) {
-    setDetail((d) =>
-      d
-        ? {
-            ...d,
-            invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice,
-            lines: d.lines.map((x) => (x.id === lineId ? { ...x, matchedName: name, needsReview: false } : x)),
-          }
-        : d,
-    );
+  //
+  // The hold rides along: a match can land while its COST is withheld
+  // (BUILD-SPEC 11.7c), and without threading it here the question would only
+  // appear after a manual reload — which is exactly when nobody answers it.
+  // Keep the LIST's held-count in step with the open detail. "All invoices"
+  // just clears `detail` and re-renders the list from state, so without this a
+  // resolved hold still reads "1 cost held" and a newly raised one shows no
+  // badge at all — on the one surface whose entire job is finding them.
+  function syncHeldCount(invoiceId: string, lines: InvoiceLine[]) {
+    const held = lines.filter((l) => l.costHoldReason).length;
+    setList((rows) => rows.map((r) => (r.id === invoiceId ? { ...r, heldCount: held } : r)));
+  }
+
+  function handleMatched(
+    lineId: string,
+    name: string,
+    confirmed: boolean,
+    hold?: { costHoldReason: string | null; matchedSkuId: string | null; matchedCountUnit: string | null },
+  ) {
+    setDetail((d) => {
+      if (!d) return d;
+      const lines = d.lines.map((x) =>
+        x.id === lineId ? { ...x, matchedName: name, needsReview: false, ...(hold ?? {}) } : x,
+      );
+      syncHeldCount(d.invoice.id, lines);
+      return { ...d, invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice, lines };
+    });
+  }
+
+  /** Clear a resolved hold in place, so the control disappears on Apply. */
+  function handleCostApplied(lineId: string) {
+    setDetail((d) => {
+      if (!d) return d;
+      const lines = d.lines.map((x) => (x.id === lineId ? { ...x, costHoldReason: null } : x));
+      syncHeldCount(d.invoice.id, lines);
+      return { ...d, lines };
+    });
   }
 
   async function open(id: string) {
@@ -264,6 +292,9 @@ export default function Invoices({
               {l.needsReview && l.lineType === "product" && (
                 <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
               )}
+              {l.costHoldReason && (
+                <CostHoldControl invoiceId={detail.invoice.id} line={l} onApplied={handleCostApplied} />
+              )}
               {l.annotation && (
                 <p className="lq-invd-annot">
                   ✍️ {l.annotation}
@@ -328,6 +359,15 @@ export default function Invoices({
             <div className="lq-invrow-main">
               <span className="lq-invrow-vendor">{inv.vendorText || "Unknown vendor"}</span>
               <span className={`lq-badge lq-badge-${inv.status}`}>{STATUS_LABEL[inv.status]}</span>
+              {/* A held cost deliberately does NOT change the invoice's status
+                  (a 'flagged' invoice is dropped from variance purchases), so
+                  the count is its own marker — and the only way to find one
+                  until the shared ops inbox lands. */}
+              {!!inv.heldCount && (
+                <span className="lq-invrow-held">
+                  {inv.heldCount} cost{inv.heldCount === 1 ? "" : "s"} held
+                </span>
+              )}
             </div>
             <div className="lq-invrow-sub lq-muted">
               {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
@@ -342,6 +382,126 @@ export default function Invoices({
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Home</button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * "Cost held" — answers the unit question when the vendor billed in one unit
+ * and we count in another (BUILD-SPEC 11.7c).
+ *
+ * The case this exists for: Sysco billed 1 LB of fresh mint at $8.34; it
+ * matched `Mint (fresh)`, which is counted by the BUNCH, and the old code wrote
+ * $8.34 straight onto the SKU. The match was right. The price was per pound.
+ *
+ * ⚠ THE INPUT IS DOLLARS PER COUNT UNIT, NOT "how many bunches in a pound".
+ * A ratio would look more useful and would be a lie: the stored `unit_cost` has
+ * already been rewritten by the nested-pack rule before it ever reaches this
+ * screen, and a size token like Greco's "1/5#Bg" — a pack of FIVE pounds —
+ * cannot be reduced to a bare unit without inventing a factor. Asking for the
+ * dollar figure asks for the thing actually being authorised.
+ *
+ * ⚠ AND IT RESOLVES COST ONLY. The billed QUANTITY is untouched, because
+ * stock-count usage reads it directly; the copy says so rather than letting
+ * someone assume they have just fixed the count.
+ *
+ * Collapsed to a line of prose until tapped, like ReceivedControl — most lines
+ * never hold, and a permanent input on each row would be noise.
+ */
+function CostHoldControl({
+  invoiceId,
+  line,
+  onApplied,
+}: {
+  invoiceId: string;
+  line: InvoiceLine;
+  onApplied: (lineId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [val, setVal] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const unit = line.matchedCountUnit ?? "unit";
+  const n = Number(val);
+  // Two decimals, matching the server. Without the precision test the API
+  // rejects 1.005 and the counter learns that only after tapping — and the
+  // alternative, rounding it here, is the silent money disagreement this
+  // whole feature exists to prevent. The epsilon is for binary floats
+  // (2.09 * 100 === 208.99999999999997).
+  const valid =
+    val.trim() !== "" &&
+    Number.isFinite(n) &&
+    n > 0 &&
+    Math.abs(n * 100 - Math.round(n * 100)) < 1e-9;
+
+  async function save() {
+    if (!line.matchedSkuId) return;
+    setBusy(true);
+    setErr(null);
+    try {
+      await applyHeldCost(invoiceId, line.id, line.matchedSkuId, n);
+      onApplied(line.id);
+    } catch {
+      // The hold stays put on failure — the question is unanswered until the
+      // server says otherwise.
+      setErr("Didn't save — try again.");
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="lq-invd-hold">
+        <span className="lq-invd-hold-flag">Cost held — {line.costHoldReason}</span>
+        <button type="button" className="lq-linkbtn" onClick={() => setOpen(true)}>
+          set the cost
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lq-invd-hold lq-invd-hold-edit">
+      <span className="lq-invd-hold-flag">Cost held — {line.costHoldReason}</span>
+      <p className="lq-invd-hold-q">
+        This line was billed {line.sizeText ? `as ${line.sizeText}` : "in another unit"} at{" "}
+        {money(line.unitCost)}. What does one {unit} cost?
+      </p>
+      <label>
+        $
+        <input
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step="0.01"
+          value={val}
+          autoFocus
+          onChange={(e) => setVal(e.target.value)}
+          placeholder="0.00"
+        />
+        <span className="lq-muted">per {unit}</span>
+      </label>
+      <p className="lq-invd-hold-note lq-muted">
+        Sets the cost only — the billed quantity stays as it is.
+      </p>
+      <div className="lq-invd-recvd-actions">
+        <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>
+          {busy ? "Saving…" : "Use this cost"}
+        </button>
+        <button
+          type="button"
+          className="lq-linkbtn"
+          disabled={busy}
+          onClick={() => {
+            setOpen(false);
+            setErr(null);
+          }}
+        >
+          cancel
+        </button>
+      </div>
+      {err && <p className="lq-invd-recvd-err">{err}</p>}
     </div>
   );
 }
@@ -475,7 +635,12 @@ function MatchControl({
   invoiceId: string;
   line: InvoiceLine;
   catalog: BarSkuItem[];
-  onMatched: (lineId: string, name: string, confirmed: boolean) => void;
+  onMatched: (
+    lineId: string,
+    name: string,
+    confirmed: boolean,
+    hold?: { costHoldReason: string | null; matchedSkuId: string | null; matchedCountUnit: string | null },
+  ) => void;
 }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -509,7 +674,11 @@ function MatchControl({
     setErr(null);
     try {
       const r = await matchInvoiceLine(invoiceId, line.id, skuId);
-      onMatched(line.id, r.matchedName || name, r.invoiceConfirmed);
+      onMatched(line.id, r.matchedName || name, r.invoiceConfirmed, {
+        costHoldReason: r.costHeld,
+        matchedSkuId: r.matchedSkuId,
+        matchedCountUnit: r.matchedCountUnit,
+      });
     } catch {
       setErr("Couldn't save — try again.");
       setBusy(false);
@@ -525,7 +694,15 @@ function MatchControl({
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
       const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl);
-      onMatched(line.id, r.matchedName, r.invoiceConfirmed);
+      onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
+        costHoldReason: r.costHeld,
+        matchedSkuId: r.skuId,
+        // From the SERVER, never inferred from sizeMl: find-or-create may have
+        // landed on an existing SKU counted by the case or the pound, and this
+        // string is what the cost prompt puts after "what does one ___ cost?".
+        // Guessing it would silently redefine the money being authorised.
+        matchedCountUnit: r.countUnit,
+      });
     } catch {
       setErr("Couldn't create — try again.");
       setBusy(false);

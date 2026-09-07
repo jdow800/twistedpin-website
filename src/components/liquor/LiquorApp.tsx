@@ -4,6 +4,7 @@ import { getMe, logout, ForbiddenError, SECTIONS, type BarActor, type Section } 
 import Login from "./views/Login";
 import Home from "./views/Home";
 import CountLiquor from "./views/CountLiquor";
+import CountFood from "./views/CountFood";
 import KegCheck from "./views/KegCheck";
 import UploadInvoice from "./views/UploadInvoice";
 import Invoices from "./views/Invoices";
@@ -17,7 +18,7 @@ import RecipeBuilder from "./views/RecipeBuilder";
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -142,6 +143,7 @@ export default function LiquorApp() {
         )}
         {view === "home" && actor && <Home actor={actor} onGo={(d) => setView(d)} />}
         {view === "count" && <CountLiquor onDone={goHome} />}
+        {view === "countfood" && <CountFood onDone={goHome} />}
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
         {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}

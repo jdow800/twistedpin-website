@@ -749,6 +749,12 @@
   min-height: 15px;
   text-align: right;
 }
+/* A save that did NOT land, and any blocking submit failure, shown in the one
+   place the counter is already looking: the fixed footer. */
+.lq-fc-saveerr {
+  color: var(--lq-danger);
+  font-weight: 600;
+}
 .lq-footer-actions {
   display: flex;
   align-items: center;
@@ -1934,4 +1940,257 @@
   margin: 0;
   font-size: 12.5px;
   color: var(--lq-muted);
+}
+
+/* ── Cost held (BUILD-SPEC 11.7c) ──────────────────────────────────────────
+   A line whose vendor billed in a unit we do not count in: the match stands,
+   the COST waits for a human. Deliberately NOT styled as an error — nothing is
+   broken and no money was lost; a question is open. Same amber as a recorded
+   discrepancy, because it reads at a glance weeks later in the same way. */
+.lq-invd-hold {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.lq-invd-hold .lq-linkbtn {
+  /* Same thumb-target correction as .lq-invd-recvd — 4px padding is ~22px. */
+  font-size: 12px;
+  padding: 6px 2px;
+  min-height: 32px;
+}
+.lq-invd-hold-flag {
+  color: #ffcf5c;
+  font-weight: 700;
+}
+.lq-invd-hold-q,
+.lq-invd-hold-note {
+  flex: 0 0 100%;
+  margin: 0;
+  font-size: 13px;
+}
+.lq-invd-hold-note {
+  font-size: 12px;
+}
+.lq-invd-hold-edit label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+/* 16px or iOS Safari zooms the whole page on focus. */
+.lq-invd-hold-edit input {
+  width: 6em;
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+}
+/* The list marker. A held cost does NOT change the invoice's status badge —
+   'flagged' invoices are excluded from variance purchases server-side — so this
+   is its own chip, and the only way to find one until the ops inbox lands. */
+.lq-invrow-held {
+  background: var(--lq-panel-2);
+  color: #ffcf5c;
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ══ FOOD COUNT (CountFood.tsx) ════════════════════════════════════════════
+   Every class here is `lq-fc-*`. That prefix is deliberate and load-bearing:
+   the liquor count screen owns `lq-count`, `lq-grid`, `lq-row*` and `lq-zone*`
+   with layout tuned over months of real walks, and the food screen must not be
+   able to move any of it. Shared primitives only (lq-btn, lq-linkbtn, lq-muted,
+   lq-error, lq-footer) are reused.
+   Mobile-first: 16px inputs or iOS zooms the page on focus. */
+.lq-fc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 84px;
+}
+/* Zone strip — horizontally scrollable; a kitchen has 10 shelves, not 5. */
+.lq-fc-zonebar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 6px;
+  -webkit-overflow-scrolling: touch;
+}
+.lq-fc-zonetab {
+  flex: 0 0 auto;
+  background: var(--lq-panel-2);
+  border: 1px solid var(--lq-line-strong);
+  color: inherit;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  min-height: 38px;
+  white-space: nowrap;
+}
+.lq-fc-zonetab-on {
+  background: var(--lq-accent, #ffcf5c);
+  color: #1a1a1a;
+  font-weight: 700;
+}
+.lq-fc-zonetab-n {
+  margin-left: 6px;
+  opacity: 0.75;
+  font-size: 11px;
+}
+.lq-fc-voicebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+.lq-fc-rec {
+  background: var(--lq-danger, #e05555);
+}
+/* Review panel — voice results and the pre-submit findings share it. */
+.lq-fc-rev {
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--lq-panel-2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lq-fc-rev-h {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+}
+.lq-fc-rev-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-top: 1px solid var(--lq-line, #333);
+  font-size: 13px;
+}
+/* A blocked row is amber, not red: nothing is broken, a question is open. */
+.lq-fc-rev-row-block {
+  border-left: 3px solid #ffcf5c;
+  padding-left: 8px;
+}
+.lq-fc-rev-spoken {
+  font-weight: 700;
+}
+.lq-fc-rev-match {
+  color: #9fd39f;
+}
+.lq-fc-rev-note {
+  color: #ffcf5c;
+}
+.lq-fc-rev-pick {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.lq-fc-rev-ask {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lq-fc-rev-ask label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.lq-fc-rev-ask input {
+  width: 5em;
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel);
+  color: inherit;
+}
+.lq-fc-rev-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+/* The grid. One row per item; cases box only when a case size is known, so the
+   screen never invites a multiplier it cannot justify. */
+.lq-fc-grid {
+  display: flex;
+  flex-direction: column;
+}
+.lq-fc-grid-empty {
+  padding: 16px 4px;
+  font-size: 13px;
+}
+.lq-fc-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--lq-line, #333);
+}
+.lq-fc-row-counted {
+  background: rgba(159, 211, 159, 0.06);
+}
+.lq-fc-row-name {
+  font-size: 14px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lq-fc-row-voice {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.lq-fc-row-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lq-fc-row-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+.lq-fc-row-box input {
+  width: 4.5em;
+  font-size: 16px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+}
+.lq-fc-row-total {
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 4em;
+}
+.lq-fc-addbox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 0;
+}
+.lq-fc-addbox input {
+  font-size: 16px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
 }

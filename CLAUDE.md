@@ -123,7 +123,7 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 - **Desktop type sweep still open:** `/free-kids-bowling` (18 sub-15px values, 1 desktop query), `/coupon`, `/rewards`, `/upcoming-events` (partial). The 8/03 batch swept the *globals* — **when a page "still looks small" after it, check that page's own `<style>` block.** Mobile floors were reviewed and CLOSED by Jon 2026-08-03; don't re-raise without a new trigger.
 - **`/leagues`** — `~Sept 15` in-season reframe of the cards (TODO in file); the leagues promo drops Sept 1 despite Tuesday's Sept 8 meeting (Jon's call).
 - **Singo music bingo is a trial through Nov 29.** `src/content/events/singo-sundays.md` drives the card, the JSON-LD, `/api/hours` and `/api/music-bingo/` — extend the promo bar and the markdown `until` together. Road sign / Meta / GBP not done.
-- **`/liquor` is now `/cogs`** (section param, defaults to bar). Any doc still saying `/liquor` is stale.
+- **`/liquor` is now `/cogs`** (section param, defaults to bar). Any doc still saying `/liquor` is stale. **A "Count food" tile lives there as of 2026-09-07** — a separate walk from the liquor count, its own screen (`views/CountFood.tsx`), all CSS namespaced `lq-fc-*`. See the 2026-09-07 entry in `Context/history/2026-website-decisions.md`.
 - **❌ Mixology event — CANCELLED 2026-07-26 (low signups). Do not rebuild from the archived notes without re-reading the 2026-07-26 entry in `Context/history/2026-website-decisions.md`** — both URLs are deliberately **302** (not 301) to `/upcoming-events/`, the built `/public/snap/mixology-*` files are deliberately left in place, and TPRS product code 500 is deactivated rather than deleted.
 
 ### Watch list
