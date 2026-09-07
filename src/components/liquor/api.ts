@@ -677,6 +677,13 @@ export interface InvoiceSummary {
 }
 export interface InvoiceLine {
   id: string;
+  /** The vendor's own item number — SUPC on Sysco. The supplier identity half. */
+  vendorCode?: string | null;
+  /** From our matched SKU. Wins over the supplier where both speak. */
+  ourBucket?: CogsBucket | null;
+  /** From the supplier's own record for its own code. */
+  supplierBucket?: CogsBucket | null;
+  supplierDescription?: string | null;
   lineType: "product" | "deposit" | "fee" | "return" | "keg" | "unknown";
   rawDescription: string | null;
   sizeText: string | null;
@@ -708,11 +715,72 @@ export interface InvoiceImageRef {
   pageNumber: number | null;
   contentType: string | null;
 }
+export type CogsBucket =
+  | "food" | "na_beverage" | "bar_consumable" | "liquor"
+  | "beer_draft" | "beer_bottled" | "wine" | "paper" | "supplies";
+
+/**
+ * One bucket's dollars, with the three classification sources kept APART.
+ *
+ * `matched` + `vendorItem` are CONFIRMED — our catalog said so, or the supplier
+ * said so about its own item code. `estimated` is apportioned from that
+ * vendor's historical mix. Never add them together and print one number as
+ * actual COGS; that is the failure the split exists to prevent.
+ */
+export interface BucketAmount {
+  matched: number;
+  vendorItem: number;
+  estimated: number;
+}
+
+/** A line still waiting on a human, and what kind of waiting it is. */
+export interface BucketAttentionLine {
+  lineId: string;
+  description: string | null;
+  amount: string;
+  supplierBucket?: CogsBucket | null;
+  supplierDescription?: string | null;
+  ourBucket?: CogsBucket | null;
+  ourSku?: string | null;
+}
+
+export interface InvoiceBuckets {
+  byBucket: Partial<Record<CogsBucket, BucketAmount>>;
+  unattributed: number;
+  nonGoods: number;
+  matchedDollars: number;
+  residualDollars: number;
+  residualBasis: "none" | "vendor_mix" | "unattributed";
+  mixVendor: string | null;
+  mixInvoices: number | null;
+  warnings: string[];
+  /** Which figure the split was measured against. `extracted_total` is one WE
+   *  computed, not one printed on the invoice — the screen must not claim otherwise. */
+  totalBasis: "product_subtotal" | "grand_total" | "extracted_total" | "none";
+  needsAttention: {
+    /** Neither source has an opinion — these ride the vendor mix as an estimate. */
+    unresolved: BucketAttentionLine[];
+    /** The SUPPLIER bucketed it and our catalog was never asked. Garnishes hide
+     *  here: Sysco calls a lime Produce (food); we count it against liquor. */
+    supplierOnly: BucketAttentionLine[];
+    /** Both spoke and differ. Ours won — say so rather than hiding it. */
+    disagreement: BucketAttentionLine[];
+  };
+}
+
 export interface InvoiceDetail {
-  invoice: InvoiceSummary & { extractedTotal: string | null };
+  invoice: InvoiceSummary & { extractedTotal: string | null; printedProductTotal?: string | null };
   lines: InvoiceLine[];
   images: InvoiceImageRef[];
+  buckets: InvoiceBuckets;
 }
+
+/** Confirmed dollars in a bucket — our catalog plus the supplier's own record. */
+export const confirmedIn = (a: BucketAmount | undefined): number =>
+  a ? Math.round((a.matched + a.vendorItem) * 100) / 100 : 0;
+/** Every dollar placed, confirmed and estimated. Show `confirmedIn` beside it. */
+export const totalIn = (a: BucketAmount | undefined): number =>
+  a ? Math.round((a.matched + a.vendorItem + a.estimated) * 100) / 100 : 0;
 export async function getInvoiceHistory(): Promise<InvoiceSummary[]> {
   const { invoices } = await gatedJson<{ invoices: InvoiceSummary[] }>("/admin/bar/invoices/history");
   return invoices;
