@@ -489,7 +489,9 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
       <div className="lq-buk-summary">
         <span className="lq-buk-conf">${confirmed.toFixed(2)} confirmed</span>
         {awaiting !== 0 && (
-          <span className="lq-buk-await">${Math.abs(awaiting).toFixed(2)} vendor-classified</span>
+          <span className="lq-buk-await">
+            {awaiting < 0 ? "−" : ""}${Math.abs(awaiting).toFixed(2)} vendor-classified
+          </span>
         )}
         {estimated !== 0 && (
           <span className="lq-buk-est">
