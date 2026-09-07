@@ -727,6 +727,19 @@ export type CogsBucket =
  * vendor's historical mix. Never add them together and print one number as
  * actual COGS; that is the failure the split exists to prevent.
  */
+/**
+ * THREE sources, and they are not equally trustworthy. Keep them apart.
+ *
+ * - `matched`    — OUR catalog said so, either on this line or through the
+ *                  learned (vendor, item code) link. Internally confirmed.
+ * - `vendorItem` — the SUPPLIER classified its own code and nobody here has
+ *                  ruled on it yet. Awaiting our classification, NOT ours.
+ * - `estimated`  — apportioned from that vendor's historical mix.
+ *
+ * The middle one is the trap: it looks authoritative because a real supplier
+ * said it, and it is still the wrong department whenever their chart differs
+ * from ours. Sysco files a lime under Produce.
+ */
 export interface BucketAmount {
   matched: number;
   vendorItem: number;
@@ -742,6 +755,9 @@ export interface BucketAttentionLine {
   supplierDescription?: string | null;
   ourBucket?: CogsBucket | null;
   ourSku?: string | null;
+  /** True when it resolved through the learned (vendor, code) link rather than
+   *  a match on this line — i.e. nobody had to do anything today. */
+  viaLearnedLink?: boolean;
 }
 
 export interface InvoiceBuckets {
@@ -775,9 +791,13 @@ export interface InvoiceDetail {
   buckets: InvoiceBuckets;
 }
 
-/** Confirmed dollars in a bucket — our catalog plus the supplier's own record. */
+/** Dollars OUR catalog placed. The only figure that is our department by our
+ *  own say-so — do not fold the supplier's into it. */
 export const confirmedIn = (a: BucketAmount | undefined): number =>
-  a ? Math.round((a.matched + a.vendorItem) * 100) / 100 : 0;
+  a ? Math.round(a.matched * 100) / 100 : 0;
+/** Dollars the SUPPLIER placed, awaiting our classification. */
+export const awaitingIn = (a: BucketAmount | undefined): number =>
+  a ? Math.round(a.vendorItem * 100) / 100 : 0;
 /** Every dollar placed, confirmed and estimated. Show `confirmedIn` beside it. */
 export const totalIn = (a: BucketAmount | undefined): number =>
   a ? Math.round((a.matched + a.vendorItem + a.estimated) * 100) / 100 : 0;
