@@ -15,6 +15,7 @@ import {
   type InvoiceLine,
   type BarInvoiceStatus,
   type BarSkuItem,
+  awaitingIn,
   confirmedIn,
   totalIn,
   type CogsBucket,
@@ -473,6 +474,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
     .filter((r) => r.a.matched !== 0 || r.a.vendorItem !== 0 || r.a.estimated !== 0)
     .sort((x, y) => Math.abs(totalIn(y.a)) - Math.abs(totalIn(x.a)));
   const confirmed = rows.reduce((s, r) => s + confirmedIn(r.a), 0);
+  const awaiting = rows.reduce((s, r) => s + awaitingIn(r.a), 0);
   const estimated = rows.reduce((s, r) => s + r.a.estimated, 0);
   const att = b.needsAttention;
   const attentionCount =
@@ -486,6 +488,9 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
 
       <div className="lq-buk-summary">
         <span className="lq-buk-conf">${confirmed.toFixed(2)} confirmed</span>
+        {awaiting !== 0 && (
+          <span className="lq-buk-await">${Math.abs(awaiting).toFixed(2)} vendor-classified</span>
+        )}
         {estimated !== 0 && (
           <span className="lq-buk-est">
             {estimated < 0 ? "−" : ""}${Math.abs(estimated).toFixed(2)} estimated
@@ -514,6 +519,16 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
                   title={`${confirmedIn(a).toFixed(2)} confirmed`}
                 />
               )}
+              {/* The MIDDLE state, and the one that needs its own look: a real
+                  supplier classified this and nobody here has ruled on it. It
+                  is not ours until we say so — Sysco files a lime as Produce. */}
+              {awaitingIn(a) !== 0 && (
+                <span
+                  className={`lq-buk-seg lq-buk-seg-await${awaitingIn(a) < 0 ? " lq-buk-seg-neg" : ""}`}
+                  style={{ flexGrow: Math.abs(awaitingIn(a)) }}
+                  title={`${awaitingIn(a).toFixed(2)} classified by the vendor, not by us`}
+                />
+              )}
               {a.estimated !== 0 && (
                 <span
                   className={`lq-buk-seg lq-buk-seg-est${a.estimated < 0 ? " lq-buk-seg-neg" : ""}`}
@@ -523,6 +538,11 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
               )}
             </span>
             <span className="lq-buk-amt">${totalIn(a).toFixed(2)}</span>
+            {awaitingIn(a) !== 0 && (
+              <span className="lq-buk-flag lq-buk-flag-await" title="the vendor classified this; we have not">
+                vendor
+              </span>
+            )}
             {a.estimated !== 0 && (
               <span className="lq-buk-flag" title="apportioned from this vendor's history">
                 est
@@ -585,7 +605,8 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
               <span className="lq-buk-att-desc">{l.description || "—"}</span>
               <span className="lq-buk-att-note">
                 counted as {BUCKET_LABEL[l.ourBucket ?? ""] ?? l.ourBucket} ({l.ourSku}); the vendor
-                files it under {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours wins.
+                files it under {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours wins
+                {l.viaLearnedLink ? " — resolved from the item code, nobody had to match it" : ""}.
               </span>
               <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
             </div>

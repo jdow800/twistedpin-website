@@ -2477,3 +2477,23 @@
   background: transparent;
   border: 1px dashed var(--lq-danger);
 }
+
+/* The THIRD state. A real supplier classified this and we have not ruled on
+   it — authoritative-looking and still possibly the wrong department, which is
+   exactly why it cannot share a colour with "our catalog said so". Dotted, and
+   a distinct hue from both confirmed (solid) and estimated (hatched). */
+.lq-buk-await {
+  color: var(--lq-info, #8fb8ff);
+}
+.lq-buk-seg-await {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--lq-info, #8fb8ff),
+    var(--lq-info, #8fb8ff) 2px,
+    rgba(0, 0, 0, 0.4) 2px,
+    rgba(0, 0, 0, 0.4) 4px
+  );
+}
+.lq-buk-flag-await {
+  color: var(--lq-info, #8fb8ff);
+}
