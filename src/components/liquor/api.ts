@@ -128,11 +128,21 @@ export interface BarSkuItem {
   /** Containers per purchase case. null = unknown — the UI must ASK, never
    *  assume (a wrong multiplier silently scales the whole count). */
   unitsPerCase: number | null;
+  /** What a human counts this as on a shelf — 'bottle' | 'each' | 'case' |
+   *  'lb' | 'gal' | 'pack' | 'box' | 'sack' | 'bib'. The FOOD grid labels every
+   *  cell with it; the liquor grid ignores it because everything there is a
+   *  bottle. Optional so older cached bundles keep parsing. */
+  countUnit?: string;
 }
 export interface BarZoneItem {
   id: string;
   name: string;
   walkOrder: number;
+  /** SKUs Opsi lists on this shelf (0169). A HINT, never a constraint: the grid
+   *  pre-populates these and search-to-add still reaches anything, so a line
+   *  counted in a non-member zone counts exactly as it always did. Empty for
+   *  every liquor zone by construction — 0169 seeded no bottle memberships. */
+  memberSkuIds?: string[];
 }
 export interface KegKnownItem {
   name: string;
@@ -210,10 +220,13 @@ export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]>
 }
 
 // ── liquor counts ──
-export async function createCount(isFullCount: boolean): Promise<string> {
+/** Start a count. `section` decides WHICH WALK it is — the kitchen and the bar
+ *  are separate sessions with separate catalogs, zones and brackets (0166).
+ *  Defaults to "bar" so every existing caller is unchanged. */
+export async function createCount(isFullCount: boolean, section: Section = "bar"): Promise<string> {
   const { sessionId } = await gatedJson<{ sessionId: string }>(
     "/admin/bar/counts",
-    jsonBody({ isFullCount }),
+    jsonBody({ isFullCount, section }),
   );
   return sessionId;
 }
@@ -268,13 +281,18 @@ export async function saveBatchCounts(
   await gatedJson(`/admin/bar/counts/${sessionId}/batches`, { ...jsonBody({ batches }), method: "PUT" });
 }
 /** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
-export async function getOpenCount(full = true): Promise<OpenCount | null> {
+export async function getOpenCount(full = true, section: Section = "bar"): Promise<OpenCount | null> {
   // `full` picks WHICH kind of draft to resume. The liquor count owns full
   // drafts, the bottled-beer section owns partial ones; without the split one
   // screen resumes the other screen's draft and a full count lands in a session
   // the variance worker never reads.
+  //
+  // `section` is the same idea one level up, and it matters more: /lines is
+  // AUTHORITATIVE, so a screen that resumed the other walk's draft would not
+  // merely display it — the next save would replace its rows with lines
+  // pointing at the wrong catalog.
   const { session } = await gatedJson<{ session: OpenCount | null }>(
-    `/admin/bar/counts/open?full=${full ? "true" : "false"}`,
+    `/admin/bar/counts/open?full=${full ? "true" : "false"}&section=${section}`,
   );
   return session;
 }
@@ -417,11 +435,18 @@ export async function transcribeAudio(
 
 /** Send a zone's dictation transcript → catalog-mapped {bottle, qty} items with
  *  ambiguous names flagged. Surfaces the server's friendly message on 502/503. */
-export async function extractVoice(transcript: string): Promise<VoiceExtractItem[]> {
+/** Map a spoken run-on to catalog SKUs. `section` picks WHICH catalog —
+ *  absent means "bar", so the liquor screen is unchanged. Unscoped, the food
+ *  seed would silently enlarge the liquor matcher's candidate set, and a bar
+ *  SKU could come back into a food count. */
+export async function extractVoice(
+  transcript: string,
+  section: Section = "bar",
+): Promise<VoiceExtractItem[]> {
   try {
     const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript }),
+      jsonBody({ transcript, section }),
     );
     return items;
   } catch (e) {
@@ -643,6 +668,12 @@ export interface InvoiceSummary {
   printedTotal: string | null;
   pageCount: number;
   createdAt: string;
+  /** Unresolved unit questions on this invoice (BUILD-SPEC 11.7c). A hold does
+   *  NOT change `status` — 'flagged' invoices are excluded from variance
+   *  purchases server-side, so flagging one to surface a cost question would
+   *  silently drop its purchases from the bracket. This count is the only way
+   *  to find a held cost until the shared ops inbox exists. */
+  heldCount?: number;
 }
 export interface InvoiceLine {
   id: string;
@@ -663,6 +694,14 @@ export interface InvoiceLine {
   annotation: string | null;
   needsReview: boolean;
   matchedName: string | null;
+  /** Why this line's COST is waiting on a human — "billed by LB, counted by
+   *  each". Prose, written server-side by one module; the units below are the
+   *  structured form, so nothing here parses this string. null = no hold. */
+  costHoldReason: string | null;
+  /** The SKU the hold was computed against. Sent back on resolve so a stale tab
+   *  cannot authorise a cost against a SKU the line was since re-matched to. */
+  matchedSkuId: string | null;
+  matchedCountUnit: string | null;
 }
 export interface InvoiceImageRef {
   id: string;
@@ -687,8 +726,39 @@ export async function matchInvoiceLine(
   invoiceId: string,
   lineId: string,
   skuId: string,
-): Promise<{ matchedName: string; aliasLearned: boolean; invoiceConfirmed: boolean }> {
+): Promise<{
+  matchedName: string;
+  aliasLearned: boolean;
+  invoiceConfirmed: boolean;
+  /** Set when the match landed but the COST did not: confirming IDENTITY is not
+   *  answering the UNIT question (BUILD-SPEC 11.7c). */
+  costHeld: string | null;
+  matchedSkuId: string | null;
+  matchedCountUnit: string | null;
+}> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
+}
+
+/** Answer the unit question a held cost is asking: what does ONE count unit
+ *  cost? (BUILD-SPEC 11.7c)
+ *
+ *  DOLLARS, not a conversion ratio, and that narrowing is deliberate — the
+ *  invoice's own `unit_cost` is already rewritten by the nested-pack rule
+ *  before it is stored, and a size token like Greco's "1/5#Bg" (a pack of FIVE
+ *  pounds) cannot be reduced to a bare unit without inventing a factor. The
+ *  dollar figure is the thing being authorised.
+ *
+ *  Resolves COST only — quantity is untouched. */
+export async function applyHeldCost(
+  invoiceId: string,
+  lineId: string,
+  expectedSkuId: string,
+  costPerCountUnit: number,
+): Promise<{ skuId: string; costPerCountUnit: number }> {
+  return gatedJson(
+    `/admin/bar/invoices/${invoiceId}/lines/${lineId}/apply-cost`,
+    jsonBody({ expectedSkuId, costPerCountUnit }),
+  );
 }
 /** Record what a delivery ACTUALLY contained, when it came up short (or over).
  *  Pass null to clear it back to "as billed".
@@ -760,7 +830,20 @@ export async function newSkuFromLine(
   lineId: string,
   name: string,
   sizeMl: number | null,
-): Promise<{ skuId: string; matchedName: string; invoiceConfirmed: boolean }> {
+): Promise<{
+  skuId: string;
+  matchedName: string;
+  invoiceConfirmed: boolean;
+  /** A brand-new size-less SKU is created counted by the EACH, so a line billed
+   *  by the pound holds its cost here too — this route is how such a SKU comes
+   *  into existence at all (BUILD-SPEC 11.7c). */
+  costHeld: string | null;
+  /** The count unit of the SKU this actually landed on — which is NOT always
+   *  the one this route would have created, because find-or-create may have
+   *  matched an existing row with a different unit. Never guess it client-side:
+   *  it names the denominator of the dollar figure a human then authorises. */
+  countUnit: string;
+}> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
