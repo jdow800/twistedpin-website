@@ -75,6 +75,21 @@ interface ReviewItem {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** "3 cases · 2 lb" — the unit word comes from the SKU, never from this file. */
+/**
+ * Opsi's names are inverted for sorting — "Cup, Clear, Plastic 12Oz",
+ * "Plate, Oval, Velvet Paper, Black". Read down a shelf list on a phone and
+ * every row starts with a different noun buried at a different depth.
+ *
+ * Split on the FIRST comma and weight the head: **Cup** · Clear, Plastic 12Oz.
+ * DISPLAY ONLY — the stored name is untouched and stays in the title, because
+ * the name is the identity the invoice matcher and the voice extractor key on.
+ * Never "tidy" it into the database.
+ */
+export function splitDisplayName(name: string): [string, string | null] {
+  const i = name.indexOf(", ");
+  return i < 0 ? [name, null] : [name.slice(0, i), name.slice(i + 2)];
+}
+
 function unitLabel(sku: BarSkuItem | undefined, n: number): string {
   const u = sku?.countUnit ?? "each";
   if (n === 1) return u;
@@ -148,6 +163,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  Finish or Submit is looking at the bottom of a long shelf list and would
    *  never scroll up to find out why nothing happened. */
   const [submitErr, setSubmitErr] = useState<string | null>(null);
+  /** The shelf list is one tap wide on a phone, so the zone strip is a header
+   *  with prev/next rather than a horizontal scroller — 10 shelves put 838px
+   *  of tabs off-screen at 390px wide, and the counter could not see which
+   *  shelf they were on, let alone how far through the walk. */
+  const [zonePicker, setZonePicker] = useState(false);
   const [checking, setChecking] = useState(false);
   const [findings, setFindings] = useState<PrecheckFinding[] | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -195,6 +215,26 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     return () => {
       live = false;
     };
+  }, []);
+
+  // The soft keyboard shrinks the VISUAL viewport, not the layout viewport, so
+  // this is the event that says "half the screen just went away". Re-centre the
+  // row being typed into; without it the box slides behind the fixed footer.
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    // Read document.activeElement at resize time rather than tracking focus in
+    // a ref: whatever the counter is typing into RIGHT NOW is what has to stay
+    // visible, and that is one fewer thing to keep in sync.
+    // `behavior: auto` on purpose — a smooth scroll races the keyboard's own
+    // animation and the box visibly drifts.
+    const recentre = () => {
+      const el = document.activeElement;
+      if (!el || el.tagName !== "INPUT") return;
+      el.closest(".lq-fc-row")?.scrollIntoView({ block: "center", behavior: "auto" });
+    };
+    vv.addEventListener("resize", recentre);
+    return () => vv.removeEventListener("resize", recentre);
   }, []);
 
   /** Returns whether the sheet is actually on the server. Callers that are
@@ -439,6 +479,33 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       .slice(0, 8);
   }, [search, catalog, rowIds]);
 
+  // Walk position, for the zone header. A counter needs to know how far
+  // through the kitchen they are without scrolling a tab strip sideways.
+  const zoneIdx = Math.max(0, zones.findIndex((z) => z.id === zoneId));
+  const zoneCounted = Object.keys(zoneCells).length;
+  /** Move shelves and close the picker. Scroll to the top: a phone left at the
+   *  bottom of a 45-item shelf would open the next one halfway down. */
+  /** Keep the box being typed into clear of the sticky header AND the fixed
+   *  footer once the soft keyboard takes its half of the screen.
+   *
+   *  A timer does NOT do this reliably — focus fires first and the keyboard
+   *  animates in afterwards, so a scroll scheduled off the focus lands against
+   *  the OLD viewport. Measured before this: focused input at y=557 in a 544px
+   *  viewport with the footer starting at 448 — off screen and behind the
+   *  footer. The keyboard's actual signal is visualViewport resize. */
+  function keepInView(e: { currentTarget: HTMLInputElement }) {
+    e.currentTarget.closest(".lq-fc-row")?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+
+  function goZone(i: number) {
+    const z = zones[Math.min(Math.max(i, 0), zones.length - 1)];
+    if (!z) return;
+    setZoneId(z.id);
+    setSearch("");
+    setZonePicker(false);
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }
+
   const totalLines = Object.values(counts).reduce((a, z) => a + Object.keys(z).length, 0);
   const zonesTouched = Object.entries(counts).filter(([, z]) => Object.keys(z).length > 0).length;
 
@@ -462,22 +529,58 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-fc">
-      <div className="lq-fc-zonebar">
-        {zones.map((z) => {
-          const n = Object.keys(counts[z.id] ?? {}).length;
-          return (
-            <button
-              key={z.id}
-              type="button"
-              className={`lq-fc-zonetab${z.id === zoneId ? " lq-fc-zonetab-on" : ""}`}
-              onClick={() => { setZoneId(z.id); setSearch(""); }}
-            >
-              {z.name}
-              {n > 0 && <span className="lq-fc-zonetab-n">{n}</span>}
-            </button>
-          );
-        })}
+      <div className="lq-fc-zonehead">
+        <button
+          type="button"
+          className="lq-fc-zonestep"
+          aria-label="Previous shelf"
+          disabled={zoneIdx <= 0}
+          onClick={() => goZone(zoneIdx - 1)}
+        >
+          ‹
+        </button>
+        <button
+          type="button"
+          className="lq-fc-zonepick"
+          aria-expanded={zonePicker}
+          onClick={() => setZonePicker((o) => !o)}
+        >
+          <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
+          <span className="lq-fc-zonemeta">
+            Shelf {zoneIdx + 1} of {zones.length} · {zoneCounted} of {rows.length} counted
+            <span className="lq-fc-zonecaret">{zonePicker ? "▲" : "▼"}</span>
+          </span>
+        </button>
+        <button
+          type="button"
+          className="lq-fc-zonestep"
+          aria-label="Next shelf"
+          disabled={zoneIdx >= zones.length - 1}
+          onClick={() => goZone(zoneIdx + 1)}
+        >
+          ›
+        </button>
       </div>
+
+      {zonePicker && (
+        <div className="lq-fc-zonelist">
+          {zones.map((z, i) => {
+            const n = Object.keys(counts[z.id] ?? {}).length;
+            return (
+              <button
+                key={z.id}
+                type="button"
+                className={`lq-fc-zonerow${z.id === zoneId ? " lq-fc-zonerow-on" : ""}`}
+                onClick={() => goZone(i)}
+              >
+                <span className="lq-fc-zonerow-n">{i + 1}</span>
+                <span className="lq-fc-zonerow-name">{z.name}</span>
+                {n > 0 && <span className="lq-fc-zonerow-done">{n} counted</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ── voice ── */}
       <div className="lq-fc-voicebar">
@@ -590,46 +693,58 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         )}
         {rows.map((s) => {
           const c = zoneCells[s.id];
+          const [head, rest] = splitDisplayName(s.name);
           return (
             <div key={s.id} className={`lq-fc-row${c ? " lq-fc-row-counted" : ""}`}>
-              <div className="lq-fc-row-name">
-                {s.name}
-                {c?.source === "voice" && <span className="lq-fc-row-voice" title={c.raw}>🎙️</span>}
+              <div className="lq-fc-row-name" title={s.name}>
+                <span className="lq-fc-row-label">
+                  <span className="lq-fc-row-head">{head}</span>
+                  {rest && <span className="lq-fc-row-rest">{rest}</span>}
+                  {c?.source === "voice" && <span className="lq-fc-row-voice" title={c.raw}>🎙️</span>}
+                </span>
+                {c && (
+                  <span className="lq-fc-row-sum">
+                    <span className="lq-fc-row-total">= {c.qty}</span>
+                    <button type="button" className="lq-fc-row-clear" onClick={() => clearCell(s.id)}>
+                      clear
+                    </button>
+                  </span>
+                )}
               </div>
               <div className="lq-fc-row-inputs">
                 {s.unitsPerCase != null && (
                   <label className="lq-fc-row-box">
-                    <span>cases</span>
+                    {/* The "× N" chip is what tells a MULTIPLIER box apart from a
+                        loose box that happens to be counted in cases. Without it
+                        two different boxes both read "cases". */}
+                    <span className="lq-fc-row-lab">
+                      cases <span className="lq-fc-row-mult">×{s.unitsPerCase}</span>
+                    </span>
                     <input
                       type="number"
                       inputMode="decimal"
                       min={0}
                       step="any"
                       value={c?.cases ?? ""}
+                      onFocus={keepInView}
                       onChange={(e) =>
                         writeCell(s.id, { cases: Number(e.target.value) || 0, caseSize: s.unitsPerCase })
                       }
                     />
-                    <span className="lq-muted">×{s.unitsPerCase}</span>
                   </label>
                 )}
                 <label className="lq-fc-row-box">
-                  <span>{unitLabel(s, 2)}</span>
+                  <span className="lq-fc-row-lab">{unitLabel(s, 2)}</span>
                   <input
                     type="number"
                     inputMode="decimal"
                     min={0}
                     step="any"
                     value={c?.units ?? ""}
+                    onFocus={keepInView}
                     onChange={(e) => writeCell(s.id, { units: Number(e.target.value) || 0 })}
                   />
                 </label>
-                <span className="lq-fc-row-total">{c ? `= ${c.qty}` : ""}</span>
-                {c && (
-                  <button type="button" className="lq-linkbtn" onClick={() => clearCell(s.id)}>
-                    clear
-                  </button>
-                )}
               </div>
             </div>
           );
