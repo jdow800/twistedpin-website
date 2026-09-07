@@ -15,6 +15,9 @@ import {
   type InvoiceLine,
   type BarInvoiceStatus,
   type BarSkuItem,
+  confirmedIn,
+  totalIn,
+  type CogsBucket,
 } from "../api";
 import { matchSkus } from "../matcher";
 
@@ -271,10 +274,12 @@ export default function Invoices({
           </div>
         )}
 
+        <BucketPanel detail={detail} />
+
         <h3 className="lq-cap-title">Lines <span className="lq-cap-n">{detail.lines.length}</span></h3>
         <div className="lq-invd-lines">
           {detail.lines.map((l) => (
-            <div key={l.id} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
+            <div key={l.id} id={`inv-line-${l.id}`} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
               <div className="lq-invd-line-main">
                 <span className="lq-invd-desc">{l.rawDescription || "—"}</span>
                 <span className="lq-invd-amt">{money(l.extendedAmount)}</span>
@@ -408,6 +413,169 @@ export default function Invoices({
  * Collapsed to a line of prose until tapped, like ReceivedControl — most lines
  * never hold, and a permanent input on each row would be noise.
  */
+
+const BUCKET_LABEL: Record<string, string> = {
+  food: "Food",
+  na_beverage: "NA beverage",
+  bar_consumable: "Bar consumables",
+  liquor: "Liquor",
+  beer_draft: "Draft beer",
+  beer_bottled: "Bottled beer",
+  wine: "Wine",
+  paper: "Paper",
+  supplies: "Supplies",
+};
+
+/**
+ * Where this invoice's dollars land, and WHO SAID SO.
+ *
+ * The three sources stay visibly apart because they are not equally trustworthy:
+ * our own matched SKU and the supplier's record for its own item code are
+ * CONFIRMED; the rest is apportioned from that vendor's historical mix and is an
+ * ESTIMATE. A single blended figure presented as actual COGS is the specific
+ * failure this whole split exists to prevent.
+ *
+ * The list underneath is the point of the panel. "Supplier says" is where money
+ * hides: Sysco calls a lime Produce, which lands it in FOOD, while §11.5 counts
+ * limes on the liquor walk as a bar consumable. Nobody has told us it is ours,
+ * so the supplier answers for us — quietly, and in the wrong department.
+ */
+function BucketPanel({ detail }: { detail: InvoiceDetail }) {
+  /** Jump to the line row, which already carries the match control. No new
+   *  state and no second way to do the same job. */
+  const jump = (lineId: string) => {
+    const el = document.getElementById("inv-line-" + lineId);
+    el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  };
+  const b = detail.buckets;
+  if (!b) return null;
+  const rows = (Object.keys(b.byBucket) as CogsBucket[])
+    .map((k) => ({ k, a: b.byBucket[k]! }))
+    .filter((r) => totalIn(r.a) !== 0)
+    .sort((x, y) => totalIn(y.a) - totalIn(x.a));
+  const confirmed = rows.reduce((s, r) => s + confirmedIn(r.a), 0);
+  const estimated = rows.reduce((s, r) => s + r.a.estimated, 0);
+  const att = b.needsAttention;
+  const attentionCount =
+    att.unresolved.length + att.supplierOnly.length + att.disagreement.length;
+
+  return (
+    <div className="lq-buk">
+      <h3 className="lq-cap-title">
+        Where this went <span className="lq-cap-n">{rows.length}</span>
+      </h3>
+
+      <div className="lq-buk-summary">
+        <span className="lq-buk-conf">${confirmed.toFixed(2)} confirmed</span>
+        {estimated !== 0 && <span className="lq-buk-est">${estimated.toFixed(2)} estimated</span>}
+        {b.unattributed !== 0 && (
+          <span className="lq-buk-un">${b.unattributed.toFixed(2)} unattributed</span>
+        )}
+        {b.nonGoods !== 0 && (
+          <span className="lq-muted">${b.nonGoods.toFixed(2)} deposits/fees, not COGS</span>
+        )}
+      </div>
+
+      <div className="lq-buk-rows">
+        {rows.map(({ k, a }) => (
+          <div key={k} className="lq-buk-row">
+            <span className="lq-buk-name">{BUCKET_LABEL[k] ?? k}</span>
+            <span className="lq-buk-bar">
+              {/* Confirmed and estimated are drawn as separate segments on
+                  purpose — the eye should never read one bar as one fact. */}
+              {confirmedIn(a) > 0 && (
+                <span
+                  className="lq-buk-seg lq-buk-seg-conf"
+                  style={{ flexGrow: confirmedIn(a) }}
+                  title={`${confirmedIn(a).toFixed(2)} confirmed`}
+                />
+              )}
+              {a.estimated > 0 && (
+                <span
+                  className="lq-buk-seg lq-buk-seg-est"
+                  style={{ flexGrow: a.estimated }}
+                  title={`${a.estimated.toFixed(2)} estimated`}
+                />
+              )}
+            </span>
+            <span className="lq-buk-amt">${totalIn(a).toFixed(2)}</span>
+            {a.estimated > 0 && (
+              <span className="lq-buk-flag" title="apportioned from this vendor's history">
+                est
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <p className="lq-muted lq-buk-basis">
+        {b.totalBasis === "product_subtotal"
+          ? "Against the printed product subtotal, which already excludes deposits and fees."
+          : b.totalBasis === "grand_total"
+            ? "Against the printed grand total — deposits and fees were removed first."
+            : "No invoice total on file, so only matched lines are counted."}
+        {b.residualBasis === "vendor_mix" && b.mixVendor && (
+          <>
+            {" "}
+            Anything nobody could place is split by {b.mixVendor}'s history
+            {b.mixInvoices != null && ` (${b.mixInvoices} invoices)`}.
+          </>
+        )}
+      </p>
+
+      {attentionCount > 0 && (
+        <div className="lq-buk-att">
+          <p className="lq-buk-att-h">
+            {attentionCount} to check
+          </p>
+
+          {att.supplierOnly.map((l) => (
+            <div key={l.lineId} className="lq-buk-att-row">
+              <span className="lq-buk-att-desc">{l.description || "—"}</span>
+              <span className="lq-buk-att-note">
+                {l.supplierDescription ? `${l.supplierDescription} — ` : ""}
+                the vendor calls this {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours?
+              </span>
+              <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
+              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
+                match it
+              </button>
+            </div>
+          ))}
+
+          {att.unresolved.map((l) => (
+            <div key={l.lineId} className="lq-buk-att-row">
+              <span className="lq-buk-att-desc">{l.description || "—"}</span>
+              <span className="lq-buk-att-note">nobody knows what this is — it is being estimated</span>
+              <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
+              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
+                match it
+              </button>
+            </div>
+          ))}
+
+          {att.disagreement.map((l) => (
+            <div key={l.lineId} className="lq-buk-att-row">
+              <span className="lq-buk-att-desc">{l.description || "—"}</span>
+              <span className="lq-buk-att-note">
+                counted as {BUCKET_LABEL[l.ourBucket ?? ""] ?? l.ourBucket} ({l.ourSku}); the vendor
+                files it under {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours wins.
+              </span>
+              <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {b.warnings.map((w) => (
+        <p key={w} className="lq-muted lq-buk-warn">
+          {w}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 function CostHoldControl({
   invoiceId,
   line,

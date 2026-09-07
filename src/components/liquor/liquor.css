@@ -2343,3 +2343,130 @@
   background: var(--lq-panel-2);
   color: inherit;
 }
+
+/* ── purchases by bucket, on the invoice detail (§11.7b, §11.31) ──────────
+   CONFIRMED and ESTIMATED are drawn as separate segments and given different
+   colours on purpose. A single bar reads as a single fact, and half of this
+   number is apportioned from a vendor's history rather than observed. */
+.lq-buk {
+  margin: 14px 0 4px;
+}
+.lq-buk-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  padding-bottom: 8px;
+}
+.lq-buk-conf {
+  font-weight: 700;
+  color: var(--lq-good, #9fd39f);
+}
+.lq-buk-est {
+  color: var(--lq-accent, #ffcf5c);
+}
+.lq-buk-un {
+  color: var(--lq-danger);
+}
+.lq-buk-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lq-buk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.lq-buk-name {
+  flex: 0 0 8.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lq-buk-bar {
+  flex: 1 1 auto;
+  display: flex;
+  height: 12px;
+  min-width: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--lq-panel-2);
+}
+.lq-buk-seg {
+  display: block;
+  min-width: 2px;
+}
+.lq-buk-seg-conf {
+  background: var(--lq-good, #9fd39f);
+}
+/* Hatched, not just a different hue — an estimate should look provisional
+   even to someone who cannot tell the two greens apart. */
+.lq-buk-seg-est {
+  background: repeating-linear-gradient(
+    45deg,
+    var(--lq-accent, #ffcf5c),
+    var(--lq-accent, #ffcf5c) 3px,
+    rgba(0, 0, 0, 0.35) 3px,
+    rgba(0, 0, 0, 0.35) 6px
+  );
+}
+.lq-buk-amt {
+  flex: 0 0 auto;
+  font-weight: 700;
+  min-width: 5em;
+  text-align: right;
+}
+.lq-buk-flag {
+  flex: 0 0 auto;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--lq-accent, #ffcf5c);
+}
+.lq-buk-basis {
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+.lq-buk-att {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+}
+.lq-buk-att-h {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.lq-buk-att-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding: 6px 0;
+  border-top: 1px solid var(--lq-line);
+  font-size: 13px;
+}
+.lq-buk-att-row:first-of-type {
+  border-top: none;
+}
+.lq-buk-att-desc {
+  flex: 1 1 60%;
+  min-width: 0;
+}
+.lq-buk-att-note {
+  flex: 1 1 100%;
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-buk-att-amt {
+  flex: 0 0 auto;
+  font-weight: 700;
+}
+.lq-buk-warn {
+  font-size: 12px;
+  margin: 6px 0 0;
+}
