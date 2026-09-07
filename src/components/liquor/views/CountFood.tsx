@@ -6,6 +6,7 @@ import {
   getOpenCount,
   getZones,
   precheckCount,
+  setSkuZone,
   saveCountLines,
   setCaseSize,
   submitCount,
@@ -170,6 +171,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [zonePicker, setZonePicker] = useState(false);
   const [checking, setChecking] = useState(false);
   const [findings, setFindings] = useState<PrecheckFinding[] | null>(null);
+  // Answers to the "you counted this somewhere new" questions, keyed
+  // sku:zone. Local only — "just this count" writes NOTHING anywhere, which
+  // is the whole point of offering it.
+  const [locAnswer, setLocAnswer] = useState<Record<string, "added" | "kept">>({});
   const [submitting, setSubmitting] = useState(false);
   const [doneCount, setDoneCount] = useState<number | null>(null);
 
@@ -436,6 +441,31 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       setFindings([]);
     } finally {
       setChecking(false);
+    }
+  }
+
+  /**
+   * Answer one location question.
+   *
+   * ⚠ NEITHER ANSWER TOUCHES THE COUNT. The quantity was observed on that
+   * shelf and stays recorded there either way; this only decides whether
+   * next month's checklist lists it. "Yes" adds a usual location WITHOUT
+   * removing any other — a product legitimately lives in several places.
+   */
+  async function answerLocation(f: PrecheckFinding, lives: boolean) {
+    if (!f.zoneId) return;
+    const key = `${f.skuId}:${f.zoneId}`;
+    if (locAnswer[key]) return;
+    if (!lives) {
+      setLocAnswer((a) => ({ ...a, [key]: "kept" }));
+      return;
+    }
+    try {
+      await setSkuZone(f.skuId, f.zoneId, true);
+      setLocAnswer((a) => ({ ...a, [key]: "added" }));
+    } catch {
+      // A checklist that failed to learn must not block a finished walk.
+      setLocAnswer((a) => ({ ...a, [key]: "kept" }));
     }
   }
 
@@ -781,12 +811,44 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               ? "Nothing looks off. Ready to submit."
               : `${findings.length} thing${findings.length === 1 ? "" : "s"} worth a second look`}
           </p>
-          {findings.map((f, i) => (
-            <div key={i} className="lq-fc-rev-row">
-              <span className="lq-fc-rev-spoken">{f.name}</span>
-              <span className="lq-fc-rev-note">{f.detail}</span>
-            </div>
-          ))}
+          {findings.map((f, i) => {
+            const locKey = f.zoneId ? `${f.skuId}:${f.zoneId}` : null;
+            const answered = locKey ? locAnswer[locKey] : undefined;
+            return (
+              <div key={i} className="lq-fc-rev-row">
+                <span className="lq-fc-rev-spoken">{f.name}</span>
+                <span className="lq-fc-rev-note">{f.detail}</span>
+                {f.kind === "zone_unexpected" && locKey && (
+                  <div className="lq-fc-rev-loc">
+                    {answered ? (
+                      <span className="lq-fc-rev-match">
+                        {answered === "added"
+                          ? `Added to ${f.zoneName ?? "that shelf"} — it will be on the list next time.`
+                          : "Kept for this count only. The list is unchanged."}
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="lq-btn lq-fc-rev-locbtn"
+                          onClick={() => void answerLocation(f, true)}
+                        >
+                          {f.homeless ? "Yes, that's where it lives" : "It lives there too"}
+                        </button>
+                        <button
+                          type="button"
+                          className="lq-btn lq-btn-ghost lq-fc-rev-locbtn"
+                          onClick={() => void answerLocation(f, false)}
+                        >
+                          Just this count
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           <div className="lq-fc-rev-actions">
             <button type="button" className="lq-btn" disabled={submitting} onClick={() => void doSubmit()}>
               {submitting ? "Submitting…" : "Submit the count"}

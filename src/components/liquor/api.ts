@@ -342,6 +342,14 @@ export interface PrecheckFinding {
     | "big_loss"
     | "beer_not_counted"
     | "batch_not_counted"
+    /** Counted on a shelf that is not one of its usual spots — or, when
+     *  `homeless`, on a SKU that has no usual spots recorded at all.
+     *  THE ONE FINDING THAT DOES NOT WAIT FOR HISTORY: a location question
+     *  needs no prior count, and the FIRST walk is exactly when the seeded
+     *  checklist gets corrected. Membership is a hint, never a restriction,
+     *  so the count itself is already valid either way — this only asks
+     *  whether next month's checklist should list the shelf. */
+    | "zone_unexpected"
     /** Deliveries landed this period and the SKU has no count line at all,
      *  ever. The invoice gives it standing (a never-counted SKU with no
      *  invoice stays silent). How a newly tracked consumable gets its first
@@ -349,6 +357,12 @@ export interface PrecheckFinding {
     | "purchased_not_counted";
   skuId: string;
   name: string;
+  /** zone_unexpected only — which shelf, so the answer can be written. */
+  zoneId?: string;
+  zoneName?: string;
+  /** zone_unexpected only — no usual spots anywhere, so the ask changes
+   *  from "does it live here too?" to "where does this live?" */
+  homeless?: boolean;
   counted: number | null;
   prior: number;
   purchased: number;
@@ -416,6 +430,23 @@ export async function setCaseSize(skuId: string, unitsPerCase: number | null): P
     { ...jsonBody({ unitsPerCase }), method: "PATCH" },
   );
   return res.unitsPerCase;
+}
+
+/** Add or remove one of a product's USUAL storage locations.
+ *
+ * ⚠ TOUCHES THE CHECKLIST ONLY, NEVER A COUNT. Quantities already recorded
+ * stay exactly where they were entered — per location, summed per product.
+ * Adding a location does not unseat another: the same pizza dough lives in
+ * the walk-in AND the stand-up freezer, and both get counted. */
+export async function setSkuZone(
+  skuId: string,
+  zoneId: string,
+  usual: boolean,
+): Promise<void> {
+  await gatedJson<{ zoneId: string; usual: boolean; zoneName: string }>(
+    `/admin/bar/skus/${skuId}/zones`,
+    { ...jsonBody({ zoneId, usual }), method: "PUT" },
+  );
 }
 
 /** Transcribe one recorded audio clip (a whole take or one ~60s rotation

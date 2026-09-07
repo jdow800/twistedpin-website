@@ -2497,3 +2497,19 @@
 .lq-buk-flag-await {
   color: var(--lq-info, #8fb8ff);
 }
+
+/* The two answers to "you counted this somewhere new". Full-height touch
+   targets like every other control on this screen — the counter is holding a
+   phone in a walk-in, not a mouse. */
+.lq-fc-rev-loc {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 6px;
+}
+.lq-fc-rev-locbtn {
+  min-height: 44px;
+  font-size: 14px;
+  padding: 0 14px;
+}
