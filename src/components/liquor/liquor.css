@@ -2010,41 +2010,7 @@
    able to move any of it. Shared primitives only (lq-btn, lq-linkbtn, lq-muted,
    lq-error, lq-footer) are reused.
    Mobile-first: 16px inputs or iOS zooms the page on focus. */
-.lq-fc {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-bottom: 84px;
-}
 /* Zone strip — horizontally scrollable; a kitchen has 10 shelves, not 5. */
-.lq-fc-zonebar {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 2px 0 6px;
-  -webkit-overflow-scrolling: touch;
-}
-.lq-fc-zonetab {
-  flex: 0 0 auto;
-  background: var(--lq-panel-2);
-  border: 1px solid var(--lq-line-strong);
-  color: inherit;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 13px;
-  min-height: 38px;
-  white-space: nowrap;
-}
-.lq-fc-zonetab-on {
-  background: var(--lq-accent, #ffcf5c);
-  color: #1a1a1a;
-  font-weight: 700;
-}
-.lq-fc-zonetab-n {
-  margin-left: 6px;
-  opacity: 0.75;
-  font-size: 11px;
-}
 .lq-fc-voicebar {
   display: flex;
   align-items: center;
@@ -2126,6 +2092,228 @@
 }
 /* The grid. One row per item; cases box only when a case size is known, so the
    screen never invites a multiplier it cannot justify. */
+/* ── the food count screen, sized for a phone in a walk-in ─────────────────
+   Measured at 390px: the old strip pushed 838px of shelf tabs off-screen and
+   every number box was 32px tall (15 of 15 under the 44px touch floor). These
+   rules change LAYOUT ONLY — save, unit conversion and submit are untouched. */
+
+.lq-fc {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* The footer is position:fixed and measures 96px. The old 84px left the last
+     row under it. Clear the real height plus a thumb's worth of margin. */
+  --lq-fc-footer-h: 96px;
+  /* .lq-header is position:sticky, 61px tall, z-index 5 — the shelf header has
+     to stick BELOW it or it slides underneath and the counter loses the one
+     thing telling them which shelf they are on. Measured, not guessed. */
+  --lq-fc-header-h: 61px;
+  padding-bottom: calc(var(--lq-fc-footer-h) + 28px + env(safe-area-inset-bottom));
+}
+
+/* ── shelf header: no horizontal scrolling anywhere ── */
+.lq-fc-zonehead {
+  position: sticky;
+  top: var(--lq-fc-header-h, 61px);
+  z-index: 4;
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  padding: 6px 0;
+  background: var(--lq-bg, #0e0a1f);
+}
+.lq-fc-zonestep {
+  flex: 0 0 auto;
+  width: 48px;
+  min-height: 56px;
+  font-size: 26px;
+  line-height: 1;
+  border-radius: 12px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+}
+.lq-fc-zonestep:disabled {
+  opacity: 0.3;
+}
+.lq-fc-zonepick {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+  text-align: left;
+}
+.lq-fc-zonename {
+  font-size: 17px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lq-fc-zonemeta {
+  font-size: 12px;
+  color: var(--lq-muted);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lq-fc-zonecaret {
+  font-size: 9px;
+  opacity: 0.8;
+}
+.lq-fc-zonelist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+.lq-fc-zonerow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+  text-align: left;
+  font-size: 15px;
+}
+.lq-fc-zonerow-on {
+  background: var(--lq-accent, #ffcf5c);
+  color: #1a1a1a;
+  font-weight: 700;
+}
+.lq-fc-zonerow-n {
+  flex: 0 0 auto;
+  width: 22px;
+  font-size: 12px;
+  opacity: 0.65;
+}
+.lq-fc-zonerow-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lq-fc-zonerow-done {
+  flex: 0 0 auto;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* ── one shelf row ── */
+.lq-fc-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--lq-line, #333);
+  /* When the numeric keyboard opens, the focused row must not scroll under
+     the fixed footer. */
+  scroll-margin-bottom: 150px;
+  /* clears the app header (61) + the shelf header (56) + a little air */
+  scroll-margin-top: 130px;
+}
+.lq-fc-row-name {
+  font-size: 15px;
+  line-height: 1.25;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.lq-fc-row-label {
+  /* min-width:0 is what lets a long inverted name give way to the total
+     instead of pushing it off the screen. */
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  align-items: baseline;
+}
+/* Opsi's names are inverted for sorting. Weighting the head noun is what makes
+   a 45-item shelf scannable; the qualifiers stay, just quieter. */
+.lq-fc-row-head {
+  font-weight: 700;
+}
+.lq-fc-row-rest {
+  color: var(--lq-muted);
+  font-size: 13px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lq-fc-row-inputs {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.lq-fc-row-box {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.lq-fc-row-lab {
+  font-size: 12px;
+  color: var(--lq-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lq-fc-row-mult {
+  color: var(--lq-accent, #ffcf5c);
+  font-weight: 700;
+}
+.lq-fc-row-box input {
+  width: 100%;
+  min-height: 52px;
+  /* 16px is the iOS zoom floor; 20px is what a thumb hits without looking. */
+  font-size: 20px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel-2);
+  color: inherit;
+}
+/* The running total sits on the NAME line: in a right-hand column it needed a
+   min-width that pushed it and `clear` off the edge of a 390px screen. */
+.lq-fc-row-sum {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.lq-fc-row-total {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--lq-accent, #ffcf5c);
+}
+.lq-fc-row-clear {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  /* Small text, but the padding keeps the tap area honest. */
+  padding: 6px 0 6px 12px;
+  font-size: 13px;
+  color: var(--lq-muted);
+  text-decoration: underline;
+}
+
 .lq-fc-grid {
   display: flex;
   flex-direction: column;
@@ -2134,51 +2322,12 @@
   padding: 16px 4px;
   font-size: 13px;
 }
-.lq-fc-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--lq-line, #333);
-}
 .lq-fc-row-counted {
   background: rgba(159, 211, 159, 0.06);
-}
-.lq-fc-row-name {
-  font-size: 14px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
 }
 .lq-fc-row-voice {
   font-size: 11px;
   opacity: 0.7;
-}
-.lq-fc-row-inputs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.lq-fc-row-box {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-}
-.lq-fc-row-box input {
-  width: 4.5em;
-  font-size: 16px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  border: 1px solid var(--lq-line-strong);
-  background: var(--lq-panel-2);
-  color: inherit;
-}
-.lq-fc-row-total {
-  font-weight: 700;
-  font-size: 13px;
-  min-width: 4em;
 }
 .lq-fc-addbox {
   display: flex;
