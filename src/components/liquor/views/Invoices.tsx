@@ -425,15 +425,16 @@ function CostHoldControl({
   const unit = line.matchedCountUnit ?? "unit";
   const n = Number(val);
   // Two decimals, matching the server. Without the precision test the API
-  // rejects 1.005 and the counter learns that only after tapping — and the
-  // alternative, rounding it here, is the silent money disagreement this
-  // whole feature exists to prevent. The epsilon is for binary floats
-  // (2.09 * 100 === 208.99999999999997).
+  // SIX decimals, matching the server and numeric(12,6) since 0172. Two was
+  // wrong for the case this control exists for: a portion cup is $0.013596,
+  // and two decimals made it unenterable. Rounding here instead would be the
+  // silent money disagreement the feature exists to prevent. The epsilon is
+  // for binary floats (2.09 * 100 === 208.99999999999997).
   const valid =
     val.trim() !== "" &&
     Number.isFinite(n) &&
     n > 0 &&
-    Math.abs(n * 100 - Math.round(n * 100)) < 1e-9;
+    Math.abs(n * 1e6 - Math.round(n * 1e6)) < 1e-3;
 
   async function save() {
     if (!line.matchedSkuId) return;
@@ -474,11 +475,11 @@ function CostHoldControl({
           type="number"
           inputMode="decimal"
           min={0}
-          step="0.01"
+          step="any"
           value={val}
           autoFocus
           onChange={(e) => setVal(e.target.value)}
-          placeholder="0.00"
+          placeholder="0.000000"
         />
         <span className="lq-muted">per {unit}</span>
       </label>
