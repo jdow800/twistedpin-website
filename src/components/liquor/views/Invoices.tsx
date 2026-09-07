@@ -131,6 +131,22 @@ export default function Invoices({
       syncHeldCount(d.invoice.id, lines);
       return { ...d, invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice, lines };
     });
+    // The whole point of matching a line is that it changes WHERE the money
+    // lands, and the bucket split is computed server-side. Patching the line
+    // locally left the panel still saying "the vendor calls this Food" about a
+    // line the reader had just claimed — the one screen that must not lie.
+    void refreshBuckets(detail?.invoice.id ?? null);
+  }
+
+  /** Re-read the classification block after something that moves dollars. */
+  async function refreshBuckets(invoiceId: string | null) {
+    if (!invoiceId) return;
+    try {
+      const fresh = await getInvoiceDetail(invoiceId);
+      setDetail((d) => (d && d.invoice.id === invoiceId ? { ...d, buckets: fresh.buckets, lines: fresh.lines } : d));
+    } catch {
+      // A stale panel is better than a blank one; the next open re-reads it.
+    }
   }
 
   /** Clear a resolved hold in place, so the control disappears on Apply. */
@@ -451,8 +467,11 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
   if (!b) return null;
   const rows = (Object.keys(b.byBucket) as CogsBucket[])
     .map((k) => ({ k, a: b.byBucket[k]! }))
-    .filter((r) => totalIn(r.a) !== 0)
-    .sort((x, y) => totalIn(y.a) - totalIn(x.a));
+    // Filter on the SOURCE components, not the net. $100 confirmed against
+    // -$100 estimated nets to zero and is the single most interesting row on
+    // the invoice; dropping it reported "$0 confirmed, no estimate".
+    .filter((r) => r.a.matched !== 0 || r.a.vendorItem !== 0 || r.a.estimated !== 0)
+    .sort((x, y) => Math.abs(totalIn(y.a)) - Math.abs(totalIn(x.a)));
   const confirmed = rows.reduce((s, r) => s + confirmedIn(r.a), 0);
   const estimated = rows.reduce((s, r) => s + r.a.estimated, 0);
   const att = b.needsAttention;
@@ -467,7 +486,11 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
 
       <div className="lq-buk-summary">
         <span className="lq-buk-conf">${confirmed.toFixed(2)} confirmed</span>
-        {estimated !== 0 && <span className="lq-buk-est">${estimated.toFixed(2)} estimated</span>}
+        {estimated !== 0 && (
+          <span className="lq-buk-est">
+            {estimated < 0 ? "−" : ""}${Math.abs(estimated).toFixed(2)} estimated
+          </span>
+        )}
         {b.unattributed !== 0 && (
           <span className="lq-buk-un">${b.unattributed.toFixed(2)} unattributed</span>
         )}
@@ -483,23 +506,24 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
             <span className="lq-buk-bar">
               {/* Confirmed and estimated are drawn as separate segments on
                   purpose — the eye should never read one bar as one fact. */}
-              {confirmedIn(a) > 0 && (
+              {/* Widths use the MAGNITUDE; a credit still has to be visible. */}
+              {confirmedIn(a) !== 0 && (
                 <span
-                  className="lq-buk-seg lq-buk-seg-conf"
-                  style={{ flexGrow: confirmedIn(a) }}
+                  className={`lq-buk-seg lq-buk-seg-conf${confirmedIn(a) < 0 ? " lq-buk-seg-neg" : ""}`}
+                  style={{ flexGrow: Math.abs(confirmedIn(a)) }}
                   title={`${confirmedIn(a).toFixed(2)} confirmed`}
                 />
               )}
-              {a.estimated > 0 && (
+              {a.estimated !== 0 && (
                 <span
-                  className="lq-buk-seg lq-buk-seg-est"
-                  style={{ flexGrow: a.estimated }}
+                  className={`lq-buk-seg lq-buk-seg-est${a.estimated < 0 ? " lq-buk-seg-neg" : ""}`}
+                  style={{ flexGrow: Math.abs(a.estimated) }}
                   title={`${a.estimated.toFixed(2)} estimated`}
                 />
               )}
             </span>
             <span className="lq-buk-amt">${totalIn(a).toFixed(2)}</span>
-            {a.estimated > 0 && (
+            {a.estimated !== 0 && (
               <span className="lq-buk-flag" title="apportioned from this vendor's history">
                 est
               </span>
@@ -510,10 +534,12 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
 
       <p className="lq-muted lq-buk-basis">
         {b.totalBasis === "product_subtotal"
-          ? "Against the printed product subtotal, which already excludes deposits and fees."
+          ? "Against the printed product subtotal, which already excludes deposits, fees and credits."
           : b.totalBasis === "grand_total"
             ? "Against the printed grand total — deposits and fees were removed first."
-            : "No invoice total on file, so only matched lines are counted."}
+            : b.totalBasis === "extracted_total"
+              ? "Against a total WE computed, not one printed on the invoice — deposits and fees were removed first."
+              : "No invoice total on file, so only matched lines are counted."}
         {b.residualBasis === "vendor_mix" && b.mixVendor && (
           <>
             {" "}

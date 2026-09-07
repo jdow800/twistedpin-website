@@ -754,7 +754,9 @@ export interface InvoiceBuckets {
   mixVendor: string | null;
   mixInvoices: number | null;
   warnings: string[];
-  totalBasis: "product_subtotal" | "grand_total" | "none";
+  /** Which figure the split was measured against. `extracted_total` is one WE
+   *  computed, not one printed on the invoice — the screen must not claim otherwise. */
+  totalBasis: "product_subtotal" | "grand_total" | "extracted_total" | "none";
   needsAttention: {
     /** Neither source has an opinion — these ride the vendor mix as an estimate. */
     unresolved: BucketAttentionLine[];

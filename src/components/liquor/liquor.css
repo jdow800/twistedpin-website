@@ -2470,3 +2470,10 @@
   font-size: 12px;
   margin: 6px 0 0;
 }
+
+/* A credit is still a fact and must still be visible. Outline rather than
+   fill, so a negative segment cannot be mistaken for spend. */
+.lq-buk-seg-neg {
+  background: transparent;
+  border: 1px dashed var(--lq-danger);
+}
