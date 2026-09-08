@@ -1362,11 +1362,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
                       {f.kind === "purchased_not_counted" && "This came in on an invoice this period and has never been counted. Count it now — even a zero — so its velocity starts and the order guide can see it."}
                     </span>
-                    {/* The ONLY finding with a one-tap remedy, because it is
-                        the only one where the honest answer is often simply
-                        "none" and the counter would otherwise have to leave the
-                        dialog, find the section and type two zeros. Every other
-                        finding needs a judgement he can only make at the shelf.
+                    {/* One of TWO findings with a one-tap remedy (the other is
+                        not_counted, below), because these are the two where the
+                        honest answer is a fact the counter already knows rather
+                        than a judgement he can only make at the shelf. Here the
+                        answer is often simply "none", and he would otherwise
+                        have to leave the dialog, find the section and type two
+                        zeros.
 
                         Zone is bookkeeping here — the server sums batch rows
                         across zones — so this writes the zeros into whichever
@@ -1385,6 +1387,45 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         No batch bottles anywhere right now — record zero
                       </button>
                     )}
+                    {/* "Do we still carry this?" asked where it actually comes
+                        up — on the bottle that was counted last time and has no
+                        line now. The timed list further down catches what nobody
+                        noticed; this catches what the counter knows RIGHT NOW,
+                        and waiting two months to ask about a bottle he already
+                        knows is discontinued is just making him repeat himself.
+
+                        Only on not_counted. NOT on purchased_not_counted: that
+                        one arrived on an invoice this period, so we demonstrably
+                        do still carry it — and offering to retire it would
+                        contradict the rule the timed list is built on, where a
+                        recent purchase is exactly what proves a product is
+                        incoming rather than dying.
+
+                        The other answer — "it's still there, I missed it" — has
+                        no button on purpose. That one needs him at the shelf. */}
+                    {f.kind === "not_counted" &&
+                      (archived[f.skuId] ? (
+                        <span className="lq-precheck-answered">
+                          Retired. Off the next count sheet; every past count keeps
+                          the numbers it already has.
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="lq-btn lq-btn-ghost lq-precheck-action"
+                          disabled={checking || submitting}
+                          onClick={() => {
+                            void setSkuActive(f.skuId, false)
+                              .then(() => setArchived((a) => ({ ...a, [f.skuId]: true })))
+                              .catch(() => {
+                                /* leave it unanswered rather than claiming
+                                   it was handled */
+                              });
+                          }}
+                        >
+                          We don't carry it any more — retire it
+                        </button>
+                      ))}
                   </div>
                 ))}
                 {confirmSubmit.truncated > 0 && (
