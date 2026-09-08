@@ -260,6 +260,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     };
   }, []);
 
+  /** The shelf as of RIGHT NOW, not as of the render that queued the request.
+   *  createCount is async and the counter can change shelves while it is in
+   *  flight — the handler would then remember the shelf they left. */
+  const zoneIdRef = useRef(zoneId);
+  zoneIdRef.current = zoneId;
+
   async function startFresh() {
     try {
       const sid = await createCount(true);
@@ -268,7 +274,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // be told about it — otherwise a counter who starts fresh, enters
       // quantities without switching shelves and then reloads comes back to
       // shelf one, having never touched the picker we listen to. Found in review.
-      rememberZone(sid, zoneId);
+      rememberZone(sid, zoneIdRef.current);
       setCounts({});
       setBatchCounts({});
       setResumed(false);

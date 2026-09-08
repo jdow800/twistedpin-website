@@ -656,8 +656,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setFindings(null);
   }
 
+  /** Voice work that must land before a count can close. Named once because
+   *  it guards THREE things — Finish, the submit panel's own button, and
+   *  doSubmit itself. Gating only the first still let a counter open the
+   *  panel, start a recording behind it and tap Submit. */
+  const voicePending = dict.recording || voiceBusy || (review?.length ?? 0) > 0;
+
   async function doSubmit() {
     if (!sessionId || submitting) return;
+    // ⚠ The panel can be open while a NEW take is started behind it, so the
+    // button's disabled state is not enough on its own.
+    if (voicePending) return;
     setSubmitting(true);
     try {
       if (!(await doSave())) {
@@ -826,9 +835,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               setTakeZoneId(zoneId); // the shelf this take is about
               dict.start();
             }}
-            disabled={voiceBusy}
+            // ⚠ ONE OUTSTANDING TAKE AT A TIME. There is a single takeZoneId,
+            // so starting a second take overwrote the first one's destination
+            // and the older rows then applied to the NEW shelf. Finishing the
+            // heard items first is the smallest correct rule — and reviewing
+            // one shelf's worth at a time is what a counter does anyway.
+            disabled={voiceBusy || submitting || (review?.length ?? 0) > 0}
           >
-            🎙️ Talk through {zone?.name ?? "this zone"}
+            {(review?.length ?? 0) > 0
+              ? "Finish the heard items first"
+              : `🎙️ Talk through ${zone?.name ?? "this zone"}`}
           </button>
         ) : (
           <button type="button" className="lq-btn lq-btn-rec" onClick={() => dict.stop()}>
@@ -885,9 +901,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       {interrupted && (
         <div className="lq-fc-rev" role="status">
           <p className="lq-rec-warntext">
-            The mic went quiet during a recording — a call or the screen locking will do that.
-            Anything said before it is still here; anything said <em>during</em> it is not.
-            Check this shelf before moving on.
+            {/* ⚠ CLAIM ONLY WHAT IS KNOWN. An earlier draft said "what you
+                said before it is still saved" — but unuploaded audio,
+                transcripts and unapplied rows are not durable count data. And
+                the page being hidden does not prove capture stopped, so
+                promising the gap is missing invites re-counting quantities we
+                already have. */}
+            Recording may have been interrupted — a call or the screen locking will do that.
+            Check the captured items for anything missing before continuing.
           </p>
           <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setInterrupted(false)}>
             Got it
@@ -976,7 +997,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               disabled={!review.some(applyable)}
               onClick={applyReview}
             >
-              Add {review.filter(applyable).length} to {zone?.name}
+              {/* The take's OWN shelf, not the selected one — they differ the
+                  moment the counter walks on while it transcribes. */}
+              Add {review.filter(applyable).length} to{" "}
+              {zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
             </button>
           </div>
         </div>
@@ -1251,8 +1275,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             )}
           </div>
           <div className="lq-fc-rev-actions">
-            <button type="button" className="lq-btn" disabled={submitting} onClick={() => void doSubmit()}>
-              {submitting ? "Submitting…" : "Submit the count"}
+            <button
+              type="button"
+              className="lq-btn"
+              disabled={submitting || voicePending}
+              onClick={() => void doSubmit()}
+            >
+              {submitting
+                ? "Submitting…"
+                : voicePending
+                  ? "Finish the recording first"
+                  : "Submit the count"}
             </button>
             <button type="button" className="lq-linkbtn" onClick={() => setFindings(null)}>
               keep counting
@@ -1277,10 +1310,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             // `counts` is saved, so those items were dropped silently. The
             // backend then 409s any later line save against a closed session,
             // so there was no way back.
-            disabled={
-              checking || submitting || totalLines === 0 ||
-              dict.recording || voiceBusy || (review?.length ?? 0) > 0
-            }
+            disabled={checking || submitting || totalLines === 0 || voicePending}
             onClick={() => void runCheck()}
           >
             {checking
