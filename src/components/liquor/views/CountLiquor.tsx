@@ -1317,7 +1317,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <h3 className="lq-h2">
                 {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0
                   ? "Double-check these first?"
-                  : "Submit an incomplete count?"}
+                  : confirmSubmit.zones.length > 0
+                    ? "Submit an incomplete count?"
+                    // Retirement candidates alone. The count is COMPLETE and
+                    // nothing is wrong with it — calling it incomplete because
+                    // an advisory list opened would be a plain lie.
+                    : "One thing before you submit"}
               </h3>
               <p className="lq-muted">
                 {confirmSubmit.zones.length > 0 && (
@@ -1457,7 +1462,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   count is right and an invoice is simply missing, forcing a
                   change here would be the worst outcome available. */}
               <button type="button" className="lq-btn lq-btn-primary" onClick={() => void finish()}>
-                Submit anyway
+                {confirmSubmit.findings.length > 0 ||
+                confirmSubmit.doubles.length > 0 ||
+                confirmSubmit.zones.length > 0
+                  ? "Submit anyway"
+                  : "Submit the count"}
               </button>
             </div>
           </div>
