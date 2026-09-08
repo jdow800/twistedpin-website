@@ -792,6 +792,41 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             ⏹ Stop {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
           </button>
         )}
+        {/* ⚠ WHILE RECORDING, THIS SCREEN USED TO SHOW ONLY A TIMER.
+            The liquor walk has had a level meter, a dead-mic warning and a
+            "still connecting" state since the 2026-07-28 incident — a 103s
+            count with a 38-SECOND capture blackout. The kitchen screen shipped
+            without any of it, so a counter could talk into a dead phone for
+            four minutes and the screen would look entirely normal: same button,
+            same ticking timer, nothing wrong until an empty transcript came
+            back. On Android a voice call takes the mic exactly this way.
+
+            The hook already computed all of this (armed, level, quiet) and beeps
+            and vibrates on it. Only the EYES were missing, and a counter holding
+            a phone in a noisy kitchen — or wearing no headset — has only eyes. */}
+        {dict.recording && (
+          <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
+            <div className="lq-rec-head">
+              <span className="lq-rec-dot" aria-hidden="true" />
+              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+            </div>
+            {dict.metering && (
+              <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
+                <div className="lq-mic-meter-fill" style={{ width: `${Math.round(dict.level * 100)}%` }} />
+              </div>
+            )}
+            {dict.quiet && (
+              <p className="lq-rec-warntext" role="status">
+                Mic hasn’t heard anything for a bit — if you were on a call, stop and start again; what you said before it is still saved.
+              </p>
+            )}
+            {/* Words spoken before the mic route comes up are LOST — the reason
+                the liquor screen says this too. A Bluetooth headset takes a
+                second or two, and the counter is already talking. */}
+            {!dict.armed && <p className="lq-muted">Connecting to mic… (buzzes when ready)</p>}
+            {dict.transcript && <p className="lq-rec-transcript">{dict.transcript}</p>}
+          </div>
+        )}
         {dict.recording && dict.seconds >= WARN_SECONDS && (
           <span className="lq-rec-warntext">
             Wrap up this shelf — stopping at {mmss(CAP_SECONDS)}. Starting again adds to it.
