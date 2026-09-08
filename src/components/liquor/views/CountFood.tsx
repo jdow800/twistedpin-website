@@ -21,6 +21,7 @@ import {
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -265,13 +266,19 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           setPhase("error");
           return;
         }
-        setZoneId(z[0]!.id);
+        // ⚠ SESSION FIRST, THEN ZONE. resumeZone is keyed by session, so
+        // resolving the shelf before we know which count this is would always
+        // miss and silently drop the counter on zone one (see resume-zone.ts).
+        let sid: string;
         if (open) {
-          setSessionId(open.id);
+          sid = open.id;
+          setSessionId(sid);
           setCounts(rebuild(open.lines));
         } else {
-          setSessionId(await createCount(true, "food"));
+          sid = await createCount(true, "food");
+          setSessionId(sid);
         }
+        setZoneId(resumeZone(sid, z));
         setPhase("ready");
       } catch {
         if (!live) return;
@@ -416,9 +423,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   /** Voice ADDS to whatever is already in the cell — two passes at one shelf
    *  should total, not overwrite. */
-  function addToCell(skuId: string, cases: number, units: number, caseSize: number | null, raw: string) {
+  /** `zone` is explicit because a voice take must land on the shelf it was
+   *  RECORDED on. Transcription is async: the counter taps Stop, walks to the
+   *  next shelf while it processes, then taps Apply — and every item would
+   *  otherwise be written to wherever they were standing by then. The food
+   *  location prompt would then offer to make those wrong placements into
+   *  permanent membership. */
+  function addToCell(skuId: string, cases: number, units: number, caseSize: number | null, raw: string, zone: string = zoneId) {
     setCounts((prev) => {
-      const zoneCells = { ...(prev[zoneId] ?? {}) };
+      const zoneCells = { ...(prev[zone] ?? {}) };
       const cur = zoneCells[skuId];
       const merged: Cell = {
         cases: round2((cur?.cases ?? 0) + cases),
@@ -433,7 +446,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       };
       merged.qty = cellQty(merged);
       zoneCells[skuId] = merged;
-      return { ...prev, [zoneId]: zoneCells };
+      return { ...prev, [zone]: zoneCells };
     });
     scheduleSave();
   }
@@ -445,10 +458,44 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // 48% coverage, against 94-100% zone-scoped (Opsi/analysis/keyterm-by-zone.ts).
   // zoneId changes as he walks; the hook reads it through a ref so the NEXT
   // rotation segment is biased to the NEW shelf.
+  /** Which shelf a pending voice take belongs to, captured when recording
+   *  STARTS rather than read when Apply is tapped. */
+  const [takeZoneId, setTakeZoneId] = useState<string | null>(null);
+  /** Mic live — Start until Stop, NOT until the upload lands. This is what
+   *  zone changes are refused during: once the counter has stopped talking,
+   *  the take's destination is fixed and walking on is safe. Gating on
+   *  `dict.recording` instead would let a stalled upload lock the shelf
+   *  controls with no way out but Home, abandoning the take. */
+  const [capturing, setCapturing] = useState(false);
+  /** ⚠ STICKY. `dict.quiet` is a LIVE signal — it clears the instant sound
+   *  returns, including on unmute. A counter who took a phone call for the
+   *  whole gap comes back to a screen that has already forgotten, so the one
+   *  question they have — "did I lose any of that?" — has no answer on it.
+   *  This latches instead, and only an explicit tap clears it. */
+  const [interrupted, setInterrupted] = useState(false);
   const dict = useVoiceDictation((t) => void onTranscript(t), {
     vocabulary: "liquor",
     scope: { section: "food", zoneId },
   });
+
+  // Two ways a take loses audio without the counter seeing it: the level watch
+  // reports silence, or the OS backgrounds us (an incoming call does both, and
+  // the beep and vibrate that go with them land on a phone held to an ear).
+  useEffect(() => {
+    if (dict.quiet) setInterrupted(true);
+  }, [dict.quiet]);
+  // The take can also end without a tap — the 240s cap, or the recorder dying.
+  useEffect(() => {
+    if (!dict.recording) setCapturing(false);
+  }, [dict.recording]);
+  useEffect(() => {
+    if (!dict.recording) return;
+    const onHide = () => {
+      if (document.visibilityState === "hidden") setInterrupted(true);
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [dict.recording]);
   useEffect(() => {
     if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -518,7 +565,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     for (const r of review) {
       if (!applyable(r)) continue;
       const caseSize = r.unitsPerCase ?? skuById.get(r.chosenSkuId!)?.unitsPerCase ?? null;
-      addToCell(r.chosenSkuId!, r.cases, r.units, caseSize, r.spoken);
+      addToCell(r.chosenSkuId!, r.cases, r.units, caseSize, r.spoken, takeZoneId ?? zoneId);
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
@@ -607,9 +654,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  lives on (or the current one, if nothing is recorded) and drops the
    *  row in, so the counter can type the number without hunting. */
   function countMissed(skuId: string) {
+    // ⚠ THE THIRD setZoneId SITE, and it does not route through goZone(). The
+    // findings panel can already be open when a take starts, so gating Finish
+    // does not close this door.
+    if (capturing) return;
     const home = zones.find((z) => z.memberSkuIds?.includes(skuId));
     const target = home?.id ?? zoneId;
     setZoneId(target);
+    rememberZone(sessionId, target);
     setAdded((prev) => {
       const cur = prev[target] ?? [];
       return cur.includes(skuId) ? prev : { ...prev, [target]: [...cur, skuId] };
@@ -618,8 +670,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setFindings(null);
   }
 
+  /** Voice work that must land before a count can close. Named once because
+   *  it guards THREE things — Finish, the submit panel's own button, and
+   *  doSubmit itself. Gating only the first still let a counter open the
+   *  panel, start a recording behind it and tap Submit. */
+  const voicePending = dict.recording || voiceBusy || (review?.length ?? 0) > 0;
+
   async function doSubmit() {
     if (!sessionId || submitting) return;
+    // ⚠ The panel can be open while a NEW take is started behind it, so the
+    // button's disabled state is not enough on its own.
+    if (voicePending) return;
     setSubmitting(true);
     try {
       if (!(await doSave())) {
@@ -628,6 +689,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         return;
       }
       setDoneCount(await submitCount(sessionId, fullCount));
+      forgetZone(sessionId); // the walk is over; "where I was" means nothing now
     } catch {
       setSubmitErr("Couldn't submit — try again.");
       setSubmitting(false);
@@ -677,9 +739,23 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function goZone(i: number) {
+    // ⚠ A TAKE CANNOT SPAN TWO SHELVES. The destination is pinned when
+    // recording starts, which correctly covers walking on WHILE IT
+    // TRANSCRIBES — but a counter who changes shelves MID-SENTENCE and keeps
+    // dictating would have both shelves' items written to the first one.
+    // Reproduced in review against the real component. Keyterms re-read the
+    // zone per segment, which changes recognition but attaches no destination
+    // to the rows, so that is not a defence. Stop first; navigation during
+    // extraction and review stays open.
+    if (capturing) return;
     const z = zones[Math.min(Math.max(i, 0), zones.length - 1)];
     if (!z) return;
     setZoneId(z.id);
+    // ⚠ THIS is the path that matters. Previous, Next and the shelf picker all
+    // land here; countMissed() is the rare one. The first cut of this fix
+    // remembered only countMissed, so a counter walking the kitchen the
+    // ordinary way still came back to shelf one. Caught in review.
+    rememberZone(sessionId, z.id);
     setSearch("");
     setZonePicker(false);
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -687,6 +763,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   const totalLines = Object.values(counts).reduce((a, z) => a + Object.keys(z).length, 0);
   const zonesTouched = Object.entries(counts).filter(([, z]) => Object.keys(z).length > 0).length;
+  /** Shelves with not one line on them. "Counted zero" is an answer and does
+   *  not appear here; only "never opened" does. */
+  const untouchedZones = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0);
 
   if (phase === "loading") return <div className="lq-center lq-muted">Loading the kitchen…</div>;
   if (phase === "error")
@@ -721,7 +800,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Previous shelf"
-          disabled={zoneIdx <= 0}
+          disabled={zoneIdx <= 0 || capturing}
           onClick={() => goZone(zoneIdx - 1)}
         >
           ‹
@@ -730,6 +809,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonepick"
           aria-expanded={zonePicker}
+          disabled={capturing}
           onClick={() => setZonePicker((o) => !o)}
         >
           <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
@@ -742,7 +822,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Next shelf"
-          disabled={zoneIdx >= zones.length - 1}
+          disabled={zoneIdx >= zones.length - 1 || capturing}
           onClick={() => goZone(zoneIdx + 1)}
         >
           ›
@@ -772,16 +852,82 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       {/* ── voice ── */}
       <div className="lq-fc-voicebar">
         {!dict.recording ? (
-          <button type="button" className="lq-btn" onClick={() => dict.start()} disabled={voiceBusy}>
-            🎙️ Talk through {zone?.name ?? "this zone"}
+          <button
+            type="button"
+            className="lq-btn"
+            onClick={() => {
+              setTakeZoneId(zoneId); // the shelf this take is about
+              setCapturing(true);
+              setZonePicker(false); // an open list would sit there looking live but inert
+              dict.start();
+            }}
+            // ⚠ ONE OUTSTANDING TAKE AT A TIME. There is a single takeZoneId,
+            // so starting a second take overwrote the first one's destination
+            // and the older rows then applied to the NEW shelf. Finishing the
+            // heard items first is the smallest correct rule — and reviewing
+            // one shelf's worth at a time is what a counter does anyway.
+            disabled={voiceBusy || submitting || (review?.length ?? 0) > 0}
+          >
+            {(review?.length ?? 0) > 0
+              ? "Finish the heard items first"
+              : `🎙️ Talk through ${zone?.name ?? "this zone"}`}
           </button>
         ) : (
-          <button type="button" className="lq-btn lq-btn-rec" onClick={() => dict.stop()}>
+          <button
+            type="button"
+            className="lq-btn lq-btn-rec"
+            onClick={() => {
+              setCapturing(false); // speech is over; the shelf is free again
+              dict.stop();
+            }}
+          >
             {/* Elapsed / total, not a countdown. A countdown reads as a
                 deadline on a job that does not have one — bursts accumulate,
                 so running out is an inconvenience and not a loss. */}
             ⏹ Stop {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
           </button>
+        )}
+        {/* ⚠ WHILE RECORDING, THIS SCREEN USED TO SHOW ONLY A TIMER.
+            The liquor walk has had a level meter, a dead-mic warning and a
+            "still connecting" state since the 2026-07-28 incident — a 103s
+            count with a 38-SECOND capture blackout. The kitchen screen shipped
+            without any of it, so a counter could talk into a dead phone for
+            four minutes and the screen would look entirely normal: same button,
+            same ticking timer, nothing wrong until an empty transcript came
+            back. On Android a voice call takes the mic exactly this way.
+
+            The hook already computed all of this (armed, level, quiet) and beeps
+            and vibrates on it. Only the EYES were missing, and a counter holding
+            a phone in a noisy kitchen — or wearing no headset — has only eyes. */}
+        {dict.recording && (
+          <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
+            <div className="lq-rec-head">
+              <span className="lq-rec-dot" aria-hidden="true" />
+              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+            </div>
+            {dict.metering && (
+              <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
+                <div className="lq-mic-meter-fill" style={{ width: `${Math.round(dict.level * 100)}%` }} />
+              </div>
+            )}
+            {dict.quiet && (
+              <p className="lq-rec-warntext" role="status">
+                {/* Same rule as the sticky notice: earlier speech may exist
+                    only as unuploaded audio or unapplied rows, so "still
+                    saved" is a promise this screen cannot keep. */}
+                Mic hasn’t heard anything for a bit — if you were on a call, stop and check what came back.
+              </p>
+            )}
+            {/* Words spoken before the mic route comes up are LOST — the reason
+                the liquor screen says this too. A Bluetooth headset takes a
+                second or two, and the counter is already talking. */}
+            {!dict.armed && <p className="lq-muted">Connecting to mic… (buzzes when ready)</p>}
+            {dict.transcript && <p className="lq-rec-transcript">{dict.transcript}</p>}
+            <p className="lq-muted">
+              Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}</strong>
+              {" — stop before moving to another shelf. Starting again adds to it."}
+            </p>
+          </div>
         )}
         {dict.recording && dict.seconds >= WARN_SECONDS && (
           <span className="lq-rec-warntext">
@@ -791,6 +937,24 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         {voiceBusy && <span className="lq-muted">reading that back…</span>}
         {voiceErr && <span className="lq-error">{voiceErr}</span>}
       </div>
+
+      {interrupted && (
+        <div className="lq-fc-rev" role="status">
+          <p className="lq-rec-warntext">
+            {/* ⚠ CLAIM ONLY WHAT IS KNOWN. An earlier draft said "what you
+                said before it is still saved" — but unuploaded audio,
+                transcripts and unapplied rows are not durable count data. And
+                the page being hidden does not prove capture stopped, so
+                promising the gap is missing invites re-counting quantities we
+                already have. */}
+            Recording may have been interrupted — a call or the screen locking will do that.
+            Check the captured items for anything missing before continuing.
+          </p>
+          <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setInterrupted(false)}>
+            Got it
+          </button>
+        </div>
+      )}
 
       {review && (
         <div className="lq-fc-rev">
@@ -873,7 +1037,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               disabled={!review.some(applyable)}
               onClick={applyReview}
             >
-              Add {review.filter(applyable).length} to {zone?.name}
+              {/* The take's OWN shelf, not the selected one — they differ the
+                  moment the counter walks on while it transcribes. */}
+              Add {review.filter(applyable).length} to{" "}
+              {zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
             </button>
           </div>
         </div>
@@ -988,7 +1155,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         <div className="lq-fc-rev">
           <p className="lq-fc-rev-h">
             {findings.length === 0
-              ? "Nothing looks off. Ready to submit."
+              ? "Nothing looks off in what you counted. Ready to submit."
               : `${findings.length} thing${findings.length === 1 ? "" : "s"} worth a second look`}
           </p>
           {findings.map((f, i) => {
@@ -1015,6 +1182,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         <button
                           type="button"
                           className="lq-btn lq-fc-rev-locbtn"
+                          disabled={capturing}
                           onClick={() => countMissed(f.skuId)}
                         >
                           I missed it — count it now
@@ -1132,10 +1300,33 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 starts the inventory period everything is measured against.
               </span>
             </label>
+            {/* ⚠ THE ONLY CHECK THAT KNOWS ABOUT SHELVES NOBODY VISITED.
+                Every other pre-submit finding compares against COUNT HISTORY,
+                so on the first-ever walk they all return nothing and the
+                dialog says "Nothing looks off" — earned confidence it has not
+                got. A full count makes every unvisited shelf read as stock
+                that vanished, and the report is a one-way door. Advisory, like
+                everything else here: it never blocks the submit. */}
+            {fullCount && untouchedZones.length > 0 && (
+              <p className="lq-rec-warntext">
+                {untouchedZones.length} of {zones.length} shelves have nothing counted on them
+                {untouchedZones.length <= 4 ? ` — ${untouchedZones.map((z) => z.name).join(", ")}` : ""}.
+                A full count treats those as empty, not as unvisited.
+              </p>
+            )}
           </div>
           <div className="lq-fc-rev-actions">
-            <button type="button" className="lq-btn" disabled={submitting} onClick={() => void doSubmit()}>
-              {submitting ? "Submitting…" : "Submit the count"}
+            <button
+              type="button"
+              className="lq-btn"
+              disabled={submitting || voicePending}
+              onClick={() => void doSubmit()}
+            >
+              {submitting
+                ? "Submitting…"
+                : voicePending
+                  ? "Finish the recording first"
+                  : "Submit the count"}
             </button>
             <button type="button" className="lq-linkbtn" onClick={() => setFindings(null)}>
               keep counting
@@ -1154,10 +1345,24 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             className="lq-btn"
-            disabled={checking || submitting || totalLines === 0}
+            // ⚠ SUBMIT IS A ONE-WAY DOOR and voice work is asynchronous. A
+            // counter could tap Finish while a take was still recording or
+            // transcribing, or with review rows never applied — and only
+            // `counts` is saved, so those items were dropped silently. The
+            // backend then 409s any later line save against a closed session,
+            // so there was no way back.
+            disabled={checking || submitting || totalLines === 0 || voicePending}
             onClick={() => void runCheck()}
           >
-            {checking ? "Checking…" : `Finish (${totalLines})`}
+            {checking
+              ? "Checking…"
+              : dict.recording
+                ? "Stop recording first"
+                : voiceBusy
+                  ? "Reading that back…"
+                  : (review?.length ?? 0) > 0
+                    ? "Finish the heard items first"
+                    : `Finish (${totalLines})`}
           </button>
         </div>
       </div>
