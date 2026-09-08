@@ -24,6 +24,7 @@ import {
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 
 // Voice-first zone counting. Stand in a zone, hit Record, talk out the shelf in a
 // run-on ("three Tito's, four Bulleit, a half Grey Goose…"); the browser
@@ -230,9 +231,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         setZones(z);
         setCatalog(cat);
         setBatches(bs);
-        setZoneId(z[0]?.id ?? "");
+        // ⚠ SESSION FIRST, THEN ZONE — see resume-zone.ts. The liquor walk
+        // has the same failure as the kitchen one: a reload mid-count put the
+        // counter back on Speedrails no matter which shelf they were on.
+        let sid: string;
         if (open) {
-          setSessionId(open.id);
+          sid = open.id;
+          setSessionId(sid);
           setCounts(rebuildCounts(open.lines));
           const bc: Record<string, Record<string, number>> = {};
           for (const b of open.batches ?? []) {
@@ -241,8 +246,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           setBatchCounts(bc);
           setResumed(true);
         } else {
-          setSessionId(await createCount(true));
+          sid = await createCount(true);
+          setSessionId(sid);
         }
+        setZoneId(resumeZone(sid, z));
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
@@ -868,6 +875,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       await saveCountLines(sessionId, flatten(countsRef.current));
       await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       const n = await submitCount(sessionId);
+      forgetZone(sessionId); // the walk is over; "where I was" means nothing now
       restatementsRef.current.clear(); // spent — must not leak into a later session
       setDone(n);
     } catch {
@@ -945,7 +953,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}${n > 0 ? " lq-zone-done" : ""}`}
               // Close any open "+ case size" editor — otherwise one left open
               // on Tito's in Back Bar reappears open on Tito's in Well.
-              onClick={() => { setZoneId(z.id); setCaseAsk(null); setCaseAskErr(null); }}
+              onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setCaseAsk(null); setCaseAskErr(null); }}
             >
               <span className="lq-zone-name">{z.name}</span>
               {n > 0 && <span className="lq-zone-badge">{n}</span>}

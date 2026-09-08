@@ -21,6 +21,7 @@ import {
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -265,13 +266,19 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           setPhase("error");
           return;
         }
-        setZoneId(z[0]!.id);
+        // ⚠ SESSION FIRST, THEN ZONE. resumeZone is keyed by session, so
+        // resolving the shelf before we know which count this is would always
+        // miss and silently drop the counter on zone one (see resume-zone.ts).
+        let sid: string;
         if (open) {
-          setSessionId(open.id);
+          sid = open.id;
+          setSessionId(sid);
           setCounts(rebuild(open.lines));
         } else {
-          setSessionId(await createCount(true, "food"));
+          sid = await createCount(true, "food");
+          setSessionId(sid);
         }
+        setZoneId(resumeZone(sid, z));
         setPhase("ready");
       } catch {
         if (!live) return;
@@ -610,6 +617,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const home = zones.find((z) => z.memberSkuIds?.includes(skuId));
     const target = home?.id ?? zoneId;
     setZoneId(target);
+    rememberZone(sessionId, target);
     setAdded((prev) => {
       const cur = prev[target] ?? [];
       return cur.includes(skuId) ? prev : { ...prev, [target]: [...cur, skuId] };
@@ -628,6 +636,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         return;
       }
       setDoneCount(await submitCount(sessionId, fullCount));
+      forgetZone(sessionId); // the walk is over; "where I was" means nothing now
     } catch {
       setSubmitErr("Couldn't submit — try again.");
       setSubmitting(false);
