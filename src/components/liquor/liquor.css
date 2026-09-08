@@ -2513,3 +2513,47 @@
   font-size: 14px;
   padding: 0 14px;
 }
+
+/* "none here" — the explicit way to record a zero. An untouched row saves
+   nothing at all; this is how a counter says the shelf really is empty, which
+   is a different fact and has to be stored as one. */
+.lq-fc-row-none {
+  flex: 0 0 auto;
+  background: none;
+  border: 1px solid var(--lq-line, #333);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: var(--lq-muted);
+}
+.lq-fc-row-none-on {
+  border-color: #9fd39f;
+  color: #9fd39f;
+}
+
+/* "What was this walk?" — asked at Finish, because that is when the counter
+   knows. Defaults to a trial: the expensive mistake is a partial walk recorded
+   as a full count, which becomes the bracket baseline. */
+.lq-fc-kind {
+  border-top: 1px solid var(--lq-line, #333);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.lq-fc-kind-q {
+  margin: 0 0 8px;
+  font-weight: 700;
+}
+.lq-fc-kind-opt {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.lq-fc-kind-opt input {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+}

@@ -383,10 +383,26 @@ export interface PrecheckResult {
 export async function precheckCount(sessionId: string): Promise<PrecheckResult> {
   return gatedJson<PrecheckResult>(`/admin/bar/counts/${sessionId}/precheck`);
 }
-export async function submitCount(sessionId: string): Promise<number> {
+/**
+ * Close a count.
+ *
+ * `isFullCount` declares what this walk WAS, at the end, when the counter
+ * knows. Omit it and the session keeps whatever it was created as — which is
+ * what the liquor screen does, so its behaviour is unchanged.
+ *
+ * ⚠ A full count becomes the BRACKET BASELINE. A trial walk of a few zones
+ * submitted as a full count becomes the opening balance for the first real
+ * bracket, and every zone nobody walked reads as stock that vanished.
+ */
+export async function submitCount(
+  sessionId: string,
+  isFullCount?: boolean,
+): Promise<number> {
   const { lineCount } = await gatedJson<{ lineCount: number }>(
     `/admin/bar/counts/${sessionId}/submit`,
-    { method: "POST" },
+    isFullCount === undefined
+      ? { method: "POST" }
+      : { ...jsonBody({ isFullCount }), method: "POST" },
   );
   return lineCount;
 }
@@ -438,6 +454,21 @@ export async function setCaseSize(skuId: string, unitsPerCase: number | null): P
  * stay exactly where they were entered — per location, summed per product.
  * Adding a location does not unseat another: the same pizza dough lives in
  * the walk-in AND the stand-up freezer, and both get counted. */
+/**
+ * Archive (or restore) a product.
+ *
+ * ⚠ ARCHIVING IS NOT DELETING AND IT TOUCHES NO COUNT. Every quantity ever
+ * recorded stays exactly as recorded, in every past count and every past
+ * bracket — retiring an item must never change a period already measured.
+ * It only takes the item off the checklist so it stops being asked about.
+ */
+export async function setSkuActive(skuId: string, active: boolean): Promise<void> {
+  await gatedJson<{ active: boolean; name: string }>(`/admin/bar/skus/${skuId}/active`, {
+    ...jsonBody({ active }),
+    method: "PATCH",
+  });
+}
+
 export async function setSkuZone(
   skuId: string,
   zoneId: string,

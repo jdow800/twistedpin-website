@@ -6,6 +6,7 @@ import {
   getOpenCount,
   getZones,
   precheckCount,
+  setSkuActive,
   setSkuZone,
   saveCountLines,
   setCaseSize,
@@ -57,6 +58,15 @@ type Cell = {
   caseSize: number | null;
   source: "grid" | "voice";
   raw?: string;
+  /**
+   * The counter SAID there are none here, rather than leaving it blank.
+   *
+   * An absent cell means nobody looked; a stored 0 means somebody looked and
+   * found nothing. The bracket reads those differently, so blanking a box
+   * must not manufacture the second one. Only this flag (or a saved 0 line
+   * being resumed) keeps a zero alive.
+   */
+  none?: boolean;
 };
 type Counts = Record<string, Record<string, Cell>>;
 
@@ -117,6 +127,9 @@ function rebuild(lines: OpenCountLine[]): Counts {
       // Loose = whatever the stored total is beyond the case part, so a resumed
       // draft shows the counter the two numbers they actually typed.
       units: round2(qty - cases * (caseSize ?? 0)),
+      // A saved 0 was explicit when it was written; resuming must not
+      // quietly downgrade it to "never answered".
+      none: qty === 0,
       qty,
       source: l.source === "voice" ? "voice" : "grid",
       raw: l.rawUtterance ?? undefined,
@@ -175,6 +188,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // sku:zone. Local only — "just this count" writes NOTHING anywhere, which
   // is the whole point of offering it.
   const [locAnswer, setLocAnswer] = useState<Record<string, "added" | "kept">>({});
+  // What this walk WAS. Asked at Finish, because that is when the counter
+  // knows. Defaults to a trial: a shakedown of a few zones is the common
+  // case early on, and the expensive mistake runs the other way — a partial
+  // walk recorded as a full count becomes the bracket baseline and every
+  // unwalked zone reads as stock that vanished.
+  const [fullCount, setFullCount] = useState(false);
+  // Answers to "you didn't count these", keyed by sku.
+  const [missedAnswer, setMissedAnswer] = useState<Record<string, "archived" | "counting">>({});
   const [submitting, setSubmitting] = useState(false);
   const [doneCount, setDoneCount] = useState<number | null>(null);
 
@@ -286,12 +307,56 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         qty: 0,
         source: next.source ?? cur?.source ?? "grid",
         raw: next.raw ?? cur?.raw,
+        none: next.none ?? cur?.none,
       };
       merged.qty = cellQty(merged);
       zoneCells[skuId] = merged;
       return { ...prev, [zoneId]: zoneCells };
     });
     scheduleSave();
+  }
+
+  /**
+   * A number box changed.
+   *
+   * ⚠ EMPTY IS NOT ZERO. Backspacing a box back to blank means "I have not
+   * answered", and an unanswered item must stay UNCOUNTED. An absent row
+   * means nobody looked; a stored 0 means somebody looked and found none.
+   * The bracket reads them differently, so the screen must not turn a
+   * change of mind into a counted zero.
+   *
+   * Typing a literal 0 still records a zero — that is explicit input. So
+   * does the "none here" button. Only a cell that ends up blank on BOTH
+   * boxes, with no explicit zero behind it, is dropped.
+   */
+  function editBox(
+    skuId: string,
+    field: "cases" | "units",
+    raw: string,
+    caseSize: number | null,
+  ) {
+    const cur = (counts[zoneId] ?? {})[skuId];
+    if (raw === "") {
+      const otherIsBlank = field === "cases" ? !(cur?.units ?? 0) : !(cur?.cases ?? 0);
+      if (otherIsBlank && !cur?.none) {
+        clearCell(skuId);
+        return;
+      }
+    }
+    const n = Number(raw);
+    const value = raw === "" || Number.isNaN(n) ? 0 : n;
+    // Typing a digit is an answer, so it clears any earlier "none here".
+    const none = raw === "" ? cur?.none : false;
+    writeCell(
+      skuId,
+      field === "cases" ? { cases: value, caseSize, none } : { units: value, none },
+    );
+  }
+
+  /** "I looked at this shelf and there are none." The one way, besides
+   *  typing a 0, that a zero legitimately gets recorded. */
+  function markNone(skuId: string) {
+    writeCell(skuId, { cases: 0, units: 0, none: true });
   }
 
   function clearCell(skuId: string) {
@@ -469,6 +534,32 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     }
   }
 
+  /** "We do not carry this any more." Takes it off the checklist; the
+   *  quantities it had in past counts are untouched. */
+  async function archiveMissed(skuId: string) {
+    try {
+      await setSkuActive(skuId, false);
+      setMissedAnswer((a) => ({ ...a, [skuId]: "archived" }));
+    } catch {
+      /* leave the question open rather than claiming it was handled */
+    }
+  }
+
+  /** "I missed it — let me count it now." Jumps to a shelf it usually
+   *  lives on (or the current one, if nothing is recorded) and drops the
+   *  row in, so the counter can type the number without hunting. */
+  function countMissed(skuId: string) {
+    const home = zones.find((z) => z.memberSkuIds?.includes(skuId));
+    const target = home?.id ?? zoneId;
+    setZoneId(target);
+    setAdded((prev) => {
+      const cur = prev[target] ?? [];
+      return cur.includes(skuId) ? prev : { ...prev, [target]: [...cur, skuId] };
+    });
+    setMissedAnswer((a) => ({ ...a, [skuId]: "counting" }));
+    setFindings(null);
+  }
+
   async function doSubmit() {
     if (!sessionId || submitting) return;
     setSubmitting(true);
@@ -478,7 +569,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         setSubmitting(false);
         return;
       }
-      setDoneCount(await submitCount(sessionId));
+      setDoneCount(await submitCount(sessionId, fullCount));
     } catch {
       setSubmitErr("Couldn't submit — try again.");
       setSubmitting(false);
@@ -735,7 +826,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 {c && (
                   <span className="lq-fc-row-sum">
                     <span className="lq-fc-row-total">= {c.qty}</span>
-                    <button type="button" className="lq-fc-row-clear" onClick={() => clearCell(s.id)}>
+                    <button
+                      type="button"
+                      className={`lq-fc-row-none${c?.none && !c.qty ? " lq-fc-row-none-on" : ""}`}
+                      onClick={() => markNone(s.id)}
+                      title="I looked — there are none here"
+                    >
+                      none here
+                    </button>
+<button type="button" className="lq-fc-row-clear" onClick={() => clearCell(s.id)}>
                       clear
                     </button>
                   </span>
@@ -757,9 +856,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                       step="any"
                       value={c?.cases ?? ""}
                       onFocus={keepInView}
-                      onChange={(e) =>
-                        writeCell(s.id, { cases: Number(e.target.value) || 0, caseSize: s.unitsPerCase })
-                      }
+                      onChange={(e) => editBox(s.id, "cases", e.target.value, s.unitsPerCase)}
                     />
                   </label>
                 )}
@@ -772,7 +869,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     step="any"
                     value={c?.units ?? ""}
                     onFocus={keepInView}
-                    onChange={(e) => writeCell(s.id, { units: Number(e.target.value) || 0 })}
+                    onChange={(e) => editBox(s.id, "units", e.target.value, null)}
                   />
                 </label>
               </div>
@@ -818,6 +915,33 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               <div key={i} className="lq-fc-rev-row">
                 <span className="lq-fc-rev-spoken">{f.name}</span>
                 <span className="lq-fc-rev-note">{f.detail}</span>
+                {(f.kind === "not_counted" || f.kind === "purchased_not_counted") && (
+                  <div className="lq-fc-rev-loc">
+                    {missedAnswer[f.skuId] === "archived" ? (
+                      <span className="lq-fc-rev-match">
+                        Archived. It will not be asked about next count — and every
+                        past count still reads exactly as it did.
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          className="lq-btn lq-fc-rev-locbtn"
+                          onClick={() => countMissed(f.skuId)}
+                        >
+                          I missed it — count it now
+                        </button>
+                        <button
+                          type="button"
+                          className="lq-btn lq-btn-ghost lq-fc-rev-locbtn"
+                          onClick={() => void archiveMissed(f.skuId)}
+                        >
+                          We don't carry it any more
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
                 {f.kind === "zone_unexpected" && locKey && (
                   <div className="lq-fc-rev-loc">
                     {answered ? (
@@ -849,6 +973,33 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               </div>
             );
           })}
+          <div className="lq-fc-kind">
+            <p className="lq-fc-kind-q">What was this walk?</p>
+            <label className="lq-fc-kind-opt">
+              <input
+                type="radio"
+                name="countkind"
+                checked={!fullCount}
+                onChange={() => setFullCount(false)}
+              />
+              <span>
+                <strong>A trial run</strong> — a few shelves, to see how this works.
+                Recorded, but it will not start an inventory period.
+              </span>
+            </label>
+            <label className="lq-fc-kind-opt">
+              <input
+                type="radio"
+                name="countkind"
+                checked={fullCount}
+                onChange={() => setFullCount(true)}
+              />
+              <span>
+                <strong>The whole kitchen</strong> — every shelf walked. This one
+                starts the inventory period everything is measured against.
+              </span>
+            </label>
+          </div>
           <div className="lq-fc-rev-actions">
             <button type="button" className="lq-btn" disabled={submitting} onClick={() => void doSubmit()}>
               {submitting ? "Submitting…" : "Submit the count"}
