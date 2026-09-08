@@ -508,10 +508,19 @@ export async function transcribeAudio(
   contentType: string,
   base64Data: string,
   vocabulary: "liquor" | "kegs",
+  /**
+   * Which walk, and which shelf the counter is standing on.
+   *
+   * The server spends a fixed Deepgram keyterm budget FRONT TO BACK, so
+   * this is what lets the shelf in front of the counter claim it first.
+   * Both optional: omitted means every active SKU alphabetically, which is
+   * what shipped before and is measurably worse (48% coverage vs 94-100%).
+   */
+  scope?: { section?: "bar" | "food"; zoneId?: string },
 ): Promise<string> {
   const { transcript } = await gatedJson<{ transcript: string }>(
     "/admin/bar/transcribe-audio",
-    jsonBody({ contentType, data: base64Data, vocabulary }),
+    jsonBody({ contentType, data: base64Data, vocabulary, ...(scope ?? {}) }),
   );
   return transcript;
 }

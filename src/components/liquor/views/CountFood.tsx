@@ -49,7 +49,22 @@ import { useVoiceDictation } from "../useRecorderDictation";
  * the unit IS the bag), size_ml, batch prep, kegs, bottled beer.
  */
 
-const CAP_SECONDS = 90;
+/**
+ * Hard stop, matching the liquor screen (240s) rather than the 90s this
+ * shipped with — that number carried no comment, and a food shelf is not
+ * smaller than a liquor one. Fryer Line is 41 SKUs.
+ *
+ * ⚠ THE RECORDER IS NOT LIMITED BY THIS. useRecorderDictation ROTATES the
+ * MediaRecorder every ~60s on the same never-released stream and joins the
+ * transcripts in order, so length is not a technical constraint. This is a
+ * safety rail on how much work a single failed clip can lose.
+ *
+ * And each recording ADDS to the zone — bursts accumulate, they never
+ * replace. Stopping and starting again costs nothing but a breath.
+ */
+const CAP_SECONDS = 240;
+/** "Wrap up" warning, the same 30s of runway the liquor screen gives. */
+const WARN_SECONDS = 210;
 
 type Cell = {
   /**
@@ -117,6 +132,13 @@ function unitLabel(sku: BarSkuItem | undefined, n: number): string {
   if (u === "each") return "each";
   if (u === "lb" || u === "gal" || u === "bib") return u;
   return `${u}s`;
+}
+
+/** m:ss, so three minutes reads as 3:00 rather than 180. */
+function mmss(total: number): string {
+  const m = Math.floor(total / 60);
+  const sec = total % 60;
+  return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
 function cellQty(c: { cases: number | null; units: number | null; caseSize: number | null }): number {
@@ -417,7 +439,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   // ── voice ──
-  const dict = useVoiceDictation((t) => void onTranscript(t), { vocabulary: "liquor" });
+  // ⚠ `scope` is what makes the shelf in front of the counter claim the
+  // Deepgram keyterm budget first. Without it the server ranks every active
+  // SKU alphabetically and the budget runs out at the letter E — measured
+  // 48% coverage, against 94-100% zone-scoped (Opsi/analysis/keyterm-by-zone.ts).
+  // zoneId changes as he walks; the hook reads it through a ref so the NEXT
+  // rotation segment is biased to the NEW shelf.
+  const dict = useVoiceDictation((t) => void onTranscript(t), {
+    vocabulary: "liquor",
+    scope: { section: "food", zoneId },
+  });
   useEffect(() => {
     if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -746,8 +777,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </button>
         ) : (
           <button type="button" className="lq-btn lq-btn-rec" onClick={() => dict.stop()}>
-            ⏹ Stop ({CAP_SECONDS - dict.seconds}s)
+            {/* Elapsed / total, not a countdown. A countdown reads as a
+                deadline on a job that does not have one — bursts accumulate,
+                so running out is an inconvenience and not a loss. */}
+            ⏹ Stop {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
           </button>
+        )}
+        {dict.recording && dict.seconds >= WARN_SECONDS && (
+          <span className="lq-rec-warntext">
+            Wrap up this shelf — stopping at {mmss(CAP_SECONDS)}. Starting again adds to it.
+          </span>
         )}
         {voiceBusy && <span className="lq-muted">reading that back…</span>}
         {voiceErr && <span className="lq-error">{voiceErr}</span>}
