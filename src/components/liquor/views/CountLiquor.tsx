@@ -170,6 +170,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // Bottles answered with "we don't carry it any more", so the row can
   // confirm itself without re-running the whole check.
   const [archived, setArchived] = useState<Record<string, true>>({});
+  // The retire PATCH in flight, and its failure. Without these a counter on a
+  // weak connection could tap retire, tap Submit before the request settled,
+  // and finish the count never learning the bottle is still active — the
+  // dialog closes on submit and the rejection had nowhere to go.
+  const [retiringSkuId, setRetiringSkuId] = useState<string | null>(null);
+  const [retireErr, setRetireErr] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
   // voice
@@ -816,6 +822,30 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  OTHER finding in the dialog has to survive. The ref is updated alongside
    *  state because tryFinish flushes from the REF and React has not re-rendered
    *  yet at that point. */
+  /**
+   * "We don't carry it any more."
+   *
+   * Reversible server-side and it touches no count — every past count keeps
+   * the numbers it already has. It is deliberately direct (no confirm step):
+   * the label says what it does and it sits inside the named row.
+   */
+  async function retireSku(skuId: string) {
+    if (retiringSkuId) return;
+    setRetiringSkuId(skuId);
+    setRetireErr(null);
+    try {
+      await setSkuActive(skuId, false);
+      setArchived((a) => ({ ...a, [skuId]: true }));
+    } catch {
+      // Say so. Failing silently here is worse than not offering the button:
+      // the counter believes the question is answered and it will be back
+      // next count with no explanation.
+      setRetireErr("Couldn't retire that — check the connection and try again.");
+    } finally {
+      setRetiringSkuId(null);
+    }
+  }
+
   async function recordNoBatches() {
     if (!zoneId || batches.length === 0) return;
     const zeros = Object.fromEntries(batches.map((b) => [b.id, 0]));
@@ -1362,11 +1392,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
                       {f.kind === "purchased_not_counted" && "This came in on an invoice this period and has never been counted. Count it now — even a zero — so its velocity starts and the order guide can see it."}
                     </span>
-                    {/* The ONLY finding with a one-tap remedy, because it is
-                        the only one where the honest answer is often simply
-                        "none" and the counter would otherwise have to leave the
-                        dialog, find the section and type two zeros. Every other
-                        finding needs a judgement he can only make at the shelf.
+                    {/* One of TWO findings with a one-tap remedy (the other is
+                        not_counted, below), because these are the two where the
+                        honest answer is a fact the counter already knows rather
+                        than a judgement he can only make at the shelf. Here the
+                        answer is often simply "none", and he would otherwise
+                        have to leave the dialog, find the section and type two
+                        zeros.
 
                         Zone is bookkeeping here — the server sums batch rows
                         across zones — so this writes the zeros into whichever
@@ -1385,6 +1417,40 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         No batch bottles anywhere right now — record zero
                       </button>
                     )}
+                    {/* "Do we still carry this?" asked where it actually comes
+                        up — on the bottle that was counted last time and has no
+                        line now. The timed list further down catches what nobody
+                        noticed; this catches what the counter knows RIGHT NOW,
+                        and waiting two months to ask about a bottle he already
+                        knows is discontinued is just making him repeat himself.
+
+                        Only on not_counted. NOT on purchased_not_counted: that
+                        one arrived on an invoice this period, so we demonstrably
+                        do still carry it — and offering to retire it would
+                        contradict the rule the timed list is built on, where a
+                        recent purchase is exactly what proves a product is
+                        incoming rather than dying.
+
+                        The other answer — "it's still there, I missed it" — has
+                        no button on purpose. That one needs him at the shelf. */}
+                    {f.kind === "not_counted" &&
+                      (archived[f.skuId] ? (
+                        <span className="lq-precheck-answered">
+                          Retired. Off the next count sheet; every past count keeps
+                          the numbers it already has.
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="lq-btn lq-btn-ghost lq-precheck-action"
+                          disabled={checking || submitting || retiringSkuId != null}
+                          onClick={() => void retireSku(f.skuId)}
+                        >
+                          {retiringSkuId === f.skuId
+                            ? "Retiring…"
+                            : "We don't carry it any more — retire it"}
+                        </button>
+                      ))}
                   </div>
                 ))}
                 {confirmSubmit.truncated > 0 && (
@@ -1417,16 +1483,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       <button
                         type="button"
                         className="lq-btn lq-btn-ghost lq-retiring-btn"
-                        onClick={() => {
-                          void setSkuActive(r.skuId, false)
-                            .then(() => setArchived((a) => ({ ...a, [r.skuId]: true })))
-                            .catch(() => {
-                              /* leave the question open rather than claiming
-                                 it was handled */
-                            });
-                        }}
+                        disabled={retiringSkuId != null}
+                        onClick={() => void retireSku(r.skuId)}
                       >
-                        We don't carry it any more
+                        {retiringSkuId === r.skuId
+                          ? "Retiring…"
+                          : "We don't carry it any more"}
                       </button>
                     )}
                   </div>
@@ -1458,10 +1520,20 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setConfirmSubmit(null)}>
                 Go back
               </button>
+              {retireErr && <span className="lq-retire-err">{retireErr}</span>}
               {/* Always dismissible. The check is advice, not a gate — if the
                   count is right and an invoice is simply missing, forcing a
                   change here would be the worst outcome available. */}
-              <button type="button" className="lq-btn lq-btn-primary" onClick={() => void finish()}>
+              {/* Blocked only while a RETIREMENT is settling — a second or two,
+                  and the alternative is finishing the count while the answer
+                  you just gave is still in the air. Everything else stays
+                  dismissible. */}
+              <button
+                type="button"
+                className="lq-btn lq-btn-primary"
+                disabled={retiringSkuId != null}
+                onClick={() => void finish()}
+              >
                 {confirmSubmit.findings.length > 0 ||
                 confirmSubmit.doubles.length > 0 ||
                 confirmSubmit.zones.length > 0

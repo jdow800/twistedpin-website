@@ -945,7 +945,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               <div key={i} className="lq-fc-rev-row">
                 <span className="lq-fc-rev-spoken">{f.name}</span>
                 <span className="lq-fc-rev-note">{f.detail}</span>
-                {(f.kind === "not_counted" || f.kind === "purchased_not_counted") && (
+                {/* NOT purchased_not_counted: that one arrived on an invoice
+                    this period, so we demonstrably still carry it. Offering to
+                    retire it would contradict the rule the timed list is built
+                    on — a recent purchase is exactly what proves a product is
+                    incoming rather than dying. Its remedy is "count it now". */}
+                {f.kind === "not_counted" && (
                   <div className="lq-fc-rev-loc">
                     {missedAnswer[f.skuId] === "archived" ? (
                       <span className="lq-fc-rev-match">
@@ -970,6 +975,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         </button>
                       </>
                     )}
+                  </div>
+                )}
+                {f.kind === "purchased_not_counted" && (
+                  <div className="lq-fc-rev-loc">
+                    <button
+                      type="button"
+                      className="lq-btn lq-fc-rev-locbtn"
+                      onClick={() => countMissed(f.skuId)}
+                    >
+                      Count it now
+                    </button>
                   </div>
                 )}
                 {f.kind === "zone_unexpected" && locKey && (

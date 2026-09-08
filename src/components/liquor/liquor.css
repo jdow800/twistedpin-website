@@ -2590,3 +2590,18 @@
 .lq-retiring-done {
   color: #9fd39f;
 }
+
+/* A finding that has been answered in the dialog. Green like every other
+   "this is settled" state on these screens. */
+.lq-precheck-answered {
+  color: #9fd39f;
+  font-size: 13px;
+}
+
+/* A retirement that did not land. Loud enough to notice before submitting,
+   because the counter believes the question is already answered. */
+.lq-retire-err {
+  color: #ff8f8f;
+  font-size: 13px;
+  flex: 1 1 100%;
+}
