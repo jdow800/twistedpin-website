@@ -725,6 +725,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function goZone(i: number) {
+    // ⚠ A TAKE CANNOT SPAN TWO SHELVES. The destination is pinned when
+    // recording starts, which correctly covers walking on WHILE IT
+    // TRANSCRIBES — but a counter who changes shelves MID-SENTENCE and keeps
+    // dictating would have both shelves' items written to the first one.
+    // Reproduced in review against the real component. Keyterms re-read the
+    // zone per segment, which changes recognition but attaches no destination
+    // to the rows, so that is not a defence. Stop first; navigation during
+    // extraction and review stays open.
+    if (dict.recording) return;
     const z = zones[Math.min(Math.max(i, 0), zones.length - 1)];
     if (!z) return;
     setZoneId(z.id);
@@ -777,7 +786,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Previous shelf"
-          disabled={zoneIdx <= 0}
+          disabled={zoneIdx <= 0 || dict.recording}
           onClick={() => goZone(zoneIdx - 1)}
         >
           ‹
@@ -786,6 +795,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonepick"
           aria-expanded={zonePicker}
+          disabled={dict.recording}
           onClick={() => setZonePicker((o) => !o)}
         >
           <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
@@ -798,7 +808,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Next shelf"
-          disabled={zoneIdx >= zones.length - 1}
+          disabled={zoneIdx >= zones.length - 1 || dict.recording}
           onClick={() => goZone(zoneIdx + 1)}
         >
           ›
@@ -879,7 +889,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             )}
             {dict.quiet && (
               <p className="lq-rec-warntext" role="status">
-                Mic hasn’t heard anything for a bit — if you were on a call, stop and start again; what you said before it is still saved.
+                {/* Same rule as the sticky notice: earlier speech may exist
+                    only as unuploaded audio or unapplied rows, so "still
+                    saved" is a promise this screen cannot keep. */}
+                Mic hasn’t heard anything for a bit — if you were on a call, stop and check what came back.
               </p>
             )}
             {/* Words spoken before the mic route comes up are LOST — the reason
@@ -887,6 +900,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 second or two, and the counter is already talking. */}
             {!dict.armed && <p className="lq-muted">Connecting to mic… (buzzes when ready)</p>}
             {dict.transcript && <p className="lq-rec-transcript">{dict.transcript}</p>}
+            <p className="lq-muted">
+              Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}</strong>
+              {" — stop before moving to another shelf. Starting again adds to it."}
+            </p>
           </div>
         )}
         {dict.recording && dict.seconds >= WARN_SECONDS && (
