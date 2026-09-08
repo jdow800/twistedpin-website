@@ -209,6 +209,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // `findings` for the reason in api.ts: the money sort buries exactly the
   // ones that are most certainly dead.
   const [retiring, setRetiring] = useState<RetiringSku[]>([]);
+  // §11.27's failsafe, and deliberately the WHOLE of it: a reminder, not a
+  // gate. Purchases now date by the invoice, so one that has not been
+  // scanned yet is simply missing from the bracket this count opens. The
+  // ruling was explicit that this must not block Submit and must not ask a
+  // question the counter cannot answer holding a phone in a walk-in.
+  const [scanNote, setScanNote] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [doneCount, setDoneCount] = useState<number | null>(null);
 
@@ -671,6 +677,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-fc">
+      {scanNote && totalLines === 0 && (
+        <div className="lq-fc-scannote">
+          <span>Scan any delivery invoices that aren&rsquo;t in yet.</span>
+          <button type="button" onClick={() => setScanNote(false)} aria-label="Dismiss">
+            ×
+          </button>
+        </div>
+      )}
       <div className="lq-fc-zonehead">
         <button
           type="button"
