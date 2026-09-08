@@ -2597,3 +2597,11 @@
   color: #9fd39f;
   font-size: 13px;
 }
+
+/* A retirement that did not land. Loud enough to notice before submitting,
+   because the counter believes the question is already answered. */
+.lq-retire-err {
+  color: #ff8f8f;
+  font-size: 13px;
+  flex: 1 1 100%;
+}
