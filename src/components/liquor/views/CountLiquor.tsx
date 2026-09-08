@@ -7,6 +7,7 @@ import {
   getOpenCount,
   getZones,
   precheckCount,
+  setSkuActive,
   saveBatchCounts,
   saveCountLines,
   setCaseSize,
@@ -18,6 +19,7 @@ import {
   type CountLineInput,
   type OpenCountLine,
   type PrecheckFinding,
+  type RetiringSku,
   type VoiceExtractItem,
   type VoiceMatch,
 } from "../api";
@@ -163,7 +165,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     findings: PrecheckFinding[];
     truncated: number;
     doubles: Restatement[];
+    retiring: RetiringSku[];
   } | null>(null);
+  // Bottles answered with "we don't carry it any more", so the row can
+  // confirm itself without re-running the whole check.
+  const [archived, setArchived] = useState<Record<string, true>>({});
   const [checking, setChecking] = useState(false);
 
   // voice
@@ -762,6 +768,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setChecking(true);
     let findings: PrecheckFinding[] = [];
     let truncated = 0;
+    let retiring: RetiringSku[] = [];
     try {
       // Flush FIRST — the check runs server-side against saved lines, so an
       // unsaved last edit would be checked in its old form.
@@ -772,15 +779,28 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const res = await precheckCount(sessionId);
       findings = res.findings;
       truncated = res.truncated ?? 0;
+      retiring = res.retiring ?? [];
     } catch {
       // A sanity check must never be able to prevent closing out a count. If it
       // fails we fall through to the zone confirmation exactly as before.
       findings = [];
+      retiring = [];
     } finally {
       setChecking(false);
     }
-    if (uncounted.length > 0 || findings.length > 0 || restatementsRef.current.size > 0) {
-      setConfirmSubmit({ zones: uncounted, findings, truncated, doubles: [...restatementsRef.current.values()] });
+    if (
+      uncounted.length > 0 ||
+      findings.length > 0 ||
+      retiring.length > 0 ||
+      restatementsRef.current.size > 0
+    ) {
+      setConfirmSubmit({
+        zones: uncounted,
+        findings,
+        truncated,
+        doubles: [...restatementsRef.current.values()],
+        retiring,
+      });
       return;
     }
     void finish();
@@ -1365,6 +1385,47 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 {confirmSubmit.truncated > 0 && (
                   <p className="lq-precheck-more">+ {confirmSubmit.truncated} more not shown.</p>
                 )}
+              </div>
+            )}
+            {confirmSubmit.retiring.length > 0 && (
+              <div className="lq-retiring">
+                <p className="lq-retiring-h">Have we stopped carrying these?</p>
+                <p className="lq-muted lq-retiring-sub">
+                  No stock seen and nothing bought in months. Retiring one takes it off
+                  the count sheet. Every past count keeps the numbers it already has.
+                </p>
+                {confirmSubmit.retiring.map((r) => (
+                  <div key={r.skuId} className="lq-retiring-row">
+                    <span className="lq-precheck-name">{r.name}</span>
+                    <span className="lq-precheck-detail">
+                      Last seen with stock {r.daysSinceStock} days ago;{" "}
+                      {r.daysSincePurchase == null
+                        ? "never purchased on a scanned invoice"
+                        : `last bought ${r.daysSincePurchase} days ago`}
+                      .
+                    </span>
+                    {archived[r.skuId] ? (
+                      <span className="lq-retiring-done">
+                        Retired. It will not be on the next count sheet.
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        className="lq-btn lq-btn-ghost lq-retiring-btn"
+                        onClick={() => {
+                          void setSkuActive(r.skuId, false)
+                            .then(() => setArchived((a) => ({ ...a, [r.skuId]: true })))
+                            .catch(() => {
+                              /* leave the question open rather than claiming
+                                 it was handled */
+                            });
+                        }}
+                      >
+                        We don't carry it any more
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
             {confirmSubmit.doubles.length > 0 && (

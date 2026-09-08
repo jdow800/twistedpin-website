@@ -16,6 +16,7 @@ import {
   type CountLineInput,
   type OpenCountLine,
   type PrecheckFinding,
+  type RetiringSku,
   type VoiceExtractItem,
   type VoiceMatch,
 } from "../api";
@@ -204,6 +205,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [fullCount, setFullCount] = useState(false);
   // Answers to "you didn't count these", keyed by sku.
   const [missedAnswer, setMissedAnswer] = useState<Record<string, "archived" | "counting">>({});
+  // Products that look like we have stopped carrying them. Kept apart from
+  // `findings` for the reason in api.ts: the money sort buries exactly the
+  // ones that are most certainly dead.
+  const [retiring, setRetiring] = useState<RetiringSku[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [doneCount, setDoneCount] = useState<number | null>(null);
 
@@ -515,9 +520,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       }
       const res = await precheckCount(sessionId);
       setFindings(res.findings);
+      setRetiring(res.retiring ?? []);
     } catch {
       // A check that cannot RUN must not block a finished walk.
       setFindings([]);
+      setRetiring([]);
     } finally {
       setChecking(false);
     }
@@ -996,6 +1003,40 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               </div>
             );
           })}
+          {retiring.length > 0 && (
+            <div className="lq-retiring">
+              <p className="lq-retiring-h">Have we stopped carrying these?</p>
+              <p className="lq-muted lq-retiring-sub">
+                No stock seen and nothing bought in months. Retiring one takes it off
+                the count sheet. Every past count keeps the numbers it already has.
+              </p>
+              {retiring.map((r) => (
+                <div key={r.skuId} className="lq-retiring-row">
+                  <span className="lq-fc-rev-spoken">{r.name}</span>
+                  <span className="lq-fc-rev-note">
+                    Last seen with stock {r.daysSinceStock} days ago;{" "}
+                    {r.daysSincePurchase == null
+                      ? "never purchased on a scanned invoice"
+                      : `last bought ${r.daysSincePurchase} days ago`}
+                    .
+                  </span>
+                  {missedAnswer[r.skuId] === "archived" ? (
+                    <span className="lq-fc-rev-match">
+                      Retired. It will not be on the next count sheet.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="lq-btn lq-btn-ghost lq-fc-rev-locbtn"
+                      onClick={() => void archiveMissed(r.skuId)}
+                    >
+                      We don't carry it any more
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="lq-fc-kind">
             <p className="lq-fc-kind-q">What was this walk?</p>
             <label className="lq-fc-kind-opt">
