@@ -51,8 +51,16 @@ import { useVoiceDictation } from "../useRecorderDictation";
 const CAP_SECONDS = 90;
 
 type Cell = {
-  cases: number;
-  units: number;
+  /**
+   * ⚠ null means the BOX IS BLANK. 0 means the counter typed a zero.
+   *
+   * They were the same number here, and that was a real bug: with cases
+   * explicitly 0 and units 2, erasing units read "cases is falsy, so both
+   * boxes are empty" and deleted the whole cell — destroying an answer the
+   * counter had actually given. Blankness has to be representable.
+   */
+  cases: number | null;
+  units: number | null;
   /** Individual containers — the canonical number the server stores. */
   qty: number;
   caseSize: number | null;
@@ -110,15 +118,15 @@ function unitLabel(sku: BarSkuItem | undefined, n: number): string {
   return `${u}s`;
 }
 
-function cellQty(c: { cases: number; units: number; caseSize: number | null }): number {
-  return round2(c.units + c.cases * (c.caseSize ?? 0));
+function cellQty(c: { cases: number | null; units: number | null; caseSize: number | null }): number {
+  return round2((c.units ?? 0) + (c.cases ?? 0) * (c.caseSize ?? 0));
 }
 
 function rebuild(lines: OpenCountLine[]): Counts {
   const out: Counts = {};
   for (const l of lines) {
     const zone = (out[l.zoneId] ??= {});
-    const cases = Number(l.enteredCases ?? 0);
+    const cases = l.enteredCases == null ? null : Number(l.enteredCases);
     const caseSize = l.caseSizeAtEntry == null ? null : Number(l.caseSizeAtEntry);
     const qty = Number(l.qtyUnits);
     zone[l.skuId] = {
@@ -126,7 +134,7 @@ function rebuild(lines: OpenCountLine[]): Counts {
       caseSize,
       // Loose = whatever the stored total is beyond the case part, so a resumed
       // draft shows the counter the two numbers they actually typed.
-      units: round2(qty - cases * (caseSize ?? 0)),
+      units: round2(qty - (cases ?? 0) * (caseSize ?? 0)),
       // A saved 0 was explicit when it was written; resuming must not
       // quietly downgrade it to "never answered".
       none: qty === 0,
@@ -295,8 +303,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const cur = zoneCells[skuId];
       const sku = skuById.get(skuId);
       const merged: Cell = {
-        cases: next.cases ?? cur?.cases ?? 0,
-        units: next.units ?? cur?.units ?? 0,
+        cases: next.cases !== undefined ? next.cases : (cur?.cases ?? null),
+        units: next.units !== undefined ? next.units : (cur?.units ?? null),
         // ⚠ THE EXISTING CELL'S MULTIPLIER WINS. case_size_at_entry is frozen
         // at entry by design and must never be re-read from the catalog: a
         // resumed draft whose SKU had its case size corrected in between would
@@ -336,17 +344,20 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     caseSize: number | null,
   ) {
     const cur = (counts[zoneId] ?? {})[skuId];
-    if (raw === "") {
-      const otherIsBlank = field === "cases" ? !(cur?.units ?? 0) : !(cur?.cases ?? 0);
-      if (otherIsBlank && !cur?.none) {
-        clearCell(skuId);
-        return;
-      }
-    }
     const n = Number(raw);
-    const value = raw === "" || Number.isNaN(n) ? 0 : n;
-    // Typing a digit is an answer, so it clears any earlier "none here".
-    const none = raw === "" ? cur?.none : false;
+    // null = blank. NOT 0 — see the Cell type.
+    const value = raw === "" || Number.isNaN(n) ? null : n;
+    const other = field === "cases" ? (cur?.units ?? null) : (cur?.cases ?? null);
+    // The cell disappears only when BOTH boxes are genuinely blank and no
+    // "none here" is standing behind it. An explicit 0 in the other box is an
+    // ANSWER and keeps the cell alive.
+    if (value === null && other === null && !cur?.none) {
+      clearCell(skuId);
+      return;
+    }
+    // Typing anything — including a literal 0 — is the counter answering, so
+    // it supersedes an earlier "none here". Erasing does not.
+    const none = value === null ? cur?.none : false;
     writeCell(
       skuId,
       field === "cases" ? { cases: value, caseSize, none } : { units: value, none },
@@ -356,7 +367,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** "I looked at this shelf and there are none." The one way, besides
    *  typing a 0, that a zero legitimately gets recorded. */
   function markNone(skuId: string) {
-    writeCell(skuId, { cases: 0, units: 0, none: true });
+    // units 0 (an answer), cases blank — so the both-blank clear can never
+    // fire on it, and the box shows an honest empty rather than a typed 0.
+    writeCell(skuId, { cases: null, units: 0, none: true });
   }
 
   function clearCell(skuId: string) {
@@ -377,6 +390,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const merged: Cell = {
         cases: round2((cur?.cases ?? 0) + cases),
         units: round2((cur?.units ?? 0) + units),
+        // A spoken quantity is an explicit answer, including a spoken zero.
         // Same freeze as writeCell: a second voice pass at the same shelf adds
         // to the cell, it does not revalue what is already in it.
         caseSize: cur?.caseSize ?? caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null,
@@ -823,22 +837,31 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                   {rest && <span className="lq-fc-row-rest">{rest}</span>}
                   {c?.source === "voice" && <span className="lq-fc-row-voice" title={c.raw}>🎙️</span>}
                 </span>
-                {c && (
-                  <span className="lq-fc-row-sum">
-                    <span className="lq-fc-row-total">= {c.qty}</span>
+                {/* "none here" is OUTSIDE the has-a-cell guard on purpose: its
+                    whole job is the first answer on an untouched row — the
+                    counter reaches a listed item, sees an empty shelf, and
+                    says so. Behind the guard it only appeared once a cell
+                    already existed, which is exactly when it is least needed. */}
+                <span className="lq-fc-row-sum">
+                  {c && <span className="lq-fc-row-total">= {c.qty}</span>}
+                  <button
+                    type="button"
+                    className={`lq-fc-row-none${c?.none && !c.qty ? " lq-fc-row-none-on" : ""}`}
+                    onClick={() => markNone(s.id)}
+                    title="I looked — there are none here"
+                  >
+                    none here
+                  </button>
+                  {c && (
                     <button
                       type="button"
-                      className={`lq-fc-row-none${c?.none && !c.qty ? " lq-fc-row-none-on" : ""}`}
-                      onClick={() => markNone(s.id)}
-                      title="I looked — there are none here"
+                      className="lq-fc-row-clear"
+                      onClick={() => clearCell(s.id)}
                     >
-                      none here
-                    </button>
-<button type="button" className="lq-fc-row-clear" onClick={() => clearCell(s.id)}>
                       clear
                     </button>
-                  </span>
-                )}
+                  )}
+                </span>
               </div>
               <div className="lq-fc-row-inputs">
                 {s.unitsPerCase != null && (
