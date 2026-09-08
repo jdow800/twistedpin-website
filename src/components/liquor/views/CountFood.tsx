@@ -461,6 +461,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** Which shelf a pending voice take belongs to, captured when recording
    *  STARTS rather than read when Apply is tapped. */
   const [takeZoneId, setTakeZoneId] = useState<string | null>(null);
+  /** Mic live — Start until Stop, NOT until the upload lands. This is what
+   *  zone changes are refused during: once the counter has stopped talking,
+   *  the take's destination is fixed and walking on is safe. Gating on
+   *  `dict.recording` instead would let a stalled upload lock the shelf
+   *  controls with no way out but Home, abandoning the take. */
+  const [capturing, setCapturing] = useState(false);
   /** ⚠ STICKY. `dict.quiet` is a LIVE signal — it clears the instant sound
    *  returns, including on unmute. A counter who took a phone call for the
    *  whole gap comes back to a screen that has already forgotten, so the one
@@ -478,6 +484,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (dict.quiet) setInterrupted(true);
   }, [dict.quiet]);
+  // The take can also end without a tap — the 240s cap, or the recorder dying.
+  useEffect(() => {
+    if (!dict.recording) setCapturing(false);
+  }, [dict.recording]);
   useEffect(() => {
     if (!dict.recording) return;
     const onHide = () => {
@@ -644,6 +654,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  lives on (or the current one, if nothing is recorded) and drops the
    *  row in, so the counter can type the number without hunting. */
   function countMissed(skuId: string) {
+    // ⚠ THE THIRD setZoneId SITE, and it does not route through goZone(). The
+    // findings panel can already be open when a take starts, so gating Finish
+    // does not close this door.
+    if (capturing) return;
     const home = zones.find((z) => z.memberSkuIds?.includes(skuId));
     const target = home?.id ?? zoneId;
     setZoneId(target);
@@ -733,7 +747,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // zone per segment, which changes recognition but attaches no destination
     // to the rows, so that is not a defence. Stop first; navigation during
     // extraction and review stays open.
-    if (dict.recording) return;
+    if (capturing) return;
     const z = zones[Math.min(Math.max(i, 0), zones.length - 1)];
     if (!z) return;
     setZoneId(z.id);
@@ -786,7 +800,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Previous shelf"
-          disabled={zoneIdx <= 0 || dict.recording}
+          disabled={zoneIdx <= 0 || capturing}
           onClick={() => goZone(zoneIdx - 1)}
         >
           ‹
@@ -795,7 +809,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonepick"
           aria-expanded={zonePicker}
-          disabled={dict.recording}
+          disabled={capturing}
           onClick={() => setZonePicker((o) => !o)}
         >
           <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
@@ -808,7 +822,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-fc-zonestep"
           aria-label="Next shelf"
-          disabled={zoneIdx >= zones.length - 1 || dict.recording}
+          disabled={zoneIdx >= zones.length - 1 || capturing}
           onClick={() => goZone(zoneIdx + 1)}
         >
           ›
@@ -843,6 +857,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             className="lq-btn"
             onClick={() => {
               setTakeZoneId(zoneId); // the shelf this take is about
+              setCapturing(true);
+              setZonePicker(false); // an open list would sit there looking live but inert
               dict.start();
             }}
             // ⚠ ONE OUTSTANDING TAKE AT A TIME. There is a single takeZoneId,
@@ -857,7 +873,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               : `🎙️ Talk through ${zone?.name ?? "this zone"}`}
           </button>
         ) : (
-          <button type="button" className="lq-btn lq-btn-rec" onClick={() => dict.stop()}>
+          <button
+            type="button"
+            className="lq-btn lq-btn-rec"
+            onClick={() => {
+              setCapturing(false); // speech is over; the shelf is free again
+              dict.stop();
+            }}
+          >
             {/* Elapsed / total, not a countdown. A countdown reads as a
                 deadline on a job that does not have one — bursts accumulate,
                 so running out is an inconvenience and not a loss. */}
@@ -1159,6 +1182,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         <button
                           type="button"
                           className="lq-btn lq-fc-rev-locbtn"
+                          disabled={capturing}
                           onClick={() => countMissed(f.skuId)}
                         >
                           I missed it — count it now
