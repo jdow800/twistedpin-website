@@ -2557,3 +2557,36 @@
   margin-top: 2px;
   flex: 0 0 auto;
 }
+
+/* "Have we stopped carrying these?" — its own block, never mixed into the
+   money-ranked findings. A genuinely dead SKU is worth $0 and would sort last
+   there, which is the exact inversion this list exists to undo. */
+.lq-retiring {
+  border-top: 1px solid var(--lq-line, #333);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.lq-retiring-h {
+  margin: 0 0 2px;
+  font-weight: 700;
+}
+.lq-retiring-sub {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+.lq-retiring-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--lq-line, #333);
+  font-size: 13px;
+}
+.lq-retiring-btn {
+  min-height: 44px;
+  align-self: flex-start;
+  font-size: 14px;
+}
+.lq-retiring-done {
+  color: #9fd39f;
+}

@@ -371,11 +371,32 @@ export interface PrecheckFinding {
   dollars: number;
   detail: string;
 }
+/** One product that looks like we have stopped carrying it. */
+export interface RetiringSku {
+  skuId: string;
+  name: string;
+  daysSinceStock: number;
+  daysSincePurchase: number | null;
+  lastCountedQty: number | null;
+  /** What retiring it takes off the books. Informational — NOT the rank. */
+  dollars: number;
+}
 export interface PrecheckResult {
   /** No prior submitted count — nothing to compare against, so no findings. */
   baseline: boolean;
   findings: PrecheckFinding[];
   truncated?: number;
+  /**
+   * Products nobody has seen stock of, or bought, in months.
+   *
+   * ⚠ SEPARATE FROM `findings` ON PURPOSE. Findings are ranked by dollars
+   * and capped at six, which is right for a missed shelf and backwards
+   * here: a retired bottle's warning is worth `prior x cost`, so it shouts
+   * while stock remains and falls to $0 the moment the bottle is actually
+   * gone — where the cap buries it. This list is ranked by how long the
+   * thing has been gone instead.
+   */
+  retiring?: RetiringSku[];
 }
 /** Sanity-check an OPEN draft before submit. Read-only on the server; it must
  *  never write bar_variance_report (see the route's docstring — the report is a
