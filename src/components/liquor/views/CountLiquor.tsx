@@ -264,6 +264,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     try {
       const sid = await createCount(true);
       setSessionId(sid);
+      // The shelf on screen does not change here, so the NEW session has to
+      // be told about it — otherwise a counter who starts fresh, enters
+      // quantities without switching shelves and then reloads comes back to
+      // shelf one, having never touched the picker we listen to. Found in review.
+      rememberZone(sid, zoneId);
       setCounts({});
       setBatchCounts({});
       setResumed(false);
