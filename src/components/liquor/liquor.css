@@ -2605,3 +2605,28 @@
   font-size: 13px;
   flex: 1 1 100%;
 }
+
+/* "Scan any delivery invoices that aren't in yet." One line, shown only on an
+   empty count, dismissible. §11.27 ruled this a reminder and NOT a gate: it
+   must never block Submit, and it must not ask a question the counter cannot
+   answer while holding a phone in a walk-in. */
+.lq-fc-scannote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--lq-line, #333);
+  font-size: 13px;
+  color: #ffcf5c;
+}
+.lq-fc-scannote span { flex: 1; }
+.lq-fc-scannote button {
+  background: none;
+  border: none;
+  color: var(--lq-muted);
+  font-size: 20px;
+  line-height: 1;
+  padding: 0 6px;
+  min-height: 44px;
+  min-width: 44px;
+}
