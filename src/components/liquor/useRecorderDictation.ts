@@ -89,6 +89,14 @@ export interface RecorderDictationOptions {
   /** Keyterm bias for the transcriber: liquor SKU names vs recent keg names. */
   vocabulary: "liquor" | "kegs";
   /**
+   * Which walk and which shelf, for the server's keyterm budget.
+   *
+   * Read through a ref like `vocabulary` is, because the counter moves
+   * shelves BETWEEN rotation segments — a zone captured once at mount
+   * would bias every later segment toward the shelf they started on.
+   */
+  scope?: { section?: "bar" | "food"; zoneId?: string };
+  /**
    * Fires once per rotation segment as its transcript lands — DURING the
    * recording, before onFinal. Lets the caller start the (slow, ~3-13s) LLM
    * extraction per segment in the background, so tapping Stop only ever waits
@@ -145,6 +153,8 @@ export function useRecorderDictation(
   onFinalRef.current = onFinal;
   const vocabRef = useRef(opts.vocabulary);
   vocabRef.current = opts.vocabulary;
+  const scopeRef = useRef(opts.scope);
+  scopeRef.current = opts.scope;
   const onSegmentRef = useRef(opts.onSegment);
   onSegmentRef.current = opts.onSegment;
 
@@ -190,7 +200,7 @@ export function useRecorderDictation(
       const contentType = serverContentType(mimeRef.current);
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          seg.text = await transcribeAudio(contentType, b64, vocabRef.current);
+          seg.text = await transcribeAudio(contentType, b64, vocabRef.current, scopeRef.current);
           if (!abortingRef.current) {
             setState((s) => ({ ...s, transcript: joined() }));
             onSegmentRef.current?.(seg.text, idx);
