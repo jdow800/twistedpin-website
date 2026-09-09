@@ -1198,7 +1198,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     )}
                   </div>
                 )}
-                {f.kind === "purchased_not_counted" && (
+                {/* Same remedy as purchased_not_counted — jump to the shelf and
+                    drop the row in. Deliberately NO "we don't carry it" here:
+                    this finding says the item is ON A CHECKLIST THE COUNTER
+                    JUST WALKED, which is evidence about attention, not about
+                    whether the product is dead. Retiring on that basis would
+                    let a rushed walk quietly shrink the catalog. */}
+                {(f.kind === "purchased_not_counted" || f.kind === "zone_members_uncounted") && (
                   <div className="lq-fc-rev-loc">
                     <button
                       type="button"

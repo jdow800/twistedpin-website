@@ -354,7 +354,15 @@ export interface PrecheckFinding {
      *  ever. The invoice gives it standing (a never-counted SKU with no
      *  invoice stays silent). How a newly tracked consumable gets its first
      *  count instead of staying dark (2026-09-04, Boylan). */
-    | "purchased_not_counted";
+    | "purchased_not_counted"
+    /** Listed on a shelf this walk VISITED, and given no answer at all — not a
+     *  number, not a zero. THE ONLY COMPLETENESS CHECK A BASELINE CAN RUN:
+     *  not_counted needs a prior count, purchased_not_counted needs an invoice,
+     *  zone_missed needs a bracket, and the untouched-shelf warning needs an
+     *  EMPTY shelf. Answer it on ANY shelf and it goes quiet, because a product
+     *  legitimately sits in two places. Keyed on membership rather than section,
+     *  so it also catches bar stock kept on a kitchen shelf. */
+    | "zone_members_uncounted";
   skuId: string;
   name: string;
   /** zone_unexpected only — which shelf, so the answer can be written. */
