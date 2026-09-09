@@ -62,7 +62,7 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 - **No host blast through our platform, ever.** Hosts use the download and their own email ("they can CC ppl, that is their problem").
 - Party-size caps: kids **6** (count kids only), fundraiser **12** (people), catered **4** (a colleague plus coworkers, migration 0158). Clamp, never reject.
 - RSVPs close at START for kids/catered, at **END for fundraisers** (walk-up = staffing signal). A **can't-make-it on an existing row stays allowed until END** on every shape (the day-of reminder's manage link exists for that; declines never add heads). Nothing is ever reserved off a tally; RSVP counts are never the booked headcount.
-- Late-addition alert: **catered only**, after final payment, head-adding yes → sticky tag + host banner + one staff email.
+- Late-addition alert: **catered only**, after final payment, head-adding yes **that pushes the coming total PAST `bookings.guest_count`** → sticky tag + host banner + one staff email. **Narrowed 2026-09-08** (Jon, on INV-2026-00510 alerting at 13 coming on a 40-guest event: *"I don't care about RSVPs after the deposit or final payment unless the RSVP quantity exceeds the guest count they paid for"*). Under the paid line nothing fires at all; landing exactly on it is not over it. Record: tprs BUILD_NOTES 2026-09-08.
 - Fundraisers get invitations **at creation regardless of deposit/full-pay setup**. Catered full-pay never gets one automatically (staff mint by hand).
 - Retention **14 days** ("2 weeks of an off-ramp").
 - Kicker: "*Host* invited you to a fundraiser / a party" (kids) / plain for catered. Looks are vibes, not occasion categories; the title carries the occasion.
