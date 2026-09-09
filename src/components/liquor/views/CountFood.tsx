@@ -473,6 +473,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  question they have — "did I lose any of that?" — has no answer on it.
    *  This latches instead, and only an explicit tap clears it. */
   const [interrupted, setInterrupted] = useState(false);
+  /** ⚠ THE PRE-SUBMIT REVIEW RENDERS INLINE, BELOW THE WHOLE SHELF. Found by
+   *  screenshotting the real screen at phone size before the first count: tap
+   *  Finish and nothing appears to happen, because the answer is two screens
+   *  down on an 8-item shelf and about TWELVE on Fryer Line's 41. A counter
+   *  gets no feedback from the one button that matters, so the reasonable
+   *  reaction is to tap it again or decide the app is broken. */
+  const reviewRef = useRef<HTMLDivElement | null>(null);
   const dict = useVoiceDictation((t) => void onTranscript(t), {
     vocabulary: "liquor",
     scope: { section: "food", zoneId },
@@ -484,6 +491,42 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   useEffect(() => {
     if (dict.quiet) setInterrupted(true);
   }, [dict.quiet]);
+  // `findings` going from null to an array is the only transition that should
+  // move the page. Keyed on that rather than on its length, so re-answering a
+  // finding does not yank the screen while the counter is reading.
+  useEffect(() => {
+    if (findings == null) return;
+    const el = reviewRef.current;
+    if (!el) return;
+    // ⚠ NOT scrollIntoView({ block: "start" }). The app header is sticky, so
+    // aligning the block's top with the VIEWPORT top parks its heading —
+    // "2 things worth a second look", the sentence that says what this even
+    // is — underneath the header. Measure the header and stop short of it.
+    // Measure whatever is actually pinned to the top rather than naming it.
+    // There are TWO stacked bars here — the app header and the shelf switcher —
+    // and a hard-coded height for one of them silently stops working the day a
+    // third appears or one of them grows a line.
+    let chrome = 0;
+    for (const node of document.querySelectorAll<HTMLElement>("body *")) {
+      const cs = getComputedStyle(node);
+      if (cs.position !== "sticky" && cs.position !== "fixed") continue;
+      const r = node.getBoundingClientRect();
+      // ⚠ `top <= 1` IS WRONG HERE and was my first attempt: the bars STACK,
+      // so the shelf switcher sits at top:50 under the header and was excluded
+      // by exactly the test meant to find it. Anything pinned in the top strip
+      // counts.
+      //
+      // Height < 200 is what separates a BAR from a full-screen overlay — the
+      // nav drawer and its backdrop are fixed at top 0 and ~840px tall, and
+      // counting those would scroll the review clean off the other end.
+      if (r.top <= 200 && r.height > 0 && r.height < 200) chrome = Math.max(chrome, r.bottom);
+    }
+    const offset = chrome + 12;
+    window.scrollTo({
+      top: el.getBoundingClientRect().top + window.scrollY - offset,
+      behavior: "smooth",
+    });
+  }, [findings != null]);
   // The take can also end without a tap — the 240s cap, or the recorder dying.
   useEffect(() => {
     if (!dict.recording) setCapturing(false);
@@ -1152,7 +1195,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
       {/* ── the pre-submit check ── */}
       {findings != null && (
-        <div className="lq-fc-rev">
+        <div className="lq-fc-rev" ref={reviewRef}>
           <p className="lq-fc-rev-h">
             {findings.length === 0
               ? "Nothing looks off in what you counted. Ready to submit."
