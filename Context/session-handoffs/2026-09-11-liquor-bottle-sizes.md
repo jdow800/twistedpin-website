@@ -1,8 +1,8 @@
 # Liquor bottle sizes — September 11, 2026
 
-Status: implemented and tested on local branches; not pushed, merged, or deployed. Both repositories use branch `feat/liquor-bottle-size-checks` in isolated worktrees under `Alcohol Pricing/.claude/worktrees/`. Backend worktree: `tprs-bottle-sizes` (base `1cb6036`). UI worktree: `website-bottle-sizes` (base `4b0767f`). The original working directories and live inventory were not edited.
+Release authorized September 11, 2026. Backend release: https://github.com/jdow800/tprs/pull/195. Website preview and production verification are in progress. Both repositories use branch `feat/liquor-bottle-size-checks` in isolated worktrees under `Alcohol Pricing/.claude/worktrees/`. Backend worktree: `tprs-bottle-sizes` (base `1cb6036`). UI worktree: `website-bottle-sizes` (base `4b0767f`). The original working directories and live inventory were not edited.
 
-Jon received four 1L Tanqueray London Dry Gin bottles while the catalog already contained 750ml bottles. He correctly created a separate bottle entry for 1L. Keep both sizes: two 750ml plus four 1L bottles represent 5,500ml, not six interchangeable bottles.
+Example: four 1L Tanqueray London Dry Gin bottles arrive while the catalog already contains 750ml bottles. Creating a separate bottle entry for 1L is correct. Keep both sizes: two 750ml plus four 1L bottles represent 5,500ml, not six interchangeable bottles.
 
 ## Count behavior
 
@@ -33,7 +33,7 @@ Suggestions exclude known conflicting package sizes. New-bottle duplicate detect
 - 51 existing `bar-food-session.test.ts` regression tests pass. Total backend checks: 92.
 - Backend TypeScript check passes.
 - Eight UI behavior scenarios pass with real components and synthetic requests in jsdom. Reproduction: `scripts/qa-liquor-bottle-sizes/README.md`; fixture source and its separate dependency lock are committed with this branch. No application dependencies changed.
-- The focused Website TypeScript check reports the same pre-existing `useRecorderDictation.ts:162` TS2774 diagnostic on the base checkout and this branch, with no additional diagnostics.
+- The focused Website TypeScript check passes. Release preparation fixed the pre-existing recorder TS2774 diagnostic by using an explicit function-type check; unsupported browsers still take the same fallback.
 - Standard Website build prerequisites and compilation ran; final Vercel packaging failed on Windows with `EPERM` creating the linked `node_modules` symlink in `.vercel/output/functions/_render.func`. Do not report a successful complete production build.
 - No browser was available through the computer-use tool (`apps: []`, `browsers: []`). Real mobile layout and microphone checks remain pending. The localhost synthetic preview can be started from the QA folder; no live API is called.
 
@@ -44,4 +44,4 @@ node node_modules/vitest/vitest.mjs run src/bar/voice-extraction.test.ts src/bar
 node node_modules/typescript/bin/tsc --noEmit
 ```
 
-No database migration is required. Before release, inspect the mobile count and invoice review using the synthetic preview and confirm the normal build in an environment that permits its symlinks. Follow the existing repository release processes: TPRS PR to main/Render and Website main/Vercel. Neither release has occurred.
+No database migration is required. Before release, inspect the mobile count and invoice review using the synthetic preview and confirm the normal build in an environment that permits its symlinks. Follow the existing repository release processes: TPRS PR to main/Render and Website main/Vercel. The backend PR and GitHub/Vercel deployment status are the release records; local compilation alone is not production verification.

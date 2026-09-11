@@ -8,7 +8,7 @@ import 'qa:styles';
 const catalog = [750, 1000].map(sizeMl => ({
   id: String(sizeMl), name: 'Tanqueray London Dry Gin', sizeMl,
   category: 'Gin', trackingMode: 'variance', countUnit: 'bottle', unitsPerCase: null,
-  wacCost: null, lastCost: '35.82', active: true, aliases: [],
+  wacCost: null, lastCost: '30.00', active: true, aliases: [],
 }));
 const mode = new URL(location.href).searchParams.get('mode') || 'count';
 let lines = [

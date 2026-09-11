@@ -159,7 +159,7 @@ export function useRecorderDictation(
   onSegmentRef.current = opts.onSegment;
 
   useEffect(() => {
-    const mime = navigator.mediaDevices?.getUserMedia ? pickMimeType() : null;
+    const mime = typeof navigator.mediaDevices?.getUserMedia === "function" ? pickMimeType() : null;
     if (mime != null) {
       mimeRef.current = mime;
       setState((s) => ({ ...s, supported: true }));
