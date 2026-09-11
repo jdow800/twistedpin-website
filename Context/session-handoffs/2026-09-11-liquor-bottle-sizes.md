@@ -1,0 +1,47 @@
+# Liquor bottle sizes — September 11, 2026
+
+Status: implemented and tested on local branches; not pushed, merged, or deployed. Both repositories use branch `feat/liquor-bottle-size-checks` in isolated worktrees under `Alcohol Pricing/.claude/worktrees/`. Backend worktree: `tprs-bottle-sizes` (base `1cb6036`). UI worktree: `website-bottle-sizes` (base `4b0767f`). The original working directories and live inventory were not edited.
+
+Jon received four 1L Tanqueray London Dry Gin bottles while the catalog already contained 750ml bottles. He correctly created a separate bottle entry for 1L. Keep both sizes: two 750ml plus four 1L bottles represent 5,500ml, not six interchangeable bottles.
+
+## Count behavior
+
+- Explicit sizes such as `750 milliliter`, `one liter`, `1-liter`, and catalog size shorthand resolve to that size. The deterministic guard corrects a model-selected sibling with the wrong size.
+- `Small bottle` and `large bottle` resolve to the smaller/larger size only when that exact product has exactly two sizes. Three sizes, conflicting sizes, unsupported sizes, or ambiguity between different products still require a choice. `Small Batch` is a product name. A bare `six bottles` never supplies a size.
+- The extraction prompt preserves size qualifiers and emits separate count items for separately named sizes. A live microphone/LLM extraction run was not performed; automated tests exercise the deterministic guard after extraction.
+- Saved count rows display their bottle size.
+
+## Delivery warning
+
+The read-only pre-submit API returns `sizeWarnings` separately from capped, dollar-ranked findings. This also runs for a first count. The review shows the latest delivery quantity/date and the count by size, for example four 1L bottles received yesterday but six 750ml and zero/missing 1L counted. Staff can check labels or submit their physical count unchanged.
+
+The initial recency rule is the last 14 days, bounded by the previous submitted full count when one exists. This is a tunable implementation choice, not a claim that recent purchases guarantee stock remains. Older purchases alone do not trigger this new warning.
+
+Evidence uses accepted invoices (`extracted`/`confirmed`), actual received quantities when available, and `effective_at` as arrival time. Future arrivals are excluded. Returns that offset all received stock suppress the warning. The latest delivery size is compared within the same normalized product name; separate variants such as London Dry and No. Ten are never combined. Broad/fuzzy brand grouping is deliberately absent.
+
+Counts sum every zone and duplicate catalog entries at the same size. Positive stock of the delivered size, even a partial bottle, clears the warning. A counted prep batch containing that SKU can also explain an empty loose-bottle shelf. That is a presence check only: variance expansion and its both-counts requirement are unchanged. If neither size is counted, the existing general missing-item checks apply.
+
+The API never changes counts, purchases, or reports. The UI requires saving to succeed before prechecking/submitting; a failed advisory request itself still permits submission. The optional response field supports either deployment order.
+
+## Invoice cleanup
+
+Suggestions exclude known conflicting package sizes. New-bottle duplicate detection checks product and size together. Other sizes appear as context. A manual wrong-size match requires an explicit decision that the invoice size was read incorrectly, with an alternative to create the delivered size. The create/find path uses the same confirmation when it finds an existing entry. No cleanup of Jon's actual catalog was needed or performed.
+
+## Verification
+
+- 41 focused backend tests pass: 22 voice size checks, 12 delivery-rule checks, and seven authenticated API integration scenarios. The API fixtures require a local `_test` database and roll back their data.
+- 51 existing `bar-food-session.test.ts` regression tests pass. Total backend checks: 92.
+- Backend TypeScript check passes.
+- Eight UI behavior scenarios pass with real components and synthetic requests in jsdom. Reproduction: `scripts/qa-liquor-bottle-sizes/README.md`; fixture source and its separate dependency lock are committed with this branch. No application dependencies changed.
+- The focused Website TypeScript check reports the same pre-existing `useRecorderDictation.ts:162` TS2774 diagnostic on the base checkout and this branch, with no additional diagnostics.
+- Standard Website build prerequisites and compilation ran; final Vercel packaging failed on Windows with `EPERM` creating the linked `node_modules` symlink in `.vercel/output/functions/_render.func`. Do not report a successful complete production build.
+- No browser was available through the computer-use tool (`apps: []`, `browsers: []`). Real mobile layout and microphone checks remain pending. The localhost synthetic preview can be started from the QA folder; no live API is called.
+
+To rerun backend checks from `tprs/apps/backend` with its existing development dependencies and local test configuration:
+
+```powershell
+node node_modules/vitest/vitest.mjs run src/bar/voice-extraction.test.ts src/bar/recent-bottle-size.test.ts src/admin/bar-bottle-size-precheck.test.ts src/admin/bar-food-session.test.ts --cache=false
+node node_modules/typescript/bin/tsc --noEmit
+```
+
+No database migration is required. Before release, inspect the mobile count and invoice review using the synthetic preview and confirm the normal build in an environment that permits its symlinks. Follow the existing repository release processes: TPRS PR to main/Render and Website main/Vercel. Neither release has occurred.

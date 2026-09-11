@@ -19,12 +19,14 @@ import {
   type CountLineInput,
   type OpenCountLine,
   type PrecheckFinding,
+  type BottleSizeWarning,
   type RetiringSku,
   type VoiceExtractItem,
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
+import { BottleSizeWarnings } from "../BottleSizeWarnings";
 
 // Voice-first zone counting. Stand in a zone, hit Record, talk out the shelf in a
 // run-on ("three Tito's, four Bulleit, a half Grey Goose…"); the browser
@@ -164,6 +166,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [confirmSubmit, setConfirmSubmit] = useState<{
     zones: string[];
     findings: PrecheckFinding[];
+    sizeWarnings: BottleSizeWarning[];
     truncated: number;
     doubles: Restatement[];
     retiring: RetiringSku[];
@@ -791,6 +794,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
     setChecking(true);
     let findings: PrecheckFinding[] = [];
+    let sizeWarnings: BottleSizeWarning[] = [];
     let truncated = 0;
     let retiring: RetiringSku[] = [];
     try {
@@ -800,8 +804,17 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       await saveCountLines(sessionId, flatten(countsRef.current));
       await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       setSave("saved");
+    } catch {
+      // A failed check may be dismissed; a failed save must not submit old
+      // quantities. Keep the draft open so the counter can retry the save.
+      setSave("error");
+      setChecking(false);
+      return;
+    }
+    try {
       const res = await precheckCount(sessionId);
       findings = res.findings;
+      sizeWarnings = res.sizeWarnings ?? [];
       truncated = res.truncated ?? 0;
       retiring = res.retiring ?? [];
     } catch {
@@ -815,12 +828,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (
       uncounted.length > 0 ||
       findings.length > 0 ||
+      sizeWarnings.length > 0 ||
       retiring.length > 0 ||
       restatementsRef.current.size > 0
     ) {
       setConfirmSubmit({
         zones: uncounted,
         findings,
+        sizeWarnings,
         truncated,
         doubles: [...restatementsRef.current.values()],
         retiring,
@@ -1188,6 +1203,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   )}
                   {nameById.get(skuId) ?? "—"}
                 </span>
+                {sku && <span className="lq-size">{sizeLabel(sku)}</span>}
                 {cell.raw && <span className="lq-size lq-heard">heard: “{cell.raw}”</span>}
                 {(cell.cases ?? 0) > 0 && cell.caseSize && (
                   <span className="lq-size lq-case-total">
@@ -1364,7 +1380,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           <div className="lq-sheet-panel lq-confirm">
             <div className="lq-sheet-head">
               <h3 className="lq-h2">
-                {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0
+                {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0 || confirmSubmit.sizeWarnings.length > 0
                   ? "Double-check these first?"
                   : confirmSubmit.zones.length > 0
                     ? "Submit an incomplete count?"
@@ -1382,6 +1398,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 Submitting closes this count out — you can't add to it after.
               </p>
             </div>
+            <BottleSizeWarnings warnings={confirmSubmit.sizeWarnings} />
             {confirmSubmit.findings.length > 0 && (
               <div className="lq-precheck">
                 {confirmSubmit.findings.map((f) => (
@@ -1554,6 +1571,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 onClick={() => void finish()}
               >
                 {confirmSubmit.findings.length > 0 ||
+                confirmSubmit.sizeWarnings.length > 0 ||
                 confirmSubmit.doubles.length > 0 ||
                 confirmSubmit.zones.length > 0
                   ? "Submit anyway"

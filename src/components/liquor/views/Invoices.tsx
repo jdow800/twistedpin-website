@@ -35,7 +35,9 @@ function parseSizeMl(sizeText: string | null): number | null {
 
 /** Loose name key for the new-bottle dup-guard: lowercase, alnum-only, collapsed. */
 function normalizeName(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return s.toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?\s*(?:millilit(?:er|re)s?|ml|lit(?:er|re)s?|ltr|l|oz)\b/gi, " ")
+    .replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 // Read-only invoice history — see recent uploads + their status, open the
@@ -864,30 +866,43 @@ function MatchControl({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [newMode, setNewMode] = useState(false);
+  const [sizeMismatch, setSizeMismatch] = useState<BarSkuItem | null>(null);
   const [newName, setNewName] = useState((line.rawDescription ?? "").trim().slice(0, 120));
   const [newSize, setNewSize] = useState(() => {
     const ml = parseSizeMl(line.sizeText);
     return ml != null ? String(ml) : "";
   });
+  const invoiceSize = parseSizeMl(line.sizeText);
   const suggestions = useMemo(
-    () => matchSkus(line.rawDescription ?? "", catalog).slice(0, 3),
-    [line.rawDescription, catalog],
+    () => matchSkus(line.rawDescription ?? "", catalog.filter((s) =>
+      invoiceSize == null || s.sizeMl == null || s.sizeMl === invoiceSize,
+    )).slice(0, 3),
+    [line.rawDescription, catalog, invoiceSize],
   );
   const hits = useMemo(() => {
     const t = q.trim().toLowerCase();
     if (!t) return [];
     return catalog.filter((s) => s.name.toLowerCase().includes(t)).slice(0, 6);
   }, [q, catalog]);
-  // Dup-guard: an existing bottle with the same name (any size). Creating a
-  // near-duplicate silently splits one bottle into several + breaks voice counts,
-  // so surface it loudly and offer a one-tap match instead.
-  const dupes = useMemo(() => {
+  // A different package size is a legitimate new SKU. Only the same product
+  // AND size is a duplicate; keep other sizes visible as context.
+  const sameProduct = useMemo(() => {
     const n = normalizeName(newName);
-    if (!n) return [];
-    return catalog.filter((s) => normalizeName(s.name) === n);
+    return n ? catalog.filter((s) => normalizeName(s.name) === n) : [];
   }, [newName, catalog]);
+  const proposedSize = newSize.trim() && Number(newSize) > 0 ? Math.round(Number(newSize)) : null;
+  const dupes = useMemo(() => {
+    return sameProduct.filter((s) => s.sizeMl === proposedSize);
+  }, [sameProduct, proposedSize]);
+  const otherSizes = sameProduct.filter((s) => s.sizeMl != null && s.sizeMl !== proposedSize);
 
-  async function pick(skuId: string, name: string) {
+  async function pick(skuId: string, name: string, confirmSize = false) {
+    const chosen = catalog.find((s) => s.id === skuId);
+    if (!confirmSize && invoiceSize != null && chosen?.sizeMl != null && chosen.sizeMl !== invoiceSize) {
+      setSizeMismatch(chosen);
+      return;
+    }
+    setSizeMismatch(null);
     setBusy(true);
     setErr(null);
     try {
@@ -906,6 +921,9 @@ function MatchControl({
   async function createNew() {
     const nm = newName.trim();
     if (!nm) return;
+    // Same product and size: use the normal match path, including its size
+    // confirmation, instead of allowing create/find to bypass that check.
+    if (dupes.length === 1) return pick(dupes[0]!.id, dupes[0]!.name);
     setBusy(true);
     setErr(null);
     try {
@@ -954,6 +972,22 @@ function MatchControl({
           </button>
         ))}
       </div>
+      {sizeMismatch && (
+        <div className="lq-newsku-dup">
+          <p className="lq-newsku-dup-warn">
+            The invoice says {invoiceSize} ml. {sizeMismatch.name} is {sizeMismatch.sizeMl} ml.
+            If a different size arrived, add it as a new bottle. Match this size only if the invoice was read incorrectly.
+          </p>
+          <button type="button" className="lq-chip" disabled={busy}
+            onClick={() => void pick(sizeMismatch.id, sizeMismatch.name, true)}>
+            Invoice size is wrong — match {sizeMismatch.sizeMl} ml
+          </button>
+          <button type="button" className="lq-linkbtn" disabled={busy}
+            onClick={() => { setSizeMismatch(null); setNewSize(String(invoiceSize)); setNewMode(true); }}>
+            Add the {invoiceSize} ml bottle
+          </button>
+        </div>
+      )}
       {!newMode ? (
         <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(true)}>
           + New bottle (not in the list)
@@ -979,10 +1013,16 @@ function MatchControl({
             />
             <span className="lq-muted lq-newsku-hint">size in ml — leave blank if it's not a bottle</span>
           </div>
+          {otherSizes.length > 0 && proposedSize != null && (
+            <p className="lq-muted">
+              Other sizes on file: {otherSizes.map((s) => `${s.sizeMl} ml`).join(", ")}.
+              {" "}{proposedSize} ml is a separate bottle size.
+            </p>
+          )}
           {dupes.length > 0 && (
             <div className="lq-newsku-dup">
               <span className="lq-newsku-dup-warn">
-                You already have this bottle — match it instead of adding a duplicate?
+                This bottle and size are already on file — match the existing entry?
               </span>
               {dupes.map((s) => (
                 <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
@@ -993,7 +1033,7 @@ function MatchControl({
           )}
           <div className="lq-newsku-actions">
             <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim()} onClick={createNew}>
-              {dupes.length > 0 ? "Add anyway" : "Create + match"}
+              {dupes.length === 1 ? "Match existing bottle" : dupes.length > 1 ? "Add anyway" : "Create + match"}
             </button>
             <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(false)}>cancel</button>
           </div>

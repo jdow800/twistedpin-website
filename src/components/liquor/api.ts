@@ -389,11 +389,23 @@ export interface RetiringSku {
   /** What retiring it takes off the books. Informational — NOT the rank. */
   dollars: number;
 }
+export interface BottleSizeWarning {
+  skuId: string;
+  name: string;
+  sizeMl: number;
+  receivedQty: number;
+  receivedAt: string;
+  counted: number | null;
+  otherSizes: { sizeMl: number; counted: number }[];
+}
 export interface PrecheckResult {
-  /** No prior submitted count — nothing to compare against, so no findings. */
+  /** No prior submitted count; delivery and location checks can still run. */
   baseline: boolean;
   findings: PrecheckFinding[];
   truncated?: number;
+  /** Recent delivery size missing/zero while another size was counted.
+   *  Independent of the dollar-ranked cap; optional for deployment ordering. */
+  sizeWarnings?: BottleSizeWarning[];
   /**
    * Products nobody has seen stock of, or bought, in months.
    *
