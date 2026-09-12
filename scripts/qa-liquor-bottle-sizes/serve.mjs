@@ -8,8 +8,9 @@ const website = fileURLToPath(new URL('../../',import.meta.url));
 const backend = resolve(process.env.BOTTLE_QA_TPRS_ROOT || join(website,'../tprs'));
 const require = createRequire(join(website,'package.json'));
 const esbuild = require('esbuild');
+const entry = process.argv.includes('--recipes') ? 'recipe-fixture' : 'fixture';
 await mkdir(base+'dist',{recursive:true});
-await esbuild.build({entryPoints:[base+'fixture.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
+await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
   nodePaths:[join(website,'node_modules')],define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'},
   plugins:[{name:'expose-test-component',setup(build){
     const sources = {
@@ -17,6 +18,7 @@ await esbuild.build({entryPoints:[base+'fixture.jsx'],outdir:base+'dist',bundle:
       'qa:invoice-match': join(website,'src/components/liquor/views/Invoices.tsx'),
       'qa:delivery-check': join(backend,'apps/backend/src/bar/recent-bottle-size.ts'),
       'qa:styles': join(website,'src/components/liquor/liquor.css'),
+      'qa:recipes': join(website,'src/components/liquor/views/RecipeBuilder.tsx'),
     };
     build.onResolve({filter:/^qa:/},({path}) => ({path:sources[path]}));
     build.onLoad({filter:/views[\\/]Invoices\.tsx$/},async ({path}) => ({
@@ -25,7 +27,7 @@ await esbuild.build({entryPoints:[base+'fixture.jsx'],outdir:base+'dist',bundle:
   }}],
 });
 const html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bottle size QA</title><style>body{margin:0;background:#0e0a1f}#root{min-height:100vh}</style><link rel="stylesheet" href="/fixture.css"></head><body><div id="root"></div><script type="module" src="/fixture.js"></script></body></html>';
-const assets={'/fixture.js':['text/javascript',base+'dist/fixture.js'],'/fixture.css':['text/css',base+'dist/fixture.css']};
+const assets={'/fixture.js':['text/javascript',base+'dist/'+entry+'.js'],'/fixture.css':['text/css',base+'dist/'+entry+'.css']};
 if (!process.argv.includes('--build-only')) createServer(async(req,res)=>{
   const asset=assets[new URL(req.url,'http://localhost').pathname];
   res.setHeader('Content-Type',asset?.[0]??'text/html');

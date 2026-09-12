@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   getCatalog,
   getRecipeGaps,
-  getRecipeTemplates,
   markOptionMixer,
   markOptionSubstitution,
   saveRecipe,
@@ -13,6 +12,7 @@ import {
   type RecipeComponentInput,
   type RecipeTemplate,
 } from "../api";
+import { RecipeSuggestions, useRecipeSuggestions } from "../RecipeSuggestions";
 
 // The recipe home — the write path behind the daily "needs a recipe" alerts.
 // Two queues, both actioned in-app (the pricing sheet is retired):
@@ -278,6 +278,8 @@ function OptionRow({
   onSave: (components: RecipeComponentInput[]) => Promise<void>;
 }) {
   const [building, setBuilding] = useState(false);
+  const [draft, setDraft] = useState<RecipeTemplate | null>(null);
+  const { templates, category } = useRecipeSuggestions(option.optionLabel, option.productId);
   const sub = option.likelySubstitution;
   return (
     <div className="lq-pw-row">
@@ -285,7 +287,9 @@ function OptionRow({
         <span className="lq-invrow-vendor">{option.optionLabel}</span>
         <span className="lq-muted" style={{ fontSize: 12 }}>{option.count}×</span>
       </div>
-      <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>under {option.productName}</div>
+      <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>under {[category, option.productName].filter(Boolean).join(" → ")}</div>
+      {!building && <RecipeSuggestions label={option.optionLabel} templates={templates} busy={busy}
+        onUse={(t) => onSave(t.components)} onEdit={(t) => { setDraft(t); setBuilding(true); }} />}
       {sub && !building && (
         <div
           style={{
@@ -317,12 +321,12 @@ function OptionRow({
           )}
           <button
             type="button"
-            className={sub ? "lq-btn lq-btn-ghost" : "lq-btn lq-btn-primary"}
+            className={sub || templates.length ? "lq-btn lq-btn-ghost" : "lq-btn lq-btn-primary"}
             style={{ padding: "6px 12px", fontSize: 13 }}
             disabled={busy}
-            onClick={() => setBuilding(true)}
+            onClick={() => { setDraft(null); setBuilding(true); }}
           >
-            Build recipe
+            {templates.length ? "Build a different recipe" : "Build recipe"}
           </button>
           <button
             type="button"
@@ -337,6 +341,8 @@ function OptionRow({
       ) : (
         <RecipeForm
           label={option.optionLabel}
+          templates={templates}
+          initialTemplate={draft}
           catalog={catalog}
           busy={busy}
           onSave={async (comps) => {
@@ -362,27 +368,33 @@ function CocktailRow({
   onSave: (components: RecipeComponentInput[]) => Promise<void>;
 }) {
   const [building, setBuilding] = useState(false);
+  const [draft, setDraft] = useState<RecipeTemplate | null>(null);
+  const { templates } = useRecipeSuggestions(cocktail.name, cocktail.productId);
   return (
     <div className="lq-pw-row">
       <div className="lq-pw-head">
         <span className="lq-invrow-vendor">{cocktail.name}</span>
         <span className="lq-muted" style={{ fontSize: 12 }}>{cocktail.category ?? ""}</span>
       </div>
+      {!building && <RecipeSuggestions label={cocktail.name} templates={templates} busy={busy}
+        onUse={(t) => onSave(t.components)} onEdit={(t) => { setDraft(t); setBuilding(true); }} />}
       {!building ? (
         <div style={{ marginTop: 8 }}>
           <button
             type="button"
-            className="lq-btn lq-btn-primary"
+            className={templates.length ? "lq-btn lq-btn-ghost" : "lq-btn lq-btn-primary"}
             style={{ padding: "6px 12px", fontSize: 13 }}
             disabled={busy}
-            onClick={() => setBuilding(true)}
+            onClick={() => { setDraft(null); setBuilding(true); }}
           >
-            Build recipe
+            {templates.length ? "Build a different recipe" : "Build recipe"}
           </button>
         </div>
       ) : (
         <RecipeForm
           label={cocktail.name}
+          templates={templates}
+          initialTemplate={draft}
           catalog={catalog}
           busy={busy}
           onSave={async (comps) => {
@@ -400,35 +412,26 @@ type Draft = { skuId: string; skuName: string; sizeMl: number | null; oz: string
 
 function RecipeForm({
   label,
+  templates,
+  initialTemplate,
   catalog,
   busy,
   onSave,
   onCancel,
 }: {
   label: string;
+  templates: RecipeTemplate[];
+  initialTemplate: RecipeTemplate | null;
   catalog: BarSkuItem[];
   busy: boolean;
   onSave: (components: RecipeComponentInput[]) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [components, setComponents] = useState<Draft[]>([]);
+  const [components, setComponents] = useState<Draft[]>(() => initialTemplate?.components.map((c) => ({
+    skuId: c.skuId, skuName: c.skuName, sizeMl: c.sizeMl, oz: String(c.oz),
+  })) ?? []);
   const [search, setSearch] = useState("");
-  const [templates, setTemplates] = useState<RecipeTemplate[]>([]);
   const [formErr, setFormErr] = useState<string | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    getRecipeTemplates(label)
-      .then((t) => {
-        if (live) setTemplates(t);
-      })
-      .catch(() => {
-        /* reuse is a nicety — a failure just means no prefill offered */
-      });
-    return () => {
-      live = false;
-    };
-  }, [label]);
 
   const results =
     search.trim().length >= 2
@@ -490,7 +493,7 @@ function RecipeForm({
                 style={{ padding: "6px 10px", fontSize: 13 }}
                 onClick={() => prefill(t)}
               >
-                {t.productName ?? "recipe"} ({t.components.length})
+                {t.recipeName ?? label}: {t.components.map((c) => `${c.oz} oz ${c.skuName}`).join(", ")}
               </button>
             ))}
           </div>

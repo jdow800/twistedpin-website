@@ -1329,14 +1329,20 @@ export interface RecipeTemplateComponent {
 export interface RecipeTemplate {
   recipeId: string;
   productName: string | null;
+  recipeName?: string;
+  sources?: { productId: string; productName: string | null; optionLabel: string; categoryName: string | null }[];
   components: RecipeTemplateComponent[];
 }
-/** Same-named standalone recipe(s) to prefill from (e.g. an existing Strawberry Limeade). */
+/** Same-named recipes, including options saved under another menu item. */
 export async function getRecipeTemplates(label: string): Promise<RecipeTemplate[]> {
-  const { matches } = await gatedJson<{ matches: RecipeTemplate[] }>(
-    `/admin/bar/recipe-templates?label=${encodeURIComponent(label)}`,
-  );
-  return matches;
+  return (await getRecipeTemplateSuggestions(label)).matches;
+}
+export async function getRecipeTemplateSuggestions(label: string, productId?: string): Promise<{
+  matches: RecipeTemplate[]; targetCategory?: string | null;
+}> {
+  const params = new URLSearchParams({ label });
+  if (productId) params.set("productId", productId);
+  return gatedJson(`/admin/bar/recipe-templates?${params}`);
 }
 
 /** A pour label the daily check mapped on its own (migration 0106). */

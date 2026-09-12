@@ -2630,3 +2630,11 @@
   min-height: 44px;
   min-width: 44px;
 }
+
+/* Saved recipe confirmation: readable pours and thumb-sized actions. */
+.lq-recipe-suggestions { display: grid; gap: 10px; margin-top: 12px; }
+.lq-recipe-suggestion { min-width: 0; padding: 12px; border: 1px solid var(--lq-line); border-radius: 8px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.lq-recipe-source { margin-top: 4px; font-size: 13px; }
+.lq-recipe-suggestion ul { margin: 8px 0; padding-left: 20px; }
+.lq-recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lq-recipe-actions .lq-btn { min-height: 44px; padding: 9px 12px; font-size: 14px; }
