@@ -17,6 +17,8 @@ The ounce parser accepts `oz`, `ounce`, `ounces`, and forms such as `2-ounce pou
 
 For choose-your-spirit options, the engine aggregates the labels returned on ledger transactions separately even when the parent product ID is reused. A test proves 4 old `Tito's 1.5 ounces` pours plus 3 new `Tito's 2.0 ounces` pours produce 12 oz, not 14. This does not establish a GoTab guarantee about retrospective edits to its own data: the application uses the transaction option labels it receives.
 
+Live catalog verification September 12: Tito's (W) (1.5oz) is an option under Vodka Mixed Drink, and Tito's (1oz) is an option under Vodka Shots. These existing buttons use the label parser, so changing the explicit ounces is read on subsequent sales imports without creating a new button. Unrecognized bottle or ambiguous-size labels continue through the existing review flow. There is no explicit before/after rename notification.
+
 Whole-product cocktail recipes remain keyed by product ID and do not resize themselves when a product name changes. There is no dedicated size-change notification or recipe version history in this change. A future rename detector should distinguish transaction option labels from current product metadata and must not rescale older sales using a current name. Jon is willing to confirm such changes when they arise.
 
 ## Validation and reproduction
@@ -38,6 +40,6 @@ For the synthetic visual fixture, omit `--build-only` and visit localhost:4177; 
 
 Backend released: PR #196 (https://github.com/jdow800/tprs/pull/196), merge commit 675b5148c92cd4ea60587c69b514f6b6b3a01753. CI passed 198 files / 2,613 tests and TypeScript. Render deploy dep-daino46k1f9s73f7ofbg reached live at 2026-09-12 16:22:42 UTC on that exact commit; API health returned 200 with status ok.
 
-Website source commit 6fb4e7ab3137ef5c36ca24de37bb06c8c51a5861 is ready on feat/liquor-recipe-reuse. Jon explicitly approved publishing the tested UI and release notes to the public jdow800/twistedpin-website repository and deploying to the liquor app on September 12. Preview and production build verification are the remaining release steps.
+Website released September 12: source commit 6fb4e7ab3137ef5c36ca24de37bb06c8c51a5861, release commit cdd17131cf13d7fcd52b6557f93e606ebcfec2f2. Vercel preview deployment 6411880087 and production deployment 6411901279 both succeeded on that release commit. The public /cogs/ page returned 200 and its served /_astro/LiquorApp.DazSWh5q.js contains Use this recipe, Edit first, the saved inventory recipe preview, and the recipe-templates endpoint. Jon explicitly approved public-repository publication and deployment. The source and notes are pushed to jdow800/twistedpin-website main.
 
 No production recipe data has been changed by this session. The original recipe remains the source for the eventual user-confirmed reuse.
