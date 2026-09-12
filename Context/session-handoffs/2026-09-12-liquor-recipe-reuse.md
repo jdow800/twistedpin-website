@@ -38,6 +38,6 @@ For the synthetic visual fixture, omit `--build-only` and visit localhost:4177; 
 
 Backend released: PR #196 (https://github.com/jdow800/tprs/pull/196), merge commit 675b5148c92cd4ea60587c69b514f6b6b3a01753. CI passed 198 files / 2,613 tests and TypeScript. Render deploy dep-daino46k1f9s73f7ofbg reached live at 2026-09-12 16:22:42 UTC on that exact commit; API health returned 200 with status ok.
 
-Website source commit 6fb4e7ab3137ef5c36ca24de37bb06c8c51a5861 is committed locally on feat/liquor-recipe-reuse. Public repository upload was rejected by automatic approval review because explicit permission to publish this payload to the public repository was missing. Jon has been asked to approve publishing the UI and release notes to jdow800/twistedpin-website and deploying them. Approval is still pending; no website upload, preview build, or production deployment has occurred for this change. Once approved, push the feature branch, verify its Vercel build, fast-forward main, and verify production before calling the button live.
+Website source commit 6fb4e7ab3137ef5c36ca24de37bb06c8c51a5861 is ready on feat/liquor-recipe-reuse. Jon explicitly approved publishing the tested UI and release notes to the public jdow800/twistedpin-website repository and deploying to the liquor app on September 12. Preview and production build verification are the remaining release steps.
 
 No production recipe data has been changed by this session. The original recipe remains the source for the eventual user-confirmed reuse.
