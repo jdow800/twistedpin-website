@@ -1,176 +1,78 @@
 ---
 /**
- * /holiday-parties/ — Holiday Parties landing page.
- *
- * Audience-specific funnel split from /events. The corporate
- * planner's December problem: book a holiday party for the team,
- * make it not feel like the office, make it not be a hotel ballroom,
- * make it happen by mid-December. We solve all three.
- *
- * Page exists at the URL year-round (SEO equity); surfaces in the
- * NavDrawer Visit section from Sep 1 → Jan 5 via the seasonal-nav
- * system (parallel to /new-years-eve and /free-kids-bowling). The
- * window brackets the actual sourcing-to-cleanup cycle: planners
- * start sourcing in late summer, drag tail into early January for
- * post-holiday follow-ups.
- *
- * Captures the `holiday party venue near me` / `company holiday
- * party venue` / `Christmas party spots Plainfield` keyword cluster
- * (top-of-funnel Aug-Oct, conversion-intent Nov-Dec). Replaces the
- * legacy `/ultimate-holiday-party-venue-*` 301 (currently dropping
- * into bare /events/) with a dedicated landing.
- *
- * Same pillar skeleton as /corporate-events + /events + /vip-suite
- * (rule of ten — .pillar-* CSS hoist deeply overdue):
- *   - Hero: typography-led title section (no image)
- *   - Two long-scroll editorial sections (video + copy, alternating)
- *   - Closing CTA band → Plan an Event (Heyflow via PLAN_EVENT_URL)
- *   - SnapFooter
- *
- * Hero videos: vip-lanes-* (LCP candidate) + buffet-* (lazy
- * below-fold) by user direction — same recipe as /corporate-events.
- * Both videos remain canonical on their primary pages per
- * src/data/videos.ts; this page reuses them visually only and does
- * NOT emit duplicate VideoObject JSON-LD.
- *
- * Voice rules applied (per Context/voice.md):
- *   - Brian Van Flandern named only as "America's Top Mixologist"
- *     credential — "curated by," never "built by"
- *   - "private" hard-banned — VIP suite is "set apart from the main
- *     floor," "yours when you book it," "semi-private"
- *   - "Cheap / discount / value / budget-friendly" banned — even with
- *     seasonal pressure to lean on price, premium positioning holds
- *   - "Holiday" is intentionally non-denominational; the page welcomes
- *     Christmas parties, end-of-year celebrations, Hanukkah, Diwali,
- *     and the secular "company holiday party" — no Christmas-coded
- *     copy that excludes the non-Christian planner
- *   - Specifics > adjectives — 6-lane suite, up to 80, 28 self-serve
- *     taps, LED video wall, full-venue buyouts for larger groups
- *   - Urgency is earned ("December books fast — reach out by
- *     October"), not manufactured ("limited time offer" banned)
- *
- * TODOs (non-blocking):
- *   - Capacity number for full-venue buyouts ("more for full-venue
- *     buyouts") still hand-waved across the event-page family. When
- *     ops gives a number, update here + /events + /corporate-events +
- *     /vip-suite in the same diff.
- *   - Holiday-specific catering / cocktail menu (eggnog flight,
- *     mulled wine, seasonal small-plates) would land harder when the
- *     kitchen ops gives the actual seasonal lineup. Currently
- *     references "holiday menu pairings on request" as a soft
- *     promise rather than naming dishes.
+ * Company holiday-party planning at the existing year-round URL.
+ * The seasonal nav and promo schedule remain in their shared sources.
+ * Inquiries use PLAN_EVENT_URL; space, party time, catering and bar
+ * arrangements are confirmed during event planning.
+ * Existing suite and catering videos keep their canonical VideoObject
+ * entries on /vip-suite and /events; this page reuses the media only.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID, STREET, LOCALITY, REGION } from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 import { ICON_PATHS } from "../lib/icons";
 
-// JSON-LD: Service (parallel to /corporate-events + /fundraisers).
-// provider → #business links to the canonical entity via @id.
-// areaServed matches /corporate-events — same I-55/I-80 corridor of
-// planner-audience cities (corporate holiday parties pull from the
-// same geographic pool as corporate offsites year-round).
 const PAGE_URL = `${BUSINESS_URL}/holiday-parties/`;
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
   "@id": `${BUSINESS_URL}/#holiday-parties`,
-  name: "Holiday Party Hosting",
+  name: "Company Holiday Parties",
   url: PAGE_URL,
   description:
-    "Holiday parties at Twisted Pin in Plainfield, IL — corporate holiday parties, end-of-year celebrations, staff appreciation events, December team gatherings. The 6-lane VIP suite seats up to 80, or up to 200 for full-venue buyouts. In-house catering, and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. December books fast — reach out by October. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+    "Company holiday parties, staff appreciation events and end-of-year celebrations at Twisted Pin in Plainfield, IL. In-house catering, craft cocktails and a semi-private six-lane VIP suite for up to 80 guests, or a full-venue buyout for up to 200. Holiday gatherings for friends, families and community groups are also welcome.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Holiday party hosting",
-  areaServed: [
-    { "@type": "City", name: "Plainfield, IL" },
-    { "@type": "City", name: "Naperville, IL" },
-    { "@type": "City", name: "Bolingbrook, IL" },
-    { "@type": "City", name: "Joliet, IL" },
-    { "@type": "City", name: "Romeoville, IL" },
-    { "@type": "City", name: "Oswego, IL" },
-    { "@type": "City", name: "Shorewood, IL" },
-    { "@type": "City", name: "Lockport, IL" },
-  ],
+  areaServed: ["Plainfield, IL", "Romeoville, IL", "Shorewood, IL", "Naperville, IL", "Joliet, IL", "Bolingbrook, IL"].map((name) => ({ "@type": "City", name })),
 };
 
-// On-page FAQ + FAQPage JSON-LD (added 2026-08-01, Jon-approved copy —
-// same recipe as /corporate-events: schemaA = plain text for the schema,
-// htmlA = the rendered answer, may carry links). Written to be quoted
-// verbatim by Ask Maps / AI answers. Voice rules hold: semi-private
-// (never "private"), "curated by" Brian, no discount framing, no
-// fabricated drive times, urgency only where real (December genuinely
-// books fast).
-interface HolidayFaq {
-  q: string;
-  schemaA: string;
-  htmlA: string;
-}
-
-const faqs: HolidayFaq[] = [
+// One answer source keeps the visible FAQ and structured data aligned.
+const faqs = [
   {
     q: "How far in advance should we book a holiday party?",
-    schemaA:
-      "December Fridays and Saturdays go first — reach out by October for a real choice of dates. Weeknights and early-December dates stay open longer, and January end-of-year parties are a real move when December fills.",
-    htmlA:
-      "December Fridays and Saturdays go first — reach out by October for a real choice of dates. Weeknights and early-December dates stay open longer, and January “we finally got the team together” parties are a real move when December fills.",
+    answer: "For December parties, reach out by October if you can. Share your preferred date and any alternatives so the team can check availability. Weeknight or January celebrations are worth asking about, too.",
   },
   {
     q: "How many people can you host?",
-    schemaA:
-      "Up to 80 in the 6-lane VIP suite. Past that, full-venue buyouts take up to 200. Smaller crew? Reserved lanes and a table work without the suite.",
-    htmlA:
-      `Up to 80 in the <a href="/vip-suite/">6-lane VIP suite</a>. Past that, full-venue buyouts take up to 200. Smaller crew? Reserved lanes and a table work without the suite.`,
+    answer: "Up to 80 guests in the semi-private six-lane VIP suite, or up to 200 with a full-venue buyout. Share your headcount so the event team can confirm the right space and setup for your party.",
   },
   {
-    q: "What does a holiday party cost?",
-    schemaA:
-      "Quotes are built per group — headcount, menu, bar model. Send the inquiry and you'll have a real number fast, not a brochure.",
-    htmlA:
-      `Quotes are built per group — headcount, menu, bar model. <a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Send the inquiry</a> and you'll have a real number fast, not a brochure.`,
+    q: "What does a company holiday party cost?",
+    answer: "Your quote depends on the date, party length, headcount, space, catering and bar arrangements. Select Plan My Holiday Party and share your details so the event team can put together your quote.",
   },
   {
     q: "Can you handle catering and dietary needs?",
-    schemaA:
-      "In-house, through the kitchen — buffet, plated, or family-style. Vegetarian, gluten-free, and accommodations on request; December tables run mixed and we plan for it.",
-    htmlA:
-      "In-house, through the kitchen — buffet, plated, or family-style. Vegetarian, gluten-free, and accommodations on request; December tables run mixed and we plan for it.",
+    answer: "Yes, we offer in-house catering. Include any menu preferences, allergies or dietary needs in your inquiry so the event team can discuss the available options with you before booking.",
   },
   {
     q: "How does the bar work for a company party?",
-    schemaA:
-      "Run a tab, hand out drink tickets, or set a per-head cap. The 28-tap self-serve beer and wine wall sits next door, and the cocktail program is curated by Brian Van Flandern, America's Top Mixologist.",
-    htmlA:
-      `Run a tab, hand out drink tickets, or set a per-head cap. The <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a> sits next door, and the cocktail program is curated by Brian Van Flandern, <em>America's Top Mixologist</em>.`,
+    answer: "Ask about a bar tab or drink tickets for your group. The event team will confirm the drinks and billing arrangements with your quote. Our bar includes a 28-tap self-serve beer and wine wall and a craft cocktail menu.",
   },
   {
-    q: "Is the suite actually ours for the night?",
-    schemaA:
-      "Semi-private and set apart from the traditional lanes — yours from setup to last call, with the LED video wall for the year-in-review reel. No shared room, no overlapping reservation.",
-    htmlA:
-      "Semi-private and set apart from the traditional lanes — yours from setup to last call, with the LED video wall for the year-in-review reel. No shared room, no overlapping reservation.",
+    q: "Can we book the whole VIP suite?",
+    answer: "For the whole suite, ask to reserve all six lanes for your group. We’ll confirm availability and specify your reserved space, party time and setup arrangements. The suite is semi-private and set apart from the traditional lanes.",
   },
 ];
 
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqs.map((f) => ({
+  mainEntity: faqs.map((item) => ({
     "@type": "Question",
-    name: f.q,
-    acceptedAnswer: { "@type": "Answer", text: f.schemaA },
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
   })),
 };
 ---
 <Base
-  title="Holiday Party Venue in Plainfield, IL | Twisted Pin"
-  description="Holiday parties at Twisted Pin: 6-lane VIP suite (up to 80) or full-venue buyouts (up to 200), in-house catering. Plainfield, IL. December books fast — reach out by October."
+  title="Company Holiday Party Venue in Plainfield, IL | Twisted Pin"
+  description="Plan a company holiday party in Plainfield, IL with VIP bowling, in-house catering and craft cocktails. Up to 80 in the suite; up to 200 for a buyout."
   ogImage="/og/og-events.jpg"
-  ogImageAlt="A holiday party in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  ogImageAlt="In-house catering buffet at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
-  lcpPreloadMedia="(max-width: 1024px)"
 >
 
   {/* ============================================================
@@ -178,15 +80,18 @@ const faqSchema = {
       ============================================================ */}
   <section class="holiday-hero" data-hero aria-labelledby="holiday-hero-h1">
     <div class="holiday-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Holiday Parties</p>
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Company Holiday Parties · Plainfield, IL</p>
       <h1 class="t-display holiday-hero-headline hero-fade" id="holiday-hero-h1" data-delay-ms="120">
         Holiday parties they actually&nbsp;remember.
       </h1>
       <p class="holiday-hero-sub hero-fade" data-delay-ms="320">
-        The 6-lane VIP suite. Catering through the kitchen. Cocktails
-        curated by Brian Van Flandern. December books fast —
-        reach out by October.
+        Bring the team to Twisted Pin for a company Christmas party,
+        staff appreciation night or end-of-year celebration. Bowling,
+        in-house catering and craft cocktails make a night of it.
       </p>
+      <div class="holiday-hero-actions">
+        <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan My Holiday Party</a>
+      </div>
     </div>
   </section>
 
@@ -212,7 +117,7 @@ const faqSchema = {
           loop
           playsinline
           poster="/snap/vip-lanes-poster.avif"
-          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a holiday party"
+          aria-label="The six-lane VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
@@ -223,31 +128,30 @@ const faqSchema = {
       <div class="holiday-section-copy">
         <p class="t-eyebrow">The Room</p>
         <h2 class="t-display holiday-section-title" id="holiday-room-h2">
-          Six lanes. Eighty people. Yours.
+          Your team. A six-lane VIP suite.
         </h2>
-        <p class="holiday-section-aside">(or up to 200 for full-venue buyouts)</p>
-
         <p class="holiday-section-body">
-          The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
-          wall, set apart from the traditional lanes — semi-private, yours
-          for the night when you book it. LED video wall for the
-          year-in-review reel, the company photo carousel, or the
-          playoff game once the toasts are done.
+          Bowling for the competitive ones. Couch seating for the catch-up
+          crowd. The <a href="/vip-suite/">VIP suite</a> sits behind a wall,
+          set apart from the traditional lanes.
         </p>
-
-        <p class="holiday-section-body">
-          Couch seating wraps the lanes for the people who'd rather
-          watch than throw. The whole thing is yours from setup to
-          last call — no shared room, no overlapping reservation.
-        </p>
-
         <ul class="holiday-section-list">
-          <li>6-lane VIP suite, set apart from the traditional lanes</li>
-          <li>Up to 80 in the suite — or up to 200 for full-venue buyouts</li>
-          <li>LED video wall + AV solutions</li>
-          <li>Couch seating wraps the lanes</li>
-          <li>Yours from setup to last call</li>
+          <li>Up to 80 guests in the semi-private VIP suite</li>
+          <li>Up to 200 guests with a full-venue buyout</li>
+          <li>LED video wall and AV options for toasts or a year-in-review reel</li>
         </ul>
+        <p class="holiday-section-body">
+          Ask about reserving all six lanes for your team. Your event plan
+          confirms the space, party time and setup arrangements included.
+        </p>
+        <p class="holiday-section-body holiday-region">
+          Planning from <a href="/why-us/romeoville-il/">Romeoville</a>,
+          <a href="/why-us/shorewood-il/">Shorewood</a>,
+          <a href="/why-us/naperville-il/">Naperville</a>,
+          <a href="/why-us/joliet-il/">Joliet</a> or
+          <a href="/why-us/bolingbrook-il/">Bolingbrook</a>?
+          We’re at {STREET} in {LOCALITY}, {REGION}, with free on-site parking.
+        </p>
       </div>
     </div>
   </section>
@@ -271,7 +175,7 @@ const faqSchema = {
           loop
           playsinline
           data-poster="/snap/buffet-poster.avif"
-          aria-label="A buffet of catering food laid out for a holiday party at Twisted Pin — chafing dishes and shareable plates"
+          aria-label="In-house catering at Twisted Pin, with a buffet of food in chafing dishes"
         >
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
@@ -282,38 +186,23 @@ const faqSchema = {
       <div class="holiday-section-copy">
         <p class="t-eyebrow">The Food &amp; Bar</p>
         <h2 class="t-display holiday-section-title" id="holiday-food-h2">
-          Catering through the kitchen. Cocktails worth the night.
+          Holiday catering. Cocktails worth a toast.
         </h2>
-
         <p class="holiday-section-body">
-          In-house catering through <a href="/eat/">the kitchen</a> —
-          buffet, plated, or family-style. Holiday menu pairings on
-          request. Vegetarian, gluten-free, and dietary accommodations
-          on request — December tables run mixed.
+          <a href="/eat/">In-house catering</a>, scaled to your group.
+          Tell us about menu preferences and dietary needs when you inquire
+          so the team can confirm what works for your party.
         </p>
-
         <p class="holiday-section-body">
-          The 28-tap self-serve <a href="/menu/taps/">beer &amp; wine
-          wall</a> sits next door. The <a href="/menu/cocktails/">cocktail
-          bar</a> runs the program curated by Brian Van Flandern,
-          <em>America's Top Mixologist</em> — same drinks, same
-          execution as the rest of the venue, including the seasonal
-          rotation.
+          Choose from the <a href="/menu/taps/">28-tap self-serve beer &amp;
+          wine wall</a> and <a href="/menu/cocktails/">craft cocktails</a>
+          from the program curated by Brian Van Flandern,
+          <em>America’s Top Mixologist</em> (Food Network).
         </p>
-
         <p class="holiday-section-body">
-          Run a tab, hand out drink tickets, or set a per-head cap —
-          pick the billing model that fits the budget. The kitchen
-          handles custom catering through the night.
+          Ask about a bar tab or drink tickets, and confirm the arrangements
+          with your event quote.
         </p>
-
-        <ul class="holiday-section-list">
-          <li>In-house catering, buffet or plated</li>
-          <li>Holiday menu pairings on request</li>
-          <li>28-tap self-serve beer &amp; wine wall</li>
-          <li>Cocktail program curated by Brian Van Flandern</li>
-          <li>Tab, drink tickets, or per-head cap — your call</li>
-        </ul>
       </div>
     </div>
   </section>
@@ -326,24 +215,23 @@ const faqSchema = {
     <div class="holiday-context-inner">
       <p class="t-eyebrow">What We Host</p>
       <h2 class="t-display holiday-context-title" id="holiday-context-h2">
-        Company parties. End-of-year. Staff appreciation.
+        Company holiday parties. Staff appreciation.
       </h2>
       <p class="holiday-context-body">
-        Corporate holiday parties, end-of-year celebrations, staff
-        appreciation nights, client thank-yous, neighborhood block
-        parties, family holiday gatherings. Christmas, Hanukkah,
-        Diwali, NYE-eve, "we never get the team together" — whatever
-        the occasion. For New Year's Eve specifically, see
-        <a href="/new-years-eve/">New Year's Eve</a>. For corporate
-        events year-round, see <a href="/corporate-events/">corporate
-        events</a>.
+        Thank the team, bring clients together or celebrate the end of a busy
+        year. We also host holiday gatherings for friends, families and
+        community groups.
+      </p>
+      <p class="holiday-context-body">
+        Planning something else? Explore <a href="/corporate-events/">year-round
+        company events</a> or <a href="/new-years-eve/">New Year’s Eve parties</a>.
       </p>
     </div>
   </section>
 
   {/* ============================================================
-      FAQ — search-phrased holiday Q&As (2026-08-01). Reuses the
-      global .t2-faq* accordion + emits FAQPage JSON-LD (frontmatter).
+      FAQ — practical planning answers. Reuses the global .t2-faq*
+      accordion and the same answer text in FAQPage JSON-LD.
       Sits above the closing CTA so the inquiry button stays the last
       beat on the page — same convention as /corporate-events.
       ============================================================ */}
@@ -372,7 +260,7 @@ const faqSchema = {
                 set:html={ICON_PATHS["chevron-down"]}
               />
             </summary>
-            <div class="t2-faq-a" set:html={item.htmlA} />
+            <div class="t2-faq-a"><p>{item.answer}</p></div>
           </details>
         ))}
       </div>
@@ -387,16 +275,17 @@ const faqSchema = {
       ============================================================ */}
   <section class="holiday-cta" aria-labelledby="holiday-cta-h2">
     <div class="holiday-cta-inner">
-      <p class="t-eyebrow">Reach out by October</p>
+      <p class="t-eyebrow">Start with your date and headcount</p>
       <h2 class="t-display holiday-cta-title" id="holiday-cta-h2">
         December books fast.
       </h2>
       <p class="holiday-cta-body">
-        Quick form. Tour the suite, get a quote and a holiday menu,
-        lock the date.
+        Share your preferred date, approximate headcount and occasion.
+        Our event team will check availability, help with catering and bar
+        arrangements, and provide a quote for your party.
       </p>
       <a class="btn btn-solid holiday-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
-        Plan an event
+        Plan My Holiday Party
       </a>
     </div>
   </section>
@@ -426,8 +315,8 @@ const faqSchema = {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: clamp(320px, 42vh, 420px);
-    padding: calc(var(--header-height) + 28px) 22px 24px;
+    min-height: 0;
+    padding: calc(var(--header-height) + 24px) 22px 28px;
   }
   @media (min-width: 1025px) {
     .holiday-hero {
@@ -467,6 +356,14 @@ const faqSchema = {
   }
   @media (min-width: 1025px) {
     .holiday-hero-sub { margin-top: 22px; font-size: 19px; max-width: 38em; }
+  }
+
+  .holiday-hero-actions { margin-top: 24px; }
+  .holiday-hero-actions .btn,
+  .holiday-cta-btn {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
   }
 
   /* ============================================================
@@ -530,16 +427,6 @@ const faqSchema = {
   }
   @media (min-width: 1025px) {
     .holiday-section-title { font-size: clamp(40px, 4.2vw, 56px); }
-  }
-
-  .holiday-section-aside {
-    margin-top: 6px;
-    font-family: var(--font-body);
-    font-size: 15px;
-    color: var(--warm-dim);
-  }
-  @media (min-width: 1025px) {
-    .holiday-section-aside { font-size: 17px; }
   }
 
   .holiday-section-body {
