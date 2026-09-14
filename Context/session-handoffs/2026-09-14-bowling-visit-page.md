@@ -24,10 +24,21 @@ Check ad text, keyword-level final URLs, sitelinks and mobile booking paths toge
 
 ## Validation and release
 
-Required prebuild checks passed: translation freshness, recurring dates, program answers and 103 estimate checks. Astro compiled and prerendered both language pages and the rest of the site. The local build then hit the known Windows symlink EPERM while packaging the Vercel function from the shared node_modules junction. Vercel cloud packaging remains the final build check; local output is not deployed directly, and live-menu credentials are absent from this worktree.
+Required prebuild checks passed: translation freshness, recurring dates, program answers and 103 estimate checks. Astro compiled and prerendered both language pages and the rest of the site. The local build then hit the known Windows symlink EPERM while packaging the Vercel function from the shared node_modules junction. Vercel cloud packaging passed; local output is not deployed directly, and live-menu credentials are absent from this worktree.
 
 Rendered inspection passed for both pages: one Plainfield H1, correct html/OG/schema language, reciprocal hreflang, self-canonical/indexable metadata, shared BowlingAlley identity/address and correct breadcrumbs, top Reserve/Pricing/directions targets, the real Place ID, distinct adult/company/kids paths, all 12 internal content destinations, current karaoke/Singo references with no copied times, matching 2027 summer waitlist wording, preserved section/leagues anchors, eager first poster and deferred/bounded original video sources. The Spanish correction and English-version links remain. No new Event or VideoObject markup is emitted.
 
 Reproduce with npm run build, then inspect dist/client/bowl/index.html and dist/client/es/bowl/index.html. Compare heading, language/alternate/canonical tags, hero/party links and calendar text. Check the live destinations, /bowling/ redirect and sitemap entries after deployment. The recurrence prebuild check covers the shared date, season-end, dark-date and DST behavior used by the calendar references.
 
-No connected browser was available. Responsive visual, browser-interaction and native-speaker translation review have not been performed. Vercel preview and production verification are pending.
+No connected browser was available. Responsive visual, browser-interaction and native-speaker translation review have not been performed. Vercel preview and production builds passed, followed by successful live verification.
+
+
+## Production verification
+
+- Code commit: `b36a08385e8996af5d15a890d987a178902c7c48`, pushed to the existing website repository and main branch.
+- Vercel Preview deployment `6442969438` and Production deployment `6442987706` succeeded.
+- Live /bowl/ and /es/bowl/ passed the rendered-content, booking-path, canonical/hreflang/language, structured-data, address/directions-URL, seasonal-copy and video-loading checks above.
+- All 12 content destinations returned HTTP 200, including /reserve/ and /reserve/birthdays/. The legacy /bowling/ URL resolved to /bowl/ successfully. No reservation, inquiry or form was submitted.
+- Both language routes remain in /sitemap-0.xml. The tap menu retained 28 MenuItem entries. No ranking or conversion improvement is asserted.
+- The Google Ads destination/ad-copy review remains a documented later follow-up. No account changes were made in this release.
+- Visual browser and native-speaker review remain unperformed as noted above.
