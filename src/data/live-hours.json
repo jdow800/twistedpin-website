@@ -1,5 +1,5 @@
 {
-  "fetchedAt": "2026-09-13T09:00:16.698Z",
+  "fetchedAt": "2026-09-14T09:00:16.623Z",
   "hours": {
     "sun": {
       "label": "12pm – 10pm",
@@ -34,12 +34,12 @@
       "closeLabel": "10pm"
     },
     "thu": {
-      "label": "3pm – 10pm",
+      "label": "3pm – 11pm",
       "closed": false,
       "openMinutes": 900,
-      "closeMinutes": 1320,
+      "closeMinutes": 1380,
       "openLabel": "3pm",
-      "closeLabel": "10pm"
+      "closeLabel": "11pm"
     },
     "fri": {
       "label": "2pm – 1am",
