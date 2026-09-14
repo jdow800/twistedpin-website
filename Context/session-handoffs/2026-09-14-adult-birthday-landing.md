@@ -22,4 +22,17 @@ Required prebuild checks passed: translation freshness, recurring dates, program
 
 Rendered HTML verification passed for the four affected pages: one H1, unique IDs, self-canonical/indexable metadata, valid JSON-LD, exact adult FAQ HTML/schema parity, correct birthday choices and Zite CTA targets, existing inbound anchors, working internal targets, and bounded/deferred video sources. Kids' package cards, prices, inclusions and cancellation FAQ match the previous release. The existing social-sharing image was inspected and its birthday-page alt text corrected to match the photo.
 
-No connected browser is available; browser interaction and responsive visual QA have not been exercised. Vercel preview and production release are pending.
+No connected browser is available; browser interaction and responsive visual QA have not been exercised. Vercel preview and production release both passed for code commit 1f4f45b.
+
+
+### Production verification
+
+- Code commit: `1f4f45b56c42bdd225578ba6eec03daf8c19e200`, pushed to main.
+- Vercel Preview and Production builds succeeded. Production deployment ID: `6440806610`.
+- Live /adult-birthday-parties/, /birthday-parties/, /events/ and /showers/ passed the rendered-content and navigation checks above.
+- The adult page is present in /sitemap-0.xml and self-canonical/indexable; indexing/ranking outcomes are not asserted.
+- Kids' booking and the existing Zite destination both returned HTTP 200. No form was submitted.
+- Production tap list retained all 28 menu items; local missing menu credentials did not affect the deployed build.
+- Birthday choices, legacy #adults, #kids, both Plan My Birthday links and the corrected social-image description were verified in production HTML.
+
+Manual browser/phone review remains available as a follow-up; no browser was connected during this release. There were no changes to the event form or booking engine.
