@@ -1,29 +1,10 @@
 ---
 /**
- * /new-years-eve/ — seasonal NYE landing page.
- *
- * Architecturally a "seasonal" page: lives at this URL year-round
- * (so deep links from /upcoming-events/ or Google land on a real page
- * even in March), but only surfaces in the NavDrawer between the
- * showFrom / showUntil window defined in src/config/nav-seasonal.ts.
- * Daily 4am cron rebuild handles auto-show / auto-hide without manual
- * deploys around the holiday.
- *
- * Layout:
- *   - Full-bleed video hero (NYE.mp4 9:16, mobile-first)
- *   - One editorial section (the night, the bar, the suite)
- *   - Closing CTA band: Plan an Event (Zite, primary) +
- *     Reserve a lane (Roller, outlined alternate)
- *   - SnapFooter
- *
- * 2026-06-11: package copy is REAL now — sourced from the live TPRS catalog
- * (codes 124 VIP $129.95 / 126 Traditional $109.95; 90-min party slots,
- * per-lane pizza + soda + favors, 10pm slot gets the champagne toast).
- * Booking CTAs point at /reserve/nye/ (the TPRS booking page — still
- * noindexed, but deliberately LINKED from here per Jon: nobody lands on NYE
- * content in June, and the products carry a pre-order notice until the
- * backend restricts availability to 12/31). "Plan an event" stays as the
- * alternate for buyouts / bigger-than-six-lanes nights.
+ * 2026 NYE package preview. Jon confirmed all six party times September 14.
+ * Per-lane prices verified against the public TPRS quote endpoint that day.
+ * The event collection owns the calendar dates. Do not claim sales are open:
+ * the booking page follows live availability, and the longer evening booking
+ * durations still require a backend correction before launch. See the handoff.
  */
 import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
@@ -31,68 +12,46 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, eventSchema, videoObjectSchema } from "../lib/schema";
 import { NYE_VIDEO } from "../data/videos";
-
-const nyeVideoSchema = videoObjectSchema(NYE_VIDEO);
-
 import { PLAN_EVENT_URL } from "../lib/links";
 
-// The TPRS NYE booking page (both party products, calendar seeded 12/31).
-// Parked/noindexed but deliberately linked — see docstring above.
 const BOOK_NYE_URL = "/reserve/nye/";
-
-// JSON-LD: Event. Dates pulled from the events content collection so
-// /new-years-eve and /upcoming-events read from the same SoT. `offers`
-// is sourced from the markdown's `lowPrice` field — AggregateOffer with
-// lowPrice models "packages start at $X" for events where ops hasn't
-// confirmed exact tiers. eventStatus defaults to EventScheduled inside
-// eventSchema(); flip via markdown if cancellation/postponement happens.
 const PAGE_URL = `${BUSINESS_URL}/new-years-eve/`;
+const nyeVideoSchema = videoObjectSchema(NYE_VIDEO);
 const nyeEntry = await getEntry("events", "2026-12-31-new-years-eve");
-const nyeJsonLd = nyeEntry
-  ? {
-      "@context": "https://schema.org",
-      ...eventSchema({
-        name: nyeEntry.data.title,
-        start: nyeEntry.data.start,
-        end: nyeEntry.data.end,
-        description: nyeEntry.body?.trim(),
-        image: `${BUSINESS_URL}/snap/nye-poster.avif`,
-        url: PAGE_URL,
-        offers: nyeEntry.data.lowPrice
-          ? {
-              "@type": "AggregateOffer",
-              priceCurrency: "USD",
-              lowPrice: nyeEntry.data.lowPrice,
-              // highPrice + validFrom added 2026-05-27 to clear GSC
-              // "Events structured data — non-critical missing field"
-              // warnings. Both sourced from the events content
-              // collection so the values stay with the markdown (one
-              // source of truth per event).
-              ...(nyeEntry.data.highPrice && { highPrice: nyeEntry.data.highPrice }),
-              ...(nyeEntry.data.validFrom && { validFrom: nyeEntry.data.validFrom.toISOString() }),
-              availability: "https://schema.org/InStock",
-              url: PAGE_URL,
-              // validThrough = event start: tickets can't be sold
-              // after the night begins.
-              validThrough: nyeEntry.data.start.toISOString(),
-            }
-          : undefined,
-      }),
-    }
-  : null;
+// No Offer until the real opening date and sale availability are confirmed.
+// An invented validFrom/InStock assertion is not a substitute for that check.
+const nyeJsonLd = nyeEntry ? {
+  "@context": "https://schema.org",
+  ...eventSchema({
+    name: nyeEntry.data.title,
+    start: nyeEntry.data.start,
+    end: nyeEntry.data.end,
+    description: nyeEntry.body?.trim(),
+    image: `${BUSINESS_URL}/snap/nye-poster.avif`,
+    url: PAGE_URL,
+  }),
+} : null;
+
+// Base prices per lane, before the online booking fee and tax. Keep aligned
+// with codes 126 (traditional) and 124 (VIP), including time-based price rules.
+const sessions = [
+  { time: "11am–12:30pm", traditional: "109.95", vip: "129.95" },
+  { time: "1–2:30pm", traditional: "139.95", vip: "159.95" },
+  { time: "3–4:30pm", traditional: "149.95", vip: "199.95" },
+  { time: "5–7pm", traditional: "189.95", vip: "229.95" },
+  { time: "7:30–9:30pm", traditional: "199.95", vip: "239.95" },
+  { time: "10pm–12:30am", traditional: "219.95", vip: "259.95" },
+];
 ---
 <Base
-  title="New Year's Eve Party | Twisted Pin — Plainfield, IL"
-  description="New Year's Eve in Plainfield — party slots from $109.95 a lane: unlimited bowling, pizza, party favors, and a champagne toast at midnight. Book your lanes."
+  title="New Year's Eve 2026 in Plainfield | Twisted Pin"
+  description="Plan New Year's Eve 2026 in Plainfield. Compare six bowling party times with pizza and soda included, plus a midnight toast with the 10pm party."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/nye-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
 
-  {/* ============================================================
-      HERO — full-bleed vertical video, headline overlay
-      ============================================================ */}
   <section class="nye-hero" data-hero aria-labelledby="nye-hero-h1">
     <video
       class="nye-hero-video"
@@ -117,108 +76,106 @@ const nyeJsonLd = nyeEntry
     <div class="nye-hero-scrim" aria-hidden="true"></div>
 
     <div class="nye-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">December 31</p>
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">December 31, 2026 · Plainfield, IL</p>
       <h1 class="t-display nye-hero-headline" id="nye-hero-h1">
         <span class="hero-fade" data-delay-ms="120">New Year's Eve.</span>
         <span class="hero-fade" data-delay-ms="280">Done right.</span>
       </h1>
       <p class="nye-hero-sub hero-fade" data-delay-ms="380">
-        The night, the bar, the suite. Bowling optional.
+        Pizza, bowling, cocktails, and your kind of countdown. Pick an afternoon party or stay through midnight with the 10pm crew.
       </p>
     </div>
   </section>
 
-  {/* ============================================================
-      THE NIGHT — editorial section
-      ============================================================ */}
-  <section class="nye-section" aria-labelledby="nye-night-h2">
-    <div class="nye-section-inner">
-      <p class="t-eyebrow">The Night</p>
-      <h2 class="t-display nye-section-title" id="nye-night-h2">
-        Cocktails, the wall, your suite.
-      </h2>
-
-      <p class="nye-section-body">
-        The cocktail program was curated by America's Top Mixologist. The 28-tap
-        self-serve wall is the only one in the immediate area. The 6-lane
-        VIP suite, set apart from the traditional lanes, is yours for the night
-        when you book it — TVs, AV hookups, your own bar service, your
-        own count-down to midnight.
-      </p>
-
-      <p class="nye-section-body">
-        Or come for the lanes and the bar like any other night, and
-        let the night take care of the rest.
-      </p>
-
-      <ul class="nye-section-list">
-        <li>Cocktail menu curated by America's Top Mixologist</li>
-        <li>28 self-serve taps — beer, wine, and a few non-alcoholic options</li>
-        <li>6-lane VIP suite available for groups (book early)</li>
-        <li>Real plates, made for sharing</li>
-      </ul>
-    </div>
-  </section>
-
-  {/* ============================================================
-      THE PACKAGES — real tiers from the live TPRS catalog
-      ============================================================ */}
   <section class="nye-section nye-packages" aria-labelledby="nye-packages-h2">
     <div class="nye-section-inner">
       <p class="t-eyebrow">The Packages</p>
-      <h2 class="t-display nye-section-title" id="nye-packages-h2">
-        Party slots, by the lane.
-      </h2>
-
+      <h2 class="t-display nye-section-title" id="nye-packages-h2">Pick your New Year's Eve party time.</h2>
       <p class="nye-section-body">
-        Pick a 90-minute party slot and bring the crew. Every lane comes with
-        unlimited bowling for your slot, shoes, a large pizza, a pitcher of
-        soda, and the party favors — hats, noise makers, the works. The 10pm
-        slot counts down to midnight with a champagne toast (sparkling cider
-        for the under-21 crowd).
+        Every lane includes unlimited bowling for your selected party time,
+        shoe rental, one large pizza, one pitcher of soda, and party favors.
+        Traditional lanes start at $109.95; VIP suite lanes start at $129.95.
+        Prices are per lane and vary by party time.
       </p>
-
       <ul class="nye-section-list">
-        <li>Traditional lanes — $109.95 a lane, up to 5 guests each</li>
-        <li>VIP suite lanes — $129.95 a lane, couch seating for up to 6</li>
-        <li>Music video requests at the front desk all night</li>
+        <li><strong>Traditional lanes:</strong> up to 5 guests per lane.</li>
+        <li><strong>VIP suite lanes:</strong> up to 6 guests per lane, with couch seating.</li>
+        <li>Count everyone in your group, including guests who aren't bowling.</li>
       </ul>
 
+      <div class="nye-times">
+        <table aria-describedby="nye-price-note">
+          <caption>December 31, 2026 · price per lane</caption>
+          <thead>
+            <tr><th scope="col">Party time</th><th scope="col">Traditional</th><th scope="col">VIP suite</th></tr>
+          </thead>
+          <tbody>
+            {sessions.map((session) => (
+              <tr>
+                <th scope="row">{session.time}</th>
+                <td>${session.traditional}</td>
+                <td>${session.vip}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p class="nye-price-note" id="nye-price-note">
+        Prices above are before tax and the online booking fee. All times are
+        local to Plainfield. The 10pm party ends at 12:30am on January 1, 2027.
+      </p>
+      <p class="nye-section-body">
+        <strong>Here for midnight?</strong> Choose the 10pm–12:30am party.
+        That party includes the midnight toast: champagne for guests 21 and over,
+        or sparkling cider. The earlier parties finish before midnight.
+      </p>
+      <p class="nye-section-body">
+        Choose your pizza and soda during booking. Two lanes include two pizzas
+        and two pitchers, with a separate choice for each lane. Matching orders
+        are fine. Let us know if you're hoping to bowl near another group.
+      </p>
       <div class="nye-packages-cta">
-        <a class="btn btn-solid" href={BOOK_NYE_URL}>Book your NYE lanes</a>
+        <a class="btn btn-solid" href={BOOK_NYE_URL}>Check NYE availability</a>
       </div>
     </div>
   </section>
 
-  {/* ============================================================
-      CLOSING CTA BAND — same pattern as /events
-      ============================================================ */}
+  <section class="nye-section nye-night" aria-labelledby="nye-night-h2">
+    <div class="nye-section-inner">
+      <p class="t-eyebrow">The Room &amp; The Bar</p>
+      <h2 class="t-display nye-section-title" id="nye-night-h2">Make it a VIP night.</h2>
+      <p class="nye-section-body">
+        The six-lane semi-private VIP suite sits apart from the traditional lanes.
+        NYE reservations are sold by the lane for the party time you choose.
+        Reserve all six VIP lanes for your group to have the suite's lanes together;
+        smaller reservations may share the suite with other groups.
+      </p>
+      <p class="nye-section-body">
+        Beyond the drinks included with your package, explore cocktails curated by
+        Brian Van Flandern, named America's Top Mixologist by Food Network, and
+        our 28-tap self-serve wall with beer, wine, cider, and non-alcoholic options.
+        Additional food and drinks are available to purchase.
+      </p>
+    </div>
+  </section>
+
   <section class="nye-cta" aria-labelledby="nye-cta-h2">
     <div class="nye-cta-inner">
-      <h2 class="t-display nye-cta-title" id="nye-cta-h2">
-        Take the night over.
-      </h2>
+      <h2 class="t-display nye-cta-title" id="nye-cta-h2">Your crew. Your countdown.</h2>
       <p class="nye-cta-body">
-        Lanes go by the slot, and the suite goes first — booking takes about
-        two minutes. Want the whole room, or something the packages don't
-        cover? That's our event team.
+        Join us at 15610 Joliet Road in Plainfield, IL, with free on-site parking.
+        Check the booking page for availability. Questions about your group?
+        Our event team can help.
       </p>
       <div class="nye-cta-actions">
-        <a class="btn btn-solid" href={BOOK_NYE_URL}>
-          Book NYE lanes
-        </a>
-        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
-          Plan an event
-        </a>
+        <a class="btn btn-solid" href={BOOK_NYE_URL}>Check NYE availability</a>
+        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
       </div>
     </div>
   </section>
 
   <SnapFooter />
-
-  {nyeJsonLd && (
-    <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />
-  )}
+  {nyeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />}
   <script type="application/ld+json" set:html={JSON.stringify(nyeVideoSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
@@ -335,10 +292,39 @@ const nyeJsonLd = nyeEntry
   .nye-section-list li + li {
     margin-top: 8px;
   }
-  /* Packages section sits right after the editorial one — tighten the gap so
-     the two read as one continuous story, and give the mid-page CTA air. */
-  .nye-packages {
-    padding-top: 0;
+  .nye-night { padding-top: 0; }
+  .nye-times { margin: 32px 0 20px; }
+  .nye-times table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-ui);
+    font-size: clamp(13px, 3.5vw, 16px);
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  .nye-times caption {
+    text-align: left;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .nye-times th, .nye-times td {
+    padding: 14px 8px;
+    border-bottom: 1px solid rgba(255, 252, 245, 0.2);
+    text-align: right;
+  }
+  .nye-times th:first-child {
+    width: 40%;
+    padding-left: 0;
+    text-align: left;
+  }
+  .nye-times th:last-child, .nye-times td:last-child { padding-right: 0; }
+  .nye-times td { white-space: nowrap; }
+  .nye-price-note {
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 252, 245, 0.82);
+    margin: 0 0 24px;
   }
   .nye-packages-cta {
     margin-top: 32px;
