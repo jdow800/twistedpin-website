@@ -8,6 +8,9 @@ Source-of-truth doc for Spanish-language pages on twistedpin.com. Mirrors the sp
 
 **Phase 1 live (2026-05-18):** `/es/bowl/` only.
 
+**September 14, 2026 refresh:** /bowl/ and /es/bowl/ now share the visit-planning structure, accurate walk-in availability, top reservation/pricing/directions links, separate lane/party booking paths and calendar-derived karaoke/Singo mentions. The Spanish summer-program link now follows the English off-season state. See [the current release handoff](session-handoffs/2026-09-14-bowling-visit-page.md). The May audit and ad-market estimates below are historical, not current copy or live advertising evidence. Navigation and linked destination pages remain English where no Spanish version exists.
+
+
 - Hreflang triplet (en-US / es-US / x-default) declared on both `/bowl` and `/es/bowl`
 - Matching `@id` in both pages' BowlingAlley schema (Google treats them as one business entity, two languages)
 - `inLanguage: "es-US"` on the Spanish schema node
@@ -93,9 +96,9 @@ Specific failure modes to watch for (these have been audited):
 
 ---
 
-## /es/bowl/ — side-by-side audit
+## /es/bowl/ — archived May 18 side-by-side audit
 
-The full translation, paragraph-by-paragraph. Future review pass (bilingual staff member, ops, or native speaker) can audit specific sections against the English source.
+Historical launch translation, paragraph-by-paragraph. The current English and Spanish source pages include the September 14 refresh described above; compare those files for current wording.
 
 ### Meta
 
