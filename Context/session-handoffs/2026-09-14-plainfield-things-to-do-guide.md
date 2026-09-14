@@ -29,10 +29,20 @@ No organic keyword performance or ranking gain is claimed. Google Ads alignment 
 
 ## Validation and release
 
-Required prebuild checks passed: translation freshness, recurrence, program answers and all 103 estimate checks. Astro compiled and prerendered the guide. Local Vercel function packaging then hit the known Windows symlink EPERM caused by the shared node_modules junction. Vercel cloud packaging and deployment remain pending; local output is not deployed directly. This worktree lacks live-menu credentials, so production menus must be checked after deployment.
+Required prebuild checks passed: translation freshness, recurrence, program answers and all 103 estimate checks. Astro compiled and prerendered the guide. Local Vercel function packaging then hit the known Windows symlink EPERM caused by the shared node_modules junction. Vercel cloud packaging passed for preview and production. Local output was not deployed directly; the production tap menu retained all 28 MenuItem entries.
 
 Rendered inspection passed: one H1, unique IDs, self-canonical/indexable metadata, title/description consistency, BlogPosting identity and unchanged publication date plus the September 14 modification date. Visible dates agree with the schema; all three blog headers now show their original May 8 publication date in the local America/Chicago build. The guide has all 17 intended internal destinations, two official external references, the correct kids' package anchor and separate adult/company/kids booking paths. No new event schema, scripts, images or video.
 
 No connected browser was available (CUA inventory returned no apps or browsers). Responsive visual and browser-interaction review have not been performed. The established article layout and styles are unchanged.
 
-Vercel deployment and live verification remain pending. Use npm run build and inspect dist/client/blog/things-to-do-plainfield-il/index.html. Confirm one H1, self-canonical/indexable metadata, matching article description, unchanged publication date and the September 14 modification date; follow every article link and confirm #kids resolves to the package section. Check the sitemap after deployment. No booking or inquiry should be submitted during verification.
+Vercel preview and production deployments succeeded, followed by live content and destination verification. Use npm run build and inspect dist/client/blog/things-to-do-plainfield-il/index.html. Confirm one H1, self-canonical/indexable metadata, matching article description, unchanged publication date and the September 14 modification date; follow every article link and confirm #kids resolves to the package section. Check the sitemap after deployment. No booking or inquiry should be submitted during verification.
+
+
+## Production verification
+
+- Code commit: `4575b3f24930ae1e4824a829109753fadffeca4c`, pushed to the existing website repository and main branch.
+- Vercel Preview deployment `6443346735` and Production deployment `6443377247` succeeded.
+- The live article passed the title/description, H1, canonical/indexability, BlogPosting, original/update date and intended content-link checks. The visible date is September 14, 2026; the original May 8 publication date remains.
+- All 17 internal article destinations and the Werk Force taproom reference returned HTTP 200. The kids' package link resolves to #kids. The article remains in /sitemap-0.xml, and the live tap menu retains 28 items.
+- The Village's Settlers' Park URL returned HTTP 403 to the scripted GET check. Its official page content and canonical link were successfully read through the web research tool before publishing; its park facts are cited above. The automated all-destination check therefore did not fully pass, and no claim of a successful direct 200 check for that one external URL is made.
+- No reservation, inquiry or other form was submitted. Visual browser review remains unavailable as noted above. No ranking or conversion improvement is asserted.
