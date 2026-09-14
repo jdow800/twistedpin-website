@@ -62,15 +62,17 @@ const articleSchema = {
   image: new URL(ogImage, BUSINESS_URL).href,
 };
 
-// Display date for the post header. ISO-ish format keeps it scannable
-// without faking false freshness ("12 minutes ago" etc.).
+// Frontmatter calendar dates parse at UTC midnight. Format in UTC so
+// a build in America/Chicago does not display the preceding day.
 const publishedLabel = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
   year: "numeric",
   month: "long",
   day: "numeric",
 }).format(post.data.publishDate);
 const updatedLabel = post.data.updateDate
   ? new Intl.DateTimeFormat("en-US", {
+      timeZone: "UTC",
       year: "numeric",
       month: "long",
       day: "numeric",
