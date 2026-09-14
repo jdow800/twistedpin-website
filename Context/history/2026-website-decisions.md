@@ -6,7 +6,7 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ---
 
-- **2026-09-14 — NYE 2026 package preview and food-form verification.** Jon confirmed six party times, including two-hour evening parties and the 10pm–12:30am countdown. The landing page now shows all six times and live-verified per-lane prices, total guest limits, included pizza/soda choices and the 10pm-only toast. Updated calendar dates, booking metadata, selected-time VIP wording and the seasonal promo; removed invented sale/availability schema claims. The live food forms already require one pizza and soda choice per lane. **Actual backend reservation durations still need correction before sales open**; neither sales nor backend settings changed. Details and release checks: `Context/session-handoffs/2026-09-14-nye-2026-packages.md`.
+- **2026-09-14 — NYE 2026 package preview and food-form verification.** Jon confirmed six party times, including two-hour evening parties and the 10pm–12:30am countdown. The landing page now shows all six times and live-verified per-lane prices, total guest limits, included pizza/soda choices and the 10pm-only toast. Updated calendar dates, booking metadata, selected-time VIP wording and the seasonal promo; removed invented sale/availability schema claims. The live food forms already require one pizza and soda choice per lane. **Actual backend reservation durations still need correction before sales open**; neither sales nor backend settings changed. Vercel preview/production and live page, calendar, sitemap and form checks passed. Details: `Context/session-handoffs/2026-09-14-nye-2026-packages.md`.
 
 ## Post-split entries (newest first; not archived copies)
 
