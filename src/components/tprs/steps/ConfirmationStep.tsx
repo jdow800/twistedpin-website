@@ -8,6 +8,7 @@ import {
   formatTime12h,
   formatTimeRange12h,
   formatUsd,
+  selectedProductDurationMinutes,
 } from "../format";
 import Markdown from "../Markdown";
 import type {
@@ -95,7 +96,7 @@ export default function ConfirmationStep({
           {formatDateLong(date)}
           <span className="tprs-confirm-when-time">
             {showEndTime
-              ? formatTimeRange12h(slot.time, product.durationMinutes)
+              ? formatTimeRange12h(slot.time, selectedProductDurationMinutes(product, date, slot.time))
               : formatTime12h(slot.time)}
           </span>
         </p>

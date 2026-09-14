@@ -8,7 +8,7 @@ annual review covers the packages, party times, dates and backend sales gate.
 > each product's `sales_start_at`. While sales are closed, the page shows a branded
 > **availability notice** linking to the package preview and **self-resolves to the
 > live booking grid the moment the backend opens sales**. Each year you mostly just
-> bump `defaultDate` + the nav window, and set the backend sale date.
+> review dated duration rules, bump `defaultDate` + the nav window, and set the backend sale date.
 
 ---
 
@@ -23,7 +23,10 @@ annual review covers the packages, party times, dates and backend sales gate.
    open (this is the real gate; `validateSalesStart` blocks checkout and
    availability returns no slots until then).
 3. Restrict each product's **availability to the new 12/31** (so the only bookable
-   date is NYE).
+   date is NYE). Confirm the length of every start in
+   `product_duration_overrides` for the new date through a reviewed TPRS migration.
+   Those rules determine real lane holds and booking ends; changing a schedule
+   label or the website alone does not change the reservation.
 
 **Frontend — this repo (`src/tprs/pageConfig.ts`, `nyePageConfig`):**
 4. Update **`defaultDate`** → the new year's date, e.g. `"2027-12-31"`. (The
@@ -113,12 +116,15 @@ The six confirmed 2026 party times and the live time-based prices are recorded i
 collection now describe those times. **This is a package-preview release, not
 the opening of online sales.**
 
-Before opening sales, fix and verify the actual reservation lengths: the first
+The September 14 duration follow-up implements the approved lengths: the first
 three parties are 90 minutes, 5pm and 7:30pm are 120 minutes, and 10pm is 150
-minutes, ending January 1 at 12:30am. Both live products still report 90 minutes.
-Check availability, soft holds, final lane holds, persisted booking end times,
-checkout confirmation and emails together. A frontend end-time override alone
-does not fix inventory or the reservation record.
+minutes, ending January 1 at 12:30am. The base `durationMinutes` remains 90;
+`durationOverrides` contains the six date/start rules for each product. See
+[the duration handoff](../../Context/session-handoffs/2026-09-14-nye-confirmation-durations.md).
+Before opening sales, verify the backend migration, public rule arrays and
+availability, lane holds, persisted ends, confirmation and calendar together.
+Production was read directly: sales are set to December 1 at midnight Central,
+and the schedules allow December 31, 2026 only. This release preserves those gates.
 
 The live pizza and soda fields already use `per_unit_select`, `lane_count`, and
 divisor 1. Keep that behavior: N lanes require N pizza choices and N soda choices,
