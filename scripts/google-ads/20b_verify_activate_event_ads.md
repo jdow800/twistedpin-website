@@ -1,12 +1,20 @@
 # Script 20B: verify the applied changes and activate replacement event ads
 
-Prepared September 14, 2026, after reviewing all 22 `ACCEPTED` results from Script 20. **First Google Ads Preview passed verification; all four replacements are still under review. No activation mutations have run.**
+Prepared September 14, 2026, after reviewing all 22 `ACCEPTED` results from Script 20. **Activation completed and verified September 15, 2026: eight status changes accepted, then all four replacements read back ENABLED and their originals PAUSED. Final Preview: zero changes, zero waiting pairs, four already switched.**
 
 It uses the actual new ad, keyword and sitelink IDs from the successful live run. It verifies the ten keyword destinations, three sitelink destinations and five enabled associations, then reports the approval status of each exact replacement ad. Its only permitted writes are eight possible ad-status updates: enable the four approved replacements and pause their four corresponding originals. It does not rerun Script 20 or create anything.
 
 ## First Preview result
 
-The owner supplied the Preview beginning 2026-09-15T00:26:08.750Z (displayed September 14, 7:26pm). All ten destinations, three sitelinks and five associations were verified. Every replacement was PAUSED / REVIEW_IN_PROGRESS / UNKNOWN; every original was ENABLED. The script planned zero changes, reported four waiting pairs and made no writes. Leave DRY_RUN true and check again after review progresses. No script fix is required.
+The owner supplied the Preview beginning 2026-09-15T00:26:08.750Z (displayed September 14, 7:26pm). All ten destinations, three sitelinks and five associations were verified. Every replacement was PAUSED / REVIEW_IN_PROGRESS / UNKNOWN; every original was ENABLED. The script planned zero changes, reported four waiting pairs and made no writes. No mutations were made at that stage; the review guard preserved the originals until replacements were ready. No script fix was required.
+
+## September 15 activation and final verification
+
+- Ready Preview: `2026-09-15T18:53:56.192Z` (displayed 1:53pm). All reviews were REVIEWED; Birthday was APPROVED, while Corporate Events, Team Outings and Employee Appreciation were APPROVED_LIMITED. Eight changes planned, zero waiting.
+- Live Run: `2026-09-15T18:57:36.182Z` (displayed 1:57pm). All eight exact status-update resource names were individually ACCEPTED, followed by `ACCEPTED: 8 ad status changes`.
+- Final read-only Preview: `2026-09-15T19:05:23.775Z` (displayed 2:05pm). All ten keyword destinations, three sitelink destinations and five enabled associations verified. Every replacement was ENABLED and its original PAUSED; approval statuses were unchanged. Result: **0 status changes, 0 waiting pairs, 4 already switched**. No further writes were planned or made.
+
+The owner supplied the live and readback logs. The rollout is complete; keep DRY_RUN true and do not schedule the script. These logs establish account state, not impressions or performance. They do not contain the policy topics responsible for the three limited approvals.
 
 ## Run it
 
@@ -40,8 +48,8 @@ If a rollback is necessary, restore the corresponding eligible original ad befor
 node --test --test-reporter=spec scripts/google-ads/20b_verify_activate_event_ads.test.cjs
 ```
 
-Tests exercise no-write Preview, exact-ID/status-only scope, approved-limited handling, incomplete/disapproved review, mixed readiness, protected unrelated ads, changed prerequisites, concurrency, atomic rejection, ambiguous timeout and idempotent verification. The tests use mocks; the first Google Ads Preview now verifies the read-only queries and confirms all four current policy reviews are in progress. The live activation mutations remain untested in the account. Its GAQL ID-filter queries explicitly select the referenced IDs, including the sitelink association lookup that failed in the original Script 20.
+Tests exercise no-write Preview, exact-ID/status-only scope, approved-limited handling, incomplete/disapproved review, mixed readiness, protected unrelated ads, changed prerequisites, concurrency, atomic rejection, ambiguous timeout and idempotent verification. All 21 local tests passed before release. The tests use mocks; actual Google Ads Previews verified the read-only queries and pending-review guard. The September 15 live Run accepted all eight activation mutations, and a separate read-only Preview verified all four switched pairs. Its GAQL ID-filter queries explicitly select the referenced IDs, including the sitelink association lookup that failed in the original Script 20.
 
-Record the actual activation date separately from the September 14 URL/sitelink release. If activation is September 14, the first fourteen complete subsequent account days are September 15-28, reviewed September 29 or later. Account timezone is America/New_York. Report purchases/value, event leads, directions and calls separately; improvements are not yet established.
+Activation occurred **September 15**, separately from the September 14 URL/sitelink release. The first fourteen complete subsequent account days for the replacements are **September 16-29**, reviewed **September 30 or later**. Account timezone is America/New_York. Report purchases/value, event leads, directions and calls separately; connect qualified/paid event outcomes where attribution permits. Improvements are not yet established. No monitoring or reminder was scheduled.
 
 See [Script 20 execution record](20_live_2026-09-14.md) for the accepted source changes and rollback preimages.
