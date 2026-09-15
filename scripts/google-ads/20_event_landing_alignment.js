@@ -193,7 +193,7 @@ function readState20() {
     'asset.sitelink_asset.link_text, asset.sitelink_asset.description1, asset.sitelink_asset.description2, ' +
     'asset.sitelink_asset.start_date, asset.sitelink_asset.end_date, asset.sitelink_asset.ad_schedule_targets ' +
     "FROM asset WHERE asset.type = 'SITELINK' AND asset.name LIKE 'TP20 %'");
-  var links = query20('SELECT ad_group_asset.resource_name, ad_group_asset.ad_group, ad_group_asset.asset, ' +
+  var links = query20('SELECT ad_group.id, ad_group_asset.resource_name, ad_group_asset.ad_group, ad_group_asset.asset, ' +
     'ad_group_asset.status FROM ad_group_asset' + where +
     " AND ad_group_asset.field_type = 'SITELINK' AND ad_group_asset.status != 'REMOVED'");
   return { campaigns: campaigns, groups: groups, keywords: keywords, ads: ads, assets: assets, links: links };

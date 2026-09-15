@@ -13,6 +13,16 @@ const adultTerms = ['50th birthday party venue', 'adult birthday party venue', '
 const holidayTerms = ['corporate holiday party venue', 'holiday party venue', 'holiday party venue near me'];
 const iterator = rows => { let index = 0; return { hasNext: () => index < rows.length, next: () => rows[index++] }; };
 
+// Replay the live Google Ads error from the September 14 Preview. This is a
+// narrow referenced-ID check, not a complete GAQL or Google API validator.
+function validateReferencedAdGroupId(sql) {
+  const select = sql.match(/^SELECT ([\s\S]+?) FROM /)[1].split(',').map(field => field.trim());
+  const where = sql.split(' WHERE ')[1] || '';
+  if (/\bad_group\.id\b/.test(where) && !select.includes('ad_group.id')) {
+    throw new Error("QueryError.EXPECTED_REFERENCED_FIELD_IN_SELECT_CLAUSE: 'ad_group.id'");
+  }
+}
+
 function fixture() {
   const env = { logs: [], submissions: [], customerId: '577-897-4265', currency: 'USD', preview: false, status: 200,
     queries: [], reads: 0, reject: false, requestThrows: false };
@@ -64,6 +74,7 @@ function fixture() {
         getExecutionInfo: () => ({ isPreview: () => env.preview }),
         search: sql => {
           env.queries.push(sql); env.reads++;
+          validateReferencedAdGroupId(sql);
           const table = sql.match(/ FROM (\w+)/)[1];
           const key = { campaign: 'campaigns', ad_group: 'groups', keyword_view: 'keywords', ad_group_ad: 'ads', asset: 'assets', ad_group_asset: 'links' }[table];
           assert.ok(key, sql);
@@ -130,6 +141,18 @@ test('dry run and Google Preview do not invoke any mutator', () => {
     assert.deepEqual(env.state, before); assert.equal(env.submissions.length, 0);
     assert.ok(env.logs.includes('PREFLIGHT PASSED | planned operations: 22'));
   }
+});
+
+test('all ad-group-filtered queries select the referenced ID; the original sitelink query is rejected', () => {
+  const env = fixture(); env.run();
+  const queries = env.queries.filter(sql => / WHERE ad_group\.id\b/.test(sql));
+  assert.equal(queries.length, 3);
+  queries.forEach(sql => assert.doesNotThrow(() => validateReferencedAdGroupId(sql)));
+  const sitelink = queries.find(sql => sql.includes(' FROM ad_group_asset '));
+  assert.ok(sitelink);
+  const original = sitelink.replace('SELECT ad_group.id, ', 'SELECT ');
+  assert.throws(() => validateReferencedAdGroupId(original), /EXPECTED_REFERENCED_FIELD_IN_SELECT_CLAUSE/);
+  assert.equal(env.submissions.length, 0);
 });
 
 test('live plan applies exactly ten routes, five associations and four paused ads; rerun is a no-op', () => {

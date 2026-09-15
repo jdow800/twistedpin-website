@@ -1,6 +1,8 @@
 # Script 20: connect event searches to the new landing pages
 
-Prepared September 14, 2026. **Not run in Google Ads.**
+Prepared September 14, 2026. **First Preview stopped read-only; no live changes applied.** The corrected version needs another Preview.
+
+September 14 Preview correction: Jon's log (`2026-09-15T00:01:42.983Z`) reported `EXPECTED_REFERENCED_FIELD_IN_SELECT_CLAUSE` for `ad_group.id` in the sitelink-association lookup. That query filtered on the ID but omitted it from SELECT. Added the ID to that query; the other two lookups using the same ad-group filter already select it. A regression test reproduced the original failure, and all 28 local tests pass with the correction. The original mocks did not validate this GAQL requirement. Replace the script text with the corrected file, keep `DRY_RUN = true`, and Preview again. No rollback is needed for the failed read-only run.
 
 This is a standalone Google Ads script for Twisted Pin, account **577-897-4265**. It follows the completed September 13 Script 19 cleanup. Do not rerun or replace Script 19. It neither changes paid budgets nor launches the proposed craft-beer, karaoke/Singo or NYE tests.
 
@@ -28,7 +30,7 @@ The holiday keywords are `[corporate holiday party venue]`, `[holiday party venu
 4. After reviewing the actual account plan, set `DRY_RUN = false`, save and click **Run** once. Google Preview remains read-only even when this flag is false. Do not schedule recurring runs.
 5. Check both **Logs and Changes**. Each accepted operation logs its returned resource name. Set `DRY_RUN` back to `true` and Preview again to check fresh state. Unchanged completed items should produce zero planned operations.
 
-A Preview is a read-only account/configuration check, **not** a server-side validation of the mutations or an ad-policy approval. This implementation has not yet been tested in the live Ads runtime. If any expected campaign, ad group, keyword, URL or tracking source differs, the script stops before submitting changes instead of guessing.
+A Preview is a read-only account/configuration check, **not** a server-side validation of the mutations or an ad-policy approval. The initial Google Ads Preview reached the sitelink-association query before failing; the corrected version still needs a fresh Preview. Live mutations and policy acceptance remain unverified. If any expected campaign, ad group, keyword, URL or tracking source differs, the script stops before submitting changes instead of guessing.
 
 The live mutations are sent in one request with `partialFailure: false`; Google documents this as an atomic batch. A timeout or transport failure can leave the client uncertain whether the server applied the request. Do not infer failure or success from that exception: inspect Changes and Preview fresh state before retrying. The script also checks every returned result, rather than treating a non-throwing call as success.
 
@@ -83,6 +85,7 @@ Official references checked September 14, 2026:
 - [Keyword-specific landing pages](https://support.google.com/google-ads/answer/6371202?hl=en)
 - [Google Ads Scripts mutate and atomic batches](https://developers.google.com/google-ads/scripts/docs/concepts/mutate)
 - [MutateResult: inspect success and errors](https://developers.google.com/google-ads/scripts/docs/reference/adsapp/adsapp_mutateresult)
+- [Referenced-field query error](https://developers.google.com/google-ads/api/reference/rpc/v25/QueryErrorEnum.QueryError)
 - [Sitelink asset creation](https://developers.google.com/google-ads/api/samples/add-sitelinks)
 - [Responsive search ad creation](https://developers.google.com/google-ads/api/docs/responsive-search-ads/create-responsive-search-ads)
 - [Alcohol policy troubleshooting](https://support.google.com/adspolicy/answer/16428720?hl=en)
