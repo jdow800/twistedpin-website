@@ -1,6 +1,6 @@
 # Script 20: connect event searches to the new landing pages
 
-Prepared September 14, 2026. **Corrected Preview passed; Jon reports completing the live Run.** Final acceptance and fresh account state remain unverified. See [execution record](20_live_2026-09-14.md).
+Prepared and applied September 14, 2026. **All 22 operations were accepted in the supplied live log.** The four new RSAs were created paused. Fresh readback, policy approval and activation are the next step via [Script 20B](20b_verify_activate_event_ads.md). See [execution record](20_live_2026-09-14.md).
 
 September 14 Preview correction: Jon's log (`2026-09-15T00:01:42.983Z`) reported `EXPECTED_REFERENCED_FIELD_IN_SELECT_CLAUSE` for `ad_group.id` in the sitelink-association lookup. That query filtered on the ID but omitted it from SELECT. Added the ID to that query; the other two lookups using the same ad-group filter already select it. A regression test reproduced the original failure, and all 28 local tests pass with the correction. The original mocks did not validate this GAQL requirement. The corrected Preview subsequently passed and printed the complete expected 22-operation plan. No rollback is needed for the failed read-only run.
 
@@ -30,7 +30,7 @@ The holiday keywords are `[corporate holiday party venue]`, `[holiday party venu
 4. After reviewing the actual account plan, set `DRY_RUN = false`, save and click **Run** once. Google Preview remains read-only even when this flag is false. Do not schedule recurring runs.
 5. Check both **Logs and Changes**. Each accepted operation logs its returned resource name. Set `DRY_RUN` back to `true` and Preview again to check fresh state. Unchanged completed items should produce zero planned operations.
 
-A Preview is a read-only account/configuration check, **not** a server-side validation of the mutations or an ad-policy approval. The corrected Google Ads Preview passed and its full 22-operation plan was reviewed. Jon reports completing the subsequent live Run; the acceptance log and fresh-state checks remain pending. Ad policy approval and activation remain unverified. If any expected campaign, ad group, keyword, URL or tracking source differs, the script stops before submitting changes instead of guessing.
+A Preview is a read-only account/configuration check, **not** a server-side validation of the mutations or an ad-policy approval. The corrected Google Ads Preview passed and its full 22-operation plan was reviewed. The subsequent live log confirms acceptance of all 22 mutations. Fresh-state checks, ad policy approval and activation remain unverified. If any expected campaign, ad group, keyword, URL or tracking source differs, the script stops before submitting changes instead of guessing.
 
 The live mutations are sent in one request with `partialFailure: false`; Google documents this as an atomic batch. A timeout or transport failure can leave the client uncertain whether the server applied the request. Do not infer failure or success from that exception: inspect Changes and Preview fresh state before retrying. The script also checks every returned result, rather than treating a non-throwing call as success.
 
@@ -49,7 +49,7 @@ The birthday group currently mixes adult, generic birthday and other celebration
 
 Suite copy is semi-private and capacity wording distinguishes up to 80 in the suite from up to 200 with a full-venue buyout. Corporate, team and appreciation drafts retain craft-cocktail messaging. They do not promise automatic whole-suite exclusivity or an all-night reservation.
 
-**The script does not activate the drafts.** After reviewing the actual copies and Google's policy status, enable the intended replacement in each group and confirm it is eligible to serve before pausing its corresponding old ad. The log records each old source ad and every new ad resource name. This preserves the recently cleared Corporate ad until the replacement is ready. Ads classified as alcohol information may be Eligible (Limited); that label alone is not a disapproval and is not a reason to misrepresent the offering.
+**Script 20 does not activate the drafts.** The exact-ID verification/activation step is now prepared as [Script 20B](20b_verify_activate_event_ads.md). After reviewing the actual copies and Google's policy status, enable the intended replacement in each group and confirm it is eligible to serve before pausing its corresponding old ad. The log records each old source ad and every new ad resource name. This preserves the recently cleared Corporate ad until the replacement is ready. Ads classified as alcohol information may be Eligible (Limited); that label alone is not a disapproval and is not a reason to misrepresent the offering.
 
 ## Safeguards and measurement
 
