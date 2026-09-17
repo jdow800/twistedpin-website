@@ -21,7 +21,7 @@ import {
   type CogsBucket,
 } from "../api";
 import { matchSkus } from "../matcher";
-import InvoiceReview, { jumpToInvoiceLine } from "./InvoiceReview";
+import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
 function parseSizeMl(sizeText: string | null): number | null {
@@ -82,6 +82,7 @@ export default function Invoices({
   const [reextractMsg, setReextractMsg] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
   const [clearMsg, setClearMsg] = useState<string | null>(null);
+  const [costRefreshMsg, setCostRefreshMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -148,8 +149,9 @@ export default function Invoices({
     try {
       const fresh = await getInvoiceDetail(invoiceId);
       setDetail((d) => (d && d.invoice.id === invoiceId ? fresh : d));
+      setCostRefreshMsg(null);
     } catch {
-      // A stale panel is better than a blank one; the next open re-reads it.
+      setCostRefreshMsg("Saved, but the cost breakdown could not refresh. Reopen this invoice to see the updated amounts.");
     }
   }
 
@@ -167,6 +169,7 @@ export default function Invoices({
     setDetailLoading(true);
     setReextractMsg(null);
     setClearMsg(null);
+    setCostRefreshMsg(null);
     try {
       setDetail(await getInvoiceDetail(id));
     } catch {
@@ -262,6 +265,7 @@ export default function Invoices({
         </p>
         <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
         {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
+        {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">
           <div><span className="lq-muted">Printed total</span><strong>{money(inv.printedTotal)}</strong></div>
           <div><span className="lq-muted">Total read from lines</span><strong>{money(inv.extractedTotal)}</strong></div>
@@ -292,6 +296,9 @@ export default function Invoices({
                 {l.sizeText && <span>· {l.sizeText}</span>}
                 {l.qtyUnits && <span>· {Number(l.qtyUnits)} × {money(l.unitCost)}</span>}
               </div>
+              {Number(l.shortageAmount ?? 0) > 0 && (
+                <p className="lq-muted">Product cost after shortage: {money(l.receivedAmount ?? null)}. {money(l.shortageAmount ?? null)} not delivered.</p>
+              )}
               {l.needsReview && l.lineType === "product" && (
                 <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
               )}
@@ -302,7 +309,9 @@ export default function Invoices({
                 <p className="lq-invd-annot">
                   ✍️ {l.annotation}
                   <span className="lq-invd-annot-hint">
-                    — printed numbers were kept. Count the shelf and record what actually arrived.
+                    {reviewAnnotationFor(l)
+                      ? " — printed numbers were kept. Record how much of this item actually arrived; enter 0 if none was delivered."
+                      : " — deposit return note, kept for reference."}
                   </span>
                 </p>
               )}
@@ -310,7 +319,7 @@ export default function Invoices({
                 <ReceivedControl
                   invoiceId={detail.invoice.id}
                   line={l}
-                  onChanged={(lineId, receivedQty) =>
+                  onChanged={(lineId, receivedQty) => {
                     setDetail((d) =>
                       !d
                         ? d
@@ -320,8 +329,9 @@ export default function Invoices({
                               x.id === lineId ? { ...x, receivedQty: receivedQty == null ? null : String(receivedQty) } : x,
                             ),
                           },
-                    )
-                  }
+                    );
+                    void refreshBuckets(detail.invoice.id);
+                  }}
                 />
               )}
             </div>
@@ -510,6 +520,9 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
         {b.nonGoods !== 0 && (
           <span className="lq-muted">${b.nonGoods.toFixed(2)} deposits/fees, not COGS</span>
         )}
+        {(b.shortageDollars ?? 0) > 0 && (
+          <span className="lq-muted">${b.shortageDollars!.toFixed(2)} not delivered, excluded from product cost</span>
+        )}
       </div>
 
       <div className="lq-buk-rows">
@@ -568,6 +581,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
             : b.totalBasis === "extracted_total"
               ? "Against a total WE computed, not one printed on the invoice — deposits and fees were removed first."
               : "No invoice total on file, so only matched lines are counted."}
+        {(b.shortageDollars ?? 0) > 0 && " Confirmed delivery shortages were also removed."}
         {b.residualBasis === "vendor_mix" && b.mixVendor && (
           <>
             {" "}
@@ -755,7 +769,7 @@ function ReceivedControl({
   // Someone wrote on this row and nobody has recorded a count yet — open the box
   // rather than making them find it. The alert told them to count; landing on a
   // collapsed link would ask them to go looking for where to put the answer.
-  const [open, setOpen] = useState(() => Boolean(line.annotation) && recorded == null);
+  const [open, setOpen] = useState(() => Boolean(reviewAnnotationFor(line)) && recorded == null);
   const [val, setVal] = useState(recorded == null ? "" : String(recorded));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -778,8 +792,8 @@ function ReceivedControl({
   // since that is the number someone has to take to the rep.
   if (recorded != null && !open) {
     const shortBy = billed - recorded;
-    const unit = line.unitCost == null ? null : Number(line.unitCost);
-    const credit = shortBy > 0 && unit != null ? shortBy * unit : null;
+    const credit = line.shortageAmount != null ? Number(line.shortageAmount)
+      : shortBy > 0 && billed > 0 ? Number(line.extendedAmount) * shortBy / billed : null;
     return (
       <div className="lq-invd-recvd">
         <span className="lq-invd-recvd-flag">
@@ -789,7 +803,9 @@ function ReceivedControl({
               ? `Over by ${+Math.abs(shortBy).toFixed(3)}`
               : `Confirmed all ${billed}`}
         </span>
-        {credit != null && <span className="lq-invd-recvd-credit">credit due {money(credit.toFixed(2))}</span>}
+        {credit != null && credit > 0 && <span className="lq-invd-recvd-credit">
+          {money(credit.toFixed(2))} {line.shortageAmount == null ? "shortfall" : "excluded from product cost"}
+        </span>}
         <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setVal(String(recorded)); setOpen(true); }}>
           change
         </button>
@@ -823,6 +839,7 @@ function ReceivedControl({
         />
         <span className="lq-muted">of {billed} billed</span>
       </label>
+      <p className="lq-muted">Saving a shortage updates stock and product cost. The original invoice stays on file.</p>
       <div className="lq-invd-recvd-actions">
         <button
           type="button"

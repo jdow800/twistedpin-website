@@ -55,6 +55,41 @@ await run('row handwriting is visible and opens an unfilled received-quantity co
   assert.match(doc.querySelector('.lq-invd-review').textContent,/One keg short/);
   assert.equal(doc.querySelector('.lq-invd-recvd input').value,'');assert.ok(!log().includes('POST'));
 });
+await run('deposit-only invoice keeps its notes without asking for a delivery review','deposit-info',async({doc,log})=>{
+  assert.ok(!doc.querySelector('.lq-invd-review'));
+  const deposit=doc.getElementById('inv-line-test-deposit');
+  assert.match(deposit.textContent,/2 empties returned, credit \$40/);
+  assert.match(deposit.textContent,/kept for reference/);
+  assert.ok(!deposit.textContent.includes('Count the shelf'));assert.ok(!log().includes('POST'));
+});
+await run('a deposit return cannot hide a crossed-off full keg','mixed-deposit',async({doc})=>{
+  const panel=doc.querySelector('.lq-invd-review');
+  assert.match(panel.textContent,/Crossed off, not delivered/);
+  assert.ok(!panel.textContent.includes('2 empties returned'));
+  assert.equal(doc.querySelector('.lq-invd-recvd input').value,'');
+  assert.match(doc.getElementById('inv-line-test-keg').textContent,/enter 0 if none was delivered/);
+});
+await run('saving zero delivered refreshes product cost, preserves the bill and can be corrected','marked',async({doc,dom,click,log})=>{
+  const input=doc.querySelector('.lq-invd-recvd input');
+  Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'0');
+  input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+  await click('Save');
+  await until(()=>doc.body.textContent.includes('Product cost after shortage: $0.00'));
+  assert.match(doc.querySelector('.lq-invd-totals').textContent,/\$180.00/);
+  assert.match(doc.querySelector('.lq-buk').textContent,/\$140.00 not delivered, excluded from product cost/);
+  assert.ok(!log().includes('/clear-flag'));
+  await click('change');await click('clear');
+  await until(()=>!doc.body.textContent.includes('Product cost after shortage:'));
+  assert.match(doc.querySelector('.lq-buk').textContent,/\$140.00 estimated/);
+});
+await run('a saved shortage with a failed cost refresh shows a recovery instruction','refresh-failure',async({doc,dom,click})=>{
+  const input=doc.querySelector('.lq-invd-recvd input');
+  Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'0');
+  input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+  await click('Save');
+  await until(()=>doc.querySelector('[role=alert]'));
+  assert.match(doc.querySelector('[role=alert]').textContent,/Saved, but the cost breakdown could not refresh/);
+});
 await run('duplicate explains exclusion and has no confirmation action','duplicate',async({doc,button})=>{
   assert.match(doc.querySelector('.lq-invd-review').textContent,/duplicates invoice ORIGINAL-DEMO/);
   assert.ok(!button(confirm));

@@ -802,6 +802,9 @@ export interface InvoiceLine {
   qtyUnits: string | null;
   unitCost: string | null;
   extendedAmount: string;
+  /** Product amount after a confirmed delivery shortage; original amount stays above. */
+  receivedAmount?: string;
+  shortageAmount?: string;
   /** What actually arrived, when someone said it differed from the bill. null =
    *  nobody has said otherwise, so billed IS received. Never pre-filled — a
    *  confirmed delivery and an unexamined one must not look the same. */
@@ -811,6 +814,8 @@ export interface InvoiceLine {
    *  shelf, because a short marked by the driver is the one discrepancy where
    *  the invoice and the vendor order email agree and are both wrong. */
   annotation: string | null;
+  /** Server triage; null means the source annotation is informational. */
+  reviewAnnotation?: string | null;
   needsReview: boolean;
   matchedName: string | null;
   /** Why this line's COST is waiting on a human — "billed by LB, counted by
@@ -876,6 +881,7 @@ export interface InvoiceBuckets {
   byBucket: Partial<Record<CogsBucket, BucketAmount>>;
   unattributed: number;
   nonGoods: number;
+  shortageDollars?: number;
   matchedDollars: number;
   residualDollars: number;
   residualBasis: "none" | "vendor_mix" | "unattributed";

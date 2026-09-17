@@ -1,4 +1,8 @@
-import { invoiceImageUrl, type InvoiceDetail } from "../api";
+import { invoiceImageUrl, type InvoiceDetail, type InvoiceLine } from "../api";
+
+/** Older API responses remain conservative; an explicit null is informational. */
+export const reviewAnnotationFor = (line: InvoiceLine) =>
+  line.reviewAnnotation === undefined ? line.annotation : line.reviewAnnotation;
 
 export function jumpToInvoiceLine(id: string) {
   const row = document.getElementById(`inv-line-${id}`);
@@ -16,7 +20,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const inv = detail.invoice;
   if (inv.status !== "flagged") return null;
   const notes = inv.reviewNotes ?? inv.handwrittenNotes ?? [];
-  const marked = detail.lines.filter((line) => line.annotation);
+  const marked = detail.lines.filter((line) => reviewAnnotationFor(line));
   const unmatched = detail.lines.filter((line) => line.needsReview);
   const printed = Number(inv.printedTotal);
   const extracted = Number(inv.extractedTotal);
@@ -53,7 +57,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
                   <li key={line.id}>
                     <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine(line.id)}>
                       {line.rawDescription || "View item"}
-                    </button>: {line.annotation}
+                    </button>: {reviewAnnotationFor(line)}
                   </li>
                 ))}
               </ul>
