@@ -18,10 +18,10 @@ import {
   type PrecheckFinding,
   type RetiringSku,
   type VoiceExtractItem,
-  type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
+import { foodCountWarning, foodReviewQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -46,8 +46,8 @@ import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
  *      is what produced 93, 27 and 1 from three case utterances on 2026-07-24
  *   3. a pre-multiplied-looking row → strand it on screen, do not add
  *
- * What is deliberately NOT here: tenths (a bag of fries is not 0.4 of a bag —
- * the unit IS the bag), size_ml, batch prep, kegs, bottled beer.
+ * Fractional cases and packs are valid here. Unlike liquor, the base unit
+ * varies by product and an intermediate package needs its own conversion.
  */
 
 /**
@@ -81,6 +81,8 @@ type Cell = {
   /** Individual containers — the canonical number the server stores. */
   qty: number;
   caseSize: number | null;
+  packs?: number | null;
+  packSize?: number | null;
   source: "grid" | "voice";
   raw?: string;
   /**
@@ -94,19 +96,6 @@ type Cell = {
   none?: boolean;
 };
 type Counts = Record<string, Record<string, Cell>>;
-
-interface ReviewItem {
-  key: string;
-  spoken: string;
-  cases: number;
-  units: number;
-  qty: number;
-  unitsPerCase: number | null;
-  needsCaseSize: boolean;
-  suspectPreMultiplied: boolean;
-  chosenSkuId: string | null;
-  candidates: VoiceMatch[];
-}
 
 type VoiceSegmentResult = { items: VoiceExtractItem[]; error: string | null };
 
@@ -134,15 +123,6 @@ export function splitDisplayName(name: string): [string, string | null] {
   return i < 0 ? [name, null] : [name.slice(0, i), name.slice(i + 2)];
 }
 
-function unitLabel(sku: BarSkuItem | undefined, n: number): string {
-  const u = sku?.countUnit ?? "each";
-  if (n === 1) return u;
-  if (u === "box") return "boxes";
-  if (u === "each") return "each";
-  if (u === "lb" || u === "gal" || u === "bib") return u;
-  return `${u}s`;
-}
-
 /** m:ss, so three minutes reads as 3:00 rather than 180. */
 function mmss(total: number): string {
   const m = Math.floor(total / 60);
@@ -150,8 +130,8 @@ function mmss(total: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-function cellQty(c: { cases: number | null; units: number | null; caseSize: number | null }): number {
-  return round2((c.units ?? 0) + (c.cases ?? 0) * (c.caseSize ?? 0));
+function cellQty(c: Pick<Cell, "cases" | "units" | "caseSize" | "packs" | "packSize">): number {
+  return round2((c.units ?? 0) + (c.cases ?? 0) * (c.caseSize ?? 0) + (c.packs ?? 0) * (c.packSize ?? 0));
 }
 
 function rebuild(lines: OpenCountLine[]): Counts {
@@ -161,12 +141,16 @@ function rebuild(lines: OpenCountLine[]): Counts {
     const cases = l.enteredCases == null ? null : Number(l.enteredCases);
     const caseSize = l.caseSizeAtEntry == null ? null : Number(l.caseSizeAtEntry);
     const qty = Number(l.qtyUnits);
+    const packs = l.enteredPacks == null ? null : Number(l.enteredPacks);
+    const packSize = l.packSizeAtEntry == null ? null : Number(l.packSizeAtEntry);
     zone[l.skuId] = {
       cases,
       caseSize,
+      packs,
+      packSize,
       // Loose = whatever the stored total is beyond the case part, so a resumed
       // draft shows the counter the two numbers they actually typed.
-      units: round2(qty - (cases ?? 0) * (caseSize ?? 0)),
+      units: round2(qty - (cases ?? 0) * (caseSize ?? 0) - (packs ?? 0) * (packSize ?? 0)),
       // A saved 0 was explicit when it was written; resuming must not
       // quietly downgrade it to "never answered".
       none: qty === 0,
@@ -192,6 +176,8 @@ function flatten(counts: Counts): CountLineInput[] {
         rawUtterance: c.raw,
         enteredCases: c.cases || undefined,
         caseSizeAtEntry: c.cases ? c.caseSize : undefined,
+        enteredPacks: c.packs || undefined,
+        packSizeAtEntry: c.packs ? c.packSize : undefined,
       });
     }
   }
@@ -212,6 +198,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [review, setReview] = useState<ReviewItem[] | null>(null);
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const [retryTranscript, setRetryTranscript] = useState<string | null>(null);
   /** A blocking persistence/submit failure. Lives in the FIXED footer, not in
    *  the mic toolbar at the top of the page — the counter who just tapped
    *  Finish or Submit is looking at the bottom of a long shelf list and would
@@ -353,6 +340,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const merged: Cell = {
         cases: next.cases !== undefined ? next.cases : (cur?.cases ?? null),
         units: next.units !== undefined ? next.units : (cur?.units ?? null),
+        packs: next.packs !== undefined ? next.packs : cur?.packs,
+        packSize: next.packSize !== undefined ? next.packSize : cur?.packSize,
         // ⚠ THE EXISTING CELL'S MULTIPLIER WINS. case_size_at_entry is frozen
         // at entry by design and must never be re-read from the catalog: a
         // resumed draft whose SKU had its case size corrected in between would
@@ -361,7 +350,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         // only for a cell that does not exist yet.
         caseSize: cur?.caseSize ?? next.caseSize ?? sku?.unitsPerCase ?? null,
         qty: 0,
-        source: next.source ?? cur?.source ?? "grid",
+        source: next.source ?? "grid",
         raw: next.raw ?? cur?.raw,
         none: next.none ?? cur?.none,
       };
@@ -399,7 +388,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // The cell disappears only when BOTH boxes are genuinely blank and no
     // "none here" is standing behind it. An explicit 0 in the other box is an
     // ANSWER and keeps the cell alive.
-    if (value === null && other === null && !cur?.none) {
+    if (value === null && other === null && !cur?.none && !cur?.packs) {
       clearCell(skuId);
       return;
     }
@@ -417,7 +406,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   function markNone(skuId: string) {
     // units 0 (an answer), cases blank — so the both-blank clear can never
     // fire on it, and the box shows an honest empty rather than a typed 0.
-    writeCell(skuId, { cases: null, units: 0, none: true });
+    writeCell(skuId, { cases: null, packs: null, packSize: null, units: 0, none: true });
   }
 
   function clearCell(skuId: string) {
@@ -441,9 +430,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setCounts((prev) => {
       const zoneCells = { ...(prev[zone] ?? {}) };
       const cur = zoneCells[skuId];
+      // A later correction to the case size must not reinterpret an earlier
+      // entry. Fold a differently-sized incoming case into loose base units.
+      const differentSize = cur?.caseSize != null && caseSize != null && cur.caseSize !== caseSize;
       const merged: Cell = {
-        cases: round2((cur?.cases ?? 0) + cases),
-        units: round2((cur?.units ?? 0) + units),
+        cases: round2((cur?.cases ?? 0) + (differentSize ? 0 : cases)),
+        units: round2((cur?.units ?? 0) + units + (differentSize ? cases * caseSize! : 0)),
+        packs: cur?.packs,
+        packSize: cur?.packSize,
         // A spoken quantity is an explicit answer, including a spoken zero.
         // Same freeze as writeCell: a second voice pass at the same shelf adds
         // to the cell, it does not revalue what is already in it.
@@ -573,10 +567,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (pending.length === 0) return void onTranscript(fullTranscript);
     setVoiceBusy(true);
     setVoiceErr(null);
+    setRetryTranscript(null);
     try {
       const results = await Promise.all(pending.map(([, result]) => result));
       const items = results.flatMap((result) => result.items);
       const error = results.find((result) => result.error != null)?.error;
+      // Replaying a partly successful take would duplicate the items already
+      // offered for Apply. Only a wholly unsuccessful take is retryable.
+      if (items.length === 0) setRetryTranscript(fullTranscript);
       if (items.length > 0) {
         setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
       }
@@ -596,15 +594,21 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!transcript.trim()) return;
     setVoiceBusy(true);
     setVoiceErr(null);
+    setRetryTranscript(null);
     try {
       const items = await extractVoice(transcript, "food");
-      setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
+      if (items.length) setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
+      else {
+        setVoiceErr("Didn't catch any items — try again, or type them in.");
+        setRetryTranscript(transcript);
+      }
     } catch (e) {
       // extractVoice deliberately re-throws the SERVER's message when it has
       // one — "Voice isn't configured" (no ANTHROPIC_API_KEY, a 503) is the
       // common case, and it is not a retry. Swallowing it left the counter
       // tapping a button that would never work, with no way to know why.
       setVoiceErr(voiceErrorMessage(e));
+      setRetryTranscript(transcript);
     } finally {
       setVoiceBusy(false);
     }
@@ -616,46 +620,47 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       spoken: it.spoken,
       cases: it.cases,
       units: it.units,
-      qty: it.qty,
-      unitsPerCase: it.unitsPerCase,
-      needsCaseSize: it.needsCaseSize,
-      suspectPreMultiplied: it.suspectPreMultiplied,
       chosenSkuId: it.match?.id ?? null,
       candidates: it.candidates,
+      spokenUnit: it.spokenUnit ?? null,
+      quantityKnown: it.quantityKnown ?? true,
     }));
   }
 
-  /** The refusals. A row is only applyable once it names ONE item THAT THIS
-   *  SCREEN CAN SHOW, has a case size if cases were spoken, doesn't look
-   *  pre-multiplied, and carries a number above zero.
-   *
-   *  `skuById.has` is not belt-and-braces: the grid only renders rows it can
-   *  find in the FOOD catalog, so applying a SKU outside it would save a line
-   *  the counter cannot see, edit or clear — an invisible row in a submitted
-   *  count. Server-side sectioning makes this rare; this makes it impossible.
-   *
-   *  suspectPreMultiplied is re-derived against the CURRENT case size rather
-   *  than trusted from the server's first pass. When the size was unknown the
-   *  server could not evaluate it (it returned false), so answering "12 per
-   *  case" on a spoken "two cases, twenty-four" would otherwise turn a
-   *  stranded row into an applyable 48. */
-  const preMultiplied = (r: ReviewItem) => {
-    const size = r.unitsPerCase ?? (r.chosenSkuId ? skuById.get(r.chosenSkuId)?.unitsPerCase : null);
-    return r.cases > 0 && size != null && r.units >= size;
+  /** Recalculate from the selected SKU and current answers. Unknown product,
+   * quantity or package size blocks Apply; a large or pre-multiplied-looking
+   * number requires an explicit confirmation. Spoken zero is a valid answer. */
+  const reviewSku = (r: ReviewItem) => r.chosenSkuId ? skuById.get(r.chosenSkuId) : undefined;
+  const reviewQuantity = (r: ReviewItem) => foodReviewQuantity(r, reviewSku(r));
+  const warning = (r: ReviewItem) => {
+    const existing = Object.values(counts).reduce((total, cells) => total + (cells[r.chosenSkuId ?? ""]?.qty ?? 0), 0);
+    // Earlier occurrences in the same take count too; two small entries may
+    // together be an implausible case count.
+    const earlier = (review ?? []).slice(0, (review ?? []).indexOf(r))
+      .filter(x => x.chosenSkuId === r.chosenSkuId)
+      .reduce((total, x) => total + reviewQuantity(x).qty, 0);
+    return foodCountWarning(r, reviewSku(r), existing + earlier);
   };
-  const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId &&
-    skuById.has(r.chosenSkuId) &&
-    !r.needsCaseSize &&
-    !preMultiplied(r) &&
-    (r.units > 0 || r.cases > 0);
+  const applyable = (r: ReviewItem) => reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r));
+
+  function editReview(r: ReviewItem, patch: Partial<ReviewItem>) {
+    setReview(prev => (prev ?? []).map(x => x.key === r.key ? { ...x, largeCountConfirmed: undefined, ...patch } : x));
+  }
+
+  function chooseReviewSku(r: ReviewItem, id: string) {
+    editReview(r, { chosenSkuId: id, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "" });
+  }
 
   function applyReview() {
     if (!review) return;
     for (const r of review) {
       if (!applyable(r)) continue;
-      const caseSize = r.unitsPerCase ?? skuById.get(r.chosenSkuId!)?.unitsPerCase ?? null;
-      addToCell(r.chosenSkuId!, r.cases, r.units, caseSize, r.spoken, takeZoneId ?? zoneId);
+      const q = reviewQuantity(r);
+      const sku = reviewSku(r)!;
+      const raw = `${r.spoken.slice(0, 1600)} [confirmed: ${r.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`;
+      // A SKU whose base unit IS case has one input, not "cases of cases".
+      addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : r.cases,
+        q.units + (sku.countUnit === "case" ? r.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId);
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
@@ -664,7 +669,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   async function answerCaseSize(r: ReviewItem, n: number) {
-    if (!r.chosenSkuId || !(n >= 2)) return;
+    if (!r.chosenSkuId || !Number.isInteger(n) || n < 1 || n > 10000) return;
     try {
       // Persists on the SKU as 'manual', so the ask happens once per item ever
       // and invoice learning will never overwrite it.
@@ -672,7 +677,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       setCatalog((prev) => prev.map((s) => (s.id === r.chosenSkuId ? { ...s, unitsPerCase: n } : s)));
       setReview((prev) =>
         (prev ?? []).map((x) =>
-          x.key === r.key ? { ...x, unitsPerCase: n, needsCaseSize: false } : x,
+          x.chosenSkuId === r.chosenSkuId ? { ...x, largeCountConfirmed: undefined } : x,
         ),
       );
     } catch {
@@ -948,6 +953,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             onClick={() => {
               segExtractsRef.current = new Map();
               setVoiceErr(null);
+              setRetryTranscript(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCapturing(true);
               setZonePicker(false); // an open list would sit there looking live but inert
@@ -1028,7 +1034,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         )}
         {voiceBusy && <span className="lq-muted">reading that back…</span>}
         {voiceErr && <span className="lq-error">{voiceErr}</span>}
+        {retryTranscript && !review?.length && !voiceBusy && (
+          <button type="button" className="lq-linkbtn" onClick={() => void onTranscript(retryTranscript)}>Retry reading this transcript</button>
+        )}
       </div>
+      {!dict.recording && dict.transcript && (review || voiceErr) && (
+        <details className="lq-fc-transcript">
+          <summary>Check the full transcript for anything missing</summary>
+          <p>{dict.transcript}</p>
+        </details>
+      )}
 
       {interrupted && (
         <div className="lq-fc-rev" role="status">
@@ -1055,10 +1070,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </p>
           {review.map((r) => {
             const sku = r.chosenSkuId ? skuById.get(r.chosenSkuId) : undefined;
+            const q = reviewQuantity(r);
+            const caseOnly = sku?.countUnit === "case" && (!r.spokenUnit || /^cases?$/.test(r.spokenUnit));
+            const concern = warning(r);
+            const hits = r.search?.trim() ? catalog.filter(s => r.search!.toLowerCase().split(/\s+/).every(word => s.name.toLowerCase().includes(word))).slice(0, 8) : [];
             return (
               <div key={r.key} className={`lq-fc-rev-row${applyable(r) ? "" : " lq-fc-rev-row-block"}`}>
                 <span className="lq-fc-rev-spoken">“{r.spoken}”</span>
-                {r.candidates.length > 1 && !r.chosenSkuId && (
+                {r.candidates.length > 0 && !r.chosenSkuId && (
                   <div className="lq-fc-rev-pick">
                     <span className="lq-muted">Which one?</span>
                     {r.candidates.map((c) => (
@@ -1066,11 +1085,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         key={c.id}
                         type="button"
                         className="lq-linkbtn"
-                        onClick={() =>
-                          setReview((prev) =>
-                            (prev ?? []).map((x) => (x.key === r.key ? { ...x, chosenSkuId: c.id } : x)),
-                          )
-                        }
+                        onClick={() => chooseReviewSku(r, c.id)}
                       >
                         {c.name}
                       </button>
@@ -1078,22 +1093,40 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                   </div>
                 )}
                 {!r.chosenSkuId && r.candidates.length === 0 && (
-                  <span className="lq-fc-rev-note">not on the sheet — add it below, then say it again</span>
+                  <span className="lq-fc-rev-note">No catalog match. Search for this exact product; a different variety needs its own catalog item.</span>
                 )}
+                <details className="lq-fc-rev-product" open={!r.chosenSkuId}>
+                  <summary>{sku ? "Change product" : "Find product"}</summary>
+                  <input type="search" aria-label={`Find product for ${r.spoken}`} placeholder="Search the food catalog…"
+                    value={r.search ?? ""} onChange={e => editReview(r, { search: e.target.value })} />
+                  {hits.map(s => <button key={s.id} type="button" className="lq-linkbtn" onClick={() => chooseReviewSku(r, s.id)}>{s.name}</button>)}
+                  {r.search?.trim() && hits.length === 0 && <p className="lq-muted">No matching product on file. Leave this item unresolved until the catalog is set up.</p>}
+                </details>
                 {sku && (
-                  <span className="lq-fc-rev-match">
-                    → {sku.name} · {r.cases > 0 ? `${r.cases} case${r.cases === 1 ? "" : "s"}` : ""}
-                    {r.cases > 0 && r.units > 0 ? " + " : ""}
-                    {r.units > 0 ? `${r.units} ${unitLabel(sku, r.units)}` : ""}
-                  </span>
+                  <>
+                    <span className="lq-fc-rev-match">{sku.name}{q.ready ? ` · ${q.qty} ${unitLabel(sku, q.qty)}` : ""}</span>
+                    <div className="lq-fc-rev-quantities">
+                      <label>Cases
+                        <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Cases for ${sku.name}`}
+                          value={r.quantityKnown ? r.cases + (caseOnly ? r.units : 0) : ""} onChange={e => editReview(r, { cases: Math.max(0, Number(e.target.value)), ...(caseOnly ? { units: 0 } : {}), quantityKnown: e.target.value !== "" })} />
+                      </label>
+                      {!caseOnly && <label>{r.spokenUnit ?? unitLabel(sku, 2)}
+                        <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Loose quantity for ${sku.name}`}
+                          value={r.quantityKnown ? r.units : ""} onChange={e => editReview(r, { units: Math.max(0, Number(e.target.value)), quantityKnown: e.target.value !== "" })} />
+                      </label>}
+                    </div>
+                    {!r.quantityKnown && <span className="lq-fc-rev-note">No quantity was heard. Enter it before adding.</span>}
+                  </>
                 )}
-                {r.needsCaseSize && (
+                {sku && q.needsCaseSize && (
                   <div className="lq-fc-rev-ask">
                     <label>
                       How many {unitLabel(sku, 2)} in a case of {sku?.name ?? "this"}?
                       <input
                         type="number"
-                        min={2}
+                        min={1}
+                        max={10000}
+                        aria-label={`Units per case for ${sku.name}`}
                         inputMode="numeric"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") void answerCaseSize(r, Number((e.target as HTMLInputElement).value));
@@ -1104,10 +1137,36 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <span className="lq-muted">Cases aren’t counted until this is answered.</span>
                   </div>
                 )}
-                {r.suspectPreMultiplied && (
-                  <span className="lq-fc-rev-note">
-                    That sounded like it was already multiplied out — type it in instead.
-                  </span>
+                {sku && q.needsUnitChoice && (
+                  <div className="lq-fc-rev-ask">
+                    <span>Was {r.units} part of a case or {unitLabel(sku, 1)}?</span>
+                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { cases: r.cases + r.units, units: 0, unitChoiceConfirmed: true })}>{r.units} cases</button>
+                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { unitChoiceConfirmed: true })}>{r.units} {unitLabel(sku, r.units)}</button>
+                  </div>
+                )}
+                {sku && q.needsUnitSize && (
+                  <div className="lq-fc-rev-ask">
+                    <label>{sku.countUnit === "case" ? `How many ${r.spokenUnit} in one case?` : `How many ${unitLabel(sku, 2)} in one ${r.spokenUnit}?`}
+                      <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
+                        onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) editReview(r, { unitMultiplier: sku.countUnit === "case" ? 1 / n : n }); }}
+                        onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} />
+                    </label>
+                    <span className="lq-muted">{r.units} {r.spokenUnit} heard. The package size must be confirmed.</span>
+                  </div>
+                )}
+                {sku && r.unitMultiplier != null && (
+                  <span className="lq-muted">{r.units} {r.spokenUnit} = {round2(q.units)} {unitLabel(sku, q.units)} <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { unitMultiplier: undefined })}>Change package size</button></span>
+                )}
+                {q.catalogConflict && <span className="lq-fc-rev-note">This product is labeled in cases but also has multiple units per case. Its catalog unit needs correction before adding.</span>}
+                {concern && r.largeCountConfirmed !== concern && (
+                  <div className="lq-fc-rev-ask" role="status">
+                    <span>{concern}</span>
+                    {r.cases > 0 && r.units === 0 && sku?.countUnit !== "case" && <button type="button" className="lq-linkbtn"
+                      onClick={() => editReview(r, { units: r.cases, cases: 0, spokenUnit: null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>
+                      Use {r.cases} {unitLabel(sku, r.cases)}
+                    </button>}
+                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { largeCountConfirmed: concern })}>Keep as entered</button>
+                  </div>
                 )}
                 <button
                   type="button"
@@ -1181,21 +1240,23 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     </button>
                   )}
                 </span>
+                {!!c?.packs && <span className="lq-muted">Includes {c.packs} packs × {c.packSize}, plus the quantities below.</span>}
               </div>
               <div className="lq-fc-row-inputs">
-                {s.unitsPerCase != null && (
+                {(s.countUnit !== "case" || !!c?.cases) && (c?.caseSize ?? s.unitsPerCase) != null && (
                   <label className="lq-fc-row-box">
                     {/* The "× N" chip is what tells a MULTIPLIER box apart from a
                         loose box that happens to be counted in cases. Without it
                         two different boxes both read "cases". */}
                     <span className="lq-fc-row-lab">
-                      cases <span className="lq-fc-row-mult">×{s.unitsPerCase}</span>
+                      cases <span className="lq-fc-row-mult">×{c?.caseSize ?? s.unitsPerCase}</span>
                     </span>
                     <input
                       type="number"
                       inputMode="decimal"
                       min={0}
                       step="any"
+                      aria-label={`${s.name}: cases`}
                       value={c?.cases ?? ""}
                       onFocus={keepInView}
                       onChange={(e) => editBox(s.id, "cases", e.target.value, s.unitsPerCase)}
@@ -1209,6 +1270,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     inputMode="decimal"
                     min={0}
                     step="any"
+                    aria-label={`${s.name}: loose ${unitLabel(s, 2)}`}
                     value={c?.units ?? ""}
                     onFocus={keepInView}
                     onChange={(e) => editBox(s.id, "units", e.target.value, null)}

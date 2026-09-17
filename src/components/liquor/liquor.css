@@ -2120,6 +2120,27 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.lq-fc-rev-quantities { display: flex; gap: 12px; flex-wrap: wrap; }
+.lq-fc-rev-quantities label { display: flex; flex-direction: column; gap: 4px; }
+.lq-fc-rev-quantities input,
+.lq-fc-rev-product input {
+  box-sizing: border-box;
+  min-height: 44px;
+  width: 7em;
+  max-width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  color: inherit;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 8px;
+}
+.lq-fc-rev-product input { width: 100%; margin: 6px 0; }
+.lq-fc-rev-product .lq-linkbtn { display: block; min-height: 44px; text-align: left; }
+.lq-fc-rev-product summary, .lq-fc-transcript summary { cursor: pointer; padding: 8px 0; }
+.lq-fc-transcript { font-size: 14px; overflow-wrap: anywhere; }
+.lq-fc-rev-ask .lq-linkbtn { align-self: flex-start; min-height: 44px; text-align: left; }
+.lq-fc-rev-ask input { min-height: 44px; box-sizing: border-box; }
 /* The grid. One row per item; cases box only when a case size is known, so the
    screen never invites a multiplier it cannot justify. */
 /* ── the food count screen, sized for a phone in a walk-in ─────────────────
