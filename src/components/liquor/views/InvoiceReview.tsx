@@ -40,9 +40,9 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
                 {notes.map((note, index) => <li key={index}>{note}</li>)}
               </ul>
               <p>{emptyKegNotes
-                ? "These notes mention empty-keg returns. Check the deposit credit against the original receipt and the vendor's credit. Update a delivered quantity below only if full kegs were missing."
+                ? "These notes mention empty-keg returns. Check the number returned, the deposit credit and any revised total. A handwritten final total is the expected vendor charge after their office processes the invoice. Change a delivered quantity below only if full kegs were also missing."
                 : "Compare these notes with the original invoice and what arrived. Record any delivery shortage on the affected item below; check credits with the vendor."}</p>
-              <p className="lq-muted">The totals below show the printed bill. Handwritten adjustments are kept as notes until reviewed; confirming does not enter a credit or change those totals.</p>
+              <p className="lq-muted">The totals below still reflect the original bill. Handwritten adjustments stay attached as notes. Confirming finishes this review; it does not record an adjusted charge or verify the vendor's actual charge.</p>
             </div>
           )}
           {marked.length > 0 && (
@@ -81,13 +81,13 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
         ) : <p className="lq-muted">The image is no longer stored. Use your paper receipt or vendor copy.</p>}
         {!inv.duplicateOf && detail.lines.length > 0 && (
           <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine((unmatched[0] ?? marked[0] ?? detail.lines[0])!.id)}>
-            {unmatched.length ? "Go to items needing a match" : "Check delivered quantities"}
+            {unmatched.length ? "Go to items needing a match" : marked.length || !emptyKegNotes ? "Check delivered quantities" : "Review invoice items"}
           </button>
         )}
       </div>
       {!inv.duplicateOf && unmatched.length === 0 && (
         <div className="lq-invd-review-confirm">
-          <p>Once you have checked the delivery and the notes above, confirm this invoice to finish the review.</p>
+          <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>
             {clearing ? "Confirming…" : "Review complete — confirm invoice"}
           </button>
