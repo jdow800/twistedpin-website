@@ -15,7 +15,7 @@ const item = (id, units, extra = {}) => ({
 let passed = 0;
 async function run(name, test, existing = false) {
   const dom = new JSDOM('<!doctype html><div id="root"></div>',{
-    url:`http://localhost/${existing?'?existing':''}`,runScripts:'outside-only',pretendToBeVisual:true,
+    url:`http://localhost/${typeof existing==='string'?'?'+existing:existing?'?existing':''}`,runScripts:'outside-only',pretendToBeVisual:true,
   });
   dom.window.Response = Response;
   dom.window.scrollTo = () => {};
@@ -39,7 +39,20 @@ async function run(name, test, existing = false) {
     const review = () => [...doc.querySelectorAll('.lq-fc-rev-spoken')].map(e => e.textContent);
     const apply = () => click(/^Add .*Pizza Freezer|^Add .*Kitchen Cooler/);
     const saved = () => qa.calls.filter(c => c.path.endsWith('/lines'));
-    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved});
+    const input = async (label,value) => {
+      const el = [...doc.querySelectorAll('input')].find(el => el.getAttribute('aria-label')===label);
+      assert.ok(el,`Missing input: ${label}`);
+      el.focus();
+      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(el,value);
+      el.dispatchEvent(new dom.window.Event('input',{bubbles:true}));
+      el.dispatchEvent(new dom.window.Event('change',{bubbles:true}));
+      el.blur(); await pause();
+    };
+    const hear = async entries => {
+      await start(); await segment('test transcript',0); qa.extracts.at(-1).succeed(entries); await pause();
+      await stop(); await finish('test transcript');
+    };
+    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved,input,hear});
     passed++; console.log('PASS',name);
   } finally { dom.window.close(); }
 }
@@ -174,5 +187,120 @@ await run('an open submit panel stays blocked through recording, extraction and 
   assert.equal(t.qa.lines.find(l => l.skuId==='dough').qtyUnits,3);
   assert.equal(t.qa.calls.find(c => c.path.endsWith('/submit')).body.isFullCount,false);
 },true);
+
+await run('implausible 30 cases of Aquafina offers 30 bottles and waits for confirmation',async t => {
+  await t.hear([item('water',0,{spoken:'30 cases of Aquafina',cases:30,unitsPerCase:24})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.match(t.doc.body.textContent,/largest count 48/);
+  assert.equal(t.saved().length,0);
+  await t.click('Use 30 bottles');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,30);
+  assert.ok(!t.qa.lines[0].enteredCases);
+});
+
+await run('an unusual but deliberate case count remains available',async t => {
+  await t.hear([item('water',0,{spoken:'30 cases of Aquafina',cases:30,unitsPerCase:24})]);
+  await t.click('Keep as entered');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,720);
+  assert.equal(t.qa.lines[0].enteredCases,30);
+});
+
+await run('four packets need their contents; confirmed 25 per packet saves 100 each',async t => {
+  await t.hear([item('circles',4,{spoken:'four packets of pizza circles',spokenUnit:'packet'})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Package size for Cardboard Pizza Circle 14"','25');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,100);
+  assert.match(t.qa.lines[0].rawUtterance,/four packets/);
+});
+
+await run('five glove boxes convert to half a case only after ten boxes per case is answered',async t => {
+  await t.hear([item('gloves',5,{spoken:'five boxes of gloves',spokenUnit:'box'})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Package size for Glove, Vinyl, Extra Large','10');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,0.5);
+  assert.ok(!t.qa.lines[0].enteredCases);
+});
+
+await run('a bare fraction asks whether the counter meant cases or packs',async t => {
+  await t.hear([item('rice',0.9,{spoken:'Spanish rice point nine',spokenUnit:null})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.click('0.9 cases'); await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,5.4);
+});
+
+await run('choosing a candidate recomputes its case conversion instead of retaining an unknown multiplier',async t => {
+  await t.hear([item('unknown',0,{spoken:'two cases of pretzels',cases:2,match:null,
+    candidates:[{id:'pretzel',name:'Giant Pretzel',unitsPerCase:8,sizeMl:null}]})]);
+  await t.click('Giant Pretzel'); await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,16);
+});
+
+await run('a real one-pack case accepts one and preserves the fractional case',async t => {
+  await t.hear([item('unknown',0,{spoken:'half a case of pepperoni',cases:0.5})]);
+  await t.input('Units per case for Unknown Package','1');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,0.5);
+  assert.equal(t.qa.lines[0].caseSizeAtEntry,1);
+  assert.equal(t.qa.lines[0].enteredCases,0.5);
+});
+
+await run('a missing quantity stays unresolved until entered',async t => {
+  await t.hear([item('dough',0,{spoken:'pizza dough',quantityKnown:false})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Loose quantity for Pizza Dough','2');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,2);
+});
+
+await run('explicit spoken zero is a real answer',async t => {
+  await t.hear([item('dough',0,{spoken:'zero pizza dough',quantityKnown:true})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,0);
+});
+
+await run('a wholly failed take can retry its transcript without another recording',async t => {
+  await t.start(); await t.segment('two dough',0); t.qa.extracts[0].fail('Model temporarily unavailable');
+  await t.stop(); await t.finish('two dough');
+  await t.click('Retry reading this transcript');
+  assert.equal(t.qa.extracts.length,2);
+  assert.equal(t.qa.extracts[1].body.transcript,'two dough');
+  t.qa.extracts[1].succeed([item('dough',2)]); await until(() => t.review().length===1);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,2);
+});
+
+await run('applying a successful segment never enables a full retry that would count it twice',async t => {
+  await t.start(); await t.segment('two dough',0); await t.segment('three pretzels',1);
+  t.qa.extracts[0].succeed([item('dough',2)]); t.qa.extracts[1].fail('Model temporarily unavailable');
+  await t.stop(); await t.finish('two dough. three pretzels');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.button('Retry reading this transcript'),undefined);
+  assert.equal(t.qa.lines[0].qtyUnits,2);
+});
+
+await run('resumed pack provenance survives editing another item',async t => {
+  await t.hear([item('pretzel',3)]); await t.apply(); await until(() => t.saved().length>0);
+  const line=t.qa.lines.find(l => l.skuId==='dough');
+  assert.equal(line.qtyUnits,8); assert.equal(line.enteredPacks,1); assert.equal(line.packSizeAtEntry,6);
+},'packs');
+
+await run('a new case size never revalues cases already counted',async t => {
+  await t.hear([item('dough',0,{spoken:'one case of dough',cases:1,unitsPerCase:20})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines[0].qtyUnits,44);
+  assert.equal(t.qa.lines[0].enteredCases,2);
+  assert.equal(t.qa.lines[0].caseSizeAtEntry,12);
+},'frozen');
+
+await run('manually editing a voice count labels the saved line as grid',async t => {
+  await t.hear([item('dough',2)]); await t.apply(); await until(() => t.saved().length>0);
+  await t.input('Pizza Dough: loose packs','3');
+  await until(() => t.qa.lines[0]?.qtyUnits===3);
+  assert.equal(t.qa.lines[0].source,'grid');
+});
 
 console.log(`${passed} food voice scenarios passed.`);

@@ -133,6 +133,8 @@ export interface BarSkuItem {
    *  cell with it; the liquor grid ignores it because everything there is a
    *  bottle. Optional so older cached bundles keep parsing. */
   countUnit?: string;
+  /** Confirmed observations, used only to ask about an unusually large count. */
+  countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
 }
 export interface BarZoneItem {
   id: string;
@@ -476,6 +478,9 @@ export interface VoiceExtractItem {
   suspectPreMultiplied: boolean;
   match: VoiceMatch | null; // set when exactly one bottle matched
   candidates: VoiceMatch[]; // 2+ when the name was ambiguous (counter picks one)
+  /** Food extraction preserves actual package words; older bar replies omit these. */
+  spokenUnit?: string | null;
+  quantityKnown?: boolean;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
@@ -558,7 +563,7 @@ export async function extractVoice(
   try {
     const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 1 } : {}) }),
     );
     return items;
   } catch (e) {
