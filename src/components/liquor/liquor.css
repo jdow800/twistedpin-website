@@ -1197,6 +1197,36 @@
   display: flex;
   gap: 10px;
 }
+.lq-invd-review {
+  border: 1px solid rgba(255, 207, 92, 0.55);
+  border-left: 4px solid #ffcf5c;
+  border-radius: 9px;
+  background: var(--lq-panel);
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.lq-invd-review h3 { margin: 0 0 12px; font-size: 19px; }
+.lq-invd-review p { margin: 8px 0; }
+.lq-invd-review ul { padding-left: 22px; }
+.lq-invd-review .lq-invd-review-notes {
+  background: var(--lq-panel-2);
+  padding: 12px 12px 12px 32px;
+  border-radius: 7px;
+}
+.lq-invd-review .lq-muted { font-size: 14px; }
+.lq-invd-review-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; }
+.lq-invd-review-actions .lq-btn,
+.lq-invd-review-confirm .lq-btn { white-space: normal; max-width: 100%; }
+.lq-invd-review .lq-linkbtn { font-size: 14px; min-height: 44px; }
+.lq-invd-review-confirm { border-top: 1px solid var(--lq-line); margin-top: 16px; padding-top: 12px; }
+.lq-invd-review-confirm .lq-btn { margin-top: 8px; }
+.lq-invd-line { scroll-margin-top: 24px; }
+.lq-invd-line:focus { outline: 2px solid var(--lq-glow); outline-offset: 3px; }
+.lq-invd-secondary { border-top: 1px solid var(--lq-line); padding-top: 14px; }
+.lq-invd-secondary > summary { cursor: pointer; min-height: 44px; font-size: 16px; font-weight: 700; }
+.lq-invd-secondary > p { font-size: 14px; line-height: 1.5; }
 .lq-invd-totals > div {
   flex: 1;
   background: var(--lq-panel);

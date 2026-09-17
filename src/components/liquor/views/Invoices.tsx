@@ -21,6 +21,7 @@ import {
   type CogsBucket,
 } from "../api";
 import { matchSkus } from "../matcher";
+import InvoiceReview, { jumpToInvoiceLine } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
 function parseSizeMl(sizeText: string | null): number | null {
@@ -146,7 +147,7 @@ export default function Invoices({
     if (!invoiceId) return;
     try {
       const fresh = await getInvoiceDetail(invoiceId);
-      setDetail((d) => (d && d.invoice.id === invoiceId ? { ...d, buckets: fresh.buckets, lines: fresh.lines } : d));
+      setDetail((d) => (d && d.invoice.id === invoiceId ? fresh : d));
     } catch {
       // A stale panel is better than a blank one; the next open re-reads it.
     }
@@ -185,6 +186,7 @@ export default function Invoices({
       const r = await reextractInvoice(detail.invoice.id);
       if (r.ok) {
         setReextractMsg("Re-reading now — check back in about a minute, then reopen it.");
+        setDetail((d) => d ? { ...d, invoice: { ...d.invoice, status: "pending" } } : d);
         getInvoiceHistory().then(setList).catch(() => {});
       } else {
         setReextractMsg(
@@ -216,7 +218,7 @@ export default function Invoices({
       } else {
         setClearMsg(
           r.error === "lines_need_match"
-            ? "Match the bottles below first — those still need a home."
+            ? "Match the highlighted items below first, then confirm the invoice."
             : r.error === "duplicate"
               ? "This is a duplicate of an invoice already on file — it has to stay out of the count."
               : r.error === "not_flagged"
@@ -258,9 +260,11 @@ export default function Invoices({
           {inv.invoiceDate || shortDate(inv.createdAt)} ·{" "}
           <span className={`lq-badge lq-badge-${inv.status}`}>{STATUS_LABEL[inv.status]}</span>
         </p>
+        <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
+        {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
         <div className="lq-invd-totals">
-          <div><span className="lq-muted">Printed</span><strong>{money(inv.printedTotal)}</strong></div>
-          <div><span className="lq-muted">Extracted</span><strong>{money(inv.extractedTotal)}</strong></div>
+          <div><span className="lq-muted">Printed total</span><strong>{money(inv.printedTotal)}</strong></div>
+          <div><span className="lq-muted">Total read from lines</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
 
         {totalsDelta >= 0.01 && (
@@ -270,35 +274,10 @@ export default function Invoices({
           </p>
         )}
 
-        {(inv.status === "flagged" || inv.status === "extracted") && (
-          <div className="lq-invd-reextract">
-            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
-              {reextracting ? "Re-reading…" : "Re-extract"}
-            </button>
-            <span className="lq-muted lq-invd-reextract-hint">
-              {reextractMsg ?? "Re-read the image with the latest logic."}
-            </span>
-          </div>
-        )}
-
-        {inv.status === "flagged" && !detail.lines.some((l) => l.needsReview) && (
-          <div className="lq-invd-clear">
-            <button type="button" className="lq-btn" disabled={clearing} onClick={doClearFlag}>
-              {clearing ? "Confirming…" : "Counted it — confirm invoice"}
-            </button>
-            <span className="lq-muted lq-invd-clear-hint">
-              {clearMsg ??
-                "Every bottle is matched. Confirm once you have checked what actually arrived — until then this invoice is left out of your next variance report."}
-            </span>
-          </div>
-        )}
-
-        <BucketPanel detail={detail} />
-
-        <h3 className="lq-cap-title">Lines <span className="lq-cap-n">{detail.lines.length}</span></h3>
+        <h3 className="lq-cap-title">Invoice items <span className="lq-cap-n">{detail.lines.length}</span></h3>
         <div className="lq-invd-lines">
           {detail.lines.map((l) => (
-            <div key={l.id} id={`inv-line-${l.id}`} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
+            <div key={l.id} id={`inv-line-${l.id}`} tabIndex={-1} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
               <div className="lq-invd-line-main">
                 <span className="lq-invd-desc">{l.rawDescription || "—"}</span>
                 <span className="lq-invd-amt">{money(l.extendedAmount)}</span>
@@ -349,7 +328,20 @@ export default function Invoices({
           ))}
         </div>
 
-        <h3 className="lq-cap-title">Pages</h3>
+        <details className="lq-invd-secondary">
+          <summary>Cost categories and estimates</summary>
+          <p className="lq-muted">This shows where purchases are assigned. These estimates are separate from the delivery review above.</p>
+          <BucketPanel detail={detail} />
+        </details>
+
+        {!!inv.handwrittenNotes?.length && (
+          <details className="lq-invd-secondary">
+            <summary>All handwritten notes from the scan</summary>
+            <ul>{inv.handwrittenNotes.map((note, i) => <li key={i}>{note}</li>)}</ul>
+          </details>
+        )}
+
+        <h3 className="lq-cap-title">Original invoice</h3>
         {detail.images.length === 0 ? (
           <p className="lq-muted">Image removed (kept 30 days) — the read above stays on file.</p>
         ) : (
@@ -366,6 +358,15 @@ export default function Invoices({
               ),
             )}
           </div>
+        )}
+        {(inv.status === "flagged" || inv.status === "extracted") && (
+          <details className="lq-invd-secondary">
+            <summary>Was the image read incorrectly?</summary>
+            <p className="lq-muted">Read the stored image again if the item descriptions or amounts were misread. This does not confirm delivery.</p>
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
+              {reextracting ? "Re-reading…" : "Read invoice again"}
+            </button>
+          </details>
         )}
       </div>
     );
@@ -462,10 +463,13 @@ const BUCKET_LABEL: Record<string, string> = {
 function BucketPanel({ detail }: { detail: InvoiceDetail }) {
   /** Jump to the line row, which already carries the match control. No new
    *  state and no second way to do the same job. */
-  const jump = (lineId: string) => {
-    const el = document.getElementById("inv-line-" + lineId);
-    el?.scrollIntoView({ block: "center", behavior: "smooth" });
-  };
+  const canMatch = (lineId: string) => detail.lines.some((line) =>
+    line.id === lineId && line.lineType === "product" && line.needsReview);
+  const action = (lineId: string) => (
+    <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine(lineId)}>
+      {canMatch(lineId) ? "Match product" : "View item"}
+    </button>
+  );
   const b = detail.buckets;
   if (!b) return null;
   const rows = (Object.keys(b.byBucket) as CogsBucket[])
@@ -576,7 +580,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
       {attentionCount > 0 && (
         <div className="lq-buk-att">
           <p className="lq-buk-att-h">
-            {attentionCount} to check
+            {attentionCount} cost categor{attentionCount === 1 ? "y detail" : "y details"}
           </p>
 
           {att.supplierOnly.map((l) => (
@@ -587,20 +591,16 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
                 the vendor calls this {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours?
               </span>
               <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
-              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
-                match it
-              </button>
+              {action(l.lineId)}
             </div>
           ))}
 
           {att.unresolved.map((l) => (
             <div key={l.lineId} className="lq-buk-att-row">
               <span className="lq-buk-att-desc">{l.description || "—"}</span>
-              <span className="lq-buk-att-note">nobody knows what this is — it is being estimated</span>
+              <span className="lq-buk-att-note">No catalog category is assigned. Its cost category is estimated from vendor history when available.</span>
               <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
-              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
-                match it
-              </button>
+              {action(l.lineId)}
             </div>
           ))}
 

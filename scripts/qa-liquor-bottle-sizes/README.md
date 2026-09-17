@@ -19,3 +19,12 @@ Eight DOM scenarios verify size labels, recent-delivery evidence, preserving cou
 For a real mobile layout check, run `node serve.mjs` and open `http://127.0.0.1:4177` at 390px wide. Use `?mode=invoice` for matching, or `?mode=save-failure`, `?mode=check-failure`, and `?mode=old-api` for failure/compatibility paths. Stop the server with Ctrl+C.
 
 The automated check uses jsdom and makes no visual-layout claim. A real microphone/LLM extraction run also remains separate from these deterministic tests. Backend tests live in `apps/backend/src/bar/voice-extraction.test.ts`, `recent-bottle-size.test.ts`, and `apps/backend/src/admin/bar-bottle-size-precheck.test.ts` in TPRS.
+
+Invoice review uses the same isolated dependencies and the actual `Invoices` screen:
+
+```powershell
+node serve.mjs --invoices --build-only
+node check-invoices.mjs
+```
+
+The fixture uses fictional invoices and intercepts all reads and writes. It checks handwriting visibility, original-image access, credit guidance, category/action separation, explicit confirmation and failure, missing matches, item annotations, duplicates, total differences, legacy responses, missing images, re-reading, and escaped scan text. `node serve.mjs --invoices` serves the same fixture for a separate browser layout check.

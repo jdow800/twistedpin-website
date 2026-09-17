@@ -897,7 +897,14 @@ export interface InvoiceBuckets {
 }
 
 export interface InvoiceDetail {
-  invoice: InvoiceSummary & { extractedTotal: string | null; printedProductTotal?: string | null };
+  invoice: InvoiceSummary & {
+    extractedTotal: string | null;
+    printedProductTotal?: string | null;
+    handwrittenNotes?: string[] | null;
+    /** Same triage as the extraction alert; routine sign-offs remain in the source notes. */
+    reviewNotes?: string[];
+    duplicateOf?: string | null;
+  };
   lines: InvoiceLine[];
   images: InvoiceImageRef[];
   buckets: InvoiceBuckets;
