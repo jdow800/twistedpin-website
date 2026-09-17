@@ -135,7 +135,7 @@ export default defineConfig({
       // it here because the backend's Fastify routes are no-trailing-slash.
       proxy: {
         '/tprs-api': {
-          target: 'http://localhost:3000',
+          target: process.env.TPRS_DEV_PROXY_TARGET ?? 'http://localhost:3000',
           changeOrigin: true,
           rewrite: (p) =>
             p.replace(/^\/tprs-api/, '').replace(/\/(\?|$)/, '$1'),

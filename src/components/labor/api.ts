@@ -59,6 +59,27 @@ export interface LaborActor {
   permissions: string[];
 }
 
+export interface ReviewResponse {
+  decision: "keep" | "adjust" | "data_wrong" | "ask_owner";
+  context: string[]; note: string; action: string; followUpDate: string;
+  outcome: string; status: "follow_up" | "closed";
+}
+export interface ReviewQuestion {
+  id: string; date: string; title: string; prompt: string;
+  kind: "coverage" | "data_check"; evidence: string[]; sources: string[];
+  followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
+  history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
+}
+export interface LaborReview {
+  id: string;
+  packet: {weekStart:string;basisNotes:string;generatedAt:string};
+  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
+  questions: ReviewQuestion[];
+}
+export const listReviews=()=>call<{reviews:{id:string;weekStart:string;open:number}[]}>("/admin/labor/reviews").then(r=>r.reviews);
+export const getReview=(id:string)=>call<LaborReview>(`/admin/labor/reviews/${encodeURIComponent(id)}`);
+export const saveReviewResponse=(id:string,body:{questionId:string;expectedRevision:number;response?:ReviewResponse;undo?:boolean})=>call<LaborReview>(`/admin/labor/reviews/${encodeURIComponent(id)}/response`,{method:"POST",body:JSON.stringify(body)});
+
 /**
  * `one_off`    — a FACT ("that was training"). Leaves the baseline.
  * `new_normal` — a CLAIM arguing staffing UP. Moves no number.

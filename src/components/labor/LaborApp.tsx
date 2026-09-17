@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 // same way money.css does.
 import "./labor.css";
 import Login from "./views/Login";
+import ReviewPilot from "./ReviewPilot";
 // JS-only cross-import is fine (it bundles to a normal shared chunk, verified in
 // the deployed build) and duplicating 350 lines of subtle Android speech
 // workarounds would only invite drift.
@@ -60,6 +61,7 @@ const CATEGORIES: { value: NoteCategory; label: string }[] = [
 ];
 
 export default function LaborApp() {
+  const pilot = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pilot") === "1";
   const [view, setView] = useState<View>("loading");
   const [, setActor] = useState<LaborActor | null>(null);
   const [days, setDays] = useState<FlaggedDay[]>([]);
@@ -76,13 +78,13 @@ export default function LaborApp() {
     try {
       const me = await getMe();
       setActor(me);
-      await load();
+      if (!pilot) await load();
       setView("home");
     } catch (e) {
       if (e instanceof ForbiddenError) setView("forbidden");
       else setView("login");
     }
-  }, [load]);
+  }, [load, pilot]);
 
   useEffect(() => { void bootstrap(); }, [bootstrap]);
 
@@ -125,6 +127,7 @@ export default function LaborApp() {
     );
 
   const unanswered = days.filter((d) => d.depts.some((x) => !x.note));
+  if (pilot) return chrome(<ReviewPilot />, true);
   const answered = days.filter((d) => d.depts.every((x) => x.note));
 
   return chrome(

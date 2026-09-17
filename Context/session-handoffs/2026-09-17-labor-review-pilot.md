@@ -1,0 +1,11 @@
+# Labor review pilot — implementation, not deployed
+
+The existing `/labor` application now has an opt-in `?pilot=1&review=<uuid>` view. It reuses the PIN login and same-origin API. A weekly metric with an explicit wage/salary basis leads into at most three saved questions. Context, staffing decision, next action and later outcome are separate; every saved revision survives a reload. The GM can edit/undo, dispute the comparison or request owner input without an automatic notification. Questions remain available after the old email window ends.
+
+Backend companion: TPRS `codex/labor-v2-pilot`, `docs/labor-review-pilot.md`, migration 0182 and flag `LABOR_REVIEW_PILOT`. Default production behavior remains unchanged. `TPRS_DEV_PROXY_TARGET` changes only the Astro development proxy for the isolated localhost harness. The labor page omits the marketing drawer to avoid its offscreen shadow over staff controls; the optional Base prop defaults false for all other pages.
+
+Browser QA uses the real PIN/API/PostgreSQL path, not response mocks. It verifies mobile form/readback, save/reopen, editing, stale-tab rejection, undo, recorded outcome, retained history, and no horizontal overflow at 320/390/736/1280. Screenshots were visually reviewed; an initial dark-on-dark heading was corrected. Script: `scripts/labor-review-pilot-qa.cjs`; private inputs/screenshots stay in the financial-review project. Dictation uses the existing hook with typing fallback; actual microphone/phone verification remains for the trial.
+
+Website TypeScript reports six diagnostics in unchanged reservation/estimate files (ConfirmationStep missing import, DetailStep ref type, PaymentStep nullable value, estimate/track header types). No pilot-file type errors were reported. Backend focused tests and TypeScript pass. Full Website deployment validation remains required; nothing was pushed to main or deployed by this work.
+
+The real September 7–13 packet withholds labor % for source gaps instead of presenting missing wages as zero. Sources and payroll-basis findings are recorded privately in TP F's. The emailed review link and page use the same frozen question packet. Weekly generation, dispatch, mandatory deadlines and automated owner escalation are not enabled.

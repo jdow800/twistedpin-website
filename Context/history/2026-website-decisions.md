@@ -483,3 +483,6 @@ subscriptions omitted refund.created. Jon approved continuing and that exact sub
 was added. The private loopback harness can select a separate second trial packet using
 --refund-retest; it preserves the first used code and evidence, and all existing gates.
 No public Website changes or push. The second owner payment is a manual browser action.
+## 2026-09-17 — Labor review pilot (local; not deployed)
+
+Opt-in /labor/?pilot=1 reuses the staff PIN/API with a weekly metric and persistent question/answer/action/outcome cards. Added local proxy override and a staff-page drawer opt-out; other pages retain their defaults. Browser tests verify actual local persistence and mobile layout. Source reconciliation and real GM phone trial precede activation. See Context/session-handoffs/2026-09-17-labor-review-pilot.md.

@@ -23,6 +23,8 @@ interface Props {
   hideStickyCTA?: boolean;
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
+  /** Staff apps can omit the marketing drawer and its offscreen shadow. */
+  hideNavDrawer?: boolean;
   /** Hide the floating PromoBar (staff/utility pages like /liquor where a
    *  marketing promo pill doesn't belong and would float over the app). */
   hidePromo?: boolean;
@@ -91,6 +93,7 @@ const {
   ogType = "website",
   hideStickyCTA = false,
   hideHeader = false,
+  hideNavDrawer = false,
   hidePromo = false,
   lockViewportZoom = false,
   lcpPreloadHref,
@@ -428,7 +431,7 @@ const webPage = webPageSchema({
       <slot />
     </main>
 
-    <NavDrawer />
+    {!hideNavDrawer && <NavDrawer />}
     {!hideStickyCTA && <StickyCTABar />}
     {!hidePromo && <PromoBar />}
 
