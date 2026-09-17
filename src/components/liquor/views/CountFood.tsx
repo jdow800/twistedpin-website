@@ -108,6 +108,14 @@ interface ReviewItem {
   candidates: VoiceMatch[];
 }
 
+type VoiceSegmentResult = { items: VoiceExtractItem[]; error: string | null };
+
+function voiceErrorMessage(error: unknown): string {
+  return error instanceof Error && error.message
+    ? error.message
+    : "Couldn't read that back — try again, or type it in.";
+}
+
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 /** "3 cases · 2 lb" — the unit word comes from the SKU, never from this file. */
@@ -480,9 +488,21 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  gets no feedback from the one button that matters, so the reasonable
    *  reaction is to tap it again or decide the app is broken. */
   const reviewRef = useRef<HTMLDivElement | null>(null);
-  const dict = useVoiceDictation((t) => void onTranscript(t), {
+  // Match each ~60s segment while the counter keeps talking, as CountLiquor
+  // does. Stop waits for unfinished segments instead of starting the entire
+  // take's extraction. Index by spoken position: upload retries can finish
+  // out of order. Resolve failures here so a background rejection is handled
+  // immediately, then report any missing part when the review opens.
+  const segExtractsRef = useRef<Map<number, Promise<VoiceSegmentResult>>>(new Map());
+  const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",
     scope: { section: "food", zoneId },
+    onSegment: (text, index) => {
+      if (!text.trim()) return;
+      segExtractsRef.current.set(index, extractVoice(text, "food")
+        .then((items) => ({ items, error: null }))
+        .catch((error) => ({ items: [], error: voiceErrorMessage(error) })));
+    },
   });
 
   // Two ways a take loses audio without the counter seeing it: the level watch
@@ -544,6 +564,34 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
 
+  async function finalizeVoice(fullTranscript: string) {
+    const pending = [...segExtractsRef.current.entries()].sort(([a], [b]) => a - b);
+    segExtractsRef.current = new Map();
+    // Web Speech has no segment callback. Keep its whole-transcript path;
+    // never re-extract the full take after segment results, which would count
+    // the same spoken stock twice.
+    if (pending.length === 0) return void onTranscript(fullTranscript);
+    setVoiceBusy(true);
+    setVoiceErr(null);
+    try {
+      const results = await Promise.all(pending.map(([, result]) => result));
+      const items = results.flatMap((result) => result.items);
+      const error = results.find((result) => result.error != null)?.error;
+      if (items.length > 0) {
+        setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
+      }
+      if (error) {
+        setVoiceErr(items.length > 0
+          ? "Part of the recording couldn't be processed — double-check the list."
+          : error);
+      } else if (items.length === 0) {
+        setVoiceErr("Didn't catch any items — try again, or type them in.");
+      }
+    } finally {
+      setVoiceBusy(false);
+    }
+  }
+
   async function onTranscript(transcript: string) {
     if (!transcript.trim()) return;
     setVoiceBusy(true);
@@ -556,8 +604,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       // one — "Voice isn't configured" (no ANTHROPIC_API_KEY, a 503) is the
       // common case, and it is not a retry. Swallowing it left the counter
       // tapping a button that would never work, with no way to know why.
-      const msg = e instanceof Error && e.message ? e.message : null;
-      setVoiceErr(msg ?? "Couldn't read that back — try again, or type it in.");
+      setVoiceErr(voiceErrorMessage(e));
     } finally {
       setVoiceBusy(false);
     }
@@ -899,6 +946,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             type="button"
             className="lq-btn"
             onClick={() => {
+              segExtractsRef.current = new Map();
+              setVoiceErr(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCapturing(true);
               setZonePicker(false); // an open list would sit there looking live but inert

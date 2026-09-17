@@ -8,7 +8,7 @@ const website = fileURLToPath(new URL('../../',import.meta.url));
 const backend = resolve(process.env.BOTTLE_QA_TPRS_ROOT || join(website,'../tprs'));
 const require = createRequire(join(website,'package.json'));
 const esbuild = require('esbuild');
-const entry = process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : 'fixture';
+const entry = process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : 'fixture';
 await mkdir(base+'dist',{recursive:true});
 await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
   nodePaths:[join(website,'node_modules')],define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'},
@@ -20,7 +20,9 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:styles': join(website,'src/components/liquor/liquor.css'),
       'qa:recipes': join(website,'src/components/liquor/views/RecipeBuilder.tsx'),
       'qa:invoices': join(website,'src/components/liquor/views/Invoices.tsx'),
+      'qa:food': join(website,'src/components/liquor/views/CountFood.tsx'),
     };
+    if (entry === 'food-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'food-recorder-fixture.jsx')}));
     build.onResolve({filter:/^qa:/},({path}) => ({path:sources[path]}));
     build.onLoad({filter:/views[\\/]Invoices\.tsx$/},async ({path}) => ({
       contents:(await readFile(path,'utf8'))+'\nexport {MatchControl};',loader:'tsx',
