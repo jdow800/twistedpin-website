@@ -2,9 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { useDictation } from "../liquor/useSpeech";
 import { getReview, listReviews, saveReviewResponse, LaborApiError, type LaborReview, type ReviewQuestion, type ReviewResponse } from "./api";
 import "./review-pilot.css";
+import ProposalCard from './ProposalCard';
+import NextSchedule from './NextSchedule';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
-const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
+const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
 const money = (c: number | null) => c === null ? "Pending" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(c / 100);
 const date = (value: string, options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }) => new Date(`${value}T12:00:00Z`).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 const week = (start: string) => { const end = new Date(`${start}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + 6); return `${date(start)} – ${date(end.toISOString().slice(0, 10), { month: "short", day: "numeric", year: "numeric" })}`; };
@@ -28,14 +30,14 @@ export default function ReviewPilot() {
   const awaitingContext = review?.questions.filter(q => !q.response).length ?? 0;
   return <section className="lr-pilot">
     <header className="lr-heading">
-      <div><p className="lr-kicker">The weekly check-in</p><h1>Weekly labor review</h1><p className="lr-intro">Add the context behind the schedule.</p></div>
+      <div><p className="lr-kicker">The weekly check-in</p><h1>Weekly labor review</h1><p className="lr-intro">Practical scheduling ideas. Your experience completes the picture.</p></div>
       {review && !loading && !error ? <label className="lr-week">Review week<select aria-label="Review week" value={review.id} onChange={e => void load(e.target.value)}>{list.map(r => <option key={r.id} value={r.id}>{week(r.weekStart)} · {r.open} open</option>)}</select></label> : null}
     </header>
     {loading ? <p className="lr-notice" role="status">Loading your review…</p> : null}
     {error ? <div role="alert"><p>{error}</p><button onClick={() => void load()}>Retry</button> <a href="/labor/">Existing labor notes</a></div> : null}
     {!loading && !error && !review ? <p className="lr-notice">No review has been prepared yet. Check back after the next weekly report.</p> : null}
     {review && !loading && !error ? <>
-      <div className="lr-overview">
+      <div className={`lr-overview ${review.packet.version===2?'lr-overview-ideas':''}`}>
         <section className="lr-metric" aria-label="Weekly labor percentage">
           <div className="lr-metric-top"><span>Labor / net sales</span><span className="lr-badge lr-badge-dark">{review.metric.percent === null ? "Data checks pending" : review.metric.estimate ? "Estimated" : "Verified inputs"}</span></div>
           <strong className="lr-metric-value">{review.metric.percent === null ? "Pending" : `${review.metric.percent.toFixed(1)}%`}</strong>
@@ -55,7 +57,8 @@ export default function ReviewPilot() {
         </div>
       </details>
       <div className="lr-section-heading"><h2>{review.questions.length ? "This week’s review" : "No questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
-      {review.questions.map((q, index) => <Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => q.response?.status !== "closed").length } : x)); }} />)}
+      {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>q.response?.status!=="closed").length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => q.response?.status !== "closed").length } : x)); }} />)}
+      {review.packet.version===2?<NextSchedule review={review}/>:null}
       <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
     </> : null}
   </section>;

@@ -176,3 +176,54 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
   .lr-actions { align-items: stretch; flex-direction: column; }
 }
 @media (prefers-reduced-motion: reduce) { .lr-pilot *, .lr-login-shell * { scroll-behavior: auto; } }
+/* Owner preview 3: evidence, feasible shift proposals, and saved next steps. */
+.lr-overview-ideas .lr-metric { padding: 17px 22px; }
+.lr-overview-ideas .lr-metric-value { font-size: 30px; margin: 10px 0 5px; }
+.lr-overview-ideas .lr-review-count { padding: 18px 22px; gap: 18px; }
+.lr-overview-ideas .lr-count-number { font-size: 38px; }
+.lr-overview-ideas .lr-review-count h2 { font-size: 18px; }
+.lr-overview-ideas .lr-review-count p { font-size: 13px; }
+.lr-pilot .lr-time-axis { font-size: 12px; }
+.lr-pilot .lr-why { margin: 24px 0 18px; }
+.lr-pilot .lr-why h3 { margin: 0 0 12px; font-size: 16px; }
+.lr-pilot .lr-comparison-pairs { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-bottom: 12px; }
+.lr-pilot .lr-comparison-pairs > div { background: #f5f2f8; border-radius: 9px; padding: 16px; display: flex; flex-direction: column; gap: 5px; }
+.lr-pilot .lr-comparison-pairs strong { font-size: 27px; letter-spacing: -.5px; color: #25134e; }
+.lr-pilot .lr-comparison-pairs span, .lr-pilot .lr-comparison-pairs small { font-size: 13px; line-height: 1.5; }
+.lr-pilot .lr-comparison-pairs small { color: #71647d; }
+.lr-pilot .lr-event-check { background: #edf6f7; border-radius: 8px; padding: 15px 17px; font-size: 13px; line-height: 1.65; margin: 18px 0; }
+.lr-pilot .lr-event-check p { margin: 5px 0 0; }
+.lr-pilot .lr-candidate { padding: 22px 0 16px; border-top: 1px solid #e8e1ef; }
+.lr-pilot .lr-candidate-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+.lr-pilot .lr-candidate-heading h3 { font-size: 20px; margin: 5px 0 0; }
+.lr-pilot .lr-candidate-heading > span { color: #27717b; background: #edf6f7; padding: 8px 12px; border-radius: 7px; font-weight: 600; }
+.lr-pilot .lr-candidate > p { font-size: 15px; line-height: 1.7; }
+.lr-pilot .lr-full-schedule { margin: 16px 0; }
+.lr-pilot .lr-full-schedule summary { color: #257481; cursor: pointer; font-size: 14px; font-weight: 600; }
+.lr-pilot .lr-shift-columns { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin: 18px 0; }
+.lr-pilot .lr-shift-column h4 { margin: 0 0 9px; font-size: 14px; }
+.lr-pilot .lr-time-axis { display: flex; justify-content: space-between; color: #796b87; font-size: 11px; }
+.lr-pilot .lr-shift-row { margin: 12px 0; }
+.lr-pilot .lr-shift-row > div:first-child { display: flex; justify-content: space-between; gap: 5px 8px; flex-wrap: wrap; font-size: 12px; line-height: 1.5; }
+.lr-pilot .lr-shift-track { position: relative; height: 7px; margin-top: 5px; border-radius: 3px; background: #eee9f4; }
+.lr-pilot .lr-shift-track span { position: absolute; height: 7px; border-radius: 3px; background: #917faa; }
+.lr-pilot .lr-shift-column:last-child .lr-shift-track span { background: #349786; }
+.lr-pilot .lr-proposal-choices { display: flex; gap: 10px; margin: 15px 0 20px; }
+.lr-pilot .lr-proposal-choices button { flex: 1; min-height: 48px; }
+.lr-pilot .lr-proposal-choices button[aria-pressed=true] { background: #24114f; color: #fff; border-color: #24114f; }
+.lr-pilot .lr-alt-decisions { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; }
+.lr-pilot .lr-form-error { padding: 0 28px 20px; color: #a12c39; }
+.lr-pilot .lr-next-schedule { margin: 34px 0 15px; scroll-margin-top: 20px; }
+.lr-pilot .lr-plan-item { border: 1px solid #ddd4e8; border-radius: 10px; padding: 22px; margin: 14px 0; background: #fff; }
+.lr-pilot .lr-plan-item h3 { margin: 14px 0 8px; font-size: 19px; }
+.lr-pilot .lr-plan-item p, .lr-pilot .lr-plan-item details { font-size: 14px; line-height: 1.65; }
+.lr-pilot .lr-plan-item > a { display: inline-block; font-size: 13px; color: #24717f; margin-top: 15px; }
+.lr-pilot .lr-plan-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.lr-pilot .lr-recap-preview { margin-top: 20px; }
+.lr-pilot .lr-recap-preview iframe { width: 100%; height: 900px; border: 1px solid #ddd4e8; border-radius: 8px; margin-top: 14px; }
+@media(max-width:600px) {
+  .lr-pilot .lr-comparison-pairs, .lr-pilot .lr-shift-columns { grid-template-columns: minmax(0,1fr); }
+  .lr-pilot .lr-candidate-heading h3 { font-size: 18px; }
+  .lr-pilot .lr-proposal-choices { gap: 7px; }
+  .lr-pilot .lr-proposal-choices button { padding-left: 9px; padding-right: 9px; }
+}
