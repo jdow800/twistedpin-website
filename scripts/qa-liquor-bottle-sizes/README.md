@@ -37,3 +37,22 @@ node check-food-voice.mjs
 ```
 
 The actual `CountFood` component and API client run with synthetic stock, deferred extraction responses and a controlled recorder boundary. Checks cover extraction starting during recording, explicit review before saving, out-of-order segments, the original shelf after navigation, partial and complete failures, fallback and blank takes, unknown case sizes, and the submit guard. All requests stay inside the fixture. This proves processing overlap and count preservation, not live service latency or microphone quality.
+
+Bottled beer reuses the same fixture dependencies and imports the actual TPRS `resolveCountQuantity` helper:
+
+```powershell
+# Set BOTTLE_QA_TPRS_ROOT first if TPRS is not ../tprs beside Website.
+node serve.mjs --beer --build-only
+node check-beer.mjs
+```
+
+Eight DOM scenarios exercise incremental loose bottles across coolers, rapid taps, mixed cases/packs/loose quantities, restored numeric strings, frozen case sizes, decrement/clear, unknown case sizes, and five save/reopen cycles. Every API response and count is synthetic.
+
+For the real Chromium mobile-layout and touch check, start `node serve.mjs --beer` in one terminal. In another:
+
+```powershell
+$env:BEER_QA_CHROME = 'C:\path\to\chrome.exe'
+node check-beer-layout.mjs
+```
+
+The browser runs headless with a fresh temporary profile and tests 320, 360, 375, 390, 412, and 640 px. It checks room for four quantity digits, then dispatches touchscreen events to fixed button coordinates and confirms every tap adds one loose bottle without moving to another tier or zooming. Screenshots and measurements are saved in ignored `dist/`; the temporary profile is removed. This uses Chromium mobile emulation, not John's physical Android phone. It does not prove the separately reported jump to thousands.
