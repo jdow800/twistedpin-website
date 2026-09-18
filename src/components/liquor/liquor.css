@@ -1875,8 +1875,8 @@
 }
 .lq-beer-steppers {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
 }
 /* ⚠ NAMESPACED `-bstep-`, NOT `-step-`. `.lq-step` is already taken, ~1400
    lines up: the 42x42 +/- button in the liquor count grid. Appending a second
@@ -1886,23 +1886,21 @@
    as the unstyled CaseBox: check whether a class already has OTHER rules, not
    just whether it has rules. */
 .lq-bstep {
-  flex: 1 1 96px;
-  min-width: 96px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  /* Explicit: the label sits ABOVE its control and neither is clipped. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(154px, 50%);
+  align-items: center;
+  gap: 8px;
+  /* One labelled tier per line. Three 96px controls left only 10px for
+     digits on a 390px phone: 14 visibly became 1 while the total stayed 14. */
   height: auto;
   min-height: 0;
 }
 .lq-bstep-label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--lq-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .lq-bstep-ctl {
   display: flex;
@@ -1913,7 +1911,7 @@
   background: var(--lq-panel-2);
 }
 .lq-bstep-ctl button {
-  flex: 0 0 40px;
+  flex: 0 0 44px;
   min-height: 44px; /* thumb target — this is used one-handed in a cooler */
   border: 0;
   background: transparent;
@@ -1921,6 +1919,7 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .lq-bstep-ctl button:disabled {
   opacity: 0.3;
@@ -1929,7 +1928,7 @@
 .lq-bstep-ctl input {
   flex: 1 1 auto;
   width: 100%;
-  min-width: 0;
+  min-width: 64px;
   border: 0;
   border-left: 1px solid var(--lq-line);
   border-right: 1px solid var(--lq-line);
@@ -1937,6 +1936,7 @@
   color: var(--lq-text);
   /* 16px minimum or iOS zooms the whole page on focus. */
   font-size: 16px;
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
   text-align: center;
   padding: 8px 2px;
