@@ -250,6 +250,8 @@ export interface OpenCountBatch {
 }
 export interface OpenCount {
   id: string;
+  isFullCount: boolean;
+  section: Section;
   startedAt: string;
   lines: OpenCountLine[];
   /** Batch rows resume alongside the lines — a draft that came back without
@@ -296,12 +298,22 @@ export async function getOpenCount(full = true, section: Section = "bar"): Promi
   const { session } = await gatedJson<{ session: OpenCount | null }>(
     `/admin/bar/counts/open?full=${full ? "true" : "false"}&section=${section}`,
   );
+  if (session && (session.isFullCount !== full || session.section !== section)) {
+    throw new BarApiError("This draft belongs to a different count. Reopen the count to continue.", 409);
+  }
   return session;
 }
 /** Replace the draft's lines with exactly these. An EMPTY array is meaningful —
  *  it means the counter removed everything — so it is sent, not skipped. */
-export async function saveCountLines(sessionId: string, lines: CountLineInput[]): Promise<void> {
-  await gatedJson(`/admin/bar/counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
+export async function saveCountLines(
+  sessionId: string,
+  lines: CountLineInput[],
+  isFullCount = true,
+  section: Section = "bar",
+): Promise<void> {
+  await gatedJson(`/admin/bar/counts/${sessionId}/lines`, {
+    ...jsonBody({ lines, isFullCount, section }), method: "PUT",
+  });
 }
 /** One flagged bottle from the pre-submit sanity check. */
 export interface PrecheckFinding {
