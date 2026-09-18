@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { submitKegCheck } from "../api";
+import { BarApiError, submitKegCheck } from "../api";
 import CountKegs from "./CountKegs";
 import EmptyKegs from "./EmptyKegs";
 import BottledBeer from "./BottledBeer";
@@ -70,8 +70,10 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
         brandCount: res.brandCount,
         totalBottles: res.totalBottles,
       });
-    } catch {
-      setErr("Couldn't send that — check your connection and try again.");
+    } catch (error) {
+      setErr(error instanceof BarApiError && error.status === 409
+        ? "This saved count is already closed or belongs to a different count. Exit and reopen Keg check before trying again."
+        : "Couldn't send that — check your connection and try again.");
       setSubmitting(false);
     }
   }

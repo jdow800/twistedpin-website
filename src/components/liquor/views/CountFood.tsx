@@ -314,7 +314,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!sid) return false;
     setSave("saving");
     try {
-      await saveCountLines(sid, flatten(countsRef.current));
+      await saveCountLines(sid, flatten(countsRef.current), true, "food");
       setSave("saved");
       setSubmitErr(null);
       return true;

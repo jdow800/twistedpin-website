@@ -157,7 +157,7 @@ export default function BottledBeer({
     if (!sessionId) return;
     setSave("saving");
     try {
-      await saveCountLines(sessionId, validLines(rowsRef.current));
+      await saveCountLines(sessionId, validLines(rowsRef.current), false, "bar");
       setSave("saved");
     } catch {
       setSave("error");
