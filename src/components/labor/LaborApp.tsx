@@ -94,9 +94,11 @@ export default function LaborApp() {
   // with no container, no centering and no padding, which is what made it
   // unusable.)
   const chrome = (body: ReactNode, showLogout = false) => (
-    <div className="lq-app">
+    <div className={pilot ? "lq-app lq-pilot-app" : "lq-app"}>
       <header className="lq-header">
-        <span className="lq-brand">Twisted Pin · Labor</span>
+        {pilot
+          ? <div className="lr-brand"><img src="/logo/twisted-pin-horizontal-white.png" width="118" height="51" alt="Twisted Pin" /><span>Labor review</span></div>
+          : <span className="lq-brand">Twisted Pin · Labor</span>}
         {showLogout && (
           <button type="button" className="lq-logout" onClick={async () => { await logout(); setView("login"); }}>
             Log out
@@ -114,7 +116,9 @@ export default function LaborApp() {
   // .lq-login shrink to its content width; .lq-numpad's `width: 100%` then
   // resolves against that shrunken box instead of the column, so the pad
   // collapsed to roughly half size and the keys came out narrow and tall.
-  if (view === "login") return chrome(<Login onLoggedIn={() => void bootstrap()} />);
+  if (view === "login") return chrome(pilot
+    ? <div className="lr-login-shell"><p className="lr-kicker">Staff check-in</p><h1>Weekly labor review</h1><p>A few useful questions.<br />Your context makes the difference.</p><Login onLoggedIn={() => void bootstrap()} /></div>
+    : <Login onLoggedIn={() => void bootstrap()} />);
   if (view === "forbidden")
     return chrome(
       <div className="lq-center">

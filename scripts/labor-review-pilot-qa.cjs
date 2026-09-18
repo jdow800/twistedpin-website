@@ -11,22 +11,46 @@ const out=process.argv[3];fs.mkdirSync(out,{recursive:true});
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  try{
   await page.goto(session.url);await page.getByRole('button',{name:'1',exact:true}).waitFor();
+  await page.screenshot({path:path.join(out,'login-390.png'),fullPage:true});
   // Existing PIN login, real signed cookie, real permission gate.
   for(const digit of session.pin)await page.getByRole('button',{name:digit,exact:true}).click();
   const login=page.getByRole('button',{name:/log in|sign in|unlock|enter/i}).first();
   if(await login.count())await login.click();
-  await page.getByRole('heading',{name:'A few minutes to plan a better week'}).waitFor();
+  await page.getByRole('heading',{name:'Weekly labor review'}).waitFor();
   await page.getByRole('heading',{name:/Sunday evening/}).waitFor();
   if(process.argv.includes('--capture-only')){
     for(const width of [320,390,736,1280]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:path.join(out,`final-${width}.png`),fullPage:true});}
+    // Inspect the new progressive form without putting a fake answer in the owner's review.
+    if(await page.getByRole('button',{name:'Add context',exact:true}).count()){
+      await page.setViewportSize({width:390,height:844});
+      await page.getByRole('button',{name:'Add context',exact:true}).click();
+      assert.equal(await page.getByRole('radio',{checked:true}).count(),0,'No decision is chosen for the GM');
+      assert.equal(await page.locator('form.lr-answer').evaluate(f=>f.checkValidity()),false);
+      await page.screenshot({path:path.join(out,'answer-390.png'),fullPage:true});
+      await page.getByLabel('What was happening?').fill('Unsaved design check: training a new team member.');
+      await page.getByLabel('Try an adjustment').check();
+      assert.equal(await page.locator('form.lr-answer').evaluate(f=>f.checkValidity()),false,'Adjustment requires a next step');
+      await page.getByLabel('Next step (required)').fill('Unsaved design check: review the next comparable Sunday.');
+      await page.getByRole('button',{name:'Review answer',exact:true}).click();
+      await page.getByRole('heading',{name:'Does this sound right?'}).waitFor();
+      await page.screenshot({path:path.join(out,'readback-390.png'),fullPage:true});
+      await page.getByRole('button',{name:'Back to edit',exact:true}).click();
+      assert.equal(await page.getByLabel('What was happening?').inputValue(),'Unsaved design check: training a new team member.');
+      for(const width of [320,736,1280]){await page.setViewportSize({width,height:900});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.screenshot({path:path.join(out,`answer-${width}.png`),fullPage:true});}
+      await page.reload();await page.getByRole('button',{name:'Add context',exact:true}).waitFor();
+      assert.equal(await page.locator('.lr-saved').count(),0,'Design inspection must not save an answer');
+    }
     assert.equal(await page.locator('.nav-drawer').count(),0);
-    assert.deepEqual(errors,[]);console.log(JSON.stringify({capturePassed:true,errors}));return;
+    assert.deepEqual(errors,[]);
+    fs.writeFileSync(path.join(out,'verification.json'),JSON.stringify({capturePassed:true,reviewId:session.reviewId,responseWrites:0,checks:['real PIN login','320/390/736/1280 no overflow','no default decision','required note and adjustment step','readback and back-to-edit preserve draft','reload remains unanswered','no browser exceptions'],errors},null,2));
+    console.log(JSON.stringify({capturePassed:true,errors}));return;
   }
   const initial=await page.evaluate(async id=>(await fetch(`/tprs-api/admin/labor/reviews/${id}/`,{headers:{'HX-Request':'true'}})).json(),session.reviewId);
   const initialHistory=initial.questions[0].history.length;
   await page.screenshot({path:path.join(out,'mobile-before.png'),fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
   if(await page.getByRole('button',{name:'Edit / add outcome'}).count())await page.getByRole('button',{name:'Edit / add outcome'}).click();
+  else await page.getByRole('button',{name:'Add context',exact:true}).click();
   const closeBox=page.getByLabel('Outcome recorded — close this question');if(await closeBox.count())await closeBox.uncheck();
   const training=page.getByRole('button',{name:'Training',exact:true});if(await training.getAttribute('aria-pressed')!=='true')await training.click();
   const note='QA fixture — new crew member training; not an actual GM explanation.';
