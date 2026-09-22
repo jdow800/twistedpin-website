@@ -10,6 +10,11 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-22 - Repeated-upload list label.** The invoice list now uses the same
+  status wording as invoice detail: ordinary duplicates say Repeated upload;
+  a linked delivery copy retains its comparison label. Purchase exclusion,
+  invoice state and genuine item/receipt questions are unchanged.
+
 - **2026-09-22 — Confirmed spoken defaults (release pending).** A saved human
   default can interpret a unitless freezer count as fractional cases while explicit
   bag counts remain bags. Review shows the interpreted case quantity, and its

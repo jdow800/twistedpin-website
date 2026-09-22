@@ -407,7 +407,7 @@ export default function Invoices({
           <button key={inv.id} type="button" className="lq-invrow" onClick={() => open(inv.id)} disabled={detailLoading}>
             <div className="lq-invrow-main">
               <span className="lq-invrow-vendor">{inv.vendorText || "Unknown vendor"}</span>
-              <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : STATUS_LABEL[inv.status]}</span>
+              <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : inv.duplicateOf ? "Repeated upload" : STATUS_LABEL[inv.status]}</span>
               {/* A held cost deliberately does NOT change the invoice's status
                   (a 'flagged' invoice is dropped from variance purchases), so
                   the count is its own marker — and the only way to find one
