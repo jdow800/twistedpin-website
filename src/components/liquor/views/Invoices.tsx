@@ -4,6 +4,8 @@ import {
   getInvoiceDetail,
   getInvoiceCatalog,
   applyHeldCost,
+  expenseInvoiceLine,
+  rememberInvoiceUnit,
   matchInvoiceLine,
   newSkuFromLine,
   reextractInvoice,
@@ -23,7 +25,7 @@ import {
 import { matchSkus } from "../matcher";
 import { searchInvoiceItems, invoiceItemLabel } from "../invoice-catalog";
 import InvoiceCopies from "./InvoiceCopies";
-import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor } from "./InvoiceReview";
+import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor, reviewReasonsFor } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
 function parseSizeMl(sizeText: string | null): number | null {
@@ -135,7 +137,7 @@ export default function Invoices({
     setDetail((d) => {
       if (!d) return d;
       const lines = d.lines.map((x) =>
-        x.id === lineId ? { ...x, matchedName: name, needsReview: false, ...(hold ?? {}) } : x,
+        x.id === lineId ? { ...x, matchedName: name, ...(hold ?? {}) } : x,
       );
       syncHeldCount(d.invoice.id, lines);
       return { ...d, invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice, lines };
@@ -266,7 +268,7 @@ export default function Invoices({
         <p className="lq-muted lq-invd-meta">
           {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
           {inv.invoiceDate || shortDate(inv.createdAt)} ·{" "}
-          <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : STATUS_LABEL[inv.status]}</span>
+          <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : inv.duplicateOf ? "Repeated upload" : STATUS_LABEL[inv.status]}</span>
         </p>
         <InvoiceCopies reviews={detail.copyReviews ?? []} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
         <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
@@ -296,7 +298,7 @@ export default function Invoices({
                 {l.lineType !== "product" && <span className="lq-invd-tag">{l.lineType}</span>}
                 {l.matchedName ? (
                   <span>→ {l.matchedName}</span>
-                ) : l.lineType === "product" ? (
+                ) : l.nonInventory ? <span>Expense · supplies</span> : l.lineType === "product" ? (
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
                 {l.sizeText && <span>· {l.sizeText}</span>}
@@ -305,8 +307,14 @@ export default function Invoices({
               {Number(l.shortageAmount ?? 0) > 0 && (
                 <p className="lq-muted">Product cost after shortage: {money(l.receivedAmount ?? null)}. {money(l.shortageAmount ?? null)} not delivered.</p>
               )}
-              {!inv.duplicateOf && inv.status !== "pending" && l.needsReview && l.lineType === "product" && (
+              {!!l.lineTax && <p className="lq-muted">Printed row total: {money(l.printedLineTotal ?? null)}; line tax: {money(l.lineTax)}. Product amount above excludes tax.</p>}
+              {reviewReasonsFor(l).includes("amount") && <p className="lq-invd-unmatched">Check the printed price, quantity and tax. The line amount does not reconcile.</p>}
+              {reviewReasonsFor(l).includes("quantity") && <p className="lq-invd-unmatched">Check the billed quantity and case columns on the original invoice.</p>}
+              {!inv.duplicateOf && inv.status !== "pending" && reviewReasonsFor(l).includes("identity") && (
+                <>
                 <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
+                <ExpenseControl invoiceId={detail.invoice.id} line={l} onResolved={() => void refreshBuckets(inv.id)} />
+                </>
               )}
               {!inv.duplicateOf && inv.status !== "pending" && l.costHoldReason && (
                 <CostHoldControl invoiceId={detail.invoice.id} line={l} onApplied={handleCostApplied} />
@@ -405,6 +413,7 @@ export default function Invoices({
                   the count is its own marker — and the only way to find one
                   until the shared ops inbox lands. */}
               {!inv.duplicateOf && !!inv.unmatchedCount && <span className="lq-invrow-held">{inv.unmatchedCount} items to match</span>}
+              {!inv.duplicateOf && (inv.reviewCount ?? 0) > (inv.unmatchedCount ?? 0) && <span className="lq-invrow-held">{(inv.reviewCount ?? 0) - (inv.unmatchedCount ?? 0)} line checks</span>}
               {!inv.duplicateOf && !!inv.heldCount && (
                 <span className="lq-invrow-held">
                   {inv.heldCount} cost{inv.heldCount === 1 ? "" : "s"} held
@@ -481,7 +490,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
   /** Jump to the line row, which already carries the match control. No new
    *  state and no second way to do the same job. */
   const canMatch = (lineId: string) => detail.lines.some((line) =>
-    line.id === lineId && line.lineType === "product" && line.needsReview);
+    line.id === lineId && reviewReasonsFor(line).includes("identity"));
   const action = (lineId: string) => (
     <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine(lineId)}>
       {canMatch(lineId) ? "Match product" : "View item"}
@@ -648,6 +657,49 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
   );
 }
 
+function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  if (!line.vendorCode) return null;
+  async function save() {
+    setBusy(true); setError("");
+    try { await expenseInvoiceLine(invoiceId, line.id); onResolved(); }
+    catch { setError("Could not save. Reopen the invoice and check this item."); setBusy(false); }
+  }
+  return <div className="lq-invd-hold">
+    <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>
+      {busy ? "Saving…" : "Expense as supplies (not counted)"}
+    </button>
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
+}
+
+function RememberUnitControl({ invoiceId, line, onApplied }: { invoiceId: string; line: InvoiceLine; onApplied: (id: string) => void }) {
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const units = Number(value), valid = Number.isInteger(units) && units > 0 && units <= 100000;
+  const unit = line.matchedCountUnit ?? "unit";
+  const pluralUnit = unit === "each" ? "individual items" : unit === "box" ? "boxes" : unit === "bunch" ? "bunches" : `${unit}s`;
+  const cost = valid ? Number(line.unitCost) / units : null;
+  async function save() {
+    setBusy(true); setError("");
+    try { await rememberInvoiceUnit(invoiceId, line, units); onApplied(line.id); }
+    catch { setError("Could not save this package answer. Reopen the invoice to check for changes."); setBusy(false); }
+  }
+  return <div className="lq-invd-hold-edit">
+    <label>How many {pluralUnit} do you count in one billed case of {line.matchedName}?
+      <input aria-label="Count units per billed case" type="number" inputMode="numeric" min={1} max={100000} step={1}
+        value={value} onChange={e => setValue(e.target.value)} />
+    </label>
+    <p className="lq-muted">Printed package: {line.pack ?? "?"} × {line.sizeText}. Use the unit your team counts on the shelf.</p>
+    {cost != null && <p>${cost.toFixed(6).replace(/0+$/, "").replace(/\.$/, "")} per {line.matchedCountUnit}.</p>}
+    <p className="lq-muted">Remembers this cost conversion for this supplier item and package. Delivery quantities stay as billed.</p>
+    <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>{busy ? "Saving…" : "Save package answer"}</button>
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
+}
+
 function CostHoldControl({
   invoiceId,
   line,
@@ -705,6 +757,9 @@ function CostHoldControl({
   return (
     <div className="lq-invd-hold lq-invd-hold-edit">
       <span className="lq-invd-hold-flag">Cost held — {line.costHoldReason}</span>
+      {line.canRememberUnit && line.packageKey && <RememberUnitControl invoiceId={invoiceId} line={line} onApplied={onApplied} />}
+      <details open={!line.canRememberUnit}>
+      <summary>Enter a one-time cost</summary>
       <p className="lq-invd-hold-q">
         This line was billed {line.sizeText ? `as ${line.sizeText}` : "in another unit"} at{" "}
         {money(line.unitCost)}. What does one {unit} cost?
@@ -743,6 +798,7 @@ function CostHoldControl({
         </button>
       </div>
       {err && <p className="lq-invd-recvd-err">{err}</p>}
+      </details>
     </div>
   );
 }
