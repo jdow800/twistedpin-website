@@ -19,6 +19,24 @@ const zones = [
 ];
 const existing = new URL(location.href).searchParams.has('existing');
 const params = new URL(location.href).searchParams;
+if (params.has('definitions')) {
+  const answer = (countUnit, unitsPerCase, extra = {}) => ({
+    countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-01-01', ...extra,
+  });
+  Object.assign(catalog[0], {countUnit:'case',unitsPerCase:1,
+    countDefinition:answer('case',1,{usualMaxCases:20}),
+    countHistory:{maxCount:1.6,maxDelivery:2,deliverySamples:2,days:90}});
+  catalog.push(
+    {id:'buns',name:'Sample Buns',countUnit:'each',unitsPerCase:48,
+      countDefinition:answer('each',48,{unitLabel:'bun',spokenUnits:{bag:12,bun:1},usualMaxCases:3})},
+    {id:'plates',name:'Sample Plates',countUnit:'pack',unitsPerCase:4,
+      countDefinition:answer('pack',4,{unitLabel:'bag',spokenUnits:{bag:1}})},
+    {id:'fruit',name:'Sample Fruit',countUnit:'each',unitsPerCase:115,
+      countDefinition:answer('each',115,{usualMaxCases:4})},
+  );
+  if (params.has('changed-package')) catalog.find(s=>s.id==='buns').unitsPerCase=24;
+  for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
+}
 const initialLines = params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
@@ -31,7 +49,7 @@ window.fetch = async (input, init = {}) => {
   qa.calls.push({path, query:url.search, method:init.method || 'GET', body});
   if (path.endsWith('/catalog')) return json({items:catalog});
   if (path.endsWith('/zones')) return json({zones});
-  if (path.endsWith('/counts/open')) return json({session:{id:'food-trial', lines:initialLines}});
+  if (path.endsWith('/counts/open')) return json({session:{id:'food-trial',section:'food',isFullCount:true,lines:initialLines}});
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed', message},502)); }});
   });

@@ -303,4 +303,48 @@ await run('manually editing a voice count labels the saved line as grid',async t
   assert.equal(t.qa.lines[0].source,'grid');
 });
 
+await run('remembered bags and bare buns keep their distinct quantities',async t => {
+  await t.hear([
+    item('buns',48,{spoken:'48 buns',spokenUnit:'bun'}),
+    item('buns',3,{spoken:'3 bags of buns',spokenUnit:'bags'}),
+  ]);
+  assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.doesNotMatch(t.doc.body.textContent,/How many.*bag/);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='buns').qtyUnits,84);
+},'definitions');
+
+await run('mixed plate cases and bags save ten bags without another package question',async t => {
+  await t.hear([item('plates',2,{spoken:'two cases and two bags of plates',cases:2,spokenUnit:'bag'})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  const line=t.qa.lines.find(l=>l.skuId==='plates');
+  assert.equal(line.qtyUnits,10);assert.equal(line.enteredCases,2);assert.equal(line.caseSizeAtEntry,4);
+},'definitions');
+
+await run('confirmed dough range permits normal stock and fractional cases',async t => {
+  await t.hear([
+    item('dough',0,{spoken:'fifteen cases of dough',cases:15}),
+    item('dough',0,{spoken:'four and a half cases of dough',cases:4.5}),
+  ]);
+  assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled,'normal operating range must not require a generic high-count override');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits,19.5);
+},'definitions');
+
+await run('changed package invalidates remembered bag size',async t => {
+  await t.hear([item('buns',3,{spoken:'three bags of buns',spokenUnit:'bag'})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.equal(t.saved().length,0);
+},'definitions&changed-package');
+
+await run('bare fruit remains each and exceptional explicit cases need confirmation',async t => {
+  await t.hear([item('fruit',12,{spoken:'fruit twelve'})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fruit').qtyUnits,12);
+  await t.hear([item('fruit',0,{spoken:'five cases of fruit',cases:5})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.match(t.doc.body.textContent,/exceeds the usual 4 cases/);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fruit').qtyUnits,12,'warning must not silently rewrite stock');
+},'definitions');
+
 console.log(`${passed} food voice scenarios passed.`);

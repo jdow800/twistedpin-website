@@ -10,6 +10,16 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-22 — Reuse verified food count units (release pending).** Food review
+  reads the catalog's human-confirmed package vocabulary, including inner bags,
+  and invalidates it when the count unit or case factor changes. A recorded normal
+  case range replaces generic high-count warnings for that item; exceptional stock
+  still offers explicit confirmation without changing the quantity. The UI uses
+  the confirmed unit label for the count grid and review. Backend migration 0188
+  supplies the optional contract; synthetic fixtures cover mixed units, fractional
+  cases, changed packages and plausibility. No real invoices or unit definitions
+  are published with the Website source.
+
 - **2026-09-22 - Shared invoice matching with separate food/liquor counts (release pending).** Jon's Sysco scan exposed an invoice search that loaded only the liquor catalog. Invoices now search both catalogs under “Search items,” label each result's inventory, and require inventory/count-unit choices for a new item. Count screens retain their section-scoped catalogs; the backend additionally checks scope on saves. Email/scan copies of the same vendor invoice open a comparison and one canonical purchase record. Copies cannot independently apply costs, matches or received quantities; staff can jump to the original item, record corrections, then acknowledge the current comparison. The companion backend enables food review emails without excluding eligible purchases and deduplicates unchanged questions. Validation: 22 invoice DOM scenarios, eight existing count/bottle-size scenarios and Chromium layouts at 320/390/960px pass. Local pages compile; Vercel packaging on Windows is blocked by a dependency-junction symlink permission, so deployment build verification remains required. No real invoice or count is confirmed by these tests.
 
 - **2026-09-18 - Keep bottled-beer quantities readable on phones (local; not deployed).** John reported loose-bottle controls appearing to reset and very large totals on Android. A real Chromium render at 390px reproduced a 16px quantity field with only 10px available for digits: 14 rendered as 1. Give each case/six-pack/loose-bottle tier its own labelled row, retain at least 64px for the quantity and 44px tap targets, and label the sum as the total. Loose bottles remain independent and can accumulate across coolers without converting to packs. The reported jump to thousands is not reproduced and is not claimed fixed by this layout change; current and original arithmetic both use numeric independent tiers. Synthetic component and mobile-touch verification are recorded in the beer-counter handoff. No live counts are edited; reset beer rows require confirmation before inventory recovery.
