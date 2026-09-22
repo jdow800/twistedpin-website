@@ -119,6 +119,8 @@ export interface PinUser {
   displayName: string;
 }
 export interface BarSkuItem {
+  section?: Section;
+  cogsBucket?: CogsBucket | null;
   id: string;
   name: string;
   category: string | null;
@@ -213,6 +215,11 @@ export async function getCatalog(section: Section = "bar"): Promise<BarSkuItem[]
     `/admin/bar/catalog?section=${section}`,
   );
   return items;
+}
+/** Mixed invoices can contain items from either inventory. Never use this for counts. */
+export async function getInvoiceCatalog(): Promise<BarSkuItem[]> {
+  const [bar, food] = await Promise.all([getCatalog("bar"), getCatalog("food")]);
+  return [...new Map([...bar, ...food].map(item => [item.id, item])).values()];
 }
 export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]> {
   const { zones } = await gatedJson<{ zones: BarZoneItem[] }>(
@@ -803,6 +810,10 @@ export interface InvoiceSummary {
    *  silently drop its purchases from the bracket. This count is the only way
    *  to find a held cost until the shared ops inbox exists. */
   heldCount?: number;
+  unmatchedCount?: number;
+  source?: "email" | "scan";
+  duplicateOf?: string | null;
+  landedOf?: string | null;
 }
 export interface InvoiceLine {
   id: string;
@@ -919,7 +930,22 @@ export interface InvoiceBuckets {
   };
 }
 
+export interface InvoiceCopyReview {
+  originalId: string; copyId: string; invoiceNumber: string | null;
+  expected: { id: string; source: "email"; printedTotal: string | null };
+  delivered: { id: string; source: "scan"; printedTotal: string | null };
+  rows: Array<{ code: string; description: string; originalLineIds: string[]; issues: string[];
+    expected: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
+    delivered: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
+  }>;
+  reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
+  reviewed: boolean; reviewedAt: string | null; ready: boolean;
+}
+export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
+  await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));
+}
 export interface InvoiceDetail {
+  copyReviews?: InvoiceCopyReview[];
   invoice: InvoiceSummary & {
     extractedTotal: string | null;
     printedProductTotal?: string | null;
@@ -1060,6 +1086,7 @@ export async function newSkuFromLine(
   lineId: string,
   name: string,
   sizeMl: number | null,
+  settings?: { section: Section; countUnit: string; cogsBucket: CogsBucket },
 ): Promise<{
   skuId: string;
   matchedName: string;
@@ -1074,7 +1101,7 @@ export async function newSkuFromLine(
    *  it names the denominator of the dollar figure a human then authorises. */
   countUnit: string;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */
