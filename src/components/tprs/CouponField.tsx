@@ -1,5 +1,6 @@
-// "Have a code?" — ALWAYS-VISIBLE labeled input + explicit Apply (Baymard's one
-// sanctioned Apply-button case), never "discount" vocabulary (ADR-0029 §4).
+// "Have a code?" — visible labeled input + explicit Apply until a points reward
+// is confirmed. A compact applied card then replaces the entry controls.
+// Apply is the explicit code-entry action; never "discount" vocabulary (ADR-0029 §4).
 // Lives at CHECKOUT (the payment step) — the conventional place guests hunt for
 // it — after starting life collapsed on the guest-details step, where it was
 // easy to miss (Jon, 2026-06-10). Extracted so any step can mount it.
@@ -7,6 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { previewCoupon, TprsApiError } from "../../tprs/client";
 import type { CouponPreviewResponse } from "../../tprs/schemas";
+import { pointsRewardMessage } from "./pointsRewardCopy";
 import { formatUsd } from "./format";
 
 const COUPON_REASON_COPY: Record<string, string> = {
@@ -20,6 +22,7 @@ const COUPON_REASON_COPY: Record<string, string> = {
 };
 
 interface Props {
+  disabled?: boolean;
   productId: string;
   /** Lane start, ISO-8601 with offset (what coupon-preview validates against). */
   startTime: string;
@@ -35,6 +38,7 @@ interface Props {
 }
 
 export default function CouponField({
+  disabled = false,
   productId,
   startTime,
   laneQty,
@@ -45,6 +49,10 @@ export default function CouponField({
   onCouponCode,
   onCouponResult,
 }: Props) {
+  const requestVersion = useRef(0);
+  const currentInputs = JSON.stringify([couponCode, productId, startTime, laneQty, email, phone]);
+  const latestInputs = useRef(currentInputs);
+  latestInputs.current = currentInputs;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,7 +73,9 @@ export default function CouponField({
 
   async function applyCode(auto = false) {
     const code = couponCode.trim();
-    if (code === "") return;
+    if (code === "" || disabled) return;
+    const version = ++requestVersion.current;
+    const inputs = currentInputs;
     setBusy(true);
     setError(null);
     try {
@@ -82,13 +92,16 @@ export default function CouponField({
         ...(email?.trim() && { email: email.trim() }),
         ...(phone?.trim() && { phone: phone.trim() }),
       });
-      onCouponResult(res);
+      if (version !== requestVersion.current || inputs !== latestInputs.current) return;
       // A link-landed code the guest never typed must not poison the field:
       // an invalid auto-applied code would keep riding the quote + payment
       // requests (both 400 on it) with the guest unaware they should clear
       // it. Show the reason (couponResult renders below), empty the input.
-      if (auto && !res.valid) onCouponCode("");
+      if (auto && !res.valid && res.reason !== 'phone_mismatch') onCouponCode("");
+      // Clearing the code resets reducer state; record the explanation AFTER that reset.
+      onCouponResult(res);
     } catch (e) {
+      if (version !== requestVersion.current || inputs !== latestInputs.current) return;
       const msg =
         e instanceof TprsApiError
           ? "Couldn't check that code right now."
@@ -96,8 +109,37 @@ export default function CouponField({
       setError(msg);
       onCouponResult(null);
     } finally {
-      setBusy(false);
+      if (version === requestVersion.current) setBusy(false);
     }
+  }
+
+  function removeCode() {
+    ++requestVersion.current;
+    setBusy(false);
+    setError(null);
+    onCouponCode("");
+  }
+
+  if (!error && couponResult?.valid && couponResult.requiredPoints !== undefined) {
+    return (
+      <div className="tprs-code-block tprs-reward-applied">
+        <div className="tprs-reward-applied-copy" role="status">
+          <strong className="tprs-reward-applied-title">
+            {formatUsd(couponResult.discountAmountCents ?? 0)} reward applied
+          </strong>
+          <p className="tprs-reward-applied-detail">
+            Uses {couponResult.requiredPoints} points when you book.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="tprs-link-btn tprs-reward-remove"
+          aria-label="Remove reward"
+          disabled={disabled}
+          onClick={removeCode}
+        >Remove</button>
+      </div>
+    );
   }
 
   return (
@@ -113,17 +155,21 @@ export default function CouponField({
           autoCapitalize="characters"
           placeholder="Enter your code"
           value={couponCode}
-          onChange={(e) => onCouponCode(e.currentTarget.value)}
+          disabled={disabled}
+          onChange={(e) => { ++requestVersion.current; setBusy(false); setError(null); onCouponCode(e.currentTarget.value); }}
         />
         <button
           type="button"
           className="tprs-btn tprs-btn--ghost tprs-btn--small"
-          disabled={busy || couponCode.trim() === ""}
+          disabled={disabled || busy || couponCode.trim() === ""}
           onClick={() => applyCode()}
         >
           {busy ? "Checking…" : "Apply"}
         </button>
       </div>
+      {couponCode.trim() !== '' && (
+        <button type="button" className="tprs-link-btn" disabled={disabled} onClick={removeCode}>Remove code</button>
+      )}
       {error && <p className="tprs-code-msg is-err">{error}</p>}
       {!error && couponResult?.valid && (
         <p className="tprs-code-msg is-ok">
@@ -132,8 +178,10 @@ export default function CouponField({
       )}
       {!error && couponResult && !couponResult.valid && (
         <p className="tprs-code-msg is-err">
-          {COUPON_REASON_COPY[couponResult.reason ?? ""] ??
-            "That code can't be applied."}
+          {couponResult.requiredPoints !== undefined || ['insufficient_points','phone_mismatch','reward_used','reward_unavailable'].includes(couponResult.reason ?? '')
+            ? pointsRewardMessage(couponResult as Parameters<typeof pointsRewardMessage>[0])
+            : COUPON_REASON_COPY[couponResult.reason ?? ''] ?? "That code can't be applied."}
+          {couponCode.trim() === '' && <> You can continue without this reward at the price shown.</>}
         </p>
       )}
     </div>

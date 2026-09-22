@@ -799,6 +799,11 @@
 .tprs-reserving-desc { font-family: var(--font-body); font-size: 12.5px; color: var(--tw-text-muted); }
 .tprs-reserving-when { flex-shrink: 0; font-family: var(--font-body); font-size: 13px; color: var(--tw-text-muted); text-align: right; }
 .tprs-reserving-addon .tprs-reserving-name { font-weight: 600; font-size: 14px; color: var(--tw-text-muted); }
+/* On phones the date needs its own row instead of squeezing the product name. */
+@media (max-width: 540px) {
+  .tprs-reserving-line { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .tprs-reserving-when { text-align: left; max-width: 100%; }
+}
 
 /* ── Forms / guest details (J + M polish) ───────────────────────────── */
 .tprs-field { margin-bottom: 13px; }
@@ -1051,6 +1056,56 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 .tprs-code-msg { font-family: var(--font-body); font-size: 12.5px; margin-top: 6px; }
 .tprs-code-msg.is-ok { color: var(--tw-accent); }
 .tprs-code-msg.is-err { color: var(--tw-danger); }
+
+/* Earned reward: savings first, point cost second; no redundant code entry. */
+.tprs-reward-applied {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 4px 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--tw-border);
+  border-left: 3px solid var(--tw-accent);
+  border-radius: var(--radius-button);
+  background: var(--tw-surface);
+}
+.tprs-reward-applied-copy { display: contents; }
+.tprs-reward-applied-title {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--tw-text);
+}
+.tprs-reward-applied-detail {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--tw-text-muted);
+}
+.tprs-reward-remove {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  min-height: 44px;
+  margin-block: -10px;
+  padding: 10px 0;
+  font-size: 12px;
+  color: var(--tw-text-muted);
+}
+.tprs-reward-remove:disabled { opacity: 0.45; cursor: default; }
+.tprs-reward-remove:focus-visible { outline: 2px solid var(--tw-accent); outline-offset: 3px; }
+@media (max-width: 359px) {
+  .tprs-reward-applied { padding-inline: 12px; gap: 4px 8px; }
+  .tprs-reward-applied-title { font-size: 14px; }
+}
 
 /* [MAGIC LINK] Pre-filled-code reassurance beat (steps before checkout). */
 .tprs-prefill-note {
@@ -1465,3 +1520,6 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
   .tprs-cal-hint,
   .tprs-cal-event { font-size: 13.5px; }
 }
+
+/* Loyalty benefit names use the quantity column too; savings keep their alignment. */
+.tprs-line.is-points-reward .tprs-line-name { grid-column: 1 / 3; }

@@ -17,6 +17,8 @@
 // cart-token cookie rides along (must be same-origin via the dev proxy).
 
 import {
+  pointsRewardDetailsSchema,
+  type PointsRewardDetails,
   bookableProductsResponseSchema,
   productsResponseSchema,
   availabilityResponseSchema,
@@ -95,6 +97,7 @@ export class TprsApiError extends Error {
  * `couponReason`/`failureReason` so the SPA can branch the inline retry UX.
  */
 export class TprsCheckoutError extends Error {
+  readonly rewardDetails: PointsRewardDetails;
   constructor(
     message: string,
     readonly status: number,
@@ -105,6 +108,8 @@ export class TprsCheckoutError extends Error {
   ) {
     super(message);
     this.name = "TprsCheckoutError";
+    const details = pointsRewardDetailsSchema.safeParse(body ?? {});
+    this.rewardDetails = details.success ? details.data : {};
   }
 }
 

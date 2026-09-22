@@ -14,7 +14,11 @@ import type {
   AvailabilitySlot,
   BookingConvertedResponse,
   CustomerProduct,
-} from "../../tprs/schemas";
+} from "../../../tprs/schemas";
+
+declare global {
+  interface Window { gtag?: (...args: unknown[]) => void; }
+}
 
 interface Props {
   product: CustomerProduct;

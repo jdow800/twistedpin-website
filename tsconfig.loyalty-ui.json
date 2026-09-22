@@ -1,0 +1,20 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "types": [
+      "astro/client"
+    ]
+  },
+  "include": [
+    "src/components/tprs/CouponField.tsx",
+    "src/components/tprs/pointsRewardCopy.ts",
+    "src/components/tprs/steps/PaymentStep.tsx",
+    "src/tprs/client.ts",
+    "src/components/tprs/BookingWizard.tsx"
+  ],
+  "exclude": [
+    "dist",
+    "scripts"
+  ]
+}

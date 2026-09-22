@@ -79,3 +79,9 @@ scripts/fixtures/estimate-engine-sample.json
 
 # throwaway mobile-screenshot harness (see BUILD-SPEC §11.46)
 .shots/
+
+# Regenerable isolated Loyalty UI test output
+scripts/loyalty-ui/output/
+scripts/loyalty-ui/.vite/
+
+scripts/loyalty-stripe/.vite/

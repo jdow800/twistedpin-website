@@ -24,6 +24,7 @@ import {
 import { formatUsd } from "../format";
 import Markdown from "../Markdown";
 import CouponField from "../CouponField";
+import { pointsRewardMessage, pointsRecoveryMessage } from "../pointsRewardCopy";
 import type {
   BookingConvertedResponse,
   CartAddRequest,
@@ -64,6 +65,8 @@ interface Props {
   termsText: string;
   /** Authoritative total (incl. tax) for the Pay button + deferred amount. */
   totalCents: number;
+  /** Wait for the authoritative total after a code/cart change. */
+  pricingPending?: boolean;
   onConverted: (booking: BookingConvertedResponse) => void;
 }
 
@@ -104,6 +107,7 @@ function secondsLeft(expiresAtIso: string | null): number {
 const CUTOFF_WARN_SECONDS = 600;
 
 export default function PaymentStep(props: Props) {
+  const [checkoutLocked, setCheckoutLocked] = useState(false);
   if (!STRIPE_AVAILABLE) {
     return (
       <div>
@@ -126,6 +130,7 @@ export default function PaymentStep(props: Props) {
       {/* "Have a code?" — at checkout, where guests hunt for it. The quote
           (sticky cart) + the PI created at Pay both read the applied code. */}
       <CouponField
+        disabled={checkoutLocked}
         productId={props.cartHoldItems[0]?.productId ?? ""}
         startTime={props.startTime}
         laneQty={
@@ -162,7 +167,7 @@ export default function PaymentStep(props: Props) {
           appearance: STRIPE_APPEARANCE,
         }}
       >
-        <CheckoutForm {...props} />
+        <CheckoutForm {...props} onCheckoutLocked={setCheckoutLocked} />
       </Elements>
     </div>
   );
@@ -176,13 +181,16 @@ function CheckoutForm({
   startTime,
   salesCutoffMinutesBefore,
   couponCode,
+  onCouponResult,
+  onCheckoutLocked,
   formAnswers,
   formStale,
   onFindNewTime,
   termsText,
   totalCents,
+  pricingPending = false,
   onConverted,
-}: Props) {
+}: Props & { onCheckoutLocked: (locked: boolean) => void }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -238,6 +246,11 @@ function CheckoutForm({
   // card, and the cart token is idempotent (same items → same token) so re-carting
   // can't change the key on its own.
   const attemptKeyRef = useRef(crypto.randomUUID());
+  useEffect(() => {
+    if (paidPid.current) return;
+    clientSecretRef.current = null; piIdRef.current = null; piAmountRef.current = null;
+    attemptKeyRef.current = crypto.randomUUID();
+  }, [couponCode, customer.phone]);
 
   const [left, setLeft] = useState(0);
   useEffect(() => {
@@ -371,7 +384,7 @@ function CheckoutForm({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements || submitting) return;
+    if (!stripe || !elements || submitting || blocked || pricingPending) return;
     if (!termsAccepted) {
       setErrorMsg("Please accept the terms to complete your reservation.");
       return;
@@ -396,6 +409,7 @@ function CheckoutForm({
       return;
     }
     setSubmitting(true);
+    onCheckoutLocked(true);
     setErrorMsg(null);
     try {
       // Validate the card inputs up front (deferred-mode requirement).
@@ -426,6 +440,9 @@ function CheckoutForm({
           piIdRef.current = pi.paymentIntentId;
           piAmountRef.current = totalCents;
         }
+        // Keep the confirmed ID stable even if a late quote updates the draft amount.
+        const confirmingId = piIdRef.current;
+        if (!confirmingId) throw new Error('Payment reference is missing.');
         // Confirm (inline for cards + 3DS).
         const { error } = await stripe.confirmPayment({
           elements,
@@ -452,16 +469,18 @@ function CheckoutForm({
           setSubmitting(false);
           return;
         }
-        paidPid.current = piIdRef.current; // captured — convert-only from here
+        paidPid.current = confirmingId; // captured — convert-only from here
       }
 
+      const confirmedId = paidPid.current;
+      if (!confirmedId) throw new Error('Payment reference is missing.');
       const booking = await convertCheckout({
         cartToken,
         eventDate,
         startTime,
         paymentType: "full",
         items: checkoutItems,
-        paymentIntentId: paidPid.current,
+        paymentIntentId: confirmedId,
         acceptedTerms: true,
         ...(couponCode && { couponCode }),
         ...(formAnswers.length > 0 && { formAnswers }),
@@ -469,6 +488,20 @@ function CheckoutForm({
       onConverted(booking);
     } catch (err) {
       const charged = paidPid.current !== null;
+      if (err instanceof TprsCheckoutError && (err.rewardDetails.refundStatus || err.code === 'loyalty_reward_rejected')) {
+        const details = err.rewardDetails;
+        // The old green preview is no longer evidence after a rejected payment attempt.
+        onCouponResult(err.code === 'loyalty_reward_rejected' ? {valid:false,...details} : null);
+        const explanation = err.code === 'loyalty_reward_rejected' ? pointsRewardMessage(details) : checkoutErrorMessage(err);
+        if (details.refundStatus || charged) {
+          setBlocked(true);
+          setErrorMsg(explanation + ' ' + pointsRecoveryMessage(details.refundStatus));
+        } else {
+          setErrorMsg(explanation + ' You can remove the code to continue without this reward.');
+        }
+        setSubmitting(false);
+        return;
+      }
       // Amount mismatch (a mid-checkout price change, or a tampered cart): convert
       // rolled back and the server auto-refunds the captured charge. A retry would
       // hit the same mismatch, so this is TERMINAL — block further submits; never
@@ -564,6 +597,8 @@ function CheckoutForm({
           : base,
       );
       setSubmitting(false);
+    } finally {
+      onCheckoutLocked(paidPid.current !== null);
     }
   }
 
@@ -726,10 +761,14 @@ function CheckoutForm({
       <button
         type="submit"
         className="tprs-btn tprs-btn--solid tprs-pay-submit"
-        disabled={blocked || formStale || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
+        disabled={pricingPending || blocked || formStale || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
       >
-        {submitting
+        {blocked
+          ? "Reservation not completed"
+          : submitting
           ? "Processing…"
+          : pricingPending && !paidPid.current
+            ? "Updating total…"
           : paidPid.current
             ? "Finish reservation"
             : `Pay ${formatUsd(totalCents)}`}

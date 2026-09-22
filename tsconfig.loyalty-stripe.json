@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.loyalty-ui.json",
+  "include": [
+    "src/components/tprs/BookingWizard.tsx",
+    "scripts/loyalty-stripe/main.tsx"
+  ],
+  "exclude": [
+    "dist"
+  ]
+}

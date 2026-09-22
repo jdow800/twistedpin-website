@@ -501,7 +501,7 @@ function GuestStepper({
 }: {
   stepper: ResolvedGuestStepper;
   qty: number;
-  blockRef: RefObject<HTMLDivElement>;
+  blockRef: RefObject<HTMLDivElement | null>;
   onQty: (qty: number) => void;
 }) {
   const { baseGuests, addOn, maxGuests, label } = stepper;

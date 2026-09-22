@@ -346,10 +346,6 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // INSTANT at that moment — no debounce or server round-trip in the beat.
   // (Autofill fills everything at once; then the reveal waits only on the
   // fetch, ~1s, which is fine — the keyboard is down and the box visible.)
-  const rewardRevealed =
-    guestFieldError("zip", state.guest) === null
-      ? optInReward.amountCents
-      : null;
 
   // Server-authoritative quote (subtotal + tax + total) — recomputed whenever
   // the cart contents / time / coupon change. The SPA never computes tax; it
@@ -403,6 +399,13 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     loading: quoteLoading,
     unavailable: quoteUnavailable,
   } = useQuote(quoteRequest);
+
+  // The earned reward cannot stack with the signup offer. Keep the disclosure
+  // and its recorded consent wording plain while a points reward is selected.
+  const pointsRewardSelected = !!state.couponCode.trim() &&
+    (quoteLoading || quoteUnavailable || !quote || quote.couponDiscount?.requiredPoints != null || state.couponResult?.requiredPoints != null);
+  const rewardRevealed = !pointsRewardSelected && guestFieldError("zip", state.guest) === null
+    ? optInReward.amountCents : null;
 
   // First-invalid ordering for the guest step: guest fields render ABOVE the
   // FormRenderer, so guest-then-form concatenation IS visual/DOM order. Maps
@@ -634,6 +637,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           startTime={toIsoWithOffset(state.date, state.slot.time)}
           salesCutoffMinutesBefore={state.product.salesCutoffMinutesBefore}
           couponCode={state.couponCode.trim() || undefined}
+          pricingPending={quoteLoading}
           couponResult={state.couponResult}
           onCouponCode={(code) => dispatch({ type: "SET_COUPON_CODE", code })}
           onCouponResult={(result) =>

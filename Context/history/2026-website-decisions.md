@@ -1,3 +1,7 @@
+## 2026-09-22 — Loyalty 2.0 isolated booking UI preparation
+
+Jon authorized local implementation/tests only. Separate worktree codex/loyalty-2-ui-internal at 4b0767f. Add earned-points balance/rejection copy, preserve invalid-link explanations, and handle terminal payment recovery truthfully. Vendor the contract from the isolated TPRS worktree. Browser tests use synthetic members and simulated payments; no live settings, deployment, sends or coupon issuance. Validation complete: 80 joined checks (14 browser cases), 114 regressions and Website/backend typechecks passed. Mobile screenshots inspected. See scripts/loyalty-ui/README.md and Loyalty/docs/audits/2026-09-22-booking-ui-proof.md. Also corrected pre-existing confirmation type import/analytics declaration and React ref nullability exposed by compiling the whole booking component graph. All changes remain local and uncommitted/unpushed.
+
 # Twisted Pin Website — 2026 decision history
 
 Not auto-loaded. Reverse chronological. Each entry keeps its original text and handoff pointer. Rules extracted from these entries live in `../../CLAUDE.md`; where they disagree CLAUDE.md wins, this file is the audit trail.
@@ -267,4 +271,49 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 - **2026-07-20 — `/playbook` shipped; two silent-failure bugs caught only by an end-to-end test.** Both returned HTTP 200 to the client while doing nothing, which is why "the endpoint succeeded" was never sufficient evidence. **(1) Table grants.** `playbook_acknowledgments` was created through the Supabase MCP `apply_migration`, which does NOT apply Supabase's default role grants — every insert failed `42501 permission denied`. Easy to misdiagnose because `service_role` bypasses RLS, so the instinct is to go looking at policies; RLS and table-level GRANTs are independent. Fixed with `grant insert, select … to service_role`, plus `revoke all … from anon, authenticated` because those roles retained `TRUNCATE` and **RLS does not gate TRUNCATE**. **(2) Resend sender domain.** Only `mail.twistedpin.com` is verified on the Resend account — the apex `twistedpin.com` is not, and Resend matches the domain exactly. Sending from `noreply@twistedpin.com` (then `bookings@twistedpin.com`) returned 403 and, because notification failure is deliberately non-fatal, produced signatures that saved correctly while info@ got nothing — precisely the failure the email exists to prevent. Now sends from `playbook@mail.twistedpin.com`. **TPRS checked and CLEAR** (confirmed same day from a real guest thread) — it sends from `reservations@mail.twistedpin.com`; the `bookings@twistedpin.com` hits in that repo are test fixtures, a stale comment, and one fallback. **But that fallback is a live landmine: `tprs apps/backend/src/workers/main.ts:198` reads `options.emailFromAddress ?? "bookings@twistedpin.com"` — if the from-address env var is ever unset or renamed, every booking confirmation silently stops delivering to paying guests.** Should default to the `mail.` subdomain or throw on startup; not yet done. Sequence: `49680cb` (build) → `48e6ebd` (sender fix) → `a68277d` (docs).
 
 - **2026-07-18 — Extra Suite Birthday was $20 over the live catalog on `/birthday-parties/` (`f9b7ffc`).** The TPRS booking catalog at `/reserve/birthdays/` sells Extra Suite Birthday at **$469.90**; this page said **$489.90** in body copy, the FAQ answer, and the schema.org `Offer` that Google reads. Surfaced by the Avery KB audit — the KB had the correct figure and the marketing page was the stale one, which is the opposite of the assumption the audit started with. **Source of truth for kid-package pricing is the live booking catalog, not this page.** Root cause was two independent literals: the card display hardcoded `$489.90` while the schema read `EXTRA_SUITE_BIRTHDAY_PRICE`, so they could drift silently. The card now renders from the constant, making that class of drift impossible; the constant's docstring points at the catalog. `SUITE_BIRTHDAY_PRICE` ($419) was correct on both and is deliberately still hardcoded in its card (constant is `"419.00"`, display is `$419`) — do not "fix" that to match without changing the display format.
+
+
+
+## 2026-09-22 — Applied points reward visual refinement (local)
+
+Jon found the checkout proof wordy and potentially confusing. A confirmed points reward now replaces code entry with a compact savings card and one points-cost line; Remove restores code entry. Ordinary coupon and error behavior is retained. Test disclosures stay in the local harness, with a restrained placeholder for the simulated payment form. Browser assertions and mobile/desktop screenshots are being refreshed; no deployed UI or real account changes.
+
+Verified: 81/81 joined checks (15 browser) and Website booking-graph TypeScript passed. Removing/reapplying the reward updates the total without spending points or calling the rail. Screenshots inspected at 320px, 390px and 1280px. Disposable database and preview server stopped. Evidence: Loyalty/docs/audits/2026-09-22-booking-ui-proof.md, visual follow-up. All edits remain local/uncommitted/unpushed.
+
+## 2026-09-22 - Isolated Stripe runtime preparation
+
+Added separate synthetic-only Stripe harness and full booking-wizard preview. Requires test keys and refuses active provider webhook destinations. Actual Stripe execution remains pending sandbox access. No production entrypoint, live data, messaging worker or deployment changed.
+
+
+Full-wizard screenshot review exposed product/date text overlap in the existing mobile reservation recap. Local CSS now stacks them below 540px; the offline journey asserts separate bounds. This fix remains undeployed with the Loyalty worktree.
+
+Verified the separate Stripe runtime preparation: four offline setup/full-wizard checks and backend/Website harness typechecks passed. Real Stripe mode remains unexecuted: the supplied test key exposes an enabled webhook to the deployed backend. No payment created. See Loyalty/docs/audits/2026-09-22-stripe-runtime-preparation.md. Source remains local, uncommitted and unpushed.
+
+
+
+## 2026-09-22 - Stripe sandbox execution results (local only)
+
+Eight actual API/CLI-webhook checks passed: successful booking/debit/replay, no-intent low-balance refusal, card decline, post-capture kiosk spending/full refund/terminal retry, real refund callback and duplicate-event restoration. Backend/harness TypeScript passed. The mobile Elements/3DS journey reached confirmation once but a final test assertion caught an unlisted Stripe CDN host. After refunding that test and narrowing the allowlist correction, a repeat hit Stripe hCaptcha and timed out; no bypass attempted. Manual browser verification remains open. Final provider audit: four captured test charges, all four fully refunded; one incomplete attempt cancelled; zero active persistent webhook endpoints. No real member, message, deployment, Zite build or production change. Source remains local/uncommitted/unpushed. Evidence: Loyalty/docs/audits/2026-09-22-stripe-runtime-preparation.md.
+
+
+## 2026-09-22 - Named loyalty benefit in the cart (local)
+
+Owner requested "$50 off Loyalty (350 points)" instead of the raw personal code in Your selections. The authoritative quote now includes optional requiredPoints for validated bound rewards; Website and shared response schemas carry it through. The cart uses actual savings/point cost, with more label space, on all quoted steps. Ordinary coupons retain their existing labels. Checkout math and redemption timing are unchanged. Pending narrow local type/browser validation; no deployment. The owner-completed synthetic browser booking INV-2026-00339 was independently verified at $30.66, balance 0, one used grant; its full test refund and actual callback restored 350 exactly once.
+
+
+Verified: 81/81 existing joined checkout/UI tests, five offline full-wizard checks, backend and Website typechecks. Desktop and mobile cart screenshots inspected with the requested label. A narrow desktop browser initially exposed scrollbar-gutter clipping; true mobile emulation removes that desktop artifact. No production CSS reset was changed. Manual browser test is now closed by the owner-completed synthetic booking and independent exact-booking/debit/full-refund/one-restoration verification. All source remains local and unpushed.
+
+
+## 2026-09-22 - Opus correction slice (local, validation pending)
+
+Preserve canonical points-member identity while saving the checkout confirmation email; suppress the signup reward presentation during an earned-reward checkout; retain personal codes after phone mismatch. Extend point restoration to fully refunded bookings. Add durable classification for points-funded rules and reject unbound codes, plus replace invalid unused invitations only on a new authorized request. No production migration, sends, Zite build or deployment. Targeted tests and existing regressions follow.
+
+## 2026-09-22 - Opus correction validation completed (local)
+
+Points checkout now keeps plain opt-in wording when the separate signup-$10 feature is enabled, including submitted consent. A mistyped phone no longer clears the personal code; correcting it permits reapplication. Backend canonical-member email handling sends the confirmation to the entered address without changing reward ownership or stored phone.
+
+Passed: 87/87 joined checkout/UI, 114/114 regressions, six full-wizard harness checks, backend/harness/Website TypeScript. Separate Stripe run passed eight checks, including exact final cumulative-refund callback restoration and replay. One wizard check and one Stripe check are harness identity guards, not guest journeys. Earlier wording crediting the manual full-refund restoration to its callback is corrected: that restoration happened inline; this NEW cumulative-refund test proves callback causality separately. Full evidence: Loyalty/docs/audits/2026-09-22-opus-corrections-proof.md. No deployment, public changes, messages or Zite build; work remains local/uncommitted/unpushed.
+## 2026-09-22 - Current-main local integration started
+
+Checkpoint the tested Loyalty booking UI locally and merge current origin/main into this isolated branch. Revalidate against the matching backend without any push, public deployment or guest experience changes. Validation pending.
 

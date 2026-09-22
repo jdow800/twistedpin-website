@@ -144,6 +144,9 @@ export default function StickySummary({
   const discount = quoteCoupon
     ? quoteCoupon.amountCents
     : couponDiscountCents(state);
+  const requiredPoints = quoteCoupon
+    ? quoteCoupon.requiredPoints
+    : state.couponResult?.valid ? state.couponResult.requiredPoints : undefined;
   const net = Math.max(0, subtotal - discount);
   const count = itemCount(state);
   const lines = lineItems(state, slotMaxUnits);
@@ -311,11 +314,13 @@ export default function StickySummary({
           })
         )}
         {discount > 0 && (
-          <div className="tprs-line is-discount">
+          <div className={`tprs-line is-discount${requiredPoints !== undefined ? " is-points-reward" : ""}`}>
             <span className="tprs-line-name">
-              {quoteCoupon ? `Code ${quoteCoupon.code}` : "Code applied"}
+              {requiredPoints !== undefined
+                ? `${formatUsd(discount)} off Loyalty (${requiredPoints} points)`
+                : quoteCoupon ? `Code ${quoteCoupon.code}` : "Code applied"}
             </span>
-            <span />
+            {requiredPoints === undefined && <span />}
             <span className="tprs-line-price">−{formatUsd(discount)}</span>
             <span className="tprs-line-remove tprs-line-remove--empty" />
           </div>
