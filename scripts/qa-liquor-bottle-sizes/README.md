@@ -30,10 +30,12 @@ node check-invoices.mjs
 The fixture uses fictional invoices and intercepts all reads and writes. It checks handwriting visibility, original-image access, credit guidance, category/action separation, explicit confirmation and failure, missing matches, item annotations, duplicates, total differences, legacy responses, missing images, re-reading, and escaped scan text. `node serve.mjs --invoices` serves the same fixture for a separate browser layout check.
 
 The invoice suite also checks food/liquor search, inventory labels, explicit food
-item creation and linked delivery-copy review (22 scenarios total). With the
+item creation, linked delivery-copy review, amount questions, excluded supplies
+and saved physical package answers (26 scenarios total). With the
 invoice server running, set `INVOICE_QA_CHROME` to a Chromium executable and run
-`node check-invoice-layout.mjs` to check food and linked-copy layouts at 320, 390
-and 960px. Screenshots and isolated browser profiles stay in ignored `dist/`.
+`node check-invoice-layout.mjs` to check food, linked-copy, package-answer and
+amount-question layouts at 320, 390 and 960px. Screenshots and isolated browser
+profiles stay in ignored `dist/`.
 
 Food voice counts reuse these isolated dependencies:
 

@@ -811,6 +811,7 @@ export interface InvoiceSummary {
    *  to find a held cost until the shared ops inbox exists. */
   heldCount?: number;
   unmatchedCount?: number;
+  reviewCount?: number;
   source?: "email" | "scan";
   duplicateOf?: string | null;
   landedOf?: string | null;
@@ -845,6 +846,15 @@ export interface InvoiceLine {
   /** Server triage; null means the source annotation is informational. */
   reviewAnnotation?: string | null;
   needsReview: boolean;
+  reviewReasons?: ("identity" | "amount" | "quantity")[];
+  nonInventory?: boolean;
+  printedLineTotal?: string | null;
+  lineTax?: string | null;
+  printedUnitPrice?: string | null;
+  pack?: number | null;
+  qtyCases?: string | null;
+  canRememberUnit?: boolean;
+  packageKey?: string | null;
   matchedName: string | null;
   /** Why this line's COST is waiting on a human — "billed by LB, counted by
    *  each". Prose, written server-side by one module; the units below are the
@@ -934,7 +944,7 @@ export interface InvoiceCopyReview {
   originalId: string; copyId: string; invoiceNumber: string | null;
   expected: { id: string; source: "email"; printedTotal: string | null };
   delivered: { id: string; source: "scan"; printedTotal: string | null };
-  rows: Array<{ code: string; description: string; originalLineIds: string[]; issues: string[];
+  rows: Array<{ code: string; description: string; originalLineIds: string[]; issues: string[]; information?: string[];
     expected: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
     delivered: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
   }>;
@@ -1015,6 +1025,15 @@ export async function applyHeldCost(
     `/admin/bar/invoices/${invoiceId}/lines/${lineId}/apply-cost`,
     jsonBody({ expectedSkuId, costPerCountUnit }),
   );
+}
+export async function expenseInvoiceLine(invoiceId: string, lineId: string): Promise<{ resolved: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/expense`, jsonBody({}));
+}
+export async function rememberInvoiceUnit(invoiceId: string, line: InvoiceLine, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${line.id}/remember-unit`, jsonBody({
+    expectedSkuId: line.matchedSkuId, expectedCountUnit: line.matchedCountUnit,
+    expectedPackageKey: line.packageKey, unitsPerBilledUnit,
+  }));
 }
 /** Record what a delivery ACTUALLY contained, when it came up short (or over).
  *  Pass null to clear it back to "as billed".

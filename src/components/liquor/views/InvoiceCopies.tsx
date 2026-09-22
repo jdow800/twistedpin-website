@@ -23,13 +23,14 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
     </div>
     {review.reasons.length > 0 && <ul>{review.reasons.map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
     <details open={review.differenceCount > 0 && !review.reviewed}>
-      <summary>{review.differenceCount ? `${review.differenceCount} item comparisons to check` : "Item readings agree"}</summary>
+      <summary>{review.differenceCount ? `${review.differenceCount} item comparisons to check` : "Billed items agree; view package readings"}</summary>
       {[...review.rows].sort((a, b) => Number(!!b.issues.length) - Number(!!a.issues.length)).map(row => <div className="lq-invd-line" key={row.code}>
         <strong>{row.description}</strong>
         <p className="lq-muted">Supplier item: {row.code.startsWith("unidentified-") ? "not read" : row.code}</p>
         <p>Email: {row.expected ? `${row.expected.quantity ?? "?"} billed · $${row.expected.amount} · ${row.expected.packages.join(", ")}` : "Item not read"}</p>
         <p>Scan: {row.delivered ? `${row.delivered.quantity ?? "?"} billed · $${row.delivered.amount} · ${row.delivered.packages.join(", ")}` : "Item not read"}</p>
         {row.issues.map((issue, i) => <p className="lq-muted" key={i}>{issue}</p>)}
+        {row.information?.map((note, i) => <p className="lq-muted" key={`info-${i}`}>{note}</p>)}
         {row.issues.length > 0 && row.originalLineIds.map((lineId, i) => <button className="lq-linkbtn" key={lineId} onClick={() => onOpen(review.originalId, lineId)}>
           Review purchase item{row.originalLineIds.length > 1 ? ` ${i + 1}` : ""}
         </button>)}

@@ -20,6 +20,29 @@ async function run(name,mode,fn){
     await fn({doc,button,click,log,dom});passed++;console.log('PASS',name);
   }finally{dom.window.close();}
 }
+await run('a known item with an amount question does not ask for another match','amount',async({doc,button})=>{
+  assert.match(doc.querySelector('.lq-invd-review').textContent,/line amount\(s\) need checking/);
+  assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
+  assert.ok(!doc.body.textContent.includes('needs a catalog match'));assert.ok(button('Go to item questions'));
+});
+await run('an excluded supply keeps its dollars without a stock matching prompt','expense',async({doc,click,log})=>{
+  await click('Expense as supplies (not counted)');
+  await until(()=>doc.body.textContent.includes('Expense · supplies'));
+  assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
+  assert.match(doc.querySelector('.lq-invd-amt').textContent,/50.00/);assert.match(log(),/\/expense/);
+});
+for(const mode of ['remember-unit','remember-failure']) await run('saved package answer '+mode,mode,async({doc,click,dom,log})=>{
+  await click('set the cost');
+  const input=doc.querySelector('[aria-label="Count units per billed case"]');
+  assert.equal(input.value,'');
+  Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'2');
+  input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+  assert.match(doc.body.textContent,/\$25 per pack/);
+  await click('Save package answer');
+  assert.match(log(),/"unitsPerBilledUnit":2/);assert.match(log(),/"expectedPackageKey":"2\|5LB\|"/);
+  if(mode==='remember-failure')assert.match(doc.querySelector('[role=alert]').textContent,/Could not save this package answer/);
+  else await until(()=>!doc.querySelector('.lq-invd-hold'));
+});
 await run('credit reason precedes totals, links the original and never auto-confirms','credit',async({doc,button,log})=>{
   const panel=doc.querySelector('.lq-invd-review');
   assert.match(panel.textContent,/2x empties -40/);assert.match(panel.textContent,/deposit credit/);

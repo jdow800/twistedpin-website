@@ -3,6 +3,8 @@ import { invoiceImageUrl, type InvoiceDetail, type InvoiceLine } from "../api";
 /** Older API responses remain conservative; an explicit null is informational. */
 export const reviewAnnotationFor = (line: InvoiceLine) =>
   line.reviewAnnotation === undefined ? line.annotation : line.reviewAnnotation;
+export const reviewReasonsFor = (line: InvoiceLine) => line.reviewReasons ??
+  (line.needsReview && line.lineType === "product" ? [line.matchedSkuId || line.nonInventory ? "amount" : "identity"] : []);
 
 export function jumpToInvoiceLine(id: string) {
   const row = document.getElementById(`inv-line-${id}`);
@@ -24,19 +26,21 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   if (inv.duplicateOf && detail.copyReviews?.some(p => p.copyId === inv.id)) return null;
   if (inv.status !== "flagged" && !productReview && !held.length) return null;
   const notes = inv.reviewNotes ?? inv.handwrittenNotes ?? [];
-  const marked = detail.lines.filter((line) => reviewAnnotationFor(line));
-  const unmatched = detail.lines.filter((line) => line.needsReview);
+  const marked = detail.lines.filter((line) => reviewAnnotationFor(line) && line.receivedQty == null);
+  const unmatched = detail.lines.filter((line) => reviewReasonsFor(line).includes("identity"));
+  const amounts = detail.lines.filter(line => reviewReasonsFor(line).includes("amount"));
+  const quantities = detail.lines.filter(line => reviewReasonsFor(line).includes("quantity"));
   const printed = Number(inv.printedTotal);
   const extracted = Number(inv.extractedTotal);
   const delta = inv.printedTotal != null && inv.extractedTotal != null
     && Number.isFinite(printed) && Number.isFinite(extracted) ? Math.abs(printed - extracted) : 0;
   const emptyKegNotes = notes.some((note) => /\bempties\b|\bempty\s+kegs?\b/i.test(note));
   const image = detail.images[0];
-  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || held.length || delta >= 0.01;
+  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01;
 
   return (
     <section className="lq-invd-review" aria-labelledby="invoice-review-title">
-      <h3 id="invoice-review-title">Why this needs review</h3>
+      <h3 id="invoice-review-title">{inv.duplicateOf ? "Repeated upload" : "Why this needs review"}</h3>
       {inv.duplicateOf ? (
         <p>This duplicates invoice {inv.duplicateOf}. It stays excluded so the delivery is counted once.</p>
       ) : (
@@ -74,6 +78,8 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
             </p>
           )}
           {held.length > 0 && <p><strong>{held.length} item cost(s) need a unit check.</strong> Open the cost questions below before applying a cost to inventory.</p>}
+          {amounts.length > 0 && <p><strong>{amounts.length} line amount(s) need checking.</strong> Compare the printed price, billed quantity and tax with the source document.</p>}
+          {quantities.length > 0 && <p><strong>{quantities.length} billed quantity/quantities need checking.</strong> Compare the quantity and case columns with the source document.</p>}
           {delta >= 0.01 && (
             <p><strong>The printed and read totals differ by ${delta.toFixed(2)}.</strong>{" "}
               Compare the line amounts, deposits, fees and credits with the original invoice.
@@ -89,12 +95,12 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           </a>
         ) : <p className="lq-muted">The image is no longer stored. Use your paper receipt or vendor copy.</p>}
         {!inv.duplicateOf && detail.lines.length > 0 && (
-          <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine((unmatched[0] ?? marked[0] ?? detail.lines[0])!.id)}>
-            {unmatched.length ? "Go to items needing a match" : marked.length || !emptyKegNotes ? "Check delivered quantities" : "Review invoice items"}
+          <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine((unmatched[0] ?? amounts[0] ?? quantities[0] ?? held[0] ?? marked[0] ?? detail.lines[0])!.id)}>
+            {unmatched.length ? "Go to items needing a match" : amounts.length || quantities.length || held.length ? "Go to item questions" : marked.length || !emptyKegNotes ? "Check delivered quantities" : "Review invoice items"}
           </button>
         )}
       </div>
-      {inv.status === "flagged" && !inv.duplicateOf && unmatched.length === 0 && (
+      {inv.status === "flagged" && !inv.duplicateOf && !productReview && (
         <div className="lq-invd-review-confirm">
           <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>

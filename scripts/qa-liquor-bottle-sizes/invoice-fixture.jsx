@@ -25,6 +25,14 @@ const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page
   buckets:{byBucket:{beer_draft:{matched:0,vendorItem:0,estimated:140}},nonGoods:40,
     unattributed:0,matchedDollars:0,residualDollars:140,residualBasis:'vendor_mix',mixVendor:'Example Brewery',mixInvoices:8,
     warnings:[],totalBasis:'grand_total',needsAttention:{unresolved:[{lineId:line.id,description:line.rawDescription,amount:'140'}],supplierOnly:[],disagreement:[]}}};
+if(['amount','expense','remember-unit','remember-failure'].includes(mode)) {
+  invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
+    reviewReasons:['identity'],qtyUnits:'1',qtyCases:'1',pack:2,sizeText:'5LB',unitCost:'50',extendedAmount:'50'});
+  if(mode==='amount') Object.assign(line,{matchedSkuId:'demo',matchedName:'Known item',reviewReasons:['amount'],extendedAmount:'54.38'});
+  if(mode.startsWith('remember')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
+    reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:true,packageKey:'2|5LB|'});
+}
 if(mode==='deposit-info'||mode==='mixed-deposit') {
   invoice.reviewNotes=[];
   if(mode==='deposit-info') invoice.status='extracted';
@@ -57,6 +65,11 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/catalog')) {
     const section=new URL(url,location.href).searchParams.get('section')||'bar';
     return json({items:catalog.filter(item=>item.section===section)});
+  }
+  if(path.endsWith('/expense')) {line.nonInventory=true;line.needsReview=false;line.reviewReasons=[];return json({resolved:true});}
+  if(path.endsWith('/remember-unit')) {
+    if(mode==='remember-failure')return json({error:'unit_changed'},409);
+    line.costHoldReason=null;return json({resolved:true});
   }
   if(path.endsWith('/copy-review')) {
     if(mode==='linked-stale') return json({error:'comparison_changed'},409);
