@@ -135,6 +135,8 @@ export interface BarSkuItem {
    *  cell with it; the liquor grid ignores it because everything there is a
    *  bottle. Optional so older cached bundles keep parsing. */
   countUnit?: string;
+  /** Confirmed spoken package conversions; ignored when the physical unit changes. */
+  countDefinition?: import("./count-definition").CountDefinition | null;
   /** Confirmed observations, used only to ask about an unusually large count. */
   countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
 }
