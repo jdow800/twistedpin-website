@@ -657,10 +657,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       if (!applyable(r)) continue;
       const q = reviewQuantity(r);
       const sku = reviewSku(r)!;
-      const raw = `${r.spoken.slice(0, 1600)} [confirmed: ${r.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`;
+      const raw = `${r.spoken.slice(0, 1600)} [confirmed: ${q.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`;
       // A SKU whose base unit IS case has one input, not "cases of cases".
-      addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : r.cases,
-        q.units + (sku.countUnit === "case" ? r.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId);
+      addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : q.cases,
+        q.units + (sku.countUnit === "case" ? q.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId);
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
@@ -1071,7 +1071,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           {review.map((r) => {
             const sku = r.chosenSkuId ? skuById.get(r.chosenSkuId) : undefined;
             const q = reviewQuantity(r);
-            const caseOnly = sku?.countUnit === "case" && (!r.spokenUnit || /^cases?$/.test(r.spokenUnit));
+            const caseOnly = (sku?.countUnit === "case" && !q.inputUnit) || /^cases?$/.test(q.inputUnit ?? "");
             const concern = warning(r);
             const hits = r.search?.trim() ? catalog.filter(s => r.search!.toLowerCase().split(/\s+/).every(word => s.name.toLowerCase().includes(word))).slice(0, 8) : [];
             return (
@@ -1110,7 +1110,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Cases for ${sku.name}`}
                           value={r.quantityKnown ? r.cases + (caseOnly ? r.units : 0) : ""} onChange={e => editReview(r, { cases: Math.max(0, Number(e.target.value)), ...(caseOnly ? { units: 0 } : {}), quantityKnown: e.target.value !== "" })} />
                       </label>
-                      {!caseOnly && <label>{r.spokenUnit ?? unitLabel(sku, 2)}
+                      {!caseOnly && <label>{q.inputUnit ?? unitLabel(sku, 2)}
                         <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Loose quantity for ${sku.name}`}
                           value={r.quantityKnown ? r.units : ""} onChange={e => editReview(r, { units: Math.max(0, Number(e.target.value)), quantityKnown: e.target.value !== "" })} />
                       </label>}
@@ -1161,9 +1161,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 {concern && r.largeCountConfirmed !== concern && (
                   <div className="lq-fc-rev-ask" role="status">
                     <span>{concern}</span>
-                    {r.cases > 0 && r.units === 0 && sku?.countUnit !== "case" && <button type="button" className="lq-linkbtn"
-                      onClick={() => editReview(r, { units: r.cases, cases: 0, spokenUnit: null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>
-                      Use {r.cases} {unitLabel(sku, r.cases)}
+                    {q.cases > 0 && q.units === 0 && sku?.countUnit !== "case" && <button type="button" className="lq-linkbtn"
+                      onClick={() => editReview(r, { units: q.cases, cases: 0, spokenUnit: sku?.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>
+                      Use {q.cases} {unitLabel(sku, q.cases)}
                     </button>}
                     <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { largeCountConfirmed: concern })}>Keep as entered</button>
                   </div>

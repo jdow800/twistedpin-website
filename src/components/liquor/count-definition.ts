@@ -4,6 +4,8 @@ export interface CountDefinition {
   unitsPerCase: number | null;
   unitLabel?: string;
   spokenUnits?: Record<string, number>;
+  /** Only a human can choose what a unitless spoken count means. */
+  defaultSpokenUnit?: string;
   usualMaxCases?: number;
   confirmedBy: string;
   confirmedAt: string;
@@ -17,6 +19,7 @@ export function currentCountDefinition(sku: CountDefinitionSku | undefined): Cou
   const d = sku?.countDefinition;
   if (!d || d.countUnit !== sku?.countUnit || d.unitsPerCase !== (sku?.unitsPerCase ?? null)) return null;
   if (d.spokenUnits && Object.values(d.spokenUnits).some(n => !Number.isFinite(n) || n <= 0)) return null;
+  if (d.defaultSpokenUnit && d.spokenUnits?.[normalizeCountUnit(d.defaultSpokenUnit)] == null) return null;
   if (d.usualMaxCases != null && (!Number.isFinite(d.usualMaxCases) || d.usualMaxCases <= 0)) return null;
   return d;
 }
@@ -31,6 +34,8 @@ export function normalizeCountUnit(unit: string): string {
   return aliases[raw] ?? raw;
 }
 export function definedUnitMultiplier(sku: CountDefinitionSku | undefined, unit: string | null): number | null {
-  if (!unit) return null;
-  return currentCountDefinition(sku)?.spokenUnits?.[normalizeCountUnit(unit)] ?? null;
+  const definition = currentCountDefinition(sku);
+  const inputUnit = unit ?? definition?.defaultSpokenUnit;
+  if (!inputUnit) return null;
+  return definition?.spokenUnits?.[normalizeCountUnit(inputUnit)] ?? null;
 }

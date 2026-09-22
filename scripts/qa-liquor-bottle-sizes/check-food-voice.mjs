@@ -347,4 +347,37 @@ await run('bare fruit remains each and exceptional explicit cases need confirmat
   assert.equal(t.qa.lines.find(l=>l.skuId==='fruit').qtyUnits,12,'warning must not silently rewrite stock');
 },'definitions');
 
+await run('case-default fractions display as cases and save exact bag equivalents',async t => {
+  await t.hear([item('fries',2.5,{spoken:'fries two and a half'})]);
+  const cases=t.doc.querySelector('input[aria-label="Cases for Sample Fries"]');
+  assert.equal(cases.value,'2.5');
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Sample Fries"]'),null);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits,15);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fries').enteredCases,2.5);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fries').caseSizeAtEntry,6);
+  assert.match(t.qa.lines.find(l=>l.skuId==='fries').rawUtterance,/confirmed: 2\.5 cases/);
+},'definitions');
+
+await run('an explicitly labeled case quantity preserves a case-based item',async t => {
+  await t.hear([item('dough',2.5,{spoken:'two and a half cases of dough',spokenUnit:'case'})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits,2.5);
+},'definitions');
+
+await run('explicit single bags remain exact for a case-default item',async t => {
+  await t.hear([item('fries',1,{spoken:'one bag of fries',spokenUnit:'bag'})]);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits,1);
+  await t.hear([item('fries',0.5,{spoken:'fries point five'})]);
+  await t.apply(); await until(() => t.qa.lines.find(l=>l.skuId==='fries').qtyUnits===4);
+},'definitions');
+
+await run('correcting implausible cases to bags overrides the remembered case default',async t => {
+  await t.hear([item('fries',0,{spoken:'thirty cases of fries',cases:30})]);
+  await t.click('Use 30 bags');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits,30);
+},'definitions');
+
 console.log(`${passed} food voice scenarios passed.`);
