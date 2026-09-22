@@ -1,5 +1,5 @@
 import type { BarSkuItem, VoiceMatch } from "./api";
-import { currentCountDefinition, definedUnitMultiplier } from "./count-definition";
+import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 
 export interface FoodReviewItem {
   key: string;
@@ -43,14 +43,18 @@ function sameUnit(base: string, said: string | null): boolean {
 export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefined) {
   const base = sku?.countUnit ?? "each";
   const caseSize = base === "case" ? 1 : sku?.unitsPerCase ?? null;
+  const rawInputUnit = r.spokenUnit ?? currentCountDefinition(sku)?.defaultSpokenUnit ?? null;
+  const inputUnit = rawInputUnit ? normalizeCountUnit(rawInputUnit) : null;
   const unitMultiplier = r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit) ?? (sameUnit(base, r.spokenUnit) ? 1 : null);
   const needsCaseSize = r.cases > 0 && caseSize == null;
   const needsUnitSize = r.units > 0 && unitMultiplier == null;
-  const needsUnitChoice = !r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !r.spokenUnit && (caseSize ?? 0) > 1;
+  const needsUnitChoice = !r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !inputUnit && (caseSize ?? 0) > 1;
   const catalogConflict = base === "case" && (sku?.unitsPerCase ?? 1) > 1;
-  const units = r.units * (unitMultiplier ?? 0);
-  const qty = Math.round((r.cases * (caseSize ?? 0) + units) * 1000) / 1000;
-  return { caseSize, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
+  const unitsAreCases = inputUnit === "case" && unitMultiplier === caseSize;
+  const cases = r.cases + (unitsAreCases ? r.units : 0);
+  const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);
+  const qty = Math.round((cases * (caseSize ?? 0) + units) * 1000) / 1000;
+  return { cases, caseSize, inputUnit, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
     ready: !!sku && r.quantityKnown && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
 }
 
@@ -73,10 +77,10 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
       history?.maxDelivery != null ? `largest delivery ${history.maxDelivery}` : ""].filter(Boolean).join("; ");
     return `${q.qty + existingQty} ${foodUnitLabel(sku, q.qty + existingQty)} total is unusually high (${evidence}, last ${history?.days ?? 90} days). Check the unit.`;
   }
-  if (usualMaxCases == null && r.cases >= 10) return sku.countUnit === "case"
-    ? `${r.cases} cases is a large count. Confirm the quantity and package unit.`
-    : `${r.cases} cases is a large count. Confirm cases versus ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${r.cases * q.caseSize} ${foodUnitLabel(sku, r.cases * q.caseSize)})` : ""}.`;
-  if (r.cases > 0 && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!) {
+  if (usualMaxCases == null && q.cases >= 10) return sku.countUnit === "case"
+    ? `${q.cases} cases is a large count. Confirm the quantity and package unit.`
+    : `${q.cases} cases is a large count. Confirm cases versus ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${q.cases * q.caseSize} ${foodUnitLabel(sku, q.cases * q.caseSize)})` : ""}.`;
+  if (r.cases > 0 && q.inputUnit !== "case" && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!) {
     return "The loose quantity is at least a full case. Check that cases have not already been multiplied into it.";
   }
   return null;

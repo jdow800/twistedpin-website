@@ -10,6 +10,13 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-22 — Confirmed spoken defaults (release pending).** A saved human
+  default can interpret a unitless freezer count as fractional cases while explicit
+  bag counts remain bags. Review shows the interpreted case quantity, and its
+  correction to loose bags overrides the default. Canonical bag storage preserves
+  exact quantities even when a case contains six bags. No default is inferred from
+  a large number. The matching backend change reuses the existing JSON column.
+
 - **2026-09-22 — Reuse verified food count units (release pending).** Food review
   reads the catalog's human-confirmed package vocabulary, including inner bags,
   and invalidates it when the count unit or case factor changes. A recorded normal
