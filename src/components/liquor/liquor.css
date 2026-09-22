@@ -1197,6 +1197,36 @@
   display: flex;
   gap: 10px;
 }
+.lq-invd-review {
+  border: 1px solid rgba(255, 207, 92, 0.55);
+  border-left: 4px solid #ffcf5c;
+  border-radius: 9px;
+  background: var(--lq-panel);
+  padding: 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.lq-invd-review h3 { margin: 0 0 12px; font-size: 19px; }
+.lq-invd-review p { margin: 8px 0; }
+.lq-invd-review ul { padding-left: 22px; }
+.lq-invd-review .lq-invd-review-notes {
+  background: var(--lq-panel-2);
+  padding: 12px 12px 12px 32px;
+  border-radius: 7px;
+}
+.lq-invd-review .lq-muted { font-size: 14px; }
+.lq-invd-review-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px; }
+.lq-invd-review-actions .lq-btn,
+.lq-invd-review-confirm .lq-btn { white-space: normal; max-width: 100%; }
+.lq-invd-review .lq-linkbtn { font-size: 14px; min-height: 44px; }
+.lq-invd-review-confirm { border-top: 1px solid var(--lq-line); margin-top: 16px; padding-top: 12px; }
+.lq-invd-review-confirm .lq-btn { margin-top: 8px; }
+.lq-invd-line { scroll-margin-top: 24px; }
+.lq-invd-line:focus { outline: 2px solid var(--lq-glow); outline-offset: 3px; }
+.lq-invd-secondary { border-top: 1px solid var(--lq-line); padding-top: 14px; }
+.lq-invd-secondary > summary { cursor: pointer; min-height: 44px; font-size: 16px; font-weight: 700; }
+.lq-invd-secondary > p { font-size: 14px; line-height: 1.5; }
 .lq-invd-totals > div {
   flex: 1;
   background: var(--lq-panel);
@@ -1845,8 +1875,8 @@
 }
 .lq-beer-steppers {
   display: flex;
+  flex-direction: column;
   gap: 8px;
-  flex-wrap: wrap;
 }
 /* ⚠ NAMESPACED `-bstep-`, NOT `-step-`. `.lq-step` is already taken, ~1400
    lines up: the 42x42 +/- button in the liquor count grid. Appending a second
@@ -1856,23 +1886,21 @@
    as the unstyled CaseBox: check whether a class already has OTHER rules, not
    just whether it has rules. */
 .lq-bstep {
-  flex: 1 1 96px;
-  min-width: 96px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  /* Explicit: the label sits ABOVE its control and neither is clipped. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(154px, 50%);
+  align-items: center;
+  gap: 8px;
+  /* One labelled tier per line. Three 96px controls left only 10px for
+     digits on a 390px phone: 14 visibly became 1 while the total stayed 14. */
   height: auto;
   min-height: 0;
 }
 .lq-bstep-label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--lq-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 }
 .lq-bstep-ctl {
   display: flex;
@@ -1883,7 +1911,7 @@
   background: var(--lq-panel-2);
 }
 .lq-bstep-ctl button {
-  flex: 0 0 40px;
+  flex: 0 0 44px;
   min-height: 44px; /* thumb target — this is used one-handed in a cooler */
   border: 0;
   background: transparent;
@@ -1891,6 +1919,7 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
+  touch-action: manipulation;
 }
 .lq-bstep-ctl button:disabled {
   opacity: 0.3;
@@ -1899,7 +1928,7 @@
 .lq-bstep-ctl input {
   flex: 1 1 auto;
   width: 100%;
-  min-width: 0;
+  min-width: 64px;
   border: 0;
   border-left: 1px solid var(--lq-line);
   border-right: 1px solid var(--lq-line);
@@ -1907,6 +1936,7 @@
   color: var(--lq-text);
   /* 16px minimum or iOS zooms the whole page on focus. */
   font-size: 16px;
+  font-family: inherit;
   font-variant-numeric: tabular-nums;
   text-align: center;
   padding: 8px 2px;
@@ -2090,6 +2120,27 @@
   align-items: center;
   flex-wrap: wrap;
 }
+.lq-fc-rev-quantities { display: flex; gap: 12px; flex-wrap: wrap; }
+.lq-fc-rev-quantities label { display: flex; flex-direction: column; gap: 4px; }
+.lq-fc-rev-quantities input,
+.lq-fc-rev-product input {
+  box-sizing: border-box;
+  min-height: 44px;
+  width: 7em;
+  max-width: 100%;
+  padding: 8px;
+  font-size: 16px;
+  color: inherit;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 8px;
+}
+.lq-fc-rev-product input { width: 100%; margin: 6px 0; }
+.lq-fc-rev-product .lq-linkbtn { display: block; min-height: 44px; text-align: left; }
+.lq-fc-rev-product summary, .lq-fc-transcript summary { cursor: pointer; padding: 8px 0; }
+.lq-fc-transcript { font-size: 14px; overflow-wrap: anywhere; }
+.lq-fc-rev-ask .lq-linkbtn { align-self: flex-start; min-height: 44px; text-align: left; }
+.lq-fc-rev-ask input { min-height: 44px; box-sizing: border-box; }
 /* The grid. One row per item; cases box only when a case size is known, so the
    screen never invites a multiplier it cannot justify. */
 /* ── the food count screen, sized for a phone in a walk-in ─────────────────
@@ -2630,3 +2681,11 @@
   min-height: 44px;
   min-width: 44px;
 }
+
+/* Saved recipe confirmation: readable pours and thumb-sized actions. */
+.lq-recipe-suggestions { display: grid; gap: 10px; margin-top: 12px; }
+.lq-recipe-suggestion { min-width: 0; padding: 12px; border: 1px solid var(--lq-line); border-radius: 8px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.lq-recipe-source { margin-top: 4px; font-size: 13px; }
+.lq-recipe-suggestion ul { margin: 8px 0; padding-left: 20px; }
+.lq-recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lq-recipe-actions .lq-btn { min-height: 44px; padding: 9px 12px; font-size: 14px; }

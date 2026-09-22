@@ -157,7 +157,7 @@ export default function BottledBeer({
     if (!sessionId) return;
     setSave("saving");
     try {
-      await saveCountLines(sessionId, validLines(rowsRef.current));
+      await saveCountLines(sessionId, validLines(rowsRef.current), false, "bar");
       setSave("saved");
     } catch {
       setSave("error");
@@ -238,6 +238,9 @@ export default function BottledBeer({
       {resumed && (
         <p className="lq-beer-resumed">Picked up where you left off.</p>
       )}
+      <p className="lq-beer-note">
+        Add loose bottles from every cooler. Cases and six-packs add to the total.
+      </p>
       {rows.map((r) => {
         const t = totalOf(r);
         return (
@@ -245,7 +248,7 @@ export default function BottledBeer({
             <div className="lq-beer-head">
               <span className="lq-beer-name">{r.name}</span>
               <span className={t > 0 ? "lq-beer-total on" : "lq-beer-total"}>
-                {t > 0 ? `${t} bottle${t === 1 ? "" : "s"}` : "—"}
+                {t > 0 ? `${t} bottle${t === 1 ? "" : "s"} total` : "—"}
               </span>
               {t > 0 && (
                 <button
@@ -270,7 +273,7 @@ export default function BottledBeer({
                     disabled: !r.caseSize,
                   },
                   { f: "packs" as const, label: "six-packs", disabled: false },
-                  { f: "loose" as const, label: "bottles", disabled: false },
+                  { f: "loose" as const, label: "loose bottles", disabled: false },
                 ]
               ).map(({ f, label, disabled }) => (
                 <div className="lq-bstep" key={f}>

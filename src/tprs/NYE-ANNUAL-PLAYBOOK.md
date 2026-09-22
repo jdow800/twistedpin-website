@@ -2,13 +2,13 @@
 
 How New Year's Eve booking is wired on the website, and the short list of what to
 touch each year. The page is **evergreen** (lives at its URL year-round); the only
-things that change annually are a couple of dates + the backend sales window.
+annual review covers the packages, party times, dates and backend sales gate.
 
 > TL;DR: the website never hard-gates NYE. The **TPRS backend** gates booking via
 > each product's `sales_start_at`. While sales are closed, the page shows a branded
-> **pre-sale notice** ("drops late November — follow us") and **self-resolves to the
+> **availability notice** linking to the package preview and **self-resolves to the
 > live booking grid the moment the backend opens sales**. Each year you mostly just
-> bump `defaultDate` + the nav window, and set the backend sale date.
+> review dated duration rules, bump `defaultDate` + the nav window, and set the backend sale date.
 
 ---
 
@@ -23,16 +23,19 @@ things that change annually are a couple of dates + the backend sales window.
    open (this is the real gate; `validateSalesStart` blocks checkout and
    availability returns no slots until then).
 3. Restrict each product's **availability to the new 12/31** (so the only bookable
-   date is NYE).
+   date is NYE). Confirm the length of every start in
+   `product_duration_overrides` for the new date through a reviewed TPRS migration.
+   Those rules determine real lane holds and booking ends; changing a schedule
+   label or the website alone does not change the reservation.
 
 **Frontend — this repo (`src/tprs/pageConfig.ts`, `nyePageConfig`):**
 4. Update **`defaultDate`** → the new year's date, e.g. `"2027-12-31"`. (The
    calendar seeds here, and the pre-sale notice keys off it. A past `defaultDate`
    falls back to "today", which strands the page on a dead date — so this bump is
    the one that actually matters.)
-5. Skim **`presaleNotice`** copy — it says "drops **late November**". If the
-   `sales_start_at` you set is meaningfully different, reword it. It's date-soft on
-   purpose so small shifts need no edit. Update `ctaHref` if the social URL changes.
+5. Skim **`presaleNotice`** copy. It reports no current online availability and
+   links to the package page; it must also remain accurate if the event sells out.
+   Do not add a sales-opening promise without confirming the backend gate.
 
 **Frontend — nav + funnel:**
 6. `src/config/nav-seasonal.ts` → bump the **"New Year's Eve"** window
@@ -104,3 +107,30 @@ field, not NYE-specific code.
 - **2026-06-16** — pre-sale notice shipped (`presaleNotice` config + `showPresale`
   in MainStep) so the closed-sales window reads as an intentional "coming soon"
   beat instead of a bare unavailable list. Commit `f2f5f8c`.
+
+
+## September 14, 2026 launch check
+
+The six confirmed 2026 party times and the live time-based prices are recorded in
+`Context/session-handoffs/2026-09-14-nye-2026-packages.md`. The page and event
+collection now describe those times. **This is a package-preview release, not
+the opening of online sales.**
+
+The September 14 duration follow-up implements the approved lengths: the first
+three parties are 90 minutes, 5pm and 7:30pm are 120 minutes, and 10pm is 150
+minutes, ending January 1 at 12:30am. The base `durationMinutes` remains 90;
+`durationOverrides` contains the six date/start rules for each product. See
+[the duration handoff](../../Context/session-handoffs/2026-09-14-nye-confirmation-durations.md).
+Before opening sales, verify the backend migration, public rule arrays and
+availability, lane holds, persisted ends, confirmation and calendar together.
+Production was read directly: sales are set to December 1 at midnight Central,
+and the schedules allow December 31, 2026 only. This release preserves those gates.
+
+The live pizza and soda fields already use `per_unit_select`, `lane_count`, and
+divisor 1. Keep that behavior: N lanes require N pizza choices and N soda choices,
+with repeated choices allowed. Test a lane-count change before opening sales.
+
+Re-check the current production sales gate, NYE-only date restrictions, venue
+hours and lane buffers. An older localhost catalog was inspected during this
+review and differs from the live forms; its configuration is not production
+evidence. Add accurate Event offers only when actual sale availability is known.

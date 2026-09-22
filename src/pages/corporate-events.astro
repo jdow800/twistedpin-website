@@ -1,212 +1,112 @@
 ---
 /**
- * /corporate-events/ — Corporate Events landing page.
- *
- * Audience-specific funnel split from /events. /events is the broad
- * group-events pillar; this page narrows to corporate planners (EA,
- * office manager, HR, owner) booking offsites, holiday parties,
- * staff appreciation nights, sales kickoffs, client entertainment.
- *
- * Per Context/seo.md (line 26): `corporate event venue near me` /
- * `team building venue` / `company outing bowling` is a $2K–$10K+
- * booking cluster, ~40% of paid corporate leads via Google. The
- * dedicated URL captures the planner-intent search that the broad
- * /events page dilutes (and competes against — same domain, blunter
- * keyword target).
- *
- * USE-CASE REFRAME (2026-06-16) — see
- * Context/session-handoffs/2026-06-16-corporate-events-usecase-reframe.md
- * The Google Ads "Events" campaign pivoted the corporate side away
- * from generic "event venue / event space" terms (wrong intent,
- * competed with banquet halls) toward high-intent USE-CASES: "team
- * outing," "staff outing," "employee appreciation," "company outing."
- * Paid traffic now arrives searching those phrases, so the page leads
- * with a use-case block that echoes the live ad-group copy ("Staff
- * Outings, Done Right," "Not Your Average Team Outing," "Reward Your
- * Team," "A Day They'll Remember") for keyword↔ad↔page scent
- * continuity (Quality Score + conversion). The VIP-suite + food/bar
- * editorial sections stay as the PROOF below the use-case grid.
- *
- * Replaces the legacy `/corporate-parties/` → `/events/#corporate`
- * 301 (hash drops on 301 so the equity was landing on the generic
- * events page). New redirect target: this page directly.
- *
- * Same pillar skeleton as /events + /fundraisers + /vip-suite (rule
- * of nine — .pillar-* CSS hoist is overdue, flagged on every page in
- * this family):
- *   - Hero: typography-led title section (no image)
- *   - Use-case grid: text-led "this is for YOU" blocks (the reframe)
- *   - Two long-scroll editorial sections (video + copy, alternating)
- *   - Closing CTA band → Plan an Event (PLAN_EVENT_URL toggle)
- *   - SnapFooter
- *
- * LCP note (changed in the 2026-06-16 reframe): the text-led use-case
- * grid now sits between the hero and the first video section, so the
- * vip-lanes poster is below the mobile fold and is NO LONGER the LCP
- * element — LCP is now hero/use-case TEXT (faster, no image to fetch).
- * Both section videos therefore use lazy `data-poster` and the page
- * passes NO `lcpPreloadHref` (a high-priority preload of a below-fold
- * poster is the exact waste-pattern the 2026-05-17 hero-preload fix
- * removed). If a future redesign moves a video back above the fold,
- * restore `poster=` + `lcpPreloadHref` on that one section.
- *
- * Hero videos: same as /vip-suite by user direction (2026-05-17) —
- * the VIP suite IS the corporate event room, so vip-lanes-* + buffet-*
- * is the visually correct pairing. Both videos are already canonical
- * on their primary pages (/vip-suite, /events) per src/data/videos.ts;
- * this page reuses them visually only and does NOT emit duplicate
- * VideoObject JSON-LD (single-canonical convention for the sitemap).
- *
- * Voice rules applied (per Context/voice.md):
- *   - Brian Van Flandern named only as "America's Top Mixologist"
- *     credential — "curated by," never "built by"
- *   - "private" hard-banned — VIP suite is "set apart from the main
- *     floor," "yours when you book it," "semi-private"
- *   - "Cheap / discount / value" banned — corporate planners have
- *     budgets, not coupons. Confident pricing language only.
- *   - "Team building" used pointedly (we're not running ropes-course
- *     activities; we're running an offsite that has bowling, food,
- *     and a real bar — the planner can call it team building)
- *   - Specifics > adjectives — 6-lane suite, up to 80, up to 200 for
- *     buyouts, 28 self-serve taps, LED video wall, near Naperville
- *
- * TODOs (non-blocking):
- *   - Capacity number for full-venue buyouts ("more for full-venue
- *     buyouts") still hand-waved; same as /events. When ops gives a
- *     number, update here + /events + /vip-suite in the same diff.
- *   - Real corporate-event photography (a real offsite night, a deck
- *     on the LED wall, a buffet from the kitchen at scale) would
- *     convert harder than the existing vip-lanes/buffet stock loops.
- *     Flagged for Context/media-needs.md.
+ * Corporate planners: team outings, employee appreciation and company parties.
+ * 2026-09-14: existing suite video now follows the shorter hero. Paid-search
+ * use cases remain in compact cards; regional copy is consolidated by the room.
+ * The first AVIF poster is eager/preloaded; the catering video stays deferred.
+ * Videos are visual reuses of the canonical /vip-suite and /events entries;
+ * do not emit duplicate VideoObject markup here (see src/data/videos.ts).
+ * Release and Bing diagnosis: Context/session-handoffs/2026-09-14-corporate-regional-bing.md.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID, PLACE_ID, STREET, LOCALITY } from "../lib/schema";
 import { ICON_PATHS } from "../lib/icons";
-
 import { PLAN_EVENT_URL } from "../lib/links";
 
-// JSON-LD: Service (parallel to /fundraisers). provider → #business
-// links the program to the canonical entity via @id. areaServed is
-// the I-55/I-80 corridor where corporate planners actually come from —
-// Plainfield is the venue address, but the audience is anchored
-// across the western suburbs (matches the /why-us/*-il/ city set).
-const PAGE_URL = `${BUSINESS_URL}/corporate-events/`;
+const PAGE_URL = BUSINESS_URL + "/corporate-events/";
+const MAPS_DIR_HREF = "https://www.google.com/maps/dir/?api=1&destination=" +
+  encodeURIComponent(STREET + ", " + LOCALITY) + "&destination_place_id=" + PLACE_ID;
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
-  "@id": `${BUSINESS_URL}/#corporate-events`,
+  "@id": BUSINESS_URL + "/#corporate-events",
   name: "Corporate Events & Team Outings",
   url: PAGE_URL,
   description:
-    "Team outings, staff outings, employee-appreciation nights, holiday parties, and corporate offsites at Twisted Pin in Plainfield, IL. Bowling in the 6-lane VIP suite (seats up to 80, or up to 200 for full-venue buyouts), in-house catering, and a cocktail program curated by Brian Van Flandern, America's Top Mixologist. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+    "Team outings, staff appreciation, holiday parties and corporate offsites at Twisted Pin in Plainfield, IL. A semi-private 6-lane VIP suite for up to 80, full-venue buyouts for up to 200, in-house catering and craft cocktails. Serving groups from Romeoville, Shorewood, Naperville, Joliet, Bolingbrook and the surrounding area.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Corporate event & team outing hosting",
   areaServed: [
-    { "@type": "City", name: "Plainfield, IL" },
-    { "@type": "City", name: "Naperville, IL" },
-    { "@type": "City", name: "Bolingbrook, IL" },
-    { "@type": "City", name: "Joliet, IL" },
-    { "@type": "City", name: "Romeoville, IL" },
-    { "@type": "City", name: "Oswego, IL" },
-    { "@type": "City", name: "Shorewood, IL" },
-    { "@type": "City", name: "Lockport, IL" },
-  ],
+    "Plainfield, IL", "Romeoville, IL", "Shorewood, IL", "Naperville, IL",
+    "Joliet, IL", "Bolingbrook, IL", "Oswego, IL", "Lockport, IL",
+  ].map((name) => ({ "@type": "City", name })),
 };
 
-// FAQPage schema + on-page FAQ (2026-06-17, on-page SEO spec Phase A).
-// Reuses the /faq accordion pattern — the t2-faq-* classes are global, and
-// the Question/Answer JSON-LD shape matches /faq exactly. Questions are
-// phrased the way a corporate planner actually searches (capacity, buyouts,
-// catering, drink packages, distance) so the page answers the long-tail and
-// feeds AI Overviews / ChatGPT / Perplexity. Answers honor the voice rules:
-// "semi-private" (never "private"), "curated by" Brian, no chef-language, no
-// discount framing, no fabricated drive times.
-interface CorpFaq {
-  q: string;
-  /** Plain-text answer for JSON-LD (no HTML). */
-  schemaA: string;
-  /** Rendered HTML answer (may include <a> links). */
-  htmlA: string;
-}
-
-const corpFaqs: CorpFaq[] = [
+const useCases = [
   {
-    q: "Can you host a corporate event or team outing for 10–200 people near Naperville?",
-    schemaA:
-      "Yes. Twisted Pin in Plainfield — minutes from Naperville — hosts team outings, staff appreciation nights, holiday parties, and corporate offsites for groups from about 10 up to 200. The 6-lane VIP suite seats up to 80; full-venue buyouts handle up to 200.",
-    htmlA: `<p>Yes. Twisted Pin in Plainfield — minutes from Naperville — hosts team outings, staff appreciation nights, holiday parties, and corporate offsites for groups from about <strong>10 up to 200</strong>. The <a href="/vip-suite/">6-lane VIP suite</a> seats up to 80; full-venue buyouts handle up to 200.</p>`,
+    title: "Team and staff outings, done right.",
+    body: "Your own lanes, friendly competition, and time to catch up over food and drinks.",
   },
   {
-    q: "Do you offer full-venue or VIP-suite buyouts for company events?",
-    schemaA:
-      "Both. Book the semi-private 6-lane VIP suite (up to 80, set apart from the traditional lanes) for a single group, or buy out the whole venue for up to 200 when the entire company is coming.",
-    htmlA: `<p>Both. Book the <strong>semi-private 6-lane VIP suite</strong> (up to 80, set apart from the traditional lanes) for a single group, or <strong>buy out the whole venue</strong> for up to 200 when the entire company's coming.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+    title: "Employee appreciation they’ll remember.",
+    body: "Give the team a reason to clear the calendar. Bowling, cocktails, and catering take care of the celebration.",
   },
   {
-    q: "What's included in the VIP suite for a corporate group?",
-    schemaA:
-      "Six dedicated lanes set apart from the traditional lanes, an LED video wall with AV hookups for your deck or highlight reel, couch seating around the lanes, and direct access to the 28-tap self-serve beer and wine wall. In-house catering and the cocktail bar round it out.",
-    htmlA: `<p>Six dedicated lanes set apart from the traditional lanes, an <strong>LED video wall with AV hookups</strong> for your deck or highlight reel, couch seating around the lanes, and direct access to the 28-tap self-serve beer &amp; wine wall. In-house catering and the cocktail bar round it out.</p><p><a href="/vip-suite/">See the suite →</a></p>`,
+    title: "Team building, minus the cringe.",
+    body: "No trust falls. Bring people together over bowling and a little friendly competition.",
   },
   {
-    q: "Can you cater a company party, luncheon, or holiday party?",
-    schemaA:
-      "Yes — in-house catering through our kitchen, built to share and scaled to your group, served buffet or plated. Vegetarian, gluten-free, and other dietary accommodations on request. Works for an evening party or a daytime luncheon or training day.",
-    htmlA: `<p>Yes — <a href="/eat/">in-house catering</a> through our kitchen, built to share and scaled to your group, served buffet or plated. Vegetarian, gluten-free, and other dietary accommodations on request. Works for an evening party or a daytime luncheon or training day.</p>`,
+    title: "Company holiday parties, handled.",
+    body: "Celebrate the year in the suite, or bring everyone for a full-venue buyout.",
+    href: "/holiday-parties/", link: "Holiday parties →",
   },
   {
-    q: "Do you offer drink packages or a bar for corporate events?",
-    schemaA:
-      "Yes. Run a tab, hand out drink tickets, or set a per-head cap — whichever fits the budget. The bar runs the cocktail program curated by Brian Van Flandern, America's Top Mixologist, plus the 28-tap self-serve beer and wine wall.",
-    htmlA: `<p>Yes. Run a tab, hand out drink tickets, or set a per-head cap — whichever fits the budget. The bar runs the cocktail program <a href="/bar/">curated by Brian Van Flandern</a>, <em>America's Top Mixologist</em>, plus the 28-tap self-serve beer &amp; wine wall.</p>`,
+    title: "Meetings and luncheons, with room to play.",
+    body: "AV hookups and in-house catering for the presentation and lunch. Add bowling when the meeting wraps.",
   },
   {
-    q: "How far is Twisted Pin from Naperville or Joliet?",
-    schemaA:
-      "We're in Plainfield at 15610 Joliet Rd — a short drive from both Naperville and Joliet, and central to Bolingbrook, Romeoville, Oswego, Shorewood, and Lockport. Free on-site parking.",
-    htmlA: `<p>We're in Plainfield at <strong>15610 Joliet Rd</strong> — a short drive from both Naperville and Joliet, and central to Bolingbrook, Romeoville, Oswego, Shorewood, and Lockport. Free on-site parking.</p>`,
-  },
-  {
-    q: "What's the minimum and maximum group size?",
-    schemaA:
-      "Corporate groups generally start around 10 and go up to 80 in the VIP suite, or up to 200 for a full-venue buyout. Tell us your headcount and we'll match the room to it.",
-    htmlA: `<p>Corporate groups generally start around <strong>10</strong> and go up to <strong>80</strong> in the VIP suite, or up to <strong>200</strong> for a full-venue buyout. Tell us your headcount and we'll match the room to it.</p>`,
-  },
-  {
-    q: "Can I plan an employee-appreciation event or team-building day here?",
-    schemaA:
-      "Absolutely — employee-appreciation nights, team-building outings, sales kickoffs, and holiday parties are exactly what the suite is for. No ropes course; just bowling, a real bar, and catering, set up for your group.",
-    htmlA: `<p>Absolutely — employee-appreciation nights, team-building outings, sales kickoffs, and holiday parties are exactly what the suite is for. No ropes course; just bowling, a real bar, and catering, set up for your group.</p><p><a href="${PLAN_EVENT_URL}" target="_blank" rel="noopener">Plan an event →</a></p>`,
+    title: "Fundraiser nights that give back.",
+    body: "Bring your workplace together for a cause. Explore our bowling fundraiser program.",
+    href: "/fundraisers/", link: "Fundraisers →",
   },
 ];
 
+// Visible HTML and FAQ schema share the same answers. Accordions keep the
+// planning details accessible without another long block of mobile copy.
+const corpFaqs = [
+  {
+    q: "How many people can you host for a company event?",
+    answer: "Corporate groups generally start around 10. The semi-private 6-lane VIP suite accommodates up to 80, and full-venue buyouts accommodate up to 200. Tell us your headcount and we’ll help match the space to your event.",
+  },
+  {
+    q: "What is the VIP suite like?",
+    answer: "The suite has six bowling lanes set apart from the traditional lanes by a wall, couch seating around the lanes, and an LED video wall with AV hookups. In-house catering, craft cocktails and the 28-tap self-serve beer and wine wall are available for your outing.",
+  },
+  {
+    q: "Can we include a meeting or presentation?",
+    answer: "Yes. The suite has an LED video wall and AV hookups for presentations, company updates or a highlight reel. Share your presentation and equipment needs when planning so we can confirm the setup before your event.",
+  },
+  {
+    q: "Can you cater a company party or luncheon?",
+    answer: "Yes. In-house catering is available for team outings, company parties and luncheons. Ask about menu choices and dietary needs when planning your event so we can confirm the right options for your group.",
+  },
+  {
+    q: "What are the bar options for a corporate group?",
+    answer: "Ask about a bar tab or drink tickets for your group. The venue offers a 28-tap self-serve beer and wine wall and a cocktail program curated by Brian Van Flandern, America’s Top Mixologist.",
+  },
+  {
+    q: "How do I plan a team outing or employee-appreciation event?",
+    answer: "Start with your preferred date, approximate headcount and the occasion. Our event team will help you plan the space, bowling, catering and drinks for your group.",
+  },
+];
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
   mainEntity: corpFaqs.map((f) => ({
-    "@type": "Question",
-    name: f.q,
-    acceptedAnswer: { "@type": "Answer", text: f.schemaA },
+    "@type": "Question", name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.answer },
   })),
 };
 ---
 <Base
   title="Corporate Events & Team Outings in Plainfield, IL | Twisted Pin"
-  description="Team outings, staff appreciation & holiday parties at Twisted Pin — minutes from Naperville. Bowling in the 6-lane VIP suite, cocktails & catering for 10–200."
+  description="Corporate events and team outings in Plainfield, IL. Six-lane VIP suite for up to 80, catering, cocktails and full-venue buyouts for up to 200."
   ogImage="/og/og-events.jpg"
   ogImageAlt="A corporate team outing in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/vip-lanes-poster.avif"
 >
-
-  {/* ============================================================
-      HERO — typography-led title section (no image)
-
-      Leads with the team-outing use-case (the new lead ad group).
-      The H1 is a near-verbatim ad headline ("Not Your Average Team
-      Outing") for maximal click→page scent. The sub packs the
-      use-case cluster + proof points (suite, capacity, location).
-      ============================================================ */}
   <section class="corp-hero" data-hero aria-labelledby="corp-hero-h1">
     <div class="corp-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">Team Outings · Corporate Events</p>
@@ -214,287 +114,142 @@ const faqSchema = {
         Not your average team&nbsp;outing.
       </h1>
       <p class="corp-hero-sub hero-fade" data-delay-ms="320">
-        Staff outings, holiday parties, and employee-appreciation
-        nights — bowling, craft cocktails, and catering in the 6-lane
-        VIP suite. Groups of 10 to 200, minutes from Naperville.
+        Staff outings, employee appreciation, and holiday parties in
+        Plainfield, IL. Bowling, craft cocktails, and catering, all in one place.
       </p>
     </div>
   </section>
 
-  {/* ============================================================
-      USE-CASE GRID — the reframe. Text-led "this is for YOU" blocks,
-      each echoing a live ad-group headline so paid traffic lands on
-      copy that matches how they searched. No images = fast text LCP.
-      The lead card (Team & Staff Outings) carries a "Most booked"
-      tag + Glow border to signal "start here."
-      ============================================================ */}
-  <section class="corp-usecases" aria-labelledby="corp-uc-h2">
-    <div class="corp-uc-head">
-      <p class="t-eyebrow">What you're planning</p>
-      <h2 class="t-display corp-uc-title" id="corp-uc-h2">
-        One room. However your team runs it.
-      </h2>
-    </div>
-
-    <ul class="corp-uc-grid">
-      <li class="corp-uc-card corp-uc-card--lead">
-        <span class="corp-uc-tag">Most booked</span>
-        <p class="corp-uc-label">Team &amp; Staff Outings</p>
-        <h3 class="corp-uc-headline">Staff outings, done right.</h3>
-        <p class="corp-uc-body">
-          Your own lanes, a real bar, and catering that isn't sad
-          sandwiches in a conference room. The outing people actually
-          clear their calendar for.
-        </p>
-      </li>
-
-      <li class="corp-uc-card">
-        <p class="corp-uc-label">Employee Appreciation</p>
-        <h3 class="corp-uc-headline">Reward the team.</h3>
-        <p class="corp-uc-body">
-          Show the team you care — and mean it. Take over the suite
-          for a day they'll remember, not another gift card buried in
-          an inbox.
-        </p>
-      </li>
-
-      <li class="corp-uc-card">
-        <p class="corp-uc-label">Team Building</p>
-        <h3 class="corp-uc-headline">Team building, minus the cringe.</h3>
-        <p class="corp-uc-body">
-          No trust falls, no ropes course. Just bowling, a little
-          competition, and the kind of loose night where people
-          actually talk. Call it team building — we won't argue.
-        </p>
-      </li>
-
-      <li class="corp-uc-card">
-        <p class="corp-uc-label">Company &amp; Holiday Parties</p>
-        <h3 class="corp-uc-headline">The holiday party, handled.</h3>
-        <p class="corp-uc-body">
-          December books fast — lock the date by October. Full-venue
-          buyouts for up to 200 when the whole company's coming.
-        </p>
-        <a class="corp-uc-link" href="/holiday-parties/">Holiday parties →</a>
-      </li>
-
-      <li class="corp-uc-card">
-        <p class="corp-uc-label">Meetings &amp; Luncheons</p>
-        <h3 class="corp-uc-headline">Daytime, when you need the room.</h3>
-        <p class="corp-uc-body">
-          A semi-private space with AV and catering for the lunch
-          meeting, the training day, or the quarterly all-hands.
-          Bowling optional.
-        </p>
-      </li>
-
-      <li class="corp-uc-card">
-        <p class="corp-uc-label">Fundraisers</p>
-        <h3 class="corp-uc-headline">Fundraiser nights.</h3>
-        <p class="corp-uc-body">
-          Turn the lanes into a fundraiser — we'll help you structure
-          the night so it actually pays off for the cause.
-        </p>
-        <a class="corp-uc-link" href="/fundraisers/">Fundraisers →</a>
-      </li>
-    </ul>
-
-    <p class="corp-uc-more">
-      Planning something else? We also host <a href="/showers/">showers</a>,
-      <a href="/wedding-receptions/">wedding receptions</a>, and
-      <a href="/events/">all group events</a>.
-    </p>
-  </section>
-
-  {/* ============================================================
-      THE ROOM — image left, copy right (desktop). PROOF for the
-      use-cases above. Below the mobile fold now (use-case grid sits
-      above it), so the poster is lazy `data-poster` — NOT an LCP
-      candidate. Bounded media on every <source>: ≤480 → 540w,
-      ≥481 → 1080w (defense against the v.load() probing double-fetch).
-      ============================================================ */}
+  {/* The existing suite video is the first proof after the hero. */}
   <section class="corp-section" aria-labelledby="corp-room-h2">
     <div class="corp-section-grid">
       <div class="corp-section-frame">
-        <video
-          class="corp-section-video"
-          data-section-video
-          preload="none"
-          muted
-          loop
-          playsinline
-          data-poster="/snap/vip-lanes-poster.avif"
-          aria-label="The 6-lane VIP suite at Twisted Pin — semi-private bowling lanes with LED video walls overhead, set up for a group event"
-        >
-          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+        <video class="corp-section-video" data-section-video preload="none"
+          muted loop playsinline poster="/snap/vip-lanes-poster.avif"
+          aria-label="The 6-lane VIP suite at Twisted Pin, with semi-private bowling lanes and an LED video wall, set up for a group event">
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
-          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="corp-section-copy">
         <p class="t-eyebrow">The Room</p>
-        <h2 class="t-display corp-section-title" id="corp-room-h2">
-          Six lanes. Eighty people. Yours.
-        </h2>
-        <p class="corp-section-aside">(or up to 200 for full-venue buyouts)</p>
-
+        <h2 class="t-display corp-section-title" id="corp-room-h2">Six lanes. One team.</h2>
         <p class="corp-section-body">
-          The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
-          wall, set apart from the traditional lanes — semi-private, yours
-          for the night when you book it. LED video wall for the
-          company deck, the highlight reel, the logo, or the playoff
-          game once the meeting's over. AV solutions for the actual
-          presentation if one has to happen.
+          Take over the <a href="/vip-suite/">6-lane VIP suite</a> for your
+          next outing. Set apart from the traditional lanes by a wall,
+          this semi-private space gives your group room to bowl, watch, and catch up.
         </p>
-
-        <p class="corp-section-body">
-          Couch seating wraps the lanes for the people who'd rather
-          watch than throw. Run the all-hands at 6:30, call it the
-          outing at 7, let the room handle the rest of the night.
-        </p>
-
         <ul class="corp-section-list">
-          <li>6-lane VIP suite, set apart from the traditional lanes</li>
-          <li>Up to 80 in the suite — or up to 200 for full-venue buyouts</li>
-          <li>LED video wall + AV solutions for the deck</li>
-          <li>Couch seating wraps the lanes</li>
-          <li>Yours from setup to last call</li>
+          <li>Up to 80 in the suite; up to 200 for full-venue buyouts</li>
+          <li>LED video wall and AV hookups for presentations</li>
+          <li>Couch seating around the lanes</li>
         </ul>
+        <p class="corp-section-body">
+          Planning a company outing from <a href="/why-us/romeoville-il/">Romeoville</a>,
+          <a href="/why-us/shorewood-il/">Shorewood</a>,
+          <a href="/why-us/naperville-il/">Naperville</a>,
+          <a href="/why-us/joliet-il/">Joliet</a>, or
+          <a href="/why-us/bolingbrook-il/">Bolingbrook</a>?
+          Bring your team together at Twisted Pin in Plainfield.
+          Find us at {STREET}, with free on-site parking.
+        </p>
+        <p class="corp-section-body">
+          <a href={MAPS_DIR_HREF} target="_blank" rel="noopener">Get directions to Twisted Pin →</a>
+        </p>
       </div>
     </div>
   </section>
 
-  {/* ============================================================
-      THE FOOD & BAR — image RIGHT, copy LEFT (alternation).
-      Below the fold — lazy `data-poster`. Bounded media as above.
-      ============================================================ */}
+  <section class="corp-usecases" aria-labelledby="corp-uc-h2">
+    <div class="corp-uc-head">
+      <p class="t-eyebrow">What you’re planning</p>
+      <h2 class="t-display corp-uc-title" id="corp-uc-h2">Give the team something to look forward to.</h2>
+    </div>
+    <ul class="corp-uc-grid">
+      {useCases.map((item, index) => (
+        <li class:list={["corp-uc-card", { "corp-uc-card--lead": index === 0 }]}>
+          <h3 class="corp-uc-headline">{item.title}</h3>
+          <p class="corp-uc-body">{item.body}</p>
+          {item.href && <a class="corp-uc-link" href={item.href}>{item.link}</a>}
+        </li>
+      ))}
+    </ul>
+    <p class="corp-uc-more">
+      Planning something else? We also host <a href="/showers/">showers</a>,
+      <a href="/wedding-receptions/">wedding receptions</a>, and
+      <a href="/events/">other group events</a>.
+    </p>
+  </section>
+
+  {/* Catering footage stays deferred below the suite and use cases. */}
   <section class="corp-section corp-section--reverse" aria-labelledby="corp-food-h2">
     <div class="corp-section-grid">
       <div class="corp-section-frame">
-        <video
-          class="corp-section-video"
-          data-section-video
-          preload="none"
-          muted
-          loop
-          playsinline
-          data-poster="/snap/buffet-poster.avif"
-          aria-label="A buffet of catering food laid out for a group event at Twisted Pin — chafing dishes and shareable plates"
-        >
-          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+        <video class="corp-section-video" data-section-video preload="none"
+          muted loop playsinline data-poster="/snap/buffet-poster.avif"
+          aria-label="Catering set out for a group event at Twisted Pin">
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
-          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
         </video>
       </div>
       <div class="corp-section-copy">
         <p class="t-eyebrow">The Food &amp; Bar</p>
-        <h2 class="t-display corp-section-title" id="corp-food-h2">
-          The kitchen and the bar handle the rest.
-        </h2>
-
+        <h2 class="t-display corp-section-title" id="corp-food-h2">The kitchen and the bar handle the rest.</h2>
         <p class="corp-section-body">
-          In-house catering through <a href="/eat/">the kitchen</a> —
-          built to share, scaled to your group, served buffet or
-          plated. Vegetarian, gluten-free, and dietary accommodations
-          on request.
+          <a href="/eat/">In-house catering</a>, scaled to your group.
+          Tell us what you’re planning and ask about menu choices and
+          dietary needs before the event.
         </p>
-
         <p class="corp-section-body">
-          The 28-tap self-serve <a href="/menu/taps/">beer &amp; wine
-          wall</a> sits next door. The <a href="/menu/cocktails/">cocktail
-          bar</a> runs the program curated by Brian Van Flandern,
-          <em>America's Top Mixologist</em> — same drinks, same
-          execution as the rest of the venue.
+          Add the <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>
+          and <a href="/menu/cocktails/">craft cocktails</a> from the program
+          curated by Brian Van Flandern, <em>America’s Top Mixologist</em>.
+          Ask about a bar tab or drink tickets for your group.
         </p>
-
-        <p class="corp-section-body">
-          Run a tab, hand out drink tickets, or set a per-head cap —
-          pick the billing model that fits the budget. The kitchen
-          handles custom catering through the night.
-        </p>
-
-        <ul class="corp-section-list">
-          <li>In-house catering, buffet or plated</li>
-          <li>28-tap self-serve beer &amp; wine wall</li>
-          <li>Cocktail program curated by Brian Van Flandern</li>
-          <li>Tab, drink tickets, or per-head cap — your call</li>
-          <li>Dietary accommodations on request</li>
-        </ul>
       </div>
     </div>
   </section>
 
-  {/* ============================================================
-      FAQ — search-phrased corporate Q&As. Reuses the global .t2-faq*
-      accordion; emits FAQPage JSON-LD (see faqSchema in frontmatter).
-      Sits above the closing CTA so the inquiry button stays the last
-      beat on the page.
-      ============================================================ */}
   <section class="corp-faq" aria-labelledby="corp-faq-h2">
     <div class="corp-faq-inner">
       <p class="t-eyebrow">Questions</p>
-      <h2 class="t-display corp-faq-title" id="corp-faq-h2">
-        Corporate event FAQs.
-      </h2>
+      <h2 class="t-display corp-faq-title" id="corp-faq-h2">Corporate event FAQs.</h2>
       <div class="t2-faq">
         {corpFaqs.map((item) => (
           <details class="t2-faq-item">
             <summary class="t2-faq-q">
               <h3 class="t2-faq-q-text">{item.q}</h3>
-              <svg
-                class="t2-faq-chevron"
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-                set:html={ICON_PATHS["chevron-down"]}
-              />
+              <svg class="t2-faq-chevron" viewBox="0 0 24 24" width="18" height="18"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["chevron-down"]} />
             </summary>
-            <div class="t2-faq-a" set:html={item.htmlA} />
+            <div class="t2-faq-a"><p>{item.answer}</p></div>
           </details>
         ))}
       </div>
     </div>
   </section>
 
-  {/* ============================================================
-      CLOSING CTA BAND — single dominant "Plan an event" → inquiry
-      form (PLAN_EVENT_URL). This is THE conversion action (GA4
-      generate_lead); the gclid-passthrough module decorates this
-      href at runtime so ad-driven inquiries attribute back to Ads.
-      Same lifted-indigo treatment as /events.
-      ============================================================ */}
   <section class="corp-cta" aria-labelledby="corp-cta-h2">
     <div class="corp-cta-inner">
       <p class="t-eyebrow">Tell us what you need</p>
-      <h2 class="t-display corp-cta-title" id="corp-cta-h2">
-        We'll set it up.
-      </h2>
+      <h2 class="t-display corp-cta-title" id="corp-cta-h2">We’ll set it up.</h2>
       <p class="corp-cta-body">
-        Plan your staff outing, company party, or appreciation night.
-        Quick form — then a quote, a catering menu, and a tour of the
-        suite.
+        Your date, your headcount, your occasion. We’ll help plan the
+        space, bowling, catering, and drinks for your team.
       </p>
-      <a class="btn btn-solid corp-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
-        Plan an event
-      </a>
+      <a class="btn btn-solid corp-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
     </div>
   </section>
-
   <SnapFooter />
-
   <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
   <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbSchema crumbs={[
-    { name: "Home", path: "/" },
-    { name: "Events", path: "/events/" },
+    { name: "Home", path: "/" }, { name: "Events", path: "/events/" },
     { name: "Corporate Events", path: "/corporate-events/" },
   ]} />
 </Base>
@@ -513,8 +268,8 @@ const faqSchema = {
     position: relative;
     display: flex;
     align-items: center;
-    min-height: clamp(320px, 42vh, 420px);
-    padding: calc(var(--header-height) + 28px) 22px 24px;
+    min-height: 0;
+    padding: calc(var(--header-height) + 24px) 22px 28px;
   }
   @media (min-width: 1025px) {
     .corp-hero {
@@ -557,7 +312,7 @@ const faqSchema = {
   }
 
   /* ============================================================
-     USE-CASE GRID — text-led cards. The reframe's scent block.
+     USE-CASE GRID — compact, descriptive cards matching paid-search intent.
      ============================================================ */
   .corp-usecases {
     background: transparent;
@@ -607,39 +362,16 @@ const faqSchema = {
     border: 1px solid rgba(244, 239, 227, 0.10);
     border-radius: var(--radius-surface);
     background: rgba(26, 21, 48, 0.45);
-    padding: 24px 22px;
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
   }
 
-  /* Lead card — "start here" signal. Glow border + faint glow wash.
+  /* Lead card — team and staff outings. Glow border + faint glow wash.
      rgba is var(--glow) #4EECC4 = rgb(78,236,196) at reduced alpha. */
   .corp-uc-card--lead {
     border-color: rgba(78, 236, 196, 0.55);
     background: rgba(26, 21, 48, 0.62);
-  }
-
-  .corp-uc-tag {
-    align-self: flex-start;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 10.5px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--glow);
-    border: 1px solid rgba(78, 236, 196, 0.4);
-    border-radius: 999px;
-    padding: 4px 10px;
-    margin-bottom: 14px;
-  }
-
-  .corp-uc-label {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 12px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--warm-dim);
   }
 
   .corp-uc-headline {
@@ -649,7 +381,7 @@ const faqSchema = {
     font-size: clamp(20px, 5.4vw, 24px);
     line-height: 1.02;
     letter-spacing: -0.005em;
-    margin-top: 8px;
+    margin-top: 0;
   }
   /* Desktop monitors are mostly 1x DPI, where the Black-condensed (900) display
      font goes soft at this small, sentence-case card size — high-DPI phones mask
@@ -670,8 +402,8 @@ const faqSchema = {
   .corp-uc-body {
     margin-top: 12px;
     font-family: var(--font-body);
-    font-size: 15px;
-    line-height: 1.55;
+    font-size: 16px;
+    line-height: 1.5;
     color: var(--warm-mid);
   }
 
@@ -679,7 +411,7 @@ const faqSchema = {
     margin-top: 14px;
     font-family: var(--font-ui);
     font-weight: 600;
-    font-size: 13px;
+    font-size: 14px;
     letter-spacing: 0.04em;
     color: var(--warm-white);
     text-decoration: none;
@@ -811,8 +543,8 @@ const faqSchema = {
     list-style: none;
     font-family: var(--font-ui);
     font-weight: 600;
-    font-size: 13px;
-    letter-spacing: 0.04em;
+    font-size: 14px;
+    letter-spacing: 0.02em;
     color: var(--warm-white);
   }
   .corp-section-list li {
@@ -933,7 +665,7 @@ const faqSchema = {
   @media (min-width: 1025px) {
     .corp-hero {
       min-height: 0;
-      padding: calc(var(--header-height) + 56px) 64px 40px;
+      padding: calc(var(--header-height) + 32px) 64px 32px;
     }
     .corp-section { padding-top: 32px; }
   }

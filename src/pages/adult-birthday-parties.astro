@@ -1,0 +1,279 @@
+---
+/**
+ * Adult birthday planning: a distinct experience from kids' online packages.
+ * The existing suite and catering videos are reused without duplicate
+ * VideoObject markup; their canonical entries remain /vip-suite and /events.
+ * All birthday inquiries use PLAN_EVENT_URL. No separate booking workflow.
+ */
+import Base from "../layouts/Base.astro";
+import SnapFooter from "../components/snap/SnapFooter.astro";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, BUSINESS_ENTITY_ID, PLACE_ID, STREET, LOCALITY } from "../lib/schema";
+import { ICON_PATHS } from "../lib/icons";
+import { PLAN_EVENT_URL } from "../lib/links";
+
+const PAGE_URL = BUSINESS_URL + "/adult-birthday-parties/";
+const MAPS_DIR_HREF = "https://www.google.com/maps/dir/?api=1&destination=" +
+  encodeURIComponent(STREET + ", " + LOCALITY) + "&destination_place_id=" + PLACE_ID;
+const serviceSchema = {
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "@id": BUSINESS_URL + "/#adult-birthday-parties",
+  name: "Adult Birthday Parties",
+  url: PAGE_URL,
+  description: "Adult and 21st birthday celebrations at Twisted Pin in Plainfield, IL, with a semi-private six-lane VIP suite, in-house catering and craft cocktails. Up to 80 guests in the suite or up to 200 with a full-venue buyout.",
+  serviceType: "Adult birthday party hosting",
+  provider: { "@id": BUSINESS_ENTITY_ID },
+  areaServed: ["Plainfield, IL", "Romeoville, IL", "Shorewood, IL", "Naperville, IL", "Joliet, IL", "Bolingbrook, IL"].map((name) => ({ "@type": "City", name })),
+};
+
+// One answer source for both visible HTML and structured data.
+const birthdayFaqs = [
+  {
+    q: "How do I plan an adult birthday party?",
+    answer: "Select Plan My Birthday and share your preferred date, approximate headcount and occasion. Our event team will help with the space, catering and drinks, confirm availability, and arrange your booking.",
+  },
+  {
+    q: "What does an adult birthday party cost?",
+    answer: "Your quote depends on the date, group size, space, catering and bar arrangements. Send your party details through the planning form so the event team can help you choose the right options and provide a quote.",
+  },
+  {
+    q: "How many guests can you host?",
+    answer: "The semi-private six-lane VIP suite accommodates up to 80 guests. Full-venue buyouts accommodate up to 200. Share your headcount when planning so we can confirm the space and setup for your party.",
+  },
+  {
+    q: "Can we reserve the whole VIP suite?",
+    answer: "Ask about reserving all six lanes for your group. Your event plan will confirm the space and party time included, subject to availability.",
+  },
+  {
+    q: "Can I bring a birthday cake or decorations?",
+    answer: "Outside cake and decorations are welcome for booked, catered parties. Confirm the details and setup arrangements with the event team before your celebration.",
+  },
+];
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: birthdayFaqs.map((item) => ({
+    "@type": "Question", name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })),
+};
+---
+<Base
+  title="Adult Birthday Parties in Plainfield, IL | Twisted Pin"
+  description="Plan a 21st or milestone birthday in Plainfield, IL. Semi-private VIP bowling, in-house catering and craft cocktails. Tell us about your party."
+  ogImage="/og/og-vip-suite.jpg"
+  ogImageAlt="The six-lane VIP suite at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/vip-lanes-poster.avif"
+>
+  <section class="svc-hero adult-hero" data-hero aria-labelledby="adult-hero-h1">
+    <div class="svc-hero-copy">
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Adult Birthdays · Plainfield, IL</p>
+      <h1 class="t-display svc-hero-headline hero-fade" id="adult-hero-h1" data-delay-ms="120">
+        Your birthday. Your kind of&nbsp;party.
+      </h1>
+      <p class="svc-hero-sub hero-fade" data-delay-ms="240">
+        Turning 21, marking a milestone, or just getting your favorite people
+        together. Bowling, catering and craft cocktails make a night of it.
+      </p>
+      <div class="adult-hero-actions">
+        <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan My Birthday</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="svc-section adult-section" aria-labelledby="adult-room-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame adult-frame">
+        <video class="adult-video" data-section-video preload="none" muted loop playsinline
+          poster="/snap/vip-lanes-poster.avif"
+          aria-label="The six-lane VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall">
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="svc-section-copy adult-copy">
+        <p class="t-eyebrow">The Birthday Setting</p>
+        <h2 class="t-display svc-section-title" id="adult-room-h2">Six lanes. Your favorite people.</h2>
+        <p class="svc-section-body">
+          Celebrate in the <a href="/vip-suite/">semi-private VIP suite</a>.
+          Six bowling lanes sit behind a wall, set apart from the traditional
+          lanes, with couch seating for the catching-up between turns.
+        </p>
+        <ul class="svc-section-list">
+          <li>Up to 80 guests in the suite</li>
+          <li>LED video wall and AV hookups for birthday photos and slideshows</li>
+          <li>In-house catering and bar options for your group</li>
+          <li>Full-venue buyouts for celebrations of up to 200</li>
+        </ul>
+        <p class="svc-section-body">
+          Tell us your headcount and the kind of party you have in mind.
+          We’ll help plan the space and time for your celebration.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="adult-occasions" aria-label="Adult birthday celebrations">
+    <div class="adult-occasion-grid">
+      <article class="adult-occasion">
+        <h2>21st birthday parties</h2>
+        <p>A proper cocktail, food for the table and your people on the lanes.
+          Give the first round a setting worth remembering.</p>
+      </article>
+      <article class="adult-occasion">
+        <h2>Milestone birthdays, done your way</h2>
+        <p>30th, 40th, 50th—or a year with no round number. Bring the group
+          together for good food, drinks and a little friendly competition.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="svc-section svc-section--reverse adult-section" aria-labelledby="adult-food-h2">
+    <div class="svc-section-grid">
+      <div class="svc-section-frame adult-frame">
+        <video class="adult-video" data-section-video preload="none" muted loop playsinline
+          data-poster="/snap/buffet-poster.avif"
+          aria-label="In-house catering set out for a celebration at Twisted Pin">
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(max-width: 480px)" data-src="/snap/buffet-mobile-h264-540.mp4" type="video/mp4" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+          <source media="(min-width: 481px)" data-src="/snap/buffet-mobile-h264-1080.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="svc-section-copy adult-copy">
+        <p class="t-eyebrow">Food &amp; Drinks</p>
+        <h2 class="t-display svc-section-title" id="adult-food-h2">Good food. A proper bar.</h2>
+        <p class="svc-section-body">
+          <a href="/eat/">In-house catering</a> keeps everyone around the same
+          table. Ask about menu choices and dietary needs when planning so we
+          can confirm the right options for your guests.
+        </p>
+        <p class="svc-section-body">
+          Explore the <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>
+          and <a href="/menu/cocktails/">craft cocktails</a> from the program
+          curated by Brian Van Flandern, <em>America’s Top Mixologist</em>.
+          Ask about a bar tab or drink tickets for your party.
+        </p>
+        <p class="svc-section-body">
+          We’re at {STREET} in Plainfield, IL, with free on-site parking.
+          Bring friends from <a href="/why-us/romeoville-il/">Romeoville</a>,
+          <a href="/why-us/shorewood-il/">Shorewood</a>,
+          <a href="/why-us/naperville-il/">Naperville</a>,
+          <a href="/why-us/joliet-il/">Joliet</a> and
+          <a href="/why-us/bolingbrook-il/">Bolingbrook</a> together in one place.
+        </p>
+        <p class="svc-section-body"><a href={MAPS_DIR_HREF} target="_blank" rel="noopener">Get directions →</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="adult-faq" aria-labelledby="adult-faq-h2">
+    <div class="adult-faq-inner">
+      <p class="t-eyebrow">Planning Details</p>
+      <h2 class="t-display svc-section-title" id="adult-faq-h2">Adult birthday party FAQs.</h2>
+      <div class="t2-faq">
+        {birthdayFaqs.map((item) => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              <h3 class="t2-faq-q-text">{item.q}</h3>
+              <svg class="t2-faq-chevron" viewBox="0 0 24 24" width="18" height="18"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["chevron-down"]} />
+            </summary>
+            <div class="t2-faq-a"><p>{item.answer}</p></div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="svc-cta" aria-labelledby="adult-cta-h2">
+    <div class="svc-cta-inner">
+      <p class="t-eyebrow">Make It Your Birthday</p>
+      <h2 class="t-display svc-cta-title" id="adult-cta-h2">You bring the guest list.</h2>
+      <p class="svc-cta-body">
+        Start with your date, headcount and occasion. Our event team will help
+        with the party details and booking.
+      </p>
+      <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan My Birthday</a>
+      <p class="svc-cta-more adult-related">
+        Planning a <a href="/birthday-parties/#kids">kids’ birthday</a>?
+        Explore the packages and book online. For
+        <a href="/showers/">bridal showers, baby showers and gender reveals</a>,
+        see our shower celebrations.
+      </p>
+    </div>
+  </section>
+  <SnapFooter />
+  <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <BreadcrumbSchema crumbs={[
+    { name: "Home", path: "/" },
+    { name: "Birthday Parties", path: "/birthday-parties/" },
+    { name: "Adult Birthday Parties", path: "/adult-birthday-parties/" },
+  ]} />
+</Base>
+
+<style>
+  /* Reuse the existing editorial skeleton; only this page's spacing,
+     video frames and small occasion cards need local rules. */
+  .adult-hero {
+    min-height: 0;
+    padding: calc(var(--header-height) + 24px) 22px 28px;
+  }
+  .adult-hero-actions { margin-top: 22px; }
+  .adult-frame {
+    aspect-ratio: 4 / 5;
+    max-height: none;
+  }
+  .adult-video {
+    width: 100%; height: 100%; display: block;
+    object-fit: cover; object-position: center;
+  }
+  .adult-copy .svc-section-body,
+  .adult-copy .svc-section-list li { font-size: 16px; }
+  .adult-copy a {
+    text-decoration: underline;
+    text-decoration-color: rgba(244, 239, 227, 0.4);
+    text-underline-offset: 3px;
+  }
+  .adult-copy a:hover { text-decoration-color: var(--glow); }
+  .adult-occasions { padding: 32px 22px; }
+  .adult-occasion-grid {
+    max-width: 1100px; margin: 0 auto;
+    display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px;
+  }
+  .adult-occasion {
+    padding: 22px; border: 1px solid rgba(244, 239, 227, 0.12);
+    border-radius: var(--radius-surface); background: rgba(26, 21, 48, 0.45);
+  }
+  .adult-occasion h2 {
+    font-family: var(--font-display); font-weight: 900;
+    font-size: clamp(26px, 7vw, 36px); line-height: 1.05;
+    color: var(--warm-white);
+  }
+  .adult-occasion p {
+    margin-top: 12px; font-family: var(--font-body);
+    font-size: 16px; line-height: 1.55; color: var(--warm-mid);
+  }
+  .adult-faq { padding: 36px 22px 8px; }
+  .adult-faq-inner { max-width: 760px; margin: 0 auto; }
+  .adult-faq .t2-faq { margin-top: 20px; }
+  .adult-related { font-size: 16px; }
+  @media (min-width: 680px) {
+    .adult-occasion-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (min-width: 1025px) {
+    .adult-hero { padding: calc(var(--header-height) + 40px) 64px 36px; }
+    .adult-frame { aspect-ratio: 3 / 4; max-width: none; max-height: 640px; }
+    .adult-section { padding-top: 24px; padding-bottom: 24px; }
+    .adult-copy .svc-section-body,
+    .adult-copy .svc-section-list li { font-size: 17px; }
+    .adult-occasions { padding: 40px 64px; }
+    .adult-occasion h2 { font-family: var(--font-ui); font-weight: 700; font-size: 24px; line-height: 1.2; }
+    .adult-faq { padding: 48px 64px 24px; }
+  }
+</style>

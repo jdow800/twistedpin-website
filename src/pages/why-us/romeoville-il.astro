@@ -2,8 +2,9 @@
 /**
  * /why-us/romeoville-il/ — Service-area page (Romeoville, IL).
  *
- * Per Context/seo.md: Romeoville = 10.7% of paid clicks, third-
- * highest paid market. Distance + route confirmed by ops 2026-05-08:
+ * 2026-09-14: prioritize useful event-planning information and factual
+ * venue details. Sparse Ads samples do not establish organic town demand.
+ * Distance + route confirmed by ops 2026-05-08:
  *   - ~9 miles, I-55 south to Plainfield
  *   - No drive-time claim; mileage carries
  *
@@ -37,7 +38,7 @@ const serviceSchema = {
   name: "Twisted Pin — Bowling, Bar & Event Venue Near Romeoville, IL",
   url: PAGE_URL,
   description:
-    "Twisted Pin is nine miles south of Romeoville on I-55 — the bar program Weber Road doesn't have. A craft cocktail program curated by America's Top Mixologist, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
+    "Twisted Pin is nine miles south of Romeoville on I-55, with bowling, cocktails and group events in Plainfield. A craft cocktail program curated by America's Top Mixologist, a 28-tap self-serve beer & wine wall, 17 traditional lanes, and a 6-lane VIP suite for groups up to 80. Plainfield, IL.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   areaServed: {
     "@type": "City",
@@ -48,8 +49,8 @@ const serviceSchema = {
 };
 ---
 <Base
-  title="Bowling Near Romeoville, IL | Twisted Pin"
-  description="Nine miles south of Romeoville on I-55 — the bar program Weber Road doesn't have. Cocktails by America's Top Mixologist, a 28-tap self-serve wall, a 6-lane VIP suite."
+  title="Bowling & Group Events Near Romeoville, IL | Twisted Pin"
+  description="Bowling and group events near Romeoville at Twisted Pin in Plainfield, IL. A 6-lane VIP suite, in-house catering, craft cocktails and 28 self-serve taps."
 >
 
   <section class="svc-hero" data-hero aria-labelledby="svc-hero-h1">
@@ -59,10 +60,9 @@ const serviceSchema = {
         Nine&nbsp;miles south on&nbsp;I-55. Closer&nbsp;than you&nbsp;think.
       </h1>
       <p class="svc-hero-sub hero-fade" data-delay-ms="320">
-        Twisted Pin sits nine miles south of Romeoville on I-55 — the
-        bar program Weber Road doesn't have. A craft cocktail program,
-        a 28-tap self-serve wall, and the only 6-lane VIP suite in the
-        area. Plainfield, IL.
+        Bring your next staff outing or night with friends to Plainfield.
+        Twisted Pin has a 6-lane VIP suite for up to 80, in-house catering,
+        craft cocktails, and a 28-tap self-serve beer &amp; wine wall.
       </p>
     </div>
   </section>
@@ -86,7 +86,7 @@ const serviceSchema = {
         <h2 class="t-display svc-section-title" id="svc-drive-h2">
           Nine miles. I-55 south.
         </h2>
-        <p class="svc-section-aside">(closer than most Romeoville people realize)</p>
+        <p class="svc-section-aside">(15610 Joliet Rd, Plainfield)</p>
 
         <p class="svc-section-body">
           I-55 south from Romeoville, exit at Plainfield. Nine miles.
@@ -94,8 +94,8 @@ const serviceSchema = {
         </p>
 
         <p class="svc-section-body">
-          Closer than most of the Friday-night defaults that come up
-          when someone asks where to go.
+          Organizing a group from a Romeoville office? Share the venue
+          address with your team and use directions from your starting point.
         </p>
 
         <ul class="svc-section-list">
@@ -128,16 +128,16 @@ const serviceSchema = {
       <div class="svc-section-copy">
         <p class="t-eyebrow">Group Events</p>
         <h2 class="t-display svc-section-title" id="svc-vip-h2">
-          Yours for the night. Six lanes, up to 80.
+          Team outing? Take over the suite.
         </h2>
         <p class="svc-section-aside">(milestone birthdays, holiday parties, staff appreciation)</p>
 
         <p class="svc-section-body">
-          Adult birthdays, gender reveals, <a href="/holiday-parties/">holiday parties</a>, staff
-          appreciation, graduation parties — they land in <a href="/vip-suite/">the VIP
-          suite</a>. Six lanes set apart from the traditional lanes by a
-          wall, capacity to 80, AV hookups, <a href="/eat/">in-house catering</a>. Yours for
-          the night when you book the suite.
+          <a href="/corporate-events/">Team outings and staff appreciation</a>,
+          <a href="/holiday-parties/">company holiday parties</a>, and adult
+          birthdays have room to spread out in <a href="/vip-suite/">the VIP suite</a>.
+          Six lanes set apart from the traditional lanes by a wall,
+          space for up to 80, AV hookups, and <a href="/eat/">in-house catering</a>.
         </p>
 
         <p class="svc-section-body">
@@ -150,7 +150,7 @@ const serviceSchema = {
           <li>Up to 80 in the suite — or up to 200 for full-venue buyouts</li>
           <li>AV hookups + in-house catering</li>
           <li>Tab or drink tickets — your call</li>
-          <li>Closer than your usual list of options</li>
+          <li>Semi-private space for your group</li>
         </ul>
 
         <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
@@ -179,21 +179,18 @@ const serviceSchema = {
         <h2 class="t-display svc-section-title" id="svc-bar-h2">
           A craft cocktail program. Closer than you'd guess.
         </h2>
-        <p class="svc-section-aside">(plus the only 28-tap self-serve wall in the area)</p>
+        <p class="svc-section-aside">(plus 28 self-serve beer &amp; wine taps)</p>
 
         <p class="svc-section-body">
-          Romeoville has the Weber Road corridor — Buffalo Wild Wings,
-          Panda Express, the strip-mall lineup everyone knows by heart —
-          and the corner pubs running on $1 beers. What it doesn't have
-          is <a href="/bar/">a craft cocktail program</a>. The nearest one is nine miles
-          south on I-55, in Plainfield: curated by the consulting
-          mixologist Food Network calls <em>America's Top Mixologist</em>,
-          behind <a href="/menu/taps/">the only 28-tap self-serve wall in the area</a>.
+          Make drinks part of the outing. Our <a href="/bar/">cocktail program</a>
+          is curated by Brian Van Flandern, <em>America’s Top Mixologist</em>.
+          The <a href="/menu/taps/">28-tap self-serve beer &amp; wine wall</a>
+          gives your group more to explore between frames.
         </p>
 
         <p class="svc-section-body">
-          Closer than Naperville, less reroute than Lockport, and a
-          different format from either.
+          See the current cocktail and tap menus before you plan.
+          For a company event, ask about a bar tab or drink tickets.
         </p>
 
         <a class="btn btn-outline" href="/menu/cocktails/">View the cocktail menu</a>
@@ -206,7 +203,7 @@ const serviceSchema = {
     <div class="svc-cta-inner">
       <p class="t-eyebrow">Worth the Drive</p>
       <h2 class="t-display svc-cta-title" id="svc-cta-h2">
-        Nine miles. Closer than you've been telling people.
+        Bring your next outing to Plainfield.
       </h2>
       <p class="svc-cta-body">
         I-55 south, exit at Plainfield. Reserve a lane for tonight or

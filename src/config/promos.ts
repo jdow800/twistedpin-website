@@ -127,7 +127,7 @@ export const PROMOS: readonly Promo[] = [
   // beat; the two rotate.
   {
     id: "nye-2026",
-    message: "NYE party slots are open — book yours",
+    message: "New Year's Eve 2026 — see party times and packages",
     href: "/new-years-eve/",
     showFrom: "2026-11-15",
     showUntil: "2026-12-31",

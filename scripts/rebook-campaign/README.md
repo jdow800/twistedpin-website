@@ -208,3 +208,67 @@ Audit the morning after the next run: check `scheduled_message`/`message_event` 
   and Part A (both out of scope here, offers still unapproved) are where the season gate belongs.
 - Anniversary nudge + Part A "The Return" are NOT built — offers explicitly rejected 2026-07-20
   ("don't love these, we will revisit"); re-design with Jon before the late-Aug build.
+
+## Courtesy extensions (one guest's expired code) — first done 2026-09-18
+
+A guest writes in: "I tried to use my code, it didn't work, now it's expired." Jon's
+standing answer is to honor it. **Do NOT extend the cohort rule's `usage_end`** — every
+code in that cohort shares the rule, so you'd silently reopen 30+ codes and muddy the
+closed-cohort read. Move the ONE code onto its own courtesy rule instead. The guest's
+original `twistedpin.com/book/{code}` link keeps working; no new code to send.
+
+One atomic statement (Supabase `execute_sql`, project `hdcoyqlskurvpjfrlnop`) — fill
+in the four placeholders:
+
+```sql
+with old_rule as (select * from discounts where id = '<COHORT_RULE_ID>'),
+new_rule as (
+  insert into discounts (id, created_at, updated_at, name, discount_type, percentage_rate,
+    fixed_amount_cents, product_scope, usage_start, usage_end, max_discount_cents, is_active,
+    created_by, per_customer_limit, max_discounted_quantity)
+  select gen_random_uuid(), now(), now(), o.name || ' courtesy (<GUEST>)',
+    o.discount_type, o.percentage_rate, o.fixed_amount_cents, o.product_scope, o.usage_start,
+    '<NEW_USAGE_END_UTC>'::timestamptz, o.max_discount_cents, true,
+    'b5ca4af5-613c-43e1-8cb8-def8273c5cb8'::uuid,  -- Jon's live users row
+    o.per_customer_limit, o.max_discounted_quantity
+  from old_rule o returning id),
+copy_products as (
+  insert into discount_products (discount_id, product_id)
+  select n.id, dp.product_id from new_rule n, discount_products dp
+  where dp.discount_id = '<COHORT_RULE_ID>' returning product_id),
+move_code as (
+  update discount_codes dc set discount_id = n.id from new_rule n
+  where dc.code = '<CODE>' and dc.discount_id = '<COHORT_RULE_ID>'
+    and not exists (select 1 from discount_redemption dr where dr.discount_code_id = dc.id)
+  returning dc.id),
+audit as (
+  insert into audit_log (id, created_at, discriminator, actor_user_id, subject_customer_id, payload)
+  select gen_random_uuid(), now(), 'discount_write', 'b5ca4af5-613c-43e1-8cb8-def8273c5cb8'::uuid,
+    '<CUSTOMER_ID>'::uuid,
+    jsonb_build_object('action','create','discount_id',n.id,'discount_type','percentage',
+      'product_scope','specific','code_count',1,
+      'courtesy', jsonb_build_object('moved_code','<CODE>','from_discount_id','<COHORT_RULE_ID>',
+        'reason','<why>','new_usage_end','<NEW_USAGE_END_UTC>'))
+  from new_rule n returning id)
+select (select id from new_rule), (select count(*) from copy_products),
+       (select count(*) from move_code), (select id from audit);
+```
+
+Expect `products = 4, codes_moved = 1`. Raw SQL writes no audit row by itself — the
+`audit` CTE is the hand-built `discount_write` entry in the app's own payload shape.
+
+**Verify through the real path, not just the DB** (no cart cookie needed, read-only):
+
+```sh
+curl -s -X POST "https://www.twistedpin.com/tprs-api/api/checkout/coupon-preview/" \
+  -H "Content-Type: application/json" \
+  --data '{"startTime":"<VISIT_ISO_WITH_OFFSET>","couponCode":"<CODE>",
+           "items":[{"productId":"<LANE_PRODUCT_UUID>","quantity":1,"cartLineRef":"any-uuid"}]}'
+# → {"valid":true,"discountAmountCents":NNNN}   (a rejection comes back as {"valid":false,"reason":"expired"|...})
+```
+
+Lane product UUIDs: 4 = `aea165f3-…` (1hr trad), 5 = `6464132b-…` (2hr trad),
+121 = `38134c80-…` (1hr VIP), 123 = `7ffa6080-…` (2hr VIP).
+
+The courtesy rule shows up as its own row in measurement.sql q2/q4 and in
+/admin/discounts. If the guest redeems, count it toward the ORIGINAL cohort by hand.

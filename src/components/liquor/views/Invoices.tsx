@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import {
   getInvoiceHistory,
   getInvoiceDetail,
-  getCatalog,
+  getInvoiceCatalog,
   applyHeldCost,
+  expenseInvoiceLine,
+  rememberInvoiceUnit,
   matchInvoiceLine,
   newSkuFromLine,
   reextractInvoice,
@@ -21,6 +23,9 @@ import {
   type CogsBucket,
 } from "../api";
 import { matchSkus } from "../matcher";
+import { searchInvoiceItems, invoiceItemLabel } from "../invoice-catalog";
+import InvoiceCopies from "./InvoiceCopies";
+import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor, reviewReasonsFor } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
 function parseSizeMl(sizeText: string | null): number | null {
@@ -35,7 +40,9 @@ function parseSizeMl(sizeText: string | null): number | null {
 
 /** Loose name key for the new-bottle dup-guard: lowercase, alnum-only, collapsed. */
 function normalizeName(s: string): string {
-  return s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  return s.toLowerCase()
+    .replace(/\b\d+(?:\.\d+)?\s*(?:millilit(?:er|re)s?|ml|lit(?:er|re)s?|ltr|l|oz)\b/gi, " ")
+    .replace(/[^a-z0-9]+/g, " ").trim();
 }
 
 // Read-only invoice history — see recent uploads + their status, open the
@@ -73,18 +80,21 @@ export default function Invoices({
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [list, setList] = useState<InvoiceSummary[]>([]);
   const [detail, setDetail] = useState<InvoiceDetail | null>(null);
+  const [focusLineId, setFocusLineId] = useState<string | null>(null);
+  useEffect(() => { if (detail && focusLineId) { jumpToInvoiceLine(focusLineId); setFocusLineId(null); } }, [detail, focusLineId]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [reextracting, setReextracting] = useState(false);
   const [reextractMsg, setReextractMsg] = useState<string | null>(null);
   const [clearing, setClearing] = useState(false);
   const [clearMsg, setClearMsg] = useState<string | null>(null);
+  const [costRefreshMsg, setCostRefreshMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
     (async () => {
       try {
-        const [inv, cat] = await Promise.all([getInvoiceHistory(), getCatalog().catch(() => [])]);
+        const [inv, cat] = await Promise.all([getInvoiceHistory(), getInvoiceCatalog()]);
         if (live) {
           setList(inv);
           setCatalog(cat);
@@ -127,7 +137,7 @@ export default function Invoices({
     setDetail((d) => {
       if (!d) return d;
       const lines = d.lines.map((x) =>
-        x.id === lineId ? { ...x, matchedName: name, needsReview: false, ...(hold ?? {}) } : x,
+        x.id === lineId ? { ...x, matchedName: name, ...(hold ?? {}) } : x,
       );
       syncHeldCount(d.invoice.id, lines);
       return { ...d, invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice, lines };
@@ -144,9 +154,10 @@ export default function Invoices({
     if (!invoiceId) return;
     try {
       const fresh = await getInvoiceDetail(invoiceId);
-      setDetail((d) => (d && d.invoice.id === invoiceId ? { ...d, buckets: fresh.buckets, lines: fresh.lines } : d));
+      setDetail((d) => (d && d.invoice.id === invoiceId ? fresh : d));
+      setCostRefreshMsg(null);
     } catch {
-      // A stale panel is better than a blank one; the next open re-reads it.
+      setCostRefreshMsg("Saved, but the cost breakdown could not refresh. Reopen this invoice to see the updated amounts.");
     }
   }
 
@@ -160,12 +171,14 @@ export default function Invoices({
     });
   }
 
-  async function open(id: string) {
+  async function open(id: string, lineId?: string) {
     setDetailLoading(true);
     setReextractMsg(null);
     setClearMsg(null);
+    setCostRefreshMsg(null);
     try {
       setDetail(await getInvoiceDetail(id));
+      setFocusLineId(lineId ?? null);
     } catch {
       /* leave list in place */
     } finally {
@@ -183,6 +196,7 @@ export default function Invoices({
       const r = await reextractInvoice(detail.invoice.id);
       if (r.ok) {
         setReextractMsg("Re-reading now — check back in about a minute, then reopen it.");
+        setDetail((d) => d ? { ...d, invoice: { ...d.invoice, status: "pending" } } : d);
         getInvoiceHistory().then(setList).catch(() => {});
       } else {
         setReextractMsg(
@@ -214,7 +228,7 @@ export default function Invoices({
       } else {
         setClearMsg(
           r.error === "lines_need_match"
-            ? "Match the bottles below first — those still need a home."
+            ? "Match the highlighted items below first, then confirm the invoice."
             : r.error === "duplicate"
               ? "This is a duplicate of an invoice already on file — it has to stay out of the count."
               : r.error === "not_flagged"
@@ -254,49 +268,28 @@ export default function Invoices({
         <p className="lq-muted lq-invd-meta">
           {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
           {inv.invoiceDate || shortDate(inv.createdAt)} ·{" "}
-          <span className={`lq-badge lq-badge-${inv.status}`}>{STATUS_LABEL[inv.status]}</span>
+          <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : inv.duplicateOf ? "Repeated upload" : STATUS_LABEL[inv.status]}</span>
         </p>
+        <InvoiceCopies reviews={detail.copyReviews ?? []} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
+        <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
+        {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
+        {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">
-          <div><span className="lq-muted">Printed</span><strong>{money(inv.printedTotal)}</strong></div>
-          <div><span className="lq-muted">Extracted</span><strong>{money(inv.extractedTotal)}</strong></div>
+          <div><span className="lq-muted">Printed total</span><strong>{money(inv.printedTotal)}</strong></div>
+          <div><span className="lq-muted">Total read from lines</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
 
         {totalsDelta >= 0.01 && (
           <p className="lq-muted lq-invd-note">
             Totals don't tie ({money(totalsDelta.toFixed(2))}) — usually deposits, fees, or return
-            credits, not bottle cost. The line costs are still captured.
+            credits, or a reading error. Compare the source documents before changing quantities.
           </p>
         )}
 
-        {(inv.status === "flagged" || inv.status === "extracted") && (
-          <div className="lq-invd-reextract">
-            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
-              {reextracting ? "Re-reading…" : "Re-extract"}
-            </button>
-            <span className="lq-muted lq-invd-reextract-hint">
-              {reextractMsg ?? "Re-read the image with the latest logic."}
-            </span>
-          </div>
-        )}
-
-        {inv.status === "flagged" && !detail.lines.some((l) => l.needsReview) && (
-          <div className="lq-invd-clear">
-            <button type="button" className="lq-btn" disabled={clearing} onClick={doClearFlag}>
-              {clearing ? "Confirming…" : "Counted it — confirm invoice"}
-            </button>
-            <span className="lq-muted lq-invd-clear-hint">
-              {clearMsg ??
-                "Every bottle is matched. Confirm once you have checked what actually arrived — until then this invoice is left out of your next variance report."}
-            </span>
-          </div>
-        )}
-
-        <BucketPanel detail={detail} />
-
-        <h3 className="lq-cap-title">Lines <span className="lq-cap-n">{detail.lines.length}</span></h3>
+        <h3 className="lq-cap-title">Invoice items <span className="lq-cap-n">{detail.lines.length}</span></h3>
         <div className="lq-invd-lines">
           {detail.lines.map((l) => (
-            <div key={l.id} id={`inv-line-${l.id}`} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
+            <div key={l.id} id={`inv-line-${l.id}`} tabIndex={-1} className={`lq-invd-line${l.needsReview ? " lq-invd-line-review" : ""}`}>
               <div className="lq-invd-line-main">
                 <span className="lq-invd-desc">{l.rawDescription || "—"}</span>
                 <span className="lq-invd-amt">{money(l.extendedAmount)}</span>
@@ -305,31 +298,42 @@ export default function Invoices({
                 {l.lineType !== "product" && <span className="lq-invd-tag">{l.lineType}</span>}
                 {l.matchedName ? (
                   <span>→ {l.matchedName}</span>
-                ) : l.lineType === "product" ? (
+                ) : l.nonInventory ? <span>Expense · supplies</span> : l.lineType === "product" ? (
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
                 {l.sizeText && <span>· {l.sizeText}</span>}
                 {l.qtyUnits && <span>· {Number(l.qtyUnits)} × {money(l.unitCost)}</span>}
               </div>
-              {l.needsReview && l.lineType === "product" && (
-                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
+              {Number(l.shortageAmount ?? 0) > 0 && (
+                <p className="lq-muted">Product cost after shortage: {money(l.receivedAmount ?? null)}. {money(l.shortageAmount ?? null)} not delivered.</p>
               )}
-              {l.costHoldReason && (
+              {!!l.lineTax && <p className="lq-muted">Printed row total: {money(l.printedLineTotal ?? null)}; line tax: {money(l.lineTax)}. Product amount above excludes tax.</p>}
+              {reviewReasonsFor(l).includes("amount") && <p className="lq-invd-unmatched">Check the printed price, quantity and tax. The line amount does not reconcile.</p>}
+              {reviewReasonsFor(l).includes("quantity") && <p className="lq-invd-unmatched">Check the billed quantity and case columns on the original invoice.</p>}
+              {!inv.duplicateOf && inv.status !== "pending" && reviewReasonsFor(l).includes("identity") && (
+                <>
+                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
+                <ExpenseControl invoiceId={detail.invoice.id} line={l} onResolved={() => void refreshBuckets(inv.id)} />
+                </>
+              )}
+              {!inv.duplicateOf && inv.status !== "pending" && l.costHoldReason && (
                 <CostHoldControl invoiceId={detail.invoice.id} line={l} onApplied={handleCostApplied} />
               )}
               {l.annotation && (
                 <p className="lq-invd-annot">
                   ✍️ {l.annotation}
                   <span className="lq-invd-annot-hint">
-                    — printed numbers were kept. Count the shelf and record what actually arrived.
+                    {reviewAnnotationFor(l)
+                      ? " — printed numbers were kept. Record how much of this item actually arrived; enter 0 if none was delivered."
+                      : " — deposit return note, kept for reference."}
                   </span>
                 </p>
               )}
-              {(l.lineType === "product" || l.lineType === "keg") && l.qtyUnits && (
+              {!inv.duplicateOf && inv.status !== "pending" && (l.lineType === "product" || l.lineType === "keg") && l.qtyUnits && (
                 <ReceivedControl
                   invoiceId={detail.invoice.id}
                   line={l}
-                  onChanged={(lineId, receivedQty) =>
+                  onChanged={(lineId, receivedQty) => {
                     setDetail((d) =>
                       !d
                         ? d
@@ -339,15 +343,29 @@ export default function Invoices({
                               x.id === lineId ? { ...x, receivedQty: receivedQty == null ? null : String(receivedQty) } : x,
                             ),
                           },
-                    )
-                  }
+                    );
+                    void refreshBuckets(detail.invoice.id);
+                  }}
                 />
               )}
             </div>
           ))}
         </div>
 
-        <h3 className="lq-cap-title">Pages</h3>
+        <details className="lq-invd-secondary">
+          <summary>Cost categories and estimates</summary>
+          <p className="lq-muted">This shows where purchases are assigned. These estimates are separate from the delivery review above.</p>
+          <BucketPanel detail={detail} />
+        </details>
+
+        {!!inv.handwrittenNotes?.length && (
+          <details className="lq-invd-secondary">
+            <summary>All handwritten notes from the scan</summary>
+            <ul>{inv.handwrittenNotes.map((note, i) => <li key={i}>{note}</li>)}</ul>
+          </details>
+        )}
+
+        <h3 className="lq-cap-title">Original invoice</h3>
         {detail.images.length === 0 ? (
           <p className="lq-muted">Image removed (kept 30 days) — the read above stays on file.</p>
         ) : (
@@ -365,6 +383,15 @@ export default function Invoices({
             )}
           </div>
         )}
+        {(inv.status === "flagged" || inv.status === "extracted") && (
+          <details className="lq-invd-secondary">
+            <summary>Was the image read incorrectly?</summary>
+            <p className="lq-muted">Read the stored image again if the item descriptions or amounts were misread. This does not confirm delivery.</p>
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
+              {reextracting ? "Re-reading…" : "Read invoice again"}
+            </button>
+          </details>
+        )}
       </div>
     );
   }
@@ -380,12 +407,14 @@ export default function Invoices({
           <button key={inv.id} type="button" className="lq-invrow" onClick={() => open(inv.id)} disabled={detailLoading}>
             <div className="lq-invrow-main">
               <span className="lq-invrow-vendor">{inv.vendorText || "Unknown vendor"}</span>
-              <span className={`lq-badge lq-badge-${inv.status}`}>{STATUS_LABEL[inv.status]}</span>
+              <span className={`lq-badge lq-badge-${inv.status}`}>{inv.landedOf ? "Linked delivery copy" : inv.duplicateOf ? "Repeated upload" : STATUS_LABEL[inv.status]}</span>
               {/* A held cost deliberately does NOT change the invoice's status
                   (a 'flagged' invoice is dropped from variance purchases), so
                   the count is its own marker — and the only way to find one
                   until the shared ops inbox lands. */}
-              {!!inv.heldCount && (
+              {!inv.duplicateOf && !!inv.unmatchedCount && <span className="lq-invrow-held">{inv.unmatchedCount} items to match</span>}
+              {!inv.duplicateOf && (inv.reviewCount ?? 0) > (inv.unmatchedCount ?? 0) && <span className="lq-invrow-held">{(inv.reviewCount ?? 0) - (inv.unmatchedCount ?? 0)} line checks</span>}
+              {!inv.duplicateOf && !!inv.heldCount && (
                 <span className="lq-invrow-held">
                   {inv.heldCount} cost{inv.heldCount === 1 ? "" : "s"} held
                 </span>
@@ -460,10 +489,13 @@ const BUCKET_LABEL: Record<string, string> = {
 function BucketPanel({ detail }: { detail: InvoiceDetail }) {
   /** Jump to the line row, which already carries the match control. No new
    *  state and no second way to do the same job. */
-  const jump = (lineId: string) => {
-    const el = document.getElementById("inv-line-" + lineId);
-    el?.scrollIntoView({ block: "center", behavior: "smooth" });
-  };
+  const canMatch = (lineId: string) => detail.lines.some((line) =>
+    line.id === lineId && reviewReasonsFor(line).includes("identity"));
+  const action = (lineId: string) => (
+    <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine(lineId)}>
+      {canMatch(lineId) ? "Match product" : "View item"}
+    </button>
+  );
   const b = detail.buckets;
   if (!b) return null;
   const rows = (Object.keys(b.byBucket) as CogsBucket[])
@@ -503,6 +535,9 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
         )}
         {b.nonGoods !== 0 && (
           <span className="lq-muted">${b.nonGoods.toFixed(2)} deposits/fees, not COGS</span>
+        )}
+        {(b.shortageDollars ?? 0) > 0 && (
+          <span className="lq-muted">${b.shortageDollars!.toFixed(2)} not delivered, excluded from product cost</span>
         )}
       </div>
 
@@ -562,6 +597,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
             : b.totalBasis === "extracted_total"
               ? "Against a total WE computed, not one printed on the invoice — deposits and fees were removed first."
               : "No invoice total on file, so only matched lines are counted."}
+        {(b.shortageDollars ?? 0) > 0 && " Confirmed delivery shortages were also removed."}
         {b.residualBasis === "vendor_mix" && b.mixVendor && (
           <>
             {" "}
@@ -574,7 +610,7 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
       {attentionCount > 0 && (
         <div className="lq-buk-att">
           <p className="lq-buk-att-h">
-            {attentionCount} to check
+            {attentionCount} cost categor{attentionCount === 1 ? "y detail" : "y details"}
           </p>
 
           {att.supplierOnly.map((l) => (
@@ -585,20 +621,16 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
                 the vendor calls this {BUCKET_LABEL[l.supplierBucket ?? ""] ?? l.supplierBucket}. Ours?
               </span>
               <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
-              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
-                match it
-              </button>
+              {action(l.lineId)}
             </div>
           ))}
 
           {att.unresolved.map((l) => (
             <div key={l.lineId} className="lq-buk-att-row">
               <span className="lq-buk-att-desc">{l.description || "—"}</span>
-              <span className="lq-buk-att-note">nobody knows what this is — it is being estimated</span>
+              <span className="lq-buk-att-note">No catalog category is assigned. Its cost category is estimated from vendor history when available.</span>
               <span className="lq-buk-att-amt">${Number(l.amount).toFixed(2)}</span>
-              <button type="button" className="lq-linkbtn" onClick={() => jump(l.lineId)}>
-                match it
-              </button>
+              {action(l.lineId)}
             </div>
           ))}
 
@@ -623,6 +655,49 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
       ))}
     </div>
   );
+}
+
+function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  if (!line.vendorCode) return null;
+  async function save() {
+    setBusy(true); setError("");
+    try { await expenseInvoiceLine(invoiceId, line.id); onResolved(); }
+    catch { setError("Could not save. Reopen the invoice and check this item."); setBusy(false); }
+  }
+  return <div className="lq-invd-hold">
+    <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>
+      {busy ? "Saving…" : "Expense as supplies (not counted)"}
+    </button>
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
+}
+
+function RememberUnitControl({ invoiceId, line, onApplied }: { invoiceId: string; line: InvoiceLine; onApplied: (id: string) => void }) {
+  const [value, setValue] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const units = Number(value), valid = Number.isInteger(units) && units > 0 && units <= 100000;
+  const unit = line.matchedCountUnit ?? "unit";
+  const pluralUnit = unit === "each" ? "individual items" : unit === "box" ? "boxes" : unit === "bunch" ? "bunches" : `${unit}s`;
+  const cost = valid ? Number(line.unitCost) / units : null;
+  async function save() {
+    setBusy(true); setError("");
+    try { await rememberInvoiceUnit(invoiceId, line, units); onApplied(line.id); }
+    catch { setError("Could not save this package answer. Reopen the invoice to check for changes."); setBusy(false); }
+  }
+  return <div className="lq-invd-hold-edit">
+    <label>How many {pluralUnit} do you count in one billed case of {line.matchedName}?
+      <input aria-label="Count units per billed case" type="number" inputMode="numeric" min={1} max={100000} step={1}
+        value={value} onChange={e => setValue(e.target.value)} />
+    </label>
+    <p className="lq-muted">Printed package: {line.pack ?? "?"} × {line.sizeText}. Use the unit your team counts on the shelf.</p>
+    {cost != null && <p>${cost.toFixed(6).replace(/0+$/, "").replace(/\.$/, "")} per {line.matchedCountUnit}.</p>}
+    <p className="lq-muted">Remembers this cost conversion for this supplier item and package. Delivery quantities stay as billed.</p>
+    <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>{busy ? "Saving…" : "Save package answer"}</button>
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
 }
 
 function CostHoldControl({
@@ -682,6 +757,9 @@ function CostHoldControl({
   return (
     <div className="lq-invd-hold lq-invd-hold-edit">
       <span className="lq-invd-hold-flag">Cost held — {line.costHoldReason}</span>
+      {line.canRememberUnit && line.packageKey && <RememberUnitControl invoiceId={invoiceId} line={line} onApplied={onApplied} />}
+      <details open={!line.canRememberUnit}>
+      <summary>Enter a one-time cost</summary>
       <p className="lq-invd-hold-q">
         This line was billed {line.sizeText ? `as ${line.sizeText}` : "in another unit"} at{" "}
         {money(line.unitCost)}. What does one {unit} cost?
@@ -720,6 +798,7 @@ function CostHoldControl({
         </button>
       </div>
       {err && <p className="lq-invd-recvd-err">{err}</p>}
+      </details>
     </div>
   );
 }
@@ -753,7 +832,7 @@ function ReceivedControl({
   // Someone wrote on this row and nobody has recorded a count yet — open the box
   // rather than making them find it. The alert told them to count; landing on a
   // collapsed link would ask them to go looking for where to put the answer.
-  const [open, setOpen] = useState(() => Boolean(line.annotation) && recorded == null);
+  const [open, setOpen] = useState(() => Boolean(reviewAnnotationFor(line)) && recorded == null);
   const [val, setVal] = useState(recorded == null ? "" : String(recorded));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -776,8 +855,8 @@ function ReceivedControl({
   // since that is the number someone has to take to the rep.
   if (recorded != null && !open) {
     const shortBy = billed - recorded;
-    const unit = line.unitCost == null ? null : Number(line.unitCost);
-    const credit = shortBy > 0 && unit != null ? shortBy * unit : null;
+    const credit = line.shortageAmount != null ? Number(line.shortageAmount)
+      : shortBy > 0 && billed > 0 ? Number(line.extendedAmount) * shortBy / billed : null;
     return (
       <div className="lq-invd-recvd">
         <span className="lq-invd-recvd-flag">
@@ -787,7 +866,9 @@ function ReceivedControl({
               ? `Over by ${+Math.abs(shortBy).toFixed(3)}`
               : `Confirmed all ${billed}`}
         </span>
-        {credit != null && <span className="lq-invd-recvd-credit">credit due {money(credit.toFixed(2))}</span>}
+        {credit != null && credit > 0 && <span className="lq-invd-recvd-credit">
+          {money(credit.toFixed(2))} {line.shortageAmount == null ? "shortfall" : "excluded from product cost"}
+        </span>}
         <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setVal(String(recorded)); setOpen(true); }}>
           change
         </button>
@@ -821,6 +902,7 @@ function ReceivedControl({
         />
         <span className="lq-muted">of {billed} billed</span>
       </label>
+      <p className="lq-muted">Saving a shortage updates stock and product cost. The original invoice stays on file.</p>
       <div className="lq-invd-recvd-actions">
         <button
           type="button"
@@ -864,30 +946,42 @@ function MatchControl({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [newMode, setNewMode] = useState(false);
+  const [sizeMismatch, setSizeMismatch] = useState<BarSkuItem | null>(null);
+  const [newSection, setNewSection] = useState<"bar" | "food" | "">("");
+  const [newCountUnit, setNewCountUnit] = useState("");
+  const [newBucket, setNewBucket] = useState<CogsBucket | "">(line.ourBucket ?? line.supplierBucket ?? "");
   const [newName, setNewName] = useState((line.rawDescription ?? "").trim().slice(0, 120));
   const [newSize, setNewSize] = useState(() => {
     const ml = parseSizeMl(line.sizeText);
     return ml != null ? String(ml) : "";
   });
+  const invoiceSize = parseSizeMl(line.sizeText);
   const suggestions = useMemo(
-    () => matchSkus(line.rawDescription ?? "", catalog).slice(0, 3),
-    [line.rawDescription, catalog],
+    () => matchSkus(line.rawDescription ?? "", catalog.filter((s) =>
+      invoiceSize == null || s.sizeMl == null || s.sizeMl === invoiceSize,
+    )).slice(0, 3),
+    [line.rawDescription, catalog, invoiceSize],
   );
-  const hits = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    if (!t) return [];
-    return catalog.filter((s) => s.name.toLowerCase().includes(t)).slice(0, 6);
-  }, [q, catalog]);
-  // Dup-guard: an existing bottle with the same name (any size). Creating a
-  // near-duplicate silently splits one bottle into several + breaks voice counts,
-  // so surface it loudly and offer a one-tap match instead.
-  const dupes = useMemo(() => {
+  const hits = useMemo(() => searchInvoiceItems(q, catalog), [q, catalog]);
+  // A different package size is a legitimate new SKU. Only the same product
+  // AND size is a duplicate; keep other sizes visible as context.
+  const sameProduct = useMemo(() => {
     const n = normalizeName(newName);
-    if (!n) return [];
-    return catalog.filter((s) => normalizeName(s.name) === n);
-  }, [newName, catalog]);
+    return n ? catalog.filter((s) => s.section === newSection && normalizeName(s.name) === n) : [];
+  }, [newName, catalog, newSection]);
+  const proposedSize = newSize.trim() && Number(newSize) > 0 ? Math.round(Number(newSize)) : null;
+  const dupes = useMemo(() => {
+    return sameProduct.filter((s) => s.sizeMl === proposedSize);
+  }, [sameProduct, proposedSize]);
+  const otherSizes = sameProduct.filter((s) => s.sizeMl != null && s.sizeMl !== proposedSize);
 
-  async function pick(skuId: string, name: string) {
+  async function pick(skuId: string, name: string, confirmSize = false) {
+    const chosen = catalog.find((s) => s.id === skuId);
+    if (!confirmSize && invoiceSize != null && chosen?.sizeMl != null && chosen.sizeMl !== invoiceSize) {
+      setSizeMismatch(chosen);
+      return;
+    }
+    setSizeMismatch(null);
     setBusy(true);
     setErr(null);
     try {
@@ -905,13 +999,16 @@ function MatchControl({
 
   async function createNew() {
     const nm = newName.trim();
-    if (!nm) return;
+    if (!nm || !newSection || !newBucket || !newCountUnit) return;
+    // Same product and size: use the normal match path, including its size
+    // confirmation, instead of allowing create/find to bypass that check.
+    if (dupes.length === 1) return pick(dupes[0]!.id, dupes[0]!.name);
     setBusy(true);
     setErr(null);
     try {
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl);
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket });
       onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.skuId,
@@ -943,26 +1040,63 @@ function MatchControl({
         <input
           className="lq-search lq-rev-search"
           type="search"
-          placeholder="Search a bottle to match…"
+          placeholder="Search items"
+          aria-label="Search items"
           value={q}
           disabled={busy}
           onChange={(e) => setQ(e.target.value)}
         />
         {hits.map((s) => (
           <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
-            {s.name}{s.sizeMl != null ? ` · ${s.sizeMl}ml` : ""}
+            {invoiceItemLabel(s)}
           </button>
         ))}
       </div>
+      {q.trim() && hits.length === 0 && <p className="lq-muted" role="status">No items found in either inventory. Try part of the name, or add an item below.</p>}
+      {sizeMismatch && (
+        <div className="lq-newsku-dup">
+          <p className="lq-newsku-dup-warn">
+            The invoice says {invoiceSize} ml. {sizeMismatch.name} is {sizeMismatch.sizeMl} ml.
+            If a different size arrived, add it as a new item. Match this size only if the invoice was read incorrectly.
+          </p>
+          <button type="button" className="lq-chip" disabled={busy}
+            onClick={() => void pick(sizeMismatch.id, sizeMismatch.name, true)}>
+            Invoice size is wrong — match {sizeMismatch.sizeMl} ml
+          </button>
+          <button type="button" className="lq-linkbtn" disabled={busy}
+            onClick={() => { setSizeMismatch(null); setNewSize(String(invoiceSize)); setNewMode(true); }}>
+            Add the {invoiceSize} ml bottle
+          </button>
+        </div>
+      )}
       {!newMode ? (
         <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(true)}>
-          + New bottle (not in the list)
+          + New item (not in the list)
         </button>
       ) : (
         <div className="lq-newsku">
+          <label>Count this item in
+            <select className="lq-search" aria-label="Inventory for new item" value={newSection} disabled={busy} onChange={e => {
+              const section = e.target.value as "bar" | "food" | "";
+              setNewSection(section); setNewCountUnit(section === "bar" && invoiceSize ? "bottle" : "");
+            }}>
+              <option value="">Choose inventory</option><option value="food">Food inventory</option><option value="bar">Liquor inventory</option>
+            </select>
+          </label>
+          <label>Count one
+            <select className="lq-search" aria-label="Count unit for new item" value={newCountUnit} disabled={busy} onChange={e => setNewCountUnit(e.target.value)}>
+              <option value="">Choose count unit</option>
+              {["each", "pack", "box", "sack", "lb", "gal", "bib", "case", "bottle"].map(unit => <option key={unit} value={unit}>{unit}</option>)}
+            </select>
+          </label>
+          <label>Cost category
+            <select className="lq-search" aria-label="Cost category for new item" value={newBucket} disabled={busy} onChange={e => setNewBucket(e.target.value as CogsBucket | "")}>
+              <option value="">Choose category</option>{Object.entries(BUCKET_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+            </select>
+          </label>
           <input
             className="lq-newsku-name"
-            placeholder="Bottle name"
+            placeholder="Item name"
             value={newName}
             disabled={busy}
             onChange={(e) => setNewName(e.target.value)}
@@ -979,10 +1113,16 @@ function MatchControl({
             />
             <span className="lq-muted lq-newsku-hint">size in ml — leave blank if it's not a bottle</span>
           </div>
+          {otherSizes.length > 0 && proposedSize != null && (
+            <p className="lq-muted">
+              Other sizes on file: {otherSizes.map((s) => `${s.sizeMl} ml`).join(", ")}.
+              {" "}{proposedSize} ml is a separate bottle size.
+            </p>
+          )}
           {dupes.length > 0 && (
             <div className="lq-newsku-dup">
               <span className="lq-newsku-dup-warn">
-                You already have this bottle — match it instead of adding a duplicate?
+                This item and size are already on file — match the existing entry?
               </span>
               {dupes.map((s) => (
                 <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
@@ -992,8 +1132,8 @@ function MatchControl({
             </div>
           )}
           <div className="lq-newsku-actions">
-            <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim()} onClick={createNew}>
-              {dupes.length > 0 ? "Add anyway" : "Create + match"}
+            <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim() || !newSection || !newBucket || !newCountUnit} onClick={createNew}>
+              {dupes.length === 1 ? "Match existing item" : dupes.length > 1 ? "Add anyway" : "Create + match"}
             </button>
             <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(false)}>cancel</button>
           </div>

@@ -1,26 +1,8 @@
 ---
-/**
- * /reserve/nye — New Year's Eve party-slot bookings, PARKED AT ITS REAL SLUG.
- *
- * Like /reserve/birthdays (and unlike /reserve-preview), this page lives at
- * its final URL from day one: the vercel.json `/reserve{/}?` redirect is
- * EXACT-match, so the nested path never collides.
- *
- * INDEXED + LINKED (2026-06-16): the noindex meta + robots.txt Disallow +
- * sitemap filter were all lifted. The /new-years-eve/ lander's CTAs point here
- * and the page is crawlable. Online purchase is gated to the products'
- * `sales_start_at` (12/01) by the TPRS engine's validateSalesStart — the
- * calendar shows NO slots until sales open, so the page reads "empty" until
- * Dec 1. Remaining: full launch SEO pass per src/tprs/BOOKING-PAGES-HANDOFF.md
- * (real title/description are in; og:image reuses og-vip-suite.jpg — revisit
- * if a dedicated NYE og crop lands).
- *
- * Page mechanics come from nyePageConfig: both NYE party products (VIP 124 +
- * Traditional 126) on standard description cards — the included-list copy
- * sells the slot — with the normal lane stepper (capacity copy stays at
- * category level; the rooms hold 6 vs 5), the calendar seeded at 12/31 via
- * defaultDate (the packages are only bookable on NYE), and the NYE Arcade
- * Mega Deal riding along as an optional add-on.
+/** NYE booking page: two live catalog products, seeded to December 31, 2026.
+ * Availability and sales gating remain backend-controlled. See
+ * Context/session-handoffs/2026-09-14-nye-2026-packages.md before launch:
+ * confirmed evening party lengths still need a backend duration correction.
  */
 import Base from "../../layouts/Base.astro";
 import BookingWizard from "../../components/tprs/BookingWizard.tsx";
@@ -29,8 +11,8 @@ import { nyePageConfig } from "../../tprs/pageConfig";
 const { uxCopy, heroImage } = nyePageConfig;
 ---
 <Base
-  title="Book New Year's Eve Lanes | Twisted Pin Plainfield"
-  description="Reserve a New Year's Eve party slot in the VIP suite at Twisted Pin in Plainfield — unlimited bowling, pizza, party favors, and a midnight toast on the 10pm slot."
+  title="Book New Year's Eve 2026 | Twisted Pin Plainfield"
+  description="Check New Year's Eve 2026 availability at Twisted Pin in Plainfield. Traditional and VIP lanes include pizza, soda, shoes, and bowling for your party time."
   ogImage="/og/og-vip-suite.jpg"
   ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
   hideStickyCTA={true}

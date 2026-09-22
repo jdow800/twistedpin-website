@@ -2,6 +2,21 @@
 // here beyond summing line items for display — authoritative pricing is the
 // API's at convert/payment-intents (ADR-0025 §5 server-side amount authority).
 
+import type { CustomerProduct } from "../../tprs/schemas";
+
+/** Resolve the selected party from backend catalog data, with the ordinary
+ *  product duration as the fallback. Date and time are venue-local values. */
+export function selectedProductDurationMinutes(
+  product: Pick<CustomerProduct, "durationMinutes" | "durationOverrides">,
+  date: string,
+  time: string,
+): number | null {
+  if (product.durationMinutes === null) return null;
+  return product.durationOverrides?.find(
+    rule => rule.date === date && rule.startTime === time,
+  )?.durationMinutes ?? product.durationMinutes;
+}
+
 /** 17595 → "$175.95". Whole-dollar amounts drop the cents ("$70"). */
 export function formatUsd(cents: number): string {
   const dollars = cents / 100;

@@ -368,8 +368,10 @@ export const birthdaysPageConfig: BookingPageConfig = {
  * re-verified against the live catalog 2026-06-11.
  */
 export const nyePageConfig: BookingPageConfig = {
-  // 124 → NYE Party VIP Lanes          $129.95 · 90min · max 6 lanes per booking
-  // 126 → NYE Party Traditional Lanes  $109.95 · 90min · max 6 lanes per booking
+  // 124 → NYE Party VIP Lanes          from $129.95 · max 6 lanes per booking
+  // 126 → NYE Party Traditional Lanes  from $109.95 · max 6 lanes per booking
+  // Evening session lengths need backend correction before launch; see the
+  // September 14, 2026 NYE handoff. Do not override confirmation duration here.
   productCodes: [124, 126],
   // Both packages are bookable ONLY on NYE (ops is restricting availability in
   // the backend) — seed the calendar there instead of today.
@@ -379,7 +381,7 @@ export const nyePageConfig: BookingPageConfig = {
   // Traditional (126) keeps the default: 6 of 17 lanes, bigger nights really
   // are event territory.
   laneCapNotes: {
-    124: "That's the whole suite — all six lanes are yours for the night.",
+    124: "That's all six VIP lanes for your selected party time — up to 36 guests total.",
   },
   heroImage: {
     base: "/snap/nye-reserve-hero",
@@ -402,26 +404,23 @@ export const nyePageConfig: BookingPageConfig = {
     "Outside food and drink isn't permitted — the bar and kitchen have you covered. " +
     "Arrive a few minutes early to get your group set up.",
   uxCopy: {
-    eyebrow: "New Year's Eve",
+    eyebrow: "December 31, 2026 · Plainfield, IL",
     // The how-to block below floated "Ring it in." for /nye — promoted as-is.
     headline: "Ring it in.",
     // Accuracy guard: only the 10pm slot includes the champagne toast, so the
     // sub can't promise midnight to every slot.
-    sub: "Pick your party slot. Unlimited bowling, pizza, and party favors — the 10pm crew gets the midnight toast.",
+    sub: "Pick your party time. Bowling, pizza, soda, and party favors — the 10pm crew gets the midnight toast.",
   },
   // quantityLabel/quantityHelp left to defaults — "How many lanes?" with the
   // category's own capacity subtitle (the rooms hold different counts).
   //
-  // Until ops opens NYE sales (TPRS sales_start gate — currently ~12/01, will
-  // move), the calendar shows no bookable slots; rather than the bare "sitting
-  // this one out" list, show a branded "drops late November, follow us" beat on
-  // 12/31. Self-resolves the moment sales open (12/31 goes bookable). Date-soft
-  // copy on purpose — moving sales_start needs no edit here.
+  // Availability-driven: this notice can also appear when every party is full.
+  // Keep it neutral rather than promising an unconfirmed sales opening date.
   presaleNotice: {
-    heading: "Not booking NYE just yet.",
-    body: "Our New Year's Eve packages drop in late November — party slots, pricing, the whole night. Follow along and you'll know the second they go live.",
-    ctaLabel: "Follow on Facebook",
-    ctaHref: "https://www.facebook.com/twistedpin",
+    heading: "No NYE reservations available right now.",
+    body: "Online reservations aren't available for this date right now. See the 2026 party times, package prices, and everything included on our New Year's Eve page.",
+    ctaLabel: "See NYE packages",
+    ctaHref: "/new-years-eve/",
   },
 };
 

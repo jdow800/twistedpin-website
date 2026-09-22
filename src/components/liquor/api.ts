@@ -119,6 +119,8 @@ export interface PinUser {
   displayName: string;
 }
 export interface BarSkuItem {
+  section?: Section;
+  cogsBucket?: CogsBucket | null;
   id: string;
   name: string;
   category: string | null;
@@ -133,6 +135,10 @@ export interface BarSkuItem {
    *  cell with it; the liquor grid ignores it because everything there is a
    *  bottle. Optional so older cached bundles keep parsing. */
   countUnit?: string;
+  /** Confirmed spoken package conversions; ignored when the physical unit changes. */
+  countDefinition?: import("./count-definition").CountDefinition | null;
+  /** Confirmed observations, used only to ask about an unusually large count. */
+  countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
 }
 export interface BarZoneItem {
   id: string;
@@ -212,6 +218,11 @@ export async function getCatalog(section: Section = "bar"): Promise<BarSkuItem[]
   );
   return items;
 }
+/** Mixed invoices can contain items from either inventory. Never use this for counts. */
+export async function getInvoiceCatalog(): Promise<BarSkuItem[]> {
+  const [bar, food] = await Promise.all([getCatalog("bar"), getCatalog("food")]);
+  return [...new Map([...bar, ...food].map(item => [item.id, item])).values()];
+}
 export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]> {
   const { zones } = await gatedJson<{ zones: BarZoneItem[] }>(
     `/admin/bar/zones?section=${section}`,
@@ -248,6 +259,8 @@ export interface OpenCountBatch {
 }
 export interface OpenCount {
   id: string;
+  isFullCount: boolean;
+  section: Section;
   startedAt: string;
   lines: OpenCountLine[];
   /** Batch rows resume alongside the lines — a draft that came back without
@@ -294,12 +307,22 @@ export async function getOpenCount(full = true, section: Section = "bar"): Promi
   const { session } = await gatedJson<{ session: OpenCount | null }>(
     `/admin/bar/counts/open?full=${full ? "true" : "false"}&section=${section}`,
   );
+  if (session && (session.isFullCount !== full || session.section !== section)) {
+    throw new BarApiError("This draft belongs to a different count. Reopen the count to continue.", 409);
+  }
   return session;
 }
 /** Replace the draft's lines with exactly these. An EMPTY array is meaningful —
  *  it means the counter removed everything — so it is sent, not skipped. */
-export async function saveCountLines(sessionId: string, lines: CountLineInput[]): Promise<void> {
-  await gatedJson(`/admin/bar/counts/${sessionId}/lines`, { ...jsonBody({ lines }), method: "PUT" });
+export async function saveCountLines(
+  sessionId: string,
+  lines: CountLineInput[],
+  isFullCount = true,
+  section: Section = "bar",
+): Promise<void> {
+  await gatedJson(`/admin/bar/counts/${sessionId}/lines`, {
+    ...jsonBody({ lines, isFullCount, section }), method: "PUT",
+  });
 }
 /** One flagged bottle from the pre-submit sanity check. */
 export interface PrecheckFinding {
@@ -389,11 +412,23 @@ export interface RetiringSku {
   /** What retiring it takes off the books. Informational — NOT the rank. */
   dollars: number;
 }
+export interface BottleSizeWarning {
+  skuId: string;
+  name: string;
+  sizeMl: number;
+  receivedQty: number;
+  receivedAt: string;
+  counted: number | null;
+  otherSizes: { sizeMl: number; counted: number }[];
+}
 export interface PrecheckResult {
-  /** No prior submitted count — nothing to compare against, so no findings. */
+  /** No prior submitted count; delivery and location checks can still run. */
   baseline: boolean;
   findings: PrecheckFinding[];
   truncated?: number;
+  /** Recent delivery size missing/zero while another size was counted.
+   *  Independent of the dollar-ranked cap; optional for deployment ordering. */
+  sizeWarnings?: BottleSizeWarning[];
   /**
    * Products nobody has seen stock of, or bought, in months.
    *
@@ -464,6 +499,9 @@ export interface VoiceExtractItem {
   suspectPreMultiplied: boolean;
   match: VoiceMatch | null; // set when exactly one bottle matched
   candidates: VoiceMatch[]; // 2+ when the name was ambiguous (counter picks one)
+  /** Food extraction preserves actual package words; older bar replies omit these. */
+  spokenUnit?: string | null;
+  quantityKnown?: boolean;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
@@ -546,7 +584,7 @@ export async function extractVoice(
   try {
     const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 1 } : {}) }),
     );
     return items;
   } catch (e) {
@@ -774,6 +812,11 @@ export interface InvoiceSummary {
    *  silently drop its purchases from the bracket. This count is the only way
    *  to find a held cost until the shared ops inbox exists. */
   heldCount?: number;
+  unmatchedCount?: number;
+  reviewCount?: number;
+  source?: "email" | "scan";
+  duplicateOf?: string | null;
+  landedOf?: string | null;
 }
 export interface InvoiceLine {
   id: string;
@@ -790,6 +833,9 @@ export interface InvoiceLine {
   qtyUnits: string | null;
   unitCost: string | null;
   extendedAmount: string;
+  /** Product amount after a confirmed delivery shortage; original amount stays above. */
+  receivedAmount?: string;
+  shortageAmount?: string;
   /** What actually arrived, when someone said it differed from the bill. null =
    *  nobody has said otherwise, so billed IS received. Never pre-filled — a
    *  confirmed delivery and an unexamined one must not look the same. */
@@ -799,7 +845,18 @@ export interface InvoiceLine {
    *  shelf, because a short marked by the driver is the one discrepancy where
    *  the invoice and the vendor order email agree and are both wrong. */
   annotation: string | null;
+  /** Server triage; null means the source annotation is informational. */
+  reviewAnnotation?: string | null;
   needsReview: boolean;
+  reviewReasons?: ("identity" | "amount" | "quantity")[];
+  nonInventory?: boolean;
+  printedLineTotal?: string | null;
+  lineTax?: string | null;
+  printedUnitPrice?: string | null;
+  pack?: number | null;
+  qtyCases?: string | null;
+  canRememberUnit?: boolean;
+  packageKey?: string | null;
   matchedName: string | null;
   /** Why this line's COST is waiting on a human — "billed by LB, counted by
    *  each". Prose, written server-side by one module; the units below are the
@@ -864,6 +921,7 @@ export interface InvoiceBuckets {
   byBucket: Partial<Record<CogsBucket, BucketAmount>>;
   unattributed: number;
   nonGoods: number;
+  shortageDollars?: number;
   matchedDollars: number;
   residualDollars: number;
   residualBasis: "none" | "vendor_mix" | "unattributed";
@@ -884,8 +942,30 @@ export interface InvoiceBuckets {
   };
 }
 
+export interface InvoiceCopyReview {
+  originalId: string; copyId: string; invoiceNumber: string | null;
+  expected: { id: string; source: "email"; printedTotal: string | null };
+  delivered: { id: string; source: "scan"; printedTotal: string | null };
+  rows: Array<{ code: string; description: string; originalLineIds: string[]; issues: string[]; information?: string[];
+    expected: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
+    delivered: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
+  }>;
+  reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
+  reviewed: boolean; reviewedAt: string | null; ready: boolean;
+}
+export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
+  await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));
+}
 export interface InvoiceDetail {
-  invoice: InvoiceSummary & { extractedTotal: string | null; printedProductTotal?: string | null };
+  copyReviews?: InvoiceCopyReview[];
+  invoice: InvoiceSummary & {
+    extractedTotal: string | null;
+    printedProductTotal?: string | null;
+    handwrittenNotes?: string[] | null;
+    /** Same triage as the extraction alert; routine sign-offs remain in the source notes. */
+    reviewNotes?: string[];
+    duplicateOf?: string | null;
+  };
   lines: InvoiceLine[];
   images: InvoiceImageRef[];
   buckets: InvoiceBuckets;
@@ -947,6 +1027,15 @@ export async function applyHeldCost(
     `/admin/bar/invoices/${invoiceId}/lines/${lineId}/apply-cost`,
     jsonBody({ expectedSkuId, costPerCountUnit }),
   );
+}
+export async function expenseInvoiceLine(invoiceId: string, lineId: string): Promise<{ resolved: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/expense`, jsonBody({}));
+}
+export async function rememberInvoiceUnit(invoiceId: string, line: InvoiceLine, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${line.id}/remember-unit`, jsonBody({
+    expectedSkuId: line.matchedSkuId, expectedCountUnit: line.matchedCountUnit,
+    expectedPackageKey: line.packageKey, unitsPerBilledUnit,
+  }));
 }
 /** Record what a delivery ACTUALLY contained, when it came up short (or over).
  *  Pass null to clear it back to "as billed".
@@ -1018,6 +1107,7 @@ export async function newSkuFromLine(
   lineId: string,
   name: string,
   sizeMl: number | null,
+  settings?: { section: Section; countUnit: string; cogsBucket: CogsBucket },
 ): Promise<{
   skuId: string;
   matchedName: string;
@@ -1032,7 +1122,7 @@ export async function newSkuFromLine(
    *  it names the denominator of the dollar figure a human then authorises. */
   countUnit: string;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */
@@ -1317,14 +1407,20 @@ export interface RecipeTemplateComponent {
 export interface RecipeTemplate {
   recipeId: string;
   productName: string | null;
+  recipeName?: string;
+  sources?: { productId: string; productName: string | null; optionLabel: string; categoryName: string | null }[];
   components: RecipeTemplateComponent[];
 }
-/** Same-named standalone recipe(s) to prefill from (e.g. an existing Strawberry Limeade). */
+/** Same-named recipes, including options saved under another menu item. */
 export async function getRecipeTemplates(label: string): Promise<RecipeTemplate[]> {
-  const { matches } = await gatedJson<{ matches: RecipeTemplate[] }>(
-    `/admin/bar/recipe-templates?label=${encodeURIComponent(label)}`,
-  );
-  return matches;
+  return (await getRecipeTemplateSuggestions(label)).matches;
+}
+export async function getRecipeTemplateSuggestions(label: string, productId?: string): Promise<{
+  matches: RecipeTemplate[]; targetCategory?: string | null;
+}> {
+  const params = new URLSearchParams({ label });
+  if (productId) params.set("productId", productId);
+  return gatedJson(`/admin/bar/recipe-templates?${params}`);
 }
 
 /** A pour label the daily check mapped on its own (migration 0106). */
