@@ -382,4 +382,11 @@ Passed: 87/87 joined checkout/UI, 114/114 regressions, six full-wizard harness c
 ## 2026-09-22 - Current-main local integration started
 
 Checkpoint the tested Loyalty booking UI locally and merge current origin/main into this isolated branch. Revalidate against the matching backend without any push, public deployment or guest experience changes. Validation pending.
+## 2026-09-22 - Current-main Loyalty integration verified locally
 
+Merged fetched Website main b59510e into the isolated Loyalty branch (291d9c7), preserving the
+current confirmation-duration behavior. Matching TPRS merged main 1578074. Fresh 87 checkout/UI
+and 114 backend regression checks passed, plus Website booking-harness TypeScript and current
+confirmation SSR/duration checks. No public push/deployment or guest changes. Local checkpoint
+and merge commits exist; none were pushed. Further owner-only integration remains.
+Evidence: Loyalty/docs/audits/2026-09-22-current-main-disabled-package-proof.md.
