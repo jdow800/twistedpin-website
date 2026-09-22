@@ -26,7 +26,8 @@ async function run(name,mode,fn){
       el.dispatchEvent(new dom.window.Event('change',{bubbles:true}));await pause();
     };
     const log=()=>doc.getElementById('audit').textContent;
-    await fn({doc,click,fill,log});
+    const choose=async(label,value)=>{const select=doc.querySelector(`[aria-label="${label}"]`);assert.ok(select);select.value=value;select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));await pause();};
+    await fn({doc,click,fill,log,choose});
     results.push({name,pass:true});console.log('PASS',name);
   }finally{dom.window.close();}
 }
@@ -63,9 +64,10 @@ await run('advisory endpoint failure still permits a saved count','check-failure
 await run('older API response without size warnings remains compatible','old-api',async({click,log})=>{
   await click('Finish & submit');await until(()=>log().includes('/submit'));
 });
-await run('invoice adds a new size without a false duplicate warning','invoice',async({doc,click,log})=>{
+await run('invoice adds a new size without a false duplicate warning','invoice',async({doc,click,log,choose})=>{
   assert.ok(!doc.querySelector('.lq-rev-choices'));
-  await click('+ New bottle (not in the list)');
+  await click('+ New item (not in the list)');
+  await choose('Inventory for new item','bar');await choose('Cost category for new item','liquor');
   assert.equal(doc.querySelector('input.lq-newsku-size').value,'1000');
   assert.match(doc.body.textContent,/750 ml\. 1000 ml is a separate bottle size/);
   assert.ok(!doc.body.textContent.includes('already on file'));
@@ -74,16 +76,17 @@ await run('invoice adds a new size without a false duplicate warning','invoice',
 });
 await run('manual invoice mismatch requires an explicit size decision','invoice',async({doc,click,fill,log})=>{
   await fill(doc.querySelector('input[type="search"]'),'Tanqueray');
-  await click('Tanqueray London Dry Gin · 750ml');
+  await click('Tanqueray London Dry Gin · 750ml · Liquor inventory');
   assert.match(doc.body.textContent,/The invoice says 1000 ml/);
   assert.ok(!log().includes('/match'));
   await click('Invoice size is wrong — match 750 ml');
   await until(()=>log().includes('/match'));
 });
-await run('same-size create/find cannot bypass the mismatch decision','invoice',async({doc,click,fill,log})=>{
-  await click('+ New bottle (not in the list)');
+await run('same-size create/find cannot bypass the mismatch decision','invoice',async({doc,click,fill,log,choose})=>{
+  await click('+ New item (not in the list)');
+  await choose('Inventory for new item','bar');await choose('Cost category for new item','liquor');
   await fill(doc.querySelector('input.lq-newsku-size'),'750');
-  await click('Match existing bottle');
+  await click('Match existing item');
   assert.match(doc.body.textContent,/The invoice says 1000 ml/);
   assert.ok(!log().includes('/match'));assert.ok(!log().includes('/new-sku'));
   await click('Add the 1000 ml bottle');

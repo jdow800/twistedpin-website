@@ -49,7 +49,7 @@ await run('a missing product match gets the match action and cannot be confirmed
   assert.match(doc.querySelector('.lq-invd-review').textContent,/1 item needs a catalog match/);
   assert.ok(!button(confirm));assert.ok(button('Match product'));
   await click('Go to items needing a match');assert.equal(doc.activeElement.id,'inv-line-test-keg');
-  assert.ok(doc.querySelector('input[placeholder="Search a bottle to match…"]'));
+  assert.ok(doc.querySelector('input[placeholder="Search items"]'));
 });
 await run('row handwriting is visible and opens an unfilled received-quantity control','marked',async({doc,log})=>{
   assert.match(doc.querySelector('.lq-invd-review').textContent,/One keg short/);
@@ -117,3 +117,43 @@ await run('scan text renders as text, never markup','escaped',async({doc})=>{
   assert.match(panel.textContent,/<img src=x/);
 });
 console.log(`${passed} invoice UI scenarios passed (DOM simulation; no visual layout claim).`);
+
+async function enter(dom,input,value) {
+  Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,value);
+  input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+}
+async function select(dom,input,value) {
+  input.value=value;input.dispatchEvent(new dom.window.Event('change',{bubbles:true}));await pause();
+}
+await run('food invoice search reaches both catalogs and accepts common pepperoni spelling','food',async({doc,dom,log})=>{
+  const input=doc.querySelector('input[placeholder="Search items"]');assert.ok(input);
+  for(const [query,name] of [['pepperoni','Peperoni Sliced'],['saus','Italian Sausage'],['wing','Chicken Wings Boneless'],["tito","Tito's Vodka"]]) {
+    await enter(dom,input,query);assert.match(doc.querySelector('.lq-rev-assign').textContent,new RegExp(name));
+  }
+  await enter(dom,input,'nothing like this');assert.match(doc.body.textContent,/No items found in either inventory/);
+  assert.ok(!log().includes('POST'));assert.ok(!doc.body.textContent.includes('New bottle'));
+});
+await run('new food item requires inventory and unit choices and posts the selected scope','food',async({doc,dom,click,button,log})=>{
+  await click('+ New item (not in the list)');assert.ok(button('Create + match').disabled);
+  await select(dom,doc.querySelector('[aria-label="Inventory for new item"]'),'food');
+  await select(dom,doc.querySelector('[aria-label="Count unit for new item"]'),'pack');
+  await select(dom,doc.querySelector('[aria-label="Cost category for new item"]'),'food');
+  assert.ok(!button('Create + match').disabled);await click('Create + match');
+  assert.match(log(),/"section":"food"/);assert.match(log(),/"countUnit":"pack"/);
+  assert.match(doc.body.textContent,/possible unit mismatch/);
+});
+await run('linked scan shows the comparison and disables edits on the excluded copy','linked',async({doc,button,click,log})=>{
+  assert.match(doc.body.textContent,/Compare invoice and delivery/);assert.match(doc.body.textContent,/110LB/);
+  assert.match(doc.body.textContent,/not evidence of a product shortage/);
+  assert.ok(button('Match items or correct the purchase record'));
+  assert.ok(!doc.querySelector('input[placeholder="Search items"]'));assert.ok(!button('Came up short?'));
+  assert.ok(!log().includes('POST'));await click('Both copies checked; corrections recorded');
+  await until(()=>doc.body.textContent.includes('Comparison reviewed'));
+  assert.match(log(),/copy-review/);assert.ok(!log().includes('/received'));
+});
+await run('stale comparison leaves an actionable retry error','linked-stale',async({doc,click})=>{
+  await click('Both copies checked; corrections recorded');
+  assert.match(doc.querySelector('[role=alert]').textContent,/Reopen the invoice/);
+  assert.ok(!doc.body.textContent.includes('Comparison reviewed'));
+});
+console.log('Invoice catalog and copy-review checks passed');

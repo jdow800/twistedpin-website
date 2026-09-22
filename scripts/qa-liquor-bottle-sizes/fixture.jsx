@@ -6,7 +6,7 @@ import { recentBottleSizeWarnings } from 'qa:delivery-check';
 import 'qa:styles';
 
 const catalog = [750, 1000].map(sizeMl => ({
-  id: String(sizeMl), name: 'Tanqueray London Dry Gin', sizeMl,
+  id: String(sizeMl), name: 'Tanqueray London Dry Gin', sizeMl, section:'bar',
   category: 'Gin', trackingMode: 'variance', countUnit: 'bottle', unitsPerCase: null,
   wacCost: null, lastCost: '30.00', active: true, aliases: [],
 }));
@@ -29,7 +29,7 @@ window.fetch = async (input, init = {}) => {
   log(`${method} ${path}${init.body ? ' '+String(init.body) : ''}`);
   if (path.endsWith('/catalog')) return json({items: catalog});
   if (path.endsWith('/zones')) return json({zones: [{id:'zone',name:'Back bar',walkOrder:1,active:true}]});
-  if (path.endsWith('/counts/open')) return json({session: {id:'draft', startedAt:new Date().toISOString(),lines,batches:[]}});
+  if (path.endsWith('/counts/open')) return json({session: {id:'draft', section:'bar', isFullCount:true, startedAt:new Date().toISOString(),lines,batches:[]}});
   if (path.endsWith('/batches')) return json({batches:[]});
   if (path.endsWith('/lines')) {
     if (failSave) return json({error:'Synthetic save failure'},500);

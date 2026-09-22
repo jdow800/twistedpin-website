@@ -18,7 +18,11 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   onConfirm: () => void;
 }) {
   const inv = detail.invoice;
-  if (inv.status !== "flagged") return null;
+  const held = detail.lines.filter(line => line.costHoldReason);
+  const productReview = detail.lines.some(line => line.lineType === "product" && line.needsReview);
+  if (inv.status === "pending") return null;
+  if (inv.duplicateOf && detail.copyReviews?.some(p => p.copyId === inv.id)) return null;
+  if (inv.status !== "flagged" && !productReview && !held.length) return null;
   const notes = inv.reviewNotes ?? inv.handwrittenNotes ?? [];
   const marked = detail.lines.filter((line) => reviewAnnotationFor(line));
   const unmatched = detail.lines.filter((line) => line.needsReview);
@@ -28,7 +32,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
     && Number.isFinite(printed) && Number.isFinite(extracted) ? Math.abs(printed - extracted) : 0;
   const emptyKegNotes = notes.some((note) => /\bempties\b|\bempty\s+kegs?\b/i.test(note));
   const image = detail.images[0];
-  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || delta >= 0.01;
+  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || held.length || delta >= 0.01;
 
   return (
     <section className="lq-invd-review" aria-labelledby="invoice-review-title">
@@ -66,9 +70,10 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           )}
           {unmatched.length > 0 && (
             <p><strong>{unmatched.length} item{unmatched.length === 1 ? " needs" : "s need"} a catalog match.</strong>{" "}
-              Choose the matching product on each highlighted item below before confirming.
+              Choose the matching product on each highlighted item below.
             </p>
           )}
+          {held.length > 0 && <p><strong>{held.length} item cost(s) need a unit check.</strong> Open the cost questions below before applying a cost to inventory.</p>}
           {delta >= 0.01 && (
             <p><strong>The printed and read totals differ by ${delta.toFixed(2)}.</strong>{" "}
               Compare the line amounts, deposits, fees and credits with the original invoice.
@@ -89,7 +94,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           </button>
         )}
       </div>
-      {!inv.duplicateOf && unmatched.length === 0 && (
+      {inv.status === "flagged" && !inv.duplicateOf && unmatched.length === 0 && (
         <div className="lq-invd-review-confirm">
           <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>

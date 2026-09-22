@@ -13,7 +13,7 @@ const invoice = {id:'test-invoice',vendorText:'Example Brewery',invoiceNumber:'D
 const line = {id:'test-keg',lineType:'keg',rawDescription:'Example Pale Ale',sizeText:'1/6 BBL',
   qtyUnits:'1',unitCost:'140',extendedAmount:'140',receivedQty:null,annotation:null,
   needsReview:false,matchedName:null,matchedSkuId:null,costHoldReason:null,matchedCountUnit:null};
-if(mode==='unmatched') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
+if(mode==='unmatched'||mode==='food'||mode==='linked'||mode==='linked-stale') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='marked'||mode==='refresh-failure') {line.annotation='One keg short';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='duplicate') invoice.duplicateOf='ORIGINAL-DEMO';
 if(mode==='totals') {invoice.extractedTotal='170';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
@@ -32,12 +32,41 @@ if(mode==='deposit-info'||mode==='mixed-deposit') {
   detail.lines.push({...line,id:'test-deposit',lineType:'deposit',rawDescription:'Keg deposits',qtyUnits:'2',
     unitCost:'20',extendedAmount:'40',annotation:'2 empties returned, credit $40',reviewAnnotation:null});
 }
+if(mode==='food') {
+  invoice.status='extracted'; invoice.vendorText='Example Sysco';
+  line.rawDescription='SLICED PEPPERONI'; line.sizeText='10LB';
+}
+if(mode==='linked'||mode==='linked-stale') {
+  invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';
+  detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
+    expected:{id:'test-original',source:'email',printedTotal:'57.48'}, delivered:{id:'test-invoice',source:'scan',printedTotal:'57.48'},
+    reviewHash:'a'.repeat(64),reviewed:false,ready:true,differenceCount:1,feeDifference:7.48,
+    reasons:['Fees, tax or deposits read differently by $7.48. This is not evidence of a product shortage.'],
+    rows:[{code:'123',description:'Sliced pepperoni',originalLineIds:['original-pepperoni'],issues:['Pack or size readings differ. Check the source documents.'],
+      expected:{quantity:1,cases:1,amount:'50.00',packages:['1 × 10LB']},delivered:{quantity:1,cases:1,amount:'50.00',packages:['1 × 110LB']}}]}];
+}
+const catalog=[{id:'titos',name:"Tito's Vodka",section:'bar',sizeMl:750,countUnit:'bottle'},
+  {id:'pepperoni',name:'Peperoni Sliced',section:'food',sizeMl:null,countUnit:'pack'},
+  {id:'sausage',name:'Italian Sausage',section:'food',sizeMl:null,countUnit:'lb'},
+  {id:'wings',name:'Chicken Wings Boneless',section:'food',sizeMl:null,countUnit:'case'}];
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 window.fetch=async(url,options={})=>{
   const path=new URL(url,location.href).pathname;
   audit.push(`${options.method||'GET'} ${path} ${options.body||''}`);
   const log=document.getElementById('audit');if(log)log.textContent=audit.join('\n');
-  if(path.endsWith('/catalog'))return json({items:[]});
+  if(path.endsWith('/catalog')) {
+    const section=new URL(url,location.href).searchParams.get('section')||'bar';
+    return json({items:catalog.filter(item=>item.section===section)});
+  }
+  if(path.endsWith('/copy-review')) {
+    if(mode==='linked-stale') return json({error:'comparison_changed'},409);
+    detail.copyReviews[0].reviewed=true; return json({ok:true});
+  }
+  if(path.endsWith('/match')||path.endsWith('/new-sku')) {
+    const body=JSON.parse(options.body); line.needsReview=false;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;
+    line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
+    return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
+  }
   if(path.endsWith('/invoices/history'))return json({invoices:[invoice]});
   if(path.endsWith('/invoices/test-invoice')) {
     if(mode==='refresh-failure'&&line.receivedQty==='0')return json({error:'refresh failed'},500);
