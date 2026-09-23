@@ -502,6 +502,7 @@ export interface VoiceExtractItem {
   /** Food extraction preserves actual package words; older bar replies omit these. */
   spokenUnit?: string | null;
   quantityKnown?: boolean;
+  unitNeedsReview?: boolean;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
@@ -584,7 +585,7 @@ export async function extractVoice(
   try {
     const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 1 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 2 } : {}) }),
     );
     return items;
   } catch (e) {

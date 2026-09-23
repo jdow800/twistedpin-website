@@ -10,6 +10,17 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-22 - Explicit food-unit review (release pending).** A unit that could
+  not be verified against the spoken excerpt blocks Add until the counter picks
+  cases, the item's confirmed base unit, or supplies another unit. Editing only
+  a loose number cannot remove the question; an explicit Cases entry can.
+  Typed units use a visible Use unit action. Confirmed base-unit labels reuse one
+  unit without asking how many heads are in a head. Plural labels and protocol 2
+  match the backend grounding fix. Existing case defaults remain in force for
+  unitless counts. Strict UI typecheck, 37 DOM scenarios and Chromium checks at
+  320/390/960px passed. Fixtures contain fictional data. Deploy the backend first,
+  then this Website; old tabs must refresh before the next food recording.
+
 - **2026-09-22 - Repeated-upload list label.** The invoice list now uses the same
   status wording as invoice detail: ordinary duplicates say Repeated upload;
   a linked delivery copy retains its comparison label. Purchase exclusion,
