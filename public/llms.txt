@@ -33,7 +33,7 @@ Twisted Pin is a hospitality venue at 15610 Joliet Rd, Plainfield, IL — minute
 
 - [Upcoming events](https://www.twistedpin.com/upcoming-events/) — public event calendar (lookahead window: 60 days).
 - [New Year's Eve](https://www.twistedpin.com/new-years-eve/) — annual NYE event.
-- [Rewards](https://www.twistedpin.com/rewards/) — front-desk kiosk loyalty program, 50 points per visit, 5-tier ladder.
+- [Rewards](https://www.twistedpin.com/rewards/) - earn 50 points per qualifying kiosk check-in day, including the first. Current rewards are redeemed in-store; the planned 350-point $50 online/in-store reward is coming soon and is not yet available. Text Club signup is optional and separate from earned points.
 - [Coupon](https://www.twistedpin.com/coupon/) — $10 lane credit signup.
 - [Waitlist](https://www.twistedpin.com/waitlist/) — TablesReady-powered live waitlist.
 - [Gift cards](https://www.twistedpin.com/gift-cards/) — in-store at the front desk, valid for bowling and arcade.

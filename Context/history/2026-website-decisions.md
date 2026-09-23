@@ -10,6 +10,8 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-23 - Rewards-page refresh ahead of Loyalty 2.0 (publication authorized).** Jon asked to publish the Website edits now. This release scopes to /rewards/ and public/llms.txt; checkout preparation stays on its existing branch. Use current five in-store rewards while catalog/Zite changes remain off, and label the new 350-point $50 reward Coming soon. Correct first-check-in earning, one earning day, points spending, kiosk balance access, 24-month inactivity and optional Text Club distinction. Keep the site fonts/chrome; page-scoped solid backgrounds, clearer point/reward hierarchy and native keyboard-accessible help replace the patterned table. No reward-issuance CTA, automation, coupon, account or Zite change. Preserve old offer landing-page terms. Required prebuild checks and full build passed. Chromium360/390/720/1440px, keyboard help, metadata and no horizontal overflow passed. Production verification follows publication; see Context/session-handoffs/2026-09-23-rewards-page-refresh.md.
+
 - **2026-09-22 - Preserve invoice answers and recover stalled voice requests (release pending).**
   Retry is offered only for a failed read without saved items. Existing invoice
   details remain protected from replacement. Voice transcription and food item

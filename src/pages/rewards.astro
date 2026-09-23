@@ -1,149 +1,110 @@
 ---
-/**
- * /rewards — loyalty / rewards program page.
- *
- * Tier-2 utility page. Rebuilt 2026-05-05 against the actual program
- * details captured from the live twistedpin.com/rewards/ page (user
- * screenshot). Two engagement loops live on this page:
- *
- *   1. Rewards program — front-desk kiosk check-in earns 50 points per
- *      visit. Points stack against a ladder of rewards (free shoes,
- *      lane credit, bonus hours).
- *   2. Text Club — SMS opt-in for inside-line content (events, lineup
- *      changes, league openings). **2026-07-24: the join mechanic changed.**
- *      Was a Patch Retention shared shortcode (text BOWL123 → 85775), which
- *      dies with that account; per Jon, keyword joins are NOT being rebuilt
- *      on the loyalty platform. The native signup at /coupon IS the join
- *      now, and it carries the $10 lane credit as the incentive.
- *
- * Voice: the live page uses "Score Stellar Deals + Exclusive Discounts!"
- * and "$10 OFF Any Open Bowling" framing — both clash with the locked
- * voice rule banning discount/deals/cheap/value vocabulary (CLAUDE.md
- * Working Preferences). Reframed:
- *   - "$10 OFF Any Open Bowling" → "$10 lane credit" (keeps dollar
- *     accuracy, drops discount framing — POS reality preserved)
- *   - "Score Stellar Deals + Exclusive Discounts!" → inside-line framing
- *     ("first to know on cocktails, events, league openings") — text
- *     club becomes content access, not promo subscription
- *   - "Bogo Hour" → "Buy an hour, second hour on us"
- *   - "FREE Hour of Bowling" → "An hour of bowling, on us"
- *
- * TODOs (non-blocking):
- *   - Verify $10 / $20 lane credit reframe is accurate to ops reality.
- *     If the credit only applies to specific products / day-parts, that
- *     belongs in fine print on this page.
- *   - Confirm 50 pts/visit is the only earn rate. If there are bonus
- *     events ("double points Tuesdays") add them.
- *   - The same retired BOWL123 → 85775 promo is still printed on the
- *     Brunswick Sync screens and (possibly) the road sign — those are on
- *     the go-live checklist for a physical scrub. Nothing on this page
- *     references it any more.
+/** Public transition page. Keep current rewards until the catalog cutover.
+ * At launch: remove the two legacy hour rewards, promote the $50 panel,
+ * and update public/llms.txt together. This page never issues reward links.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 
-interface RewardTier {
-  points: number;
-  reward: string;
-}
-
-const rewardTiers: RewardTier[] = [
-  { points: 50,  reward: "Free shoe rental" },
-  { points: 100, reward: "$10 lane credit" },
-  { points: 200, reward: "$20 lane credit" },
-  { points: 250, reward: "Buy an hour, second hour on us" },
-  { points: 350, reward: "A full hour of bowling, on us" },
+const rewards = [
+  { points: 50, reward: "Free shoe rental", detail: "One pair. One less thing to pay for." },
+  { points: 100, reward: "$10 lane credit", detail: "Put your points toward bowling." },
+  { points: 200, reward: "$20 lane credit", detail: "A little more on us." },
+  { points: 250, reward: "Buy an hour, second hour on us", detail: "Keep the next round rolling." },
+  { points: 350, reward: "A full hour of bowling, on us", detail: "Your current top reward." },
 ];
 ---
 <Base
-  title="Rewards in Plainfield, IL | Twisted Pin"
-  description="Stack points toward free shoes, lane credit, and bonus hours at Twisted Pin in Plainfield, IL. Check in at the front-desk kiosk every visit."
+  title="Bowling Rewards in Plainfield | Twisted Pin"
+  description="Earn 50 points when you check in at Twisted Pin in Plainfield. Explore bowling rewards, see how to redeem, and plan your next visit. No app needed."
 >
+  <div class="rewards-page">
+    <header class="rewards-hero rewards-wrap">
+      <p class="rewards-eyebrow">Twisted Pin Rewards</p>
+      <h1 class="t-display">Regulars get<br />the perks.</h1>
+      <p class="rewards-intro">Show up. Check in. Make your next round count.</p>
+      <p class="rewards-lead">Earn <strong>50 points per check-in day</strong> at the front-desk kiosk,
+        including your first visit. Use your phone number. No app, no card.</p>
+      <a class="rewards-jump" href="#your-rewards">See the rewards <span aria-hidden="true">&darr;</span></a>
+    </header>
 
-  <section class="t2-hero" data-hero aria-labelledby="rewards-h1">
-    <div class="t2-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Rewards</p>
-      <h1 class="t-display t2-hero-headline hero-fade" id="rewards-h1" data-delay-ms="120">
-        Regulars get the&nbsp;perks.
-      </h1>
-      <p class="t2-hero-sub hero-fade" data-delay-ms="320">
-        Tap your number into the kiosk at the front desk on every
-        visit. Points stack. Redeem at the levels below — shoes, lane
-        credit, an hour on the house.
-      </p>
-    </div>
-  </section>
-
-  <section class="t2-section" aria-labelledby="rewards-h2">
-    <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="rewards-h2">How It Works</h2>
-      <p class="t2-section-body">
-        <strong>50 points per check-in.</strong> Punch your phone number
-        into the kiosk at the front desk every time you bowl. That's it —
-        no app, no card, no signup form. The first check-in enrolls you;
-        every check-in after that adds points.
-      </p>
-      <p class="t2-section-body">
-        Bring your phone to the front desk when you redeem and we'll
-        look you up.
-      </p>
-    </div>
-  </section>
-
-  <section class="t2-section" aria-labelledby="rewards-tiers-h2">
-    <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="rewards-tiers-h2">The Ladder</h2>
-      <table class="rewards-table">
-        <thead>
-          <tr>
-            <th scope="col" class="rewards-th-points">Points</th>
-            <th scope="col" class="rewards-th-reward">Reward</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rewardTiers.map(tier => (
-            <tr>
-              <td class="rewards-td-points">{tier.points}</td>
-              <td class="rewards-td-reward">{tier.reward}</td>
-            </tr>
+    <div class="rewards-wrap rewards-content">
+      <section class="rewards-choices" id="your-rewards" aria-labelledby="rewards-heading">
+        <div class="rewards-section-head">
+          <p class="rewards-eyebrow">Available now &middot; In-store</p>
+          <h2 id="rewards-heading" class="t-display">Spend a little.<br />Or keep stacking.</h2>
+          <p>Pick a reward at the kiosk and let staff finish your redemption.
+            The points shown come out of your balance.</p>
+        </div>
+        <dl class="rewards-list">
+          {rewards.map(({ points, reward, detail }) => (
+            <div class="rewards-row">
+              <dt><span>{points}</span> <span class="rewards-points-label">points</span></dt>
+              <dd><h3>{reward}</h3><p>{detail}</p></dd>
+            </div>
           ))}
-        </tbody>
-      </table>
-      <p class="t2-section-body" style="margin-top: 24px; font-size: 13px; color: var(--warm-dim);">
-        Points stay active as long as you visit at least once every 24
-        months. Rewards apply to open bowling and shoe rental — not to
-        events, leagues, or the VIP suite.
-      </p>
-    </div>
-  </section>
+        </dl>
+        <p class="rewards-note">Current rewards are for walk-in open bowling and shoe rental.
+          Events, leagues and the VIP suite are excluded. Check the terms on your chosen reward.</p>
+      </section>
 
-  <section class="t2-section" aria-labelledby="rewards-text-h2">
-    <div class="t2-section-inner">
-      <h2 class="t-eyebrow" id="rewards-text-h2">Text Club</h2>
-      <p class="t2-section-body">
-        First to know on the cocktail rotation, league openings,
-        upcoming events, and the rare drop. One inbox you'll actually
-        read.
-      </p>
-      {/* 2026-07-24 loyalty cutover: the old "Text BOWL123 to 85775" keyword
-          join was a Patch Retention shared shortcode and dies with that
-          account. Per Jon, keyword joins are NOT being rebuilt on the new
-          platform — the native signup form IS the join, and it hands over the
-          $10 credit as the incentive. Same physical promo lives on the
-          Brunswick Sync screens + road sign; those are being scrubbed too. */}
-      <p class="t2-section-body">
-        <a href="/coupon/">Sign up here</a> — takes about twenty seconds, and
-        we'll text you a $10 lane credit to start.
-      </p>
-      <p class="t2-section-body" style="font-size: 13px; color: var(--warm-dim);">
-        Standard message and data rates apply. Message frequency varies.
-        Reply STOP to opt out at any time, or HELP for help. See our
-        <a href="/terms/">Terms</a> and <a href="/privacy/">Privacy Policy</a>.
-      </p>
+      <aside class="rewards-next" aria-labelledby="next-reward-heading">
+        <p class="rewards-status">Coming soon</p>
+        <p class="rewards-next-cost">350 points</p>
+        <h2 id="next-reward-heading"><span class="rewards-amount">$50</span><span>toward your next lane.</span></h2>
+        <p>A new top reward, with two ways to use it.</p>
+        <ul class="rewards-channels">
+          <li><strong>Book online</strong><span>Use a personal reward link for a regular traditional or VIP lane reservation, with shoes included.</span></li>
+          <li><strong>Redeem in-store</strong><span>Use your points at the kiosk and have staff apply the reward at the counter.</span></li>
+        </ul>
+        <p class="rewards-next-footer">This reward isn't available yet. It will replace the 250-point
+          and 350-point hour rewards above. Your points stay with you.</p>
+      </aside>
     </div>
-  </section>
 
+    <section class="rewards-wrap rewards-help" aria-labelledby="rewards-help-heading">
+      <div>
+        <p class="rewards-eyebrow">A few things to know</p>
+        <h2 id="rewards-help-heading" class="t-display">Your points.<br />Your call.</h2>
+      </div>
+      <div class="rewards-questions">
+        <details>
+          <summary>Where can I check my balance?<span aria-hidden="true">+</span></summary>
+          <p>Enter your phone number at the front-desk kiosk. You'll see your current points
+            and the rewards you can redeem. Prefer to save? Keep your points for another visit.</p>
+        </details>
+        <details>
+          <summary>Does booking online earn points?<span aria-hidden="true">+</span></summary>
+          <p>Your kiosk check-in earns the points. Even if you've booked online, check in at
+            the kiosk when you arrive. You can earn 50 points once per check-in day.</p>
+        </details>
+        <details>
+          <summary>Do my points expire?<span aria-hidden="true">+</span></summary>
+          <p>Your points stay active as long as you visit at least once every 24 months.</p>
+        </details>
+        <details>
+          <summary>What about an offer I already received?<span aria-hidden="true">+</span></summary>
+          <p>Follow the terms and expiration date on that offer. Changes to the rewards list
+            don't replace the terms of a valid gift you've already received.</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="rewards-wrap rewards-text" aria-labelledby="text-club-heading">
+      <div>
+        <p class="rewards-eyebrow">Text Club &middot; Optional</p>
+        <h2 id="text-club-heading" class="t-display">An inside line.<br />And $10 to start.</h2>
+        <p>Get the occasional offer and news on what's happening at Twisted Pin.
+          The signup $10 lane credit is separate from the reward you buy with 100 points.</p>
+        <p>You can earn and use points without signing up for marketing texts.</p>
+        <a class="rewards-button" href="/coupon/">Join the Text Club <span aria-hidden="true">&nearr;</span></a>
+        <p class="rewards-disclosure">Message frequency varies. Msg &amp; data rates may apply.
+          Reply STOP to opt out or HELP for help.
+          <a href="/terms/">Terms</a> &amp; <a href="/privacy/">Privacy</a>.</p>
+      </div>
+    </section>
+  </div>
   <SnapFooter />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
@@ -152,54 +113,65 @@ const rewardTiers: RewardTier[] = [
 </Base>
 
 <style>
-  /* Rewards table — same visual register as other tier-2 content
-     (warm-white type on indigo, low-opacity row dividers). Mobile
-     keeps the same layout — points column narrow, reward column
-     fluid — since the data fits cleanly even at narrow widths. */
-  .rewards-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-    font-family: var(--font-body);
-  }
-
-  .rewards-table th {
-    text-align: left;
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--warm-mid);
-    padding: 10px 0;
-    border-bottom: 1px solid rgba(244, 239, 227, 0.14);
-  }
-
-  .rewards-th-points { width: 100px; }
-
-  .rewards-table td {
-    padding: 14px 0;
-    color: var(--warm-white);
-    border-bottom: 1px solid rgba(244, 239, 227, 0.06);
-    font-size: 15px;
-    line-height: 1.4;
-  }
+  .rewards-page { background: var(--indigo-deep); color: var(--warm-white); }
+  .rewards-wrap { max-width: 1120px; margin-inline: auto; padding-inline: 22px; }
+  .rewards-hero { padding-top: calc(var(--header-height) + 52px); padding-bottom: 48px; }
+  .rewards-eyebrow { font: 700 12px/1.5 var(--font-ui); letter-spacing: .15em; text-transform: uppercase; color: var(--warm-mid); margin: 0 0 14px; }
+  .rewards-hero h1 { font-size: clamp(58px, 15vw, 100px); line-height: .92; margin: 0; }
+  .rewards-intro { font: 700 18px/1.5 var(--font-ui); margin: 24px 0 12px; max-width: 36ch; }
+  .rewards-lead { max-width: 49ch; margin: 0; }
+  .rewards-page p, .rewards-channels span { font-family: var(--font-body); font-size: 16px; line-height: 1.65; color: #ded8e5; }
+  .rewards-page .rewards-eyebrow { font: 700 12px/1.5 var(--font-ui); color: var(--warm-mid); }
+  .rewards-page .rewards-intro { font: 700 18px/1.5 var(--font-ui); color: var(--warm-white); }
+  .rewards-page strong { color: var(--warm-white); }
+  .rewards-jump { display: inline-flex; align-items: center; gap: 16px; margin-top: 24px; min-height: 44px; color: var(--glow); font: 700 14px/1.4 var(--font-ui); text-decoration: underline; text-underline-offset: 5px; }
+  .rewards-content { display: grid; gap: 32px; padding-bottom: 52px; }
+  .rewards-choices { scroll-margin-top: calc(var(--header-height) + 24px); min-width: 0; }
+  .rewards-page h2.t-display { font-size: clamp(36px, 9vw, 48px); line-height: 1; margin: 0 0 20px; }
+  .rewards-section-head > p:last-child { margin: 0 0 22px; max-width: 47ch; }
+  .rewards-list { margin: 0; }
+  .rewards-row { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 16px; padding-block: 20px; border-top: 1px solid rgba(244,239,227,.15); }
+  .rewards-row dt { font: 700 26px/1.15 var(--font-ui); padding-top: 2px; }
+  .rewards-points-label { display: block; font: 600 12px/1.5 var(--font-ui); color: var(--warm-mid); margin-top: 4px; }
+  .rewards-row dd { margin: 0; }
+  .rewards-row h3 { font: 700 16px/1.45 var(--font-ui); margin: 0; }
+  .rewards-row p { margin: 5px 0 0; font-size: 14px; }
+  .rewards-page .rewards-note { font-size: 14px; color: var(--warm-mid); margin: 12px 0 0; }
+  .rewards-next { background: #181329; border: 1px solid rgba(78,236,196,.35); padding: 26px 24px; border-radius: 8px; align-self: start; }
+  .rewards-page .rewards-status { display: inline-block; border: 1px solid rgba(244,239,227,.3); border-radius: 4px; padding: 5px 9px; font: 700 12px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 30px; color: var(--warm-white); }
+  .rewards-page .rewards-next-cost { font: 700 15px/1.4 var(--font-ui); color: var(--glow); margin: 0 0 6px; }
+  .rewards-next h2 { margin: 0 0 18px; font: 700 22px/1.25 var(--font-ui); }
+  .rewards-next h2 > span { display: block; }
+  .rewards-next .rewards-amount { font: 900 110px/.95 var(--font-display); letter-spacing: -.02em; color: var(--glow); margin-bottom: 12px; }
+  .rewards-channels { list-style: none; padding: 0; margin: 24px 0; }
+  .rewards-channels li { padding: 18px 0; border-top: 1px solid rgba(244,239,227,.15); }
+  .rewards-channels strong { display: block; font: 700 16px/1.4 var(--font-ui); margin-bottom: 8px; }
+  .rewards-channels span { display: block; font-size: 15px; }
+  .rewards-page .rewards-next-footer { font-size: 14px; margin: 0; padding-top: 20px; border-top: 1px solid rgba(244,239,227,.15); }
+  .rewards-help { padding-block: 42px 48px; display: grid; gap: 8px; border-top: 1px solid rgba(244,239,227,.15); }
+  .rewards-questions { min-width: 0; }
+  .rewards-questions details { border-bottom: 1px solid rgba(244,239,227,.15); }
+  .rewards-questions summary { display: flex; justify-content: space-between; gap: 20px; list-style: none; cursor: pointer; padding-block: 20px; font: 700 16px/1.5 var(--font-ui); }
+  .rewards-questions summary::-webkit-details-marker { display: none; }
+  .rewards-questions summary span { color: var(--glow); font-size: 23px; line-height: 1; }
+  .rewards-questions details[open] summary span { transform: rotate(45deg); }
+  .rewards-questions details p { margin: 0 0 22px; }
+  .rewards-text { padding-block: 32px 72px; }
+  .rewards-text > div { border-top: 2px solid rgba(244,239,227,.25); padding-top: 32px; max-width: 680px; }
+  .rewards-text p { max-width: 57ch; }
+  .rewards-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 30px; margin-block: 10px 12px; padding: 15px 20px; background: var(--glow); color: var(--indigo-deep); border-radius: 7px; font: 700 14px/1.4 var(--font-ui); text-decoration: none; min-height: 48px; }
+  .rewards-button:hover { background: #88f5d8; }
+  .rewards-page .rewards-disclosure { font-size: 13px; color: var(--warm-mid); }
+  .rewards-disclosure a { color: var(--warm-white); text-decoration: underline; text-underline-offset: 3px; }
+  .rewards-page :is(a, summary):focus-visible { outline: 2px solid var(--glow); outline-offset: 5px; }
   @media (min-width: 760px) {
-    .rewards-table td { font-size: 16px; }
-  }
-
-  .rewards-td-points {
-    font-family: var(--font-ui);
-    font-weight: 700;
-    font-size: 16px !important;
-    letter-spacing: 0.04em;
-    color: var(--glow);
-  }
-  @media (min-width: 760px) {
-    .rewards-td-points { font-size: 18px !important; }
-  }
-
-  .rewards-table tbody tr:last-child td {
-    border-bottom: 0;
+    .rewards-wrap { padding-inline: 40px; }
+    .rewards-hero { padding-top: calc(var(--header-height) + 76px); padding-bottom: 64px; }
+    .rewards-hero h1 { font-size: 100px; }
+    .rewards-content { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; padding-bottom: 72px; }
+    .rewards-next { padding: 30px; }
+    .rewards-help { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 56px; padding-block: 56px 64px; }
+    .rewards-row { grid-template-columns: 80px minmax(0, 1fr); gap: 20px; }
+    .rewards-text { padding-bottom: 96px; }
   }
 </style>
