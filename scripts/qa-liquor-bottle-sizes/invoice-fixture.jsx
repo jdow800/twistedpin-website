@@ -25,6 +25,10 @@ const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page
   buckets:{byBucket:{beer_draft:{matched:0,vendorItem:0,estimated:140}},nonGoods:40,
     unattributed:0,matchedDollars:0,residualDollars:140,residualBasis:'vendor_mix',mixVendor:'Example Brewery',mixInvoices:8,
     warnings:[],totalBasis:'grand_total',needsAttention:{unresolved:[{lineId:line.id,description:line.rawDescription,amount:'140'}],supplierOnly:[],disagreement:[]}}};
+if (['failed-empty','retry-protected','failed-no-image'].includes(mode)) {
+  detail.lines=[]; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
+  if (mode === 'failed-no-image') detail.images=[];
+}
 if(['amount','expense','remember-unit','remember-failure'].includes(mode)) {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
@@ -89,7 +93,7 @@ window.fetch=async(url,options={})=>{
     if(mode==='confirm-failure')return json({error:'unknown'},500);
     invoice.status='confirmed';return json({status:'confirmed'});
   }
-  if(path.endsWith('/reextract')){invoice.status='pending';return json({status:'pending'});}
+  if(path.endsWith('/reextract')){if(mode==='retry-protected')return json({error:'saved_invoice_protected'},409);invoice.status='pending';return json({status:'pending'});}
   if(path.endsWith('/received')){
     const qty=JSON.parse(options.body).receivedQty;
     line.receivedQty=qty==null?null:String(qty);

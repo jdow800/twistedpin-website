@@ -18,6 +18,18 @@ async function run(name, test, existing = false) {
     url:`http://localhost/${typeof existing==='string'?'?'+existing:existing?'?existing':''}`,runScripts:'outside-only',pretendToBeVisual:true,
   });
   dom.window.Response = Response;
+  const voiceTimers = new Map();
+  const originalSetTimeout = dom.window.setTimeout.bind(dom.window);
+  const originalClearTimeout = dom.window.clearTimeout.bind(dom.window);
+  dom.window.setTimeout = (fn, ms, ...args) => {
+    const id = originalSetTimeout(fn, ms, ...args);
+    if (ms === 60_000) voiceTimers.set(id, () => fn(...args));
+    return id;
+  };
+  dom.window.clearTimeout = id => { voiceTimers.delete(id); originalClearTimeout(id); };
+  const expireVoiceRequests = () => {
+    for (const [id, fn] of [...voiceTimers]) { originalClearTimeout(id); fn(); }
+  };
   dom.window.scrollTo = () => {};
   dom.window.HTMLElement.prototype.scrollIntoView = () => {};
   try {
@@ -52,7 +64,7 @@ async function run(name, test, existing = false) {
       await start(); await segment('test transcript',0); qa.extracts.at(-1).succeed(entries); await pause();
       await stop(); await finish('test transcript');
     };
-    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved,input,hear});
+    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved,input,hear,expireVoiceRequests});
     passed++; console.log('PASS',name);
   } finally { dom.window.close(); }
 }
@@ -62,6 +74,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   await t.segment('two dough',0);
   assert.equal(t.qa.extracts.length,1,'matching must begin before Stop');
   assert.equal(t.qa.extracts[0].body.section,'food');
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,2);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
   t.qa.extracts[0].succeed([item('dough',2)]); await pause();
@@ -380,4 +393,96 @@ await run('correcting implausible cases to bags overrides the remembered case de
   assert.equal(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits,30);
 },'definitions');
 
+await run('confirmed base labels do not ask how many heads in one head',async t => {
+  await t.hear([item('romaine',12,{spoken:'twelve heads of romaine',spokenUnit:'heads'}),
+    item('celery',3,{spoken:'three bunches of celery',spokenUnit:'bunch'})]);
+  assert.doesNotMatch(t.doc.body.textContent,/How many.*head|How many.*bunch/);
+  assert.match(t.doc.body.textContent,/3 bunches/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='romaine').qtyUnits,12);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,3);
+},'definitions');
+
+await run('uncertain unit blocks the default and editing only a number does not bypass it',async t => {
+  await t.hear([item('celery',3,{spoken:'celery three',spokenUnit:null,unitNeedsReview:true})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.match(t.doc.body.textContent,/what unit does 3 refer to/);
+  await t.input('Loose quantity for Sample Celery','2');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.equal(t.saved().length,0);
+  await t.click('2 bunches');await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,2);
+},'definitions');
+
+await run('an explicit case answer resolves an uncertain loose count exactly once',async t => {
+  await t.hear([item('celery',3,{spoken:'one case of celery and three more',cases:1,spokenUnit:null,unitNeedsReview:true})]);
+  await t.click('3 cases');await t.apply();await until(()=>t.saved().length>0);
+  const line=t.qa.lines.find(l=>l.skuId==='celery');
+  assert.equal(line.qtyUnits,12);assert.equal(line.enteredCases,4);
+},'definitions');
+
+await run('a manually named unknown unit requires its own conversion',async t => {
+  await t.hear([item('celery',2,{spoken:'celery two',spokenUnit:null,unitNeedsReview:true})]);
+  await t.input('Spoken unit for Sample Celery','tray');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.click('Use unit');
+  assert.match(t.doc.body.textContent,/How many bunches in one tray/);
+  await t.input('Package size for Sample Celery','2');
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,4);
+},'definitions');
+
+await run('typing an explicit Cases quantity resolves a case-only unit question',async t => {
+  await t.hear([item('dough',3,{spoken:'dough three',spokenUnit:null,unitNeedsReview:true})]);
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Cases for Pizza Dough','2.5');
+  assert.doesNotMatch(t.doc.body.textContent,/what unit does 0 refer to/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits,2.5);
+  assert.match(t.qa.lines.find(l=>l.skuId==='dough').rawUtterance,/confirmed: 2\.5 cases/);
+},'definitions');
+
 console.log(`${passed} food voice scenarios passed.`);
+
+await run('a stalled segment times out, keeps successful items and ignores its late result',async t => {
+  await t.start(); await t.segment('two dough',0);
+  t.qa.extracts[0].succeed([item('dough',2)]); await pause();
+  await t.segment('one pretzel',1); await t.stop(); await t.finish('two dough one pretzel');
+  t.expireVoiceRequests(); await pause();
+  assert.equal(t.review().length,1);
+  assert.match(t.doc.body.textContent,/Part of the recording couldn't be processed/);
+  t.qa.extracts[1].succeed([item('pretzel',1)]); await pause();
+  assert.equal(t.review().length,1,'late timed-out result must not mutate the review');
+  assert.equal(t.saved().length,0);
+});
+await run('a completely stalled take retains its transcript and can retry successfully',async t => {
+  await t.start(); await t.segment('two dough',0); await t.stop(); await t.finish('two dough');
+  t.expireVoiceRequests(); await pause();
+  assert.match(t.doc.body.textContent,/took too long/);
+  await t.click('Retry reading this transcript');
+  assert.equal(t.qa.extracts[1].body.transcript,'two dough');
+  t.qa.extracts[1].succeed([item('dough',2)]); await pause();
+  assert.equal(t.review().length,1);
+  assert.equal(t.saved().length,0);
+});
+console.log(`${passed} food voice UI scenarios passed including deadline recovery.`);
+
+await run('Stop visibly enters processing, then a transcription timeout asks for missing items',async t => {
+  await t.start(); await t.stop();
+  assert.ok(t.button('Processing recording').disabled);
+  t.qa.recorder.finish('', 'Transcription took too long. Record the missing items again or type them.'); await pause();
+  assert.match(t.doc.querySelector('[role=alert]').textContent,/Transcription took too long/);
+  assert.equal(t.qa.extracts.length,0); assert.equal(t.saved().length,0);
+  await t.start(); assert.equal(t.doc.querySelector('[role=alert]'),null);
+});
+await run('a missing audio segment is visible alongside successfully read items',async t => {
+  await t.start(); await t.segment('two dough',0);t.qa.extracts[0].succeed([item('dough',2)]);await pause();await t.stop();
+  t.qa.recorder.finish('two dough','Transcription took too long. Record the missing items again or type them.');await pause();
+  assert.equal(t.review().length,1);assert.match(t.doc.querySelector('[role=alert]').textContent,/missing items/);
+  assert.equal(t.saved().length,0);
+});
+await run('microphone permission failures give a readable recovery instruction',async t => {
+  await t.start();t.qa.recorder.finish('','not-allowed');await pause();
+  assert.match(t.doc.querySelector('[role=alert]').textContent,/Allow microphone access/);
+});
+console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);

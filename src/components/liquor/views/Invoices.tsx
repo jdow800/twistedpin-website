@@ -186,7 +186,7 @@ export default function Invoices({
     }
   }
 
-  // Re-run extraction on the stored image (e.g. after an extractor fix) — flips
+  // Retry an empty failed read from its stored image — flips
   // the invoice back to 'pending'; the worker re-reads it within ~a minute.
   async function doReextract() {
     if (!detail || reextracting) return;
@@ -195,14 +195,16 @@ export default function Invoices({
     try {
       const r = await reextractInvoice(detail.invoice.id);
       if (r.ok) {
-        setReextractMsg("Re-reading now — check back in about a minute, then reopen it.");
+        setReextractMsg("Retrying now — check back in about a minute, then reopen it.");
         setDetail((d) => d ? { ...d, invoice: { ...d.invoice, status: "pending" } } : d);
         getInvoiceHistory().then(setList).catch(() => {});
       } else {
         setReextractMsg(
           r.error === "images_purged"
             ? "The page image was purged (kept 30 days) — can't re-read this one."
-            : "Couldn't re-extract — try again.",
+            : r.error === "saved_invoice_protected"
+              ? "This invoice already has saved details. They are protected from being replaced. Reopen it to review the items."
+              : "Couldn't re-extract — try again.",
         );
       }
     } catch {
@@ -383,12 +385,12 @@ export default function Invoices({
             )}
           </div>
         )}
-        {(inv.status === "flagged" || inv.status === "extracted") && (
+        {inv.status === "flagged" && detail.lines.length === 0 && !inv.duplicateOf && !inv.landedOf && (
           <details className="lq-invd-secondary">
-            <summary>Was the image read incorrectly?</summary>
-            <p className="lq-muted">Read the stored image again if the item descriptions or amounts were misread. This does not confirm delivery.</p>
-            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting} onClick={doReextract}>
-              {reextracting ? "Re-reading…" : "Read invoice again"}
+            <summary>Retry failed invoice read</summary>
+            <p className="lq-muted">No items were saved. Retry reading the stored image. This does not confirm delivery.</p>
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={reextracting || detail.images.length === 0} onClick={doReextract}>
+              {reextracting ? "Re-reading…" : "Retry reading invoice"}
             </button>
           </details>
         )}

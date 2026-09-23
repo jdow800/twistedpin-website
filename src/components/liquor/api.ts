@@ -90,6 +90,25 @@ async function gatedJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Only voice reads get a deadline: never automatically retry a timed-out write.
+ * Race the whole JSON read as well as aborting fetch, so a stalled response body
+ * (or transport that ignores abort) cannot leave the review waiting forever. */
+async function voiceJson<T>(path: string, init: RequestInit, timeoutMs: number, message: string): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      reject(new BarApiError(message, 408, JSON.stringify({ error: "voice_timeout", message })));
+      controller.abort();
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([gatedJson<T>(path, { ...init, signal: controller.signal }), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Public call (pin routes): returns {ok,status,json} without throwing on 4xx (a bad PIN is a 401 JSON we read). */
 async function publicJson(
   path: string,
@@ -502,6 +521,7 @@ export interface VoiceExtractItem {
   /** Food extraction preserves actual package words; older bar replies omit these. */
   spokenUnit?: string | null;
   quantityKnown?: boolean;
+  unitNeedsReview?: boolean;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
@@ -564,9 +584,11 @@ export async function transcribeAudio(
    */
   scope?: { section?: "bar" | "food"; zoneId?: string },
 ): Promise<string> {
-  const { transcript } = await gatedJson<{ transcript: string }>(
+  const { transcript } = await voiceJson<{ transcript: string }>(
     "/admin/bar/transcribe-audio",
     jsonBody({ contentType, data: base64Data, vocabulary, ...(scope ?? {}) }),
+    45_000,
+    "Transcription took too long. Record the missing items again or type them.",
   );
   return transcript;
 }
@@ -582,9 +604,11 @@ export async function extractVoice(
   section: Section = "bar",
 ): Promise<VoiceExtractItem[]> {
   try {
-    const { items } = await gatedJson<{ items: VoiceExtractItem[] }>(
+    const { items } = await voiceJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 1 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 2 } : {}) }),
+      section === "food" ? 60_000 : 120_000,
+      "Reading the items took too long. Your transcript is still available to retry.",
     );
     return items;
   } catch (e) {
@@ -1051,8 +1075,7 @@ export async function setInvoiceLineReceived(
 ): Promise<{ receivedQty: number | null; billedQty: number | null; shortBy: number | null; creditDue: number | null }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/received`, jsonBody({ receivedQty }));
 }
-/** Re-run extraction on a flagged/extracted invoice (re-reads the stored images
- *  with current logic). Returns 'images_purged' when the 30-day images are gone. */
+/** Retry a failed, empty invoice read. Existing saved invoice lines are protected. */
 export async function reextractInvoice(
   invoiceId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -1060,7 +1083,12 @@ export async function reextractInvoice(
     await gatedJson(`/admin/bar/invoices/${invoiceId}/reextract`, { method: "POST" });
     return { ok: true };
   } catch (err) {
-    if (err instanceof BarApiError && err.status === 409) return { ok: false, error: "images_purged" };
+    if (err instanceof BarApiError && err.status === 409) {
+      try {
+        const body = JSON.parse(String(err.body));
+        return { ok: false, error: typeof body.error === "string" ? body.error : "unknown" };
+      } catch { return { ok: false, error: "unknown" }; }
+    }
     throw err; // NotAuthed / Forbidden / other bubble to the caller
   }
 }

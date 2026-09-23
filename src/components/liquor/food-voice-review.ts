@@ -10,6 +10,8 @@ export interface FoodReviewItem {
   candidates: VoiceMatch[];
   spokenUnit: string | null;
   quantityKnown: boolean;
+  unitNeedsReview?: boolean;
+  unitDraft?: string;
   /** A human-supplied conversion, held on this utterance only. */
   unitMultiplier?: number;
   unitChoiceConfirmed?: boolean;
@@ -21,7 +23,9 @@ export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
   let u = currentCountDefinition(sku)?.unitLabel ?? sku?.countUnit ?? "each";
   if (u === "each" && /\bbottled\b/i.test(sku?.name ?? "")) u = "bottle";
   if (n === 1 || ["each", "lb", "gal", "bib"].includes(u)) return u;
-  return u === "box" ? "boxes" : `${u}s`;
+  if (/(?:s|x|z|ch|sh)$/.test(u)) return `${u}es`;
+  if (/[^aeiou]y$/.test(u)) return `${u.slice(0, -1)}ies`;
+  return `${u}s`;
 }
 
 function sameUnit(base: string, said: string | null): boolean {
@@ -43,12 +47,13 @@ function sameUnit(base: string, said: string | null): boolean {
 export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefined) {
   const base = sku?.countUnit ?? "each";
   const caseSize = base === "case" ? 1 : sku?.unitsPerCase ?? null;
-  const rawInputUnit = r.spokenUnit ?? currentCountDefinition(sku)?.defaultSpokenUnit ?? null;
+  const rawInputUnit = r.unitNeedsReview ? null : r.spokenUnit ?? currentCountDefinition(sku)?.defaultSpokenUnit ?? null;
   const inputUnit = rawInputUnit ? normalizeCountUnit(rawInputUnit) : null;
-  const unitMultiplier = r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit) ?? (sameUnit(base, r.spokenUnit) ? 1 : null);
+  const unitMultiplier = r.unitNeedsReview ? null
+    : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit) ?? (sameUnit(base, r.spokenUnit) ? 1 : null);
   const needsCaseSize = r.cases > 0 && caseSize == null;
-  const needsUnitSize = r.units > 0 && unitMultiplier == null;
-  const needsUnitChoice = !r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !inputUnit && (caseSize ?? 0) > 1;
+  const needsUnitSize = r.units > 0 && unitMultiplier == null && !r.unitNeedsReview;
+  const needsUnitChoice = !!r.unitNeedsReview || (!r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !inputUnit && (caseSize ?? 0) > 1);
   const catalogConflict = base === "case" && (sku?.unitsPerCase ?? 1) > 1;
   const unitsAreCases = inputUnit === "case" && unitMultiplier === caseSize;
   const cases = r.cases + (unitsAreCases ? r.units : 0);

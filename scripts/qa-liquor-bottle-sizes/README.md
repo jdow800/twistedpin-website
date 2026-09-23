@@ -46,6 +46,13 @@ node check-food-voice.mjs
 
 The actual `CountFood` component and API client run with synthetic stock, deferred extraction responses and a controlled recorder boundary. Checks cover extraction starting during recording, explicit review before saving, out-of-order segments, the original shelf after navigation, partial and complete failures, fallback and blank takes, unknown case sizes, and the submit guard. All requests stay inside the fixture. This proves processing overlap and count preservation, not live service latency or microphone quality.
 
+The 37 food scenarios also cover confirmed unit labels, uncertain units, explicit
+case answers, a typed unit and its conversion, and protocol 2. For mobile layout,
+run `node serve.mjs --food-voice`, set `INVOICE_QA_CHROME` to a Chromium executable,
+then run `node check-food-unit-layout.mjs`. It checks the unit question and blocked
+Add action at 320, 390 and 960px with an isolated profile. Screenshots remain in
+ignored `dist/`; this does not exercise a physical microphone.
+
 Bottled beer reuses the same fixture dependencies and imports the actual TPRS `resolveCountQuantity` helper:
 
 ```powershell
@@ -64,3 +71,13 @@ node check-beer-layout.mjs
 ```
 
 The browser runs headless with a fresh temporary profile and tests 320, 360, 375, 390, 412, and 640 px. It checks room for four quantity digits, then dispatches touchscreen events to fixed button coordinates and confirms every tap adds one loose bottle without moving to another tier or zooming. Screenshots and measurements are saved in ignored `dist/`; the temporary profile is removed. This uses Chromium mobile emulation, not John's physical Android phone. It does not prove the separately reported jump to thousands.
+
+## Voice timeout recovery
+
+Run `node check-voice-deadlines.mjs` for the actual API client with stalled
+headers/bodies, and `node check-recorder-recovery.mjs` for the actual recorder
+hook with a synthetic microphone. The latter verifies that timeout failures do
+not retry, brief network failures retry once, Stop releases the microphone, and
+successful segments survive a later failure. Neither uses a real microphone or
+external transcription service. Rebuild `--food-voice` and run
+`check-food-voice.mjs` to verify transcript retry and late-result isolation.
