@@ -191,7 +191,7 @@ export function useRecorderDictation(
       .replace(/\s+/g, " ")
       .trim();
 
-  /** Upload one segment for transcription; retries once (bar wifi blips). */
+  /** Retry one brief network/upstream failure; a deadline is already a full wait. */
   const launchUpload = (blob: Blob, idx: number) => {
     const seg: Segment = { text: null, failed: false };
     segmentsRef.current[idx] = seg;
@@ -207,9 +207,11 @@ export function useRecorderDictation(
           }
           return;
         } catch (e) {
-          if (attempt === 1) {
+          const retryable = e instanceof BarApiError && [0, 502, 503].includes(e.status);
+          if (attempt === 1 || !retryable || abortingRef.current) {
             seg.failed = true;
             errMsgRef.current = friendlyError(e);
+            return;
           }
         }
       }

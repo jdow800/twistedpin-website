@@ -130,10 +130,21 @@ await run('missing image gives a paper/vendor-copy instruction','no-image',async
 await run('already confirmed invoices do not show an open review','confirmed',async({doc,button})=>{
   assert.ok(!doc.querySelector('.lq-invd-review'));assert.ok(!button(confirm));
 });
-await run('re-reading disables review until extraction finishes','credit',async({doc,click,button,log})=>{
-  await click('Read invoice again');assert.ok(!doc.querySelector('.lq-invd-review'));assert.ok(!button(confirm));
-  assert.match(doc.querySelector('[role=status]').textContent,/Re-reading now/);
+await run('saved invoices cannot be sent through a replacing re-read','credit',async({button})=>{
+  assert.ok(!button('Read invoice again'));assert.ok(!button('Retry reading invoice'));
+});
+await run('an empty failed read can retry without confirming receipt','failed-empty',async({doc,click,button,log})=>{
+  await click('Retry reading invoice');assert.ok(!button(confirm));
+  assert.match(doc.querySelector('[role=status]').textContent,/Retrying now/);
   assert.ok(!log().includes('/clear-flag'));
+});
+await run('stale retry surfaces protection instead of claiming the image was purged','retry-protected',async({doc,click})=>{
+  await click('Retry reading invoice');
+  assert.match(doc.querySelector('[role=status]').textContent,/saved details.*protected/);
+  assert.ok(!doc.querySelector('[role=status]').textContent.includes('purged'));
+});
+await run('retry without a stored image is disabled','failed-no-image',async({button})=>{
+  assert.ok(button('Retry reading invoice').disabled);
 });
 await run('scan text renders as text, never markup','escaped',async({doc})=>{
   const panel=doc.querySelector('.lq-invd-review');assert.ok(!panel.querySelector('img'));
