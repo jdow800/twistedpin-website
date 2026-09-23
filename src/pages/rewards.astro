@@ -1,7 +1,6 @@
 ---
-/** Public transition page. Keep current rewards until the catalog cutover.
- * At launch: remove the two legacy hour rewards, promote the $50 panel,
- * and update public/llms.txt together. This page never issues reward links.
+/** Final Loyalty 2.0 public copy, published ahead of catalog activation at
+ * the owner's request on September 23. This page never issues reward links.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -11,8 +10,6 @@ const rewards = [
   { points: 50, reward: "Free shoe rental", detail: "One pair. One less thing to pay for." },
   { points: 100, reward: "$10 lane credit", detail: "Put your points toward bowling." },
   { points: 200, reward: "$20 lane credit", detail: "A little more on us." },
-  { points: 250, reward: "Buy an hour, second hour on us", detail: "Keep the next round rolling." },
-  { points: 350, reward: "A full hour of bowling, on us", detail: "Your current top reward." },
 ];
 ---
 <Base
@@ -32,7 +29,7 @@ const rewards = [
     <div class="rewards-wrap rewards-content">
       <section class="rewards-choices" id="your-rewards" aria-labelledby="rewards-heading">
         <div class="rewards-section-head">
-          <p class="rewards-eyebrow">Available now &middot; In-store</p>
+          <p class="rewards-eyebrow">Walk-in rewards</p>
           <h2 id="rewards-heading" class="t-display">Spend a little.<br />Or keep stacking.</h2>
           <p>Pick a reward at the kiosk and let staff finish your redemption.
             The points shown come out of your balance.</p>
@@ -45,21 +42,22 @@ const rewards = [
             </div>
           ))}
         </dl>
-        <p class="rewards-note">Current rewards are for walk-in open bowling and shoe rental.
+        <p class="rewards-note">These three rewards are for walk-in open bowling and shoe rental.
           Events, leagues and the VIP suite are excluded. Check the terms on your chosen reward.</p>
       </section>
 
-      <aside class="rewards-next" aria-labelledby="next-reward-heading">
-        <p class="rewards-status">Coming soon</p>
-        <p class="rewards-next-cost">350 points</p>
-        <h2 id="next-reward-heading"><span class="rewards-amount">$50</span><span>toward your next lane.</span></h2>
-        <p>A new top reward, with two ways to use it.</p>
+      <aside class="rewards-feature" aria-labelledby="top-reward-heading">
+        <p class="rewards-status">Online or in-store</p>
+        <p class="rewards-feature-cost">350 points</p>
+        <h2 id="top-reward-heading"><span class="rewards-amount">$50</span><span>toward your next lane.</span></h2>
+        <p>Use 350 points. Choose how you bowl.</p>
         <ul class="rewards-channels">
-          <li><strong>Book online</strong><span>Use a personal reward link for a regular traditional or VIP lane reservation, with shoes included.</span></li>
-          <li><strong>Redeem in-store</strong><span>Use your points at the kiosk and have staff apply the reward at the counter.</span></li>
+          <li><strong>Book online</strong><span>Use your personal reward link for one regular 1- or 2-hour traditional or VIP lane package, with shoes included.</span></li>
+          <li><strong>Redeem in-store</strong><span>Choose the $50 reward at the kiosk. Staff confirm your redemption and apply it to your bowling purchase.</span></li>
         </ul>
-        <p class="rewards-next-footer">This reward isn't available yet. It will replace the 250-point
-          and 350-point hour rewards above. Your points stay with you.</p>
+        <p class="rewards-feature-terms">Up to $50 toward eligible bowling charges. One reward per purchase;
+          cannot be combined with other offers. Special events, including New Year's Eve, are excluded.
+          Any unused amount is not carried forward.</p>
       </aside>
     </div>
 
@@ -73,6 +71,20 @@ const rewards = [
           <summary>Where can I check my balance?<span aria-hidden="true">+</span></summary>
           <p>Enter your phone number at the front-desk kiosk. You'll see your current points
             and the rewards you can redeem. Prefer to save? Keep your points for another visit.</p>
+        </details>
+        <details>
+          <summary>How do I use my $50 reward online?<span aria-hidden="true">+</span></summary>
+          <p>Book through your personal reward link. Opening the link spends nothing;
+            completing the reservation uses 350 points from the account that earned it.</p>
+          <p>Your balance is checked when you book. If it's below 350, you'll see your current
+            points and can book without the reward. You can also redeem in-store at the kiosk.</p>
+        </details>
+        <details>
+          <summary>When will I get a reward text?<span aria-hidden="true">+</span></summary>
+          <p>If you receive our marketing texts, a qualifying kiosk visit with at least 350 points
+            can trigger your personal booking link the following day, between 11am and 5pm Central.
+            You'll get a notice for the reward, not a text for every point level.</p>
+          <p>No marketing texts? You can still earn points and redeem at the kiosk.</p>
         </details>
         <details>
           <summary>Does booking online earn points?<span aria-hidden="true">+</span></summary>
@@ -137,17 +149,17 @@ const rewards = [
   .rewards-row h3 { font: 700 16px/1.45 var(--font-ui); margin: 0; }
   .rewards-row p { margin: 5px 0 0; font-size: 14px; }
   .rewards-page .rewards-note { font-size: 14px; color: var(--warm-mid); margin: 12px 0 0; }
-  .rewards-next { background: #181329; border: 1px solid rgba(78,236,196,.35); padding: 26px 24px; border-radius: 8px; align-self: start; }
+  .rewards-feature { background: #181329; border: 1px solid rgba(78,236,196,.35); padding: 26px 24px; border-radius: 8px; align-self: start; }
   .rewards-page .rewards-status { display: inline-block; border: 1px solid rgba(244,239,227,.3); border-radius: 4px; padding: 5px 9px; font: 700 12px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .08em; margin: 0 0 30px; color: var(--warm-white); }
-  .rewards-page .rewards-next-cost { font: 700 15px/1.4 var(--font-ui); color: var(--glow); margin: 0 0 6px; }
-  .rewards-next h2 { margin: 0 0 18px; font: 700 22px/1.25 var(--font-ui); }
-  .rewards-next h2 > span { display: block; }
-  .rewards-next .rewards-amount { font: 900 110px/.95 var(--font-display); letter-spacing: -.02em; color: var(--glow); margin-bottom: 12px; }
+  .rewards-page .rewards-feature-cost { font: 700 15px/1.4 var(--font-ui); color: var(--glow); margin: 0 0 6px; }
+  .rewards-feature h2 { margin: 0 0 18px; font: 700 22px/1.25 var(--font-ui); }
+  .rewards-feature h2 > span { display: block; }
+  .rewards-feature .rewards-amount { font: 900 110px/.95 var(--font-display); letter-spacing: -.02em; color: var(--glow); margin-bottom: 12px; }
   .rewards-channels { list-style: none; padding: 0; margin: 24px 0; }
   .rewards-channels li { padding: 18px 0; border-top: 1px solid rgba(244,239,227,.15); }
   .rewards-channels strong { display: block; font: 700 16px/1.4 var(--font-ui); margin-bottom: 8px; }
   .rewards-channels span { display: block; font-size: 15px; }
-  .rewards-page .rewards-next-footer { font-size: 14px; margin: 0; padding-top: 20px; border-top: 1px solid rgba(244,239,227,.15); }
+  .rewards-page .rewards-feature-terms { font-size: 14px; margin: 0; padding-top: 20px; border-top: 1px solid rgba(244,239,227,.15); }
   .rewards-help { padding-block: 42px 48px; display: grid; gap: 8px; border-top: 1px solid rgba(244,239,227,.15); }
   .rewards-questions { min-width: 0; }
   .rewards-questions details { border-bottom: 1px solid rgba(244,239,227,.15); }
@@ -169,7 +181,7 @@ const rewards = [
     .rewards-hero { padding-top: calc(var(--header-height) + 76px); padding-bottom: 64px; }
     .rewards-hero h1 { font-size: 100px; }
     .rewards-content { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; padding-bottom: 72px; }
-    .rewards-next { padding: 30px; }
+    .rewards-feature { padding: 30px; }
     .rewards-help { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 56px; padding-block: 56px 64px; }
     .rewards-row { grid-template-columns: 80px minmax(0, 1fr); gap: 20px; }
     .rewards-text { padding-bottom: 96px; }

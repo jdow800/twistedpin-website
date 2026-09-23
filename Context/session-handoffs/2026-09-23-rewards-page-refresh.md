@@ -1,5 +1,17 @@
 # September 23 rewards-page release
 
+## Owner-directed final copy update
+
+After260a0e5 went live, Jon explicitly asked to finalize the page despite the small timing gap
+with catalog/Zite activation. The final Website copy now has three lower walk-in rewards plus the
+350-point $50 online/in-store reward, with no Coming soon or old hour-reward rows. Point spending,
+current-balance validation, eligible packages, no stacking/carry-forward, special-event exclusions
+and conditional next-day texts are explained. public/llms.txt matches. This is Website publication
+only: catalog, Zite, checkout and message producers remain in their previous states. The earlier
+transition instructions below are historical and must not be used to re-add old rewards.
+
+## Initial transition release (historical)
+
 Jon authorized publishing the Website rewards revision ahead of the wider Loyalty 2.0 cutover.
 The live catalog still has five in-store rewards, and new points notices are disabled. This
 release therefore preserves the current 50/100/200/250/350 rewards and clearly labels the new
