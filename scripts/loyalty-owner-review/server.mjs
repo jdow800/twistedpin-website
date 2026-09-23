@@ -8,14 +8,15 @@ import {allowOwnerWrite,recordOwnerResponse} from './live-policy.mjs';
 import assert from 'node:assert/strict';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const evidence=new URL('../../../Loyalty/scripts/points-notice/',import.meta.url);
-const packet=JSON.parse(fs.readFileSync(new URL('owner-online-preview.local.json',evidence),'utf8'));
+const refundRetest=process.argv.includes('--refund-retest');
+const packet=JSON.parse(fs.readFileSync(new URL(refundRetest?'owner-refund-retest-preview.local.json':'owner-online-preview.local.json',evidence),'utf8'));
 const ownerConfig=JSON.parse(fs.readFileSync(new URL('../../docs/rollouts/owner-private-checkout-config.local.json',evidence),'utf8'));
 const normalize=x=>String(x??'').replace(/\D/g,'').replace(/^1(?=\d{10}$)/,'');
 assert(packet.passed&&packet.codeId&&packet.after?.owner?.id);
 assert.equal(normalize(packet.after.owner.phone),ownerConfig.phone);
 if(fs.readdirSync(root).some(n=>/^\.env($|\.)/.test(n)&&!n.endsWith('.example')))throw Error('No Website env allowed');
 const live=process.argv.includes('--live-owner');
-const trial=live?JSON.parse(fs.readFileSync(new URL('owner-private-checkout-window.local.json',evidence),'utf8')):null;
+const trial=live?JSON.parse(fs.readFileSync(new URL(refundRetest?'owner-refund-retest-window.local.json':'owner-private-checkout-window.local.json',evidence),'utf8')):null;
 if(live){
  assert.equal(trial.mode,'owner-live');assert.equal(trial.commitVerified,true);
  assert.equal(trial.codeId,packet.codeId);assert.equal(trial.code,packet.code);
@@ -30,7 +31,7 @@ const state={cartToken:null,intentIds:new Set(),lineRefs:new Set(),bookingId:nul
 const cookieJar=new Map();
 const origin='http://127.0.0.1:55443',upstream='https://tprs-kxht.onrender.com';
 const proof={mode:live?'owner-live-payment':'read-only-live-catalog',startedAt:new Date().toISOString(),allowed:[],blocked:[],pid:process.pid,status:'running'};
-const save=()=>fs.writeFileSync(new URL(live?'owner-live-preview-state.local.json':'owner-readonly-preview.local.json',evidence),JSON.stringify({...proof,...(live?{intentIds:[...state.intentIds],bookingId:state.bookingId}:{})},null,2));
+const save=()=>fs.writeFileSync(new URL(refundRetest?'owner-refund-retest-server.local.json':live?'owner-live-preview-state.local.json':'owner-readonly-preview.local.json',evidence),JSON.stringify({...proof,...(live?{intentIds:[...state.intentIds],bookingId:state.bookingId}:{})},null,2));
 const stub=path.join(root,'scripts/loyalty-ui/stripe-stub.tsx');
 const server=await createServer({root,configFile:false,envFile:false,publicDir:path.join(root,'public'),cacheDir:path.join(os.tmpdir(),'loyalty-owner-readonly-vite'),logLevel:'error',
  server:{host:'127.0.0.1',port:55443,strictPort:true,fs:{allow:[root]}},esbuild:{jsx:'automatic'},

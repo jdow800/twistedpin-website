@@ -39,3 +39,8 @@ Checks:
 Loyalty/scripts/points-notice/owner-readonly-browser-proof.mjs exercises actual real-catalog reads
 and proves HTTP write rejection. Its ignored screenshots/reports are under Loyalty/scripts/points-notice.
 Payment-gate unit checks are not a completed production payment or kiosk/refund proof.
+
+A second owner refund-webhook trial uses `--refund-retest` with `--live-owner`. It reads
+separate `owner-refund-retest-preview.local.json` and `owner-refund-retest-window.local.json`
+packets, and writes `owner-refund-retest-server.local.json`. The first used-code evidence
+is preserved. All existing contact, payment, product and deadline gates still apply.

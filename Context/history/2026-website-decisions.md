@@ -469,3 +469,11 @@ checks pass, and default read-only browser proof passed again after integration.
 this does not prove a production card checkout. Real test contact/key stay outside this public repo.
 Backend sharing PR238 deployed as4e31e9d with all feature controls/codes inactive; Website remains
 unpublished. The earlier detached real Stripe sandbox proof remains separate.
+
+## 2026-09-23 - Separate owner refund callback retest
+
+The first real owner booking/kiosk/refund proved debit and restoration, but Stripe live
+subscriptions omitted refund.created. Jon approved continuing and that exact subscription
+was added. The private loopback harness can select a separate second trial packet using
+--refund-retest; it preserves the first used code and evidence, and all existing gates.
+No public Website changes or push. The second owner payment is a manual browser action.
