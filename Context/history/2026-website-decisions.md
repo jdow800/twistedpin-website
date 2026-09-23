@@ -455,3 +455,17 @@ Jon approved continuing after the shareable-reward Stripe TEST proof. Checkpoint
 booking UI fixes, incorporate current main without publishing, and prepare a loopback-only test
 surface using the real catalog. It must refuse all holds, payments and other writes until a
 separately armed owner test. Public Website and rewards page remain unchanged.
+
+Owner preview preparation passed against current main:114 joined checks,114 ordinary backend
+regressions, TypeScript and full TPRS PR238 CI. Added a separate local owner review using the real
+catalog; actual HTTP attempts to create holds/payments/bookings/uploads/invitations were blocked.
+Mobile/desktop authoritative taxes/fees were inspected, with no overflow or browser errors. The
+actual inactive reward gives no usable total or false savings. Two harness-only assumptions were
+corrected (mobile disclosure text and existing quote field names); no application change required.
+
+An explicit future --live-owner mode pins the designated local-config contact/code, one eligible
+lane/cart and issued payment IDs, with a short deadline and conversion recovery grace.26 policy
+checks pass, and default read-only browser proof passed again after integration. It remains unarmed;
+this does not prove a production card checkout. Real test contact/key stay outside this public repo.
+Backend sharing PR238 deployed as4e31e9d with all feature controls/codes inactive; Website remains
+unpublished. The earlier detached real Stripe sandbox proof remains separate.
