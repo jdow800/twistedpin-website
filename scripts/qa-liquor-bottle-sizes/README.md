@@ -46,6 +46,13 @@ node check-food-voice.mjs
 
 The actual `CountFood` component and API client run with synthetic stock, deferred extraction responses and a controlled recorder boundary. Checks cover extraction starting during recording, explicit review before saving, out-of-order segments, the original shelf after navigation, partial and complete failures, fallback and blank takes, unknown case sizes, and the submit guard. All requests stay inside the fixture. This proves processing overlap and count preservation, not live service latency or microphone quality.
 
+The 37 food scenarios also cover confirmed unit labels, uncertain units, explicit
+case answers, a typed unit and its conversion, and protocol 2. For mobile layout,
+run `node serve.mjs --food-voice`, set `INVOICE_QA_CHROME` to a Chromium executable,
+then run `node check-food-unit-layout.mjs`. It checks the unit question and blocked
+Add action at 320, 390 and 960px with an isolated profile. Screenshots remain in
+ignored `dist/`; this does not exercise a physical microphone.
+
 Bottled beer reuses the same fixture dependencies and imports the actual TPRS `resolveCountQuantity` helper:
 
 ```powershell

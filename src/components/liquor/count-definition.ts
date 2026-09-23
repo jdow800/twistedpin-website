@@ -30,6 +30,9 @@ export function normalizeCountUnit(unit: string): string {
     packs: "pack", packets: "packet", boxes: "box", sacks: "sack", cases: "case",
     pounds: "lb", pound: "lb", lbs: "lb", gallons: "gal", gallon: "gal", ea: "each",
     buns: "bun", pieces: "piece", plates: "plate", sleeves: "sleeve",
+    bunches: "bunch", pouches: "pouch", heads: "head", trays: "tray",
+    jugs: "jug", tubs: "tub", rolls: "roll", packages: "package",
+    circles: "circle", flatbreads: "flatbread", crusts: "crust", wraps: "wrap",
   };
   return aliases[raw] ?? raw;
 }
@@ -37,5 +40,10 @@ export function definedUnitMultiplier(sku: CountDefinitionSku | undefined, unit:
   const definition = currentCountDefinition(sku);
   const inputUnit = unit ?? definition?.defaultSpokenUnit;
   if (!inputUnit) return null;
-  return definition?.spokenUnits?.[normalizeCountUnit(inputUnit)] ?? null;
+  const normalized = normalizeCountUnit(inputUnit);
+  const explicit = definition?.spokenUnits?.[normalized];
+  if (explicit != null) return explicit;
+  // The confirmed label names ONE canonical count unit. Keep explicit package
+  // vocabulary authoritative: a packet can still mean a case of pizza circles.
+  return definition?.unitLabel && normalized === normalizeCountUnit(definition.unitLabel) ? 1 : null;
 }

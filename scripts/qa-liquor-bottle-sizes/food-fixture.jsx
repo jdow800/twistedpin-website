@@ -35,6 +35,10 @@ if (params.has('definitions')) {
       countDefinition:answer('each',115,{usualMaxCases:4})},
     {id:'fries',name:'Sample Fries',countUnit:'pack',unitsPerCase:6,
       countDefinition:answer('pack',6,{unitLabel:'bag',defaultSpokenUnit:'case',spokenUnits:{case:6,bag:1}})},
+    {id:'celery',name:'Sample Celery',countUnit:'each',unitsPerCase:3,
+      countDefinition:answer('each',3,{unitLabel:'bunch',defaultSpokenUnit:'case',spokenUnits:{case:3,bag:3},usualMaxCases:4})},
+    {id:'romaine',name:'Sample Romaine',countUnit:'each',unitsPerCase:6,
+      countDefinition:answer('each',6,{unitLabel:'head',defaultSpokenUnit:'case',spokenUnits:{case:6,bag:6}})},
   );
   if (params.has('changed-package')) catalog.find(s=>s.id==='buns').unitsPerCase=24;
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);

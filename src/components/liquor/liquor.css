@@ -2141,6 +2141,7 @@
 .lq-fc-transcript { font-size: 14px; overflow-wrap: anywhere; }
 .lq-fc-rev-ask .lq-linkbtn { align-self: flex-start; min-height: 44px; text-align: left; }
 .lq-fc-rev-ask input { min-height: 44px; box-sizing: border-box; }
+.lq-fc-rev-ask input[type="text"] { width: min(100%, 18em); }
 /* The grid. One row per item; cases box only when a case size is known, so the
    screen never invites a multiplier it cannot justify. */
 /* ── the food count screen, sized for a phone in a walk-in ─────────────────

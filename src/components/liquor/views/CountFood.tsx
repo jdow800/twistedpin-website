@@ -624,6 +624,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       candidates: it.candidates,
       spokenUnit: it.spokenUnit ?? null,
       quantityKnown: it.quantityKnown ?? true,
+      unitNeedsReview: it.unitNeedsReview ?? false,
     }));
   }
 
@@ -645,6 +646,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   function editReview(r: ReviewItem, patch: Partial<ReviewItem>) {
     setReview(prev => (prev ?? []).map(x => x.key === r.key ? { ...x, largeCountConfirmed: undefined, ...patch } : x));
+  }
+
+  function answerSpokenUnit(r: ReviewItem) {
+    const unit = r.unitDraft?.trim().toLowerCase();
+    if (unit) editReview(r, { spokenUnit: unit, unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true });
   }
 
   function chooseReviewSku(r: ReviewItem, id: string) {
@@ -1108,9 +1114,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <div className="lq-fc-rev-quantities">
                       <label>Cases
                         <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Cases for ${sku.name}`}
-                          value={r.quantityKnown ? r.cases + (caseOnly ? r.units : 0) : ""} onChange={e => editReview(r, { cases: Math.max(0, Number(e.target.value)), ...(caseOnly ? { units: 0 } : {}), quantityKnown: e.target.value !== "" })} />
+                          value={r.quantityKnown ? r.cases + (caseOnly ? r.units : 0) : ""} onChange={e => editReview(r, { cases: Math.max(0, Number(e.target.value)), ...(caseOnly ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}), quantityKnown: e.target.value !== "" })} />
                       </label>
-                      {!caseOnly && <label>{q.inputUnit ?? unitLabel(sku, 2)}
+                      {!caseOnly && <label>{r.unitNeedsReview ? "Quantity (check unit below)" : q.inputUnit ?? unitLabel(sku, 2)}
                         <input type="number" min={0} step="any" inputMode="decimal" aria-label={`Loose quantity for ${sku.name}`}
                           value={r.quantityKnown ? r.units : ""} onChange={e => editReview(r, { units: Math.max(0, Number(e.target.value)), quantityKnown: e.target.value !== "" })} />
                       </label>}
@@ -1139,9 +1145,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 )}
                 {sku && q.needsUnitChoice && (
                   <div className="lq-fc-rev-ask">
-                    <span>Was {r.units} part of a case or {unitLabel(sku, 1)}?</span>
-                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { cases: r.cases + r.units, units: 0, unitChoiceConfirmed: true })}>{r.units} cases</button>
-                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { unitChoiceConfirmed: true })}>{r.units} {unitLabel(sku, r.units)}</button>
+                    <span>{r.unitNeedsReview ? `Check the transcript: what unit does ${r.units} refer to?` : `Was ${r.units} part of a case or ${unitLabel(sku, 1)}?`}</span>
+                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { cases: r.cases + r.units, units: 0, spokenUnit: null, unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true })}>{r.units} cases</button>
+                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { spokenUnit: sku.countUnit ?? "each", unitMultiplier: 1, unitNeedsReview: false, unitChoiceConfirmed: true })}>{r.units} {unitLabel(sku, r.units)}</button>
+                    {r.unitNeedsReview && <>
+                      <label>Another unit
+                        <input type="text" maxLength={32} aria-label={`Spoken unit for ${sku.name}`} placeholder="For example, bag or tray"
+                          value={r.unitDraft ?? ""} onChange={e => editReview(r, { unitDraft: e.target.value })}
+                          onKeyDown={e => { if (e.key === "Enter" && r.unitDraft?.trim()) { e.preventDefault(); answerSpokenUnit(r); } }} />
+                      </label>
+                      <button type="button" className="lq-linkbtn" disabled={!r.unitDraft?.trim()} onClick={() => answerSpokenUnit(r)}>Use unit</button>
+                    </>}
                   </div>
                 )}
                 {sku && q.needsUnitSize && (
