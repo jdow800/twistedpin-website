@@ -10,6 +10,19 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-22 - Preserve invoice answers and recover stalled voice requests (release pending).**
+  Retry is offered only for a failed read without saved items. Existing invoice
+  details remain protected from replacement. Voice transcription and food item
+  matching receive bounded requests, including response-body reads, with a clear
+  recovery message. Food now displays recorder/transcription errors, which it
+  previously omitted, and shows processing after Stop. Successful segments remain
+  available for review. This bounds
+  a stalled request; it does not establish a real-phone speed improvement.
+  Validation: strict affected-screen TypeScript, required prebuild checks, 42 food
+  DOM scenarios, 29 invoice scenarios, seven API deadline/protection scenarios,
+  four real-hook recorder simulations, and Chromium at 320/390/960px passed.
+  No real microphone or production count was used.
+
 - **2026-09-22 - Explicit food-unit review (release pending).** A unit that could
   not be verified against the spoken excerpt blocks Add until the counter picks
   cases, the item's confirmed base unit, or supplies another unit. Editing only

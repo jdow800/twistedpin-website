@@ -33,9 +33,13 @@ try {
     await waitFor('foodQa.recorder');
     await evaluate(`foodQa.recorder.segment('celery three',0)`);
     await waitFor('foodQa.extracts.length===1');
-    await evaluate(`foodQa.extracts[0].succeed([{spoken:'celery three',cases:0,units:3,quantityKnown:true,spokenUnit:null,unitNeedsReview:true,match:{id:'celery'},candidates:[]}]);foodQa.recorder.finish('celery three')`);
+    await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Stop 0:00')).click()`);
+    const processing=await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Processing recording')?.disabled`);
+    assert.equal(processing,true,`${width}px: Stop must show processing`);
+    await evaluate(`foodQa.extracts[0].succeed([{spoken:'celery three',cases:0,units:3,quantityKnown:true,spokenUnit:null,unitNeedsReview:true,match:{id:'celery'},candidates:[]}]);foodQa.recorder.finish('celery three','Transcription took too long. Record the missing items again or type them.')`);
     await waitFor("document.querySelector('[aria-label=\"Spoken unit for Sample Celery\"]')");
     const state=await evaluate(`({overflow:document.documentElement.scrollWidth>innerWidth+1,question:document.querySelector('.lq-fc-rev-ask').textContent,apply:[...document.querySelectorAll('button')].find(b=>/^Add .*Pizza Freezer/.test(b.textContent))?.disabled})`);
+    assert.match(await evaluate(`document.querySelector('[role=alert]').textContent`),/missing items/);
     assert.equal(state.overflow,false,`${width}px: horizontal overflow`);
     assert.equal(state.apply,true,`${width}px: unresolved unit must block Add`);
     assert.match(state.question,/what unit does 3 refer to/);

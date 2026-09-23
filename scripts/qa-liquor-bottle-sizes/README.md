@@ -71,3 +71,13 @@ node check-beer-layout.mjs
 ```
 
 The browser runs headless with a fresh temporary profile and tests 320, 360, 375, 390, 412, and 640 px. It checks room for four quantity digits, then dispatches touchscreen events to fixed button coordinates and confirms every tap adds one loose bottle without moving to another tier or zooming. Screenshots and measurements are saved in ignored `dist/`; the temporary profile is removed. This uses Chromium mobile emulation, not John's physical Android phone. It does not prove the separately reported jump to thousands.
+
+## Voice timeout recovery
+
+Run `node check-voice-deadlines.mjs` for the actual API client with stalled
+headers/bodies, and `node check-recorder-recovery.mjs` for the actual recorder
+hook with a synthetic microphone. The latter verifies that timeout failures do
+not retry, brief network failures retry once, Stop releases the microphone, and
+successful segments survive a later failure. Neither uses a real microphone or
+external transcription service. Rebuild `--food-voice` and run
+`check-food-voice.mjs` to verify transcript retry and late-result isolation.

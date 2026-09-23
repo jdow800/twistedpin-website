@@ -980,6 +980,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             className="lq-btn lq-btn-rec"
+            disabled={!capturing}
             onClick={() => {
               setCapturing(false); // speech is over; the shelf is free again
               dict.stop();
@@ -988,7 +989,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             {/* Elapsed / total, not a countdown. A countdown reads as a
                 deadline on a job that does not have one — bursts accumulate,
                 so running out is an inconvenience and not a loss. */}
-            ⏹ Stop {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
+            {capturing ? `⏹ Stop ${mmss(dict.seconds)} / ${mmss(CAP_SECONDS)}` : "Processing recording"}
           </button>
         )}
         {/* ⚠ WHILE RECORDING, THIS SCREEN USED TO SHOW ONLY A TIMER.
@@ -1007,7 +1008,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+              <span className="lq-rec-label">{!capturing ? "Processing recording" : dict.quiet ? "Anyone there?" : "Listening…"}</span>
             </div>
             {dict.metering && (
               <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
@@ -1039,6 +1040,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </span>
         )}
         {voiceBusy && <span className="lq-muted">reading that back…</span>}
+        {dict.error && !dict.recording && (
+          <p className="lq-error" role="alert">
+            {dict.error === "not-allowed" || dict.error === "service-not-allowed"
+              ? "Allow microphone access, then try recording again."
+              : dict.error === "audio-capture"
+                ? "The microphone stopped. Check its connection, then record the missing items or type them."
+                : dict.error === "transcription failed" || dict.error === "network"
+                  ? "Part of the recording could not be transcribed. Record the missing items again or type them."
+                  : dict.error}
+          </p>
+        )}
         {voiceErr && <span className="lq-error">{voiceErr}</span>}
         {retryTranscript && !review?.length && !voiceBusy && (
           <button type="button" className="lq-linkbtn" onClick={() => void onTranscript(retryTranscript)}>Retry reading this transcript</button>
