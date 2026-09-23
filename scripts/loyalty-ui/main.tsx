@@ -12,7 +12,7 @@ function TestCheckout() {
  const [booking,setBooking]=useState<any>(null);
  const [testPhone,setTestPhone]=useState(fixture.customer.phone);
  const customer={...fixture.customer,phone:testPhone};
- const {quote,loading}=useQuote({startTime:fixture.startTime,items:fixture.items,couponCode:state.couponCode||undefined,phone:testPhone});
+ const {quote,loading,error,retry}=useQuote({startTime:fixture.startTime,items:fixture.items,couponCode:state.couponCode||undefined,phone:testPhone});
  return <>
  <aside style={{maxWidth:520,margin:'0 auto',padding:'12px 20px 0',fontSize:11,fontWeight:600,color:'var(--warm-dim)'}}>LOCAL PREVIEW · Synthetic account · No real payment</aside>
  <main className="tprs-wizard" style={{maxWidth:520,margin:'auto',padding:20}}>
@@ -23,7 +23,7 @@ function TestCheckout() {
     couponCode={state.couponCode} couponResult={state.couponResult}
     onCouponCode={code=>dispatch({type:'SET_COUPON_CODE',code})}
     onCouponResult={result=>dispatch({type:'SET_COUPON_RESULT',result})}
-    pricingPending={loading} formAnswers={[]} onFindNewTime={()=>{}} termsText="Synthetic booking terms." totalCents={quote?.totalIncludingTax??fixture.totalCents}
+    pricingPending={loading||!quote} pricingError={error} onRetryPricing={retry} formAnswers={[]} onFindNewTime={()=>{}} termsText="Synthetic booking terms." totalCents={quote?.totalIncludingTax??fixture.totalCents}
     onConverted={setBooking}/>}
  </main></>;
 }

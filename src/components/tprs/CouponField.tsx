@@ -60,6 +60,8 @@ export default function CouponField({
   // URL read) auto-previews once on mount so the link-tapping guest sees
   // "Code applied — $X off" without touching the field. Once only — after
   // that the guest owns the field (clearing/retyping behaves as always).
+  // Back unmounts this field. A late preview must not overwrite the edited guest.
+  useEffect(() => () => { ++requestVersion.current; }, []);
   const autoApplied = useRef(false);
   useEffect(() => {
     if (autoApplied.current) return;
@@ -128,7 +130,7 @@ export default function CouponField({
             {formatUsd(couponResult.discountAmountCents ?? 0)} reward applied
           </strong>
           <p className="tprs-reward-applied-detail">
-            Uses {couponResult.requiredPoints} points when you book.
+            Uses {couponResult.requiredPoints} points from the account that earned this reward.
           </p>
         </div>
         <button

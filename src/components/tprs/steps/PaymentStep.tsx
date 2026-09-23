@@ -67,6 +67,8 @@ interface Props {
   totalCents: number;
   /** Wait for the authoritative total after a code/cart change. */
   pricingPending?: boolean;
+  pricingError?: string | null;
+  onRetryPricing?: () => void;
   onConverted: (booking: BookingConvertedResponse) => void;
 }
 
@@ -108,6 +110,10 @@ const CUTOFF_WARN_SECONDS = 600;
 
 export default function PaymentStep(props: Props) {
   const [checkoutLocked, setCheckoutLocked] = useState(false);
+  // Keep Elements mounted through price checks/captured-payment recovery, but
+  // do not replace its last confirmed amount with a pretax estimate.
+  const lastTotal = useRef(props.totalCents);
+  if (!props.pricingPending && !props.pricingError) lastTotal.current = props.totalCents;
   if (!STRIPE_AVAILABLE) {
     return (
       <div>
@@ -161,7 +167,7 @@ export default function PaymentStep(props: Props) {
         stripe={getStripe()}
         options={{
           mode: "payment",
-          amount: Math.max(50, props.totalCents),
+          amount: Math.max(50, lastTotal.current),
           currency: "usd",
           paymentMethodTypes: ["card"],
           appearance: STRIPE_APPEARANCE,
@@ -189,6 +195,9 @@ function CheckoutForm({
   termsText,
   totalCents,
   pricingPending = false,
+  pricingError,
+  onRetryPricing,
+  couponResult,
   onConverted,
 }: Props & { onCheckoutLocked: (locked: boolean) => void }) {
   const stripe = useStripe();
@@ -198,6 +207,7 @@ function CheckoutForm({
   // code at THIS step changes the quote after Elements mounted (the PI charges
   // the server-computed amount regardless; this keeps wallet sheets honest).
   useEffect(() => {
+    if (pricingPending || pricingError || paidPid.current) return;
     elements?.update({ amount: Math.max(50, totalCents) });
     // A changed total (e.g. a coupon applied at this step) invalidates any
     // PaymentIntent we already created — drop it so the next Pay sizes a fresh
@@ -207,7 +217,7 @@ function CheckoutForm({
       piIdRef.current = null;
       piAmountRef.current = null;
     }
-  }, [elements, totalCents]);
+  }, [elements, totalCents, pricingPending, pricingError]);
 
   // The 10-min cart-hold (capacity reservation) acquired on mount; refreshable.
   const [cartToken, setCartToken] = useState<string | null>(null);
@@ -384,7 +394,8 @@ function CheckoutForm({
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements || submitting || blocked || pricingPending) return;
+    if (!stripe || !elements || submitting || blocked ||
+      ((pricingPending || pricingError) && !paidPid.current)) return;
     if (!termsAccepted) {
       setErrorMsg("Please accept the terms to complete your reservation.");
       return;
@@ -690,7 +701,9 @@ function CheckoutForm({
 
   return (
     <form onSubmit={handleSubmit} className="tprs-pay-form">
-      <PaymentElement options={{ layout: "tabs" }} />
+      <div hidden={!!(pricingPending || pricingError) && !paidPid.current && !submitting}>
+        <PaymentElement options={{ layout: "tabs" }} />
+      </div>
 
       {/* Hold status — how long the lanes are held + a refresh. */}
       <div className="tprs-hold" aria-live="polite">
@@ -758,15 +771,24 @@ function CheckoutForm({
         </p>
       )}
 
+      {pricingError && !paidPid.current && !submitting && (
+        <div className="tprs-pay-error-msg">
+          {!errorMsg && !(couponResult && !couponResult.valid) && <p role="alert">{pricingError}</p>}
+          {onRetryPricing && <button type="button" className="tprs-link-btn" onClick={onRetryPricing}>Try again</button>}
+        </div>
+      )}
+
       <button
         type="submit"
         className="tprs-btn tprs-btn--solid tprs-pay-submit"
-        disabled={pricingPending || blocked || formStale || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
+        disabled={((pricingPending || !!pricingError) && !paidPid.current) || blocked || formStale || !stripe || submitting || !termsAccepted || !cartToken || (expired && !paidPid.current)}
       >
         {blocked
           ? "Reservation not completed"
           : submitting
           ? "Processing…"
+          : pricingError && !paidPid.current
+            ? "Check booking details"
           : pricingPending && !paidPid.current
             ? "Updating total…"
           : paidPid.current

@@ -3,8 +3,8 @@ import type { PointsRewardDetails } from '../../tprs/schemas';
 export function pointsRewardMessage(details: PointsRewardDetails): string {
   switch(details.reason) {
     case 'insufficient_points': return details.pointBalance !== undefined && details.requiredPoints !== undefined
-      ? `You have ${details.pointBalance} points. This reward requires ${details.requiredPoints} points.`
-      : 'You do not currently have enough points for this reward.';
+      ? `This reward’s account has ${details.pointBalance} points. ${details.requiredPoints} points are required.`
+      : 'The account that earned this reward does not currently have enough points.';
     case 'phone_mismatch': return 'Use the phone number associated with this reward, or remove the reward to continue.';
     case 'reward_used': return 'This reward link has already been used.';
     case 'reward_unavailable': return 'This reward is not available right now.';

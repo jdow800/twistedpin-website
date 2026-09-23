@@ -211,6 +211,8 @@ export function wizardReducer(
       return {
         ...state,
         guest: { ...state.guest, [action.field]: action.value },
+        couponResult: action.field === "phone" || action.field === "email"
+          ? null : state.couponResult,
       };
     case "SET_MARKETING_OPT_IN":
       // Only ever dispatched by an actual toggle, so reaching here always means

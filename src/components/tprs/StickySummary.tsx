@@ -7,14 +7,12 @@
 //
 // Total is SERVER-AUTHORITATIVE when a quote is present: the headline shows
 // `quote.totalIncludingTax` and the expanded block itemizes Subtotal / Sales tax
-// / Total. Tax is NEVER computed client-side. Until the quote endpoint responds
-// (e.g. it's still 404 on the backend), it falls back to the pre-tax line-item
-// subtotal labeled "taxes & fees at checkout".
+// / Total. Without a current quote, show pending/error status rather than
+// presenting an estimate or a stale coupon preview as a payable total.
 
 import { useEffect, useRef, useState } from "react";
 import {
   lineItemSubtotalCents,
-  couponDiscountCents,
   laneMaxFor,
   type WizardState,
 } from "./state";
@@ -39,6 +37,7 @@ interface Props {
   quoteLoading: boolean;
   /** Quote endpoint 404'd — not live yet; don't show a "calculating" state. */
   quoteUnavailable: boolean;
+  quoteError?: string | null;
   onBack: () => void;
   onNext: () => void;
   onLaneQty: (qty: number) => void;
@@ -125,6 +124,7 @@ export default function StickySummary({
   quote,
   quoteLoading,
   quoteUnavailable,
+  quoteError,
   onBack,
   onNext,
   onLaneQty,
@@ -136,23 +136,15 @@ export default function StickySummary({
   const [taxesOpen, setTaxesOpen] = useState(false);
   const [bumping, setBumping] = useState(false);
   const subtotal = lineItemSubtotalCents(state);
-  // Coupon line: prefer the QUOTE's resolved figure (tprs PR #55 — carries the
-  // code, present on every step once the quote nets it, and can never disagree
-  // with the total). Fall back to the payment-step preview result when the
-  // quote hasn't returned / older backend.
+  // Savings and taxes come from the same current quote, never a cached preview.
   const quoteCoupon = quote?.couponDiscount ?? null;
-  const discount = quoteCoupon
-    ? quoteCoupon.amountCents
-    : couponDiscountCents(state);
-  const requiredPoints = quoteCoupon
-    ? quoteCoupon.requiredPoints
-    : state.couponResult?.valid ? state.couponResult.requiredPoints : undefined;
-  const net = Math.max(0, subtotal - discount);
+  const discount = quoteCoupon?.amountCents ?? 0;
+  const requiredPoints = quoteCoupon?.requiredPoints;
   const count = itemCount(state);
   const lines = lineItems(state, slotMaxUnits);
 
-  // Headline = server total (incl. tax) when available, else pre-tax fallback.
-  const displayTotal = quote ? quote.totalIncludingTax : net;
+  // No payable total until the current request has authoritative pricing.
+  const displayTotal = quote?.totalIncludingTax ?? null;
   const tax = quote?.taxBreakdown;
   const itemizeTax =
     !!tax && tax.shoesRentalSubtotal > 0 && tax.foodBeverageSubtotal > 0;
@@ -162,8 +154,8 @@ export default function StickySummary({
       : quote
         ? `${count} item${count === 1 ? "" : "s"} · incl. taxes & fees`
         : quoteLoading && !quoteUnavailable
-          ? `${count} item${count === 1 ? "" : "s"} · calculating tax…`
-          : `${count} item${count === 1 ? "" : "s"} · taxes & fees at checkout`;
+          ? "Calculating taxes & fees…"
+          : quoteError ? "Review your details before paying" : "Choose a time to see your total";
 
   // G — bump the cart when the count rises (add-to-cart feedback).
   const prevCount = useRef(count);
@@ -428,8 +420,9 @@ export default function StickySummary({
           </span>
           <span className="tprs-summary-figures-text">
             <span className="tprs-summary-total">
-              {!quote && discount > 0 && <s>{formatUsd(subtotal)}</s>}
-              {formatUsd(displayTotal)}
+              {displayTotal !== null ? formatUsd(displayTotal)
+                : count === 0 ? formatUsd(subtotal)
+                : quoteError ? "Total unavailable" : "Updating total…"}
               {lines.length > 0 && (
                 <span className="tprs-summary-chevron">{open ? "⌄" : "⌃"}</span>
               )}

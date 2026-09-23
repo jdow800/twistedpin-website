@@ -398,6 +398,8 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     quote,
     loading: quoteLoading,
     unavailable: quoteUnavailable,
+    error: quoteError,
+    retry: retryQuote,
   } = useQuote(quoteRequest);
 
   // The earned reward cannot stack with the signup offer. Keep the disclosure
@@ -486,6 +488,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           code has previewed (checkout shows the real dollar drop instead). */}
       {state.couponCode.trim() !== "" &&
         state.couponResult === null &&
+        !quoteError &&
         state.step !== "payment" &&
         state.step !== "confirmation" && (
           <p className="tprs-prefill-note">
@@ -601,6 +604,13 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         />
       )}
 
+      {state.step === "guest" && quoteError && (
+        <div className="tprs-pay-error" role="alert">
+          <p>{quoteError}</p>
+          <button type="button" className="tprs-link-btn" onClick={retryQuote}>Try again</button>
+        </div>
+      )}
+
       {state.step === "payment" && state.product && state.date && state.slot && (
         <PaymentStep
           customer={{
@@ -637,7 +647,9 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           startTime={toIsoWithOffset(state.date, state.slot.time)}
           salesCutoffMinutesBefore={state.product.salesCutoffMinutesBefore}
           couponCode={state.couponCode.trim() || undefined}
-          pricingPending={quoteLoading}
+          pricingPending={quoteLoading || !quote}
+          pricingError={quoteError}
+          onRetryPricing={retryQuote}
           couponResult={state.couponResult}
           onCouponCode={(code) => dispatch({ type: "SET_COUPON_CODE", code })}
           onCouponResult={(result) =>
@@ -647,11 +659,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           formStale={perUnitStale}
           onFindNewTime={() => dispatch({ type: "GO_STEP", step: "detail" })}
           termsText={config.termsText}
-          totalCents={
-            quote
-              ? quote.totalIncludingTax
-              : Math.max(0, lineItemSubtotalCents(state) - couponDiscountCents(state))
-          }
+          totalCents={quote?.totalIncludingTax ?? 0}
           onConverted={(booking) => dispatch({ type: "CONVERTED", booking })}
         />
       )}
@@ -697,6 +705,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           quote={quote}
           quoteLoading={quoteLoading}
           quoteUnavailable={quoteUnavailable}
+          quoteError={quoteError}
           onBack={handleBack}
           onNext={handleNext}
           onLaneQty={(qty) => dispatch({ type: "SET_LANE_QTY", qty })}

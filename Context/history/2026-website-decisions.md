@@ -390,3 +390,44 @@ and 114 backend regression checks passed, plus Website booking-harness TypeScrip
 confirmation SSR/duration checks. No public push/deployment or guest changes. Local checkpoint
 and merge commits exist; none were pushed. Further owner-only integration remains.
 Evidence: Loyalty/docs/audits/2026-09-22-current-main-disabled-package-proof.md.
+
+## 2026-09-23 - Back/contact-change checkout correction (local)
+
+Owner trial exposed a stale coupon after changing phone, a misleading signup-$10 prompt,
+and a failed authoritative quote falling back to a pretax Pay total. Invalidate contact-bound
+previews, ignore late unmounted previews, key quotes to current inputs, and block payment
+until pricing succeeds. Surface phone mismatch/retry instead of a fabricated total; retain
+existing plain-consent suppression. Preserve captured-payment recovery. Add full-wizard
+Back/edit/failure/recovery coverage against the isolated synthetic backend. Validation pending.
+No Website publication or guest rollout. Owner's live code/rule are disabled during repair.
+
+Local validation passed:109/109 joined checkout/config/browser tests,11 offline full-wizard
+checks (including five new Back/edit/delayed-response/outage/removal scenarios), and Website
+plus backend/harness TypeScript. Mobile error/recovery screenshots inspected. No publication.
+The original frontend must not be used to certify these unpublished fixes. Evidence in
+Loyalty/docs/audits/2026-09-23-contact-change-checkout-proof.md. Dependency check restored the
+existing npm lockfile installation; no tracked package/lockfile change. Source uncommitted.
+
+## 2026-09-23 - Shareable points reward (local preparation)
+
+Jon approved use by whoever holds the link, using their own booking contact details. Backend
+keeps the 350-point debit/restoration with the original member. Checkout copy now identifies
+the account that earned the reward rather than assuming the booker owns those points.
+Phone-error animation work is superseded. Retain current-input quote checks, tax/fee totals,
+single use and signup-offer suppression. No publication or guest messaging. Tests pending.
+
+Local sharing validation passed:114/114 joined checkout/config/browser tests,114/114 ordinary
+checkout/customer/payment regressions,10 offline full-wizard checks and backend/Website harness
+typechecks. Original members using their own normalized phone retain their canonical account
+and may supply a first/current confirmation email; different-phone recipients are allowed and
+resolve separately. Owner balance/consent/contact, recipient confirmation, single debit, replay,
+full refund/duplicate restoration, balance races and legacy payment metadata are covered.
+Exact refreshed preview at390/1280px passed with0 payment and0 external browser requests;
+screenshots inspected. No production changes, provider calls, public deployment, messages,
+commit or push. Evidence: Loyalty/docs/audits/2026-09-23-shareable-reward-proof.md.
+## 2026-09-23 - Prepare owner-only corrected booking preview
+
+Jon approved continuing after the shareable-reward Stripe TEST proof. Checkpoint the verified
+booking UI fixes, incorporate current main without publishing, and prepare a loopback-only test
+surface using the real catalog. It must refuse all holds, payments and other writes until a
+separately armed owner test. Public Website and rewards page remain unchanged.
