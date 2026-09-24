@@ -251,3 +251,21 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
   .lr-pilot .lr-schedule-comparison table { font-size: 13px; }
   .lr-pilot .lr-schedule-table th:first-child { width: 25%; }
 }
+
+/* The operational daily roll-up, above the short response section. */
+.lr-weekly-overview {margin:22px 0;padding:24px 28px;border:1px solid #dedbe6;border-radius:12px;background:white;}
+.lr-pilot .lr-weekly-overview h2 {font-size:20px;margin-bottom:7px;}
+.lr-labor-legend {display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;margin:16px 0;}
+.lr-labor-legend i {display:inline-block;width:10px;height:10px;background:#269c8b;margin-right:4px;}
+.lr-labor-legend span:nth-child(2) i {background:#c4b7df;}
+.lr-labor-legend span:nth-child(3) i {background:#c38526;}
+.lr-labor-bar-row {display:grid;grid-template-columns:35px 1fr 56px;gap:12px;align-items:center;margin:10px 0;font-size:12px;}
+.lr-labor-bar-row>span {text-align:right;}
+.lr-labor-track {display:flex;height:13px;background:#f3f0f7;border-radius:3px;overflow:hidden;}
+.lr-daily-table table {width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;}
+.lr-daily-table th,.lr-daily-table td {text-align:right;padding:10px 4px;border-bottom:1px solid #e9e4ef;overflow-wrap:normal;}
+.lr-daily-table th:first-child {text-align:left;width:11%;}
+.lr-daily-table thead th {font-size:11px;color:#6c627b;font-weight:normal;}
+.lr-daily-table small {display:block;color:#6c627b;font-size:11px;}
+.lr-daily-table .lr-high-share {background:#fff7e6;}
+@media(max-width:600px){.lr-weekly-overview{padding:18px 14px;}.lr-daily-table table{font-size:11px;}.lr-daily-table th,.lr-daily-table td{padding:9px 2px;}.lr-daily-table thead th{font-size:10px;}.lr-labor-bar-row{gap:7px;grid-template-columns:30px 1fr 48px;}}

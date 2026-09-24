@@ -491,3 +491,11 @@ No public Website changes or push. The second owner payment is a manual browser 
 ## 2026-09-17 — Labor review pilot (local; not deployed)
 
 Opt-in /labor/?pilot=1 reuses the staff PIN/API with a weekly metric and persistent question/answer/action/outcome cards. Added local proxy override and a staff-page drawer opt-out; other pages retain their defaults. Browser tests verify actual local persistence and mobile layout. Source reconciliation and real GM phone trial precede activation. See Context/session-handoffs/2026-09-17-labor-review-pilot.md.
+
+
+## September 24, 2026 - Weekly labor replacement (implementation)
+
+Jon authorized replacing the recurring labor report for the next regular delivery after GM return. The labor page now opens the durable V2 review by default, with the original notes at `?legacy=1`. A daily building-sales/hourly-wage/salary overview and relative hourly-share bars precede the one or two response cards. Percentages are not daily staffing grades. Backend creation, source validation and release checks are being completed; this entry does not claim deployment.
+
+
+September 24 verification: local PIN login and the actual review API were exercised at 320/390/1280px. Email and app have no horizontal/cell overflow. Yes/Maybe responses persist after reload and queue one recap after 90 minutes. The production build and prebuild checks pass with the lockfile's Astro 6.2.1. The optional Astro checker reports 366 existing errors across six unchanged non-labor files (estimate tracking, Avery review, invite previews, menus and Naperville page); no labor diagnostic was reported. No golden-suite calls were made. Release activation is paired with the TPRS weekly sender starting October 1; no immediate duplicate email.

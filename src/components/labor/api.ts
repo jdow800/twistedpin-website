@@ -70,6 +70,7 @@ export interface ReviewWorkedShift extends ReviewShift {personKey:string;schedul
 export interface StaffingProposal {
   id:string;version:number;department:"desk"|"kitchen"|"bar";basisLabel:string;summary:string;
   current:ReviewShift[];proposed:ReviewShift[];
+  impact?:{recordedDepartmentHours?:number;wholeDayHoursVsRecorded?:number;scheduledHours:number;recordedHoursAffected:number;baseWageIllustrationCents:number|null;note:string};
   worked?:{coverageStatus:"complete"|"partial";basisLabel:string;spans:ReviewWorkedShift[];changeNote?:string};
   comparisons:{date:string;period:string;salesCents:number;salesLabel?:string;coverage:string;note:string}[];
   scheduleContext?:{coverageStartMinute:number;serviceEndMinute?:number;buildingCloseMinute:number;closingNote:string};
@@ -84,9 +85,11 @@ export interface ReviewQuestion {
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
   proposal?:StaffingProposal;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
+export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
 export interface LaborReview {
   id: string;
-  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string};
+  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[]};
+  daily?:DailyLaborMetric[];
   metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
   questions: ReviewQuestion[];
   recap?:{completedAt:string;dueAt:string;state:"pending"|"cancelled"|"enqueued";emailOutboxId:string|null}|null;

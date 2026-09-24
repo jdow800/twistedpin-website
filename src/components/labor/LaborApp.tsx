@@ -61,7 +61,7 @@ const CATEGORIES: { value: NoteCategory; label: string }[] = [
 ];
 
 export default function LaborApp() {
-  const pilot = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("pilot") === "1";
+  const pilot = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("legacy") !== "1";
   const [view, setView] = useState<View>("loading");
   const [, setActor] = useState<LaborActor | null>(null);
   const [days, setDays] = useState<FlaggedDay[]>([]);

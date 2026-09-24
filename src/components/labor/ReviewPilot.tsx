@@ -4,6 +4,7 @@ import { getReview, listReviews, saveReviewResponse, LaborApiError, type LaborRe
 import "./review-pilot.css";
 import ProposalCard from './ProposalCard';
 import NextSchedule from './NextSchedule';
+import WeeklyOverview from './WeeklyOverview';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
@@ -23,7 +24,7 @@ export default function ReviewPilot() {
       const selected = id ?? new URLSearchParams(window.location.search).get("review") ?? rows[0]?.id;
       setReview(selected ? await getReview(selected) : null);
     } catch (e) {
-      setError(e instanceof LaborApiError && e.status === 404 ? "The pilot is not enabled yet. Your existing labor notes are still available." : "Couldn’t load the review. Please retry; your saved answers remain on the server.");
+      setError(e instanceof LaborApiError && e.status === 404 ? "This review is not available. Your existing labor notes are still available." : "Couldn’t load the review. Please retry; your saved answers remain on the server.");
     } finally { setLoading(false); }
   };
   useEffect(() => { void load(); }, []);
@@ -34,7 +35,7 @@ export default function ReviewPilot() {
       {review && !loading && !error ? <label className="lr-week">Review week<select aria-label="Review week" value={review.id} onChange={e => void load(e.target.value)}>{list.map(r => <option key={r.id} value={r.id}>{week(r.weekStart)} · {r.open} open</option>)}</select></label> : null}
     </header>
     {loading ? <p className="lr-notice" role="status">Loading your review…</p> : null}
-    {error ? <div role="alert"><p>{error}</p><button onClick={() => void load()}>Retry</button> <a href="/labor/">Existing labor notes</a></div> : null}
+    {error ? <div role="alert"><p>{error}</p><button onClick={() => void load()}>Retry</button> <a href="/labor/?legacy=1">Existing labor notes</a></div> : null}
     {!loading && !error && !review ? <p className="lr-notice">No review has been prepared yet. Check back after the next weekly report.</p> : null}
     {review && !loading && !error ? <>
       <div className={`lr-overview ${review.packet.version===2?'lr-overview-ideas':''}`}>
@@ -48,6 +49,7 @@ export default function ReviewPilot() {
           <div><h2>{awaitingContext === 0 ? "Context is up to date" : `${awaitingContext === 1 ? "Question" : "Questions"} to review`}</h2><p>{awaitingContext === 0 ? "Saved decisions and follow-ups are below." : "A short note is enough. Tell us what the numbers missed."}</p></div>
         </section>
       </div>
+      <WeeklyOverview days={review.daily??[]}/>
       <details className="lr-calculation">
         <summary>How this week is measured <span>{review.metric.percent === null ? "Reconciliation in progress" : "Cost basis & sources"}</span></summary>
         <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
@@ -56,7 +58,8 @@ export default function ReviewPilot() {
           <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
         </div>
       </details>
-      <div className="lr-section-heading"><h2>{review.questions.length ? "This week’s review" : "No questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
+      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
+      {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
       {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>q.response?.status!=="closed").length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => q.response?.status !== "closed").length } : x)); }} />)}
       {review.packet.version===2?<NextSchedule review={review}/>:null}
       <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
@@ -86,7 +89,7 @@ function Question({ number, question: q, review, onSaved }: { number: number; qu
     <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2><p className="lr-prompt">{q.prompt}</p>
       <details className="lr-evidence"><summary>See the numbers behind this question</summary><div className="lr-detail-body"><ul>{q.evidence.map(e => <li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join("; ")}</p></details></div></details>
       {!editing && !q.response ? <div className="lr-question-action"><button className="lr-primary" onClick={() => setEditing(true)}>Add context <span aria-hidden="true">→</span></button><span>Type a note or use your voice.</span></div> : null}
-      {!editing && q.response ? <div className="lr-saved" role="status"><p className="lr-kicker">Your decision</p><h3>{decisions.find(d => d[0] === form.decision)?.[1]}</h3><p>{form.note}</p>{form.action ? <p><strong>Next step:</strong> {form.action}</p> : null}<p className="lr-small">{form.status === "closed" ? `Outcome: ${form.outcome}` : `Follow up: ${date(form.followUpDate)}`}</p>{form.decision === "ask_owner" ? <p className="lr-small">Owner input requested in this review. No notification has been sent during the pilot.</p> : null}<div className="lr-actions"><button onClick={() => setEditing(true)}>Edit / add outcome</button>{q.canUndo ? <button className="lr-text-button" disabled={busy} onClick={() => void save(true)}>Undo last save</button> : null}</div></div> : null}
+      {!editing && q.response ? <div className="lr-saved" role="status"><p className="lr-kicker">Your decision</p><h3>{decisions.find(d => d[0] === form.decision)?.[1]}</h3><p>{form.note}</p>{form.action ? <p><strong>Next step:</strong> {form.action}</p> : null}<p className="lr-small">{form.status === "closed" ? `Outcome: ${form.outcome}` : `Follow up: ${date(form.followUpDate)}`}</p>{form.decision === "ask_owner" ? <p className="lr-small">Owner input requested in this review. This request is saved here for owner review.</p> : null}<div className="lr-actions"><button onClick={() => setEditing(true)}>Edit / add outcome</button>{q.canUndo ? <button className="lr-text-button" disabled={busy} onClick={() => void save(true)}>Undo last save</button> : null}</div></div> : null}
     </div>
     {editing && !confirm ? <form className="lr-answer" onSubmit={e => { e.preventDefault(); if (decisionChosen) setConfirm(true); }}>
       <div className="lr-form-heading"><h3>Your take</h3><span>1 of 2 · Add context</span></div>
