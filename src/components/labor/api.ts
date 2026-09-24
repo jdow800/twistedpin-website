@@ -66,10 +66,13 @@ export interface ReviewResponse {
   proposalId?:string;proposalVersion?:number;applicability?:"this_shift"|"comparable_shifts";
 }
 export interface ReviewShift {key:string;label:string;role:string;startMinute:number;endMinute:number;eventPost:boolean;sourceId?:string}
+export interface ReviewWorkedShift extends ReviewShift {personKey:string;scheduledKey?:string}
 export interface StaffingProposal {
   id:string;version:number;department:"desk"|"kitchen"|"bar";basisLabel:string;summary:string;
   current:ReviewShift[];proposed:ReviewShift[];
-  comparisons:{date:string;period:string;salesCents:number;coverage:string;note:string}[];
+  worked?:{coverageStatus:"complete"|"partial";basisLabel:string;spans:ReviewWorkedShift[];changeNote?:string};
+  comparisons:{date:string;period:string;salesCents:number;salesLabel?:string;coverage:string;note:string}[];
+  scheduleContext?:{coverageStartMinute:number;serviceEndMinute?:number;buildingCloseMinute:number;closingNote:string};
   eventSummary:string;conditions:string[];action:string;contextKey:string;candidateOnly:true;
 }
 export interface RememberedContext {reviewId:string;weekStart:string;questionId:string;contextKey:string;decision:ReviewResponse["decision"];note:string;action:string;outcome:string;applicability:"this_shift"|"comparable_shifts";createdAt:string}

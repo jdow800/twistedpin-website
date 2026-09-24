@@ -227,3 +227,27 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
   .lr-pilot .lr-proposal-choices { gap: 7px; }
   .lr-pilot .lr-proposal-choices button { padding-left: 9px; padding-right: 9px; }
 }
+
+/* Full department plans stay paired and visible on phones as well as desktop. */
+.lr-pilot .lr-schedule-comparison { margin: 22px 0 16px; }
+.lr-pilot .lr-schedule-comparison h4 { margin: 24px 0 8px; font-size: 16px; }
+.lr-pilot .lr-schedule-comparison table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 14px; line-height: 1.5; }
+.lr-pilot .lr-schedule-comparison th, .lr-pilot .lr-schedule-comparison td { text-align: left; vertical-align: top; padding: 12px 10px; border-bottom: 1px solid #e6e0ec; overflow-wrap: anywhere; }
+.lr-pilot .lr-schedule-comparison thead th { color: #655574; font-size: 12px; font-weight: 600; background: #f6f3f9; }
+.lr-pilot .lr-schedule-table th:first-child { width: 24%; }
+.lr-pilot .lr-coverage-table th:first-child { width: 44%; }
+.lr-pilot .lr-schedule-comparison small { display: block; font-size: 12px; color: #655574; font-weight: 400; margin-top: 3px; }
+.lr-pilot .lr-worked-span { display: block; margin-bottom: 4px; }
+.lr-pilot .lr-worked-note { font-size: 14px; line-height: 1.6; padding: 12px 14px; background: #f4f0f8; border-radius: 8px; }
+.lr-pilot .lr-schedule-comparison .lr-schedule-changed { background: #e9faf4; }
+.lr-pilot .lr-schedule-changed th small { color: #176551; font-weight: 600; }
+.lr-pilot .lr-schedule-changed td:last-child { color: #175847; font-weight: 600; }
+.lr-pilot .lr-cutoffs { display: flex; flex-wrap: wrap; gap: 5px 24px; font-size: 13px; line-height: 1.7; margin: 8px 0 12px; }
+.lr-pilot .lr-closing-context { border-left: 3px solid #9989b7; padding: 12px 16px; background: #f4f0f8; margin-top: 16px; font-size: 14px; line-height: 1.65; }
+.lr-pilot .lr-closing-context p { margin: 5px 0 0; }
+.lr-pilot .lr-visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media(max-width:600px) {
+  .lr-pilot .lr-schedule-comparison th, .lr-pilot .lr-schedule-comparison td { padding: 10px 6px; }
+  .lr-pilot .lr-schedule-comparison table { font-size: 13px; }
+  .lr-pilot .lr-schedule-table th:first-child { width: 25%; }
+}

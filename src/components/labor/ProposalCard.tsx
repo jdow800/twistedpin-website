@@ -1,8 +1,7 @@
 import {useState} from "react";
 import {useDictation} from "../liquor/useSpeech";
-import {saveReviewResponse,LaborApiError,type LaborReview,type ReviewQuestion,type ReviewResponse,type ReviewShift} from "./api";
-const time=(m:number)=>{const h=Math.floor(m/60)%24;return `${h%12||12}${m%60?':'+String(m%60).padStart(2,'0'):''}${h<12?'am':'pm'}`;};
-const duration=(s:ReviewShift)=>`${Number(((s.endMinute-s.startMinute)/60).toFixed(2))}h`;
+import {saveReviewResponse,LaborApiError,type LaborReview,type ReviewQuestion,type ReviewResponse} from "./api";
+import ScheduleComparison from './ScheduleComparison';
 const currency=(v:number)=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(v/100);
 const names={adjust:'Yes · try it',consider:'Maybe · check this',keep:'No · keep coverage',data_wrong:'Correct the comparison',ask_owner:'Ask Jon for input'};
 
@@ -17,22 +16,19 @@ export default function ProposalCard({question:q,review,onSaved,number}:{questio
   const choose=(decision:ReviewResponse['decision'])=>{setChoice(decision);update({decision,action:decision==='keep'||decision==='data_wrong'||decision==='ask_owner'?'':p.action});setError('');};
   const current=p.current.reduce((n,s)=>n+s.endMinute-s.startMinute,0)/60;
   const proposed=p.proposed.reduce((n,s)=>n+s.endMinute-s.startMinute,0)/60;
-  const low=Math.min(...p.current.map(s=>s.startMinute),...p.proposed.map(s=>s.startMinute));
-  const high=Math.max(...p.current.map(s=>s.endMinute),...p.proposed.map(s=>s.endMinute));
   const save=async(undo=false)=>{
     setBusy(true);setError('');
     try{onSaved(await saveReviewResponse(review.id,{questionId:q.id,expectedRevision:q.revision,...(undo?{undo:true}:{response:{...form,proposalId:p.id,proposalVersion:p.version}})}));}
     catch(e){setError(e instanceof LaborApiError&&e.status===409?'A newer answer or proposal is available. Your text is still here; reload after keeping any changes.':'Your answer was not saved. Please retry.');}
     finally{setBusy(false);}
   };
-  const columns=([['Recorded schedule',p.current],['Idea to consider',p.proposed]] as const).map(([title,spans])=><div key={title} className="lr-shift-column"><h4>{title}</h4><div className="lr-time-axis"><span>{time(low)}</span><span>{time(high)}</span></div>{spans.map(s=><div className="lr-shift-row" key={s.key}><div><span>{s.label}</span><span>{time(s.startMinute)}–{time(s.endMinute)} · {duration(s)}</span></div><div className="lr-shift-track" aria-hidden="true"><span style={{left:`${(s.startMinute-low)/(high-low)*100}%`,width:`${(s.endMinute-s.startMinute)/(high-low)*100}%`}} /></div></div>)}</div>);
   return <article className="lr-question lr-proposal" aria-labelledby={`q-${q.id}`}>
     <div className="lr-question-header"><div className="lr-question-date"><span className="lr-question-number">{String(number).padStart(2,'0')}</span><time>{new Date(q.date+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric',timeZone:'UTC'})} · {p.department==='desk'?'Front desk':p.department==='kitchen'?'Kitchen':'Bar'}</time></div><span className={`lr-badge ${q.response?'lr-badge-saved':''}`}>{q.response?'Answer saved':'Idea to review'}</span></div>
     <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2><p className="lr-prompt">{q.prompt}</p>
-      <section className="lr-why"><h3>Why this came up</h3><div className="lr-comparison-pairs">{p.comparisons.map(c=><div key={c.date+c.period}><span>{new Date(c.date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'})} · {c.period}</span><strong>{currency(c.salesCents)}</strong><span>GoTab net sales · {c.coverage}</span><small>{c.note}</small></div>)}</div><p className="lr-small">{p.summary}</p></section>
+      <section className="lr-why"><h3>Why this came up</h3><div className="lr-comparison-pairs">{p.comparisons.map(c=><div key={c.date+c.period}><span>{new Date(c.date+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'})} · {c.period}</span><strong>{currency(c.salesCents)}</strong><span>{c.salesLabel??'GoTab net sales'} · {c.coverage}</span><small>{c.note}</small></div>)}</div><p className="lr-small">{p.summary}</p></section>
       <div className="lr-event-check"><strong>Events and other work checked</strong><p>{p.eventSummary}</p></div>
       {q.knownContext?.length?<div className="lr-event-check"><strong>What you already told us</strong>{q.knownContext.map(c=><p key={c.reviewId+c.questionId}>{c.note}</p>)}{q.reopenedBecause?<p>New basis: {q.reopenedBecause}</p>:null}</div>:null}
-      <section className="lr-candidate"><div className="lr-candidate-heading"><div><p className="lr-kicker">The scheduling idea</p><h3>{Number((current-proposed).toFixed(2))} fewer scheduled hours to test</h3></div><span>{Number(current.toFixed(2))}h → {Number(proposed.toFixed(2))}h</span></div><p>{p.action}</p><details className="lr-full-schedule"><summary>Compare the full shift arrangement</summary><p className="lr-small">{p.basisLabel}</p><div className="lr-shift-columns">{columns}</div></details><p className="lr-small">Every proposed ordinary shift is at least four hours. The hours shown describe the plan; actual savings depend on what is worked.</p></section>
+      <section className="lr-candidate"><div className="lr-candidate-heading"><div><p className="lr-kicker">The scheduling idea</p><h3>{Number((current-proposed).toFixed(2))} fewer scheduled hours to test</h3></div><span>{Number(current.toFixed(2))}h → {Number(proposed.toFixed(2))}h</span></div><p>{p.action}</p><ScheduleComparison proposal={p}/><p className="lr-small">Every proposed ordinary shift is at least four hours. These are scheduled hours; actual savings depend on what is worked.</p></section>
       <details className="lr-evidence"><summary>Evidence and conditions</summary><div className="lr-detail-body"><h3>Would need to be true</h3><ul>{p.conditions.map(c=><li key={c}>{c}</li>)}</ul><h3>Supporting checks</h3><ul>{q.evidence.map(e=><li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join('; ')}</p></details></div></details>
       {!editing&&q.response?<section className="lr-saved"><p className="lr-kicker">Your response</p><h3>{names[q.response.decision]}</h3>{q.response.note?<p>{q.response.note}</p>:null}{q.response.action?<p>{q.response.action}</p>:null}{q.response.applicability==='comparable_shifts'?<p className="lr-small">Remembered for comparable shifts. Staffing targets stay unchanged.</p>:null}{q.response.outcome?<p>Outcome: {q.response.outcome}</p>:null}<div className="lr-actions"><button onClick={()=>setEditing(true)}>Edit / add outcome</button>{q.canUndo?<button disabled={busy} onClick={()=>void save(true)}>Undo last save</button>:null}</div></section>:null}
     </div>
