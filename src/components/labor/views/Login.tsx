@@ -69,6 +69,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
           <span key={i} className={i < pin.length ? "lq-dot lq-dot-on" : "lq-dot"} />
         ))}
       </div>
+      <p className="lq-muted lb-pin-hint">Hint: It&apos;s your normal staff PIN.</p>
       {error && <p className="lq-error">{error}</p>}
       <div className="lq-numpad">
         {keys.map((k) => (
