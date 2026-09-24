@@ -59,6 +59,48 @@ export interface LaborActor {
   permissions: string[];
 }
 
+export interface ReviewResponse {
+  decision: "keep" | "adjust" | "consider" | "data_wrong" | "ask_owner";
+  context: string[]; note: string; action: string; followUpDate: string;
+  outcome: string; status: "follow_up" | "closed";
+  proposalId?:string;proposalVersion?:number;applicability?:"this_shift"|"comparable_shifts";
+}
+export interface ReviewShift {key:string;label:string;role:string;startMinute:number;endMinute:number;eventPost:boolean;sourceId?:string}
+export interface ReviewWorkedShift extends ReviewShift {personKey:string;scheduledKey?:string}
+export interface StaffingProposal {
+  id:string;version:number;department:"desk"|"kitchen"|"bar";basisLabel:string;summary:string;
+  current:ReviewShift[];proposed:ReviewShift[];
+  impact?:{recordedDepartmentHours?:number;wholeDayHoursVsRecorded?:number;scheduledHours:number;recordedHoursAffected:number;baseWageIllustrationCents:number|null;note:string};
+  worked?:{coverageStatus:"complete"|"partial";basisLabel:string;spans:ReviewWorkedShift[];changeNote?:string};
+  comparisons:{date:string;period:string;salesCents:number;salesLabel?:string;coverage:string;note:string}[];
+  scheduleContext?:{coverageStartMinute:number;serviceEndMinute?:number;buildingCloseMinute:number;closingNote:string};
+  eventSummary:string;conditions:string[];action:string;contextKey:string;candidateOnly:true;
+}
+export interface RememberedContext {reviewId:string;weekStart:string;questionId:string;contextKey:string;decision:ReviewResponse["decision"];note:string;action:string;outcome:string;applicability:"this_shift"|"comparable_shifts";createdAt:string}
+export interface SchedulingIdea {reviewId:string;weekStart:string;questionId:string;title:string;proposal:StaffingProposal;response:ReviewResponse;revision:number}
+export interface ReviewQuestion {
+  id: string; date: string; title: string; prompt: string;
+  kind: "coverage" | "data_check"; evidence: string[]; sources: string[];
+  followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
+  history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
+  proposal?:StaffingProposal;knownContext?:RememberedContext[];reopenedBecause?:string;
+}
+export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
+export interface LaborReview {
+  id: string;
+  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[]};
+  daily?:DailyLaborMetric[];
+  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
+  questions: ReviewQuestion[];
+  recap?:{completedAt:string;dueAt:string;state:"pending"|"cancelled"|"enqueued";emailOutboxId:string|null}|null;
+  recapDeliveryEnabled?:boolean;
+}
+export const getSchedulingIdeas=()=>call<{items:SchedulingIdea[];context:RememberedContext[]}>("/admin/labor/scheduling-ideas");
+export const getRecapPreview=(id:string)=>call<{email:{subject:string;html:string;text:string}|null}>(`/admin/labor/reviews/${encodeURIComponent(id)}/recap-preview`);
+export const listReviews=()=>call<{reviews:{id:string;weekStart:string;open:number}[]}>("/admin/labor/reviews").then(r=>r.reviews);
+export const getReview=(id:string)=>call<LaborReview>(`/admin/labor/reviews/${encodeURIComponent(id)}`);
+export const saveReviewResponse=(id:string,body:{questionId:string;expectedRevision:number;response?:ReviewResponse;undo?:boolean})=>call<LaborReview>(`/admin/labor/reviews/${encodeURIComponent(id)}/response`,{method:"POST",body:JSON.stringify(body)});
+
 /**
  * `one_off`    — a FACT ("that was training"). Leaves the baseline.
  * `new_normal` — a CLAIM arguing staffing UP. Moves no number.

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 // same way money.css does.
 import "./labor.css";
 import Login from "./views/Login";
+import ReviewPilot from "./ReviewPilot";
 // JS-only cross-import is fine (it bundles to a normal shared chunk, verified in
 // the deployed build) and duplicating 350 lines of subtle Android speech
 // workarounds would only invite drift.
@@ -60,6 +61,7 @@ const CATEGORIES: { value: NoteCategory; label: string }[] = [
 ];
 
 export default function LaborApp() {
+  const pilot = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("legacy") !== "1";
   const [view, setView] = useState<View>("loading");
   const [, setActor] = useState<LaborActor | null>(null);
   const [days, setDays] = useState<FlaggedDay[]>([]);
@@ -76,13 +78,13 @@ export default function LaborApp() {
     try {
       const me = await getMe();
       setActor(me);
-      await load();
+      if (!pilot) await load();
       setView("home");
     } catch (e) {
       if (e instanceof ForbiddenError) setView("forbidden");
       else setView("login");
     }
-  }, [load]);
+  }, [load, pilot]);
 
   useEffect(() => { void bootstrap(); }, [bootstrap]);
 
@@ -92,9 +94,11 @@ export default function LaborApp() {
   // with no container, no centering and no padding, which is what made it
   // unusable.)
   const chrome = (body: ReactNode, showLogout = false) => (
-    <div className="lq-app">
+    <div className={pilot ? "lq-app lq-pilot-app" : "lq-app"}>
       <header className="lq-header">
-        <span className="lq-brand">Twisted Pin · Labor</span>
+        {pilot
+          ? <div className="lr-brand"><img src="/logo/twisted-pin-horizontal-white.png" width="118" height="51" alt="Twisted Pin" /><span>Labor review</span></div>
+          : <span className="lq-brand">Twisted Pin · Labor</span>}
         {showLogout && (
           <button type="button" className="lq-logout" onClick={async () => { await logout(); setView("login"); }}>
             Log out
@@ -112,7 +116,9 @@ export default function LaborApp() {
   // .lq-login shrink to its content width; .lq-numpad's `width: 100%` then
   // resolves against that shrunken box instead of the column, so the pad
   // collapsed to roughly half size and the keys came out narrow and tall.
-  if (view === "login") return chrome(<Login onLoggedIn={() => void bootstrap()} />);
+  if (view === "login") return chrome(pilot
+    ? <div className="lr-login-shell"><p className="lr-kicker">Staff check-in</p><h1>Weekly labor review</h1><p>A few useful questions.<br />Your context makes the difference.</p><Login onLoggedIn={() => void bootstrap()} /></div>
+    : <Login onLoggedIn={() => void bootstrap()} />);
   if (view === "forbidden")
     return chrome(
       <div className="lq-center">
@@ -125,6 +131,7 @@ export default function LaborApp() {
     );
 
   const unanswered = days.filter((d) => d.depts.some((x) => !x.note));
+  if (pilot) return chrome(<ReviewPilot />, true);
   const answered = days.filter((d) => d.depts.every((x) => x.note));
 
   return chrome(
