@@ -14,6 +14,14 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-25 - Homepage title leads with category and city (approved).** Jon approved the change.
+  - **Old title:** "Twisted Pin — Cocktails, Taps & VIP Suite. Plainfield, IL."
+  - **New title:** "Craft Cocktails & Bowling in Plainfield, IL | Twisted Pin" (57 characters).
+  - **Why:** the homepage was the only page breaking `seo.md`'s "keyword first, brand last" checklist. It lacked "bowling", which is the Business Profile's primary category (Bowling alley) and the query family behind most paid and organic bowling demand. Google already prints the site name above each result, so a brand-first title repeated it.
+  - **Kept:** bar-led word order. The meta description still carries the taps and VIP suite.
+  - **Unchanged:** the locked hero copy (headline, subhead). `og:title` and `twitter:title` follow the same prop.
+  - **Measure:** homepage impressions, CTR and average position for bowling queries in Search Console, over the four weeks after release against the four before. Branded queries should be unaffected.
+
 - **2026-09-25 - Google Ads Script 21 applied.** Jon ran the Preview at 9:42am CT, and it passed with exactly 9 planned operations and no writes.
   - **Live run:** began at 9:47am CT. Google individually accepted all 9 operations:
     - the two fundraiser keyword URLs now point at `/fundraisers/`
