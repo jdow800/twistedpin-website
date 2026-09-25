@@ -269,3 +269,7 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
 .lr-daily-table small {display:block;color:#6c627b;font-size:11px;}
 .lr-daily-table .lr-high-share {background:#fff7e6;}
 @media(max-width:600px){.lr-weekly-overview{padding:18px 14px;}.lr-daily-table table{font-size:11px;}.lr-daily-table th,.lr-daily-table td{padding:9px 2px;}.lr-daily-table thead th{font-size:10px;}.lr-labor-bar-row{gap:7px;grid-template-columns:30px 1fr 48px;}}
+
+.lr-original-expanded > summary { display:none; }
+.lr-original-expanded { border:0; padding:0; margin:0; }
+.lr-original-idea:not([open]) { margin-bottom:1rem; }

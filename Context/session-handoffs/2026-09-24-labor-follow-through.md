@@ -1,0 +1,5 @@
+# Staff labor review follow-through - September 24
+
+Owner requested implementing the live-loop assessment now without a retroactive GM send. Reuse the approved existing review design. New follow-up cards distinguish Tried / Not yet / Stopped, collect a dated service/closing result, and display later scheduled/worked observations separately from the original idea. Show peer weekdays, make recurring applicability explicit, display earlier unanswered items and four-week context when available. No PIN or public website design changes.
+
+Validation: production build and all prebuild checks pass. Isolated real PIN/API/database tests pass at 320, 390 and 1280px; Yes/Maybe responses, six-week applicability choice, structured trial completion and Next schedule removal persist correctly. Follow-up cards collapse the already-reviewed schedule so the short outcome form is immediately accessible. No browser errors or horizontal overflow. The existing estimate/track header typing errors remain; no new labor TypeScript errors. Backend release is PR250, with no PIN changes or retroactive sends.

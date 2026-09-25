@@ -63,6 +63,7 @@ export interface ReviewResponse {
   decision: "keep" | "adjust" | "consider" | "data_wrong" | "ask_owner";
   context: string[]; note: string; action: string; followUpDate: string;
   outcome: string; status: "follow_up" | "closed";
+  trial?:{state:"not_yet"|"tried"|"stopped";date?:string;service:"okay"|"issues"|"unknown"};
   proposalId?:string;proposalVersion?:number;applicability?:"this_shift"|"comparable_shifts";
 }
 export interface ReviewShift {key:string;label:string;role:string;startMinute:number;endMinute:number;eventPost:boolean;sourceId?:string}
@@ -80,15 +81,17 @@ export interface RememberedContext {reviewId:string;weekStart:string;questionId:
 export interface SchedulingIdea {reviewId:string;weekStart:string;questionId:string;title:string;proposal:StaffingProposal;response:ReviewResponse;revision:number}
 export interface ReviewQuestion {
   id: string; date: string; title: string; prompt: string;
-  kind: "coverage" | "data_check"; evidence: string[]; sources: string[];
+  kind: "coverage" | "data_check" | "follow_up"; evidence: string[]; sources: string[];
   followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
+  followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
   proposal?:StaffingProposal;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
 export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
 export interface LaborReview {
   id: string;
-  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[]};
+  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
+  previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
   metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
   questions: ReviewQuestion[];
