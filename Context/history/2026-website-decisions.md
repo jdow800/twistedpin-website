@@ -14,6 +14,35 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-25 - Google Ads Script 21 applied.** Jon ran the Preview at 9:42am CT, and it passed with exactly 9 planned operations and no writes.
+  - **Live run:** began at 9:47am CT. Google individually accepted all 9 operations:
+    - the two fundraiser keyword URLs now point at `/fundraisers/`
+    - three Brand campaign sitelink links
+    - four campaign final URL suffixes
+    - Bar-Led paused, with its budget unchanged
+  - **Account state from the Preview:**
+    - Search Partners and Display were already off on all four campaigns, so `networkHygiene` changed nothing.
+    - AI Max is off, text asset automation is opted out, and no campaign uses campaign-level broad match.
+    - Auto-tagging is on.
+    - There is an undocumented legacy account-level tracking template with `gr_` parameters. It was left unchanged; under parallel tracking its parameters never reach landing pages.
+  - **Verified:** the fresh read-only Preview at 9:57am CT planned zero operations. It read back all four suffixes, 7 Brand sitelinks, both fundraiser routes and Bar-Led paused.
+  - **Pending:** confirmation that Avery's Google inquiries now carry `utm_campaign`.
+  - **Measurement window:** September 26 to October 9, reviewed October 10 or later.
+
+  [Execution record](../../scripts/google-ads/21_live_2026-09-25.md).
+
+- **2026-09-25 - Google Ads Script 21 prepared, not executed.** Jon asked for the fixes from the September 25 mid-window Ads review, as one script.
+  - **What it does:**
+    - routes the two exact fundraiser keywords to `/fundraisers/`
+    - links the three existing Script 20 sitelinks to the Brand campaign
+    - adds a campaign-level final URL suffix, so event inquiries can be placed by campaign and town. The suffix carries UTM tags with readable campaign slugs plus the ad group, location and keyword.
+    - switches Search Partners and Display off wherever either is still on
+    - pauses Bar-Led without moving its budget
+  - **How it runs:** each section has a `RUN21` switch. All writes go in one atomic batch, with one merged update per campaign, at most nine operations.
+  - **What it leaves alone:** bids, budgets, targeting, ads, negatives and conversion settings. The replacement Events RSAs await their September 30 read. The "Open Until 1am" ad copy is left for a separate copy decision.
+  - **Checks:** 41 local tests and eight public landing checks passed, including tagged URLs. Three deliberately broken variants were each caught.
+  - **Status:** not yet previewed or run in Google Ads. Business figures stay in the local, untracked review record because this repository is public. [Script 21](../../scripts/google-ads/21_review_fixes.md).
+
 - **2026-09-24 - Labor login normal-PIN hint.** Jon requested a reminder on the labor PIN page that staff use their normal PIN. Add "Hint: It's your normal staff PIN." beneath the entry dots and above the keypad, using existing muted text and a 14px mobile-readable size. This is display copy only; credentials, sessions and permissions are unchanged. Required prebuild and full build pass. Local 320/390/1280px checks show the hint below the dots, above the keypad and no horizontal overflow; the phone layout was visually inspected. Production readback follows publication.
 
 - **2026-09-23 - Public Loyalty checkout release authorized.** Jon approved publishing the previously tested checkout controls after finalizing the rewards page. Merge current main (204a7db), preserve that page, validate current-request totals, shareable reward copy, plain signup consent and payment recovery, then publish to main. This is Website-only; points issuance/notices and the new offer/rule stay disabled. No new customer messages, codes, payments, catalog cutover or Zite publication. Validation passed: 114 joined/browser checks, 114 regressions, ten offline wizard scenarios, 26 harness guards, typechecks and full build. Details: `Context/session-handoffs/2026-09-23-loyalty-checkout-release.md`. Vercel and production readback follow the authorized push.
