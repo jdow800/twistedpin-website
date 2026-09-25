@@ -2690,3 +2690,18 @@
 .lq-recipe-suggestion ul { margin: 8px 0; padding-left: 20px; }
 .lq-recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .lq-recipe-actions .lq-btn { min-height: 44px; padding: 9px 12px; font-size: 14px; }
+.lq-invd-auto-form input,
+.lq-invd-auto-form select {
+  min-height: 44px;
+  padding: 10px 12px;
+  background: var(--lq-surface, #1a1530);
+  color: inherit;
+  border: 1px solid rgba(244, 239, 227, 0.3);
+  border-radius: 7px;
+  font: inherit;
+}
+.lq-invd-auto-form input:focus,
+.lq-invd-auto-form select:focus {
+  outline: 2px solid #4eecc4;
+  outline-offset: 2px;
+}

@@ -21,6 +21,9 @@ if(mode==='old-flag') {invoice.reviewNotes=[];invoice.handwrittenNotes=['Signatu
 if(mode==='confirmed') invoice.status='confirmed';
 if(mode==='escaped') {invoice.reviewNotes=['<img src=x onerror="alert(1)">'];invoice.handwrittenNotes=invoice.reviewNotes;}
 if(mode==='old-api') {delete invoice.reviewNotes;delete invoice.handwrittenNotes;delete invoice.duplicateOf;}
+const automatic = mode.startsWith('automatic') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'test-keg',token:'a'.repeat(64),
+  status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
+if (mode.startsWith('automatic')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page',pageNumber:1,contentType:'image/jpeg'}],
   buckets:{byBucket:{beer_draft:{matched:0,vendorItem:0,estimated:140}},nonGoods:40,
     unattributed:0,matchedDollars:0,residualDollars:140,residualBasis:'vendor_mix',mixVendor:'Example Brewery',mixInvoices:8,
@@ -78,6 +81,15 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/copy-review')) {
     if(mode==='linked-stale') return json({error:'comparison_changed'},409);
     detail.copyReviews[0].reviewed=true; return json({ok:true});
+  }
+  if(path.endsWith('/automatic-answers')) return json({answers:automatic});
+  if(path.endsWith('/automatic-answers/auto-1/correct')) {
+    if(mode==='automatic-stale')return json({error:'answer_changed'},409);
+    const body=JSON.parse(options.body),result={unitsPerCase:body.unitsPerCase,countUnit:'pack',currentCost:10,previousCost:20,
+      costCorrected:true,costInvoiceId:'test-invoice',currentCostSource:'invoice_auto',countingDefinitionChanged:true,affectedCounts:[]};
+    automatic[0]={...automatic[0],status:'corrected',canCorrect:true,unitsPerCase:body.unitsPerCase,
+      costPerUnit:80/body.unitsPerCase,token:'b'.repeat(64),correction:result};
+    return json({resolved:true,result});
   }
   if(path.endsWith('/match')||path.endsWith('/new-sku')) {
     const body=JSON.parse(options.body); line.needsReview=false;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;

@@ -25,13 +25,17 @@ try {
   const send=(method,params)=>command(method,params,sessionId);
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
   await send('Page.enable');
-  for(const width of [320,390,960]) for(const mode of ['food','linked','remember-unit','amount']) {
+  for(const width of [320,390,960]) for(const mode of ['food','linked','remember-unit','amount','automatic']) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600});
     await send('Page.navigate',{url:`http://127.0.0.1:4177/?mode=${mode}`});
     await evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(document.querySelector('.lq-invd'))return resolve();if(++n>150)return reject(Error('Screen did not load'));setTimeout(tick,20);};tick();})`);
     await evaluate(`document.getElementById('audit').style.display='none'`);
     if(mode==='remember-unit') {
       await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='set the cost').click()`);
+      await evaluate(`new Promise(resolve=>setTimeout(resolve,50))`);
+    }
+    if(mode==='automatic') {
+      await evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{const button=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Correct unit');if(button){button.click();return resolve();}if(++n>100)return reject(Error('No automatic answer'));setTimeout(tick,20);};tick();})`);
       await evaluate(`new Promise(resolve=>setTimeout(resolve,50))`);
     }
     if(mode==='food') {
