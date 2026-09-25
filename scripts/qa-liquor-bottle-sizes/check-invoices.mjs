@@ -191,3 +191,16 @@ await run('stale comparison leaves an actionable retry error','linked-stale',asy
   assert.ok(!doc.body.textContent.includes('Comparison reviewed'));
 });
 console.log('Invoice catalog and copy-review checks passed');
+
+for (const mode of ['automatic','automatic-stale']) await run('automatic answer correction '+mode,mode,async({doc,click,dom,log})=>{
+  await until(()=>doc.body.textContent.includes('Handled automatically'));
+  assert.match(doc.body.textContent,/1 billed case = 4 pack/);
+  await click('Correct unit');
+  const input=doc.querySelector('[aria-label="Correct units per billed case"]');
+  Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'8');
+  input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+  await click('Save correction');
+  assert.match(log(),/"unitsPerCase":8/);assert.match(log(),/"token":"aaaaaaaa/);
+  if(mode==='automatic-stale')assert.match(doc.querySelector('[role=alert]').textContent,/This answer changed/);
+  else await until(()=>doc.body.textContent.includes('Current price corrected from $20.00 to $10.00'));
+});

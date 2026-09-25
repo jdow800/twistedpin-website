@@ -538,3 +538,13 @@ Jon authorized replacing the recurring labor report for the next regular deliver
 
 
 September 24 verification: local PIN login and the actual review API were exercised at 320/390/1280px. Email and app have no horizontal/cell overflow. Yes/Maybe responses persist after reload and queue one recap after 90 minutes. The production build and prebuild checks pass with the lockfile's Astro 6.2.1. The optional Astro checker reports 366 existing errors across six unchanged non-labor files (estimate tracking, Avery review, invite previews, menus and Naperville page); no labor diagnostic was reported. No golden-suite calls were made. Release activation is paired with the TPRS weekly sender starting October 1; no immediate duplicate email.
+## 2026-09-25 - Invoice automatic answers (authorized release)
+
+Show first-time automatic invoice conversions with their package evidence and a
+Correct unit form. Corrections submit a state token; later edits require a refresh.
+Explain current-price changes and affected counts. Reuse the inventory UI styles
+and mobile form sizes. Fictional DOM tests include correction and stale-edit recovery;
+15 browser layouts pass at 320/390/960px and screenshots were inspected. Strict
+invoice component TypeScript and production build pass. Opus 5.5 / Extra High
+read-only review cleared the correction contract. Backend must deploy first.
+No source invoice documents, real product prices or internal notes are published.

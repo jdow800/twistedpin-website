@@ -25,6 +25,7 @@ import {
 import { matchSkus } from "../matcher";
 import { searchInvoiceItems, invoiceItemLabel } from "../invoice-catalog";
 import InvoiceCopies from "./InvoiceCopies";
+import InvoiceAutomaticAnswers from "./InvoiceAutomaticAnswers";
 import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor, reviewReasonsFor } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
@@ -274,6 +275,7 @@ export default function Invoices({
         </p>
         <InvoiceCopies reviews={detail.copyReviews ?? []} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
         <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
+        {!inv.duplicateOf && <InvoiceAutomaticAnswers invoiceId={inv.id} revision={detail} onSaved={() => void refreshBuckets(inv.id)} />}
         {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
         {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">

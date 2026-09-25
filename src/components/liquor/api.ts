@@ -9,6 +9,26 @@
 export type Section = "bar" | "food";
 export const SECTIONS: readonly Section[] = ["bar", "food"];
 
+export interface InvoiceAnswerCorrection {
+  unitsPerCase: number; countUnit: string; currentCost: number | null; previousCost: number | null;
+  costCorrected: boolean; costInvoiceId: string | null; currentCostSource: string | null;
+  countingDefinitionChanged: boolean; countCaseSize: number | null;
+  affectedCounts: { id: string; status: string; started_at: string; old_cases?: string; has_unpriced_lines?: boolean }[];
+}
+export interface AutomaticInvoiceAnswer {
+  id: string; name: string; skuId: string; lineId: string | null; token: string;
+  status: "active" | "corrected" | "superseded"; unitsPerCase: number; countUnit: string; unitLabel: string;
+  costPerUnit: number; sourcePack: number; sourceSize: string; defaultSpokenUnit: string | null;
+  canCorrect: boolean; definitionEditable: boolean; correction: InvoiceAnswerCorrection | null;
+}
+export const getAutomaticInvoiceAnswers = (id: string) =>
+  gatedJson<{ answers: AutomaticInvoiceAnswer[] }>(`/admin/bar/invoices/${id}/automatic-answers`);
+export const correctAutomaticInvoiceAnswer = (id: string, actionId: string, body: {
+  token: string; lineId: string; unitsPerCase: number; defaultSpokenUnit?: "case" | "base";
+}) => gatedJson<{ resolved: true; result: InvoiceAnswerCorrection }>(`/admin/bar/invoices/${id}/automatic-answers/${actionId}/correct`, {
+  method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+});
+
 // Typed client for the bar-inventory `/admin/bar/*` JSON API, consumed by the
 // staff /cogs SPA. Same-origin model identical to src/tprs/client.ts: the SPA
 // fetches relative `/tprs-api/...`, which the Vite dev proxy (astro.config.mjs)
