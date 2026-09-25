@@ -14,6 +14,17 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-25 - Teacher Group Organizer: "Added instructions" replace the paste box (Jon, after using the live screen).**
+  - **Intro** cut to Jon's line: "Add the organizer's Word doc. If one email has two docs, add both." He found the rest wordy, and the field help got shorter too.
+  - **The paste box is now "Added instructions":** anything to consider on top of their doc, one per line. Jon's examples: "Lane 15 is broken, skip it" and "the 2nd shift is ending late, maybe 8pm".
+  - **How TPRS applies them:**
+    - they win over the sheet;
+    - a stated end time moves that shift's lane hold;
+    - anything left for a person to decide becomes a cover-sheet question, and the tool never picks a replacement lane itself;
+    - one the reader didn't act on holds the lanes.
+  - **A Word doc is required.** Instructions go with it, never instead of it. To change something later, upload the doc again with the new instruction.
+  - **The result screen** lists each instruction with what was done. The backend is tprs `feat/teacher-group-instructions`, which must deploy first.
+
 - **2026-09-25 - Teacher Group Organizer tile in `/cogs`.** Jon wants the Friday teacher-group flow to run without him, and named it "Teacher Group Organizer."
   - **What staff do:** add the organizer's Word doc(s), or paste the email. The night is optional. At least one recipient is required (`@twistedpin.com` only, remembered on the device). Runner tickets are off by default; the kitchen lead called them likely unnecessary.
   - **What happens:** TPRS reads it twice and resizes that night's Teacher Group lane holds when everything checks out. It emails the packet (a "Questions That Need Answers" cover sheet, then the kitchen and POS pages) and copies Jon.

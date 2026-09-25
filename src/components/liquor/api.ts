@@ -1687,6 +1687,8 @@ export interface TeacherGroupUpload {
   issues: TeacherGroupIssue[];
   /** Choices the sheet left out (wing size, sauce), for staff to ask at the lane. */
   confirms?: string[];
+  /** What staff added on top of their doc; `applied` is what was done (null = nothing yet). */
+  instructions?: { n: number; text: string; applied: string | null }[];
   laneOutcomes: TeacherGroupLaneOutcome[];
   pdfReady: boolean;
 }
@@ -1719,7 +1721,8 @@ function withServerMessage(e: unknown): unknown {
 
 export async function uploadTeacherGroupSheet(args: {
   files: File[];
-  text: string;
+  /** Added instructions, one per line; applied on top of their doc. */
+  instructions: string;
   eventDate: string;
   emailTo: string[];
   runnerTickets: boolean;
@@ -1727,7 +1730,7 @@ export async function uploadTeacherGroupSheet(args: {
   // One request carries every file, and the site proxy caps a body at ~4.5 MB.
   const total = args.files.reduce((n, f) => n + f.size, 0);
   if (total > PROXY_SAFE_RAW_BYTES) {
-    throw new BarApiError("Those files add up to more than 3 MB. Send them one at a time, or paste the text instead.", 413);
+    throw new BarApiError("Those files add up to more than 3 MB. Send them one at a time.", 413);
   }
   const files: { name: string; contentType: string; data: string }[] = [];
   for (const f of args.files) {
@@ -1739,7 +1742,7 @@ export async function uploadTeacherGroupSheet(args: {
       "/admin/bar/teacher-group/uploads",
       jsonBody({
         files,
-        text: args.text.trim() || undefined,
+        instructions: args.instructions.trim() || undefined,
         eventDate: args.eventDate || undefined,
         emailTo: args.emailTo,
         runnerTickets: args.runnerTickets,

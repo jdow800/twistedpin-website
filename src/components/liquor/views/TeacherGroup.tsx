@@ -15,15 +15,17 @@ import {
   type TeacherGroupUploadSummary,
 } from "../api";
 
-// Teacher Group Organizer. Staff add the organizer's Word doc(s) or paste their
-// email; TPRS reads every line twice, resizes that night's lane holds when it
-// all checks out, and emails the printable packet (a cover sheet of questions,
-// then the kitchen and POS pages). This screen sends the upload, then shows
-// what happened: the lanes, what needs an answer, and their sheet line by line
-// next to how it was read, so nobody has to trust that nothing was missed.
+// Teacher Group Organizer. Staff add the organizer's Word doc(s), plus any
+// instructions of our own on top ("Lane 15 is broken, skip it"); TPRS reads
+// every line twice, applies the instructions, resizes that night's lane holds
+// when it all checks out, and emails the printable packet (a cover sheet of
+// questions, then the kitchen and POS pages). This screen sends the upload,
+// then shows what happened: the lanes, each instruction and what was done,
+// what needs an answer, and their sheet line by line next to how it was read,
+// so nobody has to trust that nothing was missed.
 
-type Draft = { files: File[]; text: string; eventDate: string };
-const EMPTY: Draft = { files: [], text: "", eventDate: "" };
+type Draft = { files: File[]; instructions: string; eventDate: string };
+const EMPTY: Draft = { files: [], instructions: "", eventDate: "" };
 
 const EMAIL_KEY = "cogs:teacher-group:emails";
 const POLL_MS = 3000;
@@ -77,11 +79,9 @@ function parseEmails(raw: string): { emails: string[]; problem: string | null } 
 
 function fileProblem(f: File): string | null {
   if (/\.(docx|txt)$/i.test(f.name)) return null;
-  if (/\.doc$/i.test(f.name)) {
-    return `${f.name} is an older Word file. Open it in Word, Save As .docx and add that, or paste its text below.`;
-  }
-  if (/\.pdf$/i.test(f.name)) return `${f.name} is a PDF. Copy its text into the box below instead.`;
-  return `${f.name} can't be read. Add a Word (.docx) or text file, or paste the text below.`;
+  if (/\.doc$/i.test(f.name)) return `${f.name} is an older Word file. Open it in Word, Save As .docx, and add that.`;
+  if (/\.pdf$/i.test(f.name)) return `${f.name} is a PDF. We need their Word doc (.docx).`;
+  return `${f.name} can't be read. Add their Word doc (.docx).`;
 }
 
 const dayLabel = (d: string | null, status: TeacherGroupStatus) =>
@@ -136,8 +136,8 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
 
   async function send() {
     if (sending) return;
-    if (!draft.files.length && !draft.text.trim()) {
-      setError("Add their Word doc, or paste the text.");
+    if (!draft.files.length) {
+      setError("Add their Word doc first.");
       return;
     }
     const { emails: to, problem } = parseEmails(emails);
@@ -175,11 +175,7 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-upload lq-tg">
       <h2 className="lq-h2">Teacher Group Organizer</h2>
-      <p className="lq-muted lq-upload-hint">
-        Add the organizer's Word doc. If one email has two docs, add both. Or paste their email text. We read every
-        line twice, update that night's lanes when it all checks out, and email the packet: the questions to settle,
-        the kitchen sheet and the POS sheet. A second doc later (say, the late shift) just goes in as its own upload.
-      </p>
+      <p className="lq-muted lq-upload-hint">Add the organizer's Word doc. If one email has two docs, add both.</p>
 
       <input
         ref={fileRef}
@@ -222,16 +218,18 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
       )}
 
       <label className="lq-tg-field">
-        <span className="lq-tg-label">Or paste their text</span>
+        <span className="lq-tg-label">
+          Added instructions <span className="lq-muted">(optional)</span>
+        </span>
         <textarea
           className="lq-tg-input lq-tg-paste"
-          rows={5}
-          value={draft.text}
+          rows={4}
+          value={draft.instructions}
           onChange={(e) => {
-            setDraft((d) => ({ ...d, text: e.target.value }));
+            setDraft((d) => ({ ...d, instructions: e.target.value }));
             setError(null);
           }}
-          placeholder="Paste their email or sheet here"
+          placeholder={"Anything on top of their doc, one per line. e.g.\nLane 15 is broken, skip it\nThe 2nd shift is staying until 8pm"}
         />
       </label>
 
@@ -245,10 +243,7 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
           value={draft.eventDate}
           onChange={(e) => setDraft((d) => ({ ...d, eventDate: e.target.value }))}
         />
-        <span className="lq-tg-help lq-muted">
-          Leave it blank to use the date on their sheet. If you pick a night and their sheet says another, the lanes
-          are left alone.
-        </span>
+        <span className="lq-tg-help lq-muted">Leave blank to use the date on their sheet.</span>
       </label>
 
       <label className="lq-tg-field">
@@ -267,9 +262,7 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
           }}
           placeholder="kitchen@twistedpin.com"
         />
-        <span className="lq-tg-help lq-muted">
-          {TEACHER_GROUP_EMAIL_DOMAIN} addresses, separated by commas. Jon always gets a copy.
-        </span>
+        <span className="lq-tg-help lq-muted">{TEACHER_GROUP_EMAIL_DOMAIN} only. Jon always gets a copy.</span>
       </label>
 
       <label className="lq-tg-check">
@@ -305,7 +298,7 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
             Exit
           </button>
-          <button type="button" className="lq-btn lq-btn-primary" disabled={sending} onClick={send}>
+          <button type="button" className="lq-btn lq-btn-primary" disabled={sending || !draft.files.length} onClick={send}>
             {sending ? "Sending…" : "Read it + email the packet"}
           </button>
         </div>
@@ -363,6 +356,7 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
   const holding = u.issues.filter((i) => i.blocks.length > 0);
   const toSettle = u.issues.filter((i) => i.blocks.length === 0);
   const confirms = u.confirms ?? [];
+  const instructions = u.instructions ?? [];
   const files = [...new Set(u.lines.map((l) => l.file))];
   const missed = u.lines.filter(unplaced).length;
   const lanesMoved = u.laneOutcomes.some((o) => o.status === "applied");
@@ -416,6 +410,24 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
               <li key={o.key} className="lq-tg-lane">
                 <span className={`lq-badge lq-tg-st-${o.status}`}>{LANE_LABEL[o.status]}</span>
                 <span>{o.text}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {instructions.length > 0 && (
+        <section className="lq-tg-section">
+          <h3 className="lq-tg-h3">Your instructions</h3>
+          <ul className="lq-tg-list">
+            {instructions.map((i) => (
+              <li key={i.n} className={`lq-tg-line${!working && !i.applied ? " lq-tg-line-miss" : ""}`}>
+                <div className="lq-tg-line-body">
+                  <p className="lq-tg-line-text">{i.text}</p>
+                  <p className="lq-tg-line-read">
+                    {i.applied ?? (working ? "Waiting for the read…" : "Not acted on, so the lanes were held. It's on the cover sheet.")}
+                  </p>
+                </div>
               </li>
             ))}
           </ul>
