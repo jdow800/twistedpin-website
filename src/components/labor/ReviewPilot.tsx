@@ -28,7 +28,8 @@ export default function ReviewPilot() {
     } finally { setLoading(false); }
   };
   useEffect(() => { void load(); }, []);
-  const awaitingContext = review?.questions.filter(q => !q.response).length ?? 0;
+  const previousReview=review?.previousReviewStatus??review?.packet.previousReview;
+  const awaitingContext = (review?.questions.filter(q => !q.response).length ?? 0)+(previousReview?.unanswered??0);
   return <section className="lr-pilot">
     <header className="lr-heading">
       <div><p className="lr-kicker">The weekly check-in</p><h1>Weekly labor review</h1><p className="lr-intro">Practical scheduling ideas. Your experience completes the picture.</p></div>
@@ -50,6 +51,8 @@ export default function ReviewPilot() {
         </section>
       </div>
       <WeeklyOverview days={review.daily??[]}/>
+      {review.packet.trend?<p className="lr-small"><strong>4-week labor:</strong> {review.packet.trend.percent===null?review.packet.trend.note:`${review.packet.trend.percent.toFixed(1)}% - ${review.packet.trend.note}`}</p>:null}
+      {previousReview?<div className="lr-notice">Last review: {previousReview.answered} answered. {previousReview.unanswered?<><button className="lr-text-button" onClick={()=>void load(previousReview!.id)}>{previousReview.unanswered} still need a response</button>. We have kept the combined list to two items.</>:null}{previousReview.ownerRequests?` ${previousReview.ownerRequests} request(s) sent to Jon.`:''}</div>:null}
       <details className="lr-calculation">
         <summary>How this week is measured <span>{review.metric.percent === null ? "Reconciliation in progress" : "Cost basis & sources"}</span></summary>
         <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
@@ -58,9 +61,9 @@ export default function ReviewPilot() {
           <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
         </div>
       </details>
-      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
+      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No new questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
       {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
-      {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>q.response?.status!=="closed").length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => q.response?.status !== "closed").length } : x)); }} />)}
+      {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>!q.response).length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => !q.response).length } : x)); }} />)}
       {review.packet.version===2?<NextSchedule review={review}/>:null}
       <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
     </> : null}
@@ -89,7 +92,7 @@ function Question({ number, question: q, review, onSaved }: { number: number; qu
     <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2><p className="lr-prompt">{q.prompt}</p>
       <details className="lr-evidence"><summary>See the numbers behind this question</summary><div className="lr-detail-body"><ul>{q.evidence.map(e => <li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join("; ")}</p></details></div></details>
       {!editing && !q.response ? <div className="lr-question-action"><button className="lr-primary" onClick={() => setEditing(true)}>Add context <span aria-hidden="true">→</span></button><span>Type a note or use your voice.</span></div> : null}
-      {!editing && q.response ? <div className="lr-saved" role="status"><p className="lr-kicker">Your decision</p><h3>{decisions.find(d => d[0] === form.decision)?.[1]}</h3><p>{form.note}</p>{form.action ? <p><strong>Next step:</strong> {form.action}</p> : null}<p className="lr-small">{form.status === "closed" ? `Outcome: ${form.outcome}` : `Follow up: ${date(form.followUpDate)}`}</p>{form.decision === "ask_owner" ? <p className="lr-small">Owner input requested in this review. This request is saved here for owner review.</p> : null}<div className="lr-actions"><button onClick={() => setEditing(true)}>Edit / add outcome</button>{q.canUndo ? <button className="lr-text-button" disabled={busy} onClick={() => void save(true)}>Undo last save</button> : null}</div></div> : null}
+      {!editing && q.response ? <div className="lr-saved" role="status"><p className="lr-kicker">Your decision</p><h3>{decisions.find(d => d[0] === form.decision)?.[1]}</h3><p>{form.note}</p>{form.action ? <p><strong>Next step:</strong> {form.action}</p> : null}<p className="lr-small">{form.status === "closed" ? `Outcome: ${form.outcome}` : `Follow up: ${date(form.followUpDate)}`}</p>{form.decision === "ask_owner" ? <p className="lr-small">Owner input requested in this review. A notification is queued to Jon with this request.</p> : null}<div className="lr-actions"><button onClick={() => setEditing(true)}>Edit / add outcome</button>{q.canUndo ? <button className="lr-text-button" disabled={busy} onClick={() => void save(true)}>Undo last save</button> : null}</div></div> : null}
     </div>
     {editing && !confirm ? <form className="lr-answer" onSubmit={e => { e.preventDefault(); if (decisionChosen) setConfirm(true); }}>
       <div className="lr-form-heading"><h3>Your take</h3><span>1 of 2 · Add context</span></div>
