@@ -1646,3 +1646,122 @@ export async function uploadInvoice(files: File[]): Promise<string> {
   );
   return invoiceId;
 }
+
+// ── Teacher Group Organizer (/admin/bar/teacher-group/*, TPRS migration 0194) ──
+// Staff upload the organizer's Word doc(s) or pasted text; TPRS reads it twice,
+// resizes that night's lane holds when everything checks out, and emails the
+// printable packet. Reading takes a minute or two, so the upload returns an id
+// at once and the screen polls it.
+export type TeacherGroupStatus = "pending" | "processing" | "done" | "failed";
+export interface TeacherGroupIssue {
+  kind: string;
+  text: string;
+  /** Shifts whose lane update this held back; "*" = every shift on the upload. */
+  blocks: string[];
+}
+export interface TeacherGroupLaneOutcome {
+  key: string;
+  bowl: string;
+  status: "applied" | "unchanged" | "skipped";
+  invoice: string;
+  text: string;
+}
+export interface TeacherGroupLine {
+  n: number;
+  file: string;
+  text: string;
+  /** How the reader placed the line; null = it wasn't accounted for. */
+  kind: string | null;
+  reading: string | null;
+}
+export interface TeacherGroupUpload {
+  id: string;
+  status: TeacherGroupStatus;
+  error: string | null;
+  createdAt: string;
+  finishedAt: string | null;
+  eventDate: string | null;
+  emailTo: string[];
+  runnerTickets: boolean;
+  lines: TeacherGroupLine[];
+  issues: TeacherGroupIssue[];
+  /** Choices the sheet left out (wing size, sauce), for staff to ask at the lane. */
+  confirms?: string[];
+  laneOutcomes: TeacherGroupLaneOutcome[];
+  pdfReady: boolean;
+}
+export interface TeacherGroupUploadSummary {
+  id: string;
+  createdAt: string;
+  status: TeacherGroupStatus;
+  eventDate: string | null;
+  by: string;
+  fileNames: string[];
+}
+
+/** Mirrors the backend's files max(6). */
+export const MAX_TEACHER_GROUP_FILES = 6;
+export const TEACHER_GROUP_EMAIL_DOMAIN = "@twistedpin.com";
+const DOCX_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+/** The backend answers a refused upload with {error, message}; show its message. */
+function withServerMessage(e: unknown): unknown {
+  if (e instanceof BarApiError && typeof e.body === "string") {
+    try {
+      const msg = (JSON.parse(e.body) as { message?: string }).message;
+      if (msg) return new BarApiError(msg, e.status, e.body);
+    } catch {
+      /* body wasn't JSON */
+    }
+  }
+  return e;
+}
+
+export async function uploadTeacherGroupSheet(args: {
+  files: File[];
+  text: string;
+  eventDate: string;
+  emailTo: string[];
+  runnerTickets: boolean;
+}): Promise<string> {
+  // One request carries every file, and the site proxy caps a body at ~4.5 MB.
+  const total = args.files.reduce((n, f) => n + f.size, 0);
+  if (total > PROXY_SAFE_RAW_BYTES) {
+    throw new BarApiError("Those files add up to more than 3 MB. Send them one at a time, or paste the text instead.", 413);
+  }
+  const files: { name: string; contentType: string; data: string }[] = [];
+  for (const f of args.files) {
+    const contentType = f.type || (/\.txt$/i.test(f.name) ? "text/plain" : DOCX_TYPE);
+    files.push({ name: f.name, contentType, data: await blobToBase64(f) });
+  }
+  try {
+    const { uploadId } = await gatedJson<{ uploadId: string }>(
+      "/admin/bar/teacher-group/uploads",
+      jsonBody({
+        files,
+        text: args.text.trim() || undefined,
+        eventDate: args.eventDate || undefined,
+        emailTo: args.emailTo,
+        runnerTickets: args.runnerTickets,
+      }),
+    );
+    return uploadId;
+  } catch (e) {
+    throw withServerMessage(e);
+  }
+}
+
+export async function getTeacherGroupUpload(id: string): Promise<TeacherGroupUpload> {
+  return gatedJson<TeacherGroupUpload>(`/admin/bar/teacher-group/uploads/${id}`);
+}
+
+export async function listTeacherGroupUploads(): Promise<TeacherGroupUploadSummary[]> {
+  const { uploads } = await gatedJson<{ uploads: TeacherGroupUploadSummary[] }>("/admin/bar/teacher-group/uploads");
+  return uploads;
+}
+
+/** Same-origin URL for the packet PDF; the link carries the session cookie. */
+export function teacherGroupPdfUrl(id: string): string {
+  const path = `/admin/bar/teacher-group/uploads/${id}/pdf`;
+  return USING_DEV_PROXY ? `${API_BASE}${path}/` : `${API_BASE}${path}`;
+}

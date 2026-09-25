@@ -14,6 +14,14 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-25 - Teacher Group Organizer tile in `/cogs`.** Jon wants the Friday teacher-group flow to run without him, and named it "Teacher Group Organizer."
+  - **What staff do:** add the organizer's Word doc(s), or paste the email. The night is optional. At least one recipient is required (`@twistedpin.com` only, remembered on the device). Runner tickets are off by default; the kitchen lead called them likely unnecessary.
+  - **What happens:** TPRS reads it twice and resizes that night's Teacher Group lane holds when everything checks out. It emails the packet (a "Questions That Need Answers" cover sheet, then the kitchen and POS pages) and copies Jon.
+  - **The screen shows:** the lanes before and after; why lanes were held back; the wing choices to confirm at the lane; their sheet line by line next to how each line was read, with any unplaced line marked; the packet PDF. A failed read offers "Fix it and send again" with the inputs restored.
+  - **Rulings kept:** staff confirm missing choices at the lane, never the organizer ("let's not put this on Miki"). Lanes change only when the read is clean ("auto when clean").
+  - **Files:** `views/TeacherGroup.tsx`, CSS namespaced `lq-tg-*`, and the API client at the end of `api.ts`. The backend is tprs `admin/bar-teacher-group.ts` + `src/teacher-group/`, and must deploy first.
+  - **Verified:** in headless Chromium (phone and desktop widths) against a local backend on test data. Covered: refusals, upload, reading, result, PDF link, a no-change re-upload, and the failed-read retry.
+
 - **2026-09-25 - Homepage title leads with category and city (approved).** Jon approved the change.
   - **Old title:** "Twisted Pin — Cocktails, Taps & VIP Suite. Plainfield, IL."
   - **New title:** "Craft Cocktails & Bowling in Plainfield, IL | Twisted Pin" (57 characters).

@@ -13,12 +13,13 @@ import PriceWatch from "./views/PriceWatch";
 import PourCosts from "./views/PourCosts";
 import MapPours from "./views/MapPours";
 import RecipeBuilder from "./views/RecipeBuilder";
+import TeacherGroup from "./views/TeacherGroup";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -152,6 +153,7 @@ export default function LiquorApp() {
         {view === "pourcosts" && <PourCosts onDone={goHome} />}
         {view === "mappours" && <MapPours onDone={goHome} />}
         {view === "recipes" && <RecipeBuilder onDone={goHome} />}
+        {view === "teachergroup" && <TeacherGroup onDone={goHome} />}
       </main>
     </div>
   );
