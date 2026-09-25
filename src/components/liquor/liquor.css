@@ -2705,3 +2705,223 @@
   outline: 2px solid #4eecc4;
   outline-offset: 2px;
 }
+
+/* ── Teacher Group Organizer (views/TeacherGroup.tsx) ── */
+.lq-tg-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lq-tg-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: 9px;
+  padding: 4px 4px 4px 14px;
+  font-size: 15px;
+}
+.lq-tg-file-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.lq-tg-file-x {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--lq-muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+.lq-tg-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lq-tg-label {
+  font-size: 15px;
+  font-weight: 700;
+}
+.lq-tg-input {
+  width: 100%;
+  min-height: 48px;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  color: var(--lq-text);
+  border-radius: 9px;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 16px; /* ≥16px: no iOS focus zoom */
+  color-scheme: dark;
+}
+.lq-tg-input::placeholder {
+  color: var(--lq-muted);
+  opacity: 0.7;
+  font-style: italic;
+}
+.lq-tg-input:focus {
+  outline: 2px solid var(--lq-glow);
+  outline-offset: 2px;
+}
+.lq-tg-paste {
+  resize: vertical;
+  line-height: 1.45;
+}
+.lq-tg-help {
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+.lq-tg-check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.lq-tg-check input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  accent-color: var(--lq-glow);
+}
+
+/* status badges: the upload's, and each shift's lane outcome */
+.lq-tg-st-done,
+.lq-tg-st-applied {
+  background: rgba(201, 255, 61, 0.16);
+  color: var(--lq-glow);
+  border-color: rgba(201, 255, 61, 0.4);
+}
+.lq-tg-st-skipped {
+  background: rgba(255, 207, 92, 0.16);
+  color: #ffcf5c;
+  border-color: rgba(255, 207, 92, 0.4);
+}
+.lq-tg-st-failed {
+  background: rgba(255, 138, 138, 0.14);
+  color: var(--lq-danger);
+  border-color: rgba(255, 138, 138, 0.4);
+}
+
+.lq-tg-box {
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.lq-tg-box p {
+  margin: 4px 0;
+}
+.lq-tg-box-warn {
+  border-color: rgba(255, 207, 92, 0.55);
+  border-left: 4px solid #ffcf5c;
+}
+.lq-tg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+.lq-tg-h3 {
+  font-size: 17px;
+  margin: 0;
+}
+.lq-tg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.lq-tg-bullets {
+  list-style: disc;
+  padding-left: 20px;
+}
+.lq-tg-lane {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.lq-tg-lane .lq-badge {
+  margin-top: 2px;
+}
+
+/* their sheet, line by line */
+.lq-tg-file-head {
+  margin: 8px 0 4px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lq-muted);
+  overflow-wrap: anywhere;
+}
+.lq-tg-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lq-tg-line {
+  display: flex;
+  gap: 10px;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: 9px;
+  padding: 9px 12px;
+}
+.lq-tg-line-miss {
+  border-color: rgba(255, 207, 92, 0.55);
+  border-left: 4px solid #ffcf5c;
+}
+.lq-tg-line-n {
+  flex: 0 0 auto;
+  min-width: 22px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lq-muted);
+  padding-top: 2px;
+}
+.lq-tg-line-body {
+  min-width: 0;
+}
+.lq-tg-line-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.lq-tg-line-read {
+  margin: 3px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--lq-muted);
+  overflow-wrap: anywhere;
+}
+.lq-tg-line-miss .lq-tg-line-read {
+  color: #ffcf5c;
+}
+/* the packet link sits in the footer as a button */
+.lq-tg-linkbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
