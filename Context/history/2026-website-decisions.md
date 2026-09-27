@@ -619,3 +619,7 @@ link available for a staff correction; matching paperwork never asserts receipt.
 When something remains unknown, show the specific questions supplied by the
 comparison. Fictional scenarios cover ordinary agreement and an incomplete
 reading, alongside the existing supplier-final and stale-review cases.
+Validation: 39 DOM scenarios, strict component TypeScript and production build;
+the two new states also pass six layouts at 320/390/960px, with phone screenshots
+inspected. All fixtures are fictional. Optional response fields keep this UI
+compatible with the previous backend during deployment.
