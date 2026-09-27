@@ -997,6 +997,9 @@ export interface InvoiceCopyReview {
   }>;
   reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
   reviewed: boolean; reviewedAt: string | null; ready: boolean; automaticallyReconciled?: boolean;
+  automaticBasis?: "supplier_final" | "matching_copies" | null;
+  questions?: string[];
+  readingIncomplete?: boolean;
 }
 export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
   await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));

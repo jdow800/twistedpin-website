@@ -609,3 +609,17 @@ scenario covers a saved credit beside a separate full-keg concern. Backend
 completion separately clears only deposit notes explained by the staff answer.
 Validation: 37 invoice DOM scenarios, strict component TypeScript and the
 production build pass. No layout styles changed; fixtures contain fictional data.
+
+## 2026-09-27 - Ordinary invoice copies can agree without another staff answer
+
+Show automatic agreement for a fully matching email and delivery scan from any
+supplier, using the backend's evidence checks. Distinguish literal matching copies
+from the specialized supplier-final shortage resolution. Keep the purchase-record
+link available for a staff correction; matching paperwork never asserts receipt.
+When something remains unknown, show the specific questions supplied by the
+comparison. Fictional scenarios cover ordinary agreement and an incomplete
+reading, alongside the existing supplier-final and stale-review cases.
+Validation: 39 DOM scenarios, strict component TypeScript and production build;
+the two new states also pass six layouts at 320/390/960px, with phone screenshots
+inspected. All fixtures are fictional. Optional response fields keep this UI
+compatible with the previous backend during deployment.

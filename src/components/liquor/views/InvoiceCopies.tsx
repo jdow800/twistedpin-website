@@ -14,17 +14,19 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
     finally { setBusy(null); }
   }
   return <>{reviews.map(review => <section key={review.copyId} className="lq-invd-review" aria-label="Invoice and delivery comparison">
-    <h3>{review.automaticallyReconciled ? "Copies agree automatically" : review.reviewed ? "Comparison reviewed" : "Compare invoice and delivery"}</h3>
+    <h3>{review.automaticallyReconciled ? "Copies agree automatically" : review.reviewed ? "Comparison reviewed" : review.readingIncomplete ? "Check the invoice reading" : "Compare invoice and delivery"}</h3>
     <p>The email and delivery scan are linked to invoice #{review.invoiceNumber}. There is one purchase record. Matching paperwork does not verify what physically arrived.</p>
-    {review.automaticallyReconciled && <p>The supplier's final invoice accounts for the scanned items and adjustments. No answer needed. Open the purchase record if staff found a different delivery problem.</p>}
+    {review.automaticallyReconciled && <p>{review.automaticBasis === "matching_copies"
+      ? "Both copies agree on the billed items, packages, charges and totals. No answer needed."
+      : "The supplier's final invoice accounts for the scanned items and adjustments. No answer needed."} Open the purchase record if staff found a different delivery problem.</p>}
     <div className="lq-invd-review-actions">
       {currentId !== review.expected.id && <button className="lq-btn lq-btn-ghost" onClick={() => onOpen(review.expected.id)}>Open emailed invoice</button>}
       {currentId !== review.delivered.id && <button className="lq-btn lq-btn-ghost" onClick={() => onOpen(review.delivered.id)}>Open delivery scan</button>}
       {currentId !== review.originalId && <button className="lq-btn" onClick={() => onOpen(review.originalId)}>Match items or correct the purchase record</button>}
     </div>
-    {review.reasons.length > 0 && <ul>{review.reasons.map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
+    {!review.automaticallyReconciled && !review.reviewed && (review.questions ?? review.reasons).length > 0 && <ul>{(review.questions ?? review.reasons).map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
     <details open={review.differenceCount > 0 && !review.reviewed}>
-      <summary>{review.differenceCount ? `${review.differenceCount} item comparisons to check` : "Billed items agree; view package readings"}</summary>
+      <summary>{review.readingIncomplete ? "View item readings; check source pages first" : review.differenceCount ? `${review.differenceCount} item comparisons to check` : "Billed items agree; view package readings"}</summary>
       {[...review.rows].sort((a, b) => Number(!!b.issues.length) - Number(!!a.issues.length)).map(row => <div className="lq-invd-line" key={row.code}>
         <strong>{row.description}</strong>
         <p className="lq-muted">Supplier item: {row.code.startsWith("unidentified-") ? "not read" : row.code}</p>
