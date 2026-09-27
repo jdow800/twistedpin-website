@@ -67,10 +67,14 @@ const catalog=[{id:'titos',name:"Tito's Vodka",section:'bar',sizeMl:750,countUni
 if(mode.startsWith('explain') || mode==='deposit-auto') {
   detail.explanationToken='a'.repeat(64);
   detail.lines.push({...line,id:'test-deposit',lineType:'deposit',rawDescription:'Keg deposits',qtyUnits:'2',unitCost:'20',extendedAmount:'40'});
-  if(mode==='deposit-auto') {
+  if(mode==='deposit-auto' || mode==='explain-remaining') {
     invoice.printedTotal=invoice.extractedTotal='140';invoice.status='extracted';invoice.reviewNotes=[];
     detail.depositResolution={id:'deposit-action',source:'automatic',original_total:'180.00',credit:'40.00',total:'140.00',remaining_questions:false};
     detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:'-40',extendedAmount:'-40'});
+    if(mode==='explain-remaining') {
+      invoice.status='flagged';invoice.reviewNotes=['Empty keg returned; one full keg missing'];
+      detail.depositResolution.source='staff';detail.depositResolution.remaining_questions=true;
+    }
   }
 }
 if(mode==='linked-auto') {
