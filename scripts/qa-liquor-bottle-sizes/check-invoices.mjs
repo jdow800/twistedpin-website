@@ -211,6 +211,21 @@ await run('a matching final settles a shortage without asking staff to confirm i
   assert.ok(!button('Both copies checked; corrections recorded'));
   assert.ok(!button(confirm));assert.ok(!log().includes('POST'));
 });
+await run('ordinary matching copies explain the evidence without pretending to be a supplier final','linked-agree',async({doc,button,log})=>{
+  const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
+  assert.match(panel.textContent,/Copies agree automatically/);
+  assert.match(panel.textContent,/Both copies agree on the billed items, packages, charges and totals/);
+  assert.ok(!panel.textContent.includes("supplier's final"));
+  assert.ok(!button('Both copies checked; corrections recorded'));assert.ok(!button(confirm));
+  assert.ok(!log().includes('POST'));
+});
+await run('an incomplete reading asks about source pages instead of assuming a shortage','linked-question',async({doc,button,log})=>{
+  const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
+  assert.match(panel.textContent,/Check the invoice reading/);
+  assert.match(panel.textContent,/saved lines do not reconcile/);
+  assert.match(panel.textContent,/before treating missing rows as a delivery shortage/);
+  assert.ok(button('Both copies checked; corrections recorded'));assert.ok(!log().includes('POST'));
+});
 await run('an automatic deposit credit shows the arithmetic and remains correctable','deposit-auto',async({doc,button,log})=>{
   assert.match(doc.querySelector('[aria-label="Invoice explanation"]').textContent,/180.00.*40.00.*140.00 due/);
   assert.match(doc.querySelector('.lq-invd-totals').textContent,/Amount due/);

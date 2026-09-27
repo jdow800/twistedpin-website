@@ -85,6 +85,16 @@ if(mode==='linked-auto') {
     rows:[{code:'111',description:'Example spirit',originalLineIds:['original-line'],issues:[],information:['The supplier final already removes this shortage.'],
       expected:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},delivered:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},sourceDelivered:{quantity:2,amount:'40.00'}}]}];
 }
+if(mode==='linked-agree' || mode==='linked-question') {
+  invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
+    expected:{id:'test-original',source:'email',printedTotal:'180.00'},delivered:{id:'test-invoice',source:'scan',printedTotal:'180.00'},
+    reviewHash:'a'.repeat(64),reviewed:false,automaticallyReconciled:mode==='linked-agree',automaticBasis:mode==='linked-agree'?'matching_copies':null,
+    ready:true,differenceCount:0,feeDifference:0,reasons:[],readingIncomplete:mode==='linked-question',
+    questions:mode==='linked-question'?["The scan's saved lines do not reconcile to its printed total. Check that every page and charge was read before treating missing rows as a delivery shortage."]:[],
+    rows:[{code:'DEMO-123',description:'Example freezer item',originalLineIds:['original-line'],issues:[],
+      expected:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']},delivered:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']}}]}];
+}
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 window.fetch=async(url,options={})=>{
   const path=new URL(url,location.href).pathname;
