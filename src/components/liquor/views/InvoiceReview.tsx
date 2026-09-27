@@ -34,7 +34,8 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const extracted = Number(inv.extractedTotal);
   const delta = inv.printedTotal != null && inv.extractedTotal != null
     && Number.isFinite(printed) && Number.isFinite(extracted) ? Math.abs(printed - extracted) : 0;
-  const emptyKegNotes = notes.some((note) => /\bempties\b|\bempty\s+kegs?\b/i.test(note));
+  const emptyKegNotes = notes.some((note) => /\bempt(?:y|ies)\b/i.test(note));
+  const canExplainDeposit = emptyKegNotes && !!detail.explanationToken && detail.lines.some(line => line.lineType === "deposit");
   const image = detail.images[0];
   const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01;
 
@@ -51,10 +52,12 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
               <ul className="lq-invd-review-notes">
                 {notes.map((note, index) => <li key={index}>{note}</li>)}
               </ul>
-              <p>{emptyKegNotes
+              <p>{canExplainDeposit ? "These notes describe an empty-keg deposit return. State the credit and revised total below to record the adjustment."
+                : emptyKegNotes
                 ? "These notes mention empty-keg returns. Check the number returned, the deposit credit and any revised total. A handwritten final total is the expected vendor charge after their office processes the invoice. Change a delivered quantity below only if full kegs were also missing."
                 : "Compare these notes with the original invoice and what arrived. Record any delivery shortage on the affected item below; check credits with the vendor."}</p>
-              <p className="lq-muted">The totals below still reflect the original bill. Handwritten adjustments stay attached as notes. Confirming finishes this review; it does not record an adjusted charge or verify the vendor's actual charge.</p>
+              {canExplainDeposit ? <p><a className="lq-linkbtn" href="#invoice-explanation">Tell us what happened below</a></p>
+                : <p className="lq-muted">The totals below still reflect the saved bill. Confirming this review does not record an adjusted charge or verify the vendor's actual charge.</p>}
             </div>
           )}
           {marked.length > 0 && (
@@ -100,7 +103,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           </button>
         )}
       </div>
-      {inv.status === "flagged" && !inv.duplicateOf && !productReview && (
+      {inv.status === "flagged" && !inv.duplicateOf && !productReview && !canExplainDeposit && (
         <div className="lq-invd-review-confirm">
           <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>

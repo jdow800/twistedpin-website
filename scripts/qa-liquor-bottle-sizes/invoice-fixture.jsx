@@ -64,6 +64,23 @@ const catalog=[{id:'titos',name:"Tito's Vodka",section:'bar',sizeMl:750,countUni
   {id:'pepperoni',name:'Peperoni Sliced',section:'food',sizeMl:null,countUnit:'pack'},
   {id:'sausage',name:'Italian Sausage',section:'food',sizeMl:null,countUnit:'lb'},
   {id:'wings',name:'Chicken Wings Boneless',section:'food',sizeMl:null,countUnit:'case'}];
+if(mode.startsWith('explain') || mode==='deposit-auto') {
+  detail.explanationToken='a'.repeat(64);
+  detail.lines.push({...line,id:'test-deposit',lineType:'deposit',rawDescription:'Keg deposits',qtyUnits:'2',unitCost:'20',extendedAmount:'40'});
+  if(mode==='deposit-auto') {
+    invoice.printedTotal=invoice.extractedTotal='140';invoice.status='extracted';invoice.reviewNotes=[];
+    detail.depositResolution={id:'deposit-action',source:'automatic',original_total:'180.00',credit:'40.00',total:'140.00',remaining_questions:false};
+    detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:'-40',extendedAmount:'-40'});
+  }
+}
+if(mode==='linked-auto') {
+  invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];
+  detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
+    expected:{id:'test-original',source:'email',printedTotal:'140.00'},delivered:{id:'test-invoice',source:'scan',printedTotal:'180.00'},
+    reviewHash:'a'.repeat(64),reviewed:false,automaticallyReconciled:true,ready:true,differenceCount:0,feeDifference:0,reasons:[],
+    rows:[{code:'111',description:'Example spirit',originalLineIds:['original-line'],issues:[],information:['The supplier final already removes this shortage.'],
+      expected:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},delivered:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},sourceDelivered:{quantity:2,amount:'40.00'}}]}];
+}
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 window.fetch=async(url,options={})=>{
   const path=new URL(url,location.href).pathname;
@@ -90,6 +107,17 @@ window.fetch=async(url,options={})=>{
     automatic[0]={...automatic[0],status:'corrected',canCorrect:true,unitsPerCase:body.unitsPerCase,
       costPerUnit:80/body.unitsPerCase,token:'b'.repeat(64),correction:result};
     return json({resolved:true,result});
+  }
+  if(path.endsWith('/explanation')) {
+    if(mode==='explain-stale')return json({error:'invoice_changed'},409);
+    if(mode==='explain-question')return json({error:'answer_needs_detail',question:'What is the deposit credit and revised amount due?'},422);
+    const body=JSON.parse(options.body),credit=body.text.includes('$20')?20:40,total=180-credit;
+    invoice.printedTotal=invoice.extractedTotal=total.toFixed(2);invoice.status='extracted';invoice.reviewNotes=[];
+    detail.depositResolution={id:'deposit-action',source:'staff',explanation:body.text,original_total:'180.00',credit:credit.toFixed(2),total:total.toFixed(2),remaining_questions:false};
+    detail.explanationToken=(credit===20?'c':'b').repeat(64);
+    detail.lines=detail.lines.filter(l=>l.id!=='credit');
+    detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:String(-credit),extendedAmount:String(-credit)});
+    return json({applied:true,result:detail.depositResolution});
   }
   if(path.endsWith('/match')||path.endsWith('/new-sku')) {
     const body=JSON.parse(options.body); line.needsReview=false;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;

@@ -993,15 +993,18 @@ export interface InvoiceCopyReview {
   rows: Array<{ code: string; description: string; originalLineIds: string[]; issues: string[]; information?: string[];
     expected: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
     delivered: { quantity: number | null; cases: number | null; amount: string; packages: string[] } | null;
+    sourceDelivered?: { quantity: number | null; amount: string } | null;
   }>;
   reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
-  reviewed: boolean; reviewedAt: string | null; ready: boolean;
+  reviewed: boolean; reviewedAt: string | null; ready: boolean; automaticallyReconciled?: boolean;
 }
 export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
   await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));
 }
 export interface InvoiceDetail {
   copyReviews?: InvoiceCopyReview[];
+  explanationToken?: string;
+  depositResolution?: InvoiceDepositResolution | null;
   invoice: InvoiceSummary & {
     extractedTotal: string | null;
     printedProductTotal?: string | null;
@@ -1013,6 +1016,19 @@ export interface InvoiceDetail {
   lines: InvoiceLine[];
   images: InvoiceImageRef[];
   buckets: InvoiceBuckets;
+}
+
+export interface InvoiceDepositResolution {
+  id: string;
+  source: "automatic" | "staff";
+  explanation: string;
+  original_total: string;
+  credit: string;
+  total: string;
+  remaining_questions: boolean;
+}
+export async function explainInvoice(id: string, token: string, text: string): Promise<{ applied: boolean; result: InvoiceDepositResolution }> {
+  return gatedJson(`/admin/bar/invoices/${id}/explanation`, jsonBody({ token, text }));
 }
 
 /** Dollars OUR catalog placed. The only figure that is our department by our

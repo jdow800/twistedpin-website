@@ -587,3 +587,15 @@ and mobile form sizes. Fictional DOM tests include correction and stale-edit rec
 invoice component TypeScript and production build pass. Opus 5.5 / Extra High
 read-only review cleared the correction contract. Backend must deploy first.
 No source invoice documents, real product prices or internal notes are published.
+
+## 2026-09-26 - Final invoice copies and written deposit answers
+
+Jon wants routine delivery scans compared with emailed finals, and invoice
+questions answered in plain words. A reconciled copy now says Copies agree
+automatically and retains the paper's original line beside the reconciled result.
+Deposit reviews expose Tell us what happened; saving an answer records a separate
+credit and revised amount due. The result is visible and can be corrected again.
+Stale edits refresh, and unclear answers display the specific missing detail.
+Existing inventory styles are reused. QA uses fictional invoices only: 36 DOM
+scenarios, strict component TypeScript, production build and 24 responsive layouts
+at 320/390/960px pass. Deployment follows the corresponding backend release.

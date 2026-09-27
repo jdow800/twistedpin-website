@@ -204,3 +204,32 @@ for (const mode of ['automatic','automatic-stale']) await run('automatic answer 
   if(mode==='automatic-stale')assert.match(doc.querySelector('[role=alert]').textContent,/This answer changed/);
   else await until(()=>doc.body.textContent.includes('Current price corrected from $20.00 to $10.00'));
 });
+
+await run('a matching final settles a shortage without asking staff to confirm it again','linked-auto',async({doc,button,log})=>{
+  assert.match(doc.body.textContent,/Copies agree automatically/);
+  assert.match(doc.body.textContent,/Original paper line: 2.*40.00, crossed out/);
+  assert.ok(!button('Both copies checked; corrections recorded'));
+  assert.ok(!button(confirm));assert.ok(!log().includes('POST'));
+});
+await run('an automatic deposit credit shows the arithmetic and remains correctable','deposit-auto',async({doc,button,log})=>{
+  assert.match(doc.querySelector('[aria-label="Invoice explanation"]').textContent,/180.00.*40.00.*140.00 due/);
+  assert.match(doc.querySelector('.lq-invd-totals').textContent,/Amount due/);
+  assert.ok(button('Correct this answer'));assert.ok(!button('Save answer'));assert.ok(!log().includes('POST'));
+});
+for(const mode of ['explain','explain-question','explain-stale']) await run('written deposit answer '+mode,mode,async({doc,button,click,log,dom})=>{
+  assert.ok(!button(confirm));
+  const fill=async text=>{const input=doc.querySelector('textarea');Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(input,text);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();};
+  await fill('Empty keg deposit return $40; total due $140');await click('Save answer');
+  assert.match(log(),/\/explanation/);assert.match(log(),/"token":"aaaaaaaa/);
+  if(mode==='explain-question') {assert.match(doc.querySelector('[role=alert]').textContent,/What is the deposit credit/);assert.ok(doc.querySelector('textarea').value.includes('$40'));}
+  else if(mode==='explain-stale') {assert.match(doc.querySelector('[role=alert]').textContent,/invoice changed/);assert.ok(button('Refresh invoice'));assert.ok(button('Save answer').disabled);}
+  else {
+    await until(()=>doc.body.textContent.includes('Answer recorded'));
+    assert.match(doc.querySelector('.lq-invd-totals').textContent,/140.00/);
+    await click('Correct this answer');await fill('Empty keg deposit return $20; total due $160');await click('Save answer');
+    await until(()=>doc.querySelector('.lq-invd-totals').textContent.includes('160.00'));
+    assert.match(log(),/"token":"bbbbbbbb/);
+    assert.equal(doc.querySelectorAll('.lq-invd-desc').length,3);
+  }
+});
+console.log(`Invoice UI: ${passed} cases passed`);
