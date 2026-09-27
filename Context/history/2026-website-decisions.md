@@ -14,6 +14,8 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-09-26 - AGENTS.md is a pointer, not a copy (Jon approved landing it).** AGENTS.md was a hand-maintained copy of CLAUDE.md frozen at its 2026-05-17 state, and it still carried since-retired wording ("set apart from the main floor", "built by America's Top Mixologist"). It now sends agents to the dev-root `CLAUDE.md`, then this repo's `CLAUDE.md`. The edit was written 2026-09-08 during the CLAUDE.md split but never committed. Prior contents: `git show 51a2b95:AGENTS.md`.
+
 - **2026-09-26 - Google Ads records housekeeping (Jon asked for a cleanup).** Script 19 (September 13) had never been committed. Its script, tests, runbook, Preview and live records, negative-keyword export and two error screenshots are now in `scripts/google-ads/` beside Scripts 20 and 21, and its seven figure-free September 12-13 log entries are restored under those dates. `Context/google-ads-reviews/` is now git-ignored: the reviews hold spend and inquiry figures and this repository is public. The full reviews, the September 12 handoff and the five figure-bearing log entries are backed up in the private `twisted-pin-notes` repo (`google-ads-reviews/`, commit 135f03d). No site or Ads account change.
 
 - **2026-09-25 - Teacher Group Organizer: "Added instructions" replace the paste box (Jon, after using the live screen).**
