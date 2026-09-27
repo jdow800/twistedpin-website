@@ -14,8 +14,9 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
     finally { setBusy(null); }
   }
   return <>{reviews.map(review => <section key={review.copyId} className="lq-invd-review" aria-label="Invoice and delivery comparison">
-    <h3>{review.reviewed ? "Comparison reviewed" : "Compare invoice and delivery"}</h3>
+    <h3>{review.automaticallyReconciled ? "Copies agree automatically" : review.reviewed ? "Comparison reviewed" : "Compare invoice and delivery"}</h3>
     <p>The email and delivery scan are linked to invoice #{review.invoiceNumber}. There is one purchase record. Matching paperwork does not verify what physically arrived.</p>
+    {review.automaticallyReconciled && <p>The supplier's final invoice accounts for the scanned items and adjustments. No answer needed. Open the purchase record if staff found a different delivery problem.</p>}
     <div className="lq-invd-review-actions">
       {currentId !== review.expected.id && <button className="lq-btn lq-btn-ghost" onClick={() => onOpen(review.expected.id)}>Open emailed invoice</button>}
       {currentId !== review.delivered.id && <button className="lq-btn lq-btn-ghost" onClick={() => onOpen(review.delivered.id)}>Open delivery scan</button>}
@@ -28,7 +29,8 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
         <strong>{row.description}</strong>
         <p className="lq-muted">Supplier item: {row.code.startsWith("unidentified-") ? "not read" : row.code}</p>
         <p>Email: {row.expected ? `${row.expected.quantity ?? "?"} billed · $${row.expected.amount} · ${row.expected.packages.join(", ")}` : "Item not read"}</p>
-        <p>Scan: {row.delivered ? `${row.delivered.quantity ?? "?"} billed · $${row.delivered.amount} · ${row.delivered.packages.join(", ")}` : "Item not read"}</p>
+        <p>{row.sourceDelivered ? "Scan after the documented shortage" : "Scan"}: {row.delivered ? `${row.delivered.quantity ?? "?"} billed · $${row.delivered.amount} · ${row.delivered.packages.join(", ")}` : "Item not read"}</p>
+        {row.sourceDelivered && <p>Original paper line: {row.sourceDelivered.quantity ?? "?"} · ${row.sourceDelivered.amount}, crossed out.</p>}
         {row.issues.map((issue, i) => <p className="lq-muted" key={i}>{issue}</p>)}
         {row.information?.map((note, i) => <p className="lq-muted" key={`info-${i}`}>{note}</p>)}
         {row.issues.length > 0 && row.originalLineIds.map((lineId, i) => <button className="lq-linkbtn" key={lineId} onClick={() => onOpen(review.originalId, lineId)}>
@@ -36,7 +38,7 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
         </button>)}
       </div>)}
     </details>
-    {!review.reviewed && <>
+    {!review.reviewed && !review.automaticallyReconciled && <>
       <p>Check the source pages and record any delivery corrections on the purchase record before finishing. This button records your review; it does not change prices or quantities.</p>
       <button className="lq-btn" disabled={!!busy || !review.ready} onClick={() => void confirm(review)}>
         {busy === review.copyId ? "Saving…" : "Both copies checked; corrections recorded"}

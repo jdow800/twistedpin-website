@@ -26,6 +26,7 @@ import { matchSkus } from "../matcher";
 import { searchInvoiceItems, invoiceItemLabel } from "../invoice-catalog";
 import InvoiceCopies from "./InvoiceCopies";
 import InvoiceAutomaticAnswers from "./InvoiceAutomaticAnswers";
+import InvoiceExplanation from "./InvoiceExplanation";
 import InvoiceReview, { jumpToInvoiceLine, reviewAnnotationFor, reviewReasonsFor } from "./InvoiceReview";
 
 /** "1.75L" / "750ML" / "1L" → ml (mirrors the backend parseSizeMl); null if none. */
@@ -275,11 +276,12 @@ export default function Invoices({
         </p>
         <InvoiceCopies reviews={detail.copyReviews ?? []} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
         <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
+        <InvoiceExplanation key={`${inv.id}:${detail.explanationToken}`} detail={detail} onRefresh={() => void refreshBuckets(inv.id)} />
         {!inv.duplicateOf && <InvoiceAutomaticAnswers invoiceId={inv.id} revision={detail} onSaved={() => void refreshBuckets(inv.id)} />}
         {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
         {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">
-          <div><span className="lq-muted">Printed total</span><strong>{money(inv.printedTotal)}</strong></div>
+          <div><span className="lq-muted">{detail.depositResolution ? "Amount due" : "Printed total"}</span><strong>{money(inv.printedTotal)}</strong></div>
           <div><span className="lq-muted">Total read from lines</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
 
@@ -327,7 +329,9 @@ export default function Invoices({
                 <p className="lq-invd-annot">
                   ✍️ {l.annotation}
                   <span className="lq-invd-annot-hint">
-                    {reviewAnnotationFor(l)
+                    {inv.duplicateOf && detail.copyReviews?.some(copy => copy.copyId === inv.id && copy.automaticallyReconciled)
+                      ? " — source note retained; this adjustment is already accounted for in the supplier's final invoice."
+                      : reviewAnnotationFor(l)
                       ? " — printed numbers were kept. Record how much of this item actually arrived; enter 0 if none was delivered."
                       : " — deposit return note, kept for reference."}
                   </span>
