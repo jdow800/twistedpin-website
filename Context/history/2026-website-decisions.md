@@ -599,3 +599,13 @@ Stale edits refresh, and unclear answers display the specific missing detail.
 Existing inventory styles are reused. QA uses fictional invoices only: 36 DOM
 scenarios, strict component TypeScript, production build and 24 responsive layouts
 at 320/390/960px pass. Deployment follows the corresponding backend release.
+
+## 2026-09-27 - Finish the remaining review after a deposit answer
+
+Once a deposit answer is recorded, the invoice keeps its correction action and
+shows any remaining delivery notes without demanding the same deposit answer
+again. The remaining-review confirmation stays available. A fictional DOM
+scenario covers a saved credit beside a separate full-keg concern. Backend
+completion separately clears only deposit notes explained by the staff answer.
+Validation: 37 invoice DOM scenarios, strict component TypeScript and the
+production build pass. No layout styles changed; fixtures contain fictional data.

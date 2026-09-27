@@ -232,4 +232,13 @@ for(const mode of ['explain','explain-question','explain-stale']) await run('wri
     assert.equal(doc.querySelectorAll('.lq-invd-desc').length,3);
   }
 });
+await run('a recorded deposit answer leaves a way to finish the remaining review','explain-remaining',async({doc,button,log})=>{
+  assert.match(doc.body.textContent,/Answer recorded/);
+  assert.match(doc.body.textContent,/one full keg missing/);
+  assert.match(doc.body.textContent,/Other questions on this invoice still need an answer/);
+  assert.ok(button(confirm));assert.ok(button('Correct this answer'));
+  assert.ok(!button('Save answer'));
+  assert.ok(!doc.body.textContent.includes('State the credit and revised total below'));
+  assert.ok(!log().includes('POST'));
+});
 console.log(`Invoice UI: ${passed} cases passed`);

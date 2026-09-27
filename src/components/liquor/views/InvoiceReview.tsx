@@ -35,7 +35,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const delta = inv.printedTotal != null && inv.extractedTotal != null
     && Number.isFinite(printed) && Number.isFinite(extracted) ? Math.abs(printed - extracted) : 0;
   const emptyKegNotes = notes.some((note) => /\bempt(?:y|ies)\b/i.test(note));
-  const canExplainDeposit = emptyKegNotes && !!detail.explanationToken && detail.lines.some(line => line.lineType === "deposit");
+  const canExplainDeposit = emptyKegNotes && !detail.depositResolution && !!detail.explanationToken && detail.lines.some(line => line.lineType === "deposit");
   const image = detail.images[0];
   const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01;
 
@@ -53,7 +53,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
                 {notes.map((note, index) => <li key={index}>{note}</li>)}
               </ul>
               <p>{canExplainDeposit ? "These notes describe an empty-keg deposit return. State the credit and revised total below to record the adjustment."
-                : emptyKegNotes
+                : emptyKegNotes && !detail.depositResolution
                 ? "These notes mention empty-keg returns. Check the number returned, the deposit credit and any revised total. A handwritten final total is the expected vendor charge after their office processes the invoice. Change a delivered quantity below only if full kegs were also missing."
                 : "Compare these notes with the original invoice and what arrived. Record any delivery shortage on the affected item below; check credits with the vendor."}</p>
               {canExplainDeposit ? <p><a className="lq-linkbtn" href="#invoice-explanation">Tell us what happened below</a></p>
