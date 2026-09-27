@@ -42,6 +42,12 @@ Context/og images/
 # files live in public/playbook/ and ARE committed (a fresh clone renders fine
 # but can't re-encode). Pipeline: scripts/build-playbook-images.mjs
 Context/Playbook and guidebook photos/
+# Google Ads reviews (2026-09-26). The dated review folders hold spend, click,
+# conversion and inquiry figures, and this repo is PUBLIC. They sat as plain
+# untracked files, one stray `git add -A` from publication. Backed up in the
+# private twisted-pin-notes repo under google-ads-reviews/. The Ads scripts and
+# their run records carry no figures and ARE committed in scripts/google-ads/.
+Context/google-ads-reviews/
 
 
 .vercel
