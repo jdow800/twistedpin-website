@@ -56,7 +56,7 @@ import { foodCountWarning, foodReviewQuantity, foodUnitLabel as unitLabel, type 
  * smaller than a liquor one. Fryer Line is 41 SKUs.
  *
  * ⚠ THE RECORDER IS NOT LIMITED BY THIS. useRecorderDictation ROTATES the
- * MediaRecorder every ~60s on the same never-released stream and joins the
+ * MediaRecorder every ~20s on the same never-released stream and joins the
  * transcripts in order, so length is not a technical constraint. This is a
  * safety rail on how much work a single failed clip can lose.
  *
@@ -482,7 +482,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  gets no feedback from the one button that matters, so the reasonable
    *  reaction is to tap it again or decide the app is broken. */
   const reviewRef = useRef<HTMLDivElement | null>(null);
-  // Match each ~60s segment while the counter keeps talking, as CountLiquor
+  // Match each ~20s segment while the counter keeps talking, as CountLiquor
   // does. Stop waits for unfinished segments instead of starting the entire
   // take's extraction. Index by spoken position: upload retries can finish
   // out of order. Resolve failures here so a background rejection is handled

@@ -81,3 +81,10 @@ not retry, brief network failures retry once, Stop releases the microphone, and
 successful segments survive a later failure. Neither uses a real microphone or
 external transcription service. Rebuild `--food-voice` and run
 `check-food-voice.mjs` to verify transcript retry and late-result isolation.
+
+Run `node check-recorder-segments.mjs` to exercise the shared recorder's actual
+intervals with a synthetic microphone and controlled clock. Food and liquor
+process a 45-second take as 20 + 20 + 5 seconds, preserving spoken order even
+when requests finish out of order. Stop during a rotation must retain the last
+clip and release the microphone only once. Keg flows retain their 60-second
+interval. These checks do not measure recognition quality or live latency.
