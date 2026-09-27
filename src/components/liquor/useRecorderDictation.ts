@@ -15,19 +15,20 @@ import { useDictation, type DictationState } from "./useSpeech";
 // MediaRecorder holds the mic ONCE: SCO comes up at Record, stays up, drops at
 // Stop. The Beats mic works the way it should.
 //
-// Incremental processing: the recorder is ROTATED every ~60s on the same
+// Incremental processing: food and liquor counts ROTATE every ~20s on the same
 // stream (stream never released — rotation doesn't touch the mic route). Each
-// segment is a standalone playable clip that uploads for transcription
-// immediately, so a 4-minute count is mostly transcribed before the counter
-// taps Stop; only the last segment (~1-2s of server time) remains. Segment
-// texts join in order. The trade: a word spoken exactly across a rotation
-// boundary can split. Boundaries are 60s apart and counts are naturally pausey,
-// so it's rare — and the review sheet surfaces anything mangled.
+// segment is a standalone playable clip that uploads for transcription and
+// item extraction while recording continues. Stop waits for the final clip
+// and any older requests still running; texts join in spoken order. Callers
+// without background item extraction keep the original ~60s interval.
+// The trade: more requests and more boundaries where a spoken word can split.
+// This is fixed-interval batching, not pause detection or live streaming.
 //
 // No live transcript by design (owner call 2026-07-27): the joined text
-// appears per-segment (~every 60s), not per-word.
+// appears as completed segments arrive, not per-word.
 
 const SEGMENT_MS = 60_000;
+const COUNT_SEGMENT_MS = 20_000;
 // Opus at 32 kbps is transparent for speech and keeps a 60s segment ~240 KB —
 // comfortably inside the ~4.5 MB proxy body cap even for an unrotated take.
 const AUDIO_BPS = 32_000;
@@ -99,9 +100,9 @@ export interface RecorderDictationOptions {
   /**
    * Fires once per rotation segment as its transcript lands — DURING the
    * recording, before onFinal. Lets the caller start the (slow, ~3-13s) LLM
-   * extraction per segment in the background, so tapping Stop only ever waits
-   * on the LAST segment instead of the whole take. `index` is the segment's
-   * spoken-order position (transcripts can complete out of order on a retry —
+   * extraction per segment in the background. These callers rotate every 20s;
+   * Stop waits for the final segment and any older unfinished work. `index` is
+   * the segment's spoken-order position (transcripts can finish out of order —
    * key any accumulation by index, not arrival). Every successful segment's
    * callback fires before onFinal does; failed segments never fire.
    */
@@ -533,7 +534,7 @@ export function useRecorderDictation(
           const r = recorderRef.current;
           // stop() → onstop uploads the segment and starts the next one.
           if (wantRef.current && r && r.state === "recording") r.stop();
-        }, SEGMENT_MS);
+        }, onSegmentRef.current ? COUNT_SEGMENT_MS : SEGMENT_MS);
       })
       .catch((e: unknown) => {
         wantRef.current = false;

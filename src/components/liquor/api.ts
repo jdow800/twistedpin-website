@@ -587,7 +587,7 @@ export async function setSkuZone(
   );
 }
 
-/** Transcribe one recorded audio clip (a whole take or one ~60s rotation
+/** Transcribe one recorded audio clip (a whole take or one rotation
  *  segment) server-side. `vocabulary` picks the keyterm bias: liquor SKU names
  *  vs recent keg names. Returns plain text; "" when the clip was silence. */
 export async function transcribeAudio(

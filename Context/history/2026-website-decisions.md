@@ -623,3 +623,19 @@ Validation: 39 DOM scenarios, strict component TypeScript and production build;
 the two new states also pass six layouts at 320/390/960px, with phone screenshots
 inspected. All fixtures are fictional. Optional response fields keep this UI
 compatible with the previous backend during deployment.
+
+## 2026-09-27 - Start food and liquor count processing every 20 seconds
+
+Jon asked to reduce the existing interval for both counting screens. The shared
+recorder now rotates every 20 seconds for callers that process segments during
+recording (food and liquor), retaining the same microphone stream. Keg callers
+that interpret the complete transcript retain 60 seconds. Review and Apply stay
+at the end. Takes shorter than 20 seconds still start processing at Stop; this
+does not implement pause detection or streaming. Longer takes make roughly
+three times as many transcription/extraction requests, and fixed boundaries can
+still divide speech. Validation passed: nine recorder interval scenarios, four
+recorder recovery scenarios, 42 food voice scenarios, eight liquor/invoice UI
+scenarios, strict component TypeScript, required prebuild checks and production
+build. The synthetic recorder checks cover early processing, ordered assembly,
+Stop during rotation, and microphone reuse. Physical phone timing and recognition
+across the shorter boundaries remain to be checked in the next walk.

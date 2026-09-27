@@ -197,12 +197,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [caseAskErr, setCaseAskErr] = useState<{ skuId: string; msg: string } | null>(null);
   // Review-sheet case-size error, rendered inside the sheet (see answerCaseSize).
   const [caseErr, setCaseErr] = useState<{ idx: number; msg: string } | null>(null);
-  // Per-segment extraction: the recorder hands each ~60s segment's transcript
-  // over DURING the recording, and the slow part (the LLM extraction call,
-  // 3-13s) runs in the background per segment — so tapping Stop only ever
-  // waits on the LAST segment, making stop→review-sheet time roughly constant
-  // no matter how long the take was. Keyed by segment index (NOT arrival
-  // order — a retried upload can complete late) so the review sheet preserves
+  // Per-segment extraction: the recorder hands each ~20s segment's transcript
+  // over DURING the recording, and the LLM extraction runs in the background.
+  // Stop waits for the final segment and any older requests still running.
+  // Keyed by segment index (NOT arrival order — an upload can complete late)
+  // so the review sheet preserves
   // spoken order. The Web Speech fallback engine never fires onSegment; its
   // takes go through processTranscript whole, as before.
   const segExtractsRef = useRef<Map<number, Promise<VoiceExtractItem[] | null>>>(new Map());
