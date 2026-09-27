@@ -1222,6 +1222,20 @@
 .lq-invd-review .lq-linkbtn { font-size: 14px; min-height: 44px; }
 .lq-invd-review-confirm { border-top: 1px solid var(--lq-line); margin-top: 16px; padding-top: 12px; }
 .lq-invd-review-confirm .lq-btn { margin-top: 8px; }
+.lq-invd-explanation-text {
+  width: 100%;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 9px;
+  color: var(--lq-text);
+  color-scheme: dark;
+  padding: 12px 14px;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  resize: vertical;
+}
+.lq-invd-explanation-text:focus { outline: 2px solid var(--lq-glow); outline-offset: 2px; }
 .lq-invd-line { scroll-margin-top: 24px; }
 .lq-invd-line:focus { outline: 2px solid var(--lq-glow); outline-offset: 3px; }
 .lq-invd-secondary { border-top: 1px solid var(--lq-line); padding-top: 14px; }

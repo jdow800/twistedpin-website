@@ -43,7 +43,7 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
     {showForm && <form onSubmit={event => { event.preventDefault(); if (!busy && text.trim().length >= 5 && !stale) void save(); }}>
       <label htmlFor="invoice-explanation-text">Explain the empty-keg deposit return</label>
       <p className="lq-muted">For example: “Returned one empty keg. Deposit credit $30; total due $559.” This records the credit. If a full keg was missing, record that on its item below.</p>
-      <textarea id="invoice-explanation-text" className="lq-input" rows={4} maxLength={2000} value={text} onChange={event => setText(event.target.value)} style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }} />
+      <textarea id="invoice-explanation-text" className="lq-invd-explanation-text" rows={4} maxLength={2000} value={text} onChange={event => setText(event.target.value)} />
       <div className="lq-invd-review-actions">
         <button className="lq-btn" type="submit" disabled={busy || stale || text.trim().length < 5}>{busy ? "Saving answer…" : "Save answer"}</button>
         {saved && <button className="lq-linkbtn" type="button" disabled={busy} onClick={() => setEditing(false)}>Cancel</button>}
