@@ -186,6 +186,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [review, setReview] = useState<ReviewItem[] | null>(null);
+  /** Which shelf a voice take belongs to, captured when recording STARTS
+   *  rather than read when Apply is tapped. Apply used to write the take to
+   *  whichever tile was selected by then, so a counter who tapped the next
+   *  shelf while the take was processing filed it on the wrong shelf. The
+   *  food screen has done it this way since 2026-09-08. */
+  const [takeZoneId, setTakeZoneId] = useState<string | null>(null);
+  /** Mic live — Start until Stop, NOT until the uploads land. Shelf tiles are
+   *  refused while this is true, so a take stays one shelf; after Stop the
+   *  destination is fixed and walking on is safe. */
+  const [capturing, setCapturing] = useState(false);
   // "+ case size" on a grid row. Keyed "<where>:<skuId>" — a bottle can be on
   // screen twice at once (search result AND counted row), and a bare skuId
   // would open both editors with two inputs fighting over autoFocus.
@@ -207,6 +217,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const segExtractsRef = useRef<Map<number, Promise<VoiceExtractItem[] | null>>>(new Map());
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",
+    // ⚠ WITHOUT A SCOPE THE SERVER BIASES TOWARD EVERY ACTIVE SKU, alphabetical,
+    // and the food catalog now shares that list: measured 2026-09-28, only 50
+    // of 162 bar SKUs got a keyterm (Tito's, Patron, Jameson did not). The bar
+    // section alone covers 121, and the shelf in front of the counter goes
+    // first — the server builds liquor shelves from submitted count history.
+    scope: { section: "bar", zoneId: takeZoneId ?? zoneId },
     onSegment: (text, idx) => {
       if (!text.trim()) return;
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
@@ -432,15 +448,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }
 
   /** ADD to the running (zone, sku) total — the voice path. Cases and loose
-   *  containers accumulate independently so the entry memo stays truthful. */
+   *  containers accumulate independently so the entry memo stays truthful.
+   *  `dest` is the shelf the entry belongs to: the selected one for a grid
+   *  edit, the one the take STARTED on for a voice take. */
   function addQty(
     skuId: string,
     delta: { cases: number; units: number; caseSize: number | null },
     source: "grid" | "voice",
     raw?: string,
+    dest: string = zoneId,
   ) {
     setCounts((prev) => {
-      const zone = { ...(prev[zoneId] ?? {}) };
+      const zone = { ...(prev[dest] ?? {}) };
       const cur = zone[skuId];
       // SAME FREEZE RULE AS setCases: a size already stamped on this cell wins
       // over whatever the incoming delta carries. This used to read
@@ -465,7 +484,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           source,
           ...(raw ? { raw } : {}),
         };
-      return { ...prev, [zoneId]: zone };
+      return { ...prev, [dest]: zone };
     });
     setSave("idle");
     scheduleSave();
@@ -475,9 +494,17 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // Auto-stop at the hard cap; the transcript then arrives via the dictation
   // onFinal callback → processTranscript (so the last words aren't dropped).
   useEffect(() => {
-    if (dict.recording && dict.seconds >= CAP_SECONDS) dict.stop();
+    if (dict.recording && dict.seconds >= CAP_SECONDS) {
+      setCapturing(false);
+      dict.stop();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
+  // The recorder can also end on its own (mic lost, error). Whatever ended
+  // it, the shelf tiles must not stay locked behind a take that is over.
+  useEffect(() => {
+    if (!dict.recording) setCapturing(false);
+  }, [dict.recording]);
 
   function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
     return items.map((it, i) => ({
@@ -741,6 +768,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   function applyReview() {
     if (!review) return;
+    // The shelf the take was recorded on, not whichever tile is selected now.
+    const dest = takeZoneId ?? zoneId;
     // Sum duplicates within this clip, then ADD each into the zone total.
     const merged = new Map<string, { cases: number; units: number; caseSize: number | null; spoken: string }>();
     for (const it of review) {
@@ -759,21 +788,21 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // Cross-take add onto an occupied cell → remember it for the submit
       // dialog (the Empress double-count shape). Recorded BEFORE addQty so
       // `before` is what the earlier take(s) left, not the summed result.
-      const cur = countsRef.current[zoneId]?.[skuId];
+      const cur = countsRef.current[dest]?.[skuId];
       if (cur && cur.qty > 0) {
         const added = roundQty(units + cases * (caseSize ?? cur.caseSize ?? 0));
         if (added > 0) {
-          restatementsRef.current.set(`${zoneId}:${skuId}`, {
-            key: `${zoneId}:${skuId}`,
+          restatementsRef.current.set(`${dest}:${skuId}`, {
+            key: `${dest}:${skuId}`,
             name: skuById.get(skuId)?.name ?? "?",
-            zone: zones.find((z) => z.id === zoneId)?.name ?? "?",
+            zone: zones.find((z) => z.id === dest)?.name ?? "?",
             before: cur.qty,
             added,
             after: roundQty(cur.qty + added),
           });
         }
       }
-      addQty(skuId, { cases, units, caseSize }, "voice", spoken);
+      addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest);
     }
     // Keep any row that couldn't be applied, so nothing is silently dropped.
     const leftover = review.filter((r) => !applyable(r));
@@ -782,6 +811,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const reviewResolved = review ? review.filter(applyable).length : 0;
   const reviewPending = review ? review.length - reviewResolved : 0;
 
+  /** Voice work that must land before a count can close. Finish used to stay
+   *  live through all of it, so a counter could submit over a take still
+   *  recording, processing or waiting on the review sheet: the spoken bottles
+   *  never reached the count, and the server 409s any line saved after
+   *  submit. Guards the button, tryFinish and finish — the food screen's
+   *  rule since 2026-09-08. */
+  const voicePending = dict.recording || voiceBusy || (review?.length ?? 0) > 0;
+
   // Warn before submitting an incomplete count — don't close out a full-venue
   // inventory with a zone never touched (they can still choose to submit).
   /** The cheapest moment to fix anything: the counter is still standing at the
@@ -789,7 +826,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  DRAFT (review gate, 0136) — the draft window is the net, this check is the
    *  plan. After finalize, a wrong number is permanent for the period. */
   async function tryFinish() {
-    if (!sessionId || submitting || checking) return;
+    if (!sessionId || submitting || checking || voicePending) return;
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
     setChecking(true);
     let findings: PrecheckFinding[] = [];
@@ -891,6 +928,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }
 
   async function finish() {
+    // Behind the disabled Finish button, and before the dialog closes: a take
+    // that has not landed keeps the count open, with the dialog still up.
+    if (voicePending) return;
     setConfirmSubmit(null);
     if (!sessionId || submitting) return;
     setSubmitting(true);
@@ -976,6 +1016,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               role="tab"
               aria-selected={z.id === zoneId}
               className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}${n > 0 ? " lq-zone-done" : ""}`}
+              // A take is one shelf: while the mic is live the tiles hold still.
+              // After Stop they free up — the take's shelf is already pinned.
+              disabled={capturing}
               // Close any open "+ case size" editor — otherwise one left open
               // on Tito's in Back Bar reappears open on Tito's in Well.
               onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setCaseAsk(null); setCaseAskErr(null); }}
@@ -1017,8 +1060,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
             </p>
             {near && <p className="lq-rec-warntext">Wrap up this bottle — stopping at {mmss(CAP_SECONDS)}.</p>}
-            <button type="button" className="lq-btn lq-btn-primary lq-rec-stop" onClick={() => dict.stop()}>
-              ■ Stop &amp; process
+            <button
+              type="button"
+              className="lq-btn lq-btn-primary lq-rec-stop"
+              disabled={!capturing}
+              onClick={() => {
+                setCapturing(false); // speech is over; the shelf tiles are free again
+                dict.stop();
+              }}
+            >
+              {capturing ? <>■ Stop &amp; process</> : "Processing recording…"}
             </button>
           </div>
         ) : voiceBusy ? (
@@ -1026,7 +1077,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             <p className="lq-muted">Reading that back…</p>
           </div>
         ) : (
-          <button type="button" className="lq-record" onClick={() => { setVoiceErr(null); dict.start(); }}>
+          <button
+            type="button"
+            className="lq-record"
+            // ONE OUTSTANDING TAKE AT A TIME: there is a single takeZoneId, so a
+            // second take would re-point the first one's unreviewed rows.
+            disabled={(review?.length ?? 0) > 0}
+            onClick={() => {
+              setVoiceErr(null);
+              setTakeZoneId(zoneId); // the shelf this take is about
+              setCapturing(true);
+              dict.start();
+            }}
+          >
             <span className="lq-record-emoji" aria-hidden="true">🎤</span>
             <span>Record count for {zones.find((z) => z.id === zoneId)?.name ?? "this zone"}</span>
           </button>
@@ -1262,10 +1325,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           <button
             type="button"
             className={`lq-btn lq-btn-primary${checking ? " lq-btn-spotchecking" : ""}`}
-            disabled={submitting || checking || enteredTotal === 0}
+            disabled={submitting || checking || enteredTotal === 0 || voicePending}
             onClick={() => void tryFinish()}
           >
-            {submitting ? "Submitting…" : checking ? "Spot-checking the count…" : "Finish & submit"}
+            {submitting
+              ? "Submitting…"
+              : checking
+                ? "Spot-checking the count…"
+                : voicePending
+                  ? "Finish the recording first"
+                  : "Finish & submit"}
             {/* Progress over the server's 15s worst-case budget — never a fake
                 "almost done". A typical check lands ~5s in with the bar ~40%
                 full, which reads as finishing early rather than stalling. */}
@@ -1281,6 +1350,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             <div className="lq-sheet-head">
               <h3 className="lq-h2">Here's what I heard</h3>
               <p className="lq-muted">
+                Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this zone"}</strong>
+                {" · "}
                 {reviewResolved} ready{reviewPending > 0 && ` · ${reviewPending} need a tap`}
               </p>
             </div>
@@ -1366,7 +1437,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             <div className="lq-sheet-foot">
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setReview(null); setCaseErr(null); }}>Discard</button>
               <button type="button" className="lq-btn lq-btn-primary" disabled={reviewResolved === 0} onClick={applyReview}>
-                Add {reviewResolved} to {zones.find((z) => z.id === zoneId)?.name ?? "zone"}
+                Add {reviewResolved} to {zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "zone"}
               </button>
             </div>
           </div>

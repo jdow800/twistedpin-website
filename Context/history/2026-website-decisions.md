@@ -660,3 +660,33 @@ model or a change to count definitions, costs, receipt rules or re-read protecti
 The current dark palette is retained, with staff-focused sans-serif text, larger
 inputs, more consistent spacing and fewer competing actions. Validation and
 release receipts are recorded in the private COGS ledger.
+
+## 2026-09-29 - Liquor count voice: the shelf's bottles, the take's shelf, no submit over a take
+
+From the 2026-09-28 COGS review (Opus, then an independent Sonnet 5.5 advisor),
+the three liquor-screen defects the food screen fixed on 2026-09-08 and liquor
+never did, on the screen actually used weekly.
+
+- **Vocabulary scope.** CountLiquor sent no scope, so the transcriber biased
+  toward every active SKU alphabetically; since the food catalog joined that
+  list, only 50 of 162 bar SKUs got a keyterm (the budget ran out at
+  "Chambord"). It now sends the bar section and the take's shelf, as food does.
+  The server already builds liquor shelves from submitted count history.
+- **A take stays on its shelf.** Apply wrote a take to whichever tile was
+  selected when Apply was tapped. The shelf is now captured when recording
+  starts. Tiles hold still while the mic is live and free up after Stop. The
+  review sheet says where the take is going, and so does the Add button, which
+  used to name the selected tile.
+- **No submit over a take.** Finish stayed live while a take was recording,
+  processing or waiting in review. Closing then dropped the spoken bottles, and
+  the server refuses a line saved after submit. Finish now reads "Finish the
+  recording first" until the take lands. A second take waits for the first
+  one's review.
+
+The food screen, the recorder hook and the backend are unchanged. Validation:
+six new jsdom scenarios against the actual CountLiquor
+(`scripts/qa-liquor-bottle-sizes/check-liquor-voice.mjs`), each failing
+against the previous screen; the existing 8 liquor bottle-size, 42 food voice
+and 9 recorder-interval scenarios; strict liquor TypeScript; prebuild checks
+and the production build. There was no physical phone or microphone test. The
+next GM walk is the first real use.

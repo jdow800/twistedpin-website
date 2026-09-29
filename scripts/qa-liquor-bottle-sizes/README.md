@@ -37,6 +37,15 @@ invoice server running, set `INVOICE_QA_CHROME` to a Chromium executable and run
 amount-question layouts at 320, 390 and 960px. Screenshots and isolated browser
 profiles stay in ignored `dist/`.
 
+Liquor voice counts use the same isolated dependencies and a controlled recorder boundary, the way the food suite does:
+
+```powershell
+node serve.mjs --liquor-voice --build-only
+node check-liquor-voice.mjs
+```
+
+The actual `CountLiquor` component and API client run with two synthetic shelves, deferred extraction responses and a stubbed recorder. Six scenarios cover the transcriber scope (bar section plus the take's shelf), shelf tiles locked while the mic is live, a take landing on the shelf it started on after the counter taps another tile, the review sheet and Add button naming that shelf, Finish refused until the take lands, and Discard releasing it. The script reports every scenario and exits non-zero on any failure. It proves the UI rules, not microphone quality or service latency.
+
 Food voice counts reuse these isolated dependencies:
 
 ```powershell
