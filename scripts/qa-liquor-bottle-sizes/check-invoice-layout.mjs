@@ -25,17 +25,14 @@ try {
   const send=(method,params)=>command(method,params,sessionId);
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
   await send('Page.enable');
-  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-question'];
+  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['clarity','clarity-unknown-unit','food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-question'];
   for(const width of [320,390,960]) for(const mode of modes) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600});
     await send('Page.navigate',{url:`http://127.0.0.1:4177/?mode=${mode}`});
     await evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(document.querySelector('.lq-invd'))return resolve();if(++n>150)return reject(Error('Screen did not load'));setTimeout(tick,20);};tick();})`);
     await evaluate(`document.getElementById('audit').style.display='none'`);
-    if(mode==='remember-unit') {
-      await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='set the cost').click()`);
-      await evaluate(`new Promise(resolve=>setTimeout(resolve,50))`);
-    }
     if(mode==='automatic') {
+      await evaluate(`document.querySelector('.lq-invd-automatic').open=true`);
       await evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{const button=[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Correct unit');if(button){button.click();return resolve();}if(++n>100)return reject(Error('No automatic answer'));setTimeout(tick,20);};tick();})`);
       await evaluate(`new Promise(resolve=>setTimeout(resolve,50))`);
     }
@@ -49,6 +46,21 @@ try {
     const shot=await send('Page.captureScreenshot',{format:'png'});
     await writeFile(join(dist,`invoice-${mode}-${width}.png`),Buffer.from(shot.data,'base64'));
     console.log(`PASS ${width}px ${mode}: no horizontal overflow`);
+    if (mode === 'clarity') {
+      const metrics = await evaluate(`(() => { const input = document.querySelector('.lq-invd-questions input[type=text]'); return { font: parseFloat(getComputedStyle(input).fontSize), height: input.getBoundingClientRect().height }; })()`);
+      assert.ok(metrics.font >= 16 && metrics.height >= 44, `${width}px: readable touch input`);
+      for (const [lineId, answer] of [['test-keg', '1 case = 24 cans'], ['test-biscuit', 'a case has 10 cans']]) {
+        await evaluate(`(() => { const row = document.getElementById(${JSON.stringify('inv-line-' + lineId)}), input = row.querySelector('input[type=text]'); Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(input,${JSON.stringify(answer)}); input.dispatchEvent(new Event('input',{bubbles:true})); })()`);
+        await evaluate(`new Promise(resolve=>setTimeout(resolve,30))`);
+        await evaluate(`document.getElementById(${JSON.stringify('inv-line-' + lineId)}).querySelector('button[type=submit]').click()`);
+        await evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(!document.querySelector('.lq-invd-questions #inv-line-${lineId}'))return resolve();if(++n>100)return reject(Error('Answer did not save'));setTimeout(tick,20);};tick();})`);
+      }
+      assert.match(await evaluate(`document.getElementById('invoice-progress').textContent`), /all caught up/);
+      assert.equal(await evaluate(`document.activeElement.id`), 'invoice-progress');
+      assert.equal(await evaluate(`document.querySelector('.lq-invd-ledger').open`), false);
+      await writeFile(join(dist,`invoice-complete-${width}.png`),Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'));
+      console.log(`PASS ${width}px: both written answers save and show completion`);
+    }
   }
 } finally {
   socket?.close();if(chrome.exitCode===null){chrome.kill();await new Promise(resolve=>chrome.once('exit',resolve));}

@@ -88,3 +88,10 @@ process a 45-second take as 20 + 20 + 5 seconds, preserving spoken order even
 when requests finish out of order. Stop during a rotation must retain the last
 clip and release the microphone only once. Keg flows retain their 60-second
 interval. These checks do not measure recognition quality or live latency.
+
+Invoice clarity checks cover 47 DOM scenarios, including question ordering,
+written package answers, completing two independent holds, progress/focus,
+unknown or stale unit labels, and rejection of mixed or ambiguous replies.
+`check-invoice-layout.mjs` includes fictional `clarity` and `clarity-unknown-unit`
+states at 320/390/960px. Case answers use the item's existing inventory unit;
+these checks do not claim a general free-text invoice interpreter.

@@ -2939,3 +2939,46 @@
   text-align: center;
   text-decoration: none;
 }
+/* Invoice review: questions first, quiet completed work, readable staff UI. */
+.lq-invd, .lq-invlist { font-family: "Proxima Nova", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; line-height: 1.5; }
+.lq-invd { gap: 18px; }
+.lq-invd .lq-h2 { margin: 4px 0 0; font-size: 30px; line-height: 1.1; overflow-wrap: anywhere; }
+.lq-invd .lq-invd-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: 14px; }
+.lq-invd .lq-badge, .lq-invlist .lq-badge { font-size: 12px; letter-spacing: 0; }
+.lq-invd-source-link { color: var(--lq-muted); font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; align-self: flex-start; margin: -8px 0; text-underline-offset: 3px; }
+.lq-invd-progress { padding: 18px 20px; border-radius: 12px; border: 1px solid rgba(255,207,92,.35); background: rgba(255,207,92,.05); }
+.lq-invd-progress > strong { display: block; font-size: 20px; line-height: 1.3; }
+.lq-invd-progress p { margin: 6px 0 0; color: var(--lq-muted); font-size: 15px; }
+.lq-invd-progress .lq-btn { margin-top: 16px; }
+.lq-invd-progress-done { border-color: var(--lq-line); background: var(--lq-panel); }
+.lq-invd-questions > h3 { font-size: 14px; letter-spacing: .06em; text-transform: uppercase; color: var(--lq-muted); margin: 6px 0 12px; }
+.lq-invd .lq-invd-line { padding: 18px; border-radius: 12px; scroll-margin-top: 80px; }
+.lq-invd .lq-invd-line-review { border-color: rgba(255,207,92,.5); }
+.lq-invd .lq-invd-line-main { gap: 12px; align-items: flex-start; }
+.lq-invd .lq-invd-desc { font-size: 18px; line-height: 1.35; font-weight: 700; overflow-wrap: anywhere; }
+.lq-invd .lq-invd-amt { font-size: 16px; font-variant-numeric: tabular-nums; }
+.lq-invd .lq-invd-line-sub { font-size: 12px; line-height: 1.5; margin-top: 6px; gap: 4px; overflow-wrap: anywhere; }
+.lq-invd .lq-invd-hold { border-top: 1px solid var(--lq-line); padding-top: 16px; margin-top: 16px; display: block; }
+.lq-invd-question-label { color: #ffcf5c; font-size: 13px; font-weight: 700; margin: 0 0 10px; }
+.lq-invd .lq-invd-hold-edit label { display: block; font-size: 17px; line-height: 1.4; font-weight: 600; margin: 0 0 8px; }
+.lq-invd .lq-invd-hold-edit input { font: inherit; font-size: 16px; min-height: 48px; width: 100%; max-width: 100%; padding: 12px; border: 1px solid var(--lq-line-strong); border-radius: 7px; color: var(--lq-text); background: var(--lq-bg); margin: 0; }
+.lq-invd .lq-invd-hold-edit input:focus { outline: 2px solid var(--lq-glow); outline-offset: 2px; }
+.lq-invd .lq-invd-hold-edit .lq-muted { font-size: 14px; margin: 8px 0 12px; }
+.lq-invd-answer-preview { display: grid; gap: 3px; font-size: 14px; line-height: 1.5; margin: 12px 0; padding: 12px; background: var(--lq-panel-2); border-radius: 7px; }
+.lq-invd-answer-preview strong { font-size: 16px; }
+.lq-invd .lq-btn { min-height: 44px; white-space: normal; }
+.lq-invd .lq-invd-hold-edit > .lq-btn { width: 100%; }
+.lq-invd summary { min-height: 44px; padding: 10px 0; cursor: pointer; line-height: 1.5; }
+.lq-invd .lq-invd-source-note, .lq-invd .lq-invd-hold > details, .lq-invd-delivery { font-size: 14px; color: var(--lq-muted); border-top: 1px solid var(--lq-line); margin-top: 12px; }
+.lq-invd .lq-invd-source-note p { font-size: 14px; }
+.lq-invd .lq-invd-secondary { padding-top: 6px; margin-top: 0; }
+.lq-invd-automatic > summary > span { display: block; font-size: 13px; font-weight: 400; padding-left: 17px; }
+.lq-invd .lq-invd-ledger .lq-invd-desc { font-size: 16px; }
+.lq-invd .lq-invd-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.lq-invd .lq-invd-totals > div { min-width: 0; padding: 14px; font-size: 13px; }
+.lq-invd .lq-invd-totals strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.lq-invlist .lq-invrow { padding: 16px; gap: 8px; }
+.lq-invlist .lq-invrow-main { flex-wrap: wrap; justify-content: flex-start; }
+.lq-invlist .lq-invrow-vendor { flex: 1 1 55%; font-size: 17px; }
+.lq-invlist .lq-invrow-sub { font-size: 14px; }
+@media (prefers-reduced-motion: reduce) { .lq-invd { scroll-behavior: auto; } }

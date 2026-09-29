@@ -856,6 +856,8 @@ export interface InvoiceSummary {
    *  silently drop its purchases from the bracket. This count is the only way
    *  to find a held cost until the shared ops inbox exists. */
   heldCount?: number;
+  /** Current review attention, including completed excluded-copy comparisons. */
+  needsAttention?: boolean;
   unmatchedCount?: number;
   reviewCount?: number;
   source?: "email" | "scan";
