@@ -1,13 +1,13 @@
 import { invoiceImageUrl, type InvoiceDetail, type InvoiceLine } from "../api";
-
-/** Older API responses remain conservative; an explicit null is informational. */
-export const reviewAnnotationFor = (line: InvoiceLine) =>
-  line.reviewAnnotation === undefined ? line.annotation : line.reviewAnnotation;
-export const reviewReasonsFor = (line: InvoiceLine) => line.reviewReasons ??
-  (line.needsReview && line.lineType === "product" ? [line.matchedSkuId || line.nonInventory ? "amount" : "identity"] : []);
+import { reviewAnnotationFor, reviewReasonsFor, detailNeedsAttention } from "../invoice-review-ui";
+export { reviewAnnotationFor, reviewReasonsFor } from "../invoice-review-ui";
 
 export function jumpToInvoiceLine(id: string) {
   const row = document.getElementById(`inv-line-${id}`);
+  // A source/cost-category link can target an item inside the compact ledger.
+  for (let parent = row?.parentElement; parent; parent = parent.parentElement) {
+    if (parent instanceof HTMLDetailsElement) parent.open = true;
+  }
   row?.scrollIntoView({ block: "center", behavior: "smooth" });
   row?.focus({ preventScroll: true });
 }
@@ -23,8 +23,10 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const held = detail.lines.filter(line => line.costHoldReason);
   const productReview = detail.lines.some(line => line.lineType === "product" && line.needsReview);
   if (inv.status === "pending") return null;
+  if (!detailNeedsAttention(detail)) return null;
   if (inv.duplicateOf && detail.copyReviews?.some(p => p.copyId === inv.id)) return null;
-  if (inv.status !== "flagged" && !productReview && !held.length) return null;
+  // Item questions have their own immediately visible answer cards.
+  if (inv.status !== "flagged") return null;
   const notes = inv.reviewNotes ?? inv.handwrittenNotes ?? [];
   const marked = detail.lines.filter((line) => reviewAnnotationFor(line) && line.receivedQty == null);
   const unmatched = detail.lines.filter((line) => reviewReasonsFor(line).includes("identity"));
@@ -41,7 +43,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
 
   return (
     <section className="lq-invd-review" aria-labelledby="invoice-review-title">
-      <h3 id="invoice-review-title">{inv.duplicateOf ? "Repeated upload" : "Why this needs review"}</h3>
+      <h3 id="invoice-review-title">{inv.duplicateOf ? "Repeated upload" : "Check the invoice"}</h3>
       {inv.duplicateOf ? (
         <p>This duplicates invoice {inv.duplicateOf}. It stays excluded so the delivery is counted once.</p>
       ) : (
@@ -67,7 +69,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
                 {marked.map((line) => (
                   <li key={line.id}>
                     <button type="button" className="lq-linkbtn" onClick={() => jumpToInvoiceLine(line.id)}>
-                      {line.rawDescription || "View item"}
+                      {line.matchedName || line.rawDescription || "View item"}
                     </button>: {reviewAnnotationFor(line)}
                   </li>
                 ))}
@@ -80,7 +82,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
               Choose the matching product on each highlighted item below.
             </p>
           )}
-          {held.length > 0 && <p><strong>{held.length} item cost(s) need a unit check.</strong> Open the cost questions below before applying a cost to inventory.</p>}
+          {held.length > 0 && <p><strong>{held.length} package question{held.length === 1 ? "" : "s"} below.</strong> Answer these before finishing the review.</p>}
           {amounts.length > 0 && <p><strong>{amounts.length} line amount(s) need checking.</strong> Compare the printed price, billed quantity and tax with the source document.</p>}
           {quantities.length > 0 && <p><strong>{quantities.length} billed quantity/quantities need checking.</strong> Compare the quantity and case columns with the source document.</p>}
           {delta >= 0.01 && (
@@ -103,7 +105,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           </button>
         )}
       </div>
-      {inv.status === "flagged" && !inv.duplicateOf && !productReview && !canExplainDeposit && (
+      {inv.status === "flagged" && !inv.duplicateOf && !productReview && !held.length && !marked.length && !canExplainDeposit && (
         <div className="lq-invd-review-confirm">
           <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>

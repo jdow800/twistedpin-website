@@ -21,9 +21,9 @@ async function run(name,mode,fn){
   }finally{dom.window.close();}
 }
 await run('a known item with an amount question does not ask for another match','amount',async({doc,button})=>{
-  assert.match(doc.querySelector('.lq-invd-review').textContent,/line amount\(s\) need checking/);
+  assert.match(doc.querySelector('.lq-invd-questions').textContent,/line amount does not reconcile/);
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
-  assert.ok(!doc.body.textContent.includes('needs a catalog match'));assert.ok(button('Go to item questions'));
+  assert.ok(!doc.body.textContent.includes('needs a catalog match'));assert.ok(doc.querySelector('.lq-invd-questions'));
 });
 await run('an excluded supply keeps its dollars without a stock matching prompt','expense',async({doc,click,log})=>{
   await click('Expense as supplies (not counted)');
@@ -32,7 +32,7 @@ await run('an excluded supply keeps its dollars without a stock matching prompt'
   assert.match(doc.querySelector('.lq-invd-amt').textContent,/50.00/);assert.match(log(),/\/expense/);
 });
 for(const mode of ['remember-unit','remember-failure']) await run('saved package answer '+mode,mode,async({doc,click,dom,log})=>{
-  await click('set the cost');
+
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
   assert.equal(input.value,'');
   Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'2');
@@ -60,7 +60,7 @@ await run('keg category estimate offers View item and focuses a real row','credi
 });
 await run('explicit confirmation clears the review and keeps the original notes','credit',async({doc,click,log})=>{
   await click(confirm);await until(()=>!doc.querySelector('.lq-invd-review'));
-  assert.match(doc.querySelector('.lq-badge').textContent,/Confirmed/);
+  assert.match(doc.querySelector('.lq-badge').textContent,/No questions remaining/);
   assert.equal(log().split('\n').filter(x=>x.startsWith('POST')).length,1);
   assert.match(doc.body.textContent,/2x empties -40/);
 });
@@ -135,12 +135,12 @@ await run('saved invoices cannot be sent through a replacing re-read','credit',a
 });
 await run('an empty failed read can retry without confirming receipt','failed-empty',async({doc,click,button,log})=>{
   await click('Retry reading invoice');assert.ok(!button(confirm));
-  assert.match(doc.querySelector('[role=status]').textContent,/Retrying now/);
+  assert.match(doc.body.textContent,/Retrying now/);
   assert.ok(!log().includes('/clear-flag'));
 });
 await run('stale retry surfaces protection instead of claiming the image was purged','retry-protected',async({doc,click})=>{
   await click('Retry reading invoice');
-  assert.match(doc.querySelector('[role=status]').textContent,/saved details.*protected/);
+  assert.match(doc.body.textContent,/saved details.*protected/);
   assert.ok(!doc.querySelector('[role=status]').textContent.includes('purged'));
 });
 await run('retry without a stored image is disabled','failed-no-image',async({button})=>{
@@ -174,7 +174,7 @@ await run('new food item requires inventory and unit choices and posts the selec
   await select(dom,doc.querySelector('[aria-label="Cost category for new item"]'),'food');
   assert.ok(!button('Create + match').disabled);await click('Create + match');
   assert.match(log(),/"section":"food"/);assert.match(log(),/"countUnit":"pack"/);
-  assert.match(doc.body.textContent,/possible unit mismatch/);
+  assert.match(doc.body.textContent,/Check the inventory price/);
 });
 await run('linked scan shows the comparison and disables edits on the excluded copy','linked',async({doc,button,click,log})=>{
   assert.match(doc.body.textContent,/Compare invoice and delivery/);assert.match(doc.body.textContent,/110LB/);
@@ -257,3 +257,75 @@ await run('a recorded deposit answer leaves a way to finish the remaining review
   assert.ok(!log().includes('POST'));
 });
 console.log(`Invoice UI: ${passed} cases passed`);
+
+await run('unanswered products and their controls precede completed rows','clarity',async({doc,log})=>{
+  const questions=doc.querySelector('.lq-invd-questions');
+  assert.equal(questions.querySelectorAll('.lq-invd-line').length,2);
+  assert.match(questions.textContent,/Example sparkling drink/);
+  assert.match(questions.textContent,/Example biscuit cans/);
+  assert.match(questions.textContent,/How many cans are in one case/);
+  assert.ok(!questions.textContent.includes('Already handled product'));
+  assert.equal(questions.querySelectorAll('[aria-label="Count units per billed case"]').length,2);
+  assert.ok([...questions.querySelectorAll('input[type=text]')].every(input=>input.value===''));
+  assert.ok(questions.compareDocumentPosition(doc.querySelector('.lq-invd-ledger')) & 4);
+  assert.ok(!doc.querySelector('.lq-invd-ledger').open);
+  assert.ok(!doc.querySelector('.lq-invd-automatic').open);
+  assert.match(doc.querySelector('.lq-badge').textContent,/Needs your answer/);
+  const ids=[...doc.querySelectorAll('[id]')].map(el=>el.id);assert.equal(new Set(ids).size,ids.length);
+  assert.ok(!log().includes('POST'));
+});
+await run('written package answers preview the saved unit, retire only that question and finish clearly','clarity',async({doc,dom,log,click})=>{
+  const card=doc.getElementById('inv-line-test-keg');
+  const input=card.querySelector('[aria-label="Count units per billed case"]');
+  await enter(dom,input,'1 case = 24 cans');
+  assert.match(card.textContent,/1 case = 24 cans/);assert.match(card.textContent,/\$2 per can/);
+  card.querySelector('button[type=submit]').click();await pause();
+  await until(()=>doc.querySelector('.lq-invd-questions').querySelectorAll('.lq-invd-line').length===1);
+  assert.match(doc.querySelector('[role=status]').textContent,/1 item needs your answer/);
+  assert.equal(doc.activeElement.id,'invoice-progress');
+  const second=doc.getElementById('inv-line-test-biscuit');
+  await enter(dom,second.querySelector('input[type=text]'),'a case has 10 cans');
+  assert.match(second.textContent,/1 case = 10 cans/);
+  second.querySelector('button[type=submit]').click();await pause();
+  await until(()=>!doc.querySelector('.lq-invd-questions'));
+  assert.match(doc.querySelector('[role=status]').textContent,/all caught up/);
+  assert.match(log(),/"unitsPerBilledUnit":24/);assert.match(log(),/"unitsPerBilledUnit":10/);
+  assert.ok(!log().includes('/received'));assert.ok(!log().includes('/clear-flag'));
+  await click('Back to invoices');await until(()=>doc.querySelector('.lq-invlist'));
+  assert.ok(!doc.querySelector('.lq-invlist').textContent.includes('Needs your answer'));
+});
+for(const mode of ['clarity-stale-unit','clarity-unknown-unit']) await run('written units cannot replace an unknown or stale inventory definition: '+mode,mode,async({doc,dom,log})=>{
+  const card=doc.getElementById('inv-line-test-keg');const input=card.querySelector('input[type=text]');
+  assert.match(card.textContent,/individual items/);
+  await enter(dom,input,'1 case = 24 cans');
+  assert.ok(card.querySelector('button[type=submit]').disabled);
+  assert.ok(!log().includes('POST'));
+});
+await run('ambiguous, mixed and invalid package replies stay unsaved','clarity',async({doc,dom,log})=>{
+  const card=doc.getElementById('inv-line-test-keg');const input=card.querySelector('input[type=text]');
+  for(const value of ['0','-2','1.5','100001','1 case = 24 cans and 2 bags','2 cases = 48 cans','1 case = 24 bottles','maybe 24','24 cans, or 12']) {
+    await enter(dom,input,value);assert.ok(card.querySelector('button[type=submit]').disabled,value);
+  }
+  for(const value of ['24','24 cans','1 case contains 24 cans','24 cans per case']) {
+    await enter(dom,input,value);assert.ok(!card.querySelector('button[type=submit]').disabled,value);
+  }
+  assert.ok(!log().includes('POST'));
+});
+await run('a quantity annotation cannot be hidden by the general confirm action','marked',async({doc,button})=>{
+  assert.ok(!button(confirm));assert.ok(doc.querySelector('.lq-invd-questions .lq-invd-recvd input'));
+});
+console.log(`Invoice UI including clarity: ${passed} cases passed`);
+
+await run('an excluded clean duplicate is visibly complete, without a confirmation task','clean-duplicate',async({doc,button,log})=>{
+  assert.match(doc.querySelector('[role=status]').textContent,/all caught up/);
+  assert.ok(!doc.querySelector('.lq-invd-review'));assert.ok(!button(confirm));
+  assert.match(doc.querySelector('.lq-badge').textContent,/Copy saved/);assert.ok(!log().includes('POST'));
+});
+await run('the invoice list prioritizes questions and honors a completed copy projection','clarity',async({doc,click})=>{
+  await click('‹ All invoices');await until(()=>doc.querySelector('.lq-invlist'));
+  const rows=[...doc.querySelectorAll('.lq-invrow')];
+  assert.match(rows[0].textContent,/Needs your answer/);assert.match(rows[0].textContent,/2 package questions/);
+  assert.match(rows[2].textContent,/Example completed copy/);
+  assert.ok(!rows[2].textContent.includes('Needs your answer'));assert.ok(!rows[2].querySelector('.lq-badge-flagged'));
+});
+console.log(`Invoice UI final: ${passed} cases passed`);

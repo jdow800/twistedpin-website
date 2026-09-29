@@ -639,3 +639,24 @@ scenarios, strict component TypeScript, required prebuild checks and production
 build. The synthetic recorder checks cover early processing, ordered assembly,
 Stop during rotation, and microphone reuse. Physical phone timing and recognition
 across the shorter boundaries remain to be checked in the next walk.
+
+## 2026-09-29 - Invoice review questions first
+
+Jon authorized an invoice usability pass after struggling to find the actual
+questions and controls. Unanswered items now lead the detail page with readable
+catalog names, visible answer forms, current unit labels, a remaining-item count
+and an explicit completion state. A saved answer returns focus to the progress
+message. Completed automatic answers, copy comparisons and other invoice rows
+are compact expandable sections; delivery correction is a secondary action.
+The invoice list prioritizes current attention instead of equating OCR status
+with completion. The backend provides an optional current-attention value for
+excluded copies; older responses remain conservative.
+
+Case conversions accept a whole number or a narrowly parsed written answer such
+as "1 case = 24 cans", using only the existing inventory label. Ambiguous replies,
+new unit names and stale definitions cannot redefine a unit. The conversion and
+calculated price are shown before Save. This is not a general invoice language
+model or a change to count definitions, costs, receipt rules or re-read protection.
+The current dark palette is retained, with staff-focused sans-serif text, larger
+inputs, more consistent spacing and fewer competing actions. Validation and
+release receipts are recorded in the private COGS ledger.

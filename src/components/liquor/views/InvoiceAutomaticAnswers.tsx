@@ -94,9 +94,9 @@ export default function InvoiceAutomaticAnswers({ invoiceId, revision, onSaved }
   }, [invoiceId, revision]);
   if (error) return <p className="lq-muted">Automatic-answer details could not load. <button className="lq-linkbtn" type="button" onClick={onSaved}>Try again</button></p>;
   if (!answers.length) return null;
-  return <section className="lq-invd-review" style={{ borderColor: "#4EECC4" }} aria-labelledby="automatic-answers-title">
-    <h3 id="automatic-answers-title">Handled automatically</h3>
+  return <details className="lq-invd-secondary lq-invd-automatic">
+    <summary>Handled automatically ({answers.length}) <span className="lq-muted">No answer needed</span></summary>
     <p>These package answers were checked against supplier records. No answer needed unless something looks wrong.</p>
     {answers.map(answer => <Answer key={`${answer.id}:${answer.token}`} answer={answer} invoiceId={invoiceId} onSaved={onSaved} />)}
-  </section>;
+  </details>;
 }

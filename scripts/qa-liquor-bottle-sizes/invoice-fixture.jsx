@@ -16,12 +16,13 @@ const line = {id:'test-keg',lineType:'keg',rawDescription:'Example Pale Ale',siz
 if(mode==='unmatched'||mode==='food'||mode==='linked'||mode==='linked-stale') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='marked'||mode==='refresh-failure') {line.annotation='One keg short';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='duplicate') invoice.duplicateOf='ORIGINAL-DEMO';
+if(mode==='clean-duplicate') { invoice.duplicateOf='ORIGINAL-DEMO'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[]; }
 if(mode==='totals') {invoice.extractedTotal='170';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='old-flag') {invoice.reviewNotes=[];invoice.handwrittenNotes=['Signature present on signature line'];}
 if(mode==='confirmed') invoice.status='confirmed';
 if(mode==='escaped') {invoice.reviewNotes=['<img src=x onerror="alert(1)">'];invoice.handwrittenNotes=invoice.reviewNotes;}
 if(mode==='old-api') {delete invoice.reviewNotes;delete invoice.handwrittenNotes;delete invoice.duplicateOf;}
-const automatic = mode.startsWith('automatic') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'test-keg',token:'a'.repeat(64),
+const automatic = mode.startsWith('automatic') || mode.startsWith('clarity') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'ready-1',token:'a'.repeat(64),
   status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
 if (mode.startsWith('automatic')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page',pageNumber:1,contentType:'image/jpeg'}],
@@ -64,6 +65,21 @@ const catalog=[{id:'titos',name:"Tito's Vodka",section:'bar',sizeMl:750,countUni
   {id:'pepperoni',name:'Peperoni Sliced',section:'food',sizeMl:null,countUnit:'pack'},
   {id:'sausage',name:'Italian Sausage',section:'food',sizeMl:null,countUnit:'lb'},
   {id:'wings',name:'Chicken Wings Boneless',section:'food',sizeMl:null,countUnit:'case'}];
+if (mode.startsWith('clarity')) {
+  invoice.status='extracted'; invoice.vendorText='Example Food Supplier'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
+  Object.assign(line,{lineType:'product',vendorCode:'DEMO-CAN',rawDescription:'VENDOR ABBREV SODA',matchedName:'Example sparkling drink',
+    matchedSkuId:'demo-can',matchedCountUnit:'each',needsReview:false,reviewReasons:[],pack:24,sizeText:'8 OZ',qtyCases:'1',qtyUnits:'1',
+    unitCost:'48',extendedAmount:'48',canRememberUnit:true,packageKey:'24|8OZ|',costHoldReason:'case vs each'});
+  catalog.push({id:'demo-can',name:line.matchedName,section:'bar',countUnit:'each',unitsPerCase:24,
+    countDefinition:mode==='clarity-unknown-unit'?null:{countUnit:mode==='clarity-stale-unit'?'pack':'each',unitsPerCase:24,unitLabel:'can',spokenUnits:{can:1,case:24},defaultSpokenUnit:'can',confirmedBy:'test',confirmedAt:'2026-09-01'}});
+  if(mode==='clarity') {
+    detail.lines.push({...line,id:'test-biscuit',matchedSkuId:'demo-biscuit',matchedName:'Example biscuit cans',rawDescription:'VENDOR BSC DOUGH',
+      pack:24,sizeText:'10 CT',unitCost:'20',extendedAmount:'20',packageKey:'24|10CT|'});
+    catalog.push({id:'demo-biscuit',name:'Example biscuit cans',section:'food',countUnit:'each',unitsPerCase:10,
+      countDefinition:{countUnit:'each',unitsPerCase:10,unitLabel:'can',spokenUnits:{can:1,case:10},defaultSpokenUnit:'case',confirmedBy:'test',confirmedAt:'2026-09-01'}});
+  }
+  detail.lines.unshift({...line,id:'ready-1',matchedName:'Already handled product',costHoldReason:null,canRememberUnit:false});
+}
 if(mode.startsWith('explain') || mode==='deposit-auto') {
   detail.explanationToken='a'.repeat(64);
   detail.lines.push({...line,id:'test-deposit',lineType:'deposit',rawDescription:'Keg deposits',qtyUnits:'2',unitCost:'20',extendedAmount:'40'});
@@ -107,7 +123,8 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/expense')) {line.nonInventory=true;line.needsReview=false;line.reviewReasons=[];return json({resolved:true});}
   if(path.endsWith('/remember-unit')) {
     if(mode==='remember-failure')return json({error:'unit_changed'},409);
-    line.costHoldReason=null;return json({resolved:true});
+    const target=detail.lines.find(l=>path.includes('/'+l.id+'/')) || line;
+    target.costHoldReason=null;return json({resolved:true});
   }
   if(path.endsWith('/copy-review')) {
     if(mode==='linked-stale') return json({error:'comparison_changed'},409);
@@ -138,7 +155,11 @@ window.fetch=async(url,options={})=>{
     line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
     return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
   }
-  if(path.endsWith('/invoices/history'))return json({invoices:[invoice]});
+  if(path.endsWith('/invoices/history'))return json({invoices:[
+    ...(mode==='clarity'?[{...invoice,id:'ready-newer',status:'extracted',vendorText:'Example ready invoice',needsAttention:false}]:[]),
+    {...invoice,heldCount:detail.lines.filter(l=>l.costHoldReason).length,reviewCount:detail.lines.filter(l=>l.needsReview).length},
+    ...(mode==='clarity'?[{...invoice,id:'completed-copy',status:'flagged',duplicateOf:'DEMO-COPY',vendorText:'Example completed copy',needsAttention:false}]:[])
+  ]});
   if(path.endsWith('/invoices/test-invoice')) {
     if(mode==='refresh-failure'&&line.receivedQty==='0')return json({error:'refresh failed'},500);
     return json(detail);
