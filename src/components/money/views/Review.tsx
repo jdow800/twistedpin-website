@@ -108,7 +108,15 @@ export default function Review({ onDone }: { onDone: () => void }) {
               <tr key={r.id}>
                 <td>
                   {label}
-                  {r.offset && <span className="mn-offset-inline"> ⚖️ offsets {shortDate(r.offset.neighborDate)}</span>}
+                  {r.run?.role === "miss" ? (
+                    <span className="mn-offset-inline"> ⚖️ count-down miss, evened out {shortDate(r.run.fixedOn)}</span>
+                  ) : r.run && (r.run.role === "fix" || r.run.role === "after") ? (
+                    <span className="mn-offset-inline"> ⚖️ evens out {shortDate(r.run.nights[0]!)}</span>
+                  ) : r.run?.role === "refill" ? (
+                    <span className="mn-offset-inline"> ⚖️ kept its cash to fix {shortDate(r.run.nights[0]!)}</span>
+                  ) : (
+                    r.offset && <span className="mn-offset-inline"> ⚖️ offsets {shortDate(r.offset.neighborDate)}</span>
+                  )}
                 </td>
                 <td className="mn-r">{unv ? "—" : money(r.expectedCents)}</td>
                 <td className="mn-r">{money(r.totalCents)}</td>
