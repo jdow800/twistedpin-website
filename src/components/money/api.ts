@@ -131,11 +131,27 @@ export interface BagView {
   countedAt: string;
 }
 
+/**
+ * Where a night sits in a count-down run (tprs 2026-09-30): a drawer left with
+ * the wrong starting cash, evened out a night or few later.
+ */
+export interface RunContext {
+  role: "miss" | "refill" | "fix" | "after";
+  nights: string[];
+  fixedOn: string;
+  netCents: number;
+  driftAfterCents: number;
+}
+
 export interface Reveal {
   expectedCents?: number;
   varianceCents?: number;
   severity?: { severity: "even" | "minor" | "notable" | "major"; pct: number | null } | null;
   offset?: { neighborDate: string; neighborVarianceCents: number } | null;
+  /** tprs 2026-09-30+: the count-down run this night is part of, if any. */
+  run?: RunContext | null;
+  /** tprs 2026-09-30+: starting cash the drawer kept back after a payout night. */
+  carryInCents?: number;
   kioskCaveat?: string | null;
   /** Payouts the report deducted that never left the drawer (fundraiser checks). */
   payoutAddBack?: { totalCents: number; names: string[] } | null;
@@ -151,6 +167,7 @@ export interface CommitResponse {
 
 export interface ReviewRow extends BagView {
   offset: { neighborDate: string; neighborVarianceCents: number } | null;
+  run?: RunContext | null;
 }
 
 /** No deposit/totals here by design — each count stands alone for the GM. */
@@ -322,12 +339,38 @@ export interface Lens1Person {
   dates: string[];
 }
 
+/**
+ * Count-down misses by whoever counted the drawer down. tprs 2026-09-30 moved
+ * from pairs to runs and added the denominator (`closes`); the old fields stay
+ * optional so this screen reads either backend.
+ */
 export interface Lens2Closer {
   name: string;
   source: "punch" | "schedule";
-  pairs: number;
+  /** Miss nights (2026-09-30+). */
+  misses?: number;
+  /** Nights they counted a drawer down (2026-09-30+). */
+  closes?: number;
+  byRegister?: Record<string, { misses: number; closes: number }>;
+  /** Pre-2026-09-30 backends. */
+  pairs?: number;
   registers: string[];
   dates: string[];
+}
+
+export interface CountDownIncident {
+  registerKey: string;
+  nights: string[];
+  fixedOn: string;
+  netCents: number;
+  peakCents: number;
+  detail: {
+    salesDate: string;
+    varianceCents: number;
+    role: RunContext["role"];
+    closer: string | null;
+    alsoClosing: string | null;
+  }[];
 }
 
 export interface TrendsResponse {
@@ -337,6 +380,7 @@ export interface TrendsResponse {
   rosterCoverageDays: number;
   shortageDays: number;
   tokenWired: boolean;
+  staffSource?: "7shifts" | "rosters";
   lens1: {
     people: Lens1Person[];
     shortagesConsidered: number;
@@ -344,7 +388,17 @@ export interface TrendsResponse {
     worstDays: { registerKey: string; salesDate: string; varianceCents: number }[];
     unmappedRoles: string[];
   };
-  lens2: { closers: Lens2Closer[]; totalPairs: number; unattributedPairs: number };
+  lens2: {
+    closers: Lens2Closer[];
+    totalRuns?: number;
+    totalMisses?: number;
+    unattributedMisses?: number;
+    incidents?: CountDownIncident[];
+    totalPairs?: number;
+    unattributedPairs?: number;
+  };
+  /** People with reportable activity who are no longer on staff (left out above). */
+  leftOut?: string[];
 }
 
 export function getTrends(days = 90): Promise<TrendsResponse> {

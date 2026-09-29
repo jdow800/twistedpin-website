@@ -403,11 +403,30 @@ export default function CountBags({ onDone, onReview }: { onDone: () => void; on
               Expected {money(reveal.expectedCents ?? null)} · Counted {money(bag.totalCents)}
               {reveal.severity?.pct != null && v !== 0 && <> · {Math.abs(reveal.severity.pct).toFixed(1)}% of the take</>}
             </p>
-            {reveal.offset && (
+            {reveal.run ? (
               <p className="mn-offset">
-                ⚖️ Offsets {shortDate(reveal.offset.neighborDate)}'s{" "}
-                {reveal.offset.neighborVarianceCents > 0 ? "overage" : "shortage"} — likely a count-down error at close,
-                not missing money.
+                {reveal.run.role === "miss" &&
+                  (reveal.run.fixedOn > bag.salesDate!
+                    ? <>⚖️ Count-down miss: the drawer was left off at close, and {shortDate(reveal.run.fixedOn)} evened it out. Not missing money.</>
+                    : <>⚖️ Count-down miss: the drawer was left off at close.</>)}
+                {reveal.run.role === "refill" && <>⚖️ No cash left to bag: this night kept it all to put {shortDate(reveal.run.nights[0]!)}'s drawer right.</>}
+                {(reveal.run.role === "fix" || reveal.run.role === "after") && (
+                  <>⚖️ Evens out {shortDate(reveal.run.nights[0]!)}'s count-down miss — not missing money.</>
+                )}
+              </p>
+            ) : (
+              reveal.offset && (
+                <p className="mn-offset">
+                  ⚖️ Offsets {shortDate(reveal.offset.neighborDate)}'s{" "}
+                  {reveal.offset.neighborVarianceCents > 0 ? "overage" : "shortage"} — likely a count-down error at close,
+                  not missing money.
+                </p>
+              )
+            )}
+            {(reveal.carryInCents ?? 0) > 0 && (
+              <p className="mn-addback">
+                Expected is {money(reveal.carryInCents!)} lower: the drawer kept that back to rebuild its starting cash after
+                a night when payouts (security, tips) were more than the cash taken in.
               </p>
             )}
             {reveal.payoutAddBack && (
