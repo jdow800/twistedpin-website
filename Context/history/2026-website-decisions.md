@@ -690,3 +690,20 @@ against the previous screen; the existing 8 liquor bottle-size, 42 food voice
 and 9 recorder-interval scenarios; strict liquor TypeScript; prebuild checks
 and the production build. There was no physical phone or microphone test. The
 next GM walk is the first real use.
+
+Independent review (Sonnet 5.5, Max) then asked for three fixes, all made:
+- The tiles lock only while the recorder really reports recording, because
+  the Web Speech fallback can start without ever doing so.
+- An empty shelf id (the moment before shelves load) is never sent; the
+  server's uuid check would reject every upload of that take.
+- Locked tiles now look locked. The recording panel names its shelf, and
+  Finish says what it is waiting for: the recording, the read-back, or the
+  heard bottles.
+Three more scenarios bring the suite to nine. The two fix-specific ones fail
+on the pre-review screen. The mic-denied release passes on both, as the
+reviewer said it would; it guards that path.
+
+The 42-scenario food voice suite now flakes on this machine. "complete failure
+preserves the server message and a new take starts clean" fails intermittently
+even with main's files (3 of 3 runs at one point), so it is not caused by this
+change, which does not touch CountFood. It needs its own look.

@@ -9,12 +9,14 @@ const catalog = [
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
   unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[]}));
-const zones = [
+// ?no-zones: the moment before any shelf has loaded, when zoneId is still "".
+const noZones = new URL(location.href).searchParams.has('no-zones');
+const zones = noZones ? [] : [
   {id:'well', name:'Well', walkOrder:1, active:true},
   {id:'backbar', name:'Back Bar', walkOrder:2, active:true},
 ];
 // One bottle already counted on the back bar, so Finish is live before any take.
-const initialLines = [{skuId:'jameson', zoneId:'backbar', qtyUnits:'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
+const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
 const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, recorder:null};
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
 window.fetch = async (input, init = {}) => {

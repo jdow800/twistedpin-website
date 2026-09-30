@@ -16,18 +16,20 @@ const item = (id, units) => ({
 });
 let passed = 0;
 const failed = [];
-async function run(name, test) {
-  try { await scenario(name, test); } catch (e) { failed.push(name); console.log('FAIL', name, '—', e.message); }
+async function run(name, test, query = '') {
+  try { await scenario(name, test, query); } catch (e) { failed.push(name); console.log('FAIL', name, '—', e.message); }
 }
-async function scenario(name, test) {
-  const dom = new JSDOM('<!doctype html><div id="root"></div>',{url:'http://localhost/',runScripts:'outside-only',pretendToBeVisual:true});
+async function scenario(name, test, query) {
+  const dom = new JSDOM('<!doctype html><div id="root"></div>',{url:`http://localhost/${query ? '?'+query : ''}`,runScripts:'outside-only',pretendToBeVisual:true});
   dom.window.Response = Response;
   dom.window.scrollTo = () => {};
   dom.window.HTMLElement.prototype.scrollIntoView = () => {};
   try {
     dom.window.eval(bundle);
     const doc = dom.window.document;
-    await until(() => doc.querySelectorAll('.lq-zone').length === 2, 'Shelf tiles');
+    await until(() => query.includes('no-zones')
+      ? [...doc.querySelectorAll('button')].some(b => /Record count for/.test(b.textContent))
+      : doc.querySelectorAll('.lq-zone').length === 2, 'Count screen');
     const qa = dom.window.liquorQa;
     const button = text => [...doc.querySelectorAll('button')].find(b => typeof text==='string'?b.textContent.trim()===text:text.test(b.textContent.trim()));
     const click = async text => {
@@ -42,7 +44,7 @@ async function scenario(name, test) {
     const stop = () => click(/Stop & process/);
     const segment = async (text,index) => { qa.recorder.segment(text,index); await pause(); };
     const finish = async text => { qa.recorder.finish(text); await pause(); };
-    const finishButton = () => button(/^(Finish & submit|Finish the recording first)$/);
+    const finishButton = () => button(/^(Finish & submit|Finish the recording first|Reading the recording back…|Add or discard the heard bottles first)$/);
     const saves = () => qa.calls.filter(c => c.path.endsWith('/lines')).length;
     /** One take: Start, a segment heard and matched, Stop, recorder delivers. */
     const hear = async entries => {
@@ -139,6 +141,28 @@ await run('Discard releases Finish, and a second take waits for the first one\'s
   assert.ok(!t.button(/Record count for/).disabled);
   assert.equal(t.qa.lines.filter(l => l.skuId==='titos').length,0,'a discarded take saves nothing');
 });
+
+await run('the recorder ending on its own (mic denied) frees the tiles, Record and Finish',async t => {
+  await t.shelf('Well');
+  await t.start();
+  assert.ok(t.tile('Back Bar').disabled);
+  await t.finish('', 'not-allowed'); // no Stop tap: the recorder gave up by itself
+  await until(() => !t.tile('Back Bar').disabled,'Shelf tiles released after the recorder ended');
+  assert.ok(!t.button(/Record count for/).disabled);
+  assert.ok(!t.finishButton().disabled);
+});
+
+await run('a recorder that never reports recording cannot latch the shelf tiles',async t => {
+  await t.shelf('Well');
+  await t.click(/Record count for/); // start() is a no-op in this fixture
+  assert.ok(!t.tile('Back Bar').disabled,'tiles lock only while a take is really recording');
+}, 'silent-start');
+
+await run('before any shelf has loaded, a take sends no shelf id at all',async t => {
+  await t.start();
+  assert.equal(t.qa.recorder.options.scope?.section,'bar');
+  assert.equal(t.qa.recorder.options.scope?.zoneId,undefined,'an empty id fails the server uuid check on every upload');
+}, 'no-zones');
 
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

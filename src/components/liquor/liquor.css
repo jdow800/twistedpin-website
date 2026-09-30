@@ -293,6 +293,18 @@
 .lq-zone:last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
+/* shelves hold still while a take is recording: say so instead of ignoring the tap */
+.lq-zone:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.lq-zone-on:disabled {
+  opacity: 1; /* the take's own shelf stays lit */
+}
+.lq-rec-shelf {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
 .lq-zone-badge {
   background: rgba(0, 0, 0, 0.25);
   color: inherit;

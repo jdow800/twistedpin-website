@@ -222,7 +222,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // of 162 bar SKUs got a keyterm (Tito's, Patron, Jameson did not). The bar
     // section alone covers 121, and the shelf in front of the counter goes
     // first — the server builds liquor shelves from submitted count history.
-    scope: { section: "bar", zoneId: takeZoneId ?? zoneId },
+    // `|| undefined`: before the shelves load zoneId is "", and the server's
+    // uuid check would 400 every segment upload of that take.
+    scope: { section: "bar", zoneId: (takeZoneId ?? zoneId) || undefined },
     onSegment: (text, idx) => {
       if (!text.trim()) return;
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
@@ -1018,7 +1020,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               className={`lq-zone${z.id === zoneId ? " lq-zone-on" : ""}${n > 0 ? " lq-zone-done" : ""}`}
               // A take is one shelf: while the mic is live the tiles hold still.
               // After Stop they free up — the take's shelf is already pinned.
-              disabled={capturing}
+              // Both flags: a recorder that never reports `recording` (the Web
+              // Speech fallback can no-op) must not latch the tiles shut.
+              disabled={capturing && dict.recording}
               // Close any open "+ case size" editor — otherwise one left open
               // on Tito's in Back Bar reappears open on Tito's in Well.
               onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setCaseAsk(null); setCaseAskErr(null); }}
@@ -1041,6 +1045,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
+            <p className="lq-muted lq-rec-shelf">
+              Counting <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this zone"}</strong>
+            </p>
             {dict.metering && (
               <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
                 <div className="lq-mic-meter-fill" style={{ width: `${Math.round(dict.level * 100)}%` }} />
@@ -1332,9 +1339,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               ? "Submitting…"
               : checking
                 ? "Spot-checking the count…"
-                : voicePending
+                : dict.recording
                   ? "Finish the recording first"
-                  : "Finish & submit"}
+                  : voiceBusy
+                    ? "Reading the recording back…"
+                    : voicePending
+                      ? "Add or discard the heard bottles first"
+                      : "Finish & submit"}
             {/* Progress over the server's 15s worst-case budget — never a fake
                 "almost done". A typical check lands ~5s in with the bar ~40%
                 full, which reads as finishing early rather than stalling. */}

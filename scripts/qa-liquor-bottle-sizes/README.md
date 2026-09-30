@@ -44,7 +44,20 @@ node serve.mjs --liquor-voice --build-only
 node check-liquor-voice.mjs
 ```
 
-The actual `CountLiquor` component and API client run with two synthetic shelves, deferred extraction responses and a stubbed recorder. Six scenarios cover the transcriber scope (bar section plus the take's shelf), shelf tiles locked while the mic is live, a take landing on the shelf it started on after the counter taps another tile, the review sheet and Add button naming that shelf, Finish refused until the take lands, and Discard releasing it. The script reports every scenario and exits non-zero on any failure. It proves the UI rules, not microphone quality or service latency.
+The actual `CountLiquor` component and API client run with two synthetic shelves, deferred extraction responses and a stubbed recorder. Nine scenarios. The first six cover:
+- the transcriber scope (bar section plus the take's shelf);
+- shelf tiles locked while the mic is live;
+- a take landing on the shelf it started on after the counter taps another tile;
+- the review sheet and Add button naming that shelf;
+- Finish refused until the take lands;
+- Discard releasing it.
+
+The last three cover:
+- the recorder ending on its own, where the tiles, Record and Finish are freed;
+- a recorder that never reports recording (`?silent-start`), which must not latch the tiles;
+- a take before any shelf has loaded (`?no-zones`), which sends no shelf id.
+
+The script reports every scenario and exits non-zero on any failure. It proves the UI rules, not microphone quality or service latency.
 
 Food voice counts reuse these isolated dependencies:
 
