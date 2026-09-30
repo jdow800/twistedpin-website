@@ -222,7 +222,7 @@ export default function Trends({ onDone }: { onDone: () => void }) {
                           .filter((n) => n.role === "miss")
                           .map((n) => (
                             <div key={n.salesDate}>
-                              {md(n.salesDate)} {signedMoney(n.varianceCents)} · {n.closer ?? "no roster"}
+                              {md(n.salesDate)} {signedMoney(n.varianceCents)} · {n.closer ?? (n.closerLeft ? "no longer on staff" : "no roster")}
                               {n.alsoClosing && <span className="lq-muted"> (closing: {n.alsoClosing})</span>}
                             </div>
                           ))}
