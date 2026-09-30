@@ -155,8 +155,8 @@ export default function Trends({ onDone }: { onDone: () => void }) {
           <p className="lq-muted mn-hint">
             {runsCopy(data)} Each miss night is charged to whoever counted that drawer down: the closing
             bartender for the bar, the closing shift lead for the front desk. Shown against how many nights
-            they closed it. Every one evened out a night or few later, so this is a counting habit, not
-            theft.{" "}
+            they closed it. Each run evened out within a few nights, so it reads as a counting habit, not
+            theft; a run that didn't fully even out is also on that count's Needs a look.{" "}
             {unattributed(data) > 0 ? `${unattributed(data)} miss night(s) had no roster to attribute.` : ""}
           </p>
           {data.lens2.closers.length === 0 ? (
@@ -221,9 +221,10 @@ export default function Trends({ onDone }: { onDone: () => void }) {
                         {inc.detail
                           .filter((n) => n.role === "miss")
                           .map((n) => (
-                            <div key={n.salesDate}>
+                            <div key={n.salesDate} className={n.beforeWindow ? "lq-muted" : undefined}>
                               {md(n.salesDate)} {signedMoney(n.varianceCents)} · {n.closer ?? (n.closerLeft ? "no longer on staff" : "no roster")}
                               {n.alsoClosing && <span className="lq-muted"> (closing: {n.alsoClosing})</span>}
+                              {n.beforeWindow && " (before this window, not counted in it)"}
                             </div>
                           ))}
                       </td>
