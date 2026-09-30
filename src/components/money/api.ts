@@ -368,7 +368,12 @@ export interface CountDownIncident {
     salesDate: string;
     varianceCents: number;
     role: RunContext["role"];
+    /** Null when the roster can't say, or the closer has left. */
     closer: string | null;
+    /** The closer has left: shown as such, never named (Jon 2026-09-29). */
+    closerLeft?: boolean;
+    /** Before the window's first night: context only, not counted in the window. */
+    beforeWindow?: boolean;
     alsoClosing: string | null;
   }[];
 }
