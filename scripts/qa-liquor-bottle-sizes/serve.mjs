@@ -8,7 +8,7 @@ const website = fileURLToPath(new URL('../../',import.meta.url));
 const backend = resolve(process.env.BOTTLE_QA_TPRS_ROOT || join(website,'../tprs'));
 const require = createRequire(join(website,'package.json'));
 const esbuild = require('esbuild');
-const entry = process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : 'fixture';
+const entry = process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--liquor-voice') ? 'liquor-voice-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : 'fixture';
 await mkdir(base+'dist',{recursive:true});
 await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
   nodePaths:[join(website,'node_modules')],define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'},
@@ -25,6 +25,7 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:count-quantity': join(backend,'apps/backend/src/bar/count-quantity.ts'),
     };
     if (entry === 'food-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'food-recorder-fixture.jsx')}));
+    if (entry === 'liquor-voice-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'liquor-recorder-fixture.jsx')}));
     build.onResolve({filter:/^qa:/},({path}) => ({path:sources[path]}));
     build.onLoad({filter:/views[\\/]Invoices\.tsx$/},async ({path}) => ({
       contents:(await readFile(path,'utf8'))+'\nexport {MatchControl};',loader:'tsx',
