@@ -22,6 +22,12 @@ if(mode==='old-flag') {invoice.reviewNotes=[];invoice.handwrittenNotes=['Signatu
 if(mode==='confirmed') invoice.status='confirmed';
 if(mode==='escaped') {invoice.reviewNotes=['<img src=x onerror="alert(1)">'];invoice.handwrittenNotes=invoice.reviewNotes;}
 if(mode==='old-api') {delete invoice.reviewNotes;delete invoice.handwrittenNotes;delete invoice.duplicateOf;}
+// Bought after it was discontinued (tprs 0196): a question, not a hold.
+if(mode==='discontinued') {
+  invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  Object.assign(line,{lineType:'product',matchedSkuId:'patty2',matchedName:'Beef Patty, 2oz',matchedCountUnit:'pack',reviewReasons:[],
+    discontinued:{since:'2026-10-01T05:00:00.000Z',replacedBySkuId:'patty35',replacementName:'Beef Patty, 3.5oz'}});
+}
 const automatic = mode.startsWith('automatic') || mode.startsWith('clarity') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'ready-1',token:'a'.repeat(64),
   status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
 if (mode.startsWith('automatic')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
@@ -150,8 +156,9 @@ window.fetch=async(url,options={})=>{
     detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:String(-credit),extendedAmount:String(-credit)});
     return json({applied:true,result:detail.depositResolution});
   }
+  if(/\/skus\/[^/]+\/discontinued$/.test(path)) {line.discontinued=null;return json({active:true,name:line.matchedName,discontinuedAt:null,replacedBySkuId:null});}
   if(path.endsWith('/match')||path.endsWith('/new-sku')) {
-    const body=JSON.parse(options.body); line.needsReview=false;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;
+    const body=JSON.parse(options.body); line.needsReview=false;line.discontinued=null;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;
     line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
     return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
   }

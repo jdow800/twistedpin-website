@@ -75,6 +75,14 @@ then run `node check-food-unit-layout.mjs`. It checks the unit question and bloc
 Add action at 320, 390 and 960px with an isolated profile. Screenshots remain in
 ignored `dist/`; this does not exercise a physical microphone.
 
+Discontinued items (TPRS 0196) use the same build: `node check-food-discontinued.mjs`.
+Five scenarios with `?discontinued`:
+- the leftover row sits last under its heading and names its replacement;
+- it is left out of the shelf progress;
+- "None left" archives it and Undo restores it;
+- the button is hidden once a number is entered;
+- a walk with nothing discontinued is unchanged.
+
 Bottled beer reuses the same fixture dependencies and imports the actual TPRS `resolveCountQuantity` helper:
 
 ```powershell

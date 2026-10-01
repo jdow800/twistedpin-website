@@ -43,6 +43,15 @@ if (params.has('definitions')) {
   if (params.has('changed-package')) catalog.find(s=>s.id==='buns').unitsPerCase=24;
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
 }
+// Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.
+if (params.has('discontinued')) {
+  catalog.push(
+    {id:'patty2',name:'Beef Patty, 2oz',countUnit:'pack',unitsPerCase:96,category:'Meat',sizeMl:null,trackingMode:'stock_count',wacCost:null,
+      discontinuedAt:'2026-10-01T05:00:00.000Z',replacedBySkuId:'patty35'},
+    {id:'patty35',name:'Beef Patty, 3.5oz',countUnit:'each',unitsPerCase:48,category:'Meat',sizeMl:null,trackingMode:'stock_count',wacCost:null},
+  );
+  for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
+}
 const initialLines = params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
@@ -60,6 +69,7 @@ window.fetch = async (input, init = {}) => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed', message},502)); }});
   });
   if (path.endsWith('/case-size')) return json({unitsPerCase:body.unitsPerCase});
+  if (/\/skus\/[^/]+\/active$/.test(path)) return json({active:body.active,name:path.split('/').at(-2)});
   if (path.endsWith('/lines')) { qa.lines = body.lines; return json({ok:true}); }
   if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[]});
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});

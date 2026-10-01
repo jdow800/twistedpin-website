@@ -178,6 +178,13 @@ export interface BarSkuItem {
   countDefinition?: import("./count-definition").CountDefinition | null;
   /** Confirmed observations, used only to ask about an unusually large count. */
   countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
+  /** Discontinued (tprs 0196): no longer ordered, leftovers still counted.
+   *  Listed last on its shelf under "Discontinued, count leftovers", never
+   *  flagged missing; "None left" archives it. Optional so older cached
+   *  bundles keep parsing. */
+  discontinuedAt?: string | null;
+  /** What a plain mention means now that this is discontinued. */
+  replacedBySkuId?: string | null;
 }
 export interface BarZoneItem {
   id: string;
@@ -576,6 +583,17 @@ export async function setSkuActive(skuId: string, active: boolean): Promise<void
   });
 }
 
+/**
+ * Discontinue a product (no longer ordered, leftovers still counted), or say
+ * we carry it again (tprs 0196). Carrying it again also un-archives it.
+ */
+export async function setSkuDiscontinued(skuId: string, discontinued: boolean, replacedBySkuId: string | null = null): Promise<void> {
+  await gatedJson<{ active: boolean; name: string; discontinuedAt: string | null; replacedBySkuId: string | null }>(
+    `/admin/bar/skus/${skuId}/discontinued`,
+    { ...jsonBody(discontinued ? { discontinued, replacedBySkuId } : { discontinued }), method: "PATCH" },
+  );
+}
+
 export async function setSkuZone(
   skuId: string,
   zoneId: string,
@@ -912,6 +930,10 @@ export interface InvoiceLine {
    *  cannot authorise a cost against a SKU the line was since re-matched to. */
   matchedSkuId: string | null;
   matchedCountUnit: string | null;
+  /** Matched an item discontinued before this invoice's date (tprs 0196). A
+   *  question, never a hold: "we carry it again", or "that's <replacement>"
+   *  (a rematch). Either answer makes it null. */
+  discontinued?: { since: string; replacedBySkuId: string | null; replacementName: string | null } | null;
 }
 export interface InvoiceImageRef {
   id: string;
