@@ -19,6 +19,8 @@ import {
 import { formatUsd } from "./format";
 import { toPlainText } from "../../tprs/text-dialect";
 import { flyToCart } from "./flyToCart";
+import { promoFor } from "../../tprs/addOnPromos";
+import { track } from "./analytics";
 import { scrollPageToBottom } from "./scroll";
 import Markdown from "./Markdown";
 import type { QuoteResponse } from "../../tprs/schemas";
@@ -197,13 +199,25 @@ export default function StickySummary({
     else if (line.id) onAddOnQty(line.id, qty);
   }
 
+  // The add-on step's sole optional add-on, when it carries a promo (see AddOnsStep).
+  const stepAddOns = state.step === "addons" ? (state.product?.addOnProducts ?? []) : [];
+  const promoSkip =
+    stepAddOns.length === 1 && !stepAddOns[0].isRequired && !addOnsSelected(state)
+      ? promoFor(stepAddOns[0])
+      : null;
+  const quietCta = promoSkip !== null;
+
   let ctaLabel: string | null = null;
   let ctaEnabled = false;
   if (state.step === "detail") {
     ctaLabel = "Continue";
     ctaEnabled = state.slot !== null && state.laneQty >= 1;
   } else if (state.step === "addons") {
-    ctaLabel = addOnsSelected(state) ? "Continue" : "Skip Add-ons";
+    // A promo add-on (the arcade card, Jon 2026-10-01) gets a quiet, specific
+    // skip ("Skip arcade") so the bright button on the screen is the offer's
+    // own "Add a card"; once anything is added this turns back into a bright
+    // Continue. Every other add-on step keeps the original "Skip Add-ons".
+    ctaLabel = addOnsSelected(state) ? "Continue" : (promoSkip?.skipLabel ?? "Skip Add-ons");
     ctaEnabled = true;
   } else if (state.step === "guest") {
     // Just "Continue" — only the button that CHARGES needs to be explicit, and
@@ -444,9 +458,14 @@ export default function StickySummary({
           {ctaLabel && (
             <button
               type="button"
-              className="tprs-btn tprs-btn--solid"
+              className={quietCta ? "tprs-btn tprs-btn--ghost tprs-btn--quiet-cta" : "tprs-btn tprs-btn--solid"}
               disabled={!ctaEnabled}
-              onClick={onNext}
+              onClick={() => {
+                if (promoSkip) {
+                  track("add_on_skip", { item_id: String(stepAddOns[0].code), item_name: promoSkip.title });
+                }
+                onNext();
+              }}
               title={
                 state.step === "payment"
                   ? "Preview — no card is charged"

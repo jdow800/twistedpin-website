@@ -112,3 +112,18 @@ NON-HTML sink (Stripe line items, plain/HTML emails, receipts, SMS) MUST go
 through `toPlainText` / `toHtml` from the same module — never interpolate a raw
 field. See `src/tprs/README.md` ("Text dialect") for the cross-repo vendoring +
 backend wiring.*
+
+---
+
+## Promo add-ons (the arcade card) — copy lives in code, not TPRS
+
+The $15 arcade card (TPRS product **122**) has a promo presentation on the
+add-on step (Jon, 2026-10-01): the heading, the ONLINE ONLY badge, the
+"+$5 FREE" sticker, the card copy, the "Add a card" button and the quiet
+"Skip arcade". That copy is set in `src/tprs/addOnPromos.ts`, so editing the
+product's name or short description in TPRS **won't** change the add-on step.
+
+TPRS still owns the **price** (the "$5 free" is computed as the $20 of play
+minus the catalog price) and the text in the **cart, the "what you're
+reserving" recap, receipts and emails**. Rename the product there to keep them
+in step with the add-on step.

@@ -752,6 +752,64 @@
 .tprs-req { color: var(--tw-accent); }
 .tprs-empty { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); padding: 22px 0; text-align: center; }
 
+/* ── Promo add-on card (the $15 arcade card — src/tprs/addOnPromos.ts) ──
+   Jon 2026-10-01: "free" leads, online-only is explicit, and the one bright
+   button on the screen is the offer's own Add (the sticky Skip goes quiet).
+   A bounded surface so the offer reads as an offer, not page copy. Type per
+   the mobile rubric: 16 read-to-decide / 14 secondary / 12 floor. */
+.tprs-promo-heading { text-align: left; }
+.tprs-promo-heading em { font-style: normal; color: #ffe236; }  /* brand gold */
+.tprs-promo {
+  margin: 4px 0 8px;
+  padding: 14px;
+  border: 1px solid var(--tw-border-strong);
+  border-radius: var(--radius-surface);
+  background: var(--tw-surface-hover);
+}
+.tprs-promo-badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tw-tango);
+  color: #0e0a1f;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tprs-promo-top { display: flex; align-items: flex-start; gap: 14px; }
+.tprs-promo-thumb-wrap { position: relative; flex-shrink: 0; }
+.tprs-promo-thumb { display: block; width: 88px; height: 88px; border-radius: 8px; object-fit: cover; border: 1px solid var(--tw-border); }
+.tprs-promo-sticker {
+  position: absolute;
+  right: -8px;
+  bottom: -10px;
+  padding: 4px 7px;
+  border-radius: 7px;
+  background: #ffe236;
+  color: #0e0a1f;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: rotate(-6deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.tprs-promo-main { flex: 1; min-width: 0; }
+.tprs-promo-title { font-family: var(--font-ui); font-size: 18px; font-weight: 800; color: var(--tw-text); }
+.tprs-promo-desc { margin: 4px 0 0; font-family: var(--font-body); font-size: 16px; line-height: 1.45; color: var(--tw-text); }
+.tprs-promo-fomo { margin: 6px 0 0; font-family: var(--font-body); font-size: 14px; line-height: 1.4; color: var(--tw-text-muted); }
+.tprs-promo-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+.tprs-promo-math { font-family: var(--font-ui); font-size: 16px; font-weight: 700; color: var(--tw-text); }
+.tprs-promo-math span { color: #ffe236; }
+.tprs-promo-add { font-size: 15px; min-height: 44px; padding: 12px 20px; }
+.tprs-promo-added { font-family: var(--font-ui); font-size: 14px; font-weight: 700; color: var(--tw-accent); }
+/* The sticky bar's skip on a promo step: the quiet ghost, but a full-size tap target. */
+.tprs-btn--quiet-cta { font-size: 13px; }
+
 /* ── "What you're reserving" summary (L) ────────────────────────────── */
 .tprs-reserving {
   padding: 14px 16px;
