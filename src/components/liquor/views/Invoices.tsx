@@ -8,6 +8,7 @@ import {
   rememberInvoiceUnit,
   matchInvoiceLine,
   newSkuFromLine,
+  setSkuDiscontinued,
   reextractInvoice,
   clearInvoiceFlag,
   setInvoiceLineReceived,
@@ -323,6 +324,9 @@ export default function Invoices({
               )}
               {!inv.duplicateOf && inv.status !== "pending" && l.costHoldReason && (
                 <CostHoldControl invoiceId={detail.invoice.id} line={l} sku={catalog.find(sku => sku.id === l.matchedSkuId)} onApplied={handleCostApplied} />
+              )}
+              {!inv.duplicateOf && inv.status !== "pending" && l.discontinued && (
+                <DiscontinuedControl invoiceId={detail.invoice.id} line={l} onResolved={() => void refreshBuckets(inv.id)} />
               )}
               {l.annotation && (
                 <p className="lq-invd-annot">
@@ -692,6 +696,40 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
       ))}
     </div>
   );
+}
+
+/** Bought after it was discontinued (tprs 0196). Jon: "if it lands on an
+ *  invoice past October 1st, I guess that's a different discussion." A
+ *  question, never a hold: the purchase and its cost already count. Either
+ *  answer makes the server stop asking. */
+function DiscontinuedControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {
+  const [busy, setBusy] = useState<"carry" | "replace" | null>(null);
+  const [error, setError] = useState("");
+  const gone = line.discontinued;
+  if (!gone || !line.matchedSkuId) return null;
+  const since = new Date(gone.since).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "short", day: "numeric" });
+  async function answer(kind: "carry" | "replace") {
+    setBusy(kind); setError("");
+    try {
+      if (kind === "carry") await setSkuDiscontinued(line.matchedSkuId!, false);
+      else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!);
+      onResolved();
+    } catch { setError("Could not save. Reopen the invoice and try again."); setBusy(null); }
+  }
+  return <div className="lq-invd-hold lq-invd-discontinued">
+    <p><strong>Discontinued {since}. Still buying this?</strong></p>
+    <div className="lq-invd-discontinued-actions">
+      <button type="button" className="lq-btn lq-btn-ghost" disabled={!!busy} onClick={() => void answer("carry")}>
+        {busy === "carry" ? "Saving…" : "Yes, we carry it again"}
+      </button>
+      {gone.replacedBySkuId && gone.replacementName && (
+        <button type="button" className="lq-btn lq-btn-ghost" disabled={!!busy} onClick={() => void answer("replace")}>
+          {busy === "replace" ? "Saving…" : `That's ${gone.replacementName}`}
+        </button>
+      )}
+    </div>
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
 }
 
 function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {

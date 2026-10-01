@@ -2994,3 +2994,59 @@
 .lq-invlist .lq-invrow-vendor { flex: 1 1 55%; font-size: 17px; }
 .lq-invlist .lq-invrow-sub { font-size: 14px; }
 @media (prefers-reduced-motion: reduce) { .lq-invd { scroll-behavior: auto; } }
+
+/* Discontinued items (tprs 0196): no longer ordered, leftovers still counted.
+   Last on the shelf under their own heading, never flagged missing. */
+.lq-fc-leftovers-head {
+  border-top: 1px solid var(--lq-line, #333);
+  margin-top: 14px;
+  padding-top: 10px;
+}
+.lq-fc-leftovers-title {
+  margin: 0;
+  font-weight: 700;
+}
+.lq-fc-leftovers-sub {
+  margin: 2px 0 6px;
+  font-size: 13px;
+}
+.lq-fc-row-leftover {
+  opacity: 0.85;
+}
+.lq-fc-row-replaced {
+  display: block;
+  font-size: 12px;
+}
+.lq-fc-row-noneleft {
+  flex: 0 0 auto;
+  background: none;
+  border: 1px solid #d9a05b;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #d9a05b;
+}
+.lq-fc-row-gone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--lq-muted);
+}
+.lq-row-leftover {
+  display: block;
+  font-size: 12px;
+}
+.lq-invd-discontinued {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.lq-invd-discontinued p {
+  margin: 0;
+}
+.lq-invd-discontinued-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

@@ -955,7 +955,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const searchResults = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return catalog.filter((s) => s.name.toLowerCase().includes(q)).slice(0, 30);
+    // Discontinued bottles (tprs 0196) sort after the ones we still carry.
+    return catalog
+      .filter((s) => s.name.toLowerCase().includes(q))
+      .sort((a, b) => Number(!!a.discontinuedAt) - Number(!!b.discontinuedAt))
+      .slice(0, 30);
   }, [catalog, search]);
 
   /** Full-container equivalents for one batch in the CURRENT zone. Touching a
@@ -1137,6 +1141,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     {s.name}
                   </span>
                   <span className="lq-size">{sizeLabel(s)}</span>
+                  {s.discontinuedAt && <span className="lq-muted lq-row-leftover">discontinued, count leftovers</span>}
                 </div>
                 {/* Cell-first, exactly like the captured row and like setCases
                     itself. Reading the catalog alone would label a resumed

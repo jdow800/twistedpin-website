@@ -723,3 +723,36 @@ The 42-scenario food voice suite now flakes on this machine. "complete failure
 preserves the server message and a new take starts clean" fails intermittently
 even with main's files (3 of 3 runs at one point), so it is not caused by this
 change, which does not touch CountFood. It needs its own look.
+
+## 2026-10-01 - Discontinued items: count the leftovers, never order them
+
+Jon, when the kitchen switched to fresh 3.5 oz patties: "he might still count
+it, but we're not going to order it moving forward." He asked for counting to
+be "smart and easy" through a changeover. TPRS migration 0196 adds a
+discontinued state between active and archived, with a replacement item, and
+these screens follow it.
+
+- **Food walk.** A discontinued item sits last on its shelf under
+  "Discontinued, count leftovers", with "Now: <replacement>". It is left out of
+  the shelf's "X of Y counted". "None left" archives it and stays on screen
+  with Undo for the rest of the walk. "None left" is hidden once a number is
+  entered, because the two would contradict.
+- **Liquor walk.** Search tags a discontinued bottle "discontinued, count
+  leftovers" and sorts it after the bottles we still carry. The liquor walk has
+  no shelf list to group.
+- **Invoices.** A line that bought a discontinued item after the day it was
+  discontinued becomes an item question: "Discontinued Oct 1. Still buying
+  this?" It has two answers, "Yes, we carry it again" and "That's <replacement>"
+  (a rematch). It never holds the purchase or the cost.
+
+Validation:
+- Five jsdom scenarios against the actual CountFood
+  (`scripts/qa-liquor-bottle-sizes/check-food-discontinued.mjs`, with
+  `?discontinued` in the food fixture). The first fails against the previous
+  screen.
+- Two invoice scenarios in `check-invoices.mjs` (49 total).
+- The existing 42 food voice and 9 liquor voice scenarios.
+- Strict liquor TypeScript.
+
+There was no physical phone test. Server-side behaviour (precheck, voice,
+order guides, the migration) is in TPRS BUILD_NOTES 2026-10-01.

@@ -20,6 +20,20 @@ async function run(name,mode,fn){
     await fn({doc,button,click,log,dom});passed++;console.log('PASS',name);
   }finally{dom.window.close();}
 }
+// tprs 0196: a discontinued item on an invoice is asked about, and either answer clears it.
+for(const answer of ['carry','replace']) await run(`a discontinued item bought again asks, and "${answer}" answers it`,'discontinued',async({doc,click,log})=>{
+  assert.match(doc.querySelector('.lq-invd-questions').textContent,/Discontinued Oct 1\. Still buying this\?/);
+  if(answer==='carry') {
+    await click('Yes, we carry it again');
+    await until(()=>log().includes('/skus/patty2/discontinued'));
+    assert.match(log(),/PATCH \S*\/skus\/patty2\/discontinued \{"discontinued":false\}/);
+  } else {
+    await click("That's Beef Patty, 3.5oz");
+    await until(()=>log().includes('/match'));
+    assert.match(log(),/\/lines\/test-keg\/match \{"skuId":"patty35"\}/);
+  }
+  await until(()=>!doc.querySelector('.lq-invd-discontinued'));
+});
 await run('a known item with an amount question does not ask for another match','amount',async({doc,button})=>{
   assert.match(doc.querySelector('.lq-invd-questions').textContent,/line amount does not reconcile/);
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));

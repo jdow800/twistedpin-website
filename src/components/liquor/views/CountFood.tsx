@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createCount,
   extractVoice,
@@ -223,6 +223,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [fullCount, setFullCount] = useState(false);
   // Answers to "you didn't count these", keyed by sku.
   const [missedAnswer, setMissedAnswer] = useState<Record<string, "archived" | "counting">>({});
+  // "None left" on a discontinued row (tprs 0196), keyed by sku. Archived rows
+  // stay visible for this walk so the tap can be undone.
+  const [noneLeft, setNoneLeft] = useState<Record<string, "saving" | "archived" | "failed">>({});
   // Products that look like we have stopped carrying them. Kept apart from
   // `findings` for the reason in api.ts: the money sort buries exactly the
   // ones that are most certainly dead.
@@ -751,6 +754,28 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     }
   }
 
+  /** "None left" on a discontinued row: nothing of it anywhere, so it comes
+   *  off the walk for good (tprs 0196). The same archive as "we don't carry
+   *  this any more"; Undo puts it straight back. */
+  async function markNoneLeft(skuId: string) {
+    if (noneLeft[skuId] === "saving") return;
+    setNoneLeft((a) => ({ ...a, [skuId]: "saving" }));
+    try {
+      await setSkuActive(skuId, false);
+      setNoneLeft((a) => ({ ...a, [skuId]: "archived" }));
+    } catch {
+      setNoneLeft((a) => ({ ...a, [skuId]: "failed" }));
+    }
+  }
+  async function undoNoneLeft(skuId: string) {
+    try {
+      await setSkuActive(skuId, true);
+      setNoneLeft(({ [skuId]: _gone, ...rest }) => rest);
+    } catch {
+      setNoneLeft((a) => ({ ...a, [skuId]: "failed" }));
+    }
+  }
+
   /** "I missed it — let me count it now." Jumps to a shelf it usually
    *  lives on (or the current one, if nothing is recorded) and drops the
    *  row in, so the counter can type the number without hunting. */
@@ -812,6 +837,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         .sort((a, b) => a.name.localeCompare(b.name)),
     [rowIds, skuById],
   );
+  // Discontinued items (tprs 0196) are leftovers: listed last under their own
+  // heading, and left out of "X of Y counted", because nothing is owed on them.
+  const carriedRows = rows.filter((s) => !s.discontinuedAt);
+  const leftoverRows = rows.filter((s) => s.discontinuedAt);
+  const carriedCounted = carriedRows.filter((s) => zoneCells[s.id]).length;
   const searchHits = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (q.length < 2) return [];
@@ -824,7 +854,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // Walk position, for the zone header. A counter needs to know how far
   // through the kitchen they are without scrolling a tab strip sideways.
   const zoneIdx = Math.max(0, zones.findIndex((z) => z.id === zoneId));
-  const zoneCounted = Object.keys(zoneCells).length;
   /** Move shelves and close the picker. Scroll to the top: a phone left at the
    *  bottom of a 45-item shelf would open the next one halfway down. */
   /** Keep the box being typed into clear of the sticky header AND the fixed
@@ -915,7 +944,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         >
           <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
           <span className="lq-fc-zonemeta">
-            Shelf {zoneIdx + 1} of {zones.length} · {zoneCounted} of {rows.length} counted
+            Shelf {zoneIdx + 1} of {zones.length} · {carriedCounted} of {carriedRows.length} counted
             <span className="lq-fc-zonecaret">{zonePicker ? "▲" : "▼"}</span>
           </span>
         </button>
@@ -1230,17 +1259,35 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             Nothing listed for this shelf yet — search below to add an item.
           </p>
         )}
-        {rows.map((s) => {
+        {[...carriedRows, ...leftoverRows].map((s, i) => {
           const c = zoneCells[s.id];
           const [head, rest] = splitDisplayName(s.name);
+          const leftover = !!s.discontinuedAt;
+          const replacement = s.replacedBySkuId ? skuById.get(s.replacedBySkuId)?.name : undefined;
           return (
-            <div key={s.id} className={`lq-fc-row${c ? " lq-fc-row-counted" : ""}`}>
+            <Fragment key={s.id}>
+            {leftover && i === carriedRows.length && (
+              <div className="lq-fc-leftovers-head">
+                <p className="lq-fc-leftovers-title">Discontinued, count leftovers</p>
+                <p className="lq-muted lq-fc-leftovers-sub">
+                  We don't order these any more. Count any you find, or tap "None left" to take it off the walk.
+                </p>
+              </div>
+            )}
+            {leftover && noneLeft[s.id] === "archived" ? (
+              <div className="lq-fc-row lq-fc-row-gone">
+                <span>{s.name}: none left, off the walk.</span>
+                <button type="button" className="lq-linkbtn" onClick={() => void undoNoneLeft(s.id)}>Undo</button>
+              </div>
+            ) : (
+            <div className={`lq-fc-row${c ? " lq-fc-row-counted" : ""}${leftover ? " lq-fc-row-leftover" : ""}`}>
               <div className="lq-fc-row-name" title={s.name}>
                 <span className="lq-fc-row-label">
                   <span className="lq-fc-row-head">{head}</span>
                   {rest && <span className="lq-fc-row-rest">{rest}</span>}
                   {c?.source === "voice" && <span className="lq-fc-row-voice" title={c.raw}>🎙️</span>}
                 </span>
+                {replacement && <span className="lq-muted lq-fc-row-replaced">Now: {replacement}</span>}
                 {/* "none here" is OUTSIDE the has-a-cell guard on purpose: its
                     whole job is the first answer on an untouched row — the
                     counter reaches a listed item, sees an empty shelf, and
@@ -1265,7 +1312,21 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                       clear
                     </button>
                   )}
+                  {/* Only while nothing is counted here: "none left" with a
+                      number in the box would contradict the box. */}
+                  {leftover && !(c?.qty) && (
+                    <button
+                      type="button"
+                      className="lq-fc-row-noneleft"
+                      disabled={noneLeft[s.id] === "saving"}
+                      onClick={() => void markNoneLeft(s.id)}
+                      title="There is none of this anywhere: take it off the walk"
+                    >
+                      None left
+                    </button>
+                  )}
                 </span>
+                {noneLeft[s.id] === "failed" && <span className="lq-error">Couldn't save that. Try again.</span>}
                 {!!c?.packs && <span className="lq-muted">Includes {c.packs} packs × {c.packSize}, plus the quantities below.</span>}
               </div>
               <div className="lq-fc-row-inputs">
@@ -1304,6 +1365,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 </label>
               </div>
             </div>
+            )}
+            </Fragment>
           );
         })}
       </div>

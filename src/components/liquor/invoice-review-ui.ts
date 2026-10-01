@@ -6,7 +6,9 @@ export const reviewAnnotationFor = (line: InvoiceLine) =>
 export const reviewReasonsFor = (line: InvoiceLine) => line.reviewReasons ??
   (line.needsReview && line.lineType === "product" ? [line.matchedSkuId || line.nonInventory ? "amount" : "identity"] : []);
 export const lineNeedsAnswer = (line: InvoiceLine) => !!line.costHoldReason || reviewReasonsFor(line).length > 0
-  || (!!reviewAnnotationFor(line) && line.receivedQty == null);
+  || (!!reviewAnnotationFor(line) && line.receivedQty == null)
+  // Bought after it was discontinued (tprs 0196): asked, never held.
+  || !!line.discontinued;
 export const invoiceNeedsAttention = (invoice: InvoiceSummary) => invoice.needsAttention ?? (invoice.status !== "pending" &&
   (invoice.status === "flagged" || (!invoice.duplicateOf && !!(invoice.heldCount || invoice.reviewCount || invoice.unmatchedCount))));
 
