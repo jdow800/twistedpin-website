@@ -58,16 +58,26 @@ await run('it is not owed: the shelf progress leaves it out', async ({doc}) => {
   assert.match(doc.querySelector('.lq-fc-zonemeta').textContent, new RegExp(`0 of ${carried} counted`));
 });
 
-await run('"None left" takes it off the walk, and Undo puts it back', async ({doc, qa, button}) => {
+await run('"None left" saves a zero BEFORE it archives, and Undo removes that zero', async ({doc, qa, button}) => {
   button('None left').click();
   await until(() => doc.querySelector('.lq-fc-row-gone'), 'None-left confirmation');
   const archive = qa.calls.filter(c => c.path.endsWith('/skus/patty2/active'));
   assert.equal(JSON.stringify(archive.map(c => [c.method, c.body])), JSON.stringify([['PATCH', {active:false}]]));
+  // The count must say "0 here" for it, saved before the archive: an absent
+  // line would drop last count's leftovers from the bracket instead.
+  const zero = qa.lines.find(l => l.skuId === 'patty2');
+  assert.ok(zero, 'a line for the discontinued item was saved');
+  assert.equal(zero.qtyUnits, 0);
+  assert.equal(zero.zoneId, 'freezer');
+  const order = c => qa.calls.indexOf(c);
+  const savedZero = qa.calls.find(c => c.path.endsWith('/lines') && c.body.lines.some(l => l.skuId === 'patty2'));
+  assert.ok(order(savedZero) < order(archive[0]), 'the zero was saved before the archive');
   assert.match(doc.querySelector('.lq-fc-row-gone').textContent, /Beef Patty, 2oz: none left, off the walk/);
   button('Undo').click();
   await until(() => !doc.querySelector('.lq-fc-row-gone'), 'Undo');
   assert.equal(JSON.stringify(qa.calls.filter(c => c.path.endsWith('/skus/patty2/active')).at(-1).body), JSON.stringify({active:true}));
   assert.ok(doc.querySelector('.lq-fc-row-leftover'), 'the row is back to count');
+  await until(() => !qa.lines.some(l => l.skuId === 'patty2'), 'the zero Undo removed to be saved');
 });
 
 await run('with leftovers counted, "None left" is not offered', async ({input, button}) => {
@@ -77,9 +87,19 @@ await run('with leftovers counted, "None left" is not offered', async ({input, b
   assert.equal(button('None left'), undefined);
 });
 
+await run('leftovers counted on ANOTHER shelf also hide "None left"', async ({doc, input, button}) => {
+  input('Beef Patty, 2oz: loose packs', '3');
+  await pause();
+  // Next shelf: the blank leftover row there must not offer to archive it everywhere.
+  [...doc.querySelectorAll('.lq-fc-zonestep')].at(-1).click();
+  await until(() => /Kitchen Cooler/.test(doc.querySelector('.lq-fc-zonename')?.textContent ?? ''), 'Second shelf');
+  assert.ok(doc.querySelector('.lq-fc-row-leftover'), 'the leftover row is listed on this shelf too');
+  assert.equal(button('None left'), undefined);
+});
+
 await run('a walk with nothing discontinued looks exactly as before', async ({doc}) => {
   assert.equal(doc.querySelector('.lq-fc-leftovers-head'), null);
   assert.equal(doc.querySelector('.lq-fc-row-leftover'), null);
 }, 'definitions');
 
-console.log(`${passed}/5 discontinued scenarios passed`);
+console.log(`${passed}/6 discontinued scenarios passed`);

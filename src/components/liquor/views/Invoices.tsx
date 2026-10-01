@@ -332,8 +332,12 @@ export default function Invoices({
                 <p className="lq-invd-annot">
                   ✍️ {l.annotation}
                   <span className="lq-invd-annot-hint">
-                    {inv.duplicateOf && detail.copyReviews?.some(copy => copy.copyId === inv.id && copy.automaticallyReconciled)
+                    {inv.duplicateOf && detail.copyReviews?.some(copy => copy.copyId === inv.id && copy.automaticallyReconciled
+                      && copy.automaticBasis === "supplier_final")
                       ? " — source note retained; this adjustment is already accounted for in the supplier's final invoice."
+                      // A plain mark (no number, no words) on a row both copies agree on: a receiving check, kept as a note.
+                      : inv.duplicateOf && detail.copyReviews?.some(copy => copy.copyId === inv.id && copy.automaticallyReconciled)
+                      ? " — a mark with no number or words; both copies agree on this item, so it is kept as a note."
                       : reviewAnnotationFor(l)
                       ? " — printed numbers were kept. Record how much of this item actually arrived; enter 0 if none was delivered."
                       : " — deposit return note, kept for reference."}

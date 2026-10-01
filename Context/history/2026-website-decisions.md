@@ -762,3 +762,30 @@ Validation:
 
 There was no physical phone test. Server-side behaviour (precheck, voice,
 order guides, the migration) is in TPRS BUILD_NOTES 2026-10-01.
+
+## 2026-10-01 - "None left" records its zero; fixes from the GPT-6.1-Sol review of #55
+
+An independent reviewer (GPT-6.1-Sol, Ultra) found two defects in the
+discontinued screens shipped earlier the same day:
+
+- **"None left" lost the count.** It archived the item but wrote no line, so
+  a count that should have said "0 of the 10 left last time" said nothing,
+  and the bracket dropped the item instead of recording it as used. It now
+  saves an explicit zero on the shelf first, and archives only once that save
+  lands. A failed save archives nothing. Undo removes only a zero the tap
+  itself created.
+- **It looked at one shelf only.** "None left" archives everywhere, so it is
+  now hidden, and refused, while any shelf in the walk holds a counted
+  quantity of the item.
+
+The invoice screen's note on an automatically settled copy no longer claims a
+supplier's final invoice explained a plain check mark. That wording is kept
+for supplier finals; a matching-copies mark reads as a note (TPRS same day).
+
+Validation:
+- The food discontinued suite has 6 scenarios. The new zero check fails
+  against the live screen.
+- The existing 42 food voice and 49 invoice scenarios pass. The invoice
+  suite's focus check is timing-sensitive: it passed on a rerun and is
+  unrelated.
+- Strict liquor TypeScript passes.
