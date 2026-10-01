@@ -14,6 +14,22 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-01 - Arcade card promo on the booking add-on step (Jon: "lets ship proposed v2").**
+  - **Why:** online arcade add-on sales fell from Roller's ~$2,000 (Sept 2025) to $360 on TPRS (Sept 2026) on about the same online booking volume. About 11% of self-service bookings add the card. Review trail: TP F's `reviews/2026-10/arcade-addon/` (opinion, Sol 6.1 review, mocks v1 and v2).
+  - **What:** product 122, the $15 arcade card on lane products 4, 5, 121 and 123, renders as a bounded offer card.
+    - Heading "Get $5 free arcade play", an ONLINE ONLY badge and a "+$5 FREE" sticker.
+    - "Pay $15, play $20. This bonus is only online." and "You won't find this bonus at our kiosks." (Jon: the kiosks have deals, just not this one.)
+    - "$15 → $20 of play" with one bright "Add a card". After the first add: a stepper and "✓ N cards added · $X free".
+    - The sticky Skip becomes a quiet "Skip arcade"; the bright "Continue" returns once a card is added.
+  - **Rules:**
+    - The price comes from the catalog and the bonus is derived (play value minus price); a non-positive bonus turns the promo off.
+    - Quantity still defaults to 0 (no pre-selection). Birthday and NYE add-ons are unchanged.
+    - This is a deliberate exception to ADR-0029 §5.1 ("prominent low-friction Skip") for promo add-ons only. Skip stays one tap.
+  - **Copy:** Jon 10/1: "free" is a magic word, plus online-only FOMO. The "deal/discount/value/cheap" ban still holds. The TPRS name "Arcade Deal (online pre-purchase only)" still shows in the recap, cart and receipts until it's renamed in TPRS admin; the rename is pending with Jon.
+  - **Tracking:** GA4 `view_item` (once per page load), `add_to_cart` (first add), `add_on_skip`. Judge over about 8 weeks against the 10.9% baseline.
+  - **Files:** `src/tprs/addOnPromos.ts`, `src/components/tprs/analytics.ts`, `steps/AddOnsStep.tsx`, `StickySummary.tsx`, and the `.tprs-promo-*` rules in `tprs.css`.
+  - **Verified:** `astro build` passes. `tsc` reports no new errors (3 already exist in `api/estimate/track.ts`). A local harness with live catalog data for product 122 was checked at true 390px (0, 1 and 2 cards) and at desktop width.
+
 - **2026-09-26 - AGENTS.md is a pointer, not a copy (Jon approved landing it).** AGENTS.md was a hand-maintained copy of CLAUDE.md frozen at its 2026-05-17 state, and it still carried since-retired wording ("set apart from the main floor", "built by America's Top Mixologist"). It now sends agents to the dev-root `CLAUDE.md`, then this repo's `CLAUDE.md`. The edit was written 2026-09-08 during the CLAUDE.md split but never committed. Prior contents: `git show 51a2b95:AGENTS.md`.
 
 - **2026-09-26 - Google Ads records housekeeping (Jon asked for a cleanup).** Script 19 (September 13) had never been committed. Its script, tests, runbook, Preview and live records, negative-keyword export and two error screenshots are now in `scripts/google-ads/` beside Scripts 20 and 21, and its seven figure-free September 12-13 log entries are restored under those dates. `Context/google-ads-reviews/` is now git-ignored: the reviews hold spend and inquiry figures and this repository is public. The full reviews, the September 12 handoff and the five figure-bearing log entries are backed up in the private `twisted-pin-notes` repo (`google-ads-reviews/`, commit 135f03d). No site or Ads account change.
