@@ -226,6 +226,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // "None left" on a discontinued row (tprs 0196), keyed by sku. Archived rows
   // stay visible for this walk so the tap can be undone.
   const [noneLeft, setNoneLeft] = useState<Record<string, "saving" | "archived" | "failed">>({});
+  // The shelf where "None left" wrote its zero, so Undo removes only that.
+  const [noneLeftZero, setNoneLeftZero] = useState<Record<string, string>>({});
   // Products that look like we have stopped carrying them. Kept apart from
   // `findings` for the reason in api.ts: the money sort buries exactly the
   // ones that are most certainly dead.
@@ -754,14 +756,41 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     }
   }
 
+  /** Any shelf in this walk holding a positive count of it. "None left" is a
+   *  claim about EVERY shelf, so one counted pack anywhere refutes it. */
+  function countedAnywhere(skuId: string): boolean {
+    return Object.values(countsRef.current).some((cells) => (cells[skuId]?.qty ?? 0) > 0);
+  }
+
   /** "None left" on a discontinued row: nothing of it anywhere, so it comes
-   *  off the walk for good (tprs 0196). The same archive as "we don't carry
-   *  this any more"; Undo puts it straight back. */
+   *  off the walk for good (tprs 0196).
+   *
+   *  ⚠ THE ZERO IS SAVED FIRST. "None left" is a count of zero. Archiving
+   *  alone left this count with no line for the item, and an absent line
+   *  drops it from the bracket instead of recording that the 10 counted last
+   *  time are gone. So the zero lands on the server before the archive, and a
+   *  failed save archives nothing. Undo un-archives and removes only a zero
+   *  this tap created. */
   async function markNoneLeft(skuId: string) {
-    if (noneLeft[skuId] === "saving") return;
+    if (noneLeft[skuId] === "saving" || countedAnywhere(skuId)) return;
     setNoneLeft((a) => ({ ...a, [skuId]: "saving" }));
+    const shelf = zoneId;
+    const created = !countsRef.current[shelf]?.[skuId];
+    if (created) {
+      const zero: Cell = { cases: null, units: 0, packs: null, packSize: null,
+        caseSize: skuById.get(skuId)?.unitsPerCase ?? null, qty: 0, source: "grid", none: true };
+      const next = { ...countsRef.current, [shelf]: { ...(countsRef.current[shelf] ?? {}), [skuId]: zero } };
+      // The ref first: doSave reads it now, before React re-renders.
+      countsRef.current = next;
+      setCounts(next);
+    }
+    if (!(await doSave())) {
+      setNoneLeft((a) => ({ ...a, [skuId]: "failed" }));
+      return;
+    }
     try {
       await setSkuActive(skuId, false);
+      if (created) setNoneLeftZero((z) => ({ ...z, [skuId]: shelf }));
       setNoneLeft((a) => ({ ...a, [skuId]: "archived" }));
     } catch {
       setNoneLeft((a) => ({ ...a, [skuId]: "failed" }));
@@ -770,6 +799,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   async function undoNoneLeft(skuId: string) {
     try {
       await setSkuActive(skuId, true);
+      const shelf = noneLeftZero[skuId];
+      if (shelf) {
+        setCounts((prev) => {
+          const cells = { ...(prev[shelf] ?? {}) };
+          delete cells[skuId];
+          return { ...prev, [shelf]: cells };
+        });
+        scheduleSave();
+      }
+      setNoneLeftZero(({ [skuId]: _zero, ...rest }) => rest);
       setNoneLeft(({ [skuId]: _gone, ...rest }) => rest);
     } catch {
       setNoneLeft((a) => ({ ...a, [skuId]: "failed" }));
@@ -1312,9 +1351,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                       clear
                     </button>
                   )}
-                  {/* Only while nothing is counted here: "none left" with a
-                      number in the box would contradict the box. */}
-                  {leftover && !(c?.qty) && (
+                  {/* Only while nothing is counted on ANY shelf: "none left"
+                      archives everywhere, so a counted pack anywhere refutes it. */}
+                  {leftover && !Object.values(counts).some((cells) => (cells[s.id]?.qty ?? 0) > 0) && (
                     <button
                       type="button"
                       className="lq-fc-row-noneleft"
