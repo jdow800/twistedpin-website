@@ -95,6 +95,8 @@ interface CachedHoursSnapshot {
   fetchedAt?: string;
   /** Hours by day, in our normalized shape. */
   hours?: LiveHours;
+  /** Google's regular weekly schedule, with no holiday or special-day edits. 2026-10-01 addition (Avery reads it). */
+  regularHours?: LiveHours;
   /** Aggregate Google review rating value (e.g. 4.5). 2026-05-18 addition. */
   rating?: number;
   /** Total Google review count (e.g. 1142). 2026-05-18 addition. */
@@ -110,6 +112,8 @@ export interface LiveReviews {
 /** Single-fetch return shape — covers both hours and reviews from one API call. */
 export interface LivePlacesData {
   hours: LiveHours | null;
+  /** regularOpeningHours alone: the standing weekly schedule, never this week's holiday hours. */
+  regularHours: LiveHours | null;
   rating: number | null;
   reviewCount: number | null;
 }
@@ -213,7 +217,7 @@ export async function fetchLivePlacesData(): Promise<LivePlacesData> {
   const apiKey = import.meta.env.GOOGLE_MAPS_API_KEY;
   const placeId = import.meta.env.GOOGLE_PLACE_ID;
 
-  const empty: LivePlacesData = { hours: null, rating: null, reviewCount: null };
+  const empty: LivePlacesData = { hours: null, regularHours: null, rating: null, reviewCount: null };
 
   if (!apiKey || !placeId) {
     if (import.meta.env.DEV) {
@@ -243,6 +247,9 @@ export async function fetchLivePlacesData(): Promise<LivePlacesData> {
     const regularPeriods = data.regularOpeningHours?.periods ?? [];
     return {
       hours: mergeHours(currentPeriods, regularPeriods),
+      // The standing weekly schedule on its own. Avery (n8n WF2) reads it through /api/hours/ to describe our
+      // hours for any date: the merged map above carries this week's holiday edits, which must not become every week's.
+      regularHours: regularPeriods.length > 0 ? periodsToHours(regularPeriods) : null,
       rating: typeof data.rating === "number" ? data.rating : null,
       reviewCount: typeof data.userRatingCount === "number" ? data.userRatingCount : null,
     };

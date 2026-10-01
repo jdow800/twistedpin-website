@@ -14,6 +14,12 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-01 - `/api/hours/` also returns `regularHours`, Google's regular weekly schedule (Jon: Avery reads live Google hours).**
+  - **Why:** Avery stated hours from hard-coded tables that never learned about the seasonal Thursday 11pm close, which Google has listed since 9/14 (karaoke season; Jon expects it to end around March or April). Jon chose live Google hours for Avery. The existing `hours` map can't serve: it is this week's view with holiday edits merged in, so during Thanksgiving week it would tell Avery every Thursday is closed.
+  - **What:** `fetchLivePlacesData()` adds `regularHours` (`regularOpeningHours` alone, through the same `periodsToHours()`). The 4am cron writes it into `src/data/live-hours.json`, and `/api/hours/` returns it beside `hours`. `hours` is unchanged for Roy and the site.
+  - **Seeded:** the committed snapshot's `regularHours` was copied from this week's `hours`, fetched 10/1 4am, with no holiday or special day Oct 1-7. The 10/2 4am cron rewrites it from Google.
+  - **Consumer:** n8n WF2 `Fetch Venue Hours`, then Pre-Assemble Context, which falls back to its own tables when the feed is down or implausible. See `Marketing Avery/n8n/workflows/WF2.changelog.md`, 2026-10-01.
+
 - **2026-10-01 - Arcade card promo on the booking add-on step (Jon: "lets ship proposed v2").**
   - **Why:** online arcade add-on sales fell from Roller's ~$2,000 (Sept 2025) to $360 on TPRS (Sept 2026) on about the same online booking volume. About 11% of self-service bookings add the card. Review trail: TP F's `reviews/2026-10/arcade-addon/` (opinion, Sol 6.1 review, mocks v1 and v2).
   - **What:** product 122, the $15 arcade card on lane products 4, 5, 121 and 123, renders as a bounded offer card.

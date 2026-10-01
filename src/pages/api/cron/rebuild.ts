@@ -75,6 +75,7 @@ export const GET: APIRoute = async ({ request }) => {
           fetchedAt: new Date().toISOString(),
           hours: places.hours,
         };
+        if (places.regularHours) snapshotData.regularHours = places.regularHours;
         if (places.rating != null) snapshotData.rating = places.rating;
         if (places.reviewCount != null) snapshotData.reviewCount = places.reviewCount;
         const snapshot = JSON.stringify(snapshotData, null, 2) + '\n';

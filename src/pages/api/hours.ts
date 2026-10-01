@@ -40,6 +40,7 @@ type LiveHours = Record<DayKey, LiveDayHours>;
 interface CachedSnapshot {
   fetchedAt?: string;
   hours?: LiveHours;
+  regularHours?: LiveHours;
   rating?: number;
   reviewCount?: number;
 }
@@ -102,6 +103,9 @@ export const GET: APIRoute = async () => {
   const body = {
     fetchedAt: snap.fetchedAt ?? null,
     hours,
+    // 2026-10-01: Google's regular weekly schedule with no holiday edits. Avery (n8n WF2, Fetch Venue Hours) reads it
+    // as our generic hours for any event date; `hours` above stays this week's view for Roy and the site.
+    regularHours: snap.regularHours ?? null,
     programs,
     now: {
       is_open: isOpen,
