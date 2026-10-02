@@ -31,7 +31,7 @@ if(mode==='discontinued') {
 const automatic = mode.startsWith('automatic') || mode.startsWith('clarity') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'ready-1',token:'a'.repeat(64),
   status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
 if (mode.startsWith('automatic')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
-const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page',pageNumber:1,contentType:'image/jpeg'}],
+const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page',pageNumber:1,contentType:mode==='text-receipt'?'text/plain':'image/jpeg'}],
   buckets:{byBucket:{beer_draft:{matched:0,vendorItem:0,estimated:140}},nonGoods:40,
     unattributed:0,matchedDollars:0,residualDollars:140,residualBasis:'vendor_mix',mixVendor:'Example Brewery',mixInvoices:8,
     warnings:[],totalBasis:'grand_total',needsAttention:{unresolved:[{lineId:line.id,description:line.rawDescription,amount:'140'}],supplierOnly:[],disagreement:[]}}};

@@ -789,3 +789,23 @@ Validation:
   suite's focus check is timing-sensitive: it passed on a rerun and is
   unrelated.
 - Strict liquor TypeScript passes.
+
+## 2026-10-01 - An email receipt opens as text, not a broken image
+
+TPRS #286 brings Dip hot honey's order-confirmation emails into COGS. There is
+no PDF: the body is stored as text (TPRS 0197), and the original-invoice URL
+serves that text. This screen drew every page that wasn't a PDF as an `<img>`,
+so the first one, Dip #00442, showed a broken thumbnail.
+
+A page whose `contentType` is `text/plain` now gets an "✉️ Open email receipt"
+button, styled like "📄 Open PDF", that opens the text in a new tab. TPRS
+writes `text/plain` only for an email-body page (staff uploads accept images
+and PDFs only), and its extraction worker branches on the same value. Scans
+and PDFs are unchanged. TPRS already sends `contentType`, so nothing else has
+to deploy.
+
+Validation:
+- A fictional `text-receipt` scenario in `check-invoices.mjs`. It fails
+  against the previous screen.
+- All 50 invoice scenarios pass.
+- Strict liquor TypeScript and the production build pass.
