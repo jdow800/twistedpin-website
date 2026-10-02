@@ -141,6 +141,13 @@ for(const mode of ['old-flag','old-api'])await run(`older flag stays reviewable 
 await run('missing image gives a paper/vendor-copy instruction','no-image',async({doc})=>{
   assert.match(doc.querySelector('.lq-invd-review').textContent,/paper receipt or vendor copy/);
 });
+// tprs 0197: an email-body receipt (Dip) is text at the page URL, so it is a link, never an <img>.
+await run('an email-body receipt links to its text instead of a broken image','text-receipt',async({doc})=>{
+  assert.ok(!doc.querySelector('img[src*="/invoices/images/"]'));
+  const tile=doc.querySelector('.lq-invd-imgs a');
+  assert.match(tile.textContent,/Open email receipt/);
+  assert.equal(tile.getAttribute('href'),'/mock/admin/bar/invoices/images/test-page');
+});
 await run('already confirmed invoices do not show an open review','confirmed',async({doc,button})=>{
   assert.ok(!doc.querySelector('.lq-invd-review'));assert.ok(!button(confirm));
 });

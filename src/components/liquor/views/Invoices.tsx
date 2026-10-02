@@ -437,6 +437,11 @@ export default function Invoices({
                 <a key={im.id} className="lq-btn lq-btn-ghost" href={invoiceImageUrl(im.id)} target="_blank" rel="noreferrer">
                   📄 Open PDF
                 </a>
+              ) : im.contentType === "text/plain" ? (
+                // An email-body receipt (tprs 0197, Dip): the URL serves its text, not an image.
+                <a key={im.id} className="lq-btn lq-btn-ghost" href={invoiceImageUrl(im.id)} target="_blank" rel="noreferrer">
+                  ✉️ Open email receipt
+                </a>
               ) : (
                 <a key={im.id} href={invoiceImageUrl(im.id)} target="_blank" rel="noreferrer" className="lq-invd-imglink">
                   <img src={invoiceImageUrl(im.id)} alt={`page ${im.pageNumber ?? ""}`} loading="lazy" />
