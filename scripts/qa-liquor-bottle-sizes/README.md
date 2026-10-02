@@ -119,6 +119,23 @@ when requests finish out of order. Stop during a rotation must retain the last
 clip and release the microphone only once. Keg flows retain their 60-second
 interval. These checks do not measure recognition quality or live latency.
 
+Pause cuts (2026-10-02, behind `?pausecuts=1`) have three suites:
+- `node check-voice-carry.mjs` covers the pure rules, 14 checks with no DOM:
+  - the pause detector: a half-second breath after 20 s, the 30 s cap, flat
+    noise, and a room that gets louder;
+  - the carry-forward: an unfinished bottle, spoken order, Stop after a
+    failed piece;
+  - the name-number check and back-to-back repeats.
+- `node check-recorder-pauses.mjs` runs the real recorder hook with a scripted
+  analyser. It checks that a breath at 21 s ends the piece and that nonstop talk
+  hits the cap. With no analyser, or with the switch off, it keeps the 20 s
+  clock.
+- `check-liquor-voice.mjs` covers the screen side: pieces matched in spoken
+  order with the switch on, and the name-number prompt (`?seagrams`).
+
+The pause and carry rules were also replayed offline, on the 2026-10-02 count's
+audio (Alcohol Pricing/incidents/2026-10-02/stt-bakeoff, `dg-pausec500`).
+
 Invoice clarity checks cover 47 DOM scenarios, including question ordering,
 written package answers, completing two independent holds, progress/focus,
 unknown or stale unit labels, and rejection of mixed or ambiguous replies.

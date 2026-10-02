@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { transcribeAudio, BarApiError } from "./api";
+import { createPauseDetector, frameDb, FRAME_MS } from "./pauseDetector";
 import { useDictation, type DictationState } from "./useSpeech";
 
 // MediaRecorder-based dictation: records ONE stream for the whole take and
@@ -107,6 +108,13 @@ export interface RecorderDictationOptions {
    * callback fires before onFinal does; failed segments never fire.
    */
   onSegment?: (text: string, index: number) => void;
+  /**
+   * Cut each segment at the first pause after 20 s, and always by 30 s
+   * (pauseDetector.ts), instead of every 20 s by the clock. The clock cut 17 of
+   * 24 bottles from their numbers on 2026-10-02. Only with onSegment; falls back
+   * to the clock when the browser has no audio analyser.
+   */
+  pauseCuts?: boolean;
 }
 
 type Segment = { text: string | null; failed: boolean };
@@ -158,6 +166,10 @@ export function useRecorderDictation(
   scopeRef.current = opts.scope;
   const onSegmentRef = useRef(opts.onSegment);
   onSegmentRef.current = opts.onSegment;
+  const pauseCutsRef = useRef(opts.pauseCuts);
+  pauseCutsRef.current = opts.pauseCuts;
+  const segStartRef = useRef(0); // when the current segment's recorder started
+  const pausePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const mime = typeof navigator.mediaDevices?.getUserMedia === "function" ? pickMimeType() : null;
@@ -170,6 +182,7 @@ export function useRecorderDictation(
       wantRef.current = false;
       if (timerRef.current) clearInterval(timerRef.current);
       if (rotateRef.current) clearInterval(rotateRef.current);
+      if (pausePollRef.current) clearInterval(pausePollRef.current);
       try {
         if (recorderRef.current && recorderRef.current.state !== "inactive") recorderRef.current.stop();
       } catch {
@@ -282,9 +295,45 @@ export function useRecorderDictation(
       clearTimeout(armPollRef.current);
       armPollRef.current = null;
     }
+    if (pausePollRef.current) {
+      clearInterval(pausePollRef.current);
+      pausePollRef.current = null;
+    }
     const ctx = audioCtxRef.current;
     audioCtxRef.current = null;
     if (ctx) void ctx.close().catch(() => {});
+  };
+
+  /**
+   * Pause-aware rotation (pauseCuts): every FRAME_MS, measure the mic's
+   * loudness and let the detector say when to end the segment. Runs on the
+   * level watch's AudioContext, so it starts after startLevelWatch and dies
+   * with it. Returns false when there is no analyser, and the caller keeps the
+   * 20 s clock.
+   */
+  const startPauseWatch = (stream: MediaStream, rotate: () => void): boolean => {
+    const ctx = audioCtxRef.current;
+    if (!ctx || typeof ctx.createAnalyser !== "function") return false;
+    try {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      ctx.createMediaStreamSource(stream).connect(analyser); // never to destination
+      const buf = new Float32Array(analyser.fftSize);
+      const detector = createPauseDetector();
+      pausePollRef.current = setInterval(() => {
+        if (!wantRef.current) return;
+        const now = Date.now();
+        analyser.getFloatTimeDomainData(buf);
+        detector.push(frameDb(buf), now);
+        if (detector.shouldCut(now, segStartRef.current)) {
+          detector.reset();
+          rotate();
+        }
+      }, FRAME_MS);
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   /**
@@ -442,6 +491,7 @@ export function useRecorderDictation(
       else void finish();
     };
     recorderRef.current = rec;
+    segStartRef.current = Date.now();
     rec.start();
   };
 
@@ -530,11 +580,13 @@ export function useRecorderDictation(
             }
           });
         }
-        rotateRef.current = setInterval(() => {
+        const rotate = () => {
           const r = recorderRef.current;
           // stop() → onstop uploads the segment and starts the next one.
           if (wantRef.current && r && r.state === "recording") r.stop();
-        }, onSegmentRef.current ? COUNT_SEGMENT_MS : SEGMENT_MS);
+        };
+        const byPause = !!onSegmentRef.current && !!pauseCutsRef.current && startPauseWatch(stream, rotate);
+        if (!byPause) rotateRef.current = setInterval(rotate, onSegmentRef.current ? COUNT_SEGMENT_MS : SEGMENT_MS);
       })
       .catch((e: unknown) => {
         wantRef.current = false;

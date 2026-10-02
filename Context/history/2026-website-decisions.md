@@ -834,3 +834,37 @@ Jon's ruling, so the order guide and the graded email ship when the GM
 submits. The draft banner on the Counts screen still said "Left alone, it locks
 itself in 3 hours." It now says "about a minute after submit". No behavior
 change.
+
+## 2026-10-02 - Liquor voice: pause cuts and carry-forward (switch), and two review checks
+
+On the 2026-10-02 count the recorder's 20-second clock cut 17 of 24 bottles
+from their numbers ("Frangelico," | "three"). The bottle defaulted to 1, and
+the orphan number was lost or shifted the next piece. The replay is in
+`Alcohol Pricing/incidents/2026-10-02/stt-bakeoff`.
+
+**Behind a switch, off by default.** Open the count page with `?pausecuts=1`
+to turn it on for that phone (remembered); `?pausecuts=0` turns it off.
+- `pauseDetector.ts`: a segment ends at the first 0.5 s pause after 20 s, and
+  always by 30 s. The pause is measured against the counter's own loudness on
+  the level watch's analyser, every 50 ms. A browser with no analyser keeps the
+  20 s clock.
+- `voiceCarry.ts`: a segment's unfinished last phrase ("…Frangelico,", "Bacardi,
+  point") waits and leads the next segment. Segments are matched in spoken
+  order, even when they finish transcribing out of order. Liquor only: food
+  keeps the clock, because its phrasing ("we have five boxes of gloves") puts
+  the product last.
+- Replay on the 10-02 audio with this exact code, Deepgram with formatting off
+  and TPRS #308's matcher: 108 of 112 products right, 2.5 bottles off. The
+  wait after Stop was about 1.8 s typical and 4.6 s worst. With a 350 ms pause
+  it scored 104, because a cut fell inside "point … eight"; 600 ms scored 105.
+
+**Live for everyone:**
+- The name-number prompt (`voiceReview.ts`). A count equal to a number in the
+  bottle's name, or starting with it, asks before it can be added: "Seagram's
+  7" at 7.9 offers 0.9 or 7.9, and "Dewar's 12" at 12 asks.
+- Back-to-back repeats across a piece boundary are a correction. This is Jon's
+  rule, which the server already applies inside a piece.
+
+Tests: `check-voice-carry.mjs` (14), `check-recorder-pauses.mjs` (3), and 3 new
+scenarios in `check-liquor-voice.mjs` (12 in all). The recorder segments (9),
+recovery (4), deadlines (7) and food voice (42) suites still pass.

@@ -25,6 +25,9 @@ import {
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { createCarry } from "../voiceCarry";
+import { mergeAdjacentRepeats, nameNumberCheck, type NameCheck } from "../voiceReview";
+import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 
@@ -76,6 +79,9 @@ type ReviewItem = {
   needsCaseSize: boolean;
   /** Model looks to have multiplied cases itself — make a human pick. */
   suspectPreMultiplied: boolean;
+  /** The count matches a number in the bottle's name ("Seagram's 7" at 7.9) —
+   *  NOT applyable until the counter says which (voiceReview.ts). */
+  nameCheck: NameCheck | null;
   chosenSkuId: string | null; // resolved (from a single match, a picked candidate, or manual assign)
   candidates: VoiceMatch[]; // ambiguous → the choices
   assignOpen?: boolean; // unmatched → inline search open
@@ -215,6 +221,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // spoken order. The Web Speech fallback engine never fires onSegment; its
   // takes go through processTranscript whole, as before.
   const segExtractsRef = useRef<Map<number, Promise<VoiceExtractItem[] | null>>>(new Map());
+  // Pause cuts (?pausecuts=1, voiceSwitches.ts): segments end at a pause, and a
+  // segment's unfinished last phrase ("…Frangelico,") waits to lead the next
+  // one, so pieces are extracted in spoken order (voiceCarry.ts).
+  const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
+  const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
+  if (!carryRef.current) {
+    carryRef.current = createCarry((text, idx) => {
+      segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this piece's extraction failed
+    });
+  }
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",
     // ⚠ WITHOUT A SCOPE THE SERVER BIASES TOWARD EVERY ACTIVE SKU, alphabetical,
@@ -225,7 +241,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // `|| undefined`: before the shelves load zoneId is "", and the server's
     // uuid check would 400 every segment upload of that take.
     scope: { section: "bar", zoneId: (takeZoneId ?? zoneId) || undefined },
+    pauseCuts,
     onSegment: (text, idx) => {
+      // Every segment goes through the carry, even an empty one, so the next
+      // segment isn't left waiting for it.
+      if (pauseCuts) return carryRef.current!.add(text, idx);
       if (!text.trim()) return;
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
     },
@@ -509,7 +529,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }, [dict.recording]);
 
   function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
-    return items.map((it, i) => ({
+    return mergeAdjacentRepeats(items).map((it, i) => ({
       key: `v${i}`,
       spoken: it.spoken,
       // Don't default a case-bearing row to 1 — its qty legitimately
@@ -520,6 +540,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       unitsPerCase: it.unitsPerCase,
       needsCaseSize: it.needsCaseSize,
       suspectPreMultiplied: it.suspectPreMultiplied,
+      nameCheck: nameNumberCheck(it.units, it.cases, it.match?.name),
       chosenSkuId: it.match?.id ?? null,
       candidates: it.candidates,
     }));
@@ -529,6 +550,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  landed (see onSegment above) — assemble them in spoken order; only the
    *  last segment's extraction is typically still in flight here. */
   async function finalizeVoice(fullTranscript: string) {
+    // Every segment has reported by now: send what the carry still holds (the
+    // last unfinished phrase, and anything queued behind a failed segment).
+    if (pauseCuts) carryRef.current!.flush(Number.MAX_SAFE_INTEGER);
     const pending = [...segExtractsRef.current.entries()].sort(([a], [b]) => a - b);
     segExtractsRef.current = new Map();
     // No segments → the Web Speech fallback engine (or an all-silence take):
@@ -766,7 +790,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   //  "four cases of Tito's" would vanish off the sheet having recorded nothing.
   //  A zeroed row stays on screen instead, where the counter can see it.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && r.qty > 0;
+    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && r.qty > 0;
 
   function applyReview() {
     if (!review) return;
@@ -1098,6 +1122,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               setVoiceErr(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCapturing(true);
+              carryRef.current!.reset(); // a discarded take must not leak its held phrase
               dict.start();
             }}
           >
@@ -1393,6 +1418,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           units: res.units,
                           qty: roundQty(res.cases * ups + res.units),
                           suspectPreMultiplied: false,
+                          nameCheck: null,
                           // A row with no cases cannot need a case size — that
                           // is the server's own rule (cases > 0 && ups == null).
                           // Without this, typing an each-count to escape the
@@ -1437,6 +1463,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           // catch exactly that never fired, because it was
                           // evaluated before we knew which bottle it was.
                           suspectPreMultiplied: x.cases > 0 && ups != null && x.units >= ups,
+                          // The bottle just picked may carry a number in its name.
+                          nameCheck: nameNumberCheck(x.units, x.cases, skuById.get(skuId)?.name),
                         };
                       }),
                     )
@@ -1713,7 +1741,7 @@ function ReviewRow({
   // button silently did nothing, because answering a case size requires a
   // chosen SKU. The row became a dead end whose only exit was deleting it,
   // which drops that bottle from the count entirely.
-  const state: "needs_case" | "suspect" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
+  const state: "needs_case" | "suspect" | "name_number" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
     ? item.candidates.length > 0
       ? "ambiguous"
       : "unmatched"
@@ -1721,7 +1749,9 @@ function ReviewRow({
       ? "needs_case"
       : item.suspectPreMultiplied
         ? "suspect"
-        : "matched";
+        : item.nameCheck
+          ? "name_number"
+          : "matched";
 
   return (
     <div className={`lq-rev lq-rev-${state}`}>
@@ -1832,6 +1862,25 @@ function ReviewRow({
           </button>
           <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
             {item.units} each
+          </button>
+        </div>
+      )}
+
+      {/* "Seagram's, seven point nine" arrives as 7.9 bottles: the 7 is the
+          name. Ask instead of adding 7.9 (voiceReview.ts). A typed number in
+          the box above answers it too. */}
+      {state === "name_number" && item.nameCheck && (
+        <div className="lq-rev-choices">
+          <span className="lq-error lq-rev-hint">
+            Heard {item.units} — is the {item.nameCheck.n} part of the name “{chosen?.name ?? "this bottle"}”?
+          </span>
+          {item.nameCheck.alt != null && item.nameCheck.alt > 0 && (
+            <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.nameCheck!.alt! })}>
+              {item.nameCheck.alt}
+            </button>
+          )}
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
+            {item.nameCheck.alt != null && item.nameCheck.alt > 0 ? item.units : `Keep ${item.units}`}
           </button>
         </div>
       )}

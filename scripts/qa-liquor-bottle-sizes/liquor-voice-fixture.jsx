@@ -4,9 +4,12 @@ import CountLiquor from 'qa:count';
 import 'qa:styles';
 
 // Synthetic bottles and shelves; every request is answered here.
+// ?seagrams adds a bottle with a number in its name, for the name-number prompt.
+const withSeagrams = new URL(location.href).searchParams.has('seagrams');
 const catalog = [
   {id:'titos', name:"Tito's Handmade Vodka", sizeMl:1000},
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
+  ...(withSeagrams ? [{id:'seagrams', name:"Seagram's 7", sizeMl:1000}] : []),
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
   unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[]}));
 // ?no-zones: the moment before any shelf has loaded, when zoneId is still "".

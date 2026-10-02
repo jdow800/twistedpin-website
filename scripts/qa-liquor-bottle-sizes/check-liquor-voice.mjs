@@ -164,5 +164,45 @@ await run('before any shelf has loaded, a take sends no shelf id at all',async t
   assert.equal(t.qa.recorder.options.scope?.zoneId,undefined,'an empty id fails the server uuid check on every upload');
 }, 'no-zones');
 
+await run('pause cuts: pieces are matched in spoken order, and an unfinished bottle leads the next piece',async t => {
+  await t.shelf('Well');
+  await t.start();
+  // The second piece finishes transcribing first: it waits for the first.
+  await t.segment('Point eight. Cointreau, point three.',1);
+  assert.equal(t.qa.extracts.length,0,'a piece is matched only after the one before it');
+  await t.segment('Malibu, one point one. Bacardi,',0);
+  assert.deepEqual(Array.from(t.qa.extracts, e => e.body.transcript),
+    ['Malibu, one point one.','Bacardi, Point eight. Cointreau, point three.']);
+  // A bottle left without its number when Stop comes is sent on its own.
+  await t.segment("Tito's, one. Jameson,",2);
+  await t.stop(); await t.finish('whole take');
+  assert.deepEqual(Array.from(t.qa.extracts.slice(2), e => e.body.transcript),["Tito's, one.",'Jameson,']);
+  t.qa.extracts.forEach(e => e.succeed([item('titos',1)]));
+  await until(() => t.doc.querySelector('.lq-sheet'),'Review sheet');
+}, 'pausecuts=1');
+
+await run('without the switch, each piece is matched as it lands, as before',async t => {
+  await t.shelf('Well');
+  await t.start();
+  await t.segment('Point eight.',1);
+  assert.deepEqual(Array.from(t.qa.extracts, e => e.body.transcript),['Point eight.']);
+});
+
+await run("a count that matches the bottle's name number asks before it can be added",async t => {
+  await t.shelf('Well');
+  const seagrams = {...item('seagrams',7.9), spoken:"Seagram's, seven point nine", match:{id:'seagrams', name:"Seagram's 7", sizeMl:1000}};
+  await t.hear([seagrams, item('titos',2)]);
+  const sheet = t.doc.querySelector('.lq-sheet');
+  assert.match(sheet.textContent,/is the 7 part of the name/);
+  assert.match(sheet.textContent,/1 ready · 1 need a tap/,'7.9 cannot be added until answered');
+  await t.click('0.9');
+  assert.match(t.doc.querySelector('.lq-sheet').textContent,/2 ready/);
+  const before = t.saves();
+  await t.click(/^Add 2 to Well$/);
+  await until(() => t.saves() > before,'Save after Apply');
+  const line = t.qa.lines.find(l => l.skuId === 'seagrams');
+  assert.equal(Number(line?.qtyUnits ?? 0),0.9,'the answered 0.9, not the heard 7.9');
+}, 'seagrams');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;
