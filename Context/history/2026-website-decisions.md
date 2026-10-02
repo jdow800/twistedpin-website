@@ -826,3 +826,11 @@ the caller declares it. Saves were unaffected, so the 206-line draft was intact.
 Validation: production logs for both failed requests. The server schema accepts
 `{}`. The draft's SKUs pass the submit-time unit-basis stamp (TPRS 0198): no
 non-positive yield and no null count unit.
+
+## 2026-10-02 - The count report locks a minute after submit (copy)
+
+TPRS #303 (merged 10-02) sets the variance auto-finalize window to zero, on
+Jon's ruling, so the order guide and the graded email ship when the GM
+submits. The draft banner on the Counts screen still said "Left alone, it locks
+itself in 3 hours." It now says "about a minute after submit". No behavior
+change.
