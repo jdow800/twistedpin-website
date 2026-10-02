@@ -508,11 +508,14 @@ export async function submitCount(
   sessionId: string,
   isFullCount?: boolean,
 ): Promise<number> {
+  // ALWAYS an object body, same as createKegCount: a bodyless POST arrives at
+  // the backend as JSON null via the proxy, and the submit route's body schema
+  // rejects null (400). 2026-10-02: the liquor screen omits isFullCount, so
+  // every liquor submit 400'd and showed "Save failed" — the first on-screen
+  // liquor submit since that schema landed (the 9/18 count closed by script).
   const { lineCount } = await gatedJson<{ lineCount: number }>(
     `/admin/bar/counts/${sessionId}/submit`,
-    isFullCount === undefined
-      ? { method: "POST" }
-      : { ...jsonBody({ isFullCount }), method: "POST" },
+    jsonBody(isFullCount === undefined ? {} : { isFullCount }),
   );
   return lineCount;
 }

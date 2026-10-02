@@ -809,3 +809,20 @@ Validation:
   against the previous screen.
 - All 50 invoice scenarios pass.
 - Strict liquor TypeScript and the production build pass.
+
+## 2026-10-02 - Liquor submit sends a JSON body (hotfix)
+
+John's liquor count could not submit. The screen showed "Save failed", and
+both attempts, at 1:22 PM Central, got a 400 from TPRS: "body/ Expected object,
+received null". The liquor screen calls `submitCount` without `isFullCount`, so
+it sent a bodyless POST. The proxy delivers that as JSON `null`, and the submit
+route's body schema (`z.object(...).optional()`, since TPRS #180 on 9/7) rejects
+`null`. `createKegCount` already sent `{}` for the same reason. This is the first
+liquor submit from the screen since 9/7: the 9/18 count was closed by a script.
+
+`submitCount` now always sends an object body: `{}`, or `{ isFullCount }` when
+the caller declares it. Saves were unaffected, so the 206-line draft was intact.
+
+Validation: production logs for both failed requests. The server schema accepts
+`{}`. The draft's SKUs pass the submit-time unit-basis stamp (TPRS 0198): no
+non-positive yield and no null count unit.
