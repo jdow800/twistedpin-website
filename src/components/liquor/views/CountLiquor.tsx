@@ -221,9 +221,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // spoken order. The Web Speech fallback engine never fires onSegment; its
   // takes go through processTranscript whole, as before.
   const segExtractsRef = useRef<Map<number, Promise<VoiceExtractItem[] | null>>>(new Map());
-  // Pause cuts (?pausecuts=1, voiceSwitches.ts): segments end at a pause, and a
-  // segment's unfinished last phrase ("…Frangelico,") waits to lead the next
-  // one, so pieces are extracted in spoken order (voiceCarry.ts).
+  // Pause cuts (on by default; ?pausecuts=0 is the off-switch, voiceSwitches.ts):
+  // segments end at a pause, and a segment's unfinished last phrase
+  // ("…Frangelico,") waits to lead the next one, so pieces are extracted in
+  // spoken order (voiceCarry.ts).
   const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
   const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
   if (!carryRef.current) {

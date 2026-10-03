@@ -48,7 +48,7 @@ async function scenario(name, test, query) {
     const saves = () => qa.calls.filter(c => c.path.endsWith('/lines')).length;
     /** One take: Start, a segment heard and matched, Stop, recorder delivers. */
     const hear = async entries => {
-      await start(); await segment('test transcript',0); qa.extracts.at(-1).succeed(entries); await pause();
+      await start(); await segment('Test bottle, one.',0); qa.extracts.at(-1).succeed(entries); await pause();
       await stop(); await finish('test transcript');
       await until(() => doc.querySelector('.lq-sheet'), 'Review sheet');
     };
@@ -77,7 +77,7 @@ await run('shelf tiles hold still while the mic is live, and free up after Stop'
 await run('a take lands on the shelf it started on, even with another tile selected at Apply',async t => {
   await t.shelf('Well');
   await t.start();
-  await t.segment('three titos',0);
+  await t.segment('Titos, three.',0);
   t.qa.extracts[0].succeed([item('titos',3)]); await pause();
   await t.stop();
   // Walking on to the next shelf while the take is read back — the
@@ -99,7 +99,7 @@ await run('a take lands on the shelf it started on, even with another tile selec
 
 await run('the review sheet names the shelf the take will be added to',async t => {
   await t.shelf('Well');
-  await t.start(); await t.segment('one titos',0);
+  await t.start(); await t.segment('Titos, one.',0);
   t.qa.extracts[0].succeed([item('titos',1)]); await pause();
   await t.stop();
   await t.shelf('Back Bar');
@@ -116,7 +116,7 @@ await run('Finish waits for the recording, the read-back and the review',async t
   await t.start();
   assert.ok(t.finishButton().disabled,'RED before this change: Finish was live over a recording');
   assert.equal(t.finishButton().textContent.trim(),'Finish the recording first');
-  await t.segment('two titos',0);
+  await t.segment('Titos, two.',0);
   t.qa.extracts[0].succeed([item('titos',2)]); await pause();
   await t.stop();
   assert.ok(t.finishButton().disabled,'still processing after Stop');
@@ -179,14 +179,14 @@ await run('pause cuts: pieces are matched in spoken order, and an unfinished bot
   assert.deepEqual(Array.from(t.qa.extracts.slice(2), e => e.body.transcript),["Tito's, one.",'Jameson,']);
   t.qa.extracts.forEach(e => e.succeed([item('titos',1)]));
   await until(() => t.doc.querySelector('.lq-sheet'),'Review sheet');
-}, 'pausecuts=1');
+});
 
-await run('without the switch, each piece is matched as it lands, as before',async t => {
+await run('with the off-switch (?pausecuts=0), each piece is matched as it lands, as before',async t => {
   await t.shelf('Well');
   await t.start();
   await t.segment('Point eight.',1);
   assert.deepEqual(Array.from(t.qa.extracts, e => e.body.transcript),['Point eight.']);
-});
+}, 'pausecuts=0');
 
 await run("a count that matches the bottle's name number asks before it can be added",async t => {
   await t.shelf('Well');

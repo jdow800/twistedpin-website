@@ -881,3 +881,15 @@ Food has its own.
 The test take itself, cut on pauses at 21.2, 22.6 and 21.8 s, read back all 20
 scripted bottles with the right numbers. The first cut fell between
 "Frangelico," and "three", and the carry-forward rejoined them.
+
+## 2026-10-02 - Pause cuts are the default
+
+After Jon's Android test (all 20 scripted bottles right, with cuts on pauses at
+21.2, 22.6 and 21.8 s), Jon chose to convert rather than roll out by link.
+Pause cuts and carry-forward are now on for every liquor count. `?pausecuts=0`
+on the count page is a per-phone emergency fallback to the 20 s clock, and
+`?pausecuts=1` undoes it.
+
+One known trade: a piece that ends on a bottle name with no number after it
+("…three titos", said number-first) waits for the next piece or for Stop. That
+is a delay, never a miscount. John counts name-first ("Tito's, three").

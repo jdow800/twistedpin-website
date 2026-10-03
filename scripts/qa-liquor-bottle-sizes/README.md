@@ -119,7 +119,7 @@ when requests finish out of order. Stop during a rotation must retain the last
 clip and release the microphone only once. Keg flows retain their 60-second
 interval. These checks do not measure recognition quality or live latency.
 
-Pause cuts (2026-10-02, behind `?pausecuts=1`) have three suites:
+Pause cuts (2026-10-02; on by default, `?pausecuts=0` turns them off) have three suites:
 - `node check-voice-carry.mjs` covers the pure rules, 14 checks with no DOM:
   - the pause detector: a half-second breath after 20 s, the 30 s cap, flat
     noise, and a room that gets louder;
