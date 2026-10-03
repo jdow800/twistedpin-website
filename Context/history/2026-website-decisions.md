@@ -874,8 +874,9 @@ recovery (4), deadlines (7) and food voice (42) suites still pass.
 Jon's first pause-cut test, on Android: the live words grew and pushed "Stop &
 process" below the fold, so he had to scroll to find it. While recording, the
 Stop button is now pinned to the bottom of the screen, where the review sheet's
-Add button sits. The capped live-words box keeps the newest words in view. Both
-count screens that use the recorder panel get it.
+Add button sits. The capped live-words box keeps the newest words in view. The
+liquor count and the two keg screens share that button, so they all get it.
+Food has its own.
 
 The test take itself, cut on pauses at 21.2, 22.6 and 21.8 s, read back all 20
 scripted bottles with the right numbers. The first cut fell between
