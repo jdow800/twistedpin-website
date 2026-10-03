@@ -186,6 +186,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     more: PrecheckFinding[];
     doubles: Restatement[];
     retiring: RetiringSku[];
+    /** The pre-submit check could not run, so nothing above was checked. */
+    checkFailed?: boolean;
   } | null>(null);
   // "Show N more" on the review's two capped lists. Each opening starts short.
   const [showAllFindings, setShowAllFindings] = useState(false);
@@ -940,6 +942,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     let truncated = 0;
     let more: PrecheckFinding[] = [];
     let retiring: RetiringSku[] = [];
+    let checkFailed = false;
     try {
       // Flush FIRST — the check runs server-side against saved lines, so an
       // unsaved last edit would be checked in its old form.
@@ -962,14 +965,18 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       more = res.more ?? [];
       retiring = res.retiring ?? [];
     } catch {
-      // A sanity check must never be able to prevent closing out a count. If it
-      // fails we fall through to the zone confirmation exactly as before.
+      // A sanity check must never be able to prevent closing out a count, but
+      // it must not pass for a clean one either: it used to submit straight
+      // through, and the counter never knew nothing had been checked
+      // (independent review, 2026-10-03). Say so, and let them decide.
       findings = [];
       retiring = [];
+      checkFailed = true;
     } finally {
       setChecking(false);
     }
     if (
+      checkFailed ||
       uncounted.length > 0 ||
       findings.length > 0 ||
       sizeWarnings.length > 0 ||
@@ -986,6 +993,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         more,
         doubles: [...restatementsRef.current.values()],
         retiring,
+        checkFailed,
       });
       return;
     }
@@ -1585,14 +1593,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <h3 className="lq-h2">
                 {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0 || confirmSubmit.sizeWarnings.length > 0
                   ? "Double-check these first?"
-                  : confirmSubmit.zones.length > 0
-                    ? "Submit an incomplete count?"
-                    // Retirement candidates alone. The count is COMPLETE and
-                    // nothing is wrong with it — calling it incomplete because
-                    // an advisory list opened would be a plain lie.
-                    : "One thing before you submit"}
+                  : confirmSubmit.checkFailed
+                    ? "The check couldn't run"
+                    : confirmSubmit.zones.length > 0
+                      ? "Submit an incomplete count?"
+                      // Retirement candidates alone. The count is COMPLETE and
+                      // nothing is wrong with it — calling it incomplete because
+                      // an advisory list opened would be a plain lie.
+                      : "One thing before you submit"}
               </h3>
               <p className="lq-muted">
+                {confirmSubmit.checkFailed && (
+                  <>Nothing was checked: the pre-submit check couldn't reach the server. You can still submit, or close this and try Finish again.{" "}</>
+                )}
                 {confirmSubmit.zones.length > 0 && (
                   <>
                     No bottles counted in: <strong>{confirmSubmit.zones.join(", ")}</strong>.{" "}
@@ -1626,6 +1639,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       {f.kind === "zone_missed" && "If the shelf really emptied, submit as-is. If it never got walked, count it now — a missed shelf reads as pure loss."}
                       {f.kind === "first_count" && "First time this bottle's been counted, and it's more than what was delivered. Older stock that predates the catalog is fine — but if it got said twice, fix the number now."}
                       {f.kind === "sibling_swap" && "Two variants of the same brand, off in opposite directions — worth a glance at the labels. If each bottle really is what it says, submit as-is."}
+                      {f.kind === "size_mixup" && "Check the size printed on the open bottles. If each bottle really is the size it says, submit as-is."}
                       {f.kind === "big_loss" && "Sales math says more should be left than this count found. If the shelf was walked and it's really gone, submit — it lands on the grade as loss. If a spot got skipped (backstock? the cooler?), count it now."}
                       {f.kind === "beer_not_counted" && "Bottled beer is counted on the keg check, not here. Without it the beer report has nothing to bracket and the order guide flies blind — league nights are the whole season for it."}
                       {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
@@ -1784,7 +1798,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 {confirmSubmit.findings.length > 0 ||
                 confirmSubmit.sizeWarnings.length > 0 ||
                 confirmSubmit.doubles.length > 0 ||
-                confirmSubmit.zones.length > 0
+                confirmSubmit.zones.length > 0 ||
+                confirmSubmit.checkFailed
                   ? "Submit anyway"
                   : "Submit the count"}
               </button>

@@ -248,6 +248,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [zonePicker, setZonePicker] = useState(false);
   const [checking, setChecking] = useState(false);
   const [findings, setFindings] = useState<PrecheckFinding[] | null>(null);
+  /** Findings past the server's six, behind "Show N more" as on the liquor
+   *  count: they were dropped, so the counter never saw them. */
+  const [moreFindings, setMoreFindings] = useState<PrecheckFinding[]>([]);
+  const [showMoreFindings, setShowMoreFindings] = useState(false);
+  /** The check could not run. Saying "Nothing looks off" then was confidence
+   *  it had not earned (independent review, 2026-10-03). */
+  const [checkFailed, setCheckFailed] = useState(false);
   // Answers to the "you counted this somewhere new" questions, keyed
   // sku:zone. Local only — "just this count" writes NOTHING anywhere, which
   // is the whole point of offering it.
@@ -811,13 +818,19 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       }
       const res = await precheckCount(sessionId);
       setFindings(res.findings);
+      setMoreFindings(res.more ?? []);
+      setShowMoreFindings(false);
+      setCheckFailed(false);
       setRetiring(res.retiring ?? []);
       setUnplaced(res.unplaced ?? []);
       setUnplacedMore(res.unplacedMore ?? []);
       setUnplacedAll(false);
     } catch {
-      // A check that cannot RUN must not block a finished walk.
+      // A check that cannot RUN must not block a finished walk, and must not
+      // pass itself off as a clean one either.
       setFindings([]);
+      setMoreFindings([]);
+      setCheckFailed(true);
       setRetiring([]);
       setUnplaced([]);
       setUnplacedMore([]);
@@ -1853,11 +1866,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       {findings != null && (
         <div className="lq-fc-rev" ref={reviewRef}>
           <p className="lq-fc-rev-h">
-            {findings.length === 0
-              ? "Nothing looks off in what you counted. Ready to submit."
-              : `${findings.length} thing${findings.length === 1 ? "" : "s"} worth a second look`}
+            {checkFailed
+              ? "The check couldn't run, so nothing was checked. You can still submit, or try Finish again."
+              : findings.length + moreFindings.length === 0
+                ? "Nothing looks off in what you counted. Ready to submit."
+                : `${findings.length + moreFindings.length} thing${findings.length + moreFindings.length === 1 ? "" : "s"} worth a second look`}
           </p>
-          {findings.map((f, i) => {
+          {(showMoreFindings ? [...findings, ...moreFindings] : findings).map((f, i) => {
             const locKey = f.zoneId ? `${f.skuId}:${f.zoneId}` : null;
             const answered = locKey ? locAnswer[locKey] : undefined;
             return (
@@ -1945,6 +1960,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               </div>
             );
           })}
+          {moreFindings.length > 0 && !showMoreFindings && (
+            <button type="button" className="lq-linkbtn" onClick={() => setShowMoreFindings(true)}>
+              Show {moreFindings.length} more
+            </button>
+          )}
           {/* ── things we think you have (2026-10-03) ── On no zone, so no
               walk asked: bought lately, or in a recipe. Asked here because
               the first walk has no "since the last count" to look back on.

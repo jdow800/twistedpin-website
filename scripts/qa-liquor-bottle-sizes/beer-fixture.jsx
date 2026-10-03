@@ -17,6 +17,12 @@ const initialLines = mode === 'resumed' ? [{skuId:'lager',zoneId:'cooler',qtyUni
 const qa = window.beerQa = {calls:[],lines:initialLines,state:null,flush:null};
 let storedLines=initialLines;
 const json = (value,status=200) => new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});
+// ?mode=stale: another phone saved after this screen loaded (12 Example Light,
+// 0 Example Lager), so the first save is refused once with the draft as it is now.
+let refuseNextSave = mode === 'stale';
+const otherPhone = ['lager','light'].map((skuId,i) => ({skuId,zoneId:'cooler',qtyUnits:i ? '12.000' : '0.000',
+  enteredCases:null,caseSizeAtEntry:null,enteredPacks:null,packSizeAtEntry:null,source:'grid',rawUtterance:null}));
+let saves = 0;
 window.fetch = async (input,init={}) => {
   const url = new URL(String(input),location.origin);
   const path = url.pathname;
@@ -24,8 +30,16 @@ window.fetch = async (input,init={}) => {
   qa.calls.push({path,method:init.method || 'GET',query:url.search,body});
   if (path.endsWith('/catalog')) return json({items:catalog});
   if (path.endsWith('/zones')) return json({zones:[{id:'cooler',name:'Walk In Cooler',walkOrder:1}]});
-  if (path.endsWith('/counts/open')) return json({session:{id:'synthetic-beer',isFullCount:false,section:'bar',lines:storedLines}});
+  if (path.endsWith('/counts/open')) return json({session:{id:'synthetic-beer',isFullCount:false,section:'bar',lines:storedLines,
+    ...(mode === 'stale' ? {linesHash:'server1'} : {})}});
   if (path.endsWith('/lines')) {
+    // ?mode=save-fails: the server is down for every save.
+    if (mode === 'save-fails') return json({error:'unavailable'},503);
+    if (refuseNextSave) {
+      refuseNextSave = false;
+      return json({error:'draft_changed',message:'This count changed somewhere else since this screen loaded it.',
+        lines:otherPhone,linesHash:'server2'},409);
+    }
     qa.lines=body.lines;
     storedLines=body.lines.map(line=>{
       const resolved=resolveCountQuantity(line);
@@ -35,7 +49,7 @@ window.fetch = async (input,init={}) => {
         enteredCases:resolved.enteredCases===null?null:String(resolved.enteredCases),
         enteredPacks:resolved.enteredPacks===null?null:String(resolved.enteredPacks)};
     });
-    return json({upserted:body.lines.length});
+    return json({upserted:body.lines.length,...(mode === 'stale' ? {linesHash:`saved${++saves}`} : {})});
   }
   throw new Error('Unexpected beer fixture request: '+path);
 };

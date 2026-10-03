@@ -70,7 +70,7 @@ export default function EmptyKegs({
   /** Embedded as the empties half of Keg Check: own session + autosave, parent owns Send. */
   embedded?: boolean;
   onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
-  embedFlushRef?: { current: (() => Promise<void>) | null };
+  embedFlushRef?: { current: (() => Promise<boolean>) | null };
 }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -176,14 +176,18 @@ export default function EmptyKegs({
         ...(r.raw ? { rawUtterance: r.raw } : {}),
       }));
   }
-  async function flush() {
-    if (!sessionId) return;
+  /** False when the save failed, so the keg check's Send can stop instead of
+   *  closing a draft that is missing what is on screen. */
+  async function flush(): Promise<boolean> {
+    if (!sessionId) return true;
     setSave("saving");
     try {
       await saveEmptyKegLines(sessionId, validLines(rowsRef.current));
       setSave("saved");
+      return true;
     } catch {
       setSave("error");
+      return false;
     }
   }
 

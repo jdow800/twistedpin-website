@@ -108,4 +108,44 @@ await run('repeated save and reopen never multiply existing cases, packs or loos
   await qa.flush();assert.equal(qa.lines.find(line=>line.skuId==='lager').qtyUnits,55);
 });
 
+await run('an untouched screen never saves, so it cannot wipe another phone\'s count','resumed',async ({qa})=>{
+  await qa.flush();
+  assert.equal(qa.calls.filter(call=>call.path.endsWith('/lines')).length,0);
+});
+
+await run('a stale save merges: the other phone\'s numbers stay, this counter\'s tap wins','stale',async ({doc,click,qa})=>{
+  await click(5); // one loose Example Lager
+  await qa.flush();
+  const saves=qa.calls.filter(call=>call.path.endsWith('/lines'));
+  assert.equal(saves.length,2,'refused once, then saved the merge');
+  assert.equal(saves[0].body.baseHash,'server1');
+  assert.equal(saves[1].body.baseHash,'server2');
+  const merged=Object.fromEntries(saves[1].body.lines.map(line=>[line.skuId,Number(line.qtyUnits)]));
+  assert.equal(merged.lager,1,'the counter changed it here');
+  assert.equal(merged.light,12,'untouched here: the other phone\'s 12, not this screen\'s 0');
+  const light=()=>[...doc.querySelectorAll('.lq-beer-row')].find(row=>row.textContent.includes('Example Light'));
+  await until(()=>light().querySelectorAll('input')[2].value==='12');
+  assert.deepEqual([...light().querySelectorAll('input')].map(input=>Number(input.value)),[0,0,12]);
+  assert.match(doc.querySelector('.lq-beer-save').textContent,/included a change made elsewhere/);
+});
+
+await run('"None of these in the cooler" records a zero for every beer; a number afterwards undoes it','new',async ({doc,click,qa})=>{
+  const none=()=>[...doc.querySelectorAll('button')].find(b=>b.textContent==='None of these in the cooler');
+  none().click();await pause();
+  assert.match(doc.querySelector('.lq-beer').textContent,/Recorded: none of these in the cooler\./);
+  assert.equal(qa.state.count,3,'every beer was looked at, so the keg check sends it');
+  await qa.flush();
+  assert.deepEqual(Array.from(qa.lines,line=>[line.skuId,line.qtyUnits]),[['lager',0],['light',0],['unknown',0]]);
+  await click(5);await click(4); // one loose Lager, then back to zero
+  assert.ok(none(),'the claim was undone by counting, so it can be made again');
+  await qa.flush();
+  assert.equal(qa.lines.length,0,'all clear again reads as not counted');
+});
+
+await run('a failed save says so to the keg check, which then sends nothing','save-fails',async ({doc,click,qa})=>{
+  await click(5);
+  assert.equal(await qa.flush(),false);
+  await until(()=>/Not saved/.test(doc.querySelector('.lq-beer-save').textContent));
+});
+
 console.log(`${passed} synthetic beer UI scenarios passed; no visual-layout claims from the DOM simulation.`);

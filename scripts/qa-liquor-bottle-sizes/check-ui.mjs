@@ -58,8 +58,11 @@ await run('failed saving keeps the draft open and does not submit old numbers','
   assert.ok(!log().includes('/precheck'));assert.ok(!log().includes('/submit'));
   assert.match(doc.body.textContent,/save|offline|retry/i);
 });
-await run('advisory endpoint failure still permits a saved count','check-failure',async({click,log})=>{
-  await click('Finish & submit');await until(()=>log().includes('/submit'));
+await run('advisory endpoint failure still permits a saved count, once the counter knows it was not checked','check-failure',async({doc,click,log})=>{
+  await click('Finish & submit');
+  await until(()=>/The check couldn't run/.test(doc.body.textContent));
+  assert.ok(!log().includes('/submit'));
+  await click('Submit anyway');await until(()=>log().includes('/submit'));
 });
 await run('older API response without size warnings remains compatible','old-api',async({click,log})=>{
   await click('Finish & submit');await until(()=>log().includes('/submit'));

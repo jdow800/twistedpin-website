@@ -298,5 +298,25 @@ await run('a server without the extra findings keeps the old "+N more not shown"
   assert.equal(t.button(/^Show \d+ more$/),undefined);
 }, 'many-findings-old');
 
+await run('a bottle under the wrong size asks once, names both causes and never says recount',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  const row = t.doc.querySelector('.lq-confirm .lq-precheck-row');
+  assert.equal(row.querySelector('.lq-precheck-name').textContent,'Tanqueray London Dry Gin (750 ml + 1 L)');
+  assert.equal(row.querySelector('.lq-precheck-detail').textContent,'The 750 ml count rose 0.5 with none delivered, while the 1 L count fell 1. Was a 1 L bottle entered as a 750 ml, or is a delivery missing?');
+  assert.match(row.querySelector('.lq-precheck-why').textContent,/Check the size printed on the open bottles\. If each bottle really is the size it says, submit as-is\./);
+  assert.doesNotMatch(row.textContent,/recount/i);
+}, 'size-mixup');
+
+await run('a check that cannot run stops to say so instead of submitting straight through',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  const dialog = t.doc.querySelector('.lq-confirm');
+  assert.match(dialog.querySelector('.lq-h2').textContent,/The check couldn't run/);
+  assert.match(dialog.textContent,/Nothing was checked/);
+  assert.ok(t.button('Submit anyway'));
+  assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')),'nothing submitted until the counter says so');
+}, 'check-fails');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

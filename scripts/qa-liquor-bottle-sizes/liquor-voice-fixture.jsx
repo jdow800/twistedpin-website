@@ -29,7 +29,13 @@ const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, recorde
 const params = new URL(location.href).searchParams;
 const nine = Array.from({length:9}, (_, i) => ({kind:'not_counted', skuId:`gone${i}`, name:`Missing bottle ${i + 1}`,
   counted:null, prior:2, purchased:0, used:null, unitsPerCase:null, dollars:90 - i * 10, detail:'Counted last time, no line now.'}));
-const precheck = () => params.has('many-findings')
+// ?size-mixup: one product's two sizes off in opposite directions (TPRS 2026-10-03).
+const mixup = {kind:'size_mixup', skuId:'family:tanqueray london dry gin', name:'Tanqueray London Dry Gin (750 ml + 1 L)',
+  counted:null, prior:0, purchased:0, used:null, unitsPerCase:12, dollars:13.44,
+  detail:'The 750 ml count rose 0.5 with none delivered, while the 1 L count fell 1. Was a 1 L bottle entered as a 750 ml, or is a delivery missing?'};
+const precheck = () => params.has('size-mixup')
+  ? {baseline:false, findings:[mixup], truncated:0, more:[], retiring:[], sizeWarnings:[]}
+  : params.has('many-findings')
   ? {baseline:false, findings:nine.slice(0, 6), truncated:3, more:nine.slice(6), retiring:[], sizeWarnings:[]}
   : params.has('many-findings-old')
     ? {baseline:false, findings:nine.slice(0, 6), truncated:3, retiring:[], sizeWarnings:[]}
@@ -64,7 +70,8 @@ window.fetch = async (input, init = {}) => {
     qa.lines = body.lines;
     return json({upserted:body.lines.length, linesHash:`saved${++saves}`});
   }
-  if (path.endsWith('/precheck')) return json(precheck());
+  // ?check-fails: the pre-submit check itself cannot run.
+  if (path.endsWith('/precheck')) return params.has('check-fails') ? json({error:'unavailable'}, 503) : json(precheck());
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected liquor fixture request: '+path);
 };

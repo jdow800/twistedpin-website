@@ -1045,3 +1045,35 @@ gain and a $36 loss; as one product it was $2.77.
 
 Tests: `check-variance-rows.mjs` (4, new) renders the real list from a stored
 report with and without families.
+
+## 2026-10-03 - Count screens: saves can't silently lose a count, and a check says when it didn't run
+
+From the independent review of Jon's to-do list (GPT-6.1-Sol, 2026-10-03). The
+TPRS half is #323.
+- **Bottled beer:**
+  - Saves queue and carry the draft's fingerprint, as the liquor and food
+    counts do. A stale phone's save merges: any beer this screen didn't touch
+    keeps the other phone's number.
+  - An untouched beer screen never saves. Hiding it used to send an empty
+    list over another phone's count.
+  - **"None of these in the cooler"** records a zero for every beer. All
+    zeros read as "not counted", so an empty cooler couldn't be recorded at
+    all. Entering a number undoes it, so ✕ on every row still means "not
+    counted".
+- **Keg check:** Send stops when any half fails to save ("Couldn't save
+  everything on this screen, so nothing was sent."). Each half swallowed its
+  own save error and Send went on, closing drafts without what was on screen.
+- **Food count:** findings past the first six sit behind "Show N more"; they
+  were dropped. A check that can't run says so instead of "Nothing looks off in
+  what you counted."
+- **Liquor count:** a check that can't run stops at the submit dialog ("The
+  check couldn't run") instead of submitting straight through; Submit anyway is
+  one tap. The new size question (`size_mixup`) gets its line: "Check the size
+  printed on the open bottles. If each bottle really is the size it says,
+  submit as-is."
+
+Tests: `check-beer.mjs` (12, 4 new), `check-liquor-voice.mjs` (22, 2 new),
+`check-food-voice.mjs` (48, 2 new; the known "new take starts clean" flake
+failed once and passed on the rerun), `check-ui.mjs` (8; its check-failure case
+now taps Submit anyway), walk locations (17), discontinued (6), draft sync (6)
+and variance rows (4). `astro build` passes.

@@ -483,7 +483,12 @@ export interface PrecheckFinding {
      *  EMPTY shelf. Answer it on ANY shelf and it goes quiet, because a product
      *  legitimately sits in two places. Keyed on membership rather than section,
      *  so it also catches bar stock kept on a kitchen shelf. */
-    | "zone_members_uncounted";
+    | "zone_members_uncounted"
+    /** One size of a product up by more than its own deliveries allow while
+     *  another size went down (TPRS 2026-10-03): a bottle counted under the
+     *  wrong size, or a delivery logged under the wrong one. The 10-02 count's
+     *  open rail liter, saved as 1.2 of a 750. `skuId` is `family:<key>`. */
+    | "size_mixup";
   skuId: string;
   name: string;
   /** zone_unexpected only — which shelf, so the answer can be written. */

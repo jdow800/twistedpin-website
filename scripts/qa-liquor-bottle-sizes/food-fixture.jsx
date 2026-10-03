@@ -112,8 +112,17 @@ window.fetch = async (input, init = {}) => {
     qa.lines = body.lines;
     return json({ok:true, ...(params.has('stale') ? {linesHash:'saved'} : {})});
   }
-  if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[],
-    ...(params.has('walk') ? {unplaced, unplacedMore} : {})});
+  // ?check-fails: the check itself cannot run. ?many-findings: eight
+  // findings, six in `findings` and two in `more`.
+  if (path.endsWith('/precheck')) {
+    if (params.has('check-fails')) return json({error:'unavailable'}, 503);
+    if (params.has('many-findings')) {
+      const eight = Array.from({length:8}, (_, i) => ({kind:'not_counted', skuId:`gone${i}`, name:`Missing item ${i + 1}`,
+        counted:null, prior:2, purchased:0, used:null, unitsPerCase:null, dollars:80 - i * 10, detail:'Counted last time, nothing this time.'}));
+      return json({baseline:false, findings:eight.slice(0, 6), truncated:2, more:eight.slice(6), retiring:[]});
+    }
+    return json({baseline:true, findings:[], retiring:[], ...(params.has('walk') ? {unplaced, unplacedMore} : {})});
+  }
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected food fixture request: '+path);
 };

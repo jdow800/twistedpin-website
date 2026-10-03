@@ -42,9 +42,9 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
 
   // Flush handles the children reassign on every render, so Send always
   // persists what is on screen right now rather than the last autosave tick.
-  const flushBackups = useRef<(() => Promise<void>) | null>(null);
-  const flushEmpties = useRef<(() => Promise<void>) | null>(null);
-  const flushBeer = useRef<(() => Promise<void>) | null>(null);
+  const flushBackups = useRef<(() => Promise<boolean>) | null>(null);
+  const flushEmpties = useRef<(() => Promise<boolean>) | null>(null);
+  const flushBeer = useRef<(() => Promise<boolean>) | null>(null);
 
   const nothingEntered = backups.count === 0 && empties.count === 0 && beer.count === 0;
 
@@ -53,11 +53,20 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
     setSubmitting(true);
     setErr(null);
     try {
-      // Persist both halves before closing either — a half that failed to save
-      // would otherwise submit as empty and silently lose the trip.
-      await flushBackups.current?.();
-      await flushEmpties.current?.();
-      await flushBeer.current?.();
+      // Persist every half before closing any — a half that failed to save
+      // would otherwise submit as empty and silently lose the trip. Each save
+      // now SAYS it failed: they used to swallow the error and Send went on
+      // regardless (independent review, 2026-10-03).
+      const saved = [
+        await flushBackups.current?.(),
+        await flushEmpties.current?.(),
+        await flushBeer.current?.(),
+      ];
+      if (saved.includes(false)) {
+        setErr("Couldn't save everything on this screen, so nothing was sent. Check your connection and press Send again.");
+        setSubmitting(false);
+        return;
+      }
       const res = await submitKegCheck({
         // Only send a half that actually has something in it, so an untouched
         // draft is left open rather than closed empty.

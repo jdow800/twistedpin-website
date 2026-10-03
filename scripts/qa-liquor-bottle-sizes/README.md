@@ -187,3 +187,9 @@ node check-variance-rows.mjs
 It renders the actual `VarianceLines` component from a stored report, with and
 without `families`: one row per product, its sizes underneath in bottles and
 ounces, and a pre-10-03 report listed exactly as before (4 checks).
+
+The 2026-10-03 count-integrity pass added fixture modes: `check-beer.mjs` runs
+`?mode=stale` (a refused save merges), `?mode=save-fails` (the keg check is told)
+and the "None of these in the cooler" path; `check-liquor-voice.mjs` adds
+`?size-mixup` and `?check-fails`; `check-food-voice.mjs` adds `check-fails` and
+`many-findings`.

@@ -546,4 +546,23 @@ await run('a save refused because the count changed elsewhere keeps both changes
   await until(() => /included a change made elsewhere/.test(t.doc.body.textContent));
 },'existing&stale');
 
+await run('a check that cannot run says so instead of "Nothing looks off", and Submit stays open',async t => {
+  await t.click('Finish (1)');
+  await until(() => t.button('Submit the count'));
+  const heading = t.doc.querySelector('.lq-fc-rev-h').textContent;
+  assert.match(heading,/The check couldn't run, so nothing was checked/);
+  assert.doesNotMatch(heading,/Nothing looks off/);
+  assert.ok(!t.button('Submit the count').disabled);
+},'existing&check-fails');
+
+await run('findings past the first six sit behind "Show 2 more"',async t => {
+  await t.click('Finish (1)');
+  await until(() => t.doc.querySelector('.lq-fc-rev-h'));
+  const names = () => [...t.doc.querySelectorAll('.lq-fc-rev-spoken')].map(e => e.textContent);
+  assert.match(t.doc.querySelector('.lq-fc-rev-h').textContent,/^8 things worth a second look/);
+  assert.equal(names().length,6);
+  await t.click('Show 2 more');
+  assert.deepEqual(names(),Array.from({length:8},(_,i) => `Missing item ${i+1}`));
+},'existing&many-findings');
+
 console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);
