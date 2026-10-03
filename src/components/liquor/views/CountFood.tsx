@@ -1,22 +1,26 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   createCount,
+  createZone,
   extractVoice,
   getCatalog,
   getOpenCount,
   getZones,
   precheckCount,
   setSkuActive,
+  setSkuDiscontinued,
   setSkuZone,
   saveCountLines,
   setCaseSize,
   submitCount,
+  ZoneNameTakenError,
   type BarSkuItem,
   type BarZoneItem,
   type CountLineInput,
   type OpenCountLine,
   type PrecheckFinding,
   type RetiringSku,
+  type UnplacedItem,
   type VoiceExtractItem,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
@@ -99,6 +103,36 @@ type Cell = {
   none?: boolean;
 };
 type Counts = Record<string, Record<string, Cell>>;
+
+/**
+ * One question about where a thing lives (Jon, 2026-10-03; the approved
+ * preview is Opsi previews/2026-10-03-walk-locations.html): an item left blank
+ * on a zone being left, or an item on no zone at all, before Submit. The
+ * boxes hold what was typed, as typed, until Save.
+ */
+type PlaceQ = {
+  pick: "count" | "moved" | "yes" | "none" | null;
+  zone: string | null;
+  cases: string;
+  units: string;
+  busy?: boolean;
+  /** The settled answer, shown in place of the buttons. */
+  done?: string;
+  err?: string;
+};
+const EMPTY_Q: PlaceQ = { pick: null, zone: null, cases: "", units: "" };
+
+/** "Bought from Sysco Oct 2 · in a recipe · not in any zone yet" */
+function whyUnplaced(u: UnplacedItem): string {
+  const parts: string[] = [];
+  if (u.lastBoughtAt) {
+    const day = new Date(u.lastBoughtAt).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Chicago" });
+    parts.push(`Bought${u.lastVendor ? ` from ${u.lastVendor}` : ""} ${day}`);
+  }
+  if (u.inRecipe) parts.push(u.lastBoughtAt ? "in a recipe" : "Used in a recipe");
+  parts.push("not in any zone yet");
+  return parts.join(" · ");
+}
 
 type VoiceSegmentResult = { items: VoiceExtractItem[]; error: string | null };
 
@@ -243,6 +277,24 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [scanNote, setScanNote] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [doneCount, setDoneCount] = useState<number | null>(null);
+  // ── where things live (Jon, 2026-10-03) ──
+  /** Leaving a counted zone with listed items left blank. `skuIds` is frozen
+   *  when it opens, so an answered item keeps its tick on the sheet. */
+  const [leaving, setLeaving] = useState<{ from: string; to: string; skuIds: string[] } | null>(null);
+  /** Zones the counter skipped past once. Skipping is an answer: the same
+   *  zone does not ask again this walk, and Finish lists them anyway. */
+  const skippedLeaving = useRef<Set<string>>(new Set());
+  const [placeQ, setPlaceQ] = useState<Record<string, PlaceQ>>({});
+  /** "Things we think you have": on no zone, so no walk asks about them. */
+  const [unplaced, setUnplaced] = useState<UnplacedItem[]>([]);
+  const [unplacedMore, setUnplacedMore] = useState<UnplacedItem[]>([]);
+  const [unplacedAll, setUnplacedAll] = useState(false);
+  /** "+ New spot": `key` is the question that asked, so the new zone is
+   *  picked for it. `after` is the zone it follows, "" for first. */
+  const [newSpot, setNewSpot] = useState<{ key: string; name: string; after: string; busy: boolean; err: string | null } | null>(null);
+  const [newZoneIds, setNewZoneIds] = useState<string[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const countsRef = useRef<Counts>({});
   countsRef.current = counts;
@@ -328,7 +380,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const recentre = () => {
       const el = document.activeElement;
       if (!el || el.tagName !== "INPUT") return;
-      el.closest(".lq-fc-row")?.scrollIntoView({ block: "center", behavior: "auto" });
+      // A box on one of the where-it-lives sheets centres itself: the sheet
+      // scrolls on its own, with no grid row around the box.
+      (el.closest(".lq-fc-row") ?? (el.closest(".lq-fc-sheet") ? el : null))?.scrollIntoView({ block: "center", behavior: "auto" });
     };
     vv.addEventListener("resize", recentre);
     return () => vv.removeEventListener("resize", recentre);
@@ -758,10 +812,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const res = await precheckCount(sessionId);
       setFindings(res.findings);
       setRetiring(res.retiring ?? []);
+      setUnplaced(res.unplaced ?? []);
+      setUnplacedMore(res.unplacedMore ?? []);
+      setUnplacedAll(false);
     } catch {
       // A check that cannot RUN must not block a finished walk.
       setFindings([]);
       setRetiring([]);
+      setUnplaced([]);
+      setUnplacedMore([]);
     } finally {
       setChecking(false);
     }
@@ -908,6 +967,315 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     }
   }
 
+  // ── where things live (Jon, 2026-10-03) ──
+  // "for each zone, if we don't count something, it should ask us why ... Are
+  // we out of it? Is it no longer stored in this location? Or, 'Whoops, I
+  // forgot'". And before Submit, what we bought or cook with that no zone
+  // lists. The preview Jon approved: Opsi previews/2026-10-03-walk-locations.html.
+  //
+  // ⚠ EVERY ANSWER WRITES ITS COUNT FIRST, exactly as the grid would, and only
+  // then touches a zone list. The count is what the bracket reads; the lists
+  // only say where to look next time, and a failed list update must never
+  // cost the number (the server's own rule for PUT /skus/:id/zones).
+
+  function setQ(key: string, patch: Partial<PlaceQ>) {
+    setPlaceQ((prev) => ({ ...prev, [key]: { ...(prev[key] ?? EMPTY_Q), ...patch } }));
+  }
+
+  /** One cell on a given zone, saved like the grid's. The ref first, so a save
+   *  fired before React re-renders reads it (markNoneLeft's rule). */
+  function putCell(zid: string, skuId: string, cell: Cell) {
+    const next = { ...countsRef.current, [zid]: { ...(countsRef.current[zid] ?? {}), [skuId]: cell } };
+    countsRef.current = next;
+    setCounts(next);
+    scheduleSave();
+  }
+
+  /** "I looked and there are none": markNone's shape. */
+  const zeroCell = (s: BarSkuItem): Cell =>
+    ({ cases: null, units: 0, packs: null, packSize: null, caseSize: s.unitsPerCase ?? null, qty: 0, source: "grid", none: true });
+
+  /** A fresh grid row's boxes: cases (× its case size) when it has one. */
+  const hasCaseBox = (s: BarSkuItem) => s.countUnit !== "case" && s.unitsPerCase != null;
+
+  /** The typed boxes as a cell, or null while there is nothing valid to save.
+   *  A typed 0 is an answer, as on the grid. */
+  function typedCell(s: BarSkuItem, q: PlaceQ): Cell | null {
+    const read = (raw: string) => (raw.trim() === "" ? null : Number(raw));
+    const cases = hasCaseBox(s) ? read(q.cases) : null;
+    const units = read(q.units);
+    if (cases == null && units == null) return null;
+    if ([cases, units].some((n) => n != null && (!Number.isFinite(n) || n < 0))) return null;
+    const cell: Cell = { cases, units, packs: null, packSize: null, caseSize: hasCaseBox(s) ? s.unitsPerCase : null,
+      qty: 0, source: "grid", none: false };
+    cell.qty = cellQty(cell);
+    return cell;
+  }
+
+  /** "2 cases + 3 bags", how a saved answer reads back. */
+  function cellText(s: BarSkuItem, c: Cell): string {
+    const parts: string[] = [];
+    if (c.cases) parts.push(`${c.cases} case${c.cases === 1 ? "" : "s"}`);
+    if (c.units || parts.length === 0) parts.push(`${c.units ?? 0} ${unitLabel(s, c.units ?? 0)}`);
+    return parts.join(" + ");
+  }
+
+  /** Mirror a membership the server accepted, so the grid and every later
+   *  question see it without a reload. */
+  function setMember(skuId: string, zid: string, member: boolean) {
+    setZones((prev) => prev.map((z) => {
+      if (z.id !== zid) return z;
+      const ids = (z.memberSkuIds ?? []).filter((id) => id !== skuId);
+      return { ...z, memberSkuIds: member ? [...ids, skuId] : ids };
+    }));
+  }
+
+  /** Listed on this zone, still carried, and with no answer anywhere in this
+   *  walk: the server's zone_members_uncounted, asked at the zone. */
+  function unansweredMembers(zid: string): string[] {
+    const answered = (id: string) => Object.values(countsRef.current).some((cells) => cells[id]);
+    return (zones.find((z) => z.id === zid)?.memberSkuIds ?? [])
+      .map((id) => skuById.get(id))
+      .filter((s): s is BarSkuItem => !!s && !s.discontinuedAt && missedAnswer[s.id] !== "archived" && !answered(s.id))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map((s) => s.id);
+  }
+
+  /**
+   * Every move off a zone in the walk comes through here: ‹, › and the zone
+   * list. A zone with something counted on it and listed items left blank asks
+   * first. A zone with nothing on it is the untouched-zone warning's at Finish,
+   * and a take still being read may yet fill the blanks, so neither asks.
+   */
+  function requestZone(target: string) {
+    if (capturing) return;
+    const touched = Object.keys(countsRef.current[zoneId] ?? {}).length > 0;
+    const missing = touched && target !== zoneId && !voicePending && !skippedLeaving.current.has(zoneId)
+      ? unansweredMembers(zoneId)
+      : [];
+    if (missing.length === 0) return goZoneId(target);
+    setZonePicker(false);
+    setLeaving({ from: zoneId, to: target, skuIds: missing });
+  }
+  function goZoneId(id: string) {
+    const i = zones.findIndex((z) => z.id === id);
+    if (i >= 0) goZone(i);
+  }
+  function leaveOn() {
+    if (!leaving) return;
+    skippedLeaving.current.add(leaving.from);
+    const to = leaving.to;
+    setLeaving(null);
+    goZoneId(to);
+  }
+
+  const leaveKey = (from: string, skuId: string) => `leave:${from}:${skuId}`;
+
+  /** "None left": a zero on the zone being left, the same as "none here". */
+  function leaveNone(from: string, s: BarSkuItem) {
+    putCell(from, s.id, zeroCell(s));
+    setQ(leaveKey(from, s.id), { pick: "none", done: "None left · 0 counted", err: undefined });
+  }
+  /** "Count it": the whoops-I-forgot answer, counted on the zone being left. */
+  function leaveCount(from: string, s: BarSkuItem) {
+    const key = leaveKey(from, s.id);
+    const cell = typedCell(s, placeQ[key] ?? EMPTY_Q);
+    if (!cell) return;
+    putCell(from, s.id, cell);
+    setQ(key, { done: `${cellText(s, cell)} counted here`, err: undefined });
+  }
+  /** "Remove from zone": counted where it is now, then on that zone's list
+   *  and off this one. Added before removed, so a failure halfway never
+   *  leaves it on no zone at all. */
+  async function leaveMoved(from: string, s: BarSkuItem) {
+    const key = leaveKey(from, s.id);
+    const q = placeQ[key] ?? EMPTY_Q;
+    const cell = typedCell(s, q);
+    const to = zones.find((z) => z.id === q.zone);
+    if (!cell || !to || q.busy) return;
+    putCell(to.id, s.id, cell);
+    setQ(key, { busy: true, err: undefined });
+    const counted = `${cellText(s, cell)} counted in ${to.name}`;
+    try {
+      await setSkuZone(s.id, to.id, true);
+      setMember(s.id, to.id, true);
+    } catch {
+      return setQ(key, { busy: false, done: `${counted}. Couldn't add it to that zone's list, so Finish will ask where it lives.` });
+    }
+    try {
+      await setSkuZone(s.id, from, false);
+      setMember(s.id, from, false);
+      setQ(key, { busy: false, done: `Moved to ${to.name} · ${cellText(s, cell)} counted there. Off this zone's list from now on.` });
+    } catch {
+      setQ(key, { busy: false, done: `${counted} and on its list. Couldn't take it off this zone's list.` });
+    }
+  }
+
+  const haveKey = (skuId: string) => `have:${skuId}`;
+
+  /** "Yes, it's here" (a zone and a count), or "None left" (a zero, and where
+   *  it goes when we have it, if they say). */
+  async function saveHave(u: UnplacedItem) {
+    const s = skuById.get(u.skuId);
+    const key = haveKey(u.skuId);
+    const q = placeQ[key] ?? EMPTY_Q;
+    const z = zones.find((x) => x.id === q.zone);
+    if (!s || q.busy) return;
+    if (q.pick === "yes") {
+      const cell = typedCell(s, q);
+      if (!cell || !z) return;
+      putCell(z.id, s.id, cell);
+      setQ(key, { busy: true, err: undefined });
+      try {
+        await setSkuZone(s.id, z.id, true);
+        setMember(s.id, z.id, true);
+        setQ(key, { busy: false, done: `${cellText(s, cell)} · ${z.name}. It'll be on that zone's list from now on.` });
+      } catch {
+        setQ(key, { busy: false, done: `${cellText(s, cell)} counted in ${z.name}. Couldn't add it to that zone's list, so the next count asks again.` });
+      }
+      return;
+    }
+    if (q.pick !== "none") return;
+    // A count line needs a zone. With none picked, the zero goes on the zone
+    // the counter is standing in and lists nothing there: a zero is never
+    // evidence of where a thing lives (the server's zone_unexpected rule).
+    putCell(z?.id ?? zoneId, s.id, zeroCell(s));
+    if (!z) return setQ(key, { done: "None left · 0 counted", err: undefined });
+    setQ(key, { busy: true, err: undefined });
+    try {
+      await setSkuZone(s.id, z.id, true);
+      setMember(s.id, z.id, true);
+      setQ(key, { busy: false, done: `None left · 0 counted · lives in ${z.name}` });
+    } catch {
+      setQ(key, { busy: false, done: `None left · 0 counted. Couldn't add it to ${z.name}'s list.` });
+    }
+  }
+  /** "We stopped buying it": discontinued (tprs 0196), so it leaves the order
+   *  guides and anything found can still be counted. */
+  async function stopBuying(u: UnplacedItem) {
+    const key = haveKey(u.skuId);
+    if (placeQ[key]?.busy) return;
+    setQ(key, { pick: null, busy: true, err: undefined });
+    try {
+      await setSkuDiscontinued(u.skuId, true);
+      setCatalog((prev) => prev.map((s) => (s.id === u.skuId ? { ...s, discontinuedAt: new Date().toISOString() } : s)));
+      setQ(key, { busy: false, done: "Off the order guides. If any turns up, it can still be counted." });
+    } catch {
+      setQ(key, { busy: false, err: "Couldn't save that. Try again." });
+    }
+  }
+
+  function flash(msg: string) {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  }
+
+  /** "+ New spot": a zone in the walk where the counter says they reach it,
+   *  then picked for the question that asked. */
+  async function addSpot() {
+    if (!newSpot || newSpot.busy) return;
+    const name = newSpot.name.trim();
+    if (!name) return;
+    const asked = newSpot;
+    setNewSpot({ ...asked, busy: true, err: null });
+    try {
+      const z = await createZone(name, asked.after || null);
+      // By position, not walk order: the server may have renumbered the
+      // others, and "after the Fryer Line" is what the counter said.
+      setZones((prev) => {
+        const next = [...prev];
+        next.splice(asked.after ? prev.findIndex((x) => x.id === asked.after) + 1 : 0, 0, { ...z, memberSkuIds: [] });
+        return next;
+      });
+      setNewZoneIds((ids) => [...ids, z.id]);
+      setQ(asked.key, { zone: z.id });
+      setNewSpot(null);
+      flash(`Added “${z.name}” to the walk`);
+    } catch (e) {
+      const known = e instanceof ZoneNameTakenError ? zones.find((x) => x.id === e.zone.id) : undefined;
+      if (known) {
+        setQ(asked.key, { zone: known.id });
+        setNewSpot(null);
+        flash(`“${known.name}” is already on the walk, so it's picked`);
+        return;
+      }
+      setNewSpot({ ...asked, busy: false, err: e instanceof ZoneNameTakenError
+        ? `There's already a zone called “${e.zone.name}”. Try another name.`
+        : "Couldn't add it. Check the connection and try again." });
+    }
+  }
+
+  /** The zone choices under "where is it?", with "+ New spot" last. Tapping
+   *  the picked one again unpicks it (the "None left" zone is optional). */
+  function zoneChips(key: string, q: PlaceQ, exclude: string | null) {
+    return (
+      <div className="lq-fc-chips">
+        {zones.filter((z) => z.id !== exclude).map((z) => {
+          const isNew = newZoneIds.includes(z.id);
+          return (
+            <button
+              key={z.id}
+              type="button"
+              aria-pressed={q.zone === z.id}
+              className={`lq-fc-chip${q.zone === z.id ? " lq-fc-chip-on" : ""}${isNew ? " lq-fc-chip-new" : ""}`}
+              onClick={() => setQ(key, { zone: q.zone === z.id ? null : z.id })}
+            >
+              {z.name}{isNew ? " (new)" : ""}
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className="lq-fc-chip lq-fc-chip-add"
+          onClick={() => setNewSpot({ key, name: "", after: zoneId, busy: false, err: null })}
+        >
+          + New spot
+        </button>
+      </div>
+    );
+  }
+
+  /** The count boxes on a question: the grid's own, then Save. */
+  function qtyBoxes(key: string, s: BarSkuItem, q: PlaceQ, onSave: () => void) {
+    const ready = typedCell(s, q) != null && !q.busy;
+    const onEnter = (e: { key: string }) => { if (e.key === "Enter" && ready) onSave(); };
+    const centre = (e: { currentTarget: HTMLInputElement }) =>
+      e.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" });
+    return (
+      <div className="lq-fc-q-qty">
+        {hasCaseBox(s) && (
+          <label>
+            <span>cases <span className="lq-fc-row-mult">×{s.unitsPerCase}</span></span>
+            <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: cases`}
+              value={q.cases} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { cases: e.target.value })} />
+          </label>
+        )}
+        <label>
+          <span>{unitLabel(s, 2)}</span>
+          <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: ${unitLabel(s, 2)}`}
+            value={q.units} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { units: e.target.value })} />
+        </label>
+        <button type="button" className="lq-btn lq-fc-q-save" disabled={!ready} onClick={onSave}>
+          {q.busy ? "Saving…" : "Save"}
+        </button>
+      </div>
+    );
+  }
+
+  /** The item's name, head first, as the grid shows it. */
+  function qName(name: string) {
+    const [head, rest] = splitDisplayName(name);
+    return (
+      <p className="lq-fc-q-name" title={name}>
+        <strong>{head}</strong>
+        {rest && <span className="lq-fc-q-rest"> {rest}</span>}
+      </p>
+    );
+  }
+
+  const choice = (on: boolean) => `lq-fc-choice${on ? " lq-fc-choice-on" : ""}`;
+
   // ── derived ──
   const zoneCells = counts[zoneId] ?? {};
   const memberIds = zone?.memberSkuIds ?? [];
@@ -982,6 +1350,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** Shelves with not one line on them. "Counted zero" is an answer and does
    *  not appear here; only "never opened" does. */
   const untouchedZones = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0);
+  const unplacedLeft = [...unplaced, ...unplacedMore].filter((u) => !placeQ[haveKey(u.skuId)]?.done).length;
 
   if (phase === "loading") return <div className="lq-center lq-muted">Loading the kitchen…</div>;
   if (phase === "error")
@@ -1017,7 +1386,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           className="lq-fc-zonestep"
           aria-label="Previous shelf"
           disabled={zoneIdx <= 0 || capturing}
-          onClick={() => goZone(zoneIdx - 1)}
+          onClick={() => zones[zoneIdx - 1] && requestZone(zones[zoneIdx - 1]!.id)}
         >
           ‹
         </button>
@@ -1039,7 +1408,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           className="lq-fc-zonestep"
           aria-label="Next shelf"
           disabled={zoneIdx >= zones.length - 1 || capturing}
-          onClick={() => goZone(zoneIdx + 1)}
+          onClick={() => zones[zoneIdx + 1] && requestZone(zones[zoneIdx + 1]!.id)}
         >
           ›
         </button>
@@ -1054,7 +1423,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 key={z.id}
                 type="button"
                 className={`lq-fc-zonerow${z.id === zoneId ? " lq-fc-zonerow-on" : ""}`}
-                onClick={() => goZone(i)}
+                onClick={() => requestZone(z.id)}
               >
                 <span className="lq-fc-zonerow-n">{i + 1}</span>
                 <span className="lq-fc-zonerow-name">{z.name}</span>
@@ -1576,6 +1945,87 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               </div>
             );
           })}
+          {/* ── things we think you have (2026-10-03) ── On no zone, so no
+              walk asked: bought lately, or in a recipe. Asked here because
+              the first walk has no "since the last count" to look back on.
+              Advisory like everything in this panel: it never blocks Submit. */}
+          {unplaced.length > 0 && (
+            <div className="lq-fc-have">
+              <p className="lq-fc-rev-h">
+                {unplacedLeft > 0 ? `${unplacedLeft} thing${unplacedLeft === 1 ? "" : "s"} we think you have` : "All set"}
+              </p>
+              <p className="lq-muted lq-fc-have-sub">
+                We bought these lately or use them in a recipe, but they&rsquo;re in no zone, so the walk never
+                asked. Find each one, pick where it lives, and count it.
+              </p>
+              {(unplacedAll ? [...unplaced, ...unplacedMore] : unplaced).map((u) => {
+                const s = skuById.get(u.skuId);
+                const key = haveKey(u.skuId);
+                const q = placeQ[key] ?? EMPTY_Q;
+                return (
+                  <div key={u.skuId} className="lq-fc-q">
+                    {qName(u.name)}
+                    {q.done ? (
+                      <p className="lq-fc-q-done">✓ {q.done}</p>
+                    ) : (
+                      <>
+                        <p className="lq-fc-q-why">{whyUnplaced(u)}</p>
+                        {!s ? (
+                          <p className="lq-muted">This screen's catalog doesn&rsquo;t have it yet. Reload to answer it.</p>
+                        ) : (
+                          <>
+                            <p className="lq-fc-q-ask">Do we have any?</p>
+                            <div className="lq-fc-choices">
+                              <button type="button" className={choice(q.pick === "yes")} aria-pressed={q.pick === "yes"}
+                                disabled={q.busy} onClick={() => setQ(key, { pick: "yes", err: undefined })}>
+                                Yes, it&rsquo;s here
+                              </button>
+                              <button type="button" className={choice(q.pick === "none")} aria-pressed={q.pick === "none"}
+                                disabled={q.busy} onClick={() => setQ(key, { pick: "none", err: undefined })}>
+                                None left
+                              </button>
+                              <button type="button" className={choice(false)} disabled={q.busy}
+                                onClick={() => void stopBuying(u)}>
+                                We stopped buying it
+                              </button>
+                            </div>
+                            {q.pick === "yes" && (
+                              <>
+                                <p className="lq-fc-q-ask">Where is it?</p>
+                                {zoneChips(key, q, null)}
+                                {q.zone && (
+                                  <>
+                                    <p className="lq-fc-q-ask">How many?</p>
+                                    {qtyBoxes(key, s, q, () => void saveHave(u))}
+                                  </>
+                                )}
+                              </>
+                            )}
+                            {q.pick === "none" && (
+                              <>
+                                <p className="lq-fc-q-ask">Where does it go when we have it? (optional)</p>
+                                {zoneChips(key, q, null)}
+                                <button type="button" className="lq-btn lq-fc-q-save lq-fc-q-save-solo" disabled={q.busy}
+                                  onClick={() => void saveHave(u)}>
+                                  {q.busy ? "Saving…" : "Save"}
+                                </button>
+                              </>
+                            )}
+                          </>
+                        )}
+                        {q.err && <p className="lq-error">{q.err}</p>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+              {unplacedMore.length > 0 && !unplacedAll && (
+                <button type="button" className="lq-linkbtn" onClick={() => setUnplacedAll(true)}>
+                  Show {unplacedMore.length} more
+                </button>
+              )}
+            </div>
+          )}
           {retiring.length > 0 && (
             <div className="lq-retiring">
               <p className="lq-retiring-h">Have we stopped carrying these?</p>
@@ -1662,7 +2112,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 ? "Submitting…"
                 : voicePending
                   ? "Finish the recording first"
-                  : "Submit the count"}
+                  : unplacedLeft > 0
+                    ? `Submit the count (${unplacedLeft} unanswered)`
+                    : "Submit the count"}
             </button>
             <button type="button" className="lq-linkbtn" onClick={() => setFindings(null)}>
               keep counting
@@ -1703,6 +2155,134 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </button>
         </div>
       </div>
+
+      {/* ── leaving a zone (2026-10-03) ── Jon couldn't tell which zone the
+          preview's first draft meant, so the zone being left is the biggest
+          thing on the sheet. A full-height sheet that scrolls, not a short
+          one pinned to the bottom: the keyboard covers the bottom half of the
+          screen, and "Count it" opens two number boxes. */}
+      {leaving && (() => {
+        const fromIdx = zones.findIndex((z) => z.id === leaving.from);
+        const from = zones[fromIdx];
+        const toIdx = zones.findIndex((z) => z.id === leaving.to);
+        const left = leaving.skuIds.filter((id) => !placeQ[leaveKey(leaving.from, id)]?.done).length;
+        const go = toIdx === fromIdx + 1 ? "next zone ›" : `on to ${zones[toIdx]?.name ?? "the next zone"} ›`;
+        return (
+          <div className="lq-fc-sheetback">
+            <div className="lq-fc-sheet" role="dialog" aria-modal="true" aria-label={`Leaving ${from?.name ?? "this zone"}`}>
+              <div className="lq-fc-sheet-zone">
+                <span className="lq-fc-sheet-zone-k">Leaving zone {fromIdx + 1} of {zones.length}</span>
+                <span className="lq-fc-sheet-zone-n">{from?.name}</span>
+              </div>
+              <h3 className="lq-fc-sheet-h">
+                {left > 0 ? `${left} ${left === 1 ? "item wasn't" : "items weren't"} counted` : "All answered"}
+              </h3>
+              <p className="lq-muted lq-fc-sheet-sub">They&rsquo;re on this zone&rsquo;s list. One tap each.</p>
+              {leaving.skuIds.map((id) => {
+                const s = skuById.get(id);
+                if (!s) return null;
+                const key = leaveKey(leaving.from, id);
+                const q = placeQ[key] ?? EMPTY_Q;
+                return (
+                  <div key={id} className="lq-fc-q">
+                    {qName(s.name)}
+                    {q.done ? (
+                      <p className="lq-fc-q-done">✓ {q.done}</p>
+                    ) : (
+                      <>
+                        <p className="lq-fc-q-why">On this zone&rsquo;s list, nothing entered</p>
+                        <div className="lq-fc-choices">
+                          <button type="button" className={choice(false)} disabled={q.busy} onClick={() => leaveNone(leaving.from, s)}>
+                            None left
+                          </button>
+                          <button type="button" className={choice(q.pick === "count")} aria-pressed={q.pick === "count"}
+                            disabled={q.busy} onClick={() => setQ(key, { pick: "count", err: undefined })}>
+                            Count it
+                          </button>
+                          <button type="button" className={choice(q.pick === "moved")} aria-pressed={q.pick === "moved"}
+                            disabled={q.busy} onClick={() => setQ(key, { pick: "moved", err: undefined })}>
+                            Remove from zone
+                          </button>
+                        </div>
+                        {q.pick === "count" && (
+                          <>
+                            <p className="lq-fc-q-ask">How many are here?</p>
+                            {qtyBoxes(key, s, q, () => leaveCount(leaving.from, s))}
+                          </>
+                        )}
+                        {q.pick === "moved" && (
+                          <>
+                            <p className="lq-fc-q-ask">Where is it now?</p>
+                            {zoneChips(key, q, leaving.from)}
+                            {q.zone && (
+                              <>
+                                <p className="lq-fc-q-ask">How many are there?</p>
+                                {qtyBoxes(key, s, q, () => void leaveMoved(leaving.from, s))}
+                              </>
+                            )}
+                          </>
+                        )}
+                        {q.err && <p className="lq-error">{q.err}</p>}
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+              <div className="lq-fc-sheet-foot">
+                <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setLeaving(null)}>
+                  Back to {from?.name ?? "this zone"}
+                </button>
+                <button type="button" className="lq-btn lq-fc-sheet-go" onClick={leaveOn}>
+                  {left > 0 ? `Skip ${left}, ${go}` : go.charAt(0).toUpperCase() + go.slice(1)}
+                </button>
+              </div>
+              {left > 0 && <p className="lq-muted lq-fc-sheet-hint">Skipped ones come up again before you submit.</p>}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── + New spot (2026-10-03): "table storage near Pete's oven" ── */}
+      {newSpot && (
+        <div className="lq-fc-sheetback lq-fc-sheetback-top">
+          <div className="lq-fc-sheet" role="dialog" aria-modal="true" aria-label="Add a spot to the walk">
+            <h3 className="lq-fc-sheet-h">Add a spot to the walk</h3>
+            <p className="lq-muted lq-fc-sheet-sub">For a place none of the zones cover. It goes on every walk from now on.</p>
+            <label className="lq-fc-field">
+              <span>What do you call it?</span>
+              <input
+                type="text"
+                maxLength={64}
+                autoFocus
+                placeholder="Table storage near Pete's oven"
+                value={newSpot.name}
+                onChange={(e) => setNewSpot({ ...newSpot, name: e.target.value, err: null })}
+                onKeyDown={(e) => { if (e.key === "Enter") void addSpot(); }}
+              />
+            </label>
+            <label className="lq-fc-field">
+              <span>When do you reach it on the walk?</span>
+              <select value={newSpot.after} onChange={(e) => setNewSpot({ ...newSpot, after: e.target.value })}>
+                <option value="">First, before {zones[0]?.name}</option>
+                {zones.map((z) => (
+                  <option key={z.id} value={z.id}>After {z.name}</option>
+                ))}
+              </select>
+            </label>
+            {newSpot.err && <p className="lq-error">{newSpot.err}</p>}
+            <div className="lq-fc-sheet-foot">
+              <button type="button" className="lq-btn lq-btn-ghost" disabled={newSpot.busy} onClick={() => setNewSpot(null)}>
+                Cancel
+              </button>
+              <button type="button" className="lq-btn lq-fc-sheet-go" disabled={newSpot.busy || !newSpot.name.trim()}
+                onClick={() => void addSpot()}>
+                {newSpot.busy ? "Adding…" : "Add spot"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {toast && <div className="lq-fc-toast" role="status">{toast}</div>}
     </div>
   );
 }
