@@ -565,4 +565,18 @@ await run('findings past the first six sit behind "Show 2 more"',async t => {
   assert.deepEqual(names(),Array.from({length:8},(_,i) => `Missing item ${i+1}`));
 },'existing&many-findings');
 
+await run('a count changed elsewhere after the check is checked again before it closes',async t => {
+  await t.click('Finish (1)');
+  await until(() => t.button('Submit the count'));
+  await t.click('Submit the count');
+  const prechecks = () => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+  await until(() => prechecks() === 2 && /this is a fresh one/.test(t.doc.body.textContent));
+  const submits = () => t.qa.calls.filter(c => c.path.endsWith('/submit'));
+  assert.equal(submits().length,1);
+  assert.equal(submits()[0].body.checkedLinesHash,'fcheck1','submit named the check the counter read');
+  await t.click('Submit the count');
+  await until(() => submits().length === 2);
+  assert.equal(submits()[1].body.checkedLinesHash,'fcheck2');
+},'existing&recheck');
+
 console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);

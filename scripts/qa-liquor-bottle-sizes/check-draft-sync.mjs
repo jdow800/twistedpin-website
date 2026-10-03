@@ -91,4 +91,26 @@ await check('saver: an ordinary failure is reported and the next save tries agai
   assert.deepEqual(hashes, ['h0', 'h0']);
 });
 
+await check('batch rows: a refused save keeps this screen\'s batch and takes the other phone\'s, then saves once', async () => {
+  const row = (batchId, n) => ({zoneId: 'prep', batchId, fullEquivalents: n});
+  let screen = [row('li', 1), row('lemonade', 0.5)];
+  const calls = [];
+  const saver = m.createCellSaver({
+    save: async (rows, baseHash) => {
+      calls.push([Object.fromEntries(rows.map(r => [r.batchId, r.fullEquivalents])), baseHash]);
+      if (calls.length === 1) throw {stale: [row('li', 0.5), row('lemonade', 2)], hash: 'b2'}; // lemonade recounted elsewhere
+      return {hash: 'b3'};
+    },
+    current: () => screen,
+    adopt: rows => { screen = rows; },
+    keyOf: r => `${r.zoneId}:${r.batchId}`,
+    same: (a, b) => a.fullEquivalents === b.fullEquivalents,
+    conflict: e => (e && e.stale ? {rows: e.stale, hash: e.hash} : null),
+  });
+  saver.loaded([row('li', 0.5), row('lemonade', 0.5)], 'b1');   // this screen then changed the Long Island only
+  await saver.save();
+  assert.deepEqual(calls, [[{li: 1, lemonade: 0.5}, 'b1'], [{li: 1, lemonade: 2}, 'b2']]);
+  assert.deepEqual(Object.fromEntries(screen.map(r => [r.batchId, r.fullEquivalents])), {li: 1, lemonade: 2});
+});
+
 console.log(`${passed} draft sync checks passed; no DOM or service calls.`);

@@ -13,6 +13,7 @@ import {
   saveCountLines,
   setCaseSize,
   submitCount,
+  ChangedSinceCheckError,
   ZoneNameTakenError,
   type BarSkuItem,
   type BarZoneItem,
@@ -320,9 +321,18 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         countsRef.current = next;
         setCounts(next);
         setMerged(true);
+        // A change from elsewhere: the review on screen no longer covers it.
+        mergedSinceCheckRef.current = true;
       },
     });
   }
+  /** What the last pre-submit check looked at (TPRS 2026-10-03). The panel's
+   *  own answers write counts, so submit sends the fingerprint after this
+   *  screen's own saves, unless a change from elsewhere was merged in since
+   *  the check: then the check's, and the server has it checked again. */
+  const checkedHashRef = useRef<string | null>(null);
+  const mergedSinceCheckRef = useRef(false);
+  const [rechecked, setRechecked] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
@@ -805,9 +815,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   // ── submit ──
-  async function runCheck() {
+  async function runCheck(recheck = false) {
     if (!sessionId || checking || submitting) return;
     setChecking(true);
+    setRechecked(recheck);
+    checkedHashRef.current = null;
     try {
       // ⚠ FAILING OPEN ON THE CHECK IS FINE; FAILING OPEN ON PERSISTENCE IS NOT.
       // If the sheet did not reach the server there is nothing to submit, and
@@ -817,6 +829,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         return;
       }
       const res = await precheckCount(sessionId);
+      checkedHashRef.current = res.linesHash ?? null;
+      mergedSinceCheckRef.current = false;
       setFindings(res.findings);
       setMoreFindings(res.more ?? []);
       setShowMoreFindings(false);
@@ -972,11 +986,18 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         setSubmitting(false);
         return;
       }
-      setDoneCount(await submitCount(sessionId, fullCount));
+      const checkedHash = checkedHashRef.current == null ? null
+        : mergedSinceCheckRef.current ? checkedHashRef.current : (saverRef.current!.currentHash() ?? checkedHashRef.current);
+      setDoneCount(await submitCount(sessionId, fullCount, checkedHash ? { linesHash: checkedHash } : null));
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
-    } catch {
-      setSubmitErr("Couldn't submit — try again.");
+    } catch (e) {
       setSubmitting(false);
+      if (e instanceof ChangedSinceCheckError) {
+        // Another phone moved the count after this check: check it again.
+        void runCheck(true);
+        return;
+      }
+      setSubmitErr("Couldn't submit — try again.");
     }
   }
 
@@ -1872,6 +1893,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 ? "Nothing looks off in what you counted. Ready to submit."
                 : `${findings.length + moreFindings.length} thing${findings.length + moreFindings.length === 1 ? "" : "s"} worth a second look`}
           </p>
+          {rechecked && (
+            <p className="lq-muted" style={{ fontSize: 13 }}>
+              The count changed somewhere else after the last check, so this is a fresh one.
+            </p>
+          )}
           {(showMoreFindings ? [...findings, ...moreFindings] : findings).map((f, i) => {
             const locKey = f.zoneId ? `${f.skuId}:${f.zoneId}` : null;
             const answered = locKey ? locAnswer[locKey] : undefined;

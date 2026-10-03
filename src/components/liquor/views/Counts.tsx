@@ -13,6 +13,7 @@ import {
   type VarianceReport,
 } from "../api";
 import { VarianceLines } from "../VarianceLines";
+import { CorrectionEditor, CorrectionHistory } from "../CountCorrections";
 
 // Read-only inventory history — recent submitted liquor counts (per-zone
 // breakdown) and keg counts (by category), toggled. Full counts also show
@@ -60,6 +61,7 @@ export default function Counts({
   const [variance, setVariance] = useState<VarianceReport | null>(null);
   const [showVarianceLines, setShowVarianceLines] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
+  const [correcting, setCorrecting] = useState(false);
   const openedDeepLink = useRef(false);
 
   useEffect(() => {
@@ -91,6 +93,7 @@ export default function Counts({
     setDetailLoading(true);
     setVariance(null);
     setShowVarianceLines(false);
+    setCorrecting(false);
     try {
       const [d, v] = await Promise.all([
         getCountDetail(id),
@@ -135,6 +138,26 @@ export default function Counts({
         <p className="lq-muted lq-invd-meta">
           {when(s.submittedAt || s.startedAt)}{s.countedBy ? ` · ${s.countedBy}` : ""} · {detail.data.lines.length} line{detail.data.lines.length === 1 ? "" : "s"}
         </p>
+
+        {/* After the lock: what was corrected, and the admin's way to correct it
+            (CountCorrections.tsx). Only the latest full count can be corrected. */}
+        <CorrectionHistory corrections={detail.data.corrections ?? []} />
+        {detail.data.canCorrect && !correcting && (
+          <button type="button" className="lq-btn lq-btn-ghost" style={{ padding: "4px 10px", fontSize: 13 }}
+            onClick={() => setCorrecting(true)}>
+            Correct this count
+          </button>
+        )}
+        {correcting && (
+          <CorrectionEditor
+            detail={detail.data}
+            onCancel={() => setCorrecting(false)}
+            onSaved={async () => {
+              setCorrecting(false);
+              await openLiquor(s.id);
+            }}
+          />
+        )}
 
         {s.isFullCount && (
           variance == null ? (
@@ -235,6 +258,7 @@ export default function Counts({
                         {l.source === "voice" && <span aria-hidden="true">🎤 </span>}
                         {l.skuName ?? "—"}
                         {l.sizeMl != null && <span className="lq-muted"> · {l.sizeMl}ml</span>}
+                        {l.source === "correction" && <span className="lq-muted"> · corrected after the lock</span>}
                         {/* Show the case math, not just the product. A line
                             entered as 4 cases x 24 otherwise reads as a bare
                             "96" — and this screen is the only place a wrong

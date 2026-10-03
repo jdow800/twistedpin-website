@@ -1153,3 +1153,32 @@ variance grade.
 Tests: `check-recipes.mjs` (16, 8 new; 7 of the new ones fail on the old
 code) and `check-pour-label.mjs` (3, new: the copy and TPRS agree on 53
 labels). `astro build` passes.
+
+## 2026-10-03 - Correct a locked count; batch saves and the submit check can't go stale
+
+From the independent review of Jon's to-do list (GPT-6.1-Sol, 2026-10-03), and
+Jon's "build all you can". The TPRS half is the PR of the same day.
+- **Counts, the latest full liquor count:** an admin sees "Correct this count"
+  (`CountCorrections.tsx`). Change a quantity, add a bottle on a shelf, or take a
+  line out, with a reason. TPRS refuses a correction built on numbers that
+  changed since. The count then shows "Corrected after the report locked" with
+  each before → after, and that the locked grade and the order guide already
+  sent stayed as they were. Corrected lines say so in the list.
+  - The button appears only when TPRS says this person can correct this count,
+    so nothing shows until the backend is live.
+- **Liquor count batch rows** save the way count lines do: a save built on rows
+  changed elsewhere merges instead of erasing them (`createCellSaver`,
+  `draftSync.ts`).
+- **Both count screens hand the check's fingerprints back at submit.** When
+  TPRS says the count changed after the check, the screen checks again and says
+  it is a fresh check.
+  - The food submit panel's own answers write counts, so food sends the
+    fingerprint after its own saves, unless a change from elsewhere was merged
+    in since the check.
+
+Tests:
+- New or extended: `check-count-corrections.mjs` (3, new), `check-draft-sync.mjs`
+  (7, 1 new), `check-liquor-voice.mjs` (23, 1 new) and `check-food-voice.mjs`
+  (49, 1 new).
+- Still passing: `check-ui.mjs` (8), beer (12), walk locations (17),
+  discontinued (6) and variance rows (4). `astro build` passes.

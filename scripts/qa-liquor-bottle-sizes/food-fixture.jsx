@@ -121,9 +121,18 @@ window.fetch = async (input, init = {}) => {
         counted:null, prior:2, purchased:0, used:null, unitsPerCase:null, dollars:80 - i * 10, detail:'Counted last time, nothing this time.'}));
       return json({baseline:false, findings:eight.slice(0, 6), truncated:2, more:eight.slice(6), retiring:[]});
     }
-    return json({baseline:true, findings:[], retiring:[], ...(params.has('walk') ? {unplaced, unplacedMore} : {})});
+    // ?recheck: each check names what it looked at (fcheck1, fcheck2, ...).
+    const n = qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+    return json({baseline:true, findings:[], retiring:[], ...(params.has('walk') ? {unplaced, unplacedMore} : {}),
+      ...(params.has('recheck') ? {linesHash:`fcheck${n}`} : {})});
   }
-  if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
+  if (path.endsWith('/submit')) {
+    // ?recheck: the first submit is refused, another phone having changed the count.
+    if (params.has('recheck') && qa.calls.filter(c => c.path.endsWith('/submit')).length === 1) {
+      return json({error:'changed_since_check', message:'The count changed after the check ran.'}, 409);
+    }
+    return json({lineCount:qa.lines.length});
+  }
   throw new Error('Unexpected food fixture request: '+path);
 };
 function PreviewControls() {

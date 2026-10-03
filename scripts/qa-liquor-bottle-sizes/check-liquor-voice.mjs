@@ -318,5 +318,21 @@ await run('a check that cannot run stops to say so instead of submitting straigh
   assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')),'nothing submitted until the counter says so');
 }, 'check-fails');
 
+await run('a count that changed after the check is checked again, not closed on the old review',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Submit anyway');
+  const prechecks = () => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+  await until(() => prechecks() === 2 && t.doc.querySelector('.lq-confirm'),'Checked again');
+  const submits = t.qa.calls.filter(c => c.path.endsWith('/submit'));
+  assert.equal(submits.length,1);
+  assert.equal(submits[0].body.checkedLinesHash,'check1','submit named the check the counter read');
+  assert.equal(submits[0].body.checkedBatchesHash,'batches0');
+  assert.match(t.doc.querySelector('.lq-confirm').textContent,/this is a fresh check/);
+  await t.click('Submit anyway');
+  await until(() => t.qa.calls.filter(c => c.path.endsWith('/submit')).length === 2,'Second submit');
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit'))[1].body.checkedLinesHash,'check2');
+}, 'recheck');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

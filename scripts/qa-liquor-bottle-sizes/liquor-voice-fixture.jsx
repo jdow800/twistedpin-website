@@ -71,8 +71,24 @@ window.fetch = async (input, init = {}) => {
     return json({upserted:body.lines.length, linesHash:`saved${++saves}`});
   }
   // ?check-fails: the pre-submit check itself cannot run.
-  if (path.endsWith('/precheck')) return params.has('check-fails') ? json({error:'unavailable'}, 503) : json(precheck());
-  if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
+  // ?recheck: every check finds the size question and names what it looked at
+  // (check1, check2, ...); the first submit is refused because another phone
+  // changed the count after the counter read the check.
+  if (path.endsWith('/precheck')) {
+    if (params.has('check-fails')) return json({error:'unavailable'}, 503);
+    if (params.has('recheck')) {
+      const n = qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+      return json({baseline:false, findings:[mixup], truncated:0, more:[], retiring:[], sizeWarnings:[],
+        linesHash:`check${n}`, batchesHash:'batches0'});
+    }
+    return json(precheck());
+  }
+  if (path.endsWith('/submit')) {
+    if (params.has('recheck') && qa.calls.filter(c => c.path.endsWith('/submit')).length === 1) {
+      return json({error:'changed_since_check', message:'The count changed after the check ran.'}, 409);
+    }
+    return json({lineCount:qa.lines.length});
+  }
   throw new Error('Unexpected liquor fixture request: '+path);
 };
 createRoot(document.getElementById('root')).render(

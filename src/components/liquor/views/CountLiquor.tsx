@@ -13,6 +13,8 @@ import {
   setCaseSize,
   submitCount,
   BarApiError,
+  BatchesChangedError,
+  ChangedSinceCheckError,
   type BarSkuItem,
   type BarBatchItem,
   type BarZoneItem,
@@ -28,7 +30,7 @@ import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled } from "../voiceSwitches";
-import { createDraftSaver, toOpenLines } from "../draftSync";
+import { createCellSaver, createDraftSaver, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 
@@ -308,11 +310,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             (bc[b.zoneId] ??= {})[b.batchId] = Number(b.fullEquivalents);
           }
           setBatchCounts(bc);
+          batchSaverRef.current!.loaded(flattenBatches(bc), open.batchesHash);
           setResumed(true);
         } else {
           sid = await createCount(true);
           setSessionId(sid);
           saverRef.current!.loaded([], null);
+          batchSaverRef.current!.loaded([], null);
         }
         setZoneId(resumeZone(sid, z));
         setPhase("ready");
@@ -343,6 +347,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       setCounts({});
       saverRef.current!.loaded([], null);
       setBatchCounts({});
+      batchSaverRef.current!.loaded([], null);
       setResumed(false);
       setSave("idle");
     } catch {
@@ -372,6 +377,33 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         setCounts(next);
         setMerged(true);
       },
+    });
+  }
+  /** What the last pre-submit check looked at; submit hands it back so a count
+   *  that moved since is checked again (TPRS 2026-10-03). */
+  const checkedRef = useRef<{ linesHash?: string; batchesHash?: string } | null>(null);
+  /** The check was re-run because the count moved after it. */
+  const [rechecked, setRechecked] = useState(false);
+  /** The prep-batch rows get the same protection (TPRS 2026-10-03): a save
+   *  built on rows that changed elsewhere merges instead of erasing them. */
+  type BatchRow = { zoneId: string; batchId: string; fullEquivalents: number };
+  const batchSaverRef = useRef<ReturnType<typeof createCellSaver<BatchRow>> | null>(null);
+  if (!batchSaverRef.current) {
+    batchSaverRef.current = createCellSaver<BatchRow>({
+      save: (rows, baseHash) => saveBatchCounts(sessionIdRef.current!, rows, baseHash).then((r) => ({ hash: r.batchesHash })),
+      current: () => flattenBatches(batchCountsRef.current),
+      adopt: (rows) => {
+        const next: Record<string, Record<string, number>> = {};
+        for (const r of rows) (next[r.zoneId] ??= {})[r.batchId] = r.fullEquivalents;
+        batchCountsRef.current = next;
+        setBatchCounts(next);
+        setMerged(true);
+      },
+      keyOf: (r) => `${r.zoneId}:${r.batchId}`,
+      same: (a, b) => Math.abs(a.fullEquivalents - b.fullEquivalents) < 1e-9,
+      conflict: (e) => (e instanceof BatchesChangedError
+        ? { rows: e.batches.map((b) => ({ zoneId: b.zoneId, batchId: b.batchId, fullEquivalents: Number(b.fullEquivalents) })), hash: e.batchesHash }
+        : null),
     });
   }
 
@@ -411,7 +443,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setSave("saving");
     try {
       await saverRef.current!.save();
-      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
+      await batchSaverRef.current!.save();
       setSave("saved");
     } catch {
       setSave("error");
@@ -933,8 +965,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  shelf. The variance report lands ~30s after submit as a 3h-correctable
    *  DRAFT (review gate, 0136) — the draft window is the net, this check is the
    *  plan. After finalize, a wrong number is permanent for the period. */
-  async function tryFinish() {
+  async function tryFinish(recheck = false) {
     if (!sessionId || submitting || checking || voicePending) return;
+    setRechecked(recheck);
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
     setChecking(true);
     let findings: PrecheckFinding[] = [];
@@ -948,7 +981,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // unsaved last edit would be checked in its old form.
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saverRef.current!.save();
-      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
+      await batchSaverRef.current!.save();
       setSave("saved");
     } catch {
       // A failed check may be dismissed; a failed save must not submit old
@@ -957,6 +990,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       setChecking(false);
       return;
     }
+    checkedRef.current = null;
     try {
       const res = await precheckCount(sessionId);
       findings = res.findings;
@@ -964,6 +998,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       truncated = res.truncated ?? 0;
       more = res.more ?? [];
       retiring = res.retiring ?? [];
+      // What it looked at: submit hands these back (finish).
+      checkedRef.current = { linesHash: res.linesHash, batchesHash: res.batchesHash };
     } catch {
       // A sanity check must never be able to prevent closing out a count, but
       // it must not pass for a clean one either: it used to submit straight
@@ -1057,14 +1093,21 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     try {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saverRef.current!.save();
-      await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
-      const n = await submitCount(sessionId);
+      await batchSaverRef.current!.save();
+      const n = await submitCount(sessionId, undefined, checkedRef.current);
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
       restatementsRef.current.clear(); // spent — must not leak into a later session
       setDone(n);
-    } catch {
-      setSave("error");
+    } catch (e) {
       setSubmitting(false);
+      if (e instanceof ChangedSinceCheckError) {
+        // Another phone, or a merged save, moved the count after the check the
+        // counter just read. Check it again rather than close on that review.
+        setSave("saved");
+        void tryFinish(true);
+        return;
+      }
+      setSave("error");
     }
   }
 
@@ -1603,6 +1646,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       : "One thing before you submit"}
               </h3>
               <p className="lq-muted">
+                {rechecked && (
+                  <>The count changed after the last check (another phone, or a change merged in), so this is a fresh check.{" "}</>
+                )}
                 {confirmSubmit.checkFailed && (
                   <>Nothing was checked: the pre-submit check couldn't reach the server. You can still submit, or close this and try Finish again.{" "}</>
                 )}

@@ -110,7 +110,75 @@ export function createDraftSaver(opts: {
       base = toInputLines(lines);
       baseHash = hash ?? null;
     },
+    /** The server's fingerprint of the draft as this screen last saved or
+     *  loaded it: what a review the counter has since answered in place
+     *  actually covers (the food submit panel writes counts). */
+    currentHash(): string | null {
+      return baseHash;
+    },
     /** Queue a save. Resolves when it, and every save before it, is done. */
+    save(): Promise<void> {
+      const p = chain.then(run);
+      chain = p.catch(() => {});
+      return p;
+    },
+  };
+}
+
+/**
+ * The same queued, fingerprinted saves for other rows a save replaces
+ * wholesale: the liquor count's prep-batch rows (TPRS PUT /batches, 2026-10-03).
+ * A refused save merges as mergeDraft does: a cell this screen changed keeps
+ * its value, and every other cell takes the server's, or its removal.
+ */
+export function createCellSaver<T>(opts: {
+  save: (rows: T[], baseHash: string | null) => Promise<{ hash?: string }>;
+  current: () => T[];
+  adopt: (rows: T[]) => void;
+  keyOf: (row: T) => string;
+  same: (a: T, b: T) => boolean;
+  /** The server's rows and fingerprint when a save was refused as stale. */
+  conflict: (e: unknown) => { rows: T[]; hash: string } | null;
+}) {
+  let base: T[] = [];
+  let baseHash: string | null = null;
+  let chain: Promise<void> = Promise.resolve();
+  const merge = (mine: T[], theirs: T[]) => {
+    const b = new Map(base.map((r) => [opts.keyOf(r), r]));
+    const m = new Map(mine.map((r) => [opts.keyOf(r), r]));
+    const t = new Map(theirs.map((r) => [opts.keyOf(r), r]));
+    const out: T[] = [];
+    for (const key of new Set([...b.keys(), ...m.keys(), ...t.keys()])) {
+      const before = b.get(key), now = m.get(key);
+      const untouched = before && now ? opts.same(before, now) : !before && !now;
+      const pick = untouched ? t.get(key) : now;
+      if (pick) out.push(pick);
+    }
+    return out;
+  };
+  const run = async () => {
+    const rows = opts.current();
+    try {
+      const res = await opts.save(rows, baseHash);
+      base = rows;
+      baseHash = res.hash ?? null;
+    } catch (e) {
+      const c = opts.conflict(e);
+      if (!c) throw e;
+      const merged = merge(opts.current(), c.rows);
+      opts.adopt(merged);
+      base = c.rows;
+      baseHash = c.hash;
+      const res = await opts.save(merged, baseHash);
+      base = merged;
+      baseHash = res.hash ?? null;
+    }
+  };
+  return {
+    loaded(rows: T[], hash: string | null | undefined) {
+      base = rows;
+      baseHash = hash ?? null;
+    },
     save(): Promise<void> {
       const p = chain.then(run);
       chain = p.catch(() => {});

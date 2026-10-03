@@ -344,6 +344,8 @@ export interface OpenCount {
    *  them would look like nobody walked the prep shelf, and the next save
    *  (authoritative, not a patch) would erase them for real. */
   batches?: OpenCountBatch[];
+  /** The fingerprint of `batches`, for the next batch save (TPRS 2026-10-03). */
+  batchesHash?: string;
 }
 /** A named prep batch and what ONE FULL container holds. */
 export interface BarBatchItem {
@@ -367,8 +369,29 @@ export async function getBatches(): Promise<BarBatchItem[]> {
 export async function saveBatchCounts(
   sessionId: string,
   batches: { zoneId: string; batchId: string; fullEquivalents: number }[],
-): Promise<void> {
-  await gatedJson(`/admin/bar/counts/${sessionId}/batches`, { ...jsonBody({ batches }), method: "PUT" });
+  /** The fingerprint of the batch rows this save was built on (TPRS
+   *  countBatchesHash). Without it the save replaces them unconditionally. */
+  baseHash: string | null = null,
+): Promise<{ batchesHash?: string }> {
+  try {
+    return await gatedJson<{ batchesHash?: string }>(`/admin/bar/counts/${sessionId}/batches`,
+      { ...jsonBody({ batches, ...(baseHash ? { baseHash } : {}) }), method: "PUT" });
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 409) {
+      const body = (() => { try { return JSON.parse(String(e.body)); } catch { return null; } })();
+      if (body?.error === "batches_changed" && Array.isArray(body.batches)) throw new BatchesChangedError(body.batches, body.batchesHash);
+    }
+    throw e;
+  }
+}
+/** The batch rows changed elsewhere since this screen's last save (TPRS PUT /batches). */
+export class BatchesChangedError extends Error {
+  constructor(
+    readonly batches: OpenCountBatch[],
+    readonly batchesHash: string,
+  ) {
+    super("The batch counts changed somewhere else since this screen loaded them.");
+  }
 }
 /** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
 export async function getOpenCount(full = true, section: Section = "bar"): Promise<OpenCount | null> {
@@ -552,6 +575,10 @@ export interface PrecheckResult {
   unplaced?: UnplacedItem[];
   /** The rest past the cap of 25, same order, behind "Show N more". */
   unplacedMore?: UnplacedItem[];
+  /** What this check looked at (TPRS 2026-10-03). Hand both back to submit,
+   *  which refuses a count that moved since, so it gets checked again. */
+  linesHash?: string;
+  batchesHash?: string;
 }
 export interface UnplacedItem {
   skuId: string;
@@ -585,17 +612,37 @@ export async function precheckCount(sessionId: string): Promise<PrecheckResult> 
 export async function submitCount(
   sessionId: string,
   isFullCount?: boolean,
+  /** The check the counter just read (PrecheckResult linesHash/batchesHash). */
+  checked?: { linesHash?: string; batchesHash?: string } | null,
 ): Promise<number> {
   // ALWAYS an object body, same as createKegCount: a bodyless POST arrives at
   // the backend as JSON null via the proxy, and the submit route's body schema
   // rejects null (400). 2026-10-02: the liquor screen omits isFullCount, so
   // every liquor submit 400'd and showed "Save failed" — the first on-screen
   // liquor submit since that schema landed (the 9/18 count closed by script).
-  const { lineCount } = await gatedJson<{ lineCount: number }>(
-    `/admin/bar/counts/${sessionId}/submit`,
-    jsonBody(isFullCount === undefined ? {} : { isFullCount }),
-  );
-  return lineCount;
+  try {
+    const { lineCount } = await gatedJson<{ lineCount: number }>(
+      `/admin/bar/counts/${sessionId}/submit`,
+      jsonBody({
+        ...(isFullCount === undefined ? {} : { isFullCount }),
+        ...(checked?.linesHash ? { checkedLinesHash: checked.linesHash } : {}),
+        ...(checked?.batchesHash ? { checkedBatchesHash: checked.batchesHash } : {}),
+      }),
+    );
+    return lineCount;
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 409) {
+      const body = (() => { try { return JSON.parse(String(e.body)); } catch { return null; } })();
+      if (body?.error === "changed_since_check") throw new ChangedSinceCheckError();
+    }
+    throw e;
+  }
+}
+/** The count changed after the pre-submit check ran: check it again. */
+export class ChangedSinceCheckError extends Error {
+  constructor() {
+    super("The count changed after the check ran.");
+  }
 }
 
 // ── run-on voice extraction (browser transcribes → server maps to catalog) ──
@@ -1324,7 +1371,18 @@ export interface CountDetailLine {
    *  them is the only place a wrong case multiplier is visible after submit. */
   enteredCases: string | null;
   caseSizeAtEntry: number | null;
-  source: "grid" | "voice";
+  /** "correction": changed after the report locked (TPRS 2026-10-03). */
+  source: "grid" | "voice" | "correction" | "edit";
+}
+/** One correction made after the report locked, as the audit row has it. */
+export interface CountCorrection {
+  at: string;
+  by: string | null;
+  reason: string;
+  changes: { zone_name: string; sku_name: string; before: number | null; after: number | null }[];
+  /** Recorded after the fact for a correction made before this existed (10-02). */
+  retrospective: boolean;
+  correctedAt: string | null;
 }
 export interface CountDetail {
   session: {
@@ -1337,6 +1395,38 @@ export interface CountDetail {
     countedBy: string | null;
   };
   lines: CountDetailLine[];
+  /** Absent from a server older than 2026-10-03. */
+  corrections?: CountCorrection[];
+  /** The latest submitted full liquor count: the only one a correction may touch. */
+  correctable?: boolean;
+  /** correctable, and this person is an admin (bar.manage). */
+  canCorrect?: boolean;
+}
+export interface CountCorrectionChange {
+  zoneId: string;
+  skuId: string;
+  /** What the screen showed; null for a bottle with no line on that shelf. */
+  before: number | null;
+  /** The corrected quantity; null takes the line out. */
+  after: number | null;
+}
+/** The count changed after this screen loaded it; reload and check again. */
+export class CorrectionStaleError extends Error {}
+/** Correct the latest locked full count (admins only). The locked report, its
+ *  grade and the order guide already sent stay as they are. */
+export async function correctCount(id: string, reason: string, changes: CountCorrectionChange[]): Promise<void> {
+  try {
+    await gatedJson(`/admin/bar/counts/${id}/corrections`, jsonBody({ reason, changes }));
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 409) {
+      const body = (() => { try { return JSON.parse(String(e.body)); } catch { return null; } })();
+      if (body?.error === "correction_stale") throw new CorrectionStaleError("This count changed since you opened it.");
+      if (body?.error === "not_correctable") {
+        throw new BarApiError("A newer full count has been submitted, so this one can't be corrected now.", 409);
+      }
+    }
+    throw e;
+  }
 }
 /** Submitted counts, newest first. Food counts only when asked for: the
  *  server's default is the liquor list. */
