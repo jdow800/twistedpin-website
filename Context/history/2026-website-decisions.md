@@ -1269,3 +1269,15 @@ TPRS #335-#337; Opsi BUILD-SPEC 11.125-11.127). This is its screen (Opsi M3.8).
   - `scripts/qa-liquor-bottle-sizes/check-food-cost.mjs`: 18 jsdom scenarios on the real screen.
   - `check-food-cost-layout.mjs`: 12 headless-Chrome states (list, latest, original, Fix costs at 320/390/960px). No sideways scroll, nothing under 12px, no tap target under 44px. The screenshots were looked at.
   - TypeScript on the COGS components is clean (its one `import.meta.env` error is environmental), and the full Astro production build passes.
+
+## 2026-10-03 - A corrected invoice answer says which food counts need Fix costs
+
+TPRS #338 adds `stale_estimate` to a corrected automatic answer's affected
+counts. It flags a submitted food count whose stored cost estimate used the
+price that answer wrote. The answers panel (`InvoiceAutomaticAnswers.tsx`) now
+adds: "Its food cost used the price this answer wrote: fix it with Fix costs on
+Food cost." "It had no saved price" now only appears for a line with neither a
+cost nor an estimate; TPRS no longer reads an estimated line as unpriced. The
+invoice QA fixture returns one of each, and `check-invoices.mjs` asserts each
+message appears once. Removing the new message fails it. All 50 invoice
+scenarios pass.

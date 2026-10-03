@@ -140,7 +140,10 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/automatic-answers/auto-1/correct')) {
     if(mode==='automatic-stale')return json({error:'answer_changed'},409);
     const body=JSON.parse(options.body),result={unitsPerCase:body.unitsPerCase,countUnit:'pack',currentCost:10,previousCost:20,
-      costCorrected:true,costInvoiceId:'test-invoice',currentCostSource:'invoice_auto',countingDefinitionChanged:true,affectedCounts:[]};
+      costCorrected:true,costInvoiceId:'test-invoice',currentCostSource:'invoice_auto',countingDefinitionChanged:true,affectedCounts:[
+        // A food count whose cost estimate used this answer's price, and one with no price at all (TPRS #338).
+        {id:'count-stale',status:'submitted',started_at:'2026-09-01T12:00:00Z',old_cases:'0',has_unpriced_lines:false,stale_estimate:true},
+        {id:'count-unpriced',status:'submitted',started_at:'2026-09-02T12:00:00Z',old_cases:'0',has_unpriced_lines:true,stale_estimate:false}]};
     automatic[0]={...automatic[0],status:'corrected',canCorrect:true,unitsPerCase:body.unitsPerCase,
       costPerUnit:80/body.unitsPerCase,token:'b'.repeat(64),correction:result};
     return json({resolved:true,result});
