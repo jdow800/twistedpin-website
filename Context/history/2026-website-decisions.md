@@ -893,3 +893,32 @@ on the count page is a per-phone emergency fallback to the 20 s clock, and
 One known trade: a piece that ends on a bottle name with no number after it
 ("…three titos", said number-first) waits for the next piece or for Stop. That
 is a delay, never a miscount. John counts name-first ("Tito's, three").
+
+## 2026-10-02 - Food voice: pause cuts and a food carry-forward
+
+Jon read 20 scripted food items on the Pizza Freezer shelf. Production got 12
+right. The 20 s clock cut "We have 4.2 cases" from "Pizza sauce" (two rows,
+one with no product and one with no number). The cut also clipped the start of
+"cranberries", which came back as "Banberries". The replay is in
+`Alcohol Pricing/incidents/2026-10-02/stt-bakeoff/food`.
+- **The food count gets the liquor recorder's pause cuts** (same switch: on by
+  default, `?pausecuts=0` falls back to the clock).
+- **A food carry-forward** (`voiceCarry.ts` `splitFoodTail`). Food is said both
+  ways round ("Bacon bits, one case" and "we have four point two cases of pizza
+  sauce"), so liquor's rule (hold a name waiting for its number) can't work.
+  Instead each piece's last item always waits and leads the next piece, along
+  with a name just before it that has no number yet.
+- **Pause cuts alone were worse (10 of 20).** The cuts split "jalapeños, one
+  case" from "No. Half a case", and 6 cans were saved instead of 3. With the
+  carry it was 14–16 right. With TPRS's matching fixes from the same night as
+  well, it was 16–17, with nothing saved wrong in 15 runs; the rest were
+  one-tap questions.
+- The live words box follows the newest words. Uploads keep the take's shelf
+  for keyterms after the counter walks on, as liquor does.
+- **Trade:** each piece's last item waits for the next piece (20 to 30 s) or
+  for Stop. A one-item take is matched at Stop.
+
+Tests: `check-voice-carry.mjs` (17). `check-food-voice.mjs` (45) runs the 42
+earlier scenarios on `?pausecuts=0`, plus 3 on pause cuts. The liquor voice
+(12), recorder (9, 4, 3) and deadline (7) suites still pass, and so does
+`astro build`.

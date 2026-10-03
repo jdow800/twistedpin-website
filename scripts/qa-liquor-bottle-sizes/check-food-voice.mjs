@@ -13,9 +13,12 @@ const item = (id, units, extra = {}) => ({
   needsCaseSize:false, suspectPreMultiplied:false, match:{id,name:id==='dough'?'Pizza Dough':id==='pretzel'?'Giant Pretzel':'Unknown Package',sizeMl:null}, candidates:[], ...extra,
 });
 let passed = 0;
-async function run(name, test, existing = false) {
+/** The classic scenarios run with the off-switch (?pausecuts=0: one extraction
+ *  per piece, as before 2026-10-02). The pause-cut scenarios pass pauseCuts. */
+async function run(name, test, existing = false, pauseCuts = false) {
+  const query = [typeof existing==='string'?existing:existing?'existing':'', pauseCuts?'':'pausecuts=0'].filter(Boolean).join('&');
   const dom = new JSDOM('<!doctype html><div id="root"></div>',{
-    url:`http://localhost/${typeof existing==='string'?'?'+existing:existing?'?existing':''}`,runScripts:'outside-only',pretendToBeVisual:true,
+    url:`http://localhost/${query?'?'+query:''}`,runScripts:'outside-only',pretendToBeVisual:true,
   });
   dom.window.Response = Response;
   const voiceTimers = new Map();
@@ -77,6 +80,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   assert.equal(t.qa.extracts[0].body.foodUnitsVersion,2);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
+  assert.equal(t.qa.recorder.options.pauseCuts,false,'?pausecuts=0 is the clock fallback');
   t.qa.extracts[0].succeed([item('dough',2)]); await pause();
   assert.equal(t.review().length,0,'no review while capture is live');
   assert.equal(t.saved().length,0,'background results must not save stock');
@@ -485,4 +489,49 @@ await run('microphone permission failures give a readable recovery instruction',
   await t.start();t.qa.recorder.finish('','not-allowed');await pause();
   assert.match(t.doc.querySelector('[role=alert]').textContent,/Allow microphone access/);
 });
+
+// Pause cuts (the default since 2026-10-02): each piece's last item waits for
+// the next piece, so an item the cut split is matched whole.
+await run('pause cuts: pieces match in spoken order and an item the cut split is matched whole',async t => {
+  await t.start();
+  assert.equal(t.qa.recorder.options.pauseCuts,true);
+  // Jon's test: the 20 s clock cut "We have 4.2 cases" from "Pizza sauce".
+  await t.segment('Pizza sauce. We have point nine of Spanish rice.',1);
+  assert.equal(t.qa.extracts.length,0,'a piece waits for the one before it');
+  await t.segment('Sausage, half a case. Pizza dough, 1.6 cases. We have 4.2 cases',0);
+  assert.deepEqual(Array.from(t.qa.extracts,e => e.body.transcript),
+    ['Sausage, half a case.','Pizza dough, 1.6 cases. We have 4.2 cases Pizza sauce.']);
+  await t.stop(); await t.finish('whole take');
+  assert.equal(t.qa.extracts.at(-1).body.transcript,'We have point nine of Spanish rice.','Stop sends the held last item');
+  t.qa.extracts[2].succeed([item('unknown',0.9)]);
+  t.qa.extracts[1].succeed([item('dough',1.6)]);
+  t.qa.extracts[0].succeed([item('pretzel',1)]);
+  await until(() => t.review().length===3);
+  assert.match(t.review()[0],/pretzel/); assert.match(t.review()[1],/dough/); assert.match(t.review()[2],/unknown/);
+},false,true);
+
+await run('pause cuts: a failed piece is reported and everything else still lands',async t => {
+  await t.start();
+  await t.segment('Two dough. Three pretzels.',0);
+  await t.segment('Four dough. One pretzel.',1);
+  assert.equal(t.qa.extracts.length,2);
+  t.qa.extracts[0].succeed([item('dough',2)]);
+  t.qa.extracts[1].fail('Synthetic upstream failure'); await pause();
+  await t.stop(); await t.finish('two dough three pretzels four dough one pretzel');
+  assert.equal(t.qa.extracts[2].body.transcript,'One pretzel.');
+  t.qa.extracts[2].succeed([item('pretzel',1)]);
+  await until(() => t.review().length===2);
+  assert.match(t.doc.body.textContent,/Part of the recording couldn't be processed/);
+},false,true);
+
+await run('pause cuts: a one-item take is matched once, at Stop',async t => {
+  await t.start(); await t.segment('two dough',0);
+  assert.equal(t.qa.extracts.length,0,'the only item waits in case the next piece finishes it');
+  await t.stop(); await t.finish('two dough');
+  assert.equal(t.qa.extracts.length,1);
+  assert.equal(t.qa.extracts[0].body.transcript,'two dough');
+  t.qa.extracts[0].succeed([item('dough',2)]);
+  await until(() => t.review().length===1);
+  assert.equal(t.saved().length,0,'review still needs Apply');
+},false,true);
 console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);

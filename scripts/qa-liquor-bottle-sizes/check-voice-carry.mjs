@@ -123,6 +123,35 @@ check('carry: Stop sends pieces queued behind a failed one', () => {
   assert.deepEqual(sent.at(-1), [0, 'Tito\'s, one.']);
 });
 
+// Food: the product comes before OR after its number, so the last item waits.
+check('food carry: the 20 s cut of Jon\'s 2026-10-02 test is matched whole', () => {
+  const sent = [];
+  const carry = m.createCarry((text, i) => sent.push(text), m.splitFoodTail);
+  carry.add('Sausage, half a case. Bacon bits, one case. Pizza dough, 1.6 cases. We have 4.2 cases', 0);
+  carry.add('Pizza sauce. We have point nine of Spanish rice.', 1);
+  carry.flush(99);
+  assert.deepEqual(sent, ['Sausage, half a case. Bacon bits, one case.',
+    'Pizza dough, 1.6 cases. We have 4.2 cases Pizza sauce.', 'We have point nine of Spanish rice.']);
+});
+
+check('food carry: a correction and a name awaiting its number stay with their item', () => {
+  assert.deepEqual(m.splitFoodTail('Bananas, eighteen. Jalapenos, one case. No. Half a case.'),
+    {head: 'Bananas, eighteen.', tail: 'Jalapenos, one case. No. Half a case.'});
+  assert.deepEqual(m.splitFoodTail('Oreos, one case. Bacon bits, full case.'),
+    {head: 'Oreos, one case.', tail: 'Bacon bits, full case.'});
+  // A word the list doesn't know ("sealed") still can't strand the name.
+  assert.deepEqual(m.splitFoodTail('Oreos, one case. Bacon bits, sealed case.'),
+    {head: 'Oreos, one case.', tail: 'Bacon bits, sealed case.'});
+  assert.deepEqual(m.splitFoodTail('beef patties, three and a half ounces, two cases, two ounce patties, five,'),
+    {head: 'beef patties, three and a half ounces, two cases,', tail: 'two ounce patties, five,'});
+});
+
+check('food carry: a piece that names nothing waits whole; a run-on is sent', () => {
+  assert.deepEqual(m.splitFoodTail('We have four point two cases'), {head: '', tail: 'We have four point two cases'});
+  const runOn = 'we have two cases of pizza sauce and three bags of bacon bits and four boxes of gloves and one case of oreos';
+  assert.equal(m.splitFoodTail(runOn).tail, '');
+});
+
 check('name numbers: names, not sizes', () => {
   assert.deepEqual(m.nameNumbers("Seagram's 7"), [7]);
   assert.deepEqual(m.nameNumbers("Dewar's 12 Year"), [12]);

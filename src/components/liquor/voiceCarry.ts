@@ -8,8 +8,8 @@
  * the pause design from 94 to 102 products right with Deepgram, and from 98 to
  * 107 with Grok (Alcohol Pricing/incidents/2026-10-02/stt-bakeoff).
  *
- * Liquor only. Food says "we have five boxes of gloves", product last, so this
- * rhythm would hold back every food phrase.
+ * Liquor's rule. Food says "we have five boxes of gloves", product last, so
+ * this rhythm would hold back every food phrase; food uses splitFoodTail.
  */
 const QUANTITY_WORDS = new Set(
   ("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen " +
@@ -24,10 +24,8 @@ export const MAX_HELD_WORDS = 12;
 const isQuantity = (phrase: string) =>
   phrase.split(/[\s-]+/).filter(Boolean).every((w) => QUANTITY_WORDS.has(w.toLowerCase()) || /^\d*\.?\d+$/.test(w));
 
-/** Split a piece into what can be matched now (head) and an unfinished last
- *  phrase that should lead the next piece (tail). */
-export function splitUnfinished(text: string): { head: string; tail: string } {
-  // A comma, or a sentence end that isn't a decimal point ("1.1" stays whole).
+/** A comma, or a sentence end that isn't a decimal point ("1.1" stays whole). */
+function phrasesOf(text: string): { start: number; text: string }[] {
   const marks = [...text.matchAll(/,|[.!?](?=\s|$)/g)].map((m) => m.index!);
   const bounds = [-1, ...marks, text.length];
   const phrases: { start: number; text: string }[] = [];
@@ -35,6 +33,13 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
     const phrase = text.slice(bounds[i]! + 1, bounds[i + 1]).trim();
     if (phrase) phrases.push({ start: bounds[i]! + 1, text: phrase });
   }
+  return phrases;
+}
+
+/** Split a piece into what can be matched now (head) and an unfinished last
+ *  phrase that should lead the next piece (tail). */
+export function splitUnfinished(text: string): { head: string; tail: string } {
+  const phrases = phrasesOf(text);
   const last = phrases.at(-1);
   if (!last) return { head: text.trim(), tail: "" };
   let from: number | null = null;
@@ -46,13 +51,62 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   return { head: text.slice(0, from).trim(), tail };
 }
 
+const NUMBER_WORDS = new Set(
+  ("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen " +
+   "seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred thousand point " +
+   "half quarter quarters dozen couple few").split(" "),
+);
+/** Words that never name a food product: numbers, packages and filler. When
+ *  one is missing here the extension below still keeps the item whole. */
+const NOT_A_FOOD_NAME = new Set([
+  ...QUANTITY_WORDS,
+  ...NUMBER_WORDS,
+  ...("bag bags box boxes pack packs packet packets package packages container containers jar jars jug jugs " +
+    "tub tubs tray trays sleeve sleeves roll rolls bundle bundles pouch pouches piece pieces pound pounds lb lbs " +
+    "ounce ounces oz gallon gallons gal of the we have got there theres is are it its that this these those " +
+    "about around roughly maybe like uh um no yes actually so okay ok then plus another more left over " +
+    "full open opened partial loose whole extra just only single total all empty none nothing").split(" "),
+]);
+const wordsOf = (phrase: string) => phrase.toLowerCase().replace(/['’]/g, "").split(/[^a-z0-9.]+/).filter(Boolean);
+const namesFood = (phrase: string) => wordsOf(phrase).some((w) => /[a-z]/.test(w) && !NOT_A_FOOD_NAME.has(w));
+const hasNumber = (phrase: string) => wordsOf(phrase).some((w) => /\d/.test(w) || NUMBER_WORDS.has(w));
+
+/** A food item can take more words than a bottle ("we have point five of a
+ *  case of salsa"). */
+export const MAX_HELD_FOOD_WORDS = 16;
+
 /**
- * Feeds pieces through splitUnfinished in SPOKEN order. Transcripts arrive in
- * the order they finish, so a piece waits for the one before it. `send` gets
- * each piece's matchable text under that piece's index; `flush` at Stop sends
- * whatever is left (pieces after a failed one, and the last held phrase).
+ * Food's rule. The product comes before OR after its number ("Bacon bits, one
+ * case." / "We have four point two cases of pizza sauce."), so a cut can strand
+ * either half. On 2026-10-02 the 20 s clock split "We have 4.2 cases" from
+ * "Pizza sauce": one row with no product, one with no number. So the last item
+ * always waits: everything from the last phrase that names something, plus any
+ * name just before it still waiting for its number ("Bacon bits, full case").
+ * A piece that names nothing waits whole.
  */
-export function createCarry(send: (text: string, index: number) => void) {
+export function splitFoodTail(text: string): { head: string; tail: string } {
+  const phrases = phrasesOf(text);
+  if (!phrases.length) return { head: "", tail: "" };
+  let at = phrases.findLastIndex((p) => namesFood(p.text));
+  if (at < 0) at = 0;
+  while (at > 0 && namesFood(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
+  const from = phrases[at]!.start;
+  const tail = text.slice(from).trim();
+  if (tail.split(/\s+/).length > MAX_HELD_FOOD_WORDS) return { head: text.trim(), tail: "" };
+  return { head: text.slice(0, from).trim(), tail };
+}
+
+/**
+ * Feeds pieces through the split rule (liquor's splitUnfinished by default) in
+ * SPOKEN order. Transcripts arrive in the order they finish, so a piece waits
+ * for the one before it. `send` gets each piece's matchable text under that
+ * piece's index; `flush` at Stop sends whatever is left (pieces after a failed
+ * one, and the last held phrase).
+ */
+export function createCarry(
+  send: (text: string, index: number) => void,
+  split: (text: string) => { head: string; tail: string } = splitUnfinished,
+) {
   const waiting = new Map<number, string>();
   let next = 0;
   let held = "";
@@ -65,7 +119,7 @@ export function createCarry(send: (text: string, index: number) => void) {
     add(text: string, index: number) {
       waiting.set(index, text);
       while (waiting.has(next)) {
-        const { head, tail } = splitUnfinished(`${held} ${waiting.get(next)}`.trim());
+        const { head, tail } = split(`${held} ${waiting.get(next)}`.trim());
         waiting.delete(next);
         held = tail;
         if (head) send(head, next);

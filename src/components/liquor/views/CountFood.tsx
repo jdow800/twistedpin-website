@@ -20,6 +20,8 @@ import {
   type VoiceExtractItem,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { createCarry, splitFoodTail } from "../voiceCarry";
+import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { foodCountWarning, foodReviewQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 
@@ -493,16 +495,38 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // out of order. Resolve failures here so a background rejection is handled
   // immediately, then report any missing part when the review opens.
   const segExtractsRef = useRef<Map<number, Promise<VoiceSegmentResult>>>(new Map());
+  const extractPiece = (text: string, index: number) => {
+    segExtractsRef.current.set(index, extractVoice(text, "food")
+      .then((items) => ({ items, error: null }))
+      .catch((error) => ({ items: [], error: voiceErrorMessage(error) })));
+  };
+  // Pause cuts (on by default; ?pausecuts=0 is the off-switch, voiceSwitches.ts):
+  // pieces end at a pause, and each piece's last item waits to lead the next,
+  // so an item the cut split ("We have 4.2 cases" | "Pizza sauce", Jon's test
+  // on 2026-10-02) is matched whole (voiceCarry.ts splitFoodTail).
+  const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
+  const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
+  if (!carryRef.current) carryRef.current = createCarry(extractPiece, splitFoodTail);
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",
-    scope: { section: "food", zoneId },
+    // The take's shelf, so an upload retried after the counter walks on is
+    // still biased toward what they were standing at (CountLiquor does the same).
+    scope: { section: "food", zoneId: (takeZoneId ?? zoneId) || undefined },
+    pauseCuts,
     onSegment: (text, index) => {
+      // Every piece goes through the carry, even an empty one, so the next
+      // piece isn't left waiting for it.
+      if (pauseCuts) return carryRef.current!.add(text, index);
       if (!text.trim()) return;
-      segExtractsRef.current.set(index, extractVoice(text, "food")
-        .then((items) => ({ items, error: null }))
-        .catch((error) => ({ items: [], error: voiceErrorMessage(error) })));
+      extractPiece(text, index);
     },
   });
+  // The live words box is capped in height; keep the newest words in view.
+  const liveTextRef = useRef<HTMLParagraphElement | null>(null);
+  useEffect(() => {
+    const el = liveTextRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [dict.transcript]);
 
   // Two ways a take loses audio without the counter seeing it: the level watch
   // reports silence, or the OS backgrounds us (an incoming call does both, and
@@ -564,6 +588,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }, [dict.seconds, dict.recording]);
 
   async function finalizeVoice(fullTranscript: string) {
+    // Stop: the held last item, and any piece still waiting, go out now.
+    if (pauseCuts) carryRef.current!.flush(Number.MAX_SAFE_INTEGER);
     const pending = [...segExtractsRef.current.entries()].sort(([a], [b]) => a - b);
     segExtractsRef.current = new Map();
     // Web Speech has no segment callback. Keep its whole-transcript path;
@@ -1026,6 +1052,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             className="lq-btn"
             onClick={() => {
               segExtractsRef.current = new Map();
+              carryRef.current!.reset(); // a new take must not inherit a held item
               setVoiceErr(null);
               setRetryTranscript(null);
               setTakeZoneId(zoneId); // the shelf this take is about
@@ -1095,7 +1122,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 the liquor screen says this too. A Bluetooth headset takes a
                 second or two, and the counter is already talking. */}
             {!dict.armed && <p className="lq-muted">Connecting to mic… (buzzes when ready)</p>}
-            {dict.transcript && <p className="lq-rec-transcript">{dict.transcript}</p>}
+            {dict.transcript && <p className="lq-rec-transcript" ref={liveTextRef}>{dict.transcript}</p>}
             <p className="lq-muted">
               Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}</strong>
               {" — stop before moving to another shelf. Starting again adds to it."}

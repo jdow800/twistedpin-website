@@ -68,8 +68,10 @@ node check-food-voice.mjs
 
 The actual `CountFood` component and API client run with synthetic stock, deferred extraction responses and a controlled recorder boundary. Checks cover extraction starting during recording, explicit review before saving, out-of-order segments, the original shelf after navigation, partial and complete failures, fallback and blank takes, unknown case sizes, and the submit guard. All requests stay inside the fixture. This proves processing overlap and count preservation, not live service latency or microphone quality.
 
-The 37 food scenarios also cover confirmed unit labels, uncertain units, explicit
-case answers, a typed unit and its conversion, and protocol 2. For mobile layout,
+The food scenarios also cover confirmed unit labels, uncertain units, explicit
+case answers, a typed unit and its conversion, and protocol 2. All 45 run: the
+first 42 with `?pausecuts=0` (one extraction per piece), and the last 3 with
+pause cuts and the food carry-forward (`splitFoodTail`). For mobile layout,
 run `node serve.mjs --food-voice`, set `INVOICE_QA_CHROME` to a Chromium executable,
 then run `node check-food-unit-layout.mjs`. It checks the unit question and blocked
 Add action at 320, 390 and 960px with an isolated profile. Screenshots remain in
@@ -120,11 +122,11 @@ clip and release the microphone only once. Keg flows retain their 60-second
 interval. These checks do not measure recognition quality or live latency.
 
 Pause cuts (2026-10-02; on by default, `?pausecuts=0` turns them off) have three suites:
-- `node check-voice-carry.mjs` covers the pure rules, 14 checks with no DOM:
+- `node check-voice-carry.mjs` covers the pure rules, 17 checks with no DOM:
   - the pause detector: a half-second breath after 20 s, the 30 s cap, flat
     noise, and a room that gets louder;
   - the carry-forward: an unfinished bottle, spoken order, Stop after a
-    failed piece;
+    failed piece, and food's rule (the last item always waits);
   - the name-number check and back-to-back repeats.
 - `node check-recorder-pauses.mjs` runs the real recorder hook with a scripted
   analyser. It checks that a breath at 21 s ends the piece and that nonstop talk
