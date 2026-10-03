@@ -1077,3 +1077,11 @@ Tests: `check-beer.mjs` (12, 4 new), `check-liquor-voice.mjs` (22, 2 new),
 failed once and passed on the rerun), `check-ui.mjs` (8; its check-failure case
 now taps Submit anyway), walk locations (17), discontinued (6), draft sync (6)
 and variance rows (4). `astro build` passes.
+
+## 2026-10-03 - Zone names: the beer screen finds the walk-in under either spelling
+
+Jon asked for the zone names to be spelled and capitalized properly ("mop rrom"
+came in verbatim from Opsi's count guide). The renames are database edits;
+they include the bar's "Walk In Cooler" becoming "Walk-In Cooler". The bottled
+beer section found its zone by that exact name, so it now matches either
+spelling. Its fallback, the bar walk's last zone, was the same cooler anyway.

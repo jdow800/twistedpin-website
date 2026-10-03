@@ -36,7 +36,9 @@ import { createDraftSaver, toOpenLines } from "../draftSync";
  *  here), because pack size is a BRAND fact and the app never guesses one — but
  *  a six-pack is a six-pack. */
 const PACK_SIZE = 6;
-const ZONE_NAME = "Walk In Cooler";
+/** The bar walk's walk-in cooler, under the name it had from Opsi ("Walk In
+ *  Cooler") or its corrected one ("Walk-In Cooler", 2026-10-03). */
+const isWalkInCooler = (name: string) => /^walk[- ]in cooler$/i.test(name.trim());
 
 type Row = {
   skuId: string;
@@ -110,7 +112,7 @@ export default function BottledBeer({
         ]);
         if (!live) return;
         const zone =
-          zones.find((z) => z.name === ZONE_NAME) ??
+          zones.find((z) => isWalkInCooler(z.name)) ??
           [...zones].sort((a, b) => b.walkOrder - a.walkOrder)[0];
         setZoneId(zone?.id ?? null);
 
