@@ -972,3 +972,54 @@ Tests: `check-draft-sync.mjs` (6, new), plus one end-to-end scenario each in
 `check-liquor-voice.mjs` (20) and `check-food-voice.mjs` (46). The
 bottle-size (8), beer (8), discontinued (6), recorder and deadline suites still
 pass, and so does `astro build`.
+
+## 2026-10-03 - Food walk: where things live
+
+Jon, 10-03: "for each zone, if we don't count something, it should ask us
+why ... Are we out of it? Is it no longer stored in this location? Or,
+'Whoops, I forgot'". Before Submit, it also asks about what we bought or cook
+with that no zone lists. He approved the preview (Opsi
+`previews/2026-10-03-walk-locations.html`) after asking for a bigger zone name
+and "Remove from zone" in place of "Not kept here". The server half is TPRS
+#314.
+- **Leaving a zone** (‹, › or the zone list) opens a sheet when something was
+  counted there and listed items are still blank. The zone being left is the
+  biggest thing on it.
+  - **None left** records a 0 there, the same as "none here".
+  - **Count it** takes the count there, in cases and the item's unit.
+  - **Remove from zone** asks where it is now, or "+ New spot". The count goes
+    on that zone. The item is added to that zone's list before it comes off
+    this one, so a failure halfway never leaves it on no zone.
+  - **Skip** goes on. That zone doesn't ask again this walk, and Finish lists
+    the skipped items as before.
+- **When the sheet stays shut:**
+  - A zone with nothing counted on it is the untouched-zone warning's at
+    Finish.
+  - A voice take still being read may yet fill the blanks.
+  - Discontinued leftovers are never asked about.
+- **"+ New spot"** names a zone and where the walk reaches it. TPRS places it
+  in the walk order, and it is picked for the item that asked. A name already
+  in use picks that zone instead.
+- **"Things we think you have"** is in the submit panel, from the precheck's
+  `unplaced`. These are items on no zone, bought in the last 90 days or used in
+  a recipe. The answers:
+  - **Yes, it's here** takes a zone and a count, and that zone lists it from
+    then on.
+  - **None left** records a 0. Where it lives is optional, and with no zone
+    picked the 0 goes on the zone the counter is standing in, with no list
+    change.
+  - **We stopped buying it** discontinues it.
+  - The list never blocks Submit; the button counts what's unanswered. An older
+    server sends no list, and the panel is unchanged.
+- **Every answer writes its count first, the way the grid does.** Then it
+  changes a zone list. A failed list update keeps the count and says so.
+- Found by a Chromium screenshot at 390px before release: 35vh of bottom
+  padding on the sheet's scroller pinned its sticky buttons a third of the way
+  up the screen, over the second item. That room is now a spacer after the
+  sheet.
+
+Tests: `check-food-walk-locations.mjs` (17, new). `check-food-discontinued.mjs`
+(6) now taps through the sheet when it walks off a counted zone. Food voice
+(46) and draft sync (6) still pass, as does `astro build`. One food voice
+scenario ("complete failure ... a new take starts clean") fails on and off on
+main as well: it looks for Stop 20ms after a new take.

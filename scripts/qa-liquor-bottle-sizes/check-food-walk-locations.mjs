@@ -84,7 +84,7 @@ await run('leaving a counted zone with listed items blank asks first, and names 
   assert.match(t.zoneName(), /Pizza Freezer/, 'still on the zone until it is answered or skipped');
   assert.equal(t.sheet().querySelector('.lq-fc-sheet-zone-k').textContent, 'Leaving zone 1 of 3');
   assert.equal(t.sheet().querySelector('.lq-fc-sheet-zone-n').textContent, 'Pizza Freezer');
-  assert.equal(t.sheet().querySelector('.lq-fc-sheet-h').textContent, "2 items weren't counted");
+  assert.equal(t.sheet().querySelector('.lq-fc-sheet-h').textContent, '2 items weren’t counted');
   assert.deepEqual([...t.sheet().querySelectorAll('.lq-fc-q-name')].map(e => e.getAttribute('title')),
     ['Aquafina Water, Bottled', 'Giant Pretzel'], 'the blank listed items, not the counted one');
   assert.ok(t.button('Skip 2, next zone ›', t.sheet()));
@@ -98,7 +98,7 @@ await run('"None left" records a zero on the zone being left', async t => {
   const pretzel = () => t.card('Giant Pretzel', t.sheet());
   await t.click('None left', pretzel());
   assert.match(pretzel().textContent, /✓ None left · 0 counted/);
-  assert.equal(t.sheet().querySelector('.lq-fc-sheet-h').textContent, "1 item wasn't counted");
+  assert.equal(t.sheet().querySelector('.lq-fc-sheet-h').textContent, '1 item wasn’t counted');
   assert.ok(t.button('Skip 1, next zone ›', t.sheet()));
   await t.saved('pretzel');
   assert.equal(t.line('pretzel').qtyUnits, 0);

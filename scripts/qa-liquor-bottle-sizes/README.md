@@ -92,6 +92,22 @@ Five scenarios with `?discontinued`:
 - the button is hidden once a number is entered;
 - a walk with nothing discontinued is unchanged.
 
+Where things live (2026-10-03; TPRS #314) uses the same build:
+`node check-food-walk-locations.mjs`. With `?walk`, each zone has its own
+list, a third zone is empty, and two items are on no zone. The 17 scenarios
+cover:
+- **Leaving a zone:** the sheet and its zone banner, "None left", "Count it",
+  "Remove from zone" (added before removed, and a failed list update keeps the
+  count), Back versus Skip, the zone list, and a pending voice take, which
+  never opens the sheet.
+- **"+ New spot":** placement in the walk, a name already in use, and a
+  failure.
+- **"Things we think you have":** the why line, each answer, "Show 1 more"
+  (`?walk&many`), and an older server sending no list.
+
+For layout, serve with `node serve.mjs --food-voice` and open
+`http://127.0.0.1:4177/?walk` at 320px and 390px wide.
+
 Bottled beer reuses the same fixture dependencies and imports the actual TPRS `resolveCountQuantity` helper:
 
 ```powershell

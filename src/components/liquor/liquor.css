@@ -3071,7 +3071,10 @@
    "things we think you have" list. The approved preview is Opsi
    previews/2026-10-03-walk-locations.html. ── */
 /* The backdrop is the scroller, with room under the sheet: the keyboard takes
-   the bottom of the screen and a "Count it" box must be able to clear it. */
+   the bottom of the screen and a "Count it" box must be able to clear it.
+   The room is a spacer, NOT bottom padding: a sticky footer measures from
+   inside the scroller's padding, so 35vh of padding pinned the sheet's
+   buttons a third of the way up the screen, over the second item. */
 .lq-fc-sheetback {
   position: fixed;
   inset: 0;
@@ -3079,7 +3082,12 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   background: rgba(7, 5, 15, 0.72);
-  padding: 5vh 8px 35vh;
+  padding: 5vh 8px 0;
+}
+.lq-fc-sheetback::after {
+  content: "";
+  display: block;
+  height: 35vh;
 }
 .lq-fc-sheetback-top {
   z-index: 22;

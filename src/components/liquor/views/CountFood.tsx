@@ -2175,7 +2175,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 <span className="lq-fc-sheet-zone-n">{from?.name}</span>
               </div>
               <h3 className="lq-fc-sheet-h">
-                {left > 0 ? `${left} ${left === 1 ? "item wasn't" : "items weren't"} counted` : "All answered"}
+                {left > 0 ? `${left} ${left === 1 ? "item wasn’t" : "items weren’t"} counted` : "All answered"}
               </h3>
               <p className="lq-muted lq-fc-sheet-sub">They&rsquo;re on this zone&rsquo;s list. One tap each.</p>
               {leaving.skuIds.map((id) => {
