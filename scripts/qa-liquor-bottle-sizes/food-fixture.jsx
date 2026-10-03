@@ -39,8 +39,17 @@ if (params.has('definitions')) {
       countDefinition:answer('each',3,{unitLabel:'bunch',defaultSpokenUnit:'case',spokenUnits:{case:3,bag:3},usualMaxCases:4})},
     {id:'romaine',name:'Sample Romaine',countUnit:'each',unitsPerCase:6,
       countDefinition:answer('each',6,{unitLabel:'head',defaultSpokenUnit:'case',spokenUnits:{case:6,bag:6}})},
+    {id:'cauliflower',name:'Cauliflower Crust',countUnit:'each',unitsPerCase:12,
+      countDefinition:answer('each',12,{defaultSpokenUnit:'case',spokenUnits:{case:12}})},
+    {id:'flatbread',name:'Flatbread',countUnit:'each',unitsPerCase:60,
+      countDefinition:answer('each',60,{defaultSpokenUnit:'case',spokenUnits:{case:60}})},
+    {id:'cauliflower-heads',name:'Cauliflower',countUnit:'each',unitsPerCase:3,
+      countDefinition:answer('each',3,{unitLabel:'head',spokenUnits:{head:1}})},
   );
   if (params.has('changed-package')) catalog.find(s=>s.id==='buns').unitsPerCase=24;
+  if (params.has('changed-crust')) catalog.find(s=>s.id==='cauliflower').unitsPerCase=24;
+  if (params.has('unknown-crust-case')) catalog.find(s=>s.id==='cauliflower').unitsPerCase=null;
+  if (params.has('dimension-flatbread')) catalog.find(s=>s.id==='flatbread').name='Flatbread, 4.5"x12"';
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
 }
 // Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.
@@ -70,10 +79,14 @@ const unplaced = params.has('walk') ? [
 const unplacedMore = params.has('many') ? [
   {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
 ] : [];
-const initialLines = params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
+const initialLines = params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
+  : params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
 const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false};
+qa.failSave = params.has('save-fails');
+qa.detailFails = params.has('submit-unknown');
+qa.submitted = false;
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
 // ?stale: the draft changed elsewhere after this screen loaded it (3 Giant
 // Pretzels were added), so the first save is refused once with the lines now.
@@ -103,6 +116,7 @@ window.fetch = async (input, init = {}) => {
   if (path.endsWith('/case-size')) return json({unitsPerCase:body.unitsPerCase});
   if (/\/skus\/[^/]+\/active$/.test(path)) return json({active:body.active,name:path.split('/').at(-2)});
   if (path.endsWith('/lines')) {
+    if (qa.failSave) return json({error:'synthetic'},503);
     if (refuseNextSave) {
       refuseNextSave = false;
       const line = (skuId, qtyUnits) => ({zoneId:'freezer', skuId, qtyUnits, enteredCases:null, caseSizeAtEntry:null,
@@ -127,11 +141,20 @@ window.fetch = async (input, init = {}) => {
       ...(params.has('recheck') ? {linesHash:`fcheck${n}`} : {})});
   }
   if (path.endsWith('/submit')) {
+    if (params.has('submit-rejected')) return json({error:'synthetic'},400);
+    if (params.has('submit-lost') || params.has('submit-draft') || params.has('submit-unknown')) {
+      qa.submitted = !params.has('submit-draft');
+      throw new Error('Synthetic lost Submit response');
+    }
     // ?recheck: the first submit is refused, another phone having changed the count.
     if (params.has('recheck') && qa.calls.filter(c => c.path.endsWith('/submit')).length === 1) {
       return json({error:'changed_since_check', message:'The count changed after the check ran.'}, 409);
     }
     return json({lineCount:qa.lines.length});
+  }
+  if (path.endsWith('/counts/food-trial')) {
+    if (qa.detailFails) throw new Error('Synthetic status unavailable');
+    return json({session:{id:'food-trial',status:qa.submitted?'submitted':'draft'},lines:qa.lines});
   }
   throw new Error('Unexpected food fixture request: '+path);
 };

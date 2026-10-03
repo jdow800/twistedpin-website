@@ -202,7 +202,7 @@ node serve.mjs --food-variance --build-only
 node check-food-variance.mjs
 ```
 
-The 13 checks cover:
+The 14 checks cover:
 - the list, and the states around it: no counts, a failed load, a pending count;
 - one report: the net, completeness, caveats, units, bands, the dishes behind
   a line, flagged lines and no-yield wording;
@@ -210,6 +210,7 @@ The 13 checks cover:
 - an admin re-run, its refusal, and no re-run for a draft, a baseline or a
   manager;
 - the deep link, and the pure unit and change helpers.
+- optional pooled sizes, with their original package names and counts.
 
 `?mode=empty`, `?mode=error` and `?mode=rerun-fail`, `?admin=0` and
 `?count=count-b` switch the fixture. With `node serve.mjs --food-variance`
@@ -244,3 +245,43 @@ matches or the lookup fails. The other 8 (2026-10-03) cover pour defaults:
 `check-pour-label.mjs` compares the builder's copy of the label reader
 (`pourLabel.ts`) with TPRS `parsePourLabel` on 53 labels. With no TPRS
 checkout to compare against, it fails.
+
+## Phone count recovery and layout
+
+The 2026-10-03 phone pass uses the actual food and liquor screens, with every
+API request intercepted. No fixture submits a production count.
+
+```powershell
+node serve.mjs --liquor-voice --build-only
+node serve.mjs --food-voice --build-only
+node check-liquor-voice.mjs
+node check-food-voice.mjs
+node check-voice-deadlines.mjs
+$env:COUNT_QA_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+node check-count-phone-layout.mjs
+```
+
+Liquor has 29 scenarios and food has 66, including failed saves and explicit
+Retry save, rejected submits after successful saves, lost successful Submit
+responses, uncertain outcomes and read-only Check submission, and Retry check.
+Food also verifies that "two cauliflower crusts" and "six flatbreads" mean
+cases, and half cases retain both the case answer and the canonical each total.
+Those two catalog definitions are each/12 and each/60; no other product gets a
+new case assumption. Manual entry and shelf questions also use cases. Earlier
+loose entries remain visible and unchanged until explicitly replaced; conflicting
+spoken pieces and mixed model fields require a new case answer. The API deadline
+suite has 18 scenarios, including stalled Submit headers/bodies at 60 seconds,
+status reads at 15 seconds, and recovery that must not send a second submit.
+The case policy stays with those two exact product identities after a package
+change: new entries use the current confirmed case size, while older cells keep
+their size at entry. Missing or invalid case sizes ask for package confirmation.
+
+The layout script starts its own local fixture server and uses Playwright at
+320, 390 and 412px with touch/mobile emulation. It verifies one scroll body for
+the expanded submit review, visible actions, no sideways overflow, and that the
+fixed footer is observed after async loading and again after a longer error.
+The last count must clear the measured footer. Screenshots of the long review,
+save/check retries and uncertain-submission dialog stay in ignored `dist/`.
+`COUNT_QA_PLAYWRIGHT_PACKAGE` can point to a package.json with Playwright when
+it is installed outside Website. These checks do not replace the Android
+phone-microphone saved-and-reopened count still owed by Jon.

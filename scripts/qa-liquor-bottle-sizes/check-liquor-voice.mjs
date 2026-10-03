@@ -334,5 +334,72 @@ await run('a count that changed after the check is checked again, not closed on 
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit'))[1].body.checkedLinesHash,'check2');
 }, 'recheck');
 
+await run('a refused Submit says the counts saved, instead of claiming Save failed',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Submit anyway');
+  await until(() => /Count saved\. Couldn't submit it/.test(t.doc.querySelector('.lq-footer').textContent),'Submit error');
+  assert.doesNotMatch(t.doc.querySelector('.lq-footer').textContent,/Save failed|Not saved/);
+  assert.equal(t.qa.lines.length,1);
+  assert.ok(t.button('Finish & submit'));
+}, 'submit-rejected');
+
+await run('a lost successful Submit response is recovered without another write',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Submit anyway');
+  await until(() => /Count submitted/.test(t.doc.body.textContent),'Recovered submission');
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,1);
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/counts/liquor-draft')).length,1);
+}, 'submit-lost');
+
+await run('a lost Submit that is still a draft keeps the saved quantities and offers Finish again',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Submit anyway');
+  await until(() => /Count saved\. Couldn't submit it/.test(t.doc.querySelector('.lq-footer').textContent),'Open draft');
+  assert.equal(t.qa.lines.length,1);
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,1);
+  assert.doesNotMatch(t.doc.body.textContent,/Count submitted/);
+}, 'submit-draft');
+
+await run('an unknown Submit outcome pauses writes until Check submission can read the count',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Submit anyway');
+  await until(() => t.doc.querySelector('[aria-label="Check submission"]'),'Unknown outcome');
+  assert.match(t.doc.querySelector('[aria-label="Check submission"]').textContent,/Your counts were saved/);
+  const writes = () => t.qa.calls.filter(c => c.method !== 'GET').length;
+  const before = writes();
+  await t.click('Check submission');
+  await until(() => /Still couldn't reach/.test(t.doc.body.textContent),'Status read failure');
+  assert.equal(writes(),before,'recovery only reads');
+  t.qa.detailFails = false;
+  await t.click('Check submission');
+  await until(() => /Count submitted/.test(t.doc.body.textContent),'Recovered on retry');
+  assert.equal(writes(),before);
+}, 'submit-unknown');
+
+await run('a failed save blocks Submit and Retry save persists the quantities',async t => {
+  await t.shelf('Back Bar');
+  t.doc.querySelector('button[aria-label="increase"]').click(); await pause();
+  await t.click('Finish & submit');
+  await until(() => t.button('Retry save'),'Save failed with action');
+  assert.match(t.doc.querySelector('.lq-footer').textContent,/Not saved yet/);
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
+  t.qa.failSave = false;
+  await t.click('Retry save');
+  await until(() => /Saved ✓/.test(t.doc.querySelector('.lq-footer').textContent),'Save recovered');
+  assert.equal(Number(t.qa.lines[0].qtyUnits),3);
+}, 'save-fails');
+
+await run('Retry check runs the advisory again and does not submit',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  await t.click('Retry check');
+  await until(() => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length===2 && t.doc.querySelector('.lq-confirm'),'Check retried');
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
+}, 'check-fails');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

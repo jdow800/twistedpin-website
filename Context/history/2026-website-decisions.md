@@ -1182,3 +1182,60 @@ Tests:
   (49, 1 new).
 - Still passing: `check-ui.mjs` (8), beer (12), walk locations (17),
   discontinued (6) and variance rows (4). `astro build` passes.
+
+## 2026-10-03 - Phone count recovery, visible submit review and food size details
+
+Jon asked for another accuracy-first pass across the liquor and food count
+work, Android with the phone microphone. The 10-02 count exposed misleading
+"Save failed" wording after a successful save and rejected Submit; narrow
+phone fixtures exposed clipped bottle names, long reviews whose actions could
+fall offscreen, and error footers covering the final quantity.
+
+- Save and Submit outcomes are separate on both count screens. A rejected
+  Submit says the count saved and gives the next action. Autosaving does not
+  erase that message. An unsaved count says to keep the screen open and has
+  an explicit Retry save; failed checks have Retry check.
+- A lost Submit response is followed by one read of the existing count detail
+  endpoint. A submitted count completes without a duplicate write. If its
+  status cannot be read, a dialog offers Check submission, a read-only action,
+  or Home. It does not offer another Submit until it can read that the count
+  is still open. Submit has a conservative 60-second deadline, followed by a
+  status read; status reads have a 15-second deadline, including the body.
+- The liquor submit review has one scroll area for all warnings, retirements
+  and repeats; its actions remain visible. Narrow phone bottle names use a
+  full line above 44px controls. Both screens observe the fixed footer when
+  React attaches it after loading and reserve its actual height as text grows.
+- Recording instructions refer to the phone microphone and calls. The liquor
+  example says the name first, then the quantity, with pauses between bottles.
+  Permission and microphone failures give a specific recovery action.
+- Optional food report `sizeMembers` show the original package names and
+  counts beneath a pooled product. Older reports render as before. Measured
+  pooled units are displayed as oz or fl oz; portion products remain separate
+  in the backend.
+- Jon confirmed cauliflower crusts and flatbreads are counted in cases,
+  including half cases. The existing catalog definitions (each/12 and each/60,
+  default spoken case) already make the review display Cases and save exact
+  canonical each quantities. These exact products now offer case inputs in
+  the grid and shelf questions, with cases in summaries and warnings. Earlier
+  loose entries remain visible and unchanged until an explicit case answer
+  replaces the entire quantity. Explicit pieces or mixed model case/loose
+  fields require restatement in cases; no individual correction is offered.
+  The review action says "Add N items" so its item count is distinct from
+  the case quantities beside it, with singular "item" for one reviewed row.
+  The case rule stays with these product identities after package changes:
+  new entries convert using the current confirmed size, while earlier cells
+  retain their frozen size at entry. Missing or invalid sizes require package
+  confirmation before entry; they do not restore individual-piece inputs.
+  Vegetable Cauliflower still uses heads. UI fixtures prove the natural
+  phrases; backend grounding is in the accompanying TPRS work.
+- Retired shelves are suppressed from the shelf-missing question in TPRS.
+  This screen continues to show the server's active-shelf details unchanged;
+  no frontend text filtering hides count-integrity findings.
+
+Validation: liquor voice 29, food voice 66, food variance 14, API deadlines and
+submission recovery 18, food walk locations 18, discontinued food 6 and draft
+sync 7. Chromium phone layout checks pass at 320/390/412px; generated screenshots
+were visually inspected. Strict TypeScript on the COGS app passes with ES2023
+libraries, and the complete Astro/Vercel production build passes. The fixtures
+use synthetic requests; a real Android phone-mic count saved and reopened is
+still owed by Jon.

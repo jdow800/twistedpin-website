@@ -27,13 +27,20 @@ const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, recorde
 // ?many-findings: nine money-ranked findings, six shown and three in `more`;
 // ?many-findings-old: the same nine from a server that sends no `more`.
 const params = new URL(location.href).searchParams;
+qa.failSave = params.has('save-fails');
+qa.detailFails = params.has('submit-unknown');
+qa.submitted = false;
 const nine = Array.from({length:9}, (_, i) => ({kind:'not_counted', skuId:`gone${i}`, name:`Missing bottle ${i + 1}`,
   counted:null, prior:2, purchased:0, used:null, unitsPerCase:null, dollars:90 - i * 10, detail:'Counted last time, no line now.'}));
 // ?size-mixup: one product's two sizes off in opposite directions (TPRS 2026-10-03).
 const mixup = {kind:'size_mixup', skuId:'family:tanqueray london dry gin', name:'Tanqueray London Dry Gin (750 ml + 1 L)',
   counted:null, prior:0, purchased:0, used:null, unitsPerCase:12, dollars:13.44,
   detail:'The 750 ml count rose 0.5 with none delivered, while the 1 L count fell 1. Was a 1 L bottle entered as a 750 ml, or is a delivery missing?'};
-const precheck = () => params.has('size-mixup')
+const precheck = () => params.has('full-review')
+  ? {baseline:false, findings:nine.slice(0,6), truncated:3, more:nine.slice(6),
+    retiring:Array.from({length:4},(_,i)=>({skuId:'old'+i,name:'Old bottle '+i,daysSinceStock:120,daysSincePurchase:null,lastCountedQty:0,dollars:0})),
+    sizeWarnings:[{skuId:'large',name:'Tanqueray London Dry Gin',sizeMl:1000,receivedQty:4,receivedAt:'2026-10-01T17:00:00Z',counted:0,otherSizes:[{sizeMl:750,counted:6}]}]}
+  : params.has('size-mixup')
   ? {baseline:false, findings:[mixup], truncated:0, more:[], retiring:[], sizeWarnings:[]}
   : params.has('many-findings')
   ? {baseline:false, findings:nine.slice(0, 6), truncated:3, more:nine.slice(6), retiring:[], sizeWarnings:[]}
@@ -62,6 +69,7 @@ window.fetch = async (input, init = {}) => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }});
   });
   if (path.endsWith('/lines')) {
+    if (qa.failSave) return json({error:'synthetic'},503);
     if (refuseNextSave) {
       refuseNextSave = false;
       return json({error:'draft_changed', message:'This count changed somewhere else since this screen loaded it.',
@@ -84,10 +92,19 @@ window.fetch = async (input, init = {}) => {
     return json(precheck());
   }
   if (path.endsWith('/submit')) {
+    if (params.has('submit-rejected')) return json({error:'synthetic'},400);
+    if (params.has('submit-lost') || params.has('submit-draft') || params.has('submit-unknown')) {
+      qa.submitted = !params.has('submit-draft');
+      throw new Error('Synthetic lost Submit response');
+    }
     if (params.has('recheck') && qa.calls.filter(c => c.path.endsWith('/submit')).length === 1) {
       return json({error:'changed_since_check', message:'The count changed after the check ran.'}, 409);
     }
     return json({lineCount:qa.lines.length});
+  }
+  if (path.endsWith('/counts/liquor-draft')) {
+    if (qa.detailFails) throw new Error('Synthetic status unavailable');
+    return json({session:{id:'liquor-draft',status:qa.submitted?'submitted':'draft'},lines:qa.lines});
   }
   throw new Error('Unexpected liquor fixture request: '+path);
 };

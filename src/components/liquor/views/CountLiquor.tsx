@@ -15,6 +15,7 @@ import {
   BarApiError,
   BatchesChangedError,
   ChangedSinceCheckError,
+  SubmissionUnknownError,
   type BarSkuItem,
   type BarBatchItem,
   type BarZoneItem,
@@ -33,6 +34,8 @@ import { pauseCutsEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
+import { CountSubmitRecovery } from "../CountSubmitRecovery";
+import { useCountFooter } from "../useCountFooter";
 
 // Voice-first zone counting. Stand in a zone, hit Record, talk out the shelf in a
 // run-on ("three Tito's, four Bulleit, a half Grey Goose…"); the browser
@@ -176,6 +179,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [search, setSearch] = useState("");
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
+  const [submitErr, setSubmitErr] = useState<string | null>(null);
+  const [submissionUnknown, setSubmissionUnknown] = useState(false);
+  const [startingFresh, setStartingFresh] = useState(false);
+  const footerRef = useCountFooter();
   const [done, setDone] = useState<number | null>(null);
   const [resumed, setResumed] = useState(false);
   // Pre-submit review: uncounted zones (client-side) + flagged bottles (server)
@@ -336,6 +343,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   zoneIdRef.current = zoneId;
 
   async function startFresh() {
+    if (startingFresh || submitting || checking || voicePending) return;
+    setStartingFresh(true);
+    setSubmitErr(null);
     try {
       const sid = await createCount(true);
       setSessionId(sid);
@@ -351,7 +361,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       setResumed(false);
       setSave("idle");
     } catch {
-      setSave("error");
+      setSubmitErr("Couldn't start a new count. Your current count is still here. Try again.");
+    } finally {
+      setStartingFresh(false);
     }
   }
 
@@ -968,6 +980,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   async function tryFinish(recheck = false) {
     if (!sessionId || submitting || checking || voicePending) return;
     setRechecked(recheck);
+    setSubmitErr(null);
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
     setChecking(true);
     let findings: PrecheckFinding[] = [];
@@ -1089,11 +1102,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setConfirmSubmit(null);
     if (!sessionId || submitting) return;
     setSubmitting(true);
+    setSubmitErr(null);
     setSave("saving");
+    let saved = false;
     try {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       await saverRef.current!.save();
       await batchSaverRef.current!.save();
+      saved = true;
+      setSave("saved");
       const n = await submitCount(sessionId, undefined, checkedRef.current);
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
       restatementsRef.current.clear(); // spent — must not leak into a later session
@@ -1107,7 +1124,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         void tryFinish(true);
         return;
       }
-      setSave("error");
+      if (!saved) setSave("error");
+      else if (e instanceof SubmissionUnknownError) setSubmissionUnknown(true);
+      else setSubmitErr("Count saved. Couldn't submit it. Tap Finish & submit to try again.");
     }
   }
 
@@ -1165,7 +1184,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your count in progress.</span>
-          <button type="button" className="lq-linkbtn" onClick={startFresh}>Start a new count</button>
+          <button type="button" className="lq-linkbtn" disabled={startingFresh || submitting || checking || voicePending} onClick={() => void startFresh()}>
+            {startingFresh ? "Starting…" : "Start a new count"}
+          </button>
         </div>
       )}
 
@@ -1218,7 +1239,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               </div>
             )}
             {dict.quiet && (
-              <p className="lq-rec-warntext">Mic hasn’t heard anything for a bit — check the headset if you’re still counting.</p>
+              <p className="lq-rec-warntext" role="status">The phone mic hasn't heard speech for a bit. If you're still counting, speak toward the phone. After a call, stop and check what came back.</p>
             )}
             <p className="lq-rec-transcript" ref={liveTextRef}>
               {dict.transcript ||
@@ -1226,7 +1247,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   // Bluetooth mic route still coming up — words spoken now would be lost.
                   <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
                 ) : (
-                  <span className="lq-muted">Say the bottles and how many — “three Tito’s, four Bulleit…”</span>
+                  <span className="lq-muted">Say the bottle name, then how many: “Tito’s, three. Bulleit, four.” Pause between bottles.</span>
                 ))}
               {dict.interim && <span className="lq-muted"> {dict.interim}</span>}
             </p>
@@ -1268,7 +1289,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         )}
         {voiceErr && <p className="lq-error lq-voice-err">{voiceErr}</p>}
         {dict.error && !dict.recording && (
-          <p className="lq-muted lq-voice-err">Mic stopped ({dict.error}). Tap record to try again.</p>
+          <p className="lq-error lq-voice-err" role="alert">
+            {dict.error === "not-allowed" || dict.error === "service-not-allowed"
+              ? "Allow microphone access, then try recording again."
+              : dict.error === "audio-capture"
+                ? "The phone microphone stopped. Stop any call, then record the missing items or type them."
+                : "Part of the recording couldn't be transcribed. Check the heard bottles, then record the missing items or type them."}
+          </p>
         )}
       </div>
 
@@ -1486,12 +1513,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       </div>
 
       {/* footer */}
-      <div className="lq-footer">
-        <div className="lq-savestate">
+      <div className="lq-footer" ref={footerRef}>
+        <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`} role={submitErr || save === "error" ? "alert" : "status"}>
+          {submitErr && <span>{submitErr}</span>}
+          {!submitErr && <>
           {save === "saving" && "Saving…"}
           {save === "saved" && "Saved ✓"}
           {merged && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
-          {save === "error" && <span className="lq-error">Save failed — will retry on submit</span>}
+          {save === "error" && <span>Not saved yet. Keep this screen open and retry.</span>}
+          </>}
+          {save === "error" && <button type="button" className="lq-linkbtn lq-save-retry" disabled={submitting || checking} onClick={() => void flush()}>Retry save</button>}
         </div>
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">{capturedHere.length} here · {enteredTotal} total</span>
@@ -1630,8 +1661,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
       {/* pre-submit review: uncounted zones + flagged bottles */}
       {confirmSubmit && (
-        <div className="lq-sheet" role="dialog" aria-label="Before you submit">
+        <div className="lq-sheet" role="dialog" aria-modal="true" aria-label="Before you submit">
           <div className="lq-sheet-panel lq-confirm">
+            <div className="lq-confirm-body">
             <div className="lq-sheet-head">
               <h3 className="lq-h2">
                 {confirmSubmit.findings.length > 0 || confirmSubmit.doubles.length > 0 || confirmSubmit.sizeWarnings.length > 0
@@ -1650,7 +1682,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <>The count changed after the last check (another phone, or a change merged in), so this is a fresh check.{" "}</>
                 )}
                 {confirmSubmit.checkFailed && (
-                  <>Nothing was checked: the pre-submit check couldn't reach the server. You can still submit, or close this and try Finish again.{" "}</>
+                  <>Nothing was checked: the pre-submit check couldn't reach the server. Retry the check, or submit anyway.{" "}</>
                 )}
                 {confirmSubmit.zones.length > 0 && (
                   <>
@@ -1823,10 +1855,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 )}
               </div>
             )}
+            </div>
             <div className="lq-sheet-foot">
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setConfirmSubmit(null)}>
                 Go back
               </button>
+              {confirmSubmit.checkFailed && <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setConfirmSubmit(null); void tryFinish(); }}>Retry check</button>}
               {retireErr && <span className="lq-retire-err">{retireErr}</span>}
               {/* Always dismissible. The check is advice, not a gate — if the
                   count is right and an invoice is simply missing, forcing a
@@ -1853,6 +1887,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           </div>
         </div>
       )}
+      {submissionUnknown && sessionId && <CountSubmitRecovery sessionId={sessionId} onDone={onDone}
+        onDraft={() => { setSubmissionUnknown(false); setSubmitErr("Count saved. It is still open. Tap Finish & submit to try again."); }}
+        onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); setSubmissionUnknown(false); setDone(n); }} />}
     </div>
   );
 }

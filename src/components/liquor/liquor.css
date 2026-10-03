@@ -249,7 +249,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 84px; /* room for the sticky footer */
+  padding-bottom: calc(var(--lq-count-footer-h, 84px) + 24px);
 }
 .lq-zonebar-title {
   margin-bottom: -2px;
@@ -766,6 +766,13 @@
 .lq-fc-saveerr {
   color: var(--lq-danger);
   font-weight: 600;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.lq-save-retry {
+  min-height: 44px;
+  margin-left: 8px;
+  font-size: 14px;
 }
 .lq-footer-actions {
   display: flex;
@@ -980,6 +987,7 @@
 }
 .lq-sheet-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 12px 14px;
   display: flex;
@@ -988,6 +996,8 @@
 }
 .lq-sheet-foot {
   display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--lq-line);
@@ -1099,6 +1109,47 @@
   font-size: 15px;
   line-height: 1.45;
 }
+.lq-confirm-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.lq-confirm .lq-precheck {
+  max-height: none;
+  overflow-y: visible;
+}
+.lq-confirm .lq-sheet-foot .lq-btn {
+  min-height: 44px;
+}
+.lq-fv-size-member {
+  padding: 8px 10px;
+  border-left: 2px solid var(--lq-line);
+  overflow-wrap: anywhere;
+}
+/* On a narrow phone, the bottle name needs its own line above the controls.
+   Otherwise 42px steppers and Remove leave the name narrower than one word. */
+.lq-count .lq-name,
+.lq-count .lq-size {
+  overflow-wrap: anywhere;
+}
+.lq-count .lq-step,
+.lq-count .lq-qty-input,
+.lq-count .lq-row-x {
+  height: 44px;
+}
+.lq-count .lq-step,
+.lq-count .lq-row-x {
+  width: 44px;
+}
+@media (max-width: 420px) {
+  .lq-count .lq-row-name {
+    flex-basis: 100%;
+  }
+  .lq-count .lq-stepper {
+    margin-right: auto;
+  }
+}
 
 /* Pre-submit sanity check — the flagged-bottle list inside the confirm sheet.
    Submit is the last moment anything can be fixed (the variance report computes
@@ -1146,7 +1197,7 @@
 .lq-precheck-action {
   align-self: stretch;
   margin-top: 8px;
-  min-height: 40px;
+  min-height: 44px;
   font-size: 14px;
 }
 .lq-precheck-more {
@@ -2202,7 +2253,7 @@
      to stick BELOW it or it slides underneath and the counter loses the one
      thing telling them which shelf they are on. Measured, not guessed. */
   --lq-fc-header-h: 61px;
-  padding-bottom: calc(var(--lq-fc-footer-h) + 28px + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--lq-count-footer-h, var(--lq-fc-footer-h)) + 28px + env(safe-area-inset-bottom));
 }
 
 /* ── shelf header: no horizontal scrolling anywhere ── */
@@ -2337,6 +2388,13 @@
   gap: 0 6px;
   align-items: baseline;
 }
+.lq-fc-row-cases .lq-fc-row-name,
+.lq-fc-row-cases .lq-fc-row-sum { flex-wrap: wrap; }
+.lq-fc-row-cases .lq-fc-row-label,
+.lq-fc-row-cases .lq-fc-row-name > .lq-muted { flex-basis: 100%; }
+.lq-fc-legacy-units { font-size: 13px; line-height: 1.4; }
+.lq-fc .lq-footer-actions { flex-wrap: wrap; }
+.lq-fc .lq-footer-actions .lq-btn { max-width: 100%; white-space: normal; }
 /* Opsi's names are inverted for sorting. Weighting the head noun is what makes
    a 45-item shelf scannable; the qualifiers stay, just quieter. */
 .lq-fc-row-head {

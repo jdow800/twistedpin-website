@@ -212,5 +212,18 @@ await run('units read naturally, and what changed lists only what moved, biggest
   assert.deepEqual(changes.lines.find(c => c.skuId === 'new').theoretical, [null, 1]);
 });
 
+await run('pooled food sizes share one product row and keep the original counts underneath',async t => {
+  await t.openRow(/^Oct 6 → Oct 13/);
+  const row = [...t.doc.querySelectorAll('.lq-fv-line')].find(r => /Pizza Sauce/.test(r.textContent));
+  assert.ok(row);
+  assert.match(row.querySelector('summary').textContent,/used 48 oz/);
+  assert.doesNotMatch(row.querySelector('summary').textContent,/6 lb|3 lb/);
+  const members = [...row.querySelectorAll('.lq-fv-size-member')];
+  assert.equal(members.length,2);
+  assert.match(members[0].textContent,/Pizza Sauce, 6 lb Can2 \+ 1 in → 2 cans/);
+  assert.match(members[1].textContent,/Pizza Sauce, 3 lb Can0 → 1 can/);
+  assert.equal(t.qa.amount(2,'floz'),'2 fl oz');
+},'mode=pooled');
+
 console.log(`${passed} food variance checks passed`);
 process.exit(0);

@@ -62,6 +62,15 @@ let versionsB = [
   v(2, {report: report(cheese(7.25, -1.25, -17.2, -19.31, 71.03), 144.88), basis: basis('bbb'), reason: 'Grande yield corrected',
     computedBy: 'Jon Dow', createdAt: '2026-10-15T14:00:00.000Z', finalizedAt: '2026-10-15T14:00:00.000Z'}),
 ];
+if (mode === 'pooled') {
+  const pooled = line({skuId:'family:pizza-sauce',name:'Pizza Sauce',unit:'oz',start:192,purchased:96,end:240,
+    used:48,theoretical:48,variance:0,variancePct:0,varianceDollars:0,costPerCountUnit:0.0875,yieldUsed:1,
+    sizeMembers:[
+      {skuId:'sauce-large',name:'Pizza Sauce, 6 lb Can',unit:'can',start:2,purchased:1,end:2,yieldUsed:96,costPerCountUnit:8.4},
+      {skuId:'sauce-small',name:'Pizza Sauce, 3 lb Can',unit:'can',start:0,purchased:0,end:1,yieldUsed:48,costPerCountUnit:5},
+    ]});
+  for (const version of versionsB) version.report.lines.push(pooled);
+}
 const versionsC = [{version: 1, priorSessionId: B, periodStart: at.B, periodEnd: at.C, status: 'draft', catchUp: false,
   report: report(cheese(6.5, -0.5, -7.7, -7.73), 12), basis: basis('bbb'), reason: null, computedBy: null,
   createdAt: at.C, finalizedAt: null}];

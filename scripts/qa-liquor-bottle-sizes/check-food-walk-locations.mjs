@@ -77,6 +77,20 @@ async function run(name, test, query = 'walk') {
 }
 
 // ── leaving a zone ──
+await run('crust and flatbread answers on a leaving-shelf question offer only cases',async t => {
+  await t.type('Pizza Dough: loose cases','2');
+  await t.next();
+  const crust=t.card('Cauliflower Crust',t.sheet());
+  assert.ok(crust);
+  await t.click('Count it',crust);
+  assert.equal(crust.querySelectorAll('.lq-fc-q-qty input').length,1);
+  await t.type('Cauliflower Crust: cases','0.5',crust);
+  await t.click('Save',crust);
+  await t.saved('cauliflower');
+  assert.equal(t.line('cauliflower').qtyUnits,6);
+  assert.equal(t.line('cauliflower').enteredCases,0.5);
+  assert.match(crust.textContent,/0\.5 cases/);
+},'definitions');
 await run('leaving a counted zone with listed items blank asks first, and names the zone big', async t => {
   await t.countDough();
   await t.next();
@@ -358,4 +372,4 @@ await run('a server without the list: the submit panel is exactly as before', as
   assert.ok(t.button('Submit the count'));
 }, 'plain');
 
-console.log(`${passed}/17 walk-location scenarios passed`);
+console.log(`${passed}/18 walk-location scenarios passed`);

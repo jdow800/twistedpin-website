@@ -42,4 +42,66 @@ for(const kind of ['transcribe','food']) for(const stage of ['headers','body']) 
   const result = await h.api.reextractInvoice('demo');
   assert.equal(result.ok,false);assert.equal(result.error,'saved_invoice_protected');passed++;
 }
-console.log(`${passed} voice deadline / invoice protection API scenarios passed.`);
+for(const stage of ['headers','body']) {
+  let signal;
+  const h = harness(async (_url,init) => {
+    signal = init.signal;
+    return stage==='headers' ? new Promise(()=>{}) : {ok:true,status:200,json:()=>new Promise(()=>{})};
+  });
+  const result = h.api.getCountSubmissionStatus('demo').catch(e=>e);
+  await flush();h.expire(15_000);
+  const error = await result;
+  assert.equal(error.status,408);
+  assert.equal(signal.aborted,true);
+  assert.equal(h.timers.size,0);passed++;
+}
+{
+  const calls = [];
+  const h = harness(async url => {
+    calls.push(url);
+    if(url.endsWith('/submit')) throw Error('lost response');
+    return new Promise(()=>{});
+  });
+  const result = h.api.submitCount('demo').catch(e=>e);
+  await flush();h.expire(15_000);
+  assert.ok(await result instanceof h.api.SubmissionUnknownError);
+  assert.deepEqual(calls,['/mock/admin/bar/counts/demo/submit','/mock/admin/bar/counts/demo']);
+  assert.equal(h.timers.size,0);passed++;
+}
+{
+  const h = harness(async()=>new Response(JSON.stringify({session:{status:'mystery'},lines:[]})));
+  assert.ok(await h.api.getCountSubmissionStatus('demo').catch(e=>e) instanceof h.api.SubmissionUnknownError);
+  assert.equal(h.timers.size,0);passed++;
+}
+for(const stage of ['headers','body']) for(const status of ['submitted','draft','unreachable']) {
+  const calls=[];let signal;
+  const h=harness(async(url,init) => {
+    calls.push(url);
+    if(url.endsWith('/submit')) {
+      signal=init.signal;
+      return stage==='headers' ? new Promise(()=>{}) : {ok:true,status:200,json:()=>new Promise(()=>{})};
+    }
+    if(status==='unreachable') throw Error('status connection lost');
+    return new Response(JSON.stringify({session:{status},lines:[{skuId:'sample'}]}));
+  });
+  const result=h.api.submitCount('demo').catch(e=>e);
+  await flush();h.expire(60_000);
+  const value=await result;
+  assert.equal(signal.aborted,true);
+  if(status==='submitted') assert.equal(value,1);
+  else if(status==='draft') assert.equal(value.status,408);
+  else assert.ok(value instanceof h.api.SubmissionUnknownError);
+  assert.deepEqual(calls,['/mock/admin/bar/counts/demo/submit','/mock/admin/bar/counts/demo']);
+  assert.equal(h.timers.size,0);passed++;
+}
+{
+  const calls=[];
+  const h=harness(async url => {
+    calls.push(url);
+    return new Response(JSON.stringify(url.endsWith('/submit') ? {} : {session:{status:'submitted'},lines:[{skuId:'sample'}]}));
+  });
+  assert.equal(await h.api.submitCount('demo'),1,'a malformed success must read the actual submitted count');
+  assert.deepEqual(calls,['/mock/admin/bar/counts/demo/submit','/mock/admin/bar/counts/demo']);
+  assert.equal(h.timers.size,0);passed++;
+}
+console.log(`${passed} voice deadline / submission recovery / invoice protection API scenarios passed.`);

@@ -39,6 +39,7 @@ export const usd = (n: number) =>
 /** A count unit for a quantity: "bag" for 1, "bags" for 6. Abbreviations and
  *  "each" stay as they are. */
 export function unitWord(unit: string, n: number): string {
+  if (unit === "floz") return "fl oz";
   if (Math.abs(n) === 1 || ["each", "lb", "gal", "oz", "bib"].includes(unit) || unit.endsWith("s")) return unit;
   return /(x|ch|sh)$/.test(unit) ? `${unit}es` : `${unit}s`;
 }
@@ -153,7 +154,7 @@ function ChangeList({ changes }: { changes: FoodVersionChanges }) {
 // ── the report ────────────────────────────────────────────────────────────
 
 /** "10 + 2 in → 4 on the shelf" */
-function movement(l: FoodVarianceLine): string {
+function movement(l: Pick<FoodVarianceLine, "start" | "end" | "purchased" | "unit">): string {
   const start = l.start == null ? "not counted" : num(l.start);
   const end = l.end == null ? "not counted" : amount(l.end, l.unit);
   const bought = l.purchased > 0 ? ` + ${num(l.purchased)} in` : l.purchased < 0 ? ` − ${num(-l.purchased)} returned` : "";
@@ -196,6 +197,18 @@ function LineRow({ l }: { l: FoodVarianceLine }) {
           {l.yieldUsed != null && l.recipeUnit && ` · ${num(l.yieldUsed)} ${l.recipeUnit} a ${unitLabel ?? "unit"}`}
         </div>
         {l.caseSizeChanged && <div className="lq-muted">The case size changed, but both counts held the same amount a {unitLabel ?? "unit"}.</div>}
+        {l.sizeMembers && l.sizeMembers.length > 0 && (
+          <>
+            <div className="lq-fv-subhead">Sizes counted as one product</div>
+            <div className="lq-muted">The total above combines these sizes. These are the original counts.</div>
+            {l.sizeMembers.map((member) => (
+              <div key={member.skuId} className="lq-fv-size-member">
+                <strong>{member.name}</strong>
+                <div className="lq-muted">{movement(member)}</div>
+              </div>
+            ))}
+          </>
+        )}
         {l.drivers.length > 0 ? (
           <>
             <div className="lq-fv-subhead">Behind “recipes say”</div>

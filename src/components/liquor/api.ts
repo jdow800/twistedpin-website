@@ -110,15 +110,15 @@ async function gatedJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await res.json()) as T;
 }
 
-/** Only voice reads get a deadline: never automatically retry a timed-out write.
- * Race the whole JSON read as well as aborting fetch, so a stalled response body
- * (or transport that ignores abort) cannot leave the review waiting forever. */
-async function voiceJson<T>(path: string, init: RequestInit, timeoutMs: number, message: string): Promise<T> {
+/** Voice reads and read-only submission recovery get a deadline. Never
+ * automatically retry a timed-out write. Race the whole JSON read as well as
+ * aborting fetch, so a stalled response body cannot leave the screen waiting. */
+async function deadlineJson<T>(path: string, init: RequestInit, timeoutMs: number, message: string, errorCode = "voice_timeout"): Promise<T> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const deadline = new Promise<never>((_, reject) => {
     timer = setTimeout(() => {
-      reject(new BarApiError(message, 408, JSON.stringify({ error: "voice_timeout", message })));
+      reject(new BarApiError(message, 408, JSON.stringify({ error: errorCode, message })));
       controller.abort();
     }, timeoutMs);
   });
@@ -621,22 +621,51 @@ export async function submitCount(
   // every liquor submit 400'd and showed "Save failed" — the first on-screen
   // liquor submit since that schema landed (the 9/18 count closed by script).
   try {
-    const { lineCount } = await gatedJson<{ lineCount: number }>(
+    const { lineCount } = await deadlineJson<{ lineCount: number }>(
       `/admin/bar/counts/${sessionId}/submit`,
       jsonBody({
         ...(isFullCount === undefined ? {} : { isFullCount }),
         ...(checked?.linesHash ? { checkedLinesHash: checked.linesHash } : {}),
         ...(checked?.batchesHash ? { checkedBatchesHash: checked.batchesHash } : {}),
       }),
+      60_000, "Couldn't confirm Submit before the connection timed out.", "submission_timeout",
     );
+    if (!Number.isInteger(lineCount) || lineCount < 0) throw new SubmissionUnknownError();
     return lineCount;
   } catch (e) {
     if (e instanceof BarApiError && e.status === 409) {
       const body = (() => { try { return JSON.parse(String(e.body)); } catch { return null; } })();
       if (body?.error === "changed_since_check") throw new ChangedSinceCheckError();
     }
+    // A lost response is not proof that Submit failed. Read its status before
+    // offering another write; the request may already have closed the count.
+    if (!(e instanceof NotAuthedError) && !(e instanceof ForbiddenError) &&
+      (!(e instanceof BarApiError) || e.status === 0 || e.status === 408 || e.status === 409 || e.status >= 500)) {
+      try {
+        const status = await getCountSubmissionStatus(sessionId);
+        if (status.submitted) return status.lineCount;
+      } catch {
+        throw new SubmissionUnknownError();
+      }
+    }
     throw e;
   }
+}
+/** Submit may have reached the server, but its status could not be read. */
+export class SubmissionUnknownError extends Error {
+  constructor() {
+    super("The count was saved, but submission could not be confirmed.");
+  }
+}
+/** Read only; a broken or stalled status response must not invite another Submit. */
+export async function getCountSubmissionStatus(sessionId: string): Promise<{ submitted: boolean; lineCount: number }> {
+  const detail = await deadlineJson<CountDetail>(`/admin/bar/counts/${sessionId}`, {}, 15_000,
+    "Couldn't check submission yet.", "submission_status_timeout");
+  if (detail.session?.status === "draft") return { submitted: false, lineCount: detail.lines.length };
+  if ((detail.session?.status === "submitted" || detail.session?.status === "reconciled") && Array.isArray(detail.lines)) {
+    return { submitted: true, lineCount: detail.lines.length };
+  }
+  throw new SubmissionUnknownError();
 }
 /** The count changed after the pre-submit check ran: check it again. */
 export class ChangedSinceCheckError extends Error {
@@ -751,7 +780,7 @@ export async function transcribeAudio(
    */
   scope?: { section?: "bar" | "food"; zoneId?: string; takeId?: string; piece?: number },
 ): Promise<string> {
-  const { transcript } = await voiceJson<{ transcript: string }>(
+  const { transcript } = await deadlineJson<{ transcript: string }>(
     "/admin/bar/transcribe-audio",
     jsonBody({ contentType, data: base64Data, vocabulary, ...(scope ?? {}) }),
     45_000,
@@ -771,7 +800,7 @@ export async function extractVoice(
   section: Section = "bar",
 ): Promise<VoiceExtractItem[]> {
   try {
-    const { items } = await voiceJson<{ items: VoiceExtractItem[] }>(
+    const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
       jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 2 } : {}) }),
       section === "food" ? 60_000 : 120_000,
@@ -1618,6 +1647,13 @@ export interface FoodVarianceLine {
   caseSizeChanged: boolean;
   /** The dishes behind theoretical, in count units, biggest first. */
   drivers: { label: string; units: number; estimate: boolean }[];
+  /** Same-product package sizes pooled by measure; original count provenance.
+   *  Absent on reports made before food size pooling. */
+  sizeMembers?: {
+    skuId: string; name: string; unit: string | null;
+    start: number | null; purchased: number; end: number | null;
+    yieldUsed: number | null; costPerCountUnit: number | null;
+  }[];
 }
 export interface FoodVarianceReportBody {
   lines: FoodVarianceLine[];
