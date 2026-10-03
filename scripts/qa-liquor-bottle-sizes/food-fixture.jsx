@@ -52,10 +52,28 @@ if (params.has('discontinued')) {
   );
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
 }
+// Where things live (2026-10-03): each zone has its own list, a third zone is
+// empty, and guacamole and cookies are on none ("things we think you have").
+if (params.has('walk')) {
+  catalog.push(
+    {id:'guac',name:'Guacamole',countUnit:'pack',unitsPerCase:12,category:'Prep',sizeMl:null,trackingMode:'stock_count',wacCost:null},
+    {id:'cookies',name:'Cookies, Chocolate Chip, 1 oz',countUnit:'each',unitsPerCase:null,category:'Dessert',sizeMl:null,trackingMode:'stock_count',wacCost:null},
+  );
+  zones[0].memberSkuIds = ['dough','pretzel','water'];
+  zones[1].memberSkuIds = ['circles','gloves','rice'];
+  zones.push({id:'walkin', name:'Walk in Cooler', walkOrder:3, memberSkuIds:[]});
+}
+const unplaced = params.has('walk') ? [
+  {skuId:'guac',name:'Guacamole',countUnit:'pack',unitLabel:null,unitsPerCase:12,lastBoughtAt:'2026-10-02T17:00:00.000Z',lastVendor:'Sysco',inRecipe:true,reason:'both'},
+  {skuId:'cookies',name:'Cookies, Chocolate Chip, 1 oz',countUnit:'each',unitLabel:null,unitsPerCase:null,lastBoughtAt:null,lastVendor:null,inRecipe:true,reason:'recipe'},
+] : [];
+const unplacedMore = params.has('many') ? [
+  {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
+] : [];
 const initialLines = params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
-const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null};
+const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false};
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
 // ?stale: the draft changed elsewhere after this screen loaded it (3 Giant
 // Pretzels were added), so the first save is refused once with the lines now.
@@ -66,6 +84,16 @@ window.fetch = async (input, init = {}) => {
   const body = init.body ? JSON.parse(String(init.body)) : null;
   qa.calls.push({path, query:url.search, method:init.method || 'GET', body});
   if (path.endsWith('/catalog')) return json({items:catalog});
+  if (/\/skus\/[^/]+\/zones$/.test(path)) return qa.memberFail ? json({error:'synthetic'},500)
+    : json({zoneId:body.zoneId, usual:body.usual, zoneName:zones.find(z => z.id === body.zoneId)?.name});
+  if (/\/skus\/[^/]+\/discontinued$/.test(path)) return json({name:path.split('/').at(-2), active:true,
+    discontinuedAt:'2026-10-03T15:00:00.000Z', replacedBySkuId:null});
+  if (path.endsWith('/zones') && init.method === 'POST') {
+    if (qa.zoneFail) return json({error:'synthetic'},500);
+    const taken = zones.find(z => z.name.toLowerCase() === body.name.trim().toLowerCase());
+    if (taken) return json({error:'name_taken', zone:{id:taken.id, name:taken.name, active:true, section:'food'}},409);
+    return json({zone:{id:'spot-'+qa.calls.length, name:body.name.trim(), walkOrder:25, memberSkuIds:[]}},201);
+  }
   if (path.endsWith('/zones')) return json({zones});
   if (path.endsWith('/counts/open')) return json({session:{id:'food-trial',section:'food',isFullCount:true,lines:initialLines,
     ...(params.has('stale') ? {linesHash:'server1'} : {})}});
@@ -84,7 +112,8 @@ window.fetch = async (input, init = {}) => {
     qa.lines = body.lines;
     return json({ok:true, ...(params.has('stale') ? {linesHash:'saved'} : {})});
   }
-  if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[]});
+  if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[],
+    ...(params.has('walk') ? {unplaced, unplacedMore} : {})});
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected food fixture request: '+path);
 };

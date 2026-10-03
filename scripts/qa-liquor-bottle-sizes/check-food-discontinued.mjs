@@ -91,7 +91,13 @@ await run('leftovers counted on ANOTHER shelf also hide "None left"', async ({do
   input('Beef Patty, 2oz: loose packs', '3');
   await pause();
   // Next shelf: the blank leftover row there must not offer to archive it everywhere.
+  // Leaving a counted zone with listed items blank asks first (2026-10-03);
+  // the leftover is not one of them, and skipping goes on.
   [...doc.querySelectorAll('.lq-fc-zonestep')].at(-1).click();
+  await until(() => doc.querySelector('.lq-fc-sheet'), 'Leaving sheet');
+  assert.ok(![...doc.querySelectorAll('.lq-fc-sheet .lq-fc-q-name')].some(el => el.getAttribute('title') === 'Beef Patty, 2oz'),
+    'a discontinued item is never asked about at the zone');
+  button([...doc.querySelectorAll('.lq-fc-sheet-go')].map(b => b.textContent.trim())[0]).click();
   await until(() => /Kitchen Cooler/.test(doc.querySelector('.lq-fc-zonename')?.textContent ?? ''), 'Second shelf');
   assert.ok(doc.querySelector('.lq-fc-row-leftover'), 'the leftover row is listed on this shelf too');
   assert.equal(button('None left'), undefined);

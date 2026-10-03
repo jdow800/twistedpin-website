@@ -276,6 +276,34 @@ export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]>
   return zones;
 }
 
+/** A zone already has that name (any case, active or not, either walk). */
+export class ZoneNameTakenError extends Error {
+  constructor(readonly zone: { id: string; name: string; active: boolean; section: Section }) {
+    super(`"${zone.name}" is already a zone`);
+    this.name = "ZoneNameTakenError";
+  }
+}
+/**
+ * "+ New spot" on the food walk (Jon, 2026-10-03): a zone placed AFTER the one
+ * given (null = first). The server picks the walk order, so the new zone sorts
+ * into `getZones` exactly where the counter said they reach it.
+ */
+export async function createZone(name: string, afterZoneId: string | null): Promise<BarZoneItem> {
+  try {
+    const { zone } = await gatedJson<{ zone: BarZoneItem }>(
+      "/admin/bar/zones",
+      jsonBody({ name, section: "food", afterZoneId }),
+    );
+    return zone;
+  } catch (err) {
+    if (err instanceof BarApiError && err.status === 409) {
+      const body = (() => { try { return JSON.parse(String(err.body)); } catch { return null; } })();
+      if (body?.zone) throw new ZoneNameTakenError(body.zone);
+    }
+    throw err;
+  }
+}
+
 // ── liquor counts ──
 /** Start a count. `section` decides WHICH WALK it is — the kitchen and the bar
  *  are separate sessions with separate catalogs, zones and brackets (0166).
@@ -513,6 +541,24 @@ export interface PrecheckResult {
    * thing has been gone instead.
    */
   retiring?: RetiringSku[];
+  /** "Things we think you have" (food only, 2026-10-03): items on no zone,
+   *  so no walk asks about them, bought in 90 days or in a recipe. Optional
+   *  for deployment ordering, like everything added here. */
+  unplaced?: UnplacedItem[];
+  /** The rest past the cap of 25, same order, behind "Show N more". */
+  unplacedMore?: UnplacedItem[];
+}
+export interface UnplacedItem {
+  skuId: string;
+  name: string;
+  countUnit: string;
+  unitLabel: string | null;
+  unitsPerCase: number | null;
+  /** The newest delivery in the last 90 days, ISO. */
+  lastBoughtAt: string | null;
+  lastVendor: string | null;
+  inRecipe: boolean;
+  reason: "bought" | "recipe" | "both";
 }
 /** Sanity-check an OPEN draft before submit. Read-only on the server; it must
  *  never write bar_variance_report (see the route's docstring — the report is a

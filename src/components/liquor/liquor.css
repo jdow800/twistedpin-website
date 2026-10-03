@@ -3066,3 +3066,277 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* ── where things live (2026-10-03): leaving a zone, + New spot, and the
+   "things we think you have" list. The approved preview is Opsi
+   previews/2026-10-03-walk-locations.html. ── */
+/* The backdrop is the scroller, with room under the sheet: the keyboard takes
+   the bottom of the screen and a "Count it" box must be able to clear it.
+   The room is a spacer, NOT bottom padding: a sticky footer measures from
+   inside the scroller's padding, so 35vh of padding pinned the sheet's
+   buttons a third of the way up the screen, over the second item. */
+.lq-fc-sheetback {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(7, 5, 15, 0.72);
+  padding: 5vh 8px 0;
+}
+.lq-fc-sheetback::after {
+  content: "";
+  display: block;
+  height: 35vh;
+}
+.lq-fc-sheetback-top {
+  z-index: 22;
+}
+.lq-fc-sheet {
+  max-width: 640px;
+  margin: 0 auto;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 18px;
+  padding: 16px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* Jon, 2026-10-03: "I struggled to notice it was for WALK IN FREEZER". */
+.lq-fc-sheet-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--lq-glow);
+  border-left-width: 6px;
+  background: rgba(201, 255, 61, 0.08);
+}
+.lq-fc-sheet-zone-k {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lq-muted);
+}
+.lq-fc-sheet-zone-n {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--lq-glow);
+  overflow-wrap: anywhere;
+}
+.lq-fc-sheet-h {
+  font-family: var(--font-display, "Barlow Condensed", system-ui, sans-serif);
+  font-size: 22px;
+  margin: 2px 0 0;
+}
+.lq-fc-sheet-sub {
+  margin: 0;
+  font-size: 13px;
+}
+.lq-fc-sheet-foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 0 12px;
+  background: var(--lq-panel);
+}
+.lq-fc-sheet-foot .lq-btn {
+  font-size: 15px;
+  padding: 10px 14px;
+}
+.lq-fc-sheet-go {
+  flex: 1 1 auto;
+  background: var(--lq-glow);
+  color: #14101f;
+  border-color: var(--lq-glow);
+}
+.lq-fc-sheet-go:disabled {
+  opacity: 0.45;
+}
+.lq-fc-sheet-hint {
+  margin: 0;
+  font-size: 12px;
+  text-align: center;
+}
+.lq-fc-q {
+  border: 1px solid var(--lq-line);
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--lq-panel-2);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lq-fc-have .lq-fc-q {
+  background: var(--lq-panel);
+}
+.lq-fc-q-name {
+  margin: 0;
+  font-size: 15px;
+}
+.lq-fc-q-rest {
+  color: var(--lq-muted);
+}
+.lq-fc-q-why {
+  margin: 0;
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-fc-q-ask {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--lq-muted);
+}
+.lq-fc-q-done {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--lq-glow);
+}
+.lq-fc-choices {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.lq-fc-choice {
+  min-height: 52px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel);
+  color: inherit;
+  font-size: 14px;
+  line-height: 1.2;
+}
+.lq-fc-have .lq-fc-choice {
+  background: var(--lq-panel-2);
+}
+.lq-fc-choice-on {
+  background: var(--lq-glow);
+  border-color: var(--lq-glow);
+  color: #14101f;
+  font-weight: 700;
+}
+.lq-fc-have .lq-fc-choice-on {
+  background: var(--lq-glow);
+}
+.lq-fc-choice:disabled {
+  opacity: 0.5;
+}
+.lq-fc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lq-fc-chip {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-panel);
+  color: inherit;
+  font-size: 13px;
+}
+.lq-fc-have .lq-fc-chip {
+  background: var(--lq-panel-2);
+}
+.lq-fc-chip-on,
+.lq-fc-have .lq-fc-chip-on {
+  background: var(--lq-glow);
+  border-color: var(--lq-glow);
+  color: #14101f;
+  font-weight: 700;
+}
+.lq-fc-chip-new {
+  border-color: var(--lq-glow);
+}
+.lq-fc-chip-add {
+  border-style: dashed;
+  border-color: rgba(201, 255, 61, 0.6);
+  color: var(--lq-glow);
+}
+.lq-fc-q-qty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+}
+.lq-fc-q-qty label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--lq-muted);
+}
+.lq-fc-q-qty input {
+  width: 92px;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-bg);
+  color: var(--lq-text);
+  font-size: 18px;
+  padding: 0 10px;
+}
+.lq-fc-q-save {
+  min-height: 46px;
+  padding: 0 18px;
+}
+.lq-fc-q-save:disabled {
+  opacity: 0.45;
+}
+.lq-fc-q-save-solo {
+  align-self: flex-start;
+}
+.lq-fc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--lq-muted);
+}
+.lq-fc-field input,
+.lq-fc-field select {
+  height: 48px;
+  border-radius: 10px;
+  border: 1px solid var(--lq-line-strong);
+  background: var(--lq-bg);
+  color: var(--lq-text);
+  font-size: 16px;
+  padding: 0 12px;
+  font-family: inherit;
+}
+.lq-fc-have {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--lq-line);
+}
+.lq-fc-have-sub {
+  margin: 0;
+  font-size: 13px;
+}
+.lq-fc-toast {
+  position: fixed;
+  top: 124px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  max-width: calc(100vw - 32px);
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--lq-glow);
+  color: #14101f;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
