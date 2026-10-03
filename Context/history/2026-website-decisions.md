@@ -868,3 +868,15 @@ to turn it on for that phone (remembered); `?pausecuts=0` turns it off.
 Tests: `check-voice-carry.mjs` (14), `check-recorder-pauses.mjs` (3), and 3 new
 scenarios in `check-liquor-voice.mjs` (12 in all). The recorder segments (9),
 recovery (4), deadlines (7) and food voice (42) suites still pass.
+
+## 2026-10-02 - Stop stays on screen while recording
+
+Jon's first pause-cut test, on Android: the live words grew and pushed "Stop &
+process" below the fold, so he had to scroll to find it. While recording, the
+Stop button is now pinned to the bottom of the screen, where the review sheet's
+Add button sits. The capped live-words box keeps the newest words in view. Both
+count screens that use the recorder panel get it.
+
+The test take itself, cut on pauses at 21.2, 22.6 and 21.8 s, read back all 20
+scripted bottles with the right numbers. The first cut fell between
+"Frangelico," and "three", and the carry-forward rejoined them.

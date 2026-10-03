@@ -251,6 +251,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     },
   });
 
+  // The live words box is capped in height; keep the newest words in view.
+  const liveTextRef = useRef<HTMLParagraphElement | null>(null);
+  useEffect(() => {
+    const el = liveTextRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [dict.transcript, dict.interim]);
+
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
 
@@ -1084,7 +1091,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             {dict.quiet && (
               <p className="lq-rec-warntext">Mic hasn’t heard anything for a bit — check the headset if you’re still counting.</p>
             )}
-            <p className="lq-rec-transcript">
+            <p className="lq-rec-transcript" ref={liveTextRef}>
               {dict.transcript ||
                 (!dict.armed ? (
                   // Bluetooth mic route still coming up — words spoken now would be lost.

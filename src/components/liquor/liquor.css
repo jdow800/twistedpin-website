@@ -887,8 +887,18 @@
 .lq-mic-meter.is-quiet .lq-mic-meter-fill {
   background: #ffcf5c;
 }
+/* Pinned to the bottom of the screen while recording, where the review sheet's
+   Add button sits. Jon, 2026-10-02: the live words pushed Stop below the fold,
+   and he had to scroll to find it. */
 .lq-rec-stop {
-  width: 100%;
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  max-width: 616px;
+  margin: 0 auto;
+  z-index: 15;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
 }
 .lq-searchlist {
   display: flex;
