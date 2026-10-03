@@ -1338,8 +1338,11 @@ export interface CountDetail {
   };
   lines: CountDetailLine[];
 }
-export async function getCountHistory(): Promise<CountSummary[]> {
-  const { counts } = await gatedJson<{ counts: CountSummary[] }>("/admin/bar/counts/history");
+/** Submitted counts, newest first. Food counts only when asked for: the
+ *  server's default is the liquor list. */
+export async function getCountHistory(section: Section = "bar"): Promise<CountSummary[]> {
+  const query = section === "bar" ? "" : `?section=${section}`;
+  const { counts } = await gatedJson<{ counts: CountSummary[] }>(`/admin/bar/counts/history${query}`);
   return counts;
 }
 export async function getCountDetail(id: string): Promise<CountDetail> {
@@ -1479,6 +1482,147 @@ export async function finalizeCountReport(
   id: string,
 ): Promise<{ ok: boolean; gradePct: number | null; missingCost: number }> {
   return gatedJson(`/admin/bar/counts/${id}/report/finalize`, { method: "POST" });
+}
+
+// ── food variance (per submitted full FOOD count; TPRS migration 0202) ──
+// A food count's report compares it with the food count before it: what the
+// kitchen used against what the bracket's sales and catering say it should
+// have. Version 1 is the original and stays the default; an admin re-run adds
+// a version beside it. Shapes mirror TPRS bar/food-variance.ts and
+// bar/food-variance-period.ts.
+export type FoodVarianceFlag =
+  | "not_in_start"
+  | "not_in_end"
+  | "unit_unrecorded"
+  | "unit_changed"
+  | "package_changed"
+  | "recipe_unit_mismatch"
+  | "no_yield"
+  | "no_cost"
+  | "negative_used"
+  | "negative_theoretical"
+  | "purchase_unconverted";
+export type FoodVarianceBand = "normal" | "watch" | "look";
+export interface FoodVarianceLine {
+  skuId: string;
+  name: string;
+  foodClass: "protein_cheese" | "produce" | "sauce_dry" | "bakery_frozen" | null;
+  /** What start, end, used and theoretical are counted in ("bag"). */
+  unit?: string | null;
+  start: number | null;
+  purchased: number;
+  end: number | null;
+  used: number | null;
+  theoretical: number | null;
+  /** used − theoretical: positive = more went out than sold. */
+  variance: number | null;
+  variancePct: number | null;
+  varianceDollars: number | null;
+  costPerCountUnit: number | null;
+  recipeUnit: string | null;
+  yieldUsed: number | null;
+  flags: FoodVarianceFlag[];
+  /** Flagged lines are left out of every total. */
+  clean: boolean;
+  band: FoodVarianceBand | null;
+  caseSizeChanged: boolean;
+  /** The dishes behind theoretical, in count units, biggest first. */
+  drivers: { label: string; units: number; estimate: boolean }[];
+}
+export interface FoodVarianceReportBody {
+  lines: FoodVarianceLine[];
+  noRecipe: { skuId: string; name: string; unit?: string | null; used: number | null; usedDollars: number | null }[];
+  totals: {
+    usedDollars: number;
+    theoreticalDollars: number;
+    netVarianceDollars: number;
+    variancePct: number | null;
+    cleanLines: number;
+    flaggedLines: number;
+  };
+  completeness: {
+    mappedSalesPct: number | null;
+    cleanTheoreticalPct: number | null;
+    incomplete: boolean;
+    reasons: string[];
+  };
+  caveats: string[];
+}
+export interface FoodVarianceBasis {
+  engine: number;
+  computedAt: string;
+  window: { start: string; end: string; days: number };
+  recipes: { md5: string; dishes: number; options: number; problems: number };
+  graded: string[];
+  purchases: {
+    unsettled: number;
+    unconverted: { skuId: string; name: string; lines: number; deliveries: number; dollars: number; reasons: string[] }[];
+  };
+  valuation: Record<string, "count_end" | "count_start" | "today">;
+  sales: { gotabRows: number; foodSalesCents: number };
+  catering: { rows: number; served: number; stranded: { bookingId: string; reason: string }[]; estimates: number };
+}
+/** The first food count has nothing to compare with: its report is this. */
+export interface FoodVarianceBaseline {
+  baseline: true;
+}
+export interface FoodVarianceVersion {
+  version: number;
+  priorSessionId: string | null;
+  periodStart: string | null;
+  periodEnd: string;
+  /** A draft settles for 3 hours (late invoices), then freezes. */
+  status: "draft" | "final";
+  /** First computed after that window, so final at once. */
+  catchUp: boolean;
+  report: FoodVarianceReportBody | FoodVarianceBaseline;
+  basis: FoodVarianceBasis | FoodVarianceBaseline;
+  /** A re-run's reason and who ran it; null on version 1. */
+  reason: string | null;
+  computedBy: string | null;
+  createdAt: string;
+  finalizedAt: string | null;
+}
+export interface FoodVarianceSummary {
+  sessionId: string;
+  priorSessionId: string | null;
+  periodStart: string | null;
+  periodEnd: string;
+  baseline: boolean;
+  status: "draft" | "final";
+  catchUp: boolean;
+  netVarianceDollars: number | null;
+  incomplete: boolean | null;
+  mappedSalesPct: number | null;
+  cleanTheoreticalPct: number | null;
+  versions: number;
+  createdAt: string;
+  finalizedAt: string | null;
+}
+/** Every food count with a report, newest first, by version 1's headline. */
+export async function getFoodVarianceList(): Promise<FoodVarianceSummary[]> {
+  const { reports } = await gatedJson<{ reports: FoodVarianceSummary[] }>("/admin/bar/food-variance");
+  return reports;
+}
+/** One food count's report, every version, the original first. null = none yet. */
+export async function getFoodVariance(sessionId: string): Promise<FoodVarianceVersion[] | null> {
+  try {
+    const { versions } = await gatedJson<{ versions: FoodVarianceVersion[] }>(`/admin/bar/food-variance/${sessionId}`);
+    return versions;
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+/** Re-read a frozen bracket with today's recipes, yields and purchases, as a
+ *  new version beside the original (admin only). 409 = a baseline or a draft;
+ *  503 = GoTab can't be read. */
+export async function rerunFoodVariance(sessionId: string, reason: string): Promise<{ version: number }> {
+  return gatedJson(`/admin/bar/food-variance/${sessionId}/rerun`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
 }
 
 // ── recipe gaps (the fix-it queue behind the daily alerts) ──

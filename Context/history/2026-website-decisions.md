@@ -1085,3 +1085,48 @@ came in verbatim from Opsi's count guide). The renames are database edits;
 they include the bar's "Walk In Cooler" becoming "Walk-In Cooler". The bottled
 beer section found its zone by that exact name, so it now matches either
 spelling. Its fallback, the bar walk's last zone, was the same cooler anyway.
+
+## 2026-10-03 - Food variance on /cogs: each food count against the one before
+
+TPRS now writes a food variance report for every submitted full food count
+(migration 0202, TPRS #326; Opsi BUILD-SPEC 11.121). This is its screen (Opsi
+BACKLOG P2 slice 6).
+- **The list:** a "Food variance" tile under Review opens it
+  (`views/FoodVariance.tsx`, CSS `lq-fv-*`). It shows each food count, newest
+  first:
+  - the baseline;
+  - a draft;
+  - a final report, with its net over or under and the share of food sales
+    that have a recipe;
+  - a submitted count whose report hasn't landed yet.
+
+  Partial counts stay off. Food counts are fetched with `?section=food`, and the
+  liquor list is untouched.
+- **One count's report** (`FoodVarianceReport.tsx`, pure):
+  - At the top: the net variance in dollars, both completeness measures and why
+    the report is incomplete, then the caveats.
+  - Then the ingredients, biggest dollars first. Each says what it was counted
+    in ("used 6 bags · recipes say 6.5") and carries a Watch or Look band when
+    it runs past its class's band.
+  - A line opens to its counts, cost and yield, and the dishes behind "recipes
+    say", with estimates marked. An item with no yield says recipes use it but
+    its share can't be counted yet, never "nothing sold uses it".
+  - Flagged lines sit under "Left out of the totals", with the reasons in
+    plain words.
+  - Then the items used with no recipe, and the deliveries that couldn't be
+    converted.
+- **Versions:** the original shows first and stays the report of record. A
+  re-run is a tab beside it, with who ran it, why, and what it changed against
+  the original: the net, the recipes, and each ingredient whose recipe share,
+  yield, dollars or standing moved.
+- **Re-run** is for admins only (`bar.manage`). It needs a reason, and works on
+  a final report that isn't a baseline. A draft says when it locks instead.
+- **Deep link:** `/cogs?view=foodvariance&count=<id>` opens that count's report.
+
+Tests:
+- `check-food-variance.mjs` (13): the actual screen with synthetic reports,
+  every request intercepted. A deliberate fault in the bundle fails it.
+- `check-food-variance-layout.mjs`: 320, 390 and 960px in headless Chrome. No
+  sideways scroll, nothing under 12px, tap rows at least 44px.
+- Strict TypeScript on the COGS app shows only the five pre-existing voice
+  `lib` errors. `npm run build` passes.

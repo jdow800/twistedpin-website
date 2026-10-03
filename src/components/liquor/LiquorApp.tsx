@@ -14,12 +14,13 @@ import PourCosts from "./views/PourCosts";
 import MapPours from "./views/MapPours";
 import RecipeBuilder from "./views/RecipeBuilder";
 import TeacherGroup from "./views/TeacherGroup";
+import FoodVariance from "./views/FoodVariance";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -30,8 +31,9 @@ type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | 
 // opens that invoice's detail inside the Invoices view, and implies view=invoices
 // on its own so the email URL stays short. ?count=<id> is the same idea for the
 // count-report and variance-report emails — land on THAT count's detail (and its
-// variance table), not on a list the reader then has to search.
-const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts"];
+// variance table), not on a list the reader then has to search. With
+// view=foodvariance, ?count=<id> opens that food count's variance report.
+const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance"];
 
 // Which catalog the app is working in (BUILD-SPEC decision 6 / migration 0166).
 // ABSENT MEANS 'bar', and that default is load-bearing rather than a
@@ -154,6 +156,13 @@ export default function LiquorApp() {
         {view === "mappours" && <MapPours onDone={goHome} />}
         {view === "recipes" && <RecipeBuilder onDone={goHome} />}
         {view === "teachergroup" && <TeacherGroup onDone={goHome} />}
+        {view === "foodvariance" && actor && (
+          <FoodVariance
+            onDone={goHome}
+            canRerun={actor.permissions.includes("bar.manage")}
+            initialCountId={requestedView === "foodvariance" ? requestedCountId : null}
+          />
+        )}
       </main>
     </div>
   );

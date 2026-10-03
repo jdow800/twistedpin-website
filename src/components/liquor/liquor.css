@@ -3340,3 +3340,126 @@
   font-weight: 700;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
 }
+
+/* ── food variance (views/FoodVariance.tsx, FoodVarianceReport.tsx) ───────
+   One food count against the one before it, per ingredient. Lines are
+   <details>: the summary is the verdict, the body the dishes behind it. */
+.lq-fv-intro {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.lq-fv-report {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lq-fv-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lq-muted);
+}
+.lq-fv-net {
+  font-size: 24px;
+  font-weight: 800;
+}
+.lq-fv-net-pct {
+  font-size: 15px;
+  font-weight: 700;
+}
+.lq-fv-incomplete {
+  border-color: rgba(255, 207, 92, 0.45);
+  border-left: 4px solid #ffcf5c;
+}
+.lq-fv-status {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.lq-fv-draft {
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 207, 92, 0.5);
+  border-radius: 8px;
+}
+.lq-fv-line > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 44px;
+  justify-content: center;
+}
+.lq-fv-line > summary::-webkit-details-marker {
+  display: none;
+}
+.lq-fv-line[open] {
+  border-color: var(--lq-line-strong);
+}
+.lq-fv-flagged {
+  border-style: dashed;
+}
+.lq-fv-why {
+  color: #ffcf5c;
+}
+.lq-fv-band {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid var(--lq-line);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lq-fv-band-watch {
+  color: #ffcf5c;
+  border-color: rgba(255, 207, 92, 0.45);
+}
+.lq-fv-band-look {
+  color: var(--lq-danger);
+  border-color: rgba(255, 138, 138, 0.5);
+}
+.lq-fv-detail {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--lq-line);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+.lq-fv-subhead {
+  margin-top: 4px;
+  font-weight: 700;
+}
+.lq-fv-driver {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lq-fv-estimate {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #ffcf5c;
+}
+.lq-fv-changes {
+  border-left: 4px solid var(--lq-glow);
+}
+.lq-fv-change {
+  line-height: 1.45;
+}
+.lq-fv-empty {
+  margin: 0;
+  font-size: 14px;
+}
+.lq-fv-rerun > p {
+  margin: 8px 0;
+}
+.lq-fv-rerun .lq-btn {
+  margin-top: 8px;
+}
+.lq-fv-rerun-message {
+  font-size: 14px;
+}
