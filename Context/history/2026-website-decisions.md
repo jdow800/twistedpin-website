@@ -1239,3 +1239,33 @@ were visually inspected. Strict TypeScript on the COGS app passes with ES2023
 libraries, and the complete Astro/Vercel production build passes. The fixtures
 use synthetic requests; a real Android phone-mic count saved and reopened is
 still owed by Jon.
+
+## 2026-10-03 - Food cost on /cogs: each food bracket's cost of goods against its sales
+
+TPRS now writes a food COGS report for every food bracket (migration 0206,
+TPRS #335-#337; Opsi BUILD-SPEC 11.125-11.127). This is its screen (Opsi M3.8).
+- **The list:** a "Food cost" tile under Review, after Food variance
+  (`views/FoodCost.tsx`, CSS `lq-fco-*` on top of `lq-fv-*`). It shows each
+  bracket at its **latest** version, the one trends read: the food + NA %,
+  COGS on sales, Provisional and Draft badges, and "v3 of 3" once versions
+  exist. It also lists the baseline and a submitted count still waiting.
+- **One bracket** (`FoodCostReport.tsx`, pure):
+  - **The headline:** the food + NA % against the 30% target and the 28-34% band (green at or under target, yellow inside the band, red past it).
+  - **The money:** COGS on sales, before rebates and the rebate, and sales by source (GoTab, catering). Mocktails moved to pour cost, and the whole-check discounts named beside and never subtracted.
+  - **USAR beside it,** with comps and staff meals out at recipe cost.
+  - **Provisional,** with every reason in words on the line it affects: no cost yet, a cost that looks wrong, the rebate not known for these dates, catering not completed, invoices not read.
+  - **Lines:** Food + NA (with food and NA apart under it), Paper (per cover), Supplies (below the line), bar produce on the food walk, and anything with no report line yet. Each opens to its items: opened, bought, closed and used, in the item's unit, with flags. A cost jump says "left out", never the dollars its bad cost would make.
+- **Versions** are tabs named by why they exist: Original, Re-run, Revalued
+  (by whom, with the reason; both brackets the count bounds moved together)
+  or Updated (TPRS, when a missing Brunswick report, invoice or catered event
+  arrived).
+- **Admin only, on the latest version:**
+  - **Fix costs** reads both counts' line costs (`/admin/bar/counts/:id/costs`, TPRS #337).
+    - It lists what needs a price: unpriced items, and both ends of a cost jump with a hint to fix the wrong one.
+    - It pre-fills TPRS's suggestion and sends every shelf of an item. Each count is revalued on its own.
+    - It says which versions were written, and that a draft picks the cost up when it locks. It fetches nothing when nothing needs a price.
+  - **Re-run** works as Food variance's does.
+- **QA:**
+  - `scripts/qa-liquor-bottle-sizes/check-food-cost.mjs`: 18 jsdom scenarios on the real screen.
+  - `check-food-cost-layout.mjs`: 12 headless-Chrome states (list, latest, original, Fix costs at 320/390/960px). No sideways scroll, nothing under 12px, no tap target under 44px. The screenshots were looked at.
+  - TypeScript on the COGS components is clean (its one `import.meta.env` error is environmental), and the full Astro production build passes.

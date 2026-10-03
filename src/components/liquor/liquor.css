@@ -3521,3 +3521,40 @@
 .lq-fv-rerun-message {
   font-size: 14px;
 }
+
+/* ── food cost (views/FoodCost.tsx, FoodCostReport.tsx) ─────────────────
+   One food bracket's cost of goods, by report line. Shares the food
+   variance layout (lq-fv-*); these are the pieces it adds. */
+.lq-fco-watch {
+  color: #ffcf5c;
+}
+.lq-fco-amt {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.lq-fco-price {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--lq-line);
+}
+.lq-fco-price-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.lq-fco-price-input input {
+  width: 7em;
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid var(--lq-line);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.lq-fco-fix .lq-btn {
+  margin-top: 8px;
+}

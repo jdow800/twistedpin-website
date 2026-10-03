@@ -219,6 +219,37 @@ running, set `FOOD_QA_CHROME` to a Chromium executable and run
 and a draft at 320, 390 and 960px for sideways scroll, text under 12px and tap
 rows under 44px. Screenshots stay in ignored `dist/`.
 
+Food cost (2026-10-03) runs the actual `FoodCost` screen and its pure
+`FoodCostReport` with synthetic brackets; every request is intercepted:
+
+```powershell
+node serve.mjs --food-cost --build-only
+node check-food-cost.mjs
+```
+
+The 18 checks cover:
+- the list at each bracket's latest version, and the states around it: no
+  counts, a failed load, a pending count, a provisional draft, the baseline;
+- one bracket: the headline against the target and band, sales by source,
+  mocktails out, discounts named beside, USAR beside, each line with food and
+  NA apart, paper per cover, and an empty line left off;
+- the original version's provisional reasons in words, a cost jump "left out"
+  and an unpriced item with no dollars; the revalued and updated versions'
+  status lines;
+- an admin re-run and its refusal;
+- Fix costs: what needs a price, TPRS's suggestion pre-filled, every shelf of
+  an item sent, each count revalued on its own, the neighbouring bracket's
+  version, a refusal, and nothing fetched when nothing needs a price;
+- no Fix costs or Re-run for a manager, a draft's lock time, the deep link,
+  and the pure helpers.
+
+`?mode=empty`, `?mode=error`, `?mode=rerun-fail`, `?mode=revalue-fail`,
+`?admin=0` and `?count=count-b` switch the fixture. With
+`node serve.mjs --food-cost` running, set `FOOD_QA_CHROME` to a Chromium
+executable and run `node check-food-cost-layout.mjs`. It checks the list, the
+latest version, the original and Fix costs at 320, 390 and 960px for sideways
+scroll, text under 12px and tap targets under 44px.
+
 ## Recipes
 
 The actual `RecipeBuilder` screen, with synthetic gaps, catalog and saved
