@@ -204,6 +204,22 @@ await run("a count that matches the bottle's name number asks before it can be a
   assert.equal(Number(line?.qtyUnits ?? 0),0.9,'the answered 0.9, not the heard 7.9');
 }, 'seagrams');
 
+// Jon's phone pass, 2026-10-02: a screen loaded before an edit made elsewhere
+// saved its stale copy over that edit. Now the save is refused and merged.
+await run('a save refused because the count changed elsewhere keeps both changes',async t => {
+  await t.shelf('Back Bar');
+  t.doc.querySelector('button[aria-label="increase"]').click(); await pause(); // Jameson 2 → 3
+  const puts = () => t.qa.calls.filter(c => c.path.endsWith('/lines'));
+  await until(() => puts().length >= 2,'refused save, then the merge');
+  assert.equal(puts()[0].body.baseHash,'server1','built on the draft it loaded');
+  assert.equal(puts()[1].body.baseHash,'server2','the merge is built on the draft as it is now');
+  const sent = Object.fromEntries(Array.from(puts()[1].body.lines, l => [`${l.zoneId}:${l.skuId}`, Number(l.qtyUnits)]));
+  assert.deepEqual(sent,{'backbar:jameson':3,'well:titos':7},'my Jameson and their Tito\'s');
+  await until(() => /included a change made elsewhere/.test(t.doc.body.textContent),'Merge notice');
+  await t.shelf('Well');
+  assert.ok(t.doc.querySelector('button[aria-label="remove Tito\'s Handmade Vodka"]'),'the screen shows the other edit');
+}, 'stale');
+
 // The fixture starts with 2 Jameson already on the Back Bar.
 await run("the grid's remove button still clears the bottle on the selected shelf",async t => {
   await t.shelf('Back Bar');

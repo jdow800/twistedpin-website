@@ -57,6 +57,9 @@ const initialLines = params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyU
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
 const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null};
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
+// ?stale: the draft changed elsewhere after this screen loaded it (3 Giant
+// Pretzels were added), so the first save is refused once with the lines now.
+let refuseNextSave = params.has('stale');
 window.fetch = async (input, init = {}) => {
   const url = new URL(String(input), location.origin);
   const path = url.pathname;
@@ -64,13 +67,23 @@ window.fetch = async (input, init = {}) => {
   qa.calls.push({path, query:url.search, method:init.method || 'GET', body});
   if (path.endsWith('/catalog')) return json({items:catalog});
   if (path.endsWith('/zones')) return json({zones});
-  if (path.endsWith('/counts/open')) return json({session:{id:'food-trial',section:'food',isFullCount:true,lines:initialLines}});
+  if (path.endsWith('/counts/open')) return json({session:{id:'food-trial',section:'food',isFullCount:true,lines:initialLines,
+    ...(params.has('stale') ? {linesHash:'server1'} : {})}});
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed', message},502)); }});
   });
   if (path.endsWith('/case-size')) return json({unitsPerCase:body.unitsPerCase});
   if (/\/skus\/[^/]+\/active$/.test(path)) return json({active:body.active,name:path.split('/').at(-2)});
-  if (path.endsWith('/lines')) { qa.lines = body.lines; return json({ok:true}); }
+  if (path.endsWith('/lines')) {
+    if (refuseNextSave) {
+      refuseNextSave = false;
+      const line = (skuId, qtyUnits) => ({zoneId:'freezer', skuId, qtyUnits, enteredCases:null, caseSizeAtEntry:null,
+        enteredPacks:null, packSizeAtEntry:null, source:'grid', rawUtterance:null});
+      return json({error:'draft_changed', lines:[line('dough','1.000'), line('pretzel','3.000')], linesHash:'server2'}, 409);
+    }
+    qa.lines = body.lines;
+    return json({ok:true, ...(params.has('stale') ? {linesHash:'saved'} : {})});
+  }
   if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[]});
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected food fixture request: '+path);

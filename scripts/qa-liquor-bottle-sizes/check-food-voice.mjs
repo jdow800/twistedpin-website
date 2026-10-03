@@ -534,4 +534,16 @@ await run('pause cuts: a one-item take is matched once, at Stop',async t => {
   await until(() => t.review().length===1);
   assert.equal(t.saved().length,0,'review still needs Apply');
 },false,true);
+// A screen loaded before an edit made elsewhere (Jon's phone pass, 2026-10-02):
+// the stale save is refused, merged and saved with both changes.
+await run('a save refused because the count changed elsewhere keeps both changes',async t => {
+  await t.input('Pizza Dough: loose packs','4');
+  const puts = () => t.qa.calls.filter(c => c.path.endsWith('/lines'));
+  await until(() => puts().length >= 2);
+  assert.equal(puts()[0].body.baseHash,'server1');
+  assert.equal(puts()[1].body.baseHash,'server2');
+  assert.deepEqual(Object.fromEntries(Array.from(t.qa.lines, l => [l.skuId, Number(l.qtyUnits)])),{dough:4,pretzel:3});
+  await until(() => /included a change made elsewhere/.test(t.doc.body.textContent));
+},'existing&stale');
+
 console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);

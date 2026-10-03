@@ -950,3 +950,25 @@ that merge and gains its data once it lands.
 Tests: `check-liquor-voice.mjs` (19), `check-voice-carry.mjs` (18), and the
 recorder (9, 3, 4), deadline (7), food (45), discontinued (6) and bottle-size
 UI (8) suites. `astro build` passes.
+
+## 2026-10-03 - A stale count screen merges instead of overwriting
+
+From Jon's 10-02 phone pass. A count save replaces the whole draft, so a
+screen loaded before an edit made somewhere else (an admin's correction, an
+old tab, a second phone) saved its old copy straight over it. TPRS now refuses
+a save built on an older draft (`baseHash`, in the TPRS PR of the same day).
+- **`draftSync.ts`:** the liquor and food count screens queue their saves, so
+  their own overlapping saves can't refuse each other. Each save says which
+  draft it was built on.
+- **When a save is refused,** the screen merges: cells the counter changed
+  keep their numbers, and every other cell takes the current draft's. It saves
+  the merge and shows "included a change made elsewhere" by the save status.
+- **Bottled beer is unchanged** (it builds its rows differently), so it still
+  replaces the draft as before.
+- **Deploy order doesn't matter:** a screen only sends a fingerprint once the
+  server has handed it one.
+
+Tests: `check-draft-sync.mjs` (6, new), plus one end-to-end scenario each in
+`check-liquor-voice.mjs` (20) and `check-food-voice.mjs` (46). The
+bottle-size (8), beer (8), discontinued (6), recorder and deadline suites still
+pass, and so does `astro build`.

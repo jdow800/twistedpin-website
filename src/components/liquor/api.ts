@@ -309,6 +309,9 @@ export interface OpenCount {
   section: Section;
   startedAt: string;
   lines: OpenCountLine[];
+  /** The fingerprint of `lines`; the screen's next save says it was built on
+   *  it. Absent from a server that predates it. */
+  linesHash?: string;
   /** Batch rows resume alongside the lines — a draft that came back without
    *  them would look like nobody walked the prep shelf, and the next save
    *  (authoritative, not a patch) would erase them for real. */
@@ -365,10 +368,31 @@ export async function saveCountLines(
   lines: CountLineInput[],
   isFullCount = true,
   section: Section = "bar",
-): Promise<void> {
-  await gatedJson(`/admin/bar/counts/${sessionId}/lines`, {
-    ...jsonBody({ lines, isFullCount, section }), method: "PUT",
-  });
+  /** The fingerprint of the draft these lines were built on (draftSync.ts).
+   *  Without it the save replaces the draft unconditionally, as before. */
+  baseHash: string | null = null,
+): Promise<{ linesHash?: string }> {
+  try {
+    return await gatedJson<{ linesHash?: string }>(`/admin/bar/counts/${sessionId}/lines`, {
+      ...jsonBody({ lines, isFullCount, section, ...(baseHash ? { baseHash } : {}) }), method: "PUT",
+    });
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 409) {
+      const body = (() => { try { return JSON.parse(String(e.body)); } catch { return null; } })();
+      if (body?.error === "draft_changed" && Array.isArray(body.lines)) throw new DraftChangedError(body.lines, body.linesHash);
+    }
+    throw e;
+  }
+}
+/** The draft changed elsewhere since this screen's last save (TPRS PUT /lines). */
+export class DraftChangedError extends Error {
+  constructor(
+    readonly lines: OpenCountLine[],
+    readonly linesHash: string,
+  ) {
+    super("This count changed somewhere else since this screen loaded it.");
+    this.name = "DraftChangedError";
+  }
 }
 /** One flagged bottle from the pre-submit sanity check. */
 export interface PrecheckFinding {

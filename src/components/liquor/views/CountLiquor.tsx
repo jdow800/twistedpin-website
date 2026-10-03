@@ -28,6 +28,7 @@ import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled } from "../voiceSwitches";
+import { createDraftSaver, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 
@@ -299,6 +300,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           sid = open.id;
           setSessionId(sid);
           setCounts(rebuildCounts(open.lines));
+          saverRef.current!.loaded(open.lines, open.linesHash);
           const bc: Record<string, Record<string, number>> = {};
           for (const b of open.batches ?? []) {
             (bc[b.zoneId] ??= {})[b.batchId] = Number(b.fullEquivalents);
@@ -308,6 +310,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         } else {
           sid = await createCount(true);
           setSessionId(sid);
+          saverRef.current!.loaded([], null);
         }
         setZoneId(resumeZone(sid, z));
         setPhase("ready");
@@ -336,6 +339,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // shelf one, having never touched the picker we listen to. Found in review.
       rememberZone(sid, zoneIdRef.current);
       setCounts({});
+      saverRef.current!.loaded([], null);
       setBatchCounts({});
       setResumed(false);
       setSave("idle");
@@ -350,6 +354,24 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   countsRef.current = counts;
   const batchCountsRef = useRef(batchCounts);
   batchCountsRef.current = batchCounts;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+  /** Saves built on the draft this screen last saw, so a stale screen merges
+   *  instead of overwriting an edit made elsewhere (draftSync.ts). */
+  const [merged, setMerged] = useState(false);
+  const saverRef = useRef<ReturnType<typeof createDraftSaver> | null>(null);
+  if (!saverRef.current) {
+    saverRef.current = createDraftSaver({
+      save: (lines, baseHash) => saveCountLines(sessionIdRef.current!, lines, true, "bar", baseHash),
+      current: () => flatten(countsRef.current),
+      adopt: (lines) => {
+        const next = rebuildCounts(toOpenLines(lines));
+        countsRef.current = next;
+        setCounts(next);
+        setMerged(true);
+      },
+    });
+  }
 
   // Voice restatements — the Empress 1908 double-count (2026-08-07). The GM
   // said "Empress 1.1", wasn't sure it registered, and said it again in a
@@ -384,10 +406,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (!sessionId) return;
     // An empty list is SENT, not skipped — it is how "I removed the last
     // bottle" reaches the server. Skipping it left the deleted rows alive.
-    const lines = flatten(countsRef.current);
     setSave("saving");
     try {
-      await saveCountLines(sessionId, lines);
+      await saverRef.current!.save();
       await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       setSave("saved");
     } catch {
@@ -923,7 +944,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // Flush FIRST — the check runs server-side against saved lines, so an
       // unsaved last edit would be checked in its old form.
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      await saveCountLines(sessionId, flatten(countsRef.current));
+      await saverRef.current!.save();
       await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       setSave("saved");
     } catch {
@@ -1027,7 +1048,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setSave("saving");
     try {
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      await saveCountLines(sessionId, flatten(countsRef.current));
+      await saverRef.current!.save();
       await saveBatchCounts(sessionId, flattenBatches(batchCountsRef.current));
       const n = await submitCount(sessionId);
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
@@ -1418,6 +1439,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         <div className="lq-savestate">
           {save === "saving" && "Saving…"}
           {save === "saved" && "Saved ✓"}
+          {merged && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
           {save === "error" && <span className="lq-error">Save failed — will retry on submit</span>}
         </div>
         <div className="lq-footer-actions">

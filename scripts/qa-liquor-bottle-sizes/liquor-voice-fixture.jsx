@@ -35,6 +35,13 @@ const precheck = () => params.has('many-findings')
     ? {baseline:false, findings:nine.slice(0, 6), truncated:3, retiring:[], sizeWarnings:[]}
     : {baseline:true, findings:[], retiring:[], sizeWarnings:[]};
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
+// ?stale: the draft changed elsewhere after this screen loaded it (7 Tito's
+// were added on the well), so the first save is refused once with the lines
+// as they are now.
+let refuseNextSave = params.has('stale');
+const line = (zoneId, skuId, qtyUnits) => ({zoneId, skuId, qtyUnits, enteredCases:null, caseSizeAtEntry:null,
+  enteredPacks:null, packSizeAtEntry:null, source:'grid', rawUtterance:null});
+let saves = 0;
 window.fetch = async (input, init = {}) => {
   const url = new URL(String(input), location.origin);
   const path = url.pathname;
@@ -43,12 +50,20 @@ window.fetch = async (input, init = {}) => {
   if (path.endsWith('/catalog')) return json({items:catalog});
   if (path.endsWith('/zones')) return json({zones});
   if (path.endsWith('/counts/open')) return json({session:{id:'liquor-draft', section:'bar', isFullCount:true,
-    startedAt:new Date().toISOString(), lines:initialLines, batches:[]}});
+    startedAt:new Date().toISOString(), lines:initialLines, batches:[], linesHash:'server1'}});
   if (path.endsWith('/batches')) return json({batches:[]});
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }});
   });
-  if (path.endsWith('/lines')) { qa.lines = body.lines; return json({ok:true}); }
+  if (path.endsWith('/lines')) {
+    if (refuseNextSave) {
+      refuseNextSave = false;
+      return json({error:'draft_changed', message:'This count changed somewhere else since this screen loaded it.',
+        lines:[line('backbar', 'jameson', '2.000'), line('well', 'titos', '7.000')], linesHash:'server2'}, 409);
+    }
+    qa.lines = body.lines;
+    return json({upserted:body.lines.length, linesHash:`saved${++saves}`});
+  }
   if (path.endsWith('/precheck')) return json(precheck());
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected liquor fixture request: '+path);

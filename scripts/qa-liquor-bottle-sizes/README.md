@@ -111,6 +111,15 @@ node check-beer-layout.mjs
 
 The browser runs headless with a fresh temporary profile and tests 320, 360, 375, 390, 412, and 640 px. It checks room for four quantity digits, then dispatches touchscreen events to fixed button coordinates and confirms every tap adds one loose bottle without moving to another tier or zooming. Screenshots and measurements are saved in ignored `dist/`; the temporary profile is removed. This uses Chromium mobile emulation, not John's physical Android phone. It does not prove the separately reported jump to thousands.
 
+## Stale-screen saves
+
+`node check-draft-sync.mjs` covers `draftSync.ts` with no DOM, in 6 checks:
+the three-way merge (my edits win, untouched cells take the server's), and the
+ordered saver (each save is built on the last fingerprint, and a refused save
+merges and saves once). The liquor (`?stale`) and food (`existing&stale`)
+fixtures each refuse their first save once, so one scenario per screen proves
+the merge end to end.
+
 ## Voice timeout recovery
 
 Run `node check-voice-deadlines.mjs` for the actual API client with stalled

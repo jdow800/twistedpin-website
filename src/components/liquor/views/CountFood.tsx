@@ -20,6 +20,7 @@ import {
   type VoiceExtractItem,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
+import { createDraftSaver, toOpenLines } from "../draftSync";
 import { createCarry, splitFoodTail } from "../voiceCarry";
 import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
@@ -245,6 +246,24 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   const countsRef = useRef<Counts>({});
   countsRef.current = counts;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+  /** Saves built on the draft this screen last saw, so a stale screen merges
+   *  instead of overwriting an edit made elsewhere (draftSync.ts). */
+  const [merged, setMerged] = useState(false);
+  const saverRef = useRef<ReturnType<typeof createDraftSaver> | null>(null);
+  if (!saverRef.current) {
+    saverRef.current = createDraftSaver({
+      save: (lines, baseHash) => saveCountLines(sessionIdRef.current!, lines, true, "food", baseHash),
+      current: () => flatten(countsRef.current),
+      adopt: (lines) => {
+        const next = rebuild(toOpenLines(lines));
+        countsRef.current = next;
+        setCounts(next);
+        setMerged(true);
+      },
+    });
+  }
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
@@ -276,9 +295,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           sid = open.id;
           setSessionId(sid);
           setCounts(rebuild(open.lines));
+          saverRef.current!.loaded(open.lines, open.linesHash);
         } else {
           sid = await createCount(true, "food");
           setSessionId(sid);
+          saverRef.current!.loaded([], null);
         }
         setZoneId(resumeZone(sid, z));
         setPhase("ready");
@@ -321,7 +342,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!sid) return false;
     setSave("saving");
     try {
-      await saveCountLines(sid, flatten(countsRef.current), true, "food");
+      await saverRef.current!.save();
       setSave("saved");
       setSubmitErr(null);
       return true;
@@ -1654,6 +1675,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`}>
           {submitErr ??
             (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? "not saved" : "")}
+          {merged && !submitErr && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
         </div>
         <div className="lq-footer-actions">
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Home</button>
