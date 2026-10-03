@@ -41,10 +41,10 @@ async function scenario(name, test, query) {
     const tile = name => [...doc.querySelectorAll('.lq-zone')].find(b => b.querySelector('.lq-zone-name')?.textContent===name);
     const shelf = async name => { const t = tile(name); assert.ok(t && !t.disabled, `Shelf tile unavailable: ${name}`); t.click(); await pause(); };
     const start = () => click(/Record count for/);
-    const stop = () => click(/Stop & process/);
+    const stop = () => click(/Stop & review/);
     const segment = async (text,index) => { qa.recorder.segment(text,index); await pause(); };
     const finish = async text => { qa.recorder.finish(text); await pause(); };
-    const finishButton = () => button(/^(Finish & submit|Finish the recording first|Reading the recording back…|Add or discard the heard bottles first)$/);
+    const finishButton = () => button(/^(Finish count|Stop recording first|Reading speech…|Review heard items)$/);
     const saves = () => qa.calls.filter(c => c.path.endsWith('/lines')).length;
     /** One take: Start, a segment heard and matched, Stop, recorder delivers. */
     const hear = async entries => {
@@ -71,7 +71,7 @@ await run('shelf tiles hold still while the mic is live, and free up after Stop'
   assert.ok(t.tile('Back Bar').disabled,'a take is one shelf');
   await t.stop();
   assert.ok(!t.tile('Back Bar').disabled,'after Stop the take\'s shelf is pinned, so walking on is safe');
-  assert.ok(t.button('Processing recording…')?.disabled,'Stop cannot be tapped twice');
+  assert.ok(t.button('Reading speech…')?.disabled,'Stop cannot be tapped twice');
 });
 
 await run('a take lands on the shelf it started on, even with another tile selected at Apply',async t => {
@@ -110,12 +110,12 @@ await run('the review sheet names the shelf the take will be added to',async t =
 });
 
 await run('Finish waits for the recording, the read-back and the review',async t => {
-  assert.equal(t.finishButton().textContent.trim(),'Finish & submit');
+  assert.equal(t.finishButton().textContent.trim(),'Finish count');
   assert.ok(!t.finishButton().disabled);
   await t.shelf('Well');
   await t.start();
   assert.ok(t.finishButton().disabled,'RED before this change: Finish was live over a recording');
-  assert.equal(t.finishButton().textContent.trim(),'Finish the recording first');
+  assert.equal(t.finishButton().textContent.trim(),'Stop recording first');
   await t.segment('Titos, two.',0);
   t.qa.extracts[0].succeed([item('titos',2)]); await pause();
   await t.stop();
@@ -125,7 +125,7 @@ await run('Finish waits for the recording, the read-back and the review',async t
   assert.ok(t.finishButton().disabled,'the heard items are not in the count yet');
   await t.click('Add 1 to Well');
   assert.ok(!t.finishButton().disabled);
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.qa.calls.some(c => c.path.endsWith('/submit')),'Submit');
   const submitted = t.qa.lines.find(l => l.skuId==='titos');
   assert.equal(Number(submitted?.qtyUnits),2,'the spoken bottles reached the count before submit');
@@ -140,6 +140,9 @@ await run('Discard releases Finish, and a second take waits for the first one\'s
   assert.ok(!t.finishButton().disabled);
   assert.ok(!t.button(/Record count for/).disabled);
   assert.equal(t.qa.lines.filter(l => l.skuId==='titos').length,0,'a discarded take saves nothing');
+  await t.start();
+  assert.ok(t.button(/Stop & review/) && !t.button(/Stop & review/).disabled,'the next take can still be stopped');
+  await t.stop();
 });
 
 await run('the recorder ending on its own (mic denied) frees the tiles, Record and Finish',async t => {
@@ -208,7 +211,7 @@ await run("a count that matches the bottle's name number asks before it can be a
 // saved its stale copy over that edit. Now the save is refused and merged.
 await run('a save refused because the count changed elsewhere keeps both changes',async t => {
   await t.shelf('Back Bar');
-  t.doc.querySelector('button[aria-label="increase"]').click(); await pause(); // Jameson 2 → 3
+  t.doc.querySelector('button[aria-label="increase Jameson Irish Whiskey"]').click(); await pause(); // Jameson 2 → 3
   const puts = () => t.qa.calls.filter(c => c.path.endsWith('/lines'));
   await until(() => puts().length >= 2,'refused save, then the merge');
   assert.equal(puts()[0].body.baseHash,'server1','built on the draft it loaded');
@@ -254,7 +257,7 @@ await run('"find more" adds to the earlier take and is not asked again at submit
   await t.click(/^Add 1 to Back Bar$/);
   await until(() => t.saves() > before,'Save after Apply');
   assert.equal(Number(t.qa.lines.find(l => l.skuId === 'jameson')?.qtyUnits),5);
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   assert.doesNotMatch(t.doc.querySelector('.lq-confirm').textContent,/voice added/,'already answered on the sheet');
 });
@@ -281,7 +284,7 @@ await run('an ordinary count of a bottle with history does not ask',async t => {
 }, 'history');
 
 await run('the submit check opens with six findings, and "Show 3 more" reveals the rest',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   const names = () => [...t.doc.querySelectorAll('.lq-confirm .lq-precheck-name')].map(e => e.textContent);
   assert.equal(names().length,6,'the cap still decides what opens');
@@ -292,24 +295,25 @@ await run('the submit check opens with six findings, and "Show 3 more" reveals t
 }, 'many-findings');
 
 await run('a server without the extra findings keeps the old "+N more not shown" line',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   assert.match(t.doc.querySelector('.lq-confirm').textContent,/\+ 3 more not shown\./);
   assert.equal(t.button(/^Show \d+ more$/),undefined);
 }, 'many-findings-old');
 
 await run('a bottle under the wrong size asks once, names both causes and never says recount',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   const row = t.doc.querySelector('.lq-confirm .lq-precheck-row');
   assert.equal(row.querySelector('.lq-precheck-name').textContent,'Tanqueray London Dry Gin (750 ml + 1 L)');
-  assert.equal(row.querySelector('.lq-precheck-detail').textContent,'The 750 ml count rose 0.5 with none delivered, while the 1 L count fell 1. Was a 1 L bottle entered as a 750 ml, or is a delivery missing?');
-  assert.match(row.querySelector('.lq-precheck-why').textContent,/Check the size printed on the open bottles\. If each bottle really is the size it says, submit as-is\./);
+  assert.equal(row.querySelector('.lq-finding-evidence').textContent,'The 750 ml count rose 0.5 with none delivered, while the 1 L count fell 1. Was a 1 L bottle entered as a 750 ml, or is a delivery missing?');
+  assert.match(row.querySelector('.lq-finding-question').textContent,/Check bottle sizes and the delivery entry\./);
+  assert.equal(row.querySelector('.lq-finding-numbers'),null,'a size mixup has narrative evidence, not placeholder history');
   assert.doesNotMatch(row.textContent,/recount/i);
 }, 'size-mixup');
 
 await run('a check that cannot run stops to say so instead of submitting straight through',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   const dialog = t.doc.querySelector('.lq-confirm');
   assert.match(dialog.querySelector('.lq-h2').textContent,/The check couldn't run/);
@@ -319,7 +323,7 @@ await run('a check that cannot run stops to say so instead of submitting straigh
 }, 'check-fails');
 
 await run('a count that changed after the check is checked again, not closed on the old review',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Submit anyway');
   const prechecks = () => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
@@ -335,17 +339,17 @@ await run('a count that changed after the check is checked again, not closed on 
 }, 'recheck');
 
 await run('a refused Submit says the counts saved, instead of claiming Save failed',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Submit anyway');
   await until(() => /Count saved\. Couldn't submit it/.test(t.doc.querySelector('.lq-footer').textContent),'Submit error');
   assert.doesNotMatch(t.doc.querySelector('.lq-footer').textContent,/Save failed|Not saved/);
   assert.equal(t.qa.lines.length,1);
-  assert.ok(t.button('Finish & submit'));
+  assert.ok(t.button('Finish count'));
 }, 'submit-rejected');
 
 await run('a lost successful Submit response is recovered without another write',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Submit anyway');
   await until(() => /Count submitted/.test(t.doc.body.textContent),'Recovered submission');
@@ -354,7 +358,7 @@ await run('a lost successful Submit response is recovered without another write'
 }, 'submit-lost');
 
 await run('a lost Submit that is still a draft keeps the saved quantities and offers Finish again',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Submit anyway');
   await until(() => /Count saved\. Couldn't submit it/.test(t.doc.querySelector('.lq-footer').textContent),'Open draft');
@@ -364,7 +368,7 @@ await run('a lost Submit that is still a draft keeps the saved quantities and of
 }, 'submit-draft');
 
 await run('an unknown Submit outcome pauses writes until Check submission can read the count',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Submit anyway');
   await until(() => t.doc.querySelector('[aria-label="Check submission"]'),'Unknown outcome');
@@ -382,8 +386,8 @@ await run('an unknown Submit outcome pauses writes until Check submission can re
 
 await run('a failed save blocks Submit and Retry save persists the quantities',async t => {
   await t.shelf('Back Bar');
-  t.doc.querySelector('button[aria-label="increase"]').click(); await pause();
-  await t.click('Finish & submit');
+  t.doc.querySelector('button[aria-label="increase Jameson Irish Whiskey"]').click(); await pause();
+  await t.click('Finish count');
   await until(() => t.button('Retry save'),'Save failed with action');
   assert.match(t.doc.querySelector('.lq-footer').textContent,/Not saved yet/);
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
@@ -394,7 +398,7 @@ await run('a failed save blocks Submit and Retry save persists the quantities',a
 }, 'save-fails');
 
 await run('Retry check runs the advisory again and does not submit',async t => {
-  await t.click('Finish & submit');
+  await t.click('Finish count');
   await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
   await t.click('Retry check');
   await until(() => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length===2 && t.doc.querySelector('.lq-confirm'),'Check retried');

@@ -27,7 +27,7 @@ import BottledBeer from "./BottledBeer";
  * the email renders only the sections that arrived.
  */
 
-type Half = { sessionId: string | null; count: number };
+type Half = { sessionId: string | null; count: number; busy?: boolean; observed?: boolean };
 
 export default function KegCheck({ onDone }: { onDone: () => void }) {
   const [open, setOpen] = useState<"backups" | "empties" | "beer" | null>("backups");
@@ -37,7 +37,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [done, setDone] = useState<
-    { totalKegs: number; brandCount: number; totalBottles: number } | null
+    { totalKegs: number; brandCount: number; totalBottles: number; emailed: boolean } | null
   >(null);
 
   // Flush handles the children reassign on every render, so Send always
@@ -46,10 +46,12 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
   const flushEmpties = useRef<(() => Promise<boolean>) | null>(null);
   const flushBeer = useRef<(() => Promise<boolean>) | null>(null);
 
-  const nothingEntered = backups.count === 0 && empties.count === 0 && beer.count === 0;
+  const voicePending = backups.busy || empties.busy;
+  const beerCounted = beer.count > 0 || beer.observed;
+  const nothingEntered = backups.count === 0 && empties.count === 0 && !beerCounted;
 
   async function send() {
-    if (submitting || nothingEntered) return;
+    if (submitting || nothingEntered || voicePending) return;
     setSubmitting(true);
     setErr(null);
     try {
@@ -72,12 +74,13 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
         // draft is left open rather than closed empty.
         kegCountId: backups.count > 0 ? backups.sessionId : null,
         emptyReportId: empties.count > 0 ? empties.sessionId : null,
-        beerCountId: beer.count > 0 ? beer.sessionId : null,
+        beerCountId: beerCounted ? beer.sessionId : null,
       });
       setDone({
         totalKegs: res.totalKegs,
         brandCount: res.brandCount,
         totalBottles: res.totalBottles,
+        emailed: res.emailed,
       });
     } catch (error) {
       setErr(error instanceof BarApiError && error.status === 409
@@ -91,14 +94,14 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
     const parts = [
       done.totalKegs > 0 ? `${done.totalKegs} backup keg${done.totalKegs === 1 ? "" : "s"}` : null,
       done.brandCount > 0 ? `${done.brandCount} brand${done.brandCount === 1 ? "" : "s"} empty` : null,
-      done.totalBottles > 0
+      beerCounted
         ? `${done.totalBottles} bottle${done.totalBottles === 1 ? "" : "s"} of beer`
         : null,
     ].filter(Boolean);
     return (
       <div className="lq-center">
         <p className="lq-done-emoji" aria-hidden="true">✅</p>
-        <h2 className="lq-h2">Keg check sent</h2>
+        <h2 className="lq-h2">{done.emailed ? "Keg check sent" : "Keg check saved"}</h2>
         <p className="lq-muted">{parts.join(" · ")}</p>
         <button className="lq-btn lq-btn-primary" onClick={onDone}>
           Done
@@ -110,7 +113,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-kegcheck">
       <p className="lq-muted lq-keg-hint">
-        Every section is optional — fill in whatever you looked at. One email goes out.
+        Count the sections you checked, then send once.
       </p>
 
       <section className="lq-kc-section">
@@ -118,6 +121,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-kc-head"
           aria-expanded={open === "backups"}
+          disabled={submitting || !!voicePending}
           onClick={() => setOpen(open === "backups" ? null : "backups")}
         >
           <span className="lq-kc-caret" aria-hidden="true">{open === "backups" ? "▾" : "▸"}</span>
@@ -132,7 +136,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
         {/* Kept mounted when collapsed: unmounting would tear down the child's
             session + autosave and lose anything typed but not yet flushed. */}
         <div className={open === "backups" ? "lq-kc-body" : "lq-kc-body lq-kc-hidden"}>
-          <CountKegs embedded onEmbedState={setBackups} embedFlushRef={flushBackups} />
+          <CountKegs embedded locked={submitting} onEmbedState={setBackups} embedFlushRef={flushBackups} />
         </div>
       </section>
 
@@ -141,19 +145,20 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-kc-head"
           aria-expanded={open === "empties"}
+          disabled={submitting || !!voicePending}
           onClick={() => setOpen(open === "empties" ? null : "empties")}
         >
           <span className="lq-kc-caret" aria-hidden="true">{open === "empties" ? "▾" : "▸"}</span>
           <span className="lq-kc-names">
             <span className="lq-kc-title">Empty kegs</span>
-            <span className="lq-kc-sub">let me know what we have a lot of</span>
+            <span className="lq-kc-sub">rough amount by brand</span>
           </span>
           <span className={`lq-kc-badge${empties.count > 0 ? " lq-kc-badge-on" : ""}`}>
             {empties.count}
           </span>
         </button>
         <div className={open === "empties" ? "lq-kc-body" : "lq-kc-body lq-kc-hidden"}>
-          <EmptyKegs embedded onEmbedState={setEmpties} embedFlushRef={flushEmpties} />
+          <EmptyKegs embedded locked={submitting} onEmbedState={setEmpties} embedFlushRef={flushEmpties} />
         </div>
       </section>
 
@@ -162,6 +167,7 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
           type="button"
           className="lq-kc-head"
           aria-expanded={open === "beer"}
+          disabled={submitting || !!voicePending}
           onClick={() => setOpen(open === "beer" ? null : "beer")}
         >
           <span className="lq-kc-caret" aria-hidden="true">{open === "beer" ? "▾" : "▸"}</span>
@@ -169,12 +175,12 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
             <span className="lq-kc-title">Bottled beer</span>
             <span className="lq-kc-sub">cases, six-packs, bottles</span>
           </span>
-          <span className={`lq-kc-badge${beer.count > 0 ? " lq-kc-badge-on" : ""}`}>
-            {beer.count}
+          <span className={`lq-kc-badge${beerCounted ? " lq-kc-badge-on" : ""}`}>
+            {beer.count > 0 ? beer.count : beerCounted ? "✓" : "0"}
           </span>
         </button>
         <div className={open === "beer" ? "lq-kc-body" : "lq-kc-body lq-kc-hidden"}>
-          <BottledBeer embedded onEmbedState={setBeer} embedFlushRef={flushBeer} />
+          <BottledBeer embedded locked={submitting} onEmbedState={setBeer} embedFlushRef={flushBeer} />
         </div>
       </section>
 
@@ -183,18 +189,18 @@ export default function KegCheck({ onDone }: { onDone: () => void }) {
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">
             {backups.count} keg{backups.count === 1 ? "" : "s"} · {empties.count} empty ·{" "}
-            {beer.count} beer
+            {beerCounted ? "beer counted" : "beer unchecked"}
           </span>
-          <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
-            Exit
+          <button type="button" className="lq-btn lq-btn-ghost" disabled={submitting || !!voicePending} onClick={onDone}>
+            Home
           </button>
           <button
             type="button"
             className="lq-btn lq-btn-primary"
-            disabled={submitting || nothingEntered}
+            disabled={submitting || nothingEntered || voicePending}
             onClick={send}
           >
-            {submitting ? "Sending…" : "Send report"}
+            {submitting ? "Sending…" : voicePending ? "Finish recording first" : "Send report"}
           </button>
         </div>
       </div>

@@ -187,7 +187,7 @@ await run('unknown case sizes remain in review instead of silently saving',async
   await t.start(); await t.segment('two cases of unknown package',0);
   t.qa.extracts[0].succeed([item('unknown',0,{cases:2,needsCaseSize:true})]);
   await t.stop(); await t.finish('two cases of unknown package');
-  assert.match(t.doc.body.textContent,/How many packs in a case/);
+  assert.match(t.doc.body.textContent,/packs per case\?/);
   assert.equal(t.review().length,1);
   const apply=t.button(/^Add .*Pizza Freezer/);
   assert.ok(apply.disabled);
@@ -204,6 +204,9 @@ await run('an open submit panel stays blocked through recording, extraction and 
   t.qa.extracts[0].succeed([item('dough',2)]);
   await until(() => t.review().length===1);
   assert.ok(t.button('Finish the recording first').disabled);
+  const checks=t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+  await t.click('Review 1 heard');
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,checks,'returning to review cannot run another precheck');
   assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')));
   await t.apply();
   await t.click('Submit the count');
@@ -514,7 +517,8 @@ await run('an unknown crust case size asks about the package before manual entry
 await run('an unknown crust case size blocks a bare half case until its package is confirmed',async t => {
   await t.hear([item('cauliflower',0.5,{spoken:'cauliflower crust half',spokenUnit:null})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.match(t.doc.body.textContent,/How many each in a case of Cauliflower Crust/);
+  assert.ok(t.doc.querySelector('.lq-fc-rev input[aria-label="Units per case for Cauliflower Crust"]'),'the heard crust row asks for its case size');
+  assert.match(t.doc.querySelector('.lq-fc-rev').textContent,/Pieces per case\?/);
   await t.input('Units per case for Cauliflower Crust','12');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,6);
@@ -562,7 +566,7 @@ await run('confirmed base labels do not ask how many heads in one head',async t 
 await run('uncertain unit blocks the default and editing only a number does not bypass it',async t => {
   await t.hear([item('celery',3,{spoken:'celery three',spokenUnit:null,unitNeedsReview:true})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.match(t.doc.body.textContent,/what unit does 3 refer to/);
+  assert.match(t.doc.body.textContent,/Which unit for 3\?/);
   await t.input('Loose quantity for Sample Celery','2');
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   assert.equal(t.saved().length,0);
@@ -582,7 +586,7 @@ await run('a manually named unknown unit requires its own conversion',async t =>
   await t.input('Spoken unit for Sample Celery','tray');
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   await t.click('Use unit');
-  assert.match(t.doc.body.textContent,/How many bunches in one tray/);
+  assert.match(t.doc.body.textContent,/bunches per tray\?/);
   await t.input('Package size for Sample Celery','2');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,4);
@@ -592,7 +596,7 @@ await run('typing an explicit Cases quantity resolves a case-only unit question'
   await t.hear([item('dough',3,{spoken:'dough three',spokenUnit:null,unitNeedsReview:true})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   await t.input('Cases for Pizza Dough','2.5');
-  assert.doesNotMatch(t.doc.body.textContent,/what unit does 0 refer to/);
+  assert.doesNotMatch(t.doc.body.textContent,/Which unit for 0\?/);
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits,2.5);
   assert.match(t.qa.lines.find(l=>l.skuId==='dough').rawUtterance,/confirmed: 2\.5 cases/);
@@ -711,7 +715,7 @@ await run('findings past the first six sit behind "Show 2 more"',async t => {
   await t.click('Finish (1)');
   await until(() => t.doc.querySelector('.lq-fc-rev-h'));
   const names = () => [...t.doc.querySelectorAll('.lq-fc-rev-spoken')].map(e => e.textContent);
-  assert.match(t.doc.querySelector('.lq-fc-rev-h').textContent,/^8 things worth a second look/);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-h').textContent,'Check 8 items');
   assert.equal(names().length,6);
   await t.click('Show 2 more');
   assert.deepEqual(names(),Array.from({length:8},(_,i) => `Missing item ${i+1}`));

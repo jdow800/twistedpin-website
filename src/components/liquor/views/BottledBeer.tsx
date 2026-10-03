@@ -10,6 +10,8 @@ import {
   type OpenCountLine,
 } from "../api";
 import { createDraftSaver, toOpenLines } from "../draftSync";
+import { formatQty } from "../quantity";
+
 
 /**
  * BOTTLED BEER — the third half of the Keg Check screen.
@@ -46,10 +48,11 @@ type Row = {
   caseSize: number | null;
   cases: number;
   packs: number;
+  packSize: number;
   loose: number;
 };
 
-const totalOf = (r: Row) => r.cases * (r.caseSize ?? 0) + r.packs * PACK_SIZE + r.loose;
+const totalOf = (r: Row) => r.cases * (r.caseSize ?? 0) + r.packs * r.packSize + r.loose;
 
 /** A row as a saved line describes it, tier by tier. No line is an empty row. */
 function rowFromLine(sku: { skuId: string; name: string; caseSize: number | null }, l: OpenCountLine | undefined): Row {
@@ -66,6 +69,7 @@ function rowFromLine(sku: { skuId: string; name: string; caseSize: number | null
     caseSize,
     cases,
     packs,
+    packSize,
     loose: Math.max(0, qty - cases * (caseSize ?? 0) - packs * packSize),
   };
 }
@@ -79,18 +83,21 @@ function linesOf(rs: Row[], zoneId: string): CountLineInput[] {
     qtyUnits: totalOf(r),
     source: "grid" as const,
     ...(r.cases > 0 && r.caseSize ? { enteredCases: r.cases, caseSizeAtEntry: r.caseSize } : {}),
-    ...(r.packs > 0 ? { enteredPacks: r.packs, packSizeAtEntry: PACK_SIZE } : {}),
+    ...(r.packs > 0 ? { enteredPacks: r.packs, packSizeAtEntry: r.packSize } : {}),
   }));
 }
 
 export default function BottledBeer({
   embedded = false,
+  locked = false,
   onEmbedState,
   embedFlushRef,
 }: {
   embedded?: boolean;
-  onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
+  locked?: boolean;
+  onEmbedState?: (s: { sessionId: string | null; count: number; observed?: boolean }) => void;
   embedFlushRef?: { current: (() => Promise<boolean>) | null };
+
 }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -137,6 +144,7 @@ export default function BottledBeer({
         // first takes that phone's number for it instead of this screen's 0.
         if (zone) saverRef.current!.loaded(toOpenLines(linesOf(loaded, zone.id)), open?.linesHash);
         if (open && open.lines.length > 0) setResumed(true);
+
         // Only open a draft once there is something to count. Without this the
         // section mints an empty partial session on every visit — including
         // before the beer SKUs exist at all, which is exactly the window where
@@ -187,6 +195,7 @@ export default function BottledBeer({
     });
   }
 
+
   function validLines(rs: Row[]): CountLineInput[] {
     const zoneId = zoneIdRef.current;
     if (!zoneId) return [];
@@ -228,6 +237,7 @@ export default function BottledBeer({
     // list whenever an untouched screen was hidden, over whatever another
     // phone had counted.
     if (!touchedRef.current) return true;
+
     setSave("saving");
     try {
       await saverRef.current!.save();
@@ -236,6 +246,7 @@ export default function BottledBeer({
     } catch {
       setSave("error");
       return false;
+
     }
   }
 
@@ -246,6 +257,7 @@ export default function BottledBeer({
 
   function bump(skuId: string, field: "cases" | "packs" | "loose", delta: number) {
     counting(delta);
+
     setRows((rs) =>
       rs.map((r) => (r.skuId === skuId ? { ...r, [field]: Math.max(0, r[field] + delta) } : r)),
     );
@@ -256,12 +268,14 @@ export default function BottledBeer({
     const n = raw === "" ? 0 : Math.max(0, Math.floor(Number(raw)));
     if (!Number.isFinite(n)) return;
     counting(n);
+
     setRows((rs) => rs.map((r) => (r.skuId === skuId ? { ...r, [field]: n } : r)));
     setSave("idle");
     scheduleSave();
   }
   function clearRow(skuId: string) {
     touchedRef.current = true;
+
     setRows((rs) => rs.map((r) => (r.skuId === skuId ? { ...r, cases: 0, packs: 0, loose: 0 } : r)));
     setSave("idle");
     scheduleSave();
@@ -283,7 +297,7 @@ export default function BottledBeer({
 
   // Reassigned every render so the handle always closes over the current rows.
   useEffect(() => {
-    if (embedFlushRef) embedFlushRef.current = flush;
+    if (embedFlushRef) embedFlushRef.current = () => flush();
   });
 
   // Hoisted above the early returns — hooks cannot live after a conditional one.
@@ -296,9 +310,10 @@ export default function BottledBeer({
   const touched = rows.filter((r) => r.cases > 0 || r.packs > 0 || r.loose > 0).length;
   const looked = noneLeft && touched === 0 ? rows.length : touched;
   useEffect(() => {
-    onEmbedState?.({ sessionId, count: looked });
+    onEmbedState?.({ sessionId, count: looked, observed: noneLeft || touched > 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, looked, total]);
+  }, [sessionId, looked, total, noneLeft, touched]);
+
 
   if (phase === "loading") return <div className="lq-center lq-muted">Loading bottled beer…</div>;
   if (phase === "error")
@@ -315,7 +330,7 @@ export default function BottledBeer({
     );
 
   return (
-    <div className="lq-beer">
+    <div className="lq-beer" inert={locked}>
       {resumed && (
         <p className="lq-beer-resumed">Picked up where you left off.</p>
       )}
@@ -329,7 +344,7 @@ export default function BottledBeer({
             <div className="lq-beer-head">
               <span className="lq-beer-name">{r.name}</span>
               <span className={t > 0 ? "lq-beer-total on" : "lq-beer-total"}>
-                {t > 0 ? `${t} bottle${t === 1 ? "" : "s"} total` : "—"}
+                {t > 0 ? `${formatQty(t)} bottle${t === 1 ? "" : "s"} total` : noneLeft ? "0 bottles" : "—"}
               </span>
               {t > 0 && (
                 <button
@@ -353,7 +368,7 @@ export default function BottledBeer({
                     label: r.caseSize ? `cases of ${r.caseSize}` : "cases",
                     disabled: !r.caseSize,
                   },
-                  { f: "packs" as const, label: "six-packs", disabled: false },
+                  { f: "packs" as const, label: r.packSize === PACK_SIZE ? "six-packs" : `packs of ${r.packSize}`, disabled: false },
                   { f: "loose" as const, label: "loose bottles", disabled: false },
                 ]
               ).map(({ f, label, disabled }) => (
@@ -406,13 +421,14 @@ export default function BottledBeer({
 
       <div className="lq-beer-foot">
         <span>
-          {total} bottle{total === 1 ? "" : "s"} on hand
+          {formatQty(total)} bottle{total === 1 ? "" : "s"} on hand
         </span>
         <span className="lq-beer-save">
           {save === "saving" ? "Saving…" : save === "saved" ? "Saved" : save === "error" ? "Not saved" : ""}
           {merged && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
         </span>
       </div>
+
 
       {!embedded && (
         <p className="lq-beer-note">

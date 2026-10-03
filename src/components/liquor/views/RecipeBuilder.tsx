@@ -14,6 +14,8 @@ import {
 } from "../api";
 import { RecipeSuggestions, useRecipeSuggestions } from "../RecipeSuggestions";
 import { parsePourLabel } from "../pourLabel";
+import { formatQty } from "../quantity";
+
 
 // The recipe home — the write path behind the daily "needs a recipe" alerts.
 // Two queues, both actioned in-app (the pricing sheet is retired):
@@ -175,17 +177,16 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-invlist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Recipes</h2>
       <p className="lq-muted lq-upload-hint">
-        Drinks and options selling with no recipe, so their liquor isn't attributed. Give each one a
-        recipe, mark an option a mixer if it pours no liquor, or confirm a swap where one spirit went
-        in instead of another.
+        Add a recipe, confirm a spirit swap, or mark an option as a mixer with no liquor.
       </p>
       {err && <p className="lq-error">{err}</p>}
 
       {nothingToDo && (
         <div className="lq-center">
           <p className="lq-muted" style={{ maxWidth: 340, textAlign: "center" }}>
-            Nothing needs a recipe right now. New ones show up here after the daily check finds them.
+            No recipes need review. New ones appear after the daily check.
           </p>
         </div>
       )}
@@ -226,7 +227,7 @@ export default function RecipeBuilder({ onDone }: { onDone: () => void }) {
         <>
           <h3 className="lq-cap-title" style={{ marginTop: 18 }}>Done this session</h3>
           <p className="lq-muted" style={{ fontSize: 13, margin: "0 0 8px" }}>
-            Classified just now. Tap Undo to send one back to the list above.
+            Tap Undo to review an item again.
           </p>
           {done.map((item) => (
             <div key={item.key} className="lq-pw-row">
@@ -303,8 +304,8 @@ function OptionRow({
             lineHeight: 1.45,
           }}
         >
-          Looks like a swap: <strong>{sub.skuName}</strong> poured instead of{" "}
-          <strong>{sub.replacesSkuName}</strong> {sub.oz}oz.
+          Spirit swap? <strong>{formatQty(sub.oz)}oz {sub.skuName}</strong> instead of{" "}
+          <strong>{sub.replacesSkuName}</strong>.
         </div>
       )}
       {!building ? (
@@ -519,7 +520,7 @@ function RecipeForm({
                 style={{ padding: "6px 10px", fontSize: 13 }}
                 onClick={() => prefill(t)}
               >
-                {t.recipeName ?? label}: {t.components.map((c) => `${c.oz} oz ${c.skuName}`).join(", ")}
+                {t.recipeName ?? label}: {t.components.map((c) => `${formatQty(c.oz)} oz ${c.skuName}`).join(", ")}
               </button>
             ))}
           </div>
@@ -527,8 +528,8 @@ function RecipeForm({
       )}
 
       {components.map((c) => (
-        <div key={c.skuId} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-          <span style={{ flex: 1, fontSize: 14 }}>
+        <div key={c.skuId} style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span style={{ flex: "1 1 100%", minWidth: 0, fontSize: 16, overflowWrap: "anywhere" }}>
             {c.skuName}
             {c.sizeMl != null ? <span className="lq-muted" style={{ fontSize: 12 }}> ({c.sizeMl}ml)</span> : null}
           </span>
@@ -539,14 +540,16 @@ function RecipeForm({
             placeholder="pour"
             value={c.oz}
             onChange={(e) => setOz(c.skuId, e.target.value)}
-            style={{ width: 68, textAlign: "right", padding: "6px 8px" }}
+            style={{ width: 90, minHeight: 48, flex: "0 0 90px", textAlign: "right", padding: "6px 8px" }}
+            disabled={busy}
           />
           <span className="lq-muted" style={{ fontSize: 12 }}>oz</span>
           <button
             type="button"
             className="lq-btn lq-btn-ghost"
-            style={{ padding: "4px 8px", fontSize: 13 }}
+            style={{ minWidth: 48, padding: "4px 8px", fontSize: 16 }}
             onClick={() => removeSku(c.skuId)}
+            disabled={busy}
             aria-label={`remove ${c.skuName}`}
           >
             ✕

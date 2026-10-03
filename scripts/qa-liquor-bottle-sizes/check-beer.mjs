@@ -79,12 +79,27 @@ await run('resumed frozen case size survives a catalog case-size change','frozen
   await qa.flush();assert.equal(qa.lines.find(line=>line.skuId==='lager').caseSizeAtEntry,12);
 });
 
+await run('resumed four-bottle packs stay frozen through a loose tap, save and reopen','frozen-pack',async ({doc,fields,total,click,qa})=>{
+  assert.deepEqual(fields(),[0,2,0]);assert.equal(total(),8);
+  assert.match(doc.querySelector('.lq-beer-row').textContent,/packs of 4/);
+  await click(5);assert.deepEqual(fields(),[0,2,1]);assert.equal(total(),9);
+  await qa.flush();
+  const saved=qa.lines.find(line=>line.skuId==='lager');
+  assert.equal(saved.qtyUnits,9);assert.equal(saved.enteredPacks,2);assert.equal(saved.packSizeAtEntry,4);
+  const previous=doc.querySelector('.lq-beer-row');qa.reopen();
+  await until(()=>doc.querySelector('.lq-beer-row')&&doc.querySelector('.lq-beer-row')!==previous);
+  const reopened=doc.querySelector('.lq-beer-row');
+  assert.deepEqual([...reopened.querySelectorAll('input')].map(input=>Number(input.value)),[0,2,1]);
+  assert.match(reopened.textContent,/packs of 4/);
+});
+
 await run('decrement never borrows from packs; clearing resets all tiers','resumed',async ({row,fields,total,click,qa})=>{
   for(let i=0;i<15;i++) await click(4);
   assert.deepEqual(fields(),[2,1,0]);assert.equal(total(),54);
   row.querySelector('.lq-beer-clear').click();await pause();
   assert.deepEqual(fields(),[0,0,0]);assert.equal(total(),0);
-  await qa.flush();assert.equal(qa.lines.length,0);
+  await qa.flush();
+  assert.equal(qa.lines.length,0,'clearing removes the answer; the explicit empty-cooler action is tested separately');
 });
 
 await run('missing case size disables only cases','new',async ({doc})=>{

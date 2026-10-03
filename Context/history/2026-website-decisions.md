@@ -1281,3 +1281,65 @@ cost nor an estimate; TPRS no longer reads an estimated line as unpriced. The
 invoice QA fixture returns one of each, and `check-invoices.mjs` asserts each
 message appears once. Removing the new message fails it. All 50 invoice
 scenarios pass.
+
+## 2026-10-02 - COGS phone usability pass (local, not deployed)
+
+Reviewed all `/cogs` screens with fictional data at 412x915 (S24 Ultra viewport
+approximation), 360x800 and desktop. Food/liquor count controls now have larger
+steppers, clear case/loose labels and concise display quantities. Speech review
+uses shorter questions; the food footer navigates directly to pending heard
+items. Prechecks show real history as small numeric cards with expandable
+detail, while narrative findings show the actual evidence instead of backend
+placeholder numbers. Invoice accounting precision is retained.
+
+All counting mutations lock during checking/submitting. Capture intent no
+longer races the next take after a failed recorder start. Human-confirmed zero
+is saved; missing model quantities are not guessed. A failed keg child save
+blocks combined Send, and bottled beer has an explicit observed-empty action.
+Current food unit/provenance and original-shelf voice safeguards stay intact.
+
+GPT-6 Astra at Ultra independently reviewed the changes, then verified the
+fixes and refreshed screenshots. No remaining P1/P2 findings. Strict COGS
+TypeScript, 42 food voice, 9 liquor voice, 8 beer, 6 discontinued, 50 invoice,
+and 9 count-scope checks pass. Final capture/interaction totals live with the
+visual evidence. Astro compiles after all prebuild checks, but complete Vercel
+packaging hits a local Windows node_modules-symlink EPERM.
+
+See `Context/session-handoffs/2026-10-02-cogs-phone-usability.md` for reproduction,
+evidence location and limitations. No production writes, push or deployment.
+Physical S24 Ultra keyboard/headset/interruption behavior remains unverified.
+
+## 2026-10-03 - Integrate the October 2 COGS phone audit with current count and cost work
+
+The local audit commits `26559f6` (UI/QA) and `043b0e1` (gallery) were reconciled
+with fetched Website main `307caa5773a6feda3e26cdc4bc0ff0b6a79a6cd6`.
+The original dated audit above and its evidence remain intact. This integration
+keeps the newer case-only food policy, pooled product reports, saved-count
+recovery, draft fingerprints, locked-count corrections and food cost screens.
+
+- Large labelled case/loose controls and short precheck questions come from the
+  audit. Full server evidence remains visible for narrative findings, including
+  size mixups and missed shelves; placeholder totals are never history cards.
+- Food's Review N heard footer moves to unresolved items without submitting.
+  Recorder intent follows live state, so a failed start cannot clear the next
+  take. Checking and submission freeze count edits and pending voice navigation.
+- Editable quantities and arithmetic retain saved thousandths, including 0.125.
+  Summaries remove binary tails. Blank/negative liquor grid and batch text does
+  not write zero; only a literal human zero resolves a zero voice quantity.
+- Beer keeps stale-draft merge and observed-empty semantics. Earlier case and
+  pack multipliers survive reopening and resaving; a frozen four-pack is shown
+  as packs of four and never becomes six. A failed child save blocks Keg Send.
+- Exact crust/flatbread case policy remains: partial cases are valid, new entries
+  use the current confirmed package size, earlier cells keep their frozen size,
+  and explicit pieces/mixed fields require restatement in cases. Legacy loose
+  quantities remain visible until an explicit case answer replaces them.
+- Current hardware scope is Android, phone microphone only. Historical headset
+  notes are audit evidence, not the current recording workflow.
+
+The complete Astro/Vercel production build and strict COGS TypeScript pass using
+physical worktree dependencies, resolving the earlier Windows symlink packaging
+failure. Current cost/accounting APIs and source are unchanged; their focused
+regressions and mobile layouts also pass. Final reproduction, test totals and
+synthetic screenshot locations are in
+`Context/session-handoffs/2026-10-03-cogs-mobile-audit-integration.md`.
+A real Android phone-mic count saved and reopened remains owed by Jon.

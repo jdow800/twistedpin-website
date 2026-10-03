@@ -43,13 +43,16 @@ type Row = {
 export default function CountKegs({
   onDone,
   embedded = false,
+  locked = false,
   onEmbedState,
   embedFlushRef,
 }: {
   onDone?: () => void;
   embedded?: boolean;
-  onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
+  locked?: boolean;
+  onEmbedState?: (s: { sessionId: string | null; count: number; busy?: boolean }) => void;
   embedFlushRef?: { current: (() => Promise<boolean>) | null };
+
 }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -103,6 +106,7 @@ export default function CountKegs({
   }, []);
 
   async function startFresh() {
+    if (dict.recording || voiceBusy || submitting || locked) return;
     try {
       const sid = await createKegCount();
       setSessionId(sid);
@@ -131,7 +135,10 @@ export default function CountKegs({
   // Hand the parent a live flush handle — reassigned every render so it always
   // closes over the current rows.
   useEffect(() => {
-    if (embedFlushRef) embedFlushRef.current = flush;
+    if (embedFlushRef) embedFlushRef.current = async () => {
+      if (dict.recording || voiceBusy) throw new Error("Finish recording first");
+      return await flush();
+    };
   });
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -156,6 +163,8 @@ export default function CountKegs({
    *  closing a draft that is missing what is on screen. */
   async function flush(): Promise<boolean> {
     if (!sessionId) return true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+
     setSave("saving");
     try {
       await saveKegLines(sessionId, validLines(rowsRef.current));
@@ -164,6 +173,7 @@ export default function CountKegs({
     } catch {
       setSave("error");
       return false;
+
     }
   }
 
@@ -229,7 +239,7 @@ export default function CountKegs({
   }
 
   async function finish() {
-    if (!sessionId || submitting) return;
+    if (!sessionId || submitting || dict.recording || voiceBusy) return;
     const lines = validLines(rows);
     setSubmitting(true);
     try {
@@ -248,9 +258,9 @@ export default function CountKegs({
   const total = validLines(rows).reduce((n, r) => n + r.qty, 0);
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    onEmbedState?.({ sessionId, count: total });
+    onEmbedState?.({ sessionId, count: total, busy: dict.recording || voiceBusy });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, total]);
+  }, [sessionId, total, dict.recording, voiceBusy]);
 
   if (phase === "loading") return <div className="lq-center lq-muted">Starting keg count…</div>;
   if (phase === "error")
@@ -275,7 +285,7 @@ export default function CountKegs({
     );
 
   return (
-    <div className={embedded ? "lq-count lq-count-embedded" : "lq-count"}>
+    <div className={embedded ? "lq-count lq-count-embedded" : "lq-count"} inert={locked || submitting}>
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your keg count in progress.</span>
@@ -290,7 +300,7 @@ export default function CountKegs({
           <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+              <span className="lq-rec-label">{dict.quiet ? "Mic silent" : "Listening…"}</span>
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             {dict.metering && (
@@ -299,12 +309,12 @@ export default function CountKegs({
               </div>
             )}
             {dict.quiet && (
-              <p className="lq-rec-warntext">Mic hasn’t heard anything for a bit — check the headset if you’re still counting.</p>
+              <p className="lq-rec-warntext">No sound detected. Check the mic.</p>
             )}
             <p className="lq-rec-transcript">
               {dict.transcript ||
                 (!dict.armed ? (
-                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  // Phone mic still starting — words spoken now would be lost.
                   <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
                 ) : (
                   <span className="lq-muted">Say the kegs and how many — “two Miller Lite, one Kona…”</span>
@@ -342,6 +352,7 @@ export default function CountKegs({
           <div key={r.key} className="lq-keg-row">
             <input
               className="lq-keg-name"
+              aria-label="Keg name"
               list="lq-keg-names"
               placeholder="Keg name (e.g. Miller Lite)"
               value={r.kegName}
@@ -349,6 +360,7 @@ export default function CountKegs({
             />
             <select
               className="lq-keg-cat"
+              aria-label={`Category of ${r.kegName || "keg"}`}
               value={r.category}
               onChange={(e) => patch(r.key, { category: e.target.value as KegCategory })}
             >
@@ -359,7 +371,7 @@ export default function CountKegs({
               ))}
             </select>
             <div className="lq-stepper lq-keg-stepper">
-              <button type="button" className="lq-step" onClick={() => patch(r.key, { qty: Math.max(0, r.qty - 1) })}>
+              <button type="button" className="lq-step" disabled={r.qty <= 0} aria-label={`One fewer ${r.kegName || "keg"}`} onClick={() => patch(r.key, { qty: Math.max(0, r.qty - 1) })}>
                 −
               </button>
               <input
@@ -367,17 +379,19 @@ export default function CountKegs({
                 type="number"
                 inputMode="numeric"
                 min={0}
-                value={r.qty}
+                value={r.qty || ""}
+                placeholder="0"
+                aria-label={`Quantity of ${r.kegName || "keg"}`}
                 onChange={(e) => patch(r.key, { qty: Math.max(0, Math.round(Number(e.target.value) || 0)) })}
               />
-              <button type="button" className="lq-step" onClick={() => patch(r.key, { qty: r.qty + 1 })}>
+              <button type="button" className="lq-step" aria-label={`One more ${r.kegName || "keg"}`} onClick={() => patch(r.key, { qty: r.qty + 1 })}>
                 +
               </button>
             </div>
             <button
               type="button"
               className="lq-keg-remove"
-              aria-label="remove row"
+              aria-label={`Remove ${r.kegName || "keg row"}`}
               onClick={() => removeRow(r.key)}
             >
               ✕
@@ -402,8 +416,8 @@ export default function CountKegs({
           <button type="button" className="lq-btn lq-btn-ghost" onClick={() => onDone?.()}>
             Exit
           </button>
-          <button type="button" className="lq-btn lq-btn-primary" disabled={submitting} onClick={finish}>
-            {submitting ? "Submitting…" : "Finish & submit"}
+          <button type="button" className="lq-btn lq-btn-primary" disabled={submitting || dict.recording || voiceBusy || total === 0} onClick={finish}>
+            {submitting ? "Submitting…" : dict.recording ? "Stop recording first" : voiceBusy ? "Reading speech…" : "Finish count"}
           </button>
         </div>
       </div>

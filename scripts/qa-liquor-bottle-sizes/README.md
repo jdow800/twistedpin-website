@@ -66,6 +66,23 @@ Ten more (19 in all) cover the 2026-10-02/03 voice fixes:
 
 The script reports every scenario and exits non-zero on any failure. It proves the UI rules, not microphone quality or service latency.
 
+Mobile quantity and submit guards reuse the liquor voice build:
+
+```powershell
+node serve.mjs --liquor-voice --build-only
+node check-count-mobile-guards.mjs
+```
+
+Two additional scenarios protect the distinction between missing quantities and
+human-confirmed zero, a visible counted zero versus an untouched placeholder,
+focus/blur without recording zero, backspacing without recording zero, an editable resumed
+`0.125` remaining exact through blur and save, and batch `+0.5` / `-0.5` preserving
+that fraction. Deferred precheck and submit responses verify that every counting
+control, Record and Home remain unavailable throughout both requests, including
+after Submit anyway closes its dialog. The `?precision` fixture contains only
+fictional stock; it makes no API calls outside the local mock. These are DOM
+checks, without a physical microphone, Samsung keyboard or visual-layout claim.
+
 Food voice counts reuse these isolated dependencies:
 
 ```powershell
@@ -287,6 +304,7 @@ node serve.mjs --liquor-voice --build-only
 node serve.mjs --food-voice --build-only
 node check-liquor-voice.mjs
 node check-food-voice.mjs
+node check-count-mobile-guards.mjs
 node check-voice-deadlines.mjs
 $env:COUNT_QA_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 node check-count-phone-layout.mjs
@@ -306,6 +324,12 @@ status reads at 15 seconds, and recovery that must not send a second submit.
 The case policy stays with those two exact product identities after a package
 change: new entries use the current confirmed case size, while older cells keep
 their size at entry. Missing or invalid case sizes ask for package confirmation.
+
+The two mobile guard scenarios additionally verify a human-confirmed literal
+zero, exact resumed loose/batch fractions, blank or negative edits preserving
+saved answers, and held-check/held-submit locks. Rebuild `--beer` and run
+`check-beer.mjs` for 13 scenarios, including a resumed four-bottle pack staying
+four through a loose-bottle tap, save and reopen.
 
 The layout script starts its own local fixture server and uses Playwright at
 320, 390 and 412px with touch/mobile emulation. It verifies one scroll body for

@@ -12,6 +12,7 @@ const catalog = [
   {id:'unknown',name:'Unknown Case Size',unitsPerCase:null},
 ].map(s => ({...s,category:'Beer',sizeMl:355,wacCost:null}));
 const initialLines = mode === 'resumed' ? [{skuId:'lager',zoneId:'cooler',qtyUnits:'68.000',enteredCases:'2.000',caseSizeAtEntry:24,enteredPacks:'1.000',packSizeAtEntry:6}]
+  : mode === 'frozen-pack' ? [{skuId:'lager',zoneId:'cooler',qtyUnits:'8.000',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'2.000',packSizeAtEntry:4}]
   : mode === 'frozen' ? [{skuId:'lager',zoneId:'cooler',qtyUnits:'32.000',enteredCases:'1.000',caseSizeAtEntry:12,enteredPacks:'1.000',packSizeAtEntry:6}]
   : [];
 const qa = window.beerQa = {calls:[],lines:initialLines,state:null,flush:null};

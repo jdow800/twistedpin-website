@@ -14,6 +14,8 @@ import {
 } from "../api";
 import { VarianceLines } from "../VarianceLines";
 import { CorrectionEditor, CorrectionHistory } from "../CountCorrections";
+import { formatQty } from "../quantity";
+
 
 // Read-only inventory history — recent submitted liquor counts (per-zone
 // breakdown) and keg counts (by category), toggled. Full counts also show
@@ -33,11 +35,7 @@ function when(iso: string | null): string {
     d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
   );
 }
-const qty = (s: string) => {
-  const n = Number(s);
-  // Up to 2 decimals, trailing zeros stripped: 3 → "3", 0.5 → "0.5", 0.25 → "0.25".
-  return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(2)));
-};
+const qty = formatQty;
 
 type Mode = "liquor" | "kegs";
 type Detail = { kind: "liquor"; data: CountDetail } | { kind: "kegs"; data: KegCountDetail } | null;
@@ -62,6 +60,8 @@ export default function Counts({
   const [showVarianceLines, setShowVarianceLines] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [correcting, setCorrecting] = useState(false);
+  const [finalizeError, setFinalizeError] = useState<string | null>(null);
+
   const openedDeepLink = useRef(false);
 
   useEffect(() => {
@@ -92,6 +92,7 @@ export default function Counts({
   async function openLiquor(id: string) {
     setDetailLoading(true);
     setVariance(null);
+    setFinalizeError(null);
     setShowVarianceLines(false);
     setCorrecting(false);
     try {
@@ -161,14 +162,14 @@ export default function Counts({
 
         {s.isFullCount && (
           variance == null ? (
-            <p className="lq-muted" style={{ fontSize: 13 }}>Variance report pending — it lands within a minute of submitting.</p>
+            <p className="lq-muted" style={{ fontSize: 14 }}>Variance report pending. Check again in a minute.</p>
           ) : variance.report.baseline ? (
             <div className="lq-pw-row">
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">Baseline count</span>
               </div>
               <div className="lq-pw-sub lq-muted">
-                Variance starts with the next full inventory — this one is the starting bracket.
+                Your starting inventory. Variance begins with the next full count.
               </div>
             </div>
           ) : (
@@ -179,10 +180,9 @@ export default function Counts({
                 // been fixable. Finalize RECOMPUTES from the lines as they
                 // stand, so the instruction order matters: fix first, then lock.
                 <div className="lq-pw-sub" style={{ marginBottom: 8, padding: "8px 10px", border: "1px solid rgba(230,180,60,0.5)", borderRadius: 6 }}>
-                  <strong>Draft — numbers below can still be corrected.</strong>{" "}
-                  Spot a wrong line? Fix the count first; finalizing recomputes from the corrected
-                  lines, locks the report for good, and sends the summary email. Left alone, it
-                  locks itself about a minute after submit.
+                  <strong>Draft report</strong>
+                  <p style={{ margin: "6px 0" }}>Correct count errors before locking. Locking sends the summary email. An admin can correct the latest full count after it locks.</p>
+
                   <div style={{ marginTop: 6 }}>
                     <button
                       type="button"
@@ -191,6 +191,7 @@ export default function Counts({
                       style={{ padding: "5px 12px", fontSize: 13 }}
                       onClick={async () => {
                         setFinalizing(true);
+                        setFinalizeError(null);
                         try {
                           await finalizeCountReport(s.id);
                           // Re-fetch rather than patching state: the recompute
@@ -198,7 +199,7 @@ export default function Counts({
                           // numbers under a "final" badge would be a lie.
                           setVariance(await getCountVariance(s.id));
                         } catch {
-                          /* leave draft banner; retry is safe (409 = already final) */
+                          setFinalizeError("Couldn't lock the report. Try again.");
                         } finally {
                           setFinalizing(false);
                         }
@@ -207,13 +208,14 @@ export default function Counts({
                       {finalizing ? "Finalizing…" : "Finalize & lock"}
                     </button>
                   </div>
+                  {finalizeError && <p className="lq-error" role="alert">{finalizeError}</p>}
                 </div>
               )}
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">
                   Variance grade{" "}
                   <span className="lq-pw-pct" style={{ fontSize: 18 }}>
-                    {variance.report.gradePct != null ? `${variance.report.gradePct}%` : "—"}
+                    {variance.report.gradePct != null ? `${formatQty(variance.report.gradePct)}%` : "—"}
                   </span>
                 </span>
                 <button
@@ -237,6 +239,7 @@ export default function Counts({
                 // One row per product: two bottle sizes of one product are
                 // one row, sizes underneath (VarianceLines.tsx).
                 <VarianceLines lines={variance.report.lines ?? []} families={variance.report.families} />
+
               )}
             </div>
           )
@@ -266,7 +269,7 @@ export default function Counts({
                         {l.enteredCases != null && l.caseSizeAtEntry != null && Number(l.enteredCases) > 0 && (
                           <span className="lq-muted">
                             {" · "}
-                            {Number(l.enteredCases)} cs × {l.caseSizeAtEntry}
+                            {formatQty(l.enteredCases)} cs × {l.caseSizeAtEntry}
                             {Number(l.qtyUnits) - Number(l.enteredCases) * l.caseSizeAtEntry > 0 &&
                               ` + ${qty(String(Number(l.qtyUnits) - Number(l.enteredCases) * l.caseSizeAtEntry))}`}
                           </span>
@@ -324,6 +327,7 @@ export default function Counts({
   // ── list (toggle liquor / kegs) ──
   return (
     <div className="lq-invlist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Recent counts</h2>
       <div className="lq-segbar" role="tablist">
         <button type="button" role="tab" aria-selected={mode === "liquor"} className={`lq-seg${mode === "liquor" ? " lq-seg-on" : ""}`} onClick={() => setMode("liquor")}>Liquor</button>
         <button type="button" role="tab" aria-selected={mode === "kegs"} className={`lq-seg${mode === "kegs" ? " lq-seg-on" : ""}`} onClick={() => setMode("kegs")}>Kegs</button>

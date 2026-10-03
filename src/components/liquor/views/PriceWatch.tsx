@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPriceWatch, type PriceMover } from "../api";
+import { formatQty } from "../quantity";
 
 // Read-only price-watch report — liquor SKUs whose per-ounce cost moved >=5%
 // between their two most recent invoices. Per-ounce so bottle sizes compare
@@ -45,13 +46,14 @@ export default function PriceWatch({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-invlist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Price watch</h2>
       <p className="lq-muted lq-upload-hint">
-        Bottles whose cost-per-ounce moved 5%+ since the prior invoice. Fills in as invoices come in.
+        Cost per ounce · changes of 5%+ since the previous invoice.
       </p>
       {movers.length === 0 ? (
         <div className="lq-center">
           <p className="lq-muted" style={{ maxWidth: 320, textAlign: "center" }}>
-            No price moves of 5%+ yet. Upload a few invoices and this flags any bottle that jumps.
+            No cost changes of 5%+ yet.
           </p>
         </div>
       ) : (
@@ -64,7 +66,7 @@ export default function PriceWatch({ onDone }: { onDone: () => void }) {
                   {m.name} <span className="lq-muted">· {m.sizeMl}ml</span>
                 </span>
                 <span className={`lq-pw-pct ${up ? "lq-pw-up" : "lq-pw-down"}`}>
-                  {up ? "▲" : "▼"} {up ? "+" : ""}{m.pct}%
+                  {up ? "▲" : "▼"} {up ? "+" : ""}{formatQty(m.pct)}%
                 </span>
               </div>
               <div className="lq-pw-sub lq-muted">

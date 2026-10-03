@@ -118,17 +118,16 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-invlist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Map pours</h2>
       <p className="lq-muted lq-upload-hint">
-        Pour buttons that don't match a bottle yet. Tap the right bottle once and every sale of
-        that button counts toward it from then on.
+        Match each pour button to its bottle. Future sales use that match.
       </p>
       {err && <p className="lq-error">{err}</p>}
 
       {pours.length === 0 ? (
         <div className="lq-center">
           <p className="lq-muted" style={{ maxWidth: 320, textAlign: "center" }}>
-            No unmapped pours — every spirit button currently resolves to a bottle. New ones show
-            up here after the daily check finds them.
+            All pour buttons are matched. New ones appear after the daily check.
           </p>
         </div>
       ) : (
@@ -197,7 +196,7 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
                     ))}
                     {search.trim().length >= 2 && searchResults.length === 0 && (
                       <span className="lq-muted" style={{ fontSize: 13 }}>
-                        Nothing matches — a brand-new bottle appears here after its first invoice.
+                        No match. New bottles appear after their first invoice.
                       </span>
                     )}
                   </div>
@@ -212,9 +211,7 @@ export default function MapPours({ onDone }: { onDone: () => void }) {
         <>
           <h3 className="lq-cap-title" style={{ marginTop: 18 }}>Mapped automatically</h3>
           <p className="lq-muted" style={{ fontSize: 13, margin: "0 0 8px" }}>
-            These matched exactly one bottle, so the daily check mapped them for you. Nothing to do
-            — unless one is wrong. Undo sends it back to the list above and stops it being
-            auto-mapped again.
+            Check these automatic matches. Undo any wrong match to review it again.
           </p>
           {autos.map((a) => (
             <div key={a.id} className="lq-pw-row">

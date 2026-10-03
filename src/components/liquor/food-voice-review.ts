@@ -1,5 +1,6 @@
 import type { BarSkuItem, VoiceMatch } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
+import { formatQty } from "./quantity";
 
 export interface FoodReviewItem {
   key: string;
@@ -84,25 +85,25 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
   const high = Math.max(history?.maxCount ?? 0, history?.maxDelivery ?? 0);
   const usualMaxCases = currentCountDefinition(sku)?.usualMaxCases;
   const casesOnly = foodCasesOnly(sku);
-  const totalText = casesOnly ? `${(q.qty + existingQty) / q.caseSize!} cases`
-    : `${q.qty + existingQty} ${foodUnitLabel(sku, q.qty + existingQty)}`;
+  const totalText = casesOnly ? `${formatQty((q.qty + existingQty) / q.caseSize!)} cases`
+    : `${formatQty(q.qty + existingQty)} ${foodUnitLabel(sku, q.qty + existingQty)}`;
   // A confirmed operating range is stronger evidence than sparse early history.
   // It only asks for confirmation; the spoken amount is never silently changed.
   if (q.ready && usualMaxCases != null && q.caseSize != null && q.caseSize > 0
     && (q.qty + existingQty) / q.caseSize > usualMaxCases) {
-    return `${totalText} total exceeds the usual ${usualMaxCases} cases. Check the ${casesOnly ? "case quantity" : "unit"} and keep this count if correct.`;
+    return `${totalText} total exceeds the usual ${formatQty(usualMaxCases)} cases. Check the ${casesOnly ? "case quantity" : "unit"}; keep if correct.`;
   }
   if (usualMaxCases == null && q.ready && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
-    const historyText = (n: number) => casesOnly ? `${n / q.caseSize!} cases` : String(n);
+    const historyText = (n: number) => casesOnly ? `${formatQty(n / q.caseSize!)} cases` : formatQty(n);
     const evidence = [history?.maxCount != null ? `largest count ${historyText(history.maxCount)}` : "",
       history?.maxDelivery != null ? `largest delivery ${historyText(history.maxDelivery)}` : ""].filter(Boolean).join("; ");
-    return `${totalText} total is unusually high (${evidence}, last ${history?.days ?? 90} days). Check the ${casesOnly ? "case quantity" : "unit"}.`;
+    return `${totalText} is unusually high (${evidence}, last ${history?.days ?? 90} days). Check the ${casesOnly ? "case quantity" : "unit"}.`;
   }
-  if (usualMaxCases == null && q.cases >= 10) return casesOnly ? `${q.cases} cases is a large count. Confirm the number of cases.` : sku.countUnit === "case"
-    ? `${q.cases} cases is a large count. Confirm the quantity and package unit.`
-    : `${q.cases} cases is a large count. Confirm cases versus ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${q.cases * q.caseSize} ${foodUnitLabel(sku, q.cases * q.caseSize)})` : ""}.`;
+  if (usualMaxCases == null && q.cases >= 10) return casesOnly ? `${formatQty(q.cases)} cases is a large count. Confirm the number of cases.` : sku.countUnit === "case"
+    ? `${formatQty(q.cases)} cases is a large count. Check quantity and unit.`
+    : `${formatQty(q.cases)} cases is a large count. Cases or ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${formatQty(q.cases * q.caseSize)} ${foodUnitLabel(sku, q.cases * q.caseSize)})` : ""}?`;
   if (r.cases > 0 && q.inputUnit !== "case" && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!) {
-    return "The loose quantity is at least a full case. Check that cases have not already been multiplied into it.";
+    return "Loose units include a full case. Already included in the case count?";
   }
   return null;
 }

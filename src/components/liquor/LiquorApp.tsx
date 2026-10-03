@@ -125,7 +125,7 @@ export default function LiquorApp() {
   return (
     <div className="lq-app">
       <header className="lq-header">
-        <span className="lq-brand">Twisted Pin · Bar</span>
+        <span className="lq-brand">Twisted Pin · COGS</span>
         {actor && view !== "login" && view !== "loading" && (
           <button type="button" className="lq-logout" onClick={doLogout}>
             Log out

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type InputHTMLAttributes } from "react";
 import {
   createCount,
   extractVoice,
@@ -36,6 +36,9 @@ import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
+import { formatQty, roundQty } from "../quantity";
+import FindingSummary from "../FindingSummary";
+
 
 // Voice-first zone counting. Stand in a zone, hit Record, talk out the shelf in a
 // run-on ("three Tito's, four Bulleit, a half Grey Goose…"); the browser
@@ -99,6 +102,8 @@ type ReviewItem = {
   chosenSkuId: string | null; // resolved (from a single match, a picked candidate, or manual assign)
   candidates: VoiceMatch[]; // ambiguous → the choices
   assignOpen?: boolean; // unmatched → inline search open
+  /** A human entered literal zero; missing model quantities never become zeros. */
+  explicitZero?: boolean;
 };
 
 /** A stock_count item is counted in WHOLE UNITS, so it reads "each" even when a
@@ -225,7 +230,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   /** Mic live — Start until Stop, NOT until the uploads land. Shelf tiles are
    *  refused while this is true, so a take stays one shelf; after Stop the
    *  destination is fixed and walking on is safe. */
-  const [capturing, setCapturing] = useState(false);
+  const [captureRequested, setCapturing] = useState(false);
+  const [interrupted, setInterrupted] = useState(false);
   // "+ case size" on a grid row. Keyed "<where>:<skuId>" — a bottle can be on
   // screen twice at once (search result AND counted row), and a bare skuId
   // would open both editors with two inputs fighting over autoFocus.
@@ -275,6 +281,20 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
     },
   });
+  // A recorder ending or refusing Start releases the shelf immediately. Avoid
+  // a delayed false-recording effect clearing the next take's Start flag.
+  const capturing = captureRequested && dict.recording;
+  useEffect(() => {
+    if (dict.quiet) setInterrupted(true);
+  }, [dict.quiet]);
+  useEffect(() => {
+    if (!dict.recording) return;
+    const onHide = () => {
+      if (document.visibilityState === "hidden") setInterrupted(true);
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => document.removeEventListener("visibilitychange", onHide);
+  }, [dict.recording]);
 
   // The live words box is capped in height; keep the newest words in view.
   const liveTextRef = useRef<HTMLParagraphElement | null>(null);
@@ -346,6 +366,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (startingFresh || submitting || checking || voicePending) return;
     setStartingFresh(true);
     setSubmitErr(null);
+
     try {
       const sid = await createCount(true);
       setSessionId(sid);
@@ -479,7 +500,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   /** SET the LOOSE container count for (zone, sku), preserving any cases
    *  already entered. The manual correction path. */
-  function setQty(skuId: string, loose: number) {
+  function setQty(skuId: string, loose: number, explicit = false) {
     setCounts((prev) => {
       const zone = { ...(prev[zoneId] ?? {}) };
       const cur = zone[skuId];
@@ -495,7 +516,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // Removal is the explicit ✕ (clearCell), not an empty field.
       // It also records a real distinction: 0 means "I looked, none here",
       // where an absent row means "I never looked".
-      if (qty <= 0 && !cur) delete zone[skuId];
+      if (qty <= 0 && !cur && !explicit) delete zone[skuId];
       else
         zone[skuId] = {
           qty,
@@ -567,6 +588,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     source: "grid" | "voice",
     raw?: string,
     dest: string = zoneId,
+    explicitZero = false,
   ) {
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
@@ -586,7 +608,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases)) + delta.units;
       const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
       const next = roundQty(fromCases + loose);
-      if (next <= 0) delete zone[skuId];
+      if (next <= 0 && !explicitZero) delete zone[skuId];
       else
         zone[skuId] = {
           qty: next,
@@ -610,19 +632,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
-  // The recorder can also end on its own (mic lost, error). Whatever ended
-  // it, the shelf tiles must not stay locked behind a take that is over.
-  useEffect(() => {
-    if (!dict.recording) setCapturing(false);
-  }, [dict.recording]);
-
   function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
     const rows: ReviewItem[] = mergeAdjacentRepeats(items).map((it, i) => ({
       key: `v${i}`,
       spoken: it.spoken,
       // Don't default a case-bearing row to 1 — its qty legitimately
       // carries only the loose part until the case size is answered.
-      qty: it.qty > 0 || it.cases > 0 ? it.qty : 1,
+      qty: it.qty,
       cases: it.cases,
       units: it.units,
       unitsPerCase: it.unitsPerCase,
@@ -903,23 +919,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  is unambiguous. An unanswered case size or a suspected pre-multiply keeps
    *  the row on screen rather than letting a guessed number through — that
    *  silent path is exactly what produced 93, 27 and 1 on 2026-07-24. */
-  //  The qty > 0 clause is load-bearing alongside onResolve clearing
-  //  needsCaseSize: without it, backspacing that box to empty makes a blocked
-  //  row applyable at ZERO, and applyReview drops applied rows — so a spoken
-  //  "four cases of Tito's" would vanish off the sheet having recorded nothing.
-  //  A zeroed row stays on screen instead, where the counter can see it.
-  //  An unanswered earlier-take question holds every row of that bottle: the
-  //  take's rows are summed, and half of a re-say must not slip through.
+  // Missing or backspaced quantities stay for review. A literal zero is an
+  // observed empty shelf, and earlier-take questions still hold the bottle.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && r.qty > 0 &&
+    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
     !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && x.restate && !x.restateAnswer);
+
 
   function applyReview() {
     if (!review) return;
     // The shelf the take was recorded on, not whichever tile is selected now.
     const dest = takeZoneId ?? zoneId;
     // Sum duplicates within this clip, then ADD each into the zone total.
-    const merged = new Map<string, { cases: number; units: number; caseSize: number | null; spoken: string }>();
+    const merged = new Map<string, { cases: number; units: number; caseSize: number | null; spoken: string; explicitZero: boolean }>();
     for (const it of review) {
       if (!applyable(it)) continue;
       const skuId = it.chosenSkuId!;
@@ -928,13 +940,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       if (e) {
         e.cases = roundQty(e.cases + it.cases);
         e.units = roundQty(e.units + it.units);
+        e.explicitZero ||= it.explicitZero === true;
       } else {
-        merged.set(skuId, { cases: it.cases, units: it.units, caseSize, spoken: it.spoken });
+        merged.set(skuId, { cases: it.cases, units: it.units, caseSize, spoken: it.spoken, explicitZero: it.explicitZero === true });
       }
     }
     // The counter's earlier-take answers, per bottle.
     const answer = new Map(review.filter((r) => r.restate && r.restateAnswer).map((r) => [r.chosenSkuId!, r.restateAnswer!]));
-    for (const [skuId, { cases, units, caseSize, spoken }] of merged) {
+    for (const [skuId, { cases, units, caseSize, spoken, explicitZero }] of merged) {
+
       // Cross-take add onto an occupied cell → remember it for the submit
       // dialog (the Empress double-count shape). Recorded BEFORE addQty so
       // `before` is what the earlier take(s) left, not the summed result.
@@ -954,7 +968,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           });
         }
       }
-      addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest);
+      addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest, explicitZero);
     }
     // Keep any row that couldn't be applied, so nothing is silently dropped.
     const leftover = review.filter((r) => !applyable(r));
@@ -1126,7 +1140,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       }
       if (!saved) setSave("error");
       else if (e instanceof SubmissionUnknownError) setSubmissionUnknown(true);
-      else setSubmitErr("Count saved. Couldn't submit it. Tap Finish & submit to try again.");
+      else setSubmitErr("Count saved. Couldn't submit it. Tap Finish count to try again.");
     }
   }
 
@@ -1181,12 +1195,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-count">
+      <fieldset className="lq-count-controls" disabled={checking || submitting} aria-label="Count stock">
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your count in progress.</span>
           <button type="button" className="lq-linkbtn" disabled={startingFresh || submitting || checking || voicePending} onClick={() => void startFresh()}>
             {startingFresh ? "Starting…" : "Start a new count"}
           </button>
+
         </div>
       )}
 
@@ -1207,7 +1223,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               // After Stop they free up — the take's shelf is already pinned.
               // Both flags: a recorder that never reports `recording` (the Web
               // Speech fallback can no-op) must not latch the tiles shut.
-              disabled={capturing && dict.recording}
+              disabled={capturing || checking || submitting}
               // Close any open "+ case size" editor — otherwise one left open
               // on Tito's in Back Bar reappears open on Tito's in Well.
               onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setCaseAsk(null); setCaseAskErr(null); }}
@@ -1227,7 +1243,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           <div className={`lq-rec${near ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+              <span className="lq-rec-label">{!capturing ? "Reading speech…" : dict.quiet ? "Mic silent" : "Listening…"}</span>
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             <p className="lq-muted lq-rec-shelf">
@@ -1240,11 +1256,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             )}
             {dict.quiet && (
               <p className="lq-rec-warntext" role="status">The phone mic hasn't heard speech for a bit. If you're still counting, speak toward the phone. After a call, stop and check what came back.</p>
+
             )}
             <p className="lq-rec-transcript" ref={liveTextRef}>
               {dict.transcript ||
                 (!dict.armed ? (
-                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  // Phone mic still starting — words spoken now would be lost.
                   <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
                 ) : (
                   <span className="lq-muted">Say the bottle name, then how many: “Tito’s, three. Bulleit, four.” Pause between bottles.</span>
@@ -1261,7 +1278,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 dict.stop();
               }}
             >
-              {capturing ? <>■ Stop &amp; process</> : "Processing recording…"}
+              {capturing ? "■ Stop & review" : "Reading speech…"}
             </button>
           </div>
         ) : voiceBusy ? (
@@ -1274,8 +1291,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             className="lq-record"
             // ONE OUTSTANDING TAKE AT A TIME: there is a single takeZoneId, so a
             // second take would re-point the first one's unreviewed rows.
-            disabled={(review?.length ?? 0) > 0}
+            disabled={checking || submitting || (review?.length ?? 0) > 0}
             onClick={() => {
+              if (checking || submitting) return;
               setVoiceErr(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCapturing(true);
@@ -1298,6 +1316,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           </p>
         )}
       </div>
+
+      {interrupted && (
+        <div className="lq-resumed" role="status">
+          <span>Recording may have paused. Check heard items for gaps.</span>
+          <button type="button" className="lq-linkbtn" onClick={() => setInterrupted(false)}>Got it</button>
+        </div>
+      )}
 
       {/* search-to-add */}
       <input
@@ -1340,28 +1365,35 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     cases={cell?.cases ?? 0}
                     caseSize={(cell?.caseSize ?? s.unitsPerCase)!}
                     onChange={(n) => setCases(s.id, n)}
+                    disabled={submitting || checking}
                   />
                 ) : (
                   renderCaseAsk(`s:${s.id}`, s.id)
                 )}
-                <div className="lq-stepper">
-                  <button type="button" className="lq-step" aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(loose - 1))}>−</button>
+                <div className="lq-quantity">
+                  <span className="lq-qty-label">{s.trackingMode === "stock_count" ? "Loose each" : "Loose bottles"}</span>
+                  <div className="lq-stepper">
+                  <button type="button" className="lq-step" disabled={loose <= 0 || submitting || checking} aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(loose - 1))}>−</button>
                   {/* A can or a jar has no tenths. Whole-number step + a numeric
                       keypad on non-bottles removes the "2.3 Red Bulls" typo
                       outright, rather than catching it downstream. */}
-                  <input
+                  <CountQuantityInput
                     className="lq-qty-input"
                     type="number"
                     inputMode="decimal"
                     step="0.1"
                     min={0}
-                    value={loose || ""}
+                    value={loose}
+                    blankZero={!cell}
+                    disabled={submitting || checking}
                     placeholder="0"
-                    onChange={(e) => setQty(s.id, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                    onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) setQty(s.id, n, true); }}
+                    aria-label={`Loose ${s.name}`}
                   />
-                  <button type="button" className="lq-step" aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(loose + 1))}>+</button>
+                  <button type="button" className="lq-step" disabled={submitting || checking} aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(loose + 1))}>+</button>
+                  </div>
                 </div>
-                {(cell?.cases ?? 0) > 0 && <span className="lq-case-sum">= {qty} each</span>}
+                {(cell?.cases ?? 0) > 0 && <span className="lq-case-sum">= {formatQty(qty)} each</span>}
               </div>
             );
           })}
@@ -1385,8 +1417,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             <span className="lq-cap-n">{Object.keys(batchCells).length}</span>
           </h3>
           <p className="lq-muted lq-cap-empty">
-            How many FULL batches’ worth are here? Half a bottle is 0.5. Enter 0 if there are none —
-            skipping it isn’t the same as counting zero.
+            Full bottles here? Half = 0.5. None = 0.
           </p>
           {batches.map((b) => {
             const v = batchCells[b.id];
@@ -1409,26 +1440,27 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     type="button"
                     className="lq-step"
                     aria-label={`decrease ${b.name}`}
-                    onClick={() => setBatch(b.id, roundQty(Math.max(0, (v ?? 0) - 0.5)))}
+                    disabled={(v ?? 0) <= 0 || submitting || checking}
+                      onClick={() => setBatch(b.id, Number(Math.max(0, (v ?? 0) - 0.5).toFixed(10)))}
                   >
                     −
                   </button>
-                  <input
+                  <CountQuantityInput
                     className="lq-qty-input"
                     type="number"
                     inputMode="decimal"
                     step="0.5"
                     min={0}
-                    value={touched ? v : ""}
+                    value={touched ? v : undefined}
                     placeholder="—"
                     aria-label={`${b.name} full containers`}
-                    onChange={(e) => setBatch(b.id, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                    onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) setBatch(b.id, n); }}
                   />
                   <button
                     type="button"
                     className="lq-step"
                     aria-label={`increase ${b.name}`}
-                    onClick={() => setBatch(b.id, roundQty((v ?? 0) + 0.5))}
+                      onClick={() => setBatch(b.id, Number(((v ?? 0) + 0.5).toFixed(10)))}
                   >
                     +
                   </button>
@@ -1469,39 +1501,44 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 {cell.raw && <span className="lq-size lq-heard">heard: “{cell.raw}”</span>}
                 {(cell.cases ?? 0) > 0 && cell.caseSize && (
                   <span className="lq-size lq-case-total">
-                    {cell.cases} case{cell.cases === 1 ? "" : "s"} × {cell.caseSize}
-                    {loose > 0 ? ` + ${loose}` : ""} = {cell.qty}
+                    {formatQty(cell.cases)} case{cell.cases === 1 ? "" : "s"} × {formatQty(cell.caseSize)}
+                    {loose > 0 ? ` + ${formatQty(loose)}` : ""} = {formatQty(cell.qty)}
                   </span>
                 )}
               </div>
               {caseSize != null ? (
-                <CaseBox cases={cell.cases ?? 0} caseSize={caseSize} onChange={(n) => setCases(skuId, n)} />
+                <CaseBox cases={cell.cases ?? 0} caseSize={caseSize} onChange={(n) => setCases(skuId, n)} disabled={submitting || checking} />
               ) : (
                 renderCaseAsk(`c:${skuId}`, skuId)
               )}
-              <div className="lq-stepper">
-                <button type="button" className="lq-step" aria-label="decrease" onClick={() => setQty(skuId, roundQty(loose - 1))}>−</button>
-                <input
+              <div className="lq-quantity">
+                <span className="lq-qty-label">{sku?.trackingMode === "stock_count" ? "Loose each" : "Loose bottles"}</span>
+                <div className="lq-stepper">
+                <button type="button" className="lq-step" disabled={loose <= 0 || submitting || checking} aria-label={`decrease ${nameById.get(skuId) ?? "item"}`} onClick={() => setQty(skuId, roundQty(loose - 1))}>−</button>
+                <CountQuantityInput
                   className="lq-qty-input"
                   type="number"
                   // Non-bottles step in whole units — no tenths of a can.
                   inputMode="decimal"
                   step="0.1"
                   min={0}
-                  // Render 0 as EMPTY, not "0". A literal zero sitting in the
-                  // box means tapping in and typing 3 gives "03" — the value
-                  // parses to 3, but it reads broken and invites a backspace
-                  // war on a phone. The placeholder carries the meaning.
-                  value={loose || ""}
+                  // Counted cells show a real zero; an untouched search result
+                  // only has a placeholder. Focus/blur alone records nothing.
+                  value={loose}
+                  blankZero={!cell}
+                  disabled={submitting || checking}
                   placeholder="0"
-                  onChange={(e) => setQty(skuId, e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+                  onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) setQty(skuId, n, true); }}
+                  aria-label={`Loose ${nameById.get(skuId) ?? "item"}`}
                 />
-                <button type="button" className="lq-step" aria-label="increase" onClick={() => setQty(skuId, roundQty(loose + 1))}>+</button>
+                <button type="button" className="lq-step" disabled={submitting || checking} aria-label={`increase ${nameById.get(skuId) ?? "item"}`} onClick={() => setQty(skuId, roundQty(loose + 1))}>+</button>
+                </div>
               </div>
               <button
                 type="button"
                 className="lq-row-x"
                 aria-label={`remove ${nameById.get(skuId) ?? "bottle"}`}
+                disabled={submitting || checking}
                 onClick={() => clearCell(skuId)}
               >
                 ✕
@@ -1511,6 +1548,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           })
         )}
       </div>
+
+      </fieldset>
 
       {/* footer */}
       <div className="lq-footer" ref={footerRef}>
@@ -1526,7 +1565,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         </div>
         <div className="lq-footer-actions">
           <span className="lq-muted lq-count-tally">{capturedHere.length} here · {enteredTotal} total</span>
-          <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>Exit</button>
+          <button type="button" className="lq-btn lq-btn-ghost" disabled={voicePending || checking || submitting} onClick={onDone}>Home</button>
           <button
             type="button"
             className={`lq-btn lq-btn-primary${checking ? " lq-btn-spotchecking" : ""}`}
@@ -1536,14 +1575,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             {submitting
               ? "Submitting…"
               : checking
-                ? "Spot-checking the count…"
+                ? "Checking…"
                 : dict.recording
-                  ? "Finish the recording first"
+                  ? "Stop recording first"
                   : voiceBusy
-                    ? "Reading the recording back…"
+                    ? "Reading speech…"
                     : voicePending
-                      ? "Add or discard the heard bottles first"
-                      : "Finish & submit"}
+                      ? "Review heard items"
+                      : "Finish count"}
             {/* Progress over the server's 15s worst-case budget — never a fake
                 "almost done". A typical check lands ~5s in with the bar ~40%
                 full, which reads as finishing early rather than stalling. */}
@@ -1563,6 +1602,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 {" · "}
                 {reviewResolved} ready{reviewPending > 0 && ` · ${reviewPending} need a tap`}
               </p>
+              {voiceErr && <p className="lq-error" role="status">{voiceErr}</p>}
+              {dict.error && <p className="lq-error" role="status">Some audio may be missing. Check this list.</p>}
             </div>
             <div className="lq-sheet-body">
               {review.map((it, idx) => (
@@ -1588,6 +1629,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           suspectPreMultiplied: false,
                           nameCheck: null,
                           highCheck: null,
+                          explicitZero: res.explicitZero,
+
                           // A row with no cases cannot need a case size — that
                           // is the server's own rule (cases > 0 && ups == null).
                           // Without this, typing an each-count to escape the
@@ -1689,7 +1732,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     No bottles counted in: <strong>{confirmSubmit.zones.join(", ")}</strong>.{" "}
                   </>
                 )}
-                Submitting closes this count out — you can't add to it after.
+                Submit closes this count.
               </p>
             </div>
             <BottleSizeWarnings warnings={confirmSubmit.sizeWarnings} />
@@ -1700,29 +1743,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   // zone_missed on a bottle that is also overused).
                   <div key={`${f.kind}:${f.skuId}`} className="lq-precheck-row">
                     <span className="lq-precheck-name">{f.name}</span>
-                    <span className="lq-precheck-detail">{f.detail}</span>
-                    {/* NEVER "recount this". An impossible number and an unscanned
-                        delivery produce the identical symptom, and only one of
-                        them is the counter's mistake — telling him to recount
-                        invites him to bend a CORRECT number until the warning
-                        clears, which corrupts good data with confident-looking
-                        advice. Name both causes; let him decide. */}
-                    <span className="lq-precheck-why">
-                      {f.kind === "impossible" &&
-                        (f.unitsPerCase
-                          ? `Either the count is off — cases vs bottles? ${f.unitsPerCase} per case — or a delivery hasn't been scanned.`
-                          : "Either the count is off, or a delivery hasn't been scanned.")}
-                      {f.kind === "not_counted" && "Still on the shelf, or gone? A missing line drops it out of the report entirely — a zero counts, nothing doesn't."}
-                      {f.kind === "overuse" && "That's a lot to pour in one period. Worth a second look, unless it really moved."}
-                      {f.kind === "zone_missed" && "If the shelf really emptied, submit as-is. If it never got walked, count it now — a missed shelf reads as pure loss."}
-                      {f.kind === "first_count" && "First time this bottle's been counted, and it's more than what was delivered. Older stock that predates the catalog is fine — but if it got said twice, fix the number now."}
-                      {f.kind === "sibling_swap" && "Two variants of the same brand, off in opposite directions — worth a glance at the labels. If each bottle really is what it says, submit as-is."}
-                      {f.kind === "size_mixup" && "Check the size printed on the open bottles. If each bottle really is the size it says, submit as-is."}
-                      {f.kind === "big_loss" && "Sales math says more should be left than this count found. If the shelf was walked and it's really gone, submit — it lands on the grade as loss. If a spot got skipped (backstock? the cooler?), count it now."}
-                      {f.kind === "beer_not_counted" && "Bottled beer is counted on the keg check, not here. Without it the beer report has nothing to bracket and the order guide flies blind — league nights are the whole season for it."}
-                      {f.kind === "batch_not_counted" && "Batch bottles hold liquor already poured out of its bottles, so uncounted it reads as loss. If there are none right now, say so — a zero is an answer, an empty is not."}
-                      {f.kind === "purchased_not_counted" && "This came in on an invoice this period and has never been counted. Count it now — even a zero — so its velocity starts and the order guide can see it."}
-                    </span>
+                    <FindingSummary finding={f} unit={skuById.get(f.skuId)?.countUnit ?? (skuById.get(f.skuId)?.trackingMode === "stock_count" ? "each" : "bottles")} />
+
                     {/* One of TWO findings with a one-tap remedy (the other is
                         not_counted, below), because these are the two where the
                         honest answer is a fact the counter already knows rather
@@ -1767,8 +1789,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     {f.kind === "not_counted" &&
                       (archived[f.skuId] ? (
                         <span className="lq-precheck-answered">
-                          Retired. Off the next count sheet; every past count keeps
-                          the numbers it already has.
+                          Retired. Off the next count sheet.
                         </span>
                       ) : (
                         <button
@@ -1779,7 +1800,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         >
                           {retiringSkuId === f.skuId
                             ? "Retiring…"
-                            : "We don't carry it any more — retire it"}
+                            : "No longer carried"}
                         </button>
                       ))}
                   </div>
@@ -1799,8 +1820,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <div className="lq-retiring">
                 <p className="lq-retiring-h">Have we stopped carrying these?</p>
                 <p className="lq-muted lq-retiring-sub">
-                  No stock seen and nothing bought in months. Retiring one takes it off
-                  the count sheet. Every past count keeps the numbers it already has.
+                  No recent stock or purchases. Retire items we no longer carry.
                 </p>
                 {confirmSubmit.retiring.map((r) => (
                   <div key={r.skuId} className="lq-retiring-row">
@@ -1841,10 +1861,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <div key={d.key} className="lq-precheck-row">
                     <span className="lq-precheck-name">{d.name}</span>
                     <span className="lq-precheck-detail">
-                      {d.zone}: voice added {d.added} onto an existing {d.before} — now {d.after}.
+                      {d.zone}: {formatQty(d.before)} + {formatQty(d.added)} = {formatQty(d.after)}
                     </span>
                     <span className="lq-precheck-why">
-                      Another bottle, or the same one said twice? If it was a re-say, set the cell to {d.before >= d.added ? d.before : d.added} before submitting.
+                      Extra stock or said twice? If repeated, correct the count to {formatQty(d.before >= d.added ? d.before : d.added)}.
                     </span>
                   </div>
                 ))}
@@ -1872,7 +1892,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <button
                 type="button"
                 className="lq-btn lq-btn-primary"
-                disabled={retiringSkuId != null}
+                disabled={retiringSkuId != null || voicePending || submitting}
                 onClick={() => void finish()}
               >
                 {confirmSubmit.findings.length > 0 ||
@@ -1888,7 +1908,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         </div>
       )}
       {submissionUnknown && sessionId && <CountSubmitRecovery sessionId={sessionId} onDone={onDone}
-        onDraft={() => { setSubmissionUnknown(false); setSubmitErr("Count saved. It is still open. Tap Finish & submit to try again."); }}
+        onDraft={() => { setSubmissionUnknown(false); setSubmitErr("Count saved. It is still open. Tap Finish count to try again."); }}
         onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); setSubmissionUnknown(false); setDone(n); }} />}
     </div>
   );
@@ -1915,7 +1935,7 @@ function ReviewRow({
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
    *  single total — applyReview reads those two fields, so a handler that only
    *  set `qty` would render a corrected number and then apply the old one. */
-  onResolve: (res: { cases: number; units: number }) => void;
+  onResolve: (res: { cases: number; units: number; explicitZero?: boolean }) => void;
   onPick: (skuId: string) => void;
   onToggleAssign: () => void;
   onRemove: () => void;
@@ -1965,25 +1985,27 @@ function ReviewRow({
         <div className="lq-rev-qtywrap">
           {item.cases > 0 && item.unitsPerCase != null ? (
             <span className="lq-rev-casemath">
-              {item.cases} cs ×{item.unitsPerCase}
-              {item.units > 0 ? ` + ${item.units}` : ""} =
+              {formatQty(item.cases)} cs ×{formatQty(item.unitsPerCase)}
+              {item.units > 0 ? ` + ${formatQty(item.units)}` : ""} =
             </span>
           ) : (
             <span className="lq-muted">×</span>
           )}
-          <input
+          <CountQuantityInput
             className="lq-qty-input"
             type="number"
             inputMode="decimal"
             step="0.1"
             min={0}
-            // Empty rather than "0" — see the captured-row input. This is the
-            // correction surface, so a stray leading zero is worst here.
-            value={item.qty || ""}
+              // Empty rather than "0" — see the captured-row input. This is the
+              // correction surface, so a stray leading zero is worst here.
+              value={item.qty}
+              blankZero={!item.explicitZero}
             placeholder="0"
             // A typed number is a plain each-count and REPLACES whatever the
             // model heard — cases go to 0 so cases x size can't be added on top.
-            onChange={(e) => onResolve({ cases: 0, units: Math.max(0, Number(e.target.value)) })}
+            onQuantity={(n, raw) => onResolve({ cases: 0, units: n, explicitZero: raw !== "" && Number(raw) === 0 })}
+            aria-label={`Total quantity for ${chosen?.name ?? item.spoken}`}
           />
           <button type="button" className="lq-rev-x" aria-label="remove" onClick={onRemove}>✕</button>
         </div>
@@ -1995,7 +2017,7 @@ function ReviewRow({
       {state === "needs_case" && (
         <div className="lq-rev-choices">
           <span className="lq-error lq-rev-hint">
-            Heard {item.cases} case{item.cases === 1 ? "" : "s"}
+            Heard {formatQty(item.cases)} case{item.cases === 1 ? "" : "s"}
             {chosen ? ` of ${chosen.name}` : ""} — how many in a case?
           </span>
           <div className="lq-rev-assign">
@@ -2058,15 +2080,15 @@ function ReviewRow({
       {state === "suspect" && (
         <div className="lq-rev-choices">
           <span className="lq-error lq-rev-hint">
-            Heard {item.cases} case{item.cases === 1 ? "" : "s"} AND {item.units} each — which did you mean?
+            Heard {formatQty(item.cases)} case{item.cases === 1 ? "" : "s"} AND {formatQty(item.units)} each — which did you mean?
           </span>
           {/* Keep the case provenance on the "cases" branch so the count detail
               can still show "4 cs x 24"; the "each" branch is loose by definition. */}
           <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: 0 })}>
-            {item.cases} case{item.cases === 1 ? "" : "s"} ({item.cases * (item.unitsPerCase ?? 0)})
+            {formatQty(item.cases)} case{item.cases === 1 ? "" : "s"} ({formatQty(item.cases * (item.unitsPerCase ?? 0))})
           </button>
           <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
-            {item.units} each
+            {formatQty(item.units)} each
           </button>
         </div>
       )}
@@ -2113,20 +2135,20 @@ function ReviewRow({
       {state === "restate" && item.restate && (
         <div className="lq-rev-choices">
           <span className="lq-error lq-rev-hint">
-            {item.restate.before} already counted on {shelf} from an earlier take. Did you just recount those, or find more?
+            {formatQty(item.restate.before)} already counted on {shelf} from an earlier take. Did you just recount those, or find more?
           </span>
           <button type="button" className="lq-chip" onClick={() => onRestate("replace")}>
             Recount: {item.qty}
           </button>
           <button type="button" className="lq-chip" onClick={() => onRestate("add")}>
-            More: {roundQty(item.restate.before + item.qty)} total
+            More: {formatQty(item.restate.before + item.qty)} total
           </button>
         </div>
       )}
       {item.restate && item.restateAnswer && (
         <span className="lq-muted lq-rev-hint">
           {item.restateAnswer === "replace"
-            ? `Replaces the earlier ${item.restate.before} on ${shelf}.`
+            ? `Replaces the earlier ${formatQty(item.restate.before)} on ${shelf}.`
             : `Adds to the earlier ${item.restate.before} on ${shelf}.`}{" "}
           <button type="button" className="lq-linkbtn" onClick={() => onRestate(undefined)}>Change</button>
         </span>
@@ -2136,6 +2158,9 @@ function ReviewRow({
         <button type="button" className="lq-chip lq-chip-on lq-rev-chosen" onClick={onToggleAssign}>
           ✓ {chosen.name}{chosen.sizeMl != null ? ` · ${chosen.sizeMl}ml` : ""}
         </button>
+      )}
+      {state === "matched" && item.qty === 0 && !item.explicitZero && (
+        <span className="lq-error lq-rev-hint">Enter the quantity. Type 0 for none.</span>
       )}
 
       {state === "ambiguous" && (
@@ -2177,19 +2202,13 @@ function ReviewRow({
   );
 }
 
-// 2 decimals: "a quarter bottle" must stay 0.25, not round to 0.3. (The DB
-// column is numeric(12,3) — the client is the only place precision was lost.)
-function roundQty(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
 /** The LOOSE portion of a cell — total minus whatever the cases contribute.
  *  Every stepper and number field edits this, never the total: feeding a
  *  case-bearing cell's `qty` back into setQty would re-add the cases. */
 function looseOf(cell: Cell | undefined): number {
   if (!cell) return 0;
   const fromCases = (cell.cases ?? 0) * (cell.caseSize ?? 0);
-  return Math.max(0, roundQty(cell.qty - fromCases));
+  return Number(Math.max(0, cell.qty - fromCases).toFixed(10));
 }
 
 /** The case entry box. Deliberately a SECOND field beside the each-count, not
@@ -2200,26 +2219,78 @@ function CaseBox({
   cases,
   caseSize,
   onChange,
+  disabled = false,
 }: {
   cases: number;
   caseSize: number;
   onChange: (n: number) => void;
+  disabled?: boolean;
 }) {
   return (
-    <div className="lq-casebox">
-      <input
+    <div className="lq-quantity lq-case-quantity">
+      <span className="lq-qty-label">Cases ×{formatQty(caseSize)}</span>
+      <div className="lq-case-stepper lq-stepper">
+      <button type="button" className="lq-step" disabled={disabled || cases <= 0} aria-label="One fewer case" onClick={() => onChange(Math.max(0, roundQty(cases - 1)))}>−</button>
+      <CountQuantityInput
         className="lq-case-input"
         type="number"
-        inputMode="numeric"
-        step="1"
+        inputMode="decimal"
+        step="0.5"
         min={0}
-        value={cases || ""}
+        value={cases}
+        blankZero
+        disabled={disabled}
         placeholder="0"
         aria-label={`cases (${caseSize} each)`}
-        onChange={(e) => onChange(e.target.value === "" ? 0 : Math.max(0, Number(e.target.value)))}
+        onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) onChange(n); }}
       />
-      <span className="lq-case-unit">cs ×{caseSize}</span>
+      <button type="button" className="lq-step" disabled={disabled} aria-label="One more case" onClick={() => onChange(roundQty(cases + 1))}>+</button>
+      </div>
     </div>
+  );
+}
+
+/** Keep the text being typed until blur; 5.5 must not snap back to 5 mid-entry. */
+function CountQuantityInput({
+  value,
+  onQuantity,
+  blankZero = false,
+  ...props
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange"> & {
+  value: number | undefined;
+  onQuantity: (n: number, raw: string) => void;
+  blankZero?: boolean;
+}) {
+  // Summaries round for scanning; an editable field must show the value that
+  // will be saved. Normalize binary tails without hiding a stored 0.125.
+  const show = (n: number | undefined) => n == null || (blankZero && n === 0) ? "" : String(Number(n.toPrecision(15)));
+  const [draft, setDraft] = useState(() => show(value));
+  const focused = useRef(false);
+  useEffect(() => {
+    if (!focused.current) setDraft(show(value));
+  }, [value, blankZero]);
+  return (
+    <input
+      {...props}
+      value={draft}
+      onFocus={(event) => {
+        focused.current = true;
+        if (draft === "0") event.currentTarget.select();
+        event.currentTarget.closest(".lq-row, .lq-rev")?.scrollIntoView({ block: "center", behavior: "smooth" });
+        props.onFocus?.(event);
+      }}
+      onChange={(event) => {
+        const raw = event.target.value;
+        setDraft(raw);
+        const number = Number(raw);
+        if (Number.isFinite(number)) onQuantity(Math.max(0, number), raw);
+      }}
+      onBlur={(event) => {
+        focused.current = false;
+        setDraft(show(value));
+        props.onBlur?.(event);
+      }}
+    />
   );
 }
 

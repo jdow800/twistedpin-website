@@ -17,22 +17,22 @@ export default function Home({
         <button type="button" className="lq-action" onClick={() => onGo("count")}>
           <span className="lq-action-emoji" aria-hidden="true">🥃</span>
           <span className="lq-action-title">Count liquor</span>
-          <span className="lq-action-sub">Bottles by zone — voice or tap</span>
+          <span className="lq-action-sub">Voice or tap · bottles by zone</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("countfood")}>
           <span className="lq-action-emoji" aria-hidden="true">🧊</span>
           <span className="lq-action-title">Count food</span>
-          <span className="lq-action-sub">Kitchen shelves by zone — voice or tap</span>
+          <span className="lq-action-sub">Voice or tap · kitchen shelves</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("kegcheck")}>
           <span className="lq-action-emoji" aria-hidden="true">🛢️</span>
           <span className="lq-action-title">Keg check</span>
-          <span className="lq-action-sub">Backups on hand + empties out back</span>
+          <span className="lq-action-sub">Kegs + bottled beer</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("upload")}>
           <span className="lq-action-emoji" aria-hidden="true">🧾</span>
           <span className="lq-action-title">Upload invoice</span>
-          <span className="lq-action-sub">Snap the pages — we read it</span>
+          <span className="lq-action-sub">Photos or PDF</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("teachergroup")}>
           <span className="lq-action-emoji" aria-hidden="true">🍎</span>
@@ -44,7 +44,7 @@ export default function Home({
         <button type="button" className="lq-action" onClick={() => onGo("invoices")}>
           <span className="lq-action-emoji" aria-hidden="true">📁</span>
           <span className="lq-action-title">Recent invoices</span>
-          <span className="lq-action-sub">What we've read — last 60 days</span>
+          <span className="lq-action-sub">Last 60 days</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("counts")}>
           <span className="lq-action-emoji" aria-hidden="true">📋</span>
@@ -64,7 +64,7 @@ export default function Home({
         <button type="button" className="lq-action" onClick={() => onGo("pricewatch")}>
           <span className="lq-action-emoji" aria-hidden="true">📈</span>
           <span className="lq-action-title">Price watch</span>
-          <span className="lq-action-sub">Bottles whose $/oz jumped 5%+</span>
+          <span className="lq-action-sub">Cost per ounce · changes of 5%+</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("pourcosts")}>
           <span className="lq-action-emoji" aria-hidden="true">🍸</span>

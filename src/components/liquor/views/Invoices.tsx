@@ -63,6 +63,10 @@ const money = (s: string | null) =>
   s == null || s === ""
     ? "—"
     : `$${Number(s).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+// Unit costs can be fractions of a cent. Invoice totals still display cents.
+const unitMoney = (s: string | null) =>
+  s == null || s === "" ? "—" : `$${Number(s).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}`;
+const invoiceQty = (s: string | number) => Number(s).toLocaleString(undefined, { maximumFractionDigits: 3, useGrouping: false });
 
 function shortDate(iso: string): string {
   const d = new Date(iso);
@@ -308,7 +312,7 @@ export default function Invoices({
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
                 {l.sizeText && <span>· {l.sizeText}</span>}
-                {l.qtyUnits && <span>· {Number(l.qtyUnits)} × {money(l.unitCost)}</span>}
+                {l.qtyUnits && <span>· {invoiceQty(l.qtyUnits)} × {unitMoney(l.unitCost)}</span>}
               </div>
               {Number(l.shortageAmount ?? 0) > 0 && (
                 <p className="lq-muted">Product cost after shortage: {money(l.receivedAmount ?? null)}. {money(l.shortageAmount ?? null)} not delivered.</p>
@@ -403,8 +407,7 @@ export default function Invoices({
 
         {totalsDelta >= 0.01 && (
           <p className="lq-muted lq-invd-note">
-            Totals don't tie ({money(totalsDelta.toFixed(2))}) — usually deposits, fees, or return
-            credits, or a reading error. Compare the source documents before changing quantities.
+            Totals differ by {money(totalsDelta.toFixed(2))}. Check deposits, fees, credits, and the source documents before changing quantities.
           </p>
         )}
 
@@ -639,7 +642,9 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
         ))}
       </div>
 
-      <p className="lq-muted lq-buk-basis">
+      <details className="lq-muted lq-buk-basis">
+        <summary>How totals were calculated</summary>
+        <p>
         {b.totalBasis === "product_subtotal"
           ? "Against the printed product subtotal, which already excludes deposits, fees and credits."
           : b.totalBasis === "grand_total"
@@ -655,7 +660,8 @@ function BucketPanel({ detail }: { detail: InvoiceDetail }) {
             {b.mixInvoices != null && ` (${b.mixInvoices} invoices)`}.
           </>
         )}
-      </p>
+        </p>
+      </details>
 
       {attentionCount > 0 && (
         <div className="lq-buk-att">
@@ -784,7 +790,7 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
     <button type="submit" className="lq-btn" disabled={busy || !valid}>{busy ? "Saving…" : "Save package answer"}</button>
     <p className="lq-muted">Remembered for this supplier and package. Your counting setup and delivered quantities stay the same.</p>
     <details className="lq-invd-source-note"><summary>What the invoice says</summary>
-      <p>Package: {line.pack ?? "?"} × {line.sizeText || "size not read"}. Case price: {money(line.unitCost)}.</p>
+      <p>Package: {line.pack ?? "?"} × {line.sizeText || "size not read"}. Case price: {unitMoney(line.unitCost)}.</p>
       <p>{line.costHoldReason}</p>
     </details>
     {error && <p className="lq-error" role="alert">{error}</p>}
@@ -842,7 +848,7 @@ function CostHoldControl({
       <details open={!line.canRememberUnit}>
       <summary>Advanced: enter a one-time price</summary>
       <p className="lq-invd-hold-q">
-        What does one {unit} cost? The saved invoice price is {money(line.unitCost)};
+        What does one {unit} cost? The saved invoice price is {unitMoney(line.unitCost)};
         the source package is {line.pack ?? "?"} × {line.sizeText || "unknown"}.
       </p>
       <label>
@@ -860,7 +866,7 @@ function CostHoldControl({
         <span className="lq-muted">per {unit}</span>
       </label>
       <p className="lq-invd-hold-note lq-muted">
-        Sets the cost only — the billed quantity stays as it is.
+        Billed quantity stays unchanged.
       </p>
       <div className="lq-invd-recvd-actions">
         <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>
@@ -931,10 +937,10 @@ function ReceivedControl({
       <div className="lq-invd-recvd">
         <span className="lq-invd-recvd-flag">
           {shortBy > 0
-            ? `Short ${+shortBy.toFixed(3)} of ${billed}`
+            ? `Short ${invoiceQty(shortBy)} of ${invoiceQty(billed)}`
             : shortBy < 0
-              ? `Over by ${+Math.abs(shortBy).toFixed(3)}`
-              : `Confirmed all ${billed}`}
+              ? `Over by ${invoiceQty(Math.abs(shortBy))}`
+              : `Confirmed all ${invoiceQty(billed)}`}
         </span>
         {credit != null && credit > 0 && <span className="lq-invd-recvd-credit">
           {money(credit.toFixed(2))} {line.shortageAmount == null ? "shortfall" : "excluded from product cost"}
@@ -970,7 +976,7 @@ function ReceivedControl({
           onChange={(e) => setVal(e.target.value)}
           placeholder={String(billed)}
         />
-        <span className="lq-muted">of {billed} billed</span>
+        <span className="lq-muted">of {invoiceQty(billed)} billed</span>
       </label>
       <p className="lq-muted">Saving a shortage updates stock and product cost. The original invoice stays on file.</p>
       <div className="lq-invd-recvd-actions">

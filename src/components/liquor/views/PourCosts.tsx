@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPourCosts, type PourCostRow } from "../api";
+import { formatQty } from "../quantity";
 
 // Pour-cost report — recipe spirit cost (live, invoice-updated) ÷ GoTab menu
 // price per cocktail, worst margin first. Ceiling comes from the backend
@@ -47,14 +48,15 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-invlist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Pour cost</h2>
       <p className="lq-muted lq-upload-hint">
-        Live spirit cost ÷ menu price per cocktail — target ceiling {ceiling}%.
-        Costs update with every scanned invoice. {over > 0 ? `${over} over the ceiling.` : "All under the ceiling."}
+        Spirit cost only · ceiling {formatQty(ceiling)}%.
+        {rows.length > 0 && (over > 0 ? ` ${over} over the ceiling.` : " All under the ceiling.")}
       </p>
       {rows.length === 0 ? (
         <div className="lq-center">
           <p className="lq-muted" style={{ maxWidth: 320, textAlign: "center" }}>
-            No recipes seeded yet — once bar_recipe has rows, every cocktail shows its live margin here.
+            No cocktail recipes yet. Add recipes to see their pour costs.
           </p>
         </div>
       ) : (
@@ -62,7 +64,7 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
           const isOpen = open === r.productId;
           const pctTxt = r.pourCostPct != null ? `${r.pourCostPct.toFixed(1)}%` : "—";
           return (
-            <div key={r.productId} className="lq-pw-row" onClick={() => setOpen(isOpen ? null : r.productId)}>
+            <button key={r.productId} type="button" className="lq-pw-row" aria-expanded={isOpen} style={{ textAlign: "left", color: "inherit", cursor: "pointer" }} onClick={() => setOpen(isOpen ? null : r.productId)}>
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">
                   {r.name}
@@ -79,12 +81,12 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
                 <div className="lq-pw-sub" style={{ marginTop: 6 }}>
                   {r.components.map((c, i) => (
                     <div key={i} className="lq-muted">
-                      {c.oz}oz {c.skuName} — {c.costUsd != null ? money(c.costUsd) : "no cost/size on file"}
+                      {formatQty(c.oz)}oz {c.skuName} — {c.costUsd != null ? money(c.costUsd) : "no cost/size on file"}
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </button>
           );
         })
       )}

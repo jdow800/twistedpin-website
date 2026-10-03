@@ -24,7 +24,7 @@ try {
     const context = await browser.newContext({viewport:{width,height:740},isMobile:true,hasTouch:true,deviceScaleFactor:1});
     const page = await context.newPage();
     await page.goto(origin+'/?full-review');
-    await page.getByRole('button',{name:'Finish & submit',exact:true}).click();
+    await page.getByRole('button',{name:'Finish count',exact:true}).click();
     await page.locator('.lq-confirm').waitFor();
     await page.getByRole('button',{name:'Show 3 more',exact:true}).click();
     const review = await page.evaluate(()=>{
@@ -60,7 +60,7 @@ try {
         return root && footer && Math.abs(parseFloat(getComputedStyle(root).getPropertyValue('--lq-count-footer-h'))-footer.getBoundingClientRect().height)<1;
       });
       assert.equal(await footerMatches(),true,`${width}px ${app}: observed after async load`);
-      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish & submit',exact:true}).click();
+      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish count',exact:true}).click();
       await page.getByRole('button',{name:app==='food'?'Submit the count':'Submit anyway',exact:true}).click();
       await page.locator('.lq-footer').filter({hasText:"Couldn't submit it"}).waitFor();
       await page.waitForFunction(()=>{
@@ -73,7 +73,7 @@ try {
       const state = await page.evaluate(()=>{
         const root = document.querySelector('.lq-fc,.lq-count');
         const footer = document.querySelector('.lq-footer');
-        const last = [...document.querySelectorAll('.lq-fc-row,.lq-row-set')].at(-1);
+        const last = [...document.querySelectorAll('.lq-fc-row,.lq-captured .lq-row')].at(-1);
         return {overflow:document.documentElement.scrollWidth>innerWidth+1,footer:footer.getBoundingClientRect().toJSON(),
           reserved:parseFloat(getComputedStyle(root).paddingBottom),last:last.getBoundingClientRect().toJSON()};
       });
@@ -85,24 +85,24 @@ try {
       await page.goto(origin+`/?app=${app}&existing&save-fails`);
       if (app==='liquor') {
         await page.locator('.lq-zone').filter({hasText:'Back Bar'}).click();
-        await page.getByRole('button',{name:'increase',exact:true}).click();
+        await page.getByRole('button',{name:"increase Jameson Irish Whiskey",exact:true}).click();
       } else {
         await page.getByRole('spinbutton',{name:'Pizza Dough: loose packs',exact:true}).fill('4');
         await page.getByRole('spinbutton',{name:'Pizza Dough: loose packs',exact:true}).blur();
       }
-      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish & submit',exact:true}).click();
+      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish count',exact:true}).click();
       await page.getByRole('button',{name:'Retry save',exact:true}).waitFor();
       await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
       await page.screenshot({path:fileURLToPath(new URL(`count-${app}-retry-save-${width}.png`,dist)),fullPage:false});
 
       await page.goto(origin+`/?app=${app}&existing&check-fails`);
-      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish & submit',exact:true}).click();
+      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish count',exact:true}).click();
       await page.getByRole('button',{name:'Retry check',exact:true}).waitFor();
       await page.getByRole('button',{name:'Retry check',exact:true}).scrollIntoViewIfNeeded();
       await page.screenshot({path:fileURLToPath(new URL(`count-${app}-retry-check-${width}.png`,dist)),fullPage:false});
 
       await page.goto(origin+`/?app=${app}&existing&submit-unknown`);
-      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish & submit',exact:true}).click();
+      await page.getByRole('button',{name:app==='food'?'Finish (1)':'Finish count',exact:true}).click();
       await page.getByRole('button',{name:app==='food'?'Submit the count':'Submit anyway',exact:true}).click();
       await page.getByRole('dialog',{name:'Check submission',exact:true}).waitFor();
       const recovery = await page.getByRole('button',{name:'Check submission',exact:true}).boundingBox();

@@ -70,8 +70,7 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
         <p className="lq-done-emoji" aria-hidden="true">📨</p>
         <h2 className="lq-h2">{sentCount > 1 ? `${sentCount} invoices sent` : "Invoice sent"}</h2>
         <p className="lq-muted" style={{ maxWidth: 340, textAlign: "center" }}>
-          We're reading {sentCount > 1 ? "them" : "it"} now. If a line needs a human, the bar inbox
-          gets an email — otherwise it's filed. Nothing else to do.
+          We're reading {sentCount > 1 ? "them" : "it"}. We'll email the bar inbox if anything needs review.
         </p>
         <div className="lq-voice-actions">
           <button type="button" className="lq-btn lq-btn-ghost" onClick={onDone}>
@@ -86,10 +85,12 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-upload">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>Upload invoice</h2>
       <p className="lq-muted lq-upload-hint">
-        Point the camera at each page and snap it — deposits and fees too. Multi-page: take them
-        all before sending. Emailed invoices? Attach the PDFs — each PDF files as its own invoice,
-        so you can send a whole stack at once.
+        Photograph every page, including deposits and fees.
+      </p>
+      <p className="lq-muted lq-upload-hint">
+        Photos go together as one invoice. Each PDF is a separate invoice.
       </p>
 
       {/* opens the camera app directly (rear camera, one page at a time) */}
@@ -128,12 +129,12 @@ export default function UploadInvoice({ onDone }: { onDone: () => void }) {
             ? `Max ${MAX_INVOICE_PAGES} pages`
             : pages.length
               ? `Take another page (${pages.length}/${MAX_INVOICE_PAGES})`
-              : "Take a photo of the invoice"}
+              : "Take a photo"}
         </span>
       </button>
       {pages.length < MAX_INVOICE_PAGES && (
         <button type="button" className="lq-linkbtn" onClick={() => inputRef.current?.click()}>
-          or choose a saved photo / PDF
+          Choose photos / PDFs
         </button>
       )}
 

@@ -63,14 +63,17 @@ function whenPulled(b: KegBrand): string {
 export default function EmptyKegs({
   onDone,
   embedded = false,
+  locked = false,
   onEmbedState,
   embedFlushRef,
 }: {
   onDone?: () => void;
   /** Embedded as the empties half of Keg Check: own session + autosave, parent owns Send. */
   embedded?: boolean;
-  onEmbedState?: (s: { sessionId: string | null; count: number }) => void;
+  locked?: boolean;
+  onEmbedState?: (s: { sessionId: string | null; count: number; busy?: boolean }) => void;
   embedFlushRef?: { current: (() => Promise<boolean>) | null };
+
 }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -126,6 +129,7 @@ export default function EmptyKegs({
   }, []);
 
   async function startFresh() {
+    if (dict.recording || voiceBusy || submitting || locked) return;
     try {
       const sid = await createEmptyKegReport();
       setSessionId(sid);
@@ -153,7 +157,10 @@ export default function EmptyKegs({
 
   // Live flush handle for the embedding parent, reassigned every render.
   useEffect(() => {
-    if (embedFlushRef) embedFlushRef.current = flush;
+    if (embedFlushRef) embedFlushRef.current = async () => {
+      if (dict.recording || voiceBusy) throw new Error("Finish recording first");
+      return await flush();
+    };
   });
 
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -180,6 +187,8 @@ export default function EmptyKegs({
    *  closing a draft that is missing what is on screen. */
   async function flush(): Promise<boolean> {
     if (!sessionId) return true;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+
     setSave("saving");
     try {
       await saveEmptyKegLines(sessionId, validLines(rowsRef.current));
@@ -188,6 +197,7 @@ export default function EmptyKegs({
     } catch {
       setSave("error");
       return false;
+
     }
   }
 
@@ -299,7 +309,7 @@ export default function EmptyKegs({
   }
 
   async function finish() {
-    if (!sessionId || submitting) return;
+    if (!sessionId || submitting || dict.recording || voiceBusy) return;
     const lines = validLines(rows);
     setSubmitting(true);
     try {
@@ -317,9 +327,9 @@ export default function EmptyKegs({
   // returns so the effect stays unconditional.
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    onEmbedState?.({ sessionId, count: rows.length });
+    onEmbedState?.({ sessionId, count: rows.length, busy: dict.recording || voiceBusy });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, rows.length]);
+  }, [sessionId, rows.length, dict.recording, voiceBusy]);
 
   if (phase === "loading") return <div className="lq-center lq-muted">Starting empty-keg report…</div>;
   if (phase === "error")
@@ -361,7 +371,7 @@ export default function EmptyKegs({
   const canAddFreeText = needle.length >= 2 && suggestions.length === 0;
 
   return (
-    <div className={embedded ? "lq-count lq-empties lq-count-embedded" : "lq-count lq-empties"}>
+    <div className={embedded ? "lq-count lq-empties lq-count-embedded" : "lq-count lq-empties"} inert={locked || submitting}>
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your empty-keg report in progress.</span>
@@ -383,7 +393,7 @@ export default function EmptyKegs({
           <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{dict.quiet ? "Anyone there?" : "Listening…"}</span>
+              <span className="lq-rec-label">{dict.quiet ? "Mic silent" : "Listening…"}</span>
               <span className="lq-rec-timer">
                 {mmss(dict.seconds)} / {mmss(CAP_SECONDS)}
               </span>
@@ -394,12 +404,12 @@ export default function EmptyKegs({
               </div>
             )}
             {dict.quiet && (
-              <p className="lq-rec-warntext">Mic hasn’t heard anything for a bit — check the headset if you’re still counting.</p>
+              <p className="lq-rec-warntext">No sound detected. Check the mic.</p>
             )}
             <p className="lq-rec-transcript">
               {dict.transcript ||
                 (!dict.armed ? (
-                  // Bluetooth mic route still coming up — words spoken now would be lost.
+                  // Phone mic still starting — words spoken now would be lost.
                   <span className="lq-muted">Connecting to mic… (buzzes when ready)</span>
                 ) : (
                   <span className="lq-muted">
@@ -560,10 +570,10 @@ export default function EmptyKegs({
           <button
             type="button"
             className="lq-btn lq-btn-primary"
-            disabled={submitting || rows.length === 0}
+            disabled={submitting || rows.length === 0 || dict.recording || voiceBusy}
             onClick={finish}
           >
-            {submitting ? "Sending…" : "Send report"}
+            {submitting ? "Sending…" : dict.recording ? "Stop recording first" : voiceBusy ? "Reading speech…" : "Send report"}
           </button>
         </div>
       </div>

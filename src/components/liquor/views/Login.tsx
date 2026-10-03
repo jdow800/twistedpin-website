@@ -15,13 +15,18 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
     if (pin.length < 4 || busy) return;
     setBusy(true);
     setError(null);
-    const res = await pinLogin(pin);
-    setBusy(false);
-    if (res.ok) {
-      onLoggedIn();
-    } else {
-      setError(res.message ?? "That PIN didn't match.");
-      setPin("");
+    try {
+      const res = await pinLogin(pin);
+      if (res.ok) {
+        onLoggedIn();
+      } else {
+        setError(res.message ?? "That PIN didn't match.");
+        setPin("");
+      }
+    } catch {
+      setError("Couldn't connect. Try again.");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -41,6 +46,7 @@ export default function Login({ onLoggedIn }: { onLoggedIn: () => void }) {
             key={k}
             type="button"
             className={`lq-key${k === "clear" || k === "back" ? " lq-key-alt" : ""}`}
+            disabled={busy}
             onClick={() => {
               setError(null);
               if (k === "clear") setPin("");

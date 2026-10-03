@@ -17,13 +17,17 @@ const catalog = [
   ...(withHistory && s.id === 'titos' ? {countHistory:{maxCount:3, maxDelivery:12, deliverySamples:1, days:90}} : {})}));
 // ?no-zones: the moment before any shelf has loaded, when zoneId is still "".
 const noZones = new URL(location.href).searchParams.has('no-zones');
+// ?precision: persisted fractions must remain visible and survive an unchanged save.
+const precision = new URL(location.href).searchParams.has('precision');
 const zones = noZones ? [] : [
   {id:'well', name:'Well', walkOrder:1, active:true},
   {id:'backbar', name:'Back Bar', walkOrder:2, active:true},
 ];
 // One bottle already counted on the back bar, so Finish is live before any take.
-const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
-const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, recorder:null};
+const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:precision?'0.125':'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
+const initialBatches = precision ? [{zoneId:'well',batchId:'sample-batch',fullEquivalents:'0.125'}] : [];
+const batches = precision ? [{id:'sample-batch',name:'Example Batch',notes:null,components:[]}] : [];
+const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, batches:initialBatches, recorder:null};
 // ?many-findings: nine money-ranked findings, six shown and three in `more`;
 // ?many-findings-old: the same nine from a server that sends no `more`.
 const params = new URL(location.href).searchParams;
@@ -63,8 +67,11 @@ window.fetch = async (input, init = {}) => {
   if (path.endsWith('/catalog')) return json({items:catalog});
   if (path.endsWith('/zones')) return json({zones});
   if (path.endsWith('/counts/open')) return json({session:{id:'liquor-draft', section:'bar', isFullCount:true,
-    startedAt:new Date().toISOString(), lines:initialLines, batches:[], linesHash:'server1'}});
-  if (path.endsWith('/batches')) return json({batches:[]});
+    startedAt:new Date().toISOString(), lines:initialLines, batches:initialBatches, linesHash:'server1', batchesHash:'batches0'}});
+  if (path.endsWith('/batches')) {
+    if (body?.batches) { qa.batches=body.batches; return json({batchesHash:`batches${qa.calls.filter(c=>c.path.endsWith('/batches')&&c.method==='PUT').length}`}); }
+    return json({batches});
+  }
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }});
   });
