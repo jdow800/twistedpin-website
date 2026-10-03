@@ -193,3 +193,27 @@ The 2026-10-03 count-integrity pass added fixture modes: `check-beer.mjs` runs
 and the "None of these in the cooler" path; `check-liquor-voice.mjs` adds
 `?size-mixup` and `?check-fails`; `check-food-voice.mjs` adds `check-fails` and
 `many-findings`.
+
+Food variance (2026-10-03) runs the actual `FoodVariance` screen and its pure
+`FoodVarianceReport` with synthetic reports; every request is intercepted:
+
+```powershell
+node serve.mjs --food-variance --build-only
+node check-food-variance.mjs
+```
+
+The 13 checks cover:
+- the list, and the states around it: no counts, a failed load, a pending count;
+- one report: the net, completeness, caveats, units, bands, the dishes behind
+  a line, flagged lines and no-yield wording;
+- versions and what a re-run changed;
+- an admin re-run, its refusal, and no re-run for a draft, a baseline or a
+  manager;
+- the deep link, and the pure unit and change helpers.
+
+`?mode=empty`, `?mode=error` and `?mode=rerun-fail`, `?admin=0` and
+`?count=count-b` switch the fixture. With `node serve.mjs --food-variance`
+running, set `FOOD_QA_CHROME` to a Chromium executable and run
+`node check-food-variance-layout.mjs`. It checks the list, a report, a re-run
+and a draft at 320, 390 and 960px for sideways scroll, text under 12px and tap
+rows under 44px. Screenshots stay in ignored `dist/`.
