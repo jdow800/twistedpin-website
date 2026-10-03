@@ -922,3 +922,31 @@ Tests: `check-voice-carry.mjs` (17). `check-food-voice.mjs` (45) runs the 42
 earlier scenarios on `?pausecuts=0`, plus 3 on pause cuts. The liquor voice
 (12), recorder (9, 4, 3) and deadline (7) suites still pass, and so does
 `astro build`.
+
+## 2026-10-03 - Liquor voice backlog: re-said bottles, a history check, "Show N more", clip labels
+
+Jon's go on 2026-10-03. The server half is TPRS #313. Each piece works before
+that merge and gains its data once it lands.
+- **A bottle said again on the same shelf asks, in that take's review.** It
+  asks "Recount" (replace the earlier take's number) or "More" (add to it). On
+  10-02 several re-says double-counted, and the submit check only asked at the
+  end, when nobody remembers. An answered row isn't asked again at submit.
+- **A total far above the bottle's 90-day record asks before it can be added**
+  (`voiceReview.ts` `historyCheck`): over three times the larger of the
+  largest count and the largest delivery, and at least a case above it. It
+  would have stopped 1,152 cans of tonic (record 72) and Seagram's at 14
+  (record 3.5). "Keep" or a typed number answers it. It is silent until TPRS
+  sends the record.
+- **The submit check's capped lists expand with "Show N more".** That covers
+  the dollar-ranked findings (from TPRS `more`; an older server keeps "+N more
+  not shown") and the voice-added doubles.
+- **Every voice upload names its take and its piece**, for replays (TPRS 0200
+  stores them; an older server ignores them).
+- Found by typecheck before release: the re-say "Recount" first added a second
+  `clearCell`, which in JavaScript would have silently replaced the grid's ✕
+  (remove bottle) handler. It now shares the one function, and a scenario taps
+  the ✕.
+
+Tests: `check-liquor-voice.mjs` (19), `check-voice-carry.mjs` (18), and the
+recorder (9, 3, 4), deadline (7), food (45), discontinued (6) and bottle-size
+UI (8) suites. `astro build` passes.

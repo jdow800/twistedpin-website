@@ -61,3 +61,24 @@ export function mergeAdjacentRepeats(items: VoiceExtractItem[]): VoiceExtractIte
   }
   return out;
 }
+
+export type CountHistory = { maxCount: number | null; maxDelivery: number | null; days: number };
+export type HighCheck = { total: number; maxCount: number | null; maxDelivery: number | null; days: number };
+
+/**
+ * A total far above anything this bottle has been counted at or delivered in
+ * (TPRS bar-count-history.ts, 90 days) asks before it can be added. On
+ * 2026-10-02 a heard "48" became 48 cases of tonic, 1,152 cans, against a
+ * record of 72. "Far above" is more than three times the record and at least
+ * a case (or six bottles) over it, so a slow bottle's new case doesn't ask.
+ * `total` is the whole venue: this row, the shelves already counted, and
+ * earlier rows of the same take. A bottle with no history never asks.
+ */
+export function historyCheck(rowQty: number, otherQty: number, history: CountHistory | null | undefined,
+  unitsPerCase: number | null | undefined): HighCheck | null {
+  if (!history || rowQty <= 0) return null;
+  const record = Math.max(history.maxCount ?? 0, history.maxDelivery ?? 0);
+  const total = Math.round((rowQty + otherQty) * 100) / 100;
+  if (record <= 0 || total <= 3 * record || total - record < Math.max(6, unitsPerCase ?? 6)) return null;
+  return { total, maxCount: history.maxCount, maxDelivery: history.maxDelivery, days: history.days };
+}

@@ -26,7 +26,7 @@ import {
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry } from "../voiceCarry";
-import { mergeAdjacentRepeats, nameNumberCheck, type NameCheck } from "../voiceReview";
+import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
@@ -82,6 +82,14 @@ type ReviewItem = {
   /** The count matches a number in the bottle's name ("Seagram's 7" at 7.9) —
    *  NOT applyable until the counter says which (voiceReview.ts). */
   nameCheck: NameCheck | null;
+  /** The venue total is far above this bottle's 90-day record (voiceReview.ts
+   *  historyCheck) — NOT applyable until kept or retyped. */
+  highCheck: HighCheck | null;
+  /** The take's shelf already has this bottle from an earlier take: a re-say
+   *  or more of it? Asked on the take's first row of the bottle; NOT applyable
+   *  until answered. "replace" sets the shelf to this take's number. */
+  restate: { before: number } | null;
+  restateAnswer?: "replace" | "add";
   chosenSkuId: string | null; // resolved (from a single match, a picked candidate, or manual assign)
   candidates: VoiceMatch[]; // ambiguous → the choices
   assignOpen?: boolean; // unmatched → inline search open
@@ -174,9 +182,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     findings: PrecheckFinding[];
     sizeWarnings: BottleSizeWarning[];
     truncated: number;
+    more: PrecheckFinding[];
     doubles: Restatement[];
     retiring: RetiringSku[];
   } | null>(null);
+  // "Show N more" on the review's two capped lists. Each opening starts short.
+  const [showAllFindings, setShowAllFindings] = useState(false);
+  const [showAllDoubles, setShowAllDoubles] = useState(false);
   // Bottles answered with "we don't carry it any more", so the row can
   // confirm itself without re-running the whole check.
   const [archived, setArchived] = useState<Record<string, true>>({});
@@ -466,12 +478,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   /** Remove a bottle from this zone entirely — clears cases AND loose. The ✕
    *  used to call setQty(0), which now only zeroes the loose part and would
-   *  leave a case-only row stubbornly on screen. */
-  function clearCell(skuId: string) {
+   *  leave a case-only row stubbornly on screen. A re-said bottle ("Recount")
+   *  clears the take's shelf this way before addQty writes its new number. */
+  function clearCell(skuId: string, dest: string = zoneId) {
     setCounts((prev) => {
-      const zone = { ...(prev[zoneId] ?? {}) };
+      const zone = { ...(prev[dest] ?? {}) };
       delete zone[skuId];
-      return { ...prev, [zoneId]: zone };
+      return { ...prev, [dest]: zone };
     });
     setSave("idle");
     scheduleSave();
@@ -537,7 +550,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }, [dict.recording]);
 
   function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
-    return mergeAdjacentRepeats(items).map((it, i) => ({
+    const rows: ReviewItem[] = mergeAdjacentRepeats(items).map((it, i) => ({
       key: `v${i}`,
       spoken: it.spoken,
       // Don't default a case-bearing row to 1 — its qty legitimately
@@ -549,9 +562,32 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       needsCaseSize: it.needsCaseSize,
       suspectPreMultiplied: it.suspectPreMultiplied,
       nameCheck: nameNumberCheck(it.units, it.cases, it.match?.name),
+      highCheck: null,
+      restate: null,
       chosenSkuId: it.match?.id ?? null,
       candidates: it.candidates,
     }));
+    return rows.map((r, i) => recheck(r, rows, i));
+  }
+
+  /** Already on the take's shelf from an earlier take? Asked once per bottle,
+   *  on the take's first row of it (applyReview sums the take's rows). */
+  function restateFor(r: ReviewItem, rows: ReviewItem[], i: number): { before: number } | null {
+    const skuId = r.chosenSkuId;
+    if (!skuId || rows.slice(0, i).some((x) => x.chosenSkuId === skuId)) return null;
+    const before = countsRef.current[takeZoneId ?? zoneId]?.[skuId]?.qty ?? 0;
+    return before > 0 ? { before } : null;
+  }
+
+  /** The history question for one review row. Its total is the whole venue:
+   *  every shelf's count of the bottle so far, plus the take's earlier rows. */
+  function highFor(r: ReviewItem, rows: ReviewItem[], i: number): HighCheck | null {
+    const skuId = r.chosenSkuId;
+    if (!skuId) return null;
+    const counted = Object.values(countsRef.current).reduce((t, cells) => t + (cells[skuId]?.qty ?? 0), 0);
+    const earlier = rows.slice(0, i).filter((x) => x.chosenSkuId === skuId).reduce((t, x) => t + x.qty, 0);
+    const sku = skuById.get(skuId);
+    return historyCheck(r.qty, counted + earlier, sku?.countHistory, r.unitsPerCase ?? sku?.unitsPerCase);
   }
 
   /** Recording ended. Segment extractions were launched as each transcript
@@ -637,9 +673,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // four cases silently become ZERO.
     setReview((r) =>
       r
-        ? r.map((x) =>
+        ? r.map((x, i) =>
             x.chosenSkuId === skuId && x.needsCaseSize
-              ? {
+              ? recheck({
                   ...x,
                   unitsPerCase,
                   needsCaseSize: false,
@@ -654,12 +690,20 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   // heard as {cases: 4, units: 48} answers "12 per case" and
                   // applies as 4 x 12 + 48 = 96, double the truth.
                   suspectPreMultiplied: x.cases > 0 && x.units >= unitsPerCase,
-                }
+                }, r, i)
               : x,
           )
         : r,
     );
     return null;
+  }
+
+  /** A row whose bottle or quantity just changed asks the history and
+   *  earlier-take questions again. */
+  function recheck(x: ReviewItem, rows: ReviewItem[], i: number): ReviewItem {
+    const restate = restateFor(x, rows, i);
+    return { ...x, highCheck: highFor(x, rows, i), restate,
+      restateAnswer: restate && x.restate?.before === restate.before ? x.restateAnswer : undefined };
   }
 
   /** Review-sheet caller. Errors render INSIDE the sheet — voiceErr paints in
@@ -797,8 +841,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   //  row applyable at ZERO, and applyReview drops applied rows — so a spoken
   //  "four cases of Tito's" would vanish off the sheet having recorded nothing.
   //  A zeroed row stays on screen instead, where the counter can see it.
+  //  An unanswered earlier-take question holds every row of that bottle: the
+  //  take's rows are summed, and half of a re-say must not slip through.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && r.qty > 0;
+    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && r.qty > 0 &&
+    !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && x.restate && !x.restateAnswer);
 
   function applyReview() {
     if (!review) return;
@@ -818,12 +865,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         merged.set(skuId, { cases: it.cases, units: it.units, caseSize, spoken: it.spoken });
       }
     }
+    // The counter's earlier-take answers, per bottle.
+    const answer = new Map(review.filter((r) => r.restate && r.restateAnswer).map((r) => [r.chosenSkuId!, r.restateAnswer!]));
     for (const [skuId, { cases, units, caseSize, spoken }] of merged) {
       // Cross-take add onto an occupied cell → remember it for the submit
       // dialog (the Empress double-count shape). Recorded BEFORE addQty so
       // `before` is what the earlier take(s) left, not the summed result.
+      // Not when the counter already answered it on this sheet.
       const cur = countsRef.current[dest]?.[skuId];
-      if (cur && cur.qty > 0) {
+      if (answer.get(skuId) === "replace") clearCell(skuId, dest);
+      if (cur && cur.qty > 0 && !answer.has(skuId)) {
         const added = roundQty(units + cases * (caseSize ?? cur.caseSize ?? 0));
         if (added > 0) {
           restatementsRef.current.set(`${dest}:${skuId}`, {
@@ -866,6 +917,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     let findings: PrecheckFinding[] = [];
     let sizeWarnings: BottleSizeWarning[] = [];
     let truncated = 0;
+    let more: PrecheckFinding[] = [];
     let retiring: RetiringSku[] = [];
     try {
       // Flush FIRST — the check runs server-side against saved lines, so an
@@ -886,6 +938,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       findings = res.findings;
       sizeWarnings = res.sizeWarnings ?? [];
       truncated = res.truncated ?? 0;
+      more = res.more ?? [];
       retiring = res.retiring ?? [];
     } catch {
       // A sanity check must never be able to prevent closing out a count. If it
@@ -902,11 +955,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       retiring.length > 0 ||
       restatementsRef.current.size > 0
     ) {
+      setShowAllFindings(false);
+      setShowAllDoubles(false);
       setConfirmSubmit({
         zones: uncounted,
         findings,
         sizeWarnings,
         truncated,
+        more,
         doubles: [...restatementsRef.current.values()],
         retiring,
       });
@@ -1427,6 +1483,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           qty: roundQty(res.cases * ups + res.units),
                           suspectPreMultiplied: false,
                           nameCheck: null,
+                          highCheck: null,
                           // A row with no cases cannot need a case size — that
                           // is the server's own rule (cases > 0 && ups == null).
                           // Without this, typing an each-count to escape the
@@ -1451,7 +1508,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         // silently becomes ZERO. The whole point of picking the
                         // bottle is that we now know its case size.
                         const ups = skuById.get(skuId)?.unitsPerCase ?? null;
-                        return {
+                        return recheck({
                           ...x,
                           chosenSkuId: skuId,
                           assignOpen: false,
@@ -1473,11 +1530,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           suspectPreMultiplied: x.cases > 0 && ups != null && x.units >= ups,
                           // The bottle just picked may carry a number in its name.
                           nameCheck: nameNumberCheck(x.units, x.cases, skuById.get(skuId)?.name),
-                        };
+                        }, r, i);
                       }),
                     )
                   }
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
+                  shelf={zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
+                  onRestate={(a) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, restateAnswer: a } : x)))}
                   // Indices shift on removal, so a stale error would re-attach
                   // itself to whichever row slid into this slot.
                   onRemove={() => { setCaseErr(null); setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null)); }}
@@ -1523,7 +1582,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             <BottleSizeWarnings warnings={confirmSubmit.sizeWarnings} />
             {confirmSubmit.findings.length > 0 && (
               <div className="lq-precheck">
-                {confirmSubmit.findings.map((f) => (
+                {(showAllFindings ? [...confirmSubmit.findings, ...confirmSubmit.more] : confirmSubmit.findings).map((f) => (
                   // kind in the key: one SKU can carry two findings (e.g. a
                   // zone_missed on a bottle that is also overused).
                   <div key={`${f.kind}:${f.skuId}`} className="lq-precheck-row">
@@ -1611,7 +1670,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       ))}
                   </div>
                 ))}
-                {confirmSubmit.truncated > 0 && (
+                {/* The cap decides what opens, not what can be seen. A server
+                    without `more` keeps the old line. */}
+                {!showAllFindings && confirmSubmit.more.length > 0 ? (
+                  <button type="button" className="lq-linkbtn lq-precheck-showmore" onClick={() => setShowAllFindings(true)}>
+                    Show {confirmSubmit.more.length} more
+                  </button>
+                ) : confirmSubmit.more.length === 0 && confirmSubmit.truncated > 0 && (
                   <p className="lq-precheck-more">+ {confirmSubmit.truncated} more not shown.</p>
                 )}
               </div>
@@ -1658,7 +1723,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               // second bottle found later and a re-said first bottle produce
               // the identical cell state, and only the counter knows which.
               <div className="lq-precheck">
-                {confirmSubmit.doubles.slice(0, 6).map((d) => (
+                {(showAllDoubles ? confirmSubmit.doubles : confirmSubmit.doubles.slice(0, 6)).map((d) => (
                   <div key={d.key} className="lq-precheck-row">
                     <span className="lq-precheck-name">{d.name}</span>
                     <span className="lq-precheck-detail">
@@ -1669,8 +1734,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     </span>
                   </div>
                 ))}
-                {confirmSubmit.doubles.length > 6 && (
-                  <p className="lq-precheck-more">+ {confirmSubmit.doubles.length - 6} more not shown.</p>
+                {!showAllDoubles && confirmSubmit.doubles.length > 6 && (
+                  <button type="button" className="lq-linkbtn lq-precheck-showmore" onClick={() => setShowAllDoubles(true)}>
+                    Show {confirmSubmit.doubles.length - 6} more
+                  </button>
                 )}
               </div>
             )}
@@ -1716,9 +1783,15 @@ function ReviewRow({
   onRemove,
   onCaseSize,
   caseErr,
+  shelf,
+  onRestate,
 }: {
   item: ReviewItem;
   catalog: BarSkuItem[];
+  /** The take's shelf, named in the earlier-take question. */
+  shelf: string;
+  /** The earlier-take answer; undefined asks again. */
+  onRestate: (answer: "replace" | "add" | undefined) => void;
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
    *  single total — applyReview reads those two fields, so a handler that only
    *  set `qty` would render a corrected number and then apply the old one. */
@@ -1749,7 +1822,7 @@ function ReviewRow({
   // button silently did nothing, because answering a case size requires a
   // chosen SKU. The row became a dead end whose only exit was deleting it,
   // which drops that bottle from the count entirely.
-  const state: "needs_case" | "suspect" | "name_number" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
+  const state: "needs_case" | "suspect" | "name_number" | "high" | "restate" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
     ? item.candidates.length > 0
       ? "ambiguous"
       : "unmatched"
@@ -1759,7 +1832,11 @@ function ReviewRow({
         ? "suspect"
         : item.nameCheck
           ? "name_number"
-          : "matched";
+          : item.highCheck
+            ? "high"
+            : item.restate && !item.restateAnswer
+              ? "restate"
+              : "matched";
 
   return (
     <div className={`lq-rev lq-rev-${state}`}>
@@ -1891,6 +1968,48 @@ function ReviewRow({
             {item.nameCheck.alt != null && item.nameCheck.alt > 0 ? item.units : `Keep ${item.units}`}
           </button>
         </div>
+      )}
+
+      {/* 1,152 cans of tonic against a record of 72 (2026-10-02). Far above
+          the bottle's 90-day record asks; "Keep" or a typed number answers. */}
+      {state === "high" && item.highCheck && (
+        <div className="lq-rev-choices">
+          <span className="lq-error lq-rev-hint">
+            {item.highCheck.total} in all is far above anything on record for {chosen?.name ?? "this bottle"} (
+            {[item.highCheck.maxCount != null ? `largest count ${item.highCheck.maxCount}` : "",
+              item.highCheck.maxDelivery != null ? `largest delivery ${item.highCheck.maxDelivery}` : ""]
+              .filter(Boolean).join(", ")}
+            , last {item.highCheck.days} days). Check the number.
+          </span>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: item.units })}>
+            Keep {item.qty}
+          </button>
+        </div>
+      )}
+
+      {/* A later take on the same shelf said this bottle again: a recount of
+          the same bottles (the 10-02 re-says double-counted) or more of it.
+          Asked here, while the counter still remembers. */}
+      {state === "restate" && item.restate && (
+        <div className="lq-rev-choices">
+          <span className="lq-error lq-rev-hint">
+            {item.restate.before} already counted on {shelf} from an earlier take. Did you just recount those, or find more?
+          </span>
+          <button type="button" className="lq-chip" onClick={() => onRestate("replace")}>
+            Recount: {item.qty}
+          </button>
+          <button type="button" className="lq-chip" onClick={() => onRestate("add")}>
+            More: {roundQty(item.restate.before + item.qty)} total
+          </button>
+        </div>
+      )}
+      {item.restate && item.restateAnswer && (
+        <span className="lq-muted lq-rev-hint">
+          {item.restateAnswer === "replace"
+            ? `Replaces the earlier ${item.restate.before} on ${shelf}.`
+            : `Adds to the earlier ${item.restate.before} on ${shelf}.`}{" "}
+          <button type="button" className="lq-linkbtn" onClick={() => onRestate(undefined)}>Change</button>
+        </span>
       )}
 
       {state === "matched" && chosen && (

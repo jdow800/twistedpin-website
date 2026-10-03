@@ -63,6 +63,16 @@ async function blobToBase64(blob: Blob): Promise<string> {
   return btoa(bin);
 }
 
+/** A random UUID for the take, or null without Web Crypto (the clips then just
+ *  go without one; the server takes it as optional). */
+function newTakeId(): string | null {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    return null;
+  }
+}
+
 function stopStream(stream: MediaStream | null) {
   if (!stream) return;
   for (const t of stream.getTracks()) {
@@ -169,6 +179,9 @@ export function useRecorderDictation(
   const pauseCutsRef = useRef(opts.pauseCuts);
   pauseCutsRef.current = opts.pauseCuts;
   const segStartRef = useRef(0); // when the current segment's recorder started
+  /** One id per Record tap. The server keeps it, with each piece's position,
+   *  on the clip row (TPRS 0200), so a replay rebuilds the take exactly. */
+  const takeIdRef = useRef<string | null>(null);
   const pausePollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -214,7 +227,10 @@ export function useRecorderDictation(
       const contentType = serverContentType(mimeRef.current);
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          seg.text = await transcribeAudio(contentType, b64, vocabRef.current, scopeRef.current);
+          seg.text = await transcribeAudio(contentType, b64, vocabRef.current, {
+            ...scopeRef.current,
+            ...(takeIdRef.current ? { takeId: takeIdRef.current, piece: idx } : {}),
+          });
           if (!abortingRef.current) {
             setState((s) => ({ ...s, transcript: joined() }));
             onSegmentRef.current?.(seg.text, idx);
@@ -497,6 +513,7 @@ export function useRecorderDictation(
 
   const start = useCallback(() => {
     if (!mimeRef.current) return;
+    takeIdRef.current = newTakeId();
     segmentsRef.current = [];
     uploadsRef.current = [];
     errMsgRef.current = null;

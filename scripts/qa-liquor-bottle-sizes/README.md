@@ -44,7 +44,7 @@ node serve.mjs --liquor-voice --build-only
 node check-liquor-voice.mjs
 ```
 
-The actual `CountLiquor` component and API client run with two synthetic shelves, deferred extraction responses and a stubbed recorder. Nine scenarios. The first six cover:
+The actual `CountLiquor` component and API client run with two synthetic shelves, deferred extraction responses and a stubbed recorder. The first six scenarios cover:
 - the transcriber scope (bar section plus the take's shelf);
 - shelf tiles locked while the mic is live;
 - a take landing on the shelf it started on after the counter taps another tile;
@@ -52,10 +52,17 @@ The actual `CountLiquor` component and API client run with two synthetic shelves
 - Finish refused until the take lands;
 - Discard releasing it.
 
-The last three cover:
+The next three cover:
 - the recorder ending on its own, where the tiles, Record and Finish are freed;
 - a recorder that never reports recording (`?silent-start`), which must not latch the tiles;
 - a take before any shelf has loaded (`?no-zones`), which sends no shelf id.
+
+Ten more (19 in all) cover the 2026-10-02/03 voice fixes:
+- pause-cut order, the off-switch, and the name-number prompt (`?seagrams`);
+- the grid's remove button;
+- a bottle said again on the same shelf: "Recount" replaces the earlier take, and "More" adds without a second ask at submit;
+- the 90-day history question (`?history`), and an ordinary count that doesn't ask;
+- the submit check's "Show 3 more" (`?many-findings`), and the old line from a server without `more` (`?many-findings-old`).
 
 The script reports every scenario and exits non-zero on any failure. It proves the UI rules, not microphone quality or service latency.
 
@@ -119,15 +126,16 @@ intervals with a synthetic microphone and controlled clock. Food and liquor
 process a 45-second take as 20 + 20 + 5 seconds, preserving spoken order even
 when requests finish out of order. Stop during a rotation must retain the last
 clip and release the microphone only once. Keg flows retain their 60-second
-interval. These checks do not measure recognition quality or live latency.
+interval. Every upload carries one take id per Record tap and its piece number
+(TPRS 0200). These checks do not measure recognition quality or live latency.
 
 Pause cuts (2026-10-02; on by default, `?pausecuts=0` turns them off) have three suites:
-- `node check-voice-carry.mjs` covers the pure rules, 17 checks with no DOM:
+- `node check-voice-carry.mjs` covers the pure rules, 18 checks with no DOM:
   - the pause detector: a half-second breath after 20 s, the 30 s cap, flat
     noise, and a room that gets louder;
   - the carry-forward: an unfinished bottle, spoken order, Stop after a
     failed piece, and food's rule (the last item always waits);
-  - the name-number check and back-to-back repeats.
+  - the name-number check, back-to-back repeats and the 90-day history check.
 - `node check-recorder-pauses.mjs` runs the real recorder hook with a scripted
   analyser. It checks that a breath at 21 s ends the piece and that nonstop talk
   hits the cap. With no analyser, or with the switch off, it keeps the 20 s

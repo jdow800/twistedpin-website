@@ -472,6 +472,9 @@ export interface PrecheckResult {
   baseline: boolean;
   findings: PrecheckFinding[];
   truncated?: number;
+  /** The findings past the cap, same order, behind "Show N more". Absent
+   *  from a server that predates it; the screen then keeps "+N more". */
+  more?: PrecheckFinding[];
   /** Recent delivery size missing/zero while another size was counted.
    *  Independent of the dollar-ranked cap; optional for deployment ordering. */
   sizeWarnings?: BottleSizeWarning[];
@@ -622,8 +625,9 @@ export async function transcribeAudio(
    * this is what lets the shelf in front of the counter claim it first.
    * Both optional: omitted means every active SKU alphabetically, which is
    * what shipped before and is measurably worse (48% coverage vs 94-100%).
+   * takeId and piece only label the stored clip (TPRS 0200), for replays.
    */
-  scope?: { section?: "bar" | "food"; zoneId?: string },
+  scope?: { section?: "bar" | "food"; zoneId?: string; takeId?: string; piece?: number },
 ): Promise<string> {
   const { transcript } = await voiceJson<{ transcript: string }>(
     "/admin/bar/transcribe-audio",

@@ -6,12 +6,15 @@ import 'qa:styles';
 // Synthetic bottles and shelves; every request is answered here.
 // ?seagrams adds a bottle with a number in its name, for the name-number prompt.
 const withSeagrams = new URL(location.href).searchParams.has('seagrams');
+// ?history gives Tito's a 90-day record: largest count 3, largest delivery 12.
+const withHistory = new URL(location.href).searchParams.has('history');
 const catalog = [
   {id:'titos', name:"Tito's Handmade Vodka", sizeMl:1000},
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
   ...(withSeagrams ? [{id:'seagrams', name:"Seagram's 7", sizeMl:1000}] : []),
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
-  unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[]}));
+  unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[],
+  ...(withHistory && s.id === 'titos' ? {countHistory:{maxCount:3, maxDelivery:12, deliverySamples:1, days:90}} : {})}));
 // ?no-zones: the moment before any shelf has loaded, when zoneId is still "".
 const noZones = new URL(location.href).searchParams.has('no-zones');
 const zones = noZones ? [] : [
@@ -21,6 +24,16 @@ const zones = noZones ? [] : [
 // One bottle already counted on the back bar, so Finish is live before any take.
 const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
 const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, recorder:null};
+// ?many-findings: nine money-ranked findings, six shown and three in `more`;
+// ?many-findings-old: the same nine from a server that sends no `more`.
+const params = new URL(location.href).searchParams;
+const nine = Array.from({length:9}, (_, i) => ({kind:'not_counted', skuId:`gone${i}`, name:`Missing bottle ${i + 1}`,
+  counted:null, prior:2, purchased:0, used:null, unitsPerCase:null, dollars:90 - i * 10, detail:'Counted last time, no line now.'}));
+const precheck = () => params.has('many-findings')
+  ? {baseline:false, findings:nine.slice(0, 6), truncated:3, more:nine.slice(6), retiring:[], sizeWarnings:[]}
+  : params.has('many-findings-old')
+    ? {baseline:false, findings:nine.slice(0, 6), truncated:3, retiring:[], sizeWarnings:[]}
+    : {baseline:true, findings:[], retiring:[], sizeWarnings:[]};
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
 window.fetch = async (input, init = {}) => {
   const url = new URL(String(input), location.origin);
@@ -36,7 +49,7 @@ window.fetch = async (input, init = {}) => {
     qa.extracts.push({body, succeed(items) { resolve(json({items})); }});
   });
   if (path.endsWith('/lines')) { qa.lines = body.lines; return json({ok:true}); }
-  if (path.endsWith('/precheck')) return json({baseline:true, findings:[], retiring:[], sizeWarnings:[]});
+  if (path.endsWith('/precheck')) return json(precheck());
   if (path.endsWith('/submit')) return json({lineCount:qa.lines.length});
   throw new Error('Unexpected liquor fixture request: '+path);
 };

@@ -184,4 +184,18 @@ check('repeats: back to back is a correction; a case then loose adds; later repe
   assert.equal(m.mergeAdjacentRepeats(apart).length, 3);
 });
 
+check('history: far above the 90-day record asks; ordinary counts and new bottles do not', () => {
+  const h = (maxCount, maxDelivery) => ({maxCount, maxDelivery, days: 90});
+  // 10-02's tonic: 1,152 cans against a record of 72.
+  assert.equal(m.historyCheck(1152, 0, h(72, 72), 24)?.total, 1152);
+  // Seagram's at 14 against a record of 3.5.
+  assert.equal(m.historyCheck(14, 0, h(3.5, null), null)?.total, 14);
+  // Other shelves count toward the venue total.
+  assert.equal(m.historyCheck(10, 30, h(12, 12), 12)?.total, 40);
+  assert.equal(m.historyCheck(9, 0, h(2, 6), 6), null, 'a slow bottle\'s next case');
+  assert.equal(m.historyCheck(40, 0, h(43.1, 48), 12), null, 'an ordinary Tito\'s count');
+  assert.equal(m.historyCheck(500, 0, null, 12), null, 'no history, no question');
+  assert.equal(m.historyCheck(500, 0, h(null, null), 12), null);
+});
+
 console.log(`${passed} voice rule checks passed; no DOM, microphone or service calls.`);

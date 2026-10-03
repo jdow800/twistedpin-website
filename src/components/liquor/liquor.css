@@ -1154,6 +1154,12 @@
   font-size: 13px;
   color: var(--lq-muted);
 }
+/* "Show N more" — a thumb-sized tap, left-aligned under the list. */
+.lq-precheck-showmore {
+  align-self: flex-start;
+  min-height: 44px;
+  font-size: 15px;
+}
 
 /* invoice history */
 .lq-invlist,

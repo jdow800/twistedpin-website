@@ -204,5 +204,83 @@ await run("a count that matches the bottle's name number asks before it can be a
   assert.equal(Number(line?.qtyUnits ?? 0),0.9,'the answered 0.9, not the heard 7.9');
 }, 'seagrams');
 
+// The fixture starts with 2 Jameson already on the Back Bar.
+await run("the grid's remove button still clears the bottle on the selected shelf",async t => {
+  await t.shelf('Back Bar');
+  const x = t.doc.querySelector('button[aria-label="remove Jameson Irish Whiskey"]');
+  assert.ok(x,'the counted bottle has its remove button');
+  x.click(); await pause();
+  await until(() => !t.doc.querySelector('button[aria-label="remove Jameson Irish Whiskey"]'),'Row removed');
+  await until(() => t.saves() > 0,'Save after remove');
+  assert.equal(t.qa.lines.filter(l => l.skuId === 'jameson').length,0,'nothing left of it');
+});
+
+await run('a bottle said again on the same shelf asks: a recount replaces the earlier take',async t => {
+  await t.shelf('Back Bar');
+  await t.hear([item('jameson',3), item('titos',1)]);
+  const sheet = () => t.doc.querySelector('.lq-sheet').textContent;
+  assert.match(sheet(),/2 already counted on Back Bar from an earlier take\. Did you just recount those, or find more\?/);
+  assert.match(sheet(),/1 ready · 1 need a tap/,'not added until answered');
+  await t.click('Recount: 3');
+  assert.match(sheet(),/Replaces the earlier 2 on Back Bar\./);
+  const before = t.saves();
+  await t.click(/^Add 2 to Back Bar$/);
+  await until(() => t.saves() > before,'Save after Apply');
+  const jameson = t.qa.lines.filter(l => l.skuId === 'jameson');
+  assert.deepEqual(Array.from(jameson, l => Number(l.qtyUnits)),[3],'3, not 2 + 3');
+});
+
+await run('"find more" adds to the earlier take and is not asked again at submit',async t => {
+  await t.shelf('Back Bar');
+  await t.hear([item('jameson',3)]);
+  await t.click('More: 5 total');
+  const before = t.saves();
+  await t.click(/^Add 1 to Back Bar$/);
+  await until(() => t.saves() > before,'Save after Apply');
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'jameson')?.qtyUnits),5);
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  assert.doesNotMatch(t.doc.querySelector('.lq-confirm').textContent,/voice added/,'already answered on the sheet');
+});
+
+await run("a count far above the bottle's 90-day record asks before it can be added",async t => {
+  await t.shelf('Well');
+  await t.hear([item('titos',60), item('jameson',2)]);
+  const sheet = () => t.doc.querySelector('.lq-sheet').textContent;
+  assert.match(sheet(),/60 in all is far above anything on record for Tito's Handmade Vodka \(largest count 3, largest delivery 12, last 90 days\)/);
+  assert.match(sheet(),/1 ready · 1 need a tap/,'60 cannot be added until answered');
+  await t.click('Keep 60');
+  assert.match(sheet(),/2 ready/);
+  const before = t.saves();
+  await t.click(/^Add 2 to Well$/);
+  await until(() => t.saves() > before,'Save after Apply');
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'titos')?.qtyUnits),60,'kept as said');
+}, 'history');
+
+await run('an ordinary count of a bottle with history does not ask',async t => {
+  await t.shelf('Well');
+  await t.hear([item('titos',14)]);
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/);
+  assert.ok(t.button('Add 1 to Well'));
+}, 'history');
+
+await run('the submit check opens with six findings, and "Show 3 more" reveals the rest',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  const names = () => [...t.doc.querySelectorAll('.lq-confirm .lq-precheck-name')].map(e => e.textContent);
+  assert.equal(names().length,6,'the cap still decides what opens');
+  assert.doesNotMatch(t.doc.querySelector('.lq-confirm').textContent,/more not shown/);
+  await t.click('Show 3 more');
+  assert.deepEqual(names(),Array.from({length:9},(_,i) => `Missing bottle ${i+1}`),'all nine, in money order');
+  assert.equal(t.button(/^Show \d+ more$/),undefined,'the tap goes away once used');
+}, 'many-findings');
+
+await run('a server without the extra findings keeps the old "+N more not shown" line',async t => {
+  await t.click('Finish & submit');
+  await until(() => t.doc.querySelector('.lq-confirm'),'Submit check');
+  assert.match(t.doc.querySelector('.lq-confirm').textContent,/\+ 3 more not shown\./);
+  assert.equal(t.button(/^Show \d+ more$/),undefined);
+}, 'many-findings-old');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

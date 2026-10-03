@@ -41,7 +41,7 @@ for (const flow of [
       url:'http://localhost', runScripts:'outside-only', pretendToBeVisual:true,
     });
     const win = dom.window;
-    const recorders = [], stopEvents = [], requests = [], intervals = new Map();
+    const recorders = [], stopEvents = [], requests = [], intervals = new Map(), takeIds = new Set();
     let now = 0, nextTimer = 1, micStarts = 0, micStops = 0;
     win.recorderOptions = flow.options;
     win.processSegments = flow.incremental;
@@ -93,6 +93,10 @@ for (const flow of [
       assert.equal(body.vocabulary, flow.options.vocabulary);
       assert.equal(body.section, flow.options.scope?.section);
       assert.equal(Buffer.from(body.data, 'base64').toString(), `synthetic clip ${requests.length}`);
+      // Each clip names its take and its place in it (TPRS 0200).
+      assert.equal(body.piece, requests.length);
+      assert.match(body.takeId ?? '', /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      takeIds.add(body.takeId);
       return new Promise(resolve => requests.push({
         resolve:text => resolve(new Response(JSON.stringify({transcript:text}))),
       }));
@@ -158,6 +162,7 @@ for (const flow of [
       assert.equal(micStops, 1);
       assert.equal(intervals.size, 0, 'All recording timers must stop at the end');
       assert.equal(qa.state.error, null);
+      assert.equal(takeIds.size, 1, 'every piece of one take carries the same take id');
       qa.root.unmount();
       assert.equal(micStops, 1);
       passed++;
