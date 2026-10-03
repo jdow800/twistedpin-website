@@ -13,7 +13,8 @@ export interface InvoiceAnswerCorrection {
   unitsPerCase: number; countUnit: string; currentCost: number | null; previousCost: number | null;
   costCorrected: boolean; costInvoiceId: string | null; currentCostSource: string | null;
   countingDefinitionChanged: boolean; countCaseSize: number | null;
-  affectedCounts: { id: string; status: string; started_at: string; old_cases?: string; has_unpriced_lines?: boolean }[];
+  /** stale_estimate: its food cost estimate used a price this answer wrote (TPRS #338). */
+  affectedCounts: { id: string; status: string; started_at: string; old_cases?: string; has_unpriced_lines?: boolean; stale_estimate?: boolean }[];
 }
 export interface AutomaticInvoiceAnswer {
   id: string; name: string; skuId: string; lineId: string | null; token: string;

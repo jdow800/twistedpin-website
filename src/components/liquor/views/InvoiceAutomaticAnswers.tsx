@@ -15,7 +15,7 @@ function Consequences({ result }: { result: InvoiceAnswerCorrection }) {
     {result.affectedCounts?.map(count => <p key={count.id}>
       {new Date(count.started_at).toLocaleDateString()}: {count.status === "draft"
         ? "Re-enter this item's case counts before submitting the draft."
-        : `${Number(count.old_cases) > 0 ? `${count.old_cases} case(s) were recorded with the previous case size. ` : ""}This submitted count keeps its recorded quantities and prices.${count.has_unpriced_lines ? " It had no saved price for this item; its value uses the current price." : ""}`}
+        : `${Number(count.old_cases) > 0 ? `${count.old_cases} case(s) were recorded with the previous case size. ` : ""}This submitted count keeps its recorded quantities and prices.${count.has_unpriced_lines ? " It had no saved price for this item; its value uses the current price." : ""}${count.stale_estimate ? " Its food cost used the price this answer wrote: fix it with Fix costs on Food cost." : ""}`}
     </p>)}
   </div>;
 }

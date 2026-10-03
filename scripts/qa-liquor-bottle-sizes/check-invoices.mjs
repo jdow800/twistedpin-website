@@ -223,7 +223,13 @@ for (const mode of ['automatic','automatic-stale']) await run('automatic answer 
   await click('Save correction');
   assert.match(log(),/"unitsPerCase":8/);assert.match(log(),/"token":"aaaaaaaa/);
   if(mode==='automatic-stale')assert.match(doc.querySelector('[role=alert]').textContent,/This answer changed/);
-  else await until(()=>doc.body.textContent.includes('Current price corrected from $20.00 to $10.00'));
+  else {
+    await until(()=>doc.body.textContent.includes('Current price corrected from $20.00 to $10.00'));
+    // An estimated count is priced: only the stale one is sent to Fix costs, only the unpriced one takes today's price.
+    const said=[...doc.querySelectorAll('[role=status] p')].map(p=>p.textContent);
+    assert.equal(said.filter(t=>t.includes('Its food cost used the price this answer wrote: fix it with Fix costs on Food cost.')).length,1);
+    assert.equal(said.filter(t=>t.includes('It had no saved price for this item; its value uses the current price.')).length,1);
+  }
 });
 
 await run('a matching final settles a shortage without asking staff to confirm it again','linked-auto',async({doc,button,log})=>{
