@@ -1130,3 +1130,26 @@ Tests:
   sideways scroll, nothing under 12px, tap rows at least 44px.
 - Strict TypeScript on the COGS app shows only the five pre-existing voice
   `lib` errors. `npm run build` passes.
+
+## 2026-10-03 - Recipes: no more guessed 1.5 oz pour
+
+From the independent review of 2026-10-03. Every bottle added in the recipe
+builder started at 1.5 oz and saved that way unless someone changed it. A
+recipe whose real pour differs skews the expected usage, and with it the
+variance grade.
+- **The first bottle of an option whose label states one pour starts at that
+  pour:** "Tanqueray 2oz" starts at 2. The label reader (`pourLabel.ts`) is a
+  copy of TPRS `parsePourLabel`, so the screen reads a label the way the
+  variance math does. A range, a fraction or two measures ("1-2 oz", "1/2 oz")
+  states no pour.
+- **Every other bottle starts empty**, marked "pour", and Save asks for it
+  ("Enter a pour size for Jameson."). That covers a second bottle, a label with
+  no pour ("Double Tito's", "Vegas Bomb") and every cocktail. A number in a
+  drink's name ("Margarita 16oz") is often its size, and it doesn't say which
+  bottle it belongs to.
+- **Saved recipes keep their own numbers,** opened with Edit first or reused
+  in the builder.
+
+Tests: `check-recipes.mjs` (16, 8 new; 7 of the new ones fail on the old
+code) and `check-pour-label.mjs` (3, new: the copy and TPRS agree on 53
+labels). `astro build` passes.

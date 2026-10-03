@@ -217,3 +217,30 @@ running, set `FOOD_QA_CHROME` to a Chromium executable and run
 `node check-food-variance-layout.mjs`. It checks the list, a report, a re-run
 and a draft at 320, 390 and 960px for sideways scroll, text under 12px and tap
 rows under 44px. Screenshots stay in ignored `dist/`.
+
+## Recipes
+
+The actual `RecipeBuilder` screen, with synthetic gaps, catalog and saved
+recipes:
+
+```powershell
+node serve.mjs --recipes --build-only
+node check-recipes.mjs
+# Set BOTTLE_QA_TPRS_ROOT first if TPRS is not ../tprs beside Website.
+node check-pour-label.mjs
+```
+
+`check-recipes.mjs` runs 16 DOM scenarios. The first 8 cover saved-recipe
+reuse: Use this recipe, Undo, Edit first, conflicting recipes, a failed save,
+a cocktail reusing an option's recipe, and the manual builder when nothing
+matches or the lookup fails. The other 8 (2026-10-03) cover pour defaults:
+- the first bottle of "Tanqueray 2oz" starts at 2;
+- a second bottle, a label with no pour, a cocktail, and "1/2 oz" or "1-2 oz"
+  labels start empty, and Save asks for the pour;
+- a saved recipe, opened or reused, keeps its own pours (`?mode=pair`).
+
+`?label=` names the option being built (with `?mode=cocktail`, the drink).
+
+`check-pour-label.mjs` compares the builder's copy of the label reader
+(`pourLabel.ts`) with TPRS `parsePourLabel` on 53 labels. With no TPRS
+checkout to compare against, it fails.

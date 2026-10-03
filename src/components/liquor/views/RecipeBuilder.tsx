@@ -13,6 +13,7 @@ import {
   type RecipeTemplate,
 } from "../api";
 import { RecipeSuggestions, useRecipeSuggestions } from "../RecipeSuggestions";
+import { parsePourLabel } from "../pourLabel";
 
 // The recipe home — the write path behind the daily "needs a recipe" alerts.
 // Two queues, both actioned in-app (the pricing sheet is retired):
@@ -341,6 +342,7 @@ function OptionRow({
       ) : (
         <RecipeForm
           label={option.optionLabel}
+          labelPourOz={labelPour(option.optionLabel)}
           templates={templates}
           initialTemplate={draft}
           catalog={catalog}
@@ -355,7 +357,20 @@ function OptionRow({
   );
 }
 
+// The one pour an option's label states ("Tanqueray 2oz" → 2), or null. A
+// browser without regex lookbehind (Safari before 16.4) can't run the parser;
+// it gets null too, which only means the form asks for the pour.
+function labelPour(label: string): number | null {
+  try {
+    return parsePourLabel(label).oz;
+  } catch {
+    return null;
+  }
+}
+
 // ── cocktail row: build-recipe only ──────────────────────────────────────────
+// No labelPourOz here: a number in a drink's name ("Margarita 16oz") is often
+// its size, and it never says which ingredient it belongs to.
 function CocktailRow({
   cocktail,
   catalog,
@@ -412,6 +427,7 @@ type Draft = { skuId: string; skuName: string; sizeMl: number | null; oz: string
 
 function RecipeForm({
   label,
+  labelPourOz = null,
   templates,
   initialTemplate,
   catalog,
@@ -420,6 +436,8 @@ function RecipeForm({
   onCancel,
 }: {
   label: string;
+  /** The pour an OPTION's label states; null for cocktails and unclear labels. */
+  labelPourOz?: number | null;
   templates: RecipeTemplate[];
   initialTemplate: RecipeTemplate | null;
   catalog: BarSkuItem[];
@@ -441,8 +459,16 @@ function RecipeForm({
           .slice(0, 8)
       : [];
 
+  // No guessed pour. A default saves as if someone measured it, and a wrong one
+  // skews the expected usage the variance grade is built on (every bottle used
+  // to start at 1.5). Only the first bottle of an option whose label states one
+  // pour starts filled in. Every other bottle starts empty, and Save asks for
+  // its pour. A saved recipe opened here or reused keeps its own numbers.
   function addSku(s: BarSkuItem) {
-    setComponents((cur) => [...cur, { skuId: s.id, skuName: s.name, sizeMl: s.sizeMl, oz: "1.5" }]);
+    setComponents((cur) => [...cur, {
+      skuId: s.id, skuName: s.name, sizeMl: s.sizeMl,
+      oz: cur.length === 0 && labelPourOz != null ? String(labelPourOz) : "",
+    }]);
     setSearch("");
   }
   function setOz(skuId: string, oz: string) {
@@ -510,6 +536,7 @@ function RecipeForm({
             className="lq-search"
             inputMode="decimal"
             aria-label={`oz of ${c.skuName}`}
+            placeholder="pour"
             value={c.oz}
             onChange={(e) => setOz(c.skuId, e.target.value)}
             style={{ width: 68, textAlign: "right", padding: "6px 8px" }}
