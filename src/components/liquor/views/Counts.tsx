@@ -12,6 +12,7 @@ import {
   type KegCountDetail,
   type VarianceReport,
 } from "../api";
+import { VarianceLines } from "../VarianceLines";
 
 // Read-only inventory history — recent submitted liquor counts (per-zone
 // breakdown) and keg counts (by category), toggled. Full counts also show
@@ -210,29 +211,9 @@ export default function Counts({
                 <div key={i} className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>• {c}</div>
               ))}
               {showVarianceLines && (
-                <div style={{ marginTop: 8 }}>
-                  {(variance.report.lines ?? []).map((l) => (
-                    <div key={l.skuId} className="lq-invd-line">
-                      <div className="lq-invd-line-main">
-                        <span className="lq-invd-desc">
-                          {l.name}
-                          {!l.cleanForRollup && <span className="lq-muted"> · {l.flags.join(", ")}</span>}
-                        </span>
-                        <span className="lq-invd-amt" style={{ whiteSpace: "nowrap" }}>
-                          {l.lossOz > 0 ? `−${l.lossOz}oz` : l.lossOz < 0 ? `+${-l.lossOz}oz` : "0oz"}
-                          {l.missingCost != null && (
-                            <span className={l.missingCost > 0 ? "lq-pw-up" : "lq-pw-down"}>
-                              {" "}{l.missingCost > 0 ? `$${l.missingCost.toFixed(2)}` : `+$${(-l.missingCost).toFixed(2)}`}
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                      <div className="lq-pw-sub lq-muted" style={{ fontSize: 12 }}>
-                        used {l.usedOz}oz · sold {l.soldOz}oz{l.gradePct != null ? ` · ${l.gradePct}%` : ""}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                // One row per product: two bottle sizes of one product are
+                // one row, sizes underneath (VarianceLines.tsx).
+                <VarianceLines lines={variance.report.lines ?? []} families={variance.report.families} />
               )}
             </div>
           )

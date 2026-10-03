@@ -1023,3 +1023,25 @@ Tests: `check-food-walk-locations.mjs` (17, new). `check-food-discontinued.mjs`
 (46) and draft sync (6) still pass, as does `astro build`. One food voice
 scenario ("complete failure ... a new take starts clean") fails on and off on
 main as well: it looks for Stop 20ms after a new take.
+
+## 2026-10-03 - The variance report lists a product in two bottle sizes as one
+
+Jon buys a product in 750 ml or 1 L, whichever is cheaper per ounce. TPRS now
+grades the sizes as one product, by the ounce at one price (`families`, in the
+TPRS PR of the same day). Per size, the 9/18 to 10/2 Tanqueray read as a $33
+gain and a $36 loss; as one product it was $2.77.
+- **"All bottles" lists products** (`VarianceLines.tsx`): one row with the
+  product's ounces and dollars, and each size underneath as counted, in
+  bottles and ounces ("750 ml · 0.85 → 1.35 bottles · used -12.7oz · sold
+  18.5oz").
+- **Per-size dollars are left off.** They are the artifact the product row
+  replaces.
+- **A size missing from a count says so under its product.** A size's own
+  negative usage doesn't: inside a product, that is the size the shelf was
+  counted under.
+- **Reports from before 10-03 have no families** and list every bottle exactly
+  as before. The grade and totals at the top come from TPRS, so they already
+  count products.
+
+Tests: `check-variance-rows.mjs` (4, new) renders the real list from a stored
+report with and without families.

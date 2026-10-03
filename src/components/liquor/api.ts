@@ -1406,6 +1406,27 @@ export interface VarianceLine {
   flags: string[];
   cleanForRollup: boolean;
 }
+/** One product counted in more than one bottle size, graded as one by the
+ *  ounce at one price (TPRS variance.ts sizeFamilies). Its sizes stay in
+ *  `lines`. Reports from before 2026-10-03 have none. */
+export interface VarianceFamily {
+  key: string;
+  name: string; // "Tanqueray London Dry Gin (750 ml + 1 L)"
+  category: string | null;
+  skuIds: string[]; // the sizes, smallest first
+  sizes: number[]; // ml, ascending
+  startOz: number;
+  purchasedOz: number;
+  endOz: number;
+  usedOz: number;
+  soldOz: number;
+  lossOz: number;
+  costPerOz: number | null;
+  missingCost: number | null;
+  gradePct: number | null;
+  flags: string[];
+  cleanForRollup: boolean;
+}
 export interface VarianceReport {
   priorSessionId: string | null;
   periodStart: string | null;
@@ -1415,6 +1436,9 @@ export interface VarianceReport {
   report: {
     baseline?: boolean;
     lines?: VarianceLine[];
+    /** The grade and totals read these in place of their sizes' lines. */
+    families?: VarianceFamily[];
+    familyVersion?: number;
     gradePct?: number | null;
     totals?: {
       usedOz: number;

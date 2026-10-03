@@ -177,3 +177,13 @@ unknown or stale unit labels, and rejection of mixed or ambiguous replies.
 `check-invoice-layout.mjs` includes fictional `clarity` and `clarity-unknown-unit`
 states at 320/390/960px. Case answers use the item's existing inventory unit;
 these checks do not claim a general free-text invoice interpreter.
+
+The variance report's "All bottles" list needs no server or fixture page:
+
+```powershell
+node check-variance-rows.mjs
+```
+
+It renders the actual `VarianceLines` component from a stored report, with and
+without `families`: one row per product, its sizes underneath in bottles and
+ounces, and a pre-10-03 report listed exactly as before (4 checks).
