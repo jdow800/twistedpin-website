@@ -1751,6 +1751,203 @@ export async function rerunFoodVariance(sessionId: string, reason: string): Prom
   });
 }
 
+// ── food cost (the food COGS report) ──
+// Each food bracket's cost of goods: opening + purchases − closing, by report
+// line, against food + NA sales (TPRS migration 0206; Opsi BUILD-SPEC
+// §11.125–§11.127). Shapes mirror TPRS bar/food-cogs.ts and
+// bar/food-cogs-period.ts. Money is integer cents.
+export type FoodCostLineKey = "food_na" | "paper" | "supplies" | "bar_produce" | "unbucketed";
+export type FoodCostItemFlag = "counted_one_end" | "unpriced" | "negative_usage" | "unit_switch" | "rebucketed" | "cost_jump";
+export interface FoodCostItem {
+  skuId: string;
+  name: string;
+  line: FoodCostLineKey;
+  bucket: string;
+  /** What it's counted in ("bag"); absent from reports written before 2026-10-03's unit field. */
+  unit?: string | null;
+  /** qty null: not in that count. cents null: some of it has no cost. */
+  opening: { qty: number | null; cents: number | null; pricedCents: number };
+  purchased: { qty: number | null; cents: number };
+  closing: { qty: number | null; cents: number | null; pricedCents: number };
+  usedQty: number | null;
+  usedCents: number | null;
+  usedQtyPerDay: number | null;
+  usedCentsPerDay: number | null;
+  unitCost: { opening: number | null; closing: number | null; purchased: number | null };
+  flags: FoodCostItemFlag[];
+  /** A cost more than 3x off: out of the line's totals until a revalue. */
+  excluded: boolean;
+}
+export type FoodCostReason =
+  | { code: "unpriced"; items: { skuId: string; name: string; end: "opening" | "closing"; qty: number }[] }
+  | { code: "counted_one_end"; items: { skuId: string; name: string; missing: "opening" | "closing" }[] }
+  | { code: "cost_jump"; items: { skuId: string; name: string; unitCost: FoodCostItem["unitCost"] }[] }
+  | { code: "estimated_purchases"; estimatedCents: number; goodsCents: number }
+  | { code: "unbucketed"; cents: number }
+  | { code: "rebates_unknown"; dates: { salesDate: string; why: string }[] }
+  | { code: "catering_pending"; bookingIds: string[] }
+  | { code: "pending_invoices"; invoiceIds: string[] }
+  | { code: "unattributed_purchases"; cents: number };
+export interface FoodCostTotals {
+  openingCents: number;
+  purchasesCents: number;
+  closingCents: number;
+  cogsCents: number;
+}
+export interface FoodCostLine extends FoodCostTotals {
+  key: FoodCostLineKey;
+  cogsPerDayCents: number;
+  byBucket: Record<string, FoodCostTotals>;
+  purchases: { matched: number; vendorItem: number; estimated: number; freight: number; discounts: number; flaggedCents: number };
+  items: FoodCostItem[];
+  reasons: FoodCostReason[];
+}
+export interface FoodCostReportBody {
+  period: { start: string; end: string; days: number };
+  lines: Record<FoodCostLineKey, FoodCostLine>;
+  foodNa: {
+    cogsBeforeRebatesCents: number;
+    rebateCents: number;
+    cogsAfterRebatesCents: number;
+    sales: {
+      gotabCents: number;
+      cateringCents: number;
+      totalCents: number;
+      mocktailsOutCents: number;
+      beside: { stream: string; name: string; cents: number }[];
+    };
+    pct: number | null;
+    target: number;
+    band: [number, number];
+    inBand: boolean | null;
+    usar: {
+      cogsCents: number;
+      pct: number | null;
+      staffMealsCents: number;
+      staffTrainingCompsCents: number;
+      guestRecoveryCompsCents: number;
+      provisional: boolean;
+      unvalued: { name: string; qty: number; why: string }[];
+    } | null;
+  };
+  covers: number;
+  paperPerCoverCents: number | null;
+  provisional: boolean;
+  reasons: FoodCostReason[];
+  caveats: string[];
+  evidence: { openingCountId: string; closingCountId: string; invoiceIds: string[]; rebateDocIds: string[]; estimateRefs: string[] };
+}
+export interface FoodCostBasis {
+  engine: 1;
+  computedAt: string;
+  window: { start: string; end: string };
+  counts: { openingId: string; closingId: string; openingResolved: boolean; closingResolved: boolean; transientEstimates: number };
+  firstCountAt: string | null;
+  invoices: { counted: string[]; pending: string[]; beforeFirstCount: string[] };
+  rebates: { docs: string[]; unknownDates: string[] };
+  catering: { recognised: string[]; pending: string[]; stranded: string[] };
+  recipes: { md5: string; dishes: number; options: number };
+  ledger: { rows: number; adjustments: number };
+}
+/** Why a version exists: the sweep's first, a person's re-run or revalue, or
+ *  the sweep again when a provisional input arrived. */
+export type FoodCostTrigger = "sweep" | "rerun" | "revalue" | "cleared";
+export interface FoodCostVersion {
+  version: number;
+  priorSessionId: string | null;
+  periodStart: string | null;
+  periodEnd: string;
+  status: "draft" | "final";
+  catchUp: boolean;
+  trigger: FoodCostTrigger;
+  report: FoodCostReportBody | FoodVarianceBaseline;
+  basis: FoodCostBasis | FoodVarianceBaseline;
+  reason: string | null;
+  computedBy: string | null;
+  createdAt: string;
+  finalizedAt: string | null;
+}
+export interface FoodCostSummary {
+  sessionId: string;
+  priorSessionId: string | null;
+  periodStart: string | null;
+  periodEnd: string;
+  baseline: boolean;
+  /** The latest version: trends read the latest. */
+  version: number;
+  versions: number;
+  status: "draft" | "final";
+  catchUp: boolean;
+  trigger: FoodCostTrigger;
+  provisional: boolean | null;
+  foodNaCogsPct: number | null;
+  foodNaSalesCents: number | null;
+  foodNaCogsCents: number | null;
+  createdAt: string;
+  finalizedAt: string | null;
+}
+/** One line of a food count as the report values it. */
+export interface CountCostLine {
+  lineId: string;
+  skuId: string;
+  name: string;
+  zoneName: string | null;
+  qty: number;
+  countUnit: string | null;
+  unitLabel: string | null;
+  /** Per count unit; null = unpriced. */
+  cost: number | null;
+  basis: "observed" | "estimated" | "unpriced";
+  estimateSource: "cost_history" | "other_count" | "revalue" | null;
+  /** An estimate a draft computed and didn't store. */
+  transient: boolean;
+  valueCents: number | null;
+  /** For a still-unpriced line: the price TPRS would give it now. */
+  suggestion: { cost: number; source: "cost_history" | "other_count" } | null;
+}
+/** Every food bracket with a COGS report, newest first, at its latest version. */
+export async function getFoodCostList(): Promise<FoodCostSummary[]> {
+  const { reports } = await gatedJson<{ reports: FoodCostSummary[] }>("/admin/bar/food-cogs");
+  return reports;
+}
+/** One bracket's report, every version, newest first. null = none yet. */
+export async function getFoodCost(sessionId: string): Promise<FoodCostVersion[] | null> {
+  try {
+    const { versions } = await gatedJson<{ versions: FoodCostVersion[] }>(`/admin/bar/food-cogs/${sessionId}`);
+    return versions;
+  } catch (e) {
+    if (e instanceof BarApiError && e.status === 404) return null;
+    throw e;
+  }
+}
+/** Re-read a frozen bracket as it stands today, as a new version (admin only).
+ *  409 = a baseline or a draft; 503 = GoTab can't be read. */
+export async function rerunFoodCost(sessionId: string, reason: string): Promise<{ version: number }> {
+  return gatedJson(`/admin/bar/food-cogs/${sessionId}/rerun`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+}
+/** A food count's line costs, with a suggested price for each unpriced line. Writes nothing. */
+export async function getCountCosts(countId: string): Promise<{ resolved: boolean; lines: CountCostLine[] }> {
+  return gatedJson<{ resolved: boolean; lines: CountCostLine[] }>(`/admin/bar/counts/${countId}/costs`);
+}
+/** Price a food count's lines (admin only). Both brackets the count bounds get
+ *  a new version together. 400 = a line not on the count; 503 = GoTab can't
+ *  be read (nothing changed). */
+export async function revalueFoodCount(
+  countId: string,
+  reason: string,
+  changes: { lineId: string; cost: number }[],
+): Promise<{ revalued: number; versions: { sessionId: string; version: number }[] }> {
+  return gatedJson(`/admin/bar/counts/${countId}/revalue`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason, changes }),
+  });
+}
+
 // ── recipe gaps (the fix-it queue behind the daily alerts) ──
 export interface UnmappedPour {
   alertKey: string;

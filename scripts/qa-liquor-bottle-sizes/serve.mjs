@@ -8,7 +8,7 @@ const website = fileURLToPath(new URL('../../',import.meta.url));
 const backend = resolve(process.env.BOTTLE_QA_TPRS_ROOT || join(website,'../tprs'));
 const require = createRequire(join(website,'package.json'));
 const esbuild = require('esbuild');
-const entry = process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--liquor-voice') ? 'liquor-voice-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : process.argv.includes('--food-variance') ? 'food-variance-fixture' : 'fixture';
+const entry = process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--liquor-voice') ? 'liquor-voice-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : process.argv.includes('--food-variance') ? 'food-variance-fixture' : process.argv.includes('--food-cost') ? 'food-cost-fixture' : 'fixture';
 await mkdir(base+'dist',{recursive:true});
 await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
   nodePaths:[join(website,'node_modules')],define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'},
@@ -25,6 +25,8 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:count-quantity': join(backend,'apps/backend/src/bar/count-quantity.ts'),
       'qa:food-variance': join(website,'src/components/liquor/views/FoodVariance.tsx'),
       'qa:food-variance-report': join(website,'src/components/liquor/FoodVarianceReport.tsx'),
+      'qa:food-cost': join(website,'src/components/liquor/views/FoodCost.tsx'),
+      'qa:food-cost-report': join(website,'src/components/liquor/FoodCostReport.tsx'),
     };
     if (entry === 'food-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'food-recorder-fixture.jsx')}));
     if (entry === 'liquor-voice-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'liquor-recorder-fixture.jsx')}));
