@@ -1387,3 +1387,34 @@ PIN login preserves exact recipe, count, source and recommendation destinations.
 Physical cost findings open the exact SKU's cost review through PIN. Managers must confirm one displayed current counting unit, its price and a reason; stale physical/cost revisions and unsupported precision reject. The API records actor, before/after values and physical proof in the canonical cost ledger. Incompatible costs remain unknown until confirmation. Ten actual-app offline scenarios and inspected 360/412/1280px views verify this flow, including rejected capacity, unknown responses and usable zero costs; the final production build passed at 23:28 Chicago.
 
 Offline fixtures intercept API calls and block external requests. Food recipes, insights, exact count deep links (10 scenarios), menu decisions (16 scenarios), shelf completeness (20 scenarios) and beverage save/reopen/submit/links were checked on desktop and phone widths, with screenshots inspected and no horizontal overflow. The final production Astro/Vercel build and required prechecks passed at 23:28 Chicago; Astra cleared the final changed paths with no remaining P1/P2 findings. These tests do not replace Jon's real Android count/save/reopen walk. Food email remains paused and the external GoTab writer remains disabled. Vercel commit verification is pending and will be recorded in the release PR and Opsi record.
+## 2026-10-04 - Small recipe-question batches and a plain-language GM reply screen
+
+Jon asked to resume "What's in it?" only after reviewing the previous email and
+the answer screen. Food recipe questions now have a dedicated staff view:
+one item at a time, ingredients and amounts in ordinary text, a concrete
+example, individual Save answer, and a visible saved-for-review state. The
+email's exact batch survives PIN login and reload. Draft text survives moving
+between questions, returning home, network errors and revision conflicts.
+
+The backend limits each Monday/Friday 1pm Chicago batch to five total questions.
+Saving an answer does not update a recipe. Managers review the recorded answer,
+open the exact recipe editor, and resolve only after a valid recipe is saved;
+they can instead ask one specific follow-up. Staff can answer with bar.read.
+Real notification activation stays off until Jon reviews the concrete email
+and phone UI preview. No test email or production recipe mutation is part of QA.
+
+Managers can queue one precise clarification from the selected saved recipe,
+without typing identifiers. Queued clarifications remain visible before their
+scheduled email. Exact question links from the operations inbox survive PIN
+login; a newer batch or recipe destination supersedes an older URL identity.
+Targeted questions ask only for that fact. Manager review cannot discard an
+unsaved answer, and resolved questions support a specific follow-up.
+
+Validation: 44 actual Chromium offline scenarios pass, including uncertain-save
+readback, stale revisions, all session-expiry paths, deliberate follow-up,
+manager queue and paired-identity regressions. Question, saved, error,
+clarification, manager queue and review screens were visually inspected at
+360/412/1280px; measured controls meet 44px and textareas use 16px. Strict COGS
+TypeScript and the complete Astro/Vercel production build (all prechecks and
+function packaging) pass. Physical locked dependencies installed from the
+local npm cache resolve the Windows dependency-junction packaging issue.

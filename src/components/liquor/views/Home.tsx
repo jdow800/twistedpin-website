@@ -1,6 +1,6 @@
 import type { BarActor } from "../api";
 
-type Dest = "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics";
+type Dest = "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics";
 
 export default function Home({
   actor,
@@ -42,6 +42,7 @@ export default function Home({
 
         <p className="lq-section-label">Review</p>
         {[
+          { view: "foodquestions", title: "My recipe questions", sub: "A few kitchen details · save each answer" },
           { view: "opsinbox", title: "Operations inbox", sub: "Priorities, evidence and corrections" },
           { view: "foodrecipes", title: "Food recipes & yields", sub: "Ingredients, portions and report corrections" },
           { view: "foodtrends", title: "Food cost trends", sub: "Weighted costs from stored report versions" },
