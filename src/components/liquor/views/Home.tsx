@@ -1,6 +1,6 @@
 import type { BarActor } from "../api";
 
-type Dest = "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost";
+type Dest = "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics";
 
 export default function Home({
   actor,
@@ -41,6 +41,15 @@ export default function Home({
         </button>
 
         <p className="lq-section-label">Review</p>
+        {[
+          { view: "opsinbox", title: "Operations inbox", sub: "Priorities, evidence and corrections" },
+          { view: "foodrecipes", title: "Food recipes & yields", sub: "Ingredients, portions and report corrections" },
+          { view: "foodtrends", title: "Food cost trends", sub: "Weighted costs from stored report versions" },
+          { view: "brunswickfood", title: "Brunswick food revenue", sub: "Review front-desk department sales" },
+          { view: "beveragecost", title: "Beverage cost", sub: "Inventory dollars and matching sales periods" },
+          { view: "tapinventory", title: "Tap inventory", sub: "Observe remaining stock independently of sales" },
+          { view: "menueconomics", title: "Menu economics & prices", sub: "Recipe costs, sales mix and reviewed price decisions" },
+        ].map(item => <button key={item.view} type="button" className="lq-action" onClick={() => onGo(item.view as Dest)}><span className="lq-action-title">{item.title}</span><span className="lq-action-sub">{item.sub}</span></button>)}
         <button type="button" className="lq-action" onClick={() => onGo("invoices")}>
           <span className="lq-action-emoji" aria-hidden="true">📁</span>
           <span className="lq-action-title">Recent invoices</span>
@@ -69,7 +78,7 @@ export default function Home({
         <button type="button" className="lq-action" onClick={() => onGo("pourcosts")}>
           <span className="lq-action-emoji" aria-hidden="true">🍸</span>
           <span className="lq-action-title">Pour cost</span>
-          <span className="lq-action-sub">Cocktail margins vs the 19% ceiling</span>
+          <span className="lq-action-sub">Spirit recipe costs · consumables separate</span>
         </button>
         <button type="button" className="lq-action" onClick={() => onGo("mappours")}>
           <span className="lq-action-emoji" aria-hidden="true">🔗</span>

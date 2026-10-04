@@ -100,7 +100,7 @@ async function rawFetch(path: string, init: RequestInit): Promise<Response> {
 }
 
 /** Gated call: throws NotAuthed on 401, Forbidden on 403, BarApiError otherwise; returns parsed JSON on 2xx. */
-async function gatedJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function gatedJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await rawFetch(path, init);
   if (res.status === 401) throw new NotAuthedError();
   if (res.status === 403) throw new ForbiddenError();
@@ -1417,6 +1417,8 @@ export interface CountCorrection {
 export interface CountDetail {
   session: {
     id: string;
+    /** Actual walk identity; absent from a legacy backend. */
+    section?: Section;
     status: "draft" | "submitted" | "reconciled";
     isFullCount: boolean;
     note: string | null;
@@ -1786,6 +1788,7 @@ export type FoodCostReason =
   | { code: "estimated_purchases"; estimatedCents: number; goodsCents: number }
   | { code: "unbucketed"; cents: number }
   | { code: "rebates_unknown"; dates: { salesDate: string; why: string }[] }
+  | { code: "brunswick_sales_unknown"; dates: { salesDate: string; why: string }[] }
   | { code: "catering_pending"; bookingIds: string[] }
   | { code: "pending_invoices"; invoiceIds: string[] }
   | { code: "unattributed_purchases"; cents: number };
@@ -1813,6 +1816,8 @@ export interface FoodCostReportBody {
     sales: {
       gotabCents: number;
       cateringCents: number;
+      brunswickCents?: number;
+      brunswickCoverage?: { knownDays: number; unknownDays: number };
       totalCents: number;
       mocktailsOutCents: number;
       beside: { stream: string; name: string; cents: number }[];

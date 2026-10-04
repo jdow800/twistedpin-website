@@ -258,8 +258,9 @@ export default function FoodVariance({
         {canRerun && !isBaseline(original) && original.status === "final" && (
           <details className="lq-invd-secondary lq-fv-rerun">
             <summary>Re-run with today's recipes</summary>
+            <p><a href={`/cogs/?view=foodrecipes&count=${encodeURIComponent(open.sessionId)}`}>Review recipes or correct a historical yield</a></p>
             <p>
-              Re-reads this bracket with today's recipes, yields and deliveries, after a correction. It adds a new
+              Re-reads this bracket with today's recipes and deliveries, retaining its reviewed historical yields. It adds a new
               version beside the original; the original stays the report of record.
             </p>
             <textarea

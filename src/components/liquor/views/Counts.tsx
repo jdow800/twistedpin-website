@@ -11,6 +11,7 @@ import {
   type KegCountSummary,
   type KegCountDetail,
   type VarianceReport,
+  type Section,
 } from "../api";
 import { VarianceLines } from "../VarianceLines";
 import { CorrectionEditor, CorrectionHistory } from "../CountCorrections";
@@ -43,12 +44,14 @@ type Detail = { kind: "liquor"; data: CountDetail } | { kind: "kegs"; data: KegC
 export default function Counts({
   onDone,
   initialCountId,
+  section = "bar",
 }: {
   onDone: () => void;
   /** From an email deep link (?count=<id>) — open THAT count's detail straight
    *  away, including its variance table, instead of landing on a list the
    *  reader has to search. Mirrors Invoices' initialInvoiceId. */
   initialCountId?: string | null;
+  section?: Section;
 }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [mode, setMode] = useState<Mode>("liquor");
@@ -68,7 +71,7 @@ export default function Counts({
     let live = true;
     (async () => {
       try {
-        const [lq, kg] = await Promise.all([getCountHistory(), getKegCountHistory().catch(() => [])]);
+        const [lq, kg] = await Promise.all([getCountHistory(section), section === "bar" ? getKegCountHistory().catch(() => []) : Promise.resolve([])]);
         if (live) {
           setLiquor(lq);
           setKegs(kg);
@@ -96,10 +99,8 @@ export default function Counts({
     setShowVarianceLines(false);
     setCorrecting(false);
     try {
-      const [d, v] = await Promise.all([
-        getCountDetail(id),
-        getCountVariance(id).catch(() => null),
-      ]);
+      const d = await getCountDetail(id);
+      const v = (d.session.section ?? section) === "bar" && d.session.status !== "draft" ? await getCountVariance(id).catch(() => null) : null;
       setDetail({ kind: "liquor", data: d });
       setVariance(v);
     } catch {
@@ -131,11 +132,13 @@ export default function Counts({
   // ── liquor detail (per zone) ──
   if (detail?.kind === "liquor") {
     const s = detail.data.session;
+    const foodCount = (s.section ?? section) === "food";
     let lastZone: string | null = null;
     return (
       <div className="lq-invd">
         <button type="button" className="lq-back" onClick={() => setDetail(null)}>‹ All counts</button>
         <h2 className="lq-h2" style={{ textAlign: "left" }}>{s.isFullCount ? "Full inventory" : "Partial count"}</h2>
+        {s.status === "draft" && <p className="lq-muted" role="status">Draft · read only</p>}
         <p className="lq-muted lq-invd-meta">
           {when(s.submittedAt || s.startedAt)}{s.countedBy ? ` · ${s.countedBy}` : ""} · {detail.data.lines.length} line{detail.data.lines.length === 1 ? "" : "s"}
         </p>
@@ -143,7 +146,7 @@ export default function Counts({
         {/* After the lock: what was corrected, and the admin's way to correct it
             (CountCorrections.tsx). Only the latest full count can be corrected. */}
         <CorrectionHistory corrections={detail.data.corrections ?? []} />
-        {detail.data.canCorrect && !correcting && (
+        {!foodCount && s.status !== "draft" && detail.data.canCorrect && !correcting && (
           <button type="button" className="lq-btn lq-btn-ghost" style={{ padding: "4px 10px", fontSize: 13 }}
             onClick={() => setCorrecting(true)}>
             Correct this count
@@ -160,7 +163,12 @@ export default function Counts({
           />
         )}
 
-        {s.isFullCount && (
+        {foodCount && s.isFullCount && s.status !== "draft" && <div className="lq-bv-row">
+          <a className="lq-btn" href={`?view=foodcost&section=food&count=${encodeURIComponent(s.id)}`}>Food cost for this count</a>
+          <a className="lq-btn" href={`?view=foodvariance&section=food&count=${encodeURIComponent(s.id)}`}>Food variance for this count</a>
+        </div>}
+
+        {!foodCount && s.isFullCount && s.status !== "draft" && (
           variance == null ? (
             <p className="lq-muted" style={{ fontSize: 14 }}>Variance report pending. Check again in a minute.</p>
           ) : variance.report.baseline ? (
@@ -327,15 +335,15 @@ export default function Counts({
   // ── list (toggle liquor / kegs) ──
   return (
     <div className="lq-invlist">
-      <h2 className="lq-h2" style={{ textAlign: "left" }}>Recent counts</h2>
-      <div className="lq-segbar" role="tablist">
+      <h2 className="lq-h2" style={{ textAlign: "left" }}>{section === "food" ? "Recent food counts" : "Recent counts"}</h2>
+      {section === "bar" && <div className="lq-segbar" role="tablist">
         <button type="button" role="tab" aria-selected={mode === "liquor"} className={`lq-seg${mode === "liquor" ? " lq-seg-on" : ""}`} onClick={() => setMode("liquor")}>Liquor</button>
         <button type="button" role="tab" aria-selected={mode === "kegs"} className={`lq-seg${mode === "kegs" ? " lq-seg-on" : ""}`} onClick={() => setMode("kegs")}>Kegs</button>
-      </div>
+      </div>}
 
       {mode === "liquor" ? (
         liquor.length === 0 ? (
-          <div className="lq-center"><p className="lq-muted">No liquor counts submitted yet.</p></div>
+          <div className="lq-center"><p className="lq-muted">No {section === "food" ? "food" : "liquor"} counts submitted yet.</p></div>
         ) : (
           liquor.map((c) => (
             <button key={c.id} type="button" className="lq-invrow" onClick={() => openLiquor(c.id)} disabled={detailLoading}>

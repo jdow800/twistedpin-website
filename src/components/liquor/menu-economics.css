@@ -1,0 +1,18 @@
+.lq-me { max-width: 1050px; margin: auto; padding: 20px; }
+.lq-me-heading,.lq-me-card-heading,.lq-me-fields,.lq-me-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.lq-me-heading,.lq-me-card-heading { justify-content: space-between; }
+.lq-me-card { margin-block: 16px; padding: 18px; border: 1px solid var(--lq-border,#655174); border-radius: 12px; background: #1d1730; min-width: 0; }
+.lq-me-card h3 { margin: 0; }.lq-me-card-heading p { margin-block: 6px; }
+.lq-me-card:focus { outline: 2px solid var(--lq-glow,#c9ff3d); outline-offset: 3px; }
+.lq-me-card-heading > div { min-width: 0; }
+.lq-me-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 14px; margin-block: 18px; }
+.lq-me-metrics dt { font-size: .88rem; color: #cbbcd5; }.lq-me-metrics dd { margin: 4px 0 0; font-weight: 600; }
+.lq-me fieldset { border: 0; padding: 0; min-width: 0; display: grid; gap: 10px; }
+.lq-me label { display: grid; gap: 6px; margin-block: 8px; }.lq-me-fields > label { flex: 1 1 150px; min-width: 0; }
+.lq-me input:not([type=checkbox]),.lq-me select,.lq-me textarea { width: 100%; box-sizing: border-box; min-height: 44px; padding: 10px; font: inherit; color: #f6edf9; background: #171023; border: 1px solid #897795; border-radius: 6px; }
+.lq-me textarea { min-height: 72px; }.lq-me .lq-me-check { display: flex; align-items: start; gap: 10px; }.lq-me input[type=checkbox] { width: 22px; height: 22px; flex-shrink: 0; }
+.lq-me-policy,.lq-me-scenario { border-block-start: 1px solid #655174; padding-block: 12px; margin-block: 12px; }
+.lq-me summary { cursor: pointer; padding-block: 10px; min-height: 24px; }
+.lq-me button { min-height: 44px; max-width: 100%; white-space: normal; }.lq-me .lq-me-warning { color: #ffd8a0; }
+.lq-me p,.lq-me strong,.lq-me h3,.lq-me dd { overflow-wrap: anywhere; }.lq-me .lq-muted { color: #cbbcd5; }
+@media(max-width:680px) { .lq-me { padding: 12px; }.lq-me-card { padding: 14px; }.lq-me-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }.lq-me-actions > button { flex: 1 1 150px; } }

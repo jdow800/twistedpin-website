@@ -1,0 +1,12 @@
+import {createRequire} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import {resolve,join} from 'node:path';
+import {mkdir,readFile} from 'node:fs/promises';
+import {createServer} from 'node:http';
+const base=fileURLToPath(new URL('.',import.meta.url)),root=resolve(base,'../..'),out=join(base,'dist');
+await mkdir(out,{recursive:true});
+const esbuild=createRequire(join(root,'package.json'))('esbuild');
+await esbuild.build({absWorkingDir:root,entryPoints:[join(base,'entry.jsx')],outdir:out,bundle:true,jsx:'automatic',platform:'browser',define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/tprs-api"}'},loader:{'.woff2':'file','.woff':'file'},external:['/pattern/*']});
+if(process.argv.includes('--build-only'))process.exit(0);
+const html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Beverage QA</title><link rel="stylesheet" href="/entry.css"></head><body style="margin:0"><div id="root"></div><script type="module" src="/entry.js"></script></body></html>';
+createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;if(path.startsWith('/tprs-api')){res.writeHead(503);res.end('offline QA missing fixture');return;}if(path==='/'){res.setHeader('Content-Type','text/html');res.end(html);return;}if(!/^\/[a-zA-Z0-9_.-]+$/.test(path)){res.writeHead(404);res.end();return;}try{const bytes=await readFile(join(out,path.slice(1)));res.setHeader('Content-Type',path.endsWith('.css')?'text/css':path.endsWith('.js')?'text/javascript':'font/woff2');res.end(bytes);}catch{res.writeHead(404);res.end();}}).listen(4351,'127.0.0.1',()=>console.log('Offline beverage QA http://127.0.0.1:4351/'));
