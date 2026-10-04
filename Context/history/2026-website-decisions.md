@@ -1418,3 +1418,19 @@ clarification, manager queue and review screens were visually inspected at
 TypeScript and the complete Astro/Vercel production build (all prechecks and
 function packaging) pass. Physical locked dependencies installed from the
 local npm cache resolve the Windows dependency-junction packaging issue.
+
+## 2026-10-04 - Short factual kitchen answers are valid
+
+Final hands-on review found that the three-character answer minimum prevented
+the GM from answering a targeted question with "No", "32" or "1". Plain-text
+answers now accept any nonempty trimmed text up to 4,000 characters. Whitespace
+does not save. Manager review reasons retain their three-character minimum.
+Each answer still saves as evidence awaiting recipe review; it does not change
+ingredients or yield automatically. Real recipe-question emails stay paused.
+
+Validation: all 48 native Chromium scenarios pass, including exact saves and
+reopen for "No", "1" and "32", plus disabled blank/whitespace answers. Root's
+independent eight actual-app checks and phone review pass. Strict COGS
+TypeScript and the complete Astro/Vercel production build pass at 10:07am
+Chicago. The backend ships its answer/API constraint change in forward
+migration 0216; deployed 0215 remains unchanged.
