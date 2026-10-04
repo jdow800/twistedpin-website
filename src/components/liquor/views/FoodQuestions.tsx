@@ -47,7 +47,7 @@ export default function FoodQuestions({ actorId, onDone, onLoginExpired, initial
   const uncertain = !!question && !!needsCheck[question.id];
   const dirty = !!draft && draft.text !== (question?.answer ?? "");
   const editable = !!question && question.status !== "resolved";
-  const valid = text.trim().length >= 3 && text.trim().length <= 4000;
+  const valid = text.trim().length >= 1 && text.trim().length <= 4000;
 
   useEffect(() => {
     try { const saved = JSON.parse(sessionStorage.getItem(storageKey) ?? "{}");

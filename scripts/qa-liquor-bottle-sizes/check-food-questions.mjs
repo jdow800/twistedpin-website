@@ -45,6 +45,18 @@ try {
     const writes = (await calls()).filter(c => c.method !== 'GET'); assert.equal(writes.length, 1); assert.ok(writes[0].path.endsWith('/answer')); assert.equal(writes[0].body.revision, 'revision-0-1');
     assert.equal(await b.evaluate('window.fqQa.questions[0].status'), 'answered');
   });
+  for (const answer of ['No', '1', '32']) await run(`short factual answer ${JSON.stringify(answer)} saves exactly and remains awaiting review`, 'sample=clarification', async () => {
+    await type('food-question-answer', answer); await click('Save answer'); await waitText('Saved for recipe review.');
+    const writes = (await calls()).filter(c => c.method === 'PUT'); assert.equal(writes.length, 1); assert.equal(writes[0].body.answer, answer);
+    assert.equal(await b.evaluate('window.fqQa.questions[0].answer'), answer); assert.equal(await b.evaluate('window.fqQa.questions[0].status'), 'answered');
+    await click('All questions'); await waitText('Open 5 questions'); await b.evaluate(`document.querySelector('.lq-fq-batch').click()`); await waitText('Saved · awaiting recipe review');
+    assert.equal(await b.evaluate('document.getElementById("food-question-answer").value'), answer); assert.equal((await calls()).filter(c => c.method === 'PUT').length, 1);
+  });
+  await run('blank and whitespace-only factual answers cannot save', 'sample=clarification', async () => {
+    assert.ok((await button('Save answer')).disabled); await type('food-question-answer', ' \n\t '); assert.ok((await button('Save answer')).disabled);
+    await b.evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Save answer').click()`);
+    assert.equal((await calls()).filter(c => c.method === 'PUT').length, 0); assert.equal(await b.evaluate('window.fqQa.questions[0].status'), 'unanswered');
+  });
   await run('skip, return and reload keep unsaved text without sending it', '', async () => {
     await type('food-question-answer', 'Unsaved portion note.'); await click('Skip for now →'); await waitText('Option:'); await click('Previous'); await waitText('Cluckin Twisted');
     assert.equal(await b.evaluate('document.getElementById("food-question-answer").value'), 'Unsaved portion note.');
