@@ -23,12 +23,13 @@ import BrunswickFood from "./views/BrunswickFood";
 import BeverageCost from "./views/BeverageCost";
 import TapInventory from "./views/TapInventory";
 import MenuEconomics from "./views/MenuEconomics";
+import FoodQuestions from "./views/FoodQuestions";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -42,7 +43,7 @@ type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | 
 // variance table), not on a list the reader then has to search. With
 // view=foodvariance, ?count=<id> opens that food count's variance report, and with
 // view=foodcost, the food cost of the bracket that count closes.
-const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost", "foodrecipes", "foodtrends", "opsinbox", "brunswickfood", "beveragecost", "tapinventory", "menueconomics", "countfood", "count"];
+const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost", "foodrecipes", "foodquestions", "foodtrends", "opsinbox", "brunswickfood", "beveragecost", "tapinventory", "menueconomics", "countfood", "count"];
 
 // Which catalog the app is working in (BUILD-SPEC decision 6 / migration 0166).
 // ABSENT MEANS 'bar', and that default is load-bearing rather than a
@@ -84,7 +85,8 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, r
   const rawRecipe = params.get("recipe"), rawKey = params.get("key"), rawSku = params.get("sku"), rawDoc = params.get("doc");
   const rawRecommendation = rawView === "menueconomics" ? params.get("id") : null;
   const requestedCostReview = rawView === "foodrecipes" && params.get("review") === "cost";
-  if (rawView || rawInvoice || rawCount || rawSection || rawRecipe || rawKey || rawSku || rawDoc || rawRecommendation)
+  // Recipe answers keep the exact batch in the address through PIN and reload.
+  if (rawView !== "foodquestions" && (rawView || rawInvoice || rawCount || rawSection || rawRecipe || rawKey || rawSku || rawDoc || rawRecommendation))
     window.history.replaceState({}, "", window.location.pathname);
   const requested =
     DEEP_LINKABLE.find((v) => v === rawView) ??
@@ -126,7 +128,8 @@ export default function LiquorApp() {
     try {
       const me = await getMe();
       setActor(me);
-      setView(requestedView ?? "home");
+      const currentView = new URLSearchParams(window.location.search).get("view");
+      setView(currentView === "foodquestions" || currentView === "foodrecipes" ? currentView : requestedView ?? "home");
     } catch (e) {
       if (e instanceof ForbiddenError) setView("forbidden");
       else setView("login"); // NotAuthed / network → PIN screen
@@ -143,7 +146,7 @@ export default function LiquorApp() {
     setView("login");
   }, []);
 
-  const goHome = useCallback(() => setView("home"), []);
+  const goHome = useCallback(() => { window.history.replaceState({}, "", window.location.pathname); setView("home"); }, []);
 
   return (
     <div className="lq-app">
@@ -195,7 +198,8 @@ export default function LiquorApp() {
             initialCountId={requestedView === "foodcost" ? requestedCountId : null}
           />
         )}
-      {view === "foodrecipes" && actor && <FoodRecipes onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialRecipeId={requestedRecipeId} initialRecipeKey={requestedRecipeKey} initialSkuId={requestedSkuId} initialCountId={requestedCountId} initialCostReview={requestedCostReview} />}
+      {view === "foodrecipes" && actor && <FoodRecipes actorId={actor.id} onDone={goHome} onLoginExpired={() => setView("login")} canManage={actor.permissions.includes("bar.manage")} initialRecipeId={new URLSearchParams(window.location.search).get("recipe") ?? requestedRecipeId} initialRecipeKey={new URLSearchParams(window.location.search).has("recipe") ? null : requestedRecipeKey} initialSkuId={requestedSkuId} initialCountId={requestedCountId} initialCostReview={requestedCostReview} />}
+      {view === "foodquestions" && actor && <FoodQuestions actorId={actor.id} onDone={goHome} onLoginExpired={() => setView("login")} initialBatchId={new URLSearchParams(window.location.search).get("batch")} initialQuestionId={new URLSearchParams(window.location.search).get("question")} />}
       {view === "foodtrends" && <FoodTrends onDone={goHome} />}
       {view === "opsinbox" && actor && <OpsInbox onDone={goHome} canManage={actor.permissions.includes("bar.manage")} />}
       {view === "brunswickfood" && actor && <BrunswickFood onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialDocId={requestedDocId} />}

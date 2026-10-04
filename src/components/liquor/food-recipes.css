@@ -16,4 +16,7 @@
 .lq-fr-list { max-height: 480px; overflow: auto; margin-top: 12px; }
 .lq-fr-list button { width: 100%; display: block; text-align: left; padding: 12px; white-space: normal; }
 .lq-fr p, .lq-fr strong { overflow-wrap: anywhere; }
+.lq-fr-ask { margin-block: 16px; padding: 14px; border: 1px solid #73627e; border-radius: 7px; }
+.lq-fr-ask summary { min-height: 44px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+.lq-fr-ask textarea { font-size: 16px; }
 @media (max-width: 680px) { .lq-fr { padding: 12px; } .lq-fr-layout { display: block; } .lq-fr-list { max-height: 240px; } }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { BarApiError, ForbiddenError } from "../api";
+import { BarApiError, ForbiddenError, NotAuthedError } from "../api";
 import { confirmFoodIngredientCost, correctFoodYieldReports, getFoodRecipes, getFoodYieldCorrection, saveFoodRecipe, setFoodIngredientYield, setFoodRecipeActive,
   type FoodRecipe, type FoodRecipeCatalog, type FoodRecipeIngredient, type FoodRecipeLine, type FoodYieldBasis, type FoodYieldCorrectionContext } from "../food-recipes-api";
 import "../food-recipes.css";
+import { listFoodQuestions, queueFoodQuestion } from "../food-questions-api";
 
 const UNITS = ["oz", "lb", "g", "kg", "floz", "ml", "l", "gal", "qt", "pt", "cup", "each", "slice", "piece", "packet", "portion"];
 const scales: Record<string, [string, number]> = { oz: ["weight", 1], lb: ["weight", 16], g: ["weight", 1 / 28.349523125], kg: ["weight", 1000 / 28.349523125],
@@ -149,10 +150,56 @@ function YieldEditor({ item, canManage, onSaved }: { item: FoodRecipeIngredient;
   </section>;
 }
 
+function AskKitchenQuestion({ recipe, disabled, actorId, onLoginExpired }: { recipe: FoodRecipe; disabled: boolean; actorId: string; onLoginExpired?: () => void }) {
+  const storageKey = `lq-kitchen-question-draft:${actorId}:${recipe.id}`;
+  const readDraft = () => { try { const value = JSON.parse(sessionStorage.getItem(storageKey) ?? "{}"); return {
+    prompt: typeof value.prompt === "string" && value.prompt.length <= 1000 ? value.prompt : "",
+    reason: typeof value.reason === "string" && value.reason.length <= 500 ? value.reason : "",
+  }; } catch { return { prompt: "", reason: "" }; } };
+  const [prompt, setPrompt] = useState(() => readDraft().prompt), [reason, setReason] = useState(() => readDraft().reason);
+  const [busy, setBusy] = useState(false), [uncertain, setUncertain] = useState(false), [message, setMessage] = useState<string | null>(null);
+  const [loginExpired, setLoginExpired] = useState(false);
+  useEffect(() => { try { sessionStorage.setItem(storageKey, JSON.stringify({ prompt, reason })); } catch { /* The in-memory text remains. */ } }, [prompt, reason, storageKey]);
+  const valid = prompt.trim().length >= 5 && reason.trim().length >= 3;
+  const errorMessage = (e: unknown) => {
+    if (e instanceof NotAuthedError) return "Your login expired. Log in again; the question and reason are kept on this tab.";
+    if (e instanceof BarApiError) { try { const body = JSON.parse(String(e.body)); if (typeof body.message === "string") return body.message; if (typeof body.error === "string" && /\s/.test(body.error)) return body.error; } catch { /* fallback */ } }
+    return "Could not confirm that the question was queued. Your text is kept. Check queued questions before trying again.";
+  };
+  return <details className="lq-fr-ask" aria-label="Ask the kitchen one question"><summary>Ask the kitchen one question</summary>
+    <p>Ask only for the missing detail. This goes into a future Monday or Friday batch, with no more than five questions in one email.</p>
+    {disabled && <p>Save or discard your recipe edits before adding a question.</p>}
+    <fieldset disabled={disabled || busy}>
+      <label>Question for the kitchen<textarea aria-label="Kitchen question" rows={3} maxLength={1000} value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Example: Are the five brownies individual bites or full snack packs?" /></label>
+      <label>Why we need this confirmed<textarea aria-label="Kitchen question reason" rows={2} maxLength={500} value={reason} onChange={e => setReason(e.target.value)} placeholder="Example: The old recipe and package description disagree." /></label>
+      <button type="button" className="lq-btn" disabled={!valid || uncertain} onClick={async () => {
+        setBusy(true); setMessage(null);
+        try { await queueFoodQuestion({ namespace: recipe.namespace, productKey: recipe.productKey, productName: recipe.productName ?? recipe.name,
+          ...(recipe.optionLabel ? { optionLabel: recipe.labelText ?? recipe.optionLabel } : {}), prompt: prompt.trim(), reason: reason.trim() });
+          setPrompt(""); setReason(""); setMessage("Kitchen question queued. It will be included in a future small batch; no email was sent now.");
+        } catch (e) { setMessage(errorMessage(e)); setLoginExpired(e instanceof NotAuthedError);
+          if (!(e instanceof NotAuthedError) && (!(e instanceof BarApiError) || e.status === 0 || e.status === 408 || e.status >= 500)) setUncertain(true);
+        }
+        finally { setBusy(false); }
+      }}>{busy ? "Saving question…" : "Queue this question"}</button>
+      {uncertain && <button type="button" className="lq-btn" onClick={async () => {
+        setBusy(true); try { const latest = await listFoodQuestions(); const found = [...(latest.queuedQuestions ?? []), ...latest.pendingReview].find(q => q.key === recipe.key && q.prompt === prompt.trim());
+          setUncertain(false); if (found) { setPrompt(""); setReason(""); setMessage("Kitchen question is safely queued. No email was sent now."); }
+          else setMessage("Saved state checked. This question is not queued; your text is ready to retry.");
+        } catch (e) { setMessage(errorMessage(e)); setLoginExpired(e instanceof NotAuthedError); } finally { setBusy(false); }
+      }}>Check queued question</button>}
+    </fieldset>{message && <p role="status">{message}</p>}
+    {loginExpired && onLoginExpired && <button type="button" className="lq-btn" onClick={() => {
+      window.history.replaceState({}, "", `${window.location.pathname}?view=foodrecipes&recipe=${encodeURIComponent(recipe.id)}`); onLoginExpired();
+    }}>Log in again</button>}
+    <p><a href="/cogs/?view=foodquestions">View queued questions and saved answers</a></p>
+  </details>;
+}
+
 type Draft = Omit<FoodRecipe, "id" | "revision" | "name" | "key" | "active" | "labelText">;
 const emptyRecipe = (): Draft => ({ namespace: "gotab", productKey: "", optionLabel: "", kind: "dish", productName: "", basis: "", note: "", lines: [] });
-export default function FoodRecipes({ onDone, canManage, initialRecipeId, initialRecipeKey, initialSkuId, initialCountId, initialCostReview = false }: {
-  onDone: () => void; canManage: boolean; initialRecipeId?: string | null; initialRecipeKey?: string | null; initialSkuId?: string | null; initialCountId?: string | null; initialCostReview?: boolean;
+export default function FoodRecipes({ onDone, canManage, actorId = "staff", onLoginExpired, initialRecipeId, initialRecipeKey, initialSkuId, initialCountId, initialCostReview = false }: {
+  onDone: () => void; canManage: boolean; actorId?: string; onLoginExpired?: () => void; initialRecipeId?: string | null; initialRecipeKey?: string | null; initialSkuId?: string | null; initialCountId?: string | null; initialCostReview?: boolean;
 }) {
   const [catalog, setCatalog] = useState<FoodRecipeCatalog | null>(null), [selectedId, setSelectedId] = useState<string | null>(initialRecipeId ?? null);
   // A catalog refresh may update yields and other admins' recipes. The draft
@@ -163,7 +210,8 @@ export default function FoodRecipes({ onDone, canManage, initialRecipeId, initia
   const [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null);
   const reload = async () => { const data = await getFoodRecipes(); setCatalog(data); return data; };
   useEffect(() => { let live = true; getFoodRecipes().then((data) => { if (live) {
-    setCatalog(data); const recipe = data.recipes.find((r) => r.id === initialRecipeId || (!!initialRecipeKey && r.key === initialRecipeKey));
+    setCatalog(data); const recipe = initialRecipeId != null ? data.recipes.find(r => r.id === initialRecipeId)
+      : initialRecipeKey ? data.recipes.find(r => r.key === initialRecipeKey) : undefined;
     if (recipe) { setSelectedId(recipe.id); setDraftRecipe(recipe); setDraft({ ...recipe, lines: recipe.lines.map((l) => ({ ...l })) }); }
     else if (initialRecipeKey) {
       const key = /^(gotab|tprs):(.+?)(?:::(.*))?$/.exec(initialRecipeKey);
@@ -201,6 +249,7 @@ export default function FoodRecipes({ onDone, canManage, initialRecipeId, initia
         <div className="lq-fr-list">{catalog.recipes.filter((r) => `${r.name} ${r.productKey} ${r.optionLabel}`.toLowerCase().includes(query.toLowerCase())).map((r) => <button key={r.id} className="lq-invrow" disabled={busy || dirty} aria-pressed={selectedId === r.id} onClick={() => select(r)}>{r.name} {r.active ? "" : "(inactive)"}</button>)}</div>
       </section>
       {draft && <section className="lq-fr-panel" aria-label="Recipe editor"><h2>{selected?.name ?? "New recipe"}</h2>
+        {canManage && selected?.active && <AskKitchenQuestion key={selected.id} recipe={selected} disabled={busy || dirty} actorId={actorId} onLoginExpired={onLoginExpired} />}
         <fieldset disabled={!canManage || busy}>
           <div className="lq-fr-fields"><label>Sales source<select aria-label="Recipe namespace" value={draft.namespace} disabled={!!selected} onChange={(e) => edit({ ...draft, namespace: e.target.value as Draft["namespace"] })}><option value="gotab">GoTab</option><option value="tprs">TPRS catering</option></select></label>
             <label>Product ID<input aria-label="Recipe product ID" value={draft.productKey} disabled={!!selected} onChange={(e) => edit({ ...draft, productKey: e.target.value })} /></label></div>

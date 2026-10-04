@@ -362,3 +362,21 @@ executable, and `RECORDER_QA_DEPENDENCIES` can select another Website checkout's
 installed dependencies when testing a new worktree. The source always comes
 from the script's own checkout. These checks do not establish physical Android
 phone-microphone, permission UI, screen-lock or call-interruption behavior.
+# Recipe-question reply and manager review QA
+
+Run `node scripts/qa-liquor-bottle-sizes/build-food-questions.mjs`, then
+`node scripts/qa-liquor-bottle-sizes/check-food-questions.mjs` from the Website
+root. The fixture bundles the actual COGS app, mocks every API request and uses
+native Chromium through `scripts/qa-cogs-mobile/cdp.mjs`. Set `COGS_QA_CHROME`
+if the documented Windows Chromium path is unavailable. External requests are
+blocked, and any attempted external request fails the run.
+
+The 44 scenarios cover the exact batch and question through PIN, individual
+answers, skip/home/reload draft recovery, uncertain-save readback, revision
+conflicts, staff permissions, manager resolution/follow-up, manual targeted
+questions, all login-expiry paths and conflicting old/new destination IDs.
+Screenshots for question/saved/error/clarification and manager queue/review at
+360/412/1280px are regenerated under `dist/food-questions-shots/` (ignored).
+All fixture answers are illustrative; this harness sends no real email and
+changes no production recipe or queue record. It does not replace physical
+Android keyboard or kitchen-user validation.
