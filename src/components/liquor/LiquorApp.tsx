@@ -56,7 +56,7 @@ const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "inv
 // the first food email is ever sent.
 export type { Section };
 
-const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, requestedRecipeId, requestedRecipeKey, requestedSkuId, requestedDocId, requestedRecommendationId } = ((): {
+const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, requestedRecipeId, requestedRecipeKey, requestedSkuId, requestedDocId, requestedRecommendationId, requestedCostReview } = ((): {
   requestedView: View | null;
   requestedInvoiceId: string | null;
   requestedCountId: string | null;
@@ -66,6 +66,7 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, r
   requestedSkuId: string | null;
   requestedDocId: string | null;
   requestedRecommendationId: string | null;
+  requestedCostReview: boolean;
 } => {
   if (typeof window === "undefined")
     return {
@@ -73,7 +74,7 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, r
       requestedInvoiceId: null,
       requestedCountId: null,
       requestedSection: "bar",
-      requestedRecipeId: null, requestedRecipeKey: null, requestedSkuId: null, requestedDocId: null, requestedRecommendationId: null,
+      requestedRecipeId: null, requestedRecipeKey: null, requestedSkuId: null, requestedDocId: null, requestedRecommendationId: null, requestedCostReview: false,
     };
   const params = new URLSearchParams(window.location.search);
   const rawView = params.get("view");
@@ -82,6 +83,7 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, r
   const rawSection = params.get("section");
   const rawRecipe = params.get("recipe"), rawKey = params.get("key"), rawSku = params.get("sku"), rawDoc = params.get("doc");
   const rawRecommendation = rawView === "menueconomics" ? params.get("id") : null;
+  const requestedCostReview = rawView === "foodrecipes" && params.get("review") === "cost";
   if (rawView || rawInvoice || rawCount || rawSection || rawRecipe || rawKey || rawSku || rawDoc || rawRecommendation)
     window.history.replaceState({}, "", window.location.pathname);
   const requested =
@@ -101,6 +103,7 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, r
     requestedSection: section,
     requestedRecipeId: rawRecipe, requestedRecipeKey: rawKey, requestedSkuId: rawSku, requestedDocId: rawDoc,
     requestedRecommendationId: rawRecommendation,
+    requestedCostReview,
   };
 })();
 
@@ -192,7 +195,7 @@ export default function LiquorApp() {
             initialCountId={requestedView === "foodcost" ? requestedCountId : null}
           />
         )}
-      {view === "foodrecipes" && actor && <FoodRecipes onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialRecipeId={requestedRecipeId} initialRecipeKey={requestedRecipeKey} initialSkuId={requestedSkuId} initialCountId={requestedCountId} />}
+      {view === "foodrecipes" && actor && <FoodRecipes onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialRecipeId={requestedRecipeId} initialRecipeKey={requestedRecipeKey} initialSkuId={requestedSkuId} initialCountId={requestedCountId} initialCostReview={requestedCostReview} />}
       {view === "foodtrends" && <FoodTrends onDone={goHome} />}
       {view === "opsinbox" && actor && <OpsInbox onDone={goHome} canManage={actor.permissions.includes("bar.manage")} />}
       {view === "brunswickfood" && actor && <BrunswickFood onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialDocId={requestedDocId} />}

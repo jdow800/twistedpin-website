@@ -5,6 +5,7 @@ export interface FoodRecipeIngredient {
   countUnit: string; unitLabel: string | null; unitsPerCase: number | null;
   recipeUnit: string | null; yield: number | null; costPerCountUnit: number | null; yieldRevision: string;
   physicalBasisValid?: boolean;
+  costBasisProblem?: string | null; costRevision?: string;
 }
 export interface FoodRecipeLine {
   id?: string; skuId: string; skuName?: string | null; qty: number; unit: string;
@@ -42,6 +43,11 @@ export const setFoodRecipeActive = (id: string, active: boolean, expectedRevisio
   write<{ id: string; active: boolean; revision: string }>(`${ROOT}/${encodeURIComponent(id)}/active`, "PATCH", { active, expectedRevision, reason });
 export const setFoodIngredientYield = (item: FoodRecipeIngredient, recipeUnit: string, yieldValue: number | null, reason: string) =>
   write<unknown>(`/admin/bar/skus/${encodeURIComponent(item.id)}/yield`, "PATCH", { recipeUnit, yield: yieldValue, expectedRevision: item.yieldRevision, reason });
+export const confirmFoodIngredientCost = (item: FoodRecipeIngredient, costPerCountUnit: number, reason: string) =>
+  write<{ costRevision: string; costPerCountUnit: number | null; costBasisProblem: string | null }>(`/admin/bar/skus/${encodeURIComponent(item.id)}/food-cost`, "PATCH", {
+    expectedRevision: item.costRevision, expectedCountUnit: item.countUnit, expectedUnitLabel: item.unitLabel,
+    expectedUnitsPerCase: item.unitsPerCase, physicalBasisConfirmed: true, costPerCountUnit, reason,
+  });
 export const getFoodYieldCorrection = (sessionId: string) => gatedJson<FoodYieldCorrectionContext>(`${ROOT}/report-corrections/${encodeURIComponent(sessionId)}`);
 export const correctFoodYieldReports = (context: FoodYieldCorrectionContext,
   changes: { skuId: string; expectedRevision: string; recipeUnit: string; yield: number }[], reason: string) =>

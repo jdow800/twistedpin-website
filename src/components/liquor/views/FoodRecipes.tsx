@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { BarApiError, ForbiddenError } from "../api";
-import { correctFoodYieldReports, getFoodRecipes, getFoodYieldCorrection, saveFoodRecipe, setFoodIngredientYield, setFoodRecipeActive,
+import { confirmFoodIngredientCost, correctFoodYieldReports, getFoodRecipes, getFoodYieldCorrection, saveFoodRecipe, setFoodIngredientYield, setFoodRecipeActive,
   type FoodRecipe, type FoodRecipeCatalog, type FoodRecipeIngredient, type FoodRecipeLine, type FoodYieldBasis, type FoodYieldCorrectionContext } from "../food-recipes-api";
 import "../food-recipes.css";
 
@@ -24,7 +24,7 @@ export function foodRecipeCost(lines: FoodRecipeLine[], items: FoodRecipeIngredi
   return { dollars, incomplete };
 }
 function errorText(error: unknown) {
-  if (error instanceof ForbiddenError) return "Only an admin can change recipes and yields.";
+  if (error instanceof ForbiddenError) return "Only an admin can change recipes, yields and costs.";
   if (error instanceof BarApiError) {
     try { const detail = JSON.parse(String(error.body)); if (detail.message) return detail.message as string; } catch { /* fallback */ }
     if (error.status === 409) return "This record changed. Reload it before saving.";
@@ -33,6 +33,52 @@ function errorText(error: unknown) {
 }
 const basisText = (basis: FoodYieldBasis | null) => basis
   ? `${basis.yield ?? "size unknown"} ${basis.recipeUnit ?? "recipe unit unknown"} per ${basis.unitLabel ?? basis.countUnit ?? "unstamped unit"}` : "No frozen unit stamp";
+const costHoldText = (problem: string) => ({ physical_cost_stamp_missing: "The saved dollars have no recorded physical unit proof.",
+  cost_count_unit_or_package_changed: "The saved dollars belong to a different count unit or package.",
+  physical_conversion_changed_confirm_cost_after_review: "The physical amount changed after this cost was recorded.",
+  physical_conversion_not_stamped: "The saved container price has no physical amount proof.",
+  current_count_definition_unproven: "The current counting definition needs review.",
+  catalog_cost_has_no_matching_ledger_evidence: "The saved dollars have no matching cost ledger evidence.",
+  container_contents_unproven: "The amount in one container needs review.",
+  bottle_capacity_unproven: "The bottle's physical capacity needs review.",
+  case_physical_definition_unproven: "The amount in one current case needs review.",
+} as Record<string, string>)[problem] ?? "The saved cost does not have compatible physical unit proof.";
+
+function IngredientCostReview({ item, canManage, onSaved, focus }: { item: FoodRecipeIngredient; canManage: boolean; onSaved: () => Promise<void>; focus: boolean }) {
+  const [value, setValue] = useState(""), [reason, setReason] = useState(""), [confirmedRevision, setConfirmedRevision] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null);
+  const panel = useRef<HTMLElement | null>(null);
+  useEffect(() => { if (focus) { panel.current?.focus(); panel.current?.scrollIntoView?.({ block: "start" }); } }, [focus]);
+  // A refreshed physical/cost revision invalidates confirmation in this
+  // render, before any effect or newly enabled click can use the new basis.
+  const confirmed = !!item.costRevision && confirmedRevision === item.costRevision;
+  const cost = Number(value), scaled = cost * 1_000_000;
+  const valid = value.trim() !== "" && Number.isFinite(cost) && cost >= 0 && cost <= 999999.999999
+    && Math.abs(scaled - Math.round(scaled)) <= Number.EPSILON * Math.max(1, Math.abs(scaled)) * 4;
+  const physicalReady = item.physicalBasisValid !== false && !!item.recipeUnit && item.yield != null && item.yield > 0
+    && (item.countUnit !== "case" || item.unitsPerCase != null && item.unitsPerCase > 0) && !!item.costRevision;
+  return <section ref={panel} tabIndex={-1} className="lq-fr-panel" aria-label="Ingredient cost confirmation" data-cost-sku={item.id}>
+    <h2>{item.name}: current cost</h2>
+    {item.costBasisProblem && <p role="status">Cost held: {costHoldText(item.costBasisProblem)} Complete recipe cost is unavailable until current-unit cost is confirmed.</p>}
+    <p>Current count unit: <strong>{item.unitLabel ?? item.countUnit}</strong> ({item.countUnit}). One count unit contains {item.yield ?? "unknown"} {item.recipeUnit ?? "recipe units"}. Purchase case capacity: {item.unitsPerCase ?? "unknown"}.</p>
+    {item.costPerCountUnit != null && <p>Confirmed current cost: ${item.costPerCountUnit.toFixed(6)} per {item.unitLabel ?? item.countUnit}.</p>}
+    {!physicalReady && <p>Review the counting definition and yield before confirming cost.</p>}
+    <fieldset disabled={!canManage || busy || !physicalReady}>
+      <label>Cost per current {item.unitLabel ?? item.countUnit} ($)<input aria-label="Current physical unit cost" type="number" min="0" max="999999.999999" step="0.000001" value={value} onChange={e => { setValue(e.target.value); setConfirmedRevision(null); }} /></label>
+      <label>Cost confirmation reason<textarea aria-label="Cost confirmation reason" maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label>
+      <label><input aria-label="Current physical unit cost confirmed" type="checkbox" checked={confirmed} onChange={e => setConfirmedRevision(e.target.checked ? item.costRevision ?? null : null)} /> I verified this price is for one current {item.unitLabel ?? item.countUnit}, containing {item.yield ?? "unknown"} {item.recipeUnit ?? "recipe units"}.</label>
+      <button className="lq-btn lq-btn-primary" disabled={!valid || !confirmed || reason.trim().length < 3} onClick={async () => {
+        setBusy(true); setMessage(null); try { const result = await confirmFoodIngredientCost(item, cost, reason.trim()); await onSaved();
+          if (result.costPerCountUnit == null || !Number.isFinite(result.costPerCountUnit) || result.costPerCountUnit < 0) {
+            setMessage("Cost remains held. Review the current physical capacity or container contents before confirming cost."); return;
+          }
+          setValue(""); setReason(""); setConfirmedRevision(null);
+          setMessage("Current-unit cost confirmed and recorded in the cost ledger. Existing reports keep their saved costs."); }
+        catch (e) { setMessage(errorText(e)); } finally { setBusy(false); }
+      }}>{busy ? "Saving cost…" : "Confirm current-unit cost"}</button>
+    </fieldset>{message && <p role="status">{message}</p>}
+  </section>;
+}
 
 function HistoricalYieldReview({ sessionId, canManage }: { sessionId: string; canManage: boolean }) {
   const [context, setContext] = useState<FoodYieldCorrectionContext | null>(null);
@@ -105,8 +151,8 @@ function YieldEditor({ item, canManage, onSaved }: { item: FoodRecipeIngredient;
 
 type Draft = Omit<FoodRecipe, "id" | "revision" | "name" | "key" | "active" | "labelText">;
 const emptyRecipe = (): Draft => ({ namespace: "gotab", productKey: "", optionLabel: "", kind: "dish", productName: "", basis: "", note: "", lines: [] });
-export default function FoodRecipes({ onDone, canManage, initialRecipeId, initialRecipeKey, initialSkuId, initialCountId }: {
-  onDone: () => void; canManage: boolean; initialRecipeId?: string | null; initialRecipeKey?: string | null; initialSkuId?: string | null; initialCountId?: string | null;
+export default function FoodRecipes({ onDone, canManage, initialRecipeId, initialRecipeKey, initialSkuId, initialCountId, initialCostReview = false }: {
+  onDone: () => void; canManage: boolean; initialRecipeId?: string | null; initialRecipeKey?: string | null; initialSkuId?: string | null; initialCountId?: string | null; initialCostReview?: boolean;
 }) {
   const [catalog, setCatalog] = useState<FoodRecipeCatalog | null>(null), [selectedId, setSelectedId] = useState<string | null>(initialRecipeId ?? null);
   // A catalog refresh may update yields and other admins' recipes. The draft
@@ -148,6 +194,7 @@ export default function FoodRecipes({ onDone, canManage, initialRecipeId, initia
     {message && <p role="status">{message}</p>}
     {!catalog ? <p>Loading recipes…</p> : <>
       {catalog.problems.length > 0 && <p className="lq-error">{catalog.problems.length} recipe line(s) need a compatible ingredient unit.</p>}
+      {yieldItem && initialCostReview && <IngredientCostReview key={`cost-${yieldItem.id}`} item={yieldItem} canManage={canManage} focus onSaved={async () => { await reload(); }} />}
       <div className="lq-fr-layout"><section className="lq-fr-panel"><h2>Recipe book</h2>
         <label>Search recipes<input aria-label="Search food recipes" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
         {canManage && <button className="lq-btn" disabled={busy || dirty} onClick={() => { setSelectedId(null); setDraftRecipe(null); setDraft(emptyRecipe()); setDirty(false); setReason(""); }}>New recipe</button>}
@@ -172,6 +219,7 @@ export default function FoodRecipes({ onDone, canManage, initialRecipeId, initia
                 <label>Basis<input aria-label={`Ingredient basis ${index + 1}`} value={line.basis ?? ""} onChange={(e) => patch({ basis: e.target.value })} /></label>
                 <label>Note<input aria-label={`Ingredient note ${index + 1}`} value={line.note ?? ""} onChange={(e) => patch({ note: e.target.value })} /></label>
                 <button className="lq-btn" onClick={() => { setSkuId(line.skuId); }}>Review ingredient yield</button> <button className="lq-btn" onClick={() => edit({ ...draft, lines: draft.lines.filter((_, i) => i !== index) })}>Remove ingredient</button>
+                {item?.costBasisProblem && <p>Cost held: {costHoldText(item.costBasisProblem)} <a href={`/cogs/?view=foodrecipes&sku=${encodeURIComponent(item.id)}&review=cost`}>Review current-unit cost</a></p>}
               </div>; })}
           </>}
           <label>Recipe basis<input aria-label="Recipe basis" value={draft.basis ?? ""} onChange={(e) => edit({ ...draft, basis: e.target.value })} /></label>
@@ -186,6 +234,7 @@ export default function FoodRecipes({ onDone, canManage, initialRecipeId, initia
       </div>
       <section className="lq-fr-panel"><label>Ingredient yields<select aria-label="Select ingredient yield" value={skuId} onChange={(e) => setSkuId(e.target.value)}><option value="">Choose an ingredient</option>{catalog.items.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</select></label></section>
       {yieldItem && <YieldEditor key={yieldItem.id} item={yieldItem} canManage={canManage} onSaved={async () => { await reload(); }} />}
+      {yieldItem && !initialCostReview && <IngredientCostReview key={`cost-${yieldItem.id}`} item={yieldItem} canManage={canManage} focus={false} onSaved={async () => { await reload(); }} />}
       <button className="lq-btn" disabled={busy} onClick={async () => { try { const data = await reload(); if (selectedId) { const recipe = data.recipes.find((r) => r.id === selectedId); if (recipe) select(recipe); } setMessage("Recipe book reloaded."); } catch (e) { setMessage(errorText(e)); } }}>Reload recipe book</button>
     </>}
     {initialCountId && <HistoricalYieldReview sessionId={initialCountId} canManage={canManage} />}

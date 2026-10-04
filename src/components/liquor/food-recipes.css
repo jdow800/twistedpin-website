@@ -1,6 +1,7 @@
 .lq-fr { max-width: 1120px; margin: auto; padding: 20px; }
 .lq-fr-layout { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(300px, 2fr); gap: 16px; align-items: start; }
 .lq-fr-panel { padding: 16px; margin-block: 16px; border: 1px solid var(--lq-border, #554568); border-radius: 12px; min-width: 0; }
+.lq-fr-panel[data-cost-sku] { scroll-margin-top: 84px; }
 .lq-fr fieldset { border: 0; padding: 0; min-width: 0; display: grid; gap: 12px; }
 .lq-fr label { display: grid; gap: 6px; margin-block: 8px; }
 .lq-fr input:not([type=checkbox]), .lq-fr select, .lq-fr textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px; font: inherit; color: inherit; background: #1d1730; border: 1px solid #73627e; border-radius: 6px; }
