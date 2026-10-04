@@ -16,12 +16,19 @@ import RecipeBuilder from "./views/RecipeBuilder";
 import TeacherGroup from "./views/TeacherGroup";
 import FoodVariance from "./views/FoodVariance";
 import FoodCost from "./views/FoodCost";
+import FoodRecipes from "./views/FoodRecipes";
+import FoodTrends from "./views/FoodTrends";
+import OpsInbox from "./views/OpsInbox";
+import BrunswickFood from "./views/BrunswickFood";
+import BeverageCost from "./views/BeverageCost";
+import TapInventory from "./views/TapInventory";
+import MenuEconomics from "./views/MenuEconomics";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -35,7 +42,7 @@ type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | 
 // variance table), not on a list the reader then has to search. With
 // view=foodvariance, ?count=<id> opens that food count's variance report, and with
 // view=foodcost, the food cost of the bracket that count closes.
-const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost"];
+const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost", "foodrecipes", "foodtrends", "opsinbox", "brunswickfood", "beveragecost", "tapinventory", "menueconomics", "countfood", "count"];
 
 // Which catalog the app is working in (BUILD-SPEC decision 6 / migration 0166).
 // ABSENT MEANS 'bar', and that default is load-bearing rather than a
@@ -49,11 +56,16 @@ const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "inv
 // the first food email is ever sent.
 export type { Section };
 
-const { requestedView, requestedInvoiceId, requestedCountId, requestedSection } = ((): {
+const { requestedView, requestedInvoiceId, requestedCountId, requestedSection, requestedRecipeId, requestedRecipeKey, requestedSkuId, requestedDocId, requestedRecommendationId } = ((): {
   requestedView: View | null;
   requestedInvoiceId: string | null;
   requestedCountId: string | null;
   requestedSection: Section;
+  requestedRecipeId: string | null;
+  requestedRecipeKey: string | null;
+  requestedSkuId: string | null;
+  requestedDocId: string | null;
+  requestedRecommendationId: string | null;
 } => {
   if (typeof window === "undefined")
     return {
@@ -61,17 +73,23 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection } 
       requestedInvoiceId: null,
       requestedCountId: null,
       requestedSection: "bar",
+      requestedRecipeId: null, requestedRecipeKey: null, requestedSkuId: null, requestedDocId: null, requestedRecommendationId: null,
     };
   const params = new URLSearchParams(window.location.search);
   const rawView = params.get("view");
   const rawInvoice = params.get("invoice");
   const rawCount = params.get("count");
   const rawSection = params.get("section");
-  if (rawView || rawInvoice || rawCount || rawSection)
+  const rawRecipe = params.get("recipe"), rawKey = params.get("key"), rawSku = params.get("sku"), rawDoc = params.get("doc");
+  const rawRecommendation = rawView === "menueconomics" ? params.get("id") : null;
+  if (rawView || rawInvoice || rawCount || rawSection || rawRecipe || rawKey || rawSku || rawDoc || rawRecommendation)
     window.history.replaceState({}, "", window.location.pathname);
-  const view =
+  const requested =
     DEEP_LINKABLE.find((v) => v === rawView) ??
     (rawInvoice ? "invoices" : rawCount ? "counts" : null);
+  // A linked ID opens that exact observation. Walk screens choose eligible
+  // owner drafts themselves; an old/partial/other-owner link must not start one.
+  const view = rawCount && (requested === "count" || requested === "countfood") ? "counts" : requested;
   // An unrecognised value falls back to 'bar' rather than erroring: a typo in
   // a hand-edited URL should land somewhere real, and 'bar' is the only
   // section that has any views at all in P0.
@@ -81,6 +99,8 @@ const { requestedView, requestedInvoiceId, requestedCountId, requestedSection } 
     requestedInvoiceId: rawInvoice,
     requestedCountId: rawCount,
     requestedSection: section,
+    requestedRecipeId: rawRecipe, requestedRecipeKey: rawKey, requestedSkuId: rawSku, requestedDocId: rawDoc,
+    requestedRecommendationId: rawRecommendation,
   };
 })();
 
@@ -152,7 +172,7 @@ export default function LiquorApp() {
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
         {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}
-        {view === "counts" && <Counts onDone={goHome} initialCountId={requestedCountId} />}
+        {view === "counts" && <Counts onDone={goHome} initialCountId={requestedCountId} section={requestedSection} />}
         {view === "pricewatch" && <PriceWatch onDone={goHome} />}
         {view === "pourcosts" && <PourCosts onDone={goHome} />}
         {view === "mappours" && <MapPours onDone={goHome} />}
@@ -172,6 +192,13 @@ export default function LiquorApp() {
             initialCountId={requestedView === "foodcost" ? requestedCountId : null}
           />
         )}
+      {view === "foodrecipes" && actor && <FoodRecipes onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialRecipeId={requestedRecipeId} initialRecipeKey={requestedRecipeKey} initialSkuId={requestedSkuId} initialCountId={requestedCountId} />}
+      {view === "foodtrends" && <FoodTrends onDone={goHome} />}
+      {view === "opsinbox" && actor && <OpsInbox onDone={goHome} canManage={actor.permissions.includes("bar.manage")} />}
+      {view === "brunswickfood" && actor && <BrunswickFood onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialDocId={requestedDocId} />}
+      {view === "beveragecost" && actor && <BeverageCost onDone={goHome} canManage={actor.permissions.includes("bar.manage")} />}
+      {view === "tapinventory" && actor && <TapInventory onDone={goHome} canManage={actor.permissions.includes("bar.manage")} canCount={actor.permissions.includes("bar.count")} />}
+      {view === "menueconomics" && actor && <MenuEconomics onDone={goHome} canManage={actor.permissions.includes("bar.manage")} initialRecommendationId={requestedRecommendationId} />}
       </main>
     </div>
   );

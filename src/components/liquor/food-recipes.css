@@ -1,0 +1,18 @@
+.lq-fr { max-width: 1120px; margin: auto; padding: 20px; }
+.lq-fr-layout { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(300px, 2fr); gap: 16px; align-items: start; }
+.lq-fr-panel { padding: 16px; margin-block: 16px; border: 1px solid var(--lq-border, #554568); border-radius: 12px; min-width: 0; }
+.lq-fr fieldset { border: 0; padding: 0; min-width: 0; display: grid; gap: 12px; }
+.lq-fr label { display: grid; gap: 6px; margin-block: 8px; }
+.lq-fr input:not([type=checkbox]), .lq-fr select, .lq-fr textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px; font: inherit; color: inherit; background: #1d1730; border: 1px solid #73627e; border-radius: 6px; }
+.lq-fr textarea { min-height: 72px; }
+.lq-fr label:has(input[type=checkbox]) { display: flex; align-items: start; gap: 10px; }
+.lq-fr input[type=checkbox] { width: 22px; height: 22px; flex-shrink: 0; }
+.lq-fr button, .lq-fr a { min-height: 44px; }
+.lq-fr a { color: var(--lq-glow, #c9ff3d); }
+.lq-fr-fields { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.lq-fr-fields > label { flex: 1 1 120px; min-width: 0; }
+.lq-fr-line, .lq-fr-history-row { border-block-start: 1px solid #554568; padding-block: 12px; }
+.lq-fr-list { max-height: 480px; overflow: auto; margin-top: 12px; }
+.lq-fr-list button { width: 100%; display: block; text-align: left; padding: 12px; white-space: normal; }
+.lq-fr p, .lq-fr strong { overflow-wrap: anywhere; }
+@media (max-width: 680px) { .lq-fr { padding: 12px; } .lq-fr-layout { display: block; } .lq-fr-list { max-height: 240px; } }

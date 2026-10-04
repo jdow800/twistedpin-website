@@ -1378,3 +1378,10 @@ its target directory and retries transient Windows file locks.
 Validation: all 18 new lifecycle scenarios plus the existing 9 segmentation,
 3 pause-cut and 4 timeout/partial-upload/retry scenarios pass. Strict TypeScript
 for all COGS components and the complete Astro/Vercel production build pass.
+## 2026-10-03 - Reviewed COGS correction and accounting workspace
+
+Jon: "just review them -> then ship em" for all seven areas. GPT Astra at Ultra reviewed current main before implementation and the resulting changes. The existing staff `/cogs` interface gains food recipes/yields, atomic historical correction links, Brunswick department review, beverage dollars, independent tap observations, shared physical-walk links, the operations inbox, weighted trends and menu economics with reviewed manual price decisions.
+
+PIN login preserves exact recipe, count, source and recommendation destinations. Saved draft links open that exact observation read-only, including older, partial and another counter's drafts. Cost and revenue unknowns remain explicit; a known partial subtotal never claims complete margin. The former pour-cost comparison now labels its spirit-only coverage, since 19% is an all-in target. Managers can correct records with reasons and current revisions; staff retain reads. Shelf prompts keep their shipped policy and additive multi-shelf behavior.
+
+Offline fixtures intercept API calls and block external requests. Food recipes, insights, exact count deep links (10 scenarios), menu decisions (16 scenarios), shelf completeness (20 scenarios) and beverage save/reopen/submit/links were checked on desktop and phone widths, with screenshots inspected and no horizontal overflow. The final production Astro/Vercel build and required prechecks passed at 22:31 Chicago; Astra cleared the covered regression packet. These tests do not replace Jon's real Android count/save/reopen walk. Food email remains paused and the external GoTab writer remains disabled. Vercel commit verification is pending and will be recorded in the release PR and Opsi record.

@@ -90,6 +90,8 @@ export function reasonText(r: FoodCostReason): string {
       const whys = [...new Set(r.dates.map((d) => REBATE_WHY[d.why] ?? d.why))];
       return `The rebate isn't known yet for ${list(r.dates.map((d) => shortDate(d.salesDate)))} (${whys.join("; ")}).`;
     }
+    case "brunswick_sales_unknown":
+      return `Brunswick food revenue is unknown for ${list(r.dates.map(d => shortDate(d.salesDate)))}. Review the department sales source.`;
     case "catering_pending":
       return `${plural(r.bookingIds.length, "catered event")} not completed yet: their food revenue lands when they are.`;
     case "pending_invoices":
@@ -210,6 +212,9 @@ export function FoodCostReportView({ report }: { report: FoodCostReportBody }) {
         <div className="lq-pw-sub lq-muted">
           {money(h.cogsBeforeRebatesCents)} before rebates{h.rebateCents !== 0 && ` · ${money(-h.rebateCents)} rebate`} · sales: GoTab{" "}
           {money(h.sales.gotabCents)}, catering {money(h.sales.cateringCents)}
+          {h.sales.brunswickCents != null && (h.sales.brunswickCoverage?.knownDays === 0 && h.sales.brunswickCoverage.unknownDays > 0
+            ? " · Brunswick unknown"
+            : ` · Brunswick ${money(h.sales.brunswickCents)}${h.sales.brunswickCoverage?.unknownDays ? ` known subtotal (${h.sales.brunswickCoverage.unknownDays} days unknown)` : ""}`)}
           {h.sales.mocktailsOutCents !== 0 && ` · ${money(h.sales.mocktailsOutCents)} of mocktails go to pour cost`}
         </div>
         {h.sales.beside.length > 0 && (

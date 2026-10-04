@@ -3,16 +3,13 @@ import { getPourCosts, type PourCostRow } from "../api";
 import { formatQty } from "../quantity";
 
 // Pour-cost report — recipe spirit cost (live, invoice-updated) ÷ GoTab menu
-// price per cocktail, worst margin first. Ceiling comes from the backend
-// (19% per the pricing philosophy: a ceiling, not a midpoint). Tap a row to
-// see the per-bottle component costs. Spirit-only basis, same as the pricing
-// model — garnish/mixers aren't counted, so true cost runs slightly higher.
+// price per cocktail. The 19% target applies to complete all-in beverage cost;
+// these spirit-only rows cannot establish that result.
 
 const money = (n: number) => `$${n.toFixed(2)}`;
 
 export default function PourCosts({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
-  const [ceiling, setCeiling] = useState(19);
   const [rows, setRows] = useState<PourCostRow[]>([]);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -22,7 +19,6 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
       try {
         const r = await getPourCosts();
         if (live) {
-          setCeiling(r.ceiling);
           setRows(r.rows);
           setPhase("ready");
         }
@@ -44,14 +40,12 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
       </div>
     );
 
-  const over = rows.filter((r) => r.overCeiling).length;
-
   return (
     <div className="lq-invlist">
       <h2 className="lq-h2" style={{ textAlign: "left" }}>Pour cost</h2>
       <p className="lq-muted lq-upload-hint">
-        Spirit cost only · ceiling {formatQty(ceiling)}%.
-        {rows.length > 0 && (over > 0 ? ` ${over} over the ceiling.` : " All under the ceiling.")}
+        Spirit recipe costs. Mixers, garnishes and other consumables are reviewed in Beverage cost.
+        The 19% all-in target requires complete costs and matching count periods.
       </p>
       {rows.length === 0 ? (
         <div className="lq-center">
@@ -62,7 +56,7 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
       ) : (
         rows.map((r) => {
           const isOpen = open === r.productId;
-          const pctTxt = r.pourCostPct != null ? `${r.pourCostPct.toFixed(1)}%` : "—";
+          const pctTxt = !r.incomplete && r.pourCostPct != null ? `${r.pourCostPct.toFixed(1)}%` : "Unknown";
           return (
             <button key={r.productId} type="button" className="lq-pw-row" aria-expanded={isOpen} style={{ textAlign: "left", color: "inherit", cursor: "pointer" }} onClick={() => setOpen(isOpen ? null : r.productId)}>
               <div className="lq-pw-head">
@@ -70,12 +64,12 @@ export default function PourCosts({ onDone }: { onDone: () => void }) {
                   {r.name}
                   {r.incomplete && <span className="lq-muted"> · cost incomplete</span>}
                 </span>
-                <span className={`lq-pw-pct ${r.overCeiling ? "lq-pw-up" : "lq-pw-down"}`}>
-                  {r.overCeiling ? "▲ " : ""}{pctTxt}
+                <span className="lq-pw-pct">
+                  {pctTxt}
                 </span>
               </div>
               <div className="lq-pw-sub lq-muted">
-                {money(r.costUsd)} cost{r.priceUsd != null ? ` ÷ ${money(r.priceUsd)} menu` : " · no menu price found"}
+                {money(r.costUsd)} {r.incomplete ? "priced spirits subtotal · total unknown" : "spirit cost"}{r.priceUsd != null ? ` ÷ ${money(r.priceUsd)} menu` : " · no menu price found"}
               </div>
               {isOpen && (
                 <div className="lq-pw-sub" style={{ marginTop: 6 }}>

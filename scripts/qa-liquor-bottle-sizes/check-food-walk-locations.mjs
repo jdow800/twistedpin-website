@@ -5,7 +5,9 @@
 // Build first: node serve.mjs --food-voice --build-only
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {JSDOM} from 'jsdom';
+import {createRequire} from 'node:module';
+import {resolve,join} from 'node:path';
+const {JSDOM}=process.env.COGS_QA_DEPS ? createRequire(join(resolve(process.env.COGS_QA_DEPS),'package.json'))('jsdom') : await import('jsdom');
 
 const bundle = await readFile(new URL('./dist/food-fixture.js',import.meta.url),'utf8');
 const pause = () => new Promise(resolve => setTimeout(resolve,20));
@@ -75,6 +77,43 @@ async function run(name, test, query = 'walk') {
     dom.window.close();
   }
 }
+
+// Explicit shelf entries remain independent even though advisory questions
+// deliberately treat an answer anywhere as answered for the SKU.
+await run('a zero on one shelf leaves the other blank; counting both shelves saves both lines and their sum', async t => {
+  await t.type('Pizza Dough: loose packs','0');
+  await t.saved('dough');
+  await t.next();
+  await t.click(/^Skip .*next zone/,t.sheet());
+  assert.match(t.zoneName(),/Kitchen Cooler/);
+  const loose=t.doc.querySelector('input[aria-label="Pizza Dough: loose packs"]');
+  assert.equal(loose.value,'','a zero in the freezer does not populate this shelf');
+  await t.type('Pizza Dough: cases','1');
+  await t.type('Pizza Dough: loose packs','3');
+  await until(()=>t.qa.lines.filter(l=>l.skuId==='dough').length===2,'Both shelf lines');
+  const rows=t.qa.lines.filter(l=>l.skuId==='dough');
+  assert.equal(rows.find(l=>l.zoneId==='freezer').qtyUnits,0);
+  assert.equal(rows.find(l=>l.zoneId==='cooler').qtyUnits,23);
+  assert.equal(rows.reduce((n,l)=>n+Number(l.qtyUnits),0),23,'depletion reads the sum across shelves');
+  await t.finish();
+  assert.ok(![...t.doc.querySelectorAll('.lq-fc-q-name')].some(e=>e.getAttribute('title')==='Pizza Dough'),'the advisory treats an answer anywhere as answered');
+},'plain');
+
+await run('a reopened draft retains its frozen case factor while the other shelf uses the current case factor', async t => {
+  const cases=t.doc.querySelector('input[aria-label="Pizza Dough: cases"]');
+  assert.equal(cases.value,'2');
+  await t.next();
+  await t.click(/^Skip .*next zone/,t.sheet());
+  assert.equal(t.doc.querySelector('input[aria-label="Pizza Dough: cases"]').value,'');
+  await t.type('Pizza Dough: cases','1');
+  await until(()=>t.qa.lines.filter(l=>l.skuId==='dough').length===2,'Reopened draft shelf lines');
+  const rows=t.qa.lines.filter(l=>l.skuId==='dough');
+  assert.equal(rows.find(l=>l.zoneId==='freezer').qtyUnits,24);
+  assert.equal(rows.find(l=>l.zoneId==='freezer').caseSizeAtEntry,12);
+  assert.equal(rows.find(l=>l.zoneId==='cooler').qtyUnits,20);
+  assert.equal(rows.find(l=>l.zoneId==='cooler').caseSizeAtEntry,20);
+  assert.equal(rows.reduce((n,l)=>n+Number(l.qtyUnits),0),44);
+},'frozen');
 
 // ── leaving a zone ──
 await run('crust and flatbread answers on a leaving-shelf question offer only cases',async t => {
@@ -372,4 +411,4 @@ await run('a server without the list: the submit panel is exactly as before', as
   assert.ok(t.button('Submit the count'));
 }, 'plain');
 
-console.log(`${passed}/18 walk-location scenarios passed`);
+console.log(`${passed}/20 walk-location scenarios passed`);

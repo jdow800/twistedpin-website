@@ -456,6 +456,7 @@ export default function FoodCost({
         {canManage && original && !isBaseline(original) && original.status === "final" && (
           <details className="lq-invd-secondary lq-fv-rerun">
             <summary>Re-run as it stands today</summary>
+            <p><a href={`/cogs/?view=foodrecipes&count=${encodeURIComponent(open.sessionId)}`}>Review recipes or correct a historical yield</a></p>
             <p>
               Re-reads this bracket with today's purchases and buckets, after a correction. It adds a new version; the earlier ones
               stay as they were.

@@ -3680,3 +3680,12 @@
   .lq-fc-rev-loc { flex-direction: column; }
 
 }
+.lq-review-controls { display:flex; flex-wrap:wrap; gap:1rem; align-items:end; margin:1rem 0; }
+.lq-review-card { display:block; width:100%; box-sizing:border-box; text-align:left; background:var(--lq-panel); color:inherit; border:1px solid var(--lq-line); border-radius:12px; padding:1rem; margin:1rem 0; overflow-wrap:anywhere; }
+.lq-review-card h2 { font-size:1.1rem; margin:0 0 .5rem; }
+.lq-review-card p { margin:.5rem 0; }
+.lq-review-card a { color:var(--lq-glow); }
+.lq-review-card a.lq-btn { display:inline-flex; margin-top:.5rem; }
+.lq-review-card label, .lq-source-review fieldset > label { display:block; margin:.7rem 0; }
+.lq-review-card input, .lq-review-card select, .lq-source-review fieldset > label > textarea, .lq-source-review fieldset > label > input[type=number] { max-width:100%; width:100%; padding:.6rem; font:inherit; box-sizing:border-box; }
+.lq-review-controls select { padding:.5rem; font:inherit; }
