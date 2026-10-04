@@ -1,6 +1,6 @@
 import {spawn} from 'node:child_process';
 import {mkdir,mkdtemp,rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join,resolve,relative,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
 export async function browser(){
@@ -28,5 +28,10 @@ export async function browser(){
   listeners.add(msg=>{if(msg.method==='Fetch.requestPaused'&&msg.sessionId===sessionId){const {requestId,request}=msg.params;const u=new URL(request.url);const local=['127.0.0.1','localhost'].includes(u.hostname);if(local&&!u.pathname.startsWith('/tprs-api'))void send('Fetch.continueRequest',{requestId});else {blocked.push(request.url);void send('Fetch.failRequest',{requestId,errorReason:'BlockedByClient'});}}});
   const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw new Error(r.exceptionDetails.exception?.description||JSON.stringify(r.exceptionDetails));return r.result.value;};
   const until=async expression=>evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{try{const value=(${expression});if(value)return resolve(true);}catch{}if(++n>250)return reject(new Error('UI timed out: '+${JSON.stringify(expression)}));setTimeout(tick,20)};tick()})`);
-  return {send,evaluate,until,blocked,close:async()=>{socket.close();chrome.kill();await new Promise(r=>setTimeout(r,250));await rm(profile,{recursive:true,force:true});}};
+  return {send,evaluate,until,blocked,close:async()=>{
+    socket.close();chrome.kill();await new Promise(r=>setTimeout(r,250));
+    const bound=relative(resolve(dir),resolve(profile));
+    if(!bound||bound.startsWith('..')||isAbsolute(bound))throw new Error('Browser profile cleanup escaped its profile directory');
+    await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:100});
+  }};
 }

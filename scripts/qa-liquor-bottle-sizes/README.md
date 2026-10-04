@@ -340,3 +340,25 @@ save/check retries and uncertain-submission dialog stay in ignored `dist/`.
 `COUNT_QA_PLAYWRIGHT_PACKAGE` can point to a package.json with Playwright when
 it is installed outside Website. These checks do not replace the Android
 phone-microphone saved-and-reopened count still owed by Jon.
+
+## Recorder startup and device lifecycle
+
+`node check-recorder-lifecycle.mjs` runs the actual recorder hook and API client
+in headless Chromium. Its 18 scenarios cover permission denial, unavailable
+devices, native recorder constructor/start failures, successful Retry after
+each failure, Stop/unmount during a pending permission request, old permission
+results/rejections and delayed wake locks after a new take starts, duplicate
+Start taps, mute/unmute,
+track end, recorder errors and ordinary capture. Startup failures must leave no
+timer or live microphone track. Device/recorder loss must preserve the captured
+text and surface the error.
+
+Chromium's native MediaRecorder encodes oscillator audio as WebM/Opus, then
+decodes each clip and verifies nonzero signal. Acquisition, device events and
+transcription responses are controlled; no provider calls or production writes
+occur. All external browser requests are blocked. Results are written to ignored
+`dist/recorder-lifecycle-results.json`. `COGS_QA_CHROME` can select a Chromium
+executable, and `RECORDER_QA_DEPENDENCIES` can select another Website checkout's
+installed dependencies when testing a new worktree. The source always comes
+from the script's own checkout. These checks do not establish physical Android
+phone-microphone, permission UI, screen-lock or call-interruption behavior.

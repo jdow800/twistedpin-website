@@ -1343,3 +1343,38 @@ regressions and mobile layouts also pass. Final reproduction, test totals and
 synthetic screenshot locations are in
 `Context/session-handoffs/2026-10-03-cogs-mobile-audit-integration.md`.
 A real Android phone-mic count saved and reopened remains owed by Jon.
+
+## 2026-10-03 - Recorder startup failures release the microphone and timers
+
+Additional native Chromium tests reproduced failed-start cleanup defects in
+the current recorder hook: permission denial or an unavailable device left the
+elapsed timer running; a constructor failure installed a rotation timer after
+finishing; and a native `start()` failure left the acquired microphone track
+live. Both food and liquor use this hook.
+
+Two pending-permission races were also reproduced. Resolving an old request
+after Stop and a new Record started two live microphone tracks; rejecting it
+could overwrite the newer take's state. Each Record now has a generation,
+so old results release their own stream and old rejections cannot touch the
+new take. Duplicate Start taps cannot acquire a second stream.
+The same generation guard releases a delayed wake lock from an older take
+without overwriting the newer take's lock.
+
+Every failure now uses the same capture cleanup as a completed take. Native
+recorder start errors finish gracefully, and a failed constructor/start returns
+before installing the level watch, wake lock or rotation timer. Permission
+failures retain the current recovery message and do not deliver a transcript.
+Successful capture, partial text after device loss, segmentation and upload
+recovery retain their behavior.
+
+`check-recorder-lifecycle.mjs` adds 18 actual-hook/native Chromium scenarios,
+including a functioning retry after every startup failure. Native WebM/Opus
+clips from oscillator audio decode into nonzero signal. Acquisition and track
+events plus transcription responses are controlled; there are no paid calls,
+production requests or inventory writes. This does not replace physical Android
+phone-microphone and interruption testing. Browser-profile cleanup now checks
+its target directory and retries transient Windows file locks.
+
+Validation: all 18 new lifecycle scenarios plus the existing 9 segmentation,
+3 pause-cut and 4 timeout/partial-upload/retry scenarios pass. Strict TypeScript
+for all COGS components and the complete Astro/Vercel production build pass.

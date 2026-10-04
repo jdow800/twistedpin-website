@@ -150,6 +150,7 @@ export function useRecorderDictation(
   const wantRef = useRef(false); // true while the user intends to record (drives rotation vs finish)
   const abortingRef = useRef(false); // unmount — tear down without firing onFinal
   const finishedRef = useRef(false); // finish() runs exactly once per take
+  const generationRef = useRef(0); // late permission results belong to the take that requested them
   const segmentsRef = useRef<Segment[]>([]);
   const uploadsRef = useRef<Promise<void>[]>([]);
   const errMsgRef = useRef<string | null>(null); // last server failure message, for the error line
@@ -192,6 +193,7 @@ export function useRecorderDictation(
     }
     return () => {
       abortingRef.current = true;
+      generationRef.current++;
       wantRef.current = false;
       if (timerRef.current) clearInterval(timerRef.current);
       if (rotateRef.current) clearInterval(rotateRef.current);
@@ -283,12 +285,13 @@ export function useRecorderDictation(
   };
 
   const acquireWakeLock = () => {
+    const generation = generationRef.current;
     const wl = (navigator as { wakeLock?: { request: (t: "screen") => Promise<{ release: () => Promise<void> }> } })
       .wakeLock;
     if (!wl) return; // unsupported — fail open, the watchdog still covers us
     wl.request("screen")
       .then((sentinel) => {
-        if (!wantRef.current) void sentinel.release().catch(() => {});
+        if (!wantRef.current || generation !== generationRef.current) void sentinel.release().catch(() => {});
         else wakeLockRef.current = sentinel;
       })
       .catch(() => {
@@ -445,19 +448,31 @@ export function useRecorderDictation(
     }
   };
 
-  /** Close out the take: release the mic, wait for uploads, deliver the text. */
-  const finish = async () => {
-    if (finishedRef.current) return;
-    finishedRef.current = true;
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (rotateRef.current) clearInterval(rotateRef.current);
+  /** Every exit, including a failed start, releases the capture resources. */
+  const releaseCapture = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+    if (rotateRef.current) {
+      clearInterval(rotateRef.current);
+      rotateRef.current = null;
+    }
     stopLevelWatch();
     releaseWakeLock();
     stopStream(streamRef.current); // SCO drops here — the ONE release per take
     streamRef.current = null;
     recorderRef.current = null;
+  };
+
+  /** Close out the take: release the mic, wait for uploads, deliver the text. */
+  const finish = async () => {
+    if (finishedRef.current) return;
+    const generation = generationRef.current;
+    finishedRef.current = true;
+    releaseCapture();
     await Promise.allSettled(uploadsRef.current);
-    if (abortingRef.current) return;
+    if (abortingRef.current || generation !== generationRef.current) return;
     const text = joined();
     const anyFailed = segmentsRef.current.some((s) => s.failed);
     setState((s) => ({
@@ -474,7 +489,7 @@ export function useRecorderDictation(
   };
 
   /** One recorder per segment, all on the SAME stream (mic route never drops). */
-  const startSegment = (stream: MediaStream) => {
+  const startSegment = (stream: MediaStream): boolean => {
     let rec: MediaRecorder;
     try {
       rec = new MediaRecorder(stream, { mimeType: mimeRef.current, audioBitsPerSecond: AUDIO_BPS });
@@ -482,7 +497,7 @@ export function useRecorderDictation(
       wantRef.current = false;
       setState((s) => ({ ...s, error: "audio-capture" }));
       void finish();
-      return;
+      return false;
     }
     const chunks: BlobPart[] = [];
     rec.ondataavailable = (e: BlobEvent) => {
@@ -508,11 +523,20 @@ export function useRecorderDictation(
     };
     recorderRef.current = rec;
     segStartRef.current = Date.now();
-    rec.start();
+    try {
+      rec.start();
+      return true;
+    } catch {
+      wantRef.current = false;
+      setState((s) => ({ ...s, error: "audio-capture" }));
+      void finish();
+      return false;
+    }
   };
 
   const start = useCallback(() => {
-    if (!mimeRef.current) return;
+    if (!mimeRef.current || wantRef.current) return;
+    const generation = ++generationRef.current;
     takeIdRef.current = newTakeId();
     segmentsRef.current = [];
     uploadsRef.current = [];
@@ -540,6 +564,12 @@ export function useRecorderDictation(
       // turns away from the mic.
       .getUserMedia({ audio: { noiseSuppression: false, echoCancellation: false, autoGainControl: true } })
       .then((stream) => {
+        if (generation !== generationRef.current) {
+          // Stop followed by a new Record may leave the old permission
+          // request pending. Its stream cannot become the newer take's mic.
+          stopStream(stream);
+          return;
+        }
         if (!wantRef.current) {
           // Stopped (or unmounted) while the permission prompt was up.
           stopStream(stream);
@@ -547,7 +577,9 @@ export function useRecorderDictation(
           return;
         }
         streamRef.current = stream;
-        startSegment(stream);
+        // A recorder constructor/start failure finishes the take. Do not
+        // install a level watch, wake lock or rotation timer after that exit.
+        if (!startSegment(stream)) return;
         startLevelWatch(stream);
         acquireWakeLock();
         // A wake lock auto-releases if the page is ever hidden (task switch,
@@ -606,14 +638,16 @@ export function useRecorderDictation(
         if (!byPause) rotateRef.current = setInterval(rotate, onSegmentRef.current ? COUNT_SEGMENT_MS : SEGMENT_MS);
       })
       .catch((e: unknown) => {
+        if (abortingRef.current || generation !== generationRef.current) return;
         wantRef.current = false;
+        finishedRef.current = true; // nothing to deliver; don't fire onFinal
+        releaseCapture();
         const name = (e as { name?: string } | null)?.name;
         setState((s) => ({
           ...s,
           recording: false,
           error: name === "NotAllowedError" || name === "SecurityError" ? "not-allowed" : "audio-capture",
         }));
-        finishedRef.current = true; // nothing to deliver; don't fire onFinal
       });
     if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setState((s) => ({ ...s, seconds: s.seconds + 1 })), 1000);
