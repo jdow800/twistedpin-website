@@ -1,3 +1,9 @@
+## 2026-10-05 — Liquor count questions acknowledge normal stock movement
+
+Jon reported submit warnings when a few backstock bottles moved to the bar or sold between weekly counts. The TPRS change gates liquor decrease warnings at a case-scale quantity using saved pack sizes (six bottles as a warning threshold where a pack is unknown). The count summary now describes a large drop as a question about sales, use, movement or a missed count. It keeps the server's evidence and the existing correction/submit actions. Other count checks and report grading are unchanged.
+
+Validation: production Astro build; backend regression tests cover small drops, transfers, sales, saved case sizes, large gaps, explicit zero and completeness checks. Astra 6 ultra reviews both repositories before release.
+
 ## 2026-09-22 — Loyalty 2.0 isolated booking UI preparation
 
 Jon authorized local implementation/tests only. Separate worktree codex/loyalty-2-ui-internal at 4b0767f. Add earned-points balance/rejection copy, preserve invalid-link explanations, and handle terminal payment recovery truthfully. Vendor the contract from the isolated TPRS worktree. Browser tests use synthetic members and simulated payments; no live settings, deployment, sends or coupon issuance. Validation complete: 80 joined checks (14 browser cases), 114 regressions and Website/backend typechecks passed. Mobile screenshots inspected. See scripts/loyalty-ui/README.md and Loyalty/docs/audits/2026-09-22-booking-ui-proof.md. Also corrected pre-existing confirmation type import/analytics declaration and React ref nullability exposed by compiling the whole booking component graph. All changes remain local and uncommitted/unpushed.
