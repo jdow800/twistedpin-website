@@ -157,6 +157,46 @@ try{
     await input(cases,'0');await input(cases,'1');await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.enteredCases===1&&l.caseSizeAtEntry===12');
     await check('Zero then readd restores the old frozen case size',`${saved}.some(l=>l.skuId==='orange'&&Number(l.qtyUnits)===14&&l.enteredCases===1&&l.caseSizeAtEntry===12)`);
   });
+  await run('frozen zero-case memo survives adoption after an unrelated save conflict',async()=>{
+    await load('?frozen-moved');await finish();const scope=await detail('jameson');await rematch('jameson','orange',scope);await button(/^Move count$/,q(scope));
+    await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.enteredCases===1&&l.caseSizeAtEntry===12');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await js('window.liquorQa.refuseSave=true');const cases=`${scope} input[aria-label="Cases of Jameson Orange on Giant Bottle Shelf"]`;
+    await input(cases,'0');await savedLine('orange','giant','Number(l.qtyUnits)===2&&l.enteredCases==null');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await check('Unrelated remote edit merged before case reentry',`${saved}.some(l=>l.skuId==='makers'&&Number(l.qtyUnits)===8)`);
+    await input(cases,'0.5');await savedLine('orange','giant','Number(l.qtyUnits)===8&&l.enteredCases===0.5&&l.caseSizeAtEntry===12');
+    await check('Adopting wire case zero retains the local frozen twelve',`${saved}.some(l=>l.skuId==='orange'&&Number(l.qtyUnits)===8&&l.caseSizeAtEntry===12)`);
+  });
+  await run('native case plus and minus retain the frozen stamp after zero-case conflict adoption',async()=>{
+    await load('?frozen-moved');await finish();const scope=await detail('jameson');await rematch('jameson','orange',scope);await button(/^Move count$/,q(scope));
+    await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.caseSizeAtEntry===12');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await button(/^Go back$/);await input('input[aria-label="Search counted items and catalog"]','Jameson Orange');await js('window.liquorQa.refuseSave=true');
+    await input('.lq-captured .lq-case-input','0');await savedLine('orange','giant','Number(l.qtyUnits)===2&&l.enteredCases==null');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    const more='.lq-captured .lq-case-stepper button[aria-label="One more case"]',fewer='.lq-captured .lq-case-stepper button[aria-label="One fewer case"]';
+    await touch(more);await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.enteredCases===1&&l.caseSizeAtEntry===12');
+    await touch(fewer);await savedLine('orange','giant','Number(l.qtyUnits)===2&&l.enteredCases==null');
+    await touch(more);await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.enteredCases===1&&l.caseSizeAtEntry===12');
+    await check('Touch zero and readd use twelve instead of catalog twenty-four',`${saved}.some(l=>l.skuId==='orange'&&Number(l.qtyUnits)===14&&l.caseSizeAtEntry===12)`);
+  });
+  await run('a fresh remote positive case memo supersedes an untouched local zero-case stamp',async()=>{
+    await load('?frozen-moved');await finish();const scope=await detail('jameson');await rematch('jameson','orange',scope);await button(/^Move count$/,q(scope));
+    await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.caseSizeAtEntry===12');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    const cases=`${scope} input[aria-label="Cases of Jameson Orange on Giant Bottle Shelf"]`;await input(cases,'0');await savedLine('orange','giant','Number(l.qtyUnits)===2&&l.enteredCases==null');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await detail('minsters');await js("window.liquorQa.refuseSave='remote-positive-case'");await input('input[aria-label="Loose Minster\'s Small Batch Kentucky Straight Bourbon on Giant Bottle Shelf"]','10');
+    await savedLine('orange','giant','Number(l.qtyUnits)===26&&l.enteredCases===1&&l.caseSizeAtEntry===24');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await input(cases,'0.5');await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.enteredCases===0.5&&l.caseSizeAtEntry===24');
+    await check('Actual remote case memo wins over the obsolete local zero stamp',`${saved}.some(l=>l.skuId==='orange'&&Number(l.qtyUnits)===14&&l.caseSizeAtEntry===24)&&${saved}.some(l=>l.skuId==='minsters'&&l.zoneId==='giant'&&Number(l.qtyUnits)===10)`);
+  });
+  await run('a loose voice addition retains the frozen stamp of a zero-case cell',async()=>{
+    await load('?frozen-moved&pausecuts=0');await finish();const scope=await detail('jameson');await rematch('jameson','orange',scope);await button(/^Move count$/,q(scope));
+    await savedLine('orange','giant','Number(l.qtyUnits)===14&&l.caseSizeAtEntry===12');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await input(`${scope} input[aria-label="Cases of Jameson Orange on Giant Bottle Shelf"]`,'0');await savedLine('orange','giant','Number(l.qtyUnits)===2&&l.enteredCases==null');await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await button(/^Go back$/);await input('input[aria-label="Search counted items and catalog"]','Jameson Orange');await button(/Record count for/);
+    await js("window.liquorQa.recorder.segment('one Jameson Orange.',0)");await until('window.liquorQa.extracts.length===1');
+    await js("window.liquorQa.extracts[0].succeed([{spoken:'one Jameson Orange',cases:0,units:1,qty:1,unitsPerCase:24,needsCaseSize:false,suspectPreMultiplied:false,match:{id:'orange',name:'Jameson Orange',sizeMl:750},candidates:[]}])");
+    await button(/Stop & review/);await js("window.liquorQa.recorder.finish('one Jameson Orange')");await until("document.querySelector('.lq-sheet')");await button(/^More:/);await button(/^Add 1/);
+    await savedLine('orange','giant','Number(l.qtyUnits)===3&&l.enteredCases==null');await input('.lq-captured .lq-case-input','0.5');await savedLine('orange','giant','Number(l.qtyUnits)===9&&l.enteredCases===0.5&&l.caseSizeAtEntry===12');
+    await check('One loose voice bottle plus half a frozen twelve-case saves nine',`${saved}.some(l=>l.skuId==='orange'&&Number(l.qtyUnits)===9&&l.caseSizeAtEntry===12)`);
+  });
   await run('count search filters fifty rows and separates uncounted catalog hits',async()=>{
     await load();const field='input[aria-label="Search counted items and catalog"]';
     await input(field,'Jameson');await check('Search shows counted Jameson once',`document.querySelectorAll('.lq-captured .lq-row').length===1&&document.querySelector('.lq-captured .lq-name').textContent.includes('Jameson Irish Whiskey')`);

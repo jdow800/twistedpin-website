@@ -16,7 +16,7 @@ controls only the recorder boundary. Fictional inventory contains 51 entries
 on one shelf. Fetch mocks answer every API request; independent CDP interception
 blocks external requests. It does not use paid services or write real inventory.
 
-The 32 scenarios verify:
+The 36 scenarios verify:
 
 - The liquor walk excludes the walk-in cooler, including an older server;
   saved historical lines retain their actual shelf names and observed zero.
@@ -33,7 +33,10 @@ The 32 scenarios verify:
   differing case sizes preserve the total as loose units, and repeated changes
   remain attached to the original finding. A frozen 12-bottle case stays at 12
   after moving to a catalog item with 24 per case, typing a zero prefix, clearing
-  the case and readding it on either editing screen.
+  the case and readding it on either editing screen. The zero-case memo also
+  survives adoption after an unrelated save conflict and a loose voice
+  addition. A fresh remote positive case memo supersedes an untouched obsolete
+  local zero-case stamp.
 - Concurrent changes to the remap's source, existing destination or a newly
   created destination pause retries and restore the current saved counts.
   Recheck cannot bypass the question. An explicit fresh collision decision or

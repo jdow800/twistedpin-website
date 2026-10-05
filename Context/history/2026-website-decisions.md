@@ -1466,8 +1466,15 @@ quantity cannot apply until a human enters it; choosing a bottle does not answer
 that question. Clearing a voice quantity continues to hold the row, and source
 ambiguity survives an additive case/loose merge.
 
-Scoped strict COGS TypeScript passes. Native Chromium fixture verification is
-recorded by the accompanying inventory-review QA harness. Browser checks use
+Frozen case sizes survive typing zero, loose voice additions and adoption of an
+unrelated save conflict. A fresh remote positive-case stamp still wins, and
+restored identity-conflict endpoints keep their server metadata. Moving a
+12-per-case count to a catalog 24-per-case bottle, entering zero then half a
+case, continues to use 12 even if another phone changed a different bottle.
+
+Scoped strict COGS TypeScript and the production build pass. Native Chromium
+verification passes 36 scenarios and 90 assertions, plus 29 legacy voice
+scenarios, with 13 regenerated screenshots. Browser checks use
 synthetic inventory and intercepted requests; they do not claim a physical
 Android count or transcription test.
 

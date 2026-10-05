@@ -461,7 +461,24 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         return { lines, pause: true };
       },
       adopt: (lines) => {
+        const local = countsRef.current;
+        const localLines = new Map(flatten(local).map((l) => [`${l.zoneId}:${l.skuId}`, l]));
         const next = rebuildCounts(toOpenLines(lines));
+        // Zero-case stamps are local editing metadata and omitted on the wire.
+        // Carry them through an unrelated merge only when that adopted cell is
+        // still this screen's zero-case value. Fresh remote package answers and
+        // restored remap endpoints must retain their server metadata instead.
+        const restoredEndpoints = new Set(remapConflictsRef.current.flatMap((r) => r.skus.map((id) => `${r.zoneId}:${id}`)));
+        for (const line of lines) {
+          const key = `${line.zoneId}:${line.skuId}`;
+          const previous = local[line.zoneId]?.[line.skuId];
+          const cell = next[line.zoneId]?.[line.skuId];
+          if (cell && previous?.caseSize != null && (previous.cases ?? 0) === 0 &&
+            cell.caseSize == null && !restoredEndpoints.has(key) && sameDraftCell(line, localLines.get(key))) {
+            cell.cases = 0;
+            cell.caseSize = previous.caseSize;
+          }
+        }
         countsRef.current = next;
         setCounts(next);
         setMerged(true);
@@ -672,7 +689,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       else
         zone[skuId] = {
           qty: next,
-          ...(fromCases > 0 ? { cases, caseSize } : {}),
+          // A loose-only voice addition must not erase a multiplier retained
+          // while the case field is zero. Later case edits still use that stamp.
+          ...(caseSize != null ? { cases, caseSize } : {}),
           source,
           ...(raw ? { raw } : {}),
         };
@@ -2406,10 +2425,10 @@ function combineCorrectedCells(from: Cell, existing: Cell): Cell {
   const oldCases = existing.cases ?? 0;
   const compatible = !fromCases || !oldCases || from.caseSize === existing.caseSize;
   const cases = roundQty(fromCases + oldCases);
-  const caseSize = oldCases ? existing.caseSize : from.caseSize;
+  const caseSize = oldCases ? existing.caseSize : fromCases ? from.caseSize : existing.caseSize ?? from.caseSize;
   return {
     qty: roundQty(from.qty + existing.qty), source: "grid",
-    ...(compatible && cases > 0 && caseSize ? { cases, caseSize } : {}),
+    ...(compatible && caseSize != null ? { cases, caseSize } : {}),
     ...((from.raw || existing.raw) ? { raw: [existing.raw, from.raw].filter(Boolean).join("; ") } : {}),
   };
 }

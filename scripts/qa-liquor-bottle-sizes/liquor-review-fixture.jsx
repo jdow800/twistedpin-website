@@ -77,7 +77,10 @@ window.fetch = async (input,init={}) => {
           lines:fresh,linesHash:'endpoint-conflict'},409));
       });
     }
-    if(qa.refuseSave){qa.refuseSave=false;qa.lines=qa.lines.map(l=>l.skuId==='makers'?{...l,qtyUnits:'8'}:l);
+    if(qa.refuseSave){const mode=qa.refuseSave;qa.refuseSave=false;
+      qa.lines=qa.lines.map(l=>mode==='remote-positive-case'
+        ?l.skuId==='orange'&&l.zoneId==='giant'?{...l,qtyUnits:'26',enteredCases:1,caseSizeAtEntry:24}:l
+        :l.skuId==='makers'?{...l,qtyUnits:'8'}:l);
       return json({error:'draft_changed',message:'This draft changed on another phone.',lines:qa.lines,linesHash:'external'},409);}
     qa.lines=body.lines;return json({upserted:body.lines.length,linesHash:'saved'+(++saves)});
   }
