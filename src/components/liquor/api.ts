@@ -270,9 +270,9 @@ export async function getInvoiceCatalog(): Promise<BarSkuItem[]> {
   const [bar, food] = await Promise.all([getCatalog("bar"), getCatalog("food")]);
   return [...new Map([...bar, ...food].map(item => [item.id, item])).values()];
 }
-export async function getZones(section: Section = "bar"): Promise<BarZoneItem[]> {
+export async function getZones(section: Section = "bar", walk?: "liquor"): Promise<BarZoneItem[]> {
   const { zones } = await gatedJson<{ zones: BarZoneItem[] }>(
-    `/admin/bar/zones?section=${section}`,
+    `/admin/bar/zones?section=${section}${walk ? `&walk=${walk}` : ""}`,
   );
   return zones;
 }
@@ -514,6 +514,8 @@ export interface PrecheckFinding {
      *  open rail liter, saved as 1.2 of a 750. `skuId` is `family:<key>`. */
     | "size_mixup";
   skuId: string;
+  /** The SKU identities involved in a paired variety or bottle-size finding. */
+  relatedSkuIds?: string[];
   name: string;
   /** zone_unexpected only — which shelf, so the answer can be written. */
   zoneId?: string;
@@ -684,6 +686,10 @@ export interface VoiceMatch {
 }
 export interface VoiceExtractItem {
   spoken: string;
+  /** Exact source words for the proposed quantity, when supplied by the server. */
+  quantityWords?: string;
+  /** Source cannot safely establish the number; a human quantity answer is required. */
+  quantityNeedsReview?: boolean;
   /** Whole cases heard ("two cases" → 2). 0 when none were spoken. */
   cases: number;
   /** Loose containers heard, incl. fractions ("point eight" → 0.8). */

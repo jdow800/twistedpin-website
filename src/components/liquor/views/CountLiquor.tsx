@@ -31,7 +31,7 @@ import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled } from "../voiceSwitches";
-import { createCellSaver, createDraftSaver, toOpenLines } from "../draftSync";
+import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
@@ -64,6 +64,7 @@ type Cell = {
   raw?: string;
 };
 type Counts = Record<string, Record<string, Cell>>; // counts[zoneId][skuId]
+type PendingRemap = { zoneId: string; from: string; to: string; skus: string[] };
 
 /** A voice take that ADDED onto a cell an earlier take already filled — maybe a
  *  second bottle, maybe the same one re-said. Surfaced at submit; never
@@ -80,6 +81,8 @@ type Restatement = {
 type ReviewItem = {
   key: string;
   spoken: string;
+  quantityWords?: string;
+  quantityNeedsReview?: boolean;
   qty: number;
   cases: number;
   units: number;
@@ -180,8 +183,13 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const [batchCounts, setBatchCounts] = useState<Record<string, Record<string, number>>>({});
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [zoneId, setZoneId] = useState<string>("");
+  const [zoneNames, setZoneNames] = useState<Record<string, string>>({});
   const [counts, setCounts] = useState<Counts>({});
   const [search, setSearch] = useState("");
+  // Keep a new catalog row mounted while its first quantity is being typed.
+  // Otherwise recording the first digit moves it into the captured list and
+  // closes the phone keyboard before a decimal or second digit can be entered.
+  const [catalogEditing, setCatalogEditing] = useState<string | null>(null);
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [submitting, setSubmitting] = useState(false);
   const [submitErr, setSubmitErr] = useState<string | null>(null);
@@ -206,6 +214,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // "Show N more" on the review's two capped lists. Each opening starts short.
   const [showAllFindings, setShowAllFindings] = useState(false);
   const [showAllDoubles, setShowAllDoubles] = useState(false);
+  const [reviewDirty, setReviewDirty] = useState(false);
+  const [reviewMoved, setReviewMoved] = useState<Record<string, string>>({});
+  const pendingRemapsRef = useRef<PendingRemap[]>([]);
+  const remapConflictsRef = useRef<PendingRemap[]>([]);
+  const [remapConflicts, setRemapConflicts] = useState<PendingRemap[]>([]);
   // Bottles answered with "we don't carry it any more", so the row can
   // confirm itself without re-running the whole check.
   const [archived, setArchived] = useState<Record<string, true>>({});
@@ -312,7 +325,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     (async () => {
       try {
         const [z, cat, open, bs] = await Promise.all([
-          getZones(),
+          getZones("bar", "liquor"),
           getCatalog(),
           getOpenCount(),
           // A batch list that fails to load must not block a liquor count —
@@ -320,7 +333,17 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           getBatches().catch(() => [] as BarBatchItem[]),
         ]);
         if (!live) return;
-        setZones(z);
+        // Saved lines can include a shelf excluded from today's liquor walk.
+        // Fetch its display metadata without making it a tile/resume target.
+        const knownZoneIds = new Set(z.map((zone) => zone.id));
+        const needsHistoricalNames = open?.lines.some((line) => !knownZoneIds.has(line.zoneId));
+        const namedZones = needsHistoricalNames ? await getZones("bar").catch(() => z) : z;
+        if (!live) return;
+        setZoneNames(Object.fromEntries([...namedZones, ...z].map((zone) => [zone.id, zone.name])));
+        // A beer-only shelf belongs to Keg check. Older servers may ignore the
+        // walk parameter; retain any saved lines there without asking to walk it.
+        const liquorZones = z.filter((zone) => !/^walk[\s-]*in\s+cooler$/i.test(zone.name.trim()));
+        setZones(liquorZones);
         setCatalog(cat);
         setBatches(bs);
         // ⚠ SESSION FIRST, THEN ZONE — see resume-zone.ts. The liquor walk
@@ -345,7 +368,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           saverRef.current!.loaded([], null);
           batchSaverRef.current!.loaded([], null);
         }
-        setZoneId(resumeZone(sid, z));
+        setZoneId(resumeZone(sid, liquorZones));
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
@@ -376,6 +399,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // shelf one, having never touched the picker we listen to. Found in review.
       rememberZone(sid, zoneIdRef.current);
       setCounts({});
+      pendingRemapsRef.current = [];
+      remapConflictsRef.current = [];
+      setRemapConflicts([]);
       saverRef.current!.loaded([], null);
       setBatchCounts({});
       batchSaverRef.current!.loaded([], null);
@@ -402,8 +428,38 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const saverRef = useRef<ReturnType<typeof createDraftSaver> | null>(null);
   if (!saverRef.current) {
     saverRef.current = createDraftSaver({
+      beforeSave: () => {
+        if (remapConflictsRef.current.length) throw new DraftMergePausedError("Review the changed item correction first.");
+      },
       save: (lines, baseHash) => saveCountLines(sessionIdRef.current!, lines, true, "bar", baseHash),
       current: () => flatten(countsRef.current),
+      saved: (lines) => {
+        const saved = new Map(lines.map((l) => [`${l.zoneId}:${l.skuId}`, l]));
+        const current = new Map(flatten(countsRef.current).map((l) => [`${l.zoneId}:${l.skuId}`, l]));
+        // A remap made while this save was in flight must remain protected.
+        pendingRemapsRef.current = pendingRemapsRef.current.filter((r) =>
+          !r.skus.every((id) => sameDraftCell(saved.get(`${r.zoneId}:${id}`), current.get(`${r.zoneId}:${id}`))));
+      },
+      conflict: (base, mine, theirs) => {
+        const before = new Map(base.map((l) => [`${l.zoneId}:${l.skuId}`, l]));
+        const fresh = new Map(theirs.map((l) => [`${l.zoneId}:${l.skuId}`, l]));
+        const pending = pendingRemapsRef.current;
+        const changed = pending.some((r) => r.skus.some((id) =>
+          !sameDraftCell(before.get(`${r.zoneId}:${id}`), fresh.get(`${r.zoneId}:${id}`))));
+        if (!changed) return { lines: mergeDraft(base, mine, theirs), pause: false };
+        // Restore every endpoint of the pending compound operations, retaining
+        // ordinary local edits elsewhere. A fresh collision needs a fresh choice.
+        const endpoints = new Set(pending.flatMap((r) => r.skus.map((id) => `${r.zoneId}:${id}`)));
+        const lines = mergeDraft(base, mine, theirs).filter((l) => !endpoints.has(`${l.zoneId}:${l.skuId}`));
+        lines.push(...theirs.filter((l) => endpoints.has(`${l.zoneId}:${l.skuId}`)));
+        remapConflictsRef.current = pending;
+        setRemapConflicts(pending);
+        pendingRemapsRef.current = [];
+        checkedRef.current = null;
+        setReviewDirty(true);
+        setReviewMoved((prev) => Object.fromEntries(Object.entries(prev).filter(([key]) => !endpoints.has(key))));
+        return { lines, pause: true };
+      },
       adopt: (lines) => {
         const next = rebuildCounts(toOpenLines(lines));
         countsRef.current = next;
@@ -500,9 +556,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   /** SET the LOOSE container count for (zone, sku), preserving any cases
    *  already entered. The manual correction path. */
-  function setQty(skuId: string, loose: number, explicit = false) {
+  function setQty(skuId: string, loose: number, explicit = false, dest = zoneId) {
     setCounts((prev) => {
-      const zone = { ...(prev[zoneId] ?? {}) };
+      const zone = { ...(prev[dest] ?? {}) };
       const cur = zone[skuId];
       const cases = cur?.cases ?? 0;
       const caseSize = cur?.caseSize ?? null;
@@ -520,11 +576,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       else
         zone[skuId] = {
           qty,
-          ...(fromCases > 0 ? { cases, caseSize } : {}),
+          // Keep the frozen multiplier while editing through zero. A phone
+          // types 0 before 0.5; dropping the stamp there would silently switch
+          // a corrected/remapped historical case to the catalog's new size.
+          ...(caseSize != null ? { cases, caseSize } : {}),
           source: "grid",
           ...(cur?.raw ? { raw: cur.raw } : {}),
         };
-      return { ...prev, [zoneId]: zone };
+      return { ...prev, [dest]: zone };
     });
     setSave("idle");
     scheduleSave();
@@ -534,10 +593,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  size is stamped from the catalog AT THIS MOMENT and frozen on the cell —
    *  never re-read later, so editing a SKU's case size can't rescale a count
    *  that's already been entered. */
-  function setCases(skuId: string, casesRaw: number) {
+  function setCases(skuId: string, casesRaw: number, dest = zoneId) {
     const cases = Math.max(0, roundQty(casesRaw));
     setCounts((prev) => {
-      const zone = { ...(prev[zoneId] ?? {}) };
+      const zone = { ...(prev[dest] ?? {}) };
       const cur = zone[skuId];
       // A size ALREADY stamped on this cell wins over the catalog's current
       // value. Reading the catalog here would rescale a line entered earlier
@@ -554,11 +613,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       else
         zone[skuId] = {
           qty,
-          ...(cases > 0 ? { cases, caseSize } : {}),
+          cases,
+          caseSize,
           source: "grid",
           ...(cur?.raw ? { raw: cur.raw } : {}),
         };
-      return { ...prev, [zoneId]: zone };
+      return { ...prev, [dest]: zone };
     });
     setSave("idle");
     scheduleSave();
@@ -636,6 +696,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const rows: ReviewItem[] = mergeAdjacentRepeats(items).map((it, i) => ({
       key: `v${i}`,
       spoken: it.spoken,
+      quantityWords: it.quantityWords,
+      quantityNeedsReview: it.quantityNeedsReview,
       // Don't default a case-bearing row to 1 — its qty legitimately
       // carries only the loose part until the case size is answered.
       qty: it.qty,
@@ -922,7 +984,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // Missing or backspaced quantities stay for review. A literal zero is an
   // observed empty shelf, and earlier-take questions still hold the bottle.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
+    !!r.chosenSkuId && !r.quantityNeedsReview && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
     !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && x.restate && !x.restateAnswer);
 
 
@@ -991,8 +1053,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  shelf. The variance report lands ~30s after submit as a 3h-correctable
    *  DRAFT (review gate, 0136) — the draft window is the net, this check is the
    *  plan. After finalize, a wrong number is permanent for the period. */
-  async function tryFinish(recheck = false) {
+  async function tryFinish(recheck = false, reviewOnly = false) {
     if (!sessionId || submitting || checking || voicePending) return;
+    // Leaving Details and returning through Finish still owes an explicit
+    // review of the changed count, even if the fresh server check is clean.
+    const keepReviewOpen = reviewOnly || reviewDirty;
     setRechecked(recheck);
     setSubmitErr(null);
     const uncounted = zones.filter((z) => Object.keys(counts[z.id] ?? {}).length === 0).map((z) => z.name);
@@ -1038,7 +1103,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     } finally {
       setChecking(false);
     }
+    setReviewDirty(false);
+    setReviewMoved({});
     if (
+      keepReviewOpen ||
       checkFailed ||
       uncounted.length > 0 ||
       findings.length > 0 ||
@@ -1112,7 +1180,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   async function finish() {
     // Behind the disabled Finish button, and before the dialog closes: a take
     // that has not landed keeps the count open, with the dialog still up.
-    if (voicePending) return;
+    if (voicePending || reviewDirty) return;
     setConfirmSubmit(null);
     if (!sessionId || submitting) return;
     setSubmitting(true);
@@ -1150,10 +1218,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     if (!q) return [];
     // Discontinued bottles (tprs 0196) sort after the ones we still carry.
     return catalog
-      .filter((s) => s.name.toLowerCase().includes(q))
+      .filter((s) => skuMatchesSearch(s, q) && (counts[zoneId]?.[s.id] == null || catalogEditing === s.id))
       .sort((a, b) => Number(!!a.discontinuedAt) - Number(!!b.discontinuedAt))
       .slice(0, 30);
-  }, [catalog, search]);
+  }, [catalog, search, counts, zoneId, catalogEditing]);
 
   /** Full-container equivalents for one batch in the CURRENT zone. Touching a
    *  batch creates its key even at zero — that is the counter saying "I looked
@@ -1171,7 +1239,107 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const capturedHere = Object.entries(zoneCells).sort((a, b) =>
     (nameById.get(a[0]) ?? "").localeCompare(nameById.get(b[0]) ?? ""),
   );
+  const capturedMatches = capturedHere.filter(([id]) => !search.trim() || (skuById.get(id) && skuMatchesSearch(skuById.get(id)!, search)));
+  const capturedVisible = capturedMatches.filter(([id]) => !search.trim() || catalogEditing !== id);
   const enteredTotal = Object.values(counts).reduce((n, z) => n + Object.keys(z).length, 0);
+
+  function changedInReview(dest: string, skuId: string) {
+    checkedRef.current = null;
+    restatementsRef.current.delete(`${dest}:${skuId}`);
+    setReviewDirty(true);
+  }
+
+  function changeCountedItem(dest: string, from: string, to: string, mode: "move" | "add" | "replace") {
+    if (checking || submitting || from === to || !skuById.has(to)) return;
+    const prev = countsRef.current;
+    const zone = { ...(prev[dest] ?? {}) };
+    const source = zone[from];
+    if (!source || (zone[to] && mode === "move")) return;
+    const chained = pendingRemapsRef.current.filter((r) => r.zoneId === dest && (r.skus.includes(from) || r.skus.includes(to)));
+    pendingRemapsRef.current = [
+      ...pendingRemapsRef.current.filter((r) => !chained.includes(r)),
+      { zoneId: dest, from: chained[0]?.from ?? from, to, skus: [...new Set([from, to, ...chained.flatMap((r) => r.skus)])] },
+    ];
+    // This deliberate remap answers the paused correction for these endpoints.
+    remapConflictsRef.current = remapConflictsRef.current.filter((r) => r.zoneId !== dest || (!r.skus.includes(from) && !r.skus.includes(to)));
+    setRemapConflicts(remapConflictsRef.current);
+    zone[to] = mode === "add" && zone[to] ? combineCorrectedCells(source, zone[to]) : { ...source, source: "grid" };
+    delete zone[from];
+    const next = { ...prev, [dest]: zone };
+    countsRef.current = next;
+    setCounts(next);
+    setReviewMoved((prev) => ({ ...Object.fromEntries(Object.entries(prev).map(([key, value]) =>
+      [key, key.startsWith(`${dest}:`) && value === from ? to : value])), [`${dest}:${from}`]: to }));
+    changedInReview(dest, from);
+    restatementsRef.current.delete(`${dest}:${to}`);
+    scheduleSave();
+  }
+
+  function keepSavedRemapCounts() {
+    remapConflictsRef.current = [];
+    setRemapConflicts([]);
+    setSave("idle");
+    checkedRef.current = null;
+    setReviewDirty(true);
+    scheduleSave();
+  }
+
+  function remapConflictNotice() {
+    if (!remapConflicts.length) return null;
+    return <div className="lq-review-changed" role="alert">
+      <strong>Item correction needs another look</strong>
+      <p>Another save changed a bottle in this correction. These are the current saved counts. Use “Change item or size” again to confirm the correction.</p>
+      {remapConflicts.map((r, i) => <p key={i}>
+        {zoneNames[r.zoneId] ?? "Saved shelf"}: {r.skus.map((id) => {
+          const cell = counts[r.zoneId]?.[id];
+          return `${nameById.get(id) ?? "Item"}: ${cell ? formatQty(cell.qty) : "not counted"}`;
+        }).join(" · ")}
+      </p>)}
+      <button type="button" className="lq-btn lq-btn-ghost" disabled={checking || submitting} onClick={keepSavedRemapCounts}>Keep saved counts</button>
+    </div>;
+  }
+
+  function findingCountDetails(f: PrecheckFinding) {
+    // Server findings may describe a pair or size family. Use stable SKU IDs
+    // when supplied; the name fallback supports an older size-family reply.
+    const ids = new Set(f.relatedSkuIds ?? [f.skuId]);
+    if (f.skuId.startsWith("family:")) {
+      const family = normalizedSearch(f.skuId.slice(7));
+      for (const s of catalog) if (normalizedSearch(s.name) === family) ids.add(s.id);
+    }
+    if (![...ids].some((id) => skuById.has(id))) return undefined;
+    const rows = Object.entries(counts).flatMap(([dest, cells]) =>
+      Object.entries(cells).filter(([id]) => ids.has(id) || [...ids].some((old) => reviewMoved[`${dest}:${old}`] === id))
+        .map(([id, cell]) => ({ dest, id, cell })),
+    ).sort((a, b) => (zones.find((z) => z.id === a.dest)?.walkOrder ?? 999) - (zones.find((z) => z.id === b.dest)?.walkOrder ?? 999));
+    return (
+      <div className="lq-review-counts">
+        <p className="lq-review-counts-heading">Where you counted</p>
+        {rows.length === 0 && <p>No count entered for this item yet.</p>}
+        {rows.map(({ dest, id, cell }) => {
+          const s = skuById.get(id)!;
+          const shelf = zoneNames[dest] ?? "Saved shelf";
+          return <ReviewCountRow key={`${dest}:${id}`} sku={s} cell={cell} shelf={shelf}
+            catalog={catalog} existing={counts[dest] ?? {}} disabled={checking || submitting}
+            quantitiesDisabled={remapConflicts.some((r) => r.zoneId === dest && r.skus.includes(id))}
+            onLoose={(n) => { setQty(id, n, true, dest); changedInReview(dest, id); }}
+            onCases={(n) => { setCases(id, n, dest); changedInReview(dest, id); }}
+            onChangeItem={(to, mode) => changeCountedItem(dest, id, to, mode)} />;
+        })}
+        <button type="button" className="lq-linkbtn" disabled={checking || submitting} onClick={() => {
+          const dest = f.zoneId ?? rows[0]?.dest ?? zoneId;
+          setZoneId(dest);
+          rememberZone(sessionId, dest);
+          setSearch(skuById.get(f.skuId)?.name ?? f.name);
+          setCatalogEditing(null);
+          setCaseAsk(null);
+          setCaseAskErr(null);
+          setConfirmSubmit(null);
+          requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".lq-count > .lq-count-controls .lq-search")?.scrollIntoView({ block: "center" }));
+        }}>Open on count screen</button>
+      </div>
+    );
+  }
 
   if (phase === "loading") return <div className="lq-center lq-muted">Starting count…</div>;
   if (phase === "error")
@@ -1195,7 +1363,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-count">
-      <fieldset className="lq-count-controls" disabled={checking || submitting} aria-label="Count stock">
+      {!confirmSubmit && remapConflictNotice()}
+      <fieldset className="lq-count-controls" disabled={checking || submitting || remapConflicts.length > 0} aria-label="Count stock">
       {resumed && (
         <div className="lq-resumed">
           <span>↩ Picked up your count in progress.</span>
@@ -1226,7 +1395,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               disabled={capturing || checking || submitting}
               // Close any open "+ case size" editor — otherwise one left open
               // on Tito's in Back Bar reappears open on Tito's in Well.
-              onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setCaseAsk(null); setCaseAskErr(null); }}
+              onClick={() => { setZoneId(z.id); rememberZone(sessionId, z.id); setSearch(""); setCatalogEditing(null); setCaseAsk(null); setCaseAskErr(null); }}
             >
               <span className="lq-zone-name">{z.name}</span>
               {n > 0 && <span className="lq-zone-badge">{n}</span>}
@@ -1329,12 +1498,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         className="lq-search"
         type="search"
         inputMode="search"
-        placeholder="Search to add a bottle by hand…"
+        placeholder="Find a counted item or add a bottle…"
+        aria-label="Search counted items and catalog"
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => { setSearch(e.target.value); setCatalogEditing(null); }}
       />
+      {search.trim() && <button type="button" className="lq-linkbtn" disabled={checking || submitting}
+        onClick={() => { setSearch(""); setCatalogEditing(null); }}>Clear search</button>}
       {searchResults.length > 0 && (
         <div className="lq-searchlist">
+          <h3 className="lq-cap-title">Find or add item</h3>
           {searchResults.map((s) => {
             const cell = zoneCells[s.id];
             const qty = cell?.qty ?? 0;
@@ -1364,7 +1537,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   <CaseBox
                     cases={cell?.cases ?? 0}
                     caseSize={(cell?.caseSize ?? s.unitsPerCase)!}
-                    onChange={(n) => setCases(s.id, n)}
+                    onChange={(n) => { setCatalogEditing(s.id); setCases(s.id, n); }}
                     disabled={submitting || checking}
                   />
                 ) : (
@@ -1373,7 +1546,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 <div className="lq-quantity">
                   <span className="lq-qty-label">{s.trackingMode === "stock_count" ? "Loose each" : "Loose bottles"}</span>
                   <div className="lq-stepper">
-                  <button type="button" className="lq-step" disabled={loose <= 0 || submitting || checking} aria-label={`decrease ${s.name}`} onClick={() => setQty(s.id, roundQty(loose - 1))}>−</button>
+                  <button type="button" className="lq-step" disabled={loose <= 0 || submitting || checking} aria-label={`decrease ${s.name}`} onClick={() => { setCatalogEditing(s.id); setQty(s.id, roundQty(loose - 1)); }}>−</button>
                   {/* A can or a jar has no tenths. Whole-number step + a numeric
                       keypad on non-bottles removes the "2.3 Red Bulls" typo
                       outright, rather than catching it downstream. */}
@@ -1387,10 +1560,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     blankZero={!cell}
                     disabled={submitting || checking}
                     placeholder="0"
-                    onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) setQty(s.id, n, true); }}
+                    onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) { setCatalogEditing(s.id); setQty(s.id, n, true); } }}
                     aria-label={`Loose ${s.name}`}
                   />
-                  <button type="button" className="lq-step" disabled={submitting || checking} aria-label={`increase ${s.name}`} onClick={() => setQty(s.id, roundQty(loose + 1))}>+</button>
+                  <button type="button" className="lq-step" disabled={submitting || checking} aria-label={`increase ${s.name}`} onClick={() => { setCatalogEditing(s.id); setQty(s.id, roundQty(loose + 1)); }}>+</button>
                   </div>
                 </div>
                 {(cell?.cases ?? 0) > 0 && <span className="lq-case-sum">= {formatQty(qty)} each</span>}
@@ -1477,10 +1650,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           Counted in {zones.find((z) => z.id === zoneId)?.name ?? "this zone"}
           <span className="lq-cap-n">{capturedHere.length}</span>
         </h3>
+        {search.trim() && <p className="lq-muted" role="status">{capturedMatches.length} of {capturedHere.length} counted items match.</p>}
         {capturedHere.length === 0 ? (
           <p className="lq-muted lq-cap-empty">Nothing here yet — record the shelf, or search above to add one.</p>
         ) : (
-          capturedHere.map(([skuId, cell]) => {
+          capturedMatches.length === 0 ? <p className="lq-muted lq-cap-empty">No counted items match on this shelf. Try another name or clear the search.</p> : capturedVisible.map(([skuId, cell]) => {
             const caseSize = cell.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
             const loose = looseOf(cell);
             const sku = skuById.get(skuId);
@@ -1627,6 +1801,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           units: res.units,
                           qty: roundQty(res.cases * ups + res.units),
                           suspectPreMultiplied: false,
+                          quantityNeedsReview: res.quantityConfirmed === false ? x.quantityNeedsReview : false,
                           nameCheck: null,
                           highCheck: null,
                           explicitZero: res.explicitZero,
@@ -1718,11 +1893,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       // Retirement candidates alone. The count is COMPLETE and
                       // nothing is wrong with it — calling it incomplete because
                       // an advisory list opened would be a plain lie.
-                      : "One thing before you submit"}
+                      : confirmSubmit.retiring.length > 0 ? "One thing before you submit" : "Ready to submit"}
               </h3>
               <p className="lq-muted">
                 {rechecked && (
-                  <>The count changed after the last check (another phone, or a change merged in), so this is a fresh check.{" "}</>
+                  <>This is a fresh check of the saved count.{" "}</>
                 )}
                 {confirmSubmit.checkFailed && (
                   <>Nothing was checked: the pre-submit check couldn't reach the server. Retry the check, or submit anyway.{" "}</>
@@ -1735,6 +1910,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 Submit closes this count.
               </p>
             </div>
+            {reviewDirty && <p className="lq-review-changed" role="status">Count changed. Recheck before submitting.</p>}
+            {remapConflictNotice()}
+            {save === "error" && remapConflicts.length === 0 && <p className="lq-error" role="alert">Not saved yet. Check the connection and tap Recheck count.</p>}
             <BottleSizeWarnings warnings={confirmSubmit.sizeWarnings} />
             {confirmSubmit.findings.length > 0 && (
               <div className="lq-precheck">
@@ -1743,7 +1921,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   // zone_missed on a bottle that is also overused).
                   <div key={`${f.kind}:${f.skuId}`} className="lq-precheck-row">
                     <span className="lq-precheck-name">{f.name}</span>
-                    <FindingSummary finding={f} unit={skuById.get(f.skuId)?.countUnit ?? (skuById.get(f.skuId)?.trackingMode === "stock_count" ? "each" : "bottles")} />
+                    <FindingSummary finding={reviewDirty && skuById.has(f.skuId) ? { ...f, counted: Object.values(counts).reduce((total, cells) => total + (cells[f.skuId]?.qty ?? 0), 0) } : f}
+                      unit={skuById.get(f.skuId)?.countUnit ?? (skuById.get(f.skuId)?.trackingMode === "stock_count" ? "each" : "bottles")}
+                      countDetails={findingCountDetails(f)} />
 
                     {/* One of TWO findings with a one-tap remedy (the other is
                         not_counted, below), because these are the two where the
@@ -1880,7 +2060,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <button type="button" className="lq-btn lq-btn-ghost" onClick={() => setConfirmSubmit(null)}>
                 Go back
               </button>
-              {confirmSubmit.checkFailed && <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setConfirmSubmit(null); void tryFinish(); }}>Retry check</button>}
+              {(confirmSubmit.checkFailed || reviewDirty) && <button type="button" className="lq-btn lq-btn-ghost" disabled={checking || submitting} onClick={() => { void tryFinish(true, true); }}>{checking ? "Checking…" : reviewDirty ? "Recheck count" : "Retry check"}</button>}
               {retireErr && <span className="lq-retire-err">{retireErr}</span>}
               {/* Always dismissible. The check is advice, not a gate — if the
                   count is right and an invoice is simply missing, forcing a
@@ -1892,7 +2072,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <button
                 type="button"
                 className="lq-btn lq-btn-primary"
-                disabled={retiringSkuId != null || voicePending || submitting}
+                disabled={retiringSkuId != null || voicePending || submitting || checking || reviewDirty}
                 onClick={() => void finish()}
               >
                 {confirmSubmit.findings.length > 0 ||
@@ -1935,7 +2115,7 @@ function ReviewRow({
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
    *  single total — applyReview reads those two fields, so a handler that only
    *  set `qty` would render a corrected number and then apply the old one. */
-  onResolve: (res: { cases: number; units: number; explicitZero?: boolean }) => void;
+  onResolve: (res: { cases: number; units: number; explicitZero?: boolean; quantityConfirmed?: boolean }) => void;
   onPick: (skuId: string) => void;
   onToggleAssign: () => void;
   onRemove: () => void;
@@ -1962,11 +2142,13 @@ function ReviewRow({
   // button silently did nothing, because answering a case size requires a
   // chosen SKU. The row became a dead end whose only exit was deleting it,
   // which drops that bottle from the count entirely.
-  const state: "needs_case" | "suspect" | "name_number" | "high" | "restate" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
+  const state: "quantity" | "needs_case" | "suspect" | "name_number" | "high" | "restate" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
     ? item.candidates.length > 0
       ? "ambiguous"
       : "unmatched"
-    : item.needsCaseSize
+    : item.quantityNeedsReview
+      ? "quantity"
+      : item.needsCaseSize
       ? "needs_case"
       : item.suspectPreMultiplied
         ? "suspect"
@@ -2004,12 +2186,16 @@ function ReviewRow({
             placeholder="0"
             // A typed number is a plain each-count and REPLACES whatever the
             // model heard — cases go to 0 so cases x size can't be added on top.
-            onQuantity={(n, raw) => onResolve({ cases: 0, units: n, explicitZero: raw !== "" && Number(raw) === 0 })}
+            onQuantity={(n, raw) => onResolve({ cases: 0, units: raw !== "" && Number(raw) >= 0 ? n : 0,
+              explicitZero: raw !== "" && Number(raw) === 0, quantityConfirmed: raw !== "" && Number(raw) >= 0 })}
             aria-label={`Total quantity for ${chosen?.name ?? item.spoken}`}
           />
           <button type="button" className="lq-rev-x" aria-label="remove" onClick={onRemove}>✕</button>
         </div>
       </div>
+
+      {item.quantityWords && <span className="lq-muted lq-rev-hint">Heard quantity: “{item.quantityWords}”</span>}
+      {state === "quantity" && <span className="lq-error lq-rev-hint">Check the heard number. Enter the total quantity above, including 0 if empty.</span>}
 
       {/* The ask-do-not-guess path. We heard cases but have no case size for
           this bottle, so the count is genuinely unknowable — rather than
@@ -2202,6 +2388,87 @@ function ReviewRow({
   );
 }
 
+function normalizedSearch(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function skuMatchesSearch(sku: BarSkuItem, query: string): boolean {
+  const terms = normalizedSearch(query).split(/\s+/).filter(Boolean);
+  const size = sku.sizeMl != null ? `${sku.sizeMl} ml ${sku.sizeMl}ml ${sku.sizeMl / 1000} l ${sku.sizeMl / 1000}l` : "";
+  const text = normalizedSearch(`${sku.name} ${size}`);
+  return terms.every((term) => text.includes(term));
+}
+
+/** A correction keeps the entered pack memo when the two stamps agree. With
+ * different case sizes only the truthful individual-unit total can be merged. */
+function combineCorrectedCells(from: Cell, existing: Cell): Cell {
+  const fromCases = from.cases ?? 0;
+  const oldCases = existing.cases ?? 0;
+  const compatible = !fromCases || !oldCases || from.caseSize === existing.caseSize;
+  const cases = roundQty(fromCases + oldCases);
+  const caseSize = oldCases ? existing.caseSize : from.caseSize;
+  return {
+    qty: roundQty(from.qty + existing.qty), source: "grid",
+    ...(compatible && cases > 0 && caseSize ? { cases, caseSize } : {}),
+    ...((from.raw || existing.raw) ? { raw: [existing.raw, from.raw].filter(Boolean).join("; ") } : {}),
+  };
+}
+
+function ReviewCountRow({ sku, cell, shelf, catalog, existing, disabled, quantitiesDisabled, onLoose, onCases, onChangeItem }: {
+  sku: BarSkuItem;
+  cell: Cell;
+  shelf: string;
+  catalog: BarSkuItem[];
+  existing: Record<string, Cell>;
+  disabled: boolean;
+  quantitiesDisabled: boolean;
+  onLoose: (n: number) => void;
+  onCases: (n: number) => void;
+  onChangeItem: (id: string, mode: "move" | "add" | "replace") => void;
+}) {
+  const [changing, setChanging] = useState(false);
+  const [query, setQuery] = useState("");
+  const [targetId, setTargetId] = useState("");
+  const target = catalog.find((s) => s.id === targetId);
+  const targetCell = targetId ? existing[targetId] : undefined;
+  const caseSize = cell.caseSize ?? sku.unitsPerCase;
+  const hits = catalog.filter((s) => s.id !== sku.id && skuMatchesSearch(s, query));
+  return (
+    <div className="lq-review-count-row" data-sku-id={sku.id}>
+      <div className="lq-review-count-location"><strong>{shelf}</strong><span>{formatQty(cell.qty)} {sku.trackingMode === "stock_count" ? "each" : "bottles"} total</span></div>
+      <span>{sku.name} · {sizeLabel(sku)}</span>
+      {(cell.cases ?? 0) > 0 && cell.caseSize && <span>{formatQty(cell.cases!)} cases × {formatQty(cell.caseSize)} + {formatQty(looseOf(cell))} loose</span>}
+      {cell.raw && <p className="lq-review-heard">Heard: “{cell.raw}”</p>}
+      <div className="lq-review-count-inputs">
+        {caseSize != null && <CaseBox cases={cell.cases ?? 0} caseSize={caseSize} onChange={onCases} disabled={disabled || quantitiesDisabled} label={`Cases of ${sku.name} on ${shelf}`} />}
+        <label className="lq-quantity"><span className="lq-qty-label">{sku.trackingMode === "stock_count" ? "Loose each" : "Loose bottles"}</span>
+          <CountQuantityInput className="lq-qty-input" type="number" inputMode="decimal" step="0.1" min={0} value={looseOf(cell)} disabled={disabled || quantitiesDisabled}
+            aria-label={`Loose ${sku.name} on ${shelf}`} onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) onLoose(n); }} />
+        </label>
+      </div>
+      <button type="button" className="lq-linkbtn" disabled={disabled} onClick={() => setChanging(!changing)}>{changing ? "Cancel item change" : "Change item or size"}</button>
+      {changing && <div className="lq-review-rematch">
+        <input className="lq-search" type="search" value={query} disabled={disabled} placeholder="Find the bottle you actually counted…"
+          aria-label={`Find replacement for ${sku.name} on ${shelf}`} onChange={(e) => { setQuery(e.target.value); setTargetId(""); }} />
+        <select className="lq-review-replacement" value={targetId} disabled={disabled} aria-label={`Replacement for ${sku.name} on ${shelf}`} onChange={(e) => setTargetId(e.target.value)}>
+          <option value="">Choose item and size</option>
+          {hits.map((s) => <option key={s.id} value={s.id}>{s.name} · {sizeLabel(s)}</option>)}
+        </select>
+        {query.trim() && hits.length === 0 && <p>No matching item. Try another name.</p>}
+        {target && <>
+          <p>Move {formatQty(cell.qty)} from {sku.name} · {sizeLabel(sku)} to {target.name} · {sizeLabel(target)} on {shelf}.</p>
+          {targetCell ? <>
+            <p>{target.name} already has {formatQty(targetCell.qty)} on this shelf. Choose how to correct it.</p>
+            {(cell.cases ?? 0) > 0 && (targetCell.cases ?? 0) > 0 && cell.caseSize !== targetCell.caseSize && <p>These case sizes differ. Adding saves the combined total as loose units.</p>}
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={disabled} onClick={() => onChangeItem(target.id, "add")}>Add to existing count ({formatQty(cell.qty + targetCell.qty)})</button>
+            <button type="button" className="lq-btn lq-btn-ghost" disabled={disabled} onClick={() => onChangeItem(target.id, "replace")}>Replace existing count ({formatQty(cell.qty)})</button>
+          </> : <button type="button" className="lq-btn lq-btn-ghost" disabled={disabled} onClick={() => onChangeItem(target.id, "move")}>Move count</button>}
+        </>}
+      </div>}
+    </div>
+  );
+}
+
 /** The LOOSE portion of a cell — total minus whatever the cases contribute.
  *  Every stepper and number field edits this, never the total: feeding a
  *  case-bearing cell's `qty` back into setQty would re-add the cases. */
@@ -2220,11 +2487,13 @@ function CaseBox({
   caseSize,
   onChange,
   disabled = false,
+  label,
 }: {
   cases: number;
   caseSize: number;
   onChange: (n: number) => void;
   disabled?: boolean;
+  label?: string;
 }) {
   return (
     <div className="lq-quantity lq-case-quantity">
@@ -2241,7 +2510,7 @@ function CaseBox({
         blankZero
         disabled={disabled}
         placeholder="0"
-        aria-label={`cases (${caseSize} each)`}
+        aria-label={label ?? `cases (${caseSize} each)`}
         onQuantity={(n, raw) => { if (raw !== "" && Number(raw) >= 0) onChange(n); }}
       />
       <button type="button" className="lq-step" disabled={disabled} aria-label="One more case" onClick={() => onChange(roundQty(cases + 1))}>+</button>

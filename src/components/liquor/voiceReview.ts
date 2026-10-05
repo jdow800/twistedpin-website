@@ -56,7 +56,9 @@ export function mergeAdjacentRepeats(items: VoiceExtractItem[]): VoiceExtractIte
     const spoken = `${prev.spoken} … ${it.spoken}`;
     out[out.length - 1] = (caseOnly(prev) && looseOnly(it)) || (looseOnly(prev) && caseOnly(it))
       ? { ...it, spoken, cases: prev.cases + it.cases, units: prev.units + it.units, qty: prev.qty + it.qty,
-          needsCaseSize: prev.needsCaseSize || it.needsCaseSize }
+          needsCaseSize: prev.needsCaseSize || it.needsCaseSize,
+          ...((prev.quantityNeedsReview || it.quantityNeedsReview) ? { quantityNeedsReview: true } : {}),
+          ...((prev.quantityWords || it.quantityWords) ? { quantityWords: [prev.quantityWords, it.quantityWords].filter(Boolean).join(" + ") } : {}) }
       : { ...it, spoken };
   }
   return out;

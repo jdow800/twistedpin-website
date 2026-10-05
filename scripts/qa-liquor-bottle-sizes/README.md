@@ -1,5 +1,58 @@
 # Bottle-size UI verification
 
+## Liquor review and phone controls
+
+From the Website root, after installing the Website's locked dependencies:
+
+```powershell
+# Optional when Chromium is installed at a different path:
+$env:COGS_QA_CHROME = 'C:\path\to\chrome-headless-shell.exe'
+node scripts/qa-liquor-bottle-sizes/check-liquor-review.mjs
+```
+
+This self-contained native Chromium suite builds the actual `CountLiquor`
+component and API client, serves its assets on a temporary localhost port, and
+controls only the recorder boundary. Fictional inventory contains 51 entries
+on one shelf. Fetch mocks answer every API request; independent CDP interception
+blocks external requests. It does not use paid services or write real inventory.
+
+The 32 scenarios verify:
+
+- The liquor walk excludes the walk-in cooler, including an older server;
+  saved historical lines retain their actual shelf names and observed zero.
+- Details show every counted shelf, bottle size, heard phrase and exact saved
+  thousandths. Direct quantity/case edits affect the selected shelf, preserve
+  frozen case sizes, reject blank/negative answers and keep explicit zero.
+- Every correction requires a fresh check. A clean recheck stays open for a
+  deliberate Submit; submission uses its new fingerprint. Failed saves block
+  stale checks, and another phone's edits merge before the fresh check. Editing
+  Details, returning to the count screen and tapping Finish also opens a fresh
+  confirmation when the result is clean.
+- Wrong item/size correction moves the physical count. Existing destinations
+  require an explicit Add or Replace choice; compatible case memos survive,
+  differing case sizes preserve the total as loose units, and repeated changes
+  remain attached to the original finding. A frozen 12-bottle case stays at 12
+  after moving to a catalog item with 24 per case, typing a zero prefix, clearing
+  the case and readding it on either editing screen.
+- Concurrent changes to the remap's source, existing destination or a newly
+  created destination pause retries and restore the current saved counts.
+  Recheck cannot bypass the question. An explicit fresh collision decision or
+  Keep saved counts resolves the pause while retaining unrelated edits.
+- Search filters counted rows, separates uncounted catalog results, handles
+  accents/no matches/Clear, and resets on shelf changes. Typing `0.7` or `12`
+  into an uncounted result retains the same focused input after each character.
+- Uncertain voice quantities require an explicit answer. Blanking or entering
+  a negative number cannot silently become zero; a literal human `0` can.
+- At 320, 360, 412 and 1280 CSS pixels, case numeral `2` fits its field, native
+  touchscreen plus/minus changes exactly one case, Details fit the viewport,
+  and final review actions remain visible. Small-phone identity collision
+  controls fit at 320 and 412 pixels.
+
+Results and 13 screenshots are written to ignored `dist/liquor-review/`.
+Temporary browser profiles are validated and removed by the shared CDP helper.
+This covers Chromium phone emulation; it does not simulate Android browser
+chrome, the native keyboard or the physical phone microphone.
+
 This isolated fixture renders the actual count and invoice components with synthetic data. All API requests are intercepted locally. It imports the actual recent-delivery helper from the companion TPRS checkout. The test-only esbuild plugin exposes the internal invoice matching component without changing its production exports.
 
 Install the Website's normal dependencies first. From this directory:

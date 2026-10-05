@@ -332,7 +332,7 @@ await run('a count that changed after the check is checked again, not closed on 
   assert.equal(submits.length,1);
   assert.equal(submits[0].body.checkedLinesHash,'check1','submit named the check the counter read');
   assert.equal(submits[0].body.checkedBatchesHash,'batches0');
-  assert.match(t.doc.querySelector('.lq-confirm').textContent,/this is a fresh check/);
+  assert.match(t.doc.querySelector('.lq-confirm').textContent,/this is a fresh check/i);
   await t.click('Submit anyway');
   await until(() => t.qa.calls.filter(c => c.path.endsWith('/submit')).length === 2,'Second submit');
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit'))[1].body.checkedLinesHash,'check2');

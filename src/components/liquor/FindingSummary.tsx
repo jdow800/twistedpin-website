@@ -1,11 +1,13 @@
 import type { PrecheckFinding } from "./api";
 import { formatQty } from "./quantity";
+import type { ReactNode } from "react";
 
 /** Keep the decision and the count visible. The full server explanation is
  * available without making someone read it to keep walking the shelves. */
-export default function FindingSummary({ finding: f, unit = "bottles" }: {
+export default function FindingSummary({ finding: f, unit = "bottles", countDetails }: {
   finding: PrecheckFinding;
   unit?: string;
+  countDetails?: ReactNode;
 }) {
   const question: Record<PrecheckFinding["kind"], string> = {
     impossible: "Check the quantity or an unscanned delivery.",
@@ -37,9 +39,11 @@ export default function FindingSummary({ finding: f, unit = "bottles" }: {
         </dl>
       )}
       {hasHistory && <span className="lq-finding-unit">{unit}{f.unitsPerCase ? ` · ${formatQty(f.unitsPerCase)} per case` : ""}</span>}
-      {narrativeOnly ? <p className="lq-finding-evidence">{f.detail}</p> : <details className="lq-finding-details">
+      {narrativeOnly && <p className="lq-finding-evidence">{f.detail}</p>}
+      {(!narrativeOnly || countDetails) && <details className="lq-finding-details">
         <summary>Details</summary>
-        <p>{f.detail}</p>
+        {!narrativeOnly && <p>{f.detail}</p>}
+        {countDetails}
       </details>}
     </div>
   );

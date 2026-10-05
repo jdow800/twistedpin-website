@@ -21,6 +21,12 @@ const qtyOf = (l: CountLineInput | OpenCountLine) => JSON.stringify([
   l.packSizeAtEntry ?? null,
 ]);
 
+export const sameDraftCell = (a: CountLineInput | undefined, b: CountLineInput | undefined): boolean =>
+  a && b ? qtyOf(a) === qtyOf(b) : !a && !b;
+
+/** A compound correction needs a fresh human decision before any retry. */
+export class DraftMergePausedError extends Error {}
+
 /** Server lines in the shape a screen saves. */
 export function toInputLines(lines: OpenCountLine[]): CountLineInput[] {
   return lines.map((l) => ({
@@ -81,27 +87,36 @@ export function createDraftSaver(opts: {
   current: () => CountLineInput[];
   /** Replace the screen's lines with a merge (the draft changed elsewhere). */
   adopt: (lines: CountLineInput[]) => void;
+  /** A compound identity correction may refuse local-wins on its endpoints. */
+  conflict?: (base: CountLineInput[], mine: CountLineInput[], theirs: CountLineInput[]) => { lines: CountLineInput[]; pause: boolean };
+  beforeSave?: () => void;
+  saved?: (lines: CountLineInput[]) => void;
 }) {
   let base: CountLineInput[] = [];
   let baseHash: string | null = null;
   let chain: Promise<void> = Promise.resolve();
   const run = async () => {
+    opts.beforeSave?.();
     const lines = opts.current();
     try {
       const res = await opts.save(lines, baseHash);
       base = lines;
       baseHash = res.linesHash ?? null;
+      opts.saved?.(lines);
     } catch (e) {
       if (!(e instanceof DraftChangedError)) throw e;
       const theirs = toInputLines(e.lines);
       // Read the screen again: the counter may have typed while this was out.
-      const merged = mergeDraft(base, opts.current(), theirs);
+      const decision = opts.conflict?.(base, opts.current(), theirs);
+      const merged = decision?.lines ?? mergeDraft(base, opts.current(), theirs);
       opts.adopt(merged);
       base = theirs;
       baseHash = e.linesHash;
+      if (decision?.pause) throw new DraftMergePausedError("The item correction changed elsewhere. Review the saved counts before retrying.");
       const res = await opts.save(merged, baseHash);
       base = merged;
       baseHash = res.linesHash ?? null;
+      opts.saved?.(merged);
     }
   };
   return {

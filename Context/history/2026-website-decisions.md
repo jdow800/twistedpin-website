@@ -1425,6 +1425,52 @@ TypeScript and the complete Astro/Vercel production build (all prechecks and
 function packaging) pass. Physical locked dependencies installed from the
 local npm cache resolve the Windows dependency-junction packaging issue.
 
+## 2026-10-05 - Review liquor counts by shelf and correct them before submit
+
+Jon's in-person liquor count found that the final review named suspect totals
+without showing where they came from, and fixing a mistaken Jameson variant
+required finding the original shelf. Each bottle finding's Details now shows
+the current counted shelves, bottle sizes, frozen case/loose math and preserved
+heard phrase. Cases and loose quantities can be edited there. Change item or
+size moves the count on that same shelf, with explicit Add or Replace choices
+when the replacement already has a count. Different frozen case sizes combine
+only as individual-unit totals, with that consequence shown before the choice.
+
+Edits invalidate the previous check and disable Submit until Recheck count
+saves and requests a fresh server check. Recheck keeps review open even when
+all findings clear, so it never submits a count by itself. Existing draft merge,
+fractional precision, literal-zero and in-flight save/submit guards are retained.
+The same confirmation stays open after editing, going back and tapping Finish.
+
+Astra's independent ultra review found that ordinary local-wins merging could
+overwrite a concurrently changed source or target of an item correction. Remaps
+now protect both endpoints: a conflict restores their fresh server values,
+keeps unrelated local edits, and pauses saving until a new explicit correction
+or Keep saved counts. A remap made while a save is in flight stays protected.
+Case stamps survive a transient zero when typing fractional cases or stepping
+down and back up, including a bottle moved to a SKU whose catalog case size
+differs. Historical cooler names use full-zone metadata without a cooler tile.
+
+The count screen search now finds and filters existing counted items as well as
+catalog items, with visible match counts, no-match copy and Clear search. A new
+catalog editor remains mounted through its first saved digits so the phone
+keyboard can finish a decimal; it is never duplicated in the captured list.
+Shelf navigation clears the search. Case stepper inputs have a reserved 72px
+width so the number cannot collapse between their plus/minus controls.
+
+The liquor walk requests its own zone scope and omits the beer-only Walk In
+Cooler, including a fallback for an older API. Saved rows and count history are
+retained. Other coolers, including Beer Cooler (Produce), remain available.
+Optional server quantity source words are visible on voice review. An unsafe
+quantity cannot apply until a human enters it; choosing a bottle does not answer
+that question. Clearing a voice quantity continues to hold the row, and source
+ambiguity survives an additive case/loose merge.
+
+Scoped strict COGS TypeScript passes. Native Chromium fixture verification is
+recorded by the accompanying inventory-review QA harness. Browser checks use
+synthetic inventory and intercepted requests; they do not claim a physical
+Android count or transcription test.
+
 ## 2026-10-04 - Short factual kitchen answers are valid
 
 Final hands-on review found that the three-character answer minimum prevented
