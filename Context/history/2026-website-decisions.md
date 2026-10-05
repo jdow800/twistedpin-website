@@ -2,7 +2,7 @@
 
 Jon, after the first two answers sat as "answered": *"Approve it when he submits --- but it just gives me some exposure and/or a moment to jump in."* When the backend has `FOOD_ANSWER_RECIPES_ENABLED` on (tprs migration 0217, Opsi BUILD-SPEC §11.139), the question screens get `autoRecipe: true`. Saving an answer then calls the new build endpoint with the exact saved revision.
 
-- **Built:** the card turns "In the recipe" and lists the recipe the answer set ("2 each Biscuit, Buttermilk, Dough"). The notice reads "Saved, and it's the recipe now. Jon gets a copy."
+- **Built:** the card turns "In the recipe" and lists the recipe the answer set: "Your answer set the recipe:" (past tense, still true after Jon edits it). The notice reads "Saved, and it's the recipe now. Jon gets a copy."
 - **Part of it couldn't be matched:** nothing is written. The card says "Jon will finish this one", lists each unmatched part and why, and keeps the answer editable so he can add detail and save again.
 - **The build can't finish** (a timeout or a 503): the answer is already saved, and the server builds it within minutes. The screen says so; nothing is retried blindly.
 - The hint under Save becomes "Saving sets the recipe from your answer. Jon gets a copy and can adjust it." The manager review panel explains a held answer.

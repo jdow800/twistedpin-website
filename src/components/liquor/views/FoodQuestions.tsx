@@ -131,7 +131,7 @@ export default function FoodQuestions({ actorId, onDone, onLoginExpired, initial
       replaceQuestion(latest);
       markCheck(id, false);
       if (local && latest.answer === local.text.trim() && latest.status !== "unanswered") {
-        updateDraft(id, null); setNotice("Saved for recipe review. Your answer is safely recorded.");
+        updateDraft(id, null); setNotice(autoRecipe ? "Your answer is safely recorded." : "Saved for recipe review. Your answer is safely recorded.");
       } else if (local && local.revision !== latest.revision) setNotice("The latest answer is shown below. Choose which text to keep.");
       else setNotice("Saved state checked. Your draft is ready to save.");
     } catch (e) { setError(message(e)); setLoginExpired(e instanceof NotAuthedError); }
@@ -187,7 +187,7 @@ export default function FoodQuestions({ actorId, onDone, onLoginExpired, initial
         <h2>{question.productName}</h2>
         {question.optionLabel && <p className="lq-fq-option">Option: <strong>{question.optionLabel}</strong></p>}
         <p className="lq-fq-prompt">{question.prompt}</p>
-        {question.status === "resolved" ? <>{question.build?.current && question.build.outcome === "built" ? <><p>Your answer is the recipe now:</p><BuiltLines build={question.build} /></> : <p>This recipe is mapped. No answer is needed.</p>}{question.answer && <blockquote>{question.answer}</blockquote>}<a className="lq-fq-link" href={question.recipeHref}>View recipe</a></> : <>
+        {question.status === "resolved" ? <>{question.build?.current && question.build.outcome === "built" ? <><p>Your answer set the recipe:</p><BuiltLines build={question.build} /></> : <p>This recipe is mapped. No answer is needed.</p>}{question.answer && <blockquote>{question.answer}</blockquote>}<a className="lq-fq-link" href={question.recipeHref}>View recipe</a></> : <>
           <label className="lq-fq-label" htmlFor="food-question-answer">{clarification ? "Your answer" : question.kind === "option" ? "What does this option add or remove?" : "Ingredients and amounts for one order"}</label>
           <p id="food-question-example" className="lq-fq-small">{clarification ? "Answer just the question above. A product name, portion size or short explanation is fine." : question.kind === "option" ? "Example: BBQ sauce in a 2 oz cup on the side. The chicken stays the same." : "Example: 2 chicken tenders, 6 oz fries and one 2 oz ranch cup. Include sides and dipping sauces."}</p>
           <textarea id="food-question-answer" aria-describedby="food-question-example" maxLength={4000} rows={6} disabled={busy} value={text} onChange={e => updateDraft(question.id, { text: e.target.value, revision })} placeholder={clarification ? "Tell us what you know…" : question.kind === "option" ? "Tell us what changes and how much…" : "List what goes on the plate and how much…"} />

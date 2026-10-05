@@ -169,7 +169,7 @@ try {
     await click('Save answer'); await waitText("Saved, and it's the recipe now. Jon gets a copy.");
     const writes = (await calls()).filter(c => c.method !== 'GET');
     assert.deepEqual(writes.map(c => c.path.split('/').at(-1)), ['answer', 'build']); assert.equal(writes[1].body.revision, 'saved-1');
-    assert.match(await text(), /In the recipe/); assert.match(await text(), /Your answer is the recipe now:/); assert.match(await text(), /2 each Biscuit, Buttermilk, Dough/);
+    assert.match(await text(), /In the recipe/); assert.match(await text(), /Your answer set the recipe:/); assert.match(await text(), /2 each Biscuit, Buttermilk, Dough/);
     assert.equal(await b.evaluate('document.getElementById("food-question-answer")'), null);
   });
   await run('auto-recipe: an unmatched part writes nothing and says what Jon will finish', 'auto=1&build=unmatched', async () => {
