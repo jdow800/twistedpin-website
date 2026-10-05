@@ -163,6 +163,27 @@ try {
   await run('empty queue shows the next schedule without inventing questions', 'batch=&mode=empty', async () => {
     assert.match(await text(), /Monday and Friday at 1pm/); assert.equal(await button('Save answer'), null); assert.equal((await calls()).filter(c => c.method !== 'GET').length, 0);
   });
+  await run('auto-recipe: saving builds the recipe for that exact saved answer and shows it', 'auto=1', async () => {
+    assert.match(await text(), /Saving sets the recipe from your answer\. Jon gets a copy and can adjust it\./);
+    await type('food-question-answer', '(2) of the biscuits, same we use for fried donuts, wrapped around 2 chocolate chip cookies');
+    await click('Save answer'); await waitText("Saved, and it's the recipe now. Jon gets a copy.");
+    const writes = (await calls()).filter(c => c.method !== 'GET');
+    assert.deepEqual(writes.map(c => c.path.split('/').at(-1)), ['answer', 'build']); assert.equal(writes[1].body.revision, 'saved-1');
+    assert.match(await text(), /In the recipe/); assert.match(await text(), /Your answer is the recipe now:/); assert.match(await text(), /2 each Biscuit, Buttermilk, Dough/);
+    assert.equal(await b.evaluate('document.getElementById("food-question-answer")'), null);
+  });
+  await run('auto-recipe: an unmatched part writes nothing and says what Jon will finish', 'auto=1&build=unmatched', async () => {
+    await type('food-question-answer', '2 cookies wrapped in dough, powdered sugar on top'); await click('Save answer');
+    await waitText('Jon will finish this one'); assert.match(await text(), /“powdered sugar on top”: no powdered sugar on the list, and no amount/);
+    assert.match(await text(), /Saved · Jon is finishing the recipe/); assert.match(await text(), /Part of it couldn't be matched to what we buy/);
+    assert.equal(await b.evaluate('document.getElementById("food-question-answer").value'), '2 cookies wrapped in dough, powdered sugar on top');
+    assert.ok(!(await button('Save updated answer')).disabled);
+  });
+  await run('auto-recipe: a build that cannot finish leaves the answer saved for the server to build', 'auto=1&build=down', async () => {
+    await type('food-question-answer', '2 biscuits, 2 cookies'); await click('Save answer'); await waitText('The recipe will be built from your answer in a few minutes.');
+    assert.equal(await b.evaluate('window.fqQa.questions[0].status'), 'answered'); assert.equal((await calls()).filter(c => c.method === 'POST').length, 1);
+    assert.match(await text(), /Saved · building the recipe/);
+  });
   for (const [name, width, height, mobile] of [['phone-360', 360, 800, true], ['phone-412', 412, 915, true], ['desktop', 1280, 950, false]]) {
     await b.send('Emulation.setDeviceMetricsOverride', {width, height, mobile, deviceScaleFactor: 1});
     await run(`${name} accessible question and saved/error screens`, 'sample=clarification', async () => {
@@ -172,6 +193,15 @@ try {
       await type('food-question-answer', 'I am not sure whether the Legend replacement was adopted. Please check with the line cook.'); await click('Save answer'); await waitText('Saved for recipe review.');
       screenshot = await b.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true}); await writeFile(join(output, `${name}-saved.png`), Buffer.from(screenshot.data, 'base64'));
     });
+    for (const [state, query, wait] of [['built', 'auto=1', "it's the recipe now"], ['unmatched', 'auto=1&build=unmatched', 'Jon will finish this one']]) {
+      await run(`${name} answer ${state} screen`, query, async () => {
+        await type('food-question-answer', state === 'built' ? '(2) of the biscuits, same we use for fried donuts, wrapped around 2 chocolate chip cookies' : '2 cookies wrapped in dough, powdered sugar on top');
+        await click('Save answer'); await waitText(wait);
+        const metrics = await b.evaluate(`({width:innerWidth,scroll:document.documentElement.scrollWidth,small:[...document.querySelectorAll('.lq-fq button,.lq-fq a')].filter(e=>e.getBoundingClientRect().height>0&&e.getBoundingClientRect().height<44).map(e=>e.textContent)})`);
+        assert.ok(metrics.scroll <= metrics.width + 1, `${name} ${state} overflow`); assert.deepEqual(metrics.small, []);
+        const screenshot = await b.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true}); await writeFile(join(output, `${name}-${state}.png`), Buffer.from(screenshot.data, 'base64'));
+      });
+    }
     await run(`${name} recoverable network error`, 'mode=network&sample=clarification', async () => {
       await type('food-question-answer', 'I will check the current chicken package with the line cook.'); await click('Save answer'); await waitText('Could not confirm the save.');
       const screenshot = await b.send('Page.captureScreenshot', {format: 'png', captureBeyondViewport: true}); await writeFile(join(output, `${name}-error.png`), Buffer.from(screenshot.data, 'base64'));

@@ -1,3 +1,16 @@
+## 2026-10-05 — A saved kitchen answer becomes the recipe, and the screen shows it
+
+Jon, after the first two answers sat as "answered": *"Approve it when he submits --- but it just gives me some exposure and/or a moment to jump in."* When the backend has `FOOD_ANSWER_RECIPES_ENABLED` on (tprs migration 0217, Opsi BUILD-SPEC §11.139), the question screens get `autoRecipe: true`. Saving an answer then calls the new build endpoint with the exact saved revision.
+
+- **Built:** the card turns "In the recipe" and lists the recipe the answer set ("2 each Biscuit, Buttermilk, Dough"). The notice reads "Saved, and it's the recipe now. Jon gets a copy."
+- **Part of it couldn't be matched:** nothing is written. The card says "Jon will finish this one", lists each unmatched part and why, and keeps the answer editable so he can add detail and save again.
+- **The build can't finish** (a timeout or a 503): the answer is already saved, and the server builds it within minutes. The screen says so; nothing is retried blindly.
+- The hint under Save becomes "Saving sets the recipe from your answer. Jon gets a copy and can adjust it." The manager review panel explains a held answer.
+
+With the flag off, or on an older backend, nothing changes: no build call, and the old "awaiting recipe review" wording stays. The email to Jon is TPRS's.
+
+Validation: all 57 native Chromium scenarios pass. That is the 48 existing ones plus build-after-save for the exact saved revision, the unmatched state with a re-save, the build that can't finish, and built and unmatched screens at 360/412/1280px with no overflow and every control at least 44px. The screenshots were checked by eye. Strict COGS TypeScript (only the known environmental `import.meta.env` error) and the complete Astro/Vercel production build pass.
+
 ## 2026-10-05 — Liquor count questions acknowledge normal stock movement
 
 Jon reported submit warnings when a few backstock bottles moved to the bar or sold between weekly counts. The TPRS change gates liquor decrease warnings at a case-scale quantity using saved pack sizes (six bottles as a warning threshold where a pack is unknown). The count summary now describes a large drop as a question about sales, use, movement or a missed count. It keeps the server's evidence and the existing correction/submit actions. Other count checks and report grading are unchanged.

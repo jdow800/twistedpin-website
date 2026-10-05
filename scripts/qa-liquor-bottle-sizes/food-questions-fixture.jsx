@@ -23,6 +23,10 @@ if (mode === 'resolved') Object.assign(questions[0], {status: 'resolved', curren
 if (mode === 'followup' || mode === 'queued') Object.assign(questions[0], {source: 'clarification', productName: 'Fondue, Anyone?', productKey: '19179040', key: 'gotab:19179040', recipeHref: '/cogs/?view=foodrecipes&key=gotab%3A19179040', prompt: 'Do five brownies mean individual bites or full snack packs?', reviewNote: 'Old package and recipe differ.'});
 if (params.get('sample') === 'clarification') Object.assign(questions[0], {source: 'clarification', prompt: 'Do we currently use the spicy fillet or the Legend patty?'});
 let recipeValid = !['review-conflict', 'error-field'].includes(mode);
+// tprs 0217: auto=1 is the backend with FOOD_ANSWER_RECIPES_ENABLED; build= picks what the build returns.
+const auto = params.get('auto') === '1', buildMode = params.get('build') || 'built';
+let builds = 0;
+const builtLines = [{name: 'Biscuit, Buttermilk, Dough', amount: '2 each'}, {name: 'Chocolate-Chip Cookies, Individually Wrapped, 1 oz', amount: '2 each'}];
 const summary = () => ({id: BATCH, scheduledDate: '2026-10-05', createdAt: '2026-10-05T18:00:00Z', questionCount: questions.length,
   unanswered: questions.filter(q => q.status === 'unanswered').length, answered: questions.filter(q => q.status === 'answered').length, resolved: questions.filter(q => q.status === 'resolved').length});
 window.fqQa = {calls, questions, BATCH, otherAnswer: () => Object.assign(questions[0], {answer: 'Another manager confirmed two tenders.', status: 'answered', revision: 'other-admin-revision'}),
@@ -36,10 +40,10 @@ window.fetch = async (url, options = {}) => {
   if (path.endsWith('/pin-login')) {authed = true; return json({actor});}
   if (path.endsWith('/logout')) {authed = false; return json({ok: true});}
   if (!authed) return json({error: 'login_required'}, 401);
-  if (method === 'GET' && path.endsWith('/food-questions')) return json({batches: ['empty', 'queued'].includes(mode) ? [] : [summary()], pendingReview: questions.filter(q => q.status === 'answered'), queuedQuestions: questions.filter(q => q.source === 'clarification' && q.status === 'unanswered'), canReview: admin});
+  if (method === 'GET' && path.endsWith('/food-questions')) return json({batches: ['empty', 'queued'].includes(mode) ? [] : [summary()], pendingReview: questions.filter(q => q.status === 'answered'), queuedQuestions: questions.filter(q => q.source === 'clarification' && q.status === 'unanswered'), canReview: admin, autoRecipe: auto});
   if (method === 'GET' && path.endsWith(`/batches/${BATCH}`)) {
     if (mode === 'get-expired' && expireOnce) {expireOnce = false; authed = false; return json({error: 'login_required'}, 401);}
-    return json({batch: summary(), questions, canReview: admin});
+    return json({batch: summary(), questions, canReview: admin, autoRecipe: auto});
   }
   if (method === 'GET' && path.endsWith('/food-recipes')) return json({recipes: [
     {id: 'recipe-salad', key: 'gotab:99', namespace: 'gotab', productKey: '99', optionLabel: '', labelText: null, kind: 'dish', productName: 'Chicken Salad', name: 'Chicken Salad', basis: 'Previous recipe', note: null, active: true, revision: 'r1', lines: []},
@@ -52,7 +56,7 @@ window.fetch = async (url, options = {}) => {
   }
   const question = questions.find(q => path.includes(q.id));
   if (!question) return json({message: 'No such question batch.'}, 404);
-  if (method === 'GET') return json({question, canReview: admin});
+  if (method === 'GET') return json({question, canReview: admin, autoRecipe: auto});
   if (method === 'PUT') {
     attempted++;
     if (mode === 'network' && attempted === 1) throw Error('Simulated dropped connection');
@@ -61,7 +65,22 @@ window.fetch = async (url, options = {}) => {
     if (body.revision !== question.revision) return json({error: 'stale_question'}, 409);
     Object.assign(question, {status: 'answered', answer: body.answer, answeredAt: '2026-10-05T18:05:00Z', revision: `saved-${attempted}`});
     if (mode === 'lost-response' && attempted === 1) throw Error('Simulated loss after commit');
-    return json({question});
+    return json({question, autoRecipe: auto});
+  }
+  if (method === 'POST' && path.endsWith('/build')) {
+    builds++;
+    if (!auto) return json({error: 'answer_recipes_off', message: 'Saved answers wait for recipe review.'}, 409);
+    if (body.revision !== question.revision) return json({status: 'stale', question, message: 'This answer changed. The newest saved answer is shown.'}, 409);
+    if (buildMode === 'down') return json({error: 'build_unavailable', message: 'Your answer is saved. The recipe will be built from it in a few minutes.'}, 503);
+    if (buildMode === 'unmatched') {
+      question.build = {outcome: 'needs_review', kind: 'dish', summary: 'Two cookies; the sugar is not on the list.', createdAt: '2026-10-05T18:06:00Z', current: true,
+        lines: builtLines.slice(1), problems: [{said: 'powdered sugar on top', why: 'no powdered sugar on the list, and no amount'}]};
+      return json({status: 'needs_review', question, autoRecipe: true});
+    }
+    Object.assign(question, {status: 'resolved', revision: `built-${builds}`, currentRecipeId: 'recipe-chicken',
+      reviewNote: 'Built into the recipe from this answer when it was saved. Jon has a copy.',
+      build: {outcome: 'built', kind: 'dish', summary: 'Two cookies wrapped in biscuit dough.', createdAt: '2026-10-05T18:06:00Z', current: true, lines: builtLines, problems: []}});
+    return json({status: 'built', question, autoRecipe: true});
   }
   if (method === 'POST' && path.endsWith('/review')) {
     if (!admin) return json({error: 'forbidden'}, 403);

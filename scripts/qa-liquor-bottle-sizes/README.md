@@ -371,12 +371,15 @@ native Chromium through `scripts/qa-cogs-mobile/cdp.mjs`. Set `COGS_QA_CHROME`
 if the documented Windows Chromium path is unavailable. External requests are
 blocked, and any attempted external request fails the run.
 
-The 48 scenarios cover the exact batch and question through PIN, individual
+The 57 scenarios cover the exact batch and question through PIN, individual
 answers, skip/home/reload draft recovery, uncertain-save readback, revision
 conflicts, staff permissions, manager resolution/follow-up, manual targeted
 questions, all login-expiry paths and conflicting old/new destination IDs.
 Short factual answers "No", "1" and "32" save exactly and remain awaiting
 recipe review when reopened. Blank or whitespace-only answers never save.
+With `auto=1` (the backend's FOOD_ANSWER_RECIPES_ENABLED, tprs 0217) a save calls
+the build for the exact saved revision; `build=unmatched` and `build=down` cover
+the held answer and the build that cannot finish, with built/unmatched shots.
 Screenshots for question/saved/error/clarification and manager queue/review at
 360/412/1280px are regenerated under `dist/food-questions-shots/` (ignored).
 All fixture answers are illustrative; this harness sends no real email and
