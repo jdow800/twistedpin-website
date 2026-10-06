@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
+import { foodSearchMatch } from "./FoodReviewCountRow";
 import { foodCasesOnly, foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 
@@ -32,8 +33,9 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const quantityHint = r.quantityReviewReason === "source_revised" ? "You corrected this item. Discard it or enter a separate count."
     : r.quantityReviewReason === "unquantified_remainder" ? `Enter a total number${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}, including the extra.`
     : r.quantityReviewReason === "source_already_used" ? "Source already counted. Discard or enter a separate count."
+    : r.quantityReviewReason === "source_not_returned" ? "Heard in your recording. Enter the count for this item."
     : mixed ? "Enter both counts; use 0 for none." : `Enter the count${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}.`;
-  const hits = r.search?.trim() ? catalog.filter(s => r.search!.toLowerCase().split(/\s+/).every(word => s.name.toLowerCase().includes(word))).slice(0, 8) : [];
+  const hits = r.search?.trim() ? catalog.filter(s => foodSearchMatch(s, r.search!)).slice(0, 8) : [];
   const pick = (id: string) => { onChoose(id); setProductOpen(false); setCountMode("auto"); };
   const anotherWay = () => {
     if (mixed) {

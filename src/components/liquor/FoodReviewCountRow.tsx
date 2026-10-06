@@ -2,12 +2,14 @@ import { useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { compatibleFoodUnits, foodCellQty, readFoodNumber, type FoodCell } from "./food-count-edit";
-import { foodCasesOnly, foodUnitLabel } from "./food-voice-review";
+import { foodCasesOnly, foodCaseSize, foodUnitLabel } from "./food-voice-review";
 import { formatQty } from "./quantity";
 
 export function foodSearchMatch(sku: BarSkuItem, query: string): boolean {
-  const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  return normalize(query).trim().split(/\s+/).every((part) => normalize(`${sku.name} ${foodUnitLabel(sku, 2)}`).includes(part));
+  const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const terms = normalize(query).split(/\s+/).filter(Boolean);
+  const text = normalize(`${sku.name} ${(sku.aliases ?? []).join(" ")} ${foodUnitLabel(sku, 2)}`);
+  return terms.length ? terms.every((part) => text.includes(part)) : !query.trim();
 }
 
 export default function FoodReviewCountRow({ zid, sku, cell, shelf, catalog, existing, disabled, quantitiesDisabled, onEdit, onNone, onChangeItem }: {
@@ -17,9 +19,9 @@ export default function FoodReviewCountRow({ zid, sku, cell, shelf, catalog, exi
 }) {
   const [changing, setChanging] = useState(false), [query, setQuery] = useState(""), [targetId, setTargetId] = useState(""), [amount, setAmount] = useState("");
   const target = catalog.find((s) => s.id === targetId), targetCell = existing[targetId];
-  const casesOnly = foodCasesOnly(sku), caseSize = cell.caseSize ?? sku.unitsPerCase;
+  const casesOnly = foodCasesOnly(sku), caseSize = cell.caseSize ?? foodCaseSize(sku);
   const compatible = !!target && compatibleFoodUnits(sku, target);
-  const replacementSize = targetCell?.caseSize ?? target?.unitsPerCase ?? null;
+  const replacementSize = targetCell?.caseSize ?? foodCaseSize(target);
   const n = readFoodNumber(amount);
   const replacement: FoodCell | undefined = !compatible && target && n != null && (!foodCasesOnly(target) || (replacementSize != null && replacementSize > 0))
     ? { cases: foodCasesOnly(target) ? n : null, caseSize: replacementSize, units: foodCasesOnly(target) ? null : n,

@@ -8,7 +8,7 @@ export interface FoodReviewItem {
   quantityWords?: string;
   quantityNeedsReview?: boolean;
   identityNeedsReview?: boolean;
-  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder";
+  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder" | "source_not_returned";
   invalidQuantityFields?: ("cases" | "units")[];
   /** Components of an ungrounded model quantity still awaiting human input. */
   unconfirmedQuantityFields?: ("cases" | "units")[];
@@ -52,6 +52,7 @@ export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
   let u = currentCountDefinition(sku)?.unitLabel ?? sku?.countUnit ?? "each";
   if (u === "each" && /\bbottled\b/i.test(sku?.name ?? "")) u = "bottle";
   if (n === 1 || ["each", "lb", "gal", "bib"].includes(u)) return u;
+  if (u === "loaf") return "loaves";
   if (/(?:s|x|z|ch|sh)$/.test(u)) return `${u}es`;
   if (/[^aeiou]y$/.test(u)) return `${u.slice(0, -1)}ies`;
   return `${u}s`;
@@ -64,6 +65,25 @@ export function foodCasesOnly(sku: BarSkuItem | undefined): boolean {
   const name = sku?.name.toLowerCase().replace(/[\\"“”]/g, "").replace(/\s+/g, " ").trim();
   return !!sku && ["cauliflower crust", "flatbread", "flatbread, 4.5x12"].includes(name ?? "")
     && sku.countUnit === "each";
+}
+
+/** What a unitless count means for this product, in physical count units. */
+export function foodImplicitUnit(sku: BarSkuItem | undefined): string {
+  if (foodCasesOnly(sku)) return "case";
+  const definition = currentCountDefinition(sku);
+  const base = normalizeCountUnit(sku?.countUnit ?? "each");
+  const defaultUnit = definition?.defaultSpokenUnit && normalizeCountUnit(definition.defaultSpokenUnit);
+  // A canonical word such as "each" still names the confirmed physical bag,
+  // can or head. A distinct default package, such as case, keeps its basis.
+  return defaultUnit && defaultUnit !== base ? defaultUnit : normalizeCountUnit(definition?.unitLabel ?? base);
+}
+
+/** Current human package vocabulary can establish an otherwise missing UPC. */
+export function foodCaseSize(sku: BarSkuItem | undefined): number | null {
+  if (sku?.countUnit === "case") return 1;
+  if ((sku?.unitsPerCase ?? 0) > 0) return sku!.unitsPerCase!;
+  const mapped = currentCountDefinition(sku)?.spokenUnits?.case;
+  return mapped != null && Number.isInteger(mapped) && mapped > 0 && mapped <= 10000 ? mapped : null;
 }
 
 function sameUnit(base: string, said: string | null): boolean {
@@ -84,18 +104,22 @@ function sameUnit(base: string, said: string | null): boolean {
 
 export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefined) {
   const base = sku?.countUnit ?? "each";
-  const caseSize = base === "case" ? 1 : (sku?.unitsPerCase ?? 0) > 0 ? sku!.unitsPerCase : null;
+  const definition = currentCountDefinition(sku);
+  const caseSize = foodCaseSize(sku);
   const casesOnly = foodCasesOnly(sku);
   const rawInputUnit = r.unitNeedsReview ? null : r.spokenUnit ?? (casesOnly ? "case" : currentCountDefinition(sku)?.defaultSpokenUnit ?? null);
   const inputUnit = rawInputUnit ? normalizeCountUnit(rawInputUnit) : null;
   const unitMultiplier = r.unitNeedsReview ? null
     : casesOnly && inputUnit === "case" ? caseSize
-      : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit) ?? (sameUnit(base, r.spokenUnit) ? 1 : null);
+      : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit)
+        ?? (sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null);
   const needsCaseSize = (r.cases > 0 || (casesOnly && r.units > 0 && inputUnit === "case")) && caseSize == null;
   const needsUnitSize = r.units > 0 && unitMultiplier == null && !r.unitNeedsReview && !needsCaseSize;
   const needsUnitChoice = !!r.unitNeedsReview || (casesOnly && ((!!r.spokenUnit && inputUnit !== "case") || (r.cases > 0 && r.units > 0)))
     || (!r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !inputUnit && (caseSize ?? 0) > 1);
-  const catalogConflict = base === "case" && (sku?.unitsPerCase ?? 1) > 1;
+  const caseMapping = definition?.spokenUnits?.case;
+  const catalogConflict = base === "case" && (sku?.unitsPerCase ?? 1) > 1
+    || (r.cases > 0 || inputUnit === "case") && caseSize != null && caseMapping != null && caseMapping !== caseSize;
   const unitsAreCases = inputUnit === "case" && unitMultiplier === caseSize;
   const cases = r.cases + (unitsAreCases ? r.units : 0);
   const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);

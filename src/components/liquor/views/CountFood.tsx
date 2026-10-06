@@ -34,7 +34,7 @@ import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
-import { foodCasesOnly, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCasesOnly, foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
 import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
@@ -236,6 +236,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [phase, setPhase] = useState<"loading" | "ready" | "error">("loading");
   const [err, setErr] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [resumed, setResumed] = useState(false);
+  const [startingFresh, setStartingFresh] = useState(false);
+  const startingFreshRef = useRef(false);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
   const [zoneId, setZoneId] = useState<string>("");
@@ -255,6 +258,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const appliedVoiceRowsRef = useRef(new WeakSet<ReviewItem>());
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
+  const [showRecorderError, setShowRecorderError] = useState(true);
   const [caseSizeErrors, setCaseSizeErrors] = useState<Record<string, string | null>>({});
   const [retryTranscript, setRetryTranscript] = useState<string | null>(null);
   /** A blocking persistence/submit failure. Lives in the FIXED footer, not in
@@ -426,6 +430,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           setSessionId(sid);
           setCounts(rebuild(open.lines));
           saverRef.current!.loaded(open.lines, open.linesHash);
+          setResumed(true);
         } else {
           sid = await createCount(true, "food");
           setSessionId(sid);
@@ -458,18 +463,36 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const recentre = () => {
       const el = document.activeElement;
       if (!el || el.tagName !== "INPUT") return;
-      // A box on one of the where-it-lives sheets centres itself: the sheet
-      // scrolls on its own, with no grid row around the box.
-      (el.closest(".lq-fc-row") ?? (el.closest(".lq-fc-sheet") ? el : null))?.scrollIntoView({ block: "center", behavior: "auto" });
+      if (!el.closest(".lq-fc-row, .lq-fc-rev-row, .lq-review-count-row, .lq-fc-sheet")) return;
+      // A review row can be taller than the space above the keyboard. Centre
+      // the actual input, then keep it between the pinned bars and actions.
+      el.scrollIntoView({ block: "center", behavior: "auto" });
+      const sheet = el.closest(".lq-fc-sheet");
+      const viewportTop = vv.offsetTop;
+      const pinnedBottom = sheet ? viewportTop : Math.max(viewportTop,
+        document.querySelector(".lq-header")?.getBoundingClientRect().bottom ?? 0,
+        document.querySelector(".lq-fc-zonehead")?.getBoundingClientRect().bottom ?? 0);
+      const actions = (sheet?.querySelector(".lq-fc-sheet-foot") ?? document.querySelector(".lq-fc .lq-footer"))?.getBoundingClientRect();
+      const bottom = Math.min(viewportTop + vv.height, actions?.top ?? Infinity) - 8;
+      const top = pinnedBottom + 8;
+      const rect = el.getBoundingClientRect();
+      if (bottom > top && (rect.top < top || rect.bottom > bottom)) {
+        const delta = rect.top + rect.height / 2 - (top + bottom) / 2;
+        const scroller = sheet?.closest(".lq-fc-sheetback");
+        if (scroller) scroller.scrollTop += delta;
+        else window.scrollBy({ top: delta, behavior: "auto" });
+      }
     };
     vv.addEventListener("resize", recentre);
-    return () => vv.removeEventListener("resize", recentre);
+    document.addEventListener("focusin", recentre);
+    return () => { vv.removeEventListener("resize", recentre); document.removeEventListener("focusin", recentre); };
   }, []);
 
   /** Returns whether the sheet is actually on the server. Callers that are
    *  about to CLOSE the count must check it — a swallowed failure here would
    *  submit whatever older rows happened to land, which can be none of them. */
-  const doSave = useCallback(async (): Promise<boolean> => {
+  const doSave = useCallback(async (forFreshStart = false): Promise<boolean> => {
+    if (startingFreshRef.current && !forFreshStart) return false;
     const sid = sessionId;
     if (!sid) return false;
     if (saveTimer.current) {
@@ -492,6 +515,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  spare. The ref (not state) is read at fire time so a burst coalesces into
    *  one authoritative save of the WHOLE sheet. */
   function scheduleSave() {
+    if (startingFreshRef.current) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => void doSave(), 900);
   }
@@ -510,7 +534,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function writeCell(skuId: string, next: Partial<Cell> & { source?: "grid" | "voice" }, dest = zoneId) {
-    if (checking || submitting || submissionUnknown) return;
+    if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
     if (correctionConflictsRef.current.some((c) => c.keys.includes(`${dest}:${skuId}`))) return;
     const prev = countsRef.current;
       const zoneCells = { ...(prev[dest] ?? {}) };
@@ -527,7 +551,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         // silently rescale what the counter already wrote (2 cases × 12 = 24
         // becoming 2 × 24 = 48 on the next keystroke). The catalog is consulted
         // only for a cell that does not exist yet.
-        caseSize: cur?.caseSize ?? next.caseSize ?? sku?.unitsPerCase ?? null,
+        caseSize: cur?.caseSize ?? next.caseSize ?? foodCaseSize(sku),
         qty: 0,
         source: next.source ?? "grid",
         raw: next.raw ?? cur?.raw,
@@ -593,10 +617,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function stepBox(skuId: string, field: "cases" | "units" | "packs", delta: number) {
-    if (checking || submitting || submissionUnknown) return;
+    if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
     const cur = (counts[zoneId] ?? {})[skuId];
     const sku = skuById.get(skuId);
-    const caseSize = cur?.caseSize ?? sku?.unitsPerCase ?? null;
+    const caseSize = cur?.caseSize ?? foodCaseSize(sku);
     const casesOnly = field === "cases" && foodCasesOnly(sku);
     if (casesOnly && !(caseSize != null && caseSize > 0)) return;
     // The case-only box displays the WHOLE cell, including legacy loose or
@@ -607,7 +631,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function clearCell(skuId: string) {
-    if (checking || submitting || submissionUnknown) return;
+    if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
     if (correctionConflictsRef.current.some((c) => c.keys.includes(`${zoneId}:${skuId}`))) return;
     const prev = countsRef.current;
       const zoneCells = { ...(prev[zoneId] ?? {}) };
@@ -640,7 +664,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         // A spoken quantity is an explicit answer, including a spoken zero.
         // Same freeze as writeCell: a second voice pass at the same shelf adds
         // to the cell, it does not revalue what is already in it.
-        caseSize: cur?.caseSize ?? caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null,
+        caseSize: cur?.caseSize ?? caseSize ?? foodCaseSize(skuById.get(skuId)),
         qty: 0,
         source: "voice",
         raw: appendFoodSource(cur?.raw, raw),
@@ -891,14 +915,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // together be an implausible case count.
     const earlier = (review ?? []).slice(0, (review ?? []).indexOf(r))
       .filter(x => x.chosenSkuId === r.chosenSkuId)
-      .reduce((total, x) => total + reviewQuantity(x).qty, 0);
+      .reduce((total, x) => { const q = reviewQuantity(x); return total + (q.ready ? q.qty : 0); }, 0);
     return foodCountWarning(r, reviewSku(r), existing + earlier);
   };
   const applyable = (r: ReviewItem) => reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r))
     && !correctionConflictsRef.current.some((c) => c.keys.includes(`${takeZoneId ?? zoneId}:${r.chosenSkuId}`));
 
   function editReview(r: ReviewItem, patch: Partial<ReviewItem>) {
-    if (checking || submitting || submissionUnknown) return;
+    if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
     setReview(prev => (prev ?? []).map(x => {
       if (x.key !== r.key) return x;
       const meaningChanged = (patch.chosenSkuId !== undefined && patch.chosenSkuId !== x.chosenSkuId)
@@ -916,11 +940,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function chooseReviewSku(r: ReviewItem, id: string) {
-    editReview(r, { chosenSkuId: id, identityNeedsReview: false, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "" });
+    const before = reviewSku(r), after = skuById.get(id);
+    const explicitCases = !r.spokenUnit && r.units === 0 && /\bcases?\b/i.test(`${r.quantityWords ?? ""} ${r.spoken}`);
+    const basisChanged = !!before && before.id !== id && !r.spokenUnit && !explicitCases
+      && foodImplicitUnit(before) !== foodImplicitUnit(after);
+    editReview(r, { chosenSkuId: id, identityNeedsReview: false, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "",
+      ...(basisChanged ? { cases: 0, units: 0, quantityKnown: false, quantityNeedsReview: true,
+        unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}) });
   }
 
   function applyReview() {
-    if (!review || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
+    if (!review || startingFreshRef.current || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
     for (const r of review) {
       if (!applyable(r) || appliedVoiceRowsRef.current.has(r)) continue;
       // Two taps can arrive before React replaces the footer. Consume this
@@ -961,7 +991,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   // ── submit ──
   async function runCheck(recheck = false) {
-    if (!sessionId || checking || submitting || submissionUnknown || voicePending) return;
+    if (!sessionId || startingFreshRef.current || checking || submitting || submissionUnknown || voicePending) return;
     if (correctionConflictsRef.current.length) {
       setSubmitErr("Review the changed correction before rechecking.");
       return;
@@ -1068,7 +1098,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const created = !countsRef.current[shelf]?.[skuId];
     if (created) {
       const zero: Cell = { cases: null, units: 0, packs: null, packSize: null,
-        caseSize: skuById.get(skuId)?.unitsPerCase ?? null, qty: 0, source: "grid", none: true };
+        caseSize: foodCaseSize(skuById.get(skuId)), qty: 0, source: "grid", none: true };
       const next = { ...countsRef.current, [shelf]: { ...(countsRef.current[shelf] ?? {}), [skuId]: zero } };
       adoptLocal(next);
     }
@@ -1129,8 +1159,86 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  panel, start a recording behind it and tap Submit. */
   const voicePending = dict.recording || voiceBusy || (review?.length ?? 0) > 0;
 
+  async function startFresh() {
+    if (startingFreshRef.current || checking || submitting || submissionUnknown || voicePending
+      || locationCollision || Object.values(placeQ).some(q => q.busy) || Object.values(noneLeft).includes("saving") || newSpot?.busy) return;
+    startingFreshRef.current = true;
+    setStartingFresh(true);
+    setSubmitErr(null);
+    try {
+      // Drain the old draft's queued saves before switching any session refs.
+      // A failed save or creation leaves that count on screen and retryable.
+      if (!(await doSave(true))) {
+        setSubmitErr("Couldn't save this count. Retry save before starting a new one.");
+        return;
+      }
+      const sid = await createCount(true, "food");
+      sessionIdRef.current = sid;
+      setSessionId(sid);
+      countsRef.current = {};
+      setCounts({});
+      saverRef.current!.loaded([], null);
+      rememberZone(sid, zoneId);
+      pendingCorrectionsRef.current = [];
+      correctionConflictsRef.current = [];
+      setCorrectionConflicts([]);
+      setLocationCollision(null);
+      reviewDirtyRef.current = false;
+      setReviewDirty(false);
+      setReviewMoved({});
+      checkedHashRef.current = null;
+      mergedSinceCheckRef.current = false;
+      setMerged(false);
+      setFindings(null);
+      setMoreFindings([]);
+      setShowMoreFindings(false);
+      setCheckFailed(false);
+      setRechecked(false);
+      setRetiring([]);
+      setUnplaced([]);
+      setUnplacedMore([]);
+      setUnplacedAll(false);
+      setLocAnswer({});
+      setMissedAnswer({});
+      setNoneLeft({});
+      setNoneLeftZero({});
+      skippedLeaving.current.clear();
+      setPlaceQ({});
+      setLeaving(null);
+      setNewSpot(null);
+      setNewZoneIds([]);
+      setAdded({});
+      setSearch("");
+      setZonePicker(false);
+      setFullCount(false);
+      setScanNote(true);
+      setReview(null);
+      appliedVoiceRowsRef.current = new WeakSet();
+      setTakeZoneId(null);
+      setVoiceErr(null);
+      setShowRecorderError(false);
+      setRetryTranscript(null);
+      segExtractsRef.current = new Map();
+      carryRef.current!.reset();
+      segmentGapRef.current = false;
+      setInterrupted(false);
+      setCaptureRequested(false);
+      setCaseSizeErrors({});
+      setToast(null);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = null;
+      setResumed(false);
+      setSave("idle");
+    } catch {
+      setSubmitErr("Couldn't start a new count. Your current count is still here. Try again.");
+    } finally {
+      startingFreshRef.current = false;
+      setStartingFresh(false);
+    }
+  }
+
   async function doSubmit() {
-    if (!sessionId || checking || submitting || submissionUnknown) return;
+    if (!sessionId || startingFreshRef.current || checking || submitting || submissionUnknown) return;
     // ⚠ The panel can be open while a NEW take is started behind it, so the
     // button's disabled state is not enough on its own.
     if (voicePending) return;
@@ -1193,21 +1301,21 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   /** "I looked and there are none": markNone's shape. */
   const zeroCell = (s: BarSkuItem): Cell =>
-    ({ cases: null, units: 0, packs: null, packSize: null, caseSize: s.unitsPerCase ?? null, qty: 0, source: "grid", none: true });
+    ({ cases: null, units: 0, packs: null, packSize: null, caseSize: foodCaseSize(s), qty: 0, source: "grid", none: true });
 
   /** A fresh grid row's boxes: cases (× its case size) when it has one. */
-  const hasCaseBox = (s: BarSkuItem) => foodCasesOnly(s) || (s.countUnit !== "case" && s.unitsPerCase != null);
+  const hasCaseBox = (s: BarSkuItem) => foodCasesOnly(s) || (s.countUnit !== "case" && foodCaseSize(s) != null);
 
   /** The typed boxes as a cell, or null while there is nothing valid to save.
    *  A typed 0 is an answer, as on the grid. */
   function typedCell(s: BarSkuItem, q: PlaceQ): Cell | null {
-    if (foodCasesOnly(s) && !(s.unitsPerCase != null && s.unitsPerCase > 0)) return null;
+    if (foodCasesOnly(s) && foodCaseSize(s) == null) return null;
     const read = (raw: string) => (raw.trim() === "" ? null : Number(raw));
     const cases = hasCaseBox(s) ? read(q.cases) : null;
     const units = foodCasesOnly(s) ? null : read(q.units);
     if (cases == null && units == null) return null;
     if ([cases, units].some((n) => n != null && (!Number.isFinite(n) || n < 0))) return null;
-    const cell: Cell = { cases, units, packs: null, packSize: null, caseSize: hasCaseBox(s) ? s.unitsPerCase : null,
+    const cell: Cell = { cases, units, packs: null, packSize: null, caseSize: hasCaseBox(s) ? foodCaseSize(s) : null,
       qty: 0, source: "grid", none: false };
     cell.qty = cellQty(cell);
     return Number.isFinite(cell.qty) && cell.qty >= 0 ? cell : null;
@@ -1216,7 +1324,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** "2 cases + 3 bags", how a saved answer reads back. */
   function cellText(s: BarSkuItem, c: Cell): string {
     if (foodCasesOnly(s)) {
-      const size = c.caseSize ?? s.unitsPerCase;
+      const size = c.caseSize ?? foodCaseSize(s);
       if (size == null || size <= 0) return `${formatQty(c.qty)} individual pieces (case size needs confirmation)`;
       const cases = c.qty / size;
       return `${formatQty(cases)} case${cases === 1 ? "" : "s"}`;
@@ -1444,9 +1552,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       <div className="lq-fc-q-qty">
         {hasCaseBox(s) && (
           <label>
-            <span>cases <span className="lq-fc-row-mult">×{s.unitsPerCase ?? "?"}</span></span>
+            <span>cases <span className="lq-fc-row-mult">×{foodCaseSize(s) ?? "?"}</span></span>
             <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: cases`}
-              disabled={foodCasesOnly(s) && !(s.unitsPerCase != null && s.unitsPerCase > 0)}
+              disabled={foodCasesOnly(s) && foodCaseSize(s) == null}
               value={q.cases} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { cases: e.target.value })} />
           </label>
         )}
@@ -1455,7 +1563,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: ${unitLabel(s, 2)}`}
             value={q.units} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { units: e.target.value })} />
         </label>}
-        {foodCasesOnly(s) && !(s.unitsPerCase != null && s.unitsPerCase > 0) && caseSizeQuestion(s)}
+        {foodCasesOnly(s) && foodCaseSize(s) == null && caseSizeQuestion(s)}
         <button type="button" className="lq-btn lq-fc-q-save" disabled={!ready} onClick={onSave}>
           {q.busy ? "Saving…" : "Save"}
         </button>
@@ -1666,7 +1774,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       {entries.map(({ zid, id, cell }) => <FoodReviewCountRow key={`${zid}:${id}`} zid={zid} sku={skuById.get(id)!} cell={cell}
         shelf={zones.find((z) => z.id === zid)?.name ?? "Saved shelf"} catalog={catalog} existing={counts[zid] ?? {}}
         disabled={checking || submitting} quantitiesDisabled={correctionConflicts.some((c) => c.keys.includes(`${zid}:${id}`))}
-        onEdit={(field, raw) => editBox(id, field, raw, cell.caseSize ?? skuById.get(id)!.unitsPerCase, zid)}
+        onEdit={(field, raw) => editBox(id, field, raw, cell.caseSize ?? foodCaseSize(skuById.get(id)), zid)}
         onNone={() => writeCell(id, { cases: null, packs: null, units: 0, none: true }, zid)}
         onChangeItem={(to, mode, answer) => changeFoodItem(zid, id, to, mode, answer)} />)}
       <button type="button" className="lq-linkbtn" disabled={checking || submitting} onClick={() => {
@@ -1697,7 +1805,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-fc">
-      <fieldset className="lq-count-controls" disabled={checking || submitting || submissionUnknown} aria-label="Kitchen count">
+      <fieldset className="lq-count-controls" disabled={startingFresh || checking || submitting || submissionUnknown} aria-label="Kitchen count">
+      {resumed && <div className="lq-resumed">
+        <span>Picked up your count in progress.</span>
+        <button type="button" className="lq-linkbtn" disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
+          onClick={() => void startFresh()}>{startingFresh ? "Starting…" : "Start a new count"}</button>
+      </div>}
       {scanNote && totalLines === 0 && (
         <div className="lq-fc-scannote">
           <span>Scan any delivery invoices that aren&rsquo;t in yet.</span>
@@ -1772,6 +1885,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               carryRef.current!.reset(); // a new take must not inherit a held item
               segmentGapRef.current = false;
               setVoiceErr(null);
+              setShowRecorderError(true);
               setRetryTranscript(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCaptureRequested(true);
@@ -1848,7 +1962,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </span>
         )}
         {voiceBusy && <span className="lq-muted">reading that back…</span>}
-        {dict.error && !dict.recording && (
+        {showRecorderError && dict.error && !dict.recording && (
           <p className="lq-error" role="alert">
             {dict.error === "not-allowed" || dict.error === "service-not-allowed"
               ? "Allow microphone access, then try recording again."
@@ -1928,7 +2042,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         )}
         {[...carriedRows, ...leftoverRows].map((s, i) => {
           const c = zoneCells[s.id];
-          const caseSize = c?.caseSize ?? s.unitsPerCase;
+          const caseSize = c?.caseSize ?? foodCaseSize(s);
           const knownCaseSize = caseSize != null && caseSize > 0;
           const casesOnly = foodCasesOnly(s);
           const displayedCases = c && casesOnly && knownCaseSize ? c.qty / caseSize! : c?.cases ?? 0;
@@ -2360,10 +2474,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           {submitErr ??
             (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? "Not saved yet. Keep this screen open and retry." : "")}
           {merged && !submitErr && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
-          {save === "error" && <button type="button" className="lq-linkbtn lq-save-retry" disabled={submitting || checking} onClick={() => void doSave().then((ok) => { if (ok) setSubmitErr(null); })}>Retry save</button>}
+          {save === "error" && <button type="button" className="lq-linkbtn lq-save-retry" disabled={startingFresh || submitting || checking} onClick={() => void doSave().then((ok) => { if (ok) setSubmitErr(null); })}>Retry save</button>}
         </div>
         <div className="lq-footer-actions">
-          <button type="button" className="lq-btn lq-btn-ghost" disabled={checking || submitting || voicePending} onClick={onDone}>Home</button>
+          <button type="button" className="lq-btn lq-btn-ghost" disabled={startingFresh || checking || submitting || voicePending} onClick={onDone}>Home</button>
           <button
             type="button"
             className={`lq-btn${review?.length && !dict.recording && !voiceBusy ? " lq-btn-primary" : ""}`}
@@ -2373,7 +2487,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             // `counts` is saved, so those items were dropped silently. The
             // backend then 409s any later line save against a closed session,
             // so there was no way back.
-            disabled={checking || submitting || submissionUnknown || dict.recording || voiceBusy || (totalLines === 0 && !review?.length)
+            disabled={startingFresh || checking || submitting || submissionUnknown || dict.recording || voiceBusy || (totalLines === 0 && !review?.length)
               || (!!review?.length && !review.some(applyable))}
             onClick={() => { if (review?.length) applyReview(); else void runCheck(); }}
           >

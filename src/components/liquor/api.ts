@@ -730,8 +730,8 @@ export interface VoiceExtractItem {
   quantityNeedsReview?: boolean;
   /** Food: source identity is unresolved, even if a legacy rule offers a match. */
   identityNeedsReview?: boolean;
-  /** An extraction row reused evidence already allocated to another row. */
-  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder";
+  /** A specific source question still awaiting a human count. */
+  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder" | "source_not_returned";
   /** Whole cases heard ("two cases" → 2). 0 when none were spoken. */
   cases: number;
   /** Loose containers heard, incl. fractions ("point eight" → 0.8). */
@@ -851,7 +851,7 @@ export async function extractVoice(
   try {
     const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 3 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 4 } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );
