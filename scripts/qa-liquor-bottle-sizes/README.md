@@ -61,7 +61,7 @@ component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 80 DOM voice scenarios and liquor has 33. Audio failures cannot join
+Food has 80 DOM voice scenarios and liquor has 45. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,
 with pause cuts enabled or disabled. Repeated quantities retain both speech
 sources. The 23 carry checks cover known/inferred gaps, out-of-order consecutive
@@ -72,6 +72,23 @@ after a new take, while keeping the original shelf/take metadata. Four recovery,
 capture, retry, permission and device protections.
 
 ## Liquor review and phone controls
+
+Voice product controls have a focused native check:
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/check-voice-product-layout.mjs
+```
+
+Six scenarios at 320/412px verify visible matched products during number and
+recount questions, independent numeric confirmation, accent/alias search,
+manual identity changes and the corrected quantity saved to the recorded shelf.
+Four screenshots and JSON are regenerated under ignored
+`dist/voice-product-layout/`. All inventory is fictional and external traffic
+is blocked. The 45 DOM voice scenarios also cover selected-pill editing,
+incorrect-candidate search, persistent picks, no-results/Cancel and product
+correction during case-size, name-number and history questions. Product changes
+cannot transfer a Recount/More answer to another bottle with the same count,
+and changes/removals restore later duplicate rows' questions.
 
 From the Website root, after installing the Website's locked dependencies:
 

@@ -164,6 +164,8 @@ export interface BarSkuItem {
   id: string;
   name: string;
   category: string | null;
+  /** Stored spoken names, also available to manual bottle search. */
+  aliases?: string[];
   sizeMl: number | null;
   trackingMode: "variance" | "stock_count";
   wacCost: string | null;

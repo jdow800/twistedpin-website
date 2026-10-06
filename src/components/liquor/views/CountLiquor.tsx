@@ -875,10 +875,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
   /** A row whose bottle or quantity just changed asks the history and
    *  earlier-take questions again. */
-  function recheck(x: ReviewItem, rows: ReviewItem[], i: number): ReviewItem {
+  function recheck(x: ReviewItem, rows: ReviewItem[], i: number, previousRows = rows): ReviewItem {
     const restate = restateFor(x, rows, i);
+    const previous = previousRows.find((row) => row.key === x.key);
     return { ...x, highCheck: highFor(x, rows, i), restate,
-      restateAnswer: restate && x.restate?.before === restate.before ? x.restateAnswer : undefined };
+      restateAnswer: restate && previous?.chosenSkuId === x.chosenSkuId && x.restate?.before === restate.before
+        ? x.restateAnswer : undefined };
   }
 
   /** Review-sheet caller. Errors render INSIDE the sheet — voiceErr paints in
@@ -1851,9 +1853,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                     )
                   }
                   onPick={(skuId) =>
-                    setReview((r) =>
-                      r &&
-                      r.map((x, i) => {
+                    setReview((r) => {
+                      if (!r) return r;
+                      const next = r.map((x, i) => {
                         if (i !== idx) return x;
                         // Re-evaluate the case size against the bottle just
                         // chosen. Without this, a row that spoke cases resolves
@@ -1862,7 +1864,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                         // silently becomes ZERO. The whole point of picking the
                         // bottle is that we now know its case size.
                         const ups = skuById.get(skuId)?.unitsPerCase ?? null;
-                        return recheck({
+                        return {
                           ...x,
                           chosenSkuId: skuId,
                           assignOpen: false,
@@ -1884,16 +1886,23 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           suspectPreMultiplied: x.cases > 0 && ups != null && x.units >= ups,
                           // The bottle just picked may carry a number in its name.
                           nameCheck: nameNumberCheck(x.units, x.cases, skuById.get(skuId)?.name),
-                        }, r, i);
-                      }),
-                    )
+                        };
+                      });
+                      // Changing an earlier identity also changes which later
+                      // row owns its recount question and cumulative history.
+                      return next.map((x, i) => recheck(x, next, i, r));
+                    })
                   }
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
                   shelf={zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
                   onRestate={(a) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, restateAnswer: a } : x)))}
                   // Indices shift on removal, so a stale error would re-attach
                   // itself to whichever row slid into this slot.
-                  onRemove={() => { setCaseErr(null); setReview((r) => (r && r.length > 1 ? r.filter((_, i) => i !== idx) : null)); }}
+                  onRemove={() => { setCaseErr(null); setReview((r) => {
+                    if (!r || r.length <= 1) return null;
+                    const next = r.filter((_, i) => i !== idx);
+                    return next.map((x, i) => recheck(x, next, i, r));
+                  }); }}
                   onCaseSize={(n) => void answerCaseSize(idx, n)}
                   caseErr={caseErr?.idx === idx ? caseErr.msg : null}
                 />
@@ -2161,9 +2170,9 @@ function ReviewRow({
   const [caseAnswer, setCaseAnswer] = useState("");
   const chosen = item.chosenSkuId ? catalog.find((s) => s.id === item.chosenSkuId) : null;
   const assignHits = useMemo(() => {
-    const t = q.trim().toLowerCase();
+    const t = q.trim();
     if (!t) return [];
-    return catalog.filter((s) => s.name.toLowerCase().includes(t)).slice(0, 6);
+    return catalog.filter((s) => skuMatchesSearch(s, t)).slice(0, 6);
   }, [q, catalog]);
 
   // needs_case outranks everything: the bottle may be perfectly matched, but
@@ -2372,9 +2381,12 @@ function ReviewRow({
         </span>
       )}
 
-      {state === "matched" && chosen && (
-        <button type="button" className="lq-chip lq-chip-on lq-rev-chosen" onClick={onToggleAssign}>
-          ✓ {chosen.name}{chosen.sizeMl != null ? ` · ${chosen.sizeMl}ml` : ""}
+      {/* Product selection remains visible and editable while the number,
+          case size, history or recount answer is still being reviewed. */}
+      {chosen && (
+        <button type="button" className={`lq-chip lq-rev-chosen${state === "matched" && (item.qty > 0 || item.explicitZero) ? " lq-chip-on" : ""}`} onClick={onToggleAssign}
+          aria-label={`Change bottle: ${skuLabel(chosen)}`} aria-expanded={!!item.assignOpen}>
+          {state === "matched" ? "✓ " : "Matched bottle: "}{skuLabel(chosen)}
         </button>
       )}
       {state === "matched" && item.qty === 0 && !item.explicitZero && (
@@ -2392,30 +2404,31 @@ function ReviewRow({
         </div>
       )}
 
-      {state === "unmatched" && (
-        <div className="lq-rev-choices">
-          <span className="lq-error lq-rev-hint">Couldn't place this.</span>
-          {!item.assignOpen ? (
-            <button type="button" className="lq-chip" onClick={onToggleAssign}>Find bottle…</button>
-          ) : (
+      <div className="lq-rev-choices">
+          {state === "unmatched" && <span className="lq-error lq-rev-hint">Couldn't place this.</span>}
+          <button type="button" className="lq-chip" onClick={onToggleAssign} aria-expanded={!!item.assignOpen}>
+            {item.assignOpen ? "Cancel bottle search" : chosen ? "Change bottle…" : "Find bottle…"}
+          </button>
+          {item.assignOpen && (
             <div className="lq-rev-assign">
               <input
                 className="lq-search lq-rev-search"
                 type="search"
                 placeholder="Type the bottle…"
+                aria-label={`Find bottle for ${item.spoken}`}
                 value={q}
                 autoFocus
                 onChange={(e) => setQ(e.target.value)}
               />
               {assignHits.map((s) => (
                 <button key={s.id} type="button" className="lq-chip" onClick={() => onPick(s.id)}>
-                  {s.name}{s.sizeMl != null ? ` · ${s.sizeMl}ml` : ""}
+                  {skuLabel(s)}
                 </button>
               ))}
+              {q.trim() && assignHits.length === 0 && <span className="lq-muted lq-rev-hint">No bottles found. Try another name or size.</span>}
             </div>
           )}
         </div>
-      )}
     </div>
   );
 }
@@ -2427,7 +2440,7 @@ function normalizedSearch(value: string): string {
 function skuMatchesSearch(sku: BarSkuItem, query: string): boolean {
   const terms = normalizedSearch(query).split(/\s+/).filter(Boolean);
   const size = sku.sizeMl != null ? `${sku.sizeMl} ml ${sku.sizeMl}ml ${sku.sizeMl / 1000} l ${sku.sizeMl / 1000}l` : "";
-  const text = normalizedSearch(`${sku.name} ${size}`);
+  const text = normalizedSearch(`${sku.name} ${(sku.aliases ?? []).join(" ")} ${size}`);
   return terms.every((term) => text.includes(term));
 }
 

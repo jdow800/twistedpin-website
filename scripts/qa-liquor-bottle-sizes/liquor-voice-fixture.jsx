@@ -19,12 +19,14 @@ const catalog = [
 const noZones = new URL(location.href).searchParams.has('no-zones');
 // ?precision: persisted fractions must remain visible and survive an unchanged save.
 const precision = new URL(location.href).searchParams.has('precision');
+const equalPrior = new URL(location.href).searchParams.has('equal-prior');
 const zones = noZones ? [] : [
   {id:'well', name:'Well', walkOrder:1, active:true},
   {id:'backbar', name:'Back Bar', walkOrder:2, active:true},
 ];
 // One bottle already counted on the back bar, so Finish is live before any take.
-const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:precision?'0.125':'2', source:'grid', enteredCases:null, caseSizeAtEntry:null}];
+const initialLines = noZones ? [] : [{skuId:'jameson', zoneId:'backbar', qtyUnits:precision?'0.125':'2', source:'grid', enteredCases:null, caseSizeAtEntry:null},
+  ...(equalPrior ? ['titos','jameson'].map(skuId=>({skuId,zoneId:'well',qtyUnits:'2',source:'grid',enteredCases:null,caseSizeAtEntry:null})) : [])];
 const initialBatches = precision ? [{zoneId:'well',batchId:'sample-batch',fullEquivalents:'0.125'}] : [];
 const batches = precision ? [{id:'sample-batch',name:'Example Batch',notes:null,components:[]}] : [];
 const qa = window.liquorQa = {calls:[], extracts:[], lines:initialLines, batches:initialBatches, recorder:null};
