@@ -731,7 +731,7 @@ export interface VoiceExtractItem {
   /** Food: source identity is unresolved, even if a legacy rule offers a match. */
   identityNeedsReview?: boolean;
   /** An extraction row reused evidence already allocated to another row. */
-  quantityReviewReason?: "source_already_used";
+  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder";
   /** Whole cases heard ("two cases" → 2). 0 when none were spoken. */
   cases: number;
   /** Loose containers heard, incl. fractions ("point eight" → 0.8). */

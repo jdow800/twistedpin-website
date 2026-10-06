@@ -25,12 +25,16 @@ const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://lo
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const base=`http://127.0.0.1:${server.address().port}/`,b=await browser();
 const results={recordedAtUtc:new Date().toISOString(),scope:'Actual CountFood; synthetic stock, recording and API responses; native phone-size Chromium only, no physical microphone or live requests.',
- componentSha256:createHash('sha256').update(await readFile(root+'src/components/liquor/views/CountFood.tsx')).digest('hex'),scenarios:[],assertions:[],screens:[],blocked:[],failures:[]};
+ componentSha256:createHash('sha256').update(await readFile(root+'src/components/liquor/views/CountFood.tsx')).digest('hex'),
+ rowSha256:createHash('sha256').update(await readFile(root+'src/components/liquor/FoodVoiceReviewRow.tsx')).digest('hex'),
+ styleSha256:createHash('sha256').update(await readFile(root+'src/components/liquor/liquor.css')).digest('hex'),scenarios:[],assertions:[],screens:[],chipStyles:[],blocked:[],failures:[]};
 const js=e=>b.evaluate(e),pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function check(name,e){assert.ok(await js(`!!(${e})`),name);results.assertions.push(name);}
 async function click(pattern){await js(`(()=>{const e=[...document.querySelectorAll('button')].find(e=>new RegExp(${JSON.stringify(pattern.source)}).test(e.textContent.trim()));if(!e||e.disabled)throw Error('Unavailable '+${JSON.stringify(pattern.source)});e.click()})()`);await pause(35);}
 async function shot(name){const {data}=await b.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await writeFile(out+name+'.png',Buffer.from(data,'base64'));results.screens.push(name+'.png');}
 async function stopByTouch(){const point=await js("(()=>{const e=document.querySelector('.lq-rec-stop'),r=e.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()");await b.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await b.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await pause(60);}
+async function addByTouch(){const point=await js("(()=>{const e=[...document.querySelectorAll('.lq-footer button')].find(e=>/^Add /.test(e.textContent.trim())),r=e.getBoundingClientRect();if(e.disabled)throw Error('Add is disabled');return {x:r.x+r.width/2,y:r.y+r.height/2}})()");await b.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[point]});await b.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await pause(60);}
+async function matchedChip(width,state){const style=await js("(()=>{const e=document.querySelector('.lq-fc-rev-row .lq-chip-on'),s=getComputedStyle(e),r=e.getBoundingClientRect(),rgb=c=>c.match(/[\\d.]+/g).slice(0,3).map(Number),lum=c=>rgb(c).map(n=>n/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);const f=lum(s.color),g=lum(s.backgroundColor);return {foreground:s.color,background:s.backgroundColor,contrast:(Math.max(f,g)+.05)/(Math.min(f,g)+.05),left:r.left,right:r.right,width:innerWidth}})()");assert.equal(style.foreground,'rgb(16, 18, 26)');assert.ok(style.contrast>=4.5);assert.ok(style.left>=0&&style.right<=style.width+1);results.chipStyles.push({width,state,...style});results.assertions.push(`${width}px ${state} product pill stays green with readable foreground and fits`);}
 try{
  for(const width of [320,390,412]){
   await b.send('Emulation.setDeviceMetricsOverride',{width,height:915,deviceScaleFactor:1,mobile:true});
@@ -56,10 +60,23 @@ try{
   await js("foodQa.extracts[0].succeed([{spoken:'Pizza dough two.',quantityWords:'two',quantityKnown:true,cases:0,units:2,qty:2,unitsPerCase:20,needsCaseSize:false,suspectPreMultiplied:false,match:{id:'dough',name:'Pizza Dough',sizeMl:null,unitsPerCase:20},candidates:[]}])");
   await b.until("document.querySelector('.lq-fc-rev-row')");
   await check(`${width}px compact ready row needs no redundant quantity question`,"!document.body.textContent.includes('Heard quantity:')&&!document.querySelector('.lq-fc-rev-row').textContent.includes('Enter both Cases')&&[...document.querySelectorAll('button')].some(e=>e.textContent.trim()==='Add 1 item to Pizza Freezer'&&!e.disabled)");
+  await check(`${width}px ready amount has one raw input`,"document.querySelectorAll('.lq-fc-rev-quantities input').length===1&&document.querySelector('.lq-fc-rev-quantities input').value==='2'");
+  await matchedChip(width,'ready');
   await pause(500); // allow the component's smooth review scroll to finish
-  await shot('review-'+width);await click(/^Add 1 item to Pizza Freezer$/);
+  await check(`${width}px one primary footer Add stays visible and on top`,"(()=>{const adds=[...document.querySelectorAll('button')].filter(e=>/^Add \\d+ items? to/.test(e.textContent.trim())),e=adds[0],r=e.getBoundingClientRect();return adds.length===1&&e.closest('.lq-footer')&&e.classList.contains('lq-btn-primary')&&!e.disabled&&r.top>=0&&r.bottom<=innerHeight&&r.height>=44&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===e})()");
+  await shot('review-'+width);await js("window.scrollTo(0,document.body.scrollHeight)");await pause(50);
+  await check(`${width}px primary Add stays pinned after scrolling`,"(()=>{const e=[...document.querySelectorAll('.lq-footer button')].find(e=>/^Add /.test(e.textContent.trim())),r=e.getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight&&document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)?.closest('button')===e})()");
+  await shot('scrolled-add-'+width);await addByTouch();
   await b.until("foodQa.lines.some(l=>l.skuId==='dough'&&l.zoneId==='freezer'&&Number(l.qtyUnits)===2)");
   results.scenarios.push(`${width}px source-proved two saves to the take's shelf after explicit review`);
+  await click(/Talk through/);await b.until("document.querySelector('.lq-rec-stop')");
+  await js("foodQa.recorder.segment('Pizza dough, one case and a little bit.',0)");await b.until('foodQa.extracts.length===2');
+  await js("foodQa.extracts[1].succeed([{spoken:'Pizza dough, one case and a little bit.',quantityWords:'one case and a little bit',quantityKnown:false,quantityNeedsReview:true,quantityReviewReason:'unquantified_remainder',cases:1,units:0,qty:20,unitsPerCase:20,match:{id:'dough',name:'Pizza Dough',sizeMl:null,unitsPerCase:20},candidates:[]}])");
+  await stopByTouch();await js("foodQa.recorder.finish('Pizza dough, one case and a little bit.')");await b.until("document.querySelector('.lq-fc-rev-row')");
+  await check(`${width}px held count is blank with a targeted remainder question`,"document.querySelectorAll('.lq-fc-rev-quantities input').length===1&&document.querySelector('.lq-fc-rev-quantities input').value===''&&document.querySelector('.lq-fc-rev-row .lq-error').textContent.includes('including the extra')&&[...document.querySelectorAll('button')].some(e=>/^Add 0/.test(e.textContent.trim())&&e.disabled)");
+  await check(`${width}px held-only footer Add cannot write the proposed model count`,"(()=>{const adds=[...document.querySelectorAll('button')].filter(e=>/^Add \\d+ items? to/.test(e.textContent.trim()));return adds.length===1&&adds[0].closest('.lq-footer')&&adds[0].disabled&&foodQa.lines.length===1&&Number(foodQa.lines[0].qtyUnits)===2})()");
+  await matchedChip(width,'held');await pause(500);await shot('held-review-'+width);
+  results.scenarios.push(`${width}px unknown remainder keeps matched product green and prevents a guessed count`);
  }
  results.blocked=b.blocked;assert.equal(b.blocked.length,0,'No external requests');
  console.log(`${results.scenarios.length} native food recording scenarios and ${results.assertions.length} assertions passed`);

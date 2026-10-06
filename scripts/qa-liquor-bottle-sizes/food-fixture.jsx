@@ -3,7 +3,10 @@ import {createRoot} from 'react-dom/client';
 import CountFood from 'qa:food';
 import 'qa:styles';
 
-const catalog = [
+// An isolated integration can inject the complete saved catalog/shelf fixture
+// before React renders, avoiding a second hardcoded list of kitchen names.
+const fixtureOverride = window.foodQaFixture;
+const catalog = (fixtureOverride?.catalog ?? [
   {id:'dough', name:'Pizza Dough', countUnit:'pack', unitsPerCase:20},
   {id:'pretzel', name:'Giant Pretzel', countUnit:'pack', unitsPerCase:8},
   {id:'unknown', name:'Unknown Package', countUnit:'pack', unitsPerCase:null},
@@ -12,8 +15,8 @@ const catalog = [
   {id:'circles', name:'Cardboard Pizza Circle 14"', countUnit:'each', unitsPerCase:100},
   {id:'gloves', name:'Glove, Vinyl, Extra Large', countUnit:'case', unitsPerCase:null},
   {id:'rice', name:'Rice, Spanish', countUnit:'pack', unitsPerCase:6},
-].map(s => ({...s, category:'Bakery', sizeMl:null, trackingMode:'stock_count', wacCost:null}));
-const zones = [
+]).map(s => ({category:'Bakery',sizeMl:null,trackingMode:'stock_count',wacCost:null,...s}));
+const zones = fixtureOverride?.zones ?? [
   {id:'freezer', name:'Pizza Freezer', walkOrder:1, memberSkuIds:catalog.map(s => s.id)},
   {id:'cooler', name:'Kitchen Cooler', walkOrder:2, memberSkuIds:catalog.map(s => s.id)},
 ];
@@ -51,6 +54,7 @@ if (params.has('definitions')) {
   Object.assign(catalog[0], {countUnit:'case',unitsPerCase:1,
     countDefinition:answer('case',1,{usualMaxCases:20}),
     countHistory:{maxCount:1.6,maxDelivery:2,deliverySamples:2,days:90}});
+  if (params.has('case-bags')) catalog[0].countDefinition.spokenUnits = {case:1,bag:0.5};
   catalog.push(
     {id:'buns',name:'Sample Buns',countUnit:'each',unitsPerCase:48,
       countDefinition:answer('each',48,{unitLabel:'bun',spokenUnits:{bag:12,bun:1},usualMaxCases:3})},

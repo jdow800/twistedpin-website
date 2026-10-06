@@ -8,7 +8,7 @@ export interface FoodReviewItem {
   quantityWords?: string;
   quantityNeedsReview?: boolean;
   identityNeedsReview?: boolean;
-  quantityReviewReason?: "source_already_used";
+  quantityReviewReason?: "source_already_used" | "source_revised" | "unquantified_remainder";
   invalidQuantityFields?: ("cases" | "units")[];
   /** Components of an ungrounded model quantity still awaiting human input. */
   unconfirmedQuantityFields?: ("cases" | "units")[];
@@ -45,7 +45,7 @@ export function confirmFoodQuantity(r: FoodReviewItem, field: "cases" | "units",
   return { invalidQuantityFields: [...invalid], unconfirmedQuantityFields: [...unconfirmed],
     quantityKnown: valid && invalid.size === 0 && unconfirmed.size === 0,
     quantityNeedsReview: unconfirmed.size > 0,
-    ...(valid ? { [field]: value, ...(replacesAll ? { units: 0 } : {}) } : {}) };
+      ...(valid ? { [field]: value, ...(replacesAll ? { [field === "cases" ? "units" : "cases"]: 0 } : {}) } : {}) };
 }
 
 export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {

@@ -34,12 +34,13 @@ import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
-import { foodCasesOnly, foodCountWarning, foodReviewQuantity, foodQuantityFieldsToConfirm, confirmFoodQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCasesOnly, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
 import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
 import FoodNumberInput from "../FoodNumberInput";
 import FoodReviewCountRow, { foodSearchMatch } from "../FoodReviewCountRow";
+import FoodVoiceReviewRow from "../FoodVoiceReviewRow";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -251,6 +252,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [locationCollision, setLocationCollision] = useState<{ key: string; zid: string; skuId: string; cell: Cell; from: string; afterSave: () => Promise<void> } | null>(null);
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [review, setReview] = useState<ReviewItem[] | null>(null);
+  const appliedVoiceRowsRef = useRef(new WeakSet<ReviewItem>());
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [caseSizeErrors, setCaseSizeErrors] = useState<Record<string, string | null>>({});
@@ -863,17 +865,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       key: `v${offset + i}`,
       spoken: it.spoken,
       quantityWords: it.quantityWords,
-      quantityNeedsReview: !!it.quantityNeedsReview || it.quantityReviewReason === "source_already_used",
+      quantityNeedsReview: !!it.quantityNeedsReview || !!it.quantityReviewReason,
       identityNeedsReview: it.identityNeedsReview,
       quantityReviewReason: it.quantityReviewReason,
-      quantityWasUncertain: !!it.quantityNeedsReview || it.quantityKnown === false || it.quantityReviewReason === "source_already_used",
-      unconfirmedQuantityFields: it.quantityNeedsReview || it.quantityKnown === false || it.quantityReviewReason === "source_already_used" ? ["cases", "units"] : [],
+      quantityWasUncertain: !!it.quantityNeedsReview || it.quantityKnown === false || !!it.quantityReviewReason,
+      unconfirmedQuantityFields: it.quantityNeedsReview || it.quantityKnown === false || it.quantityReviewReason ? ["cases", "units"] : [],
       cases: it.cases,
       units: it.units,
       chosenSkuId: it.identityNeedsReview ? null : it.match?.id ?? null,
       candidates: it.candidates,
       spokenUnit: it.spokenUnit ?? null,
-      quantityKnown: !it.quantityNeedsReview && it.quantityReviewReason !== "source_already_used" && (it.quantityKnown ?? true),
+      quantityKnown: !it.quantityNeedsReview && !it.quantityReviewReason && (it.quantityKnown ?? true),
       unitNeedsReview: it.unitNeedsReview ?? false,
     }));
   }
@@ -918,9 +920,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function applyReview() {
-    if (!review || checking || submitting || submissionUnknown) return;
+    if (!review || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
     for (const r of review) {
-      if (!applyable(r)) continue;
+      if (!applyable(r) || appliedVoiceRowsRef.current.has(r)) continue;
+      // Two taps can arrive before React replaces the footer. Consume this
+      // exact reviewed amount once; a later take has new review objects.
+      appliedVoiceRowsRef.current.add(r);
       const q = reviewQuantity(r);
       const sku = reviewSku(r)!;
       const raw = appendFoodSource(undefined, `${r.spoken} [confirmed: ${q.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`)!;
@@ -1569,10 +1574,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setCorrectionConflicts(correctionConflictsRef.current);
   }
 
-  function editVoiceQuantity(r: ReviewItem, field: "cases" | "units", raw: string, caseOnly = false) {
+  function editVoiceQuantity(r: ReviewItem, field: "cases" | "units", raw: string, replacesAll = false) {
     const n = readFoodNumber(raw);
-    editReview(r, { ...confirmFoodQuantity(r, field, n, caseOnly),
-      ...(n != null && caseOnly ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
+    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll),
+      ...(n != null && replacesAll && field === "cases" ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
   }
 
   async function saveLocationCount(key: string, from: string, zid: string, skuId: string, cell: Cell, afterSave: () => Promise<void>, mode?: "add" | "replace") {
@@ -1888,150 +1893,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <p className="lq-fc-rev-h">
             Check {review.length} heard item{review.length === 1 ? "" : "s"}
           </p>
-          {review.map((r) => {
-            const sku = r.chosenSkuId ? skuById.get(r.chosenSkuId) : undefined;
-            const q = reviewQuantity(r);
-            const caseCountOnly = foodCasesOnly(sku);
-            const caseOnly = caseCountOnly || (sku?.countUnit === "case" && !q.inputUnit) || /^cases?$/.test(q.inputUnit ?? "");
-            const unconfirmedFields = foodQuantityFieldsToConfirm(r);
-            const concern = warning(r);
-            const hits = r.search?.trim() ? catalog.filter(s => r.search!.toLowerCase().split(/\s+/).every(word => s.name.toLowerCase().includes(word))).slice(0, 8) : [];
-            return (
-              <div key={r.key} className={`lq-fc-rev-row${applyable(r) ? "" : " lq-fc-rev-row-block"}`}>
-                <span className="lq-fc-rev-spoken">“{r.spoken}”</span>
-                {r.identityNeedsReview && <span className="lq-error">Choose the exact product you counted. Quantity and unit answers do not confirm the product.</span>}
-                {r.quantityReviewReason === "source_already_used" && <span className="lq-error">Another row already used these source words. Discard this duplicate unless you counted a separate amount.</span>}
-                {r.quantityNeedsReview && <span className="lq-error">{caseOnly ? "Restate the whole quantity in Cases. Enter 0 if none." : "Enter both Cases and Loose quantity. Enter 0 in a box if none."} Choosing a product or unit does not confirm the number.</span>}
-                {!!r.invalidQuantityFields?.length && <span className="lq-error">Enter a valid quantity in each edited box. Negative or blank text is not zero.</span>}
-                {r.candidates.length > 0 && !r.chosenSkuId && (
-                  <div className="lq-fc-rev-pick">
-                    <span className="lq-muted">Which one?</span>
-                    {r.candidates.map((c) => (
-                      <button
-                        key={c.id}
-                        type="button"
-                        className="lq-linkbtn"
-                        onClick={() => chooseReviewSku(r, c.id)}
-                      >
-                        {c.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {!r.chosenSkuId && r.candidates.length === 0 && (
-                  <span className="lq-fc-rev-note">No match. Find the exact product below.</span>
-                )}
-                <details className="lq-fc-rev-product" open={!r.chosenSkuId}>
-                  <summary>{sku ? "Change product" : "Find product"}</summary>
-                  <input type="search" aria-label={`Find product for ${r.spoken}`} placeholder="Search the food catalog…"
-                    value={r.search ?? ""} onChange={e => editReview(r, { search: e.target.value })} />
-                  {hits.map(s => <button key={s.id} type="button" className="lq-linkbtn" onClick={() => chooseReviewSku(r, s.id)}>{s.name}</button>)}
-                  {r.search?.trim() && hits.length === 0 && <p className="lq-muted">No matching product on file. Leave this item unresolved until the catalog is set up.</p>}
-                </details>
-                {sku && (
-                  <>
-                    <span className="lq-fc-rev-match">{sku.name}{q.ready ? caseCountOnly ? ` · ${formatQty(q.cases)} case${q.cases === 1 ? "" : "s"}` : ` · ${formatQty(q.qty)} ${unitLabel(sku, q.qty)}` : ""}</span>
-                    <div className="lq-fc-rev-quantities">
-                      <label>Cases
-                        <FoodNumberInput type="number" min={0} step="any" inputMode="decimal" aria-label={`Cases for ${sku.name}`}
-                          value={!unconfirmedFields.includes("cases") && !(caseCountOnly && q.needsUnitChoice) ? r.cases + (caseOnly ? r.units : 0) : undefined}
-                          aria-invalid={r.invalidQuantityFields?.includes("cases") || undefined} onRaw={raw => editVoiceQuantity(r, "cases", raw, caseOnly)} />
-                      </label>
-                      {!caseOnly && <label>{r.unitNeedsReview ? "Quantity (check unit below)" : q.inputUnit ?? unitLabel(sku, 2)}
-                        <FoodNumberInput type="number" min={0} step="any" inputMode="decimal" aria-label={`Loose quantity for ${sku.name}`}
-                          value={!unconfirmedFields.includes("units") ? r.units : undefined} aria-invalid={r.invalidQuantityFields?.includes("units") || undefined}
-                          onRaw={raw => editVoiceQuantity(r, "units", raw)} />
-                      </label>}
-                    </div>
-                    {!r.quantityKnown && !r.quantityNeedsReview && <span className="lq-fc-rev-note">No quantity was heard. Enter it before adding.</span>}
-                  </>
-                )}
-                {sku && q.needsCaseSize && (
-                  <div className="lq-fc-rev-ask">
-                    <label>
-                      {caseCountOnly ? "Pieces per case?" : `${unitLabel(sku, 2)} per case?`}
-                      <input
-                        type="number"
-                        min={1}
-                        max={10000}
-                        aria-label={`Units per case for ${sku.name}`}
-                        inputMode="numeric"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") void answerCaseSize(r.chosenSkuId!, Number((e.target as HTMLInputElement).value));
-                        }}
-                        onBlur={(e) => void answerCaseSize(r.chosenSkuId!, Number(e.target.value))}
-                      />
-                    </label>
-                    <span className="lq-muted">Needed to add these cases.</span>
-                  </div>
-                )}
-                {sku && q.needsUnitChoice && (
-                  <div className="lq-fc-rev-ask">
-                    {caseCountOnly ? <span>Restate this quantity in the Cases box. This product is counted in cases, including half cases.</span> : <>
-                    <span>{r.unitNeedsReview ? `Which unit for ${formatQty(r.units)}?` : `${formatQty(r.units)} cases or ${unitLabel(sku, 2)}?`}</span>
-                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { cases: r.cases + r.units, units: 0, spokenUnit: null, unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true })}>{formatQty(r.units)} cases</button>
-                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { spokenUnit: sku.countUnit ?? "each", unitMultiplier: 1, unitNeedsReview: false, unitChoiceConfirmed: true })}>{formatQty(r.units)} {unitLabel(sku, r.units)}</button>
-                    {r.unitNeedsReview && <>
-                      <label>Another unit
-                        <input type="text" maxLength={32} aria-label={`Spoken unit for ${sku.name}`} placeholder="For example, bag or tray"
-                          value={r.unitDraft ?? ""} onChange={e => editReview(r, { unitDraft: e.target.value })}
-                          onKeyDown={e => { if (e.key === "Enter" && r.unitDraft?.trim()) { e.preventDefault(); answerSpokenUnit(r); } }} />
-                      </label>
-                      <button type="button" className="lq-linkbtn" disabled={!r.unitDraft?.trim()} onClick={() => answerSpokenUnit(r)}>Use unit</button>
-                    </>}
-                    </>}
-                  </div>
-                )}
-                {sku && q.needsUnitSize && !caseCountOnly && (
-                  <div className="lq-fc-rev-ask">
-                    <label>{sku.countUnit === "case" ? `${r.spokenUnit} per case?` : `${unitLabel(sku, 2)} per ${r.spokenUnit}?`}
-                      <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
-                        onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) editReview(r, { unitMultiplier: sku.countUnit === "case" ? 1 / n : n }); }}
-                        onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} />
-                    </label>
-                    <span className="lq-muted">{r.units} {r.spokenUnit} heard. The package size must be confirmed.</span>
-                  </div>
-                )}
-                {sku && r.unitMultiplier != null && (
-                  <span className="lq-muted">{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {unitLabel(sku, q.units)} <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { unitMultiplier: undefined })}>Change package size</button></span>
-                )}
-                {q.catalogConflict && <span className="lq-fc-rev-note">This product is labeled in cases but also has multiple units per case. Its catalog unit needs correction before adding.</span>}
-                {concern && r.largeCountConfirmed !== concern && (
-                  <div className="lq-fc-rev-ask" role="status">
-                    <span>{concern}</span>
-                    {q.cases > 0 && q.units === 0 && sku?.countUnit !== "case" && !caseCountOnly && <button type="button" className="lq-linkbtn"
-                      onClick={() => editReview(r, { units: q.cases, cases: 0, spokenUnit: sku?.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>
-                      Use {q.cases} {unitLabel(sku, q.cases)}
-                    </button>}
-                    <button type="button" className="lq-linkbtn" onClick={() => editReview(r, { largeCountConfirmed: concern })}>Keep as entered</button>
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="lq-linkbtn"
-                  onClick={() => setReview((prev) => {
-                    const left = (prev ?? []).filter((x) => x.key !== r.key);
-                    return left.length ? left : null;
-                  })}
-                >
-                  Discard item
-                </button>
-              </div>
-            );
-          })}
-          <div className="lq-fc-rev-actions">
-            <button
-              type="button"
-              className="lq-btn"
-              disabled={!review.some(applyable)}
-              onClick={applyReview}
-            >
-              {/* The take's OWN shelf, not the selected one — they differ the
-                  moment the counter walks on while it transcribes. */}
-              Add {review.filter(applyable).length} item{review.filter(applyable).length === 1 ? "" : "s"} to{" "}
-              {zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
-            </button>
-          </div>
+          {review.map(r => <FoodVoiceReviewRow key={r.key} item={r} sku={reviewSku(r)} catalog={catalog}
+            ready={applyable(r)} concern={warning(r)} onEdit={patch => editReview(r, patch)}
+            onChoose={id => chooseReviewSku(r, id)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
+            onUnit={() => answerSpokenUnit(r)} onCaseSize={n => void answerCaseSize(r.chosenSkuId!, n)}
+            onDiscard={() => setReview(prev => {
+              const left = (prev ?? []).filter(x => x.key !== r.key);
+              return left.length ? left : null;
+            })} />)}
         </div>
       )}
 
@@ -2497,15 +2366,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <button type="button" className="lq-btn lq-btn-ghost" disabled={checking || submitting || voicePending} onClick={onDone}>Home</button>
           <button
             type="button"
-            className="lq-btn"
+            className={`lq-btn${review?.length && !dict.recording && !voiceBusy ? " lq-btn-primary" : ""}`}
             // ⚠ SUBMIT IS A ONE-WAY DOOR and voice work is asynchronous. A
             // counter could tap Finish while a take was still recording or
             // transcribing, or with review rows never applied — and only
             // `counts` is saved, so those items were dropped silently. The
             // backend then 409s any later line save against a closed session,
             // so there was no way back.
-            disabled={checking || submitting || submissionUnknown || (totalLines === 0 && !review?.length) || (voicePending && !review?.length)}
-            onClick={() => { if (review?.length) showVoiceReview(); else void runCheck(); }}
+            disabled={checking || submitting || submissionUnknown || dict.recording || voiceBusy || (totalLines === 0 && !review?.length)
+              || (!!review?.length && !review.some(applyable))}
+            onClick={() => { if (review?.length) applyReview(); else void runCheck(); }}
           >
             {checking
               ? "Checking…"
@@ -2514,7 +2384,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 : voiceBusy
                   ? "Reading that back…"
                   : (review?.length ?? 0) > 0
-                    ? `Review ${review?.length} heard`
+                    ? `Add ${review!.filter(applyable).length} item${review!.filter(applyable).length === 1 ? "" : "s"} to ${zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}`
                     : `Finish (${totalLines})`}
           </button>
         </div>

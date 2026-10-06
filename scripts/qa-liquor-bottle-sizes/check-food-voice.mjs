@@ -61,7 +61,13 @@ async function run(name, test, existing = false, pauseCuts = false) {
     const apply = () => click(/^Add \d+ items? to (?:Pizza Freezer|Kitchen Cooler)$/);
     const saved = () => qa.calls.filter(c => c.path.endsWith('/lines'));
     const input = async (label,value) => {
-      const el = [...doc.querySelectorAll('input')].find(el => el.getAttribute('aria-label')===label);
+      let el = [...doc.querySelectorAll('input')].find(el => el.getAttribute('aria-label')===label);
+      if (!el && label.startsWith('Cases for ')) {
+        // These legacy checks deliberately exercise the alternative two-part
+        // entry, rather than treating it as the default common review.
+        await click('Count another way');
+        el = [...doc.querySelectorAll('input')].find(el => el.getAttribute('aria-label')===label);
+      }
       assert.ok(el,`Missing input: ${label}`);
       el.focus();
       Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(el,value);
@@ -205,10 +211,9 @@ await run('an open submit panel stays blocked through recording, extraction and 
   await until(() => t.review().length===1);
   assert.ok(t.button('Finish the recording first').disabled);
   const checks=t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
-  await t.click('Review 1 heard');
-  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,checks,'returning to review cannot run another precheck');
-  assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')));
   await t.apply();
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,checks,'Add after Finish cannot automatically run another precheck');
+  assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')));
   assert.ok(t.button('Submit the count').disabled,'new voice additions invalidate the earlier check');
   await t.click('Recheck count');
   await until(() => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length===checks+1);
@@ -460,7 +465,7 @@ await run('explicit pieces of crust or flatbread require a case answer rather th
     item('flatbread',6,{spoken:'six pieces of flatbread',spokenUnit:'piece',unitNeedsReview:true}),
   ]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.match(t.doc.body.textContent,/Restate this quantity in the Cases box/);
+  assert.match(t.doc.body.textContent,/Enter the total in Cases/);
   assert.equal(t.doc.querySelector('input[aria-label="Cases for Cauliflower Crust"]').value,'');
   assert.equal(t.doc.querySelector('input[aria-label="Cases for Flatbread"]').value,'');
   assert.equal(t.button('2 each'),undefined);
@@ -532,7 +537,7 @@ await run('an unknown crust case size blocks a bare half case until its package 
 await run('the dimension-named flatbread uses the same case-only policy',async t => {
   await t.hear([item('flatbread',0,{spoken:'six flatbreads',cases:6,spokenUnit:null})]);
   assert.equal([...t.doc.querySelectorAll('input')].find(el=>el.getAttribute('aria-label')==='Flatbread, 4.5"x12": loose each'),undefined);
-  assert.match(t.doc.querySelector('.lq-fc-rev-match').textContent,/6 cases/);
+  assert.equal([...t.doc.querySelectorAll('input')].find(e=>e.getAttribute('aria-label')==='Cases for Flatbread, 4.5"x12"').value,'6');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,360);
 },'definitions&dimension-flatbread');
@@ -562,7 +567,7 @@ await run('confirmed base labels do not ask how many heads in one head',async t 
   await t.hear([item('romaine',12,{spoken:'twelve heads of romaine',spokenUnit:'heads'}),
     item('celery',3,{spoken:'three bunches of celery',spokenUnit:'bunch'})]);
   assert.doesNotMatch(t.doc.body.textContent,/How many.*head|How many.*bunch/);
-  assert.match(t.doc.body.textContent,/3 bunches/);
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Sample Celery"]').value,'3');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='romaine').qtyUnits,12);
   assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,3);
@@ -571,7 +576,7 @@ await run('confirmed base labels do not ask how many heads in one head',async t 
 await run('uncertain unit blocks the default and editing only a number does not bypass it',async t => {
   await t.hear([item('celery',3,{spoken:'celery three',spokenUnit:null,unitNeedsReview:true})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.match(t.doc.body.textContent,/Which unit for 3\?/);
+  assert.match(t.doc.body.textContent,/Which unit\?/);
   await t.input('Loose quantity for Sample Celery','2');
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   assert.equal(t.saved().length,0);
@@ -600,6 +605,7 @@ await run('a manually named unknown unit requires its own conversion',async t =>
 await run('typing an explicit Cases quantity resolves a case-only unit question',async t => {
   await t.hear([item('dough',3,{spoken:'dough three',spokenUnit:null,unitNeedsReview:true})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.click('3 cases');
   await t.input('Cases for Pizza Dough','2.5');
   assert.doesNotMatch(t.doc.body.textContent,/Which unit for 0\?/);
   await t.apply();await until(()=>t.saved().length>0);
@@ -853,6 +859,7 @@ await run('Cases zero cannot certify the held twelve-versus-model-one loose quan
 });
 await run('Loose two cannot certify the held model seven cases',async t=>{
   await t.hear([item('dough',1,{cases:7,spoken:'two pizza dough',quantityWords:'two',quantityNeedsReview:true})]);
+  await t.click('Count another way');
   await t.input('Loose quantity for Pizza Dough','2');assert.ok(t.button(/^Add /).disabled);assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Pizza Dough"]').value,'2');
   await t.input('Cases for Pizza Dough','0');await t.apply();await until(()=>t.saved().length>0);const row=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(row.qtyUnits),2);assert.ok(!row.enteredCases);
 });
@@ -862,7 +869,7 @@ await run('both explicit zero components certify an observed empty shelf',async 
 });
 await run('product and unit picks cannot confirm remaining numeric-review components',async t=>{
   await t.hear([item('dough',1,{match:null,candidates:[{id:'dough',name:'Pizza Dough',unitsPerCase:20,sizeMl:null}],spoken:'twelve dough',quantityWords:'twelve',quantityNeedsReview:true,unitNeedsReview:true})]);
-  await t.click('Pizza Dough');await t.click('1 pack');await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
+  await t.click('Pizza Dough');await t.click('packs');await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
   await t.input('Loose quantity for Pizza Dough','12');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),12);
 });
 await run('package-size answers cannot confirm remaining numeric-review components',async t=>{
@@ -882,12 +889,12 @@ await run('one explicit case-only answer replaces all held model components',asy
 
 await run('identity hold rejects even an accidental DTO match until the product is picked',async t=>{
   await t.hear([item('dough',2,{identityNeedsReview:true,candidates:[{id:'dough',name:'Pizza Dough',unitsPerCase:20,sizeMl:null},{id:'pretzel',name:'Giant Pretzel',unitsPerCase:8,sizeMl:null}]})]);
-  assert.ok(t.button(/^Add /).disabled);assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,0);assert.match(t.doc.body.textContent,/Quantity and unit answers do not confirm the product/);
+  assert.ok(t.button(/^Add /).disabled);assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,0);assert.match(t.doc.body.textContent,/Choose product/);
   await t.click('Pizza Dough');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);
 });
 await run('duplicate source reason independently holds a second extraction of the same phrase',async t=>{
   await t.hear([item('dough',2,{spoken:'two pizza dough',quantityWords:'two'}),item('dough',2,{spoken:'two pizza dough',quantityWords:'two',quantityReviewReason:'source_already_used'})]);
-  assert.match(t.doc.body.textContent,/Another row already used these source words/);assert.match(t.button(/^Add /).textContent,/Add 1 item/);await t.apply();await until(()=>t.saved().length>0);
+  assert.match(t.doc.body.textContent,/Source already counted/);assert.match(t.button(/^Add /).textContent,/Add 1 item/);await t.apply();await until(()=>t.saved().length>0);
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);assert.ok(t.button(/^Add /).disabled);assert.equal(t.review().length,1);
 });
 
@@ -915,11 +922,100 @@ await run('food review omits duplicate heard quantity while retaining independen
   await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='dough'));
   await t.hear([item('dough',1,{spoken:'twelve pizza dough',quantityWords:'twelve',quantityNeedsReview:true})]);
   assert.doesNotMatch(t.doc.body.textContent,/Heard quantity:/);
-  assert.match(t.doc.body.textContent,/Enter both Cases and Loose quantity/);
+  assert.match(t.doc.body.textContent,/Enter the count/);
   assert.ok(t.button(/^Add /).disabled);
   await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
   await t.input('Loose quantity for Pizza Dough','12');await t.apply();
   await until(()=>Number(t.qa.lines.find(l=>l.skuId==='dough')?.qtyUnits)===14);
 });
 
-console.log(`${passed} food voice UI scenarios passed including recorder failure messages, audio gaps, per-field quantity confirmation and identity/source holds.`);
+await run('ready BIB counts use green product pills and one editable raw amount',async t=>{
+  await t.hear([item('lemon-lime',1,{spoken:'one Starry'}),item('cotton-candy',1,{spoken:'one blue cotton candy ICEE'})]);
+  const rows=[...t.doc.querySelectorAll('.lq-fc-rev-row')];
+  assert.equal(rows.length,2);
+  for(const row of rows){assert.ok(row.querySelector('.lq-chip-on'));assert.equal(row.querySelectorAll('.lq-fc-rev-quantities input').length,1);assert.equal(row.querySelector('input').value,'1');assert.equal(row.querySelector('.lq-error,.lq-fc-rev-ask'),null);}
+  assert.equal(t.doc.querySelector('.lq-fc-rev-product'),null,'closed product search adds no repeated Change product line');
+  assert.match(t.button(/^Add /).textContent,/Add 2 items to Beverage Room/);
+},'bib');
+
+await run('one compact human count replaces both held model components',async t=>{
+  await t.hear([item('dough',1,{cases:7,spoken:'twelve pizza dough',quantityWords:'twelve',quantityNeedsReview:true})]);
+  assert.ok(t.doc.querySelector('.lq-chip-on'),'product stays green while quantity is held');
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,1);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'');
+  await t.input('Loose quantity for Pizza Dough','12');await t.apply();await until(()=>t.saved().length>0);
+  const line=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(line.qtyUnits),12);assert.ok(!line.enteredCases,'model seven cases was completely replaced');
+});
+
+await run('compact proven zero is visible while missing zero stays blank and held',async t=>{
+  await t.hear([item('dough',0,{spoken:'zero pizza dough',quantityWords:'zero',quantityKnown:true}),item('pretzel',0,{spoken:'giant pretzel',quantityKnown:false})]);
+  const fields=[...t.doc.querySelectorAll('.lq-fc-rev-quantities input')];assert.deepEqual(fields.map(e=>e.value),['0','']);
+  assert.match(t.button(/^Add /).textContent,/Add 1 item/);await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),0);assert.ok(t.button(/^Add /).disabled);
+});
+
+await run('a remembered case default displays raw one and saves six once',async t=>{
+  await t.hear([item('fries',1,{spoken:'one fries',quantityWords:'one'})]);
+  const inputs=[...t.doc.querySelectorAll('.lq-fc-rev-quantities input')];assert.equal(inputs.length,1);assert.equal(inputs[0].value,'1');assert.match(inputs[0].getAttribute('aria-label'),/Cases/);
+  await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits),6);
+},'definitions');
+
+await run('alternative case-plus-loose mode uses base labels and returning to one count requires restatement',async t=>{
+  await t.hear([item('fries',1,{spoken:'one fries',quantityWords:'one'})]);await t.click('Count another way');
+  const inputs=[...t.doc.querySelectorAll('.lq-fc-rev-quantities input')];assert.deepEqual(inputs.map(e=>e.value),['1','0']);assert.match(inputs[1].closest('label').textContent,/bags/);
+  await t.input('Loose quantity for Sample Fries','2');await t.click('Use one count');
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,1);assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'');assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Sample Fries','8');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits),8);
+},'definitions');
+
+for(const [cases,units,phrase] of [[1,0,'one case and zero packs'],[0,2,'zero cases and two packs']])await run(`explicit mixed count preserves its zero component (${phrase})`,async t=>{
+  await t.hear([item('dough',units,{cases,spoken:phrase+' of pizza dough',quantityWords:phrase,spokenUnit:'pack'})]);
+  const inputs=[...t.doc.querySelectorAll('.lq-fc-rev-quantities input')];assert.deepEqual(inputs.map(e=>e.value),[String(cases),String(units)]);
+  await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),cases*20+units);
+});
+
+await run('a case-counted product keeps confirmed two bags visible and saves one case',async t=>{
+  await t.hear([item('dough',2,{spoken:'two bags of pizza dough',spokenUnit:'bag'})]);
+  const input=t.doc.querySelector('.lq-fc-rev-quantities input');assert.equal(input.value,'2');assert.match(input.closest('label').textContent,/bag/);assert.equal(t.doc.querySelector('.lq-fc-rev-ask'),null);
+  await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),1);
+},'definitions&case-bags');
+
+await run('manual package conversion keeps raw two bags and converts only once',async t=>{
+  await t.hear([item('dough',2,{spoken:'two bags of pizza dough',spokenUnit:'bag'})]);assert.ok(t.button(/^Add /).disabled);
+  await t.input('Package size for Pizza Dough','2');assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'2');assert.match(t.doc.querySelector('.lq-fc-rev-quantities label').textContent,/bag/);
+  await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),1);
+},'definitions');
+
+await run('green held product pill opens search without certifying the number',async t=>{
+  await t.hear([item('dough',1,{spoken:'twelve dough',quantityWords:'twelve',quantityNeedsReview:true})]);
+  await t.click(/^✓ Pizza Dough$/);await t.input('Find product for twelve dough','Giant Pretzel');await t.click('Giant Pretzel');
+  assert.ok(t.doc.querySelector('.lq-chip-on'));assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'');assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Giant Pretzel','12');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='pretzel').qtyUnits),12);
+});
+
+for(const [reason,hint] of [['source_revised',/You corrected this item/],['unquantified_remainder',/Enter a total number.*including the extra/]])await run(`targeted ${reason} prompt preserves a green match and blank count`,async t=>{
+  await t.hear([item('dough',1,{spoken:'pizza dough and a little extra',quantityWords:'one',quantityReviewReason:reason})]);
+  assert.ok(t.doc.querySelector('.lq-chip-on'));assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'');assert.match(t.doc.querySelector('.lq-error').textContent,hint);assert.ok(t.button(/^Add /).disabled);
+});
+
+await run('one primary sticky Add consumes ready rows once and retains held rows',async t=>{
+  await t.hear([item('dough',2),item('pretzel',3),item('unknown',1,{spoken:'twelve unknown packages',quantityWords:'twelve',quantityNeedsReview:true})]);
+  const adds=[...t.doc.querySelectorAll('button')].filter(b=>/^Add \d+ items? to/.test(b.textContent.trim()));
+  assert.equal(adds.length,1);assert.ok(adds[0].closest('.lq-footer'));assert.ok(adds[0].classList.contains('lq-btn-primary'));assert.match(adds[0].textContent,/Add 2 items to Pizza Freezer/);assert.equal(t.saved().length,0);
+  adds[0].click();adds[0].click();await until(()=>t.qa.lines.length===2);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='pretzel').qtyUnits),3);
+  assert.equal(t.review().length,1);assert.match(t.button(/^Add /).textContent,/Add 0 items/);assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Unknown Package','12');await t.apply();await until(()=>t.qa.lines.length===3);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='unknown').qtyUnits),12);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);
+});
+
+await run('held-only sticky Add stays disabled until a valid whole answer including zero',async t=>{
+  await t.hear([item('dough',1,{spoken:'zero pizza dough',quantityWords:'zero',quantityNeedsReview:true})]);
+  const add=t.button(/^Add /);assert.ok(add.closest('.lq-footer'));assert.ok(add.disabled);assert.ok(t.button('Home').disabled);add.click();await pause();assert.equal(t.saved().length,0);
+  await t.input('Loose quantity for Pizza Dough','');assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Pizza Dough','-1');assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Pizza Dough','0');assert.ok(!t.button(/^Add /).disabled);await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),0);
+});
+
+console.log(`${passed} food voice UI scenarios passed including compact raw counts, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);

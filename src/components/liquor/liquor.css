@@ -2258,6 +2258,9 @@
 .lq-fc-rev-match {
   color: #9fd39f;
 }
+.lq-fc-rev-match.lq-chip-on {
+  color: #10121a;
+}
 .lq-fc-rev-note {
   color: #ffcf5c;
 }
