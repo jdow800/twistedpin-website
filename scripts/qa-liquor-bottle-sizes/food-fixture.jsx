@@ -22,6 +22,19 @@ const zones = fixtureOverride?.zones ?? [
 ];
 const existing = new URL(location.href).searchParams.has('existing');
 const params = new URL(location.href).searchParams;
+if (params.has('case-breakdown')) {
+  const answer = (countUnit,unitsPerCase,unitLabel,defaultSpokenUnit,spokenUnits) => ({countUnit,unitsPerCase,unitLabel,defaultSpokenUnit,spokenUnits,confirmedBy:'QA count definition',confirmedAt:'2026-01-01'});
+  const cases = [
+    {id:'case-sauce',name:'Sauce, Pizza, Canned',countUnit:'each',unitsPerCase:6,countDefinition:answer('each',6,'can','case',{case:6,can:1,bag:2})},
+    {id:'case-beans',name:'Refried Beans',countUnit:'pack',unitsPerCase:6,countDefinition:answer('pack',6,'bag','case',{case:6,bag:1})},
+    {id:'case-canonical',name:'Canonical Case Product',countUnit:'case',unitsPerCase:1,countDefinition:answer('case',1,'case','case',{case:1})},
+    {id:'case-unknown',name:'Unknown Package',countUnit:'pack',unitsPerCase:null},
+    {id:'case-bib',name:'Syrup, Diet Pepsi',countUnit:'bib',unitsPerCase:1,countDefinition:answer('bib',1,'bib','bib',{case:1,bib:1})},
+  ].map(s=>({category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null,...s}));
+  catalog.splice(0,catalog.length,...cases);
+  zones[0] = {id:'pizza',name:'Pizza Line',walkOrder:1,memberSkuIds:cases.map(s=>s.id)};
+  zones[1].memberSkuIds = cases.map(s=>s.id);
+}
 // October 6 Beverage Room reproduction: real catalog names/definitions with
 // fictional IDs. Keep flavor siblings so a convenient partial match cannot
 // make the seven-item transcript appear safe.

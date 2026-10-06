@@ -24,6 +24,11 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const looseLabel = q.inputUnit === sku?.countUnit ? foodUnitLabel(sku, 2) : q.inputUnit || foodUnitLabel(sku, 2);
   const unit = singleCases && !mixed ? "Cases" : r.unitNeedsReview || q.needsUnitChoice ? "Quantity" : looseLabel;
   const held = !!fields.length || !!r.quantityNeedsReview || !r.quantityKnown;
+  const caseBreakdown = q.ready && q.cases > 0 && q.caseSize != null && sku?.countUnit !== "case"
+    ? `${formatQty(q.cases)} ${q.cases === 1 ? "case" : "cases"} × ${formatQty(q.caseSize)} ${foodUnitLabel(sku, q.caseSize)}`
+      + (q.units > 0 ? ` + ${formatQty(q.units)} ${foodUnitLabel(sku, q.units)}` : "")
+      + ` = ${formatQty(q.qty)} ${foodUnitLabel(sku, q.qty)}`
+    : null;
   const quantityHint = r.quantityReviewReason === "source_revised" ? "You corrected this item. Discard it or enter a separate count."
     : r.quantityReviewReason === "unquantified_remainder" ? `Enter a total number${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}, including the extra.`
     : r.quantityReviewReason === "source_already_used" ? "Source already counted. Discard or enter a separate count."
@@ -73,6 +78,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
           aria-invalid={!!r.invalidQuantityFields?.length || undefined}
           onRaw={raw => onQuantity(singleCases ? "cases" : "units", raw, true)} /></label>}
       </div>
+      {caseBreakdown && <span className="lq-muted lq-rev-hint lq-fc-rev-case-breakdown">{caseBreakdown}</span>}
       {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
       {!!r.invalidQuantityFields?.length && <span className="lq-error lq-rev-hint">Use a number of 0 or more.</span>}
       {!casesOnly && !canonicalCaseBasis && <button type="button" className="lq-linkbtn" onClick={anotherWay}>{mixed ? "Use one count" : "Count another way"}</button>}

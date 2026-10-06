@@ -16,6 +16,7 @@ let passed = 0;
 /** The classic scenarios run with the off-switch (?pausecuts=0: one extraction
  *  per piece, as before 2026-10-02). The pause-cut scenarios pass pauseCuts. */
 async function run(name, test, existing = false, pauseCuts = false) {
+  if (process.env.FOOD_VOICE_QA_FILTER && !new RegExp(process.env.FOOD_VOICE_QA_FILTER).test(name)) return;
   const query = [typeof existing==='string'?existing:existing?'existing':'', pauseCuts?'':'pausecuts=0'].filter(Boolean).join('&');
   const dom = new JSDOM('<!doctype html><div id="root"></div>',{
     url:`http://localhost/${query?'?'+query:''}`,runScripts:'outside-only',pretendToBeVisual:true,
@@ -1018,4 +1019,53 @@ await run('held-only sticky Add stays disabled until a valid whole answer includ
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),0);
 });
 
-console.log(`${passed} food voice UI scenarios passed including compact raw counts, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);
+await run('case breakdown: raw three cases displays eighteen cans; editing to two saves twelve',async t=>{
+  await t.hear([item('case-sauce',0,{spoken:'three cases pizza sauce',quantityWords:'three cases',cases:3,qty:18,quantityKnown:true})]);
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,1);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'3');
+  assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,/3 cases × 6 cans = 18 cans/);
+  await t.input('Cases for Sauce, Pizza, Canned','2');assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,/2 cases × 6 cans = 12 cans/);
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),12);assert.equal(Number(t.qa.lines[0].enteredCases),2);
+},'case-breakdown');
+
+await run('case breakdown: fractional cases preserve the raw half and save three cans',async t=>{
+  await t.hear([item('case-sauce',0,{spoken:'half a case pizza sauce',quantityWords:'half a case',cases:0.5,qty:3})]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'0.5');assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,/0\.5 cases × 6 cans = 3 cans/);
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),3);
+},'case-breakdown');
+
+await run('case breakdown: confirmed default one case of beans stays one and saves six bags',async t=>{
+  await t.hear([item('case-beans',1,{spoken:'one refried beans',quantityWords:'one',qty:6})]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'1');assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,/1 case × 6 bags = 6 bags/);
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),6);
+},'case-breakdown');
+
+for(const [unit,total,loose] of [['can',20,2],['bag',22,4]])await run(`case breakdown: mixed cases plus ${unit} use the canonical loose total once`,async t=>{
+  await t.hear([item('case-sauce',2,{spoken:`three cases and two ${unit}s of pizza sauce`,quantityWords:`three cases and two ${unit}s`,spokenUnit:unit,cases:3,qty:total})]);
+  assert.deepEqual([...t.doc.querySelectorAll('.lq-fc-rev-quantities input')].map(e=>e.value),['3','2']);assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,new RegExp(`3 cases × 6 cans \\+ ${loose} cans = ${total} cans`));
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),total);
+},'case-breakdown');
+
+await run('case breakdown: canonical case products avoid cases of cases',async t=>{
+  await t.hear([item('case-canonical',0,{spoken:'three cases',quantityWords:'three cases',cases:3,qty:3})]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'3');assert.equal(t.doc.querySelector('.lq-fc-rev-case-breakdown'),null);
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),3);
+},'case-breakdown');
+
+await run('case breakdown: unknown case size withholds totals and blocks Add',async t=>{
+  await t.hear([item('case-unknown',0,{spoken:'three cases unknown package',quantityWords:'three cases',cases:3,qty:0,needsCaseSize:true})]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'3');assert.equal(t.doc.querySelector('.lq-fc-rev-case-breakdown'),null);assert.ok(t.button(/^Add 0/).disabled);assert.equal(t.saved().length,0);
+},'case-breakdown');
+
+await run('case breakdown: held model case quantity never produces a guessed total',async t=>{
+  await t.hear([item('case-sauce',0,{spoken:'pizza sauce uncertain count',quantityWords:'three cases',cases:3,qty:18,quantityKnown:false,quantityNeedsReview:true})]);
+  assert.ok(t.doc.querySelector('.lq-chip-on'));assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'');assert.equal(t.doc.querySelector('.lq-fc-rev-case-breakdown'),null);assert.ok(t.button(/^Add 0/).disabled);assert.equal(t.saved().length,0);
+},'case-breakdown');
+
+await run('case breakdown: one BIB case displays its one BIB without an extra count box',async t=>{
+  await t.hear([item('case-bib',0,{spoken:'one case Diet Pepsi',quantityWords:'one case',cases:1,qty:1})]);
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,1);assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'1');assert.match(t.doc.querySelector('.lq-fc-rev-case-breakdown').textContent,/1 case × 1 bib = 1 bib/);
+  await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),1);
+},'case-breakdown');
+
+console.log(`${passed} food voice UI scenarios passed including compact raw counts, case breakdowns, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);
