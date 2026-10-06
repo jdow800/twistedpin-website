@@ -214,35 +214,113 @@
   flex-direction: column;
   gap: 14px;
 }
+/* Icon, then title, subtitle and an optional badge stacked in the text column.
+   Every part is placed in its column, so a tile without an icon can never push
+   its title into the 56px icon column (the 2026-10-06 "My / recipe / questions"
+   wrap), and the badge never takes width from the title. */
 .lq-action {
   display: grid;
-  grid-template-columns: 56px 1fr;
-  grid-template-rows: auto auto;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
   align-items: center;
   column-gap: 14px;
+  row-gap: 2px;
   text-align: left;
   background: var(--lq-panel);
   border: 1px solid var(--lq-line);
   border-radius: var(--lq-radius);
   color: var(--lq-text);
-  padding: 20px 18px;
+  padding: 18px 18px;
   cursor: pointer;
 }
 .lq-action:active {
   border-color: var(--lq-glow);
 }
 .lq-action-emoji {
-  grid-row: 1 / 3;
+  grid-column: 1;
+  grid-row: 1 / 4;
   font-size: 34px;
   line-height: 1;
 }
 .lq-action-title {
+  grid-column: 2;
   font-size: 20px;
   font-weight: 800;
+  line-height: 1.2;
 }
 .lq-action-sub {
+  grid-column: 2;
   font-size: 13px;
   color: var(--lq-muted);
+}
+.lq-action-badge {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: start;
+  margin-top: 6px;
+  background: var(--lq-glow);
+  color: var(--lq-bg);
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.lq-home-section + .lq-home-section {
+  margin-top: 24px;
+}
+.lq-home-section .lq-section-label {
+  margin: 0 4px 10px;
+  font-weight: 700;
+}
+/* Reports and setup: two compact tiles a row on a phone, three from 640px. */
+.lq-home-tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .lq-home-tiles {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.lq-home-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+  min-height: 112px;
+  text-align: left;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line);
+  border-radius: var(--lq-radius);
+  color: var(--lq-text);
+  font: inherit;
+  padding: 14px;
+  cursor: pointer;
+}
+.lq-home-tile:active {
+  border-color: var(--lq-glow);
+}
+.lq-home-tile-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+.lq-home-tile-title {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+.lq-home-tile-sub {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--lq-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ── count (shared) ── */
