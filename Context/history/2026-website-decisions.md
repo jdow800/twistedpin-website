@@ -1,3 +1,11 @@
+## 2026-10-06 — Food recording uses the same pinned Stop action as liquor
+
+Jon's phone test found the kitchen recorder's small inline Stop/timer harder to use than the liquor walk. Food now uses the shared full-width, bottom-pinned **■ Stop & review** action, with elapsed/total time in the listening panel. After Stop the action becomes disabled Processing recording while pending speech finishes. The recording stays assigned to its original shelf; Finish, save and failed-clip guards remain in force.
+
+Food speech review omits the duplicate Heard quantity line. Its original spoken phrase, editable quantities and genuinely unresolved quantity/unit questions remain visible. Ready rows do not gain extra confirmation questions.
+
+Validation: 82 food voice DOM scenarios and 59 native food review scenarios pass. Native Chromium recording checks at 320/390/412px pass 9 scenarios and 27 assertions covering the pinned action after scrolling, touch Stop, processing/Finish guards and exact saved quantities. Twelve recording screenshots are retained with the food BIB voice incident. Four actual backend source/unit-guard and DTO-to-CountFood scenarios pass 126 assertions using the full 196-item catalog: the seven Beverage Room bare counts become one BIB each without redundant unit questions, while missing quantities and unknown flavors remain unresolved. Synthetic capture/API fixtures do not measure physical microphone recognition.
+
 ## 2026-10-06 — The /cogs landing page is grouped, and the invoice screen can't spin forever
 
 Jon, on his phone: *"The visual here looks like crap"*, and the invoice questions page *"just sticks on loading invoices nothing loads."* He also asked for a visual pass on what John V sees when he logs in.

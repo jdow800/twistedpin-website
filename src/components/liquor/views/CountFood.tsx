@@ -1757,7 +1757,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
       {/* ── voice ── */}
       <div className="lq-fc-voicebar">
-        {!dict.recording ? (
+        {!dict.recording && (
           <button
             type="button"
             className="lq-btn"
@@ -1784,21 +1784,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               ? "Finish the heard items first"
               : `🎙️ Talk through ${zone?.name ?? "this zone"}`}
           </button>
-        ) : (
-          <button
-            type="button"
-            className="lq-btn lq-btn-rec"
-            disabled={!capturing}
-            onClick={() => {
-              setCaptureRequested(false); // speech is over; the shelf is free again
-              dict.stop();
-            }}
-          >
-            {/* Elapsed / total, not a countdown. A countdown reads as a
-                deadline on a job that does not have one — bursts accumulate,
-                so running out is an inconvenience and not a loss. */}
-            {capturing ? `⏹ Stop ${mmss(dict.seconds)} / ${mmss(CAP_SECONDS)}` : "Processing recording"}
-          </button>
         )}
         {/* ⚠ WHILE RECORDING, THIS SCREEN USED TO SHOW ONLY A TIMER.
             The liquor walk has had a level meter, a dead-mic warning and a
@@ -1817,6 +1802,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
               <span className="lq-rec-label">{!capturing ? "Processing recording" : dict.quiet ? "Mic silent" : "Listening…"}</span>
+              <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             {dict.metering && (
               <div className={`lq-mic-meter${dict.quiet ? " is-quiet" : ""}`} aria-hidden="true">
@@ -1838,6 +1824,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}</strong>
               {" — stop before moving to another shelf. Starting again adds to it."}
             </p>
+            <button
+              type="button"
+              className="lq-btn lq-btn-primary lq-rec-stop"
+              disabled={!capturing}
+              onClick={() => {
+                setCaptureRequested(false); // speech is over; the shelf is free again
+                dict.stop();
+              }}
+            >
+              {capturing ? "■ Stop & review" : "Processing recording"}
+            </button>
           </div>
         )}
         {dict.recording && dict.seconds >= WARN_SECONDS && (
@@ -1902,7 +1899,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             return (
               <div key={r.key} className={`lq-fc-rev-row${applyable(r) ? "" : " lq-fc-rev-row-block"}`}>
                 <span className="lq-fc-rev-spoken">“{r.spoken}”</span>
-                {r.quantityWords && <span className="lq-muted">Heard quantity: “{r.quantityWords}”</span>}
                 {r.identityNeedsReview && <span className="lq-error">Choose the exact product you counted. Quantity and unit answers do not confirm the product.</span>}
                 {r.quantityReviewReason === "source_already_used" && <span className="lq-error">Another row already used these source words. Discard this duplicate unless you counted a separate amount.</span>}
                 {r.quantityNeedsReview && <span className="lq-error">{caseOnly ? "Restate the whole quantity in Cases. Enter 0 if none." : "Enter both Cases and Loose quantity. Enter 0 in a box if none."} Choosing a product or unit does not confirm the number.</span>}

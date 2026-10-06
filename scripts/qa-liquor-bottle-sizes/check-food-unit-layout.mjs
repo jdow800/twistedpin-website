@@ -33,7 +33,7 @@ try {
     await waitFor('foodQa.recorder');
     await evaluate(`foodQa.recorder.segment('celery three',0)`);
     await waitFor('foodQa.extracts.length===1');
-    await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Stop 0:00')).click()`);
+    await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.includes('Stop & review')).click()`);
     const processing=await evaluate(`[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Processing recording')?.disabled`);
     assert.equal(processing,true,`${width}px: Stop must show processing`);
     await evaluate(`foodQa.extracts[0].succeed([{spoken:'celery three',cases:0,units:3,quantityKnown:true,spokenUnit:null,unitNeedsReview:true,match:{id:'celery'},candidates:[]}]);foodQa.recorder.finish('celery three','Transcription took too long. Record the missing items again or type them.')`);

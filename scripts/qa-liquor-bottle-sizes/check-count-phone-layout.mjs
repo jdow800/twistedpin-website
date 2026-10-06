@@ -131,7 +131,7 @@ try {
       {spoken:'two cauliflower crusts',cases:2,units:0,spokenUnit:null,match:{id:'cauliflower'},candidates:[]},
       {spoken:'six flatbreads',cases:6,units:0,spokenUnit:null,match:{id:'flatbread'},candidates:[]},
     ]));
-    await page.getByRole('button',{name:/Stop \d+:\d+/}).click();
+    await page.getByRole('button',{name:/Stop & review/}).click();
     await page.evaluate(()=>window.foodQa.recorder.finish('two cauliflower crusts. six flatbreads.'));
     await page.getByText('Cauliflower Crust · 2 cases',{exact:true}).waitFor();
     await page.getByText('Flatbread · 6 cases',{exact:true}).waitFor();

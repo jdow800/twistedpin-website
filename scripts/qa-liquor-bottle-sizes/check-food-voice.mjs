@@ -52,9 +52,9 @@ async function run(name, test, existing = false, pauseCuts = false) {
       // JSDOM otherwise races its passive effects with the synthetic new take.
       await pause();
       await click(/Talk through/);
-      await until(() => button(/Stop \d+:\d+/));
+      await until(() => button(/^■ Stop & review$/));
     };
-    const stop = () => click(/Stop \d+:\d+/);
+    const stop = () => click(/^■ Stop & review$/);
     const segment = async (text,index) => { qa.recorder.segment(text,index); await pause(); };
     const finish = async text => { qa.recorder.finish(text); await pause(); };
     const review = () => [...doc.querySelectorAll('.lq-fc-rev-spoken')].map(e => e.textContent);
@@ -889,6 +889,37 @@ await run('duplicate source reason independently holds a second extraction of th
   await t.hear([item('dough',2,{spoken:'two pizza dough',quantityWords:'two'}),item('dough',2,{spoken:'two pizza dough',quantityWords:'two',quantityReviewReason:'source_already_used'})]);
   assert.match(t.doc.body.textContent,/Another row already used these source words/);assert.match(t.button(/^Add /).textContent,/Add 1 item/);await t.apply();await until(()=>t.saved().length>0);
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);assert.ok(t.button(/^Add /).disabled);assert.equal(t.review().length,1);
+});
+
+await run('food recording has one pinned Stop action, a panel timer and a disabled processing action',async t=>{
+  await t.start();
+  assert.equal(t.doc.querySelectorAll('.lq-rec-stop').length,1);
+  assert.equal(t.doc.querySelector('.lq-rec-stop').textContent.trim(),'■ Stop & review');
+  assert.equal(t.doc.querySelector('.lq-fc-voicebar > .lq-btn-rec'),null,'no separate inline Stop/timer');
+  t.qa.recorder.preview('Still counting the original shelf.',2);await pause();
+  assert.equal(t.doc.querySelector('.lq-rec-head .lq-rec-timer').textContent,'0:02 / 4:00');
+  assert.ok(t.button('Stop recording first').disabled);
+  assert.ok(t.button('Home').disabled);
+  await t.stop();
+  assert.ok(t.button('Processing recording').disabled,'Stop cannot be tapped while uploads finish');
+  assert.equal(t.doc.querySelector('.lq-rec-head .lq-rec-timer').textContent,'0:02 / 4:00');
+  await t.finish('');
+  assert.equal(t.doc.querySelector('.lq-rec-stop'),null);
+});
+
+await run('food review omits duplicate heard quantity while retaining independent unresolved number answers',async t=>{
+  await t.hear([item('dough',2,{spoken:'two pizza dough',quantityWords:'two'})]);
+  assert.doesNotMatch(t.doc.body.textContent,/Heard quantity:/);
+  assert.match(t.doc.querySelector('.lq-fc-rev-match').textContent,/Pizza Dough/);
+  assert.ok(!t.button(/^Add /).disabled);
+  await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='dough'));
+  await t.hear([item('dough',1,{spoken:'twelve pizza dough',quantityWords:'twelve',quantityNeedsReview:true})]);
+  assert.doesNotMatch(t.doc.body.textContent,/Heard quantity:/);
+  assert.match(t.doc.body.textContent,/Enter both Cases and Loose quantity/);
+  assert.ok(t.button(/^Add /).disabled);
+  await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
+  await t.input('Loose quantity for Pizza Dough','12');await t.apply();
+  await until(()=>Number(t.qa.lines.find(l=>l.skuId==='dough')?.qtyUnits)===14);
 });
 
 console.log(`${passed} food voice UI scenarios passed including recorder failure messages, audio gaps, per-field quantity confirmation and identity/source holds.`);

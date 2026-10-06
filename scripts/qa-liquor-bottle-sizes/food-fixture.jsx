@@ -19,6 +19,31 @@ const zones = [
 ];
 const existing = new URL(location.href).searchParams.has('existing');
 const params = new URL(location.href).searchParams;
+// October 6 Beverage Room reproduction: real catalog names/definitions with
+// fictional IDs. Keep flavor siblings so a convenient partial match cannot
+// make the seven-item transcript appear safe.
+if (params.has('bib')) {
+  const definition = {countUnit:'bib',unitsPerCase:1,unitLabel:'bib',defaultSpokenUnit:'bib',
+    spokenUnits:{bag:1,bib:1,box:1,bibs:1,case:1,'bag in box':1},
+    confirmedBy:'QA confirmed BIB definition',confirmedAt:'2026-09-30'};
+  const bibs = [
+    ['diet-pepsi','Syrup, Diet Pepsi',['Syrup Diet Pepsi']],
+    ['pepsi','Syrup, Pepsi Cola',['Syrup Pepsi Cola']],
+    ['pink-lemonade','Pink Lemonade, Bib',['Pink Lemonade Bib','Syrup, Lemonade Pink','Syrup Lemonade Pink','Lemonade Pink']],
+    ['lemon-lime','Syrup, Lemon Lime',['Syrup Lemon Lime']],
+    ['root-beer','Syrup, Root Beer',['Syrup Root Beer']],
+    ['dr-pepper','Syrup, Dr. Pepper',['Syrup Dr. Pepper']],
+    ['cotton-candy','Cotton Candy',[]],
+    ['blue-raspberry','ICEE Blue Raspberry Syrup',[]],
+    ['cherry','ICEE Cherry Syrup',[]],
+    ['orange','Orange Crush, Bib',['Orange Crush Bib']],
+    ['mountain-dew','Syrup, Mountain Dew',['Syrup Mountain Dew']],
+  ].map(([id,name,aliases])=>({id,name,aliases,countUnit:'bib',unitsPerCase:1,countDefinition:definition,
+    category:'Beverage',sizeMl:null,trackingMode:'stock_count',wacCost:null}));
+  catalog.splice(0,catalog.length,...bibs);
+  zones[0] = {id:'beverage',name:'Beverage Room',walkOrder:1,memberSkuIds:bibs.map(s=>s.id)};
+  zones[1].memberSkuIds = bibs.map(s=>s.id);
+}
 if (params.has('definitions')) {
   const answer = (countUnit, unitsPerCase, extra = {}) => ({
     countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-01-01', ...extra,
@@ -83,7 +108,8 @@ const initialLines = params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'
   : params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
-const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false};
+const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false,
+  catalog,zones};
 qa.failSave = params.has('save-fails');
 qa.detailFails = params.has('submit-unknown');
 qa.submitted = false;
