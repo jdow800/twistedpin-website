@@ -9,8 +9,8 @@ const {outputFiles}=await build({stdin:{contents: `
   import React from 'react';
   import {createRoot} from 'react-dom/client';
   import {useRecorderDictation} from './src/components/liquor/useRecorderDictation';
-  const qa=window.recorderQa={state:null,finals:[],segments:[]};
-  function Harness(){qa.state=useRecorderDictation(text=>qa.finals.push(text),{vocabulary:'liquor',scope:{section:'food'},onSegment:(text,index)=>qa.segments.push({text,index})});return null;}
+  const qa=window.recorderQa={state:null,finals:[],segments:[],failed:[]};
+  function Harness(){qa.state=useRecorderDictation(text=>qa.finals.push(text),{vocabulary:'liquor',scope:{section:'food'},onSegment:(text,index)=>qa.segments.push({text,index}),onSegmentFailed:index=>qa.failed.push(index)});return null;}
   qa.root=createRoot(document.getElementById('root'));qa.root.render(<Harness/>);
 `,resolveDir:fileURLToPath(new URL('../../',import.meta.url)),loader:'jsx'},bundle:true,write:false,platform:'browser',format:'iife',define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'}});
 const pause=()=>new Promise(r=>setTimeout(r,10));
@@ -51,12 +51,13 @@ for(const mode of ['client-timeout','server-timeout','wifi-retry','partial-timeo
     }
     await until(()=>qa.finals.length===1&&!qa.state.recording);
     assert.ok(stopped>0,'Stop must release the microphone even when the request stalls');
-    if(mode==='wifi-retry'){assert.equal(requests.length,2);assert.equal(qa.finals[0],'one case');assert.equal(qa.state.error,null);}
+    if(mode==='wifi-retry'){assert.equal(requests.length,2);assert.equal(qa.finals[0],'one case');assert.equal(qa.state.error,null);assert.equal(qa.failed.length,0,'a successful retry is not a failed audio gap');}
     else{
       assert.equal(requests.length,mode==='partial-timeout'?2:1,'A timeout must not trigger another full wait');
       assert.match(qa.state.error,/took too long/);
       assert.equal(qa.finals[0],mode==='partial-timeout'?'one case':'');
       assert.equal(qa.segments.length,mode==='partial-timeout'?1:0);
+      assert.deepEqual([...qa.failed],[mode==='partial-timeout'?1:0],'the final failed clip reports its index exactly once');
     }
     qa.root.unmount();passed++;console.log('PASS recorder',mode);
   }finally{win.close();}

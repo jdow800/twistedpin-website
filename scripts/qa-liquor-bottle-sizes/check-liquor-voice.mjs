@@ -405,5 +405,23 @@ await run('Retry check runs the advisory again and does not submit',async t => {
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
 }, 'check-fails');
 
+for(const query of ['', 'pausecuts=0'])await run(`failed audio boundary cannot join a bottle name to the next clip (${query||'pause cuts'})`,async t=>{
+  await t.shelf('Well');await t.start();await t.segment('Titos,',0);
+  if(!query)assert.equal(t.qa.extracts.length,0);
+  t.qa.recorder.fail(1);await pause();await until(()=>t.qa.extracts.length===1);
+  assert.equal(t.qa.extracts[0].body.transcript,'Titos,');
+  t.qa.extracts[0].succeed([{...item('titos',0),spoken:'Titos,',quantityKnown:false}]);
+  await t.segment('Jameson, one.',2);await t.stop();await t.finish('Titos, two. Jameson, one.');
+  await until(()=>t.qa.extracts.length===2);assert.equal(t.qa.extracts[1].body.transcript,'Jameson, one.');
+  t.qa.extracts[1].succeed([{...item('jameson',1),spoken:'Jameson, one.'}]);await until(()=>t.doc.querySelector('.lq-sheet'));
+  assert.match(t.doc.body.textContent,/couldn.t be processed|missing/i);assert.ok(!t.button(/Try text again/i));
+  await t.click(/^Add 1 to /);await until(()=>t.qa.lines.some(l=>l.skuId==='jameson'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='jameson'&&l.zoneId==='well').qtyUnits),1);assert.ok(!t.qa.lines.some(l=>l.skuId==='titos'));
+},query);
+for(const query of ['', 'pausecuts=0'])await run(`wholly failed audio cannot replay a joined transcript (${query||'pause cuts'})`,async t=>{
+  await t.shelf('Well');await t.start();t.qa.recorder.fail(0);await pause();await t.stop();await t.finish('Titos, two.');await pause();await pause();
+  assert.equal(t.qa.extracts.length,0);assert.equal(t.saves(),0);assert.match(t.doc.body.textContent,/missing/i);assert.ok(!t.button(/Try text again/i));
+},query);
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

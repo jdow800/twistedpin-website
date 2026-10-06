@@ -118,9 +118,51 @@ check('carry: Stop sends pieces queued behind a failed one', () => {
   carry.add('Aperol, one.', 0);
   carry.add('Campari, two.', 2);                          // piece 1 failed and never reports
   carry.flush(99);
-  assert.deepEqual(sent, [[0, 'Aperol, one.'], [99, 'Campari, two.']]);
+  assert.deepEqual(sent, [[0, 'Aperol, one.'], [2, 'Campari, two.']]);
   carry.add('Tito\'s, one.', 0);                          // the next take starts clean
   assert.deepEqual(sent.at(-1), [0, 'Tito\'s, one.']);
+});
+
+check('food carry: a quantity sentence stays with the following product name', () => {
+  assert.deepEqual(m.splitFoodTail('Two cases. Pizza sauce.'), {head:'',tail:'Two cases. Pizza sauce.'});
+  assert.deepEqual(m.splitFoodTail('Oreos, one case. Zero point seven. Spanish rice.'),
+    {head:'Oreos, one case.',tail:'Zero point seven. Spanish rice.'});
+  assert.deepEqual(m.splitFoodTail('One third of a case. Flatbread.'),
+    {head:'',tail:'One third of a case. Flatbread.'});
+});
+
+check('food carry: a known failed clip separates an orphan name from the following quantity', () => {
+  const sent=[];const carry=m.createCarry((text,index)=>sent.push({text,index}),m.splitFoodTail);
+  carry.add('Oreos, one case. Bacon bits,',0);
+  carry.add('Two cases. Pizza sauce.',2);
+  carry.fail(1);
+  assert.equal(carry.flush(99),true);
+  assert.deepEqual(sent.map(s=>s.text),['Oreos, one case.','Bacon bits,','Two cases. Pizza sauce.']);
+  assert.ok(!sent.some(s=>s.text.includes('Bacon bits, Two cases')));
+});
+
+check('food carry: Stop infers a missing clip and never joins across it', () => {
+  const sent=[];const carry=m.createCarry(text=>sent.push(text),m.splitFoodTail);
+  carry.add('Oreos, one case. Bacon bits,',0);
+  carry.add('Two cases. Pizza sauce.',2);
+  assert.equal(carry.flush(99),true);
+  assert.deepEqual(sent,['Oreos, one case.','Bacon bits,','Two cases. Pizza sauce.']);
+});
+
+check('food carry: out-of-order consecutive failures preserve separate surviving phrases', () => {
+  const sent=[];const carry=m.createCarry(text=>sent.push(text),m.splitFoodTail);
+  carry.add('Two cases. Pizza sauce.',3);carry.fail(2);carry.fail(1);carry.add('Bacon bits,',0);
+  assert.equal(carry.flush(99),true);
+  assert.deepEqual(sent,['Bacon bits,','Two cases. Pizza sauce.']);
+  carry.add('Oreos, one case.',0);assert.equal(carry.flush(99),false);
+  assert.equal(sent.at(-1),'Oreos, one case.','the next take has no inherited gap');
+});
+
+check('food carry: a successful empty clip remains a valid continuation', () => {
+  const sent=[];const carry=m.createCarry(text=>sent.push(text),m.splitFoodTail);
+  carry.add('Bacon bits,',0);carry.add('',1);carry.add('One case. Oreos, two cases.',2);
+  assert.equal(carry.flush(99),false);
+  assert.deepEqual(sent,['Bacon bits, One case.','Oreos, two cases.']);
 });
 
 // Food: the product comes before OR after its number, so the last item waits.

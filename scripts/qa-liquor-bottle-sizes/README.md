@@ -1,5 +1,68 @@
 # Bottle-size UI verification
 
+## Food review, corrections and voice gaps
+
+Run from the Website root with the locked Website dependencies installed:
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/check-food-review.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-voice.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --liquor-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-liquor-voice.mjs
+node scripts/qa-liquor-bottle-sizes/check-voice-carry.mjs
+node scripts/qa-liquor-bottle-sizes/check-recorder-generations.mjs
+node scripts/qa-liquor-bottle-sizes/check-recorder-recovery.mjs
+node scripts/qa-liquor-bottle-sizes/check-recorder-lifecycle.mjs
+node scripts/qa-liquor-bottle-sizes/check-recorder-segments.mjs
+node scripts/qa-liquor-bottle-sizes/check-recorder-pauses.mjs
+```
+
+The food review suite bundles actual `CountFood`, React and the API client and
+starts its own temporary local server and native Chromium browser. Fictional
+inventory contains fifty counted products on one shelf. The recorder boundary
+and every HTTP response are controlled; CDP independently blocks external
+requests. It uses no physical microphone, paid provider, database or real count.
+
+Its 50 scenarios verify shelf names, heard evidence, exact resumed fractions,
+direct quantity/case/pack edits and item corrections from Details. Existing
+destinations require explicit Add or Replace; different counting units require
+a fresh answer in the destination's unit. Three concurrent correction endpoint
+changes restore current saved counts and require reconfirmation. Dirty edits,
+including returning to the count screen, require a fresh check and keep clean
+results open for deliberate submission with the fingerprint that was reviewed.
+
+Frozen case and pack sizes survive blank/zero entry, None here, stepper changes
+and unrelated 409 adoption; fresh remote positive package stamps still win.
+Cases-only crust and flatbread never gain loose-piece editors. One third of a
+60-piece case keeps its canonical total of 20. Negative/blank voice fields stay
+held until explicitly answered, including when another field is changed. A
+protocol numeric-review flag cannot be cleared by choosing a unit.
+
+Shelf questions require explicit collision handling and save before updating
+membership. A lost accepted save is confirmed by an exact read of the current
+draft rather than a second write. Refused or mismatched saves leave an enabled
+retry; wrong session, section, source, original speech and package stamps never
+certify membership. Search filters existing counted rows, explains no matches,
+clears on shelf changes and restores all fifty items when cleared.
+
+At 320/360/412/1280px the native suite checks generic and cases-only numerals,
+Clear bounds, no horizontal overflow, fixed footer fit and focus while typing
+`0`, `.`, `7` after a real touch. Screenshots and JSON, including the tested
+component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
+select another Chromium executable. These synthetic checks do not establish
+physical Android keyboard or phone microphone behavior.
+
+Food has 71 DOM voice scenarios and liquor has 33. Audio failures cannot join
+an orphan product name to a later quantity or enable a whole-transcript replay,
+with pause cuts enabled or disabled. Repeated quantities retain both speech
+sources. The 23 carry checks cover known/inferred gaps, out-of-order consecutive
+failures, successful empty clips and quantity-first punctuation. Four actual
+hook generation checks cover late success/failure/onstop and old track events
+after a new take, while keeping the original shelf/take metadata. Four recovery,
+18 native lifecycle, nine interval and three pause-cut checks preserve existing
+capture, retry, permission and device protections.
+
 ## Liquor review and phone controls
 
 From the Website root, after installing the Website's locked dependencies:
@@ -366,7 +429,7 @@ $env:COUNT_QA_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 node check-count-phone-layout.mjs
 ```
 
-Liquor has 29 scenarios and food has 66, including failed saves and explicit
+Liquor has 33 scenarios and food has 71, including failed saves and explicit
 Retry save, rejected submits after successful saves, lost successful Submit
 responses, uncertain outcomes and read-only Check submission, and Retry check.
 Food also verifies that "two cauliflower crusts" and "six flatbreads" mean

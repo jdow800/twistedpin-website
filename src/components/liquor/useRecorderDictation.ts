@@ -118,6 +118,8 @@ export interface RecorderDictationOptions {
    * callback fires before onFinal does; failed segments never fire.
    */
   onSegment?: (text: string, index: number) => void;
+  /** A permanently failed clip is a speech boundary, not an empty clip. */
+  onSegmentFailed?: (index: number) => void;
   /**
    * Cut each segment at the first pause after 20 s, and always by 30 s
    * (pauseDetector.ts), instead of every 20 s by the clock. The clock cut 17 of
@@ -177,6 +179,8 @@ export function useRecorderDictation(
   scopeRef.current = opts.scope;
   const onSegmentRef = useRef(opts.onSegment);
   onSegmentRef.current = opts.onSegment;
+  const onSegmentFailedRef = useRef(opts.onSegmentFailed);
+  onSegmentFailedRef.current = opts.onSegmentFailed;
   const pauseCutsRef = useRef(opts.pauseCuts);
   pauseCutsRef.current = opts.pauseCuts;
   const segStartRef = useRef(0); // when the current segment's recorder started
@@ -222,27 +226,37 @@ export function useRecorderDictation(
 
   /** Retry one brief network/upstream failure; a deadline is already a full wait. */
   const launchUpload = (blob: Blob, idx: number) => {
+    const generation = generationRef.current;
+    const contentType = serverContentType(mimeRef.current);
+    const vocabulary = vocabRef.current;
+    const scope = { ...scopeRef.current, ...(takeIdRef.current ? { takeId: takeIdRef.current, piece: idx } : {}) };
     const seg: Segment = { text: null, failed: false };
     segmentsRef.current[idx] = seg;
+    const current = () => !abortingRef.current && generation === generationRef.current;
+    const fail = (error: unknown) => {
+      seg.failed = true;
+      if (current()) {
+        errMsgRef.current = friendlyError(error);
+        onSegmentFailedRef.current?.(idx);
+      }
+    };
     const p = (async () => {
-      const b64 = await blobToBase64(blob);
-      const contentType = serverContentType(mimeRef.current);
+      let b64: string;
+      try { b64 = await blobToBase64(blob); }
+      catch (error) { fail(error); return; }
+      if (!current()) return;
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
-          seg.text = await transcribeAudio(contentType, b64, vocabRef.current, {
-            ...scopeRef.current,
-            ...(takeIdRef.current ? { takeId: takeIdRef.current, piece: idx } : {}),
-          });
-          if (!abortingRef.current) {
+          seg.text = await transcribeAudio(contentType, b64, vocabulary, scope);
+          if (current()) {
             setState((s) => ({ ...s, transcript: joined() }));
             onSegmentRef.current?.(seg.text, idx);
           }
           return;
         } catch (e) {
           const retryable = e instanceof BarApiError && [0, 502, 503].includes(e.status);
-          if (attempt === 1 || !retryable || abortingRef.current) {
-            seg.failed = true;
-            errMsgRef.current = friendlyError(e);
+          if (attempt === 1 || !retryable || !current()) {
+            fail(e);
             return;
           }
         }
@@ -490,6 +504,7 @@ export function useRecorderDictation(
 
   /** One recorder per segment, all on the SAME stream (mic route never drops). */
   const startSegment = (stream: MediaStream): boolean => {
+    const generation = generationRef.current;
     let rec: MediaRecorder;
     try {
       rec = new MediaRecorder(stream, { mimeType: mimeRef.current, audioBitsPerSecond: AUDIO_BPS });
@@ -504,6 +519,7 @@ export function useRecorderDictation(
       if (e.data && e.data.size > 0) chunks.push(e.data);
     };
     rec.onerror = () => {
+      if (abortingRef.current || generation !== generationRef.current) return;
       // Mid-take recorder death (device yanked, OS reclaim): keep what we have.
       wantRef.current = false;
       setState((s) => ({ ...s, error: "audio-capture" }));
@@ -514,6 +530,7 @@ export function useRecorderDictation(
       }
     };
     rec.onstop = () => {
+      if (abortingRef.current || generation !== generationRef.current) return;
       const blob = new Blob(chunks, { type: mimeRef.current });
       if (blob.size > 0 && !abortingRef.current) {
         launchUpload(blob, segmentsRef.current.length);
@@ -599,7 +616,7 @@ export function useRecorderDictation(
         // renegotiation, battery-save): warn immediately, keep recording.
         for (const track of stream.getAudioTracks()) {
           track.addEventListener("ended", () => {
-            if (!wantRef.current) return;
+            if (abortingRef.current || generation !== generationRef.current || !wantRef.current) return;
             errMsgRef.current = "mic disconnected — recording closed with what was captured";
             setState((s) => ({ ...s, error: "mic disconnected", quiet: true, level: 0 }));
             try {
@@ -610,7 +627,7 @@ export function useRecorderDictation(
             stop();
           });
           track.addEventListener("mute", () => {
-            if (!wantRef.current || quietRef.current) return;
+            if (abortingRef.current || generation !== generationRef.current || !wantRef.current || quietRef.current) return;
             quietRef.current = true;
             setState((s) => ({ ...s, quiet: true, level: 0 }));
             beep([[330, 200], [330, 200]]);
@@ -621,6 +638,7 @@ export function useRecorderDictation(
             }
           });
           track.addEventListener("unmute", () => {
+            if (abortingRef.current || generation !== generationRef.current || !wantRef.current) return;
             lastLoudAtRef.current = Date.now();
             if (quietRef.current) {
               quietRef.current = false;

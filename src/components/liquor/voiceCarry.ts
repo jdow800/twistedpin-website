@@ -54,7 +54,7 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
 const NUMBER_WORDS = new Set(
   ("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen " +
    "seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred thousand point " +
-   "half quarter quarters dozen couple few").split(" "),
+   "half quarter quarters third thirds dozen couple few").split(" "),
 );
 /** Words that never name a food product: numbers, packages and filler. When
  *  one is missing here the extension below still keeps the item whole. */
@@ -90,6 +90,24 @@ export function splitFoodTail(text: string): { head: string; tail: string } {
   let at = phrases.findLastIndex((p) => namesFood(p.text));
   if (at < 0) at = 0;
   while (at > 0 && namesFood(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
+  // A quantity-first phrase may end with punctuation inserted by ASR before
+  // the following name. Keep that orphan quantity with the unfinished item;
+  // never swallow an earlier phrase that already names a different product.
+  let quantityStart = at;
+  while (quantityStart > 0 && !namesFood(phrases[quantityStart - 1]!.text)) {
+    // A comma separates a name/size/count within one item. A sentence end
+    // can strand a quantity before its product; only extend over that end.
+    const separator = text.slice(phrases[quantityStart - 1]!.start, phrases[quantityStart]!.start).trim().at(-1);
+    if (quantityStart > 1 && !/[.!?]/.test(separator ?? "")) break;
+    quantityStart--;
+  }
+  if (quantityStart < at) {
+    // In "Oreos, one case. Zero point seven. Spanish rice", the first
+    // quantity finishes Oreos; only the orphan second quantity leads rice.
+    const previous = phrases[quantityStart - 1];
+    if (previous && namesFood(previous.text) && !hasNumber(previous.text)) quantityStart++;
+    at = Math.min(at, quantityStart);
+  }
   const from = phrases[at]!.start;
   const tail = text.slice(from).trim();
   if (tail.split(/\s+/).length > MAX_HELD_FOOD_WORDS) return { head: text.trim(), tail: "" };
@@ -107,31 +125,59 @@ export function createCarry(
   send: (text: string, index: number) => void,
   split: (text: string) => { head: string; tail: string } = splitUnfinished,
 ) {
-  const waiting = new Map<number, string>();
+  const waiting = new Map<number, string | null>();
   let next = 0;
   let held = "";
+  let hasGaps = false;
   const reset = () => {
     waiting.clear();
     held = "";
     next = 0;
+    hasGaps = false;
+  };
+  const boundary = (index: number) => {
+    hasGaps = true;
+    // This index has no successful extraction, so it is a distinct destination
+    // for the orphan held text, even when the previous piece emitted a head.
+    if (held) send(held, index);
+    held = "";
+  };
+  const consume = () => {
+    while (waiting.has(next)) {
+      const text = waiting.get(next)!;
+      waiting.delete(next);
+      if (text === null) boundary(next);
+      else {
+        const { head, tail } = split(`${held} ${text}`.trim());
+        held = tail;
+        if (head) send(head, next);
+      }
+      next++;
+    }
   };
   return {
     add(text: string, index: number) {
+      if (index < next) return;
       waiting.set(index, text);
-      while (waiting.has(next)) {
-        const { head, tail } = split(`${held} ${waiting.get(next)}`.trim());
-        waiting.delete(next);
-        held = tail;
-        if (head) send(head, next);
-        next++;
-      }
+      consume();
     },
-    /** Stop: everything still waiting, in order, as one last piece. */
+    /** A permanently failed clip advances the queue without joining speech. */
+    fail(index: number) {
+      if (index < next) return;
+      waiting.set(index, null);
+      consume();
+    },
+    /** Stop: partition queued speech at every unreported/failed index. Returns
+     * whether any gap was found, so a caller cannot retry the joined transcript. */
     flush(lastIndex: number) {
-      const rest = [...waiting.entries()].sort(([a], [b]) => a - b).map(([, t]) => t);
-      const text = [held, ...rest].join(" ").trim();
+      for (const index of [...waiting.keys()].sort((a, b) => a - b)) {
+        if (index > next) { boundary(next); next = index; }
+        consume();
+      }
+      if (held) send(held, lastIndex);
+      const missing = hasGaps;
       reset();
-      if (text) send(text, lastIndex);
+      return missing;
     },
     /** A new take starts at piece 0 with nothing held. */
     reset,

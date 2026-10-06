@@ -5,6 +5,9 @@ import { formatQty } from "./quantity";
 export interface FoodReviewItem {
   key: string;
   spoken: string;
+  quantityWords?: string;
+  quantityNeedsReview?: boolean;
+  invalidQuantityFields?: ("cases" | "units")[];
   cases: number;
   units: number;
   chosenSkuId: string | null;
@@ -73,7 +76,7 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);
   const qty = Math.round((cases * (caseSize ?? 0) + units) * 1000) / 1000;
   return { cases, caseSize, inputUnit, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
-    ready: !!sku && r.quantityKnown && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
+    ready: !!sku && r.quantityKnown && !r.quantityNeedsReview && !(r.invalidQuantityFields?.length) && Number.isFinite(r.cases) && Number.isFinite(r.units) && Number.isFinite(qty) && r.cases >= 0 && r.units >= 0 && qty >= 0 && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
 }
 
 /** Deliberately broad warning thresholds: history can miss deliveries and stock

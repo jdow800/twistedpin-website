@@ -83,7 +83,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   await t.segment('two dough',0);
   assert.equal(t.qa.extracts.length,1,'matching must begin before Stop');
   assert.equal(t.qa.extracts[0].body.section,'food');
-  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,2);
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,3);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
   assert.equal(t.qa.recorder.options.pauseCuts,false,'?pausecuts=0 is the clock fallback');
@@ -209,6 +209,10 @@ await run('an open submit panel stays blocked through recording, extraction and 
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,checks,'returning to review cannot run another precheck');
   assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')));
   await t.apply();
+  assert.ok(t.button('Submit the count').disabled,'new voice additions invalidate the earlier check');
+  await t.click('Recheck count');
+  await until(() => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length===checks+1);
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
   await t.click('Submit the count');
   await until(() => t.qa.calls.some(c => c.path.endsWith('/submit')));
   assert.equal(t.qa.lines.find(l => l.skuId==='dough').qtyUnits,3);
@@ -726,7 +730,7 @@ await run('a count changed elsewhere after the check is checked again before it 
   await until(() => t.button('Submit the count'));
   await t.click('Submit the count');
   const prechecks = () => t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
-  await until(() => prechecks() === 2 && /this is a fresh one/.test(t.doc.body.textContent));
+  await until(() => prechecks() === 2 && /this is a fresh check/i.test(t.doc.body.textContent));
   const submits = () => t.qa.calls.filter(c => c.path.endsWith('/submit'));
   assert.equal(submits().length,1);
   assert.equal(submits()[0].body.checkedLinesHash,'fcheck1','submit named the check the counter read');
@@ -791,4 +795,54 @@ await run('Retry check runs the food advisory again and does not submit',async t
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
 },'existing&check-fails');
 
-console.log(`${passed} food voice UI scenarios passed including recorder failure messages.`);
+await run('a missing audio clip preserves orphan evidence without joining the next quantity',async t=>{
+  await t.start();await t.segment('Pizza dough,',0);
+  assert.equal(t.qa.extracts.length,0,'the incomplete product is held');
+  t.qa.recorder.fail(1);await pause();
+  assert.equal(t.qa.extracts.length,1,'the failed boundary releases the orphan separately');
+  assert.equal(t.qa.extracts[0].body.transcript,'Pizza dough,');
+  t.qa.extracts[0].succeed([item('dough',0,{spoken:'Pizza dough,',quantityKnown:false})]);
+  await t.segment('Giant pretzel, one.',2);await t.stop();await t.finish('Pizza dough, two packs. Giant pretzel, one.');
+  await until(()=>t.qa.extracts.length===2);
+  assert.equal(t.qa.extracts[1].body.transcript,'Giant pretzel, one.');
+  t.qa.extracts[1].succeed([item('pretzel',1,{spoken:'Giant pretzel, one.',quantityKnown:true})]);
+  await until(()=>t.review().length===2);
+  assert.match(t.doc.body.textContent,/missing|couldn.t|failed/i);
+  assert.ok(!t.button(/Retry transcript|Try text again/i),'a joined transcript cannot be replayed across an audio gap');
+  await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='pretzel'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='pretzel').qtyUnits),1);
+  assert.ok(!t.qa.lines.some(l=>l.skuId==='dough'),'the orphan name never acquires an invented quantity');
+},false,true);
+
+await run('a wholly missing audio take cannot fall back to the joined full transcript',async t=>{
+  await t.start();t.qa.recorder.fail(0);await pause();await t.stop();await t.finish('Pizza dough two packs.');
+  await pause();assert.equal(t.qa.extracts.length,0);
+  assert.equal(t.review().length,0);assert.equal(t.saved().length,0);
+  assert.match(t.doc.body.textContent,/missing|couldn.t|failed/i);
+  assert.ok(!t.button(/Retry transcript|Try text again/i));
+},false,true);
+
+await run('the pause-cut off switch still refuses joined fallback across failed audio',async t=>{
+  await t.start();t.qa.recorder.fail(0);await pause();await t.stop();await t.finish('Pizza dough two packs.');await pause();
+  assert.equal(t.qa.extracts.length,0);assert.equal(t.saved().length,0);assert.match(t.doc.body.textContent,/missing|couldn.t|failed/i);
+  assert.ok(!t.button(/Retry transcript|Try text again/i));
+});
+
+await run('two then three of the same product retain both spoken sources and sum to five',async t=>{
+  await t.hear([item('dough',2,{spoken:'two pizza dough',quantityKnown:true}),item('dough',3,{spoken:'three pizza dough',quantityKnown:true})]);
+  await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='dough'));
+  const row=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(row.qtyUnits),5);
+  assert.match(row.rawUtterance,/two pizza dough/);assert.match(row.rawUtterance,/three pizza dough/);
+});
+
+await run('negative and blank voice edits stay unanswered until a literal human zero',async t=>{
+  await t.hear([item('dough',1,{spoken:'one pizza dough',quantityKnown:true})]);
+  const quantity=()=>[...t.doc.querySelectorAll('.lq-fc-rev-quantities input')].at(-1);
+  const type=async value=>{const e=quantity();e.focus();Object.getOwnPropertyDescriptor(t.doc.defaultView.HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new t.doc.defaultView.Event('input',{bubbles:true}));e.dispatchEvent(new t.doc.defaultView.Event('change',{bubbles:true}));await pause();e.blur();await pause();};
+  await type('-1');assert.ok(t.button(/^Add /).disabled,'negative cannot manufacture an observed zero');
+  await type('');assert.ok(t.button(/^Add /).disabled,'blank cannot manufacture an observed zero');
+  await type('0');await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='dough'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),0);
+});
+
+console.log(`${passed} food voice UI scenarios passed including recorder failure messages and audio gaps.`);

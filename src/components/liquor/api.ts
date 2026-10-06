@@ -436,6 +436,33 @@ export async function saveCountLines(
     throw e;
   }
 }
+/** Resolve an ambiguous food write by reading its exact draft. This performs
+ * no retry or mutation: a different count, field or unavailable read is held. */
+export async function confirmCountDraftSave(
+  sessionId: string, lines: CountLineInput[], section: Section = "food", isFullCount = true,
+): Promise<{ linesHash: string } | null> {
+  try {
+    const { session } = await deadlineJson<{ session: OpenCount | null }>(
+      `/admin/bar/counts/open?full=${isFullCount ? "true" : "false"}&section=${section}`,
+      {}, 15_000, "Couldn't confirm the saved count. Retry when the connection returns.", "count_save_unknown",
+    );
+    if (!session || session.id !== sessionId || session.section !== section || session.isFullCount !== isFullCount ||
+      !/^[a-f0-9]{16,64}$/i.test(session.linesHash ?? "") || !Array.isArray(session.lines) || session.lines.length !== lines.length) return null;
+    const canonical = (line: CountLineInput | OpenCountLine) => {
+      const values = [line.qtyUnits, line.enteredCases, line.caseSizeAtEntry, line.enteredPacks, line.packSizeAtEntry]
+        .map((value) => value == null ? null : Number(value));
+      if (values.some((value) => value != null && !Number.isFinite(value))) return null;
+      return JSON.stringify([...values, line.source, line.rawUtterance ?? null]);
+    };
+    const saved = new Map(session.lines.map((line) => [`${line.zoneId}:${line.skuId}`, canonical(line)]));
+    const wanted = new Set(lines.map((line) => `${line.zoneId}:${line.skuId}`));
+    if (saved.size !== lines.length || wanted.size !== lines.length || !lines.every((line) => {
+      const value = canonical(line);
+      return value != null && saved.get(`${line.zoneId}:${line.skuId}`) === value;
+    })) return null;
+    return { linesHash: session.linesHash! };
+  } catch { return null; }
+}
 /** The draft changed elsewhere since this screen's last save (TPRS PUT /lines). */
 export class DraftChangedError extends Error {
   constructor(
@@ -516,6 +543,8 @@ export interface PrecheckFinding {
   skuId: string;
   /** The SKU identities involved in a paired variety or bottle-size finding. */
   relatedSkuIds?: string[];
+  /** Aggregate basis for a finding spanning different food package sizes. */
+  quantityUnit?: string;
   name: string;
   /** zone_unexpected only — which shelf, so the answer can be written. */
   zoneId?: string;
@@ -809,7 +838,7 @@ export async function extractVoice(
   try {
     const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 2 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 3 } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );

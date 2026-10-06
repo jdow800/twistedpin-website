@@ -270,6 +270,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // spoken order (voiceCarry.ts).
   const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
   const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
+  const segmentGapRef = useRef(false);
   if (!carryRef.current) {
     carryRef.current = createCarry((text, idx) => {
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this piece's extraction failed
@@ -286,6 +287,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // uuid check would 400 every segment upload of that take.
     scope: { section: "bar", zoneId: (takeZoneId ?? zoneId) || undefined },
     pauseCuts,
+    onSegmentFailed: (index) => {
+      segmentGapRef.current = true;
+      if (pauseCuts) carryRef.current!.fail(index);
+    },
     onSegment: (text, idx) => {
       // Every segment goes through the carry, even an empty one, so the next
       // segment isn't left waiting for it.
@@ -760,18 +765,24 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   async function finalizeVoice(fullTranscript: string) {
     // Every segment has reported by now: send what the carry still holds (the
     // last unfinished phrase, and anything queued behind a failed segment).
-    if (pauseCuts) carryRef.current!.flush(Number.MAX_SAFE_INTEGER);
+    const gap = (pauseCuts ? carryRef.current!.flush(Number.MAX_SAFE_INTEGER) : false) || segmentGapRef.current;
     const pending = [...segExtractsRef.current.entries()].sort(([a], [b]) => a - b);
     segExtractsRef.current = new Map();
     // No segments → the Web Speech fallback engine (or an all-silence take):
     // the original whole-transcript path.
-    if (pending.length === 0) return void processTranscript(fullTranscript);
+    if (pending.length === 0) {
+      if (gap) {
+        setVoiceErr("Part of the recording is missing — count that part again or type it in.");
+        return;
+      }
+      return void processTranscript(fullTranscript);
+    }
     setVoiceBusy(true);
     setVoiceErr(null);
     try {
       const results = await Promise.all(pending.map(([, p]) => p));
       const items = results.filter((r): r is VoiceExtractItem[] => r != null).flat();
-      const failed = results.some((r) => r == null);
+      const failed = gap || results.some((r) => r == null);
       if (items.length === 0) {
         setVoiceErr(
           failed
@@ -1486,6 +1497,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               setTakeZoneId(zoneId); // the shelf this take is about
               setCapturing(true);
               carryRef.current!.reset(); // a discarded take must not leak its held phrase
+              segmentGapRef.current = false;
+              segExtractsRef.current = new Map();
               dict.start();
             }}
           >

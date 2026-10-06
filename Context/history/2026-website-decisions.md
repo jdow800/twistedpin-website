@@ -1506,3 +1506,18 @@ independent eight actual-app checks and phone review pass. Strict COGS
 TypeScript and the complete Astro/Vercel production build pass at 10:07am
 Chicago. The backend ships its answer/API constraint change in forward
 migration 0216; deployed 0215 remains unchanged.
+## 2026-10-05 — Food inventory speech, review and corrections
+
+Jon requested the liquor inventory improvements for food and authorized shipping after an independent GPT Astra Ultra audit. Food speech now requires product-attached quantity/unit evidence; unanswered counts remain unanswered. Food case-only, weight and confirmed package rules remain specific to food.
+
+The count screen searches existing shelf rows as well as catalog additions. Review Details show each recorded shelf, frozen case/pack arithmetic and contributing spoken excerpts, and allow quantity and identity corrections. Incompatible food units require a fresh destination amount. Occupied or concurrently changed correction destinations require an explicit decision. Location membership changes follow a successful count save.
+
+Count changes invalidate the check, and submission keeps the fingerprint actually checked. Blank/zero edits retain frozen package multipliers through unrelated conflicts; fresh remote metadata still wins. Fractions multiply before rounding totals, invalid inputs remain unresolved, and repeated speech additions preserve a bounded source trail.
+
+The shared food/liquor recorder reports failed clips as boundaries. Successful speech on either side is reviewed separately, and a joined transcript containing a missing clip cannot be retried as continuous speech. Quantity-first food sentences stay attached to their following product.
+
+Food voice protocol version 3 requires the updated numeric review controls. An older open screen receives a refresh instruction before food extraction; it cannot bypass the new quantity questions through the old unit chooser. Publish backend before Website.
+
+Ambiguous food saves use a bounded readback of the exact draft, quantities, package memos and source fields. Only an exact match advances the save fingerprint and any shelf-list change; unavailable or mismatched reads leave a visible, usable retry. Explicit saves cancel the pending debounce timer.
+
+Validation: 50 native food scenarios, 64 assertions and 19 reviewed screenshots; 71 food and 33 liquor DOM voice scenarios; 23 carry, 4 generation, 4 recovery, 18 lifecycle, 9 interval, 3 pause, 18 deadline, 7 draft-sync and 2 mobile guard checks. Strict COGS TypeScript and the full Astro production build pass. Release proof and final Astra Ultra review are recorded in Alcohol Pricing `incidents/2026-10-05/food-inventory-review/`. Physical headset/microphone recognition accuracy still requires field validation; synthetic fixtures do not measure it.

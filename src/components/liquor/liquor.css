@@ -3661,6 +3661,13 @@
 .lq-review-rematch p { margin: 0; }
 .lq-review-rematch .lq-search { margin: 0; }
 .lq-review-replacement { min-height: 48px; width: 100%; min-width: 0; padding: 8px; border: 1px solid var(--lq-line-strong); border-radius: 7px; background: var(--lq-panel); color: var(--lq-text); font-size: 16px; }
+.lq-fc-row-inputs { flex-wrap: wrap; }
+.lq-fc-cell-controls { display: contents; }
+.lq-fc-row-box { flex: 1 1 170px; min-width: 170px; }
+.lq-fc-stepper input { min-width: 72px; }
+.lq-fc-count-search { margin-block: 12px; }
+.lq-fc-review-count-row .lq-qty-input { width: 110px; min-height: 48px; }
+.lq-fc-location-collision p { overflow-wrap: anywhere; }
 .lq-finding-details p { margin: 0 0 8px; line-height: 1.5; }
 .lq-finding-evidence { margin: 0; font-size: 14px; line-height: 1.5; }
 

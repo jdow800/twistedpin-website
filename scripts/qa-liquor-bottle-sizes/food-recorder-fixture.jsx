@@ -9,6 +9,7 @@ export function useVoiceDictation(onFinal, opts) {
   window.foodQa.recorder = {
     options: opts,
     segment(text, index) { opts.onSegment?.(text, index); },
+    fail(index) { opts.onSegmentFailed?.(index); },
     finish(text, message = null) { setError(message); setTranscript(text); setRecording(false); onFinal(text); },
   };
   return {
