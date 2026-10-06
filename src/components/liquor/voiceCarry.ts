@@ -46,6 +46,13 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   if (!isQuantity(last.text)) from = last.start;
   else if (/^(point|and|a)$/i.test(last.text.split(/\s+/).at(-1)!)) from = phrases.at(-2)?.start ?? last.start;
   if (from == null) return { head: text.trim(), tail: "" };
+  // ASR can punctuate inside a multiword bottle name: "Indigo, gin," or
+  // "Casamigos, repo, point". Every adjacent uncounted name phrase belongs
+  // in the unfinished tail; emitting the brand alone can invent implicit one
+  // before its actual quantity arrives. A prior quantity finishes its item.
+  let at = phrases.findIndex((phrase) => phrase.start === from);
+  while (at > 0 && !isQuantity(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
+  from = phrases[at]!.start;
   const tail = text.slice(from).trim();
   if (tail.split(/\s+/).length > MAX_HELD_WORDS) return { head: text.trim(), tail: "" };
   return { head: text.slice(0, from).trim(), tail };

@@ -8,10 +8,15 @@ import 'qa:styles';
 const withSeagrams = new URL(location.href).searchParams.has('seagrams');
 // ?history gives Tito's a 90-day record: largest count 3, largest delivery 12.
 const withHistory = new URL(location.href).searchParams.has('history');
+const withIndigo = new URL(location.href).searchParams.has('indigo');
 const catalog = [
   {id:'titos', name:"Tito's Handmade Vodka", sizeMl:1000},
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
   ...(withSeagrams ? [{id:'seagrams', name:"Seagram's 7", sizeMl:1000}] : []),
+  ...(withIndigo ? [
+    {id:'mezcal',name:'Dos Hombres Joven Mezcal Artesanal',sizeMl:750},
+    {id:'indigo',name:'Empress 1908 Indigo Gin',sizeMl:1000},
+  ] : []),
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
   unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[],
   ...(withHistory && s.id === 'titos' ? {countHistory:{maxCount:3, maxDelivery:12, deliverySamples:1, days:90}} : {})}));

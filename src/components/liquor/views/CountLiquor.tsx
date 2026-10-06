@@ -722,6 +722,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       spoken: it.spoken,
       quantityWords: it.quantityWords,
       quantityNeedsReview: it.quantityNeedsReview,
+      explicitZero: it.qty === 0 && it.quantityNeedsReview === false && !!it.quantityWords,
       // Don't default a case-bearing row to 1 — its qty legitimately
       // carries only the loose part until the case size is answered.
       qty: it.qty,
@@ -2220,11 +2221,11 @@ function ReviewRow({
             inputMode="decimal"
             step="0.1"
             min={0}
-              // Empty rather than "0" — see the captured-row input. This is the
-              // correction surface, so a stray leading zero is worst here.
-              value={item.qty}
-              blankZero={!item.explicitZero}
-            placeholder="0"
+            // An unproved model value is not a heard count. Leave it for
+            // the counter to enter instead of displaying a guessed one.
+            value={item.quantityNeedsReview ? undefined : item.qty}
+            blankZero={!item.explicitZero}
+            placeholder="Qty"
             // A typed number is a plain each-count and REPLACES whatever the
             // model heard — cases go to 0 so cases x size can't be added on top.
             onQuantity={(n, raw) => onResolve({ cases: 0, units: raw !== "" && Number(raw) >= 0 ? n : 0,
@@ -2234,9 +2235,6 @@ function ReviewRow({
           <button type="button" className="lq-rev-x" aria-label="remove" onClick={onRemove}>✕</button>
         </div>
       </div>
-
-      {item.quantityWords && <span className="lq-muted lq-rev-hint">Heard quantity: “{item.quantityWords}”</span>}
-      {state === "quantity" && <span className="lq-error lq-rev-hint">Check the heard number. Enter the total quantity above, including 0 if empty.</span>}
 
       {/* The ask-do-not-guess path. We heard cases but have no case size for
           this bottle, so the count is genuinely unknowable — rather than
@@ -2384,15 +2382,11 @@ function ReviewRow({
       {/* Product selection remains visible and editable while the number,
           case size, history or recount answer is still being reviewed. */}
       {chosen && (
-        <button type="button" className={`lq-chip lq-rev-chosen${state === "matched" && (item.qty > 0 || item.explicitZero) ? " lq-chip-on" : ""}`} onClick={onToggleAssign}
+        <button type="button" className="lq-chip lq-chip-on lq-rev-chosen" onClick={onToggleAssign}
           aria-label={`Change bottle: ${skuLabel(chosen)}`} aria-expanded={!!item.assignOpen}>
-          {state === "matched" ? "✓ " : "Matched bottle: "}{skuLabel(chosen)}
+          ✓ {skuLabel(chosen)}
         </button>
       )}
-      {state === "matched" && item.qty === 0 && !item.explicitZero && (
-        <span className="lq-error lq-rev-hint">Enter the quantity. Type 0 for none.</span>
-      )}
-
       {state === "ambiguous" && (
         <div className="lq-rev-choices">
           <span className="lq-muted lq-rev-hint">Which one?</span>
@@ -2406,9 +2400,9 @@ function ReviewRow({
 
       <div className="lq-rev-choices">
           {state === "unmatched" && <span className="lq-error lq-rev-hint">Couldn't place this.</span>}
-          <button type="button" className="lq-chip" onClick={onToggleAssign} aria-expanded={!!item.assignOpen}>
-            {item.assignOpen ? "Cancel bottle search" : chosen ? "Change bottle…" : "Find bottle…"}
-          </button>
+          {(!chosen || item.assignOpen) && <button type="button" className="lq-chip" onClick={onToggleAssign} aria-expanded={!!item.assignOpen}>
+            {item.assignOpen ? "Cancel bottle search" : "Find bottle…"}
+          </button>}
           {item.assignOpen && (
             <div className="lq-rev-assign">
               <input

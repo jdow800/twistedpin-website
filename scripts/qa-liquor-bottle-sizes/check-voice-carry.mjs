@@ -123,6 +123,37 @@ check('carry: Stop sends pieces queued behind a failed one', () => {
   assert.deepEqual(sent.at(-1), [0, 'Tito\'s, one.']);
 });
 
+check('carry: comma-separated multiword names wait whole, including a partial quantity', () => {
+  for (const tail of ['Indigo, gin,', 'Casamigos, repo,', 'Carpano, Antica, Formula,', 'Indigo, gin, point', 'Indigo, gin, one case and']) {
+    assert.deepEqual(m.splitUnfinished(`Dos Hombres, mezcal, point three. ${tail}`),
+      {head:'Dos Hombres, mezcal, point three.',tail});
+  }
+  assert.deepEqual(m.splitUnfinished('Titos two. Indigo, gin,'), {head:'Titos two.',tail:'Indigo, gin,'});
+  assert.deepEqual(m.splitUnfinished('Indigo. Gin.'), {head:'',tail:'Indigo. Gin.'});
+});
+
+check('carry: the field split emits the completed mezcal and retains Indigo gin until point six arrives', () => {
+  const sent=[];const carry=m.createCarry((text,index)=>sent.push({text,index}));
+  carry.add('Point six',1);
+  assert.equal(sent.length,0,'the later quantity response waits for the preceding piece');
+  carry.add('Dos Hombres, mezcal, point three. Indigo, gin,',0);
+  assert.deepEqual(sent.map(row=>row.text),['Dos Hombres, mezcal, point three.','Indigo, gin, Point six']);
+  assert.equal(carry.flush(99),false);
+  assert.deepEqual(sent.map(row=>row.text),['Dos Hombres, mezcal, point three.','Indigo, gin, Point six']);
+  assert.ok(!sent.some(row=>/^Indigo[, .]*$/.test(row.text)),'a brand-only implicit-one request never goes out');
+});
+
+check('carry: three successful name/name/quantity clips stay joined and a missing clip stays a boundary', () => {
+  const sent=[];const carry=m.createCarry((text,index)=>sent.push({text,index}));
+  carry.add('Indigo,',0);carry.add('gin,',1);assert.equal(sent.length,0);
+  carry.add('point six.',2);assert.equal(carry.flush(99),false);
+  assert.deepEqual(sent.map(row=>row.text),['Indigo, gin, point six.']);
+  sent.length=0;
+  carry.add('Dos Hombres, mezcal, point three. Indigo, gin,',0);carry.fail(1);carry.add('point six.',2);
+  assert.equal(carry.flush(99),true);
+  assert.deepEqual(sent.map(row=>row.text),['Dos Hombres, mezcal, point three.','Indigo, gin,','point six.']);
+});
+
 check('food carry: a quantity sentence stays with the following product name', () => {
   assert.deepEqual(m.splitFoodTail('Two cases. Pizza sauce.'), {head:'',tail:'Two cases. Pizza sauce.'});
   assert.deepEqual(m.splitFoodTail('Oreos, one case. Zero point seven. Spanish rice.'),

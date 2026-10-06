@@ -62,7 +62,8 @@ async function scenario(name, test, query) {
       const b = [...doc.querySelectorAll('.lq-rev-assign button')].find(b=>b.textContent.includes(name));
       assert.ok(b, `Missing search result: ${name}`); b.click(); await pause();
     };
-    await test({qa,doc,button,click,tile,shelf,start,stop,segment,finish,finishButton,saves,hear,input,pickSearch});
+    const changeBottle = async () => {const pill=doc.querySelector('.lq-rev-chosen');assert.ok(pill,'selected bottle can be changed');pill.click();await pause();};
+    await test({qa,doc,button,click,tile,shelf,start,stop,segment,finish,finishButton,saves,hear,input,pickSearch,changeBottle});
     passed++; console.log('PASS',name);
   } finally { dom.window.close(); }
 }
@@ -433,15 +434,71 @@ for(const query of ['', 'pausecuts=0'])await run(`wholly failed audio cannot rep
   assert.equal(t.qa.extracts.length,0);assert.equal(t.saves(),0);assert.match(t.doc.body.textContent,/missing/i);assert.ok(!t.button(/Try text again/i));
 },query);
 
+await run('a source-grounded decimal has one quantity field and a green matched bottle', async t => {
+  await t.hear([{...item('titos',.8),spoken:'Titos, point eight',quantityWords:'point eight',quantityNeedsReview:false}]);
+  const row=t.doc.querySelector('.lq-rev');
+  assert.equal(row.querySelector('input[type=number]').value,'0.8');
+  assert.ok(row.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'));
+  assert.equal(row.querySelectorAll('.lq-rev-hint').length,0,'an ordinary matched row has no extra review instructions');
+  assert.doesNotMatch(row.textContent,/Heard quantity:|Check the heard|Matched bottle:|Change bottle/);
+  assert.ok(!t.button('Add 1 to Well').disabled);
+});
+
+for(const answer of ['0.7','0']) await run(`a guessed one is blank until the counter enters ${answer}`, async t => {
+  await t.hear([{...item('titos',1),spoken:'Titos',quantityNeedsReview:true}]);
+  assert.equal(t.doc.querySelector('.lq-rev input[type=number]').value,'');
+  assert.ok(t.doc.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'));
+  assert.ok(t.button('Add 0 to Well').disabled);
+  await t.input('.lq-rev input[type=number]',answer);
+  await t.click('Add 1 to Well');
+  await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='titos'&&l.zoneId==='well').qtyUnits),Number(answer));
+});
+
+await run('source-grounded zero is displayed and saves as an observed empty bottle', async t => {
+  await t.hear([{...item('titos',0),spoken:'Titos, zero',quantityWords:'zero',quantityNeedsReview:false}]);
+  assert.equal(t.doc.querySelector('.lq-rev input[type=number]').value,'0');
+  assert.ok(t.doc.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'));
+  await t.click('Add 1 to Well');
+  await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='titos'&&l.zoneId==='well').qtyUnits),0);
+});
+
+await run('Indigo gin stays together across uploads and shows the decimal beside one green product', async t => {
+  await t.start();
+  await t.segment('Dos Hombres, mezcal, point three. Indigo, gin,',0);
+  await until(()=>t.qa.extracts.length===1);
+  assert.equal(t.qa.extracts[0].body.transcript,'Dos Hombres, mezcal, point three.');
+  await t.segment('Point six',1);
+  await until(()=>t.qa.extracts.length===2);
+  assert.equal(t.qa.extracts[1].body.transcript,'Indigo, gin, Point six');
+  t.qa.extracts[1].succeed([{...item('indigo',.6),spoken:'Indigo, gin, Point six',quantityWords:'Point six',quantityNeedsReview:false}]);
+  t.qa.extracts[0].succeed([{...item('mezcal',.3),spoken:'Dos Hombres, mezcal, point three',quantityWords:'point three',quantityNeedsReview:false}]);
+  await t.stop();await t.finish('Dos Hombres, mezcal, point three. Indigo, gin, Point six');
+  await until(()=>t.doc.querySelectorAll('.lq-rev').length===2);
+  const rows=[...t.doc.querySelectorAll('.lq-rev')];
+  const indigo=rows.find(r=>r.querySelector('.lq-rev-chosen').textContent.includes('Empress'));
+  assert.equal(indigo.querySelector('input[type=number]').value,'0.6');
+  assert.equal(rows.filter(r=>r.textContent.includes('Empress')).length,1);
+  assert.ok(rows.every(r=>r.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on')));
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/Heard quantity:|Check the heard/);
+  await t.click('Add 2 to Well');
+  await until(()=>t.qa.lines.some(l=>l.skuId==='indigo'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='indigo'&&l.zoneId==='well').qtyUnits),.6);
+},'indigo');
+
 await run('quantity review retains the bottle and changing it cannot confirm the number', async t => {
   await t.hear([{...item('titos',0.6),spoken:'Titos, point six',quantityWords:'point six',quantityNeedsReview:true}]);
   assert.match(t.doc.querySelector('.lq-rev-chosen').textContent,/Tito/);
-  assert.ok(!t.doc.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'),'unanswered number is not ready');
+  assert.ok(t.doc.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'),'green means the bottle is matched');
+  assert.equal(t.doc.querySelector('.lq-rev input[type="number"]').value,'','unproved model number is not displayed as a heard count');
+  assert.doesNotMatch(t.doc.querySelector('.lq-rev').textContent,/Heard quantity:|Check the heard number|Matched bottle:/);
+  assert.ok(!t.button('Change bottle…'),'the green pill is the product editor');
   assert.ok(t.button('Add 0 to Well').disabled);
-  await t.click('Change bottle…');
+  await t.changeBottle();
   await t.input('.lq-rev-search','jameson 1l'); await t.pickSearch('Jameson');
   assert.match(t.doc.querySelector('.lq-rev-chosen').textContent,/Jameson/);
-  assert.match(t.doc.querySelector('.lq-rev').textContent,/Check the heard number/);
+  assert.equal(t.doc.querySelector('.lq-rev input[type="number"]').value,'');
   assert.ok(t.button('Add 0 to Well').disabled,'product pick cannot answer the number');
   await t.input('.lq-rev input[type="number"]','');
   await t.input('.lq-rev input[type="number"]','0.6');
@@ -465,9 +522,9 @@ await run('incorrect candidates have a catalog escape and the chosen product sta
   await t.hear([{...item('titos',0.3),match:null,quantityNeedsReview:true,candidates:[{id:'titos',name:"Tito's Handmade Vodka",sizeMl:1000}]}]);
   await t.click('Find bottle…'); await t.input('.lq-rev-search','Jameson'); await t.pickSearch('Jameson');
   assert.match(t.doc.querySelector('.lq-rev-chosen').textContent,/Jameson/);
-  assert.ok(t.button('Change bottle…'),'choice remains editable');
+  assert.ok(t.doc.querySelector('.lq-rev-chosen'),'choice remains editable');
   assert.ok(t.button('Add 0 to Well').disabled);
-  await t.click('Change bottle…'); await t.input('.lq-rev-search','Tito'); await t.pickSearch('Tito');
+  await t.changeBottle(); await t.input('.lq-rev-search','Tito'); await t.pickSearch('Tito');
   assert.match(t.doc.querySelector('.lq-rev-chosen').textContent,/Tito/);
   assert.ok(t.button('Add 0 to Well').disabled);
 });
@@ -476,13 +533,13 @@ await run('candidate pick remains visible during quantity review', async t => {
   await t.hear([{...item('titos',0.3),match:null,quantityNeedsReview:true,candidates:[{id:'titos',name:"Tito's Handmade Vodka",sizeMl:1000}]}]);
   await t.click(/^Tito.*1000ml/);
   assert.match(t.doc.querySelector('.lq-rev-chosen').textContent,/Tito/);
-  assert.match(t.doc.querySelector('.lq-rev').textContent,/Check the heard number/);
-  assert.ok(t.button('Change bottle…'));
+  assert.equal(t.doc.querySelector('.lq-rev input[type="number"]').value,'');
+  assert.ok(t.doc.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on'));
   assert.ok(t.button('Add 0 to Well').disabled);
 });
 
 await run('manual search reports no matches and can be cancelled without changing the bottle', async t => {
-  await t.hear([item('titos',0.8)]); await t.click('Change bottle…');
+  await t.hear([item('titos',0.8)]); await t.changeBottle();
   await t.input('.lq-rev-search','Unknown bottle');
   assert.match(t.doc.querySelector('.lq-rev-assign').textContent,/No bottles found/);
   await t.click('Cancel bottle search'); assert.ok(!t.doc.querySelector('.lq-rev-search'));
@@ -497,14 +554,14 @@ for (const [name,row,query,warning] of [
 ]) await run(`${name} question retains working bottle correction`, async t=>{
   await t.hear([row]);assert.match(t.doc.querySelector('.lq-rev').textContent,warning);
   assert.ok(t.doc.querySelector('.lq-rev-chosen'));
-  await t.click('Change bottle…');assert.ok(t.doc.querySelector('.lq-rev-search'));
+  await t.changeBottle();assert.ok(t.doc.querySelector('.lq-rev-search'));
   assert.match(t.doc.querySelector('.lq-rev').textContent,warning);
 },query);
 
 for(const firstAnswer of ['Recount: 0.6','More: 2.6 total']) await run(`changing bottle reopens ${firstAnswer} despite equal earlier counts`,async t=>{
   await t.hear([item('titos',.6)]);await t.click(firstAnswer);
   assert.ok(!t.button('Add 1 to Well').disabled);
-  await t.click('Change bottle…');await t.input('.lq-rev-search','Jameson');await t.pickSearch('Jameson');
+  await t.changeBottle();await t.input('.lq-rev-search','Jameson');await t.pickSearch('Jameson');
   assert.ok(t.button('Recount: 0.6'),'new bottle asks its own earlier-take question');
   assert.ok(t.button('More: 2.6 total'));
   assert.ok(t.button('Add 0 to Well').disabled,'old answer must not apply to another bottle');
@@ -516,7 +573,7 @@ for(const firstAnswer of ['Recount: 0.6','More: 2.6 total']) await run(`changing
 for(const change of ['pick','remove'])await run(`${change} on an earlier row restores a later bottle's recount question`,async t=>{
   await t.hear([item('titos',3),item('jameson',1),item('titos',4)]);
   if(change==='pick'){
-    await t.click('Change bottle…');await t.input('.lq-rev-search','Jameson');await t.pickSearch('Jameson');
+    await t.changeBottle();await t.input('.lq-rev-search','Jameson');await t.pickSearch('Jameson');
   }else{
     t.doc.querySelector('.lq-rev .lq-rev-x').click();await pause();
   }
