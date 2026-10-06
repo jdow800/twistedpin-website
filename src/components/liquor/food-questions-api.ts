@@ -1,5 +1,12 @@
 import { BarApiError, gatedJson } from "./api";
 
+/** What a saved answer built (tprs 0217): the recipe as written, or what kept it from being written. */
+export interface FoodAnswerBuild {
+  outcome: "built" | "needs_review"; kind: "dish" | "variant" | "change" | "instruction";
+  summary: string; createdAt: string; current: boolean;
+  lines: { name: string; amount: string }[];
+  problems: { said: string; why: string }[];
+}
 export interface FoodQuestion {
   id: string; key: string; namespace: "gotab" | "tprs"; productKey: string;
   productName: string; optionLabel: string | null; kind: "dish" | "option";
@@ -7,6 +14,7 @@ export interface FoodQuestion {
   prompt: string; qty: number; status: "unanswered" | "answered" | "resolved";
   answer: string | null; answeredAt: string | null; revision: string;
   recipeHref: string; currentRecipeId: string | null; reviewNote: string | null;
+  build?: FoodAnswerBuild | null;
 }
 export interface FoodQuestionBatchSummary {
   id: string; scheduledDate: string; createdAt: string; questionCount: number;
@@ -14,10 +22,12 @@ export interface FoodQuestionBatchSummary {
 }
 export interface FoodQuestionIndex {
   batches: FoodQuestionBatchSummary[]; pendingReview: FoodQuestion[]; queuedQuestions?: FoodQuestion[]; canReview: boolean;
+  /** Saving an answer sets the recipe (Jon gets a copy). Absent on an older backend = review first. */
+  autoRecipe?: boolean;
 }
 export interface FoodQuestionBatch {
   batch: { id: string; scheduledDate: string; createdAt: string };
-  questions: FoodQuestion[]; canReview: boolean;
+  questions: FoodQuestion[]; canReview: boolean; autoRecipe?: boolean;
 }
 const ROOT = "/admin/bar/food-questions";
 /** A timeout is an uncertain write, never permission to retry automatically. */
@@ -37,9 +47,12 @@ async function request<T>(path: string, method = "GET", body?: unknown): Promise
 }
 export const listFoodQuestions = () => request<FoodQuestionIndex>(ROOT);
 export const getFoodQuestionBatch = (id: string) => request<FoodQuestionBatch>(`${ROOT}/batches/${encodeURIComponent(id)}`);
-export const getFoodQuestion = (id: string) => request<{ question: FoodQuestion; canReview: boolean }>(`${ROOT}/${encodeURIComponent(id)}`);
+export const getFoodQuestion = (id: string) => request<{ question: FoodQuestion; canReview: boolean; autoRecipe?: boolean }>(`${ROOT}/${encodeURIComponent(id)}`);
 export const answerFoodQuestion = (id: string, revision: string, answer: string) =>
   request<{ question: FoodQuestion }>(`${ROOT}/${encodeURIComponent(id)}/answer`, "PUT", { revision, answer });
+/** Build the recipe from the answer just saved. A 503 or timeout leaves the answer saved; the server builds it within minutes. */
+export const buildFoodQuestionRecipe = (id: string, revision: string) =>
+  request<{ status: string; question: FoodQuestion; message?: string }>(`${ROOT}/${encodeURIComponent(id)}/build`, "POST", { revision });
 export const reviewFoodQuestion = (id: string, revision: string, action: "resolve" | "reopen", reason: string) =>
   request<{ question: FoodQuestion }>(`${ROOT}/${encodeURIComponent(id)}/review`, "POST", { revision, action, reason });
 export const queueFoodQuestion = (question: { namespace: "gotab" | "tprs"; productKey: string; productName: string; optionLabel?: string; prompt: string; reason: string }) =>
