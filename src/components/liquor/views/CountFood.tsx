@@ -34,7 +34,7 @@ import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
-import { foodCasesOnly, foodCountWarning, foodReviewQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCasesOnly, foodCountWarning, foodReviewQuantity, foodQuantityFieldsToConfirm, confirmFoodQuantity, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
 import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
@@ -863,13 +863,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       key: `v${offset + i}`,
       spoken: it.spoken,
       quantityWords: it.quantityWords,
-      quantityNeedsReview: it.quantityNeedsReview,
+      quantityNeedsReview: !!it.quantityNeedsReview || it.quantityReviewReason === "source_already_used",
+      identityNeedsReview: it.identityNeedsReview,
+      quantityReviewReason: it.quantityReviewReason,
+      quantityWasUncertain: !!it.quantityNeedsReview || it.quantityKnown === false || it.quantityReviewReason === "source_already_used",
+      unconfirmedQuantityFields: it.quantityNeedsReview || it.quantityKnown === false || it.quantityReviewReason === "source_already_used" ? ["cases", "units"] : [],
       cases: it.cases,
       units: it.units,
-      chosenSkuId: it.match?.id ?? null,
+      chosenSkuId: it.identityNeedsReview ? null : it.match?.id ?? null,
       candidates: it.candidates,
       spokenUnit: it.spokenUnit ?? null,
-      quantityKnown: !it.quantityNeedsReview && (it.quantityKnown ?? true),
+      quantityKnown: !it.quantityNeedsReview && it.quantityReviewReason !== "source_already_used" && (it.quantityKnown ?? true),
       unitNeedsReview: it.unitNeedsReview ?? false,
     }));
   }
@@ -893,7 +897,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   function editReview(r: ReviewItem, patch: Partial<ReviewItem>) {
     if (checking || submitting || submissionUnknown) return;
-    setReview(prev => (prev ?? []).map(x => x.key === r.key ? { ...x, largeCountConfirmed: undefined, ...patch } : x));
+    setReview(prev => (prev ?? []).map(x => {
+      if (x.key !== r.key) return x;
+      const meaningChanged = (patch.chosenSkuId !== undefined && patch.chosenSkuId !== x.chosenSkuId)
+        || (patch.spokenUnit !== undefined && patch.spokenUnit !== x.spokenUnit)
+        || patch.cases !== undefined || patch.units !== undefined;
+      const restate = x.quantityWasUncertain && meaningChanged && patch.unconfirmedQuantityFields === undefined;
+      return { ...x, largeCountConfirmed: undefined,
+        ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
+    }));
   }
 
   function answerSpokenUnit(r: ReviewItem) {
@@ -902,7 +914,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function chooseReviewSku(r: ReviewItem, id: string) {
-    editReview(r, { chosenSkuId: id, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "" });
+    editReview(r, { chosenSkuId: id, identityNeedsReview: false, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "" });
   }
 
   function applyReview() {
@@ -1559,11 +1571,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   function editVoiceQuantity(r: ReviewItem, field: "cases" | "units", raw: string, caseOnly = false) {
     const n = readFoodNumber(raw);
-    const invalid = new Set(r.invalidQuantityFields ?? []);
-    if (n == null) invalid.add(field); else invalid.delete(field);
-    if (n != null && caseOnly) invalid.clear(); // An explicit case-only answer replaces both fields.
-    editReview(r, { invalidQuantityFields: [...invalid], quantityKnown: n != null && invalid.size === 0,
-      ...(n != null ? { [field]: n, quantityNeedsReview: false } : {}),
+    editReview(r, { ...confirmFoodQuantity(r, field, n, caseOnly),
       ...(n != null && caseOnly ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
   }
 
@@ -1888,13 +1896,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             const q = reviewQuantity(r);
             const caseCountOnly = foodCasesOnly(sku);
             const caseOnly = caseCountOnly || (sku?.countUnit === "case" && !q.inputUnit) || /^cases?$/.test(q.inputUnit ?? "");
+            const unconfirmedFields = foodQuantityFieldsToConfirm(r);
             const concern = warning(r);
             const hits = r.search?.trim() ? catalog.filter(s => r.search!.toLowerCase().split(/\s+/).every(word => s.name.toLowerCase().includes(word))).slice(0, 8) : [];
             return (
               <div key={r.key} className={`lq-fc-rev-row${applyable(r) ? "" : " lq-fc-rev-row-block"}`}>
                 <span className="lq-fc-rev-spoken">“{r.spoken}”</span>
                 {r.quantityWords && <span className="lq-muted">Heard quantity: “{r.quantityWords}”</span>}
-                {r.quantityNeedsReview && <span className="lq-error">Enter the quantity you counted. Choosing a product or unit does not confirm the number.</span>}
+                {r.identityNeedsReview && <span className="lq-error">Choose the exact product you counted. Quantity and unit answers do not confirm the product.</span>}
+                {r.quantityReviewReason === "source_already_used" && <span className="lq-error">Another row already used these source words. Discard this duplicate unless you counted a separate amount.</span>}
+                {r.quantityNeedsReview && <span className="lq-error">{caseOnly ? "Restate the whole quantity in Cases. Enter 0 if none." : "Enter both Cases and Loose quantity. Enter 0 in a box if none."} Choosing a product or unit does not confirm the number.</span>}
                 {!!r.invalidQuantityFields?.length && <span className="lq-error">Enter a valid quantity in each edited box. Negative or blank text is not zero.</span>}
                 {r.candidates.length > 0 && !r.chosenSkuId && (
                   <div className="lq-fc-rev-pick">
@@ -1927,16 +1938,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <div className="lq-fc-rev-quantities">
                       <label>Cases
                         <FoodNumberInput type="number" min={0} step="any" inputMode="decimal" aria-label={`Cases for ${sku.name}`}
-                          value={r.quantityKnown && !(caseCountOnly && q.needsUnitChoice) ? r.cases + (caseOnly ? r.units : 0) : undefined}
+                          value={!unconfirmedFields.includes("cases") && !(caseCountOnly && q.needsUnitChoice) ? r.cases + (caseOnly ? r.units : 0) : undefined}
                           aria-invalid={r.invalidQuantityFields?.includes("cases") || undefined} onRaw={raw => editVoiceQuantity(r, "cases", raw, caseOnly)} />
                       </label>
                       {!caseOnly && <label>{r.unitNeedsReview ? "Quantity (check unit below)" : q.inputUnit ?? unitLabel(sku, 2)}
                         <FoodNumberInput type="number" min={0} step="any" inputMode="decimal" aria-label={`Loose quantity for ${sku.name}`}
-                          value={r.quantityKnown ? r.units : undefined} aria-invalid={r.invalidQuantityFields?.includes("units") || undefined}
+                          value={!unconfirmedFields.includes("units") ? r.units : undefined} aria-invalid={r.invalidQuantityFields?.includes("units") || undefined}
                           onRaw={raw => editVoiceQuantity(r, "units", raw)} />
                       </label>}
                     </div>
-                    {!r.quantityKnown && <span className="lq-fc-rev-note">No quantity was heard. Enter it before adding.</span>}
+                    {!r.quantityKnown && !r.quantityNeedsReview && <span className="lq-fc-rev-note">No quantity was heard. Enter it before adding.</span>}
                   </>
                 )}
                 {sku && q.needsCaseSize && (

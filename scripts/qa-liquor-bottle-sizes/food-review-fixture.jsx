@@ -37,7 +37,7 @@ const initialLines=[
   ...(params.has('collision')?[line('freezer','alternate',26,{enteredCases:1,caseSizeAtEntry:24})]:[]),
   ...(params.has('location-collision')?[line('cooler','alternate',2)]:[]),
 ];
-const qa=window.foodQa={nonce:Math.random(),calls:[],extracts:[],lines:initialLines,recorder:null,
+const qa=window.foodQa={nonce:Math.random(),calls:[],extracts:[],lines:params.has('voice-empty')?[]:initialLines,recorder:null,
   failSave:false,failCheck:false,holdSave:false,releaseSave:null,conflict:null,releaseConflict:null,
   loseSaveResponse:false,readbackMismatch:false,readbackId:null,readbackSection:null,readbackField:null,detailFails:false};
 qa.catalog=catalog;qa.zones=zones;

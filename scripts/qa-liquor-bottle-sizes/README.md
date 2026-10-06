@@ -24,7 +24,7 @@ inventory contains fifty counted products on one shelf. The recorder boundary
 and every HTTP response are controlled; CDP independently blocks external
 requests. It uses no physical microphone, paid provider, database or real count.
 
-Its 50 scenarios verify shelf names, heard evidence, exact resumed fractions,
+Its 59 scenarios verify shelf names, heard evidence, exact resumed fractions,
 direct quantity/case/pack edits and item corrections from Details. Existing
 destinations require explicit Add or Replace; different counting units require
 a fresh answer in the destination's unit. Three concurrent correction endpoint
@@ -38,6 +38,14 @@ Cases-only crust and flatbread never gain loose-piece editors. One third of a
 60-piece case keeps its canonical total of 20. Negative/blank voice fields stay
 held until explicitly answered, including when another field is changed. A
 protocol numeric-review flag cannot be cleared by choosing a unit.
+
+Originally uncertain quantities require independent Cases and Loose answers:
+Cases zero cannot confirm a model's loose one, and Loose two cannot confirm a
+model's seven cases. Both explicit zeros permit an observed empty shelf. A
+single case-only answer replaces all prior model components. Identity holds
+ignore even an accidental DTO match until a human picks the product; a reused
+source reason independently holds a duplicate extraction row. Product, unit
+and package-size confirmation cannot certify remaining quantity components.
 
 Shelf questions require explicit collision handling and save before updating
 membership. A lost accepted save is confirmed by an exact read of the current
@@ -53,7 +61,7 @@ component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 71 DOM voice scenarios and liquor has 33. Audio failures cannot join
+Food has 80 DOM voice scenarios and liquor has 33. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,
 with pause cuts enabled or disabled. Repeated quantities retain both speech
 sources. The 23 carry checks cover known/inferred gaps, out-of-order consecutive
@@ -429,7 +437,7 @@ $env:COUNT_QA_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 node check-count-phone-layout.mjs
 ```
 
-Liquor has 33 scenarios and food has 71, including failed saves and explicit
+Liquor has 33 scenarios and food has 80, including failed saves and explicit
 Retry save, rejected submits after successful saves, lost successful Submit
 responses, uncertain outcomes and read-only Check submission, and Retry check.
 Food also verifies that "two cauliflower crusts" and "six flatbreads" mean

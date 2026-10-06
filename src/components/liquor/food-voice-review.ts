@@ -7,7 +7,13 @@ export interface FoodReviewItem {
   spoken: string;
   quantityWords?: string;
   quantityNeedsReview?: boolean;
+  identityNeedsReview?: boolean;
+  quantityReviewReason?: "source_already_used";
   invalidQuantityFields?: ("cases" | "units")[];
+  /** Components of an ungrounded model quantity still awaiting human input. */
+  unconfirmedQuantityFields?: ("cases" | "units")[];
+  /** Product/unit changes must restate originally uncertain quantities. */
+  quantityWasUncertain?: boolean;
   cases: number;
   units: number;
   chosenSkuId: string | null;
@@ -21,6 +27,25 @@ export interface FoodReviewItem {
   unitChoiceConfirmed?: boolean;
   largeCountConfirmed?: string;
   search?: string;
+}
+
+export function foodQuantityFieldsToConfirm(r: FoodReviewItem): ("cases" | "units")[] {
+  return r.unconfirmedQuantityFields ?? (r.quantityNeedsReview || !r.quantityKnown ? ["cases", "units"] : []);
+}
+
+/** Editing one component cannot certify the model's other component. A
+ * case-only answer explicitly replaces the whole quantity, including loose. */
+export function confirmFoodQuantity(r: FoodReviewItem, field: "cases" | "units", value: number | null, replacesAll = false): Partial<FoodReviewItem> {
+  const invalid = new Set(r.invalidQuantityFields ?? []);
+  const unconfirmed = new Set(foodQuantityFieldsToConfirm(r));
+  const valid = value != null && Number.isFinite(value) && value >= 0;
+  if (valid) { invalid.delete(field); unconfirmed.delete(field); }
+  else { invalid.add(field); unconfirmed.add(field); }
+  if (valid && replacesAll) { invalid.clear(); unconfirmed.clear(); }
+  return { invalidQuantityFields: [...invalid], unconfirmedQuantityFields: [...unconfirmed],
+    quantityKnown: valid && invalid.size === 0 && unconfirmed.size === 0,
+    quantityNeedsReview: unconfirmed.size > 0,
+    ...(valid ? { [field]: value, ...(replacesAll ? { units: 0 } : {}) } : {}) };
 }
 
 export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
@@ -76,7 +101,7 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);
   const qty = Math.round((cases * (caseSize ?? 0) + units) * 1000) / 1000;
   return { cases, caseSize, inputUnit, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
-    ready: !!sku && r.quantityKnown && !r.quantityNeedsReview && !(r.invalidQuantityFields?.length) && Number.isFinite(r.cases) && Number.isFinite(r.units) && Number.isFinite(qty) && r.cases >= 0 && r.units >= 0 && qty >= 0 && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
+    ready: !!sku && !r.identityNeedsReview && r.quantityKnown && !r.quantityNeedsReview && !foodQuantityFieldsToConfirm(r).length && !(r.invalidQuantityFields?.length) && Number.isFinite(r.cases) && Number.isFinite(r.units) && Number.isFinite(qty) && r.cases >= 0 && r.units >= 0 && qty >= 0 && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
 }
 
 /** Deliberately broad warning thresholds: history can miss deliveries and stock
