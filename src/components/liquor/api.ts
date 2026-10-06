@@ -265,9 +265,16 @@ export async function getCatalog(section: Section = "bar"): Promise<BarSkuItem[]
   );
   return items;
 }
+/** The invoice screen's reads end in a message, never an endless spinner: on
+ * 2026-10-06 the list request sat at the proxy for its full 300 s, twice. */
+export const INVOICE_READ_TIMEOUT_MS = 25_000;
+const invoiceRead = <T,>(path: string, message: string) =>
+  deadlineJson<T>(path, {}, INVOICE_READ_TIMEOUT_MS, message, "invoice_read_timeout");
 /** Mixed invoices can contain items from either inventory. Never use this for counts. */
 export async function getInvoiceCatalog(): Promise<BarSkuItem[]> {
-  const [bar, food] = await Promise.all([getCatalog("bar"), getCatalog("food")]);
+  const items = (section: Section) =>
+    invoiceRead<{ items: BarSkuItem[] }>(`/admin/bar/catalog?section=${section}`, "The item list took too long to load.").then(r => r.items);
+  const [bar, food] = await Promise.all([items("bar"), items("food")]);
   return [...new Map([...bar, ...food].map(item => [item.id, item])).values()];
 }
 export async function getZones(section: Section = "bar", walk?: "liquor"): Promise<BarZoneItem[]> {
@@ -1267,11 +1274,12 @@ export const awaitingIn = (a: BucketAmount | undefined): number =>
 export const totalIn = (a: BucketAmount | undefined): number =>
   a ? Math.round((a.matched + a.vendorItem + a.estimated) * 100) / 100 : 0;
 export async function getInvoiceHistory(): Promise<InvoiceSummary[]> {
-  const { invoices } = await gatedJson<{ invoices: InvoiceSummary[] }>("/admin/bar/invoices/history");
+  const { invoices } = await invoiceRead<{ invoices: InvoiceSummary[] }>("/admin/bar/invoices/history",
+    "The invoice list took too long to load.");
   return invoices;
 }
 export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
-  return gatedJson<InvoiceDetail>(`/admin/bar/invoices/${id}`);
+  return invoiceRead<InvoiceDetail>(`/admin/bar/invoices/${id}`, "The invoice took too long to load.");
 }
 /** Confirm a needs-review invoice line → a SKU. Learns the vendor alias + refreshes
  *  the SKU cost server-side; returns whether the whole invoice is now confirmed. */

@@ -1,3 +1,31 @@
+## 2026-10-06 — The /cogs landing page is grouped, and the invoice screen can't spin forever
+
+Jon, on his phone: *"The visual here looks like crap"*, and the invoice questions page *"just sticks on loading invoices nothing loads."* He also asked for a visual pass on what John V sees when he logs in.
+
+**Landing page.**
+- **What was broken:** the Review tiles had no icon. The tile grid's first column is the 56px icon slot, so each title fell into it and wrapped one word per line, running into its subtitle ("My / recipe / questions").
+- **The fix:** each part of a tile now sits in its own column, so a missing icon can never squeeze a title again. Every tile also has an icon now.
+- **New grouping:** the page is grouped by why someone opens it:
+  - **To do:** My recipe questions, with "N waiting" from the questions API. For admins, the Operations inbox joins it.
+  - **Count**, then **Invoices**.
+  - **Reports** and **Recipes & setup**: compact tiles, two to a row on a phone and three from 640px.
+- **For John V:** he is a manager (bar.count + bar.read), so the Operations inbox sits in Recipes & setup. Every one of the 21 destinations keeps its tile for every role.
+
+**Invoice screen.**
+- **What happened:** at 7:36 Chicago the list request sat at the Vercel proxy for its full 300 s, twice (Vercel runtime logs). The screen waited on the list and the item catalog together, with no deadline.
+- **Not the cause:** the same request takes 0.2 s locally on production's rows, the database showed no slow or stuck queries, and the backend answered normally an hour later.
+- **The fix:**
+  - The list, the catalog and an emailed invoice now load independently, each with a 25 s deadline (`INVOICE_READ_TIMEOUT_MS`).
+  - An email link opens its invoice straight away.
+  - A stalled list ends in "Couldn't load invoices" with Try again.
+  - A failed item list says so at the match search, instead of "No items found".
+
+Validation:
+- `check-home-layout.mjs`: manager and admin at 320/360/390/412/1280px. It checks no sideways scroll, titles beside their icon (at most 2 lines big, 3 compact), nothing under 12px, tiles at least 44px, the badge, the sections, all 21 destinations and navigation. Before/after screenshots are in `dist/`.
+- `check-invoice-loading.mjs`: 3 new cases. The stall case fails on the previous code.
+- Existing invoice suite: 50 cases pass.
+- Scoped TypeScript and the production Astro build pass.
+
 ## 2026-10-05 — A saved kitchen answer becomes the recipe, and the screen shows it
 
 Jon, after the first two answers sat as "answered": *"Approve it when he submits --- but it just gives me some exposure and/or a moment to jump in."* When the backend has `FOOD_ANSWER_RECIPES_ENABLED` on (tprs migration 0217, Opsi BUILD-SPEC §11.139), the question screens get `autoRecipe: true`. Saving an answer then calls the new build endpoint with the exact saved revision.

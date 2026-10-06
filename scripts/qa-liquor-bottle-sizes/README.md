@@ -512,3 +512,25 @@ Screenshots for question/saved/error/clarification and manager queue/review at
 All fixture answers are illustrative; this harness sends no real email and
 changes no production recipe or queue record. It does not replace physical
 Android keyboard or kitchen-user validation.
+
+## Landing page and invoice loading (2026-10-06)
+
+```powershell
+$env:FOOD_QA_CHROME = "C:/Program Files/Google/Chrome/Application/chrome.exe"
+node scripts/qa-liquor-bottle-sizes/check-home-layout.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --invoices --build-only
+node scripts/qa-liquor-bottle-sizes/check-invoice-loading.mjs
+```
+
+**`check-home-layout.mjs`** renders the actual `Home` and `liquor.css` for a manager (bar.count + bar.read, like John V) and an admin at 320, 360, 390, 412 and 1280px. It checks:
+- no sideways scroll;
+- every tile title beside its icon, never in the icon column: at most two lines on a big tile, three on a compact one;
+- nothing under 12px, and every tile at least 44px tall;
+- the "N waiting" badge, the five sections, all 21 destinations, and a compact tile navigating.
+
+Screenshots are written to `dist/home-after-<role>-<width>.png`. To capture the old page, set `HOME_QA_SRC` to a folder holding an older `views/Home.tsx` and `liquor.css`, with `HOME_QA_LABEL=before`. That saves screenshots only.
+
+**`check-invoice-loading.mjs`** covers the three ways a read can fail. The fixture's `stall-list`, `stall-list-nolink` and `catalog-fail` modes drive them, and the 25 s deadline is compressed to 40 ms:
+- an emailed invoice opens while the list never answers;
+- a list that never answers ends in Try again, which reloads it;
+- a failed item list says so at the match search and recovers on Try again.

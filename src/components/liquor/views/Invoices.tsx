@@ -105,27 +105,33 @@ export default function Invoices({
   }, [savedAnswer]);
   const [costRefreshMsg, setCostRefreshMsg] = useState<string | null>(null);
 
+  // The list, the item catalog and an emailed invoice load independently, each
+  // with a deadline (api.ts INVOICE_READ_TIMEOUT_MS). One slow read never holds
+  // the others, and a stalled server ends in "Try again", never a spinner.
+  const [listAttempt, setListAttempt] = useState(0);
   useEffect(() => {
     let live = true;
-    (async () => {
-      try {
-        const [inv, cat] = await Promise.all([getInvoiceHistory(), getInvoiceCatalog()]);
-        if (live) {
-          setList(inv);
-          setCatalog(cat);
-          setPhase("ready");
-          if (initialInvoiceId && !deepLinkConsumed) {
-            deepLinkConsumed = true;
-            void open(initialInvoiceId); // bad/expired id: open() fails quietly, list stays
-          }
-        }
-      } catch {
-        if (live) setPhase("error");
-      }
-    })();
-    return () => {
-      live = false;
-    };
+    setPhase("loading");
+    getInvoiceHistory().then(rows => { if (live) { setList(rows); setPhase("ready"); } })
+      .catch(() => { if (live) setPhase("error"); });
+    return () => { live = false; };
+  }, [listAttempt]);
+  const [catalogState, setCatalogState] = useState<"loading" | "ready" | "error">("loading");
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
+  useEffect(() => {
+    let live = true;
+    setCatalogState("loading");
+    getInvoiceCatalog().then(items => { if (live) { setCatalog(items); setCatalogState("ready"); } })
+      .catch(() => { if (live) setCatalogState("error"); });
+    return () => { live = false; };
+  }, [catalogAttempt]);
+  // The email's link opens its invoice straight away, without waiting for the
+  // list. A bad or expired id fails quietly and the list shows instead.
+  const [openingLink, setOpeningLink] = useState(() => !!initialInvoiceId && !deepLinkConsumed);
+  useEffect(() => {
+    if (!initialInvoiceId || deepLinkConsumed) return;
+    deepLinkConsumed = true;
+    void open(initialInvoiceId).finally(() => setOpeningLink(false));
   }, []);
 
   // Apply a confirmed match to the open detail (line matched + review cleared;
@@ -270,16 +276,7 @@ export default function Invoices({
     }
   }
 
-  if (phase === "loading") return <div className="lq-center lq-muted">Loading invoices…</div>;
-  if (phase === "error")
-    return (
-      <div className="lq-center">
-        <p className="lq-error">Couldn't load invoices.</p>
-        <button className="lq-btn" onClick={onDone}>Back</button>
-      </div>
-    );
-
-  // ── detail ──
+  // ── detail ── (shows even while the list is still loading, or failed)
   if (detail) {
     const inv = detail.invoice;
     const p = Number(inv.printedTotal);
@@ -322,7 +319,8 @@ export default function Invoices({
               {reviewReasonsFor(l).includes("quantity") && <p className="lq-invd-unmatched">Check the billed quantity and case columns on the original invoice.</p>}
               {!inv.duplicateOf && inv.status !== "pending" && reviewReasonsFor(l).includes("identity") && (
                 <>
-                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} onMatched={handleMatched} />
+                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} catalogState={catalogState}
+                  onRetryCatalog={() => setCatalogAttempt(n => n + 1)} onMatched={handleMatched} />
                 <ExpenseControl invoiceId={detail.invoice.id} line={l} onResolved={() => void refreshBuckets(inv.id)} />
                 </>
               )}
@@ -465,6 +463,17 @@ export default function Invoices({
       </div>
     );
   }
+
+  if (openingLink) return <div className="lq-center lq-muted" role="status">Opening the invoice…</div>;
+  if (phase === "loading") return <div className="lq-center lq-muted" role="status">Loading invoices…</div>;
+  if (phase === "error")
+    return (
+      <div className="lq-center">
+        <p className="lq-error" role="alert">Couldn't load invoices. Check the connection and try again.</p>
+        <button className="lq-btn" onClick={() => setListAttempt(n => n + 1)}>Try again</button>
+        <button className="lq-btn lq-btn-ghost" onClick={onDone}>Back</button>
+      </div>
+    );
 
   // ── list ──
   return (
@@ -1006,11 +1015,16 @@ function MatchControl({
   invoiceId,
   line,
   catalog,
+  catalogState = "ready",
+  onRetryCatalog,
   onMatched,
 }: {
   invoiceId: string;
   line: InvoiceLine;
   catalog: BarSkuItem[];
+  /** The item list loads beside the invoice. Until it lands, say so rather than "No items found". */
+  catalogState?: "loading" | "ready" | "error";
+  onRetryCatalog?: () => void;
   onMatched: (
     lineId: string,
     name: string,
@@ -1102,6 +1116,13 @@ function MatchControl({
 
   return (
     <div className="lq-match">
+      {catalogState === "loading" && <p className="lq-muted" role="status">Loading the item list…</p>}
+      {catalogState === "error" && (
+        <p className="lq-error" role="alert">
+          The item list didn't load.{" "}
+          {onRetryCatalog && <button type="button" className="lq-chip" onClick={onRetryCatalog}>Try again</button>}
+        </p>
+      )}
       {suggestions.length > 0 && (
         <div className="lq-rev-choices">
           <span className="lq-muted lq-rev-hint">Did you mean</span>
@@ -1128,7 +1149,7 @@ function MatchControl({
           </button>
         ))}
       </div>
-      {q.trim() && hits.length === 0 && <p className="lq-muted" role="status">No items found in either inventory. Try part of the name, or add an item below.</p>}
+      {q.trim() && hits.length === 0 && catalogState === "ready" && <p className="lq-muted" role="status">No items found in either inventory. Try part of the name, or add an item below.</p>}
       {sizeMismatch && (
         <div className="lq-newsku-dup">
           <p className="lq-newsku-dup-warn">

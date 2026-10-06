@@ -13,7 +13,7 @@ const invoice = {id:'test-invoice',vendorText:'Example Brewery',invoiceNumber:'D
 const line = {id:'test-keg',lineType:'keg',rawDescription:'Example Pale Ale',sizeText:'1/6 BBL',
   qtyUnits:'1',unitCost:'140',extendedAmount:'140',receivedQty:null,annotation:null,
   needsReview:false,matchedName:null,matchedSkuId:null,costHoldReason:null,matchedCountUnit:null};
-if(mode==='unmatched'||mode==='food'||mode==='linked'||mode==='linked-stale') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
+if(mode==='unmatched'||mode==='food'||mode==='linked'||mode==='linked-stale'||mode==='catalog-fail') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='marked'||mode==='refresh-failure') {line.annotation='One keg short';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='duplicate') invoice.duplicateOf='ORIGINAL-DEMO';
 if(mode==='clean-duplicate') { invoice.duplicateOf='ORIGINAL-DEMO'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[]; }
@@ -118,11 +118,15 @@ if(mode==='linked-agree' || mode==='linked-question') {
       expected:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']},delivered:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']}}]}];
 }
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
+// 2026-10-06: the list request sat 300 s at the proxy. stall-list* never answers the first list read;
+// catalog-fail fails the first item-list read (both sections) and recovers on Try again.
+let historyCalls=0, catalogCalls=0;
 window.fetch=async(url,options={})=>{
   const path=new URL(url,location.href).pathname;
   audit.push(`${options.method||'GET'} ${path} ${options.body||''}`);
   const log=document.getElementById('audit');if(log)log.textContent=audit.join('\n');
   if(path.endsWith('/catalog')) {
+    if(mode==='catalog-fail'&&catalogCalls++<2)return json({error:'catalog unavailable'},500);
     const section=new URL(url,location.href).searchParams.get('section')||'bar';
     return json({items:catalog.filter(item=>item.section===section)});
   }
@@ -165,6 +169,7 @@ window.fetch=async(url,options={})=>{
     line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
     return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
   }
+  if(path.endsWith('/invoices/history')&&mode.startsWith('stall-list')&&historyCalls++===0)return new Promise(()=>{});
   if(path.endsWith('/invoices/history'))return json({invoices:[
     ...(mode==='clarity'?[{...invoice,id:'ready-newer',status:'extracted',vendorText:'Example ready invoice',needsAttention:false}]:[]),
     {...invoice,heldCount:detail.lines.filter(l=>l.costHoldReason).length,reviewCount:detail.lines.filter(l=>l.needsReview).length},
@@ -192,6 +197,6 @@ window.fetch=async(url,options={})=>{
   throw new Error('Unexpected fixture request: '+path);
 };
 createRoot(document.getElementById('root')).render(<div className="lq-app">
-  <main className="lq-main"><Invoices onDone={()=>{}} initialInvoiceId="test-invoice" /></main>
+  <main className="lq-main"><Invoices onDone={()=>{}} initialInvoiceId={mode==='stall-list-nolink'?null:'test-invoice'} /></main>
   <pre id="audit" />
 </div>);
