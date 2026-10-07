@@ -1,5 +1,28 @@
 # Bottle-size UI verification
 
+## Food and non-alcoholic waste log
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-waste --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-waste.mjs
+node scripts/qa-liquor-bottle-sizes/check-food-waste-native.mjs
+```
+
+The synthetic fixture bundles the actual Waste Log view, API client and shared
+invoice photo preparation. Thirty component scenarios cover gallery limits,
+partial upload recovery, duplicate photos, actor draft resume, quantity/unit and
+prepared-size choices, missing entries, photo acknowledgement, posting races,
+changed-price refresh, unpriced totals, history and void recovery. Native
+Chromium checks run at 320 and 412 pixels with the existing global theme and
+local fonts, including real canvas photo compression, touch unit selection,
+keyboard visibility, source photos, reduced motion and read-only posted rows.
+Every API response is intercepted and native external requests are blocked.
+They do not upload staff photos, call a provider, or write inventory. Service
+valuation and database transactions are tested separately in the backend.
+
+Optional `WASTE_QA_RESULTS` and `WASTE_NATIVE_OUTPUT` select result destinations;
+native artifacts otherwise go to the ignored `tmp/food-waste-native` directory.
+
 ## Food review, corrections and voice gaps
 
 Run from the Website root with the locked Website dependencies installed:

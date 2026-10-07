@@ -24,12 +24,13 @@ import BeverageCost from "./views/BeverageCost";
 import TapInventory from "./views/TapInventory";
 import MenuEconomics from "./views/MenuEconomics";
 import FoodQuestions from "./views/FoodQuestions";
+import FoodWaste from "./views/FoodWaste";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
 // data call is same-origin through /tprs-api → the TPRS backend's /admin/bar/*.
 
-type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics" | "forbidden";
+type View = "loading" | "login" | "home" | "count" | "countfood" | "foodwaste" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics" | "forbidden";
 
 // Views an alert email is allowed to deep-link into via ?view= (e.g. the recipe-alerts
 // email's "Log in and fix it" button → /liquor?view=mappours). Read once at module
@@ -43,7 +44,7 @@ type View = "loading" | "login" | "home" | "count" | "countfood" | "kegcheck" | 
 // variance table), not on a list the reader then has to search. With
 // view=foodvariance, ?count=<id> opens that food count's variance report, and with
 // view=foodcost, the food cost of the bracket that count closes.
-const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost", "foodrecipes", "foodquestions", "foodtrends", "opsinbox", "brunswickfood", "beveragecost", "tapinventory", "menueconomics", "countfood", "count"];
+const DEEP_LINKABLE: readonly View[] = ["mappours", "recipes", "pourcosts", "invoices", "pricewatch", "counts", "foodvariance", "foodcost", "foodrecipes", "foodquestions", "foodtrends", "opsinbox", "brunswickfood", "beveragecost", "tapinventory", "menueconomics", "countfood", "count", "foodwaste"];
 
 // Which catalog the app is working in (BUILD-SPEC decision 6 / migration 0166).
 // ABSENT MEANS 'bar', and that default is load-bearing rather than a
@@ -175,6 +176,7 @@ export default function LiquorApp() {
         {view === "home" && actor && <Home actor={actor} onGo={(d) => setView(d)} />}
         {view === "count" && <CountLiquor onDone={goHome} />}
         {view === "countfood" && <CountFood onDone={goHome} />}
+        {view === "foodwaste" && actor && <FoodWaste actorId={actor.id} canCount={actor.permissions.includes("bar.count")} canManage={actor.permissions.includes("bar.manage")} onDone={goHome} onLoginExpired={() => setView("login")} onCountFood={() => { window.history.replaceState({}, "", `${window.location.pathname}?view=countfood&section=food`); setView("countfood"); }} />}
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
         {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}

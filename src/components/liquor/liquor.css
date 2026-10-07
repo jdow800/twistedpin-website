@@ -3896,3 +3896,59 @@
 .lq-review-card label, .lq-source-review fieldset > label { display:block; margin:.7rem 0; }
 .lq-review-card input, .lq-review-card select, .lq-source-review fieldset > label > textarea, .lq-source-review fieldset > label > input[type=number] { max-width:100%; width:100%; padding:.6rem; font:inherit; box-sizing:border-box; }
 .lq-review-controls select { padding:.5rem; font:inherit; }
+
+/* Food/NA waste is a reviewed source ledger, separate from count entry. */
+.lq-fw { padding-bottom: calc(175px + env(safe-area-inset-bottom)); min-width: 0; }
+.lq-fw h1 { text-align: left; }
+.lq-fw h2 { font-size: 18px; margin: 16px 0 10px; }
+.lq-fw label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; }
+.lq-fw input:not([type=checkbox]):not([type=radio]), .lq-fw select, .lq-fw textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; min-height: 48px; font-size: 16px; padding: 10px; color: var(--lq-text); background: var(--lq-panel); border: 1px solid var(--lq-line-strong); border-radius: 7px; }
+.lq-fw input[type=checkbox], .lq-fw input[type=radio] { width: 22px; height: 22px; flex: 0 0 22px; }
+.lq-fw fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.lq-fw .lq-chip, .lq-fw .lq-linkbtn { min-height: 44px; white-space: normal; }
+.lq-fw .lq-chip { overflow-wrap: anywhere; }
+.lq-fw-period { margin-block: 14px 8px; }
+.lq-fw-period-note { font-size: 14px; line-height: 1.5; }
+.lq-fw-gallery { width: 100%; }
+.lq-fw-photo-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); list-style: none; margin: 14px 0; padding: 0; gap: 12px; }
+.lq-fw-photo { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 8px; border: 1px solid var(--lq-line); border-radius: 8px; overflow-wrap: anywhere; }
+.lq-fw-photo img { width: 100%; height: 120px; object-fit: cover; border-radius: 5px; }
+.lq-fw-photo-number { font-weight: 700; }
+.lq-fw-row { padding: 10px; margin: 12px 0; border: 1px solid var(--lq-line); border-radius: 8px; background: var(--lq-panel); min-width: 0; }
+.lq-fw-source { display: flex; flex-wrap: wrap; align-items: center; gap: 0 10px; margin-bottom: 8px; }
+.lq-fw-source p { flex: 1 1 180px; margin: 0; font-size: 14px; color: var(--lq-muted); overflow-wrap: anywhere; }
+.lq-fw-match { width: 100%; text-align: left; color: #10121a; margin-bottom: 10px; }
+.lq-fw-pick, .lq-fw-question { margin-block: 8px; }
+.lq-fw-choices, .lq-fw-kind, .lq-fw-units { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px; }
+.lq-fw-amount { display: grid; grid-template-columns: minmax(85px,.8fr) minmax(120px,1.2fr); gap: 10px; }
+.lq-fw-amount input[type=number] { font-size: 22px; font-weight: 700; }
+.lq-fw-options { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.lq-fw-options label, .lq-fw-review-confirm { flex-direction: row !important; align-items: center; min-height: 44px; line-height: 1.5; }
+.lq-fw-review-confirm { display: flex; gap: 10px; margin: 20px 0; font-size: 16px !important; }
+.lq-fw-notes, .lq-fw-issues { margin: 8px 0; padding-left: 20px; font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.lq-fw-issues, .lq-fw-question { color: var(--lq-error, #ff9b9b); }
+.lq-fw-value { margin: 8px 0; font-size: 14px; color: var(--lq-muted); }
+.lq-fw-details { margin: 12px 0; font-size: 14px; overflow-wrap: anywhere; }
+.lq-fw-details summary { cursor: pointer; min-height: 44px; padding: 12px 0; box-sizing: border-box; }
+.lq-fw-details label { margin-block: 10px; }
+.lq-fw-discard { width: 100%; text-align: right; }
+.lq-fw-discarded { opacity: .75; }
+.lq-fw-saved-photos { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.lq-fw-source-thumb { width: 100%; color: inherit; background: var(--lq-panel); padding: 8px; border: 1px solid var(--lq-line); border-radius: 8px; }
+.lq-fw-source-thumb img { width: 100%; height: 110px; object-fit: cover; display: block; margin-bottom: 8px; }
+.lq-fw-history { display: flex; flex-direction: column; gap: 8px; }
+.lq-fw-history button { text-align: left; white-space: normal; }
+.lq-fw-totals, .lq-fw-processing { margin: 16px 0; padding: 12px; border: 1px solid var(--lq-line); border-radius: 8px; }
+.lq-fw-totals h2, .lq-fw-processing h2 { margin-top: 0; }
+.lq-fw-totals strong { font-size: 24px; }
+.lq-fw-percent { font-size: 18px; font-weight: 700; }
+.lq-fw-pulse { position: relative; height: 6px; background: var(--lq-line); overflow: hidden; border-radius: 4px; }
+.lq-fw-pulse::after { content: ""; position: absolute; left: -35%; width: 35%; height: 100%; background: var(--lq-glow); animation: lq-fw-reading 1.8s ease-in-out infinite; }
+@keyframes lq-fw-reading { from { transform: translateX(0); } to { transform: translateX(390%); } }
+.lq-fw-footer { position: fixed; width: 100%; max-width: 640px; left: 50%; right: auto; transform: translateX(-50%); box-sizing: border-box; }
+.lq-fw-footer .lq-footer-actions { width: 100%; }
+.lq-fw-footer .lq-btn { min-width: 0; white-space: normal; }
+.lq-fw-modal { position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column; gap: 12px; padding: 12px; background: #0e0a1f; overflow: auto; }
+.lq-fw-modal .lq-btn { align-self: flex-start; min-height: 48px; }
+.lq-fw-modal img { width: 100%; max-height: calc(100dvh - 90px); object-fit: contain; }
+@media (prefers-reduced-motion: reduce) { .lq-fw-pulse::after { animation: none; left: 0; width: 100%; opacity: .65; } }

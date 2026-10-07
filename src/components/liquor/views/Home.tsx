@@ -2,13 +2,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { BarActor } from "../api";
 import { listFoodQuestions } from "../food-questions-api";
 
-type Dest = "count" | "countfood" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics";
+type Dest = "count" | "countfood" | "foodwaste" | "kegcheck" | "upload" | "invoices" | "counts" | "pricewatch" | "pourcosts" | "mappours" | "recipes" | "teachergroup" | "foodvariance" | "foodcost" | "foodrecipes" | "foodquestions" | "foodtrends" | "opsinbox" | "brunswickfood" | "beveragecost" | "tapinventory" | "menueconomics";
 
 interface Tile { view: Dest; icon: string; title: string; sub: string }
 
 const QUESTIONS: Tile = { view: "foodquestions", icon: "💬", title: "My recipe questions", sub: "A few kitchen details · save each answer" };
 const OPS_INBOX: Tile = { view: "opsinbox", icon: "📥", title: "Operations inbox", sub: "Priorities, evidence and corrections" };
 const COUNT: Tile[] = [
+  { view: "foodwaste", icon: "📷", title: "Waste Log", sub: "Food + NA · upload and review log photos" },
   { view: "count", icon: "🥃", title: "Count liquor", sub: "Voice or tap · bottles by zone" },
   { view: "countfood", icon: "🧊", title: "Count food", sub: "Voice or tap · kitchen shelves" },
   { view: "kegcheck", icon: "🛢️", title: "Keg check", sub: "Kegs + bottled beer" },

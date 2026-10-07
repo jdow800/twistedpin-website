@@ -8,9 +8,10 @@ const website = fileURLToPath(new URL('../../',import.meta.url));
 const backend = resolve(process.env.BOTTLE_QA_TPRS_ROOT || join(website,'../tprs'));
 const require = createRequire(join(website,'package.json'));
 const esbuild = require('esbuild');
-const entry = process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--liquor-voice') ? 'liquor-voice-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : process.argv.includes('--food-variance') ? 'food-variance-fixture' : process.argv.includes('--food-cost') ? 'food-cost-fixture' : 'fixture';
+const entry = process.argv.includes('--food-waste') ? 'food-waste-fixture' : process.argv.includes('--beer') ? 'beer-fixture' : process.argv.includes('--food-voice') ? 'food-fixture' : process.argv.includes('--liquor-voice') ? 'liquor-voice-fixture' : process.argv.includes('--invoices') ? 'invoice-fixture' : process.argv.includes('--recipes') ? 'recipe-fixture' : process.argv.includes('--food-variance') ? 'food-variance-fixture' : process.argv.includes('--food-cost') ? 'food-cost-fixture' : 'fixture';
 await mkdir(base+'dist',{recursive:true});
 await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:true,jsx:'automatic',platform:'browser',
+  loader:{'.woff':'file','.woff2':'file'},external:['/pattern/*'],
   nodePaths:[join(website,'node_modules')],define:{'import.meta.env':'{"PUBLIC_TPRS_API_BASE":"/mock"}'},
   plugins:[{name:'expose-test-component',setup(build){
     const sources = {
@@ -18,6 +19,7 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:invoice-match': join(website,'src/components/liquor/views/Invoices.tsx'),
       'qa:delivery-check': join(backend,'apps/backend/src/bar/recent-bottle-size.ts'),
       'qa:styles': join(website,'src/components/liquor/liquor.css'),
+      'qa:global-styles': join(website,'src/styles/global.css'),
       'qa:recipes': join(website,'src/components/liquor/views/RecipeBuilder.tsx'),
       'qa:invoices': join(website,'src/components/liquor/views/Invoices.tsx'),
       'qa:food': join(website,'src/components/liquor/views/CountFood.tsx'),
@@ -27,6 +29,9 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:food-variance-report': join(website,'src/components/liquor/FoodVarianceReport.tsx'),
       'qa:food-cost': join(website,'src/components/liquor/views/FoodCost.tsx'),
       'qa:food-cost-report': join(website,'src/components/liquor/FoodCostReport.tsx'),
+      'qa:food-waste': join(website,'src/components/liquor/views/FoodWaste.tsx'),
+      'qa:document-photo': join(website,'src/components/liquor/document-photo.ts'),
+      'qa:api': join(website,'src/components/liquor/api.ts'),
     };
     if (entry === 'food-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'food-recorder-fixture.jsx')}));
     if (entry === 'liquor-voice-fixture') build.onResolve({filter:/^\.\.\/useRecorderDictation$/},() => ({path:join(base,'liquor-recorder-fixture.jsx')}));
@@ -39,7 +44,8 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
 const html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bottle size QA</title><style>body{margin:0;background:#0e0a1f}#root{min-height:100vh}</style><link rel="stylesheet" href="/fixture.css"></head><body><div id="root"></div><script type="module" src="/fixture.js"></script></body></html>';
 const assets={'/fixture.js':['text/javascript',base+'dist/'+entry+'.js'],'/fixture.css':['text/css',base+'dist/'+entry+'.css']};
 if (!process.argv.includes('--build-only')) createServer(async(req,res)=>{
-  const asset=assets[new URL(req.url,'http://localhost').pathname];
+  const path=new URL(req.url,'http://localhost').pathname;
+  const asset=assets[path]??(/^\/[\w.-]+\.woff2?$/.test(path)?['font/'+(path.endsWith('woff2')?'woff2':'woff'),base+'dist'+path]:undefined);
   res.setHeader('Content-Type',asset?.[0]??'text/html');
   res.end(asset?await readFile(asset[1]):html);
 }).listen(4177,'127.0.0.1',()=>console.log('Synthetic bottle-size QA http://127.0.0.1:4177'));
