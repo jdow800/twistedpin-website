@@ -187,6 +187,16 @@ export default function Invoices({
     }
   }
 
+  /** A source-check write must be read back before another action is offered. */
+  async function refreshCopyReviews(invoiceId: string) {
+    const fresh = await getInvoiceDetail(invoiceId);
+    setDetail(d => d && d.invoice.id === invoiceId ? fresh : d);
+    syncHeldCount(invoiceId, fresh.lines);
+    setList(rows => rows.map(row => row.id === invoiceId ? { ...row,
+      status: fresh.invoice.status, needsAttention: detailNeedsAttention(fresh) } : row));
+    return fresh.copyReviews ?? [];
+  }
+
   /** Clear a resolved hold in place, so the control disappears on Apply. */
   function handleCostApplied(lineId: string) {
     setSavedAnswer(`Saved the answer for ${detail?.lines.find(line => line.id === lineId)?.matchedName || "this item"}.`);
@@ -291,9 +301,13 @@ export default function Invoices({
     const openCopies = (detail.copyReviews ?? []).filter(copy => !copy.reviewed && !copy.automaticallyReconciled);
     const completedCopies = (detail.copyReviews ?? []).filter(copy => copy.reviewed || copy.automaticallyReconciled);
     const isLinkedCopy = !!inv.duplicateOf && !!detail.copyReviews?.some(copy => copy.copyId === inv.id);
-    const needsAnswer = detailNeedsAttention(detail);
+    const checkingPackages = openCopies.some(copy => copy.sourceCheck?.status === "queued" || copy.sourceCheck?.status === "running");
+    const waitingForPackageCheck = checkingPackages && !questions.length
+      && openCopies.every(copy => copy.sourceCheck?.status === "queued" || copy.sourceCheck?.status === "running")
+      && (isLinkedCopy || inv.status !== "flagged");
+    const needsAnswer = detailNeedsAttention(detail) && !waitingForPackageCheck;
     const documentQuestion = needsAnswer && ((inv.status === "flagged" && !isLinkedCopy) || openCopies.length > 0);
-    const status = inv.status === "pending" ? "Reading…" : needsAnswer ? "Needs your answer"
+    const status = inv.status === "pending" ? "Reading…" : waitingForPackageCheck ? "Checking the package reading" : needsAnswer ? "Needs your answer"
       : inv.duplicateOf ? "Copy saved" : "No questions remaining";
     const renderLine = (l: InvoiceLine, question = false) => (
             <div key={l.id} id={`inv-line-${l.id}`} tabIndex={-1} className={`lq-invd-line${question ? " lq-invd-line-review" : ""}`}>
@@ -377,15 +391,15 @@ export default function Invoices({
         <p className="lq-muted lq-invd-meta">
           {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
           {inv.invoiceDate || shortDate(inv.createdAt)} ·{" "}
-          <span className={`lq-badge lq-badge-${needsAnswer ? "flagged" : inv.status === "pending" ? "pending" : "confirmed"}`}>{status}</span>
+          <span className={`lq-badge lq-badge-${needsAnswer ? "flagged" : inv.status === "pending" || waitingForPackageCheck ? "pending" : "confirmed"}`}>{status}</span>
         </p>
         {detail.images[0] && <a className="lq-invd-source-link" href={invoiceImageUrl(detail.images[0].id)} target="_blank" rel="noreferrer">Open original invoice ↗</a>}
-        <div id="invoice-progress" tabIndex={-1} className={`lq-invd-progress${needsAnswer ? "" : " lq-invd-progress-done"}`} role="status">
-          <strong>{inv.status === "pending" ? "Reading this invoice" : questions.length ? `${questions.length} item${questions.length === 1 ? " needs" : "s need"} your answer` : documentQuestion ? "Review the details below" : "You’re all caught up on this invoice"}</strong>
-          <p>{savedAnswer ? `${savedAnswer} ` : ""}{inv.status === "pending" ? "The saved items will appear here when reading finishes." : needsAnswer ? "Start below. Saved answers disappear from this list." : inv.duplicateOf ? "This copy stays linked or excluded so the purchase is counted once." : "No answers are needed. You can return to your invoices."}</p>
+        <div id="invoice-progress" tabIndex={-1} className={`lq-invd-progress${needsAnswer || waitingForPackageCheck ? "" : " lq-invd-progress-done"}`} role="status">
+          <strong>{inv.status === "pending" ? "Reading this invoice" : waitingForPackageCheck ? "Checking the package reading" : questions.length ? `${questions.length} item${questions.length === 1 ? " needs" : "s need"} your answer` : documentQuestion ? "Review the details below" : "You’re all caught up on this invoice"}</strong>
+          <p>{savedAnswer ? `${savedAnswer} ` : ""}{inv.status === "pending" ? "The saved items will appear here when reading finishes." : waitingForPackageCheck ? "The original documents are being checked. Use Check latest status below to see the result." : needsAnswer ? "Start below. Saved answers disappear from this list." : inv.duplicateOf ? "This copy stays linked or excluded so the purchase is counted once." : "No answers are needed. You can return to your invoices."}</p>
           {!needsAnswer && inv.status !== "pending" && <button className="lq-btn" type="button" onClick={() => setDetail(null)}>Back to invoices</button>}
         </div>
-        <InvoiceCopies reviews={openCopies} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
+        <InvoiceCopies reviews={openCopies} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => refreshCopyReviews(inv.id)} />
         <InvoiceReview detail={detail} clearing={clearing} error={clearMsg} onConfirm={doClearFlag} />
         <InvoiceExplanation key={`${inv.id}:${detail.explanationToken}`} detail={detail} onRefresh={() => void refreshBuckets(inv.id)} />
         {questions.length > 0 && <section className="lq-invd-questions" aria-label="Needs your answer">
@@ -394,7 +408,7 @@ export default function Invoices({
         {!inv.duplicateOf && <InvoiceAutomaticAnswers invoiceId={inv.id} revision={detail} onSaved={() => void refreshBuckets(inv.id)} />}
         {completedCopies.length > 0 && <details className="lq-invd-secondary">
           <summary>Completed document comparisons ({completedCopies.length})</summary>
-          <InvoiceCopies reviews={completedCopies} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => void refreshBuckets(inv.id)} />
+          <InvoiceCopies reviews={completedCopies} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => refreshCopyReviews(inv.id)} />
         </details>}
         {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
         {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}

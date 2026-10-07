@@ -1228,12 +1228,22 @@ export interface InvoiceCopyReview {
   }>;
   reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
   reviewed: boolean; reviewedAt: string | null; ready: boolean; automaticallyReconciled?: boolean;
-  automaticBasis?: "supplier_final" | "matching_copies" | null;
+  automaticBasis?: "supplier_final" | "matching_copies" | "source_checked_packages" | null;
+  sourceCheck?: {
+    id: string; evidenceHash: string;
+    status: "queued" | "running" | "resolved" | "unresolved" | "rejected";
+    attempts: number; reason: string | null;
+    corrections: { vendorCode: string; originalReading: string; correctedReading: string }[];
+  };
   questions?: string[];
   readingIncomplete?: boolean;
 }
 export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
   await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));
+}
+/** Reopen only the source-reading explanation; this never changes a purchase. */
+export async function rejectInvoicePackageSourceCheck(id: string, evidenceHash: string): Promise<void> {
+  await gatedJson(`/admin/bar/invoices/${id}/source-check/reject`, jsonBody({ evidenceHash }));
 }
 export interface InvoiceDetail {
   copyReviews?: InvoiceCopyReview[];

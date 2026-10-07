@@ -1,3 +1,35 @@
+## 2026-10-06 — Invoice comparisons show the package source check and can reopen it
+
+Jon authorized the invoice review to use source documents and existing supplier
+facts before asking a person about a package reading. The existing comparison
+panel now shows a queued/running source check as “Checking the package reading,”
+without claiming completion or offering a completion acknowledgment. Check latest
+status reads the saved result.
+
+A source-checked comparison names that basis explicitly, preserves the first scan
+reading beside the checked reading and stays in Completed document comparisons.
+It does not claim that a supplier final invoice settled this kind of question.
+Reopen package review rejects the explanation with its current evidence fingerprint;
+the backend owns the audit and the underlying purchase remains unchanged.
+
+After a reopen request, including a lost response or a 409, the screen reads the
+exact current invoice before another write is possible. Failed readback keeps the
+previous details visible and requires Reload comparison before retrying. Duplicate
+taps send one request. Existing source links and human comparison acknowledgments
+remain available.
+
+Validation: strict TypeScript for the changed invoice component graph passes.
+Thirty-seven native Chromium scenarios pass with fictional invoices and simulated API
+responses: the recovery paths, truthful older responses, escaped text and layouts
+at 320/390/412/1280px with no horizontal overflow and controls at least 44px high.
+Screenshots and results stay in ignored `scripts/qa-invoice-source-check/.qa/`. An
+authoritative refresh also removes a disappeared source check and its stale
+reopen control. This checks
+the UI/request contract, not source-reading accuracy or a physical phone. The full
+prebuild and Astro production build pass without production integration settings
+(the existing GoTab/Untappd missing-configuration fallbacks are expected). No live login, email,
+invoice edit, deployment or paid source replay was performed by this UI change.
+
 ## 2026-10-06 — Food voice review shows the matched product and one count
 
 Jon's next phone test found that successful BIB rows still showed the manual Cases/Loose form and a faint green product name. His explicit preference is the liquor review pattern: a prominent green selected-product pill and one editable count in the spoken unit or the current confirmed default. Alternative counting options belong behind a deliberate action. A matched product stays green even when its quantity needs an answer, and tapping the pill opens product choices/search.
