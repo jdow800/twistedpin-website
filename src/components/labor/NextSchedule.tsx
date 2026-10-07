@@ -3,9 +3,18 @@ import {getSchedulingIdeas,getRecapPreview,type SchedulingIdea,type LaborReview}
 export default function NextSchedule({review}:{review:LaborReview}){
   const [items,setItems]=useState<SchedulingIdea[]>([]),[error,setError]=useState(''),[email,setEmail]=useState<{subject:string;html:string;text:string}|null>(null),[showEmail,setShowEmail]=useState(false);
   const load=async()=>{try{const result=await getSchedulingIdeas();setItems(result.items);setError('');}catch{setError('Could not load saved scheduling ideas. Please retry.');}};
-  useEffect(()=>{void load();setEmail(null);setShowEmail(false);},[review]);
+  const forward=Boolean(review.packet.forwardFeedback),feedback=review.questions.filter(q=>q.draftChange&&q.response);
+  useEffect(()=>{if(!forward)void load();setError('');setEmail(null);setShowEmail(false);},[review]);
   const preview=async()=>{try{setEmail((await getRecapPreview(review.id)).email);setShowEmail(true);}catch{setError('Could not load the recap preview. Your saved responses remain available.');}};
   const current=items.some(i=>i.reviewId===review.id);
+  if(forward)return <section id="next-schedule" className="lr-next-schedule" aria-label="Saved scheduling explanations">
+    <div className="lr-section-heading"><h2>Saved scheduling context</h2><span>Your explanations stay with this review</span></div>
+    {!feedback.length?<p className="lr-small">Your explanations will appear here after you save.</p>:null}
+    {feedback.map(q=><article key={q.id} className="lr-plan-item"><span className="lr-badge">Context saved</span><h3>{q.title}</h3><p>{q.response!.note}</p>{q.response!.action?<p><strong>Next step:</strong> {q.response!.action}</p>:null}</article>)}
+    {error?<p role="alert">{error}</p>:null}
+    {feedback.length?<div className="lr-plan-footer"><p className="lr-small">{review.recapDeliveryEnabled?(review.recap?.state==='enqueued'?'Your explanation recap is in the email queue. Later edits stay on this page.':review.recap?.state==='pending'?`Recap planned for ${new Date(review.recap.dueAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}, about 90 minutes after completion.`:'Complete the remaining questions to prepare one recap.'):'Your answers persist here. Automatic recap delivery is off.'}</p><button onClick={()=>void preview()}>Preview follow-up email</button></div>:null}
+    {showEmail&&email?<details className="lr-recap-preview" open><summary>{email.subject}</summary><iframe title="Explanation recap email preview" sandbox="" srcDoc={email.html}/></details>:null}
+  </section>;
   return <section id="next-schedule" className="lr-next-schedule" aria-label="Ideas for your next schedule">
     <div className="lr-section-heading"><h2>Next schedule</h2><span>Your Yes and Maybe ideas stay here</span></div>
     {error?<div role="alert"><p>{error}</p><button onClick={()=>void load()}>Retry</button></div>:null}
