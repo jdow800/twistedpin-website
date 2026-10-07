@@ -9,13 +9,13 @@ const params=new URL(location.href).searchParams;
 localStorage.clear();
 const sku=(id,name,countUnit='pack',unitsPerCase=24,extra={})=>({id,name,section:'food',category:'Pantry',
   countUnit,unitsPerCase,sizeMl:null,trackingMode:'stock_count',active:true,wacCost:null,lastCost:'20',...extra});
-const definition=(unitsPerCase)=>({countUnit:'each',unitsPerCase,defaultSpokenUnit:'case',spokenUnits:{case:unitsPerCase},confirmedBy:'Fictional counter',confirmedAt:'2026-10-01'});
+const definition=(unitsPerCase,unitLabel)=>({countUnit:'each',unitsPerCase,unitLabel,defaultSpokenUnit:'each',spokenUnits:{case:unitsPerCase,each:1,[unitLabel]:1},confirmedBy:'Fictional counter',confirmedAt:'2026-10-01'});
 const catalog=[
   sku('dough','Pizza Dough'),
   sku('alternate','Sample Alternate Dough'),
   sku('pretzel','Giant Pretzel','pack',8),
-  sku('crust','Cauliflower Crust','each',24,{countDefinition:definition(24)}),
-  sku('flatbread','Flatbread, 4.5"x12"','each',60,{countDefinition:definition(60)}),
+  sku('crust','Cauliflower Crust','each',24,{countDefinition:definition(24,'crust')}),
+  sku('flatbread','Flatbread, 4.5"x12"','each',60,{countDefinition:definition(60,'flatbread')}),
   sku('tomato','Tomato Roma','each',24),
   sku('packed','Sample Packed Garnish','each',24),
   ...Array.from({length:44},(_,i)=>sku('sample'+i,'Sample Shelf Food '+String(i+1).padStart(2,'0'))),

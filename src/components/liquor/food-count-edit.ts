@@ -1,6 +1,5 @@
 import type { BarSkuItem, CountLineInput } from "./api";
 import { normalizeCountUnit, currentCountDefinition } from "./count-definition";
-import { foodCasesOnly } from "./food-voice-review";
 import { roundQty } from "./quantity";
 
 export type FoodCell = {
@@ -32,7 +31,7 @@ export function appendFoodSource(before?: string, after?: string): string | unde
  * need a fresh amount; kilograms, pounds and packs cannot share a number. */
 export function compatibleFoodUnits(a: BarSkuItem, b: BarSkuItem): boolean {
   const label = (s: BarSkuItem) => normalizeCountUnit(currentCountDefinition(s)?.unitLabel ?? s.countUnit ?? "each");
-  return !foodCasesOnly(a) && !foodCasesOnly(b) && normalizeCountUnit(a.countUnit ?? "each") === normalizeCountUnit(b.countUnit ?? "each") && label(a) === label(b);
+  return normalizeCountUnit(a.countUnit ?? "each") === normalizeCountUnit(b.countUnit ?? "each") && label(a) === label(b);
 }
 
 export function mergeFoodCells(source: FoodCell, target: FoodCell): FoodCell {

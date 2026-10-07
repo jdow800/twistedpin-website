@@ -37,7 +37,7 @@ import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
 import CountEntryChoice from "../CountEntryChoice";
-import { foodCasesOnly, foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
 import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
@@ -269,7 +269,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [showRecorderError, setShowRecorderError] = useState(true);
-  const [caseSizeErrors, setCaseSizeErrors] = useState<Record<string, string | null>>({});
   const [retryTranscript, setRetryTranscript] = useState<string | null>(null);
   /** A blocking persistence/submit failure. Lives in the FIXED footer, not in
    *  the mic toolbar at the top of the page — the counter who just tapped
@@ -627,13 +626,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       if (cur?.packSize != null && cur.packSize > 0) writeCell(skuId, { packs: value, packSize: cur.packSize, none: false }, dest);
       return;
     }
-    if (field === "cases" && foodCasesOnly(skuById.get(skuId))) {
-      // An explicit case answer replaces the whole cell. A legacy loose count
-      // stays untouched until this edit, rather than being hidden and added
-      // again underneath the new case amount.
-      writeCell(skuId, { cases: value, units: null, packs: null, packSize: null, caseSize, none: false }, dest);
-      return;
-    }
     // Typing anything — including a literal 0 — is the counter answering, so
     // it supersedes an earlier "none here". Erasing does not.
     writeCell(
@@ -655,11 +647,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const cur = (counts[zoneId] ?? {})[skuId];
     const sku = skuById.get(skuId);
     const caseSize = cur?.caseSize ?? foodCaseSize(sku);
-    const casesOnly = field === "cases" && foodCasesOnly(sku);
-    if (casesOnly && !(caseSize != null && caseSize > 0)) return;
-    // The case-only box displays the WHOLE cell, including legacy loose or
-    // pack entries. Stepping it must begin with that same equivalent amount.
-    const current = casesOnly && cur ? cur.qty / caseSize! : cur?.[field] ?? 0;
+    const current = cur?.[field] ?? 0;
     const value = Number(Math.max(0, current + delta).toFixed(10));
     editBox(skuId, field, String(value), caseSize);
   }
@@ -996,7 +984,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const meaningChanged = (patch.chosenSkuId !== undefined && patch.chosenSkuId !== x.chosenSkuId)
         || (patch.spokenUnit !== undefined && patch.spokenUnit !== x.spokenUnit)
         || patch.cases !== undefined || patch.units !== undefined;
-      const restate = x.quantityWasUncertain && meaningChanged && patch.unconfirmedQuantityFields === undefined;
+      // Choosing the unit does not answer a held model quantity, but it also
+      // must not erase a number the person has already completely entered.
+      const quantityStillHeld = !x.quantityKnown || x.quantityNeedsReview || !!x.unconfirmedQuantityFields?.length;
+      const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && patch.unconfirmedQuantityFields === undefined;
       return { ...x, largeCountConfirmed: undefined,
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
@@ -1041,7 +1032,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   async function answerCaseSize(skuId: string, n: number) {
     if (checking || submitting || submissionUnknown) return;
     if (!Number.isInteger(n) || n < 1 || n > 10000) return;
-    setCaseSizeErrors(prev => ({ ...prev, [skuId]: null }));
     try {
       // Persists on the SKU as 'manual', so the ask happens once per item ever
       // and invoice learning will never overwrite it.
@@ -1054,7 +1044,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       );
     } catch {
       setVoiceErr("Couldn't save the case size.");
-      setCaseSizeErrors(prev => ({ ...prev, [skuId]: "Couldn't save the case size. Enter it again to retry." }));
     }
   }
 
@@ -1292,7 +1281,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       segmentGapRef.current = false;
       setInterrupted(false);
       setCaptureRequested(false);
-      setCaseSizeErrors({});
       setToast(null);
       if (toastTimer.current) clearTimeout(toastTimer.current);
       toastTimer.current = null;
@@ -1373,15 +1361,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     ({ cases: null, units: 0, packs: null, packSize: null, caseSize: foodCaseSize(s), qty: 0, source: "grid", none: true });
 
   /** A fresh grid row's boxes: cases (× its case size) when it has one. */
-  const hasCaseBox = (s: BarSkuItem) => foodCasesOnly(s) || (s.countUnit !== "case" && foodCaseSize(s) != null);
+  const hasCaseBox = (s: BarSkuItem) => s.countUnit !== "case" && foodCaseSize(s) != null;
 
   /** The typed boxes as a cell, or null while there is nothing valid to save.
    *  A typed 0 is an answer, as on the grid. */
   function typedCell(s: BarSkuItem, q: PlaceQ): Cell | null {
-    if (foodCasesOnly(s) && foodCaseSize(s) == null) return null;
     const read = (raw: string) => (raw.trim() === "" ? null : Number(raw));
     const cases = hasCaseBox(s) ? read(q.cases) : null;
-    const units = foodCasesOnly(s) ? null : read(q.units);
+    const units = read(q.units);
     if (cases == null && units == null) return null;
     if ([cases, units].some((n) => n != null && (!Number.isFinite(n) || n < 0))) return null;
     const cell: Cell = { cases, units, packs: null, packSize: null, caseSize: hasCaseBox(s) ? foodCaseSize(s) : null,
@@ -1392,12 +1379,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   /** "2 cases + 3 bags", how a saved answer reads back. */
   function cellText(s: BarSkuItem, c: Cell): string {
-    if (foodCasesOnly(s)) {
-      const size = c.caseSize ?? foodCaseSize(s);
-      if (size == null || size <= 0) return `${formatQty(c.qty)} individual pieces (case size needs confirmation)`;
-      const cases = c.qty / size;
-      return `${formatQty(cases)} case${cases === 1 ? "" : "s"}`;
-    }
     const parts: string[] = [];
     if (c.cases) parts.push(`${formatQty(c.cases)} case${c.cases === 1 ? "" : "s"}`);
     if (c.units || parts.length === 0) parts.push(`${formatQty(c.units ?? 0)} ${unitLabel(s, c.units ?? 0)}`);
@@ -1630,31 +1611,19 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <label>
             <span>cases <span className="lq-fc-row-mult">×{foodCaseSize(s) ?? "?"}</span></span>
             <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: cases`}
-              disabled={foodCasesOnly(s) && foodCaseSize(s) == null}
               value={q.cases} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { cases: e.target.value })} />
           </label>
         )}
-        {!foodCasesOnly(s) && <label>
+        <label>
           <span>{unitLabel(s, 2)}</span>
           <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: ${unitLabel(s, 2)}`}
             value={q.units} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { units: e.target.value })} />
-        </label>}
-        {foodCasesOnly(s) && foodCaseSize(s) == null && caseSizeQuestion(s)}
+        </label>
         <button type="button" className="lq-btn lq-fc-q-save" disabled={!ready} onClick={onSave}>
           {q.busy ? "Saving…" : "Save"}
         </button>
       </div>
     );
-  }
-
-  function caseSizeQuestion(s: BarSkuItem) {
-    return <label className="lq-fc-row-box">
-      <span>Check the package: how many pieces in one case?</span>
-      <input type="number" min={1} max={10000} inputMode="numeric" aria-label={`Units per case for ${s.name}`}
-        onBlur={e => void answerCaseSize(s.id, Number(e.target.value))}
-        onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} />
-      {caseSizeErrors[s.id] && <span className="lq-error" role="alert">{caseSizeErrors[s.id]}</span>}
-    </label>;
   }
 
   /** The item's name, head first, as the grid shows it. */
@@ -2083,8 +2052,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           const c = zoneCells[s.id];
           const caseSize = c?.caseSize ?? foodCaseSize(s);
           const knownCaseSize = caseSize != null && caseSize > 0;
-          const casesOnly = foodCasesOnly(s);
-          const displayedCases = c && casesOnly && knownCaseSize ? c.qty / caseSize! : c?.cases ?? 0;
+          const displayedCases = c?.cases ?? 0;
           const [head, rest] = splitDisplayName(s.name);
           const leftover = !!s.discontinuedAt;
           const replacement = s.replacedBySkuId ? skuById.get(s.replacedBySkuId)?.name : undefined;
@@ -2104,7 +2072,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 <button type="button" className="lq-linkbtn" onClick={() => void undoNoneLeft(s.id)}>Undo</button>
               </div>
             ) : (
-            <div className={`lq-fc-row${c ? " lq-fc-row-counted" : ""}${leftover ? " lq-fc-row-leftover" : ""}${foodCasesOnly(s) ? " lq-fc-row-cases" : ""}`}>
+            <div className={`lq-fc-row${c ? " lq-fc-row-counted" : ""}${leftover ? " lq-fc-row-leftover" : ""}`}>
               <fieldset className="lq-fc-cell-controls" disabled={correctionConflicts.some((q) => q.keys.includes(`${zoneId}:${s.id}`))} aria-label={`${s.name} on ${zone?.name ?? "this shelf"}`}>
               <div className="lq-fc-row-name" title={s.name}>
                 <span className="lq-fc-row-label">
@@ -2119,7 +2087,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     says so. Behind the guard it only appeared once a cell
                     already existed, which is exactly when it is least needed. */}
                 <span className="lq-fc-row-sum">
-                  {c && <span className="lq-fc-row-total">Total {casesOnly ? cellText(s, c) : `${formatQty(c.qty)} ${unitLabel(s, c.qty)}`}</span>}
+                  {c && <span className="lq-fc-row-total">Total {formatQty(c.qty)} {unitLabel(s, c.qty)}</span>}
                   <button
                     type="button"
                     className={`lq-fc-row-none${c?.none && !c.qty ? " lq-fc-row-none-on" : ""}`}
@@ -2153,10 +2121,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 </span>
                 {noneLeft[s.id] === "failed" && <span className="lq-error">Couldn't save that. Try again.</span>}
                 {!!c?.packs && <span className="lq-muted">Includes {formatQty(c.packs)} packs × {formatQty(c.packSize)}, plus the quantities below.</span>}
-                {casesOnly && !!c?.units && <span className="lq-muted lq-fc-legacy-units">Earlier entry includes {formatQty(c.units)} individual pieces. Its total is shown in cases. Entering a case amount replaces this earlier entry.</span>}
               </div>
               <div className="lq-fc-row-inputs">
-                {!casesOnly && c?.packSize != null && <div className="lq-fc-row-box">
+                {c?.packSize != null && <div className="lq-fc-row-box">
                   <span className="lq-fc-row-lab">Packs <span className="lq-fc-row-mult">×{formatQty(c.packSize)}</span></span>
                   <div className="lq-fc-stepper">
                     <button type="button" aria-label={`Decrease packs of ${s.name}`} disabled={checking || submitting || (c.packs ?? 0) <= 0} onClick={() => stepBox(s.id, "packs", -1)}>−</button>
@@ -2165,7 +2132,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <button type="button" aria-label={`Increase packs of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "packs", 1)}>+</button>
                   </div>
                 </div>}
-                {(foodCasesOnly(s) || s.countUnit !== "case" || !!c?.cases) && (foodCasesOnly(s) || caseSize != null) && (
+                {(s.countUnit !== "case" || !!c?.cases) && caseSize != null && (
                   <div className="lq-fc-row-box">
                     {/* The "× N" chip is what tells a MULTIPLIER box apart from a
                         loose box that happens to be counted in cases. Without it
@@ -2174,23 +2141,23 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                       Cases <span className="lq-fc-row-mult">×{knownCaseSize ? formatQty(caseSize) : "?"}</span>
                     </span>
                     <div className="lq-fc-stepper">
-                    <button type="button" aria-label={`Decrease cases of ${s.name}`} disabled={checking || submitting || (casesOnly && !knownCaseSize) || displayedCases <= 0} onClick={() => stepBox(s.id, "cases", -1)}>−</button>
+                    <button type="button" aria-label={`Decrease cases of ${s.name}`} disabled={checking || submitting || displayedCases <= 0} onClick={() => stepBox(s.id, "cases", -1)}>−</button>
                     <FoodNumberInput
                       type="number"
                       inputMode="decimal"
                       min={0}
                       step="any"
                       aria-label={`${s.name}: cases`}
-                      disabled={checking || submitting || (casesOnly && !knownCaseSize)}
-                      value={c && foodCasesOnly(s) ? knownCaseSize ? c.qty / caseSize! : undefined : c?.cases ?? undefined}
+                      disabled={checking || submitting}
+                      value={c?.cases ?? undefined}
                       onFocus={keepInView}
                       onRaw={(raw) => editBox(s.id, "cases", raw, caseSize)}
                     />
-                    <button type="button" aria-label={`Increase cases of ${s.name}`} disabled={checking || submitting || (casesOnly && !knownCaseSize)} onClick={() => stepBox(s.id, "cases", 1)}>+</button>
+                    <button type="button" aria-label={`Increase cases of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "cases", 1)}>+</button>
                     </div>
                   </div>
                 )}
-                {!casesOnly && <div className="lq-fc-row-box">
+                <div className="lq-fc-row-box">
                   <span className="lq-fc-row-lab">{caseSize != null && s.countUnit !== "case" ? "Loose " : ""}{unitLabel(s, 2)}</span>
                   <div className="lq-fc-stepper">
                   <button type="button" aria-label={`Decrease loose ${unitLabel(s, 2)} of ${s.name}`} disabled={checking || submitting || (c?.units ?? 0) <= 0} onClick={() => stepBox(s.id, "units", -1)}>−</button>
@@ -2207,8 +2174,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                   />
                   <button type="button" aria-label={`Increase loose ${unitLabel(s, 2)} of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "units", 1)}>+</button>
                   </div>
-                </div>}
-                {foodCasesOnly(s) && !knownCaseSize && caseSizeQuestion(s)}
+                </div>
               </div>
               </fieldset>
             </div>

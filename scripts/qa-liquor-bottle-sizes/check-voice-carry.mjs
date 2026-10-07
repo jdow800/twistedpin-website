@@ -225,6 +225,41 @@ check('food carry: a piece that names nothing waits whole; a run-on is sent', ()
   assert.equal(m.splitFoodTail(runOn).tail, '');
 });
 
+check('food carry: cup package sizes do not separate the GM count from its product', () => {
+  const sent=[];const carry=m.createCarry(text=>sent.push(text),m.splitFoodTail);
+  carry.add('Sixteen ounce cups, one case. Twelve ounce cups, point eight. Twenty four ounce cups, point nine. Lids, One case.',0);
+  carry.flush(0);
+  assert.deepEqual(sent,[
+    'Sixteen ounce cups, one case. Twelve ounce cups, point eight. Twenty four ounce cups, point nine.',
+    'Lids, One case.',
+  ]);
+  for(const name of ['24 ounce cups','Twenty-four-ounce cups','24oz clear plastic cups','Cups clear plastic 24oz',
+    'Fourteen inch dough','Pizza shells fourteen inch','4.5"x12" flatbread','Four point five by twelve flatbread']) {
+    assert.deepEqual(m.splitFoodTail(`${name}, point nine. Lids, one case.`),
+      {head:`${name}, point nine.`,tail:'Lids, one case.'},name);
+  }
+});
+
+check('food carry: real counts and weights remain counted when a product has a size', () => {
+  for(const phrase of ['Flour five pounds','Twenty four ounces of milk','One case of twenty four ounce cups',
+    'One twelve ounce cup','One cup clear plastic twelve ounce','Twelve flatbreads']) {
+    assert.deepEqual(m.splitFoodTail(`${phrase}. Point nine. Lids, one case.`),
+      {head:`${phrase}.`,tail:'Point nine. Lids, one case.'},phrase);
+  }
+});
+
+check('food carry: a sized product crosses a successful cut but never a failed clip', () => {
+  const run=failed=>{
+    const sent=[];const carry=m.createCarry(text=>sent.push(text),m.splitFoodTail);
+    carry.add('Twenty four ounce cups,',0);
+    if(failed)carry.fail(1);
+    carry.add('point nine. Lids, One case.',failed?2:1);
+    const gap=carry.flush(failed?2:1);return{sent,gap};
+  };
+  assert.deepEqual(run(false),{sent:['Twenty four ounce cups, point nine.','Lids, One case.'],gap:false});
+  assert.deepEqual(run(true),{sent:['Twenty four ounce cups,','point nine. Lids, One case.'],gap:true});
+});
+
 check('name numbers: names, not sizes', () => {
   assert.deepEqual(m.nameNumbers("Seagram's 7"), [7]);
   assert.deepEqual(m.nameNumbers("Dewar's 12 Year"), [12]);

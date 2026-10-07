@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
-import { foodCasesOnly, foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
+import { foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
@@ -17,14 +17,13 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const [productOpen, setProductOpen] = useState(false);
   const [countMode, setCountMode] = useState<"auto" | "single" | "mixed">("auto");
   const q = foodReviewQuantity(r, sku);
-  const casesOnly = foodCasesOnly(sku);
   const fields = foodQuantityFieldsToConfirm(r);
-  const explicitMixed = r.quantityKnown && !r.quantityNeedsReview && !casesOnly && q.inputUnit !== "case"
+  const explicitMixed = r.quantityKnown && !r.quantityNeedsReview && q.inputUnit !== "case"
     && (r.cases > 0 && r.units > 0 || !!r.spokenUnit && /\bcases?\b/i.test(r.quantityWords || r.spoken));
-  const singleCases = casesOnly || !r.unitNeedsReview && (sku?.countUnit === "case" && !q.inputUnit || q.inputUnit === "case"
+  const singleCases = !r.unitNeedsReview && (sku?.countUnit === "case" && !q.inputUnit || q.inputUnit === "case"
     || r.cases > 0 && r.units === 0 && !r.spokenUnit && !explicitMixed);
   const canonicalCaseBasis = sku?.countUnit === "case" && !r.unitNeedsReview && (!q.inputUnit || q.inputUnit === "case");
-  const mixed = !casesOnly && !canonicalCaseBasis && (countMode === "mixed" || countMode === "auto" && explicitMixed);
+  const mixed = !canonicalCaseBasis && (countMode === "mixed" || countMode === "auto" && explicitMixed);
   const looseLabel = q.inputUnit === sku?.countUnit ? foodUnitLabel(sku, 2) : q.inputUnit || foodUnitLabel(sku, 2);
   const unit = singleCases && !mixed ? "Cases" : r.unitNeedsReview || q.needsUnitChoice ? "Quantity" : looseLabel;
   const held = !!fields.length || !!r.quantityNeedsReview || !r.quantityKnown;
@@ -81,19 +80,19 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
             aria-invalid={r.invalidQuantityFields?.includes("units") || undefined} onRaw={raw => onQuantity("units", raw, false)} /></label>
         </> : <label>{unit}<FoodNumberInput className="lq-qty-input" type="number" min={0} step="any" inputMode="decimal" placeholder="Qty"
           aria-label={`${singleCases ? "Cases" : "Loose quantity"} for ${sku.name}`}
-          value={!held && !(casesOnly && q.needsUnitChoice) ? singleCases ? r.cases + r.units : r.units : undefined}
+          value={!held ? singleCases ? r.cases + r.units : r.units : undefined}
           aria-invalid={!!r.invalidQuantityFields?.length || undefined}
           onRaw={raw => onQuantity(singleCases ? "cases" : "units", raw, true)} /></label>}
       </div>
       {caseBreakdown && <span className="lq-muted lq-rev-hint lq-fc-rev-case-breakdown">{caseBreakdown}</span>}
       {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
       {!!r.invalidQuantityFields?.length && <span className="lq-error lq-rev-hint">Use a number of 0 or more.</span>}
-      {q.needsCaseSize && <div className="lq-fc-rev-ask"><label>{casesOnly ? "Pieces" : foodUnitLabel(sku, 2)} per case?
+      {q.needsCaseSize && <div className="lq-fc-rev-ask"><label>{foodUnitLabel(sku, 2)} per case?
         <input type="number" min={1} max={10000} inputMode="numeric" aria-label={`Units per case for ${sku.name}`}
           onKeyDown={e => { if (e.key === "Enter") onCaseSize(Number((e.target as HTMLInputElement).value)); }}
           onBlur={e => onCaseSize(Number(e.target.value))} /></label></div>}
       {q.needsUnitChoice && <div className="lq-fc-rev-ask">
-        {casesOnly ? <span>Enter the total in Cases.</span> : <>
+        <>
           <span>Which unit?</span>
           <button type="button" className="lq-chip" onClick={() => onEdit({ cases: r.cases + r.units, units: 0, spokenUnit: null, unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true })}>{held ? "Cases" : `${formatQty(r.units)} cases`}</button>
           {sku.countUnit !== "case" && <button type="button" className="lq-chip" onClick={() => onEdit({ spokenUnit: sku.countUnit ?? "each", unitMultiplier: 1, unitNeedsReview: false, unitChoiceConfirmed: true })}>{held ? foodUnitLabel(sku, 2) : `${formatQty(r.units)} ${foodUnitLabel(sku, r.units)}`}</button>}
@@ -101,21 +100,21 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
             value={r.unitDraft ?? ""} onChange={e => onEdit({ unitDraft: e.target.value })}
             onKeyDown={e => { if (e.key === "Enter" && r.unitDraft?.trim()) { e.preventDefault(); onUnit(); } }} /></label>
             <button type="button" className="lq-linkbtn" disabled={!r.unitDraft?.trim()} onClick={onUnit}>Use unit</button></>}
-        </>}
+        </>
       </div>}
-      {q.needsUnitSize && !casesOnly && <div className="lq-fc-rev-ask"><label>{sku.countUnit === "case" ? `${r.spokenUnit} per case?` : `${foodUnitLabel(sku, 2)} per ${r.spokenUnit}?`}
+      {q.needsUnitSize && <div className="lq-fc-rev-ask"><label>{sku.countUnit === "case" ? `${r.spokenUnit} per case?` : `${foodUnitLabel(sku, 2)} per ${r.spokenUnit}?`}
         <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
           onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) onEdit({ unitMultiplier: sku.countUnit === "case" ? 1 / n : n }); }}
           onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label></div>}
       {r.unitMultiplier != null && <span className="lq-muted">{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} <button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
       {concern && r.largeCountConfirmed !== concern && <div className="lq-fc-rev-ask" role="status"><span>{concern}</span>
-        {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && !casesOnly && <button type="button" className="lq-linkbtn"
+        {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"
           onClick={() => onEdit({ units: q.cases, cases: 0, spokenUnit: sku.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>Use {q.cases} {foodUnitLabel(sku, q.cases)}</button>}
         <button type="button" className="lq-linkbtn" onClick={() => onEdit({ largeCountConfirmed: concern })}>Keep as entered</button></div>}
     </>}
     <div className="lq-fc-voice-actions">
-      {sku && !casesOnly && !canonicalCaseBasis && <button type="button" className="lq-linkbtn" onClick={anotherWay}>{mixed ? "Use one count" : "Count another way"}</button>}
+      {sku && !canonicalCaseBasis && <button type="button" className="lq-linkbtn" onClick={anotherWay}>{mixed ? "Use one count" : "Count another way"}</button>}
       <button type="button" className="lq-linkbtn" onClick={onDiscard}>Discard item</button>
     </div>
   </div>;

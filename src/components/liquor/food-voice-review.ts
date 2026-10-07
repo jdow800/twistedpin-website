@@ -34,7 +34,7 @@ export function foodQuantityFieldsToConfirm(r: FoodReviewItem): ("cases" | "unit
 }
 
 /** Editing one component cannot certify the model's other component. A
- * case-only answer explicitly replaces the whole quantity, including loose. */
+ * single answer explicitly replaces the whole quantity, including loose. */
 export function confirmFoodQuantity(r: FoodReviewItem, field: "cases" | "units", value: number | null, replacesAll = false): Partial<FoodReviewItem> {
   const invalid = new Set(r.invalidQuantityFields ?? []);
   const unconfirmed = new Set(foodQuantityFieldsToConfirm(r));
@@ -58,18 +58,8 @@ export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
   return `${u}s`;
 }
 
-/** Jon's case-only policy belongs to these ingredients, even if a later pack
- *  change invalidates their stored vocabulary. Case size is still confirmed
- *  separately. Vegetable Cauliflower and other foods keep their own units. */
-export function foodCasesOnly(sku: BarSkuItem | undefined): boolean {
-  const name = sku?.name.toLowerCase().replace(/[\\"“”]/g, "").replace(/\s+/g, " ").trim();
-  return !!sku && ["cauliflower crust", "flatbread", "flatbread, 4.5x12"].includes(name ?? "")
-    && sku.countUnit === "each";
-}
-
 /** What a unitless count means for this product, in physical count units. */
 export function foodImplicitUnit(sku: BarSkuItem | undefined): string {
-  if (foodCasesOnly(sku)) return "case";
   const definition = currentCountDefinition(sku);
   const base = normalizeCountUnit(sku?.countUnit ?? "each");
   const defaultUnit = definition?.defaultSpokenUnit && normalizeCountUnit(definition.defaultSpokenUnit);
@@ -106,16 +96,15 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const base = sku?.countUnit ?? "each";
   const definition = currentCountDefinition(sku);
   const caseSize = foodCaseSize(sku);
-  const casesOnly = foodCasesOnly(sku);
-  const rawInputUnit = r.unitNeedsReview ? null : r.spokenUnit ?? (casesOnly ? "case" : currentCountDefinition(sku)?.defaultSpokenUnit ?? null);
+  const rawInputUnit = r.unitNeedsReview ? null : r.spokenUnit ?? definition?.defaultSpokenUnit ?? null;
   const inputUnit = rawInputUnit ? normalizeCountUnit(rawInputUnit) : null;
   const unitMultiplier = r.unitNeedsReview ? null
-    : casesOnly && inputUnit === "case" ? caseSize
+    : inputUnit === "case" ? caseSize
       : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit)
         ?? (sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null);
-  const needsCaseSize = (r.cases > 0 || (casesOnly && r.units > 0 && inputUnit === "case")) && caseSize == null;
+  const needsCaseSize = (r.cases > 0 || (r.units > 0 && inputUnit === "case")) && caseSize == null;
   const needsUnitSize = r.units > 0 && unitMultiplier == null && !r.unitNeedsReview && !needsCaseSize;
-  const needsUnitChoice = !!r.unitNeedsReview || (casesOnly && ((!!r.spokenUnit && inputUnit !== "case") || (r.cases > 0 && r.units > 0)))
+  const needsUnitChoice = !!r.unitNeedsReview
     || (!r.unitChoiceConfirmed && r.units > 0 && r.units < 1 && !inputUnit && (caseSize ?? 0) > 1);
   const caseMapping = definition?.spokenUnits?.case;
   const catalogConflict = base === "case" && (sku?.unitsPerCase ?? 1) > 1
@@ -133,25 +122,24 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
 export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined, existingQty = 0): string | null {
   if (!sku) return null;
   const q = foodReviewQuantity(r, sku);
+  if (!q.ready) return null;
   const history = sku.countHistory;
   const high = Math.max(history?.maxCount ?? 0, history?.maxDelivery ?? 0);
   const usualMaxCases = currentCountDefinition(sku)?.usualMaxCases;
-  const casesOnly = foodCasesOnly(sku);
-  const totalText = casesOnly ? `${formatQty((q.qty + existingQty) / q.caseSize!)} cases`
-    : `${formatQty(q.qty + existingQty)} ${foodUnitLabel(sku, q.qty + existingQty)}`;
+  const totalText = `${formatQty(q.qty + existingQty)} ${foodUnitLabel(sku, q.qty + existingQty)}`;
   // A confirmed operating range is stronger evidence than sparse early history.
   // It only asks for confirmation; the spoken amount is never silently changed.
-  if (q.ready && usualMaxCases != null && q.caseSize != null && q.caseSize > 0
+  if (usualMaxCases != null && q.caseSize != null && q.caseSize > 0
     && (q.qty + existingQty) / q.caseSize > usualMaxCases) {
-    return `${totalText} total exceeds the usual ${formatQty(usualMaxCases)} cases. Check the ${casesOnly ? "case quantity" : "unit"}; keep if correct.`;
+    return `${totalText} total exceeds the usual ${formatQty(usualMaxCases)} cases. Check the unit; keep if correct.`;
   }
-  if (usualMaxCases == null && q.ready && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
-    const historyText = (n: number) => casesOnly ? `${formatQty(n / q.caseSize!)} cases` : formatQty(n);
+  if (usualMaxCases == null && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
+    const historyText = (n: number) => formatQty(n);
     const evidence = [history?.maxCount != null ? `largest count ${historyText(history.maxCount)}` : "",
       history?.maxDelivery != null ? `largest delivery ${historyText(history.maxDelivery)}` : ""].filter(Boolean).join("; ");
-    return `${totalText} is unusually high (${evidence}, last ${history?.days ?? 90} days). Check the ${casesOnly ? "case quantity" : "unit"}.`;
+    return `${totalText} is unusually high (${evidence}, last ${history?.days ?? 90} days). Check the unit.`;
   }
-  if (usualMaxCases == null && q.cases >= 10) return casesOnly ? `${formatQty(q.cases)} cases is a large count. Confirm the number of cases.` : sku.countUnit === "case"
+  if (usualMaxCases == null && q.cases >= 10) return sku.countUnit === "case"
     ? `${formatQty(q.cases)} cases is a large count. Check quantity and unit.`
     : `${formatQty(q.cases)} cases is a large count. Cases or ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${formatQty(q.cases * q.caseSize)} ${foodUnitLabel(sku, q.cases * q.caseSize)})` : ""}?`;
   if (r.cases > 0 && q.inputUnit !== "case" && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!) {

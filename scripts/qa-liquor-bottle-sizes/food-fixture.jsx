@@ -82,15 +82,16 @@ if (params.has('definitions')) {
     {id:'romaine',name:'Sample Romaine',countUnit:'each',unitsPerCase:6,
       countDefinition:answer('each',6,{unitLabel:'head',defaultSpokenUnit:'case',spokenUnits:{case:6,bag:6}})},
     {id:'cauliflower',name:'Cauliflower Crust',countUnit:'each',unitsPerCase:12,
-      countDefinition:answer('each',12,{defaultSpokenUnit:'case',spokenUnits:{case:12}})},
+      countDefinition:answer('each',12,{unitLabel:'crust',defaultSpokenUnit:'each',spokenUnits:{case:12,each:1,crust:1,piece:1}})},
     {id:'flatbread',name:'Flatbread',countUnit:'each',unitsPerCase:60,
-      countDefinition:answer('each',60,{defaultSpokenUnit:'case',spokenUnits:{case:60}})},
+      countDefinition:answer('each',60,{unitLabel:'flatbread',defaultSpokenUnit:'each',spokenUnits:{case:60,each:1,flatbread:1,piece:1}})},
     {id:'cauliflower-heads',name:'Cauliflower',countUnit:'each',unitsPerCase:3,
       countDefinition:answer('each',3,{unitLabel:'head',spokenUnits:{head:1}})},
   );
   if (params.has('changed-package')) catalog.find(s=>s.id==='buns').unitsPerCase=24;
   if (params.has('changed-crust')) catalog.find(s=>s.id==='cauliflower').unitsPerCase=24;
-  if (params.has('unknown-crust-case')) catalog.find(s=>s.id==='cauliflower').unitsPerCase=null;
+  if (params.has('unknown-crust-case')) Object.assign(catalog.find(s=>s.id==='cauliflower'),{unitsPerCase:null,
+    countDefinition:answer('each',null,{unitLabel:'crust',defaultSpokenUnit:'each',spokenUnits:{each:1,crust:1,piece:1}})});
   if (params.has('dimension-flatbread')) catalog.find(s=>s.id==='flatbread').name='Flatbread, 4.5"x12"';
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
 }

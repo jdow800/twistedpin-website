@@ -78,6 +78,29 @@ const wordsOf = (phrase: string) => phrase.toLowerCase().replace(/['’]/g, "").
 const namesFood = (phrase: string) => wordsOf(phrase).some((w) => /[a-z]/.test(w) && !NOT_A_FOOD_NAME.has(w));
 const hasNumber = (phrase: string) => wordsOf(phrase).some((w) => /\d/.test(w) || NUMBER_WORDS.has(w));
 
+// A package size is part of a name, not evidence that this item already has
+// its inventory count. Otherwise "24 ounce cups. Point nine. Lids" strands
+// the cups and moves their 0.9 onto the next item. Keep liquor's rule separate.
+const SIZE_ONES = "(?:one|two|three|four|five|six|seven|eight|nine)";
+const SIZE_SMALL = "(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen)";
+const SIZE_TENS = `(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[ -]+${SIZE_ONES})?`;
+const SIZE_FRACTION = `(?:[ -]+point(?:[ -]+(?:zero|oh|${SIZE_ONES}))+)?`;
+const SIZE_NUMBER = `(?:\\d+(?:\\.\\d+)?|(?:${SIZE_TENS}|${SIZE_SMALL})${SIZE_FRACTION})`;
+const SIZE_DESCRIPTION = "(?:(?:clear|plastic|paper|foam|hot|cold|soup|coffee|thin|round|square)[ -]+)*";
+const PACKAGE_NAME = "(?:cups?|lids?|bottles?|containers?|bowls?|cans?|jars?|tubs?)";
+const DIMENSION_NAME = "(?:flatbreads?|crusts?|pizza|dough|shells?|circles?|plates?|pans?|trays?|liners?)";
+const PACKAGE_SIZE = new RegExp(`\\b${SIZE_NUMBER}[ -]*(?:ounces?|oz)\\b(?=[ -]*${SIZE_DESCRIPTION}${PACKAGE_NAME}\\b)`, "gi");
+const PACKAGE_SIZE_AFTER_NAME = new RegExp(`(\\b${PACKAGE_NAME}[ -]+${SIZE_DESCRIPTION})${SIZE_NUMBER}[ -]*(?:ounces?|oz)\\b`, "gi");
+const FOOD_DIAMETER = new RegExp(`\\b${SIZE_NUMBER}[ -]*(?:inch(?:es)?|in|["″])(?:[ -]*)(?=${SIZE_DESCRIPTION}${DIMENSION_NAME}\\b)`, "gi");
+const FOOD_DIAMETER_AFTER_NAME = new RegExp(`(\\b${DIMENSION_NAME}[ -]+${SIZE_DESCRIPTION})${SIZE_NUMBER}[ -]*(?:inch(?:es)?\\b|in\\b|["″])`, "gi");
+const FOOD_DIMENSIONS = new RegExp(`\\b${SIZE_NUMBER}\\s*["″]?\\s*(?:x|by)\\s*${SIZE_NUMBER}\\s*(?:inch(?:es)?\\b|in\\b|["″])?`, "gi");
+const hasFoodCount = (phrase: string) => {
+  let withoutSize = phrase.replace(PACKAGE_SIZE, " ").replace(FOOD_DIAMETER, " ")
+    .replace(PACKAGE_SIZE_AFTER_NAME, "$1").replace(FOOD_DIAMETER_AFTER_NAME, "$1");
+  if (new RegExp(`\\b${DIMENSION_NAME}\\b`, "i").test(withoutSize)) withoutSize = withoutSize.replace(FOOD_DIMENSIONS, " ");
+  return hasNumber(withoutSize);
+};
+
 /** A food item can take more words than a bottle ("we have point five of a
  *  case of salsa"). */
 export const MAX_HELD_FOOD_WORDS = 16;
@@ -96,7 +119,7 @@ export function splitFoodTail(text: string): { head: string; tail: string } {
   if (!phrases.length) return { head: "", tail: "" };
   let at = phrases.findLastIndex((p) => namesFood(p.text));
   if (at < 0) at = 0;
-  while (at > 0 && namesFood(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
+  while (at > 0 && namesFood(phrases[at - 1]!.text) && !hasFoodCount(phrases[at - 1]!.text)) at--;
   // A quantity-first phrase may end with punctuation inserted by ASR before
   // the following name. Keep that orphan quantity with the unfinished item;
   // never swallow an earlier phrase that already names a different product.
@@ -112,7 +135,7 @@ export function splitFoodTail(text: string): { head: string; tail: string } {
     // In "Oreos, one case. Zero point seven. Spanish rice", the first
     // quantity finishes Oreos; only the orphan second quantity leads rice.
     const previous = phrases[quantityStart - 1];
-    if (previous && namesFood(previous.text) && !hasNumber(previous.text)) quantityStart++;
+    if (previous && namesFood(previous.text) && !hasFoodCount(previous.text)) quantityStart++;
     at = Math.min(at, quantityStart);
   }
   const from = phrases[at]!.start;

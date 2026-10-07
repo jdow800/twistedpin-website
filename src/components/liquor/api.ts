@@ -851,7 +851,7 @@ export async function extractVoice(
   try {
     const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 4 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 5 } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );

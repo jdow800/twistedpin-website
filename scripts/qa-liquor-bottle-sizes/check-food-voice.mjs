@@ -94,7 +94,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   await t.segment('two dough',0);
   assert.equal(t.qa.extracts.length,1,'matching must begin before Stop');
   assert.equal(t.qa.extracts[0].body.section,'food');
-  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,4);
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,5);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
   assert.equal(t.qa.recorder.options.pauseCuts,false,'?pausecuts=0 is the clock fallback');
@@ -403,29 +403,27 @@ await run('case-default fractions display as cases and save exact bag equivalent
   assert.match(t.qa.lines.find(l=>l.skuId==='fries').rawUtterance,/confirmed: 2\.5 cases/);
 },'definitions');
 
-await run('two cauliflower crusts and six flatbreads are cases with no pieces question',async t => {
-  // The backend grounds these product nouns using Jon's confirmed case rule.
+await run('two cauliflower crusts and twelve flatbreads default to individual quantities',async t => {
   await t.hear([
-    item('cauliflower',0,{spoken:'two cauliflower crusts',cases:2,spokenUnit:null}),
-    item('flatbread',0,{spoken:'six flatbreads',cases:6,spokenUnit:null}),
+    item('cauliflower',2,{spoken:'two cauliflower crusts',spokenUnit:null}),
+    item('flatbread',12,{spoken:'twelve flatbreads',spokenUnit:null}),
   ]);
-  for(const [name, cases] of [['Cauliflower Crust',2],['Flatbread',6]]) {
-    assert.equal(t.doc.querySelector(`input[aria-label="Cases for ${name}"]`).value,String(cases));
-    assert.equal(t.doc.querySelector(`input[aria-label="Loose quantity for ${name}"]`),null);
+  for(const [name, units] of [['Cauliflower Crust',2],['Flatbread',12]]) {
+    assert.equal(t.doc.querySelector(`input[aria-label="Loose quantity for ${name}"]`).value,String(units));
+    assert.equal(t.doc.querySelector(`input[aria-label="Cases for ${name}"]`),null);
   }
   assert.doesNotMatch(t.doc.body.textContent,/Was .*part of a case|How many.*in one|what unit does/);
   assert.ok(t.button('Add 2 items to Pizza Freezer'));
   await t.apply(); await until(() => t.saved().length>0);
-  for(const [id,cases,size,qty] of [['cauliflower',2,12,24],['flatbread',6,60,360]]) {
+  for(const [id,qty] of [['cauliflower',2],['flatbread',12]]) {
     const line=t.qa.lines.find(l=>l.skuId===id);
-    assert.equal(line.qtyUnits,qty);assert.equal(line.enteredCases,cases);assert.equal(line.caseSizeAtEntry,size);
+    assert.equal(line.qtyUnits,qty);assert.ok(!line.enteredCases);
   }
 },'definitions');
 
 await run('half a case of crusts or flatbreads keeps fractions and canonical each totals',async t => {
-  // A unitless fraction also follows these two confirmed definitions.
   await t.hear([
-    item('cauliflower',0.5,{spoken:'cauliflower crust half',spokenUnit:null}),
+    item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:'case'}),
     item('flatbread',0.5,{spoken:'flatbread half a case',spokenUnit:'case'}),
   ]);
   assert.equal(t.doc.querySelector('input[aria-label="Cases for Cauliflower Crust"]').value,'0.5');
@@ -439,114 +437,116 @@ await run('half a case of crusts or flatbreads keeps fractions and canonical eac
   }
 },'definitions');
 
-await run('manual crust and flatbread counts use only cases while vegetable cauliflower stays heads',async t => {
-  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose each"]'),null);
-  assert.equal(t.doc.querySelector('input[aria-label="Flatbread: loose each"]'),null);
+await run('manual crust and flatbread counts allow cases plus individuals while vegetable cauliflower stays heads',async t => {
+  assert.ok(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose crusts"]'));
+  assert.ok(t.doc.querySelector('input[aria-label="Flatbread: loose flatbreads"]'));
   assert.ok(t.doc.querySelector('input[aria-label="Cauliflower: loose heads"]'));
   await t.input('Cauliflower Crust: cases','0.5');
   await t.input('Flatbread: cases','6');
+  await t.input('Cauliflower Crust: loose crusts','2');
+  await t.input('Flatbread: loose flatbreads','3');
   await t.input('Cauliflower: loose heads','2');
   await until(() => t.qa.lines.length===3);
-  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,6);
-  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,360);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,8);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,363);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower-heads').qtyUnits,2);
-  assert.match(t.doc.querySelector('input[aria-label="Cauliflower Crust: cases"]').closest('.lq-fc-row').textContent,/0\.5 cases/);
+  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: cases"]').value,'0.5');
+  assert.match(t.doc.querySelector('input[aria-label="Cauliflower Crust: cases"]').closest('.lq-fc-row').textContent,/Total 8 crusts/);
 },'definitions');
 
-await run('legacy loose crust stock remains visible and a case edit replaces its whole quantity',async t => {
+await run('legacy loose crust stock remains separate and a case edit preserves its loose quantity',async t => {
   const field=t.doc.querySelector('input[aria-label="Cauliflower Crust: cases"]');
-  assert.equal(field.value,'1.5');
-  assert.match(field.closest('.lq-fc-row').textContent,/Earlier entry includes 6 individual pieces/);
+  assert.equal(field.value,'1');
+  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose crusts"]').value,'6');
   await t.input('Pizza Dough: loose cases','2');
   await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,18,'an unrelated save must preserve the old count');
   await t.input('Cauliflower Crust: cases','2');
-  await until(() => t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits===24);
+  await until(() => t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits===30);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').enteredCases,2);
   assert.equal(field.closest('.lq-fc-row').querySelector('.lq-fc-legacy-units'),null);
 },'definitions&legacy-crust');
 
-await run('explicit pieces of crust or flatbread require a case answer rather than an each conversion',async t => {
+await run('explicit individual crust and flatbread nouns save exact pieces without a case restatement',async t => {
   await t.hear([
-    item('cauliflower',2,{spoken:'two individual cauliflower crusts',spokenUnit:'each',unitNeedsReview:true}),
-    item('flatbread',6,{spoken:'six pieces of flatbread',spokenUnit:'piece',unitNeedsReview:true}),
+    item('cauliflower',2,{spoken:'two individual cauliflower crusts',spokenUnit:'crust'}),
+    item('flatbread',6,{spoken:'six pieces of flatbread',spokenUnit:'piece'}),
   ]);
-  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.match(t.doc.body.textContent,/Enter the total in Cases/);
-  assert.equal(t.doc.querySelector('input[aria-label="Cases for Cauliflower Crust"]').value,'');
-  assert.equal(t.doc.querySelector('input[aria-label="Cases for Flatbread"]').value,'');
+  assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.doesNotMatch(t.doc.body.textContent,/Enter the total in Cases/);
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Cauliflower Crust"]').value,'2');
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Flatbread"]').value,'6');
   assert.equal(t.button('2 each'),undefined);
   assert.equal(t.doc.querySelector('input[aria-label="Spoken unit for Flatbread"]'),null);
-  await t.input('Cases for Cauliflower Crust','0.5');
-  await t.input('Cases for Flatbread','2');
   await t.apply(); await until(() => t.saved().length>0);
-  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,6);
-  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,120);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,2);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,6);
 },'definitions');
 
-await run('a high case count of flatbread offers confirmation without an individual correction',async t => {
+await run('a proven high case count of flatbread offers explicit confirmation and individual correction',async t => {
   await t.hear([item('flatbread',0,{spoken:'thirty cases of flatbread',cases:30})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.equal(t.button('Use 30 each'),undefined);
+  assert.ok(t.button('Use 30 flatbreads'));
   await t.click('Keep as entered');
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,1800);
 },'definitions');
 
-await run('mixed case-only fields cannot count the model multiplication twice',async t => {
-  await t.hear([item('cauliflower',24,{spoken:'two cases of cauliflower crusts',cases:2,spokenUnit:null})]);
+await run('held mixed crust quantities cannot count the model multiplication twice',async t => {
+  await t.hear([item('cauliflower',24,{spoken:'two cases of cauliflower crusts',cases:2,spokenUnit:null,quantityNeedsReview:true})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  assert.equal(t.doc.querySelector('input[aria-label="Cases for Cauliflower Crust"]').value,'');
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Cauliflower Crust"]').value,'');
   assert.equal(t.saved().length,0);
+  await t.click('Count another way');
   await t.input('Cases for Cauliflower Crust','2');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Loose quantity for Cauliflower Crust','0');
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,24);
 },'definitions');
 
-await run('a changed crust package keeps the case policy and uses its current conversion',async t => {
-  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose each"]'),null);
-  await t.hear([item('cauliflower',0.5,{spoken:'cauliflower crust half',spokenUnit:null})]);
+await run('a changed crust package uses its current explicit case conversion',async t => {
+  assert.ok(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose each"]'));
+  await t.hear([item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:'case'})]);
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,12);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').caseSizeAtEntry,24);
 },'definitions&changed-crust');
 
 await run('a changed package never revalues the earlier crust cases while adding a new half case',async t => {
-  await t.hear([item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:null})]);
+  await t.hear([item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:'case'})]);
   await t.apply();await until(()=>t.saved().length>0);
   const line=t.qa.lines.find(l=>l.skuId==='cauliflower');
   assert.equal(line.qtyUnits,30,'earlier 18 plus one half of the new 24-piece case');
   assert.equal(line.enteredCases,1);assert.equal(line.caseSizeAtEntry,12);
-  assert.match(t.doc.body.textContent,/Earlier entry includes 18 individual pieces/);
+  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose each"]').value,'18');
 },'definitions&changed-crust&legacy-crust');
 
-await run('an unknown crust case size asks about the package before manual entry',async t => {
+await run('an unknown crust case size permits manual individuals and withholds cases',async t => {
   const cases=t.doc.querySelector('input[aria-label="Cauliflower Crust: cases"]');
-  assert.equal(cases.disabled,true);
-  assert.equal(t.doc.querySelector('input[aria-label="Cauliflower Crust: loose each"]'),null);
-  await t.input('Units per case for Cauliflower Crust','12');
-  assert.equal(cases.disabled,false);
-  await t.input('Cauliflower Crust: cases','0.5');
+  assert.equal(cases,null,'unknown case multiplier is not offered as a guessed manual field');
+  await t.input('Cauliflower Crust: loose crusts','6');
   await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,6);
+  assert.ok(!t.qa.lines.find(l=>l.skuId==='cauliflower').enteredCases);
 },'definitions&unknown-crust-case');
 
-await run('an unknown crust case size blocks a bare half case until its package is confirmed',async t => {
-  await t.hear([item('cauliflower',0.5,{spoken:'cauliflower crust half',spokenUnit:null})]);
+await run('an unknown crust case size blocks an explicit half case until its package is confirmed',async t => {
+  await t.hear([item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:'case'})]);
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   assert.ok(t.doc.querySelector('.lq-fc-rev input[aria-label="Units per case for Cauliflower Crust"]'),'the heard crust row asks for its case size');
-  assert.match(t.doc.querySelector('.lq-fc-rev').textContent,/Pieces per case\?/);
+  assert.match(t.doc.querySelector('.lq-fc-rev').textContent,/crusts per case\?/);
   await t.input('Units per case for Cauliflower Crust','12');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,6);
 },'definitions&unknown-crust-case');
 
-await run('the dimension-named flatbread uses the same case-only policy',async t => {
-  await t.hear([item('flatbread',0,{spoken:'six flatbreads',cases:6,spokenUnit:null})]);
-  assert.equal([...t.doc.querySelectorAll('input')].find(el=>el.getAttribute('aria-label')==='Flatbread, 4.5"x12": loose each'),undefined);
-  assert.equal([...t.doc.querySelectorAll('input')].find(e=>e.getAttribute('aria-label')==='Cases for Flatbread, 4.5"x12"').value,'6');
+await run('the dimension-named flatbread keeps its confirmed individual default',async t => {
+  await t.hear([item('flatbread',6,{spoken:'six flatbreads',spokenUnit:null})]);
+  assert.ok([...t.doc.querySelectorAll('input')].find(el=>el.getAttribute('aria-label')==='Flatbread, 4.5"x12": loose flatbreads'));
+  assert.equal([...t.doc.querySelectorAll('input')].find(e=>e.getAttribute('aria-label')==='Loose quantity for Flatbread, 4.5"x12"').value,'6');
   await t.apply();await until(()=>t.saved().length>0);
-  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,360);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='flatbread').qtyUnits,6);
 },'definitions&dimension-flatbread');
 
 await run('an explicitly labeled case quantity preserves a case-based item',async t => {
@@ -891,8 +891,8 @@ await run('invalid remaining Loose stays held despite repeating a valid Cases an
   await t.input('Cases for Pizza Dough','0');await t.input('Loose quantity for Pizza Dough','-1');await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
   await t.input('Loose quantity for Pizza Dough','2');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),2);
 });
-await run('one explicit case-only answer replaces all held model components',async t=>{
-  await t.hear([item('cauliflower',1,{cases:7,spoken:'half a case cauliflower crust',quantityWords:'half',quantityNeedsReview:true,unitNeedsReview:true,spokenUnit:'each'})]);
+await run('one explicit case answer replaces all held model components',async t=>{
+  await t.hear([item('cauliflower',1,{cases:7,spoken:'half a case cauliflower crust',quantityWords:'half',quantityNeedsReview:true,spokenUnit:'case'})]);
   assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length,1);await t.input('Cases for Cauliflower Crust','0.5');await t.apply();await until(()=>t.saved().length>0);const row=t.qa.lines.find(l=>l.skuId==='cauliflower');assert.equal(Number(row.qtyUnits),6);assert.equal(Number(row.enteredCases),0.5);assert.equal(row.caseSizeAtEntry,12);
 },'definitions');
 
