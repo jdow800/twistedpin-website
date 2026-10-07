@@ -924,6 +924,11 @@
 .lq-count-entry-summary > span { color: var(--lq-muted); font-size: 14px; }
 .lq-count-entry-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 .lq-count-entry-actions > button { min-height: 48px; }
+.lq-fc-count-recovery { margin: 8px 0; }
+.lq-fc-count-recovery > summary { cursor: pointer; padding: 10px 0; min-height: 44px; text-decoration: underline; }
+.lq-fc-count-recovery p { margin: 6px 0 10px; font-size: 14px; line-height: 1.5; }
+.lq-fc-recovery-choices { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.lq-fc-recovery-choices > button { text-align: left; min-height: 44px; }
 .lq-voice-err {
   font-size: 13px;
   margin: 0;

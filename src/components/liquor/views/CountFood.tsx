@@ -44,6 +44,7 @@ import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps
 import FoodNumberInput from "../FoodNumberInput";
 import FoodReviewCountRow, { foodSearchMatch } from "../FoodReviewCountRow";
 import FoodVoiceReviewRow from "../FoodVoiceReviewRow";
+import type { FoodCountChoice } from "../FoodCountRecovery";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -262,6 +263,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [locationCollision, setLocationCollision] = useState<{ key: string; zid: string; skuId: string; cell: Cell; from: string; afterSave: () => Promise<void> } | null>(null);
   const [save, setSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [review, setReview] = useState<ReviewItem[] | null>(null);
+  const reviewRowsRef = useRef(review);
+  reviewRowsRef.current = review;
   const appliedVoiceRowsRef = useRef(new WeakSet<ReviewItem>());
   const [voiceBusy, setVoiceBusy] = useState(false);
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
@@ -957,6 +960,35 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const applyable = (r: ReviewItem) => reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r))
     && !correctionConflictsRef.current.some((c) => c.keys.includes(`${takeZoneId ?? zoneId}:${r.chosenSkuId}`));
 
+  const reviewZoneId = takeZoneId ?? zoneId;
+  const enteredCounts: FoodCountChoice[] = sessionId ? Object.entries(counts[reviewZoneId] ?? {}).flatMap(([id, cell]) => {
+    const sku = skuById.get(id);
+    if (!sku || correctionConflicts.some(c => c.keys.includes(`${reviewZoneId}:${id}`))) return [];
+    return [{ sku, total: `${formatQty(cell.qty)} ${unitLabel(sku, cell.qty)}`, sessionId, zoneId: reviewZoneId, snapshot: JSON.stringify(cell) }];
+  }) : [];
+  const reviewZoneRef = useRef(reviewZoneId);
+  reviewZoneRef.current = reviewZoneId;
+
+  function removeReviewRow(r: ReviewItem) {
+    if (appliedVoiceRowsRef.current.has(r) || !reviewRowsRef.current?.includes(r)) return false;
+    appliedVoiceRowsRef.current.add(r);
+    const left = reviewRowsRef.current.filter(x => x !== r);
+    reviewRowsRef.current = left.length ? left : null;
+    setReview(reviewRowsRef.current);
+    return true;
+  }
+
+  function useEnteredCount(r: ReviewItem, choice: FoodCountChoice) {
+    if (startingFreshRef.current || checking || submitting || submissionUnknown || dict.recording || voiceBusy
+      || choice.sessionId !== sessionIdRef.current || choice.zoneId !== reviewZoneRef.current
+      || correctionConflictsRef.current.some(c => c.keys.includes(`${choice.zoneId}:${choice.sku.id}`))) return false;
+    const current = countsRef.current[choice.zoneId]?.[choice.sku.id];
+    if (!current || JSON.stringify(current) !== choice.snapshot) return false;
+    // The human explicitly identifies this row as included in the shown total.
+    // Do not copy it into the voice amount, add it again, or clear sibling rows.
+    return removeReviewRow(r);
+  }
+
   function editReview(r: ReviewItem, patch: Partial<ReviewItem>) {
     if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
     setReview(prev => (prev ?? []).map(x => {
@@ -1001,8 +1033,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
-    const left = review.filter((r) => !applyable(r));
-    setReview(left.length ? left : null);
+    const left = review.filter((r) => !applyable(r) && !appliedVoiceRowsRef.current.has(r));
+    reviewRowsRef.current = left.length ? left : null;
+    setReview(reviewRowsRef.current);
   }
 
   async function answerCaseSize(skuId: string, n: number) {
@@ -2018,10 +2051,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             ready={applyable(r)} concern={warning(r)} onEdit={patch => editReview(r, patch)}
             onChoose={id => chooseReviewSku(r, id)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
             onUnit={() => answerSpokenUnit(r)} onCaseSize={n => void answerCaseSize(r.chosenSkuId!, n)}
-            onDiscard={() => setReview(prev => {
-              const left = (prev ?? []).filter(x => x.key !== r.key);
-              return left.length ? left : null;
-            })} />)}
+            enteredCounts={enteredCounts} countLocation={zones.find(z => z.id === reviewZoneId)?.name}
+            onUseEntered={choice => useEnteredCount(r, choice)}
+            onDiscard={() => { removeReviewRow(r); }} />)}
         </div>
       )}
 

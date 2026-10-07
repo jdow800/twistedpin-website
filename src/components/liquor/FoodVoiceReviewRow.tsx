@@ -4,12 +4,15 @@ import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
 import { foodCasesOnly, foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
+import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
-export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard }: {
+export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered }: {
   item: FoodReviewItem; sku: BarSkuItem | undefined; catalog: BarSkuItem[]; ready: boolean; concern: string | null;
   onEdit: (patch: Partial<FoodReviewItem>) => void; onChoose: (id: string) => void;
   onQuantity: (field: "cases" | "units", raw: string, replacesAll: boolean) => void;
   onUnit: () => void; onCaseSize: (n: number) => void; onDiscard: () => void;
+  enteredCounts?: FoodCountChoice[]; countLocation?: string;
+  onUseEntered?: (choice: FoodCountChoice) => boolean;
 }) {
   const [productOpen, setProductOpen] = useState(false);
   const [countMode, setCountMode] = useState<"auto" | "single" | "mixed">("auto");
@@ -65,6 +68,8 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       {hits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
       {r.search?.trim() && hits.length === 0 && <span className="lq-muted">No product on file. Try another name.</span>}
     </div>}
+    {!ready && !!enteredCounts?.length && onUseEntered && <FoodCountRecovery choices={enteredCounts}
+      location={countLocation ?? "this location"} onResolve={onUseEntered} />}
     {sku && <>
       <div className="lq-fc-rev-quantities">
         {mixed ? <>
