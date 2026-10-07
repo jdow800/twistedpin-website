@@ -24,12 +24,14 @@ const periods = [{openingSessionId:current,closingSessionId:null,start:'2026-01-
   {openingSessionId:null,closingSessionId:closed,start:null,end:'2026-01-01T12:00:00Z',label:'Before first food count'}];
 function line(n=12,extra={}) {return {id:id(n),decision:'include',targetType:'sku',skuId:sauce,recipeId:null,optionRecipeIds:[],quantity:2,unitText:'can',occurredDate:null,reason:'Dropped',duplicateDecision:null,acknowledged:true,pageId,rowNumber:n-11,rawText:'Sample pizza sauce 2 cans dropped',itemText:'Sample pizza sauce',quantityText:'2',sourceUnitText:'can',sourceOccurredDate:null,sourceReason:'Dropped',reviewNotes:[],issues:[],candidateSkuIds:[sauce],candidateRecipeIds:[],duplicateLineIds:[],ingredients:[],valueCents:400,...extra};}
 const params = new URL(location.href).searchParams, scenario=params.get('waste') ?? 'review';
+const appMode=params.has('app');
 const base = {id:importId,ownerId:actor,status:scenario==='blank'?'draft':scenario==='processing'?'processing':scenario==='error'?'error':scenario==='posted'?'posted':'review',revision:1,openingSessionId:current,createdAt:'2026-01-03T12:00:00Z',postedAt:scenario==='posted'?'2026-01-03T13:00:00Z':null,error:scenario==='error'?'Photo could not be read. Retry reading.':null,warnings:scenario==='warning'?['Photo 2 has no readable entries. Check the source photos and add missing items.']:[],warningsAcknowledged:false,pages:scenario==='blank'?[]:[{id:pageId,pageNumber:1,contentType:'image/jpeg',sizeBytes:100,imageUrl:'/mock/page'}],lines:scenario==='blank'?[]:[line()]};
 if(scenario==='prepared') base.lines=[line(12,{targetType:'recipe',skuId:null,recipeId:recipe,quantity:.8,unitText:'portion',itemText:'Sample Prepared Pizza',rawText:'Sample Prepared Pizza .8 portion',candidateRecipeIds:[recipe],issues:['Choose one preparation / size.']})];
 if(scenario==='unmatched') base.lines=[line(12,{targetType:null,skuId:null,quantity:.8,unitText:'bag',issues:['Choose an item.']})];
 const injected=window.wasteQaFixture ?? {}, store=new Map((injected.imports ?? (scenario==='new'?[]:[base])).map(log=>[log.id,copy(log)]));
 const qa=window.wasteQa={ids:{actor,current,closed,importId,pageId,sauce,recipe,id},catalog:copy(catalog),calls:[],store,holds:new Map(),faults:{},countFood:0,home:0,expired:0,costPerUnit:200,pollResult:null,
   hold(key){let release;const promise=new Promise(r=>release=r);this.holds.set(key,{promise,release});},release(key){this.holds.get(key)?.release();this.holds.delete(key);},snapshot(){return {imports:[...store.values()].map(copy)};},setReview(id=importId,rows=[line()]){const log=store.get(id);log.status='review';log.revision++;log.lines=copy(rows);},line};
+qa.countDraft=appMode&&!params.has('emptycount')?{id:id(500),isFullCount:true,section:'food',startedAt:'2026-01-02T12:00:00Z',linesHash:'synthetic-hash',batchesHash:'synthetic-batches',lines:[{skuId:sauce,zoneId:id(501),qtyUnits:3,source:'grid',enteredCases:null,caseSizeAtEntry:6,enteredPacks:null,packSizeAtEntry:null,rawUtterance:null}],batches:[]}:null;
 const json=(value,status=200)=>new Response(JSON.stringify(copy(value)),{status,headers:{'Content-Type':'application/json'}});
 const summarize=(openingSessionId,log)=>{const included=(log?.lines??[line()]).filter(l=>l.decision==='include'),unvaluedCount=included.filter(l=>l.valueCents==null).length,valuedCents=included.reduce((sum,l)=>sum+(l.valueCents??0),0),isClosed=openingSessionId===closed;return {openingSessionId,closingSessionId:isClosed?current:null,start:null,end:isClosed?'2026-01-02T12:00:00Z':null,valuedCents,totalCents:unvaluedCount?null:valuedCents,unvaluedCount,lineCount:included.length,wastePct:isClosed&&!unvaluedCount?valuedCents/100: null,salesCents:isClosed?10000:null,salesStatus:openingSessionId==null?'no_baseline':isClosed?'ready':'awaiting_closing_count',valuation:'reviewed_post_time_estimate',basis:{}};};
 function preview(log,body) {log.openingSessionId=body.openingSessionId;log.warningsAcknowledged=body.warningsAcknowledged;log.lines=body.lines.map((value,i)=>{
@@ -47,6 +49,18 @@ function preview(log,body) {log.openingSessionId=body.openingSessionId;log.warni
 window.fetch=async(url,init={})=>{const u=new URL(url,location.href),path=u.pathname.replace(/^\/mock/,''),method=init.method??'GET',body=typeof init.body==='string'?JSON.parse(init.body):null;qa.calls.push({path,method,body});
   const action=path.split('/').at(-1);if(qa.holds.has(action))await qa.holds.get(action).promise;
   if(qa.faults[action]) {const failure=qa.faults[action];if(failure.once)delete qa.faults[action];if(failure.throw)throw new Error('Synthetic network loss');return json(failure.body??{error:'synthetic_failure'},failure.status??500);}
+  if(path==='/admin/bar/me'){if(params.has('login')&&!qa.loggedIn)return json({error:'not_authenticated'},401);return json({actor:{id:actor,displayName:'Synthetic staff',permissions:['bar.read','bar.count']}});}
+  if(path==='/admin/bar/pin-login'){qa.loggedIn=true;return json({actor:{id:actor,displayName:'Synthetic staff',permissions:['bar.read','bar.count']}});}
+  if(path==='/admin/bar/logout'){qa.loggedIn=false;return json({ok:true});}
+  if(path==='/admin/bar/food-questions')return json({batches:[],waiting:0});
+  if(path==='/admin/bar/catalog')return json({items:catalog.items.map(s=>({...s,section:u.searchParams.get('section')??'bar',category:'Synthetic',sizeMl:null,trackingMode:'stock_count',wacCost:null}))});
+  if(path==='/admin/bar/zones')return json({zones:[{id:id(501),name:'Sample Kitchen',walkOrder:1,memberSkuIds:catalog.items.map(s=>s.id)},{id:id(502),name:'Sample Cooler',walkOrder:2,memberSkuIds:catalog.items.map(s=>s.id)}]});
+  if(path==='/admin/bar/batches')return json({batches:[]});
+  if(path==='/admin/bar/counts/open')return json({session:qa.countDraft?{...qa.countDraft,section:u.searchParams.get('section')??'bar'}:null});
+  if(path==='/admin/bar/counts'&&method==='POST'){qa.countDraft={id:id(600),isFullCount:body.isFullCount,section:body.section,startedAt:'2026-01-03T12:00:00Z',lines:[],batches:[],linesHash:'empty',batchesHash:'empty'};return json({sessionId:qa.countDraft.id});}
+  if(path.match(/^\/admin\/bar\/counts\/[^/]+\/lines$/)&&method==='PUT'){qa.countDraft.lines=copy(body.lines);return json({linesHash:'saved'});}
+  if(path.match(/^\/admin\/bar\/counts\/[^/]+\/batches$/)&&method==='PUT')return json({batchesHash:'saved-batches'});
+  if(path.startsWith('/admin/bar/counts/'))return json({session:qa.countDraft});
   if(path==='/admin/bar/food-waste/catalog')return json(catalog);
   if(path==='/admin/bar/food-waste/periods')return json({periods});
   if(path==='/admin/bar/food-waste/summary') {const opening=u.searchParams.get('openingSessionId');return json({...summarize(opening,[...store.values()].find(l=>l.openingSessionId===opening)),...qa.summaryOverride});}
@@ -66,4 +80,7 @@ window.fetch=async(url,init={})=>{const u=new URL(url,location.href),path=u.path
   throw new Error('QA blocked unexpected request '+method+' '+path);
 };
 window.documentPhotoQa={...documentPhoto,uploadInvoice};
-createRoot(document.getElementById('root')).render(<div className="lq-app"><header className="lq-header"><span className="lq-header-title">COGS</span><span className="lq-actor">Synthetic staff</span></header><main className="lq-main"><FoodWaste actorId={actor} canCount={!params.has('readonly')} canManage={params.has('manager')} onDone={()=>qa.home++} onCountFood={()=>qa.countFood++} onLoginExpired={()=>qa.expired++}/></main></div>);
+const root=createRoot(document.getElementById('root'));
+// Capture the synthetic query before the real app consumes its deep-link URL.
+if(appMode)void import('qa:liquor-app').then(({default:LiquorApp})=>root.render(<LiquorApp/>));
+else root.render(<div className="lq-app"><header className="lq-header"><span className="lq-header-title">COGS</span><span className="lq-actor">Synthetic staff</span></header><main className="lq-main"><FoodWaste actorId={actor} canCount={!params.has('readonly')} canManage={params.has('manager')} onDone={()=>qa.home++} onCountFood={()=>qa.countFood++} onLoginExpired={()=>qa.expired++}/></main></div>);

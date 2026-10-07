@@ -25,6 +25,7 @@ import TapInventory from "./views/TapInventory";
 import MenuEconomics from "./views/MenuEconomics";
 import FoodQuestions from "./views/FoodQuestions";
 import FoodWaste from "./views/FoodWaste";
+import FoodCountWasteChoice from "./FoodCountWasteChoice";
 
 // Root island for the staff bar-inventory app at twistedpin.com/liquor. Owns the
 // auth bootstrap (getMe → home | login | forbidden) + a tiny view switch. Every
@@ -123,8 +124,10 @@ export function activeSection(): Section {
 export default function LiquorApp() {
   const [view, setView] = useState<View>("loading");
   const [actor, setActor] = useState<BarActor | null>(null);
+  const [foodWasteAnswered, setFoodWasteAnswered] = useState(false);
 
   const bootstrap = useCallback(async () => {
+    setFoodWasteAnswered(false);
     setView("loading");
     try {
       const me = await getMe();
@@ -144,10 +147,11 @@ export default function LiquorApp() {
   const doLogout = useCallback(async () => {
     await logout().catch(() => undefined);
     setActor(null);
+    setFoodWasteAnswered(false);
     setView("login");
   }, []);
 
-  const goHome = useCallback(() => { window.history.replaceState({}, "", window.location.pathname); setView("home"); }, []);
+  const goHome = useCallback(() => { window.history.replaceState({}, "", window.location.pathname); setFoodWasteAnswered(false); setView("home"); }, []);
 
   return (
     <div className="lq-app">
@@ -173,10 +177,10 @@ export default function LiquorApp() {
             </button>
           </div>
         )}
-        {view === "home" && actor && <Home actor={actor} onGo={(d) => setView(d)} />}
+        {view === "home" && actor && <Home actor={actor} onGo={(d) => { if (d === "countfood") setFoodWasteAnswered(false); setView(d); }} />}
         {view === "count" && <CountLiquor onDone={goHome} />}
-        {view === "countfood" && <CountFood onDone={goHome} />}
-        {view === "foodwaste" && actor && <FoodWaste actorId={actor.id} canCount={actor.permissions.includes("bar.count")} canManage={actor.permissions.includes("bar.manage")} onDone={goHome} onLoginExpired={() => setView("login")} onCountFood={() => { window.history.replaceState({}, "", `${window.location.pathname}?view=countfood&section=food`); setView("countfood"); }} />}
+        {view === "countfood" && (foodWasteAnswered ? <CountFood onDone={goHome} /> : <FoodCountWasteChoice onUpload={() => setView("foodwaste")} onProceed={() => setFoodWasteAnswered(true)} onHome={goHome} />)}
+        {view === "foodwaste" && actor && <FoodWaste actorId={actor.id} canCount={actor.permissions.includes("bar.count")} canManage={actor.permissions.includes("bar.manage")} onDone={goHome} onLoginExpired={() => setView("login")} onCountFood={() => { window.history.replaceState({}, "", `${window.location.pathname}?view=countfood&section=food`); setFoodWasteAnswered(true); setView("countfood"); }} />}
         {view === "kegcheck" && <KegCheck onDone={goHome} />}
         {view === "upload" && <UploadInvoice onDone={goHome} />}
         {view === "invoices" && <Invoices onDone={goHome} initialInvoiceId={requestedInvoiceId} />}

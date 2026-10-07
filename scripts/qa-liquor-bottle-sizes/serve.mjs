@@ -30,6 +30,7 @@ await esbuild.build({entryPoints:[base+entry+'.jsx'],outdir:base+'dist',bundle:t
       'qa:food-cost': join(website,'src/components/liquor/views/FoodCost.tsx'),
       'qa:food-cost-report': join(website,'src/components/liquor/FoodCostReport.tsx'),
       'qa:food-waste': join(website,'src/components/liquor/views/FoodWaste.tsx'),
+      'qa:liquor-app': join(website,'src/components/liquor/LiquorApp.tsx'),
       'qa:document-photo': join(website,'src/components/liquor/document-photo.ts'),
       'qa:api': join(website,'src/components/liquor/api.ts'),
     };
