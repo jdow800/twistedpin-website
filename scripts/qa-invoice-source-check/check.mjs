@@ -104,7 +104,97 @@ try {
   await run('source readings render as escaped text', 'escaped', async () => {
     assert.match(await text(), /<img src=x/); assert.equal(await b.evaluate("document.querySelector('img') === null"), true);
   });
-  for (const width of [320, 390, 412, 1280]) for (const mode of ['matching', 'resolved', 'queued', 'unresolved', 'rejected']) {
+  await run('whole scan proof names independent source agreement and retained raw rows', 'scan-resolved', async () => {
+    const content = await text();
+    assert.match(content, /original scan pages were read independently/);
+    assert.match(content, /Every billed item, package, separate charge and total agrees/);
+    assert.match(content, /source check read 3 billed rows\. The first saved scan had 1/);
+    assert.match(content, /first saved scan rows remain on file/);
+    assert.match(content, /First saved scan total/);
+    assert.match(content, /first saved scan total differs by \$20\.00/);
+    assert.match(content, /First saved scan readings \(1\)/);
+    assert.ok(!content.includes('saved supplier package'));
+    assert.ok(!content.includes("supplier's final invoice"));
+    await b.evaluate("[...document.querySelectorAll('summary')].find(s => s.textContent.includes('Billed items agree; view source readings')).click()");
+    assert.match(await text(), /Source-checked scan: 1 billed/);
+    assert.equal((await writes()).length, 0);
+  });
+  for (const mode of ['queued', 'running']) await run(`whole scan ${mode} stays open with no package hint or completion`, `scan-${mode}`, async () => {
+    const content = await text();
+    assert.match(content, /Checking the scan reading/);
+    assert.match(content, /original scan pages are being read independently/);
+    assert.match(content, /first saved scan total differs by \$20\.00\. The independent source check is still in progress/);
+    assert.match(content, /First saved scan readings \(1\)/);
+    for (const absent of ['Checking the package reading', 'saved supplier package', 'all caught up',
+      'Both copies checked; corrections recorded', 'Reopen scan review', 'Review purchase item', 'saved scan is missing billed rows',
+      'Check deposits, fees, credits']) assert.ok(!content.includes(absent), absent);
+    assert.equal((await writes()).length, 0);
+  });
+  await run('whole scan latest read resolves comparison without a write', 'scan-queued-completes', async () => {
+    await clicks('Check latest status'); await b.until("document.body.textContent.includes('Scan reading checked against the source')");
+    assert.match(await text(), /Every billed item, package, separate charge and total agrees/);
+    assert.equal((await writes()).length, 0);
+  });
+  await run('whole scan reopen sends exact fingerprint and restores missing-row questions', 'scan-resolved', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('automatic scan explanation was rejected')");
+    assert.deepEqual((await writes())[0].body, { evidenceHash: 'a'.repeat(64) });
+    assert.match(await text(), /saved scan is missing billed rows/);
+    assert.ok(!(await text()).includes('Source-checked scan:'));
+    assert.equal((await writes()).length, 1);
+  });
+  await run('whole scan lost response reads committed rejection once', 'scan-lost-response', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('automatic scan explanation was rejected')");
+    assert.equal((await writes()).length, 1);
+    assert.equal(await b.evaluate("document.querySelector('[role=alert]') === null"), true);
+  });
+  await run('whole scan failed readback retains proof until deliberate reload', 'scan-read-failure', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('Could not verify whether')");
+    assert.match(await text(), /source check read 3 billed rows/);
+    assert.equal(await b.evaluate("[...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Reopen scan review').disabled"), true);
+    await clicks('Reload comparison'); await b.until("document.body.textContent.includes('automatic scan explanation was rejected')");
+    assert.equal((await writes()).length, 1);
+  });
+  await run('whole scan duplicate taps send one rejection', 'scan-double', async () => {
+    await b.evaluate("(() => { const button = [...document.querySelectorAll('button')].find(b => b.textContent.trim() === 'Reopen scan review'); button.click(); button.click(); })()");
+    await b.until('window.fixture.calls.filter(call => call.method === "POST").length === 1');
+    await b.evaluate('window.fixture.release()'); await b.until("document.body.textContent.includes('automatic scan explanation was rejected')");
+    assert.equal((await writes()).length, 1);
+  });
+  await run('whole scan write refusal retains the latest proof', 'scan-write-failure', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('does not show a reopened review')");
+    assert.match(await text(), /source check read 3 billed rows/); assert.equal((await writes()).length, 1);
+  });
+  await run('whole scan changed evidence requires exact refresh before deliberate retry', 'scan-stale', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('This source check changed')");
+    assert.match(await text(), /source check read 4 billed rows/);
+    assert.equal((await writes()).length, 1);
+    await clicks('Reopen scan review'); await b.until('window.fixture.calls.filter(call => call.method === "POST").length === 2');
+    assert.equal((await writes())[1].body.evidenceHash, 'b'.repeat(64));
+  });
+  await run('whole scan disappearance drops stale recovery proof and controls', 'scan-source-disappears', async () => {
+    await clicks('Reopen scan review'); await b.until("document.body.textContent.includes('This source check changed')");
+    assert.ok(!(await text()).includes('Scan reading checked against the source'));
+    assert.equal(await b.evaluate("[...document.querySelectorAll('button')].some(b => b.textContent.trim() === 'Reopen scan review')"), false);
+    assert.equal((await writes()).length, 1);
+  });
+  for (const mode of ['unresolved', 'rejected']) await run(`whole scan ${mode} retains human source questions`, `scan-${mode}`, async () => {
+    assert.match(await text(), mode === 'unresolved' ? /could not settle the scan reading/ : /automatic scan explanation was rejected/);
+    assert.match(await text(), /saved scan is missing billed rows/);
+    assert.ok(!(await text()).includes('Reopen package review'));
+  });
+  for (const mode of ['price-question', 'mark-question']) await run(`whole scan ${mode} stays a human question`, `scan-${mode}`, async () => {
+    const content = await text();
+    assert.match(content, mode === 'price-question' ? /billed unit price differs/ : /handwritten shortage changes this line/);
+    assert.ok(content.includes('Review purchase item'));
+    assert.ok(!content.includes('all caught up'));
+    assert.ok(!content.includes('Copies agree automatically'));
+    assert.equal((await writes()).length, 0);
+  });
+  await run('whole scan source text stays escaped', 'scan-escaped', async () => {
+    assert.match(await text(), /<img src=x/); assert.equal(await b.evaluate("document.querySelector('img') === null"), true);
+  });
+  for (const width of [320, 390, 412, 1280]) for (const mode of ['matching', 'resolved', 'queued', 'unresolved', 'rejected',
+    'scan-resolved', 'scan-queued', 'scan-running', 'scan-unresolved', 'scan-rejected']) {
     await load(mode, width);
     assert.equal(await b.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), false, `${width}px ${mode} overflow`);
     const small = await b.evaluate("[...document.querySelectorAll('.lq-invd-review button')].filter(b => b.getBoundingClientRect().height < 44).map(b => b.textContent)");
@@ -117,6 +207,12 @@ try {
     await b.until("document.body.textContent.includes('automatic package explanation was rejected')");
     assert.equal(await b.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), false);
     await screenshot(`reopened-${width}`); passed++; report.push(`saved reopen at ${width}px`);
+  }
+  for (const width of [320, 1280]) {
+    await load('scan-resolved', width); await clicks('Reopen scan review');
+    await b.until("document.body.textContent.includes('automatic scan explanation was rejected')");
+    assert.equal(await b.evaluate('document.documentElement.scrollWidth > innerWidth + 1'), false);
+    await screenshot(`scan-reopened-${width}`); passed++; report.push(`saved scan reopen at ${width}px`);
   }
   assert.deepEqual(b.blocked, []);
   await writeFile(output + 'results.json', JSON.stringify({ passed, scenarios: report, externalRequests: b.blocked }, null, 2));
