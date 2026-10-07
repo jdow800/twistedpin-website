@@ -34,6 +34,7 @@ import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
+import VoiceProcessing from "../VoiceProcessing";
 import { foodCasesOnly, foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
@@ -761,7 +762,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   // Intent and recorder state stay in the same render; an effect clearing
   // intent after a failed take can otherwise cancel the next Start.
-  const capturing = captureRequested && dict.recording;
+  const capturing = captureRequested && dict.recording && dict.capturing !== false;
+  const processingVoice = (dict.recording && !capturing) || voiceBusy;
 
   // Two ways a take loses audio without the counter seeing it: the level watch
   // reports silence, or the OS backgrounds us (an incoming call does both, and
@@ -1879,11 +1881,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             The hook already computed all of this (armed, level, quiet) and beeps
             and vibrates on it. Only the EYES were missing, and a counter holding
             a phone in a noisy kitchen needs visible feedback too. */}
-        {dict.recording && (
+        {capturing && (
           <div className={`lq-rec${dict.seconds >= WARN_SECONDS ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{!capturing ? "Processing recording" : dict.quiet ? "Mic silent" : "Listening…"}</span>
+              <span className="lq-rec-label">{dict.quiet ? "Mic silent" : "Listening…"}</span>
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             {dict.metering && (
@@ -1915,16 +1917,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 dict.stop();
               }}
             >
-              {capturing ? "■ Stop & review" : "Processing recording"}
+              ■ Stop &amp; review
             </button>
           </div>
         )}
-        {dict.recording && dict.seconds >= WARN_SECONDS && (
+        {capturing && dict.seconds >= WARN_SECONDS && (
           <span className="lq-rec-warntext">
             Wrap up this shelf — stopping at {mmss(CAP_SECONDS)}. Starting again adds to it.
           </span>
         )}
-        {voiceBusy && <span className="lq-muted">reading that back…</span>}
+        {processingVoice && dict.transcript && <p className="lq-rec-transcript">{dict.transcript}</p>}
         {showRecorderError && dict.error && !dict.recording && (
           <p className="lq-error" role="alert">
             {dict.error === "not-allowed" || dict.error === "service-not-allowed"
@@ -2437,6 +2439,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
       </fieldset>
       <div className="lq-footer" ref={footerRef} inert={!!leaving}>
+        {processingVoice && <VoiceProcessing transcribing={dict.recording}
+          destination={zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this location"} />}
         <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`} role={submitErr || save === "error" ? "alert" : "status"}>
           {submitErr ??
             (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? "Not saved yet. Keep this screen open and retry." : "")}
@@ -2460,10 +2464,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           >
             {checking
               ? "Checking…"
-              : dict.recording
-                ? "Stop recording first"
-                : voiceBusy
-                  ? "Reading that back…"
+              : processingVoice
+                ? "Processing…"
+                : dict.recording
+                  ? "Stop recording first"
                   : (review?.length ?? 0) > 0
                     ? `Add ${review!.filter(applyable).length} item${review!.filter(applyable).length === 1 ? "" : "s"} to ${zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}`
                     : `Finish (${totalLines})`}

@@ -986,6 +986,45 @@
   z-index: 15;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.55);
 }
+/* A visible, indeterminate wait from Stop through the completed review. */
+.lq-voice-processing {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  border: 1px solid var(--lq-glow);
+  border-radius: var(--lq-radius);
+  background: var(--lq-panel-2);
+  font-size: 14px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.lq-voice-processing > strong { font-size: 17px; }
+.lq-voice-processing > small { color: var(--lq-muted); font-size: 12px; }
+.lq-voice-processing-track {
+  height: 6px;
+  margin: 4px 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.12);
+}
+.lq-voice-processing-track > span {
+  display: block;
+  width: 38%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--lq-glow);
+  animation: lq-voice-processing 1.5s ease-in-out infinite alternate;
+}
+@keyframes lq-voice-processing {
+  from { transform: translateX(0); opacity: 0.55; }
+  to { transform: translateX(163%); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lq-voice-processing-track > span { animation: none; width: 100%; opacity: 0.6; }
+}
 .lq-searchlist {
   display: flex;
   flex-direction: column;

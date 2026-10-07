@@ -36,6 +36,7 @@ import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
+import VoiceProcessing from "../VoiceProcessing";
 import { formatQty, roundQty } from "../quantity";
 import FindingSummary from "../FindingSummary";
 
@@ -301,7 +302,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   });
   // A recorder ending or refusing Start releases the shelf immediately. Avoid
   // a delayed false-recording effect clearing the next take's Start flag.
-  const capturing = captureRequested && dict.recording;
+  const capturing = captureRequested && dict.recording && dict.capturing !== false;
+  const processingVoice = (dict.recording && !capturing) || voiceBusy;
   useEffect(() => {
     if (dict.quiet) setInterrupted(true);
   }, [dict.quiet]);
@@ -1441,11 +1443,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       <div className="lq-voicebar">
         {!dict.supported ? (
           <p className="lq-muted lq-voice-unsupported">Voice isn't available on this browser — search below to add bottles.</p>
-        ) : dict.recording ? (
+        ) : capturing ? (
           <div className={`lq-rec${near ? " lq-rec-warn" : ""}`}>
             <div className="lq-rec-head">
               <span className="lq-rec-dot" aria-hidden="true" />
-              <span className="lq-rec-label">{!capturing ? "Reading speech…" : dict.quiet ? "Mic silent" : "Listening…"}</span>
+              <span className="lq-rec-label">{dict.quiet ? "Mic silent" : "Listening…"}</span>
               <span className="lq-rec-timer">{mmss(dict.seconds)} / {mmss(CAP_SECONDS)}</span>
             </div>
             <p className="lq-muted lq-rec-shelf">
@@ -1480,13 +1482,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 dict.stop();
               }}
             >
-              {capturing ? "■ Stop & review" : "Reading speech…"}
+              ■ Stop &amp; review
             </button>
           </div>
-        ) : voiceBusy ? (
-          <div className="lq-rec">
-            <p className="lq-muted">Reading that back…</p>
-          </div>
+        ) : processingVoice ? (
+          dict.transcript ? <p className="lq-rec-transcript">{dict.transcript}</p> : null
         ) : (
           <button
             type="button"
@@ -1762,6 +1762,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
 
       {/* footer */}
       <div className="lq-footer" ref={footerRef}>
+        {processingVoice && <VoiceProcessing transcribing={dict.recording}
+          destination={zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this location"} />}
         <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`} role={submitErr || save === "error" ? "alert" : "status"}>
           {submitErr && <span>{submitErr}</span>}
           {!submitErr && <>
@@ -1785,10 +1787,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               ? "Submitting…"
               : checking
                 ? "Checking…"
-                : dict.recording
-                  ? "Stop recording first"
-                  : voiceBusy
-                    ? "Reading speech…"
+                : processingVoice
+                  ? "Processing…"
+                  : dict.recording
+                    ? "Stop recording first"
                     : voicePending
                       ? "Review heard items"
                       : "Finish count"}

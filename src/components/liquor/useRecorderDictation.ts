@@ -138,6 +138,7 @@ export function useRecorderDictation(
   const [state, setState] = useState<DictationState>({
     supported: false,
     recording: false,
+    capturing: false,
     armed: false, // true once the mic route is delivering real samples — see startLevelWatch
     level: 0,
     quiet: false,
@@ -484,6 +485,8 @@ export function useRecorderDictation(
     if (finishedRef.current) return;
     const generation = generationRef.current;
     finishedRef.current = true;
+    // Keep recording true until transcripts settle, but the mic is already off.
+    setState((s) => ({ ...s, capturing: false }));
     releaseCapture();
     await Promise.allSettled(uploadsRef.current);
     if (abortingRef.current || generation !== generationRef.current) return;
@@ -492,6 +495,7 @@ export function useRecorderDictation(
     setState((s) => ({
       ...s,
       recording: false,
+      capturing: false,
       interim: "",
       transcript: text,
       // Partial loss is surfaced but the surviving text still delivers — the
@@ -522,7 +526,7 @@ export function useRecorderDictation(
       if (abortingRef.current || generation !== generationRef.current) return;
       // Mid-take recorder death (device yanked, OS reclaim): keep what we have.
       wantRef.current = false;
-      setState((s) => ({ ...s, error: "audio-capture" }));
+      setState((s) => ({ ...s, capturing: false, error: "audio-capture" }));
       try {
         if (rec.state !== "inactive") rec.stop(); // drives onstop → finish
       } catch {
@@ -566,6 +570,7 @@ export function useRecorderDictation(
     setState((s) => ({
       ...s,
       recording: true,
+      capturing: true,
       armed: false,
       level: 0,
       quiet: false,
@@ -664,6 +669,7 @@ export function useRecorderDictation(
         setState((s) => ({
           ...s,
           recording: false,
+          capturing: false,
           error: name === "NotAllowedError" || name === "SecurityError" ? "not-allowed" : "audio-capture",
         }));
       });
@@ -674,6 +680,7 @@ export function useRecorderDictation(
   /** Stop recording. Transcript arrives via `onFinal` once uploads settle. */
   const stop = useCallback(() => {
     wantRef.current = false;
+    setState((s) => ({ ...s, capturing: false }));
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;

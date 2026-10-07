@@ -44,7 +44,7 @@ async function scenario(name, test, query) {
     const stop = () => click(/Stop & review/);
     const segment = async (text,index) => { qa.recorder.segment(text,index); await pause(); };
     const finish = async text => { qa.recorder.finish(text); await pause(); };
-    const finishButton = () => button(/^(Finish count|Stop recording first|Reading speech…|Review heard items)$/);
+    const finishButton = () => button(/^(Finish count|Stop recording first|Processing…|Review heard items)$/);
     const saves = () => qa.calls.filter(c => c.path.endsWith('/lines')).length;
     /** One take: Start, a segment heard and matched, Stop, recorder delivers. */
     const hear = async entries => {
@@ -82,7 +82,9 @@ await run('shelf tiles hold still while the mic is live, and free up after Stop'
   assert.ok(t.tile('Back Bar').disabled,'a take is one shelf');
   await t.stop();
   assert.ok(!t.tile('Back Bar').disabled,'after Stop the take\'s shelf is pinned, so walking on is safe');
-  assert.ok(t.button('Reading speech…')?.disabled,'Stop cannot be tapped twice');
+  assert.ok(t.button('Processing…')?.disabled,'Finish stays blocked after Stop');
+  assert.equal(t.doc.querySelector('.lq-voice-processing')?.dataset.phase,'transcribing');
+  assert.equal(t.doc.querySelector('.lq-rec-stop'),null,'Stop cannot be tapped twice');
 });
 
 await run('a take lands on the shelf it started on, even with another tile selected at Apply',async t => {

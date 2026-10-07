@@ -643,7 +643,9 @@ console.log(`${passed} food voice UI scenarios passed including deadline recover
 
 await run('Stop visibly enters processing, then a transcription timeout asks for missing items',async t => {
   await t.start(); await t.stop();
-  assert.ok(t.button('Processing recording').disabled);
+  assert.ok(t.button('Processing…').disabled);
+  assert.equal(t.doc.querySelector('.lq-voice-processing')?.dataset.phase,'transcribing');
+  assert.equal(t.doc.querySelector('.lq-rec-stop'),null);
   t.qa.recorder.finish('', 'Transcription took too long. Record the missing items again or type them.'); await pause();
   assert.match(t.doc.querySelector('[role=alert]').textContent,/Transcription took too long/);
   assert.equal(t.qa.extracts.length,0); assert.equal(t.saved().length,0);
@@ -911,8 +913,9 @@ await run('food recording has one pinned Stop action, a panel timer and a disabl
   assert.ok(t.button('Stop recording first').disabled);
   assert.ok(t.button('Home').disabled);
   await t.stop();
-  assert.ok(t.button('Processing recording').disabled,'Stop cannot be tapped while uploads finish');
-  assert.equal(t.doc.querySelector('.lq-rec-head .lq-rec-timer').textContent,'0:02 / 4:00');
+  assert.ok(t.button('Processing…').disabled,'Finish cannot be tapped while uploads finish');
+  assert.equal(t.doc.querySelector('.lq-rec-stop'),null,'Stop is removed after capture ends');
+  assert.equal(t.doc.querySelector('.lq-rec-head'),null,'post-stop processing does not claim a live mic');
   await t.finish('');
   assert.equal(t.doc.querySelector('.lq-rec-stop'),null);
 });

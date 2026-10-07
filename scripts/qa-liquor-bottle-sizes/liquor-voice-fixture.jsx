@@ -80,7 +80,7 @@ window.fetch = async (input, init = {}) => {
     return json({batches});
   }
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
-    qa.extracts.push({body, succeed(items) { resolve(json({items})); }});
+    qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed',message},502)); }});
   });
   if (path.endsWith('/lines')) {
     if (qa.failSave) return json({error:'synthetic'},503);

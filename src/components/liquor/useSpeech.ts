@@ -86,6 +86,9 @@ export function useSpeech(onResult: (transcript: string) => void) {
 export interface DictationState {
   supported: boolean;
   recording: boolean;
+  /** Capture/connection is active. False after Stop while final text may still
+   *  be draining; recording remains true until that delivery completes. */
+  capturing?: boolean;
   /** Audio is actually flowing. On the recorder engine this goes true only
    *  once the mic route (Bluetooth SCO!) is delivering real samples — the
    *  window between tap and armed is where spoken words get LOST. Web Speech
@@ -121,6 +124,7 @@ export function useDictation(onFinal?: (transcript: string) => void) {
   const [state, setState] = useState<DictationState>({
     supported: false,
     recording: false,
+    capturing: false,
     armed: true, // Web Speech engine: no arming gap worth surfacing
     level: 0,
     quiet: false,
@@ -170,6 +174,10 @@ export function useDictation(onFinal?: (transcript: string) => void) {
     rec.continuous = !isAndroid;
     rec.interimResults = true;
     rec.maxAlternatives = 1;
+    rec.onstart = () => {
+      if (!abortingRef.current && wantRef.current)
+        setState((s) => ({ ...s, capturing: true }));
+    };
     rec.onresult = (e: any) => {
       // Rebuild from index 0 (NOT resultIndex): replace, never append. For the
       // in-flight interim, use ONLY the LAST non-final slot — earlier non-final
@@ -191,7 +199,12 @@ export function useDictation(onFinal?: (transcript: string) => void) {
       // 'no-speech'/'aborted' fire during normal pauses — the onend restart covers
       // them; only surface a real fault (not-allowed, audio-capture, network, …).
       if (err && err !== "no-speech" && err !== "aborted") {
-        setState((s) => ({ ...s, error: err }));
+        if (["not-allowed", "service-not-allowed", "audio-capture"].includes(err)) {
+          wantRef.current = false;
+          if (timerRef.current) clearInterval(timerRef.current);
+          timerRef.current = null;
+        }
+        setState((s) => ({ ...s, capturing: false, error: err }));
       }
     };
     rec.onend = () => {
@@ -206,12 +219,16 @@ export function useDictation(onFinal?: (transcript: string) => void) {
         try {
           rec.start();
         } catch {
-          /* transient double-start — ignore; next onend retries */
+          wantRef.current = false;
+          if (timerRef.current) clearInterval(timerRef.current);
+          timerRef.current = null;
+          setState((s) => ({ ...s, recording: false, capturing: false, interim: "", error: "audio-capture" }));
+          onFinalRef.current?.(fullTranscript());
         }
       } else {
         // Truly ended (this onend runs AFTER the final onresult), so the banked
         // text includes the last words spoken before stop.
-        setState((s) => ({ ...s, recording: false, interim: "" }));
+        setState((s) => ({ ...s, recording: false, capturing: false, interim: "" }));
         onFinalRef.current?.(fullTranscript());
       }
     };
@@ -232,23 +249,28 @@ export function useDictation(onFinal?: (transcript: string) => void) {
 
   const start = useCallback(() => {
     const rec = recRef.current;
-    if (!rec) return;
+    if (!rec || wantRef.current) return;
     baseRef.current = "";
     sessionFinalRef.current = "";
     wantRef.current = true;
-    setState((s) => ({ ...s, recording: true, transcript: "", interim: "", error: null, seconds: 0 }));
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+    setState((s) => ({ ...s, recording: true, capturing: true, transcript: "", interim: "", error: null, seconds: 0 }));
     try {
       rec.start();
     } catch {
-      /* already started — ignore */
+      // A recognizer that never started cannot claim to be capturing.
+      wantRef.current = false;
+      setState((s) => ({ ...s, recording: false, capturing: false, error: "audio-capture" }));
+      return;
     }
-    if (timerRef.current) clearInterval(timerRef.current);
     timerRef.current = setInterval(() => setState((s) => ({ ...s, seconds: s.seconds + 1 })), 1000);
   }, []);
 
   /** Stop recording. The final transcript arrives via `onFinal` (see docstring). */
   const stop = useCallback(() => {
     wantRef.current = false;
+    setState((s) => ({ ...s, capturing: false }));
     const rec = recRef.current;
     try {
       rec?.stop();

@@ -79,7 +79,7 @@ const prelude=mode=>`(()=>{
 })()`;
 
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
-const state=b=>b.evaluate(`({recording:qa.state.recording,armed:qa.state.armed,quiet:qa.state.quiet,error:qa.state.error,
+const state=b=>b.evaluate(`({recording:qa.state.recording,capturing:qa.state.capturing,armed:qa.state.armed,quiet:qa.state.quiet,error:qa.state.error,
  seconds:qa.state.seconds,finals:qa.finals.slice(),segments:qa.segments.slice(),starts:lifecycle.starts,stops:lifecycle.stops,
  intervals:[...lifecycle.intervals.values()],requests:lifecycle.requests.slice(),tracks:lifecycle.tracks.map(t=>t.readyState)})`);
 async function click(b,text){
@@ -88,7 +88,7 @@ async function click(b,text){
  await b.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});
 }
 function assertCaptured(result){
- assert.equal(result.recording,false);assert.equal(result.intervals.length,0);assert.ok(result.tracks.every(t=>t==='ended'));
+ assert.equal(result.recording,false);assert.equal(result.capturing,false);assert.equal(result.intervals.length,0);assert.ok(result.tracks.every(t=>t==='ended'));
  assert.deepEqual(result.finals,['one half case']);assert.equal(result.requests.length,1);
  const clip=result.requests[0];assert.equal(clip.contentType,'audio/webm');assert.ok(clip.bytes>100);
  assert.deepEqual(clip.header,[0x1a,0x45,0xdf,0xa3]);assert.ok(clip.decodedFrames>0);assert.ok(clip.rms>0.01);
@@ -109,6 +109,7 @@ try{
    if(failures.includes(mode)){
     await b.until('qa.state.recording===false&&qa.state.error');await pause(1250);
     const failed=await state(b);
+    assert.equal(failed.capturing,false);
     assert.equal(failed.error,mode==='permission-denied'?'not-allowed':'audio-capture');
     assert.equal(failed.seconds,0,'A failed start cannot leave its elapsed-time timer running.');
     assert.equal(failed.intervals.length,0,'A failed start cannot install or retain rotation timers.');
@@ -130,12 +131,12 @@ try{
      await b.evaluate('lifecycle.resolvePermission(0)');await pause(100);stale=await state(b);
      assert.equal(stale.stops,1);assert.ok(stale.tracks.every(t=>t==='ended'));
      assert.equal(await b.evaluate('lifecycle.recorders.length'),0,'An old permission result cannot start a new recorder.');
-     assert.deepEqual(stale.intervals,[1000]);assert.equal(stale.recording,true);
+     assert.deepEqual(stale.intervals,[1000]);assert.equal(stale.recording,true);assert.equal(stale.capturing,true);
      await b.evaluate('lifecycle.resolvePermission(1)');await b.until('qa.state.armed');
     }else{
      await b.evaluate('lifecycle.resolvePermission(1)');await b.until('qa.state.armed');
      await b.evaluate('lifecycle.rejectPermission(0)');await pause(100);stale=await state(b);
-     assert.equal(stale.recording,true);assert.equal(stale.error,null);assert.equal(stale.stops,0);
+     assert.equal(stale.recording,true);assert.equal(stale.capturing,true);assert.equal(stale.error,null);assert.equal(stale.stops,0);
      assert.equal(await b.evaluate('lifecycle.recorders.length'),1);
     }
     await pause(350);await click(b,'Stop');await b.until('qa.finals.length===1&&!qa.state.recording');
@@ -167,6 +168,7 @@ try{
     reports.push({scenario:mode,observation:result,wakeReleases});count++;console.log('PASS '+mode);
    }else{
     await b.until('qa.state.armed&&lifecycle.tracks.length===1');await pause(350);
+    assert.equal((await state(b)).capturing,true);
     let muted;
     if(mode==='track-mute-unmute'){
      await b.evaluate("lifecycle.gains[0].gain.value=0;lifecycle.tracks[0].dispatchEvent(new Event('mute'));");
