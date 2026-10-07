@@ -5,6 +5,7 @@ import "./review-pilot.css";
 import ProposalCard from './ProposalCard';
 import NextSchedule from './NextSchedule';
 import WeeklyOverview from './WeeklyOverview';
+import {reviewProgress} from './review-progress';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
@@ -29,7 +30,7 @@ export default function ReviewPilot() {
   };
   useEffect(() => { void load(); }, []);
   const previousReview=review?.previousReviewStatus??review?.packet.previousReview;
-  const awaitingContext = (review?.questions.filter(q => !q.response).length ?? 0)+(previousReview?.unanswered??0);
+  const progress=reviewProgress(review);
   return <section className="lr-pilot">
     <header className="lr-heading">
       <div><p className="lr-kicker">The weekly check-in</p><h1>Weekly labor review</h1><p className="lr-intro">Practical scheduling ideas. Your experience completes the picture.</p></div>
@@ -46,13 +47,18 @@ export default function ReviewPilot() {
           <p>Hourly wages + management salaries</p><p className="lr-metric-note">Employer taxes and benefits excluded.</p>
         </section>
         <section className="lr-review-count" aria-label="Review progress">
-          <span className="lr-count-number">{String(awaitingContext).padStart(2, "0")}</span>
-          <div><h2>{awaitingContext === 0 ? "Context is up to date" : `${awaitingContext === 1 ? "Question" : "Questions"} to review`}</h2><p>{awaitingContext === 0 ? "Saved decisions and follow-ups are below." : "A short note is enough. Tell us what the numbers missed."}</p></div>
+          <span className="lr-count-number">{progress.awaiting===null?"--":String(progress.awaiting).padStart(2, "0")}</span>
+          <div><h2>{progress.heading}</h2><p>{progress.note}</p></div>
         </section>
       </div>
       <WeeklyOverview days={review.daily??[]}/>
       {review.packet.trend?<p className="lr-small"><strong>4-week labor:</strong> {review.packet.trend.percent===null?review.packet.trend.note:`${review.packet.trend.percent.toFixed(1)}% - ${review.packet.trend.note}`}</p>:null}
-      {previousReview?<div className="lr-notice">Last review: {previousReview.answered} answered. {previousReview.unanswered?<><button className="lr-text-button" onClick={()=>void load(previousReview!.id)}>{previousReview.unanswered} still need a response</button>. We have kept the combined list to two items.</>:null}{previousReview.ownerRequests?` ${previousReview.ownerRequests} request(s) sent to Jon.`:''}</div>:null}
+      {!review.packet.forwardFeedback&&previousReview?<div className="lr-notice">Last review: {previousReview.answered} answered. {previousReview.unanswered?<><button className="lr-text-button" onClick={()=>void load(previousReview!.id)}>{previousReview.unanswered} still need a response</button>. We have kept the combined list to two items.</>:null}{previousReview.ownerRequests?` ${previousReview.ownerRequests} request(s) sent to Jon.`:''}</div>:null}
+      {review.packet.forwardFeedback?<div className="lr-notice" aria-label="Upcoming schedule review">
+        <strong>{review.packet.forwardFeedback.targetWeek?`Upcoming schedule: ${week(review.packet.forwardFeedback.targetWeek)}`:"Upcoming schedule comparison pending"}</strong>
+        {progress.comparisonPending?<p>Publication or source checks are pending; no new staffing questions are shown for unchecked work.</p>:null}
+        {progress.pending.map(p=><p key={p.id}><button className="lr-text-button" onClick={()=>void load(p.id)}>{week(p.weekStart)}: {p.unanswered} unanswered {p.unanswered===1?"question":"questions"}</button></p>)}
+      </div>:null}
       <details className="lr-calculation">
         <summary>How this week is measured <span>{review.metric.percent === null ? "Reconciliation in progress" : "Cost basis & sources"}</span></summary>
         <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
@@ -61,7 +67,7 @@ export default function ReviewPilot() {
           <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
         </div>
       </details>
-      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No new questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : "No response needed"}</span></div>
+      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No new questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : progress.comparisonPending||progress.awaiting===null?"Comparison pending":progress.awaiting>0?"Earlier questions remain open":"No response needed"}</span></div>
       {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
       {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>!q.response).length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => !q.response).length } : x)); }} />)}
       {review.packet.version===2?<NextSchedule review={review}/>:null}
@@ -70,7 +76,7 @@ export default function ReviewPilot() {
   </section>;
 }
 
-function Question({ number, question: q, review, onSaved }: { number: number; question: ReviewQuestion; review: LaborReview; onSaved: (r: LaborReview) => void }) {
+export function Question({ number, question: q, review, onSaved }: { number: number; question: ReviewQuestion; review: LaborReview; onSaved: (r: LaborReview) => void }) {
   const [editing, setEditing] = useState(false), [confirm, setConfirm] = useState(false), [busy, setBusy] = useState(false), [error, setError] = useState("");
   const [form, setForm] = useState<ReviewResponse>(q.response ?? { decision: "keep", context: [], note: "", action: "", followUpDate: q.followUpDate, outcome: "", status: "follow_up" });
   const [decisionChosen, setDecisionChosen] = useState(Boolean(q.response));
@@ -90,7 +96,7 @@ function Question({ number, question: q, review, onSaved }: { number: number; qu
   return <article className="lr-question" aria-labelledby={`q-${q.id}`}>
     <div className="lr-question-header"><div className="lr-question-date"><span className="lr-question-number">{String(number).padStart(2, "0")}</span><time dateTime={q.date}>{date(q.date, { weekday: "long", month: "short", day: "numeric" })}</time></div><span className={`lr-badge ${q.response ? "lr-badge-saved" : ""}`}>{q.response?.status === "closed" ? "Outcome recorded" : q.response ? "Context saved" : "Needs context"}</span></div>
     <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2><p className="lr-prompt">{q.prompt}</p>
-      <details className="lr-evidence"><summary>See the numbers behind this question</summary><div className="lr-detail-body"><ul>{q.evidence.map(e => <li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join("; ")}</p></details></div></details>
+      <details className="lr-evidence" open={Boolean(q.draftChange)}><summary>{q.draftChange?"Original AI draft and published whole crew":"See the numbers behind this question"}</summary><div className="lr-detail-body"><ul>{q.evidence.map(e => <li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join("; ")}</p></details></div></details>
       {!editing && !q.response ? <div className="lr-question-action"><button className="lr-primary" onClick={() => setEditing(true)}>Add context <span aria-hidden="true">→</span></button><span>Type a note or use your voice.</span></div> : null}
       {!editing && q.response ? <div className="lr-saved" role="status"><p className="lr-kicker">Your decision</p><h3>{decisions.find(d => d[0] === form.decision)?.[1]}</h3><p>{form.note}</p>{form.action ? <p><strong>Next step:</strong> {form.action}</p> : null}<p className="lr-small">{form.status === "closed" ? `Outcome: ${form.outcome}` : `Follow up: ${date(form.followUpDate)}`}</p>{form.decision === "ask_owner" ? <p className="lr-small">Owner input requested in this review. A notification is queued to Jon with this request.</p> : null}<div className="lr-actions"><button onClick={() => setEditing(true)}>Edit / add outcome</button>{q.canUndo ? <button className="lr-text-button" disabled={busy} onClick={() => void save(true)}>Undo last save</button> : null}</div></div> : null}
     </div>

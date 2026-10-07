@@ -79,18 +79,31 @@ export interface StaffingProposal {
 }
 export interface RememberedContext {reviewId:string;weekStart:string;questionId:string;contextKey:string;decision:ReviewResponse["decision"];note:string;action:string;outcome:string;applicability:"this_shift"|"comparable_shifts";createdAt:string}
 export interface SchedulingIdea {reviewId:string;weekStart:string;questionId:string;title:string;proposal:StaffingProposal;response:ReviewResponse;revision:number}
+export interface DraftChange {
+  comparisonKey:string;department:"desk"|"kitchen"|"bar";date:string;
+  draft:{week:string;origin:string;version:number;sha256:string};
+  published:{retrievedAt:string;snapshotSha256:string;publicationStatus:"published";paginationComplete:true};
+  original:{role:string;sourceRole:string;startMinute:number;endMinute:number}[];
+  scheduled:{role:string;sourceRole:string;startMinute:number;endMinute:number}[];
+  addedPersonMinutes:number;removedPersonMinutes:number;netPersonMinutes:number;changedRolePersonMinutes:number;
+  attendanceStatus:"unknown";operationalOutcomeStatus:"unknown";payrollEffectCents:null;
+}
+export interface PendingReview {id:string;weekStart:string;unanswered:number;answered:number;ownerRequests:number}
+export interface ForwardFeedback {targetWeek:string|null;status:"ready"|"held"|"unavailable";outstanding:number|null;held:string[];candidateCount:number}
 export interface ReviewQuestion {
   id: string; date: string; title: string; prompt: string;
   kind: "coverage" | "data_check" | "follow_up"; evidence: string[]; sources: string[];
   followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
   followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
-  proposal?:StaffingProposal;knownContext?:RememberedContext[];reopenedBecause?:string;
+  proposal?:StaffingProposal;draftChange?:DraftChange;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
 export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
 export interface LaborReview {
   id: string;
-  packet: {version:1|2;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
+  packet: {version:1|2;mode?:"review"|"report";pendingReviews?:PendingReview[];forwardFeedback?:ForwardFeedback;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
+  pendingReviewsStatus?:PendingReview[];
+  forwardOutstandingCount?:number|null;
   previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
   metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
