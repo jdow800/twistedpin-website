@@ -268,11 +268,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [submissionUnknown, setSubmissionUnknown] = useState(false);
   const footerRef = useCountFooter();
-  /** The shelf list is one tap wide on a phone, so the zone strip is a header
-   *  with prev/next rather than a horizontal scroller — 10 shelves put 838px
-   *  of tabs off-screen at 390px wide, and the counter could not see which
-   *  shelf they were on, let alone how far through the walk. */
-  const [zonePicker, setZonePicker] = useState(false);
+  /** Finish the current take before moving, then check its unanswered items. */
+  const [queuedZone, setQueuedZone] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const [findings, setFindings] = useState<PrecheckFinding[] | null>(null);
   /** Findings past the server's six, behind "Show N more" as on the liquor
@@ -706,14 +703,18 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  reaction is to tap it again or decide the app is broken. */
   const reviewRef = useRef<HTMLDivElement | null>(null);
   const voiceReviewRef = useRef<HTMLDivElement | null>(null);
-  function showVoiceReview() {
-    const el = voiceReviewRef.current;
+  const queuedLocationRef = useRef<HTMLDivElement | null>(null);
+  function showBelowLocation(el: HTMLDivElement | null) {
     if (!el) return;
     const header = document.querySelector(".lq-header")?.getBoundingClientRect().height ?? 0;
     const shelves = document.querySelector(".lq-fc-zonehead")?.getBoundingClientRect().height ?? 0;
     window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - header - shelves - 12, behavior: "smooth" });
   }
-  useEffect(() => { if (review?.length) showVoiceReview(); }, [!!review?.length]);
+  function showVoiceReview() { showBelowLocation(voiceReviewRef.current); }
+  useEffect(() => {
+    if (queuedZone) showBelowLocation(queuedLocationRef.current);
+    else if (review?.length) showVoiceReview();
+  }, [!!review?.length, queuedZone]);
   // Match each ~20s segment while the counter keeps talking, as CountLiquor
   // does. Stop waits for unfinished segments instead of starting the entire
   // take's extraction. Index by spoken position: upload retries can finish
@@ -991,7 +992,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   // ── submit ──
   async function runCheck(recheck = false) {
-    if (!sessionId || startingFreshRef.current || checking || submitting || submissionUnknown || voicePending) return;
+    if (!sessionId || startingFreshRef.current || checking || submitting || submissionUnknown || voicePending || leaving) return;
     if (correctionConflictsRef.current.length) {
       setSubmitErr("Review the changed correction before rechecking.");
       return;
@@ -1140,7 +1141,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // ⚠ THE THIRD setZoneId SITE, and it does not route through goZone(). The
     // findings panel can already be open when a take starts, so gating Finish
     // does not close this door.
-    if (capturing || checking || submitting) return;
+    if (voicePending || retryTranscript || startingFreshRef.current || checking || submitting || submissionUnknown || leaving) return;
     const home = zones.find((z) => z.memberSkuIds?.includes(skuId));
     const target = home?.id ?? zoneId;
     setZoneId(target);
@@ -1209,7 +1210,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       setNewZoneIds([]);
       setAdded({});
       setSearch("");
-      setZonePicker(false);
+      setQueuedZone(null);
       setFullCount(false);
       setScanNote(true);
       setReview(null);
@@ -1357,21 +1358,28 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   /**
-   * Every move off a zone in the walk comes through here: ‹, › and the zone
-   * list. A zone with something counted on it and listed items left blank asks
-   * first. A zone with nothing on it is the untouched-zone warning's at Finish,
-   * and a take still being read may yet fill the blanks, so neither asks.
+   * A requested move waits for the current take. Once its rows are resolved,
+   * use the updated counts to check the original zone before moving away.
+   * Untouched zones still belong to the warning at Finish.
    */
   function requestZone(target: string) {
-    if (capturing || checking || submitting || submissionUnknown) return;
+    if (dict.recording || voiceBusy || startingFreshRef.current || checking || submitting || submissionUnknown || leaving) return;
+    if (!zones.some(z => z.id === target)) return;
+    if (target === zoneId) { setQueuedZone(null); return; }
+    if (review?.length || retryTranscript) { setQueuedZone(target); return; }
+    setQueuedZone(null);
     const touched = Object.keys(countsRef.current[zoneId] ?? {}).length > 0;
-    const missing = touched && target !== zoneId && !voicePending && !skippedLeaving.current.has(zoneId)
+    const missing = touched && !skippedLeaving.current.has(zoneId)
       ? unansweredMembers(zoneId)
       : [];
     if (missing.length === 0) return goZoneId(target);
-    setZonePicker(false);
     setLeaving({ from: zoneId, to: target, skuIds: missing });
   }
+  useEffect(() => {
+    if (queuedZone && !voicePending && !retryTranscript && !startingFresh && !checking && !submitting && !submissionUnknown && !leaving) {
+      requestZone(queuedZone);
+    }
+  }, [queuedZone, voicePending, retryTranscript, startingFresh, checking, submitting, submissionUnknown, leaving, zoneId]);
   function goZoneId(id: string) {
     const i = zones.findIndex((z) => z.id === id);
     if (i >= 0) goZone(i);
@@ -1643,25 +1651,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function goZone(i: number) {
-    // ⚠ A TAKE CANNOT SPAN TWO SHELVES. The destination is pinned when
-    // recording starts, which correctly covers walking on WHILE IT
-    // TRANSCRIBES — but a counter who changes shelves MID-SENTENCE and keeps
-    // dictating would have both shelves' items written to the first one.
-    // Reproduced in review against the real component. Keyterms re-read the
-    // zone per segment, which changes recognition but attaches no destination
-    // to the rows, so that is not a defence. Stop first; navigation during
-    // extraction and review stays open.
-    if (capturing || checking || submitting) return;
+    // Every route, including a jump from a finding, must finish the take first.
+    if (voicePending || retryTranscript || startingFreshRef.current || checking || submitting || submissionUnknown) return;
     const z = zones[Math.min(Math.max(i, 0), zones.length - 1)];
     if (!z) return;
     setZoneId(z.id);
-    // ⚠ THIS is the path that matters. Previous, Next and the shelf picker all
-    // land here; countMissed() is the rare one. The first cut of this fix
-    // remembered only countMissed, so a counter walking the kitchen the
-    // ordinary way still came back to shelf one. Caught in review.
     rememberZone(sessionId, z.id);
     setSearch("");
-    setZonePicker(false);
+    setQueuedZone(null);
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
@@ -1777,7 +1774,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         onEdit={(field, raw) => editBox(id, field, raw, cell.caseSize ?? foodCaseSize(skuById.get(id)), zid)}
         onNone={() => writeCell(id, { cases: null, packs: null, units: 0, none: true }, zid)}
         onChangeItem={(to, mode, answer) => changeFoodItem(zid, id, to, mode, answer)} />)}
-      <button type="button" className="lq-linkbtn" disabled={checking || submitting} onClick={() => {
+      <button type="button" className="lq-linkbtn" disabled={voicePending || !!retryTranscript || checking || submitting || !!leaving} onClick={() => {
+        if (voicePending || retryTranscript || startingFreshRef.current || checking || submitting || submissionUnknown || leaving) return;
         const dest = f.zoneId ?? entries[0]?.zid ?? zoneId;
         goZoneId(dest); setSearch(skuById.get(f.skuId)?.name ?? f.name); setFindings(null);
         requestAnimationFrame(() => document.querySelector(".lq-fc-count-search")?.scrollIntoView({ block: "center" }));
@@ -1805,7 +1803,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   return (
     <div className="lq-fc">
-      <fieldset className="lq-count-controls" disabled={startingFresh || checking || submitting || submissionUnknown} aria-label="Kitchen count">
+      <fieldset className="lq-count-controls" disabled={startingFresh || checking || submitting || submissionUnknown || !!leaving} inert={!!leaving} aria-label="Kitchen count">
       {resumed && <div className="lq-resumed">
         <span>Picked up your count in progress.</span>
         <button type="button" className="lq-linkbtn" disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
@@ -1820,56 +1818,22 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         </div>
       )}
       <div className="lq-fc-zonehead">
-        <button
-          type="button"
-          className="lq-fc-zonestep"
-          aria-label="Previous shelf"
-          disabled={zoneIdx <= 0 || capturing}
-          onClick={() => zones[zoneIdx - 1] && requestZone(zones[zoneIdx - 1]!.id)}
-        >
-          ‹
-        </button>
-        <button
-          type="button"
-          className="lq-fc-zonepick"
-          aria-expanded={zonePicker}
-          disabled={capturing}
-          onClick={() => setZonePicker((o) => !o)}
-        >
-          <span className="lq-fc-zonename">{zone?.name ?? "—"}</span>
-          <span className="lq-fc-zonemeta">
-            Shelf {zoneIdx + 1} of {zones.length} · {carriedCounted} of {allCarriedRows.length} counted
-            <span className="lq-fc-zonecaret">{zonePicker ? "▲" : "▼"}</span>
+        <div className="lq-fc-location">
+          <label htmlFor="food-count-location" className="lq-fc-location-label">Count location</label>
+          <select id="food-count-location" className="lq-fc-location-select" value={zoneId} disabled={dict.recording || voiceBusy}
+            aria-describedby="food-location-progress" onChange={e => requestZone(e.target.value)}>
+            {zones.map(z => <option key={z.id} value={z.id}>{z.name}</option>)}
+          </select>
+          <span id="food-location-progress" className="lq-fc-zonemeta">
+            Location {zoneIdx + 1} of {zones.length} · {carriedCounted} of {allCarriedRows.length} counted
           </span>
-        </button>
-        <button
-          type="button"
-          className="lq-fc-zonestep"
-          aria-label="Next shelf"
-          disabled={zoneIdx >= zones.length - 1 || capturing}
-          onClick={() => zones[zoneIdx + 1] && requestZone(zones[zoneIdx + 1]!.id)}
-        >
-          ›
-        </button>
+        </div>
       </div>
 
-      {zonePicker && (
-        <div className="lq-fc-zonelist">
-          {zones.map((z, i) => {
-            const n = Object.keys(counts[z.id] ?? {}).length;
-            return (
-              <button
-                key={z.id}
-                type="button"
-                className={`lq-fc-zonerow${z.id === zoneId ? " lq-fc-zonerow-on" : ""}`}
-                onClick={() => requestZone(z.id)}
-              >
-                <span className="lq-fc-zonerow-n">{i + 1}</span>
-                <span className="lq-fc-zonerow-name">{z.name}</span>
-                {n > 0 && <span className="lq-fc-zonerow-done">{n} counted</span>}
-              </button>
-            );
-          })}
+      {queuedZone && (
+        <div className="lq-fc-location-pending" role="status" ref={queuedLocationRef}>
+          <span>{retryTranscript ? "Retry or discard this transcript" : "Add or discard the remaining items"} in <strong>{zone?.name}</strong> before moving to <strong>{zones.find(z => z.id === queuedZone)?.name}</strong>.</span>
+          <button type="button" className="lq-linkbtn" onClick={() => setQueuedZone(null)}>Stay here</button>
         </div>
       )}
 
@@ -1880,7 +1844,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             type="button"
             className="lq-btn"
             onClick={() => {
-              if (checking || submitting || submissionUnknown) return;
+              if (startingFreshRef.current || voicePending || leaving || checking || submitting || submissionUnknown) return;
               segExtractsRef.current = new Map();
               carryRef.current!.reset(); // a new take must not inherit a held item
               segmentGapRef.current = false;
@@ -1889,7 +1853,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               setRetryTranscript(null);
               setTakeZoneId(zoneId); // the shelf this take is about
               setCaptureRequested(true);
-              setZonePicker(false); // an open list would sit there looking live but inert
               dict.start();
             }}
             // ⚠ ONE OUTSTANDING TAKE AT A TIME. There is a single takeZoneId,
@@ -1975,7 +1938,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         )}
         {voiceErr && <span className="lq-error">{voiceErr}</span>}
         {retryTranscript && !review?.length && !voiceBusy && (
-          <button type="button" className="lq-linkbtn" onClick={() => void onTranscript(retryTranscript)}>Retry reading this transcript</button>
+          <>
+            <button type="button" className="lq-linkbtn" onClick={() => void onTranscript(retryTranscript)}>Retry reading this transcript</button>
+            <button type="button" className="lq-linkbtn" onClick={() => { setRetryTranscript(null); setVoiceErr(null); }}>Discard transcript</button>
+          </>
         )}
       </div>
       {!dict.recording && dict.transcript && (review || voiceErr) && (
@@ -2221,7 +2187,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                         <button
                           type="button"
                           className="lq-btn lq-fc-rev-locbtn"
-                          disabled={capturing}
+                          disabled={voicePending || !!retryTranscript}
                           onClick={() => countMissed(f.skuId)}
                         >
                           Count it now
@@ -2248,6 +2214,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <button
                       type="button"
                       className="lq-btn lq-fc-rev-locbtn"
+                      disabled={voicePending || !!retryTranscript}
                       onClick={() => countMissed(f.skuId)}
                     >
                       Count it now
@@ -2469,7 +2436,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       )}
 
       </fieldset>
-      <div className="lq-footer" ref={footerRef}>
+      <div className="lq-footer" ref={footerRef} inert={!!leaving}>
         <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`} role={submitErr || save === "error" ? "alert" : "status"}>
           {submitErr ??
             (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? "Not saved yet. Keep this screen open and retry." : "")}

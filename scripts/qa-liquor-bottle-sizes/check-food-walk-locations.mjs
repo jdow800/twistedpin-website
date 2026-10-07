@@ -49,15 +49,17 @@ async function run(name, test, query = 'walk') {
       assert.ok(el, `Missing input: ${label}`);
       setValue(el, value); await pause();
     };
-    const zoneName = () => doc.querySelector('.lq-fc-zonename')?.textContent ?? '';
+    const location = () => doc.querySelector('select.lq-fc-location-select');
+    const zoneName = () => location()?.selectedOptions[0]?.textContent ?? '';
     const sheet = () => doc.querySelector('.lq-fc-sheetback:not(.lq-fc-sheetback-top) .lq-fc-sheet');
     const spotSheet = () => doc.querySelector('.lq-fc-sheetback-top .lq-fc-sheet');
     const have = () => doc.querySelector('.lq-fc-have');
     const card = (name, scope) => [...(scope ?? doc).querySelectorAll('.lq-fc-q')]
       .find(c => c.querySelector('.lq-fc-q-name')?.getAttribute('title') === name);
     const chips = scope => [...scope.querySelectorAll('.lq-fc-chip')].map(b => b.textContent.trim());
-    const next = async () => { doc.querySelector('button[aria-label="Next shelf"]').click(); await pause(); };
-    const prev = async () => { doc.querySelector('button[aria-label="Previous shelf"]').click(); await pause(); };
+    const chooseLocation = async id => { const select=location();assert.ok(select&&!select.disabled,'Location enabled');setValue(select,id);await pause(); };
+    const next = async () => { const select=location();await chooseLocation(select.options[select.selectedIndex+1].value); };
+    const prev = async () => { const select=location();await chooseLocation(select.options[select.selectedIndex-1].value); };
     const line = skuId => qa.lines.find(l => l.skuId === skuId);
     const saved = (skuId, what) => until(() => qa.lines.some(l => l.skuId === skuId), what ?? `A saved line for ${skuId}`);
     // Plain objects: request bodies are parsed in the window's realm, and
@@ -69,7 +71,7 @@ async function run(name, test, query = 'walk') {
       await click(/^Finish/);
       await until(() => doc.querySelector('.lq-fc-kind'), 'The submit panel');
     };
-    await test({doc, qa, button, click, setValue, type, zoneName, sheet, spotSheet, have, card, chips, next, prev, plain,
+    await test({doc, qa, button, click, setValue, type, zoneName, sheet, spotSheet, have, card, chips, next, prev, chooseLocation, plain,
       line, saved, memberCalls, countDough, finish});
     passed += 1;
     console.log(`PASS ${name}`);
@@ -189,7 +191,7 @@ await run('"Remove from zone": counted where it is now, listed there before it c
   await t.type('Giant Pretzel: packs', '4', t.sheet());
   await t.click('Save', pretzel());
   await until(() => /Moved to/.test(pretzel().textContent), 'The move');
-  assert.match(pretzel().textContent, /✓ Moved to Walk in Cooler · 4 packs counted there\. Off this zone's list from now on\./);
+  assert.match(pretzel().textContent, /✓ Moved to Walk in Cooler · 4 packs counted in Walk in Cooler\. Off this zone's list from now on\./);
   assert.deepEqual(t.memberCalls('pretzel'), [{zoneId:'walkin', usual:true}, {zoneId:'freezer', usual:false}],
     'added to its new zone before it comes off this one');
   await t.saved('pretzel');
@@ -236,26 +238,25 @@ await run('Back stays and asks again; Skip goes on and the zone does not ask twi
   assert.match(t.zoneName(), /Kitchen Cooler/);
 });
 
-await run('an untouched zone never asks, and the zone list asks the way › does', async t => {
+await run('an untouched location never asks, and the native selector asks on a touched shelf', async t => {
   await t.next();
   assert.equal(t.sheet(), null);
   assert.match(t.zoneName(), /Kitchen Cooler/);
   await t.prev();
   await t.countDough();
-  t.doc.querySelector('.lq-fc-zonepick').click(); await pause();
-  [...t.doc.querySelectorAll('.lq-fc-zonerow')].find(b => /Walk in Cooler/.test(b.textContent)).click(); await pause();
-  assert.ok(t.sheet(), 'the zone list asks too');
+  await t.chooseLocation('walkin');
+  assert.ok(t.sheet(), 'the location selector asks too');
   await t.click('Skip 2, on to Walk in Cooler ›', t.sheet());
   assert.match(t.zoneName(), /Walk in Cooler/);
 });
 
-await run('a voice take still being read never opens the sheet: it may fill the blanks', async t => {
+await run('a voice take still being read pins the location and never opens the sheet', async t => {
   await t.countDough();
   await t.click(/Talk through/);
-  await t.click(/^⏹ Stop/);
-  await t.next();
+  await t.click(/Stop & review/);
+  assert.ok(t.doc.querySelector('select.lq-fc-location-select').disabled);
   assert.equal(t.sheet(), null);
-  assert.match(t.zoneName(), /Kitchen Cooler/);
+  assert.match(t.zoneName(), /Pizza Freezer/);
 }, 'walk&pausecuts=0');
 
 // ── + New spot ──

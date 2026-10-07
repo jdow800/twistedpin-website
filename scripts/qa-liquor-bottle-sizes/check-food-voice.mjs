@@ -116,9 +116,8 @@ await run('late uploads and responses preserve spoken order and original shelf',
   await t.segment('two dough',0);
   t.qa.extracts[0].succeed([item('pretzel',3)]); await pause();
   await t.stop();
-  const next=t.doc.querySelector('button[aria-label="Next shelf"]');
-  assert.ok(next && !next.disabled,'shelves are available after Stop');
-  next.click(); await pause();
+  const location=t.doc.querySelector('select.lq-fc-location-select');
+  assert.ok(location && location.disabled,'location stays pinned while the stopped take is processing');
   await t.finish('two dough three pretzels');
   assert.equal(t.review().length,0,'wait for unfinished extraction');
   assert.ok(t.button(/Talk through/).disabled,'a second take cannot replace the destination');
@@ -127,6 +126,9 @@ await run('late uploads and responses preserve spoken order and original shelf',
   assert.match(t.review()[0],/dough/);
   assert.match(t.review()[1],/pretzel/);
   assert.equal(t.qa.extracts.length,2);
+  assert.ok(!location.disabled,'location can be queued during completed review');
+  location.value='cooler';location.dispatchEvent(new t.doc.defaultView.Event('change',{bubbles:true}));await pause();
+  assert.equal(location.value,'freezer','queued switch does not change the original take location');
   await t.apply();
   await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.length,2);

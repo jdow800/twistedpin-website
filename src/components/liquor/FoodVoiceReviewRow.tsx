@@ -50,7 +50,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       setCountMode("mixed");
     }
   };
-  return <div className={`lq-fc-rev-row${ready ? "" : " lq-fc-rev-row-block"}`}>
+  return <div className={`lq-fc-rev-row lq-fc-voice-review-row${ready ? "" : " lq-fc-rev-row-block"}`}>
     <span className="lq-fc-rev-spoken">“{r.spoken}”</span>
     {sku ? <button type="button" className="lq-chip lq-chip-on lq-rev-chosen lq-fc-rev-match"
       aria-label={`Change product: ${sku.name}`} aria-expanded={productOpen} onClick={() => setProductOpen(!productOpen)}>✓ {sku.name}</button>
@@ -83,7 +83,6 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       {caseBreakdown && <span className="lq-muted lq-rev-hint lq-fc-rev-case-breakdown">{caseBreakdown}</span>}
       {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
       {!!r.invalidQuantityFields?.length && <span className="lq-error lq-rev-hint">Use a number of 0 or more.</span>}
-      {!casesOnly && !canonicalCaseBasis && <button type="button" className="lq-linkbtn" onClick={anotherWay}>{mixed ? "Use one count" : "Count another way"}</button>}
       {q.needsCaseSize && <div className="lq-fc-rev-ask"><label>{casesOnly ? "Pieces" : foodUnitLabel(sku, 2)} per case?
         <input type="number" min={1} max={10000} inputMode="numeric" aria-label={`Units per case for ${sku.name}`}
           onKeyDown={e => { if (e.key === "Enter") onCaseSize(Number((e.target as HTMLInputElement).value)); }}
@@ -110,6 +109,9 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
           onClick={() => onEdit({ units: q.cases, cases: 0, spokenUnit: sku.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>Use {q.cases} {foodUnitLabel(sku, q.cases)}</button>}
         <button type="button" className="lq-linkbtn" onClick={() => onEdit({ largeCountConfirmed: concern })}>Keep as entered</button></div>}
     </>}
-    <button type="button" className="lq-linkbtn" onClick={onDiscard}>Discard item</button>
+    <div className="lq-fc-voice-actions">
+      {sku && !casesOnly && !canonicalCaseBasis && <button type="button" className="lq-linkbtn" onClick={anotherWay}>{mixed ? "Use one count" : "Count another way"}</button>}
+      <button type="button" className="lq-linkbtn" onClick={onDiscard}>Discard item</button>
+    </div>
   </div>;
 }
