@@ -7,10 +7,12 @@ Run from the Website root with the locked Website dependencies installed:
 ```powershell
 node scripts/qa-liquor-bottle-sizes/check-food-review.mjs
 node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-catalog-prevention.mjs
 node scripts/qa-liquor-bottle-sizes/check-food-voice.mjs
 node scripts/qa-liquor-bottle-sizes/serve.mjs --liquor-voice --build-only
 node scripts/qa-liquor-bottle-sizes/check-liquor-voice.mjs
 node scripts/qa-liquor-bottle-sizes/check-voice-carry.mjs
+node scripts/qa-liquor-bottle-sizes/check-count-definition-contract.mjs
 node scripts/qa-liquor-bottle-sizes/check-recorder-generations.mjs
 node scripts/qa-liquor-bottle-sizes/check-recorder-recovery.mjs
 node scripts/qa-liquor-bottle-sizes/check-recorder-lifecycle.mjs
@@ -34,7 +36,7 @@ results open for deliberate submission with the fingerprint that was reviewed.
 
 Frozen case and pack sizes survive blank/zero entry, None here, stepper changes
 and unrelated 409 adoption; fresh remote positive package stamps still win.
-Cases-only crust and flatbread never gain loose-piece editors. One third of a
+Flatbreads and cauliflower crusts support individual and case editors. One third of a
 60-piece case keeps its canonical total of 20. Negative/blank voice fields stay
 held until explicitly answered, including when another field is changed. A
 protocol numeric-review flag cannot be cleared by choosing a unit.
@@ -42,7 +44,7 @@ protocol numeric-review flag cannot be cleared by choosing a unit.
 Originally uncertain quantities require independent Cases and Loose answers:
 Cases zero cannot confirm a model's loose one, and Loose two cannot confirm a
 model's seven cases. Both explicit zeros permit an observed empty shelf. A
-single case-only answer replaces all prior model components. Identity holds
+single quantity answer replaces all prior model components. Identity holds
 ignore even an accidental DTO match until a human picks the product; a reused
 source reason independently holds a duplicate extraction row. Product, unit
 and package-size confirmation cannot certify remaining quantity components.
@@ -54,22 +56,37 @@ retry; wrong session, section, source, original speech and package stamps never
 certify membership. Search filters existing counted rows, explains no matches,
 clears on shelf changes and restores all fifty items when cleared.
 
-At 320/360/412/1280px the native suite checks generic and cases-only numerals,
+At 320/360/412/1280px the native suite checks individual and case numerals,
 Clear bounds, no horizontal overflow, fixed footer fit and focus while typing
 `0`, `.`, `7` after a real touch. Screenshots and JSON, including the tested
 component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 80 DOM voice scenarios and liquor has 45. Audio failures cannot join
+Food has 105 DOM voice scenarios and liquor has 50. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,
 with pause cuts enabled or disabled. Repeated quantities retain both speech
-sources. The 23 carry checks cover known/inferred gaps, out-of-order consecutive
+sources. The 29 carry checks cover known/inferred gaps, out-of-order consecutive
 failures, successful empty clips and quantity-first punctuation. Four actual
 hook generation checks cover late success/failure/onstop and old track events
 after a new take, while keeping the original shelf/take metadata. Four recovery,
 18 native lifecycle, nine interval and three pause-cut checks preserve existing
 capture, retry, permission and device protections.
+
+The count-definition contract check compares the actual browser and API
+normalizers, definition validity and conversion multipliers. Set
+`BOTTLE_QA_TPRS_ROOT` to the backend checkout when it is not at `../tprs`.
+An optional first argument accepts a read-only catalog JSON export (array or
+`catalog`/`items` property), extending the check to all current definitions.
+It includes plural package vocabulary and stale physical-definition controls.
+
+The catalog prevention check uses a versioned 196-item name/alias fixture for
+784 carry partitions, with measured names in digits and words, quantities
+outside the name, failed-clip isolation and bounded held text. It also checks
+actual outgoing CountFood requests, same-product package-answer preservation,
+partial mixed answers, hidden unconfirmed conversion numbers and changed-product
+invalidation through mocked saves. These are source ownership and review tests,
+not a microphone recognition rate. Rebuild the food fixture before running it.
 
 ## Liquor review and phone controls
 
@@ -454,20 +471,19 @@ $env:COUNT_QA_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 node check-count-phone-layout.mjs
 ```
 
-Liquor has 33 scenarios and food has 80, including failed saves and explicit
+The voice suites include failed saves and explicit
 Retry save, rejected submits after successful saves, lost successful Submit
 responses, uncertain outcomes and read-only Check submission, and Retry check.
 Food also verifies that "two cauliflower crusts" and "six flatbreads" mean
-cases, and half cases retain both the case answer and the canonical each total.
-Those two catalog definitions are each/12 and each/60; no other product gets a
-new case assumption. Manual entry and shelf questions also use cases. Earlier
-loose entries remain visible and unchanged until explicitly replaced; conflicting
-spoken pieces and mixed model fields require a new case answer. The API deadline
+individuals, while explicit half cases retain both the case answer and the
+canonical each total. Those catalog definitions are each/12 and each/60. Manual
+entry and shelf questions support cases and individuals, and earlier entries
+remain unchanged until explicitly replaced. The API deadline
 suite has 18 scenarios, including stalled Submit headers/bodies at 60 seconds,
 status reads at 15 seconds, and recovery that must not send a second submit.
-The case policy stays with those two exact product identities after a package
-change: new entries use the current confirmed case size, while older cells keep
-their size at entry. Missing or invalid case sizes ask for package confirmation.
+New entries use the current confirmed case size, while older cells keep their
+size at entry. A physical package change invalidates the old confirmed vocabulary;
+missing or invalid conversions ask for package confirmation.
 
 The two mobile guard scenarios additionally verify a human-confirmed literal
 zero, exact resumed loose/batch fractions, blank or negative edits preserving

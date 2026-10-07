@@ -1,0 +1,1088 @@
+{
+  "note": "Catalog-derived names and approved aliases captured 2026-10-07; no IDs, quantities or customer data.",
+  "items": [
+    {
+      "name": "American Cheese, Yellow, 120 Slices / 5 lb Pack",
+      "aliases": [
+        "American cheese",
+        "Yellow American cheese"
+      ]
+    },
+    {
+      "name": "Aquafina Water, Bottled",
+      "aliases": [
+        "Aquafina Water Bottled"
+      ]
+    },
+    {
+      "name": "Bacon Bits",
+      "aliases": []
+    },
+    {
+      "name": "Banana",
+      "aliases": []
+    },
+    {
+      "name": "Bathroom Cleaner",
+      "aliases": []
+    },
+    {
+      "name": "Bavarian, Pretzel Stick",
+      "aliases": [
+        "Bavarian Pretzel Stick"
+      ]
+    },
+    {
+      "name": "Beans, Refried, Vegetarian",
+      "aliases": [
+        "Beans Refried Vegetarian"
+      ]
+    },
+    {
+      "name": "Beef Patty, 2oz",
+      "aliases": [
+        "Beef Patty 2oz"
+      ]
+    },
+    {
+      "name": "Beef Patty, 3.5oz",
+      "aliases": [
+        "Beef Patty 3.5oz"
+      ]
+    },
+    {
+      "name": "Beef, Barbacoa, Shredded",
+      "aliases": [
+        "Beef Barbacoa Shredded"
+      ]
+    },
+    {
+      "name": "Beef, Patty (1/3lb)",
+      "aliases": [
+        "Beef Patty (1/3lb)"
+      ]
+    },
+    {
+      "name": "Beef, Philly, Flat, Marinated",
+      "aliases": [
+        "Beef Philly Flat Marinated"
+      ]
+    },
+    {
+      "name": "Biscuit, Buttermilk, Dough",
+      "aliases": [
+        "Biscuit Buttermilk Dough"
+      ]
+    },
+    {
+      "name": "Blue Cheese Dressing Chunky, Packet",
+      "aliases": [
+        "Blue Cheese Dressing Chunky Packet"
+      ]
+    },
+    {
+      "name": "Bread Toast Texas, Yellow",
+      "aliases": [
+        "Bread Toast Texas Yellow"
+      ]
+    },
+    {
+      "name": "Brioche Bun, Sliced",
+      "aliases": [
+        "Brioche Bun Sliced"
+      ]
+    },
+    {
+      "name": "Brussels Sprouts, Halved",
+      "aliases": []
+    },
+    {
+      "name": "Burger Patty, 5oz",
+      "aliases": [
+        "Burger Patty 5oz"
+      ]
+    },
+    {
+      "name": "Butter, Alternative Liquid, Zero Fat",
+      "aliases": [
+        "Butter Alternative Liquid Zero Fat"
+      ]
+    },
+    {
+      "name": "Cabbage, Green, Shredded",
+      "aliases": [
+        "Cabbage Green Shredded"
+      ]
+    },
+    {
+      "name": "Cake, Chocolate, 9 Inch",
+      "aliases": [
+        "Chocolate Cake"
+      ]
+    },
+    {
+      "name": "Cake, Lemon Cream, 9 Inch",
+      "aliases": [
+        "Lemon Cream Cake"
+      ]
+    },
+    {
+      "name": "Cardboard Pizza Circle 14\"",
+      "aliases": []
+    },
+    {
+      "name": "Carrot, Sticks",
+      "aliases": [
+        "Carrot Sticks"
+      ]
+    },
+    {
+      "name": "Cauliflower",
+      "aliases": []
+    },
+    {
+      "name": "Cauliflower Crust",
+      "aliases": []
+    },
+    {
+      "name": "Ceasar Dressing Packet",
+      "aliases": []
+    },
+    {
+      "name": "Celery",
+      "aliases": []
+    },
+    {
+      "name": "Cheese Curds, Breaded, Kafhold",
+      "aliases": [
+        "Cheese Curds Breaded Kafhold"
+      ]
+    },
+    {
+      "name": "Cheese, Cheddar",
+      "aliases": [
+        "Cheese Cheddar"
+      ]
+    },
+    {
+      "name": "Cheese, Mozzarella, Provolone, Shredded",
+      "aliases": [
+        "Cheese Mozzarella Provolone Shredded"
+      ]
+    },
+    {
+      "name": "Cheese, Parmesan, Grated",
+      "aliases": [
+        "Cheese Parmesan Grated"
+      ]
+    },
+    {
+      "name": "Cheese, Parmesan, Grated, Individuals",
+      "aliases": [
+        "Cheese Parmesan Grated Individuals"
+      ]
+    },
+    {
+      "name": "Cheese, Pepper Jack, Sliced",
+      "aliases": [
+        "Cheese Pepper Jack Sliced"
+      ]
+    },
+    {
+      "name": "Cheesecake, Assorted, Buffet",
+      "aliases": []
+    },
+    {
+      "name": "Cherries",
+      "aliases": []
+    },
+    {
+      "name": "Chicken Legend",
+      "aliases": []
+    },
+    {
+      "name": "Chicken, Breast, Grilled",
+      "aliases": [
+        "Chicken Breast Grilled"
+      ]
+    },
+    {
+      "name": "Chicken, Nuggets, Dino",
+      "aliases": [
+        "Chicken Nuggets Dino"
+      ]
+    },
+    {
+      "name": "Chicken, Tenders, Homestyle, Large",
+      "aliases": [
+        "Chicken Tenders Homestyle Large"
+      ]
+    },
+    {
+      "name": "Chicken, Wings, Boneless, Breaded",
+      "aliases": [
+        "Chicken Wings Boneless Breaded"
+      ]
+    },
+    {
+      "name": "Chicken, Wings, Jumbo",
+      "aliases": [
+        "Chicken Wings Jumbo"
+      ]
+    },
+    {
+      "name": "Chili Sweet Thai Sauce",
+      "aliases": []
+    },
+    {
+      "name": "Chocolate-Chip Cookies, Individually Wrapped, 1 oz",
+      "aliases": [
+        "Wrapped chocolate chip cookies",
+        "Chocolate chip cookies"
+      ]
+    },
+    {
+      "name": "Churros, Caramel Filled",
+      "aliases": [
+        "Churros Caramel Filled"
+      ]
+    },
+    {
+      "name": "Cleaner, Degreaser, High Tempered",
+      "aliases": []
+    },
+    {
+      "name": "Cleaner, Fryer Boilout, Keystone",
+      "aliases": []
+    },
+    {
+      "name": "Cleaner, Stainless Steel, Excel",
+      "aliases": []
+    },
+    {
+      "name": "Container, Heavy Weight, Black Rectangular, w/Lid",
+      "aliases": [
+        "Container Heavy Weight Black Rectangular w/Lid"
+      ]
+    },
+    {
+      "name": "Container, Plastic, Clear",
+      "aliases": [
+        "Container Plastic Clear"
+      ]
+    },
+    {
+      "name": "Corn Starch",
+      "aliases": []
+    },
+    {
+      "name": "Cotton Candy",
+      "aliases": []
+    },
+    {
+      "name": "Covered Wagon Smoked Slab Bacon, 10 lb Package",
+      "aliases": [
+        "Slab bacon",
+        "Smoked slab bacon"
+      ]
+    },
+    {
+      "name": "Cranberries, Whole Frozen, 5 lb Bag",
+      "aliases": [
+        "Whole frozen cranberries",
+        "Cranberries"
+      ]
+    },
+    {
+      "name": "Crouton, Garlic Butter, French Cut",
+      "aliases": [
+        "Crouton Garlic Butter French Cut"
+      ]
+    },
+    {
+      "name": "Cucumber, English",
+      "aliases": [
+        "Cucumber English"
+      ]
+    },
+    {
+      "name": "Cup, Black Plastic 2 Oz",
+      "aliases": [
+        "Cup Black Plastic 2 Oz"
+      ]
+    },
+    {
+      "name": "Cup, Black Plastic 3.25 Oz",
+      "aliases": [
+        "Cup Black Plastic 3.25 Oz"
+      ]
+    },
+    {
+      "name": "Cup, Clear, Plastic 12Oz",
+      "aliases": [
+        "Cup Clear Plastic 12Oz"
+      ]
+    },
+    {
+      "name": "Cup, Clear, Plastic 16oz",
+      "aliases": [
+        "Cup Clear Plastic 16oz"
+      ]
+    },
+    {
+      "name": "Cup, Clear, Plastic 24oz",
+      "aliases": [
+        "Cup Clear Plastic 24oz"
+      ]
+    },
+    {
+      "name": "Cutlery Set, Plastic & Linen-Feel Napkin",
+      "aliases": []
+    },
+    {
+      "name": "Cutlery, Heavy, Black",
+      "aliases": []
+    },
+    {
+      "name": "Dip Hot Honey",
+      "aliases": [
+        "Dip Spicy Honey",
+        "Spicy Honey",
+        "Hot Honey"
+      ]
+    },
+    {
+      "name": "Disinfectant Spray, Impact",
+      "aliases": []
+    },
+    {
+      "name": "Drain Maintainer, Enzymatic",
+      "aliases": []
+    },
+    {
+      "name": "Egg Roll, Philly Cheesesteak",
+      "aliases": []
+    },
+    {
+      "name": "Fish, Cod, Fillet, Battered",
+      "aliases": [
+        "Fish Cod Fillet Battered"
+      ]
+    },
+    {
+      "name": "Flatbread, 4.5\"x12\"",
+      "aliases": [
+        "Flatbread 4.5\"x12\""
+      ]
+    },
+    {
+      "name": "Floor Cleaner",
+      "aliases": []
+    },
+    {
+      "name": "Flour, All-Purpose",
+      "aliases": [
+        "Flour All-Purpose"
+      ]
+    },
+    {
+      "name": "Food Container, Plastic",
+      "aliases": [
+        "Food Container Plastic"
+      ]
+    },
+    {
+      "name": "Fork, Plastic, Black",
+      "aliases": [
+        "Fork Plastic Black"
+      ]
+    },
+    {
+      "name": "French Fry (Fries)",
+      "aliases": []
+    },
+    {
+      "name": "Fry Seasoning",
+      "aliases": []
+    },
+    {
+      "name": "Gallon Bag",
+      "aliases": []
+    },
+    {
+      "name": "Garlic Bread",
+      "aliases": []
+    },
+    {
+      "name": "Garlic Chopped",
+      "aliases": []
+    },
+    {
+      "name": "Gatorade, Frost Riptide Rush",
+      "aliases": [
+        "Gatorade Frost Riptide Rush"
+      ]
+    },
+    {
+      "name": "Gatorade, Raspberry Cool Blue",
+      "aliases": [
+        "Gatorade Raspberry Cool Blue"
+      ]
+    },
+    {
+      "name": "Giant Pretzel",
+      "aliases": []
+    },
+    {
+      "name": "Glove, Vinyl, Extra Large",
+      "aliases": []
+    },
+    {
+      "name": "Grapefruit, Pink (fresh)",
+      "aliases": [
+        "Grapefruit, Pink",
+        "Grapefruit Pink",
+        "Pink Grapefruit"
+      ]
+    },
+    {
+      "name": "Grill Brick, Thick 3.5\"",
+      "aliases": []
+    },
+    {
+      "name": "Guacamole",
+      "aliases": []
+    },
+    {
+      "name": "Hand Soap, Liquid, Pink",
+      "aliases": []
+    },
+    {
+      "name": "Hummus",
+      "aliases": []
+    },
+    {
+      "name": "Ice Cream, Vanilla",
+      "aliases": [
+        "Ice Cream Vanilla"
+      ]
+    },
+    {
+      "name": "ICEE Blue Raspberry Syrup",
+      "aliases": []
+    },
+    {
+      "name": "ICEE Cherry Syrup",
+      "aliases": []
+    },
+    {
+      "name": "Italian Golden Dressing",
+      "aliases": []
+    },
+    {
+      "name": "Juice, Apple",
+      "aliases": [
+        "Juice Apple"
+      ]
+    },
+    {
+      "name": "Ketchup Bottles",
+      "aliases": []
+    },
+    {
+      "name": "Kitchen, Paper Towel",
+      "aliases": []
+    },
+    {
+      "name": "Lemon (fresh)",
+      "aliases": [
+        "Lemon",
+        "Lemons",
+        "Fresh Lemon"
+      ]
+    },
+    {
+      "name": "Lettuce, Romaine",
+      "aliases": [
+        "Lettuce Romaine"
+      ]
+    },
+    {
+      "name": "Lid, Clear, w/Straw Slot",
+      "aliases": [
+        "Lid Clear w/Straw Slot"
+      ]
+    },
+    {
+      "name": "Lid, Plastic, 2.5 Oz",
+      "aliases": [
+        "Lid Plastic 2.5 Oz"
+      ]
+    },
+    {
+      "name": "Lime (fresh)",
+      "aliases": [
+        "Lime",
+        "Limes",
+        "Fresh Lime"
+      ]
+    },
+    {
+      "name": "Liner",
+      "aliases": []
+    },
+    {
+      "name": "Mayonnaise",
+      "aliases": []
+    },
+    {
+      "name": "Mayonnaise, Chipotle",
+      "aliases": [
+        "Mayonnaise Chipotle"
+      ]
+    },
+    {
+      "name": "Meatballs, Italian, Frozen",
+      "aliases": [
+        "Meatballs Italian Frozen"
+      ]
+    },
+    {
+      "name": "Mint (fresh)",
+      "aliases": [
+        "Mint",
+        "Mint Leaves"
+      ]
+    },
+    {
+      "name": "Mustard, Yellow",
+      "aliases": [
+        "Mustard Yellow"
+      ]
+    },
+    {
+      "name": "Naan, Roasted Garlic and Chili",
+      "aliases": [
+        "Naan Roasted Garlic and Chili"
+      ]
+    },
+    {
+      "name": "Naan, Stonefire Mini Dippers",
+      "aliases": [
+        "Naan Dippers",
+        "Stonefire Naan Dippers",
+        "Mini Naan Dippers"
+      ]
+    },
+    {
+      "name": "Napkin, Dinner",
+      "aliases": []
+    },
+    {
+      "name": "Napkins",
+      "aliases": []
+    },
+    {
+      "name": "Niagara Spring Water, 16.9 oz",
+      "aliases": [
+        "Niagara water",
+        "Niagara bottled water"
+      ]
+    },
+    {
+      "name": "Oil, Olive",
+      "aliases": [
+        "Oil Olive"
+      ]
+    },
+    {
+      "name": "Olives, Ripe, Sliced",
+      "aliases": [
+        "Black Olives",
+        "Sliced Olives",
+        "Ripe Olives",
+        "Olives"
+      ]
+    },
+    {
+      "name": "Onion Rings",
+      "aliases": []
+    },
+    {
+      "name": "Onion, Yellow",
+      "aliases": [
+        "Onion Yellow"
+      ]
+    },
+    {
+      "name": "Orange Crush, Bib",
+      "aliases": [
+        "Orange Crush Bib"
+      ]
+    },
+    {
+      "name": "Orange Drink, Gatrade",
+      "aliases": [
+        "Orange Drink Gatrade"
+      ]
+    },
+    {
+      "name": "Orchids, Edible",
+      "aliases": []
+    },
+    {
+      "name": "Oreos",
+      "aliases": []
+    },
+    {
+      "name": "Paper Cup, 16oz",
+      "aliases": [
+        "Paper Cup 16oz"
+      ]
+    },
+    {
+      "name": "Paper Cup, 24oz",
+      "aliases": [
+        "Paper Cup 24oz"
+      ]
+    },
+    {
+      "name": "Pasta, Rotini",
+      "aliases": [
+        "Pasta Rotini"
+      ]
+    },
+    {
+      "name": "Pepper, Bell, Green",
+      "aliases": [
+        "Pepper Bell Green"
+      ]
+    },
+    {
+      "name": "Pepper, Jalapeno, Sliced",
+      "aliases": [
+        "Pepper Jalapeno Sliced"
+      ]
+    },
+    {
+      "name": "Pepper, Red, Crushed",
+      "aliases": [
+        "Pepper Red Crushed"
+      ]
+    },
+    {
+      "name": "Pepperoni, Cup & Char, Sliced",
+      "aliases": [
+        "Cup & Char",
+        "Cup and Char",
+        "Cup N Char",
+        "Cup & Char Pepperoni",
+        "Cup and Char Pepperoni"
+      ]
+    },
+    {
+      "name": "Pepperoni, Sliced",
+      "aliases": [
+        "Peperoni Sliced"
+      ]
+    },
+    {
+      "name": "Pickle Chip, Bread & Butter",
+      "aliases": [
+        "Pickle Chip Bread & Butter"
+      ]
+    },
+    {
+      "name": "Pineapple",
+      "aliases": []
+    },
+    {
+      "name": "Pink Lemonade, Bib",
+      "aliases": [
+        "Pink Lemonade Bib",
+        "Syrup, Lemonade Pink",
+        "Syrup Lemonade Pink",
+        "Lemonade Pink"
+      ]
+    },
+    {
+      "name": "Pizza Box, Plain 14\"",
+      "aliases": [
+        "Pizza Box Plain 14\""
+      ]
+    },
+    {
+      "name": "Pizza Dough",
+      "aliases": [
+        "shell",
+        "shells",
+        "pizza shell",
+        "pizza shells",
+        "14 inch dough",
+        "14 inch pizza dough",
+        "14 inch shell",
+        "14 inch shells",
+        "14 inch pizza shell",
+        "14 inch pizza shells",
+        "Richs pizza dough",
+        "Rich's pizza dough",
+        "Richs 14 inch dough",
+        "Richs 14 inch shell"
+      ]
+    },
+    {
+      "name": "Plastic Wrap",
+      "aliases": []
+    },
+    {
+      "name": "Plate, Oval, Velvet Paper, Black",
+      "aliases": [
+        "Plate Oval Velvet Paper Black"
+      ]
+    },
+    {
+      "name": "Plate, Velvet Paper, Black, 7\"",
+      "aliases": [
+        "Plate Velvet Paper Black 7\""
+      ]
+    },
+    {
+      "name": "Plate, Velvet Paper, Black, 9\"",
+      "aliases": [
+        "Plate Velvet Paper Black 9\""
+      ]
+    },
+    {
+      "name": "Plate, White",
+      "aliases": []
+    },
+    {
+      "name": "Pork, Bacon, Applewood, Sliced",
+      "aliases": [
+        "Pork Bacon Applewood Sliced"
+      ]
+    },
+    {
+      "name": "Pork, Carnitas",
+      "aliases": [
+        "Pork Carnitas"
+      ]
+    },
+    {
+      "name": "Potato, Skins",
+      "aliases": [
+        "Potato Skins"
+      ]
+    },
+    {
+      "name": "Potato, Tater Tots",
+      "aliases": [
+        "Potato Tater Tots"
+      ]
+    },
+    {
+      "name": "Puree, Passion Fruit",
+      "aliases": []
+    },
+    {
+      "name": "Puree, Peach, White",
+      "aliases": []
+    },
+    {
+      "name": "Puree, Strawberry",
+      "aliases": []
+    },
+    {
+      "name": "Ranch Dressing",
+      "aliases": []
+    },
+    {
+      "name": "Reynolds Wrap",
+      "aliases": []
+    },
+    {
+      "name": "Rice, Spanish",
+      "aliases": [
+        "Rice Spanish"
+      ]
+    },
+    {
+      "name": "Rosemary (fresh)",
+      "aliases": [
+        "Rosemary",
+        "Rosemary Sprig"
+      ]
+    },
+    {
+      "name": "Salad Dressing, Honey Mustard",
+      "aliases": [
+        "Salad Dressing Honey Mustard"
+      ]
+    },
+    {
+      "name": "Sandwich Bag",
+      "aliases": []
+    },
+    {
+      "name": "Sauce, BBQ",
+      "aliases": [
+        "Sauce BBQ"
+      ]
+    },
+    {
+      "name": "Sauce, Cheese, Jalapeno (Nacho Cheese Gehl)",
+      "aliases": [
+        "Sauce Cheese Jalapeno (Nacho Cheese Gehl)"
+      ]
+    },
+    {
+      "name": "Sauce, Hot Chile, Sriracha",
+      "aliases": [
+        "Sauce Hot Chile Sriracha"
+      ]
+    },
+    {
+      "name": "Sauce, Jalapeno, Fire Roasted Salsa",
+      "aliases": [
+        "Sauce Jalapeno Fire Roasted Salsa"
+      ]
+    },
+    {
+      "name": "Sauce, Mango Habanero",
+      "aliases": []
+    },
+    {
+      "name": "Sauce, Nashville Craft, Hot",
+      "aliases": [
+        "Sauce Nashville Craft Hot"
+      ]
+    },
+    {
+      "name": "Sauce, Parmesan, Garlic",
+      "aliases": [
+        "Sauce Parmesan Garlic"
+      ]
+    },
+    {
+      "name": "Sauce, Pasta, Aldente",
+      "aliases": [
+        "Sauce Pasta Aldente"
+      ]
+    },
+    {
+      "name": "Sauce, Pizza",
+      "aliases": [
+        "Sauce Pizza"
+      ]
+    },
+    {
+      "name": "Sauce, Wing, Bourbon, Sweet Baby Ray's",
+      "aliases": []
+    },
+    {
+      "name": "Sauce, Wing, Lemon Pepper, Sweet Baby Ray's",
+      "aliases": []
+    },
+    {
+      "name": "Sauce, Wing, Sweet Teriyaki, Sweet Baby Ray's",
+      "aliases": [
+        "Teriyaki Sauce",
+        "Sweet Teriyaki",
+        "Teriyaki Wing Sauce"
+      ]
+    },
+    {
+      "name": "Sausage Pizza Topping",
+      "aliases": []
+    },
+    {
+      "name": "Scrubber, Stainless Steel",
+      "aliases": []
+    },
+    {
+      "name": "Seasoning, Cinnamon Sugar",
+      "aliases": [
+        "Seasoning Cinnamon Sugar"
+      ]
+    },
+    {
+      "name": "Seasoning, Hamburger",
+      "aliases": [
+        "Seasoning Hamburger"
+      ]
+    },
+    {
+      "name": "Seasoning, Italian",
+      "aliases": [
+        "Seasoning Italian"
+      ]
+    },
+    {
+      "name": "Seasoning, Nashville Hot",
+      "aliases": [
+        "Seasoning Nashville Hot"
+      ]
+    },
+    {
+      "name": "Shiso (fresh)",
+      "aliases": [
+        "Shiso",
+        "Shiso Leaves"
+      ]
+    },
+    {
+      "name": "Shortening, Liquid",
+      "aliases": [
+        "Shortening Liquid"
+      ]
+    },
+    {
+      "name": "Slider Bun",
+      "aliases": []
+    },
+    {
+      "name": "Sour Cream",
+      "aliases": []
+    },
+    {
+      "name": "Spinach Artichoke Dip",
+      "aliases": []
+    },
+    {
+      "name": "Straw, Plastic, Jumbo, Wrapped",
+      "aliases": [
+        "Straw Plastic Translucent Jumbo Wrapped"
+      ]
+    },
+    {
+      "name": "Strawberries (fresh)",
+      "aliases": []
+    },
+    {
+      "name": "Sugar, Granulated, Extra Fine",
+      "aliases": [
+        "Sugar Granulated Extra Fine"
+      ]
+    },
+    {
+      "name": "Sweet Baby Ray's Buffalo Wing Sauce",
+      "aliases": [
+        "Buffalo sauce",
+        "Buffalo wing sauce"
+      ]
+    },
+    {
+      "name": "Syrup, Chocolate",
+      "aliases": [
+        "Syrup Chocolate"
+      ]
+    },
+    {
+      "name": "Syrup, Diet Pepsi",
+      "aliases": [
+        "Syrup Diet Pepsi"
+      ]
+    },
+    {
+      "name": "Syrup, Dr. Pepper",
+      "aliases": [
+        "Syrup Dr. Pepper"
+      ]
+    },
+    {
+      "name": "Syrup, Lemon Lime",
+      "aliases": [
+        "Syrup Lemon Lime"
+      ]
+    },
+    {
+      "name": "Syrup, Mountain Dew",
+      "aliases": [
+        "Syrup Mountain Dew"
+      ]
+    },
+    {
+      "name": "Syrup, Pepsi Cola",
+      "aliases": [
+        "Syrup Pepsi Cola"
+      ]
+    },
+    {
+      "name": "Syrup, Root Beer",
+      "aliases": [
+        "Syrup Root Beer"
+      ]
+    },
+    {
+      "name": "Table Pan, Foil Steam, Medium",
+      "aliases": [
+        "Table Pan Foil Steam Medium"
+      ]
+    },
+    {
+      "name": "Tarragon (fresh)",
+      "aliases": [
+        "Tarragon",
+        "Fresh Tarragon"
+      ]
+    },
+    {
+      "name": "Teaspoon, Polystyrene, Black, Extra Heavy",
+      "aliases": [
+        "Teaspoon Polystyrene Black Extra Heavy"
+      ]
+    },
+    {
+      "name": "Tiramisu, Tray",
+      "aliases": [
+        "Tiramisu"
+      ]
+    },
+    {
+      "name": "Toilet Tissue",
+      "aliases": []
+    },
+    {
+      "name": "Tomato",
+      "aliases": []
+    },
+    {
+      "name": "Tortilla Chips, White",
+      "aliases": [
+        "Tortilla Chips White"
+      ]
+    },
+    {
+      "name": "Tortilla, Corn Shell - Taco",
+      "aliases": [
+        "Tortilla Corn Shell - Taco"
+      ]
+    },
+    {
+      "name": "Tortilla, Golden, Wrap",
+      "aliases": [
+        "Tortilla Golden Wrap"
+      ]
+    },
+    {
+      "name": "Trash Bag, Black, Heavy Duty, 80gal",
+      "aliases": []
+    },
+    {
+      "name": "Trash Bag, Black, Medium-Duty, 33gal",
+      "aliases": []
+    },
+    {
+      "name": "Whipped Cream, Aerosol",
+      "aliases": [
+        "Whipped Cream Aerosol"
+      ]
+    },
+    {
+      "name": "Wrap Paper, White Typography",
+      "aliases": [
+        "Wrap Paper White Typography"
+      ]
+    }
+  ]
+}

@@ -30,7 +30,7 @@ import {
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { createDraftSaver, toOpenLines, sameDraftCell, mergeDraft, DraftMergePausedError } from "../draftSync";
-import { createCarry, splitFoodTail } from "../voiceCarry";
+import { createCarry, createFoodCarrySplitter } from "../voiceCarry";
 import { pauseCutsEnabled } from "../voiceSwitches";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
@@ -758,7 +758,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
   const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
   const segmentGapRef = useRef(false);
-  if (!carryRef.current) carryRef.current = createCarry(extractPiece, splitFoodTail);
+  const foodSplit = useMemo(() => createFoodCarrySplitter(catalog), [catalog]);
+  const foodSplitRef = useRef(foodSplit);
+  foodSplitRef.current = foodSplit;
+  if (!carryRef.current) carryRef.current = createCarry(extractPiece, text => foodSplitRef.current(text));
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",
     // The take's shelf, so an upload retried after the counter walks on is
@@ -985,9 +988,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         || (patch.spokenUnit !== undefined && patch.spokenUnit !== x.spokenUnit)
         || patch.cases !== undefined || patch.units !== undefined;
       // Choosing the unit does not answer a held model quantity, but it also
-      // must not erase a number the person has already completely entered.
+      // must not erase an individually answered component; changing the
+      // quantity's structure still reopens any remaining held components.
       const quantityStillHeld = !x.quantityKnown || x.quantityNeedsReview || !!x.unconfirmedQuantityFields?.length;
-      const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && patch.unconfirmedQuantityFields === undefined;
+      const quantityShapeChanged = patch.chosenSkuId !== undefined && patch.chosenSkuId !== x.chosenSkuId
+        || patch.cases !== undefined || patch.units !== undefined;
+      const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && quantityShapeChanged && patch.unconfirmedQuantityFields === undefined;
       return { ...x, largeCountConfirmed: undefined,
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
@@ -999,6 +1005,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function chooseReviewSku(r: ReviewItem, id: string) {
+    if (r.chosenSkuId === id && !r.identityNeedsReview) {
+      editReview(r, { search: "" });
+      return;
+    }
     const before = reviewSku(r), after = skuById.get(id);
     const explicitCases = !r.spokenUnit && r.units === 0 && /\bcases?\b/i.test(`${r.quantityWords ?? ""} ${r.spoken}`);
     const basisChanged = !!before && before.id !== id && !r.spokenUnit && !explicitCases

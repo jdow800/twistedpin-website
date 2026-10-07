@@ -106,7 +106,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
         <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
           onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) onEdit({ unitMultiplier: sku.countUnit === "case" ? 1 / n : n }); }}
           onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label></div>}
-      {r.unitMultiplier != null && <span className="lq-muted">{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} <button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
+      {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
       {concern && r.largeCountConfirmed !== concern && <div className="lq-fc-rev-ask" role="status"><span>{concern}</span>
         {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"

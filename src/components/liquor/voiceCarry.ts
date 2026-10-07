@@ -94,16 +94,57 @@ const PACKAGE_SIZE_AFTER_NAME = new RegExp(`(\\b${PACKAGE_NAME}[ -]+${SIZE_DESCR
 const FOOD_DIAMETER = new RegExp(`\\b${SIZE_NUMBER}[ -]*(?:inch(?:es)?|in|["″])(?:[ -]*)(?=${SIZE_DESCRIPTION}${DIMENSION_NAME}\\b)`, "gi");
 const FOOD_DIAMETER_AFTER_NAME = new RegExp(`(\\b${DIMENSION_NAME}[ -]+${SIZE_DESCRIPTION})${SIZE_NUMBER}[ -]*(?:inch(?:es)?\\b|in\\b|["″])`, "gi");
 const FOOD_DIMENSIONS = new RegExp(`\\b${SIZE_NUMBER}\\s*["″]?\\s*(?:x|by)\\s*${SIZE_NUMBER}\\s*(?:inch(?:es)?\\b|in\\b|["″])?`, "gi");
-const hasFoodCount = (phrase: string) => {
-  let withoutSize = phrase.replace(PACKAGE_SIZE, " ").replace(FOOD_DIAMETER, " ")
-    .replace(PACKAGE_SIZE_AFTER_NAME, "$1").replace(FOOD_DIAMETER_AFTER_NAME, "$1");
-  if (new RegExp(`\\b${DIMENSION_NAME}\\b`, "i").test(withoutSize)) withoutSize = withoutSize.replace(FOOD_DIMENSIONS, " ");
-  return hasNumber(withoutSize);
+const withoutFoodSize = (phrase: string) => {
+  const blank = (text: string) => " ".repeat(text.length);
+  // Keep offsets stable so catalog spans can be masked after the existing
+  // name-bound size rules have seen the complete phrase.
+  let result = phrase.replace(PACKAGE_SIZE, blank).replace(FOOD_DIAMETER, blank)
+    .replace(PACKAGE_SIZE_AFTER_NAME, (text, name: string) => name + blank(text.slice(name.length)))
+    .replace(FOOD_DIAMETER_AFTER_NAME, (text, name: string) => name + blank(text.slice(name.length)));
+  if (new RegExp(`\\b${DIMENSION_NAME}\\b`, "i").test(result)) result = result.replace(FOOD_DIMENSIONS, blank);
+  return result;
 };
 
 /** A food item can take more words than a bottle ("we have point five of a
  *  case of salsa"). */
 export const MAX_HELD_FOOD_WORDS = 16;
+
+type FoodCarryName = { name: string; aliases?: readonly string[] };
+const NAME_SMALL = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
+const NAME_TENS = "zero ten twenty thirty forty fifty sixty seventy eighty ninety".split(" ");
+const escapeName = (text: string) => text.replace(/[\\^.*+?()[\]{}|$]/g, "\\$&");
+function nameNumberWords(n: number): string {
+  if (n < 20) return NAME_SMALL[n]!;
+  if (n < 100) return NAME_TENS[Math.floor(n / 10)]! + (n % 10 ? " " + NAME_SMALL[n % 10] : "");
+  if (n < 1000) return NAME_SMALL[Math.floor(n / 100)]! + " hundred" + (n % 100 ? " " + nameNumberWords(n % 100) : "");
+  return nameNumberWords(Math.floor(n / 1000)) + " thousand" + (n % 1000 ? " " + nameNumberWords(n % 1000) : "");
+}
+function nameTokenPattern(token: string): string {
+  if (/^\d+(?:\.\d+)?$/.test(token) && Number(token) < 10000) {
+    const [whole, decimal] = token.split(".");
+    const words = nameNumberWords(Number(whole)) + (decimal ? " point " + [...decimal].map(d => NAME_SMALL[Number(d)]).join(" ") : "");
+    const spoken = words.split(" ").map(escapeName).join("[ -]+").replace(/(hundred|thousand)\[ -\]\+/g, "$1[ -]+(?:and[ -]+)?");
+    return "(?:" + escapeName(token) + "|" + spoken + ")";
+  }
+  const units: Record<string, string> = { oz: "(?:oz|ounces?)", lb: "(?:lb|lbs|pounds?)", gal: "(?:gal|gallons?)",
+    inch: '(?:inch(?:es)?|in|["″])', inches: '(?:inch(?:es)?|in|["″])', x: "(?:x|by)",
+    '"': '(?:["″]|inch(?:es)?)?', "″": '(?:["″]|inch(?:es)?)?' };
+  return units[token] ?? escapeName(token);
+}
+
+/** Catalog names bound size numbers, Zero Fat and package-only fragments to
+ * their product. Actual counts outside those exact spans remain quantities.
+ * Bare generic aliases are omitted; they must not turn a unit into a name. */
+export function createFoodCarrySplitter(catalog: readonly FoodCarryName[]): (text: string) => { head: string; tail: string } {
+  const patterns = new Set<string>();
+  for (const sku of catalog) for (const [i, name] of [sku.name, ...(sku.aliases ?? [])].entries()) {
+    const tokens = name.toLowerCase().match(/\d+(?:\.\d+)?(?:\/\d+)?|\p{L}+|["″]/gu) ?? [];
+    if (!tokens.some(t => /^\p{L}+$/u.test(t) && !NOT_A_FOOD_NAME.has(t)) || i > 0 && tokens.length < 2) continue;
+    patterns.add("(?<![\\p{L}\\p{N}])" + tokens.map(nameTokenPattern).join("[\\s,./()'’\"″-]*") + "(?![\\p{L}\\p{N}])");
+  }
+  const names = [...patterns].map(p => new RegExp(p, "giu"));
+  return text => splitFoodTailWithNames(text, names);
+}
 
 /**
  * Food's rule. The product comes before OR after its number ("Bacon bits, one
@@ -115,16 +156,36 @@ export const MAX_HELD_FOOD_WORDS = 16;
  * A piece that names nothing waits whole.
  */
 export function splitFoodTail(text: string): { head: string; tail: string } {
+  return splitFoodTailWithNames(text, []);
+}
+function splitFoodTailWithNames(text: string, names: readonly RegExp[]): { head: string; tail: string } {
   const phrases = phrasesOf(text);
   if (!phrases.length) return { head: "", tail: "" };
-  let at = phrases.findLastIndex((p) => namesFood(p.text));
+  const found = names.flatMap(pattern => [...text.matchAll(pattern)].map(m => ({ start: m.index!, end: m.index! + m[0].length })))
+    .sort((a, b) => b.end - b.start - (a.end - a.start));
+  const spans: typeof found = [];
+  for (const span of found) if (!spans.some(s => span.start < s.end && span.end > s.start)) spans.push(span);
+  const parts = phrases.map(p => {
+    const start = p.start + (text.slice(p.start).match(/^\s*/)?.[0].length ?? 0), end = start + p.text.length;
+    const owned = spans.filter(s => s.start < end && s.end > start);
+    const outside = withoutFoodSize(p.text).split("");
+    for (const s of owned) for (let i = Math.max(s.start, start) - start; i < Math.min(s.end, end) - start; i++) outside[i] = " ";
+    return { named: owned.length > 0 || namesFood(p.text), counted: hasNumber(outside.join("")), owned };
+  });
+  // A count before/after a multi-comma catalog name finishes the entire name,
+  // not just its first fragment ("two Butter, Alternative Liquid, Zero Fat").
+  for (const span of spans) {
+    const owned = parts.filter(p => p.owned.includes(span));
+    if (owned.some(p => p.counted)) for (const part of owned) part.counted = true;
+  }
+  let at = parts.findLastIndex(p => p.named);
   if (at < 0) at = 0;
-  while (at > 0 && namesFood(phrases[at - 1]!.text) && !hasFoodCount(phrases[at - 1]!.text)) at--;
+  while (at > 0 && parts[at - 1]!.named && !parts[at - 1]!.counted) at--;
   // A quantity-first phrase may end with punctuation inserted by ASR before
   // the following name. Keep that orphan quantity with the unfinished item;
   // never swallow an earlier phrase that already names a different product.
   let quantityStart = at;
-  while (quantityStart > 0 && !namesFood(phrases[quantityStart - 1]!.text)) {
+  while (quantityStart > 0 && !parts[quantityStart - 1]!.named) {
     // A comma separates a name/size/count within one item. A sentence end
     // can strand a quantity before its product; only extend over that end.
     const separator = text.slice(phrases[quantityStart - 1]!.start, phrases[quantityStart]!.start).trim().at(-1);
@@ -134,8 +195,8 @@ export function splitFoodTail(text: string): { head: string; tail: string } {
   if (quantityStart < at) {
     // In "Oreos, one case. Zero point seven. Spanish rice", the first
     // quantity finishes Oreos; only the orphan second quantity leads rice.
-    const previous = phrases[quantityStart - 1];
-    if (previous && namesFood(previous.text) && !hasFoodCount(previous.text)) quantityStart++;
+    const previous = parts[quantityStart - 1];
+    if (previous?.named && !previous.counted) quantityStart++;
     at = Math.min(at, quantityStart);
   }
   const from = phrases[at]!.start;

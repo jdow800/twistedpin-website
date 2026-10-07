@@ -32,7 +32,7 @@ export function normalizeCountUnit(unit: string): string {
     buns: "bun", pieces: "piece", plates: "plate", sleeves: "sleeve",
     bunches: "bunch", pouches: "pouch", heads: "head", trays: "tray",
     jugs: "jug", tubs: "tub", rolls: "roll", packages: "package",
-    circles: "circle", flatbreads: "flatbread", crusts: "crust", wraps: "wrap",
+    bundles: "bundle", circles: "circle", flatbreads: "flatbread", crusts: "crust", wraps: "wrap",
   };
   return aliases[raw] ?? raw;
 }
