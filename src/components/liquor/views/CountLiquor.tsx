@@ -21,6 +21,7 @@ import {
   type BarZoneItem,
   type CountLineInput,
   type OpenCountLine,
+  type OpenCount,
   type PrecheckFinding,
   type BottleSizeWarning,
   type RetiringSku,
@@ -37,6 +38,7 @@ import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
+import CountEntryChoice from "../CountEntryChoice";
 import { formatQty, roundQty } from "../quantity";
 import FindingSummary from "../FindingSummary";
 
@@ -199,6 +201,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const footerRef = useCountFooter();
   const [done, setDone] = useState<number | null>(null);
   const [resumed, setResumed] = useState(false);
+  const [entryDraft, setEntryDraft] = useState<OpenCount | null>(null);
+  const [entryBusy, setEntryBusy] = useState(false);
+  const entryBusyRef = useRef(false);
+  const [entryError, setEntryError] = useState<string | null>(null);
   // Pre-submit review: uncounted zones (client-side) + flagged bottles (server)
   // + voice restatements (client-side — see restatementsRef).
   const [confirmSubmit, setConfirmSubmit] = useState<{
@@ -326,7 +332,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const nameById = useMemo(() => new Map(catalog.map((s) => [s.id, s.name])), [catalog]);
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
 
-  // ── bootstrap: resume the staffer's in-progress draft, else start a new one ──
+  // Hold the staffer's draft until they choose; page-hide must not save it yet.
   useEffect(() => {
     let live = true;
     (async () => {
@@ -334,7 +340,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         const [z, cat, open, bs] = await Promise.all([
           getZones("bar", "liquor"),
           getCatalog(),
-          getOpenCount(),
+          getOpenCount(true, "bar", { includeOlder: true }),
           // A batch list that fails to load must not block a liquor count —
           // the section simply does not render, exactly as before it existed.
           getBatches().catch(() => [] as BarBatchItem[]),
@@ -356,26 +362,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         // ⚠ SESSION FIRST, THEN ZONE — see resume-zone.ts. The liquor walk
         // has the same failure as the kitchen one: a reload mid-count put the
         // counter back on Speedrails no matter which shelf they were on.
-        let sid: string;
         if (open) {
-          sid = open.id;
-          setSessionId(sid);
-          setCounts(rebuildCounts(open.lines));
-          saverRef.current!.loaded(open.lines, open.linesHash);
-          const bc: Record<string, Record<string, number>> = {};
-          for (const b of open.batches ?? []) {
-            (bc[b.zoneId] ??= {})[b.batchId] = Number(b.fullEquivalents);
-          }
-          setBatchCounts(bc);
-          batchSaverRef.current!.loaded(flattenBatches(bc), open.batchesHash);
-          setResumed(true);
+          setEntryDraft(open);
         } else {
-          sid = await createCount(true);
+          const sid = await createCount(true);
+          if (!live) return;
           setSessionId(sid);
           saverRef.current!.loaded([], null);
           batchSaverRef.current!.loaded([], null);
+          setZoneId(resumeZone(sid, liquorZones));
         }
-        setZoneId(resumeZone(sid, liquorZones));
         setPhase("ready");
       } catch {
         if (live) setPhase("error");
@@ -385,6 +381,41 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       live = false;
     };
   }, []);
+
+  function continueEntry() {
+    if (!entryDraft || entryBusyRef.current) return;
+    entryBusyRef.current = true;
+    setSessionId(entryDraft.id);
+    setCounts(rebuildCounts(entryDraft.lines));
+    saverRef.current!.loaded(entryDraft.lines, entryDraft.linesHash);
+    const bc: Record<string, Record<string, number>> = {};
+    for (const b of entryDraft.batches ?? []) (bc[b.zoneId] ??= {})[b.batchId] = Number(b.fullEquivalents);
+    setBatchCounts(bc);
+    batchSaverRef.current!.loaded(flattenBatches(bc), entryDraft.batchesHash);
+    setZoneId(resumeZone(entryDraft.id, zones));
+    setResumed(true);
+    setEntryDraft(null);
+  }
+
+  async function startEntry() {
+    if (!entryDraft || entryBusyRef.current) return;
+    entryBusyRef.current = true;
+    setEntryBusy(true);
+    setEntryError(null);
+    try {
+      const sid = await createCount(true);
+      setSessionId(sid);
+      saverRef.current!.loaded([], null);
+      batchSaverRef.current!.loaded([], null);
+      setZoneId(resumeZone(sid, zones));
+      setEntryDraft(null);
+    } catch {
+      entryBusyRef.current = false;
+      setEntryError("Couldn't start a new count. Try again, or continue your previous count.");
+    } finally {
+      setEntryBusy(false);
+    }
+  }
 
   /** The shelf as of RIGHT NOW, not as of the render that queued the request.
    *  createCount is async and the counter can change shelves while it is in
@@ -1384,6 +1415,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         <button className="lq-btn" onClick={onDone}>Back</button>
       </div>
     );
+  if (entryDraft) return <CountEntryChoice kind="liquor" draft={entryDraft} busy={entryBusy} error={entryError}
+    onContinue={continueEntry} onNew={() => void startEntry()} onBack={() => {
+      if (entryBusyRef.current) return;
+      entryBusyRef.current = true;
+      onDone();
+    }} />;
   if (done !== null)
     return (
       <div className="lq-center">

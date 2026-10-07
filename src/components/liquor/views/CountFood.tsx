@@ -22,6 +22,7 @@ import {
   type BarZoneItem,
   type CountLineInput,
   type OpenCountLine,
+  type OpenCount,
   type PrecheckFinding,
   type RetiringSku,
   type UnplacedItem,
@@ -35,6 +36,7 @@ import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
+import CountEntryChoice from "../CountEntryChoice";
 import { foodCasesOnly, foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty, roundQty } from "../quantity";
@@ -238,6 +240,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [err, setErr] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [resumed, setResumed] = useState(false);
+  const [entryDraft, setEntryDraft] = useState<OpenCount | null>(null);
+  const [entryBusy, setEntryBusy] = useState(false);
+  const entryBusyRef = useRef(false);
+  const [entryError, setEntryError] = useState<string | null>(null);
   const [startingFresh, setStartingFresh] = useState(false);
   const startingFreshRef = useRef(false);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
@@ -401,7 +407,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const zone = zones.find((z) => z.id === zoneId);
 
-  // ── boot: resume the open FOOD draft, or start one ──
+  // Keep an existing draft pending, with no active session/autosave until chosen.
   useEffect(() => {
     let live = true;
     void (async () => {
@@ -409,7 +415,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         const [z, cat, open] = await Promise.all([
           getZones("food"),
           getCatalog("food"),
-          getOpenCount(true, "food"),
+          getOpenCount(true, "food", { includeOlder: true }),
         ]);
         if (!live) return;
         setZones(z);
@@ -422,19 +428,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         // ⚠ SESSION FIRST, THEN ZONE. resumeZone is keyed by session, so
         // resolving the shelf before we know which count this is would always
         // miss and silently drop the counter on zone one (see resume-zone.ts).
-        let sid: string;
         if (open) {
-          sid = open.id;
-          setSessionId(sid);
-          setCounts(rebuild(open.lines));
-          saverRef.current!.loaded(open.lines, open.linesHash);
-          setResumed(true);
+          setEntryDraft(open);
         } else {
-          sid = await createCount(true, "food");
+          const sid = await createCount(true, "food");
+          if (!live) return;
           setSessionId(sid);
           saverRef.current!.loaded([], null);
+          setZoneId(resumeZone(sid, z));
         }
-        setZoneId(resumeZone(sid, z));
         setPhase("ready");
       } catch {
         if (!live) return;
@@ -446,6 +448,37 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       live = false;
     };
   }, []);
+
+  function continueEntry() {
+    if (!entryDraft || entryBusyRef.current) return;
+    entryBusyRef.current = true;
+    setSessionId(entryDraft.id);
+    setCounts(rebuild(entryDraft.lines));
+    saverRef.current!.loaded(entryDraft.lines, entryDraft.linesHash);
+    setZoneId(resumeZone(entryDraft.id, zones));
+    setResumed(true);
+    setEntryDraft(null);
+  }
+
+  async function startEntry() {
+    if (!entryDraft || entryBusyRef.current) return;
+    entryBusyRef.current = true;
+    setEntryBusy(true);
+    setEntryError(null);
+    try {
+      // Entry has no local edits or active saver. Never PUT the old snapshot.
+      const sid = await createCount(true, "food");
+      setSessionId(sid);
+      saverRef.current!.loaded([], null);
+      setZoneId(resumeZone(sid, zones));
+      setEntryDraft(null);
+    } catch {
+      entryBusyRef.current = false;
+      setEntryError("Couldn't start a new count. Try again, or continue your previous count.");
+    } finally {
+      setEntryBusy(false);
+    }
+  }
 
   // The soft keyboard shrinks the VISUAL viewport, not the layout viewport, so
   // this is the event that says "half the screen just went away". Re-centre the
@@ -1794,6 +1827,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       </div>
     );
 
+  if (entryDraft) return <CountEntryChoice kind="food" draft={entryDraft} busy={entryBusy} error={entryError}
+    onContinue={continueEntry} onNew={() => void startEntry()} onBack={() => {
+      if (entryBusyRef.current) return;
+      entryBusyRef.current = true;
+      onDone();
+    }} />;
   if (doneCount != null)
     return (
       <div className="lq-center">

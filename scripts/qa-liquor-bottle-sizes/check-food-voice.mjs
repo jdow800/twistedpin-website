@@ -39,7 +39,11 @@ async function run(name, test, existing = false, pauseCuts = false) {
   try {
     dom.window.eval(bundle);
     const doc = dom.window.document;
-    await until(() => doc.querySelector('.lq-fc-row'));
+    await until(() => doc.querySelector('.lq-fc-row, .lq-count-entry'));
+    if (doc.querySelector('.lq-count-entry')) {
+      [...doc.querySelectorAll('button')].find(b => b.textContent.trim()==='Continue count').click();
+      await until(() => doc.querySelector('.lq-fc-row'));
+    }
     const qa = dom.window.foodQa;
     const button = text => [...doc.querySelectorAll('button')].find(b => typeof text==='string'?b.textContent.trim()===text:text.test(b.textContent.trim()));
     const click = async text => {

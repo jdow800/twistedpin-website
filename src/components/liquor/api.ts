@@ -404,7 +404,7 @@ export class BatchesChangedError extends Error {
   }
 }
 /** The staffer's most recent in-progress draft (to resume across logout/reload), or null. */
-export async function getOpenCount(full = true, section: Section = "bar"): Promise<OpenCount | null> {
+export async function getOpenCount(full = true, section: Section = "bar", options: { includeOlder?: boolean } = {}): Promise<OpenCount | null> {
   // `full` picks WHICH kind of draft to resume. The liquor count owns full
   // drafts, the bottled-beer section owns partial ones; without the split one
   // screen resumes the other screen's draft and a full count lands in a session
@@ -415,7 +415,7 @@ export async function getOpenCount(full = true, section: Section = "bar"): Promi
   // merely display it — the next save would replace its rows with lines
   // pointing at the wrong catalog.
   const { session } = await gatedJson<{ session: OpenCount | null }>(
-    `/admin/bar/counts/open?full=${full ? "true" : "false"}&section=${section}`,
+    `/admin/bar/counts/open?full=${full ? "true" : "false"}&section=${section}${options.includeOlder ? "&includeOlder=true" : ""}`,
   );
   if (session && (session.isFullCount !== full || session.section !== section)) {
     throw new BarApiError("This draft belongs to a different count. Reopen the count to continue.", 409);

@@ -905,6 +905,25 @@
   font-size: 13px;
   margin: 0;
 }
+.lq-count-entry {
+  margin: 20px auto;
+  max-width: 480px;
+  padding: 20px;
+  border: 1px solid var(--lq-line-strong);
+  border-radius: var(--lq-radius);
+  background: var(--lq-panel-2);
+}
+.lq-count-entry .lq-h2 { margin: 0 0 12px; }
+.lq-count-entry p { line-height: 1.5; }
+.lq-count-entry-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 18px 0;
+}
+.lq-count-entry-summary > span { color: var(--lq-muted); font-size: 14px; }
+.lq-count-entry-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+.lq-count-entry-actions > button { min-height: 48px; }
 .lq-voice-err {
   font-size: 13px;
   margin: 0;

@@ -27,9 +27,13 @@ async function scenario(name, test, query) {
   try {
     dom.window.eval(bundle);
     const doc = dom.window.document;
-    await until(() => query.includes('no-zones')
+    await until(() => doc.querySelector('.lq-count-entry') || (query.includes('no-zones')
       ? [...doc.querySelectorAll('button')].some(b => /Record count for/.test(b.textContent))
-      : doc.querySelectorAll('.lq-zone').length === 2, 'Count screen');
+      : doc.querySelectorAll('.lq-zone').length === 2), 'Count entry');
+    if (doc.querySelector('.lq-count-entry')) {
+      [...doc.querySelectorAll('button')].find(b => b.textContent.trim()==='Continue count').click();
+      await until(() => !doc.querySelector('.lq-count-entry'), 'Continued count');
+    }
     const qa = dom.window.liquorQa;
     const button = text => [...doc.querySelectorAll('button')].find(b => typeof text==='string'?b.textContent.trim()===text:text.test(b.textContent.trim()));
     const click = async text => {
