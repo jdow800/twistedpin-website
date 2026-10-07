@@ -6,6 +6,8 @@
 node scripts/qa-liquor-bottle-sizes/serve.mjs --food-waste --build-only
 node scripts/qa-liquor-bottle-sizes/check-food-waste.mjs
 node scripts/qa-liquor-bottle-sizes/check-food-waste-native.mjs
+node scripts/qa-liquor-bottle-sizes/check-food-waste-entry.mjs
+node scripts/qa-liquor-bottle-sizes/check-food-waste-entry-native.mjs
 ```
 
 The synthetic fixture bundles the actual Waste Log view, API client and shared
@@ -22,6 +24,14 @@ valuation and database transactions are tested separately in the backend.
 
 Optional `WASTE_QA_RESULTS` and `WASTE_NATIVE_OUTPUT` select result destinations;
 native artifacts otherwise go to the ignored `tmp/food-waste-native` directory.
+
+The entry suite mounts the actual COGS app, Home, Waste Log and inventory views
+with synthetic APIs. Twelve checks prove the waste reminder precedes any food
+count load/create, preserves Continue/Start new and saved amounts, follows PIN
+and deep links, resets on re-entry, bypasses the immediate posted-log handoff,
+and leaves liquor and shelf changes alone. The separate 320-pixel native check
+verifies all reminder choices fit and touch Upload opens the gallery. Optional
+`WASTE_ENTRY_RESULTS` and `WASTE_ENTRY_NATIVE_OUTPUT` select artifact paths.
 
 ## Food review, corrections and voice gaps
 
