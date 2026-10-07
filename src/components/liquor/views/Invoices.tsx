@@ -301,13 +301,20 @@ export default function Invoices({
     const openCopies = (detail.copyReviews ?? []).filter(copy => !copy.reviewed && !copy.automaticallyReconciled);
     const completedCopies = (detail.copyReviews ?? []).filter(copy => copy.reviewed || copy.automaticallyReconciled);
     const isLinkedCopy = !!inv.duplicateOf && !!detail.copyReviews?.some(copy => copy.copyId === inv.id);
-    const checkingPackages = openCopies.some(copy => copy.sourceCheck?.status === "queued" || copy.sourceCheck?.status === "running");
-    const waitingForPackageCheck = checkingPackages && !questions.length
+    const checkingSource = openCopies.some(copy => copy.sourceCheck?.status === "queued" || copy.sourceCheck?.status === "running");
+    const checkingScan = openCopies.some(copy => copy.sourceCheck?.kind === "scan_recovery"
+      && (copy.sourceCheck.status === "queued" || copy.sourceCheck.status === "running"));
+    const waitingForSourceCheck = checkingSource && !questions.length
       && openCopies.every(copy => copy.sourceCheck?.status === "queued" || copy.sourceCheck?.status === "running")
       && (isLinkedCopy || inv.status !== "flagged");
-    const needsAnswer = detailNeedsAttention(detail) && !waitingForPackageCheck;
+    const resolvedScanReading = completedCopies.some(copy => copy.copyId === inv.id && copy.sourceCheck?.status === "resolved"
+      && copy.sourceCheck.kind === "scan_recovery" && copy.automaticBasis === "source_checked_scan");
+    const pendingScanReading = waitingForSourceCheck && checkingScan && isLinkedCopy;
+    const retainedScanReading = resolvedScanReading || pendingScanReading;
+    const checkLabel = checkingScan ? "Checking the scan reading" : "Checking the package reading";
+    const needsAnswer = detailNeedsAttention(detail) && !waitingForSourceCheck;
     const documentQuestion = needsAnswer && ((inv.status === "flagged" && !isLinkedCopy) || openCopies.length > 0);
-    const status = inv.status === "pending" ? "Reading…" : waitingForPackageCheck ? "Checking the package reading" : needsAnswer ? "Needs your answer"
+    const status = inv.status === "pending" ? "Reading…" : waitingForSourceCheck ? checkLabel : needsAnswer ? "Needs your answer"
       : inv.duplicateOf ? "Copy saved" : "No questions remaining";
     const renderLine = (l: InvoiceLine, question = false) => (
             <div key={l.id} id={`inv-line-${l.id}`} tabIndex={-1} className={`lq-invd-line${question ? " lq-invd-line-review" : ""}`}>
@@ -391,12 +398,12 @@ export default function Invoices({
         <p className="lq-muted lq-invd-meta">
           {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
           {inv.invoiceDate || shortDate(inv.createdAt)} ·{" "}
-          <span className={`lq-badge lq-badge-${needsAnswer ? "flagged" : inv.status === "pending" || waitingForPackageCheck ? "pending" : "confirmed"}`}>{status}</span>
+          <span className={`lq-badge lq-badge-${needsAnswer ? "flagged" : inv.status === "pending" || waitingForSourceCheck ? "pending" : "confirmed"}`}>{status}</span>
         </p>
         {detail.images[0] && <a className="lq-invd-source-link" href={invoiceImageUrl(detail.images[0].id)} target="_blank" rel="noreferrer">Open original invoice ↗</a>}
-        <div id="invoice-progress" tabIndex={-1} className={`lq-invd-progress${needsAnswer || waitingForPackageCheck ? "" : " lq-invd-progress-done"}`} role="status">
-          <strong>{inv.status === "pending" ? "Reading this invoice" : waitingForPackageCheck ? "Checking the package reading" : questions.length ? `${questions.length} item${questions.length === 1 ? " needs" : "s need"} your answer` : documentQuestion ? "Review the details below" : "You’re all caught up on this invoice"}</strong>
-          <p>{savedAnswer ? `${savedAnswer} ` : ""}{inv.status === "pending" ? "The saved items will appear here when reading finishes." : waitingForPackageCheck ? "The original documents are being checked. Use Check latest status below to see the result." : needsAnswer ? "Start below. Saved answers disappear from this list." : inv.duplicateOf ? "This copy stays linked or excluded so the purchase is counted once." : "No answers are needed. You can return to your invoices."}</p>
+        <div id="invoice-progress" tabIndex={-1} className={`lq-invd-progress${needsAnswer || waitingForSourceCheck ? "" : " lq-invd-progress-done"}`} role="status">
+          <strong>{inv.status === "pending" ? "Reading this invoice" : waitingForSourceCheck ? checkLabel : questions.length ? `${questions.length} item${questions.length === 1 ? " needs" : "s need"} your answer` : documentQuestion ? "Review the details below" : "You’re all caught up on this invoice"}</strong>
+          <p>{savedAnswer ? `${savedAnswer} ` : ""}{inv.status === "pending" ? "The saved items will appear here when reading finishes." : waitingForSourceCheck ? "The original documents are being checked. Use Check latest status below to see the result." : needsAnswer ? "Start below. Saved answers disappear from this list." : inv.duplicateOf ? "This copy stays linked or excluded so the purchase is counted once." : "No answers are needed. You can return to your invoices."}</p>
           {!needsAnswer && inv.status !== "pending" && <button className="lq-btn" type="button" onClick={() => setDetail(null)}>Back to invoices</button>}
         </div>
         <InvoiceCopies reviews={openCopies} currentId={inv.id} onOpen={(id, lineId) => void open(id, lineId)} onRefresh={() => refreshCopyReviews(inv.id)} />
@@ -414,17 +421,21 @@ export default function Invoices({
         {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">
           <div><span className="lq-muted">{detail.depositResolution ? "Amount due" : "Printed total"}</span><strong>{money(inv.printedTotal)}</strong></div>
-          <div><span className="lq-muted">Total read from lines</span><strong>{money(inv.extractedTotal)}</strong></div>
+          <div><span className="lq-muted">{retainedScanReading ? "First saved scan total" : "Total read from lines"}</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
 
         {totalsDelta >= 0.01 && (
           <p className="lq-muted lq-invd-note">
-            Totals differ by {money(totalsDelta.toFixed(2))}. Check deposits, fees, credits, and the source documents before changing quantities.
+            {pendingScanReading
+              ? `The first saved scan total differs by ${money(totalsDelta.toFixed(2))}. The independent source check is still in progress.`
+              : resolvedScanReading
+              ? `The first saved scan total differs by ${money(totalsDelta.toFixed(2))}. Those saved readings are retained. The source-checked comparison above accounts for all billed rows and charges.`
+              : `Totals differ by ${money(totalsDelta.toFixed(2))}. Check deposits, fees, credits, and the source documents before changing quantities.`}
           </p>
         )}
 
         {remainingLines.length > 0 && <details className="lq-invd-secondary lq-invd-ledger">
-          <summary>{questions.length ? "Other invoice items" : "Invoice items"} ({remainingLines.length})</summary>
+          <summary>{retainedScanReading ? "First saved scan readings" : questions.length ? "Other invoice items" : "Invoice items"} ({remainingLines.length})</summary>
           <p className="lq-muted">{questions.length ? "Items with questions are shown above. " : ""}Open a delivery correction only when the received quantity differs.</p>
           <div className="lq-invd-lines">{remainingLines.map(line => renderLine(line))}</div>
         </details>}

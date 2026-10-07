@@ -1228,12 +1228,13 @@ export interface InvoiceCopyReview {
   }>;
   reasons: string[]; differenceCount: number; feeDifference: number; reviewHash: string;
   reviewed: boolean; reviewedAt: string | null; ready: boolean; automaticallyReconciled?: boolean;
-  automaticBasis?: "supplier_final" | "matching_copies" | "source_checked_packages" | null;
+  automaticBasis?: "supplier_final" | "matching_copies" | "source_checked_packages" | "source_checked_scan" | null;
   sourceCheck?: {
-    id: string; evidenceHash: string;
+    id: string; evidenceHash: string; kind?: "package_fields" | "scan_recovery";
     status: "queued" | "running" | "resolved" | "unresolved" | "rejected";
     attempts: number; reason: string | null;
     corrections: { vendorCode: string; originalReading: string; correctedReading: string }[];
+    recoveredLineCount?: number; originalLineCount?: number;
   };
   questions?: string[];
   readingIncomplete?: boolean;

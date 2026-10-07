@@ -1,3 +1,29 @@
+## 2026-10-07 — Invoice comparisons explain a complete scan source reread
+
+Jon authorized building the remaining invoice review gaps. Linked, excluded scans
+with incomplete saved readings can now receive a bounded independent whole-source
+read in the backend. The comparison screen distinguishes that check from a saved
+package check: it names the scan reading, shows the read/saved row counts when
+provided, and explains complete agreement without claiming receipt or a supplier
+final. First saved scan rows and their total remain labeled and visible.
+
+Reopen scan review uses the existing fingerprint rejection and authoritative
+readback flow, including lost responses, stale evidence and deliberate retry.
+An unresolved or rejected scan check restores the original questions. Price and
+handwriting questions remain human questions. Older package responses keep their
+existing wording and controls. Verification uses fictional invoices and mocked
+APIs; native Chromium checks do not establish paid source-reading accuracy.
+
+Validation: strict invoice component graph TypeScript and the full prebuild/Astro
+production build pass. Seventy-five native Chromium scenarios pass, including
+pending/completed/unresolved/rejected scan checks, lost responses, stale evidence,
+duplicate taps, retained human price/mark questions and escaped source text.
+Layouts at 320/390/412/1280px have no horizontal overflow and comparison controls
+are at least 44px high; phone and desktop screenshots were inspected. Screenshots
+and results remain in ignored scripts/qa-invoice-source-check/.qa/. The existing
+missing GoTab/Untappd configuration fallbacks are expected for this isolated build.
+No production change, invoice repair, email or paid source read was performed.
+
 ## 2026-10-06 — Invoice comparisons show the package source check and can reopen it
 
 Jon authorized the invoice review to use source documents and existing supplier

@@ -1,4 +1,4 @@
-# Invoice package source-check UI verification
+# Invoice source-check UI verification
 
 From the Website repository with its locked dependencies installed:
 
@@ -15,9 +15,10 @@ traffic. It uses no existing login, invoice source, database or paid provider.
 `COGS_QA_CHROME` can select a Chromium executable. The default is the installed
 Playwright headless shell used by the other COGS UI suites.
 
-Thirty-seven scenarios check source explanations, pending status, explicit rejection,
+Seventy-five scenarios check package and whole-scan source explanations, retained raw scan
+totals/rows, pending status, explicit rejection,
 lost write responses, failed readback, stale fingerprints, deliberate retries,
-duplicate taps, older responses and escaped source text. Layout checks cover
+duplicate taps, older responses, escaped source text and retained human price/mark questions. Layout checks cover
 320, 390, 412 and 1280 pixels, horizontal overflow and 44-pixel touch targets.
 Screenshots and the result record are regenerated under ignored
 `scripts/qa-invoice-source-check/.qa/`, ignored by the folder's `.gitignore`.
