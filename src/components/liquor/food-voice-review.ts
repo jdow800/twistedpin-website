@@ -1,6 +1,7 @@
 import type { BarSkuItem, VoiceMatch } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
+import { preciseFoodQty } from "./food-quantity";
 
 export interface FoodReviewItem {
   key: string;
@@ -112,7 +113,7 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const unitsAreCases = inputUnit === "case" && unitMultiplier === caseSize;
   const cases = r.cases + (unitsAreCases ? r.units : 0);
   const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);
-  const qty = Math.round((cases * (caseSize ?? 0) + units) * 1000) / 1000;
+  const qty = preciseFoodQty(cases * (caseSize ?? 0) + units);
   return { cases, caseSize, inputUnit, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
     ready: !!sku && !r.identityNeedsReview && r.quantityKnown && !r.quantityNeedsReview && !foodQuantityFieldsToConfirm(r).length && !(r.invalidQuantityFields?.length) && Number.isFinite(r.cases) && Number.isFinite(r.units) && Number.isFinite(qty) && r.cases >= 0 && r.units >= 0 && qty >= 0 && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
 }

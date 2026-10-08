@@ -6,8 +6,9 @@ import { foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type Fo
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
-export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered }: {
+export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, blockedReason, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered }: {
   item: FoodReviewItem; sku: BarSkuItem | undefined; catalog: BarSkuItem[]; ready: boolean; concern: string | null;
+  blockedReason?: string;
   onEdit: (patch: Partial<FoodReviewItem>) => void; onChoose: (id: string) => void;
   onQuantity: (field: "cases" | "units", raw: string, replacesAll: boolean) => void;
   onUnit: () => void; onCaseSize: (n: number) => void; onDiscard: () => void;
@@ -108,6 +109,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
           onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label></div>}
       {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
+      {blockedReason && <span className="lq-error" role="status">{blockedReason}</span>}
       {concern && r.largeCountConfirmed !== concern && <div className="lq-fc-rev-ask" role="status"><span>{concern}</span>
         {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"
           onClick={() => onEdit({ units: q.cases, cases: 0, spokenUnit: sku.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>Use {q.cases} {foodUnitLabel(sku, q.cases)}</button>}

@@ -1,18 +1,19 @@
 import type { BarSkuItem, CountLineInput } from "./api";
 import { normalizeCountUnit, currentCountDefinition } from "./count-definition";
-import { roundQty } from "./quantity";
+import { foodCanonicalQty, foodLooseQty, foodQuantityBasis, sameFoodQuantityBasis, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty, type FoodQuantity } from "./food-quantity";
 
 export type FoodCell = {
   cases: number | null; units: number | null; qty: number; caseSize: number | null;
   packs?: number | null; packSize?: number | null; source: "grid" | "voice";
   raw?: string; none?: boolean;
+  foodQuantity?: FoodQuantity;
 };
 
 export const readFoodNumber = (raw: string): number | null => {
   const n = Number(raw);
   return raw.trim() !== "" && Number.isFinite(n) && n >= 0 ? n : null;
 };
-export const foodCellQty = (c: FoodCell): number => roundQty((c.units ?? 0) + (c.cases ?? 0) * (c.caseSize ?? 0) + (c.packs ?? 0) * (c.packSize ?? 0));
+export const foodCellQty = (c: FoodCell): number => foodCanonicalQty(c);
 const sum = (a: number, b: number) => Number((a + b).toPrecision(15));
 
 /** Keep the original excerpts, including explicit evidence when older speech
@@ -33,6 +34,13 @@ export function compatibleFoodUnits(a: BarSkuItem, b: BarSkuItem): boolean {
   const label = (s: BarSkuItem) => normalizeCountUnit(currentCountDefinition(s)?.unitLabel ?? s.countUnit ?? "each");
   return normalizeCountUnit(a.countUnit ?? "each") === normalizeCountUnit(b.countUnit ?? "each") && label(a) === label(b);
 }
+export function compatibleFoodCellUnits(a: BarSkuItem, b: BarSkuItem, cell: FoodCell): boolean {
+  return compatibleFoodUnits(a, b) && (!cell.foodQuantity || sameFoodQuantityBasis(cell.foodQuantity, foodQuantityBasis(b)) && cell.foodQuantity.loose.every(part => {
+    const ratio = b.foodUnitRatios?.[normalizeCountUnit(part.unit)];
+    return !!ratio && BigInt(ratio.numerator) * BigInt(part.denominator) === BigInt(part.numerator) * BigInt(ratio.denominator);
+  }));
+}
+export function canMergeFoodCells(a: FoodCell, b: FoodCell): boolean { return !a.foodQuantity || !b.foodQuantity || sameFoodQuantityBasis(a.foodQuantity, b.foodQuantity); }
 
 export function mergeFoodCells(source: FoodCell, target: FoodCell): FoodCell {
   const cases = sum(source.cases ?? 0, target.cases ?? 0);
@@ -41,11 +49,17 @@ export function mergeFoodCells(source: FoodCell, target: FoodCell): FoodCell {
   const packSize = (target.packs ?? 0) > 0 ? target.packSize : (source.packs ?? 0) > 0 ? source.packSize : target.packSize ?? source.packSize;
   const keepCases = !(source.cases && target.cases) || source.caseSize === target.caseSize;
   const keepPacks = !(source.packs && target.packs) || source.packSize === target.packSize;
-  const qty = roundQty(source.qty + target.qty);
-  return { qty, cases: keepCases ? cases : null, caseSize: keepCases ? caseSize : null,
+  const basis = target.foodQuantity ?? source.foodQuantity;
+  let foodQuantity = basis ? mergeFoodQuantity(target.foodQuantity ?? legacyFoodQuantity(target.units ?? 0, basis), source.foodQuantity ?? legacyFoodQuantity(source.units ?? 0, basis)) : undefined;
+  if (foodQuantity && !keepCases) for (const c of [target, source]) if (c.cases) foodQuantity = mergeFoodQuantity(foodQuantity, physicalFoodQuantity(c.cases, "case", c.caseSize ?? 0, undefined, foodQuantity));
+  if (foodQuantity && !keepPacks) for (const c of [target, source]) if (c.packs) foodQuantity = mergeFoodQuantity(foodQuantity, physicalFoodQuantity(c.packs, "pack", c.packSize ?? 0, undefined, foodQuantity));
+  const qty = preciseFoodQty(source.qty + target.qty);
+  const cell: FoodCell = { qty, cases: keepCases ? cases : null, caseSize: keepCases ? caseSize : null,
     packs: keepPacks ? packs : null, packSize: keepPacks ? packSize : null,
-    units: roundQty(qty - (keepCases ? cases * (caseSize ?? 0) : 0) - (keepPacks ? packs * (packSize ?? 0) : 0)),
-    source: "grid", none: qty === 0, raw: appendFoodSource(target.raw, source.raw) };
+    units: foodQuantity ? foodLooseQty(foodQuantity) : preciseFoodQty(qty - (keepCases ? cases * (caseSize ?? 0) : 0) - (keepPacks ? packs * (packSize ?? 0) : 0)),
+    ...(foodQuantity ? { foodQuantity } : {}), source: "grid", none: qty === 0, raw: appendFoodSource(target.raw, source.raw) };
+  if (foodQuantity) cell.qty = foodCanonicalQty(cell);
+  return cell;
 }
 
 /** Zero-case/pack stamps are editing metadata omitted from wire payloads.

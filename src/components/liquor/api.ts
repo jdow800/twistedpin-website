@@ -1,4 +1,5 @@
 import { compressToJpeg, blobToBase64, PROXY_SAFE_RAW_BYTES } from "./document-photo";
+import { foodQuantityKey, type FoodQuantity, type FoodUnitRatio } from "./food-quantity";
 
 /**
  * Which catalog a call is about (migration 0166). Defined HERE because it is a
@@ -181,6 +182,8 @@ export interface BarSkuItem {
   countUnit?: string;
   /** Confirmed spoken package conversions; ignored when the physical unit changes. */
   countDefinition?: import("./count-definition").CountDefinition | null;
+  /** Approved exact food conversions, bound to the current count definition. */
+  foodUnitRatios?: Record<string, FoodUnitRatio>;
   /** Confirmed observations, used only to ask about an unusually large count. */
   countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
   /** Discontinued (tprs 0196): no longer ordered, leftovers still counted.
@@ -222,6 +225,8 @@ export interface CountLineInput {
    *  Same (count x size) shape as the case pair, one rung down. */
   enteredPacks?: number;
   packSizeAtEntry?: number | null;
+  /** Entered physical loose amounts and frozen conversions, food protocol 6. */
+  foodQuantity?: FoodQuantity | null;
 }
 export interface KegLineInput {
   kegName: string;
@@ -335,6 +340,9 @@ export interface OpenCountLine {
   caseSizeAtEntry: number | null;
   enteredPacks: string | null; // numeric → JSON string
   packSizeAtEntry: number | null;
+  foodQuantity?: FoodQuantity | null;
+  qtyNumerator?: string;
+  qtyDenominator?: string;
   source: "grid" | "voice";
   rawUtterance: string | null;
 }
@@ -437,7 +445,7 @@ export async function saveCountLines(
 ): Promise<{ linesHash?: string }> {
   try {
     return await gatedJson<{ linesHash?: string }>(`/admin/bar/counts/${sessionId}/lines`, {
-      ...jsonBody({ lines, isFullCount, section, ...(baseHash ? { baseHash } : {}) }), method: "PUT",
+      ...jsonBody({ lines, isFullCount, section, ...(section === "food" ? { foodUnitsVersion: 6 } : {}), ...(baseHash ? { baseHash } : {}) }), method: "PUT",
     });
   } catch (e) {
     if (e instanceof BarApiError && e.status === 409) {
@@ -463,7 +471,7 @@ export async function confirmCountDraftSave(
       const values = [line.qtyUnits, line.enteredCases, line.caseSizeAtEntry, line.enteredPacks, line.packSizeAtEntry]
         .map((value) => value == null ? null : Number(value));
       if (values.some((value) => value != null && !Number.isFinite(value))) return null;
-      return JSON.stringify([...values, line.source, line.rawUtterance ?? null]);
+      return JSON.stringify([...values, foodQuantityKey(line.foodQuantity), line.source, line.rawUtterance ?? null]);
     };
     const saved = new Map(session.lines.map((line) => [`${line.zoneId}:${line.skuId}`, canonical(line)]));
     const wanted = new Set(lines.map((line) => `${line.zoneId}:${line.skuId}`));
@@ -853,7 +861,7 @@ export async function extractVoice(
   try {
     const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 5 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 6 } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );

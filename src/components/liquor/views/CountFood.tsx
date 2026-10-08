@@ -39,12 +39,14 @@ import VoiceProcessing from "../VoiceProcessing";
 import CountEntryChoice from "../CountEntryChoice";
 import { foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
-import { formatQty, roundQty } from "../quantity";
-import { appendFoodSource, compatibleFoodUnits, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
+import { formatQty } from "../quantity";
+import { foodCanonicalQty, foodLooseQty, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty as roundQty, replaceFoodLoose, singleFoodLoose, foodPhysicalUnit, storedFoodQuantity, foodQuantityBasis, sameFoodQuantityBasis, type FoodQuantity } from "../food-quantity";
+import { appendFoodSource, compatibleFoodCellUnits, canMergeFoodCells, mergeFoodCells, retainFoodStamps, readFoodNumber, foodLineKey } from "../food-count-edit";
 import FoodNumberInput from "../FoodNumberInput";
 import FoodReviewCountRow, { foodSearchMatch } from "../FoodReviewCountRow";
 import FoodVoiceReviewRow from "../FoodVoiceReviewRow";
 import type { FoodCountChoice } from "../FoodCountRecovery";
+import { normalizeCountUnit } from "../count-definition";
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -106,6 +108,7 @@ type Cell = {
   caseSize: number | null;
   packs?: number | null;
   packSize?: number | null;
+  foodQuantity?: FoodQuantity;
   source: "grid" | "voice";
   raw?: string;
   /**
@@ -182,11 +185,11 @@ function mmss(total: number): string {
   return `${m}:${String(sec).padStart(2, "0")}`;
 }
 
-function cellQty(c: Pick<Cell, "cases" | "units" | "caseSize" | "packs" | "packSize">): number {
-  return roundQty((c.units ?? 0) + (c.cases ?? 0) * (c.caseSize ?? 0) + (c.packs ?? 0) * (c.packSize ?? 0));
+function cellQty(c: Pick<Cell, "cases" | "units" | "caseSize" | "packs" | "packSize" | "foodQuantity">): number {
+  return foodCanonicalQty(c);
 }
 
-function rebuild(lines: OpenCountLine[]): Counts {
+function rebuild(lines: OpenCountLine[], catalog: BarSkuItem[]): Counts {
   const out: Counts = {};
   for (const l of lines) {
     const zone = (out[l.zoneId] ??= {});
@@ -195,14 +198,17 @@ function rebuild(lines: OpenCountLine[]): Counts {
     const qty = Number(l.qtyUnits);
     const packs = l.enteredPacks == null ? null : Number(l.enteredPacks);
     const packSize = l.packSizeAtEntry == null ? null : Number(l.packSizeAtEntry);
+    const sku = catalog.find(s => s.id === l.skuId);
+    const foodQuantity = l.foodQuantity ?? (sku ? storedFoodQuantity(l.qtyUnits, l.enteredCases, caseSize, l.enteredPacks, packSize, foodQuantityBasis(sku)) : undefined);
     zone[l.skuId] = {
       cases,
       caseSize,
       packs,
       packSize,
+      foodQuantity,
       // Loose = whatever the stored total is beyond the case part, so a resumed
       // draft shows the counter the two numbers they actually typed.
-      units: roundQty(qty - (cases ?? 0) * (caseSize ?? 0) - (packs ?? 0) * (packSize ?? 0)),
+      units: foodQuantity ? foodLooseQty(foodQuantity) : roundQty(qty - (cases ?? 0) * (caseSize ?? 0) - (packs ?? 0) * (packSize ?? 0)),
       // A saved 0 was explicit when it was written; resuming must not
       // quietly downgrade it to "never answered".
       none: qty === 0,
@@ -230,6 +236,7 @@ function flatten(counts: Counts): CountLineInput[] {
         caseSizeAtEntry: c.cases ? c.caseSize : undefined,
         enteredPacks: c.packs || undefined,
         packSizeAtEntry: c.packs ? c.packSize : undefined,
+        foodQuantity: c.foodQuantity ?? null,
       });
     }
   }
@@ -249,6 +256,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const startingFreshRef = useRef(false);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
+  const catalogRef = useRef(catalog);
+  catalogRef.current = catalog;
   const [zoneId, setZoneId] = useState<string>("");
   const [counts, setCounts] = useState<Counts>({});
   const [added, setAdded] = useState<Record<string, string[]>>({});
@@ -384,7 +393,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       adopt: (lines) => {
         const local = countsRef.current;
         const localLines = new Map(flatten(local).map((line) => [foodLineKey(line), line]));
-        const next = rebuild(toOpenLines(lines));
+        const next = rebuild(toOpenLines(lines), catalogRef.current);
         const restored = new Set(correctionConflictsRef.current.flatMap((c) => c.keys));
         for (const line of lines) retainFoodStamps(local[line.zoneId]?.[line.skuId], next[line.zoneId][line.skuId],
           sameDraftCell(line, localLines.get(foodLineKey(line))), restored.has(foodLineKey(line)));
@@ -455,7 +464,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!entryDraft || entryBusyRef.current) return;
     entryBusyRef.current = true;
     setSessionId(entryDraft.id);
-    setCounts(rebuild(entryDraft.lines));
+    setCounts(rebuild(entryDraft.lines, catalogRef.current));
     saverRef.current!.loaded(entryDraft.lines, entryDraft.linesHash);
     setZoneId(resumeZone(entryDraft.id, zones));
     setResumed(true);
@@ -573,11 +582,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const zoneCells = { ...(prev[dest] ?? {}) };
       const cur = zoneCells[skuId];
       const sku = skuById.get(skuId);
+      if (cur?.foodQuantity && sku && !sameFoodQuantityBasis(cur.foodQuantity, foodQuantityBasis(sku))
+        && (next.cases != null || next.packs != null || next.foodQuantity)) return;
+      const retainedQuantity = next.foodQuantity ?? (next.units === undefined ? cur?.foodQuantity : undefined);
+      const foodQuantity = retainedQuantity && (next.cases !== undefined || next.packs !== undefined) && Number(retainedQuantity.legacyQtyUnits) < 0 ? { ...retainedQuantity, legacyQtyUnits: "0" } : retainedQuantity;
       const merged: Cell = {
         cases: next.cases !== undefined ? next.cases : (cur?.cases ?? null),
         units: next.units !== undefined ? next.units : (cur?.units ?? null),
         packs: next.packs !== undefined ? next.packs : cur?.packs,
         packSize: next.packSize !== undefined ? next.packSize : cur?.packSize,
+        foodQuantity,
         // ⚠ THE EXISTING CELL'S MULTIPLIER WINS. case_size_at_entry is frozen
         // at entry by design and must never be re-read from the catalog: a
         // resumed draft whose SKU had its case size corrected in between would
@@ -651,6 +665,20 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const value = Number(Math.max(0, current + delta).toFixed(10));
     editBox(skuId, field, String(value), caseSize);
   }
+  function editPhysicalLoose(skuId: string, index: number, raw: string, dest = zoneId) {
+    const cur = countsRef.current[dest]?.[skuId], value = readFoodNumber(raw);
+    if (!cur?.foodQuantity || value == null) return;
+    const foodQuantity = replaceFoodLoose(cur.foodQuantity, index, value);
+    writeCell(skuId, { foodQuantity, units: foodLooseQty(foodQuantity), none: value === 0 && !cur.cases && !cur.packs }, dest);
+  }
+  function editLegacyLoose(skuId: string, raw: string, dest = zoneId) {
+    const cur = countsRef.current[dest]?.[skuId], value = readFoodNumber(raw);
+    if (value == null) return;
+    if (cur?.foodQuantity?.loose.length) {
+      const foodQuantity = { ...cur.foodQuantity, legacyQtyUnits: String(value) };
+      writeCell(skuId, { foodQuantity, units: foodLooseQty(foodQuantity), none: false }, dest);
+    } else writeCell(skuId, { units: value, none: value === 0 && !cur?.cases && !cur?.packs }, dest);
+  }
 
   function clearCell(skuId: string) {
     if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
@@ -670,19 +698,25 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  otherwise be written to wherever they were standing by then. The food
    *  location prompt would then offer to make those wrong placements into
    *  permanent membership. */
-  function addToCell(skuId: string, cases: number, units: number, caseSize: number | null, raw: string, zone: string = zoneId) {
-    if (correctionConflictsRef.current.some((c) => c.keys.includes(`${zone}:${skuId}`))) return;
+  function addToCell(skuId: string, cases: number, units: number, caseSize: number | null, raw: string, zone: string = zoneId, incomingQuantity?: FoodQuantity) {
+    if (correctionConflictsRef.current.some((c) => c.keys.includes(`${zone}:${skuId}`))) return false;
     const prev = countsRef.current;
       const zoneCells = { ...(prev[zone] ?? {}) };
       const cur = zoneCells[skuId];
+      const sku = skuById.get(skuId);
+      if (cur?.foodQuantity && sku && !sameFoodQuantityBasis(cur.foodQuantity, foodQuantityBasis(sku))) return false;
       // A later correction to the case size must not reinterpret an earlier
       // entry. Fold a differently-sized incoming case into loose base units.
       const differentSize = cur?.caseSize != null && caseSize != null && cur.caseSize !== caseSize;
+      const basis = cur?.foodQuantity ?? incomingQuantity;
+      let foodQuantity = basis ? mergeFoodQuantity(cur?.foodQuantity ?? legacyFoodQuantity(cur?.units ?? 0, basis), incomingQuantity ?? legacyFoodQuantity(units, basis)) : undefined;
+      if (differentSize && cases && foodQuantity) foodQuantity = mergeFoodQuantity(foodQuantity, physicalFoodQuantity(cases, "case", caseSize!, undefined, foodQuantity));
       const merged: Cell = {
         cases: Number(((cur?.cases ?? 0) + (differentSize ? 0 : cases)).toPrecision(15)),
         units: Number(((cur?.units ?? 0) + units + (differentSize ? cases * caseSize! : 0)).toPrecision(15)),
         packs: cur?.packs,
         packSize: cur?.packSize,
+        ...(foodQuantity ? { foodQuantity } : {}),
         // A spoken quantity is an explicit answer, including a spoken zero.
         // Same freeze as writeCell: a second voice pass at the same shelf adds
         // to the cell, it does not revalue what is already in it.
@@ -692,10 +726,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         raw: appendFoodSource(cur?.raw, raw),
       };
       merged.qty = cellQty(merged);
-      if (!Number.isFinite(merged.qty) || merged.qty < 0) return;
+      if (!Number.isFinite(merged.qty) || merged.qty < 0) return false;
       zoneCells[skuId] = merged;
       adoptLocal({ ...prev, [zone]: zoneCells });
     scheduleSave();
+    return true;
   }
 
   // ── voice ──
@@ -948,7 +983,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       .reduce((total, x) => { const q = reviewQuantity(x); return total + (q.ready ? q.qty : 0); }, 0);
     return foodCountWarning(r, reviewSku(r), existing + earlier);
   };
-  const applyable = (r: ReviewItem) => reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r))
+  const reviewBasisChanged = (r: ReviewItem) => {
+    const sku = reviewSku(r), saved = countsRef.current[takeZoneId ?? zoneId]?.[r.chosenSkuId ?? ""]?.foodQuantity;
+    return !!saved && !!sku && !sameFoodQuantityBasis(saved, foodQuantityBasis(sku));
+  };
+  const applyable = (r: ReviewItem) => !reviewBasisChanged(r) && reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r))
     && !correctionConflictsRef.current.some((c) => c.keys.includes(`${takeZoneId ?? zoneId}:${r.chosenSkuId}`));
 
   const reviewZoneId = takeZoneId ?? zoneId;
@@ -1022,19 +1061,22 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!review || startingFreshRef.current || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
     for (const r of review) {
       if (!applyable(r) || appliedVoiceRowsRef.current.has(r)) continue;
-      // Two taps can arrive before React replaces the footer. Consume this
-      // exact reviewed amount once; a later take has new review objects.
-      appliedVoiceRowsRef.current.add(r);
       const q = reviewQuantity(r);
-      const sku = reviewSku(r)!;
+        const sku = reviewSku(r)!;
+        const basis = foodQuantityBasis(sku);
+        let foodQuantity = q.inputUnit !== "case" && q.unitMultiplier != null ? physicalFoodQuantity(r.units, q.inputUnit ?? sku.countUnit ?? "each", q.unitMultiplier, sku.foodUnitRatios, basis) : undefined;
+        if (sku.countUnit === "case" && q.cases) foodQuantity = mergeFoodQuantity(foodQuantity ?? legacyFoodQuantity(0, basis), physicalFoodQuantity(q.cases, "case", 1, sku.foodUnitRatios, basis));
       const raw = appendFoodSource(undefined, `${r.spoken} [confirmed: ${q.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`)!;
       // A SKU whose base unit IS case has one input, not "cases of cases".
-      addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : q.cases,
-        q.units + (sku.countUnit === "case" ? q.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId);
+      if (addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : q.cases,
+          q.units + (sku.countUnit === "case" ? q.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId, foodQuantity)) {
+        // Consume only after the current cell accepted this exact amount.
+        appliedVoiceRowsRef.current.add(r);
+      }
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
-    const left = review.filter((r) => !applyable(r) && !appliedVoiceRowsRef.current.has(r));
+    const left = review.filter((r) => !appliedVoiceRowsRef.current.has(r));
     reviewRowsRef.current = left.length ? left : null;
     setReview(reviewRowsRef.current);
   }
@@ -1391,7 +1433,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   function cellText(s: BarSkuItem, c: Cell): string {
     const parts: string[] = [];
     if (c.cases) parts.push(`${formatQty(c.cases)} case${c.cases === 1 ? "" : "s"}`);
-    if (c.units || parts.length === 0) parts.push(`${formatQty(c.units ?? 0)} ${unitLabel(s, c.units ?? 0)}`);
+    if (c.packs) parts.push(`${formatQty(c.packs)} packs`);
+    if (c.foodQuantity) {
+      parts.push(...c.foodQuantity.loose.map(part => `${part.quantity} ${foodPhysicalUnit(part)}`));
+      if (Number(c.foodQuantity.legacyQtyUnits) > 0 || parts.length === 0) parts.push(`${c.foodQuantity.legacyQtyUnits} ${unitLabel(s, Number(c.foodQuantity.legacyQtyUnits))}`);
+    } else if (c.units || parts.length === 0) parts.push(`${formatQty(c.units ?? 0)} ${unitLabel(s, c.units ?? 0)}`);
     return parts.join(" + ");
   }
 
@@ -1743,6 +1789,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       setLocationCollision({ key, zid, skuId, cell, from, afterSave });
       return;
     }
+    if (mode === "add" && existing && !canMergeFoodCells(cell, existing)) {
+      setQ(key, { busy: false, err: "The earlier count uses a different counting unit. Replace it with a fresh count." });
+      return;
+    }
     setQ(key, { busy: true, err: undefined });
     trackCorrection(from, skuId, zid, skuId);
     putCell(zid, skuId, mode === "add" && existing ? mergeFoodCells(cell, existing) : cell);
@@ -1771,11 +1821,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (checking || submitting || submissionUnknown || from === to) return;
     const source = countsRef.current[zid]?.[from];
     const a = skuById.get(from), target = skuById.get(to);
-    if (!source || !a || !target || (!compatibleFoodUnits(a, target) && !answered)) return;
+    if (!source || !a || !target || (!compatibleFoodCellUnits(a, target, source) && !answered)) return;
     const existing = countsRef.current[zid]?.[to];
     if (existing && mode === "move") return;
     const replacement: Cell = answered ? { ...answered, raw: appendFoodSource(source.raw, answered.raw) } : { ...source, source: "grid" };
     if (!Number.isFinite(replacement.qty) || replacement.qty < 0) return;
+    if (mode === "add" && existing && !canMergeFoodCells(replacement, existing)) return;
     trackCorrection(zid, from, zid, to);
     const cells = { ...(countsRef.current[zid] ?? {}) };
     cells[to] = mode === "add" && existing ? mergeFoodCells(replacement, existing) : replacement;
@@ -1819,6 +1870,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         shelf={zones.find((z) => z.id === zid)?.name ?? "Saved shelf"} catalog={catalog} existing={counts[zid] ?? {}}
         disabled={checking || submitting} quantitiesDisabled={correctionConflicts.some((c) => c.keys.includes(`${zid}:${id}`))}
         onEdit={(field, raw) => editBox(id, field, raw, cell.caseSize ?? foodCaseSize(skuById.get(id)), zid)}
+        onEditPhysicalLoose={(index, raw) => editPhysicalLoose(id, index, raw, zid)}
+        onEditLegacyLoose={(raw) => editLegacyLoose(id, raw, zid)}
         onNone={() => writeCell(id, { cases: null, packs: null, units: 0, none: true }, zid)}
         onChangeItem={(to, mode, answer) => changeFoodItem(zid, id, to, mode, answer)} />)}
       <button type="button" className="lq-linkbtn" disabled={voicePending || !!retryTranscript || checking || submitting || !!leaving} onClick={() => {
@@ -2027,7 +2080,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             Check {review.length} heard item{review.length === 1 ? "" : "s"}
           </p>
           {review.map(r => <FoodVoiceReviewRow key={r.key} item={r} sku={reviewSku(r)} catalog={catalog}
-            ready={applyable(r)} concern={warning(r)} onEdit={patch => editReview(r, patch)}
+            ready={applyable(r)} concern={warning(r)} blockedReason={reviewBasisChanged(r) ? "The counting unit changed. Clear the earlier amount on this shelf and recount it." : undefined} onEdit={patch => editReview(r, patch)}
             onChoose={id => chooseReviewSku(r, id)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
             onUnit={() => answerSpokenUnit(r)} onCaseSize={n => void answerCaseSize(r.chosenSkuId!, n)}
             enteredCounts={enteredCounts} countLocation={zones.find(z => z.id === reviewZoneId)?.name}
@@ -2063,6 +2116,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           const caseSize = c?.caseSize ?? foodCaseSize(s);
           const knownCaseSize = caseSize != null && caseSize > 0;
           const displayedCases = c?.cases ?? 0;
+          const physical = singleFoodLoose(c?.foodQuantity);
+          const physicalParts = c?.foodQuantity?.loose.map((part, index) => ({ part, index })) ?? [];
+          const basisChanged = !!c?.foodQuantity && !sameFoodQuantityBasis(c.foodQuantity, foodQuantityBasis(s));
+          const looseInputs = physicalParts.length ? [...physicalParts, ...(Number(c!.foodQuantity!.legacyQtyUnits) > 0 ? [{ part: null, index: -1 }] : [])] : [{ part: null, index: -1 }];
+          const simplePhysicalTotal = physical && !(c?.cases ?? 0) && !(c?.packs ?? 0);
           const [head, rest] = splitDisplayName(s.name);
           const leftover = !!s.discontinuedAt;
           const replacement = s.replacedBySkuId ? skuById.get(s.replacedBySkuId)?.name : undefined;
@@ -2097,7 +2155,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     says so. Behind the guard it only appeared once a cell
                     already existed, which is exactly when it is least needed. */}
                 <span className="lq-fc-row-sum">
-                  {c && <span className="lq-fc-row-total">Total {formatQty(c.qty)} {unitLabel(s, c.qty)}</span>}
+                  {c && <span className="lq-fc-row-total">Total {simplePhysicalTotal ? `${physical!.quantity} ${foodPhysicalUnit(physical!)}` : `${formatQty(c.qty)} ${unitLabel(s, c.qty)}`}</span>}
                   <button
                     type="button"
                     className={`lq-fc-row-none${c?.none && !c.qty ? " lq-fc-row-none-on" : ""}`}
@@ -2131,15 +2189,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 </span>
                 {noneLeft[s.id] === "failed" && <span className="lq-error">Couldn't save that. Try again.</span>}
                 {!!c?.packs && <span className="lq-muted">Includes {formatQty(c.packs)} packs × {formatQty(c.packSize)}, plus the quantities below.</span>}
+                {!!c?.foodQuantity?.loose.length && !simplePhysicalTotal && <span className="lq-muted lq-fc-physical-count">Counted: {c!.foodQuantity!.loose.map(part => `${part.quantity} ${foodPhysicalUnit(part)}`).join(" + ")}{Number(c!.foodQuantity!.legacyQtyUnits) > 0 ? `; plus ${c!.foodQuantity!.legacyQtyUnits} ${unitLabel(s, Number(c!.foodQuantity!.legacyQtyUnits))} already counted` : ""}</span>}
+                {basisChanged && <span className="lq-error">The counting unit changed. Clear this amount and recount it.</span>}
               </div>
               <div className="lq-fc-row-inputs">
                 {c?.packSize != null && <div className="lq-fc-row-box">
                   <span className="lq-fc-row-lab">Packs <span className="lq-fc-row-mult">×{formatQty(c.packSize)}</span></span>
                   <div className="lq-fc-stepper">
-                    <button type="button" aria-label={`Decrease packs of ${s.name}`} disabled={checking || submitting || (c.packs ?? 0) <= 0} onClick={() => stepBox(s.id, "packs", -1)}>−</button>
+                    <button type="button" aria-label={`Decrease packs of ${s.name}`} disabled={basisChanged || checking || submitting || (c.packs ?? 0) <= 0} onClick={() => stepBox(s.id, "packs", -1)}>−</button>
                     <FoodNumberInput type="number" inputMode="decimal" step="any" min={0} aria-label={`${s.name}: packs`} value={c.packs ?? undefined}
-                      disabled={checking || submitting} onFocus={keepInView} onRaw={(raw) => editBox(s.id, "packs", raw, c.caseSize)} />
-                    <button type="button" aria-label={`Increase packs of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "packs", 1)}>+</button>
+                      disabled={basisChanged || checking || submitting} onFocus={keepInView} onRaw={(raw) => editBox(s.id, "packs", raw, c.caseSize)} />
+                    <button type="button" aria-label={`Increase packs of ${s.name}`} disabled={basisChanged || checking || submitting} onClick={() => stepBox(s.id, "packs", 1)}>+</button>
                   </div>
                 </div>}
                 {(s.countUnit !== "case" || !!c?.cases) && caseSize != null && (
@@ -2151,40 +2211,48 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                       Cases <span className="lq-fc-row-mult">×{knownCaseSize ? formatQty(caseSize) : "?"}</span>
                     </span>
                     <div className="lq-fc-stepper">
-                    <button type="button" aria-label={`Decrease cases of ${s.name}`} disabled={checking || submitting || displayedCases <= 0} onClick={() => stepBox(s.id, "cases", -1)}>−</button>
+                    <button type="button" aria-label={`Decrease cases of ${s.name}`} disabled={basisChanged || checking || submitting || displayedCases <= 0} onClick={() => stepBox(s.id, "cases", -1)}>−</button>
                     <FoodNumberInput
                       type="number"
                       inputMode="decimal"
                       min={0}
                       step="any"
                       aria-label={`${s.name}: cases`}
-                      disabled={checking || submitting}
+                      disabled={basisChanged || checking || submitting}
                       value={c?.cases ?? undefined}
                       onFocus={keepInView}
                       onRaw={(raw) => editBox(s.id, "cases", raw, caseSize)}
                     />
-                    <button type="button" aria-label={`Increase cases of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "cases", 1)}>+</button>
+                    <button type="button" aria-label={`Increase cases of ${s.name}`} disabled={basisChanged || checking || submitting} onClick={() => stepBox(s.id, "cases", 1)}>+</button>
                     </div>
                   </div>
                 )}
-                <div className="lq-fc-row-box">
-                  <span className="lq-fc-row-lab">{caseSize != null && s.countUnit !== "case" ? "Loose " : ""}{unitLabel(s, 2)}</span>
+                {looseInputs.map(({ part, index }) => {
+                  const looseLabel = part && normalizeCountUnit(part.unit) !== normalizeCountUnit(s.countUnit ?? "each") ? foodPhysicalUnit({ ...part, quantity: "2" }) : unitLabel(s, 2);
+                  const value = part ? Number(part.quantity) : c?.foodQuantity ? Number(c.foodQuantity.legacyQtyUnits) < 0 ? undefined : Number(c.foodQuantity.legacyQtyUnits) : c?.units;
+                  const duplicateUnit = part && physicalParts.filter(p => p.part.unit === part.unit).length > 1;
+                  const inputLabel = `${s.name}: loose ${looseLabel}${duplicateUnit ? ` (${part!.numerator}/${part!.denominator})` : ""}`;
+                  const change = (raw: string) => part ? editPhysicalLoose(s.id, index, raw) : editLegacyLoose(s.id, raw);
+                  return <div className="lq-fc-row-box" key={index}>
+                  <span className="lq-fc-row-lab">{caseSize != null && s.countUnit !== "case" ? "Loose " : ""}{looseLabel}</span>
+                  {duplicateUnit && <span className="lq-muted">At entry: {part!.numerator}/{part!.denominator} {unitLabel(s, 2)} each</span>}
                   <div className="lq-fc-stepper">
-                  <button type="button" aria-label={`Decrease loose ${unitLabel(s, 2)} of ${s.name}`} disabled={checking || submitting || (c?.units ?? 0) <= 0} onClick={() => stepBox(s.id, "units", -1)}>−</button>
+                  <button type="button" aria-label={`Decrease loose ${looseLabel} of ${s.name}`} disabled={basisChanged || checking || submitting || (value ?? 0) <= 0} onClick={() => change(String(Math.max(0, (value ?? 0) - 1)))}>−</button>
                     <FoodNumberInput
                     type="number"
                     inputMode="decimal"
                     min={0}
                     step="any"
-                    aria-label={`${s.name}: loose ${unitLabel(s, 2)}`}
-                    value={c?.units ?? undefined}
-                    disabled={checking || submitting}
+                    aria-label={inputLabel}
+                    value={value ?? undefined}
+                    disabled={basisChanged || checking || submitting}
                     onFocus={keepInView}
-                    onRaw={(raw) => editBox(s.id, "units", raw, null)}
+                    onRaw={change}
                   />
-                  <button type="button" aria-label={`Increase loose ${unitLabel(s, 2)} of ${s.name}`} disabled={checking || submitting} onClick={() => stepBox(s.id, "units", 1)}>+</button>
+                  <button type="button" aria-label={`Increase loose ${looseLabel} of ${s.name}`} disabled={basisChanged || checking || submitting} onClick={() => change(String((value ?? 0) + 1))}>+</button>
                   </div>
-                </div>
+                </div>;
+                })}
               </div>
               </fieldset>
             </div>
@@ -2662,7 +2730,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <p>Choose how to record it before changing the shelf list.</p>
           {old && ((old.cases && plan.cell.cases && old.caseSize !== plan.cell.caseSize) || (old.packs && plan.cell.packs && old.packSize !== plan.cell.packSize)) && <p>Package sizes differ. Adding keeps their combined total in individual counting units.</p>}
           <div className="lq-fc-sheet-foot">
-            {plan.cell.qty > 0 && <button type="button" className="lq-btn" disabled={save === "saving" || checking || submitting}
+            {old && !canMergeFoodCells(plan.cell, old) && <p className="lq-error">The earlier count uses a different counting unit. Replace it with a fresh count.</p>}
+            {plan.cell.qty > 0 && <button type="button" className="lq-btn" disabled={save === "saving" || checking || submitting || !!old && !canMergeFoodCells(plan.cell, old)}
               onClick={() => void saveLocationCount(plan.key, plan.from, plan.zid, plan.skuId, plan.cell, plan.afterSave, "add")}>Add to existing count</button>}
             <button type="button" className="lq-btn" disabled={save === "saving" || checking || submitting}
               onClick={() => void saveLocationCount(plan.key, plan.from, plan.zid, plan.skuId, plan.cell, plan.afterSave, "replace")}>Replace existing count</button>

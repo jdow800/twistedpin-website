@@ -22,6 +22,17 @@ const zones = fixtureOverride?.zones ?? [
 ];
 const existing = new URL(location.href).searchParams.has('existing');
 const params = new URL(location.href).searchParams;
+if (params.has('precision')) {
+  const definition = {countUnit:'case',unitsPerCase:null,unitLabel:'case',defaultSpokenUnit:'case',spokenUnits:{case:1,bun:1/192},confirmedBy:'Synthetic precision QA',confirmedAt:'2026-01-01'};
+  const slider = {id:'slider',name:'Sample Slider Bun',countUnit:'case',unitsPerCase:null,countDefinition:definition,recipeUnit:'each',recipeYield:192,
+    foodUnitRatios:{case:{numerator:'1',denominator:'1'},bun:{numerator:'1',denominator:'192'}},category:'Bakery',sizeMl:null,trackingMode:'stock_count',wacCost:null};
+  if (params.has('precision-factor')) {
+    slider.countDefinition = {...definition,spokenUnits:{case:1,bun:1/200}};
+    slider.foodUnitRatios.bun = {numerator:'1',denominator:'200'};
+  }
+  catalog.splice(0,catalog.length,slider);
+  for (const zone of zones) zone.memberSkuIds = ['slider'];
+}
 if (params.has('case-breakdown')) {
   const answer = (countUnit,unitsPerCase,unitLabel,defaultSpokenUnit,spokenUnits) => ({countUnit,unitsPerCase,unitLabel,defaultSpokenUnit,spokenUnits,confirmedBy:'QA count definition',confirmedAt:'2026-01-01'});
   const cases = [
@@ -122,10 +133,10 @@ const unplaced = params.has('walk') ? [
 const unplacedMore = params.has('many') ? [
   {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
 ] : [];
-const initialLines = params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
+const initialLines = fixtureOverride?.lines ?? (params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
   : params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
-  : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : [];
+  : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : []);
 const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false,
   catalog,zones};
 qa.failSave = params.has('save-fails');
@@ -181,7 +192,7 @@ window.fetch = async (input, init = {}) => {
     }
     // ?recheck: each check names what it looked at (fcheck1, fcheck2, ...).
     const n = qa.calls.filter(c => c.path.endsWith('/precheck')).length;
-    return json({baseline:true, findings:[], retiring:[], ...(params.has('walk') ? {unplaced, unplacedMore} : {}),
+    return json({baseline:true, findings:fixtureOverride?.findings ?? [], retiring:[], ...(params.has('walk') ? {unplaced, unplacedMore} : {}),
       ...(params.has('recheck') ? {linesHash:`fcheck${n}`} : {})});
   }
   if (path.endsWith('/submit')) {

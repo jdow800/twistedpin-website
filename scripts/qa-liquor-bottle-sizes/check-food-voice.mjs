@@ -94,7 +94,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   await t.segment('two dough',0);
   assert.equal(t.qa.extracts.length,1,'matching must begin before Stop');
   assert.equal(t.qa.extracts[0].body.section,'food');
-  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,5);
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,6);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
   assert.equal(t.qa.recorder.options.pauseCuts,false,'?pausecuts=0 is the clock fallback');

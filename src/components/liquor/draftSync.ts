@@ -1,4 +1,5 @@
 import { DraftChangedError, type CountLineInput, type OpenCountLine } from "./api";
+import { foodQuantityKey } from "./food-quantity";
 
 /**
  * Keeps one count screen's saves from overwriting edits made elsewhere.
@@ -19,6 +20,7 @@ const qtyOf = (l: CountLineInput | OpenCountLine) => JSON.stringify([
   l.caseSizeAtEntry ?? null,
   l.enteredPacks == null ? null : Number(l.enteredPacks),
   l.packSizeAtEntry ?? null,
+  foodQuantityKey(l.foodQuantity),
 ]);
 
 export const sameDraftCell = (a: CountLineInput | undefined, b: CountLineInput | undefined): boolean =>
@@ -37,6 +39,7 @@ export function toInputLines(lines: OpenCountLine[]): CountLineInput[] {
     ...(l.rawUtterance ? { rawUtterance: l.rawUtterance } : {}),
     ...(l.enteredCases != null ? { enteredCases: Number(l.enteredCases), caseSizeAtEntry: l.caseSizeAtEntry } : {}),
     ...(l.enteredPacks != null ? { enteredPacks: Number(l.enteredPacks), packSizeAtEntry: l.packSizeAtEntry } : {}),
+    ...(l.foodQuantity ? { foodQuantity: l.foodQuantity } : {}),
   }));
 }
 
@@ -50,6 +53,7 @@ export function toOpenLines(lines: CountLineInput[]): OpenCountLine[] {
     caseSizeAtEntry: l.caseSizeAtEntry ?? null,
     enteredPacks: l.enteredPacks != null ? String(l.enteredPacks) : null,
     packSizeAtEntry: l.packSizeAtEntry ?? null,
+    ...(l.foodQuantity ? { foodQuantity: l.foodQuantity } : {}),
     source: l.source,
     rawUtterance: l.rawUtterance ?? null,
   }));
