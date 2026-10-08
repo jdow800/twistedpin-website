@@ -1,3 +1,30 @@
+## 2026-10-08 — Labor reviews retain owner-withdrawn questions without requesting answers
+
+The labor review consumes the backend's explicit owner-withdrawal disposition.
+Withdrawn questions show Jon's reason and withdrawal time, with the original
+question, whole-crew evidence, source references and genuine saved answer history
+still readable. They offer no answer, edit or undo controls and do not count as
+open questions. A checked review with zero active questions says “No questions to
+answer”; withdrawal does not imply a GM answer or approved staffing context.
+
+Live pending-review status takes precedence over the frozen issued packet. An
+explicit null remains unknown and does not restore stale frozen pending links;
+an empty live list clears those links. Older active unanswered questions remain
+counted. Withdrawn explanations are excluded from active recap feedback and its
+calls to action, while genuine historical answers remain on their question cards.
+The issued packet, response revisions and existing staff PIN authentication are
+preserved. A stale-page conflict says the question or answer changed, without
+claiming another answer was saved.
+
+Validation: 18 focused offline progress and actual server-rendered component
+checks pass, including mixed active/withdrawn questions, null history, retained
+evidence and answers, no withdrawn response controls and recap filtering. Targeted
+strict TypeScript, git diff checks, the full prebuild and telemetry-disabled Astro
+production build pass. Existing missing GoTab/Untappd configuration fallbacks are
+expected in this isolated build. Browser layout checks and deployment remain with
+the coordinated backend release; this UI work created no production answers or
+mail.
+
 ## 2026-10-07 — Invoice comparisons explain a complete scan source reread
 
 Jon authorized building the remaining invoice review gaps. Linked, excluded scans

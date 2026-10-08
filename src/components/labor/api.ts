@@ -93,6 +93,7 @@ export interface ForwardFeedback {targetWeek:string|null;status:"ready"|"held"|"
 export interface ReviewQuestion {
   id: string; date: string; title: string; prompt: string;
   kind: "coverage" | "data_check" | "follow_up"; evidence: string[]; sources: string[];
+  disposition?:{status:"withdrawn";source:"owner";withdrawnAt:string;reason:string};
   followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
   followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
@@ -102,8 +103,10 @@ export interface DailyLaborMetric {date:string;percent:number|null;salesCents:nu
 export interface LaborReview {
   id: string;
   packet: {version:1|2;mode?:"review"|"report";pendingReviews?:PendingReview[];forwardFeedback?:ForwardFeedback;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
-  pendingReviewsStatus?:PendingReview[];
+  pendingReviewsStatus?:PendingReview[]|null;
   forwardOutstandingCount?:number|null;
+  activeQuestionCount?:number;
+  withdrawnQuestionCount?:number;
   previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
   metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};

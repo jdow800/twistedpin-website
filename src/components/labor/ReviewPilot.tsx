@@ -5,7 +5,7 @@ import "./review-pilot.css";
 import ProposalCard from './ProposalCard';
 import NextSchedule from './NextSchedule';
 import WeeklyOverview from './WeeklyOverview';
-import {reviewProgress} from './review-progress';
+import {questionIsActive,questionNeedsResponse,reviewProgress} from './review-progress';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
@@ -67,9 +67,9 @@ export default function ReviewPilot() {
           <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
         </div>
       </details>
-      <div className="lr-section-heading"><h2>{review.questions.length ? "Please review & answer" : "No new questions this week"}</h2><span>{review.questions.length ? "Your answers stay with the review" : progress.comparisonPending||progress.awaiting===null?"Comparison pending":progress.awaiting>0?"Earlier questions remain open":"No response needed"}</span></div>
+      <div className="lr-section-heading"><h2>{progress.active ? "Please review & answer" : "No questions to answer"}</h2><span>{progress.active ? "Your answers stay with the review" : progress.comparisonPending||progress.awaiting===null?"Comparison pending":progress.awaiting>0?"Earlier questions remain open":progress.withdrawn?"Withdrawn questions are retained below":"No response needed"}</span></div>
       {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
-      {review.questions.map((q, index) => q.proposal?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(q=>!q.response).length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(q => !q.response).length } : x)); }} />)}
+      {review.questions.map((q, index) => q.proposal&&questionIsActive(q)?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(questionNeedsResponse).length } : x)); }} />)}
       {review.packet.version===2?<NextSchedule review={review}/>:null}
       <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
     </> : null}
@@ -86,13 +86,24 @@ export function Question({ number, question: q, review, onSaved }: { number: num
   const update = (patch: Partial<ReviewResponse>) => setForm(f => ({ ...f, ...patch }));
   useEffect(() => { if (editing && !confirm) noteRef.current?.focus({ preventScroll: true }); }, [editing, confirm]);
   const save = async (undo = false) => {
+    if(!questionIsActive(q))return;
     setBusy(true); setError("");
     try { onSaved(await saveReviewResponse(review.id, { questionId: q.id, expectedRevision: q.revision, ...(undo ? { undo: true } : { response: form }) })); }
-    catch (e) { setError(e instanceof LaborApiError && e.status === 409 ? "Another answer was saved while this page was open. Your text is still here. Copy it if needed, then reload to review the newer answer." : "Save didn’t complete. Your answer is still here; please retry."); }
+    catch (e) { setError(e instanceof LaborApiError && e.status === 409 ? "This question or answer changed while the page was open. Your text is still here. Reload to review its current status." : "Save didn’t complete. Your answer is still here; please retry."); }
     finally { setBusy(false); }
   };
   const followUp = <label>Check back on<input type="date" required value={form.followUpDate} onChange={e => update({ followUpDate: e.target.value })} /></label>;
   const nextStep = <label>Next step {form.decision === "adjust" ? "(required)" : "(optional)"}<textarea rows={2} maxLength={600} required={form.decision === "adjust"} value={form.action} placeholder="What would you like to try or check?" onChange={e => update({ action: e.target.value })} /></label>;
+  if(q.disposition?.status==="withdrawn")return <article className="lr-question" aria-labelledby={`q-${q.id}`}>
+    <div className="lr-question-header"><div className="lr-question-date"><span className="lr-question-number">{String(number).padStart(2,"0")}</span><time dateTime={q.date}>{date(q.date,{weekday:"long",month:"short",day:"numeric"})}</time></div><span className="lr-badge">Withdrawn by Jon</span></div>
+    <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2>
+      <div className="lr-notice"><strong>No response required.</strong><p>{q.disposition.reason}</p><p className="lr-small">Withdrawn {new Date(q.disposition.withdrawnAt).toLocaleString()}. The original question and saved history are retained.</p></div>
+      <details><summary>Original question</summary><p className="lr-prompt">{q.prompt}</p></details>
+      <details className="lr-evidence" open={Boolean(q.draftChange)}><summary>{q.draftChange?"Original AI draft and published whole crew":"Original evidence"}</summary><div className="lr-detail-body"><ul>{q.evidence.map(e=><li key={e}>{e}</li>)}</ul><details><summary>Source references</summary><p className="lr-sources">{q.sources.join("; ")}</p></details></div></details>
+      {q.response?<div className="lr-saved"><p className="lr-kicker">Saved answer before withdrawal</p><h3>{decisions.find(d=>d[0]===q.response!.decision)?.[1]}</h3><p>{q.response.note}</p>{q.response.action?<p><strong>Reported next step:</strong> {q.response.action}</p>:null}{q.response.outcome?<p><strong>Reported outcome:</strong> {q.response.outcome}</p>:null}</div>:null}
+    </div>
+    {q.history.length?<details className="lr-history-panel"><summary>Answer history ({q.history.length})</summary>{q.history.map(h=><div className="lr-history" key={h.revision}><p className="lr-small">Revision {h.revision} · {h.kind} · {new Date(h.createdAt).toLocaleString()}</p><p>{h.response?.note??"Answer reopened"}</p>{h.response?.outcome?<p>Outcome: {h.response.outcome}</p>:null}</div>)}</details>:null}
+  </article>;
   return <article className="lr-question" aria-labelledby={`q-${q.id}`}>
     <div className="lr-question-header"><div className="lr-question-date"><span className="lr-question-number">{String(number).padStart(2, "0")}</span><time dateTime={q.date}>{date(q.date, { weekday: "long", month: "short", day: "numeric" })}</time></div><span className={`lr-badge ${q.response ? "lr-badge-saved" : ""}`}>{q.response?.status === "closed" ? "Outcome recorded" : q.response ? "Context saved" : "Needs context"}</span></div>
     <div className="lr-question-content"><h2 id={`q-${q.id}`}>{q.title}</h2><p className="lr-prompt">{q.prompt}</p>
