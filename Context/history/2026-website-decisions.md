@@ -1,3 +1,7 @@
+## 2026-10-09 — An unread printed invoice total shows as "Printed total not read"
+
+Jon authorized shipping the reduced invoice plan. When the backend stores an unreadable printed total as unknown, the invoice screens say "Printed total not read" (the list row says "total not read") instead of $0.00, keep the totals-differ warning, and explain that a deposit credit cannot be recorded until the total is read. Display only. Rows already stored at $0.00, including Nik & Ivy 1540, stay as they are. Validation: strict typecheck, production build, invoice and source-check QA scenarios.
+
 ## 2026-10-09 — Invoice answers send what the card showed, and a stale answer keeps what you typed
 
 Jon authorized shipping the reduced invoice plan. Package, one-time price, match, new-item, delivery-count, carry-it-again and rule answers now send the state the card was showing (matched item, supplies flag, received quantity, saved rule). A typed delivery count, price or package answer pins that state when typing starts, so a re-read from another answer mid-edit cannot send it against someone else's newer answer. The server refuses an answer whose question changed; the screen says "This question changed while you were answering. Reload to see the latest." and keeps the typed number. The confirm button is hidden for an invoice with no lines, and a price answer that leaves a newer price alone says so.
