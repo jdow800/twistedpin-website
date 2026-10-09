@@ -4,11 +4,15 @@ import {
   getInvoiceDetail,
   getInvoiceCatalog,
   applyHeldCost,
+  answerBasis,
   expenseInvoiceLine,
   rememberInvoiceUnit,
   matchInvoiceLine,
+  matchCardState,
   newSkuFromLine,
-  setSkuDiscontinued,
+  carrySkuAgain,
+  isStaleAnswer,
+  STALE_ANSWER_MESSAGE,
   reextractInvoice,
   clearInvoiceFlag,
   setInvoiceLineReceived,
@@ -197,9 +201,12 @@ export default function Invoices({
     return fresh.copyReviews ?? [];
   }
 
-  /** Clear a resolved hold in place, so the control disappears on Apply. */
-  function handleCostApplied(lineId: string) {
-    setSavedAnswer(`Saved the answer for ${detail?.lines.find(line => line.id === lineId)?.matchedName || "this item"}.`);
+  /** Clear a resolved hold in place, so the control disappears on Apply.
+   *  priceKept: the answer is saved but the server left the item's current price
+   *  alone because a newer one is on file (BUILD-SPEC 11.94). Say so, so nobody
+   *  believes the price moved. */
+  function handleCostApplied(lineId: string, priceKept = false) {
+    setSavedAnswer(`Saved the answer for ${detail?.lines.find(line => line.id === lineId)?.matchedName || "this item"}.${priceKept ? " The current price was not changed: a newer price is on file." : ""}`);
     void refreshBuckets(detail?.invoice.id ?? null);
     setDetail((d) => {
       if (!d) return d;
@@ -276,7 +283,11 @@ export default function Invoices({
               ? "This is a duplicate of an invoice already on file — it has to stay out of the count."
               : r.error === "not_flagged"
                 ? "Already settled."
-                : "Could not confirm — try again.",
+                : r.error === "unknown"
+                  ? "Could not confirm — try again."
+                  // The screen hides this button while any of these is open, so
+                  // seeing one means the invoice changed under this tab.
+                  : "This invoice changed while you were answering. Reload to see the latest.",
         );
       }
     } catch {
@@ -757,13 +768,19 @@ function DiscontinuedControl({ invoiceId, line, onResolved }: { invoiceId: strin
   const gone = line.discontinued;
   if (!gone || !line.matchedSkuId) return null;
   const since = new Date(gone.since).toLocaleDateString("en-US", { timeZone: "America/Chicago", month: "short", day: "numeric" });
+  // A tap, not a draft: the state sent is the card as drawn right now, so there is
+  // nothing typed that a re-read could have moved out from under it.
   async function answer(kind: "carry" | "replace") {
     setBusy(kind); setError("");
     try {
-      if (kind === "carry") await setSkuDiscontinued(line.matchedSkuId!, false);
-      else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!);
+      if (kind === "carry") {
+        await carrySkuAgain(line.matchedSkuId!, { discontinuedAt: gone!.since, replacedBySkuId: gone!.replacedBySkuId, active: line.matchedActive });
+      } else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!, matchCardState(line));
       onResolved();
-    } catch { setError("Could not save. Reopen the invoice and try again."); setBusy(null); }
+    } catch (err) {
+      setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and try again.");
+      setBusy(null);
+    }
   }
   return <div className="lq-invd-hold lq-invd-discontinued">
     <p><strong>Discontinued {since}. Still buying this?</strong></p>
@@ -788,7 +805,7 @@ function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; li
   async function save() {
     setBusy(true); setError("");
     try { await expenseInvoiceLine(invoiceId, line.id); onResolved(); }
-    catch { setError("Could not save. Reopen the invoice and check this item."); setBusy(false); }
+    catch (err) { setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and check this item."); setBusy(false); }
   }
   return <div className="lq-invd-hold">
     <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>
@@ -798,23 +815,71 @@ function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; li
   </div>;
 }
 
+/**
+ * The state a typed answer was STARTED against.
+ *
+ * Answering any other line re-reads the whole invoice and hands every open box
+ * new props, while React keeps what was typed. If Save read the props at click
+ * time, a number typed against one card would go out claiming a newer one it
+ * never saw: the server would accept it and another person's answer would be
+ * lost. So the first edit pins the state the card showed, Save sends that, and
+ * the server answers 409 when it has moved (the box keeps the typed value and
+ * says so).
+ *
+ * The pin is held through every later edit. An emptied box is an edit, and so
+ * is a half-typed number such as "5e" (Chromium reports value "" with
+ * validity.badInput until it is a number again): neither means "start again",
+ * because the person has still not seen the newer card. Only reset() drops the
+ * pin: Cancel, a saved answer, or Start over, which shows the card as it is now.
+ * A box nobody has edited has no pin and keeps following the live state. A
+ * first bad keystroke in an empty number box never reaches onChange (the value
+ * stays ""), so those boxes also pin from onInput when validity.badInput is set.
+ */
+function useStartedFrom<T>(live: T) {
+  const [pinned, setPinned] = useState<{ state: T } | null>(null);
+  return {
+    state: pinned ? pinned.state : live,
+    /** A re-read has changed the card under an answer that is being typed. */
+    moved: pinned != null && !sameState(pinned.state, live),
+    /** Call from every onChange, whatever the text is. Only the first call pins. */
+    edited: () => setPinned(p => p ?? { state: live }),
+    reset: () => setPinned(null),
+  };
+}
+
+/** Field by field, null and undefined alike: a basis is a flat set of ids. */
+function sameState(a: unknown, b: unknown): boolean {
+  if (typeof a === "object" && a && typeof b === "object" && b) {
+    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
+    return [...new Set([...Object.keys(x), ...Object.keys(y)])].every(key => (x[key] ?? null) === (y[key] ?? null));
+  }
+  return (a ?? null) === (b ?? null);
+}
+
 function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: string; line: InvoiceLine; unit: string; onApplied: (id: string) => void }) {
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const startedFrom = useStartedFrom(answerBasis(line));
   const units = parsePackageAnswer(value, unit), valid = units != null;
   const cost = units != null ? Number(line.unitCost) / units : null;
+  // The only way back to the card as it is now (the box keeps its pin through blank edits).
+  const startOver = () => { setValue(""); setError(""); startedFrom.reset(); };
   async function save() {
     if (units == null || busy) return;
     setBusy(true); setError("");
-    try { await rememberInvoiceUnit(invoiceId, line, units); onApplied(line.id); }
-    catch { setError("Could not save this package answer. Reopen the invoice to check for changes."); setBusy(false); }
+    try { await rememberInvoiceUnit(invoiceId, startedFrom.state, units); onApplied(line.id); }
+    catch (err) {
+      // The typed number stays in the field; only the message changes.
+      setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save this package answer. Reopen the invoice to check for changes.");
+      setBusy(false);
+    }
   }
   return <form className="lq-invd-hold-edit" onSubmit={event => { event.preventDefault(); if (valid) void save(); }}>
     <label htmlFor={`package-answer-${line.id}`}>How many {pluralUnit(unit)} are in one case?</label>
     <p className="lq-muted">Inventory counts this item by {unit === "item" ? 'individual items ("each")' : pluralUnit(unit)}. Enter the number in a full billed case.</p>
     <input id={`package-answer-${line.id}`} aria-label="Count units per billed case" type="text" autoComplete="off"
-      placeholder={`Number, or “1 case = … ${pluralUnit(unit)}”`} value={value} onChange={e => setValue(e.target.value)}
+      placeholder={`Number, or “1 case = … ${pluralUnit(unit)}”`} value={value} onChange={e => { setValue(e.target.value); startedFrom.edited(); }}
       aria-describedby={`package-preview-${line.id}`} />
     <div id={`package-preview-${line.id}`} className="lq-invd-answer-preview" aria-live="polite">
       {cost != null ? <><strong>1 case = {units} {units === 1 ? unit : pluralUnit(unit)}</strong><span>${cost.toFixed(6).replace(/0+$/, "").replace(/\.$/, "")} per {unit}. We calculate this for you.</span></>
@@ -822,6 +887,7 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
         : <span>Enter your answer to see the conversion before saving.</span>}
     </div>
     <button type="submit" className="lq-btn" disabled={busy || !valid}>{busy ? "Saving…" : "Save package answer"}</button>
+    {startedFrom.moved && <p className="lq-muted">This item changed while you were typing. <button type="button" className="lq-linkbtn" disabled={busy} onClick={startOver}>Start over</button></p>}
     <p className="lq-muted">Remembered for this supplier and package. Your counting setup and delivered quantities stay the same.</p>
     <details className="lq-invd-source-note"><summary>What the invoice says</summary>
       <p>Package: {line.pack ?? "?"} × {line.sizeText || "size not read"}. Case price: {unitMoney(line.unitCost)}.</p>
@@ -840,11 +906,14 @@ function CostHoldControl({
   invoiceId: string;
   line: InvoiceLine;
   sku?: BarSkuItem;
-  onApplied: (lineId: string) => void;
+  onApplied: (lineId: string, priceKept?: boolean) => void;
 }) {
   const [val, setVal] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const startedFrom = useStartedFrom(answerBasis(line));
+  // The only way back to the card as it is now (the box keeps its pin through blank edits).
+  const startOver = () => { setVal(""); setErr(null); startedFrom.reset(); };
 
   const unit = countUnitLabel(line, sku);
   const n = Number(val);
@@ -865,12 +934,14 @@ function CostHoldControl({
     setBusy(true);
     setErr(null);
     try {
-      await applyHeldCost(invoiceId, line.id, line.matchedSkuId, n);
-      onApplied(line.id);
-    } catch {
+      const saved = await applyHeldCost(invoiceId, startedFrom.state, n);
+      // The hold is answered either way. "already_recorded" is the same figure
+      // already on file, which is not news; only a newer price is.
+      onApplied(line.id, saved.costWritten === false && saved.costNotWrittenBecause === "superseded_by_current");
+    } catch (error) {
       // The hold stays put on failure — the question is unanswered until the
-      // server says otherwise.
-      setErr("Didn't save — try again.");
+      // server says otherwise. The typed price stays in the field.
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Didn't save — try again.");
       setBusy(false);
     }
   }
@@ -894,7 +965,9 @@ function CostHoldControl({
           step="any"
           value={val}
           aria-label={`Price per ${unit}`}
-          onChange={(e) => setVal(e.target.value)}
+          onChange={(e) => { setVal(e.target.value); startedFrom.edited(); }}
+          // A first "e" or "-" leaves the value "" (no onChange) but the box is no longer untouched.
+          onInput={(e) => { if (e.currentTarget.validity.badInput) startedFrom.edited(); }}
           placeholder="0.000000"
         />
         <span className="lq-muted">per {unit}</span>
@@ -902,6 +975,12 @@ function CostHoldControl({
       <p className="lq-invd-hold-note lq-muted">
         Billed quantity stays unchanged.
       </p>
+      {startedFrom.moved && (
+        <p className="lq-invd-hold-note lq-muted">
+          This item changed while you were typing.{" "}
+          <button type="button" className="lq-linkbtn" disabled={busy} onClick={startOver}>Start over</button>
+        </p>
+      )}
       <div className="lq-invd-recvd-actions">
         <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>
           {busy ? "Saving…" : "Use this cost"}
@@ -943,19 +1022,29 @@ function ReceivedControl({
   // rather than making them find it. The alert told them to count; landing on a
   // collapsed link would ask them to go looking for where to put the answer.
   const [open, setOpen] = useState(() => Boolean(reviewAnnotationFor(line)) && recorded == null);
-  const [val, setVal] = useState(recorded == null ? "" : String(recorded));
+  // null = nothing typed: the box shows what is on file now, and keeps showing it
+  // if a re-read changes it. Once edited, even to blank or a half-typed number,
+  // the box is the person's and stays until Cancel, a save or Start over.
+  const [typedVal, setTypedVal] = useState<string | null>(null);
+  const val = typedVal ?? (recorded == null ? "" : String(recorded));
+  const startedFrom = useStartedFrom(recorded);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const discardDraft = () => { setTypedVal(null); startedFrom.reset(); };
 
   async function save(next: number | null) {
     setBusy(true);
     setErr(null);
     try {
-      await setInvoiceLineReceived(invoiceId, line.id, next);
+      // What the count was when typing began, not what a later re-read says: if
+      // someone else recorded a figure meanwhile, the server refuses (409).
+      await setInvoiceLineReceived(invoiceId, line.id, next, startedFrom.state);
       onChanged(line.id, next);
+      discardDraft();
       setOpen(false);
-    } catch {
-      setErr("Didn't save — try again.");
+    } catch (error) {
+      // The box stays open with the typed figure; the server kept the other person's number.
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Didn't save — try again.");
     } finally {
       setBusy(false);
     }
@@ -979,7 +1068,7 @@ function ReceivedControl({
         {credit != null && credit > 0 && <span className="lq-invd-recvd-credit">
           {money(credit.toFixed(2))} {line.shortageAmount == null ? "shortfall" : "excluded from product cost"}
         </span>}
-        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setVal(String(recorded)); setOpen(true); }}>
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { discardDraft(); setOpen(true); }}>
           change
         </button>
       </div>
@@ -1007,12 +1096,21 @@ function ReceivedControl({
           step="any"
           value={val}
           autoFocus
-          onChange={(e) => setVal(e.target.value)}
+          onChange={(e) => { setTypedVal(e.target.value); startedFrom.edited(); }}
+          // A first "e" or "-" leaves the value "" (no onChange) but the box is no longer untouched:
+          // it must keep what the person began, not follow the count on file.
+          onInput={(e) => { if (e.currentTarget.validity.badInput) { setTypedVal(typed => typed ?? ""); startedFrom.edited(); } }}
           placeholder={String(billed)}
         />
         <span className="lq-muted">of {invoiceQty(billed)} billed</span>
       </label>
       <p className="lq-muted">Saving a shortage updates stock and product cost. The original invoice stays on file.</p>
+      {startedFrom.moved && (
+        <p className="lq-muted">
+          This count changed while you were typing.{" "}
+          <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { discardDraft(); setErr(null); }}>Start over</button>
+        </p>
+      )}
       <div className="lq-invd-recvd-actions">
         <button
           type="button"
@@ -1027,7 +1125,7 @@ function ReceivedControl({
             clear
           </button>
         )}
-        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setOpen(false); setErr(null); }}>
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { discardDraft(); setOpen(false); setErr(null); }}>
           cancel
         </button>
       </div>
@@ -1090,6 +1188,10 @@ function MatchControl({
   }, [sameProduct, proposedSize]);
   const otherSizes = sameProduct.filter((s) => s.sizeMl != null && s.sizeMl !== proposedSize);
 
+  // Nothing here needs a started-from pin (useStartedFrom): this picker is only
+  // drawn while the line has no match and is not an expense (the "identity"
+  // reason), so anything another person does to the line withdraws it, typed
+  // search and all, and the card state sent below is always unmatched/not-expense.
   async function pick(skuId: string, name: string, confirmSize = false) {
     const chosen = catalog.find((s) => s.id === skuId);
     if (!confirmSize && invoiceSize != null && chosen?.sizeMl != null && chosen.sizeMl !== invoiceSize) {
@@ -1100,14 +1202,14 @@ function MatchControl({
     setBusy(true);
     setErr(null);
     try {
-      const r = await matchInvoiceLine(invoiceId, line.id, skuId);
+      const r = await matchInvoiceLine(invoiceId, line.id, skuId, matchCardState(line));
       onMatched(line.id, r.matchedName || name, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.matchedSkuId,
         matchedCountUnit: r.matchedCountUnit,
       });
-    } catch {
-      setErr("Couldn't save — try again.");
+    } catch (error) {
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Couldn't save — try again.");
       setBusy(false);
     }
   }
@@ -1123,7 +1225,7 @@ function MatchControl({
     try {
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket });
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, matchCardState(line));
       onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.skuId,
@@ -1133,8 +1235,8 @@ function MatchControl({
         // Guessing it would silently redefine the money being authorised.
         matchedCountUnit: r.countUnit,
       });
-    } catch {
-      setErr("Couldn't create — try again.");
+    } catch (error) {
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Couldn't create — try again.");
       setBusy(false);
     }
   }

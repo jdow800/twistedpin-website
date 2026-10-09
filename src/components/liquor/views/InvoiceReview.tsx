@@ -105,7 +105,7 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           </button>
         )}
       </div>
-      {inv.status === "flagged" && !inv.duplicateOf && !productReview && !held.length && !marked.length && !canExplainDeposit && (
+      {inv.status === "flagged" && !inv.duplicateOf && detail.lines.length > 0 && !productReview && !held.length && !marked.length && !canExplainDeposit && (
         <div className="lq-invd-review-confirm">
           <p>Once you have checked the issues above against the original invoice, confirm to finish the review.</p>
           <button type="button" className="lq-btn" disabled={clearing} onClick={onConfirm}>
