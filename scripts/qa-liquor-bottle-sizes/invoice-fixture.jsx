@@ -42,13 +42,13 @@ if (['failed-empty','retry-protected','failed-no-image'].includes(mode)) {
   detail.lines=[]; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
   if (mode === 'failed-no-image') detail.images=[];
 }
-if(['amount','expense','remember-unit','remember-failure','remember-error','stale-remember','stale-apply'].includes(mode)) {
+if(['amount','expense','remember-unit','remember-failure','remember-error','stale-remember','stale-apply','superseded-apply','recorded-apply'].includes(mode)) {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
     reviewReasons:['identity'],qtyUnits:'1',qtyCases:'1',pack:2,sizeText:'5LB',unitCost:'50',extendedAmount:'50'});
   if(mode==='amount') Object.assign(line,{matchedSkuId:'demo',matchedName:'Known item',reviewReasons:['amount'],extendedAmount:'54.38'});
-  if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode==='stale-apply') Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
-    reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:mode!=='stale-apply',packageKey:'2|5LB|'});
+  if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode.endsWith('-apply')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
+    reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:!mode.endsWith('-apply'),packageKey:'2|5LB|'});
 }
 if(mode==='deposit-info'||mode==='mixed-deposit') {
   invoice.reviewNotes=[];
@@ -136,7 +136,9 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/expense')) {line.nonInventory=true;line.needsReview=false;line.reviewReasons=[];return json({resolved:true});}
   if(path.endsWith('/apply-cost')) {
     if(mode==='stale-apply')return json({error:'no_hold'},409);
-    line.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:JSON.parse(options.body).costPerCountUnit,costWritten:true,costNotWrittenBecause:null});
+    // The dated writer (11.94) answers the hold but may leave the current price alone.
+    const kept=mode==='superseded-apply'?'superseded_by_current':mode==='recorded-apply'?'already_recorded':null;
+    line.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:JSON.parse(options.body).costPerCountUnit,costWritten:!kept,costNotWrittenBecause:kept});
   }
   if(path.endsWith('/remember-unit')) {
     if(mode==='remember-failure')return json({error:'unit_changed'},409);

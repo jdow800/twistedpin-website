@@ -7,6 +7,7 @@ import {
   expenseInvoiceLine,
   rememberInvoiceUnit,
   matchInvoiceLine,
+  matchCardState,
   newSkuFromLine,
   carrySkuAgain,
   isStaleAnswer,
@@ -199,9 +200,12 @@ export default function Invoices({
     return fresh.copyReviews ?? [];
   }
 
-  /** Clear a resolved hold in place, so the control disappears on Apply. */
-  function handleCostApplied(lineId: string) {
-    setSavedAnswer(`Saved the answer for ${detail?.lines.find(line => line.id === lineId)?.matchedName || "this item"}.`);
+  /** Clear a resolved hold in place, so the control disappears on Apply.
+   *  priceKept: the answer is saved but the server left the item's current price
+   *  alone because a newer one is on file (BUILD-SPEC 11.94). Say so, so nobody
+   *  believes the price moved. */
+  function handleCostApplied(lineId: string, priceKept = false) {
+    setSavedAnswer(`Saved the answer for ${detail?.lines.find(line => line.id === lineId)?.matchedName || "this item"}.${priceKept ? " The current price was not changed: a newer price is on file." : ""}`);
     void refreshBuckets(detail?.invoice.id ?? null);
     setDetail((d) => {
       if (!d) return d;
@@ -768,7 +772,7 @@ function DiscontinuedControl({ invoiceId, line, onResolved }: { invoiceId: strin
     try {
       if (kind === "carry") {
         await carrySkuAgain(line.matchedSkuId!, { discontinuedAt: gone!.since, replacedBySkuId: gone!.replacedBySkuId, active: line.matchedActive });
-      } else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!, line.matchedSkuId);
+      } else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!, matchCardState(line));
       onResolved();
     } catch (err) {
       setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and try again.");
@@ -854,7 +858,7 @@ function CostHoldControl({
   invoiceId: string;
   line: InvoiceLine;
   sku?: BarSkuItem;
-  onApplied: (lineId: string) => void;
+  onApplied: (lineId: string, priceKept?: boolean) => void;
 }) {
   const [val, setVal] = useState("");
   const [busy, setBusy] = useState(false);
@@ -879,8 +883,10 @@ function CostHoldControl({
     setBusy(true);
     setErr(null);
     try {
-      await applyHeldCost(invoiceId, line, n);
-      onApplied(line.id);
+      const saved = await applyHeldCost(invoiceId, line, n);
+      // The hold is answered either way. "already_recorded" is the same figure
+      // already on file, which is not news; only a newer price is.
+      onApplied(line.id, saved.costWritten === false && saved.costNotWrittenBecause === "superseded_by_current");
     } catch (error) {
       // The hold stays put on failure — the question is unanswered until the
       // server says otherwise. The typed price stays in the field.
@@ -1115,7 +1121,7 @@ function MatchControl({
     setBusy(true);
     setErr(null);
     try {
-      const r = await matchInvoiceLine(invoiceId, line.id, skuId, line.matchedSkuId);
+      const r = await matchInvoiceLine(invoiceId, line.id, skuId, matchCardState(line));
       onMatched(line.id, r.matchedName || name, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.matchedSkuId,
@@ -1138,7 +1144,7 @@ function MatchControl({
     try {
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, line.matchedSkuId);
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, matchCardState(line));
       onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.skuId,

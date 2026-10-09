@@ -1328,16 +1328,22 @@ export async function getInvoiceHistory(): Promise<InvoiceSummary[]> {
 export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
   return invoiceRead<InvoiceDetail>(`/admin/bar/invoices/${id}`, "The invoice took too long to load.");
 }
+/** What a match card was drawn against: the item the line is matched to right
+ *  now (null when unmatched) and whether it was marked as a supply expense. An
+ *  expensed line has no match either, so the pair is what tells them apart. A
+ *  re-match retires the supplier's saved case size, so the server refuses
+ *  (409 match_changed) when someone else has changed the line since. */
+export interface MatchCardState { matchedSkuId: string | null; nonInventory: boolean }
+export function matchCardState(line: Pick<InvoiceLine, "matchedSkuId" | "nonInventory">): MatchCardState {
+  return { matchedSkuId: line.matchedSkuId ?? null, nonInventory: line.nonInventory === true };
+}
 /** Confirm a needs-review invoice line → a SKU. Learns the vendor alias + refreshes
  *  the SKU cost server-side; returns whether the whole invoice is now confirmed. */
 export async function matchInvoiceLine(
   invoiceId: string,
   lineId: string,
   skuId: string,
-  /** The item the line is matched to right now, or null when it is unmatched. A
-   *  re-match retires the supplier's saved case size, so the server refuses
-   *  (409 match_changed) when someone else has changed the line since. */
-  expectedMatchedSkuId: string | null,
+  shown: MatchCardState,
 ): Promise<{
   matchedName: string;
   aliasLearned: boolean;
@@ -1348,7 +1354,7 @@ export async function matchInvoiceLine(
   matchedSkuId: string | null;
   matchedCountUnit: string | null;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory }));
 }
 
 /** Answer the unit question a held cost is asking: what does ONE count unit
@@ -1466,8 +1472,8 @@ export async function newSkuFromLine(
   name: string,
   sizeMl: number | null,
   settings: { section: Section; countUnit: string; cogsBucket: CogsBucket } | undefined,
-  /** The item the line is matched to right now, or null when unmatched (see matchInvoiceLine). */
-  expectedMatchedSkuId: string | null,
+  /** What the card was drawn against (see matchInvoiceLine). */
+  shown: MatchCardState,
 ): Promise<{
   skuId: string;
   matchedName: string;
@@ -1482,7 +1488,7 @@ export async function newSkuFromLine(
    *  it names the denominator of the dollar figure a human then authorises. */
   countUnit: string;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings, expectedMatchedSkuId }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */

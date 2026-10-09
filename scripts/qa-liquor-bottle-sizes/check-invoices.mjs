@@ -31,7 +31,7 @@ for(const answer of ['carry','replace']) await run(`a discontinued item bought a
   } else {
     await click("That's Beef Patty, 3.5oz");
     await until(()=>log().includes('/match'));
-    assert.match(log(),/\/lines\/test-keg\/match \{"skuId":"patty35","expectedMatchedSkuId":"patty2"\}/);
+    assert.match(log(),/\/lines\/test-keg\/match \{"skuId":"patty35","expectedMatchedSkuId":"patty2","expectedNonInventory":false\}/);
   }
   await until(()=>!doc.querySelector('.lq-invd-discontinued'));
 });
@@ -194,6 +194,13 @@ await run('a stale one-time price says so, keeps the typed price and sends its b
   assert.ok(doc.body.textContent.includes(STALE));
   assert.equal(doc.querySelector('input[type=number][aria-label^="Price per"]').value,'3.25');
 });
+// 11.94: an older invoice answers the hold but leaves the current price alone. Say so, once, and only then.
+for(const [mode,says] of [['superseded-apply',true],['recorded-apply',false]]) await run(`an answered one-time price ${says?'says the current price was not changed when a newer one is on file':'stays quiet when the same price was already on file'}`,mode,async({doc,click,dom})=>{
+  await enter(dom,doc.querySelector('input[type=number][aria-label^="Price per"]'),'3.25');await click('Use this cost');
+  await until(()=>doc.getElementById('invoice-progress').textContent.includes('Saved the answer for Example food.'));
+  assert.equal(doc.getElementById('invoice-progress').textContent.includes('The current price was not changed: a newer price is on file.'),says);
+  assert.ok(!doc.querySelector('input[type=number][aria-label^="Price per"]'),'the answered hold is gone');
+});
 await run('a stale delivery count says so and keeps the typed quantity','stale-received',async({doc,click,dom})=>{
   const input=doc.querySelector('.lq-invd-recvd input');
   await enter(dom,input,'0');await click('Save');
@@ -243,6 +250,8 @@ await run('new food item requires inventory and unit choices and posts the selec
   await select(dom,doc.querySelector('[aria-label="Cost category for new item"]'),'food');
   assert.ok(!button('Create + match').disabled);await click('Create + match');
   assert.match(log(),/"section":"food"/);assert.match(log(),/"countUnit":"pack"/);
+  // The card says what it was drawn against: unmatched, and not an expense.
+  assert.match(log(),/"expectedMatchedSkuId":null,"expectedNonInventory":false/);
   assert.match(doc.body.textContent,/Check the inventory price/);
 });
 await run('linked scan shows the comparison and disables edits on the excluded copy','linked',async({doc,button,click,log})=>{
