@@ -1,3 +1,9 @@
+## 2026-10-09 — Invoice answers send what the card showed, and a stale answer keeps what you typed
+
+Jon authorized shipping the reduced invoice plan. Package, one-time price, match, new-item, delivery-count, carry-it-again and rule answers now send the state the card was showing (matched item, supplies flag, received quantity, saved rule). The server refuses an answer whose question changed; the screen says "This question changed while you were answering. Reload to see the latest." and keeps the typed number. The confirm button is hidden for an invoice with no lines, and a price answer that leaves a newer price alone says so.
+
+Deploy order matters: this Website change first, then the matching backend change (the new server rejects an old page). Validation: strict typecheck of the COGS screens, production build, invoice QA scenarios and layout checks at 320, 390 and 960 px. Two QA failures already on main (the stale-comparison wording assertion and the count-screen timeout) were left alone.
+
 ## 2026-10-09 — Teacher Group packet and reservation status are separate
 
 Jon authorized the first-use review fixes. The successful upload screen names
