@@ -1357,6 +1357,16 @@ export async function matchInvoiceLine(
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory }));
 }
 
+/** The part of a line a price or package answer is checked against: the item,
+ *  its count unit, the printed package and the supplier rule on file. A typed
+ *  answer sends the basis it was STARTED against (Invoices.tsx useStartedFrom),
+ *  not whatever a later re-read put on the line. */
+export type AnswerBasis = Pick<InvoiceLine, "id" | "matchedSkuId" | "matchedCountUnit" | "packageKey" | "countRuleFingerprint">;
+export function answerBasis(line: InvoiceLine): AnswerBasis {
+  return { id: line.id, matchedSkuId: line.matchedSkuId, matchedCountUnit: line.matchedCountUnit,
+    packageKey: line.packageKey, countRuleFingerprint: line.countRuleFingerprint };
+}
+
 /** Answer the unit question a held cost is asking: what does ONE count unit
  *  cost? (BUILD-SPEC 11.7c)
  *
@@ -1369,7 +1379,7 @@ export async function matchInvoiceLine(
  *  Resolves COST only — quantity is untouched. */
 export async function applyHeldCost(
   invoiceId: string,
-  line: InvoiceLine,
+  line: AnswerBasis,
   costPerCountUnit: number,
 ): Promise<{ skuId: string; costPerCountUnit: number; costWritten: boolean; costNotWrittenBecause: string | null }> {
   // The price was typed against ONE count unit and the printed package shown on
@@ -1383,7 +1393,7 @@ export async function applyHeldCost(
 export async function expenseInvoiceLine(invoiceId: string, lineId: string): Promise<{ resolved: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/expense`, jsonBody({}));
 }
-export async function rememberInvoiceUnit(invoiceId: string, line: InvoiceLine, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
+export async function rememberInvoiceUnit(invoiceId: string, line: AnswerBasis, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${line.id}/remember-unit`, jsonBody({
     expectedSkuId: line.matchedSkuId, expectedCountUnit: line.matchedCountUnit,
     expectedPackageKey: line.packageKey, expectedRuleFingerprint: line.countRuleFingerprint, unitsPerBilledUnit,
@@ -1400,9 +1410,9 @@ export async function setInvoiceLineReceived(
   invoiceId: string,
   lineId: string,
   receivedQty: number | null,
-  /** What the line showed when the box was opened: null = nothing recorded. The
-   *  server refuses (409 received_changed) if someone recorded a different
-   *  figure since. */
+  /** What the line showed when the person STARTED typing: null = nothing
+   *  recorded. The server refuses (409 received_changed) if someone recorded a
+   *  different figure since, including one that arrived in a re-read mid-edit. */
   expectedReceivedQty: number | null,
 ): Promise<{ receivedQty: number | null; billedQty: number | null; shortBy: number | null; creditDue: number | null }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/received`, jsonBody({ receivedQty, expectedReceivedQty }));

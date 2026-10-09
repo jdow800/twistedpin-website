@@ -50,6 +50,25 @@ if(['amount','expense','remember-unit','remember-failure','remember-error','stal
   if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode.endsWith('-apply')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
     reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:!mode.endsWith('-apply'),packageKey:'2|5LB|'});
 }
+// Refresh-while-editing (independent review 2026-10-09). One invoice, five lines: a delivery box (no question,
+// so it stays put), a one-time price hold, a package hold, an unmatched line with no Expense button, and an
+// Expense line whose answer re-reads the whole invoice. window.__qaOther changes a line the way another person
+// would; the next re-read hands this tab the new state.
+if(mode==='refresh-edit') {
+  invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  const matched={...line,lineType:'product',vendorCode:'DEMO-ITEM',needsReview:false,reviewReasons:[],qtyUnits:'1',qtyCases:'1',pack:2,
+    sizeText:'5LB',unitCost:'50',extendedAmount:'50',matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',
+    packageKey:'2|5LB|',countRuleFingerprint:'rule-1',canRememberUnit:false};
+  detail.lines=[
+    {...matched,id:'price-line',rawDescription:'Example price item',costHoldReason:'possible unit mismatch'},
+    {...matched,id:'pack-line',rawDescription:'Example package item',costHoldReason:'possible unit mismatch',canRememberUnit:true},
+    {...matched,id:'match-line',rawDescription:'TITOS VODKA',vendorCode:null,matchedSkuId:null,matchedName:null,matchedCountUnit:null,
+      packageKey:null,needsReview:true,reviewReasons:['identity']},
+    {...matched,id:'expense-line',rawDescription:'Example supplies',vendorCode:'DEMO-SUPPLY',matchedSkuId:null,matchedName:null,
+      matchedCountUnit:null,packageKey:null,needsReview:true,reviewReasons:['identity']},
+    {...matched,id:'recv-line',rawDescription:'Example delivery item'},
+  ];
+}
 if(mode==='deposit-info'||mode==='mixed-deposit') {
   invoice.reviewNotes=[];
   if(mode==='deposit-info') invoice.status='extracted';
@@ -124,6 +143,11 @@ const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:
 // 2026-10-06: the list request sat 300 s at the proxy. stall-list* never answers the first list read;
 // catalog-fail fails the first item-list read (both sections) and recovers on Try again.
 let historyCalls=0, catalogCalls=0;
+// The line a request names, and the other-person hook for refresh-edit.
+const lineFor=path=>detail.lines.find(l=>path.includes('/'+l.id+'/'))||line;
+window.__qaOther=(id,patch)=>Object.assign(detail.lines.find(l=>l.id===id),patch);
+window.__qaLine=id=>detail.lines.find(l=>l.id===id);
+const sameQty=(a,b)=>(a==null?null:Number(a))===(b==null?null:Number(b));
 window.fetch=async(url,options={})=>{
   const path=new URL(url,location.href).pathname;
   audit.push(`${options.method||'GET'} ${path} ${options.body||''}`);
@@ -133,18 +157,27 @@ window.fetch=async(url,options={})=>{
     const section=new URL(url,location.href).searchParams.get('section')||'bar';
     return json({items:catalog.filter(item=>item.section===section)});
   }
-  if(path.endsWith('/expense')) {line.nonInventory=true;line.needsReview=false;line.reviewReasons=[];return json({resolved:true});}
+  if(path.endsWith('/expense')) {const target=lineFor(path);target.nonInventory=true;target.needsReview=false;target.reviewReasons=[];return json({resolved:true});}
+  // The three stale checks below mirror the server's (tprs bar.ts apply-cost / received, bar-invoice-answers.ts
+  // remember-unit): the answer is refused when the line is no longer what the card was drawn against.
   if(path.endsWith('/apply-cost')) {
     if(mode==='stale-apply')return json({error:'no_hold'},409);
+    const target=lineFor(path),body=JSON.parse(options.body);
+    if(body.expectedSkuId!==target.matchedSkuId)return json({error:'sku_changed'},409);
+    if(!target.costHoldReason)return json({error:'no_hold'},409);
+    if(body.expectedCountUnit!==target.matchedCountUnit||body.expectedPackageKey!==(target.packageKey??null))return json({error:'unit_changed'},409);
     // The dated writer (11.94) answers the hold but may leave the current price alone.
     const kept=mode==='superseded-apply'?'superseded_by_current':mode==='recorded-apply'?'already_recorded':null;
-    line.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:JSON.parse(options.body).costPerCountUnit,costWritten:!kept,costNotWrittenBecause:kept});
+    target.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:body.costPerCountUnit,costWritten:!kept,costNotWrittenBecause:kept});
   }
   if(path.endsWith('/remember-unit')) {
     if(mode==='remember-failure')return json({error:'unit_changed'},409);
     if(mode==='remember-error')return json({error:'unavailable'},500);
     if(mode==='stale-remember')return json({error:'rule_changed'},409);
-    const target=detail.lines.find(l=>path.includes('/'+l.id+'/')) || line;
+    const target=lineFor(path),body=JSON.parse(options.body);
+    if(body.expectedSkuId!==target.matchedSkuId||!target.costHoldReason)return json({error:'line_changed'},409);
+    if(body.expectedCountUnit!==target.matchedCountUnit||body.expectedPackageKey!==(target.packageKey??null))return json({error:'unit_changed'},409);
+    if(body.expectedRuleFingerprint!==(target.countRuleFingerprint??null))return json({error:'rule_changed'},409);
     target.costHoldReason=null;return json({resolved:true});
   }
   if(path.endsWith('/copy-review')) {
@@ -198,11 +231,12 @@ window.fetch=async(url,options={})=>{
   }
   if(path.endsWith('/reextract')){if(mode==='retry-protected')return json({error:'saved_invoice_protected'},409);invoice.status='pending';return json({status:'pending'});}
   if(path.endsWith('/received')){
-    if(mode==='stale-received')return json({error:'received_changed'},409);
-    const qty=JSON.parse(options.body).receivedQty;
-    line.receivedQty=qty==null?null:String(qty);
+    const target=lineFor(path),body=JSON.parse(options.body);
+    if(mode==='stale-received'||!sameQty(body.expectedReceivedQty,target.receivedQty))return json({error:'received_changed'},409);
+    const qty=body.receivedQty;
+    target.receivedQty=qty==null?null:String(qty);
     // Fixed responses for the zero-delivered / clear regression, not a cost engine.
-    line.receivedAmount=qty===0?'0.00':'140.00';line.shortageAmount=qty===0?'140.00':'0.00';
+    target.receivedAmount=qty===0?'0.00':'140.00';target.shortageAmount=qty===0?'140.00':'0.00';
     detail.buckets.shortageDollars=qty===0?140:0;
     detail.buckets.byBucket.beer_draft.estimated=qty===0?0:140;
     detail.buckets.residualDollars=qty===0?0:140;

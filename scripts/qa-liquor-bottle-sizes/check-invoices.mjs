@@ -226,6 +226,97 @@ await run('a refused confirmation names a changed invoice, not a retry','clear-r
   assert.match(doc.querySelector('[role=alert]').textContent,/This invoice changed while you were answering\. Reload to see the latest\./);
   assert.ok(doc.querySelector('.lq-invd-review'));
 });
+// Refresh while editing (independent review 2026-10-09). Answering another line re-reads the whole invoice and
+// hands every open box new props. A typed answer must go out against the state it was STARTED from, never the
+// refreshed one, or the server accepts it and loses the other person's answer. window.__qaOther changes a line
+// the way another person would; the fixture server refuses (409) any answer whose expected state no longer holds.
+const reads=log=>log().split('\n').filter(x=>/^GET \S*\/invoices\/test-invoice\s*$/.test(x)).length;
+async function reread({click,log}) { // the Expense answer on another line refreshes the whole invoice
+  const before=reads(log);await click('Expense as supplies (not counted)');
+  await until(()=>reads(log)>before);await pause();await pause();
+}
+const inCard=(doc,id,text)=>[...doc.getElementById('inv-line-'+id).querySelectorAll('button')].find(b=>b.textContent.trim()===text);
+await run('a delivery count typed before a refresh is sent against the count it started from, so the other person\'s count survives','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  await enter(dom,input(),'0');
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>/Recorded delivery/.test(card().textContent));
+  assert.equal(input().value,'0','the typed count stays in the box');
+  inCard(doc,'recv-line','Save').click();
+  await until(()=>log().includes('/lines/recv-line/received'));await pause();
+  assert.match(log(),/\/lines\/recv-line\/received \{"receivedQty":0,"expectedReceivedQty":null\}/);
+  assert.ok(card().querySelector('.lq-invd-recvd-err').textContent.includes(STALE));
+  assert.equal(input().value,'0');
+  assert.equal(dom.window.__qaLine('recv-line').receivedQty,'2','the other person\'s count is still on file');
+});
+await run('an untouched delivery box follows a refresh and then sends the count it showed','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  assert.equal(input().value,'');
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>/Recorded delivery/.test(card().textContent));
+  assert.equal(input().value,'2','nothing was typed, so the box shows what is on file now');
+  await enter(dom,input(),'1');inCard(doc,'recv-line','Save').click();
+  await until(()=>dom.window.__qaLine('recv-line').receivedQty==='1');
+  assert.match(log(),/\/lines\/recv-line\/received \{"receivedQty":1,"expectedReceivedQty":2\}/);
+});
+await run('a one-time price typed before a refresh is sent for the item and unit it started from','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-price-line'),price=()=>card().querySelector('input[type=number][aria-label^="Price per"]');
+  await enter(dom,price(),'3.25');
+  dom.window.__qaOther('price-line',{matchedSkuId:'other',matchedName:'Other item',matchedCountUnit:'case'});
+  await reread({click,log});
+  await until(()=>price().getAttribute('aria-label')==='Price per case');
+  assert.equal(price().value,'3.25','the typed price stays in the box');
+  inCard(doc,'price-line','Use this cost').click();
+  await until(()=>log().includes('/lines/price-line/apply-cost'));await pause();
+  assert.match(log(),/\/lines\/price-line\/apply-cost \{"expectedSkuId":"demo","expectedCountUnit":"pack","expectedPackageKey":"2\|5LB\|","costPerCountUnit":3\.25\}/);
+  assert.ok(card().textContent.includes(STALE));
+  assert.equal(price().value,'3.25');
+  assert.ok(dom.window.__qaLine('price-line').costHoldReason,'no cost was written for the item it no longer shows');
+});
+await run('a package answer typed before a refresh is sent against the supplier rule it started from','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-pack-line'),input=()=>card().querySelector('[aria-label="Count units per billed case"]');
+  await enter(dom,input(),'2');
+  dom.window.__qaOther('pack-line',{countRuleFingerprint:'rule-2'}); // another invoice replaced the supplier's rule
+  await reread({click,log});
+  card().querySelector('button[type=submit]').click();
+  await until(()=>log().includes('/lines/pack-line/remember-unit'));await pause();
+  assert.match(log(),/\/lines\/pack-line\/remember-unit \{[^}]*"expectedRuleFingerprint":"rule-1"[^}]*"unitsPerBilledUnit":2\}/);
+  assert.ok(card().textContent.includes(STALE));
+  assert.equal(input().value,'2');
+  assert.ok(dom.window.__qaLine('pack-line').costHoldReason,'the older answer did not replace the newer rule');
+});
+await run('an untouched package box follows a refresh and then sends the rule it showed','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-pack-line'),input=()=>card().querySelector('[aria-label="Count units per billed case"]');
+  dom.window.__qaOther('pack-line',{countRuleFingerprint:'rule-2'});
+  await reread({click,log});
+  await enter(dom,input(),'2');card().querySelector('button[type=submit]').click();
+  await until(()=>!dom.window.__qaLine('pack-line').costHoldReason);
+  assert.match(log(),/\/lines\/pack-line\/remember-unit \{[^}]*"expectedRuleFingerprint":"rule-2"/);
+});
+await run('clearing a stale package answer and typing it again starts from what the box shows now','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-pack-line'),input=()=>card().querySelector('[aria-label="Count units per billed case"]');
+  await enter(dom,input(),'2');
+  dom.window.__qaOther('pack-line',{countRuleFingerprint:'rule-2'});
+  await reread({click,log});
+  card().querySelector('button[type=submit]').click();
+  await until(()=>card().textContent.includes(STALE));
+  await enter(dom,input(),'');await enter(dom,input(),'2');card().querySelector('button[type=submit]').click();
+  await until(()=>!dom.window.__qaLine('pack-line').costHoldReason);
+  const sent=log().split('\n').filter(x=>x.includes('/lines/pack-line/remember-unit'));
+  assert.equal(sent.length,2);assert.match(sent[0],/"expectedRuleFingerprint":"rule-1"/);assert.match(sent[1],/"expectedRuleFingerprint":"rule-2"/);
+});
+await run('a match search is withdrawn when someone else matches the line, so a stale match cannot be sent','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-match-line');
+  await enter(dom,card().querySelector('input[placeholder="Search items"]'),'tito');
+  dom.window.__qaOther('match-line',{matchedSkuId:'titos',matchedName:"Tito's Vodka",matchedCountUnit:'bottle',needsReview:false,reviewReasons:[]});
+  await reread({click,log});
+  await until(()=>!card().querySelector('input[placeholder="Search items"]'));
+  assert.ok(!card().querySelector('.lq-match'));assert.ok(!log().includes('/lines/match-line/match'));
+});
 console.log(`${passed} invoice UI scenarios passed (DOM simulation; no visual layout claim).`);
 
 async function enter(dom,input,value) {
