@@ -12,6 +12,12 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
   if (!detail.explanationToken || inv.duplicateOf || inv.status === "pending") return null;
   const hasDeposit = detail.lines.some(line => line.lineType === "deposit");
   if (!saved && !hasDeposit) return null;
+  // No original bill to subtract a credit from (BUILD-SPEC 11.95), so the server
+  // refuses. Say why up front instead of offering a form that cannot save.
+  if (!saved && inv.printedTotal == null) return <section className="lq-invd-review" id="invoice-explanation" aria-label="Invoice explanation">
+    <h3>Deposit returns</h3>
+    <p>The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice.</p>
+  </section>;
   const showForm = editing || (!saved && inv.status === "flagged" && (inv.reviewNotes ?? inv.handwrittenNotes ?? []).some(note => /\bempt(?:y|ies)\b/i.test(note)));
   async function save() {
     setBusy(true); setError(null); setStale(false);
@@ -25,6 +31,8 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
         setStale(true); setError("This invoice changed while you were answering. Refresh it before saving your explanation.");
       } else if (body.error === "deposit_credit_already_present") {
         setError("A deposit credit is already on this invoice. Check that line before adding another return.");
+      } else if (body.error === "printed_total_not_read") {
+        setError("The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice.");
       } else if (body.error === "check_invoice_amounts") {
         setError("The saved lines do not add up to the invoice total yet. Check those amounts before applying a deposit return.");
       } else setError(body.question ?? "Could not save this answer. Reopen the invoice and try again.");

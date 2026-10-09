@@ -306,6 +306,9 @@ export default function Invoices({
       inv.printedTotal != null && inv.extractedTotal != null && Number.isFinite(p) && Number.isFinite(e)
         ? Math.abs(p - e)
         : 0;
+    // The printed total was never read. That is not $0.00 and not a difference of
+    // 0: say so, and keep the totals-differ note's style (BUILD-SPEC 11.125).
+    const printedUnread = inv.status !== "pending" && inv.printedTotal == null;
     const canAnswer = !inv.duplicateOf && inv.status !== "pending";
     const questions = canAnswer ? detail.lines.filter(lineNeedsAnswer) : [];
     const remainingLines = detail.lines.filter(line => !questions.includes(line));
@@ -431,9 +434,15 @@ export default function Invoices({
         {reextractMsg && <p className="lq-muted" role="status">{reextractMsg}</p>}
         {costRefreshMsg && <p className="lq-error" role="alert">{costRefreshMsg}</p>}
         <div className="lq-invd-totals">
-          <div><span className="lq-muted">{detail.depositResolution ? "Amount due" : "Printed total"}</span><strong>{money(inv.printedTotal)}</strong></div>
+          <div><span className="lq-muted">{detail.depositResolution ? "Amount due" : "Printed total"}</span><strong>{printedUnread ? "Not read" : money(inv.printedTotal)}</strong></div>
           <div><span className="lq-muted">{retainedScanReading ? "First saved scan total" : "Total read from lines"}</span><strong>{money(inv.extractedTotal)}</strong></div>
         </div>
+
+        {printedUnread && (
+          <p className="lq-muted lq-invd-note">
+            Printed total not read.{inv.extractedTotal != null ? ` The saved lines add up to ${money(inv.extractedTotal)}.` : ""} Check the original invoice before relying on this total.
+          </p>
+        )}
 
         {totalsDelta >= 0.01 && (
           <p className="lq-muted lq-invd-note">
@@ -540,7 +549,7 @@ export default function Invoices({
             </div>
             <div className="lq-invrow-sub lq-muted">
               {inv.invoiceNumber ? `#${inv.invoiceNumber} · ` : ""}
-              {inv.invoiceDate || shortDate(inv.createdAt)} · {money(inv.printedTotal)}
+              {inv.invoiceDate || shortDate(inv.createdAt)} · {inv.status !== "pending" && inv.printedTotal == null ? "total not read" : money(inv.printedTotal)}
             </div>
           </button>
         ))
