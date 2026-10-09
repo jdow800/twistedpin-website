@@ -42,65 +42,9 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   const phrases = phrasesOf(text);
   const last = phrases.at(-1);
   if (!last) return { head: text.trim(), tail: "" };
-  // A pure count can lead the following name ("One bottle, Don Julio"),
-  // or finish the preceding name ("Tito's, two"). Allocate those phrases
-  // in order before extending the tail. A leading count also completes a
-  // comma-separated name, so its next count starts a new item rather than
-  // being mistaken for another suffix of the already counted product.
-  const leadingCounts = new Map<number, number>();
-  let named = false;
-  let counted = false;
-  let leading = false;
-  let leadingStart = 0;
-  let nameStart = 0;
-  let ambiguousStart: number | null = null;
-  for (let i = 0; i < phrases.length; i++) {
-    const phrase = phrases[i]!.text;
-    if (isQuantity(phrase)) {
-      if (named && !counted) {
-        // The suffix finishes this name. A following name starts a new
-        // item; it must not inherit the completed product's counted state.
-        named = false;
-        counted = false;
-        leading = false;
-        ambiguousStart = null;
-      }
-      else {
-        if (!leading) leadingStart = i;
-        leadingCounts.set(i, ambiguousStart ?? i);
-        leading = true;
-        named = false;
-      }
-    } else {
-      // A leading whole number may be a brand or size ("Four Roses",
-      // "1800 Reposado", "one liter Tito's"). If the next count could
-      // finish that name, retain the entire ambiguous span rather than
-      // sending its name alone and moving its number to the next bottle.
-      const firstWord = phrase.split(/[\s-]+/)[0]!;
-      const inlinePrefix = NUMBER_WORDS.has(firstWord.toLowerCase()) || /^\d*\.?\d+$/.test(firstWord);
-      const separator = i > 0 ? text.slice(phrases[i - 1]!.start, phrases[i]!.start).trim().at(-1) : "";
-      const sameName = named && separator === ",";
-      if (!sameName) nameStart = i;
-      const carriedCount: boolean = sameName && counted;
-      if (!leading && !carriedCount) ambiguousStart = null;
-      const words = phrase.toLowerCase().split(/[\s-]+/);
-      const nameAt = words.findIndex(word => !isQuantity(word));
-      const prefix = words.slice(0, nameAt < 0 ? words.length : nameAt).join(" ");
-      const measuredSize = /^(?:ml|l|lt|ltr|liters?|litres?|oz|ounces?|g|grams?|cl|centiliters?)$/.test(words[nameAt] ?? "");
-      const decimalPrefix = !measuredSize && /\bpoint\b|\d\.\d/.test(prefix);
-      if (leading && /^(?:ml|l|lt|ltr|liters?|litres?|oz|ounces?|g|grams?|cl|centiliters?)$/i.test(firstWord)) {
-        ambiguousStart = Math.min(ambiguousStart ?? leadingStart, leadingStart);
-      }
-      if (inlinePrefix && !decimalPrefix) ambiguousStart = Math.min(ambiguousStart ?? nameStart, nameStart);
-      counted = leading || carriedCount || inlinePrefix;
-      named = true;
-      leading = false;
-    }
-  }
   let from: number | null = null;
   if (!isQuantity(last.text)) from = last.start;
   else if (/^(point|and|a)$/i.test(last.text.split(/\s+/).at(-1)!)) from = phrases.at(-2)?.start ?? last.start;
-  else if (leadingCounts.has(phrases.length - 1)) from = phrases[leadingCounts.get(phrases.length - 1)!]!.start;
   if (from == null) return { head: text.trim(), tail: "" };
   // ASR can punctuate inside a multiword bottle name: "Indigo, gin," or
   // "Casamigos, repo, point". Every adjacent uncounted name phrase belongs
@@ -108,7 +52,6 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   // before its actual quantity arrives. A prior quantity finishes its item.
   let at = phrases.findIndex((phrase) => phrase.start === from);
   while (at > 0 && !isQuantity(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
-  while (at > 0 && leadingCounts.has(at - 1)) at = leadingCounts.get(at - 1)!;
   from = phrases[at]!.start;
   const tail = text.slice(from).trim();
   if (tail.split(/\s+/).length > MAX_HELD_WORDS) return { head: text.trim(), tail: "" };
