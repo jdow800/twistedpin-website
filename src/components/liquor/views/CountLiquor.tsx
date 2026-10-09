@@ -30,7 +30,7 @@ import {
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry } from "../voiceCarry";
-import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, type HighCheck, type NameCheck } from "../voiceReview";
+import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
@@ -89,6 +89,10 @@ type ReviewItem = {
   /** The server's specific source question, e.g. a duplicate of a source
    *  another row already counted. See quantityBlocked. */
   quantityReviewReason?: VoiceExtractItem["quantityReviewReason"];
+  /** A held number that may be the bottle's size or another row's source
+   *  (voiceReview.ts possibleBareSize, repeatedSources). Set from the
+   *  original response, so picking a bottle does not clear it. */
+  keepBlank?: boolean;
   qty: number;
   cases: number;
   units: number;
@@ -117,11 +121,12 @@ type ReviewItem = {
 
 /** Jon, 2026-10-09: "Number in box, counts ready." A model number the server
  *  could not re-prove from the transcript stays in the Qty box with an amber
- *  edge and is added like any other row. Only a reused source (a reason) and a
- *  held zero stay blank until a number is typed. Every other question (bottle,
- *  case size, name number, history, recount) still asks. */
+ *  edge and is added like any other row. A reused source (a reason or
+ *  keepBlank), a possible bottle size (keepBlank) and a held zero stay blank
+ *  until a number is typed. Every other question (bottle, case size, name
+ *  number, history, recount) still asks. */
 const quantityBlocked = (r: ReviewItem) =>
-  !!r.quantityNeedsReview && (!!r.quantityReviewReason || (r.cases === 0 && r.units === 0));
+  !!r.quantityNeedsReview && (!!r.quantityReviewReason || !!r.keepBlank || (r.cases === 0 && r.units === 0));
 
 /** A stock_count item is counted in WHOLE UNITS, so it reads "each" even when a
  *  size is on file. Sizes were added to the cans/bottles in 2026-09-04 so the
@@ -761,12 +766,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
   function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
-    const rows: ReviewItem[] = mergeAdjacentRepeats(items).map((it, i) => ({
+    const merged = mergeAdjacentRepeats(items);
+    const repeated = repeatedSources(merged);
+    const rows: ReviewItem[] = merged.map((it, i) => ({
       key: `v${i}`,
       spoken: it.spoken,
       quantityWords: it.quantityWords,
       quantityNeedsReview: it.quantityNeedsReview,
       quantityReviewReason: it.quantityReviewReason,
+      keepBlank: repeated[i] || (!!it.quantityNeedsReview &&
+        possibleBareSize(it.quantityWords, it.match ? [it.match, ...it.candidates] : it.candidates, catalog)),
       explicitZero: it.qty === 0 && it.quantityNeedsReview === false && !!it.quantityWords,
       // Don't default a case-bearing row to 1 — its qty legitimately
       // carries only the loose part until the case size is answered.

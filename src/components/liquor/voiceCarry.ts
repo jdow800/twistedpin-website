@@ -36,6 +36,34 @@ function phrasesOf(text: string): { start: number; text: string }[] {
   return phrases;
 }
 
+/** A phrase that opens with its own count: "Point seven Casamigos Blanco",
+ *  "Two bottles of Barsol". A bare whole number may be the name or a size
+ *  ("Four Roses", "1800 Reposado", "One liter Tito's"), so it is not. */
+function opensWithCount(phrase: string): boolean {
+  const words = phrase.toLowerCase().split(/[\s-]+/).filter(Boolean);
+  const at = words.findIndex((w) => !QUANTITY_WORDS.has(w) && !/^\d*\.?\d+$/.test(w));
+  return at > 0 && words.slice(0, at).some((w) => /^(?:point|bottles?|cases?|cs|cans?)$/.test(w) || /\./.test(w));
+}
+
+/**
+ * Count-first speech: "One case, Morgan. Two bottles, Don Julio Anejo." A pure
+ * count at phrase i leads the NEXT name only when it starts a sentence and the
+ * item before it already has its count (a finished "Name, two.", a phrase that
+ * opened with its count, or a name led by "One case,"). After "Name, number"
+ * the number finishes that name; 341efa1 broke that and was reverted (10/9).
+ */
+function leadsNextName(text: string, phrases: { start: number; text: string }[], i: number): boolean {
+  const mark = (k: number) => (k > 0 ? text[phrases[k]!.start - 1] : ".");
+  if (!isQuantity(phrases[i]!.text) || !/[.!?]/.test(mark(i))) return false;
+  if (i === 0) return true;
+  const before = phrases[i - 1]!.text;
+  if (isQuantity(before) || opensWithCount(before)) return true;
+  if (hasNumber(before)) return false;
+  let k = i - 1;
+  while (k > 0 && mark(k) === "," && !isQuantity(phrases[k - 1]!.text) && !hasNumber(phrases[k - 1]!.text)) k--;
+  return k > 0 && mark(k) === "," && isQuantity(phrases[k - 1]!.text) && /[.!?]/.test(mark(k - 1));
+}
+
 /** Split a piece into what can be matched now (head) and an unfinished last
  *  phrase that should lead the next piece (tail). */
 export function splitUnfinished(text: string): { head: string; tail: string } {
@@ -45,6 +73,9 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   let from: number | null = null;
   if (!isQuantity(last.text)) from = last.start;
   else if (/^(point|and|a)$/i.test(last.text.split(/\s+/).at(-1)!)) from = phrases.at(-2)?.start ?? last.start;
+  // "Captain Morgan, two. Two bottles," then "Don Julio Anejo.": the count
+  // waits for its name. Its own item is already counted, so nothing extends.
+  else if (/,\s*$/.test(text) && leadsNextName(text, phrases, phrases.length - 1)) return cut(text, last.start);
   if (from == null) return { head: text.trim(), tail: "" };
   // ASR can punctuate inside a multiword bottle name: "Indigo, gin," or
   // "Casamigos, repo, point". Every adjacent uncounted name phrase belongs
@@ -52,7 +83,12 @@ export function splitUnfinished(text: string): { head: string; tail: string } {
   // before its actual quantity arrives. A prior quantity finishes its item.
   let at = phrases.findIndex((phrase) => phrase.start === from);
   while (at > 0 && !isQuantity(phrases[at - 1]!.text) && !hasNumber(phrases[at - 1]!.text)) at--;
-  from = phrases[at]!.start;
+  // "One bottle, Don Julio Anejo." The leading count stays with its name.
+  if (at > 0 && !isQuantity(phrases[at]!.text) && text[phrases[at]!.start - 1] === "," && leadsNextName(text, phrases, at - 1)) at--;
+  return cut(text, phrases[at]!.start);
+}
+
+function cut(text: string, from: number): { head: string; tail: string } {
   const tail = text.slice(from).trim();
   if (tail.split(/\s+/).length > MAX_HELD_WORDS) return { head: text.trim(), tail: "" };
   return { head: text.slice(0, from).trim(), tail };

@@ -94,3 +94,38 @@ export function historyCheck(rowQty: number, otherQty: number, history: CountHis
   if (record <= 0 || total <= 3 * record || total - record < Math.max(6, unitsPerCase ?? 6)) return null;
   return { total, maxCount: history.maxCount, maxDelivery: history.maxDelivery, days: history.days };
 }
+
+type Sized = { name: string; sizeMl?: number | null };
+const brandOf = (name: string) => name.toLowerCase().replace(/['’]/g, "").match(/[a-z]+/)?.[0];
+
+/**
+ * The API holds a lone number that may be the bottle's size, not a count
+ * ("Ketel One 0.75", "Tanqueray 750", "Elijah Craig 1.75") and asks for both
+ * (tprs liquor-voice-quantity possibleBareSize). Its DTO sends no reason, so
+ * the review mirrors the rule: one numeric word equal to a size of this brand
+ * (the row's bottles, or a catalog bottle sharing their first word), in ml or
+ * as liters with a decimal point. Such a number is never prefilled.
+ */
+export function possibleBareSize(quantityWords: string | undefined, bottles: Sized[], catalog: Sized[] = []): boolean {
+  const words = (quantityWords ?? "").toLowerCase().match(/-?(?:\d+(?:\.\d+)?|\.\d+)|[a-z]+|\p{N}|[/\-+$£€%]/gu) ?? [];
+  const word = words.length === 1 ? words[0]! : "";
+  if (!/^\d+(?:\.\d+)?$/.test(word)) return false;
+  const n = Number(word);
+  const brands = new Set(bottles.map((b) => brandOf(b.name)));
+  return [...bottles, ...catalog.filter((s) => brands.has(brandOf(s.name)))].some(({ sizeMl: ml }) =>
+    ml != null && (ml === n || (word.includes(".") && ml === Math.round(n * 1000))));
+}
+
+/**
+ * A held row whose excerpt is part of another row of the same bottle in this
+ * take ("Captain Morgan" beside "Captain Morgan, one case and two bottles"),
+ * or repeats an earlier row word for word, may be the same spoken source.
+ * The API marks that source_already_used only when the other row was proved
+ * and came first. Prefilling it could count the bottle twice.
+ */
+export function repeatedSources(items: VoiceExtractItem[]): boolean[] {
+  const words = (s: string) => ` ${s.toLowerCase().replace(/['’]/g, "").match(/[a-z0-9]+(?:\.\d+)?/g)?.join(" ") ?? ""} `;
+  return items.map((it, i) => it.quantityNeedsReview === true && !it.quantityReviewReason && !!it.match &&
+    items.some((other, j) => j !== i && other.match?.id === it.match!.id && words(other.spoken).includes(words(it.spoken)) &&
+      (j < i || words(other.spoken) !== words(it.spoken))));
+}

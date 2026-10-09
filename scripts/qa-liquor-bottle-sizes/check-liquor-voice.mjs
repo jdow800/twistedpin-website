@@ -672,6 +672,68 @@ await run('a non-adjacent source-already-used duplicate stays blank and blocked'
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='jameson'&&l.zoneId==='well').qtyUnits),1);
   assert.ok(t.button('Add 0 to Well').disabled);
 });
+// The API holds a lone number that may be the bottle size and asks for both
+// (tprs possibleBareSize), with no reason in the DTO. Picking the 750 must not
+// turn its 0.75 (or 750) into a ready count of 0.75 (or 750) bottles.
+const ketel = [{id:'ketel',name:'Ketel One',sizeMl:1000,unitsPerCase:null},{id:'ketel750',name:'Ketel One 750ml',sizeMl:750,unitsPerCase:null}];
+const sizeHeld = (words, units, extra) => ({spoken:`Ketel One ${words}`,cases:0,units,qty:units,unitsPerCase:null,needsCaseSize:false,
+  suspectPreMultiplied:false,quantityWords:words,quantityNeedsReview:true,match:null,candidates:ketel,...extra});
+for (const [words,units] of [['0.75',0.75],['750',750]]) await run(`a held ${words} that may be the bottle size stays blank after the size pick`,async t=>{
+  await t.shelf('Well');await t.hear([sizeHeld(words,units)]);
+  const box=()=>t.doc.querySelector('.lq-rev input[type=number]');
+  assert.equal(box().value,'','RED on c4e99c9: the size was prefilled');
+  assert.ok(!box().classList.contains('lq-qty-unproved'));
+  assert.match(t.doc.querySelector('.lq-rev').textContent,/Which one\?/);
+  await t.click(/^Ketel One 750ml/);
+  assert.equal(box().value,'','the size pick does not make the number a count');
+  assert.ok(t.doc.querySelector('.lq-rev').classList.contains('lq-rev-quantity'));
+  assert.match(t.doc.querySelector('.lq-sheet-head').textContent,/0 ready · 1 need a tap/);
+  assert.ok(t.button('Add 0 to Well').disabled);
+  await t.input('.lq-rev input[type=number]','1');
+  await t.click('Add 1 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='ketel750'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='ketel750'&&l.zoneId==='well').qtyUnits),1);
+},'bare-size');
+await run('a matched 1.75 L bottle held at 1.75 stays blank; ordinary held decimals keep their amber number',async t=>{
+  await t.shelf('Well');
+  await t.hear([
+    {...item('elijah',1.75),spoken:'Elijah Craig 1.75',quantityWords:'1.75',quantityNeedsReview:true,match:{id:'elijah',name:'Elijah Craig Small Batch',sizeMl:1750,unitsPerCase:12}},
+    {...item('titos',0.75),spoken:"Tito's 0.75",quantityWords:'0.75',quantityNeedsReview:true,match:{id:'titos',name:"Tito's Handmade Vodka",sizeMl:1000,unitsPerCase:12}},
+    sizeHeld('point seven five',0.75,{match:ketel[1],candidates:[]}),
+  ]);
+  const boxes=[...t.doc.querySelectorAll('.lq-rev input[type=number]')];
+  assert.deepEqual(boxes.map(b=>b.value),['','0.75','0.75']);
+  assert.deepEqual(boxes.map(b=>b.classList.contains('lq-qty-unproved')),[false,true,true]);
+  assert.match(t.doc.querySelector('.lq-sheet-head').textContent,/2 ready · 1 need a tap/);
+},'bare-size');
+
+// The API marks source_already_used only after a proved row claimed the
+// source. A shortened copy BEFORE its full row, or a second held copy, came
+// back with no reason; prefilled, Add saved Captain Morgan 26 instead of 14.
+await run('a held copy of another row of the same bottle stays blank, whatever the order',async t=>{
+  await t.shelf('Well');
+  await t.hear([
+    {...item('titos',0),spoken:'Titos',quantityWords:'one case',cases:1,qty:12,quantityNeedsReview:true},
+    {...item('jameson',3),spoken:'Jameson, three',quantityNeedsReview:false},
+    {...item('titos',2),spoken:'Titos, one case and two bottles',quantityWords:'one case and two bottles',cases:1,qty:14,quantityNeedsReview:false},
+  ]);
+  const rows=[...t.doc.querySelectorAll('.lq-rev')];
+  assert.equal(rows[0].querySelector('input[type=number]').value,'','RED on c4e99c9: 12 amber and ready');
+  assert.ok(rows[0].classList.contains('lq-rev-quantity'));
+  assert.match(t.doc.querySelector('.lq-sheet-head').textContent,/2 ready · 1 need a tap/);
+  await t.click('Add 2 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='titos'&&l.zoneId==='well').qtyUnits),14,'the full row is counted once');
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='jameson'&&l.zoneId==='well').qtyUnits),3);
+});
+await run('two held copies of one spoken count: the first keeps its amber number, the repeat stays blank',async t=>{
+  await t.shelf('Well');
+  const held={...item('titos',0.3),spoken:"Tito's, about point three",quantityWords:'point three',quantityNeedsReview:true};
+  await t.hear([held,{...item('jameson',0.8),spoken:'Jameson, point eight',quantityNeedsReview:false},held]);
+  const boxes=[...t.doc.querySelectorAll('.lq-rev input[type=number]')];
+  assert.deepEqual(boxes.map(b=>b.value),['0.3','0.8',''],'RED on c4e99c9: 0.3 twice, saved 0.6');
+  assert.ok(boxes[0].classList.contains('lq-qty-unproved'));
+  await t.click('Add 2 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='well'));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='titos'&&l.zoneId==='well').qtyUnits),0.3);
+});
 await run('a held zero stays blank and needs a typed number',async t=>{
   await t.shelf('Well');await t.hear([{...item('titos',0),spoken:'Titos',quantityNeedsReview:true}]);
   const row=t.doc.querySelector('.lq-rev');

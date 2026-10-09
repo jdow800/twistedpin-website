@@ -11,6 +11,8 @@ const withHistory = new URL(location.href).searchParams.has('history');
 const withIndigo = new URL(location.href).searchParams.has('indigo');
 // ?take269: the other bottles of Jon's 2026-10-09 take 269e7c90.
 const withTake269 = new URL(location.href).searchParams.has('take269');
+// ?bare-size: one brand in two sizes, and a 1.75 L bottle, for a number that may be the size.
+const withBareSize = new URL(location.href).searchParams.has('bare-size');
 const catalog = [
   {id:'titos', name:"Tito's Handmade Vodka", sizeMl:1000},
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
@@ -25,6 +27,11 @@ const catalog = [
     {id:'orange',name:'Jameson Orange',sizeMl:1000},
     {id:'djanejo',name:'Don Julio Anejo',sizeMl:750},
     {id:'djrepo',name:'Don Julio Reposado',sizeMl:750},
+  ] : []),
+  ...(withBareSize ? [
+    {id:'ketel',name:'Ketel One',sizeMl:1000},
+    {id:'ketel750',name:'Ketel One 750ml',sizeMl:750},
+    {id:'elijah',name:'Elijah Craig Small Batch',sizeMl:1750},
   ] : []),
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
   unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[],

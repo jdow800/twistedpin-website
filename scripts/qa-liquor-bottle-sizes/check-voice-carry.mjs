@@ -179,6 +179,36 @@ check('carry: name-first takes keep every name with its number', () => {
   }
 });
 
+// Count-first (10/9 b29e5983): the revert alone sent "... One bottle," and
+// "Don Julio Anejo." apart, so a name-only request proved an implicit one.
+// Right only because the count was one; "Two bottles" saved 1.
+check('carry: a count-first count stays with its name; a name-first number stays with its name', () => {
+  const take = "One point eight Tito's to Captain Morgan. One case, Morgan.";
+  for (const tail of ['One bottle, Don Julio Anejo.', 'Two bottles, Don Julio Anejo.', 'Two bottles,']) {
+    assert.deepEqual(m.splitUnfinished(`${take} ${tail}`), {head:take,tail});
+  }
+  // dc90a192: "Contreau, point one. One bottle, Tanqueray," was Tanqueray's one.
+  assert.deepEqual(m.splitUnfinished('Contreau, point one. One bottle, Tanqueray,'),
+    {head:'Contreau, point one.',tail:'One bottle, Tanqueray,'});
+  assert.deepEqual(m.splitUnfinished('Point seven Casamigos Blanco. Two bottles, Casamigos Reposado.'),
+    {head:'Point seven Casamigos Blanco.',tail:'Two bottles, Casamigos Reposado.'});
+  const sent=[];const carry=m.createCarry(text=>sent.push(text));
+  carry.add('Don Julio Anejo.',1);carry.add('Captain Morgan, two. Two bottles,',0);
+  assert.equal(carry.flush(99),false);
+  assert.deepEqual(sent,['Captain Morgan, two.','Two bottles, Don Julio Anejo.']);
+  // After "Name, number" or an uncounted name, the number finishes that name.
+  for (const [text, head, tail] of [
+    ['Jefferson, point six five. Elijah Craig,', 'Jefferson, point six five.', 'Elijah Craig,'],
+    ["Seagram, seven, point eight. Jack Daniel's,", 'Seagram, seven, point eight.', "Jack Daniel's,"],
+    ['Jameson. Point six five, Elijah Craig,', 'Jameson. Point six five,', 'Elijah Craig,'],
+    ["Maschino Prosecco. Seventeen bottles, Owen's Ginger Beer.", 'Maschino Prosecco. Seventeen bottles,', "Owen's Ginger Beer."],
+    ["Four Roses. Two bottles, Don Julio.", 'Four Roses. Two bottles,', 'Don Julio.'],
+    ["Tito's. Two bottles,", "Tito's. Two bottles,", ''],
+    ["Tito's, two, Jameson, three,", "Tito's, two, Jameson, three,", ''],
+    ['Captain Morgan, two. Point nine.', 'Captain Morgan, two. Point nine.', ''],
+  ]) assert.deepEqual(m.splitUnfinished(text), {head,tail}, text);
+});
+
 check('food carry: a quantity sentence stays with the following product name', () => {
   assert.deepEqual(m.splitFoodTail('Two cases. Pizza sauce.'), {head:'',tail:'Two cases. Pizza sauce.'});
   assert.deepEqual(m.splitFoodTail('Oreos, one case. Zero point seven. Spanish rice.'),
@@ -315,6 +345,25 @@ check('repeats: back to back is a correction; a case then loose adds; later repe
   assert.deepEqual([added[0].cases, added[0].units, added[0].qty], [1, 2, 14]);
   const apart = [row('a', 1, 'a'), row('b', 1, 'b'), row('a', 2, 'a')];
   assert.equal(m.mergeAdjacentRepeats(apart).length, 3);
+});
+
+check('bare size: a lone number equal to a size of the brand may be the size', () => {
+  const ketel = [{name:'Ketel One',sizeMl:1000},{name:'Ketel One 750ml',sizeMl:750}];
+  for (const words of ['0.75', '750', '750.', ' 0.75 ']) assert.ok(m.possibleBareSize(words, ketel), words);
+  assert.ok(m.possibleBareSize('1.75', [{name:'Crown Royal',sizeMl:1000}], [{name:'Crown Royal Regal Apple',sizeMl:1750}]), 'same brand in the catalog');
+  for (const words of ['point seven five', '0.75 bottles', '.75', '1', '2', '', undefined]) assert.equal(m.possibleBareSize(words, ketel), false, String(words));
+  assert.equal(m.possibleBareSize('0.75', [{name:"Tito's Handmade Vodka",sizeMl:1000}], [{name:'Ketel One 750ml',sizeMl:750}]), false, 'another brand');
+});
+
+check('repeated sources: a held copy of another row of the same bottle is flagged once', () => {
+  const row = (id, spoken, held, reason) => ({spoken, cases:0, units:1, qty:1, unitsPerCase:12, needsCaseSize:false, suspectPreMultiplied:false,
+    quantityNeedsReview:held, ...(reason ? {quantityReviewReason:reason} : {}), match:{id, name:id, sizeMl:750, unitsPerCase:12}, candidates:[]});
+  assert.deepEqual(m.repeatedSources([row('cm','Captain Morgan',true), row('t',"Tito's, three",false), row('cm','Captain Morgan, one case and two bottles',false)]), [true,false,false]);
+  assert.deepEqual(m.repeatedSources([row('cm','Captain Morgan',true), row('cm','Captain Morgan. One case, Morgan.',false)]), [true,false], 'punctuation is not a word');
+  assert.deepEqual(m.repeatedSources([row('t',"Tito's 0.75",true), row('t',"Tito's 0.7",false)]), [false,false], 'a decimal stays one word');
+  assert.deepEqual(m.repeatedSources([row('t',"Tito's, about point three",true), row('j','Jameson',false), row('t',"Tito's, about point three",true)]), [false,false,true]);
+  assert.deepEqual(m.repeatedSources([row('t',"Tito's, two",true), row('t',"Tito's, three",false), row('j',"Tito's",true)]), [false,false,false], 'other numbers and other bottles are not copies');
+  assert.deepEqual(m.repeatedSources([row('t',"Tito's",true,'source_already_used'), row('t',"Tito's, two",false)]), [false,false], 'the API reason already blocks it');
 });
 
 check('history: far above the 90-day record asks; ordinary counts and new bottles do not', () => {
