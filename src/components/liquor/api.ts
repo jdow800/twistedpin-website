@@ -2322,7 +2322,13 @@ export interface TeacherGroupUpload {
   /** Choices the sheet left out (wing size, sauce), for staff to ask at the lane. */
   confirms?: string[];
   /** What staff added on top of their doc; `applied` is what was done (null = nothing yet). */
-  instructions?: { n: number; text: string; applied: string | null }[];
+  instructions?: { n: number; text: string; applied: string | null; needsPerson?: boolean }[];
+  /** Exact issued-packet summary. Missing on older uploads/backends. */
+  packetReview?: {
+    foodDecisionCount: number;
+    managerLines: string[];
+    reservationStatus: "checked" | "needs_review" | "not_checked";
+  } | null;
   laneOutcomes: TeacherGroupLaneOutcome[];
   pdfReady: boolean;
 }

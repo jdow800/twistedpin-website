@@ -1,3 +1,17 @@
+## 2026-10-09 — Teacher Group packet and reservation status are separate
+
+Jon authorized the first-use review fixes. The successful upload screen names
+the created packet, outstanding food decisions and reservation outcome
+separately. Sending the email is not an all-clear for food or lane coverage.
+The existing upload, optional runner tickets and reupload-with-instructions
+workflow remain in place; broader navigation and correction flows are deferred.
+
+Validation: targeted strict TypeScript and the full Astro prebuild/production
+build pass. Ten mocked Chromium checks cover current and legacy packet state,
+carried instructions, escaped text, and phone/desktop layouts. No production
+upload or email is created by this validation. Backend and website release
+verification is recorded in the coordinated shipping report.
+
 ## 2026-10-08 — Labor reviews retain owner-withdrawn questions without requesting answers
 
 The labor review consumes the backend's explicit owner-withdrawal disposition.

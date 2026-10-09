@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { teacherGroupReview } from "../teacher-group-review";
 import {
   BarApiError,
   MAX_TEACHER_GROUP_FILES,
@@ -33,7 +34,7 @@ const POLL_MS = 3000;
 const STATUS_LABEL: Record<TeacherGroupStatus, string> = {
   pending: "Waiting",
   processing: "Reading…",
-  done: "Emailed",
+  done: "Packet created",
   failed: "Failed",
 };
 const LANE_LABEL: Record<TeacherGroupLaneOutcome["status"], string> = {
@@ -360,6 +361,7 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
   const files = [...new Set(u.lines.map((l) => l.file))];
   const missed = u.lines.filter(unplaced).length;
   const lanesMoved = u.laneOutcomes.some((o) => o.status === "applied");
+  const review = teacherGroupReview(u);
 
   return (
     <div className="lq-invd lq-tg">
@@ -396,15 +398,18 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
       )}
 
       {u.status === "done" && (
-        <p className="lq-muted">
-          Emailed to {u.emailTo.join(", ")}, with a copy to Jon.
-          {u.runnerTickets ? " Runner tickets included." : ""}
-        </p>
+        <section className={`lq-tg-box${review.needsReview ? " lq-tg-box-warn" : ""}`} aria-label="Packet review status">
+          <p><strong>PDF:</strong> {u.pdfReady ? "Created" : "Not available"}{u.runnerTickets ? ". Runner tickets included." : "."}</p>
+          <p><strong>Food decisions:</strong> {review.food}.</p>
+          <p><strong>Lane reservations:</strong> {review.reservations}.</p>
+          {review.managerLines.length > 0 && <ul className="lq-tg-list lq-tg-bullets">{review.managerLines.map((line) => <li key={line}>{line}</li>)}</ul>}
+          <p className="lq-muted">Email queued to {u.emailTo.join(", ")}, with a copy to Jon.</p>
+        </section>
       )}
 
       {u.laneOutcomes.length > 0 && (
         <section className="lq-tg-section">
-          <h3 className="lq-tg-h3">Lanes in TPRS</h3>
+          <h3 className="lq-tg-h3">Lane reservation results</h3>
           <ul className="lq-tg-list">
             {u.laneOutcomes.map((o) => (
               <li key={o.key} className="lq-tg-lane">
