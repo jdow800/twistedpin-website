@@ -26,6 +26,9 @@ import {
   confirmedIn,
   totalIn,
   type CogsBucket,
+  BarApiError,
+  ForbiddenError,
+  NotAuthedError,
 } from "../api";
 import { countUnitLabel, pluralUnit, parsePackageAnswer, lineNeedsAnswer, invoiceNeedsAttention, detailNeedsAttention } from "../invoice-review-ui";
 import { matchSkus } from "../matcher";
@@ -865,6 +868,19 @@ function sameState(a: unknown, b: unknown): boolean {
   return (a ?? null) === (b ?? null);
 }
 
+/** One plain line for why a package answer did not save. The typed number stays in the box. */
+function savePackageFailure(err: unknown): string {
+  if (err instanceof NotAuthedError) return "You are signed out. Sign in again; your number is still here.";
+  if (err instanceof ForbiddenError) return "This login cannot save package answers. Your number is still here.";
+  if (err instanceof BarApiError) {
+    if (err.status === 0 || err.status === 408) return "No connection. Your number is still here; try Save again.";
+    if (isStaleAnswer(err)) return STALE_ANSWER_MESSAGE;
+    if (err.status === 409) return "This question changed. Reopen the invoice to see the latest, then save again.";
+    return "The server refused this answer. Check the number and try again.";
+  }
+  return "Could not save. Your number is still here; try Save again.";
+}
+
 function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: string; line: InvoiceLine; unit: string; onApplied: (id: string) => void }) {
   const [value, setValue] = useState("");
   const [busy, setBusy] = useState(false);
@@ -878,11 +894,7 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
     if (units == null || busy) return;
     setBusy(true); setError("");
     try { await rememberInvoiceUnit(invoiceId, startedFrom.state, units); onApplied(line.id); }
-    catch (err) {
-      // The typed number stays in the field; only the message changes.
-      setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save this package answer. Reopen the invoice to check for changes.");
-      setBusy(false);
-    }
+    catch (err) { setError(savePackageFailure(err)); setBusy(false); }
   }
   return <form className="lq-invd-hold-edit" onSubmit={event => { event.preventDefault(); if (valid) void save(); }}>
     <label htmlFor={`package-answer-${line.id}`}>How many {pluralUnit(unit)} are in one case?</label>
@@ -899,9 +911,9 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
         : value.trim() ? <span>Use one whole number, or “1 case =” followed by a number and {pluralUnit(unit)}. Use the inventory unit shown above.</span>
         : <span>Enter your answer to see the conversion before saving.</span>}
     </div>
-    <button type="submit" className="lq-btn" disabled={busy || !valid}>{busy ? "Saving…" : "Save package answer"}</button>
+    <button type="submit" className="lq-btn" disabled={busy || !valid}>{busy ? "Saving…" : units != null ? `Save ${units} per case` : "Save per case"}</button>
     {startedFrom.moved && <p className="lq-muted">This item changed while you were typing. <button type="button" className="lq-linkbtn" disabled={busy} onClick={startOver}>Start over</button></p>}
-    <p className="lq-muted">Remembered for this supplier and package. Your counting setup and delivered quantities stay the same.</p>
+    <p className="lq-muted">Remembered for this supplier item. Counts and delivery are not changed.</p>
     <details className="lq-invd-source-note"><summary>What the invoice says</summary>
       <p>Package: {line.pack ?? "?"} × {line.sizeText || "size not read"}. Case price: {unitMoney(line.unitCost)}.</p>
       <p>{line.costHoldReason}</p>

@@ -49,7 +49,7 @@ try {
   });
   for (const mode of ['queued', 'running']) await run(`${mode} stays open without a completion action`, mode, async () => {
     const content = await text(); assert.match(content, /Checking the package reading/);
-    assert.ok(!content.includes('all caught up')); assert.ok(!content.includes('Both copies checked; corrections recorded'));
+    assert.ok(!content.includes('all caught up')); assert.ok(!content.includes('Mark copies checked'));
     assert.ok(!content.includes('Review purchase item')); assert.ok(!content.includes('Pack or size readings differ'));
     assert.ok(!content.includes('Copies agree automatically')); assert.equal((await writes()).length, 0);
   });
@@ -126,7 +126,7 @@ try {
     assert.match(content, /first saved scan total differs by \$20\.00\. The independent source check is still in progress/);
     assert.match(content, /First saved scan readings \(1\)/);
     for (const absent of ['Checking the package reading', 'saved supplier package', 'all caught up',
-      'Both copies checked; corrections recorded', 'Reopen scan review', 'Review purchase item', 'saved scan is missing billed rows',
+      'Mark copies checked', 'Reopen scan review', 'Review purchase item', 'saved scan is missing billed rows',
       'Check deposits, fees, credits']) assert.ok(!content.includes(absent), absent);
     assert.equal((await writes()).length, 0);
   });

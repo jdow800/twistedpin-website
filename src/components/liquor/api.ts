@@ -1266,6 +1266,13 @@ export interface InvoiceCopyReview {
   };
   questions?: string[];
   readingIncomplete?: boolean;
+  /** Wording built by the server from the compared fields (tprs 2026-10-09). Absent from older servers: show `questions` and `rows[].issues`. */
+  display?: {
+    /** One line per open question, naming the item and the field that differs. */
+    asks: { kind: string; text: string; physical: boolean }[];
+    /** Per row (keyed by supplier item): the differing fields, in place of the generic issue sentences. */
+    rowLines: Record<string, string[]>;
+  };
 }
 /** An answer card was drawn against a question that has since changed (another
  *  tab, another person, a re-read). The server said 409 with one of these codes;

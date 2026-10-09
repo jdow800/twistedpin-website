@@ -42,7 +42,7 @@ if (['failed-empty','retry-protected','failed-no-image'].includes(mode)) {
   detail.lines=[]; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
   if (mode === 'failed-no-image') detail.images=[];
 }
-if(['amount','expense','remember-unit','remember-failure','remember-error','stale-remember','stale-apply','superseded-apply','recorded-apply'].includes(mode)) {
+if(['amount','expense','remember-unit','remember-failure','remember-error','remember-offline','remember-signed-out','remember-refused','stale-remember','stale-apply','superseded-apply','recorded-apply'].includes(mode)) {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
     reviewReasons:['identity'],qtyUnits:'1',qtyCases:'1',pack:2,sizeText:'5LB',unitCost:'50',extendedAmount:'50'});
@@ -140,6 +140,31 @@ if(mode==='linked-agree' || mode==='linked-question') {
     rows:[{code:'DEMO-123',description:'Example freezer item',originalLineIds:['original-line'],issues:[],
       expected:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']},delivered:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']}}]}];
 }
+// 2026-10-09: the server now sends `display` (wording built from the compared fields). linked-case-column is the Breakthru keg:
+// both copies bill 1 at $180.00 and only the case column differs. linked-pack-gap is Sysco's tiramisu, whose scan ran pack and size together.
+if(mode==='linked-case-column' || mode==='linked-pack-gap') {
+  invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  const caseColumn=mode==='linked-case-column';
+  const row=caseColumn
+    ? {code:'9789181',description:'SHADES OF BLUE RIESLING KEG',originalLineIds:['original-line'],
+      issues:['Quantities differ. Check what arrived before updating the purchase record.','Pack or size is incomplete; quantities are not a confirmed unit conversion.'],
+      expected:{quantity:1,cases:1,amount:'180.00',packages:['? × 19.5L']},delivered:{quantity:1,cases:null,amount:'180.00',packages:['? × 19.5L']}}
+    : {code:'9615600',description:'TASTEIT DESSERT TIRAMISU TRAY FROZEN 3887',originalLineIds:['original-line'],issues:[],
+      information:['Item code, billed quantity and amount agree. Package columns were combined or incomplete in one reading; this does not confirm a shelf-unit conversion.'],
+      expected:{quantity:3,cases:3,amount:'298.17',packages:['2 × 4.25LB']},delivered:{quantity:3,cases:3,amount:'298.17',packages:['? × 24.25LB']}};
+  detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
+    expected:{id:'test-original',source:'email',printedTotal:'180.00'},delivered:{id:'test-invoice',source:'scan',printedTotal:'180.00'},
+    reviewHash:'a'.repeat(64),reviewed:false,automaticallyReconciled:false,automaticBasis:null,ready:true,
+    differenceCount:caseColumn?1:0,feeDifference:0,reasons:caseColumn?['1 item comparison(s) need a check.']:[],readingIncomplete:false,
+    questions:[caseColumn
+      ? 'SHADES OF BLUE RIESLING KEG (supplier item 9789181): Quantities differ. Check what arrived before updating the purchase record. Pack or size is incomplete; quantities are not a confirmed unit conversion. Email: 1 billed, $180.00; scan: 1 billed, $180.00.'
+      : 'A supplier item number, quantity, pack or size is missing from the scan. Check that source line.'],
+    rows:[row],
+    display:caseColumn
+      ? {asks:[{kind:'copy',physical:false,text:'Shades of Blue Riesling Keg (9789181): both copies bill 1, $180.00. Case column: email 1, scan blank.'}],
+        rowLines:{'9789181':['Both copies bill 1, $180.00.','Case column: email 1, scan blank.']}}
+      : {asks:[{kind:'copy',physical:false,text:'Tasteit Dessert Tiramisu Tray Frozen (9615600): email reads 2 x 4.25LB, scan reads 24.25LB. Count and price match.'}],rowLines:{}}}];
+}
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 // 2026-10-06: the list request sat 300 s at the proxy. stall-list* never answers the first list read;
 // catalog-fail fails the first item-list read (both sections) and recovers on Try again.
@@ -175,6 +200,9 @@ window.fetch=async(url,options={})=>{
     if(mode==='remember-failure')return json({error:'unit_changed'},409);
     if(mode==='remember-error')return json({error:'unavailable'},500);
     if(mode==='stale-remember')return json({error:'rule_changed'},409);
+    if(mode==='remember-signed-out')return json({error:'unauthorized'},401);
+    if(mode==='remember-refused')return json({error:'check_source_first'},422);
+    if(mode==='remember-offline')throw new TypeError('Failed to fetch');
     const target=lineFor(path),body=JSON.parse(options.body);
     if(body.expectedSkuId!==target.matchedSkuId||!target.costHoldReason)return json({error:'line_changed'},409);
     if(body.expectedCountUnit!==target.matchedCountUnit||body.expectedPackageKey!==(target.packageKey??null))return json({error:'unit_changed'},409);
