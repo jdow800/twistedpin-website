@@ -86,6 +86,9 @@ type ReviewItem = {
   spoken: string;
   quantityWords?: string;
   quantityNeedsReview?: boolean;
+  /** The server's specific source question, e.g. a duplicate of a source
+   *  another row already counted. See quantityBlocked. */
+  quantityReviewReason?: VoiceExtractItem["quantityReviewReason"];
   qty: number;
   cases: number;
   units: number;
@@ -111,6 +114,14 @@ type ReviewItem = {
   /** A human entered literal zero; missing model quantities never become zeros. */
   explicitZero?: boolean;
 };
+
+/** Jon, 2026-10-09: "Number in box, counts ready." A model number the server
+ *  could not re-prove from the transcript stays in the Qty box with an amber
+ *  edge and is added like any other row. Only a reused source (a reason) and a
+ *  held zero stay blank until a number is typed. Every other question (bottle,
+ *  case size, name number, history, recount) still asks. */
+const quantityBlocked = (r: ReviewItem) =>
+  !!r.quantityNeedsReview && (!!r.quantityReviewReason || (r.cases === 0 && r.units === 0));
 
 /** A stock_count item is counted in WHOLE UNITS, so it reads "each" even when a
  *  size is on file. Sizes were added to the cans/bottles in 2026-09-04 so the
@@ -755,6 +766,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       spoken: it.spoken,
       quantityWords: it.quantityWords,
       quantityNeedsReview: it.quantityNeedsReview,
+      quantityReviewReason: it.quantityReviewReason,
       explicitZero: it.qty === 0 && it.quantityNeedsReview === false && !!it.quantityWords,
       // Don't default a case-bearing row to 1 — its qty legitimately
       // carries only the loose part until the case size is answered.
@@ -788,11 +800,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const skuId = r.chosenSkuId;
     if (!skuId) return null;
     const counted = Object.values(countsRef.current).reduce((t, cells) => t + (cells[skuId]?.qty ?? 0), 0);
-    // Held model numbers are not inventory evidence. Keeping those source
-    // questions separate must not make a proved neighbor inherit their
-    // speculative amount as a history warning. Human/source-known answers
-    // still contribute normally after their quantity hold is cleared.
-    const earlier = rows.slice(0, i).filter((x) => x.chosenSkuId === skuId && !x.quantityNeedsReview).reduce((t, x) => t + x.qty, 0);
+    // A blank held row (reused source or held zero) is not inventory evidence.
+    // Keeping those source questions separate must not make a proved neighbor
+    // inherit their speculative amount as a history warning. A prefilled
+    // amber number is added as shown, so it counts like a human answer.
+    const earlier = rows.slice(0, i).filter((x) => x.chosenSkuId === skuId && !quantityBlocked(x)).reduce((t, x) => t + x.qty, 0);
     const sku = skuById.get(skuId);
     return historyCheck(r.qty, counted + earlier, sku?.countHistory, r.unitsPerCase ?? sku?.unitsPerCase);
   }
@@ -1053,8 +1065,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  silent path is exactly what produced 93, 27 and 1 on 2026-07-24. */
   // Missing or backspaced quantities stay for review. A literal zero is an
   // observed empty shelf, and earlier-take questions still hold the bottle.
+  // An amber (unproved) model number is ready; see quantityBlocked.
   const applyable = (r: ReviewItem) =>
-    !!r.chosenSkuId && !r.quantityNeedsReview && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
+    !!r.chosenSkuId && !quantityBlocked(r) && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
     !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && x.restate && !x.restateAnswer);
 
 
@@ -1896,7 +1909,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                       });
                       const before = r[idx], after = next[idx];
                       const changed = before && after && (before.qty !== after.qty ||
-                        Boolean(before.quantityNeedsReview) !== Boolean(after.quantityNeedsReview));
+                        quantityBlocked(before) !== quantityBlocked(after));
                       // The current human answer stays confirmed. Only a
                       // changed prior amount/source hold can change the
                       // history total of later rows for this same bottle.
@@ -2235,11 +2248,12 @@ function ReviewRow({
   // button silently did nothing, because answering a case size requires a
   // chosen SKU. The row became a dead end whose only exit was deleting it,
   // which drops that bottle from the count entirely.
+  const blocked = quantityBlocked(item);
   const state: "quantity" | "needs_case" | "suspect" | "name_number" | "high" | "restate" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
     ? item.candidates.length > 0
       ? "ambiguous"
       : "unmatched"
-    : item.quantityNeedsReview
+    : blocked
       ? "quantity"
       : item.needsCaseSize
       ? "needs_case"
@@ -2267,14 +2281,15 @@ function ReviewRow({
             <span className="lq-muted">×</span>
           )}
           <CountQuantityInput
-            className="lq-qty-input"
+            // Amber edge, no text: the server could not re-prove this model
+            // number. Typing a number clears it (onResolve).
+            className={`lq-qty-input${item.quantityNeedsReview && !blocked && item.qty > 0 ? " lq-qty-unproved" : ""}`}
             type="number"
             inputMode="decimal"
             step="0.1"
             min={0}
-            // An unproved model value is not a heard count. Leave it for
-            // the counter to enter instead of displaying a guessed one.
-            value={item.quantityNeedsReview ? undefined : item.qty}
+            // A reused source or a held zero is left for the counter to enter.
+            value={blocked ? undefined : item.qty}
             blankZero={!item.explicitZero}
             placeholder="Qty"
             // A typed number is a plain each-count and REPLACES whatever the

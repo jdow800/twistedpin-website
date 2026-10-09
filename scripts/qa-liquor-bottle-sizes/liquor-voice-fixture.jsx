@@ -9,13 +9,22 @@ const withSeagrams = new URL(location.href).searchParams.has('seagrams');
 // ?history gives Tito's a 90-day record: largest count 3, largest delivery 12.
 const withHistory = new URL(location.href).searchParams.has('history');
 const withIndigo = new URL(location.href).searchParams.has('indigo');
+// ?take269: the other bottles of Jon's 2026-10-09 take 269e7c90.
+const withTake269 = new URL(location.href).searchParams.has('take269');
 const catalog = [
   {id:'titos', name:"Tito's Handmade Vodka", sizeMl:1000},
   {id:'jameson', name:'Jameson Irish Whiskey', sizeMl:1000},
-  ...(withSeagrams ? [{id:'seagrams', name:"Seagram's 7", sizeMl:1000}] : []),
+  ...(withSeagrams || withTake269 ? [{id:'seagrams', name:"Seagram's 7", sizeMl:1000}] : []),
   ...(withIndigo ? [
     {id:'mezcal',name:'Dos Hombres Joven Mezcal Artesanal',sizeMl:750},
     {id:'indigo',name:'Empress 1908 Indigo Gin',sizeMl:1000},
+  ] : []),
+  ...(withTake269 ? [
+    {id:'empress',name:'Empress 1908 Indigo Gin',sizeMl:1000},
+    {id:'captain',name:'Captain Morgan Original Spiced Rum',sizeMl:750},
+    {id:'orange',name:'Jameson Orange',sizeMl:1000},
+    {id:'djanejo',name:'Don Julio Anejo',sizeMl:750},
+    {id:'djrepo',name:'Don Julio Reposado',sizeMl:750},
   ] : []),
 ].map(s => ({...s, section:'bar', category:'Vodka', trackingMode:'variance', countUnit:'bottle',
   unitsPerCase:12, wacCost:null, lastCost:'20.00', active:true, aliases:[],

@@ -154,6 +154,31 @@ check('carry: three successful name/name/quantity clips stay joined and a missin
   assert.deepEqual(sent.map(row=>row.text),['Dos Hombres, mezcal, point three.','Indigo, gin,','point six.']);
 });
 
+// Retained clips of two name-first takes (10/5 6c26c09b, 10/6 7e476f68). The
+// reverted 341efa1 splitter sent "Golden Falernum," and "point three five."
+// as separate requests (Alcohol Pricing incidents/2026-10-09/liquor-root-cause/).
+check('carry: name-first takes keep every name with its number', () => {
+  for (const [clips, requests] of [
+    [["Jameson, seven. Seagram, seven, point eight. Jack Daniel's, point three. Captain Morgan, point three. Malibu, one point two. Bacardi Superior, point three. Contreau, point one.",
+      "Tanqueray, point one. Jose Cuervo Tradicional, point seven. Tito's, point seven. Bullet, point four."], null],
+    [["Luxardo. That's it. One point one. Diplomatico, point six. Ron Zacapa, point three.",
+      "Worthy Park, point eight. Kahlua, point three. Fontbonne, eighteen seventy four, point eight. Golden Falernum, point three five. Ketel One,",
+      "Point eight. Empress, gin, point seven. Hendrick's, point three five. Hennessy VSOP, point eight. Longbranch, point one. Casamigos Reposado, point",
+      "Four. Casamigos Blanco, point eight five. Don Julio Anejo, point one. Don Julio Reposado, point seven. Don Julio Blanco, point one. Herradura",
+      "Silver, point seven. Dos Hombres, mezcal, point three."],
+    ["Luxardo. That's it. One point one. Diplomatico, point six. Ron Zacapa, point three.",
+      "Worthy Park, point eight. Kahlua, point three. Fontbonne, eighteen seventy four, point eight. Golden Falernum, point three five.",
+      "Ketel One, Point eight. Empress, gin, point seven. Hendrick's, point three five. Hennessy VSOP, point eight. Longbranch, point one.",
+      "Casamigos Reposado, point Four. Casamigos Blanco, point eight five. Don Julio Anejo, point one. Don Julio Reposado, point seven. Don Julio Blanco, point one.",
+      "Herradura Silver, point seven. Dos Hombres, mezcal, point three."]],
+  ]) {
+    const sent=[];const carry=m.createCarry(text=>sent.push(text));
+    clips.forEach((clip,i)=>carry.add(clip,i));
+    assert.equal(carry.flush(99),false);
+    assert.deepEqual(sent,requests ?? clips);
+  }
+});
+
 check('food carry: a quantity sentence stays with the following product name', () => {
   assert.deepEqual(m.splitFoodTail('Two cases. Pizza sauce.'), {head:'',tail:'Two cases. Pizza sauce.'});
   assert.deepEqual(m.splitFoodTail('Oreos, one case. Zero point seven. Spanish rice.'),

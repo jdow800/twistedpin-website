@@ -34,6 +34,9 @@ const check=async(name,e)=>{assert.ok(await js(`!!(${e})`),name);results.asserti
 async function load(query=''){
   const old=await js('window.liquorQa?.nonce');await b.send('Page.navigate',{url:base+query});
   await until(`window.liquorQa?.nonce&&window.liquorQa.nonce!==${JSON.stringify(old??null)}`);
+  // The saved draft opens on the resume prompt (2026-10-07).
+  await until("document.querySelector('.lq-count-entry')||document.querySelectorAll('.lq-zone').length===2");
+  await js("[...document.querySelectorAll('.lq-count-entry button')].find(e=>e.textContent.trim()==='Continue count')?.click()");
   await until("document.querySelectorAll('.lq-zone').length===2");
   await js("[...document.querySelectorAll('.lq-zone')].find(e=>e.textContent.includes('Giant Bottle Shelf')).click()");
   await until("document.querySelector('.lq-captured .lq-row')");
@@ -264,13 +267,15 @@ try{
     await check('Keeping server endpoints still requires a fresh final check',`[...document.querySelectorAll('.lq-confirm button')].some(e=>e.textContent.includes('Submit anyway')&&e.disabled)&&!window.liquorQa.calls.some(c=>c.path.endsWith('/submit'))`);
     await button(/^Recheck count$/);await until("window.liquorQa.calls.filter(c=>c.path.endsWith('/precheck')).length===2");
   });
-  await run('uncertain voice quantity waits for an explicit human answer',async()=>{
+  await run('uncertain voice quantity is shown amber and a typed answer replaces it',async()=>{
     await load('?pausecuts=0');await button(/Record count for/);await js("window.liquorQa.recorder.segment('Test bottle one.',0)");await until('window.liquorQa.extracts.length===1');
     await js(`window.liquorQa.extracts[0].succeed([{spoken:'seven Makers Mark',cases:0,units:0.7,qty:0.7,unitsPerCase:12,needsCaseSize:false,suspectPreMultiplied:false,quantityNeedsReview:true,quantityWords:'seven',match:{id:'makers',name:"Maker's Mark",sizeMl:1000},candidates:[]}])`);
     await button(/Stop & review/);await js("window.liquorQa.recorder.finish('seven Makers Mark')");await until("document.querySelector('.lq-sheet')");
     await check('Question shows the quantity words as evidence',`document.querySelector('.lq-sheet').textContent.includes('seven')`);
-    await check('Unanswered quantity cannot be added',`![...document.querySelectorAll('.lq-sheet button')].some(e=>/^Add 1/.test(e.textContent.trim())&&!e.disabled)`);
+    await check('Unproved number is in the box with an amber edge',`(e=>e.value==='0.7'&&e.classList.contains('lq-qty-unproved'))(document.querySelector('.lq-sheet input[aria-label^="Total quantity"]'))`);
+    await check('The earlier-take question still holds the row',`![...document.querySelectorAll('.lq-sheet button')].some(e=>/^Add 1/.test(e.textContent.trim())&&!e.disabled)`);
     await input('.lq-sheet input[aria-label^="Total quantity"]','7');
+    await check('A typed number clears the amber edge',`!document.querySelector('.lq-sheet input[aria-label^="Total quantity"]').classList.contains('lq-qty-unproved')`);
     const restate=await js("[...document.querySelectorAll('.lq-sheet button')].some(e=>/^Recount:/.test(e.textContent.trim()))");
     if(restate)await button(/^Recount:/);
     await button(/^Add 1/);await savedLine('makers','giant','Number(l.qtyUnits)===7');

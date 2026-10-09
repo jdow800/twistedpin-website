@@ -38,7 +38,11 @@ try{
   for(const width of [320,412]){
     await b.send('Emulation.setDeviceMetricsOverride',{width,height:915,deviceScaleFactor:1,mobile:true});
     await b.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
-    await b.send('Page.navigate',{url:base+'?pausecuts=0'});await b.until("window.liquorQa&&document.querySelectorAll('.lq-zone').length===2");
+    await b.send('Page.navigate',{url:base+'?pausecuts=0'});
+    // The saved draft opens on the resume prompt (2026-10-07).
+    await b.until("window.liquorQa&&(document.querySelector('.lq-count-entry')||document.querySelectorAll('.lq-zone').length===2)");
+    await js("[...document.querySelectorAll('.lq-count-entry button')].find(e=>e.textContent.trim()==='Continue count')?.click()");
+    await b.until("document.querySelectorAll('.lq-zone').length===2");
     await js("[...document.querySelectorAll('button')].find(e=>/Record count for/.test(e.textContent)).click()");
     await b.until("window.liquorQa.recorder");await js("window.liquorQa.recorder.segment('Minsters point six. Owens twelve.',0)");
     await b.until('window.liquorQa.extracts.length===1');await js(`window.liquorQa.extracts[0].succeed(${JSON.stringify(rows)})`);
@@ -47,20 +51,21 @@ try{
     await b.until("document.querySelectorAll('.lq-rev').length===2");
     assert.ok(await js("document.querySelector('.lq-rev-chosen').textContent.includes('Minster')"));
     assert.ok(await js("document.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on')"));
-    assert.ok(await js("document.querySelector('.lq-rev input[type=number]').value===''"));
+    assert.ok(await js("(e=>e.value==='0.6'&&e.classList.contains('lq-qty-unproved')&&getComputedStyle(e).borderTopColor==='rgb(255, 207, 92)')(document.querySelector('.lq-rev input[type=number]'))"),'held number is shown with an amber edge');
     assert.ok(await js("!/Check the heard|Heard quantity:|Matched bottle:/.test(document.querySelector('.lq-rev').textContent)"));
     assert.ok(await js("[...document.querySelectorAll('.lq-sheet-foot button')].find(e=>/^Add/.test(e.textContent)).disabled"));
     assert.ok(await js("document.documentElement.scrollWidth<=innerWidth+1"));
     const fits=await js("(()=>{const e=document.querySelector('.lq-rev-chosen'),r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&e.scrollWidth<=e.clientWidth+1})()");assert.ok(fits,'long selected product fits phone');
-    await shot('held-match-'+width);results.scenarios.push(`${width}px green matched bottle and empty quantity field fit without repeated warnings`);
+    await shot('held-match-'+width);results.scenarios.push(`${width}px green matched bottle and amber prefilled quantity fit without warnings`);
     await js("document.querySelector('.lq-rev-chosen').click()");await pause(35);
     await input('.lq-rev-search','Jaeger');await click('Jägermeister · 1000ml',"document.querySelector('.lq-rev-assign')");
     assert.ok(await js("document.querySelector('.lq-rev-chosen').textContent.includes('Jägermeister')"));
-    assert.ok(await js("document.querySelector('.lq-rev input[type=number]').value===''"));
+    assert.ok(await js("(e=>e.value==='0.6'&&e.classList.contains('lq-qty-unproved'))(document.querySelector('.lq-rev input[type=number]'))"),'product pick keeps the amber number');
     await input('.lq-rev input[type=number]','');await input('.lq-rev input[type=number]','0.6');
+    assert.ok(await js("!document.querySelector('.lq-rev input[type=number]').classList.contains('lq-qty-unproved')"),'typed number clears the amber edge');
     assert.ok(await js("document.querySelector('.lq-rev-chosen').classList.contains('lq-chip-on')"));
     assert.ok(await js("[...document.querySelectorAll('.lq-sheet-foot button')].some(e=>e.textContent.trim()==='Add 1 to Giant Bottle Shelf'&&!e.disabled)"));
-    await shot('changed-match-'+width);results.scenarios.push(`${width}px native product correction retains numeric hold until answered`);
+    await shot('changed-match-'+width);results.scenarios.push(`${width}px native product correction keeps the amber number until one is typed`);
     await click('Add 1 to Giant Bottle Shelf');await b.until("window.liquorQa.lines.some(l=>l.skuId==='jaeger'&&l.zoneId==='giant'&&Number(l.qtyUnits)===.6)");
     results.scenarios.push(`${width}px corrected identity and .6 save to the recorded shelf`);
   }

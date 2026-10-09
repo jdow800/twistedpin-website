@@ -579,6 +579,12 @@
   color: var(--lq-muted);
   font-weight: 400;
 }
+/* Voice review: a model number the server could not re-prove. It stays in the
+   box and counts (Jon 2026-10-09); the amber edge is the only flag, no text. */
+.lq-qty-input.lq-qty-unproved {
+  border-color: #ffcf5c;
+  box-shadow: 0 0 0 1px #ffcf5c;
+}
 
 /* case entry — a SECOND quantity box beside the each-count.
    .lq-row is a 3-child flex (name / stepper / x) sized for a ~390px phone, so

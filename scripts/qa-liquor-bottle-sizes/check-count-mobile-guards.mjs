@@ -22,6 +22,9 @@ async function run(name,query,check) {
   try {
     win.eval(bundle);
     const doc=win.document;
+    // The saved draft opens on the resume prompt (2026-10-07).
+    await until(()=>doc.querySelector('.lq-count-entry')||doc.querySelectorAll('.lq-zone').length===2,'Loaded count');
+    [...doc.querySelectorAll('.lq-count-entry button')].find(b=>b.textContent.trim()==='Continue count')?.click();
     await until(()=>doc.querySelectorAll('.lq-zone').length===2,'Loaded shelves');
     const qa=win.liquorQa;
     const button=text=>[...doc.querySelectorAll('button')].find(b=>typeof text==='string'
