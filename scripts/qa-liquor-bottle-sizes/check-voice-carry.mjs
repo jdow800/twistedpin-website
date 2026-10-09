@@ -84,7 +84,7 @@ check('carry: an unfinished bottle waits for its number', () => {
 });
 
 check('carry: a finished piece sends everything', () => {
-  for (const text of ['Tito\'s, one point three.', 'Captain Morgan, one case.', 'Point nine.']) {
+  for (const text of ['Tito\'s, one point three.', 'Captain Morgan, one case.']) {
     assert.deepEqual(m.splitUnfinished(text), {head: text, tail: ''});
   }
   // No comma between bottle and number: held one piece, never miscounted.
@@ -121,6 +121,52 @@ check('carry: Stop sends pieces queued behind a failed one', () => {
   assert.deepEqual(sent, [[0, 'Aperol, one.'], [2, 'Campari, two.']]);
   carry.add('Tito\'s, one.', 0);                          // the next take starts clean
   assert.deepEqual(sent.at(-1), [0, 'Tito\'s, one.']);
+});
+
+check('carry: quantity-first bottle and decimal tails retain their complete source', () => {
+  for (const tail of ['One bottle, Don Julio Anejo.', 'Two bottles. Don Julio Anejo.', 'One point eight. Tito\'s.', 'Point nine.', 'Two bottles,', 'One point eight']) {
+    assert.deepEqual(m.splitUnfinished(`Captain Morgan, two. ${tail}`),
+      {head:'Captain Morgan, two.',tail});
+  }
+  const source = "One point eight Tito's to Captain Morgan. One case, Morgan. One bottle, Don Julio Anejo.";
+  assert.deepEqual(m.splitUnfinished(source), {
+    head:"One point eight Tito's to Captain Morgan. One case, Morgan.",
+    tail:'One bottle, Don Julio Anejo.',
+  });
+});
+
+check('carry: completed suffix counts never migrate onto following names', () => {
+  for (const head of ["Tito's, two. Hendrick's, three.", 'Tanqueray number ten, two. Hendrick\'s, three.', "One point eight Tito's. Hendrick's, three."]) {
+    assert.deepEqual(m.splitUnfinished(`${head} Baileys,`), {head,tail:'Baileys,'});
+    assert.deepEqual(m.splitUnfinished(`${head} Two bottles, Don Julio Anejo.`), {head,tail:'Two bottles, Don Julio Anejo.'});
+  }
+  assert.deepEqual(m.splitUnfinished("Captain Morgan, one case. Don Julio Anejo."),
+    {head:'Captain Morgan, one case.',tail:'Don Julio Anejo.'});
+});
+
+check('carry: numeric brands and preposed sizes retain ambiguous name/count spans whole', () => {
+  for (const source of ["1800 reposado, two. Hendrick's.", "Four Roses, two. Hendrick's.", "Tangeray, one liter, two. Hendrick's.", "One liter Tito's, two. Hendrick's.", "750 ml Tito's, two. Hendrick's.", "16.9 oz Tito's, two. Hendrick's.", "Tangeray, 1.75 liters, two. Hendrick's.", "Tangeray, one point seven five liters, two. Hendrick's.", "1.75, liters, Tito's, two. Hendrick's.", "Two Tito's. One case, Morgan.", 'Four Roses, two.', "Tangeray, one liter, two."]) {
+    const split = m.splitUnfinished(source);
+    assert.equal(split.head, '');
+    assert.equal(split.tail, source);
+  }
+  assert.deepEqual(m.splitUnfinished("Tanqueray number ten, two. Hendrick's."),
+    {head:'Tanqueray number ten, two.',tail:"Hendrick's."});
+});
+
+check('carry: count-before-name clips preserve two bottles and decimal prefixes in spoken order', () => {
+  const sent=[];const carry=m.createCarry((text,index)=>sent.push({text,index}));
+  carry.add('Don Julio Anejo.',1);
+  carry.add('Captain Morgan, two. Two bottles,',0);
+  carry.flush(99);
+  assert.deepEqual(sent,[{text:'Captain Morgan, two.',index:0},{text:'Two bottles, Don Julio Anejo.',index:99}]);
+  sent.length=0;
+  carry.add('One point eight.',0);assert.equal(sent.length,0);
+  carry.add("Tito's.",1);carry.flush(99);
+  assert.deepEqual(sent,[{text:"One point eight. Tito's.",index:99}]);
+  sent.length=0;
+  carry.add('Two bottles,',0);carry.fail(1);carry.add('Don Julio Anejo.',2);carry.flush(99);
+  assert.deepEqual(sent.map(row=>row.text),['Two bottles,','Don Julio Anejo.']);
 });
 
 check('carry: comma-separated multiword names wait whole, including a partial quantity', () => {
