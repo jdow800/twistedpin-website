@@ -803,11 +803,19 @@ export async function setSkuActive(skuId: string, active: boolean): Promise<void
  * Discontinue a product (no longer ordered, leftovers still counted), or say
  * we carry it again (tprs 0196). Carrying it again also un-archives it.
  */
-export async function setSkuDiscontinued(skuId: string, discontinued: boolean, replacedBySkuId: string | null = null): Promise<void> {
+export async function setSkuDiscontinued(skuId: string, discontinued: true, replacedBySkuId: string | null = null): Promise<void> {
   await gatedJson<{ active: boolean; name: string; discontinuedAt: string | null; replacedBySkuId: string | null }>(
     `/admin/bar/skus/${skuId}/discontinued`,
-    { ...jsonBody(discontinued ? { discontinued, replacedBySkuId } : { discontinued }), method: "PATCH" },
+    { ...jsonBody({ discontinued, replacedBySkuId }), method: "PATCH" },
   );
+}
+
+/** The state an invoice's "we carry it again" card was drawn against. The answer
+ *  also puts an archived item back on the walk, so the server refuses it (409
+ *  state_changed) when the date, replacement or archive flag has moved since. */
+export interface DiscontinuedCardState { discontinuedAt: string; replacedBySkuId: string | null; active: boolean }
+export async function carrySkuAgain(skuId: string, expected: DiscontinuedCardState): Promise<void> {
+  await gatedJson(`/admin/bar/skus/${skuId}/discontinued`, { ...jsonBody({ discontinued: false, expected }), method: "PATCH" });
 }
 
 export async function setSkuZone(
@@ -1138,6 +1146,12 @@ export interface InvoiceLine {
   qtyCases?: string | null;
   canRememberUnit?: boolean;
   packageKey?: string | null;
+  /** Fingerprint of the supplier rule on file when this card was drawn, or null
+   *  when none was saved. Sent back with a package answer so an older card cannot
+   *  overwrite a newer rule. Always present from the server (tprs answers-safe). */
+  countRuleFingerprint: string | null;
+  /** Whether the matched item is still on the walk (not archived). */
+  matchedActive: boolean;
   matchedName: string | null;
   /** Why this line's COST is waiting on a human — "billed by LB, counted by
    *  each". Prose, written server-side by one module; the units below are the
@@ -1249,6 +1263,16 @@ export interface InvoiceCopyReview {
   questions?: string[];
   readingIncomplete?: boolean;
 }
+/** An answer card was drawn against a question that has since changed (another
+ *  tab, another person, a re-read). The server said 409 with one of these codes;
+ *  the control keeps what was typed and shows STALE_ANSWER_MESSAGE. */
+const STALE_ANSWER_CODES = new Set(["line_changed", "sku_changed", "unit_changed", "rule_changed", "supplier_item_changed",
+  "match_changed", "received_changed", "state_changed", "no_hold"]);
+export const STALE_ANSWER_MESSAGE = "This question changed while you were answering. Reload to see the latest. Your number is kept.";
+export function isStaleAnswer(err: unknown): boolean {
+  if (!(err instanceof BarApiError) || err.status !== 409) return false;
+  try { return STALE_ANSWER_CODES.has((JSON.parse(String(err.body ?? "")) as { error?: string }).error ?? ""); } catch { return false; }
+}
 export async function reviewInvoiceCopy(id: string, reviewHash: string): Promise<void> {
   await gatedJson(`/admin/bar/invoices/${id}/copy-review`, jsonBody({ reviewHash }));
 }
@@ -1310,6 +1334,10 @@ export async function matchInvoiceLine(
   invoiceId: string,
   lineId: string,
   skuId: string,
+  /** The item the line is matched to right now, or null when it is unmatched. A
+   *  re-match retires the supplier's saved case size, so the server refuses
+   *  (409 match_changed) when someone else has changed the line since. */
+  expectedMatchedSkuId: string | null,
 ): Promise<{
   matchedName: string;
   aliasLearned: boolean;
@@ -1320,7 +1348,7 @@ export async function matchInvoiceLine(
   matchedSkuId: string | null;
   matchedCountUnit: string | null;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId }));
 }
 
 /** Answer the unit question a held cost is asking: what does ONE count unit
@@ -1335,13 +1363,15 @@ export async function matchInvoiceLine(
  *  Resolves COST only — quantity is untouched. */
 export async function applyHeldCost(
   invoiceId: string,
-  lineId: string,
-  expectedSkuId: string,
+  line: InvoiceLine,
   costPerCountUnit: number,
-): Promise<{ skuId: string; costPerCountUnit: number }> {
+): Promise<{ skuId: string; costPerCountUnit: number; costWritten: boolean; costNotWrittenBecause: string | null }> {
+  // The price was typed against ONE count unit and the printed package shown on
+  // the card; the server refuses (409) if either has changed since.
   return gatedJson(
-    `/admin/bar/invoices/${invoiceId}/lines/${lineId}/apply-cost`,
-    jsonBody({ expectedSkuId, costPerCountUnit }),
+    `/admin/bar/invoices/${invoiceId}/lines/${line.id}/apply-cost`,
+    jsonBody({ expectedSkuId: line.matchedSkuId, expectedCountUnit: line.matchedCountUnit,
+      expectedPackageKey: line.packageKey ?? null, costPerCountUnit }),
   );
 }
 export async function expenseInvoiceLine(invoiceId: string, lineId: string): Promise<{ resolved: boolean }> {
@@ -1350,7 +1380,7 @@ export async function expenseInvoiceLine(invoiceId: string, lineId: string): Pro
 export async function rememberInvoiceUnit(invoiceId: string, line: InvoiceLine, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${line.id}/remember-unit`, jsonBody({
     expectedSkuId: line.matchedSkuId, expectedCountUnit: line.matchedCountUnit,
-    expectedPackageKey: line.packageKey, unitsPerBilledUnit,
+    expectedPackageKey: line.packageKey, expectedRuleFingerprint: line.countRuleFingerprint, unitsPerBilledUnit,
   }));
 }
 /** Record what a delivery ACTUALLY contained, when it came up short (or over).
@@ -1364,8 +1394,12 @@ export async function setInvoiceLineReceived(
   invoiceId: string,
   lineId: string,
   receivedQty: number | null,
+  /** What the line showed when the box was opened: null = nothing recorded. The
+   *  server refuses (409 received_changed) if someone recorded a different
+   *  figure since. */
+  expectedReceivedQty: number | null,
 ): Promise<{ receivedQty: number | null; billedQty: number | null; shortBy: number | null; creditDue: number | null }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/received`, jsonBody({ receivedQty }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/received`, jsonBody({ receivedQty, expectedReceivedQty }));
 }
 /** Retry a failed, empty invoice read. Existing saved invoice lines are protected. */
 export async function reextractInvoice(
@@ -1391,10 +1425,16 @@ export async function reextractInvoice(
  * excluded from the variance purchase math AND the pre-submit check, so a
  * stuck flag quietly erases the delivery from inventory.
  */
+/** Why the server will not confirm a flagged invoice: it re-checks everything the
+ *  review screen hides the button for, so a stale tab gets a reason, not a yes. */
+export const CLEAR_FLAG_REFUSALS = [
+  "lines_need_match", "not_flagged", "duplicate", "no_lines", "cost_questions_open", "delivery_marks_open", "deposit_explanation_open",
+] as const;
+export type ClearFlagRefusal = (typeof CLEAR_FLAG_REFUSALS)[number];
 export async function clearInvoiceFlag(
   invoiceId: string,
 ): Promise<
-  { ok: true } | { ok: false; error: "lines_need_match" | "not_flagged" | "duplicate" | "unknown" }
+  { ok: true } | { ok: false; error: ClearFlagRefusal | "unknown" }
 > {
   try {
     await gatedJson(`/admin/bar/invoices/${invoiceId}/clear-flag`, { method: "POST" });
@@ -1411,9 +1451,7 @@ export async function clearInvoiceFlag(
       return {
         ok: false,
         error:
-          reason === "lines_need_match" || reason === "not_flagged" || reason === "duplicate"
-            ? reason
-            : "unknown",
+          reason && (CLEAR_FLAG_REFUSALS as readonly string[]).includes(reason) ? (reason as ClearFlagRefusal) : "unknown",
       };
     }
     throw err; // NotAuthed / Forbidden / other bubble to the caller
@@ -1427,7 +1465,9 @@ export async function newSkuFromLine(
   lineId: string,
   name: string,
   sizeMl: number | null,
-  settings?: { section: Section; countUnit: string; cogsBucket: CogsBucket },
+  settings: { section: Section; countUnit: string; cogsBucket: CogsBucket } | undefined,
+  /** The item the line is matched to right now, or null when unmatched (see matchInvoiceLine). */
+  expectedMatchedSkuId: string | null,
 ): Promise<{
   skuId: string;
   matchedName: string;
@@ -1442,7 +1482,7 @@ export async function newSkuFromLine(
    *  it names the denominator of the dollar figure a human then authorises. */
   countUnit: string;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings, expectedMatchedSkuId }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */

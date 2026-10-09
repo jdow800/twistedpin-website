@@ -8,7 +8,9 @@ import {
   rememberInvoiceUnit,
   matchInvoiceLine,
   newSkuFromLine,
-  setSkuDiscontinued,
+  carrySkuAgain,
+  isStaleAnswer,
+  STALE_ANSWER_MESSAGE,
   reextractInvoice,
   clearInvoiceFlag,
   setInvoiceLineReceived,
@@ -276,7 +278,11 @@ export default function Invoices({
               ? "This is a duplicate of an invoice already on file — it has to stay out of the count."
               : r.error === "not_flagged"
                 ? "Already settled."
-                : "Could not confirm — try again.",
+                : r.error === "unknown"
+                  ? "Could not confirm — try again."
+                  // The screen hides this button while any of these is open, so
+                  // seeing one means the invoice changed under this tab.
+                  : "This invoice changed while you were answering. Reload to see the latest.",
         );
       }
     } catch {
@@ -760,10 +766,14 @@ function DiscontinuedControl({ invoiceId, line, onResolved }: { invoiceId: strin
   async function answer(kind: "carry" | "replace") {
     setBusy(kind); setError("");
     try {
-      if (kind === "carry") await setSkuDiscontinued(line.matchedSkuId!, false);
-      else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!);
+      if (kind === "carry") {
+        await carrySkuAgain(line.matchedSkuId!, { discontinuedAt: gone!.since, replacedBySkuId: gone!.replacedBySkuId, active: line.matchedActive });
+      } else await matchInvoiceLine(invoiceId, line.id, gone!.replacedBySkuId!, line.matchedSkuId);
       onResolved();
-    } catch { setError("Could not save. Reopen the invoice and try again."); setBusy(null); }
+    } catch (err) {
+      setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and try again.");
+      setBusy(null);
+    }
   }
   return <div className="lq-invd-hold lq-invd-discontinued">
     <p><strong>Discontinued {since}. Still buying this?</strong></p>
@@ -788,7 +798,7 @@ function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; li
   async function save() {
     setBusy(true); setError("");
     try { await expenseInvoiceLine(invoiceId, line.id); onResolved(); }
-    catch { setError("Could not save. Reopen the invoice and check this item."); setBusy(false); }
+    catch (err) { setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and check this item."); setBusy(false); }
   }
   return <div className="lq-invd-hold">
     <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>
@@ -808,7 +818,11 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
     if (units == null || busy) return;
     setBusy(true); setError("");
     try { await rememberInvoiceUnit(invoiceId, line, units); onApplied(line.id); }
-    catch { setError("Could not save this package answer. Reopen the invoice to check for changes."); setBusy(false); }
+    catch (err) {
+      // The typed number stays in the field; only the message changes.
+      setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save this package answer. Reopen the invoice to check for changes.");
+      setBusy(false);
+    }
   }
   return <form className="lq-invd-hold-edit" onSubmit={event => { event.preventDefault(); if (valid) void save(); }}>
     <label htmlFor={`package-answer-${line.id}`}>How many {pluralUnit(unit)} are in one case?</label>
@@ -865,12 +879,12 @@ function CostHoldControl({
     setBusy(true);
     setErr(null);
     try {
-      await applyHeldCost(invoiceId, line.id, line.matchedSkuId, n);
+      await applyHeldCost(invoiceId, line, n);
       onApplied(line.id);
-    } catch {
+    } catch (error) {
       // The hold stays put on failure — the question is unanswered until the
-      // server says otherwise.
-      setErr("Didn't save — try again.");
+      // server says otherwise. The typed price stays in the field.
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Didn't save — try again.");
       setBusy(false);
     }
   }
@@ -951,11 +965,12 @@ function ReceivedControl({
     setBusy(true);
     setErr(null);
     try {
-      await setInvoiceLineReceived(invoiceId, line.id, next);
+      await setInvoiceLineReceived(invoiceId, line.id, next, recorded);
       onChanged(line.id, next);
       setOpen(false);
-    } catch {
-      setErr("Didn't save — try again.");
+    } catch (error) {
+      // The box stays open with the typed figure; the server kept the other person's number.
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Didn't save — try again.");
     } finally {
       setBusy(false);
     }
@@ -1100,14 +1115,14 @@ function MatchControl({
     setBusy(true);
     setErr(null);
     try {
-      const r = await matchInvoiceLine(invoiceId, line.id, skuId);
+      const r = await matchInvoiceLine(invoiceId, line.id, skuId, line.matchedSkuId);
       onMatched(line.id, r.matchedName || name, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.matchedSkuId,
         matchedCountUnit: r.matchedCountUnit,
       });
-    } catch {
-      setErr("Couldn't save — try again.");
+    } catch (error) {
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Couldn't save — try again.");
       setBusy(false);
     }
   }
@@ -1123,7 +1138,7 @@ function MatchControl({
     try {
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket });
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, line.matchedSkuId);
       onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.skuId,
@@ -1133,8 +1148,8 @@ function MatchControl({
         // Guessing it would silently redefine the money being authorised.
         matchedCountUnit: r.countUnit,
       });
-    } catch {
-      setErr("Couldn't create — try again.");
+    } catch (error) {
+      setErr(isStaleAnswer(error) ? STALE_ANSWER_MESSAGE : "Couldn't create — try again.");
       setBusy(false);
     }
   }

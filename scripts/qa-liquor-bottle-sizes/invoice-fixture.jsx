@@ -12,9 +12,10 @@ const invoice = {id:'test-invoice',vendorText:'Example Brewery',invoiceNumber:'D
   extractedTotal:'180',pageCount:1,handwrittenNotes:notes,reviewNotes:notes,duplicateOf:null};
 const line = {id:'test-keg',lineType:'keg',rawDescription:'Example Pale Ale',sizeText:'1/6 BBL',
   qtyUnits:'1',unitCost:'140',extendedAmount:'140',receivedQty:null,annotation:null,
-  needsReview:false,matchedName:null,matchedSkuId:null,costHoldReason:null,matchedCountUnit:null};
-if(mode==='unmatched'||mode==='food'||mode==='linked'||mode==='linked-stale'||mode==='catalog-fail') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
-if(mode==='marked'||mode==='refresh-failure') {line.annotation='One keg short';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
+  needsReview:false,matchedName:null,matchedSkuId:null,costHoldReason:null,matchedCountUnit:null,
+  countRuleFingerprint:null,matchedActive:true};
+if(mode==='unmatched'||mode==='stale-match'||mode==='food'||mode==='linked'||mode==='linked-stale'||mode==='catalog-fail') {line.lineType='product';line.needsReview=true;invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
+if(mode==='marked'||mode==='refresh-failure'||mode==='stale-received') {line.annotation='One keg short';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 if(mode==='duplicate') invoice.duplicateOf='ORIGINAL-DEMO';
 if(mode==='clean-duplicate') { invoice.duplicateOf='ORIGINAL-DEMO'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[]; }
 if(mode==='totals') {invoice.extractedTotal='170';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
@@ -23,10 +24,12 @@ if(mode==='confirmed') invoice.status='confirmed';
 if(mode==='escaped') {invoice.reviewNotes=['<img src=x onerror="alert(1)">'];invoice.handwrittenNotes=invoice.reviewNotes;}
 if(mode==='old-api') {delete invoice.reviewNotes;delete invoice.handwrittenNotes;delete invoice.duplicateOf;}
 // Bought after it was discontinued (tprs 0196): a question, not a hold.
-if(mode==='discontinued') {
+if(mode==='discontinued'||mode==='stale-discontinued'||mode==='discontinued-archived') {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',matchedSkuId:'patty2',matchedName:'Beef Patty, 2oz',matchedCountUnit:'pack',reviewReasons:[],
-    discontinued:{since:'2026-10-01T05:00:00.000Z',replacedBySkuId:'patty35',replacementName:'Beef Patty, 3.5oz'}});
+    discontinued:{since:'2026-10-01T05:00:00.000Z',replacedBySkuId:'patty35',replacementName:'Beef Patty, 3.5oz'},
+    // A counter marked it "none left" after the invoice was read.
+    matchedActive:mode!=='discontinued-archived'});
 }
 const automatic = mode.startsWith('automatic') || mode.startsWith('clarity') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'ready-1',token:'a'.repeat(64),
   status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
@@ -39,13 +42,13 @@ if (['failed-empty','retry-protected','failed-no-image'].includes(mode)) {
   detail.lines=[]; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
   if (mode === 'failed-no-image') detail.images=[];
 }
-if(['amount','expense','remember-unit','remember-failure'].includes(mode)) {
+if(['amount','expense','remember-unit','remember-failure','remember-error','stale-remember','stale-apply'].includes(mode)) {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
     reviewReasons:['identity'],qtyUnits:'1',qtyCases:'1',pack:2,sizeText:'5LB',unitCost:'50',extendedAmount:'50'});
   if(mode==='amount') Object.assign(line,{matchedSkuId:'demo',matchedName:'Known item',reviewReasons:['amount'],extendedAmount:'54.38'});
-  if(mode.startsWith('remember')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
-    reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:true,packageKey:'2|5LB|'});
+  if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode==='stale-apply') Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
+    reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:mode!=='stale-apply',packageKey:'2|5LB|'});
 }
 if(mode==='deposit-info'||mode==='mixed-deposit') {
   invoice.reviewNotes=[];
@@ -131,8 +134,14 @@ window.fetch=async(url,options={})=>{
     return json({items:catalog.filter(item=>item.section===section)});
   }
   if(path.endsWith('/expense')) {line.nonInventory=true;line.needsReview=false;line.reviewReasons=[];return json({resolved:true});}
+  if(path.endsWith('/apply-cost')) {
+    if(mode==='stale-apply')return json({error:'no_hold'},409);
+    line.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:JSON.parse(options.body).costPerCountUnit,costWritten:true,costNotWrittenBecause:null});
+  }
   if(path.endsWith('/remember-unit')) {
     if(mode==='remember-failure')return json({error:'unit_changed'},409);
+    if(mode==='remember-error')return json({error:'unavailable'},500);
+    if(mode==='stale-remember')return json({error:'rule_changed'},409);
     const target=detail.lines.find(l=>path.includes('/'+l.id+'/')) || line;
     target.costHoldReason=null;return json({resolved:true});
   }
@@ -163,8 +172,9 @@ window.fetch=async(url,options={})=>{
     detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:String(-credit),extendedAmount:String(-credit)});
     return json({applied:true,result:detail.depositResolution});
   }
-  if(/\/skus\/[^/]+\/discontinued$/.test(path)) {line.discontinued=null;return json({active:true,name:line.matchedName,discontinuedAt:null,replacedBySkuId:null});}
+  if(/\/skus\/[^/]+\/discontinued$/.test(path)) {if(mode==='stale-discontinued')return json({error:'state_changed'},409);line.discontinued=null;return json({active:true,name:line.matchedName,discontinuedAt:null,replacedBySkuId:null});}
   if(path.endsWith('/match')||path.endsWith('/new-sku')) {
+    if(mode==='stale-match')return json({error:'match_changed'},409);
     const body=JSON.parse(options.body); line.needsReview=false;line.discontinued=null;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;
     line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
     return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
@@ -181,10 +191,12 @@ window.fetch=async(url,options={})=>{
   }
   if(path.endsWith('/clear-flag')){
     if(mode==='confirm-failure')return json({error:'unknown'},500);
+    if(mode==='clear-refused')return json({error:'delivery_marks_open'},409);
     invoice.status='confirmed';return json({status:'confirmed'});
   }
   if(path.endsWith('/reextract')){if(mode==='retry-protected')return json({error:'saved_invoice_protected'},409);invoice.status='pending';return json({status:'pending'});}
   if(path.endsWith('/received')){
+    if(mode==='stale-received')return json({error:'received_changed'},409);
     const qty=JSON.parse(options.body).receivedQty;
     line.receivedQty=qty==null?null:String(qty);
     // Fixed responses for the zero-delivered / clear regression, not a cost engine.

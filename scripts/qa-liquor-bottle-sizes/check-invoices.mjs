@@ -26,11 +26,12 @@ for(const answer of ['carry','replace']) await run(`a discontinued item bought a
   if(answer==='carry') {
     await click('Yes, we carry it again');
     await until(()=>log().includes('/skus/patty2/discontinued'));
-    assert.match(log(),/PATCH \S*\/skus\/patty2\/discontinued \{"discontinued":false\}/);
+    // The card sends the state it was drawn against, so a stale tap cannot undo an archive.
+    assert.match(log(),/PATCH \S*\/skus\/patty2\/discontinued \{"discontinued":false,"expected":\{"discontinuedAt":"2026-10-01T05:00:00\.000Z","replacedBySkuId":"patty35","active":true\}\}/);
   } else {
     await click("That's Beef Patty, 3.5oz");
     await until(()=>log().includes('/match'));
-    assert.match(log(),/\/lines\/test-keg\/match \{"skuId":"patty35"\}/);
+    assert.match(log(),/\/lines\/test-keg\/match \{"skuId":"patty35","expectedMatchedSkuId":"patty2"\}/);
   }
   await until(()=>!doc.querySelector('.lq-invd-discontinued'));
 });
@@ -45,7 +46,7 @@ await run('an excluded supply keeps its dollars without a stock matching prompt'
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
   assert.match(doc.querySelector('.lq-invd-amt').textContent,/50.00/);assert.match(log(),/\/expense/);
 });
-for(const mode of ['remember-unit','remember-failure']) await run('saved package answer '+mode,mode,async({doc,click,dom,log})=>{
+for(const mode of ['remember-unit','remember-failure','remember-error']) await run('saved package answer '+mode,mode,async({doc,click,dom,log})=>{
 
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
   assert.equal(input.value,'');
@@ -54,7 +55,10 @@ for(const mode of ['remember-unit','remember-failure']) await run('saved package
   assert.match(doc.body.textContent,/\$25 per pack/);
   await click('Save package answer');
   assert.match(log(),/"unitsPerBilledUnit":2/);assert.match(log(),/"expectedPackageKey":"2\|5LB\|"/);
-  if(mode==='remember-failure')assert.match(doc.querySelector('[role=alert]').textContent,/Could not save this package answer/);
+  assert.match(log(),/"expectedRuleFingerprint":null/);
+  // A 409 means the question changed (stale card); any other failure keeps the plain retry wording.
+  if(mode==='remember-failure')assert.match(doc.querySelector('[role=alert]').textContent,/This question changed while you were answering. Reload to see the latest. Your number is kept./);
+  else if(mode==='remember-error')assert.match(doc.querySelector('[role=alert]').textContent,/Could not save this package answer/);
   else await until(()=>!doc.querySelector('.lq-invd-hold'));
 });
 await run('credit reason precedes totals, links the original and never auto-confirms','credit',async({doc,button,log})=>{
@@ -112,11 +116,13 @@ await run('saving zero delivered refreshes product cost, preserves the bill and 
   input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
   await click('Save');
   await until(()=>doc.body.textContent.includes('Product cost after shortage: $0.00'));
+  assert.match(log(),/\/received \{"receivedQty":0,"expectedReceivedQty":null\}/);
   assert.match(doc.querySelector('.lq-invd-totals').textContent,/\$180.00/);
   assert.match(doc.querySelector('.lq-buk').textContent,/\$140.00 not delivered, excluded from product cost/);
   assert.ok(!log().includes('/clear-flag'));
   await click('change');await click('clear');
   await until(()=>!doc.body.textContent.includes('Product cost after shortage:'));
+  assert.match(log(),/\/received \{"receivedQty":null,"expectedReceivedQty":0\}/);
   assert.match(doc.querySelector('.lq-buk').textContent,/\$140.00 estimated/);
 });
 await run('a saved shortage with a failed cost refresh shows a recovery instruction','refresh-failure',async({doc,dom,click})=>{
@@ -155,6 +161,7 @@ await run('saved invoices cannot be sent through a replacing re-read','credit',a
   assert.ok(!button('Read invoice again'));assert.ok(!button('Retry reading invoice'));
 });
 await run('an empty failed read can retry without confirming receipt','failed-empty',async({doc,click,button,log})=>{
+  assert.ok(!button(confirm),'a blank read has nothing to confirm');
   await click('Retry reading invoice');assert.ok(!button(confirm));
   assert.match(doc.body.textContent,/Retrying now/);
   assert.ok(!log().includes('/clear-flag'));
@@ -170,6 +177,47 @@ await run('retry without a stored image is disabled','failed-no-image',async({bu
 await run('scan text renders as text, never markup','escaped',async({doc})=>{
   const panel=doc.querySelector('.lq-invd-review');assert.ok(!panel.querySelector('img'));
   assert.match(panel.textContent,/<img src=x/);
+});
+// tprs answers-safe: every answer carries what the card showed; a stale one keeps the typed value.
+const STALE='This question changed while you were answering. Reload to see the latest. Your number is kept.';
+await run('a stale package answer says so and keeps the typed number','stale-remember',async({doc,click,dom})=>{
+  const input=doc.querySelector('[aria-label="Count units per billed case"]');
+  await enter(dom,input,'2');await click('Save package answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,STALE);
+  assert.equal(doc.querySelector('[aria-label="Count units per billed case"]').value,'2');
+  assert.ok(!doc.querySelector('[aria-label="Count units per billed case"]').disabled);
+});
+await run('a stale one-time price says so, keeps the typed price and sends its basis','stale-apply',async({doc,click,dom,log})=>{
+  const input=doc.querySelector('input[type=number][aria-label^="Price per"]');
+  await enter(dom,input,'3.25');await click('Use this cost');
+  assert.match(log(),/\/apply-cost \{"expectedSkuId":"demo","expectedCountUnit":"pack","expectedPackageKey":"2\|5LB\|","costPerCountUnit":3\.25\}/);
+  assert.ok(doc.body.textContent.includes(STALE));
+  assert.equal(doc.querySelector('input[type=number][aria-label^="Price per"]').value,'3.25');
+});
+await run('a stale delivery count says so and keeps the typed quantity','stale-received',async({doc,click,dom})=>{
+  const input=doc.querySelector('.lq-invd-recvd input');
+  await enter(dom,input,'0');await click('Save');
+  assert.ok(doc.querySelector('.lq-invd-recvd-err').textContent.includes(STALE));
+  assert.equal(doc.querySelector('.lq-invd-recvd input').value,'0');
+});
+await run('a stale item match says so and keeps the search','stale-match',async({doc,dom})=>{
+  const input=doc.querySelector('input[placeholder="Search items"]');
+  await enter(dom,input,'tito');doc.querySelector('.lq-rev-assign .lq-chip').click();await pause();
+  assert.ok(doc.querySelector('.lq-match .lq-error').textContent.includes(STALE));
+  assert.equal(doc.querySelector('input[placeholder="Search items"]').value,'tito');
+});
+await run('"we carry it again" sends that the item is archived, so the server can refuse a stale tap','discontinued-archived',async({click,log})=>{
+  await click('Yes, we carry it again');await until(()=>log().includes('/discontinued'));
+  assert.match(log(),/"expected":{"discontinuedAt":"2026-10-01T05:00:00.000Z","replacedBySkuId":"patty35","active":false}/);
+});
+await run('a stale "we carry it again" says so','stale-discontinued',async({doc,click})=>{
+  await click('Yes, we carry it again');
+  assert.equal(doc.querySelector('.lq-invd-discontinued [role=alert]').textContent,STALE);
+});
+await run('a refused confirmation names a changed invoice, not a retry','clear-refused',async({doc,click})=>{
+  await click(confirm);
+  assert.match(doc.querySelector('[role=alert]').textContent,/This invoice changed while you were answering\. Reload to see the latest\./);
+  assert.ok(doc.querySelector('.lq-invd-review'));
 });
 console.log(`${passed} invoice UI scenarios passed (DOM simulation; no visual layout claim).`);
 
