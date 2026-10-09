@@ -1152,6 +1152,10 @@ export interface InvoiceLine {
   countRuleFingerprint: string | null;
   /** Whether the matched item is still on the walk (not archived). */
   matchedActive: boolean;
+  /** The description prints SUBSTITUTE, and, when another item of the supplier
+   *  linked to the same SKU has a saved count rule, which one and what it says.
+   *  Facts for the screen only: never a default, a chip or an answer. */
+  substituteFacts?: { isSubstitute: boolean; sibling: { vendorCode: string; sizeText: string | null; unitsPerCase: number } | null };
   matchedName: string | null;
   /** Why this line's COST is waiting on a human — "billed by LB, counted by
    *  each". Prose, written server-side by one module; the units below are the
