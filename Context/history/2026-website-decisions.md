@@ -1,3 +1,7 @@
+## 2026-10-09 — Plainer invoice labels and failure lines
+
+Jon authorized shipping the reduced invoice plan. The linked-copy button reads "Mark copies checked" with a line saying it records the comparison and changes no prices or counts. The held-cost button reads "Save N per case". The copy screen names the field that differs and shows whole questions. A failed package save keeps the typed number and says the real reason (no connection, signed out, question changed, refused) instead of one generic error. Display only: the server's review key and review hash are untouched. Validation: strict typecheck, production build, 75 invoice QA scenarios, layout and source-check checks.
+
 ## 2026-10-09 — Substitute items show a tag and what is saved for the usual item
 
 Jon authorized shipping the reduced invoice plan. A package question for a line that prints SUBSTITUTE shows a small "Substitute" tag and, when a sibling supplier item has a saved rule, a fact line such as "Also bought as 4999690 (8 CT): saved as 8 per case." The number box stays empty and nothing is suggested or prefilled. An older backend that does not send the field looks exactly as before. Validation: strict typecheck, production build, invoice QA scenarios.
