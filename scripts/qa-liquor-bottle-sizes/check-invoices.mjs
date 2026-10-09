@@ -195,7 +195,7 @@ await run('scan text renders as text, never markup','escaped',async({doc})=>{
 const STALE='This question changed while you were answering. Reload to see the latest. Your number is kept.';
 await run('a stale package answer says so and keeps the typed number','stale-remember',async({doc,click,dom})=>{
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
-  await enter(dom,input,'2');await click('Save package answer');
+  await enter(dom,input,'2');await click('Save 2 per case');
   assert.equal(doc.querySelector('[role=alert]').textContent,STALE);
   assert.equal(doc.querySelector('[aria-label="Count units per billed case"]').value,'2');
   assert.ok(!doc.querySelector('[aria-label="Count units per billed case"]').disabled);
