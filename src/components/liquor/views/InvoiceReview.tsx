@@ -36,10 +36,12 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const extracted = Number(inv.extractedTotal);
   const delta = inv.printedTotal != null && inv.extractedTotal != null
     && Number.isFinite(printed) && Number.isFinite(extracted) ? Math.abs(printed - extracted) : 0;
+  // Never read is not a $0.00 total and not a difference of 0 (BUILD-SPEC 11.125).
+  const printedUnread = inv.printedTotal == null;
   const emptyKegNotes = notes.some((note) => /\bempt(?:y|ies)\b/i.test(note));
   const canExplainDeposit = emptyKegNotes && !detail.depositResolution && !!detail.explanationToken && detail.lines.some(line => line.lineType === "deposit");
   const image = detail.images[0];
-  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01;
+  const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01 || printedUnread;
 
   return (
     <section className="lq-invd-review" aria-labelledby="invoice-review-title">
@@ -54,11 +56,13 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
               <ul className="lq-invd-review-notes">
                 {notes.map((note, index) => <li key={index}>{note}</li>)}
               </ul>
-              <p>{canExplainDeposit ? "These notes describe an empty-keg deposit return. State the credit and revised total below to record the adjustment."
+              <p>{canExplainDeposit && printedUnread ? "These notes describe an empty-keg deposit return. The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice."
+                : canExplainDeposit ? "These notes describe an empty-keg deposit return. State the credit and revised total below to record the adjustment."
                 : emptyKegNotes && !detail.depositResolution
                 ? "These notes mention empty-keg returns. Check the number returned, the deposit credit and any revised total. A handwritten final total is the expected vendor charge after their office processes the invoice. Change a delivered quantity below only if full kegs were also missing."
                 : "Compare these notes with the original invoice and what arrived. Record any delivery shortage on the affected item below; check credits with the vendor."}</p>
-              {canExplainDeposit ? <p><a className="lq-linkbtn" href="#invoice-explanation">Tell us what happened below</a></p>
+              {canExplainDeposit && printedUnread ? null
+                : canExplainDeposit ? <p><a className="lq-linkbtn" href="#invoice-explanation">Tell us what happened below</a></p>
                 : <p className="lq-muted">The totals below still reflect the saved bill. Confirming this review does not record an adjusted charge or verify the vendor's actual charge.</p>}
             </div>
           )}
@@ -85,6 +89,11 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
           {held.length > 0 && <p><strong>{held.length} package question{held.length === 1 ? "" : "s"} below.</strong> Answer these before finishing the review.</p>}
           {amounts.length > 0 && <p><strong>{amounts.length} line amount(s) need checking.</strong> Compare the printed price, billed quantity and tax with the source document.</p>}
           {quantities.length > 0 && <p><strong>{quantities.length} billed quantity/quantities need checking.</strong> Compare the quantity and case columns with the source document.</p>}
+          {printedUnread && (
+            <p><strong>The printed total was not read.</strong>{" "}
+              {inv.extractedTotal != null ? `The saved lines add up to $${Number(inv.extractedTotal).toFixed(2)}. ` : ""}Compare them with the original invoice.
+            </p>
+          )}
           {delta >= 0.01 && (
             <p><strong>The printed and read totals differ by ${delta.toFixed(2)}.</strong>{" "}
               Compare the line amounts, deposits, fees and credits with the original invoice.
