@@ -822,20 +822,38 @@ function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; li
  * new props, while React keeps what was typed. If Save read the props at click
  * time, a number typed against one card would go out claiming a newer one it
  * never saw: the server would accept it and another person's answer would be
- * lost. So the first thing typed pins the state the card showed, Save sends
- * that, and the server answers 409 when it has moved (the box keeps the typed
- * value and says so). While the box is empty there is nothing to protect and
- * the pin follows the live state; emptying the box lets a person start again
- * from what is on screen now.
+ * lost. So the first edit pins the state the card showed, Save sends that, and
+ * the server answers 409 when it has moved (the box keeps the typed value and
+ * says so).
+ *
+ * The pin is held through every later edit. An emptied box is an edit, and so
+ * is a half-typed number such as "5e" (Chromium reports value "" with
+ * validity.badInput until it is a number again): neither means "start again",
+ * because the person has still not seen the newer card. Only reset() drops the
+ * pin: Cancel, a saved answer, or Start over, which shows the card as it is now.
+ * A box nobody has edited has no pin and keeps following the live state. A
+ * first bad keystroke in an empty number box never reaches onChange (the value
+ * stays ""), so those boxes also pin from onInput when validity.badInput is set.
  */
 function useStartedFrom<T>(live: T) {
   const [pinned, setPinned] = useState<{ state: T } | null>(null);
   return {
     state: pinned ? pinned.state : live,
-    /** Call with the new text on every change. */
-    typed: (text: string) => setPinned(p => (text.trim() === "" ? null : p ?? { state: live })),
+    /** A re-read has changed the card under an answer that is being typed. */
+    moved: pinned != null && !sameState(pinned.state, live),
+    /** Call from every onChange, whatever the text is. Only the first call pins. */
+    edited: () => setPinned(p => p ?? { state: live }),
     reset: () => setPinned(null),
   };
+}
+
+/** Field by field, null and undefined alike: a basis is a flat set of ids. */
+function sameState(a: unknown, b: unknown): boolean {
+  if (typeof a === "object" && a && typeof b === "object" && b) {
+    const x = a as Record<string, unknown>, y = b as Record<string, unknown>;
+    return [...new Set([...Object.keys(x), ...Object.keys(y)])].every(key => (x[key] ?? null) === (y[key] ?? null));
+  }
+  return (a ?? null) === (b ?? null);
 }
 
 function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: string; line: InvoiceLine; unit: string; onApplied: (id: string) => void }) {
@@ -845,6 +863,8 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
   const startedFrom = useStartedFrom(answerBasis(line));
   const units = parsePackageAnswer(value, unit), valid = units != null;
   const cost = units != null ? Number(line.unitCost) / units : null;
+  // The only way back to the card as it is now (the box keeps its pin through blank edits).
+  const startOver = () => { setValue(""); setError(""); startedFrom.reset(); };
   async function save() {
     if (units == null || busy) return;
     setBusy(true); setError("");
@@ -859,7 +879,7 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
     <label htmlFor={`package-answer-${line.id}`}>How many {pluralUnit(unit)} are in one case?</label>
     <p className="lq-muted">Inventory counts this item by {unit === "item" ? 'individual items ("each")' : pluralUnit(unit)}. Enter the number in a full billed case.</p>
     <input id={`package-answer-${line.id}`} aria-label="Count units per billed case" type="text" autoComplete="off"
-      placeholder={`Number, or “1 case = … ${pluralUnit(unit)}”`} value={value} onChange={e => { setValue(e.target.value); startedFrom.typed(e.target.value); }}
+      placeholder={`Number, or “1 case = … ${pluralUnit(unit)}”`} value={value} onChange={e => { setValue(e.target.value); startedFrom.edited(); }}
       aria-describedby={`package-preview-${line.id}`} />
     <div id={`package-preview-${line.id}`} className="lq-invd-answer-preview" aria-live="polite">
       {cost != null ? <><strong>1 case = {units} {units === 1 ? unit : pluralUnit(unit)}</strong><span>${cost.toFixed(6).replace(/0+$/, "").replace(/\.$/, "")} per {unit}. We calculate this for you.</span></>
@@ -867,6 +887,7 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
         : <span>Enter your answer to see the conversion before saving.</span>}
     </div>
     <button type="submit" className="lq-btn" disabled={busy || !valid}>{busy ? "Saving…" : "Save package answer"}</button>
+    {startedFrom.moved && <p className="lq-muted">This item changed while you were typing. <button type="button" className="lq-linkbtn" disabled={busy} onClick={startOver}>Start over</button></p>}
     <p className="lq-muted">Remembered for this supplier and package. Your counting setup and delivered quantities stay the same.</p>
     <details className="lq-invd-source-note"><summary>What the invoice says</summary>
       <p>Package: {line.pack ?? "?"} × {line.sizeText || "size not read"}. Case price: {unitMoney(line.unitCost)}.</p>
@@ -891,6 +912,8 @@ function CostHoldControl({
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const startedFrom = useStartedFrom(answerBasis(line));
+  // The only way back to the card as it is now (the box keeps its pin through blank edits).
+  const startOver = () => { setVal(""); setErr(null); startedFrom.reset(); };
 
   const unit = countUnitLabel(line, sku);
   const n = Number(val);
@@ -942,7 +965,9 @@ function CostHoldControl({
           step="any"
           value={val}
           aria-label={`Price per ${unit}`}
-          onChange={(e) => { setVal(e.target.value); startedFrom.typed(e.target.value); }}
+          onChange={(e) => { setVal(e.target.value); startedFrom.edited(); }}
+          // A first "e" or "-" leaves the value "" (no onChange) but the box is no longer untouched.
+          onInput={(e) => { if (e.currentTarget.validity.badInput) startedFrom.edited(); }}
           placeholder="0.000000"
         />
         <span className="lq-muted">per {unit}</span>
@@ -950,6 +975,12 @@ function CostHoldControl({
       <p className="lq-invd-hold-note lq-muted">
         Billed quantity stays unchanged.
       </p>
+      {startedFrom.moved && (
+        <p className="lq-invd-hold-note lq-muted">
+          This item changed while you were typing.{" "}
+          <button type="button" className="lq-linkbtn" disabled={busy} onClick={startOver}>Start over</button>
+        </p>
+      )}
       <div className="lq-invd-recvd-actions">
         <button type="button" className="lq-btn" disabled={busy || !valid} onClick={() => void save()}>
           {busy ? "Saving…" : "Use this cost"}
@@ -992,7 +1023,8 @@ function ReceivedControl({
   // collapsed link would ask them to go looking for where to put the answer.
   const [open, setOpen] = useState(() => Boolean(reviewAnnotationFor(line)) && recorded == null);
   // null = nothing typed: the box shows what is on file now, and keeps showing it
-  // if a re-read changes it. Once typed, the figure is the person's and stays.
+  // if a re-read changes it. Once edited, even to blank or a half-typed number,
+  // the box is the person's and stays until Cancel, a save or Start over.
   const [typedVal, setTypedVal] = useState<string | null>(null);
   const val = typedVal ?? (recorded == null ? "" : String(recorded));
   const startedFrom = useStartedFrom(recorded);
@@ -1064,12 +1096,21 @@ function ReceivedControl({
           step="any"
           value={val}
           autoFocus
-          onChange={(e) => { setTypedVal(e.target.value); startedFrom.typed(e.target.value); }}
+          onChange={(e) => { setTypedVal(e.target.value); startedFrom.edited(); }}
+          // A first "e" or "-" leaves the value "" (no onChange) but the box is no longer untouched:
+          // it must keep what the person began, not follow the count on file.
+          onInput={(e) => { if (e.currentTarget.validity.badInput) { setTypedVal(typed => typed ?? ""); startedFrom.edited(); } }}
           placeholder={String(billed)}
         />
         <span className="lq-muted">of {invoiceQty(billed)} billed</span>
       </label>
       <p className="lq-muted">Saving a shortage updates stock and product cost. The original invoice stays on file.</p>
+      {startedFrom.moved && (
+        <p className="lq-muted">
+          This count changed while you were typing.{" "}
+          <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { discardDraft(); setErr(null); }}>Start over</button>
+        </p>
+      )}
       <div className="lq-invd-recvd-actions">
         <button
           type="button"

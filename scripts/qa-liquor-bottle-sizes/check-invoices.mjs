@@ -6,7 +6,11 @@ const pause=()=>new Promise(r=>setTimeout(r,20));
 const until=async(fn)=>{for(let i=0;i<100;i++){if(fn())return;await pause();}throw new Error('UI condition timed out');};
 let passed=0;
 const confirm='Review complete — confirm invoice';
+// Debug aids, off by default: INVOICE_QA_ONLY=<regex> runs matching scenarios; INVOICE_QA_KEEP_GOING=1 reports every
+// failure instead of stopping at the first (the exit code is still 1).
+const only=process.env.INVOICE_QA_ONLY?new RegExp(process.env.INVOICE_QA_ONLY):null,keepGoing=process.env.INVOICE_QA_KEEP_GOING==='1',failed=[];
 async function run(name,mode,fn){
+  if(only&&!only.test(name))return;
   const dom=new JSDOM('<!doctype html><div id="root"></div>',{url:`http://localhost/?mode=${mode}`,runScripts:'outside-only',pretendToBeVisual:true});
   dom.window.Response=Response;
   dom.window.HTMLElement.prototype.scrollIntoView=function(){};
@@ -18,6 +22,9 @@ async function run(name,mode,fn){
     const click=async(text)=>{assert.ok(button(text),`Missing button: ${text}`);button(text).click();await pause();};
     const log=()=>doc.getElementById('audit').textContent;
     await fn({doc,button,click,log,dom});passed++;console.log('PASS',name);
+  }catch(error){
+    if(!keepGoing)throw error;
+    failed.push(name);console.log('FAIL',name,'-',String(error.message).split(/\r?\n/)[0].slice(0,300));
   }finally{dom.window.close();}
 }
 // tprs 0196: a discontinued item on an invoice is asked about, and either answer clears it.
@@ -297,17 +304,204 @@ await run('an untouched package box follows a refresh and then sends the rule it
   await until(()=>!dom.window.__qaLine('pack-line').costHoldReason);
   assert.match(log(),/\/lines\/pack-line\/remember-unit \{[^}]*"expectedRuleFingerprint":"rule-2"/);
 });
-await run('clearing a stale package answer and typing it again starts from what the box shows now','refresh-edit',async({doc,dom,click,log})=>{
+// Second review pass (2026-10-09): the started-from state is held through blank and invalid edits. Emptying the box,
+// or a half-typed number the browser reports as value "" with validity.badInput, must never mean "start again against
+// the refreshed card". Only Cancel, a saved answer, or Start over drops it.
+const sentTo=(log,lineId,what)=>log().split('\n').filter(x=>x.includes(`/lines/${lineId}/${what}`));
+// What Chromium reports for a half-typed number such as "5e": value "" with validity.badInput. jsdom never sets badInput.
+async function enterHalfTyped(dom,input) {
+  Object.defineProperty(input,'validity',{configurable:true,get:()=>({badInput:true,valid:false})});
+  await enter(dom,input,'');
+}
+const endHalfTyped=input=>{delete input.validity;};
+await run('emptying a stale package answer and typing it again still sends the rule it started from, until Start over','refresh-edit',async({doc,dom,click,log})=>{
   const card=()=>doc.getElementById('inv-line-pack-line'),input=()=>card().querySelector('[aria-label="Count units per billed case"]');
   await enter(dom,input(),'2');
   dom.window.__qaOther('pack-line',{countRuleFingerprint:'rule-2'});
   await reread({click,log});
-  card().querySelector('button[type=submit]').click();
-  await until(()=>card().textContent.includes(STALE));
   await enter(dom,input(),'');await enter(dom,input(),'2');card().querySelector('button[type=submit]').click();
+  await until(()=>sentTo(log,'pack-line','remember-unit').length===1);await pause();
+  assert.match(sentTo(log,'pack-line','remember-unit')[0],/"expectedRuleFingerprint":"rule-1"/,'the rule the box was started against, not the refreshed one');
+  assert.ok(card().textContent.includes(STALE));assert.equal(input().value,'2');
+  assert.ok(dom.window.__qaLine('pack-line').costHoldReason,'the other person\'s rule was not replaced');
+  // The way out: Start over empties the box and the next answer starts from what the card shows now.
+  inCard(doc,'pack-line','Start over').click();await pause();
+  assert.equal(input().value,'');assert.ok(!card().textContent.includes(STALE));assert.ok(!inCard(doc,'pack-line','Start over'));
+  await enter(dom,input(),'2');card().querySelector('button[type=submit]').click();
   await until(()=>!dom.window.__qaLine('pack-line').costHoldReason);
-  const sent=log().split('\n').filter(x=>x.includes('/lines/pack-line/remember-unit'));
-  assert.equal(sent.length,2);assert.match(sent[0],/"expectedRuleFingerprint":"rule-1"/);assert.match(sent[1],/"expectedRuleFingerprint":"rule-2"/);
+  const sent=sentTo(log,'pack-line','remember-unit');
+  assert.equal(sent.length,2);assert.match(sent[1],/"expectedRuleFingerprint":"rule-2"/);
+});
+await run('a stale package card offers Start over only once it has moved','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-pack-line'),input=()=>card().querySelector('[aria-label="Count units per billed case"]');
+  assert.ok(!inCard(doc,'pack-line','Start over'),'nothing typed');
+  await enter(dom,input(),'2');assert.ok(!inCard(doc,'pack-line','Start over'),'typed, nothing moved');
+  dom.window.__qaOther('pack-line',{countRuleFingerprint:'rule-2'});
+  await reread({click,log});
+  assert.ok(inCard(doc,'pack-line','Start over'));
+});
+await run('emptying a stale one-time price and typing it again still sends the item and unit it started from, until Start over','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-price-line'),price=()=>card().querySelector('input[type=number][aria-label^="Price per"]');
+  await enter(dom,price(),'3.25');
+  dom.window.__qaOther('price-line',{matchedSkuId:'other',matchedName:'Other item',matchedCountUnit:'case'});
+  await reread({click,log});
+  await until(()=>price().getAttribute('aria-label')==='Price per case');
+  await enter(dom,price(),'');await enter(dom,price(),'3.25');
+  inCard(doc,'price-line','Use this cost').click();
+  await until(()=>sentTo(log,'price-line','apply-cost').length===1);await pause();
+  assert.match(sentTo(log,'price-line','apply-cost')[0],/apply-cost \{"expectedSkuId":"demo","expectedCountUnit":"pack","expectedPackageKey":"2\|5LB\|","costPerCountUnit":3\.25\}/);
+  assert.ok(card().textContent.includes(STALE));assert.equal(price().value,'3.25');
+  assert.ok(dom.window.__qaLine('price-line').costHoldReason,'no cost was written for the item it no longer shows');
+  inCard(doc,'price-line','Start over').click();await pause();
+  assert.equal(price().value,'');assert.ok(!card().textContent.includes(STALE));assert.ok(!inCard(doc,'price-line','Start over'));
+  await enter(dom,price(),'3.25');inCard(doc,'price-line','Use this cost').click();
+  await until(()=>!dom.window.__qaLine('price-line').costHoldReason);
+  const sent=sentTo(log,'price-line','apply-cost');
+  assert.equal(sent.length,2);assert.match(sent[1],/"expectedSkuId":"other","expectedCountUnit":"case"/);
+});
+await run('a half-typed price (value empty, badInput) does not restart the one-time price against the refreshed card','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-price-line'),price=()=>card().querySelector('input[type=number][aria-label^="Price per"]');
+  await enter(dom,price(),'3');
+  dom.window.__qaOther('price-line',{matchedSkuId:'other',matchedName:'Other item',matchedCountUnit:'case'});
+  await reread({click,log});
+  await until(()=>price().getAttribute('aria-label')==='Price per case');
+  await enterHalfTyped(dom,price());endHalfTyped(price());await enter(dom,price(),'3e0');
+  inCard(doc,'price-line','Use this cost').click();
+  await until(()=>sentTo(log,'price-line','apply-cost').length===1);await pause();
+  assert.match(sentTo(log,'price-line','apply-cost')[0],/"expectedSkuId":"demo","expectedCountUnit":"pack"/);
+  assert.ok(card().textContent.includes(STALE));assert.equal(price().value,'3e0');
+  assert.ok(dom.window.__qaLine('price-line').costHoldReason);
+});
+// A first "e" in an empty number box leaves the value "" so React never calls onChange; the input event still fires.
+await run('a bad first keystroke in an empty price box pins the card it began on','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-price-line'),price=()=>card().querySelector('input[type=number][aria-label^="Price per"]');
+  assert.ok(!inCard(doc,'price-line','Start over'));
+  await enterHalfTyped(dom,price());                  // empty to empty: no change event, but badInput
+  dom.window.__qaOther('price-line',{matchedSkuId:'other',matchedName:'Other item',matchedCountUnit:'case'});
+  await reread({click,log});
+  await until(()=>price().getAttribute('aria-label')==='Price per case');
+  assert.ok(inCard(doc,'price-line','Start over'),'the box was started before the card changed');
+  endHalfTyped(price());await enter(dom,price(),'3');
+  inCard(doc,'price-line','Use this cost').click();
+  await until(()=>sentTo(log,'price-line','apply-cost').length===1);await pause();
+  assert.match(sentTo(log,'price-line','apply-cost')[0],/"expectedSkuId":"demo","expectedCountUnit":"pack"/);
+  assert.ok(card().textContent.includes(STALE));
+});
+await run('a bad first keystroke in an empty delivery box keeps the box the person\'s and pins the count it began on','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  await enterHalfTyped(dom,input());
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>/Recorded delivery/.test(card().textContent));
+  assert.equal(input().value,'','a box that was being typed in does not turn into the count on file');
+  assert.ok(inCard(doc,'recv-line','Start over'));
+  endHalfTyped(input());await enter(dom,input(),'1');inCard(doc,'recv-line','Save').click();
+  await until(()=>sentTo(log,'recv-line','received').length===1);await pause();
+  assert.match(sentTo(log,'recv-line','received')[0],/\/received \{"receivedQty":1,"expectedReceivedQty":null\}/);
+  assert.ok(card().querySelector('.lq-invd-recvd-err').textContent.includes(STALE));
+  assert.equal(dom.window.__qaLine('recv-line').receivedQty,'2');
+});
+await run('emptying a delivery count and typing it again still sends the count it started from, so the other person\'s count survives','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  await enter(dom,input(),'0');
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>/Recorded delivery/.test(card().textContent));
+  assert.equal(input().value,'0','the typed count stays in the box');
+  await enter(dom,input(),'');await enter(dom,input(),'0');
+  inCard(doc,'recv-line','Save').click();
+  await until(()=>sentTo(log,'recv-line','received').length===1);await pause();
+  assert.match(sentTo(log,'recv-line','received')[0],/\/received \{"receivedQty":0,"expectedReceivedQty":null\}/);
+  assert.ok(card().querySelector('.lq-invd-recvd-err').textContent.includes(STALE));assert.equal(input().value,'0');
+  assert.equal(dom.window.__qaLine('recv-line').receivedQty,'2','the other person\'s count is still on file');
+  // The way out: Cancel, then open it again, and the box shows the count on file.
+  inCard(doc,'recv-line','cancel').click();await pause();
+  inCard(doc,'recv-line','change').click();await pause();
+  assert.equal(input().value,'2');assert.ok(!card().querySelector('.lq-invd-recvd-err'));
+  await enter(dom,input(),'1');inCard(doc,'recv-line','Save').click();
+  await until(()=>dom.window.__qaLine('recv-line').receivedQty==='1');
+  assert.match(sentTo(log,'recv-line','received')[1],/\/received \{"receivedQty":1,"expectedReceivedQty":2\}/);
+});
+await run('a delivery box that a re-read has moved offers Start over, which shows the count on file and answers against it','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  assert.ok(!inCard(doc,'recv-line','Start over'),'nothing typed');
+  await enter(dom,input(),'0');assert.ok(!inCard(doc,'recv-line','Start over'),'typed, nothing moved');
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>inCard(doc,'recv-line','Start over'));
+  assert.equal(input().value,'0','the typed count stays until the person chooses');
+  inCard(doc,'recv-line','Start over').click();await pause();
+  assert.equal(input().value,'2','the box shows the count on file');assert.ok(!inCard(doc,'recv-line','Start over'));
+  await enter(dom,input(),'1');inCard(doc,'recv-line','Save').click();
+  await until(()=>dom.window.__qaLine('recv-line').receivedQty==='1');
+  assert.match(sentTo(log,'recv-line','received')[0],/\/received \{"receivedQty":1,"expectedReceivedQty":2\}/);
+  assert.ok(!doc.body.textContent.includes(STALE));
+});
+await run('a half-typed delivery count ("5e0") does not restart the count against the refreshed card','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  await enter(dom,input(),'5');
+  dom.window.__qaOther('recv-line',{receivedQty:'2'});
+  await reread({click,log});
+  await until(()=>/Recorded delivery/.test(card().textContent));
+  assert.equal(input().value,'5');
+  await enterHalfTyped(dom,input());                 // "5e": value "" and validity.badInput
+  assert.ok(inCard(doc,'recv-line','Save').disabled,'a half-typed number cannot be saved');
+  endHalfTyped(input());await enter(dom,input(),'5e0');
+  inCard(doc,'recv-line','Save').click();
+  await until(()=>sentTo(log,'recv-line','received').length===1);await pause();
+  assert.match(sentTo(log,'recv-line','received')[0],/\/received \{"receivedQty":5,"expectedReceivedQty":null\}/);
+  assert.ok(card().querySelector('.lq-invd-recvd-err').textContent.includes(STALE));assert.equal(input().value,'5e0');
+  assert.equal(dom.window.__qaLine('recv-line').receivedQty,'2','the other person\'s count is still on file');
+});
+for(const [kind,blank] of [['emptied',async(dom,input)=>enter(dom,input,'')],['half-typed (badInput)',async(dom,input)=>enterHalfTyped(dom,input)]])
+await run(`a count on file that is ${kind} as the first edit pins the count it showed`,'refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recorded-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recorded-line','change').click();await pause();
+  assert.equal(input().value,'1','the box shows the count on file');
+  await blank(dom,input());
+  dom.window.__qaOther('recorded-line',{receivedQty:'3'});
+  await reread({click,log});
+  assert.equal(input().value,'','the box still shows what the person left in it');
+  endHalfTyped(input());await enter(dom,input(),'4');
+  inCard(doc,'recorded-line','Save').click();
+  await until(()=>sentTo(log,'recorded-line','received').length===1);await pause();
+  assert.match(sentTo(log,'recorded-line','received')[0],/\/received \{"receivedQty":4,"expectedReceivedQty":1\}/);
+  assert.ok(card().querySelector('.lq-invd-recvd-err').textContent.includes(STALE));
+  assert.equal(dom.window.__qaLine('recorded-line').receivedQty,'3','the other person\'s count is still on file');
+});
+await run('a person\'s own cleared delivery count starts the next answer from what is on file now, not from the cleared one','refresh-edit',async({doc,dom,log})=>{
+  const card=()=>doc.getElementById('inv-line-recorded-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recorded-line','change').click();await pause();
+  await enter(dom,input(),'0');                      // an edit, so the box is pinned to the count it showed (1)
+  inCard(doc,'recorded-line','clear').click();
+  await until(()=>dom.window.__qaLine('recorded-line').receivedQty==null);await pause();
+  await until(()=>inCard(doc,'recorded-line','Came up short?'));
+  inCard(doc,'recorded-line','Came up short?').click();await pause();
+  assert.equal(input().value,'','the cleared draft is gone');
+  await enter(dom,input(),'3');inCard(doc,'recorded-line','Save').click();
+  await until(()=>dom.window.__qaLine('recorded-line').receivedQty==='3');
+  const sent=sentTo(log,'recorded-line','received');
+  assert.equal(sent.length,2);assert.match(sent[0],/"receivedQty":null,"expectedReceivedQty":1\}/);assert.match(sent[1],/"receivedQty":3,"expectedReceivedQty":null\}/);
+  assert.ok(!doc.body.textContent.includes(STALE));
+});
+await run('a person\'s own earlier delivery answer is not a stale card when they change it','refresh-edit',async({doc,dom,click,log})=>{
+  const card=()=>doc.getElementById('inv-line-recv-line'),input=()=>card().querySelector('.lq-invd-recvd input');
+  inCard(doc,'recv-line','Came up short?').click();await pause();
+  await enter(dom,input(),'1');inCard(doc,'recv-line','Save').click();
+  await until(()=>dom.window.__qaLine('recv-line').receivedQty==='1');
+  await until(()=>inCard(doc,'recv-line','change'));await pause();
+  inCard(doc,'recv-line','change').click();await pause();
+  assert.equal(input().value,'1');
+  await enter(dom,input(),'');await enter(dom,input(),'2');
+  inCard(doc,'recv-line','Save').click();
+  await until(()=>dom.window.__qaLine('recv-line').receivedQty==='2');
+  const sent=sentTo(log,'recv-line','received');
+  assert.equal(sent.length,2);assert.match(sent[0],/"expectedReceivedQty":null/);assert.match(sent[1],/\/received \{"receivedQty":2,"expectedReceivedQty":1\}/);
+  assert.ok(!doc.body.textContent.includes(STALE));
 });
 await run('a match search is withdrawn when someone else matches the line, so a stale match cannot be sent','refresh-edit',async({doc,dom,click,log})=>{
   const card=()=>doc.getElementById('inv-line-match-line');
@@ -504,3 +698,4 @@ await run('the invoice list prioritizes questions and honors a completed copy pr
   assert.ok(!rows[2].textContent.includes('Needs your answer'));assert.ok(!rows[2].querySelector('.lq-badge-flagged'));
 });
 console.log(`Invoice UI final: ${passed} cases passed`);
+if(failed.length){console.log(`${failed.length} scenario(s) failed`);process.exitCode=1;}

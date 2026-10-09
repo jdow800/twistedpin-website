@@ -50,10 +50,10 @@ if(['amount','expense','remember-unit','remember-failure','remember-error','stal
   if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode.endsWith('-apply')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
     reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:!mode.endsWith('-apply'),packageKey:'2|5LB|'});
 }
-// Refresh-while-editing (independent review 2026-10-09). One invoice, five lines: a delivery box (no question,
-// so it stays put), a one-time price hold, a package hold, an unmatched line with no Expense button, and an
-// Expense line whose answer re-reads the whole invoice. window.__qaOther changes a line the way another person
-// would; the next re-read hands this tab the new state.
+// Refresh-while-editing (independent review 2026-10-09). One invoice, six lines: a delivery box (no question,
+// so it stays put), one with a count already on file, a one-time price hold, a package hold, an unmatched line
+// with no Expense button, and an Expense line whose answer re-reads the whole invoice. window.__qaOther changes
+// a line the way another person would; the next re-read hands this tab the new state.
 if(mode==='refresh-edit') {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   const matched={...line,lineType:'product',vendorCode:'DEMO-ITEM',needsReview:false,reviewReasons:[],qtyUnits:'1',qtyCases:'1',pack:2,
@@ -67,6 +67,7 @@ if(mode==='refresh-edit') {
     {...matched,id:'expense-line',rawDescription:'Example supplies',vendorCode:'DEMO-SUPPLY',matchedSkuId:null,matchedName:null,
       matchedCountUnit:null,packageKey:null,needsReview:true,reviewReasons:['identity']},
     {...matched,id:'recv-line',rawDescription:'Example delivery item'},
+    {...matched,id:'recorded-line',rawDescription:'Example counted item',receivedQty:'1'},
   ];
 }
 if(mode==='deposit-info'||mode==='mixed-deposit') {

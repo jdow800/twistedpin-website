@@ -231,6 +231,16 @@ invoice server running, set `INVOICE_QA_CHROME` to a Chromium executable and run
 amount-question layouts at 320, 390 and 960px. Screenshots and isolated browser
 profiles stay in ignored `dist/`.
 
+The `refresh-edit` scenarios cover a typed delivery count, one-time price or
+package answer when another answer re-reads the invoice mid-edit: it is sent
+against the state the box was started from, through emptying the box and
+half-typed numbers, and Start over or Cancel is the way back. jsdom cannot make
+a number box report `validity.badInput`, so
+`INVOICE_QA_CHROME=<chromium> node check-invoice-typing-native.mjs` types "5", "e",
+"0" with real key events in headless Chromium at 320 and 390px against the same
+bundle (it serves the bundle itself; no server needed). `INVOICE_QA_ONLY=<regex>` and
+`INVOICE_QA_KEEP_GOING=1` narrow or widen a run of either script.
+
 Liquor voice counts use the same isolated dependencies and a controlled recorder boundary, the way the food suite does:
 
 ```powershell
