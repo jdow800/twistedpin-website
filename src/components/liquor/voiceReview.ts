@@ -53,8 +53,18 @@ export function mergeAdjacentRepeats(items: VoiceExtractItem[]): VoiceExtractIte
     }
     const caseOnly = (x: VoiceExtractItem) => x.cases > 0 && x.units === 0;
     const looseOnly = (x: VoiceExtractItem) => x.cases === 0;
+    const caseAndLoose = (caseOnly(prev) && looseOnly(it)) || (looseOnly(prev) && caseOnly(it));
+    const proved = (x: VoiceExtractItem) => x.quantityKnown !== false && !x.quantityNeedsReview;
+    // Match the API's source-owner boundary. A held component stays separate
+    // so its independently proved neighbor can be applied. A reused source
+    // row must not replace the valid occurrence as a same-unit correction.
+    if (caseAndLoose && (!proved(prev) || !proved(it)) ||
+      prev.quantityReviewReason === "source_already_used" || it.quantityReviewReason === "source_already_used") {
+      out.push(it);
+      continue;
+    }
     const spoken = `${prev.spoken} … ${it.spoken}`;
-    out[out.length - 1] = (caseOnly(prev) && looseOnly(it)) || (looseOnly(prev) && caseOnly(it))
+    out[out.length - 1] = caseAndLoose
       ? { ...it, spoken, cases: prev.cases + it.cases, units: prev.units + it.units, qty: prev.qty + it.qty,
           needsCaseSize: prev.needsCaseSize || it.needsCaseSize,
           ...((prev.quantityNeedsReview || it.quantityNeedsReview) ? { quantityNeedsReview: true } : {}),

@@ -589,5 +589,80 @@ for(const change of ['pick','remove'])await run(`${change} on an earlier row res
   assert.ok(t.button('Add 0 to Well').disabled,'later rows cannot skip the newly restored decision');
 },'equal-prior');
 
+// The API deliberately preserves source-held components and duplicate source
+// questions. Read-back must not merge them again, even at a piece boundary.
+const provedCase = () => ({...item('titos',0),spoken:'Titos, one case',cases:1,qty:12,quantityNeedsReview:false});
+const heldLoose = (units=999) => ({...item('titos',units),spoken:'Titos, unclear loose count',quantityNeedsReview:true});
+for (const reversed of [false,true]) for (const cross of [false,true]) await run(`held mixed component stays separate (${reversed?'case first':'loose first'}, ${cross?'two requests':'same response'})`,async t=>{
+  await t.shelf('Well');
+  const rows=reversed?[provedCase(),heldLoose()]:[heldLoose(),provedCase()];
+  if(cross){
+    await t.start();
+    for(let i=0;i<2;i++){
+      await t.segment(rows[i].cases>0?'Titos, one case.':'Titos, three seventy-eight point nine.',i);
+      assert.equal(t.qa.extracts.length,i+1);
+      t.qa.extracts[i].succeed([rows[i]]);await pause();
+    }
+    await t.stop();await t.finish('two controlled pieces');await until(()=>t.doc.querySelectorAll('.lq-rev').length===2);
+  }else await t.hear(rows);
+  assert.equal(t.doc.querySelectorAll('.lq-rev').length,2);
+  assert.ok(t.button('Add 1 to Well')&&!t.button('Add 1 to Well').disabled);
+  await t.click('Add 1 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&Number(l.qtyUnits)===12));
+  assert.equal(t.doc.querySelectorAll('.lq-rev').length,1);
+  assert.equal(t.doc.querySelector('.lq-rev input[type=number]').value,'');
+  assert.ok(t.button('Add 0 to Well').disabled,'held amount was not saved');
+  assert.equal(t.qa.lines.find(l=>l.skuId==='titos').enteredCases,1);
+});
+for(const reversed of [false,true])await run(`source-already-used question cannot replace the valid count (${reversed?'duplicate first':'duplicate last'})`,async t=>{
+  await t.shelf('Well');const valid={...item('titos',2),quantityNeedsReview:false};
+  const duplicate={...valid,quantityNeedsReview:true,quantityReviewReason:'source_already_used'};
+  await t.hear(reversed?[duplicate,valid]:[valid,duplicate]);
+  assert.equal(t.doc.querySelectorAll('.lq-rev').length,2);
+  await t.click('Add 1 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&Number(l.qtyUnits)===2));
+  assert.equal(t.doc.querySelectorAll('.lq-rev').length,1);
+  assert.equal(t.doc.querySelector('.lq-rev input[type=number]').value,'');
+  assert.ok(t.button('Add 0 to Well').disabled);
+});
+await run('held model history is excluded, then human answers contribute normally',async t=>{
+  await t.shelf('Well');await t.hear([heldLoose(),provedCase()]);
+  assert.equal(t.doc.querySelectorAll('.lq-rev').length,2);
+  assert.doesNotMatch(t.doc.querySelectorAll('.lq-rev')[1].textContent,/far above/);
+  assert.ok(!t.button('Add 1 to Well').disabled);
+  await t.input('.lq-rev input[type=number]','40');
+  assert.match(t.doc.querySelectorAll('.lq-rev')[1].textContent,/52 in all is far above/,'completed human count participates');
+  await t.input('.lq-rev input[type=number]','2');
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/);
+  await t.input('.lq-rev input[type=number]','40');
+  assert.match(t.doc.querySelectorAll('.lq-rev')[1].textContent,/52 in all is far above/);
+  await t.click('Keep 12');
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/);
+  await t.input('.lq-rev input[type=number]','40');
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/,'same answer cannot reopen accepted warning');
+  await t.input('.lq-rev input[type=number]','2');
+  await t.click('Add 2 to Well');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&Number(l.qtyUnits)===14));
+},'history');
+await run('editing another bottle cannot reopen a confirmed history warning',async t=>{
+  await t.shelf('Well');await t.hear([item('jameson',1),item('titos',60)]);
+  await t.click('Keep 60');assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/);
+  await t.input('.lq-rev input[type=number]','2');
+  assert.doesNotMatch(t.doc.querySelector('.lq-sheet').textContent,/far above/);
+  assert.ok(!t.button('Add 2 to Well').disabled);
+},'history');
+await run('proved earlier rows still contribute to a later history warning',async t=>{
+  await t.shelf('Well');await t.hear([{...item('titos',30),quantityNeedsReview:false},item('jameson',1),provedCase()]);
+  assert.match([...t.doc.querySelectorAll('.lq-rev')].at(-1).textContent,/42 in all is far above/);
+  assert.ok(!t.button('Add 2 to Well').disabled);
+},'history');
+await run('saved counts in another shelf still contribute to history',async t=>{
+  await t.shelf('Back Bar');await t.hear([{...item('titos',30),quantityNeedsReview:false}]);
+  await t.click('Add 1 to Back Bar');await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='backbar'&&Number(l.qtyUnits)===30));
+  await t.shelf('Well');await t.hear([provedCase()]);
+  assert.match(t.doc.querySelector('.lq-rev').textContent,/42 in all is far above/);
+  assert.ok(t.button('Add 0 to Well').disabled);
+  await t.click('Keep 12');await t.click('Add 1 to Well');
+  await until(()=>t.qa.lines.some(l=>l.skuId==='titos'&&l.zoneId==='well'&&Number(l.qtyUnits)===12));
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='titos'&&l.zoneId==='backbar').qtyUnits),30);
+},'history');
+
 console.log(`${passed} liquor voice scenarios passed${failed.length ? `, ${failed.length} failed` : ''}`);
 if (failed.length) process.exitCode = 1;

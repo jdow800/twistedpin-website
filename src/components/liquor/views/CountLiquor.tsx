@@ -788,7 +788,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const skuId = r.chosenSkuId;
     if (!skuId) return null;
     const counted = Object.values(countsRef.current).reduce((t, cells) => t + (cells[skuId]?.qty ?? 0), 0);
-    const earlier = rows.slice(0, i).filter((x) => x.chosenSkuId === skuId).reduce((t, x) => t + x.qty, 0);
+    // Held model numbers are not inventory evidence. Keeping those source
+    // questions separate must not make a proved neighbor inherit their
+    // speculative amount as a history warning. Human/source-known answers
+    // still contribute normally after their quantity hold is cleared.
+    const earlier = rows.slice(0, i).filter((x) => x.chosenSkuId === skuId && !x.quantityNeedsReview).reduce((t, x) => t + x.qty, 0);
     const sku = skuById.get(skuId);
     return historyCheck(r.qty, counted + earlier, sku?.countHistory, r.unitsPerCase ?? sku?.unitsPerCase);
   }
@@ -1860,9 +1864,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   item={it}
                   catalog={catalog}
                   onResolve={(res) =>
-                    setReview((r) =>
-                      r &&
-                      r.map((x, i) => {
+                    setReview((r) => {
+                      if (!r) return r;
+                      const next = r.map((x, i) => {
                         if (i !== idx) return x;
                         const ups = x.unitsPerCase ?? 0;
                         // The human has now stated the quantity explicitly, so
@@ -1889,8 +1893,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           // exit was ✕ — which drops the bottle from the count.
                           needsCaseSize: res.cases > 0 ? x.needsCaseSize : false,
                         };
-                      }),
-                    )
+                      });
+                      const before = r[idx], after = next[idx];
+                      const changed = before && after && (before.qty !== after.qty ||
+                        Boolean(before.quantityNeedsReview) !== Boolean(after.quantityNeedsReview));
+                      // The current human answer stays confirmed. Only a
+                      // changed prior amount/source hold can change the
+                      // history total of later rows for this same bottle.
+                      return changed ? next.map((x, i) => i > idx && x.chosenSkuId === after.chosenSkuId
+                        ? { ...x, highCheck: highFor(x, next, i) } : x) : next;
+                    })
                   }
                   onPick={(skuId) =>
                     setReview((r) => {
