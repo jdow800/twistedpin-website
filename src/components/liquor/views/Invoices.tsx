@@ -868,14 +868,28 @@ function sameState(a: unknown, b: unknown): boolean {
   return (a ?? null) === (b ?? null);
 }
 
-/** One plain line for why a package answer did not save. The typed number stays in the box. */
+/** The server's reason for refusing a save ({"error":"unit_changed"}); empty when the body is not that. */
+function refusalCode(err: BarApiError): string {
+  try { const body = JSON.parse(String(err.body ?? "")) as { error?: unknown }; return typeof body.error === "string" ? body.error : ""; }
+  catch { return ""; }
+}
+
+/** One plain line for why a package answer did not save. The typed number stays in the box.
+ *  The server answers most refusals with 409, so the status alone cannot tell "this changed" from "this number is refused". */
 function savePackageFailure(err: unknown): string {
   if (err instanceof NotAuthedError) return "You are signed out. Sign in again; your number is still here.";
   if (err instanceof ForbiddenError) return "This login cannot save package answers. Your number is still here.";
   if (err instanceof BarApiError) {
     if (err.status === 0 || err.status === 408) return "No connection. Your number is still here; try Save again.";
+    // A card drawn against a question that has since changed (line_changed, unit_changed, supplier_item_changed, rule_changed ...) reads the one line every answer control shares.
     if (isStaleAnswer(err)) return STALE_ANSWER_MESSAGE;
-    if (err.status === 409) return "This question changed. Reopen the invoice to see the latest, then save again.";
+    const code = refusalCode(err);
+    const changed = "This question changed. Reopen the invoice to see the latest, then save again.";
+    // The number gives no usable price, or the line has another open question: saving the same number again is refused again.
+    if (code === "check_source_first") return "Not saved. Check the number against the invoice, or answer this line's other question first.";
+    if (code === "use_purchase_record") return "This upload is a repeat copy. Answer it on the purchase record.";
+    if (err.status === 409) return changed;
+    if (err.status >= 500) return "Could not save. Your number is still here; try Save again.";
     return "The server refused this answer. Check the number and try again.";
   }
   return "Could not save. Your number is still here; try Save again.";

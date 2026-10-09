@@ -53,7 +53,11 @@ await run('an excluded supply keeps its dollars without a stock matching prompt'
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
   assert.match(doc.querySelector('.lq-invd-amt').textContent,/50.00/);assert.match(log(),/\/expense/);
 });
-const savedFailure={'remember-failure':/This question changed/,'remember-error':/server refused this answer/,'remember-offline':/No connection/,'remember-signed-out':/You are signed out/,'remember-refused':/server refused this answer/};
+// The route answers most refusals with 409, so the reason comes from the body: a stale code (line_changed / unit_changed, see STALE_ANSWER_CODES) is the shared "changed while you were answering" line.
+// remember-error is a 500 with a different body; it reads the same as remember-server.
+const savedFailure={'remember-failure':/This question changed while you were answering\. Reload to see the latest\. Your number is kept\./,'remember-offline':/No connection/,'remember-signed-out':/You are signed out/,
+  'remember-source':/Not saved\. Check the number against the invoice, or answer this line's other question first\./,'remember-repeat':/repeat copy\. Answer it on the purchase record/,
+  'remember-refused':/server refused this answer/,'remember-server':/Could not save\. Your number is still here/,'remember-error':/Could not save\. Your number is still here/};
 for(const mode of ['remember-unit',...Object.keys(savedFailure)]) await run('saved package answer '+mode,mode,async({doc,button,click,dom,log})=>{
 
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
@@ -66,7 +70,8 @@ for(const mode of ['remember-unit',...Object.keys(savedFailure)]) await run('sav
   await click('Save 2 per case');
   assert.match(log(),/"unitsPerBilledUnit":2/);assert.match(log(),/"expectedPackageKey":"2\|5LB\|"/);
   assert.match(log(),/"expectedRuleFingerprint":null/);
-  if(savedFailure[mode]){assert.match(doc.querySelector('[role=alert]').textContent,savedFailure[mode]);assert.equal(input.value,'2');assert.ok(button('Save 2 per case'));}
+  if(savedFailure[mode]){assert.match(doc.querySelector('[role=alert]').textContent,savedFailure[mode]);assert.equal(input.value,'2');assert.ok(button('Save 2 per case'));
+    if(mode!=='remember-failure')assert.ok(!doc.querySelector('[role=alert]').textContent.includes('This question changed'),'a refusal that is not a change must not say the question changed');}
   else await until(()=>!doc.querySelector('.lq-invd-hold'));
 });
 await run('credit reason precedes totals, links the original and never auto-confirms','credit',async({doc,button,log})=>{
@@ -609,7 +614,9 @@ await run('an incomplete reading asks about source pages instead of assuming a s
   const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
   assert.match(panel.textContent,/Check the invoice reading/);
   assert.match(panel.textContent,/saved lines do not reconcile/);
+  // The server now sends `display` for this question (a short email line plus the whole sentence in `full`): the screen must still carry the caveat and the question.
   assert.match(panel.textContent,/before treating missing rows as a delivery shortage/);
+  assert.match(panel.textContent,/The scan contains a written adjustment\. What does it change on the purchase record\?/);
   assert.ok(button('Mark copies checked'));assert.ok(!log().includes('POST'));
 });
 await run('an automatic deposit credit shows the arithmetic and remains correctable','deposit-auto',async({doc,button,log})=>{

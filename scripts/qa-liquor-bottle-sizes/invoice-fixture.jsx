@@ -42,7 +42,7 @@ if (['failed-empty','retry-protected','failed-no-image'].includes(mode)) {
   detail.lines=[]; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
   if (mode === 'failed-no-image') detail.images=[];
 }
-if(['amount','expense','remember-unit','remember-failure','remember-error','remember-offline','remember-signed-out','remember-refused','stale-remember','stale-apply','superseded-apply','recorded-apply'].includes(mode)) {
+if(['amount','expense','remember-unit','remember-failure','remember-error','remember-offline','remember-signed-out','remember-refused','remember-source','remember-repeat','remember-server','stale-remember','stale-apply','superseded-apply','recorded-apply'].includes(mode)) {
   invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-ITEM',rawDescription:'Example supplies',needsReview:true,
     reviewReasons:['identity'],qtyUnits:'1',qtyCases:'1',pack:2,sizeText:'5LB',unitCost:'50',extendedAmount:'50'});
@@ -130,15 +130,21 @@ if(mode==='linked-auto') {
     rows:[{code:'111',description:'Example spirit',originalLineIds:['original-line'],issues:[],information:['The supplier final already removes this shortage.'],
       expected:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},delivered:{quantity:0,cases:null,amount:'0.00',packages:['6 x 1L']},sourceDelivered:{quantity:2,amount:'40.00'}}]}];
 }
+const LINKED_RECONCILE="The scan's saved lines do not reconcile to its printed total. Check that every page and charge was read before treating missing rows as a delivery shortage.";
+const LINKED_ADJUSTMENT="The scan contains a written adjustment. What does it change on the purchase record?";
 if(mode==='linked-agree' || mode==='linked-question') {
   invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
   detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
     expected:{id:'test-original',source:'email',printedTotal:'180.00'},delivered:{id:'test-invoice',source:'scan',printedTotal:'180.00'},
     reviewHash:'a'.repeat(64),reviewed:false,automaticallyReconciled:mode==='linked-agree',automaticBasis:mode==='linked-agree'?'matching_copies':null,
     ready:true,differenceCount:0,feeDifference:0,reasons:[],readingIncomplete:mode==='linked-question',
-    questions:mode==='linked-question'?["The scan's saved lines do not reconcile to its printed total. Check that every page and charge was read before treating missing rows as a delivery shortage."]:[],
+    questions:mode==='linked-question'?[LINKED_RECONCILE,LINKED_ADJUSTMENT]:[],
     rows:[{code:'DEMO-123',description:'Example freezer item',originalLineIds:['original-line'],issues:[],
-      expected:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']},delivered:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']}}]}];
+      expected:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']},delivered:{quantity:2,cases:2,amount:'180.00',packages:['4 × 5LB']}}],
+    // 2026-10-09: what the server sends for those two questions (tprs copyAsks output, pasted). `text` is the shorter email line; `full` is what this screen must show.
+    ...(mode==='linked-question'?{display:{rowLines:{},asks:[
+      {kind:'difference',physical:false,text:"The scan's saved lines do not reconcile to its printed total.",full:LINKED_RECONCILE},
+      {kind:'difference',physical:true,text:LINKED_ADJUSTMENT,full:LINKED_ADJUSTMENT}]}}:{})}];
 }
 // 2026-10-09: the server now sends `display` (wording built from the compared fields). linked-case-column is the Breakthru keg:
 // both copies bill 1 at $180.00 and only the case column differs. linked-pack-gap is Sysco's tiramisu, whose scan ran pack and size together.
@@ -197,11 +203,15 @@ window.fetch=async(url,options={})=>{
     target.costHoldReason=null;return json({skuId:'demo',costPerCountUnit:body.costPerCountUnit,costWritten:!kept,costNotWrittenBecause:kept});
   }
   if(path.endsWith('/remember-unit')) {
+    // The real route (tprs admin/bar-invoice-answers.ts) answers almost every refusal with 409 and a reason in the body.
     if(mode==='remember-failure')return json({error:'unit_changed'},409);
     if(mode==='remember-error')return json({error:'unavailable'},500);
     if(mode==='stale-remember')return json({error:'rule_changed'},409);
+    if(mode==='remember-source')return json({error:'check_source_first'},409);
+    if(mode==='remember-repeat')return json({error:'use_purchase_record'},409);
     if(mode==='remember-signed-out')return json({error:'unauthorized'},401);
-    if(mode==='remember-refused')return json({error:'check_source_first'},422);
+    if(mode==='remember-refused')return json({error:'Bad Request'},400);
+    if(mode==='remember-server')return json({error:'internal'},500);
     if(mode==='remember-offline')throw new TypeError('Failed to fetch');
     const target=lineFor(path),body=JSON.parse(options.body);
     if(body.expectedSkuId!==target.matchedSkuId||!target.costHoldReason)return json({error:'line_changed'},409);

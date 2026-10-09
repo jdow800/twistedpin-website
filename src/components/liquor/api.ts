@@ -1268,8 +1268,9 @@ export interface InvoiceCopyReview {
   readingIncomplete?: boolean;
   /** Wording built by the server from the compared fields (tprs 2026-10-09). Absent from older servers: show `questions` and `rows[].issues`. */
   display?: {
-    /** One line per open question, naming the item and the field that differs. */
-    asks: { kind: string; text: string; physical: boolean }[];
+    /** One line per open question, naming the item and the field that differs. `full` is the server's own whole sentence(s) for a question
+     *  that is not a compared row; `text` is the shorter email line. The screen shows `full` when it is there. */
+    asks: { kind: string; text: string; physical: boolean; full?: string }[];
     /** Per row (keyed by supplier item): the differing fields, in place of the generic issue sentences. */
     rowLines: Record<string, string[]>;
   };

@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import { BarApiError, rejectInvoicePackageSourceCheck, reviewInvoiceCopy, type InvoiceCopyReview } from "../api";
 
-/** The open questions in the server's wording (item and field named); older servers send only `questions`. */
+/** The open questions in the server's wording (item and field named); older servers send only `questions`.
+ *  A question that is not a compared row arrives whole in `full`, so no caveat or instruction is lost on this screen. */
 const openQuestions = (review: InvoiceCopyReview): string[] =>
-  review.display?.asks?.length ? review.display.asks.map(ask => ask.text) : review.questions ?? review.reasons;
+  review.display?.asks?.length ? review.display.asks.map(ask => ask.full ?? ask.text) : review.questions ?? review.reasons;
 
 export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }: {
   reviews: InvoiceCopyReview[]; currentId: string;
