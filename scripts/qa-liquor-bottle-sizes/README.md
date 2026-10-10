@@ -96,7 +96,7 @@ component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 116 DOM voice scenarios and liquor has 74. The 2026-10-09 food
+Food has 123 DOM voice scenarios and liquor has 74. The 2026-10-09 food
 follow-ups add an out-of-date page (409 `voice_update_required` on a voice
 read, `refresh_required` on a save): the take stops at the first refused piece,
 the footer offers Reload page instead of Retry, Add is off (every save from
@@ -104,6 +104,14 @@ the page would be refused), and a tap reloads the shelf the counter is on
 (JSDOM reports the navigation). They also add Jon's "Ask: add or replace" for a product the
 take's shelf already holds, from an earlier take or an earlier row of the same
 review; every save is intercepted, so the cell is exactly what was chosen.
+The 2026-10-10 history scenarios (`^history`, 7, on `?usual` and
+`?usual-counted`) cover a bare count the server read as pieces (`unitReading`):
+the number and reason shown, Add saving the pieces, "Use 10 cases" then the
+above-history warning and Keep saving 10 cases, an edited number or another
+product dropping the reading (another product asks cases or pieces), the
+warning on a single-reading product ("Beans, three"), the whole-store total
+with Add or Replace, and `countedSoFar` on every voice read (other shelves
+only, products with a ceiling only).
 `FOOD_VOICE_QA_FILTER` runs matching scenarios and `FOOD_VOICE_QA_KEEP_GOING=1`
 reports every failure instead of stopping at the first. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,

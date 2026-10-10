@@ -90,6 +90,16 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
           onRaw={raw => onQuantity(singleCases ? "cases" : "units", raw, true)} /></label>}
       </div>
       {caseBreakdown && <span className="lq-muted lq-rev-hint lq-fc-rev-case-breakdown">{caseBreakdown}</span>}
+      {/* The server read a bare number as pieces because the case reading is
+          more than we have ever had (2026-10-10). Its reason, and one tap back
+          to cases; the history warning then asks before cases are added. */}
+      {r.unitReading && (() => {
+        const n = r.unitReading.n;
+        return <span className="lq-muted lq-rev-hint lq-fc-rev-reading" role="status">{r.unitReading.reason}{" "}
+          <button type="button" className="lq-linkbtn" onClick={() => onEdit({ cases: n, units: 0, spokenUnit: null,
+            unitChoiceConfirmed: true, unitReading: undefined })}>Use {formatQty(n)} {n === 1 ? "case" : "cases"}</button>
+        </span>;
+      })()}
       {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
       {!!r.invalidQuantityFields?.length && <span className="lq-error lq-rev-hint">Use a number of 0 or more.</span>}
       {q.needsCaseSize && <div className="lq-fc-rev-ask"><label>{foodUnitLabel(sku, 2)} per case?

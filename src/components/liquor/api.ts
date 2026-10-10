@@ -103,6 +103,12 @@ export function isFoodPageOutOfDate(e: unknown): boolean {
   }
 }
 
+/** The food quantity rules this page enforces, sent with every food voice
+ *  read and save; TPRS refuses any other version with a 409 (above). 7 =
+ *  bare numbers read from history (2026-10-10): `unitReading`, `countedSoFar`
+ *  and `countHistory.usual`. Bump it with TPRS's check in bar.ts. */
+const FOOD_UNITS_VERSION = 7;
+
 const HX = { "HX-Request": "true" } as const;
 
 async function rawFetch(path: string, init: RequestInit): Promise<Response> {
@@ -199,8 +205,10 @@ export interface BarSkuItem {
   countDefinition?: import("./count-definition").CountDefinition | null;
   /** Approved exact food conversions, bound to the current count definition. */
   foodUnitRatios?: Record<string, FoodUnitRatio>;
-  /** Confirmed observations, used only to ask about an unusually large count. */
-  countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number } | null;
+  /** Confirmed observations, used only to ask about an unusually large count.
+   *  Food also gets `usual` for every product with a history ceiling, even
+   *  with no live row (then the other fields are empty). */
+  countHistory?: { maxCount: number | null; maxDelivery: number | null; deliverySamples: number; days: number; usual?: FoodUsualRange } | null;
   /** Discontinued (tprs 0196): no longer ordered, leftovers still counted.
    *  Listed last on its shelf under "Discontinued, count leftovers", never
    *  flagged missing; "None left" archives it. Optional so older cached
@@ -460,7 +468,7 @@ export async function saveCountLines(
 ): Promise<{ linesHash?: string }> {
   try {
     return await gatedJson<{ linesHash?: string }>(`/admin/bar/counts/${sessionId}/lines`, {
-      ...jsonBody({ lines, isFullCount, section, ...(section === "food" ? { foodUnitsVersion: 6 } : {}), ...(baseHash ? { baseHash } : {}) }), method: "PUT",
+      ...jsonBody({ lines, isFullCount, section, ...(section === "food" ? { foodUnitsVersion: FOOD_UNITS_VERSION } : {}), ...(baseHash ? { baseHash } : {}) }), method: "PUT",
     });
   } catch (e) {
     if (e instanceof BarApiError && e.status === 409) {
@@ -740,6 +748,39 @@ export class ChangedSinceCheckError extends Error {
   }
 }
 
+/** Food: the most this store has plausibly ever had of a product on hand
+ *  (Jon 2026-10-10, "some sort of historical basis"), from the Opsi counts
+ *  and orders plus submitted counts and confirmed deliveries. `ceiling` is in
+ *  the product's count units; the rest are cases, for the words on screen.
+ *  Tier 1 = counted (most on hand + biggest delivery); tier 2 = bought often
+ *  but rarely counted (most on hand or most bought in 28 days, + biggest
+ *  delivery). The server reads bare numbers with it; the review warns above it. */
+export interface FoodUsualRange {
+  ceiling: number;
+  tier: 1 | 2;
+  onHandMedianCases: number | null;
+  onHandMaxCases: number | null;
+  maxDeliveryCases: number | null;
+  maxBought28Cases: number | null;
+  through: string;
+}
+
+/** Food: the server read a bare whole number as pieces because the case
+ *  reading is more than this store has ever had (Jon 2026-10-10: "10 cookies
+ *  is never 10 cases of cookies"). Sent only for that auto-reading; the row
+ *  then carries spokenUnit = noun, units = n, cases = 0. `reason` is a plain
+ *  sentence composed by the server; the review shows it with "Use n cases". */
+export interface FoodUnitReading {
+  reading: "pieces";
+  n: number;
+  noun: string;
+  pieceFactor: number;
+  caseSize: number;
+  casesTotal: number;
+  ceiling: number;
+  reason: string;
+}
+
 // ── run-on voice extraction (browser transcribes → server maps to catalog) ──
 export interface VoiceMatch {
   id: string;
@@ -780,6 +821,8 @@ export interface VoiceExtractItem {
   spokenUnit?: string | null;
   quantityKnown?: boolean;
   unitNeedsReview?: boolean;
+  /** Food: a bare number the server read as pieces from history. */
+  unitReading?: FoodUnitReading;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE
@@ -880,11 +923,18 @@ export async function transcribeAudio(
 export async function extractVoice(
   transcript: string,
   section: Section = "bar",
+  /** Food: this count's totals per product on the OTHER shelves, in count
+   *  units, so a bare number is read against the whole store (2026-10-10).
+   *  Omitted when empty; never sent for the bar. */
+  countedSoFar?: Record<string, number>,
 ): Promise<VoiceExtractItem[]> {
   try {
     const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
       "/admin/bar/voice-extract",
-      jsonBody({ transcript, section, ...(section === "food" ? { foodUnitsVersion: 6 } : {}) }),
+      jsonBody({ transcript, section, ...(section === "food" ? {
+        foodUnitsVersion: FOOD_UNITS_VERSION,
+        ...(countedSoFar && Object.keys(countedSoFar).length ? { countedSoFar } : {}),
+      } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );

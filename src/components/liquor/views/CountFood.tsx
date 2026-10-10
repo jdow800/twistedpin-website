@@ -38,7 +38,7 @@ import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
 import CountEntryChoice from "../CountEntryChoice";
-import { foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCaseSize, foodCountWarning, foodCountedSoFar, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, foodUsualRange, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty } from "../quantity";
 import { foodCanonicalQty, foodLooseQty, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty as roundQty, replaceFoodLoose, singleFoodLoose, foodPhysicalUnit, storedFoodQuantity, foodQuantityBasis, sameFoodQuantityBasis, type FoodQuantity } from "../food-quantity";
@@ -796,8 +796,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // out of order. Resolve failures here so a background rejection is handled
   // immediately, then report any missing part when the review opens.
   const segExtractsRef = useRef<Map<number, Promise<VoiceSegmentResult>>>(new Map());
+  /** What this count already holds on the OTHER shelves, so the server reads
+   *  a bare number against the whole store's total (2026-10-10). Read from
+   *  refs at request time: the carry keeps the first render's extractPiece. */
+  const countedSoFar = () => {
+    const withCeiling = new Set(catalogRef.current.filter(s => foodUsualRange(s)).map(s => s.id));
+    return foodCountedSoFar(countsRef.current, reviewZoneRef.current, id => withCeiling.has(id));
+  };
   const extractPiece = (text: string, index: number) => {
-    segExtractsRef.current.set(index, extractVoice(text, "food")
+    segExtractsRef.current.set(index, extractVoice(text, "food", countedSoFar())
       .then((items) => ({ items, error: null }))
       .catch((error) => {
         // An out-of-date page: say so while the counter is still talking,
@@ -970,7 +977,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setVoiceErr(null);
     setRetryTranscript(null);
     try {
-      const items = await extractVoice(transcript, "food");
+      const items = await extractVoice(transcript, "food", countedSoFar());
       if (items.length) setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
       else {
         setVoiceErr("Didn't catch any items — try again, or type them in.");
@@ -1011,6 +1018,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       spokenUnit: it.spokenUnit ?? null,
       quantityKnown: !it.quantityNeedsReview && !it.quantityReviewReason && (it.quantityKnown ?? true),
       unitNeedsReview: it.unitNeedsReview ?? false,
+      // A bare number read as pieces from history (2026-10-10), with its reason.
+      ...(it.unitReading ? { unitReading: it.unitReading } : {}),
     }));
   }
 
@@ -1090,8 +1099,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         || patch.cases !== undefined || patch.units !== undefined;
       const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && quantityShapeChanged && patch.unconfirmedQuantityFields === undefined;
       return { ...x, largeCountConfirmed: undefined,
-        // A different product or amount asks add-or-replace again.
-        ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined } : {}),
+        // A different product or amount asks add-or-replace again, and the
+        // server's history reading no longer describes the row.
+        ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined, unitReading: undefined } : {}),
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
   }
@@ -1118,9 +1128,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const explicitCases = !r.spokenUnit && r.units === 0 && /\bcases?\b/i.test(`${r.quantityWords ?? ""} ${r.spoken}`);
     const basisChanged = !!before && before.id !== id && !r.spokenUnit && !explicitCases
       && foodImplicitUnit(before) !== foodImplicitUnit(after);
+    // A history reading was made for the product it was read for (2026-10-10).
+    // On another product the bare number has two readings again, so the row
+    // asks "N cases / N pieces", as the server asks when both are plausible.
+    const reading = r.unitReading;
     editReview(r, { chosenSkuId: id, identityNeedsReview: false, unitMultiplier: undefined, unitChoiceConfirmed: false, search: "",
-      ...(basisChanged ? { cases: 0, units: 0, quantityKnown: false, quantityNeedsReview: true,
-        unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}) });
+      ...(reading ? { cases: 0, units: reading.n, spokenUnit: null, unitNeedsReview: true, unitReading: undefined }
+        : basisChanged ? { cases: 0, units: 0, quantityKnown: false, quantityNeedsReview: true,
+          unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}) });
   }
 
   function applyReview() {

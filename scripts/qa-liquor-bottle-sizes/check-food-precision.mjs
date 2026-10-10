@@ -28,10 +28,10 @@ async function mount({lines=[],changedFactor=false,changedBasis=false,findings=[
  if(doc.querySelector('.lq-count-entry'))await click('Continue count');await until(()=>doc.querySelector('.lq-fc-zonehead'));
  const qa=w.foodQa,saves=()=>qa.calls.filter(c=>c.path.endsWith('/lines'));
  const input=async(label,value)=>{const e=[...doc.querySelectorAll('input')].find(e=>e.getAttribute('aria-label')===label);assert.ok(e,'Missing '+label);assert.ok(!e.disabled);e.focus();Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new w.Event('input',{bubbles:true}));e.dispatchEvent(new w.Event('change',{bubbles:true}));e.blur();await pause();};
- const hear=async entries=>{await click(/Talk through/);qa.recorder.segment(entries.map(e=>e.spoken).join('. '),0);await pause();assert.equal(qa.extracts.at(-1).body.foodUnitsVersion,6);qa.extracts.at(-1).succeed(entries);await pause();await click(/Stop & review/);qa.recorder.finish('synthetic food precision');await until(()=>doc.querySelectorAll('.lq-fc-voice-review-row').length===entries.length);};
+ const hear=async entries=>{await click(/Talk through/);qa.recorder.segment(entries.map(e=>e.spoken).join('. '),0);await pause();assert.equal(qa.extracts.at(-1).body.foodUnitsVersion,7);qa.extracts.at(-1).succeed(entries);await pause();await click(/Stop & review/);qa.recorder.finish('synthetic food precision');await until(()=>doc.querySelectorAll('.lq-fc-voice-review-row').length===entries.length);};
  // Jon, 2026-10-09: "Ask: add or replace." A product the shelf already holds asks first.
  const restate=async choice=>{const b=[...doc.querySelectorAll('.lq-fc-rev-restate button')].find(b=>b.textContent.trim().startsWith(choice+':'));assert.ok(b,'No add-or-replace '+choice);b.click();await pause();};
- const save=async()=>{await pause(950);await until(()=>saves().length);assert.equal(saves().at(-1).body.foodUnitsVersion,6);return saves().at(-1).body.lines[0];};
+ const save=async()=>{await pause(950);await until(()=>saves().length);assert.equal(saves().at(-1).body.foodUnitsVersion,7);return saves().at(-1).body.lines[0];};
  return {doc,qa,button,click,input,hear,restate,save,close:()=>w.close()};
 }
 let passed=0;

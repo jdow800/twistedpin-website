@@ -106,6 +106,24 @@ if (params.has('definitions')) {
   if (params.has('dimension-flatbread')) catalog.find(s=>s.id==='flatbread').name='Flatbread, 4.5"x12"';
   for(const zone of zones) zone.memberSkuIds=catalog.map(s=>s.id);
 }
+// History ceilings (2026-10-10): `countHistory.usual` is the most this store
+// has plausibly had on hand, in count units. Real names, shapes and ceilings
+// from the design table (cookies tier 2: 8 cases; beans tier 1: 2.2 cases),
+// fictional ids. ?usual-counted adds this count's earlier shelves.
+if (params.has('usual') || params.has('usual-counted')) {
+  const answer = (countUnit, unitsPerCase, extra) => ({countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-10-10', ...extra});
+  const history = usual => ({maxCount:null, maxDelivery:null, deliverySamples:0, days:90, usual:{through:'2026-08-30', ...usual}});
+  catalog.push(
+    {id:'cookies', name:'Chocolate-Chip Cookies, Individually Wrapped, 1 oz', countUnit:'each', unitsPerCase:144,
+      countDefinition:answer('each',144,{unitLabel:'cookie',defaultSpokenUnit:'case',spokenUnits:{case:144,cookie:1}}),
+      countHistory:history({ceiling:1152,tier:2,onHandMedianCases:1,onHandMaxCases:1.3,maxDeliveryCases:3,maxBought28Cases:5})},
+    {id:'beans', name:'Beans, Refried, Vegetarian', countUnit:'pack', unitsPerCase:6,
+      countDefinition:answer('pack',6,{unitLabel:'bag',defaultSpokenUnit:'case',spokenUnits:{case:6,bag:1}}),
+      countHistory:history({ceiling:13.2,tier:1,onHandMedianCases:0.8,onHandMaxCases:1.2,maxDeliveryCases:1,maxBought28Cases:3})},
+  );
+  for (const s of catalog.slice(-2)) Object.assign(s, {category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null});
+  for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
+}
 // Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.
 if (params.has('discontinued')) {
   catalog.push(
@@ -133,7 +151,10 @@ const unplaced = params.has('walk') ? [
 const unplacedMore = params.has('many') ? [
   {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
 ] : [];
-const initialLines = fixtureOverride?.lines ?? (params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
+const usualLine = (skuId, zoneId, qtyUnits) => ({skuId, zoneId, qtyUnits, source:'grid', enteredCases:null, caseSizeAtEntry:null});
+const initialLines = fixtureOverride?.lines ?? (params.has('usual-counted') ? [
+    usualLine('cookies','cooler','144'), usualLine('beans','freezer','6'), usualLine('beans','cooler','3'), usualLine('dough','cooler','2')]
+  : params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
   : params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : []);

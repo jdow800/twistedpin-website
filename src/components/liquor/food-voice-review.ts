@@ -1,4 +1,4 @@
-import type { BarSkuItem, VoiceMatch } from "./api";
+import type { BarSkuItem, FoodUnitReading, FoodUsualRange, VoiceMatch } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
 import { foodPhysicalUnit, preciseFoodQty } from "./food-quantity";
@@ -32,6 +32,63 @@ export interface FoodReviewItem {
    *  the N it answered. A different N asks again. */
   restateAnswer?: "add" | "replace";
   restateBefore?: number;
+  /** The server read this bare number as pieces from history (2026-10-10).
+   *  Shown with its reason and "Use N cases"; cleared by any human change to
+   *  the product, unit or number, since it no longer describes the row. */
+  unitReading?: FoodUnitReading;
+}
+
+/** This count's totals per product on every shelf except the take's, in
+ *  count units: the `countedSoFar` a food voice read is judged against
+ *  (2026-10-10). The take's own shelf is left out; its add-or-replace
+ *  question is not answered yet, and leaving it out keeps the server's
+ *  switch to pieces conservative. Only products with a history ceiling are
+ *  sent, since only those use it, which also keeps the request small. */
+export function foodCountedSoFar(
+  counts: Readonly<Record<string, Readonly<Record<string, { qty: number }>>>>, takeZoneId: string,
+  hasCeiling: (skuId: string) => boolean,
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [zoneId, cells] of Object.entries(counts)) {
+    if (zoneId === takeZoneId) continue;
+    for (const [skuId, cell] of Object.entries(cells)) {
+      if (!hasCeiling(skuId) || !Number.isFinite(cell.qty) || cell.qty <= 0) continue;
+      out[skuId] = preciseFoodQty((out[skuId] ?? 0) + cell.qty);
+    }
+  }
+  return out;
+}
+
+/** A usable history ceiling, or null (no ceiling: today's behavior). */
+export function foodUsualRange(sku: BarSkuItem | undefined): FoodUsualRange | null {
+  const usual = sku?.countHistory?.usual;
+  return usual && Number.isFinite(usual.ceiling) && usual.ceiling > 0 ? usual : null;
+}
+
+/** Whole cases, or tenths under half a case: "about 1 case", "2 to 4 cases". */
+function roundCases(n: number): number {
+  return n >= 0.5 ? Math.round(n) : Math.round(n * 10) / 10;
+}
+function casesWords(n: number): string {
+  return `${formatQty(n)} ${n === 1 ? "case" : "cases"}`;
+}
+
+/** "usually 1 to 4 cases; biggest delivery 3 cases", from the ceiling's own
+ *  evidence. A tier-2 product (bought often, rarely counted) also says what
+ *  was bought in 4 weeks, which is what its ceiling rests on. */
+function usualEvidence(usual: FoodUsualRange): string {
+  const parts: string[] = [];
+  const valid = (n: number | null): n is number => n != null && Number.isFinite(n) && n >= 0;
+  const onHand = valid(usual.onHandMedianCases) && valid(usual.onHandMaxCases);
+  if (onHand) {
+    const lo = roundCases(usual.onHandMedianCases!), hi = roundCases(usual.onHandMaxCases!);
+    parts.push(lo >= hi ? `usually about ${casesWords(hi)}` : `usually ${formatQty(lo)} to ${casesWords(hi)}`);
+  }
+  if ((usual.tier === 2 || !onHand) && valid(usual.maxBought28Cases)) {
+    parts.push(`never more than ${casesWords(roundCases(usual.maxBought28Cases))} bought in 4 weeks`);
+  }
+  if (valid(usual.maxDeliveryCases)) parts.push(`biggest delivery ${casesWords(roundCases(usual.maxDeliveryCases))}`);
+  return parts.join("; ");
 }
 
 /**
@@ -182,6 +239,16 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
   if (usualMaxCases != null && q.caseSize != null && q.caseSize > 0
     && (q.qty + existingQty) / q.caseSize > usualMaxCases) {
     return `${totalText} total exceeds the usual ${formatQty(usualMaxCases)} cases. Check the unit; keep if correct.`;
+  }
+  // Above the history ceiling, on every product (Jon 2026-10-10: also the
+  // single-reading ones, "Beans, three"). The total is the whole store's, so
+  // it re-checks after every edit with the same ceiling the server read with.
+  const usual = foodUsualRange(sku);
+  const total = preciseFoodQty(q.qty + existingQty);
+  if (usual && total > usual.ceiling + 1e-9) {
+    const inCases = q.caseSize != null && q.caseSize > 1 ? ` (${casesWords(preciseFoodQty(total / q.caseSize))})` : "";
+    const evidence = usualEvidence(usual);
+    return `${totalText}${inCases} is more than we've ever had on hand${evidence ? ` (${evidence})` : ""}. Check the unit.`;
   }
   if (usualMaxCases == null && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
     const historyText = (n: number) => formatQty(n);

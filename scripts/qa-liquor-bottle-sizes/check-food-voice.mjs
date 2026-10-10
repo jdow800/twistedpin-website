@@ -110,7 +110,7 @@ await run('extraction starts during recording; review and save wait for Stop and
   await t.segment('two dough',0);
   assert.equal(t.qa.extracts.length,1,'matching must begin before Stop');
   assert.equal(t.qa.extracts[0].body.section,'food');
-  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,6);
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,7);
   assert.equal(t.qa.recorder.options.scope.section,'food');
   assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
   assert.equal(t.qa.recorder.options.pauseCuts,false,'?pausecuts=0 is the clock fallback');
@@ -1302,6 +1302,130 @@ await run('the question is per shelf: the same product on another shelf is not a
   await t.click(/^Add 1 item to Kitchen Cooler$/); await until(() => t.saved().length>0);
   assert.deepEqual(puts(t),[{'freezer:dough':1,'cooler:dough':2}]);
 },'existing');
+
+// Jon, 2026-10-10: "10 cookies is never 10 cases of cookies as we never house
+// that many." TPRS reads a bare number against the most this store has had
+// (countHistory.usual, ?usual) and, when only pieces fit, sends `unitReading`:
+// the row shows the number it read, the server's reason and one tap back to
+// cases. Jon also ruled a warning above history on single-reading products.
+const cookieName = 'Chocolate-Chip Cookies, Individually Wrapped, 1 oz';
+const beansName = 'Beans, Refried, Vegetarian';
+const cookies = (n, extra = {}) => ({spoken:`${n} cookies`, cases:0, units:n, qty:n, unitsPerCase:144, needsCaseSize:false,
+  suspectPreMultiplied:false, match:{id:'cookies',name:cookieName,sizeMl:null,unitsPerCase:144}, candidates:[],
+  spokenUnit:'cookie', quantityKnown:true, unitNeedsReview:false,
+  unitReading:{reading:'pieces', n, noun:'cookie', pieceFactor:1, caseSize:144, casesTotal:n*144, ceiling:1152,
+    reason:`Read as ${n} cookies. ${n} cases would be ${(n*144).toLocaleString('en-US')}; we usually have about 1 case and have never bought more than 5 in 4 weeks.`},
+  ...extra});
+// "Beans, two": a bare number on a product with no piece noun is cases.
+const beans = (n, extra = {}) => ({spoken:`Beans, ${n}`, cases:0, units:n, qty:n*6, unitsPerCase:6, needsCaseSize:false,
+  suspectPreMultiplied:false, match:{id:'beans',name:beansName,sizeMl:null,unitsPerCase:6}, candidates:[],
+  spokenUnit:null, quantityKnown:true, unitNeedsReview:false, ...extra});
+const valueOf = (t, label) => [...t.doc.querySelectorAll('input')].find(el => el.getAttribute('aria-label') === label)?.value;
+const reasonOf = t => t.doc.querySelector('.lq-fc-rev-reading')?.textContent ?? null;
+const sent = body => Object.fromEntries(Object.entries(body.countedSoFar ?? {}));
+const aboveHistory = /more than we've ever had on hand/;
+
+await run('history: a bare count read as pieces shows the number and the reason, and Add saves the pieces',async t => {
+  await t.hear([cookies(10)]);
+  assert.equal(t.qa.extracts[0].body.countedSoFar,undefined,'nothing counted elsewhere, nothing sent');
+  assert.equal(valueOf(t,`Loose quantity for ${cookieName}`),'10');
+  assert.match(reasonOf(t),/^Read as 10 cookies\. 10 cases would be 1,440; we usually have about 1 case and have never bought more than 5 in 4 weeks\. Use 10 cases$/);
+  assert.doesNotMatch(t.doc.body.textContent,/Which unit\?/,'no tap is needed');
+  assert.ok(!t.button('Keep as entered'),'10 cookies is not a warning');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:cookies':10}]);
+  assert.equal(t.qa.lines[0].enteredCases,undefined);
+},'usual');
+
+await run('history: Use 10 cases saves 10 cases once the above-history warning is kept',async t => {
+  await t.hear([cookies(10)]);
+  await t.click('Use 10 cases');
+  assert.equal(reasonOf(t),null,'the reason goes with the reading');
+  assert.equal(valueOf(t,`Cases for ${cookieName}`),'10');
+  assert.match(t.doc.body.textContent,/1440 cookies \(10 cases\) is more than we've ever had on hand \(usually about 1 case; never more than 5 cases bought in 4 weeks; biggest delivery 3 cases\)\. Check the unit\./);
+  assert.ok(t.button('Use 10 cookies'),'the way back to pieces stays one tap');
+  assert.ok(t.button(/^Add 0 items to Pizza Freezer$/).disabled,'cases wait for Keep');
+  await t.click('Keep as entered');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:cookies':1440}]);
+  assert.equal(Number(t.qa.lines[0].enteredCases),10);
+  assert.equal(Number(t.qa.lines[0].caseSizeAtEntry),144);
+},'usual');
+
+await run('history: typing another number drops the reading',async t => {
+  await t.hear([cookies(10)]);
+  assert.match(reasonOf(t),/^Read as 10 cookies\./);
+  await t.input(`Loose quantity for ${cookieName}`,'12');
+  assert.equal(reasonOf(t),null);
+  assert.ok(!t.button('Use 10 cases'),'"Use 10 cases" would no longer match the row');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:cookies':12}]);
+},'usual');
+
+await run('history: choosing another product clears the reading and asks cases or pieces',async t => {
+  await t.hear([cookies(10)]);
+  const row = () => t.doc.querySelector('.lq-fc-voice-review-row');
+  const inRow = text => [...row().querySelectorAll('button')].find(b => b.textContent.trim()===text);
+  row().querySelector(`[aria-label="Change product: ${cookieName}"]`).click(); await pause();
+  await t.input('Find product for 10 cookies','Giant');
+  inRow('Giant Pretzel').click(); await pause();
+  assert.equal(reasonOf(t),null,'the reading was made for cookies');
+  assert.match(row().textContent,/Which unit\?/);
+  assert.ok(inRow('10 cases') && inRow('10 packs'));
+  assert.ok(t.button(/^Add 0 items to Pizza Freezer$/).disabled);
+  inRow('10 packs').click(); await pause();
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:pretzel':10}]);
+},'usual');
+
+await run('history: a single-reading product above its ceiling says Check the unit; Keep adds it',async t => {
+  await t.hear([beans(2)]);
+  assert.doesNotMatch(t.doc.body.textContent,aboveHistory,'2 cases is 12 bags, within 13.2');
+  // The warning re-checks after an edit.
+  await t.input(`Cases for ${beansName}`,'3');
+  assert.match(t.doc.body.textContent,/18 bags \(3 cases\) is more than we've ever had on hand \(usually about 1 case; biggest delivery 1 case\)\. Check the unit\./);
+  assert.ok(t.button(/^Add 0 items to Pizza Freezer$/).disabled);
+  await t.click('Keep as entered');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:beans':18}]);
+},'usual');
+
+await run('history: the ceiling is the whole store\'s; other shelves count and a replaced shelf does not',async t => {
+  // ?usual-counted: beans 6 on this shelf and 3 on the cooler.
+  await t.hear([beans(1,{spoken:'Beans, one'})]);
+  await t.click('Add: 12 bags total');
+  assert.match(t.doc.body.textContent,/15 bags \(2\.5 cases\) is more than we've ever had on hand/);
+  await t.click('Change');
+  await t.click('Replace: 6 bags');
+  assert.doesNotMatch(t.doc.body.textContent,aboveHistory,'3 on the cooler + 6 here is 9');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t).at(-1),{'freezer:beans':6,'cooler:cookies':144,'cooler:beans':3,'cooler:dough':2});
+},'usual-counted');
+
+await run('history: every voice read sends the other shelves\' totals, in count units, for products with a ceiling',async t => {
+  // ?usual-counted: cookies 144, beans 3 and dough 2 (no ceiling) on the cooler; beans 6 here.
+  await t.start(); await t.segment('two dough',0);
+  assert.equal(t.qa.recorder.options.scope.zoneId,'freezer');
+  assert.equal(t.qa.extracts[0].body.foodUnitsVersion,7);
+  assert.deepEqual(sent(t.qa.extracts[0].body),{cookies:144,beans:3},'this shelf and dough are left out');
+  t.qa.extracts[0].succeed([]); await pause();
+  await t.stop(); await t.finish('two dough');
+  // The whole-transcript (Web Speech) path sends it too.
+  await t.start(); await t.stop(); await t.finish('three dough');
+  assert.equal(t.qa.extracts.length,2);
+  assert.deepEqual(sent(t.qa.extracts[1].body),{cookies:144,beans:3});
+  t.qa.extracts[1].succeed([item('dough',3)]);
+  await until(() => t.review().length===1);
+  await t.apply(); await until(() => t.saved().length>0);
+  // From the cooler, the freezer is the other shelf.
+  const location = t.doc.querySelector('select.lq-fc-location-select');
+  location.value = 'cooler'; location.dispatchEvent(new t.doc.defaultView.Event('change',{bubbles:true})); await pause();
+  const go = t.doc.querySelector('.lq-fc-sheet-go'); if (go) { go.click(); await pause(); }
+  await until(() => t.button(/Talk through Kitchen Cooler/));
+  await t.start(); await t.segment('one dough',0);
+  assert.equal(t.qa.extracts.length,3);
+  assert.deepEqual(sent(t.qa.extracts[2].body),{beans:6});
+},'usual-counted');
 
 if (failed.length) { console.log(`${failed.length} food voice UI scenarios FAILED: ${failed.join(' | ')}`); process.exitCode = 1; }
 console.log(`${passed} food voice UI scenarios passed including compact raw counts, case breakdowns, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);
