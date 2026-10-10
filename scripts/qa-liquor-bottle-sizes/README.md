@@ -96,25 +96,28 @@ component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 114 DOM voice scenarios and liquor has 74. The 2026-10-09 food
+Food has 116 DOM voice scenarios and liquor has 74. The 2026-10-09 food
 follow-ups add an out-of-date page (409 `voice_update_required` on a voice
 read, `refresh_required` on a save): the take stops at the first refused piece,
-the footer offers Reload page instead of Retry, and a tap reloads (JSDOM reports
-the navigation). They also add Jon's "Ask: add or replace" for a product the
+the footer offers Reload page instead of Retry, Add is off (every save from
+the page would be refused), and a tap reloads the shelf the counter is on
+(JSDOM reports the navigation). They also add Jon's "Ask: add or replace" for a product the
 take's shelf already holds, from an earlier take or an earlier row of the same
 review; every save is intercepted, so the cell is exactly what was chosen.
 `FOOD_VOICE_QA_FILTER` runs matching scenarios and `FOOD_VOICE_QA_KEEP_GOING=1`
 reports every failure instead of stopping at the first. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,
 with pause cuts enabled or disabled. Repeated quantities retain both speech
-sources. The 41 carry checks cover known/inferred gaps, out-of-order consecutive
+sources. The 44 carry checks cover known/inferred gaps, out-of-order consecutive
 failures, successful empty clips and quantity-first punctuation. The food carry
 checks replay all 26 real food takes (10/3 to 10/7, with the tracked
 `food-catalog-carry.fixture.json` names) and the 10/9 review's split repairs:
 a correction stays with the item it corrects, a number never moves onto an item
 that already has one, an "and"-led item goes with the item before it,
-count-first commas ("Two cases, sausage.") and sizes inside names ("Two ounce
-patties"). Liquor's carry checks are unchanged. Four actual
+count-first commas ("Two cases, sausage.") but never a case-and-loose
+remainder off a name-first item ("Ketchup, one case. Two bottles, yellow
+mustard, three bottles."), a bare cue ("No wait,") kept with its new count, an
+"and" chain past the held limit, and sizes inside names ("Two ounce patties"). Liquor's carry checks are unchanged. Four actual
 hook generation checks cover late success/failure/onstop and old track events
 after a new take, while keeping the original shelf/take metadata. Four recovery,
 18 native lifecycle, nine interval and three pause-cut checks preserve existing

@@ -1135,7 +1135,7 @@ await run('an out-of-date page stops the take at its first refused piece and off
   assert.equal(t.dom.window.localStorage.getItem('cogs:zone:food-trial'),'freezer','the reload reopens this shelf');
 });
 
-await run('pause cuts: on an out-of-date page, items read before the refusal stay for Add and the footer says what must be entered again',async t => {
+await run('pause cuts: on an out-of-date page, items read before the refusal are listed but not added, and the footer says what must be entered again',async t => {
   await t.start();
   await t.segment('Two dough. Three pretzels.',0);
   assert.equal(t.qa.extracts.length,1);
@@ -1148,14 +1148,57 @@ await run('pause cuts: on an out-of-date page, items read before the refusal sta
   // Stop sends the held last item; it is refused too.
   t.qa.extracts.at(-1).outdated();
   await until(() => t.review().length===1);
-  assert.match(t.doc.body.textContent,/Part of the recording couldn't be read on this out-of-date page/);
-  assert.match(updateText(t),/Heard items not added yet, and numbers typed since the last save, will need to be entered again/);
+  // 2026-10-09 client review (S2): every save from this page is refused (one
+  // foodUnitsVersion check for voice and saves), so Add would put rows in the
+  // grid only for the reload to drop them, after "count the rest" had told
+  // the counter not to say them again. Add is off; the whole shelf is redone.
+  assert.match(t.doc.body.textContent,/Part of the recording couldn't be read on this out-of-date page, and nothing heard can be added here\. Reload, then count this shelf again\./);
+  assert.doesNotMatch(t.doc.body.textContent,/count the rest/);
+  assert.match(updateText(t),/Heard items, and anything added or typed since the last save, will need to be entered again/);
   assert.ok(t.button('Reload the page to record').disabled);
   assert.ok(!t.button('Retry reading this transcript'));
-  // Adding is still allowed: if the save is accepted the rows are kept.
-  await t.apply(); await until(() => t.saved().length>0);
-  assert.deepEqual(puts(t).at(-1),{'freezer:dough':2});
+  assert.ok(!t.button(/^Add \d+ items? to /),'no Add on the out-of-date page');
+  const add = t.button('Reload, then count these again');
+  assert.ok(add && add.disabled);
+  add.click(); await pause();
+  assert.equal(t.saved().length,0,'nothing is added for a save that can only be refused');
+  assert.equal(t.review().length,1,'the heard row stays listed');
+  await t.click('Reload page');
+  assert.equal(t.navigations.length,1);
 },false,true);
+
+// Same review (S1): the page goes out of date after a take is read, so the
+// first sign is the save Add makes. The added rows are then unsaved and the
+// reload drops them; the footer must say so, not only "heard items not added".
+await run('an Add refused as out of date says added items need entering again',async t => {
+  await t.hear([item('dough',2)]);
+  t.qa.saveOutdated = true;
+  await t.apply();
+  await until(() => updateText(t));
+  assert.match(updateText(t),/Heard items, and anything added or typed since the last save, will need to be entered again/);
+  assert.match(footerText(t),/Not saved yet\./);
+  assert.equal(t.saved().length,1,'the one save was tried and refused');
+});
+
+// Same review (S3): Reload remembered the last take's shelf (takeZoneId
+// outlives the take), so after walking on, Continue count reopened the earlier
+// shelf, the wrong-shelf hazard resume-zone.ts exists to prevent.
+await run('Reload page reopens the shelf the counter is on, not the last take\'s shelf',async t => {
+  await t.hear([item('dough',2)]);
+  await t.apply(); await until(() => t.saved().length>0);
+  const location = t.doc.querySelector('select.lq-fc-location-select');
+  location.value = 'cooler'; location.dispatchEvent(new t.doc.defaultView.Event('change',{bubbles:true})); await pause();
+  const skip = t.button(/^Skip \d+, /);
+  if (skip) await t.click(skip.textContent.trim());
+  await until(() => t.doc.querySelector('select.lq-fc-location-select').value === 'cooler');
+  assert.equal(t.dom.window.localStorage.getItem('cogs:zone:food-trial'),'cooler');
+  t.qa.saveOutdated = true;
+  await t.input('Pizza Dough: loose packs','3');
+  await until(() => updateText(t));
+  await t.click('Reload page');
+  assert.equal(t.navigations.length,1);
+  assert.equal(t.dom.window.localStorage.getItem('cogs:zone:food-trial'),'cooler','the reload reopens the shelf the counter is on');
+});
 
 await run('a save refused as out of date offers Reload, not Retry save, and Finish says why',async t => {
   await t.input('Pizza Dough: loose packs','4');
@@ -1163,7 +1206,7 @@ await run('a save refused as out of date offers Reload, not Retry save, and Fini
   assert.ok(!t.button('Retry save'),'retrying from this page can never work');
   assert.match(footerText(t),/Not saved yet\./);
   assert.doesNotMatch(footerText(t),/Keep this screen open and retry/);
-  assert.match(updateText(t),/numbers typed since the last save, will need to be entered again/);
+  assert.match(updateText(t),/anything added or typed since the last save, will need to be entered again/);
   assert.ok(t.button('Reload the page to record').disabled);
   await t.click('Finish (1)');
   await until(() => /This page is out of date\. Reload it, then Finish again\./.test(footerText(t)));

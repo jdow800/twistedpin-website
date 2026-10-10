@@ -947,7 +947,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
       }
       if (pageUpdateRef.current) {
-        setVoiceErr(items.length > 0 ? "Part of the recording couldn't be read on this out-of-date page. Reload, then count the rest of this shelf again." : null);
+        // Nothing heard can be added here, so after the reload the whole
+        // take is said again, not only the part that was refused.
+        setVoiceErr(items.length > 0 ? "Part of the recording couldn't be read on this out-of-date page, and nothing heard can be added here. Reload, then count this shelf again." : null);
       } else if (gap) {
         setVoiceErr("Part of the recording is missing — double-check the list and count the missing part again.");
       } else if (error) {
@@ -1122,7 +1124,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   function applyReview() {
-    if (!review || startingFreshRef.current || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
+    // An out-of-date page has every save refused (the voice and save routes
+    // share one foodUnitsVersion check), so added rows would only vanish at
+    // the reload. They stay listed as heard, which the footer says to redo.
+    if (!review || startingFreshRef.current || dict.recording || voiceBusy || checking || submitting || submissionUnknown || pageUpdateRef.current) return;
     // Decide from the screen as the counter saw it. Re-checking each row
     // after the rows before it were added would count those rows twice (in
     // the shelf and again as earlier rows) and move every add-or-replace N.
@@ -2646,10 +2651,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <div className="lq-fc-update" role="alert">
             <span>
               <strong>This page is out of date.</strong> Reload it to keep counting. Counts already saved stay saved.
-              {((review?.length ?? 0) > 0 || save === "error") && " Heard items not added yet, and numbers typed since the last save, will need to be entered again."}
+              {((review?.length ?? 0) > 0 || save === "error") && " Heard items, and anything added or typed since the last save, will need to be entered again."}
             </span>
+            {/* The shelf the counter is on. Zone moves are refused while voice
+                work is pending (goZone, countMissed), so that is the take's
+                shelf while its heard rows wait; takeZoneId itself outlives
+                the take and would reopen an earlier shelf. */}
             <button type="button" className="lq-btn lq-btn-primary" disabled={dict.recording || save === "saving"}
-              onClick={() => { if (sessionId) rememberZone(sessionId, takeZoneId ?? zoneId); window.location.reload(); }}>
+              onClick={() => { if (sessionId) rememberZone(sessionId, zoneId); window.location.reload(); }}>
               Reload page
             </button>
           </div>
@@ -2672,7 +2681,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             // backend then 409s any later line save against a closed session,
             // so there was no way back.
             disabled={startingFresh || checking || submitting || submissionUnknown || dict.recording || voiceBusy || (totalLines === 0 && !review?.length)
-              || (!!review?.length && !review.some(applyable))}
+              || (!!review?.length && (!review.some(applyable) || pageUpdate))}
             onClick={() => { if (review?.length) applyReview(); else void runCheck(); }}
           >
             {checking
@@ -2682,7 +2691,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 : dict.recording
                   ? "Stop recording first"
                   : (review?.length ?? 0) > 0
-                    ? `Add ${review!.filter(applyable).length} item${review!.filter(applyable).length === 1 ? "" : "s"} to ${zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}`
+                    ? pageUpdate
+                      ? "Reload, then count these again"
+                      : `Add ${review!.filter(applyable).length} item${review!.filter(applyable).length === 1 ? "" : "s"} to ${zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}`
                     : `Finish (${totalLines})`}
           </button>
         </div>

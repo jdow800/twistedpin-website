@@ -249,12 +249,13 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
     const outside = withoutFoodSize(p.text).split("");
     for (const s of owned) for (let i = Math.max(s.start, start) - start; i < Math.min(s.end, end) - start; i++) outside[i] = " ";
     const named = owned.length > 0 || namesFood(p.text);
-    return { named, counted: hasNumber(outside.join("")), owned, correction: !named && CORRECTION_LEAD.test(p.text) };
+    return { named, counted: hasNumber(outside.join("")), owned, correction: !named && CORRECTION_LEAD.test(p.text), led: false };
   });
   // A count before/after a multi-comma catalog name finishes the entire name,
   // not just its first fragment ("two Butter, Alternative Liquid, Zero Fat").
+  // `led` marks a name a count-first number led.
   const finishName = (named: (typeof parts)[number]) => {
-    for (const part of parts) if (part === named || part.owned.some(s => named.owned.includes(s))) part.counted = true;
+    for (const part of parts) if (part === named || part.owned.some(s => named.owned.includes(s))) { part.counted = true; part.led = true; }
   };
   for (const span of spans) {
     const owned = parts.filter(p => p.owned.includes(span));
@@ -269,16 +270,42 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
   const finished = (j: number) => pure(j) || (parts[j]!.named && parts[j]!.counted);
   /** A count that opens a sentence after a finished item, or the text. */
   const leads = (k: number) => pure(k) && (k === 0 || (/[.!?]/.test(markBefore(k)) && finished(k - 1)));
+  const sameName = (a: number, b: number) => parts[a]!.owned.some(s => parts[b]!.owned.includes(s));
+  /** Name j's own sentence gives it a number ("Yellow mustard, three
+   *  bottles."): a count before the next product's name does not. */
+  const nameHasNumber = (j: number) => {
+    for (let i = j + 1; i < parts.length && markBefore(i) === ","; i++) {
+      if (parts[i]!.named && !sameName(i, j)) return false;
+      if (parts[i]!.counted) return true;
+    }
+    return false;
+  };
+  /** The item just before phrase k was said count-first ("One case,
+   *  pepperoni."): somewhere in its sentence a count led a name. */
+  const countFirstBefore = (k: number) => {
+    for (let j = k - 1; j >= 0; j--) {
+      if (parts[j]!.led) return true;
+      if (/[.!?]/.test(markBefore(j))) return false;
+    }
+    return false;
+  };
   // Count-first with a comma: "One case, pepperoni. Two cases, sausage." The
   // count leads the name after it. After an uncounted name ("Pizza sauce. Two
   // cases, sausage.") the number finishes that name instead, as in liquor.
+  // A name that has its own number was said name-first, so after a name-first
+  // item the count before it is that item's remainder: "Ketchup, one case.
+  // Two bottles, yellow mustard, three bottles." keeps the two bottles with
+  // ketchup (held, as on live) instead of sending "Ketchup, one case." ready
+  // at 16 for 18 (2026-10-09 client review, K1). A counter already counting
+  // count-first ("One case, pepperoni. Two cases, sausage, one bag.") still
+  // leads the name, remainder and all.
   const ledBy = parts.map((): number | null => null);
   for (let k = 0; k + 1 < parts.length; k++) {
     if (!leads(k) || markBefore(k + 1) !== "," || !parts[k + 1]!.named || parts[k + 1]!.counted) continue;
+    if (k > 0 && nameHasNumber(k + 1) && !countFirstBefore(k)) continue;
     ledBy[k + 1] = k;
     finishName(parts[k + 1]!);
   }
-  const sameName = (a: number, b: number) => parts[a]!.owned.some(s => parts[b]!.owned.includes(s));
   const filler = (k: number) => !parts[k]!.named && !parts[k]!.counted && !parts[k]!.correction;
   let at = parts.findLastIndex(p => p.named);
   if (at < 0) at = 0;
@@ -291,7 +318,30 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
     if (k >= 0 && k < at - 1 && parts[k]!.named && !parts[k]!.counted) { at = k; continue; }
     break;
   }
-  if (ledBy[at] != null) at = ledBy[at]!;
+  if (ledBy[at] != null) {
+    const k = ledBy[at]!;
+    // At a cut just after a led name ("…three and a half ounces. Two cases,
+    // two ounce patties," | "five,"), the name's own number may still come,
+    // and then the count was the remainder of the name-first item before it.
+    // That item waits too, so the next piece decides with the number in view
+    // (sent alone, "Two cases, two ounce patties, five" proved 192 for 5).
+    if (pieceEnd && k > 0 && !countFirstBefore(k) && /,\s*$/.test(text) && !/[.!?](?=\s|$)/.test(text.slice(phrases[at]!.start))) {
+      const before = foodTailStart(text.slice(0, phrases[k]!.start), names, false) ?? 0;
+      if (text.slice(before).trim().split(/\s+/).length <= MAX_HELD_FOOD_WORDS) return before;
+    }
+    at = k;
+  }
+  // A bare cue ("No wait,", "Sorry,") takes back the count before it; its new
+  // number is in the phrase after it, even when ASR runs that into the next
+  // name ("French fries, three bags. No wait, four bags chicken tenders,").
+  // Sent apart, the server reads a cue with nothing after it and proves the
+  // first count (three bags for four), so the corrected item waits with it.
+  let cue = at - 1;
+  while (cue >= 0 && filler(cue)) cue--;
+  if (cue > 0 && parts[cue]!.correction && !parts[cue]!.counted) {
+    const before = foodTailStart(text.slice(0, phrases[cue]!.start), names, false) ?? 0;
+    if (!pieceEnd || text.slice(before).trim().split(/\s+/).length <= MAX_HELD_FOOD_WORDS) return before;
+  }
   // A quantity-first phrase may end with punctuation inserted by ASR before
   // the following name. Keep that orphan quantity with the unfinished item;
   // never swallow an earlier phrase that already names a different product.
@@ -322,10 +372,13 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
       at = Math.min(at, quantityStart);
     }
   }
-  // "Sausage, one case. Two cases," at a cut: the count waits for its name in
-  // the next piece; the finished item before it goes now.
+  // "One case, sausage. Two cases," at a cut: the count waits for its name in
+  // the next piece; the finished item before it goes now. Only after a
+  // count-first item: after "Ketchup, one case." the trailing "Two bottles,"
+  // may be ketchup's remainder, so the whole item waits for the next piece
+  // and the rule above decides with the next name in view.
   const last = parts.length - 1;
-  if (pieceEnd && last > at && /,\s*$/.test(text) && leads(last)) at = last;
+  if (pieceEnd && last > at && /,\s*$/.test(text) && leads(last) && countFirstBefore(last)) at = last;
   // "Alright." or "Um," alone is never a request of its own.
   if (parts.slice(0, at).every(p => !p.named && !p.counted)) at = 0;
   // "Fry seasoning, one container, and one Diet Pepsi.": a held item that
@@ -333,7 +386,12 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
   let open = at;
   while (open > 0 && !parts[open - 1]!.named && !parts[open - 1]!.counted && !parts[open - 1]!.correction) open--;
   if (open > 0 && phrases.slice(open, at + 1).some(p => CONJUNCTION_LEAD.test(p.text))) {
-    return foodTailStart(text.slice(0, phrases[open]!.start), names, false) ?? 0;
+    const joined = foodTailStart(text.slice(0, phrases[open]!.start), names, false) ?? 0;
+    // A chain of "and" items past the held limit would go out at once, an
+    // unfinished last item's name in one request and its number in the next
+    // ("…and four bags of cheese" | "curds."). Then the "and" item waits on
+    // its own, as it did before the join.
+    if (!pieceEnd || text.slice(joined).trim().split(/\s+/).length <= MAX_HELD_FOOD_WORDS) return joined;
   }
   return phrases[at]!.start;
 }

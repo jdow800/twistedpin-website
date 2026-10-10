@@ -474,6 +474,62 @@ check('food carry: count-first with a comma keeps the count with the name after 
   ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
 });
 
+// 2026-10-09 client review (followups/review-client, P2): the count-first lead
+// took a case-and-loose remainder off a name-first item and sent the item
+// short and ready ("Ketchup, one case." saved 16 for 18), and pushed it onto a
+// next product that had its own number. A name with its own number was said
+// name-first, so the count before it stays with the item before (held, as on
+// live). At a cut the item waits until the next name is in view. A counter
+// already counting count-first still leads, remainder and all.
+check('food carry: a case-and-loose remainder stays with its name-first item', () => {
+  for (const [pieces, requests] of [
+    // K1 (6dfb506f's shape without "plus"), R1/R2 (6877a17f's shape).
+    [['Ketchup, one case. Two bottles,', 'Yellow mustard, three bottles.'], ['Ketchup, one case. Two bottles,', 'Yellow mustard, three bottles.']],
+    [['Ketchup, one case. Two bottles, yellow mustard,', 'three bottles.'], ['Ketchup, one case. Two bottles,', 'yellow mustard, three bottles.']],
+    [['Ketchup, one case. Two bottles, Yellow mustard, three bottles.'], ['Ketchup, one case. Two bottles,', 'Yellow mustard, three bottles.']],
+    [['Pizza sauce, three cases. Two cans, jalapenos, four cans.'], ['Pizza sauce, three cases. Two cans,', 'jalapenos, four cans.']],
+    [['Pizza sauce, three cases. Two cans,', 'jalapenos, four cans. Salsa, one case.'], ['Pizza sauce, three cases. Two cans, jalapenos, four cans.', 'Salsa, one case.']],
+    // 6e88b59d with a period after "ounces", cut after "five," or after the
+    // patties' name: "Two cases" never leads the 2 oz patties (192 for 5).
+    [['Two cheesecakes, beef patties, three and a half ounces. Two cases, two ounce patties, five,', 'Cranberry, two five pound bags.'],
+      ['Two cheesecakes, beef patties, three and a half ounces. Two cases,', 'two ounce patties, five,', 'Cranberry, two five pound bags.']],
+    [['Two cheesecakes, beef patties, three and a half ounces. Two cases, two ounce patties,', 'five, Cranberry, two five pound bags.'],
+      ['Two cheesecakes,', 'beef patties, three and a half ounces. Two cases, two ounce patties, five,', 'Cranberry, two five pound bags.']],
+    // Count-first counters keep the lead, remainder and all.
+    [['One case, pepperoni. Two cases, sausage, one bag.'], ['One case, pepperoni.', 'Two cases, sausage, one bag.']],
+    [['One case, pepperoni. Two cases,', 'sausage, one bag.'], ['One case, pepperoni.', 'Two cases, sausage, one bag.']],
+    // A next name with no number of its own still takes the count.
+    [['Ketchup, one case. Two bottles,', 'yellow mustard.'], ['Ketchup, one case.', 'Two bottles, yellow mustard.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
+// Same review, P3: the "and" join pulled a whole chain of items into the held
+// tail, and past the 16-word limit the chain went out at once with an
+// unfinished last item ("…and four bags of cheese" | "curds."). Then the "and"
+// item waits on its own, as before the join.
+check('food carry: an "and" chain past the held limit keeps its unfinished last item whole', () => {
+  for (const [pieces, requests] of [
+    [['We have three cases of French fries and one case of tater tots, and four bags of cheese', "curds. We're out of the cod."],
+      ['We have three cases of French fries and one case of tater tots,', 'and four bags of cheese curds.', "We're out of the cod."]],
+    [['Sausage, one case, and bacon bits, two cases, and pepperoni, three bags, and the shredded mozzarella cheese,', 'four bags. Ranch, two.'],
+      ['Sausage, one case, and bacon bits, two cases, and pepperoni, three bags,', 'and the shredded mozzarella cheese, four bags.', 'Ranch, two.']],
+    // Under the limit the join stands.
+    [['Fry seasoning, one container,', 'and one Diet Pepsi.'], ['Fry seasoning, one container, and one Diet Pepsi.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
+// Same review's strand sweep (S16 with ASR dropping the period after "four
+// bags"): a bare cue sent at the end of a request ("French fries, three bags.
+// No wait,") is read with nothing after it, and the first count proves.
+check('food carry: a bare correction cue stays with the phrase that holds its new count', () => {
+  for (const [pieces, requests] of [
+    [['French fries, three bags. No wait, four bags chicken tenders, one case,', 'Wings, five bags.'],
+      ['French fries, three bags. No wait, four bags chicken tenders, one case,', 'Wings, five bags.']],
+    [['Sausage, one case. Sorry, bacon bits, one case.', 'Ranch, two.'], ['Sausage, one case. Sorry, bacon bits, one case.', 'Ranch, two.']],
+    [['Sausage, one case. No wait,', 'two cases. Bacon bits, one case.'], ['Sausage, one case. No wait, two cases.', 'Bacon bits, one case.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
 // Finding 11: a size said inside a product name read as its count, so the
 // real count moved to the next product at a cut (S19: 30 patties for 60).
 check('food carry: a size inside a name is not a finished count at a cut', () => {
