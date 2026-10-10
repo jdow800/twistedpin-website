@@ -1390,6 +1390,26 @@ await run('history: a single-reading product above its ceiling says Check the un
   assert.deepEqual(puts(t),[{'freezer:beans':18}]);
 },'usual');
 
+// Jon, 2026-10-10: "Replace it where history exists." With one 1-case
+// delivery in 90 days, the old proxy asked "unusually high" above 576 cookies,
+// though the history ceiling (1,152) calls 5 cases normal.
+const cookieCases = n => ({spoken:`Cookies, ${n}`, cases:0, units:n, qty:n*144, unitsPerCase:144, needsCaseSize:false,
+  suspectPreMultiplied:false, match:{id:'cookies',name:cookieName,sizeMl:null,unitsPerCase:144}, candidates:[],
+  spokenUnit:null, quantityKnown:true, unitNeedsReview:false});
+await run('history: where a ceiling exists, the 90-day proxy no longer asks about counts history calls normal',async t => {
+  await t.hear([cookieCases(5)]);
+  assert.doesNotMatch(t.doc.body.textContent,/unusually high/);
+  assert.doesNotMatch(t.doc.body.textContent,aboveHistory,'720 is within 1,152');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:cookies':720}]);
+},'usual&usual-live');
+
+await run('history: above the ceiling, only the history warning shows, not the 90-day one',async t => {
+  await t.hear([cookieCases(9)]);
+  assert.match(t.doc.body.textContent,aboveHistory);
+  assert.doesNotMatch(t.doc.body.textContent,/unusually high/);
+},'usual&usual-live');
+
 await run('history: the ceiling is the whole store\'s; other shelves count and a replaced shelf does not',async t => {
   // ?usual-counted: beans 6 on this shelf and 3 on the cooler.
   await t.hear([beans(1,{spoken:'Beans, one'})]);

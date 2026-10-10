@@ -122,6 +122,9 @@ if (params.has('usual') || params.has('usual-counted')) {
       countHistory:history({ceiling:13.2,tier:1,onHandMedianCases:0.8,onHandMaxCases:1.2,maxDeliveryCases:1,maxBought28Cases:3})},
   );
   for (const s of catalog.slice(-2)) Object.assign(s, {category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null});
+  // ?usual-live: the real 90-day live history beside the ceiling (one 1-case
+  // cookie delivery on 10/6), which the old 4x-largest-delivery proxy reads.
+  if (params.has('usual-live')) Object.assign(catalog.find(s => s.id === 'cookies').countHistory, {maxDelivery:144, deliverySamples:1});
   // ?usual-dough: Pizza Dough as it really is, counted in cases (20 dough a
   // case, Jon's usual 20 cases) with its tier-1 ceiling of 24.2 cases.
   if (params.has('usual-dough')) Object.assign(catalog[0], {countUnit:'case', unitsPerCase:1,

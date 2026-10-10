@@ -273,6 +273,12 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
     const above = `${totalText}${inCases} is more than we've ever had on hand${evidence ? ` (${evidence})` : ""}.`;
     return looseHasCase ? `${looseText} ${above}` : `${above} Check the unit.`;
   }
+  // Where history gives a ceiling, it is the only "too many" check (Jon,
+  // 2026-10-10: "Replace it where history exists"). The 90-day and 10-case
+  // proxies below are for products without one; otherwise they asked about
+  // counts the history says are normal ("Cookies, five") and contradicted a
+  // reading the server made from that history.
+  if (usual) return looseHasCase ? looseText : null;
   if (usualMaxCases == null && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
     const historyText = (n: number) => formatQty(n);
     const evidence = [history?.maxCount != null ? `largest count ${historyText(history.maxCount)}` : "",
