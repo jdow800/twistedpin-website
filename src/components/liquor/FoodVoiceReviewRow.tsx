@@ -2,11 +2,11 @@ import { useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
-import { foodQuantityFieldsToConfirm, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
+import { foodQuantityFieldsToConfirm, foodRestateAmount, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
-export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, blockedReason, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered }: {
+export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, blockedReason, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered, restate, onRestate }: {
   item: FoodReviewItem; sku: BarSkuItem | undefined; catalog: BarSkuItem[]; ready: boolean; concern: string | null;
   blockedReason?: string;
   onEdit: (patch: Partial<FoodReviewItem>) => void; onChoose: (id: string) => void;
@@ -14,6 +14,10 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   onUnit: () => void; onCaseSize: (n: number) => void; onDiscard: () => void;
   enteredCounts?: FoodCountChoice[]; countLocation?: string;
   onUseEntered?: (choice: FoodCountChoice) => boolean;
+  /** The shelf already holds this product: Jon's "Ask: add or replace"
+   *  (2026-10-09). `answer` is set once answered for this `before`. */
+  restate?: { before: number; answer?: "add" | "replace" } | null;
+  onRestate?: (answer: "add" | "replace" | undefined) => void;
 }) {
   const [productOpen, setProductOpen] = useState(false);
   const [countMode, setCountMode] = useState<"auto" | "single" | "mixed">("auto");
@@ -110,6 +114,22 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
       {blockedReason && <span className="lq-error" role="status">{blockedReason}</span>}
+      {/* Re-recorded shelf or a repeat mention: the number is never added
+          onto what is already here until the counter says which it is. */}
+      {restate && q.ready && onRestate && (() => {
+        const amount = (n: number) => foodRestateAmount(sku, q, n);
+        const total = restate.before + q.qty;
+        return restate.answer ? <span className="lq-muted lq-rev-hint lq-fc-rev-restated">
+          {restate.answer === "replace" ? `Replaces the ${amount(restate.before)} already here.` : `Adds to the ${amount(restate.before)} already here: ${amount(total)} total.`}{" "}
+          <button type="button" className="lq-linkbtn" onClick={() => onRestate(undefined)}>Change</button>
+        </span> : <div className="lq-fc-rev-ask lq-fc-rev-restate" role="group" aria-label={`Add or replace ${sku.name}`}>
+          <span>Add to the {amount(restate.before)} already here, or replace?</span>
+          <div className="lq-rev-choices">
+            <button type="button" className="lq-chip" onClick={() => onRestate("add")}>Add: {amount(total)} total</button>
+            <button type="button" className="lq-chip" onClick={() => onRestate("replace")}>Replace: {amount(q.qty)}</button>
+          </div>
+        </div>;
+      })()}
       {concern && r.largeCountConfirmed !== concern && <div className="lq-fc-rev-ask" role="status"><span>{concern}</span>
         {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"
           onClick={() => onEdit({ units: q.cases, cases: 0, spokenUnit: sku.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>Use {q.cases} {foodUnitLabel(sku, q.cases)}</button>}

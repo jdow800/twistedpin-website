@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {JSDOM} from 'jsdom';
+import {JSDOM, VirtualConsole} from 'jsdom';
 
 const bundle = await readFile(new URL('./dist/food-fixture.js',import.meta.url),'utf8');
 const pause = () => new Promise(resolve => setTimeout(resolve,20));
@@ -13,13 +13,19 @@ const item = (id, units, extra = {}) => ({
   needsCaseSize:false, suspectPreMultiplied:false, match:{id,name:id==='dough'?'Pizza Dough':id==='pretzel'?'Giant Pretzel':'Unknown Package',sizeMl:null}, candidates:[], ...extra,
 });
 let passed = 0;
+const failed = [];
 /** The classic scenarios run with the off-switch (?pausecuts=0: one extraction
  *  per piece, as before 2026-10-02). The pause-cut scenarios pass pauseCuts. */
 async function run(name, test, existing = false, pauseCuts = false) {
   if (process.env.FOOD_VOICE_QA_FILTER && !new RegExp(process.env.FOOD_VOICE_QA_FILTER).test(name)) return;
   const query = [typeof existing==='string'?existing:existing?'existing':'', pauseCuts?'':'pausecuts=0'].filter(Boolean).join('&');
+  // A page reload is a navigation JSDOM does not perform; it reports one
+  // instead, which is how a tap on Reload page is seen.
+  const navigations = [];
+  const virtualConsole = new VirtualConsole().sendTo(console, {omitJSDOMErrors:true});
+  virtualConsole.on('jsdomError', e => { if (/navigation/.test(e.message)) navigations.push(e.message); else console.error(e.stack, e.detail); });
   const dom = new JSDOM('<!doctype html><div id="root"></div>',{
-    url:`http://localhost/${query?'?'+query:''}`,runScripts:'outside-only',pretendToBeVisual:true,
+    url:`http://localhost/${query?'?'+query:''}`,runScripts:'outside-only',pretendToBeVisual:true,virtualConsole,
   });
   dom.window.Response = Response;
   const voiceTimers = new Map();
@@ -84,8 +90,18 @@ async function run(name, test, existing = false, pauseCuts = false) {
       await start(); await segment('test transcript',0); qa.extracts.at(-1).succeed(entries); await pause();
       await stop(); await finish('test transcript');
     };
-    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved,input,hear,expireVoiceRequests});
+    // Jon, 2026-10-09: "Ask: add or replace." Answers every open question on
+    // the review with the named choice (Add keeps the old summing behavior).
+    const restate = async (choice = 'Add') => {
+      const chips = [...doc.querySelectorAll('.lq-fc-rev-restate button')].filter(b => b.textContent.trim().startsWith(choice + ':'));
+      assert.ok(chips.length, `No add-or-replace question to answer with ${choice}`);
+      for (const chip of chips) { chip.click(); await pause(); }
+    };
+    await test({qa,doc,button,click,start,stop,segment,finish,review,apply,saved,input,hear,expireVoiceRequests,restate,dom,navigations});
     passed++; console.log('PASS',name);
+  } catch (error) {
+    if (!process.env.FOOD_VOICE_QA_KEEP_GOING) throw error;
+    failed.push(name); console.log('FAIL',name,'-',String(error?.message ?? error).split(/\r?\n/)[0]);
   } finally { dom.window.close(); }
 }
 
@@ -218,6 +234,7 @@ await run('an open submit panel stays blocked through recording, extraction and 
   await until(() => t.review().length===1);
   assert.ok(t.button('Finish the recording first').disabled);
   const checks=t.qa.calls.filter(c => c.path.endsWith('/precheck')).length;
+  await t.restate('Add');
   await t.apply();
   assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,checks,'Add after Finish cannot automatically run another precheck');
   assert.ok(!t.qa.calls.some(c => c.path.endsWith('/submit')));
@@ -334,6 +351,7 @@ await run('resumed pack provenance survives editing another item',async t => {
 
 await run('a new case size never revalues cases already counted',async t => {
   await t.hear([item('dough',0,{spoken:'one case of dough',cases:1,unitsPerCase:20})]);
+  await t.restate('Add');
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines[0].qtyUnits,44);
   assert.equal(t.qa.lines[0].enteredCases,2);
@@ -354,6 +372,7 @@ await run('remembered bags and bare buns keep their distinct quantities',async t
   ]);
   assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled);
   assert.doesNotMatch(t.doc.body.textContent,/How many.*bag/);
+  await t.restate('Add');
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='buns').qtyUnits,84);
 },'definitions');
@@ -371,6 +390,7 @@ await run('confirmed dough range permits normal stock and fractional cases',asyn
     item('dough',0,{spoken:'four and a half cases of dough',cases:4.5}),
   ]);
   assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled,'normal operating range must not require a generic high-count override');
+  await t.restate('Add');
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits,19.5);
 },'definitions');
@@ -515,6 +535,7 @@ await run('a changed crust package uses its current explicit case conversion',as
 
 await run('a changed package never revalues the earlier crust cases while adding a new half case',async t => {
   await t.hear([item('cauliflower',0.5,{spoken:'half a case of cauliflower crusts',spokenUnit:'case'})]);
+  await t.restate('Add');
   await t.apply();await until(()=>t.saved().length>0);
   const line=t.qa.lines.find(l=>l.skuId==='cauliflower');
   assert.equal(line.qtyUnits,30,'earlier 18 plus one half of the new 24-piece case');
@@ -560,6 +581,7 @@ await run('explicit single bags remain exact for a case-default item',async t =>
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='fries').qtyUnits,1);
   await t.hear([item('fries',0.5,{spoken:'fries point five'})]);
+  await t.restate('Add');
   await t.apply(); await until(() => t.qa.lines.find(l=>l.skuId==='fries').qtyUnits===4);
 },'definitions');
 
@@ -846,6 +868,7 @@ await run('the pause-cut off switch still refuses joined fallback across failed 
 
 await run('two then three of the same product retain both spoken sources and sum to five',async t=>{
   await t.hear([item('dough',2,{spoken:'two pizza dough',quantityKnown:true}),item('dough',3,{spoken:'three pizza dough',quantityKnown:true})]);
+  await t.restate('Add');
   await t.apply();await until(()=>t.qa.lines.some(l=>l.skuId==='dough'));
   const row=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(row.qtyUnits),5);
   assert.match(row.rawUtterance,/two pizza dough/);assert.match(row.rawUtterance,/three pizza dough/);
@@ -935,7 +958,7 @@ await run('food review omits duplicate heard quantity while retaining independen
   assert.match(t.doc.body.textContent,/Enter the count/);
   assert.ok(t.button(/^Add /).disabled);
   await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);
-  await t.input('Loose quantity for Pizza Dough','12');await t.apply();
+  await t.input('Loose quantity for Pizza Dough','12');await t.restate('Add');await t.apply();
   await until(()=>Number(t.qa.lines.find(l=>l.skuId==='dough')?.qtyUnits)===14);
 });
 
@@ -1077,4 +1100,165 @@ await run('case breakdown: one BIB case displays its one BIB without an extra co
   await t.click(/^Add 1 item to Pizza Line$/);await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines[0].qtyUnits),1);
 },'case-breakdown');
 
+// ── 2026-10-09 food voice review follow-ups (Alcohol Pricing incidents/
+// 2026-10-09/food-voice-review). Finding 12: a phone tab left on an older page
+// had every piece of a take refused (409 voice_update_required) and only said
+// so after the whole shelf was spoken.
+const updateText = t => t.doc.querySelector('.lq-fc-update')?.textContent ?? '';
+const footerText = t => t.doc.querySelector('.lq-footer').textContent;
+// Every PUT of the sheet, as {zone:sku: qty}. Array.from: the bodies live in the page's realm.
+const puts = t => Array.from(t.saved(), c => Object.fromEntries(Array.from(c.body.lines, l => [`${l.zoneId}:${l.skuId}`, Number(l.qtyUnits)])));
+
+await run('an out-of-date page stops the take at its first refused piece and offers one tap to Reload',async t => {
+  await t.start();
+  await t.segment('two dough',0);
+  assert.equal(updateText(t),'');
+  t.qa.extracts[0].outdated();
+  await until(() => updateText(t));
+  // The take stops at the first refused piece.
+  await until(() => !t.button(/^■ Stop & review$/));
+  assert.match(updateText(t),/This page is out of date\. Reload it to keep counting\. Counts already saved stay saved\./);
+  assert.ok(t.doc.querySelector('.lq-fc-update').closest('.lq-footer'),'in the fixed footer, where the counter is looking');
+  assert.ok(t.button('Reload page').disabled,'not while the recorder is still finishing');
+  await t.finish('two dough');
+  assert.ok(!t.button('Reload page').disabled);
+  assert.ok(!t.button('Retry reading this transcript'),'retrying from this page can never work');
+  assert.equal(t.review().length,0);
+  assert.doesNotMatch(t.doc.body.textContent,/Didn't catch any items/);
+  const talk = t.button('Reload the page to record');
+  assert.ok(talk && talk.disabled,'no second take on the out-of-date page');
+  assert.equal(t.qa.extracts.length,1);
+  assert.equal(t.saved().length,0);
+  assert.equal(t.navigations.length,0);
+  await t.click('Reload page');
+  assert.equal(t.navigations.length,1,'one tap reloads');
+  assert.equal(t.dom.window.localStorage.getItem('cogs:zone:food-trial'),'freezer','the reload reopens this shelf');
+});
+
+await run('pause cuts: on an out-of-date page, items read before the refusal stay for Add and the footer says what must be entered again',async t => {
+  await t.start();
+  await t.segment('Two dough. Three pretzels.',0);
+  assert.equal(t.qa.extracts.length,1);
+  t.qa.extracts[0].succeed([item('dough',2)]); await pause();
+  await t.segment('Four dough. One pretzel.',1);
+  t.qa.extracts[1].outdated();
+  await until(() => updateText(t));
+  await until(() => !t.button(/^■ Stop & review$/));
+  await t.finish('two dough three pretzels four dough one pretzel');
+  // Stop sends the held last item; it is refused too.
+  t.qa.extracts.at(-1).outdated();
+  await until(() => t.review().length===1);
+  assert.match(t.doc.body.textContent,/Part of the recording couldn't be read on this out-of-date page/);
+  assert.match(updateText(t),/Heard items not added yet, and numbers typed since the last save, will need to be entered again/);
+  assert.ok(t.button('Reload the page to record').disabled);
+  assert.ok(!t.button('Retry reading this transcript'));
+  // Adding is still allowed: if the save is accepted the rows are kept.
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t).at(-1),{'freezer:dough':2});
+},false,true);
+
+await run('a save refused as out of date offers Reload, not Retry save, and Finish says why',async t => {
+  await t.input('Pizza Dough: loose packs','4');
+  await until(() => updateText(t));
+  assert.ok(!t.button('Retry save'),'retrying from this page can never work');
+  assert.match(footerText(t),/Not saved yet\./);
+  assert.doesNotMatch(footerText(t),/Keep this screen open and retry/);
+  assert.match(updateText(t),/numbers typed since the last save, will need to be entered again/);
+  assert.ok(t.button('Reload the page to record').disabled);
+  await t.click('Finish (1)');
+  await until(() => /This page is out of date\. Reload it, then Finish again\./.test(footerText(t)));
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/precheck')).length,0);
+  assert.equal(t.qa.calls.filter(c => c.path.endsWith('/submit')).length,0);
+  await t.click('Reload page');
+  assert.equal(t.navigations.length,1);
+},'existing&save-outdated');
+
+// Finding 7 and Jon's ruling, 2026-10-09: "Ask: add or replace." A re-recorded
+// shelf added both takes into one cell (draft 81309ef9: pizza sauce 41 from two
+// takes of about 26). Every save is intercepted: the cell is exactly what the
+// counter chose, and no in-between total is ever saved.
+await run('a product already counted on the shelf asks add or replace; Add sums and Replace overwrites, take after take',async t => {
+  await t.hear([item('dough',2,{spoken:'two pizza dough'})]);
+  const ask = () => [...t.doc.querySelectorAll('.lq-fc-rev-restate')].map(e => e.textContent);
+  assert.equal(ask().length,1);
+  assert.match(ask()[0],/Add to the 1 pack already here, or replace\?/);
+  assert.ok(t.button('Add: 3 packs total')); assert.ok(t.button('Replace: 2 packs'));
+  assert.ok(t.button(/^Add 0 items to Pizza Freezer$/).disabled,'nothing is counted until the counter says which');
+  await t.click('Add: 3 packs total');
+  assert.match(t.doc.body.textContent,/Adds to the 1 pack already here: 3 packs total\./);
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':3}]);
+  // A second take of the same shelf: the counter re-recorded it.
+  await t.hear([item('dough',4,{spoken:'four pizza dough'})]);
+  assert.match(ask()[0],/Add to the 3 packs already here, or replace\?/);
+  await t.click('Replace: 4 packs');
+  assert.match(t.doc.body.textContent,/Replaces the 3 packs already here\./);
+  await t.apply(); await until(() => t.saved().length>1);
+  assert.deepEqual(puts(t),[{'freezer:dough':3},{'freezer:dough':4}]);
+  const line = t.qa.lines.find(l => l.skuId==='dough');
+  assert.match(line.rawUtterance,/four pizza dough/); assert.doesNotMatch(line.rawUtterance,/two pizza dough/);
+},'existing');
+
+await run('a repeat of a product in one review asks add or replace about the earlier row',async t => {
+  await t.hear([item('dough',2,{spoken:'two pizza dough'}),item('pretzel',1),item('dough',3,{spoken:'three pizza dough'})]);
+  const asks = [...t.doc.querySelectorAll('.lq-fc-rev-restate')];
+  assert.equal(asks.length,1,'only the repeat asks; the first mention and other products do not');
+  assert.ok(asks[0].closest('.lq-fc-rev-row').textContent.includes('three pizza dough'));
+  assert.match(asks[0].textContent,/Add to the 2 packs already here, or replace\?/);
+  assert.match(t.button(/^Add \d+ items? to Pizza Freezer$/).textContent,/^Add 2 items/);
+  await t.click('Replace: 3 packs');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':3,'freezer:pretzel':1}]);
+  assert.equal(t.review().length,0);
+});
+
+await run('a repeat answered Add sums the rows once; Change asks again',async t => {
+  await t.hear([item('dough',2,{spoken:'two pizza dough'}),item('dough',3,{spoken:'three pizza dough'})]);
+  await t.click('Replace: 3 packs');
+  await t.click('Change');
+  assert.ok(t.button('Add: 5 packs total'),'Change reopens the question');
+  assert.ok(t.button(/^Add 1 item to Pizza Freezer$/));
+  await t.click('Add: 5 packs total');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':5}]);
+});
+
+await run('an answer holds only for the amount it was given against',async t => {
+  // The shelf has 1; the take says 2 and then 3.
+  await t.hear([item('dough',2,{spoken:'two pizza dough'}),item('dough',3,{spoken:'three pizza dough'})]);
+  const asks = () => [...t.doc.querySelectorAll('.lq-fc-rev-restate')].map(e => e.textContent);
+  assert.deepEqual(asks().map(a => a.match(/Add to the (.*?) already here/)[1]),['1 pack','3 packs']);
+  await t.click('Add: 6 packs total');
+  assert.deepEqual(asks().map(a => a.match(/Add to the (.*?) already here/)[1]),['1 pack']);
+  // Replacing the shelf's 1 with the 2 moves the second row's "already here"
+  // from 3 to 2, so its Add is asked again.
+  await t.click('Replace: 2 packs');
+  assert.deepEqual(asks().map(a => a.match(/Add to the (.*?) already here/)[1]),['2 packs']);
+  assert.ok(t.button(/^Add 1 item to Pizza Freezer$/));
+  await t.click('Add: 5 packs total');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':5}]);
+},'existing');
+
+await run('a spoken zero over a counted shelf asks, and Replace saves the zero',async t => {
+  await t.hear([item('dough',0,{spoken:'zero pizza dough',quantityKnown:true})]);
+  assert.match(t.doc.querySelector('.lq-fc-rev-restate').textContent,/Add to the 1 pack already here, or replace\?/);
+  await t.click('Replace: 0 packs');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':0}]);
+},'existing');
+
+await run('the question is per shelf: the same product on another shelf is not asked about',async t => {
+  const location=t.doc.querySelector('select.lq-fc-location-select');
+  location.value='cooler';location.dispatchEvent(new t.doc.defaultView.Event('change',{bubbles:true}));await pause();
+  // Leaving a touched shelf lists its uncounted items first.
+  const go=t.doc.querySelector('.lq-fc-sheet-go'); if (go) { go.click(); await pause(); }
+  await until(() => t.button(/Talk through Kitchen Cooler/));
+  await t.hear([item('dough',2,{spoken:'two pizza dough'})]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-restate'),null);
+  await t.click(/^Add 1 item to Kitchen Cooler$/); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':1,'cooler:dough':2}]);
+},'existing');
+
+if (failed.length) { console.log(`${failed.length} food voice UI scenarios FAILED: ${failed.join(' | ')}`); process.exitCode = 1; }
 console.log(`${passed} food voice UI scenarios passed including compact raw counts, case breakdowns, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);

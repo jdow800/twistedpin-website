@@ -140,6 +140,8 @@ const initialLines = fixtureOverride?.lines ?? (params.has('legacy-crust') ? [{s
 const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false,
   catalog,zones};
 qa.failSave = params.has('save-fails');
+// ?save-outdated: TPRS refuses this page's food saves as out of date.
+qa.saveOutdated = params.has('save-outdated');
 qa.detailFails = params.has('submit-unknown');
 qa.submitted = false;
 const json = (value, status = 200) => new Response(JSON.stringify(value), {status, headers:{'Content-Type':'application/json'}});
@@ -166,12 +168,15 @@ window.fetch = async (input, init = {}) => {
   if (path.endsWith('/counts/open')) return json({session:{id:'food-trial',section:'food',isFullCount:true,lines:initialLines,
     ...(params.has('stale') ? {linesHash:'server1'} : {})}});
   if (path.endsWith('/voice-extract')) return new Promise(resolve => {
-    qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed', message},502)); }});
+    qa.extracts.push({body, succeed(items) { resolve(json({items})); }, fail(message) { resolve(json({error:'voice_failed', message},502)); },
+      // TPRS's refusal of a page older than its food quantity rules (bar.ts).
+      outdated() { resolve(json({error:'voice_update_required', message:'Food quantity and unit review has been updated. Refresh this page before recording again or saving typed counts. Saved counts are unchanged.'},409)); }});
   });
   if (path.endsWith('/case-size')) return json({unitsPerCase:body.unitsPerCase});
   if (/\/skus\/[^/]+\/active$/.test(path)) return json({active:body.active,name:path.split('/').at(-2)});
   if (path.endsWith('/lines')) {
     if (qa.failSave) return json({error:'synthetic'},503);
+    if (qa.saveOutdated) return json({error:'refresh_required', message:'Refresh the food count and review its entered quantity and unit before saving.'},409);
     if (refuseNextSave) {
       refuseNextSave = false;
       const line = (skuId, qtyUnits) => ({zoneId:'freezer', skuId, qtyUnits, enteredCases:null, caseSizeAtEntry:null,

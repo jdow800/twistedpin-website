@@ -1,7 +1,7 @@
 import type { BarSkuItem, VoiceMatch } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
-import { preciseFoodQty } from "./food-quantity";
+import { foodPhysicalUnit, preciseFoodQty } from "./food-quantity";
 
 export interface FoodReviewItem {
   key: string;
@@ -28,6 +28,55 @@ export interface FoodReviewItem {
   unitChoiceConfirmed?: boolean;
   largeCountConfirmed?: string;
   search?: string;
+  /** The counter's answer to "Add to the N already here, or replace?", and
+   *  the N it answered. A different N asks again. */
+  restateAnswer?: "add" | "replace";
+  restateBefore?: number;
+}
+
+/**
+ * Jon, 2026-10-09: "Ask: add or replace." A heard row for a product the take's
+ * shelf already holds, from an earlier take or an earlier row of this review,
+ * asks before it is counted (a re-recorded shelf had added two takes into one:
+ * pizza sauce 41 from two takes of about 26, draft 81309ef9). `before` is
+ * what is there once the earlier ready rows are added, in the product's count
+ * unit; an earlier "replace" starts over from that row. Asked once its own
+ * number is known.
+ */
+export function foodRestatement(
+  rows: readonly FoodReviewItem[], i: number, onShelf: (skuId: string) => number,
+  quantity: (r: FoodReviewItem) => { ready: boolean; qty: number },
+): { before: number } | null {
+  const r = rows[i];
+  if (!r?.chosenSkuId || !quantity(r).ready) return null;
+  let before = onShelf(r.chosenSkuId);
+  for (const x of rows.slice(0, i)) {
+    if (x.chosenSkuId !== r.chosenSkuId) continue;
+    const q = quantity(x);
+    if (!q.ready) continue;
+    const answer = before > 0 ? foodRestateAnswer(x, { before: preciseFoodQty(before) }) : undefined;
+    before = (answer === "replace" ? 0 : before) + q.qty;
+  }
+  before = preciseFoodQty(before);
+  return before > 0 ? { before } : null;
+}
+
+/** An add-or-replace amount (in the product's count unit) in the words the
+ *  row was heard in: "3 buns" for slider buns counted by the case, rather than
+ *  "0.016 cases". A row heard in its count unit, or in cases, keeps that unit. */
+export function foodRestateAmount(sku: BarSkuItem | undefined, q: ReturnType<typeof foodReviewQuantity>, n: number): string {
+  const m = q.unitMultiplier;
+  if (q.cases === 0 && q.inputUnit && q.inputUnit !== "case" && m != null && m > 0 && m !== 1) {
+    const said = formatQty(n / m);
+    return `${said} ${foodPhysicalUnit({ quantity: said, unit: q.inputUnit, numerator: "1", denominator: "1" })}`;
+  }
+  return `${formatQty(n)} ${foodUnitLabel(sku, n)}`;
+}
+
+/** The answer still stands only for the amount it was given against. */
+export function foodRestateAnswer(r: FoodReviewItem, restate: { before: number } | null): "add" | "replace" | undefined {
+  return restate && r.restateAnswer && r.restateBefore != null && Math.abs(r.restateBefore - restate.before) < 1e-9
+    ? r.restateAnswer : undefined;
 }
 
 export function foodQuantityFieldsToConfirm(r: FoodReviewItem): ("cases" | "units")[] {

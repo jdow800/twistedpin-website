@@ -88,6 +88,21 @@ export class BarApiError extends Error {
   }
 }
 
+/** The server refused a food voice read (409 `voice_update_required`) or a
+ *  food save (409 `refresh_required`) because this page is older than the
+ *  food quantity rules it now enforces (`foodUnitsVersion`). Nothing was read
+ *  or saved; only a reload fixes it (2026-10-09 food review: a tab left open
+ *  from 10/7 had every piece of a take refused). */
+export function isFoodPageOutOfDate(e: unknown): boolean {
+  if (!(e instanceof BarApiError) || e.status !== 409 || typeof e.body !== "string") return false;
+  try {
+    const { error } = JSON.parse(e.body) as { error?: unknown };
+    return error === "voice_update_required" || error === "refresh_required";
+  } catch {
+    return false;
+  }
+}
+
 const HX = { "HX-Request": "true" } as const;
 
 async function rawFetch(path: string, init: RequestInit): Promise<Response> {

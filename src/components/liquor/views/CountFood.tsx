@@ -18,6 +18,7 @@ import {
   SubmissionUnknownError,
   ZoneNameTakenError,
   BarApiError,
+  isFoodPageOutOfDate,
   type BarSkuItem,
   type BarZoneItem,
   type CountLineInput,
@@ -37,7 +38,7 @@ import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
 import CountEntryChoice from "../CountEntryChoice";
-import { foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCaseSize, foodCountWarning, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty } from "../quantity";
 import { foodCanonicalQty, foodLooseQty, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty as roundQty, replaceFoodLoose, singleFoodLoose, foodPhysicalUnit, storedFoodQuantity, foodQuantityBasis, sameFoodQuantityBasis, type FoodQuantity } from "../food-quantity";
@@ -284,6 +285,19 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    *  Finish or Submit is looking at the bottom of a long shelf list and would
    *  never scroll up to find out why nothing happened. */
   const [submitErr, setSubmitErr] = useState<string | null>(null);
+  /** The server refused a voice read or save from this page as out of date
+   *  (409 voice_update_required / refresh_required: a tab older than the food
+   *  quantity rules, api.ts isFoodPageOutOfDate). Every later piece and save
+   *  would be refused too, so the take stops and the footer offers one tap to
+   *  reload. Saved counts reopen after it with Continue count. Not an
+   *  automatic reload: heard rows and unsaved typing live only on this page,
+   *  and the counter should see what will need entering again first. */
+  const [pageUpdate, setPageUpdate] = useState(false);
+  const pageUpdateRef = useRef(false);
+  const needsReload = () => {
+    pageUpdateRef.current = true;
+    setPageUpdate(true);
+  };
   const [submissionUnknown, setSubmissionUnknown] = useState(false);
   const footerRef = useCountFooter();
   /** Finish the current take before moving, then check its unanswered items. */
@@ -549,6 +563,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     } catch (e) {
       setSave("error");
       if (e instanceof DraftMergePausedError) setSubmitErr("A correction changed elsewhere. Review the saved counts before retrying.");
+      if (isFoodPageOutOfDate(e)) needsReload();
       return false;
     }
   }, [sessionId]);
@@ -784,7 +799,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const extractPiece = (text: string, index: number) => {
     segExtractsRef.current.set(index, extractVoice(text, "food")
       .then((items) => ({ items, error: null }))
-      .catch((error) => ({ items: [], error: voiceErrorMessage(error) })));
+      .catch((error) => {
+        // An out-of-date page: say so while the counter is still talking,
+        // not after a whole take that every piece of was refused.
+        if (isFoodPageOutOfDate(error)) needsReload();
+        return { items: [], error: voiceErrorMessage(error) };
+      }));
   };
   // Pause cuts (on by default; ?pausecuts=0 is the off-switch, voiceSwitches.ts):
   // pieces end at a pause, and each piece's last item waits to lead the next,
@@ -826,6 +846,20 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // intent after a failed take can otherwise cancel the next Start.
   const capturing = captureRequested && dict.recording && dict.capturing !== false;
   const processingVoice = (dict.recording && !capturing) || voiceBusy;
+  // The first refused piece ends the take: everything after it would be
+  // refused too, and the counter should reload before saying the shelf.
+  useEffect(() => {
+    if (!pageUpdate || !captureRequested) return;
+    setCaptureRequested(false);
+    dict.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageUpdate, captureRequested]);
+  // Typing still waiting on the save timer is tried now, so the footer says
+  // plainly whether it reached the server before the counter taps Reload.
+  useEffect(() => {
+    if (pageUpdate && saveTimer.current) void doSave();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageUpdate]);
 
   // Two ways a take loses audio without the counter seeing it: the level watch
   // reports silence, or the OS backgrounds us (an incoming call does both, and
@@ -907,11 +941,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const error = results.find((result) => result.error != null)?.error;
       // Replaying a partly successful take would duplicate the items already
       // offered for Apply. Only a wholly unsuccessful take is retryable.
-      if (items.length === 0 && !gap) setRetryTranscript(fullTranscript);
+      // An out-of-date page is not: the footer's Reload is the way on.
+      if (items.length === 0 && !gap && !pageUpdateRef.current) setRetryTranscript(fullTranscript);
       if (items.length > 0) {
         setReview((prev) => [...(prev ?? []), ...toReview(items, prev?.length ?? 0)]);
       }
-      if (gap) {
+      if (pageUpdateRef.current) {
+        setVoiceErr(items.length > 0 ? "Part of the recording couldn't be read on this out-of-date page. Reload, then count the rest of this shelf again." : null);
+      } else if (gap) {
         setVoiceErr("Part of the recording is missing — double-check the list and count the missing part again.");
       } else if (error) {
         setVoiceErr(items.length > 0
@@ -938,6 +975,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         setRetryTranscript(transcript);
       }
     } catch (e) {
+      if (isFoodPageOutOfDate(e)) {
+        // Retrying from this page can never work; the footer offers Reload.
+        needsReload();
+        setRetryTranscript(null);
+        return;
+      }
       // extractVoice deliberately re-throws the SERVER's message when it has
       // one — "Voice isn't configured" (no ANTHROPIC_API_KEY, a 503) is the
       // common case, and it is not a retry. Swallowing it left the counter
@@ -974,11 +1017,21 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
    * number requires an explicit confirmation. Spoken zero is a valid answer. */
   const reviewSku = (r: ReviewItem) => r.chosenSkuId ? skuById.get(r.chosenSkuId) : undefined;
   const reviewQuantity = (r: ReviewItem) => foodReviewQuantity(r, reviewSku(r));
+  /** "Add to the N already here, or replace?" (Jon, 2026-10-09). N is the
+   *  take's shelf plus this review's earlier ready rows of the product. */
+  const restateOf = (r: ReviewItem) => {
+    const rows = review ?? [], i = rows.indexOf(r);
+    return i < 0 ? null : foodRestatement(rows, i, (skuId) => countsRef.current[takeZoneId ?? zoneId]?.[skuId]?.qty ?? 0, reviewQuantity);
+  };
+  const restateAnswer = (r: ReviewItem) => foodRestateAnswer(r, restateOf(r));
   const warning = (r: ReviewItem) => {
-    const existing = Object.values(counts).reduce((total, cells) => total + (cells[r.chosenSkuId ?? ""]?.qty ?? 0), 0);
+    // A replacing row's total leaves out what it replaces on its own shelf.
+    const replaces = restateAnswer(r) === "replace";
+    const existing = Object.entries(counts).reduce((total, [zid, cells]) =>
+      total + (replaces && zid === (takeZoneId ?? zoneId) ? 0 : cells[r.chosenSkuId ?? ""]?.qty ?? 0), 0);
     // Earlier occurrences in the same take count too; two small entries may
     // together be an implausible case count.
-    const earlier = (review ?? []).slice(0, (review ?? []).indexOf(r))
+    const earlier = replaces ? 0 : (review ?? []).slice(0, (review ?? []).indexOf(r))
       .filter(x => x.chosenSkuId === r.chosenSkuId)
       .reduce((total, x) => { const q = reviewQuantity(x); return total + (q.ready ? q.qty : 0); }, 0);
     return foodCountWarning(r, reviewSku(r), existing + earlier);
@@ -988,6 +1041,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     return !!saved && !!sku && !sameFoodQuantityBasis(saved, foodQuantityBasis(sku));
   };
   const applyable = (r: ReviewItem) => !reviewBasisChanged(r) && reviewQuantity(r).ready && (!warning(r) || r.largeCountConfirmed === warning(r))
+    && (!restateOf(r) || !!restateAnswer(r))
     && !correctionConflictsRef.current.some((c) => c.keys.includes(`${takeZoneId ?? zoneId}:${r.chosenSkuId}`));
 
   const reviewZoneId = takeZoneId ?? zoneId;
@@ -1034,8 +1088,18 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         || patch.cases !== undefined || patch.units !== undefined;
       const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && quantityShapeChanged && patch.unconfirmedQuantityFields === undefined;
       return { ...x, largeCountConfirmed: undefined,
+        // A different product or amount asks add-or-replace again.
+        ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined } : {}),
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
+  }
+
+  /** The add-or-replace answer, pinned to the amount it was asked about. */
+  function answerRestate(r: ReviewItem, answer: "add" | "replace" | undefined) {
+    if (startingFreshRef.current || checking || submitting || submissionUnknown) return;
+    const before = restateOf(r)?.before;
+    setReview(prev => (prev ?? []).map(x => x.key !== r.key ? x
+      : { ...x, restateAnswer: before == null ? undefined : answer, restateBefore: before == null || !answer ? undefined : before }));
   }
 
   function answerSpokenUnit(r: ReviewItem) {
@@ -1059,20 +1123,34 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   function applyReview() {
     if (!review || startingFreshRef.current || dict.recording || voiceBusy || checking || submitting || submissionUnknown) return;
-    for (const r of review) {
-      if (!applyable(r) || appliedVoiceRowsRef.current.has(r)) continue;
+    // Decide from the screen as the counter saw it. Re-checking each row
+    // after the rows before it were added would count those rows twice (in
+    // the shelf and again as earlier rows) and move every add-or-replace N.
+    const dest = takeZoneId ?? zoneId;
+    const chosen = review.filter((r) => applyable(r) && !appliedVoiceRowsRef.current.has(r))
+      .map((r) => ({ r, replace: restateAnswer(r) === "replace" }));
+    for (const { r, replace } of chosen) {
       const q = reviewQuantity(r);
         const sku = reviewSku(r)!;
         const basis = foodQuantityBasis(sku);
         let foodQuantity = q.inputUnit !== "case" && q.unitMultiplier != null ? physicalFoodQuantity(r.units, q.inputUnit ?? sku.countUnit ?? "each", q.unitMultiplier, sku.foodUnitRatios, basis) : undefined;
         if (sku.countUnit === "case" && q.cases) foodQuantity = mergeFoodQuantity(foodQuantity ?? legacyFoodQuantity(0, basis), physicalFoodQuantity(q.cases, "case", 1, sku.foodUnitRatios, basis));
       const raw = appendFoodSource(undefined, `${r.spoken} [confirmed: ${q.cases} cases × ${q.caseSize ?? "?"} + ${q.units} ${unitLabel(sku, q.units)}]`)!;
+      // "Replace": this row's amount is the shelf's count of the product. The
+      // cell (an earlier take, or this review's earlier rows just added) goes
+      // first, and comes back if the new amount is refused.
+      const kept = countsRef.current;
+      if (replace) {
+        const cells = { ...(kept[dest] ?? {}) };
+        delete cells[r.chosenSkuId!];
+        countsRef.current = { ...kept, [dest]: cells };
+      }
       // A SKU whose base unit IS case has one input, not "cases of cases".
       if (addToCell(r.chosenSkuId!, sku.countUnit === "case" ? 0 : q.cases,
-          q.units + (sku.countUnit === "case" ? q.cases : 0), q.caseSize, raw, takeZoneId ?? zoneId, foodQuantity)) {
+          q.units + (sku.countUnit === "case" ? q.cases : 0), q.caseSize, raw, dest, foodQuantity)) {
         // Consume only after the current cell accepted this exact amount.
         appliedVoiceRowsRef.current.add(r);
-      }
+      } else if (replace) countsRef.current = kept;
     }
     // Anything unresolved STAYS on screen. Silently dropping a spoken item is
     // how a shelf goes missing from a count.
@@ -1115,7 +1193,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       // If the sheet did not reach the server there is nothing to submit, and
       // going on would close the count over a partial or empty set of rows.
       if (!(await doSave())) {
-        setSubmitErr("Couldn't save the count — fix the connection, then Finish again.");
+        setSubmitErr(pageUpdateRef.current ? "This page is out of date. Reload it, then Finish again." : "Couldn't save the count — fix the connection, then Finish again.");
         return;
       }
       const res = await precheckCount(sessionId);
@@ -1359,7 +1437,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setSubmitErr(null);
     try {
       if (!(await doSave())) {
-        setSubmitErr("Couldn't save the count — nothing was submitted. Try again.");
+        setSubmitErr(pageUpdateRef.current ? "This page is out of date, so nothing was submitted. Reload it, then submit again." : "Couldn't save the count — nothing was submitted. Try again.");
         setSubmitting(false);
         return;
       }
@@ -1950,7 +2028,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             type="button"
             className="lq-btn"
             onClick={() => {
-              if (startingFreshRef.current || voicePending || leaving || checking || submitting || submissionUnknown) return;
+              if (startingFreshRef.current || voicePending || leaving || checking || submitting || submissionUnknown || pageUpdateRef.current) return;
               segExtractsRef.current = new Map();
               carryRef.current!.reset(); // a new take must not inherit a held item
               segmentGapRef.current = false;
@@ -1966,9 +2044,11 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             // and the older rows then applied to the NEW shelf. Finishing the
             // heard items first is the smallest correct rule — and reviewing
             // one shelf's worth at a time is what a counter does anyway.
-            disabled={voiceBusy || submitting || (review?.length ?? 0) > 0}
+            disabled={voiceBusy || submitting || (review?.length ?? 0) > 0 || pageUpdate}
           >
-            {(review?.length ?? 0) > 0
+            {pageUpdate
+              ? "Reload the page to record"
+              : (review?.length ?? 0) > 0
               ? "Finish the heard items first"
               : `🎙️ Talk through ${zone?.name ?? "this zone"}`}
           </button>
@@ -2081,6 +2161,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           </p>
           {review.map(r => <FoodVoiceReviewRow key={r.key} item={r} sku={reviewSku(r)} catalog={catalog}
             ready={applyable(r)} concern={warning(r)} blockedReason={reviewBasisChanged(r) ? "The counting unit changed. Clear the earlier amount on this shelf and recount it." : undefined} onEdit={patch => editReview(r, patch)}
+            restate={(() => { const s = restateOf(r); return s && { before: s.before, answer: restateAnswer(r) }; })()}
+            onRestate={answer => answerRestate(r, answer)}
             onChoose={id => chooseReviewSku(r, id)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
             onUnit={() => answerSpokenUnit(r)} onCaseSize={n => void answerCaseSize(r.chosenSkuId!, n)}
             enteredCounts={enteredCounts} countLocation={zones.find(z => z.id === reviewZoneId)?.name}
@@ -2556,11 +2638,27 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       <div className="lq-footer" ref={footerRef} inert={!!leaving}>
         {processingVoice && <VoiceProcessing transcribing={dict.recording}
           destination={zones.find(z => z.id === (takeZoneId ?? zoneId))?.name ?? "this location"} />}
+        {/* In the fixed footer, where the counter is already looking: the
+            server refused this page's voice or save as out of date. Only a
+            reload fixes it, and saved counts come back with Continue count.
+            Heard rows and unsaved typing live only on this page. */}
+        {pageUpdate && (
+          <div className="lq-fc-update" role="alert">
+            <span>
+              <strong>This page is out of date.</strong> Reload it to keep counting. Counts already saved stay saved.
+              {((review?.length ?? 0) > 0 || save === "error") && " Heard items not added yet, and numbers typed since the last save, will need to be entered again."}
+            </span>
+            <button type="button" className="lq-btn lq-btn-primary" disabled={dict.recording || save === "saving"}
+              onClick={() => { if (sessionId) rememberZone(sessionId, takeZoneId ?? zoneId); window.location.reload(); }}>
+              Reload page
+            </button>
+          </div>
+        )}
         <div className={`lq-savestate${submitErr || save === "error" ? " lq-fc-saveerr" : ""}`} role={submitErr || save === "error" ? "alert" : "status"}>
           {submitErr ??
-            (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? "Not saved yet. Keep this screen open and retry." : "")}
+            (save === "saving" ? "saving…" : save === "saved" ? "saved" : save === "error" ? pageUpdate ? "Not saved yet." : "Not saved yet. Keep this screen open and retry." : "")}
           {merged && !submitErr && save !== "error" && <span className="lq-muted"> · included a change made elsewhere</span>}
-          {save === "error" && <button type="button" className="lq-linkbtn lq-save-retry" disabled={startingFresh || submitting || checking} onClick={() => void doSave().then((ok) => { if (ok) setSubmitErr(null); })}>Retry save</button>}
+          {save === "error" && !pageUpdate && <button type="button" className="lq-linkbtn lq-save-retry" disabled={startingFresh || submitting || checking} onClick={() => void doSave().then((ok) => { if (ok) setSubmitErr(null); })}>Retry save</button>}
         </div>
         <div className="lq-footer-actions">
           <button type="button" className="lq-btn lq-btn-ghost" disabled={startingFresh || checking || submitting || voicePending} onClick={onDone}>Home</button>

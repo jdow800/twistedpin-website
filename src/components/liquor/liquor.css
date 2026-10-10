@@ -859,6 +859,21 @@
   margin-left: 8px;
   font-size: 14px;
 }
+/* An out-of-date food page (409 voice_update_required): one tap to reload. */
+.lq-fc-update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--lq-danger);
+  font-size: 14px;
+  line-height: 1.4;
+}
+.lq-fc-update .lq-btn {
+  min-height: 44px;
+  flex: 0 0 auto;
+}
 .lq-footer-actions {
   display: flex;
   align-items: center;
