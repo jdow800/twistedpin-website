@@ -1427,5 +1427,69 @@ await run('history: every voice read sends the other shelves\' totals, in count 
   assert.deepEqual(sent(t.qa.extracts[2].body),{beans:6});
 },'usual-counted');
 
+// Review of the history build (2026-10-10). Loose units of a full case beside
+// cases ask about a double count first, above the ceiling too; and "Use N
+// cases" always has one tap back to the reading, even on a product counted in
+// cases (Pizza Dough), which has no "Use N <unit>" of its own.
+const beansMixed = (cases, bags) => beans(cases, {spoken:`Beans, ${cases} cases and ${bags} bags`, cases, units:bags, qty:cases*6+bags,
+  spokenUnit:'bag', quantityWords:`${cases} cases and ${bags} bags`});
+const dough = n => ({spoken:`Pizza dough, ${n}`, cases:0, units:n, qty:n*0.05, unitsPerCase:1, needsCaseSize:false,
+  suspectPreMultiplied:false, match:{id:'dough',name:'Pizza Dough',sizeMl:null,unitsPerCase:1}, candidates:[],
+  spokenUnit:'dough', quantityKnown:true, unitNeedsReview:false,
+  unitReading:{reading:'pieces', n, noun:'dough', pieceFactor:0.05, caseSize:1, casesTotal:n, ceiling:24.2,
+    reason:`Read as ${n} dough. ${n} cases would be more than we have ever had; we usually have 7 to 10 cases.`}});
+
+await run('history: loose units of a full case ask about a double count first, and above the ceiling say the history too',async t => {
+  await t.hear([beansMixed(2,7)]);
+  const text = t.doc.body.textContent;
+  assert.match(text,/Loose units include a full case\. Already included in the case count\? 19 bags \(about 3\.2 cases\) is more than we've ever had on hand \(usually about 1 case; biggest delivery 1 case\)\./);
+  assert.doesNotMatch(text,/3\.167|Check the unit\./,'one question, cases to the tenth');
+  assert.ok(t.button('Use one count'),'the fix for a double count stays one tap');
+  assert.ok(t.button(/^Add 0 items to Pizza Freezer$/).disabled);
+  await t.click('Keep as entered');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:beans':19}]);
+},'usual');
+
+await run('history: loose units of a full case within the ceiling ask only about the double count',async t => {
+  await t.hear([beansMixed(1,6)]);
+  assert.match(t.doc.body.textContent,/Loose units include a full case\. Already included in the case count\?/);
+  assert.doesNotMatch(t.doc.body.textContent,aboveHistory,'12 bags is within 13.2');
+},'usual');
+
+await run('history: on a product counted in cases, Use 30 cases has one tap back to the 30 dough read',async t => {
+  await t.hear([dough(30)]);
+  assert.equal(valueOf(t,'Loose quantity for Pizza Dough'),'30');
+  await t.click('Use 30 cases');
+  assert.equal(reasonOf(t),null);
+  assert.equal(valueOf(t,'Cases for Pizza Dough'),'30');
+  assert.match(t.doc.body.textContent,/30 cases total exceeds the usual 20 cases\. Check the unit; keep if correct\./);
+  await t.click('Use 30 dough');
+  assert.match(reasonOf(t),/^Read as 30 dough\. 30 cases would be more than we have ever had; we usually have 7 to 10 cases\. Use 30 cases$/);
+  assert.equal(valueOf(t,'Loose quantity for Pizza Dough'),'30');
+  assert.ok(!t.button('Keep as entered'),'the reading is ready again');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:dough':1.5}]);
+},'usual&usual-dough');
+
+await run('history: a number typed after Use N cases drops the way back to the reading',async t => {
+  await t.hear([dough(30)]);
+  await t.click('Use 30 cases');
+  await t.input('Cases for Pizza Dough','25');
+  assert.match(t.doc.body.textContent,/25 cases total exceeds the usual 20 cases/);
+  assert.ok(!t.button('Use 30 dough') && !t.button(/^Use 25 /),'the reading was for 30');
+},'usual&usual-dough');
+
+await run('history: Use 10 cases, then one Use 10 cookies brings the reading and its reason back',async t => {
+  await t.hear([cookies(10)]);
+  await t.click('Use 10 cases');
+  assert.equal([...t.doc.querySelectorAll('button')].filter(b => b.textContent.trim()==='Use 10 cookies').length,1,'one way back, not two');
+  await t.click('Use 10 cookies');
+  assert.match(reasonOf(t),/^Read as 10 cookies\./);
+  assert.equal(valueOf(t,`Loose quantity for ${cookieName}`),'10');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.deepEqual(puts(t),[{'freezer:cookies':10}]);
+},'usual');
+
 if (failed.length) { console.log(`${failed.length} food voice UI scenarios FAILED: ${failed.join(' | ')}`); process.exitCode = 1; }
 console.log(`${passed} food voice UI scenarios passed including compact raw counts, case breakdowns, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);

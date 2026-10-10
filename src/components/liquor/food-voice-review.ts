@@ -36,6 +36,19 @@ export interface FoodReviewItem {
    *  Shown with its reason and "Use N cases"; cleared by any human change to
    *  the product, unit or number, since it no longer describes the row. */
   unitReading?: FoodUnitReading;
+  /** The reading the counter turned down with "Use N cases", kept while the
+   *  row still holds those N cases so one tap brings it back (review
+   *  2026-10-10: a product counted in cases had no way back). Cleared by any
+   *  other change to the product, unit or number. */
+  declinedReading?: FoodUnitReading;
+}
+
+/** "10 cookies", "30 dough": the amount a piece reading read, in the server's
+ *  own words (its reason opens "Read as 10 cookies."), for the button that
+ *  brings the reading back. */
+export function foodReadingAmount(reading: FoodUnitReading): string {
+  const said = /^Read as (\d[\d,]*(?:\.\d+)? [^.;]+)\./.exec(reading.reason)?.[1];
+  return said ?? `${formatQty(reading.n)} ${reading.noun}`;
 }
 
 /** This count's totals per product on every shelf except the take's, in
@@ -240,15 +253,25 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
     && (q.qty + existingQty) / q.caseSize > usualMaxCases) {
     return `${totalText} total exceeds the usual ${formatQty(usualMaxCases)} cases. Check the unit; keep if correct.`;
   }
+  // Loose units of a full case or more beside cases: most likely that case
+  // was counted twice. The question that says so comes first wherever it
+  // applies, including above the history ceiling (review 2026-10-10).
+  const looseHasCase = r.cases > 0 && q.inputUnit !== "case" && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!;
+  const looseText = "Loose units include a full case. Already included in the case count?";
   // Above the history ceiling, on every product (Jon 2026-10-10: also the
   // single-reading ones, "Beans, three"). The total is the whole store's, so
   // it re-checks after every edit with the same ceiling the server read with.
   const usual = foodUsualRange(sku);
   const total = preciseFoodQty(q.qty + existingQty);
   if (usual && total > usual.ceiling + 1e-9) {
-    const inCases = q.caseSize != null && q.caseSize > 1 ? ` (${casesWords(preciseFoodQty(total / q.caseSize))})` : "";
+    // Cases to the tenth: "19 bags (about 3.2 cases)", never "3.167 cases".
+    const exactCases = q.caseSize != null && q.caseSize > 1 ? total / q.caseSize : null;
+    const tenths = exactCases == null ? null : Math.round(exactCases * 10) / 10;
+    const inCases = exactCases == null || tenths == null ? ""
+      : ` (${Math.abs(tenths - exactCases) < 1e-9 ? "" : "about "}${casesWords(tenths)})`;
     const evidence = usualEvidence(usual);
-    return `${totalText}${inCases} is more than we've ever had on hand${evidence ? ` (${evidence})` : ""}. Check the unit.`;
+    const above = `${totalText}${inCases} is more than we've ever had on hand${evidence ? ` (${evidence})` : ""}.`;
+    return looseHasCase ? `${looseText} ${above}` : `${above} Check the unit.`;
   }
   if (usualMaxCases == null && high > 0 && q.qty + existingQty > 4 * high && q.qty + existingQty - high >= Math.max(10, q.caseSize ?? 1)) {
     const historyText = (n: number) => formatQty(n);
@@ -259,8 +282,6 @@ export function foodCountWarning(r: FoodReviewItem, sku: BarSkuItem | undefined,
   if (usualMaxCases == null && q.cases >= 10) return sku.countUnit === "case"
     ? `${formatQty(q.cases)} cases is a large count. Check quantity and unit.`
     : `${formatQty(q.cases)} cases is a large count. Cases or ${foodUnitLabel(sku, 2)}${q.caseSize ? ` (${formatQty(q.cases * q.caseSize)} ${foodUnitLabel(sku, q.cases * q.caseSize)})` : ""}?`;
-  if (r.cases > 0 && q.inputUnit !== "case" && (q.caseSize ?? 0) > 1 && q.units >= q.caseSize!) {
-    return "Loose units include a full case. Already included in the case count?";
-  }
+  if (looseHasCase) return looseText;
   return null;
 }

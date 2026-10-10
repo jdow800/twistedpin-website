@@ -122,6 +122,11 @@ if (params.has('usual') || params.has('usual-counted')) {
       countHistory:history({ceiling:13.2,tier:1,onHandMedianCases:0.8,onHandMaxCases:1.2,maxDeliveryCases:1,maxBought28Cases:3})},
   );
   for (const s of catalog.slice(-2)) Object.assign(s, {category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null});
+  // ?usual-dough: Pizza Dough as it really is, counted in cases (20 dough a
+  // case, Jon's usual 20 cases) with its tier-1 ceiling of 24.2 cases.
+  if (params.has('usual-dough')) Object.assign(catalog[0], {countUnit:'case', unitsPerCase:1,
+    countDefinition:answer('case',1,{unitLabel:'case',spokenUnits:{case:1,each:0.05,crust:0.05,dough:0.05,piece:0.05,shell:0.05},usualMaxCases:20}),
+    countHistory:history({ceiling:24.2,tier:1,onHandMedianCases:6.9,onHandMaxCases:10.2,maxDeliveryCases:14,maxBought28Cases:41})});
   for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
 }
 // Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.

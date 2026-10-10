@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
-import { foodQuantityFieldsToConfirm, foodRestateAmount, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
+import { foodQuantityFieldsToConfirm, foodReadingAmount, foodRestateAmount, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
@@ -42,6 +42,8 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
     : r.quantityReviewReason === "source_already_used" ? "Source already counted. Discard or enter a separate count."
     : r.quantityReviewReason === "source_not_returned" ? "Heard in your recording. Enter the count for this item."
     : mixed ? "Enter both counts; use 0 for none." : `Enter the count${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}.`;
+  // The reading "Use N cases" turned down, while the row still holds those N cases.
+  const back = r.declinedReading && !r.unitReading && q.cases === r.declinedReading.n && q.units === 0 ? r.declinedReading : undefined;
   const hits = r.search?.trim() ? catalog.filter(s => foodSearchMatch(s, r.search!)).slice(0, 8) : [];
   const pick = (id: string) => { onChoose(id); setProductOpen(false); setCountMode("auto"); };
   const anotherWay = () => {
@@ -94,10 +96,10 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
           more than we have ever had (2026-10-10). Its reason, and one tap back
           to cases; the history warning then asks before cases are added. */}
       {r.unitReading && (() => {
-        const n = r.unitReading.n;
-        return <span className="lq-muted lq-rev-hint lq-fc-rev-reading" role="status">{r.unitReading.reason}{" "}
+        const reading = r.unitReading, n = reading.n;
+        return <span className="lq-muted lq-rev-hint lq-fc-rev-reading" role="status">{reading.reason}{" "}
           <button type="button" className="lq-linkbtn" onClick={() => onEdit({ cases: n, units: 0, spokenUnit: null,
-            unitChoiceConfirmed: true, unitReading: undefined })}>Use {formatQty(n)} {n === 1 ? "case" : "cases"}</button>
+            unitChoiceConfirmed: true, unitReading: undefined, declinedReading: reading })}>Use {formatQty(n)} {n === 1 ? "case" : "cases"}</button>
         </span>;
       })()}
       {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
@@ -141,7 +143,12 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
         </div>;
       })()}
       {concern && r.largeCountConfirmed !== concern && <div className="lq-fc-rev-ask" role="status"><span>{concern}</span>
-        {q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"
+        {/* After "Use N cases" the way back is the reading itself, with its
+            reason, on every product, including one counted in cases (pizza
+            dough: "Use 30 dough"), which has no "Use N <unit>" of its own. */}
+        {back ? <button type="button" className="lq-linkbtn" onClick={() => onEdit({ cases: 0, units: back.n, spokenUnit: back.noun,
+            unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true, unitReading: back, declinedReading: undefined })}>Use {foodReadingAmount(back)}</button>
+          : q.cases > 0 && q.units === 0 && sku.countUnit !== "case" && <button type="button" className="lq-linkbtn"
           onClick={() => onEdit({ units: q.cases, cases: 0, spokenUnit: sku.countUnit ?? null, unitChoiceConfirmed: true, unitMultiplier: undefined })}>Use {q.cases} {foodUnitLabel(sku, q.cases)}</button>}
         <button type="button" className="lq-linkbtn" onClick={() => onEdit({ largeCountConfirmed: concern })}>Keep as entered</button></div>}
     </>}

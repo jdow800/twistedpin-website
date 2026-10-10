@@ -1100,8 +1100,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       const restate = x.quantityWasUncertain && quantityStillHeld && meaningChanged && quantityShapeChanged && patch.unconfirmedQuantityFields === undefined;
       return { ...x, largeCountConfirmed: undefined,
         // A different product or amount asks add-or-replace again, and the
-        // server's history reading no longer describes the row.
-        ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined, unitReading: undefined } : {}),
+        // server's history reading (or the one "Use N cases" turned down) no
+        // longer describes the row. "Use N cases" and its way back set them.
+        ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined, unitReading: undefined, declinedReading: undefined } : {}),
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
   }
