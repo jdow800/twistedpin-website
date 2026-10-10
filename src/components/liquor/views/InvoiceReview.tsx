@@ -1,5 +1,6 @@
 import { invoiceImageUrl, type InvoiceDetail, type InvoiceLine } from "../api";
 import { reviewAnnotationFor, reviewReasonsFor, detailNeedsAttention } from "../invoice-review-ui";
+import { countPlan, printedTotalRead } from "../deposit-sentence";
 export { reviewAnnotationFor, reviewReasonsFor } from "../invoice-review-ui";
 
 export function jumpToInvoiceLine(id: string) {
@@ -40,6 +41,10 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
   const printedUnread = inv.printedTotal == null;
   const emptyKegNotes = notes.some((note) => /\bempt(?:y|ies)\b/i.test(note));
   const canExplainDeposit = emptyKegNotes && !detail.depositResolution && !!detail.explanationToken && detail.lines.some(line => line.lineType === "deposit");
+  // A total of 0.00 is no more a read total than null: the deposit form below says so instead of offering a credit. When the
+  // deposit is whole kegs at one rate it asks one question (how many), so the sentence above must not ask for dollars.
+  const depositTotalUnread = !printedTotalRead(inv.printedTotal);
+  const askCount = canExplainDeposit && !depositTotalUnread && !!countPlan(detail.lines, inv.printedTotal, false);
   const image = detail.images[0];
   const hasReason = inv.duplicateOf || notes.length || marked.length || unmatched.length || amounts.length || quantities.length || held.length || delta >= 0.01 || printedUnread;
 
@@ -56,12 +61,13 @@ export default function InvoiceReview({ detail, clearing, error, onConfirm }: {
               <ul className="lq-invd-review-notes">
                 {notes.map((note, index) => <li key={index}>{note}</li>)}
               </ul>
-              <p>{canExplainDeposit && printedUnread ? "These notes describe an empty-keg deposit return. The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice."
+              <p>{canExplainDeposit && depositTotalUnread ? "These notes describe an empty-keg deposit return. The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice."
+                : askCount ? "These notes describe an empty-keg deposit return. Say how many empty kegs went back below to record the credit."
                 : canExplainDeposit ? "These notes describe an empty-keg deposit return. State the credit and revised total below to record the adjustment."
                 : emptyKegNotes && !detail.depositResolution
                 ? "These notes mention empty-keg returns. Check the number returned, the deposit credit and any revised total. A handwritten final total is the expected vendor charge after their office processes the invoice. Change a delivered quantity below only if full kegs were also missing."
                 : "Compare these notes with the original invoice and what arrived. Record any delivery shortage on the affected item below; check credits with the vendor."}</p>
-              {canExplainDeposit && printedUnread ? null
+              {canExplainDeposit && depositTotalUnread ? null
                 : canExplainDeposit ? <p><a className="lq-linkbtn" href="#invoice-explanation">Tell us what happened below</a></p>
                 : <p className="lq-muted">The totals below still reflect the saved bill. Confirming this review does not record an adjusted charge or verify the vendor's actual charge.</p>}
             </div>

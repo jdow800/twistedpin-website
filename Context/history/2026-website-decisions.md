@@ -1,3 +1,21 @@
+## 2026-10-09 - The empty-keg deposit form asks one question: how many kegs went back
+
+Built on branch feat/deposit-form-one-number; not deployed. Jon could not answer the empty-keg question on Werk Force INV-004038
+($270: two kegs and two $30 deposits): the box's example was another invoice's ("total due $559") and "yes empty kegs" was refused
+with a question that did not say what to type. When the invoice has a read printed total and exactly one deposit rate, the screen now
+shows "How many empty kegs went back?" with a number box (a text box with a numeric keypad, 48px tall, 18px type) defaulted to the
+kegs billed a deposit and limited to 1 up to that number. Under it a live line from THIS invoice ("Credit $60.00. Amount due becomes
+$210.00 (was $270.00).") and one button naming the result ("Record $60.00 credit"). The button sends "Returned 2 empty kegs. Deposit
+credit $60; total due $210." through the existing explanation call and token, then shows the saved answer. A stale invoice shows the
+standard "This question changed while you were answering" line and keeps the number. The free-text box moved under a plain link,
+"Describe something else", and its example now uses the invoice's own numbers. Free text with no dollar amount gets "Add the credit in
+dollars, like: Returned two empty kegs. Deposit credit $60; total due $210." (no dollar figure when no single rate can be worked out).
+Unread printed totals (null or 0.00), mixed deposit rates, no deposit line, or a credit already on the invoice keep the text box or
+the honest unread message. Nothing is ever prefilled for a missing product; "If a full keg was missing, record that on its item below"
+stays. No server change. The composer is `src/components/liquor/deposit-sentence.ts`; tprs holds a copy and proves its parser reads every
+sentence it makes (`invoice-deposit-sentence-contract.test.ts`), with golden lists and one hash recorded in both repos.
+Validation: `check-deposit-sentence.mjs`, 18 new `kegs-*` scenarios in `check-invoices.mjs`, and phone/desktop layout at 320, 390 and 960 px.
+
 ## 2026-10-09 — A scan copy that matches the emailed invoice settles itself
 
 Jon: "lets fix things, yes", after an audit of every linked pair (13 pairs, 176 supplier-code rows): 38 rows differed only in a package column with identical units and dollars, and a question about an excluded copy never protects a cost. A scan copy with the same items, counts, dollars, charges and totals as its emailed invoice, and no ink that changes them, now arrives from the server as automatically reconciled with the basis `matching_units_and_dollars`. The linked-copy screen says "Copy matches the emailed invoice: same items, counts and dollars, and no ink that changes them. Package columns may read differently; the emailed invoice governs them. No answer needed." in the same handled-automatically style as the other bases; the package readings stay on each row. There is no new screen and no Not-right button (the older automatic bases have none either): the existing line "Open the purchase record if staff found a different delivery problem" still follows it. Anything with a different count, dollar amount, charge, total or ink asks exactly as before. Backend: tprs `INVOICE_COPY_MATCH_SETTLE` (default on, `off` restores the old behaviour). Deploy order: either order works; an older page shows the generic "settled automatically" line for the new basis.

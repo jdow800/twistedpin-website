@@ -122,6 +122,34 @@ if(mode.startsWith('explain') || mode==='deposit-auto') {
     }
   }
 }
+// 2026-10-09 one-number deposit form. Shapes follow production rows (SELECT only): Werk Force INV-004038 (two kegs, one
+// "Keg Deposit" line, 2 x 30.000000 = 60.00, printed 270.00) and Phase Three E-7341 (three deposits at 30). Modes:
+// kegs-werk[-stale|-error|-question], kegs-phase3, kegs-cents (27.50 rate), kegs-unread (printed total null), kegs-zero (0.00),
+// kegs-mixed (two deposit rates), kegs-credit-present (a negative adjustment already on the invoice), kegs-saved (answered).
+const KEGS_SERVER_QUESTION="Was this an empty-keg deposit return? Tell us the deposit credit in dollars. For a missing product, use that item's delivery quantity.";
+let kegsOriginal=null;
+if(mode.startsWith('kegs-')) {
+  const mk=(id,name,cost,type='keg')=>({...line,id,lineType:type,rawDescription:name,sizeText:type==='keg'?'1/6 BBL':null,qtyUnits:'1',unitCost:String(cost),extendedAmount:String(cost)});
+  const dep=(qty,rate,id='test-deposit',name='Keg Deposit')=>({...mk(id,name,rate,'deposit'),qtyUnits:String(qty),extendedAmount:(qty*rate).toFixed(2)});
+  const phase3=mode.startsWith('kegs-phase3'),cents=mode.startsWith('kegs-cents');
+  invoice.vendorText=phase3?'Phase Three Brewing Company':'Werk Force Brewing';invoice.invoiceNumber=phase3?'E-7341':'INV-004038';
+  invoice.status='flagged';invoice.reviewNotes=invoice.handwrittenNotes=[phase3?'Empty x1 -30':cents?'Empty x1 -27.50':'Empty x2 -60 (written below printed Balance Due $270.00)'];
+  detail.explanationToken='a'.repeat(64);
+  if(phase3) {detail.lines=[mk('keg-a','Phase Three Keg One',250),mk('keg-b','Phase Three Keg Two',249),dep(3,30)];invoice.printedTotal=invoice.extractedTotal='589.00';}
+  else if(cents) {detail.lines=[mk('keg-a','Example Keg One',300),mk('keg-b','Example Keg Two',234.95),dep(2,27.5)];invoice.printedTotal=invoice.extractedTotal='589.95';}
+  else {detail.lines=[mk('keg-a','Werk Force Wholesale 1/6bbl Keg Special',125),mk('keg-b','Werk Force Wholesale 1/6bbl Keg Really',85),dep(2,30)];invoice.printedTotal=invoice.extractedTotal='270.00';}
+  if(mode==='kegs-unread') {invoice.printedTotal=null;}
+  if(mode==='kegs-zero') {invoice.printedTotal='0.00';}
+  if(mode==='kegs-mixed') {detail.lines.push(dep(1,25,'test-bottle-deposit','Bottle Deposit'));invoice.printedTotal=invoice.extractedTotal='295.00';}
+  if(mode==='kegs-credit-present'||mode==='kegs-saved') {
+    detail.lines.push(mk('credit','Empty-keg deposit return',-60,'deposit'));invoice.printedTotal=invoice.extractedTotal='210.00';
+    if(mode==='kegs-saved') {
+      invoice.status='extracted';invoice.reviewNotes=[];
+      detail.depositResolution={id:'deposit-action',source:'staff',explanation:'Returned 2 empty kegs. Deposit credit $60; total due $210.',original_total:'270.00',credit:'60.00',total:'210.00',remaining_questions:false};
+    }
+  }
+  kegsOriginal=Number(mode==='kegs-saved'||mode==='kegs-credit-present'?'270':invoice.printedTotal);
+}
 if(mode==='linked-auto') {
   invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];
   detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
@@ -250,6 +278,24 @@ window.fetch=async(url,options={})=>{
     return json({resolved:true,result});
   }
   if(path.endsWith('/explanation')) {
+    if(mode.startsWith('kegs-')) {
+      // A small mirror of the server route (tprs writtenDepositReturn); the real parser is proven in tprs by
+      // invoice-deposit-sentence-contract.test.ts against the same sentences. Real answers: {code,error,question}.
+      if(mode.endsWith('-stale'))return json({code:409,error:'invoice_changed'},409);
+      if(mode.endsWith('-error'))return json({error:'internal'},500);
+      const body=JSON.parse(options.body),text=body.text;
+      if(mode.endsWith('-question'))return json({code:422,error:'answer_needs_detail',question:'What is the empty-keg deposit credit, and the revised amount due?'},422);
+      if(!/(?:\$\s*|-\s*)\d/.test(text))return json({code:422,error:'answer_needs_detail',question:KEGS_SERVER_QUESTION},422);
+      const credit=text.match(/deposit credit \$(\d+(?:\.\d{1,2})?)/i),due=text.match(/total due \$(\d+(?:\.\d{1,2})?)/i);
+      if(!credit||!due||Math.round(kegsOriginal*100)-Math.round(Number(credit[1])*100)!==Math.round(Number(due[1])*100))
+        return json({code:422,error:'answer_needs_detail',question:'What is the empty-keg deposit credit, and the revised amount due?'},422);
+      invoice.printedTotal=invoice.extractedTotal=Number(due[1]).toFixed(2);invoice.status='extracted';invoice.reviewNotes=[];
+      detail.depositResolution={id:'deposit-action',source:'staff',explanation:text,original_total:kegsOriginal.toFixed(2),credit:Number(credit[1]).toFixed(2),total:Number(due[1]).toFixed(2),remaining_questions:false};
+      detail.explanationToken='b'.repeat(64);
+      detail.lines=detail.lines.filter(l=>l.id!=='credit');
+      detail.lines.push({...line,id:'credit',lineType:'deposit',rawDescription:'Empty-keg deposit return',sizeText:null,qtyUnits:'1',unitCost:`-${Number(credit[1])}`,extendedAmount:`-${Number(credit[1])}`});
+      return json({code:200,applied:true,result:detail.depositResolution});
+    }
     if(mode==='explain-stale')return json({error:'invoice_changed'},409);
     if(mode==='explain-question')return json({error:'answer_needs_detail',question:'What is the deposit credit and revised amount due?'},422);
     const body=JSON.parse(options.body),credit=body.text.includes('$20')?20:40,total=180-credit;
