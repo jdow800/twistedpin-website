@@ -887,6 +887,10 @@ function RememberUnitControl({ invoiceId, line, unit, onApplied }: { invoiceId: 
   return <form className="lq-invd-hold-edit" onSubmit={event => { event.preventDefault(); if (valid) void save(); }}>
     <label htmlFor={`package-answer-${line.id}`}>How many {pluralUnit(unit)} are in one case?</label>
     <p className="lq-muted">Inventory counts this item by {unit === "item" ? 'individual items ("each")' : pluralUnit(unit)}. Enter the number in a full billed case.</p>
+    {line.substituteFacts?.isSubstitute && <p className="lq-muted">
+      <span className="lq-invd-tag">Substitute</span>
+      {line.substituteFacts.sibling && <> Also bought as {line.substituteFacts.sibling.vendorCode}{line.substituteFacts.sibling.sizeText && ` (${line.substituteFacts.sibling.sizeText})`}: saved as {line.substituteFacts.sibling.unitsPerCase} per case.</>}
+    </p>}
     <input id={`package-answer-${line.id}`} aria-label="Count units per billed case" type="text" autoComplete="off"
       placeholder={`Number, or “1 case = … ${pluralUnit(unit)}”`} value={value} onChange={e => { setValue(e.target.value); startedFrom.edited(); }}
       aria-describedby={`package-preview-${line.id}`} />

@@ -1,3 +1,7 @@
+## 2026-10-09 — Substitute items show a tag and what is saved for the usual item
+
+Jon authorized shipping the reduced invoice plan. A package question for a line that prints SUBSTITUTE shows a small "Substitute" tag and, when a sibling supplier item has a saved rule, a fact line such as "Also bought as 4999690 (8 CT): saved as 8 per case." The number box stays empty and nothing is suggested or prefilled. An older backend that does not send the field looks exactly as before. Validation: strict typecheck, production build, invoice QA scenarios.
+
 ## 2026-10-09 — An unread printed invoice total shows as "Printed total not read"
 
 Jon authorized shipping the reduced invoice plan. When the backend stores an unreadable printed total as unknown, the invoice screens say "Printed total not read" (the list row says "total not read") instead of $0.00, keep the totals-differ warning, and explain that a deposit credit cannot be recorded until the total is read. Display only. Rows already stored at $0.00, including Nik & Ivy 1540, stay as they are. Validation: strict typecheck, production build, invoice and source-check QA scenarios.
