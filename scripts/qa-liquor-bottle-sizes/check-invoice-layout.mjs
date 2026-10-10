@@ -25,7 +25,7 @@ try {
   const send=(method,params)=>command(method,params,sessionId);
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
   await send('Page.enable');
-  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['clarity','clarity-unknown-unit','food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-question'];
+  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['clarity','clarity-unknown-unit','food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-units-dollars','linked-question'];
   for(const width of [320,390,960]) for(const mode of modes) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600});
     await send('Page.navigate',{url:`http://127.0.0.1:4177/?mode=${mode}`});
