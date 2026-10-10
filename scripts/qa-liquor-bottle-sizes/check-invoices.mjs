@@ -642,10 +642,12 @@ await run('an automatic deposit credit shows the arithmetic and remains correcta
 for(const mode of ['explain','explain-question','explain-stale']) await run('written deposit answer '+mode,mode,async({doc,button,click,log,dom})=>{
   assert.ok(!button(confirm));
   const fill=async text=>{const input=doc.querySelector('textarea');Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(input,text);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();};
+  // This invoice (2 deposits at $20, printed $180) is a one-number invoice now: the box sits behind the link.
+  assert.ok(!doc.querySelector('textarea'));await click('Describe something else');
   await fill('Empty keg deposit return $40; total due $140');await click('Save answer');
   assert.match(log(),/\/explanation/);assert.match(log(),/"token":"aaaaaaaa/);
   if(mode==='explain-question') {assert.match(doc.querySelector('[role=alert]').textContent,/What is the deposit credit/);assert.ok(doc.querySelector('textarea').value.includes('$40'));}
-  else if(mode==='explain-stale') {assert.match(doc.querySelector('[role=alert]').textContent,/invoice changed/);assert.ok(button('Refresh invoice'));assert.ok(button('Save answer').disabled);}
+  else if(mode==='explain-stale') {assert.equal(doc.querySelector('[role=alert]').textContent,STALE);assert.equal(doc.querySelector('textarea').value,'Empty keg deposit return $40; total due $140');assert.ok(button('Refresh invoice'));assert.ok(button('Save answer').disabled);}
   else {
     await until(()=>doc.body.textContent.includes('Answer recorded'));
     assert.match(doc.querySelector('.lq-invd-totals').textContent,/140.00/);
@@ -663,6 +665,223 @@ await run('a recorded deposit answer leaves a way to finish the remaining review
   assert.ok(!button('Save answer'));
   assert.ok(!doc.body.textContent.includes('State the credit and revised total below'));
   assert.ok(!log().includes('POST'));
+});
+// ---- One-number deposit form (2026-10-09). Werk Force INV-004038: two kegs, 2 deposits at $30, printed $270. ----
+const WERK_LINE='Credit $60.00. Amount due becomes $210.00 (was $270.00).';
+const explanationPosts=log=>log().split('\n').filter(x=>/^POST \S*\/explanation /.test(x));
+const kegsInput=doc=>doc.getElementById('invoice-deposit-kegs');
+const sectionOf=doc=>doc.querySelector('[aria-label="Invoice explanation"]');
+const TOKEN='a'.repeat(64);
+async function typeInto(dom,box,value) {
+  Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype,'value').set.call(box,value);
+  box.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
+}
+await run('a keg invoice asks how many empties went back, defaulted to the kegs billed a deposit, with this invoice\'s own numbers','kegs-werk',async({doc,button,log})=>{
+  const section=sectionOf(doc);
+  assert.equal(section.querySelector('h3').textContent,'Tell us what happened');
+  assert.equal(doc.querySelector('label[for=invoice-deposit-kegs]').textContent,'How many empty kegs went back?');
+  const input=kegsInput(doc);
+  assert.equal(input.value,'2');assert.equal(input.getAttribute('inputmode'),'numeric');assert.equal(input.getAttribute('type'),'text');
+  assert.equal(input.getAttribute('pattern'),'[0-9]*');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,WERK_LINE);
+  assert.ok(button('Record $60.00 credit')&&!button('Record $60.00 credit').disabled);
+  assert.ok(!section.querySelector('textarea'),'the free-text box stays collapsed');
+  assert.ok(button('Describe something else'));
+  assert.equal(button('Describe something else').getAttribute('aria-expanded'),'false');
+  assert.match(section.textContent,/If a full keg was missing, record that on its item below\./);
+  // The control comes first, then the link.
+  assert.ok(input.compareDocumentPosition(button('Describe something else')) & 4);
+  assert.ok(!section.textContent.includes('$559'),'never another invoice\'s numbers');
+  // The review above no longer asks for dollars and a revised total when the form below asks only for a count.
+  const review=doc.querySelector('.lq-invd-review');assert.notEqual(review,section);
+  assert.match(review.textContent,/Say how many empty kegs went back below to record the credit\./);
+  assert.ok(!review.textContent.includes('State the credit and revised total'));
+  assert.ok(!log().includes('POST'));
+});
+await run('changing the number updates the credit line and the button','kegs-werk',async({doc,dom,button})=>{
+  await enter(dom,kegsInput(doc),'1');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $30.00. Amount due becomes $240.00 (was $270.00).');
+  assert.ok(button('Record $30.00 credit'));assert.ok(!button('Record $60.00 credit'));
+  await enter(dom,kegsInput(doc),'2');assert.equal(doc.getElementById('invoice-deposit-preview').textContent,WERK_LINE);
+});
+await run('a count of zero, none, a fraction or more than the kegs billed cannot be recorded, and the box keeps what was typed','kegs-werk',async({doc,dom,button,log})=>{
+  for(const [typed,says] of [['3',/billed on 2 kegs.*no more than 2/],['0',/Enter a number from 1 to 2\./],['',/Enter a number from 1 to 2\./],['1.5',/Enter a number from 1 to 2\./],['two',/Enter a number from 1 to 2\./]]) {
+    await enter(dom,kegsInput(doc),typed);
+    assert.equal(kegsInput(doc).value,typed,`the box keeps "${typed}"`);
+    assert.ok(button('Record credit').disabled,`"${typed}" is not recordable`);
+    assert.match(doc.getElementById('invoice-deposit-preview').textContent,says,typed);
+    assert.ok(!doc.getElementById('invoice-deposit-preview').textContent.includes('Credit $'),typed);
+    assert.equal(kegsInput(doc).getAttribute('aria-invalid'),typed===''?null:'true',typed);
+    // Something typed that cannot be recorded is an error: announced as one. An empty box is only a prompt.
+    assert.equal(doc.getElementById('invoice-deposit-preview').getAttribute('role'),typed===''?null:'alert',typed);
+  }
+  assert.ok(!log().includes('POST'));
+  await enter(dom,kegsInput(doc),'2');assert.ok(!button('Record $60.00 credit').disabled);
+});
+await run('Record sends exactly the composed sentence with the existing token, then shows the saved answer','kegs-werk',async({doc,click,log})=>{
+  await click('Record $60.00 credit');
+  await until(()=>doc.body.textContent.includes('Answer recorded'));
+  const posts=explanationPosts(log);
+  assert.equal(posts.length,1);
+  assert.ok(posts[0].endsWith(' '+JSON.stringify({token:TOKEN,text:'Returned 2 empty kegs. Deposit credit $60; total due $210.'})),posts[0]);
+  const saved=sectionOf(doc).textContent;
+  assert.match(saved,/Original bill \$270\.00.*\$60\.00.*\$210\.00 due/);
+  assert.match(saved,/Your answer: Returned 2 empty kegs\. Deposit credit \$60; total due \$210\./);
+  assert.match(doc.querySelector('.lq-invd-totals').textContent,/Amount due.*\$210\.00/);
+  assert.ok(!kegsInput(doc),'the form is gone once the answer is saved');
+});
+await run('a one-keg return on a three-deposit invoice composes the singular sentence','kegs-phase3',async({doc,dom,click,log})=>{
+  assert.equal(kegsInput(doc).value,'3');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $90.00. Amount due becomes $499.00 (was $589.00).');
+  await enter(dom,kegsInput(doc),'1');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $30.00. Amount due becomes $559.00 (was $589.00).');
+  await click('Record $30.00 credit');await until(()=>doc.body.textContent.includes('Answer recorded'));
+  assert.ok(explanationPosts(log)[0].endsWith(' '+JSON.stringify({token:TOKEN,text:'Returned 1 empty keg. Deposit credit $30; total due $559.'})),explanationPosts(log)[0]);
+  assert.match(sectionOf(doc).textContent,/Original bill \$589\.00.*\$30\.00.*\$559\.00 due/);
+});
+await run('a rate with cents and a total with cents compose amounts the server reads','kegs-cents',async({doc,dom,click,log})=>{
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $55.00. Amount due becomes $534.95 (was $589.95).');
+  await enter(dom,kegsInput(doc),'1');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $27.50. Amount due becomes $562.45 (was $589.95).');
+  await click('Record $27.50 credit');await until(()=>doc.body.textContent.includes('Answer recorded'));
+  assert.ok(explanationPosts(log)[0].endsWith(' '+JSON.stringify({token:TOKEN,text:'Returned 1 empty keg. Deposit credit $27.50; total due $562.45.'})),explanationPosts(log)[0]);
+});
+await run('an invoice that changed under the form says so and keeps the typed number','kegs-werk-stale',async({doc,dom,click,button,log})=>{
+  await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
+  assert.equal(doc.querySelector('[role=alert]').textContent,STALE);
+  assert.equal(kegsInput(doc).value,'1');
+  assert.ok(button('Record $30.00 credit').disabled,'no second send against the old state');
+  assert.ok(button('Refresh invoice'));
+  assert.equal(explanationPosts(log).length,1);
+});
+await run('a failed save keeps the typed number and allows another try','kegs-werk-error',async({doc,dom,click,button,log})=>{
+  await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
+  assert.match(doc.querySelector('[role=alert]').textContent,/Could not save this answer\. Reopen the invoice and try again\./);
+  assert.equal(kegsInput(doc).value,'1');assert.ok(!button('Record $30.00 credit').disabled);
+  await click('Record $30.00 credit');assert.equal(explanationPosts(log).length,2);
+});
+await run('a question the server asks of the composed sentence never shows another invoice\'s dollars, and the number is kept','kegs-werk-question',async({doc,dom,click,button})=>{
+  await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
+  // The server's "does not add up" question ends in "For example: Deposit return $30; total due $559." (a different invoice).
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'Could not save this answer. Reopen the invoice and try again.');
+  assert.ok(!says.includes('$559'));
+  assert.equal(kegsInput(doc).value,'1');assert.ok(!button('Record $30.00 credit').disabled);
+});
+await run('a question with nothing from another invoice in it is shown as the server wrote it, and the number is kept','kegs-werk-asks-missing',async({doc,dom,click})=>{
+  await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.');
+  assert.equal(kegsInput(doc).value,'1');
+});
+await run('Describe something else opens the box with an example from this invoice, and the number stays above it','kegs-werk',async({doc,click,button})=>{
+  await click('Describe something else');
+  const section=sectionOf(doc),box=section.querySelector('textarea');
+  assert.ok(box);assert.equal(box.value,'');
+  assert.equal(button('Use the keg count instead').getAttribute('aria-expanded'),'true');
+  assert.match(section.textContent,/For example: “Returned two empty kegs\. Deposit credit \$60; total due \$210\.” This records the credit\. If a full keg was missing, record that on its item below\./);
+  assert.ok(!section.textContent.includes('$559'));assert.ok(!section.textContent.includes('Returned one empty keg'));
+  assert.ok(kegsInput(doc).compareDocumentPosition(box) & 4,'the number control stays first');
+  await click('Use the keg count instead');assert.ok(!sectionOf(doc).querySelector('textarea'));
+});
+await run('a reply with no dollar amount is told what to type, using this invoice\'s numbers, and keeps what was typed','kegs-werk',async({doc,dom,click,log})=>{
+  await click('Describe something else');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'yes empty kegs');
+  await click('Save answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'Add the credit in dollars, like: Returned two empty kegs. Deposit credit $60; total due $210.');
+  assert.ok(!doc.querySelector('[role=alert]').textContent.includes('Was this an empty-keg deposit return'));
+  assert.equal(sectionOf(doc).querySelector('textarea').value,'yes empty kegs');
+  assert.ok(explanationPosts(log)[0].includes('"text":"yes empty kegs"'));
+});
+await run('the no-amount line for another invoice carries that invoice\'s numbers, never $559 or $60','kegs-phase3',async({doc,dom,click})=>{
+  await click('Describe something else');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'yes empty kegs');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'Add the credit in dollars, like: Returned three empty kegs. Deposit credit $90; total due $499.');
+  assert.ok(!says.includes('$559')&&!says.includes('$60'));
+});
+// The server's "does not add up" question ends in another invoice's example ("Deposit return $30; total due $559."), and its
+// "was this a deposit return" question tells someone who gave dollars to give dollars. Neither is shown; this invoice's numbers are.
+const SUM_WERK='That did not add up. The credit plus the amount due must equal the original bill of $270.00. Try: Returned two empty kegs. Deposit credit $60; total due $210.';
+for(const [why,typed] of [['a total that is off','Returned two empty kegs. Deposit credit $60; total due $200.'],['a credit above the bill','Returned two empty kegs. Deposit credit $300; total due $210.'],['a credit typo','Returned two empty kegs. Deposit credit $50; total due $210.']])
+  await run('amounts that do not add up ('+why+') are told so with this invoice\'s numbers, never $559, and the typed words are kept','kegs-werk',async({doc,dom,click,log})=>{
+    await click('Describe something else');
+    await typeInto(dom,sectionOf(doc).querySelector('textarea'),typed);await click('Save answer');
+    const says=doc.querySelector('[role=alert]').textContent;
+    assert.equal(says,SUM_WERK);assert.ok(!says.includes('$559'));assert.ok(!says.includes('For example'));
+    assert.equal(sectionOf(doc).querySelector('textarea').value,typed);
+    assert.equal(explanationPosts(log).length,1);
+  });
+await run('amounts that do not add up on another invoice carry that invoice\'s own bill and example','kegs-phase3',async({doc,dom,click})=>{
+  await click('Describe something else');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned three empty kegs. Deposit credit $50; total due $499.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'That did not add up. The credit plus the amount due must equal the original bill of $589.00. Try: Returned three empty kegs. Deposit credit $90; total due $499.');
+  assert.ok(!says.includes('$559')&&!says.includes('$270'));
+});
+await run('a dollar amount without the words the server reads (Empty x2 -60) is told which words to use, with this invoice\'s example','kegs-werk',async({doc,dom,click})=>{
+  await click('Describe something else');
+  for(const typed of ['Empty x2 -60','Returned 2 empty kegs, credit $60','2 kegs deposit credit -60']) {
+    await typeInto(dom,sectionOf(doc).querySelector('textarea'),typed);await click('Save answer');
+    const says=doc.querySelector('[role=alert]').textContent;
+    assert.equal(says,'Use the words empty keg, deposit and credit, like: Returned two empty kegs. Deposit credit $60; total due $210.',typed);
+    assert.ok(!says.includes('Tell us the deposit credit in dollars'),typed);assert.equal(sectionOf(doc).querySelector('textarea').value,typed);
+  }
+});
+await run('words the server reads as missing product, or too many decimals, keep the server\'s own question','kegs-werk',async({doc,dom,click})=>{
+  await click('Describe something else');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned the empty keg. Deposit credit $30, but a full keg was missing');await click('Save answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned 2 empty kegs. Deposit credit $60.555; total due $209.445.');await click('Save answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'Use dollar amounts with at most two decimal places for the deposit credit and revised total.');
+});
+await run('a correction that does not add up names the original bill, and the text keeps what was typed','kegs-saved',async({doc,dom,click})=>{
+  await click('Correct this answer');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned two empty kegs. Deposit credit $50; total due $210.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,SUM_WERK);assert.ok(!says.includes('$559'));
+  assert.equal(sectionOf(doc).querySelector('textarea').value,'Returned two empty kegs. Deposit credit $50; total due $210.');
+});
+await run('with no single rate to work from, a sum that does not add up shows no dollar figure from anywhere','kegs-mixed',async({doc,dom,click})=>{
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned two empty kegs. Deposit credit $50; total due $210.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'That did not add up. The credit plus the amount due must equal the original bill. Say how many empty kegs went back, the credit and the total due.');
+  assert.ok(!says.includes('$'));
+});
+for(const mode of ['kegs-unread','kegs-zero']) await run('an unread printed total keeps the honest message and offers no form: '+mode,mode,async({doc,button,log})=>{
+  const section=sectionOf(doc);
+  assert.match(section.textContent,/The printed total was not read, so the credit cannot be recorded here yet\. Check the original invoice\./);
+  assert.ok(!kegsInput(doc));assert.ok(!section.querySelector('textarea'));assert.ok(!button('Describe something else'));assert.ok(!button('Save answer'));
+  assert.ok(!log().includes('POST'));
+});
+await run('mixed deposit rates fall back to the text box, whose example has no dollar figure from another invoice','kegs-mixed',async({doc,dom,click,log})=>{
+  const section=sectionOf(doc);
+  assert.ok(!kegsInput(doc));assert.ok(!section.textContent.includes('Describe something else'));
+  const box=section.querySelector('textarea');assert.ok(box);
+  assert.equal(section.querySelector('label').textContent,'Explain the empty-keg deposit return');
+  const example=[...section.querySelectorAll('p')].find(p=>p.textContent.includes('Say how many')).textContent;
+  assert.ok(!example.includes('$'),example);assert.ok(!example.includes('559'));
+  assert.match(example,/Say how many empty kegs went back, the deposit credit in dollars and the total due after it\. This records the credit\. If a full keg was missing, record that on its item below\./);
+  await typeInto(dom,box,'yes empty kegs');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'Add the credit in dollars and the total due after it, and say how many empty kegs went back.');
+  assert.ok(!says.includes('$'));assert.equal(sectionOf(doc).querySelector('textarea').value,'yes empty kegs');
+  assert.equal(explanationPosts(log).length,1);
+  assert.match(doc.querySelector('.lq-invd-review').textContent,/State the credit and revised total below to record the adjustment\./);
+});
+await run('a negative deposit line already on the invoice falls back to the text box without inventing numbers','kegs-credit-present',async({doc})=>{
+  const section=sectionOf(doc);
+  assert.ok(!kegsInput(doc));assert.ok(section.querySelector('textarea'));
+  assert.ok(![...section.querySelectorAll('p')].some(p=>p.textContent.includes('For example')&&p.textContent.includes('$')));
+});
+await run('an answered deposit return still offers Correct this answer, which opens the text box with the original bill\'s example','kegs-saved',async({doc,button,click,log})=>{
+  const section=sectionOf(doc);
+  assert.match(section.textContent,/Original bill \$270\.00.*\$60\.00.*\$210\.00 due/);
+  assert.ok(!kegsInput(doc));assert.ok(!section.querySelector('textarea'));
+  await click('Correct this answer');
+  assert.ok(!kegsInput(doc),'a correction is the free-text path');
+  const box=sectionOf(doc).querySelector('textarea');assert.equal(box.value,'Empty-keg deposit return $60.00; total due $210.00.');
+  assert.match(sectionOf(doc).textContent,/For example: “Returned two empty kegs\. Deposit credit \$60; total due \$210\.”/);
+  assert.ok(button('Save answer')&&button('Cancel'));assert.ok(!log().includes('POST'));
 });
 console.log(`Invoice UI: ${passed} cases passed`);
 

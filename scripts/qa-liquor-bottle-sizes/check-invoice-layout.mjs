@@ -25,7 +25,7 @@ try {
   const send=(method,params)=>command(method,params,sessionId);
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
   await send('Page.enable');
-  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['clarity','clarity-unknown-unit','food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-units-dollars','linked-question'];
+  const modes=process.env.INVOICE_QA_MODES?.split(',') ?? ['clarity','clarity-unknown-unit','food','linked','remember-unit','amount','automatic','explain','deposit-auto','linked-auto','linked-agree','linked-units-dollars','linked-question','kegs-werk','kegs-phase3','kegs-cents','kegs-unread','kegs-mixed'];
   for(const width of [320,390,960]) for(const mode of modes) {
     await send('Emulation.setDeviceMetricsOverride',{width,height:900,deviceScaleFactor:1,mobile:width<600});
     await send('Page.navigate',{url:`http://127.0.0.1:4177/?mode=${mode}`});
@@ -46,6 +46,48 @@ try {
     const shot=await send('Page.captureScreenshot',{format:'png'});
     await writeFile(join(dist,`invoice-${mode}-${width}.png`),Buffer.from(shot.data,'base64'));
     console.log(`PASS ${width}px ${mode}: no horizontal overflow`);
+    // One-number deposit form (2026-10-09): thumb-sized controls, no sideways scroll in any state of the form.
+    if (['kegs-werk', 'kegs-phase3', 'kegs-cents'].includes(mode)) {
+      const sized = await evaluate(`(() => { const box = (el) => { const r = el.getBoundingClientRect(); return { h: r.height, w: r.width }; };
+        const input = document.getElementById('invoice-deposit-kegs'), form = input.closest('form'), buttons = [...document.querySelectorAll('#invoice-explanation button')];
+        const record = buttons.find(b => /^Record \\$/.test(b.textContent.trim())), link = buttons.find(b => b.textContent.trim() === 'Describe something else');
+        const section = document.getElementById('invoice-explanation').getBoundingClientRect();
+        return { font: parseFloat(getComputedStyle(input).fontSize), input: box(input), record: box(record), link: box(link), preview: document.getElementById('invoice-deposit-preview').textContent,
+          inside: [input, record, link, form].every(el => el.getBoundingClientRect().left >= section.left - 1 && el.getBoundingClientRect().right <= section.right + 1) }; })()`);
+      assert.ok(sized.font >= 16 && sized.input.h >= 48, `${width}px ${mode}: number box ${sized.font}px / ${sized.input.h}px tall`);
+      assert.ok(sized.record.h >= 48 && sized.link.h >= 44, `${width}px ${mode}: Record ${sized.record.h}px, link ${sized.link.h}px`);
+      assert.ok(sized.inside, `${width}px ${mode}: controls stay inside the section`);
+      console.log(`PASS ${width}px ${mode}: box ${sized.input.h}px at ${sized.font}px, Record ${sized.record.h}px, link ${sized.link.h}px`);
+      const typeInto = (selector, value) => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); Object.getOwnPropertyDescriptor(el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); })()`);
+      const settle = () => evaluate(`new Promise(resolve => setTimeout(resolve, 60))`);
+      await typeInto('#invoice-deposit-kegs', '999'); await settle();
+      assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with a count above the kegs billed`);
+      await writeFile(join(dist, `invoice-${mode}-over-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+      await typeInto('#invoice-deposit-kegs', '1'); await settle();
+      await evaluate(`[...document.querySelectorAll('#invoice-explanation button')].find(b => b.textContent.trim() === 'Describe something else').click()`); await settle();
+      await typeInto('#invoice-explanation-text', 'yes empty kegs'); await settle();
+      await evaluate(`[...document.querySelectorAll('#invoice-explanation button')].find(b => b.textContent.trim() === 'Save answer').click()`);
+      await evaluate(`new Promise((resolve, reject) => { let n = 0; const tick = () => { const alert = document.querySelector('#invoice-explanation [role=alert]'); if (alert && /Add the credit in dollars/.test(alert.textContent)) return resolve(); if (++n > 100) return reject(Error('No reply to words with no amount')); setTimeout(tick, 20); }; tick(); })`);
+      assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with the words box and its reply open`);
+      assert.equal(await evaluate(`document.getElementById('invoice-explanation-text').value`), 'yes empty kegs', `${width}px ${mode}: the typed words are kept`);
+      await writeFile(join(dist, `invoice-${mode}-words-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+      console.log(`PASS ${width}px ${mode}: no overflow with a count over the limit, or with the words box and its reply open`);
+      // The longest replies: amounts that do not add up (with the invoice's bill and example) and dollars without the words.
+      for (const [typed, reply] of [['Returned two empty kegs. Deposit credit $5; total due $1.', /^That did not add up\. .* Try: Returned \w+ empty kegs\. Deposit credit \$[\d.]+; total due \$[\d.]+\.$/], ['Empty x2 -60', /^Use the words empty keg, deposit and credit, like: Returned/]]) {
+        await typeInto('#invoice-explanation-text', typed); await settle();
+        await evaluate(`[...document.querySelectorAll('#invoice-explanation button')].find(b => b.textContent.trim() === 'Save answer').click()`);
+        await evaluate(`new Promise((resolve, reject) => { let n = 0; const re = ${reply.toString()}; const tick = () => { const alert = document.querySelector('#invoice-explanation [role=alert]'); if (alert && re.test(alert.textContent)) return resolve(); if (++n > 100) return reject(Error('No reply to ' + ${JSON.stringify(typed)})); setTimeout(tick, 20); }; tick(); })`);
+        assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with the reply to "${typed}"`);
+        assert.equal(await evaluate(`(() => { const a = document.querySelector('#invoice-explanation [role=alert]').getBoundingClientRect(), s = document.getElementById('invoice-explanation').getBoundingClientRect(); return a.left >= s.left - 1 && a.right <= s.right + 1; })()`), true, `${width}px ${mode}: the reply to "${typed}" stays inside the section`);
+        assert.equal(await evaluate(`document.querySelector('#invoice-explanation [role=alert]').textContent.includes('$559')`), false, `${width}px ${mode}: another invoice's $559 in the reply to "${typed}"`);
+        await writeFile(join(dist, `invoice-${mode}-reply-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+      }
+      console.log(`PASS ${width}px ${mode}: the not-adding-up and missing-words replies fit, stay inside the section and carry no $559`);
+    }
+    if (['kegs-unread', 'kegs-mixed'].includes(mode)) {
+      assert.equal(await evaluate(`!document.getElementById('invoice-deposit-kegs')`), true, `${width}px ${mode}: no number box`);
+      console.log(`PASS ${width}px ${mode}: no number box`);
+    }
     if (mode === 'clarity') {
       const metrics = await evaluate(`(() => { const input = document.querySelector('.lq-invd-questions input[type=text]'); return { font: parseFloat(getComputedStyle(input).fontSize), height: input.getBoundingClientRect().height }; })()`);
       assert.ok(metrics.font >= 16 && metrics.height >= 44, `${width}px: readable touch input`);

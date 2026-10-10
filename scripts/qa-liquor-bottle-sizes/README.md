@@ -241,6 +241,29 @@ a number box report `validity.badInput`, so
 bundle (it serves the bundle itself; no server needed). `INVOICE_QA_ONLY=<regex>` and
 `INVOICE_QA_KEEP_GOING=1` narrow or widen a run of either script.
 
+### One-number empty-keg deposit form (2026-10-09)
+
+`InvoiceExplanation` asks "How many empty kegs went back?" when the invoice has a read printed total and exactly one deposit
+rate (Werk Force INV-004038: two kegs, 2 x $30, printed $270). It sends the sentence the server already reads, so the
+explanation route is unchanged. Three checks, plus the tprs contract test:
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/check-deposit-sentence.mjs      # pure: composer, plan, wording, golden sentences
+node scripts/qa-liquor-bottle-sizes/serve.mjs --invoices --build-only
+node scripts/qa-liquor-bottle-sizes/check-invoices.mjs               # 26 `kegs-*` scenarios in the invoice suite
+$env:INVOICE_QA_CHROME = '<chromium>'; node scripts/qa-liquor-bottle-sizes/check-invoice-layout.mjs   # server running
+```
+
+`kegs-werk` (+ `-stale`, `-error`, `-question`), `kegs-phase3` (three deposits, one keg back), `kegs-cents` ($27.50 rate,
+cents totals), `kegs-unread` and `kegs-zero` (printed total null / 0.00: honest message, no form), `kegs-mixed` (two rates:
+text box), `kegs-credit-present` and `kegs-saved` (an earlier answer: text box, "Correct this answer"). The fixture's
+explanation handler mirrors the server's four checks and its four questions word for word; the words box never shows the one
+that ends in another invoice's "$559" (`rejectionMessage`), and `QUESTIONS_SHA256` is recorded in both repos like the golden
+sentences. The real parser is proven against every composed sentence in
+tprs `apps/backend/src/bar/invoice-deposit-sentence-contract.test.ts`, which holds a COPY of `deposit-sentence.ts` and the same
+golden lists as `check-deposit-sentence.mjs`; both tests carry the same `GOLDEN_SHA256`, so changing a sentence in one repo
+fails the other until it is changed there too. `check-deposit-sentence.mjs` imports the `.ts` file directly (Node strips the types).
+
 Liquor voice counts use the same isolated dependencies and a controlled recorder boundary, the way the food suite does:
 
 ```powershell

@@ -1464,6 +1464,32 @@
   resize: vertical;
 }
 .lq-invd-explanation-text:focus { outline: 2px solid var(--lq-glow); outline-offset: 2px; }
+/* The one-number empty-keg form. A text box with a numeric keypad, not type=number: no spinner arrows, no scroll-wheel
+   changes, no "e" or "-" on a phone. 18px keeps iOS from zooming on focus; 48px tall for a thumb. */
+.lq-invd-dep { margin: 0 0 6px; }
+.lq-invd-dep label { display: block; font-weight: 700; margin-bottom: 8px; }
+.lq-invd-dep-kegs {
+  box-sizing: border-box;
+  width: 5.5em;
+  max-width: 100%;
+  min-height: 48px;
+  background: var(--lq-panel);
+  border: 1px solid var(--lq-line-strong);
+  border-radius: 9px;
+  color: var(--lq-text);
+  color-scheme: dark;
+  padding: 8px 14px;
+  font: inherit;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.lq-invd-dep-kegs:focus { outline: 2px solid var(--lq-glow); outline-offset: 2px; }
+.lq-invd-dep-kegs[aria-invalid="true"] { border-color: var(--lq-danger); }
+/* Always a line of text under the box (the credit, or what to type), so the button never jumps. */
+.lq-invd-review .lq-invd-dep-line { margin: 12px 0 0; font-weight: 700; min-height: 1.5em; }
+.lq-invd-review .lq-invd-dep-bad { color: var(--lq-danger); }
+.lq-invd .lq-invd-dep .lq-btn { min-height: 48px; }
+.lq-invd-dep + .lq-linkbtn { margin-top: 2px; }
 .lq-invd-line { scroll-margin-top: 24px; }
 .lq-invd-line:focus { outline: 2px solid var(--lq-glow); outline-offset: 3px; }
 .lq-invd-secondary { border-top: 1px solid var(--lq-line); padding-top: 14px; }
