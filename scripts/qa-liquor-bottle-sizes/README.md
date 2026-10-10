@@ -99,8 +99,14 @@ physical Android keyboard or phone microphone behavior.
 Food has 105 DOM voice scenarios and liquor has 50. Audio failures cannot join
 an orphan product name to a later quantity or enable a whole-transcript replay,
 with pause cuts enabled or disabled. Repeated quantities retain both speech
-sources. The 29 carry checks cover known/inferred gaps, out-of-order consecutive
-failures, successful empty clips and quantity-first punctuation. Four actual
+sources. The 41 carry checks cover known/inferred gaps, out-of-order consecutive
+failures, successful empty clips and quantity-first punctuation. The food carry
+checks replay all 26 real food takes (10/3 to 10/7, with the tracked
+`food-catalog-carry.fixture.json` names) and the 10/9 review's split repairs:
+a correction stays with the item it corrects, a number never moves onto an item
+that already has one, an "and"-led item goes with the item before it,
+count-first commas ("Two cases, sausage.") and sizes inside names ("Two ounce
+patties"). Liquor's carry checks are unchanged. Four actual
 hook generation checks cover late success/failure/onstop and old track events
 after a new take, while keeping the original shelf/take metadata. Four recovery,
 18 native lifecycle, nine interval and three pause-cut checks preserve existing

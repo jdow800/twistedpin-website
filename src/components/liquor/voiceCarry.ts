@@ -100,7 +100,10 @@ const NUMBER_WORDS = new Set(
    "half quarter quarters third thirds dozen couple few").split(" "),
 );
 /** Words that never name a food product: numbers, packages and filler. When
- *  one is missing here the extension below still keeps the item whole. */
+ *  one is missing here the extension below still keeps the item whole.
+ *  Correction and greeting words (sorry, wait, I mean, make that, alright,
+ *  hello) are here so "Sorry. Half a case." reads as a count, not a product;
+ *  the correction rule below then keeps it with the item it corrects. */
 const NOT_A_FOOD_NAME = new Set([
   ...QUANTITY_WORDS,
   ...NUMBER_WORDS,
@@ -108,11 +111,19 @@ const NOT_A_FOOD_NAME = new Set([
     "tub tubs tray trays sleeve sleeves roll rolls bundle bundles pouch pouches piece pieces pound pounds lb lbs " +
     "ounce ounces oz gallon gallons gal of the we have got there theres is are it its that this these those " +
     "about around roughly maybe like uh um no yes actually so okay ok then plus another more left over " +
-    "full open opened partial loose whole extra just only single total all empty none nothing").split(" "),
+    "full open opened partial loose whole extra just only single total all empty none nothing " +
+    "alright right hello hey sorry wait oh nope nah mean meant make scratch correction i").split(" "),
 ]);
 const wordsOf = (phrase: string) => phrase.toLowerCase().replace(/['’]/g, "").split(/[^a-z0-9.]+/).filter(Boolean);
 const namesFood = (phrase: string) => wordsOf(phrase).some((w) => /[a-z]/.test(w) && !NOT_A_FOOD_NAME.has(w));
 const hasNumber = (phrase: string) => wordsOf(phrase).some((w) => /\d/.test(w) || NUMBER_WORDS.has(w));
+/** A phrase that takes back the count just said: "No. Half of a case.",
+ *  "Sorry, three", "Make that two", "No wait". A bare "Oh" only when nothing
+ *  follows it, since "oh" is also a spoken zero ("one point oh five"). */
+const CORRECTION_LEAD = /^(?:no|nope|nah|actually|sorry|wait|hold on|i mean|i meant|make (?:that|it)|scratch that|correction|oh(?=[\s!.?]*$|\s+(?:no|wait|sorry|actually)\b))\b/i;
+/** A request that opens with a conjunction ("and one Diet Pepsi.") reads, to
+ *  the server, as the remainder of an item it never saw. */
+const CONJUNCTION_LEAD = /^(?:and|plus|also)\b/i;
 
 // A package size is part of a name, not evidence that this item already has
 // its inventory count. Otherwise "24 ounce cups. Point nine. Lids" strands
@@ -130,6 +141,13 @@ const PACKAGE_SIZE_AFTER_NAME = new RegExp(`(\\b${PACKAGE_NAME}[ -]+${SIZE_DESCR
 const FOOD_DIAMETER = new RegExp(`\\b${SIZE_NUMBER}[ -]*(?:inch(?:es)?|in|["″])(?:[ -]*)(?=${SIZE_DESCRIPTION}${DIMENSION_NAME}\\b)`, "gi");
 const FOOD_DIAMETER_AFTER_NAME = new RegExp(`(\\b${DIMENSION_NAME}[ -]+${SIZE_DESCRIPTION})${SIZE_NUMBER}[ -]*(?:inch(?:es)?\\b|in\\b|["″])`, "gi");
 const FOOD_DIMENSIONS = new RegExp(`\\b${SIZE_NUMBER}\\s*["″]?\\s*(?:x|by)\\s*${SIZE_NUMBER}\\s*(?:inch(?:es)?\\b|in\\b|["″])?`, "gi");
+// A size said as an adjective inside a product name: "Two ounce patties",
+// "Third pound patties", "Thirty three gallon trash bags". Singular units only,
+// and only when a product word follows: "five pounds", "twenty four ounces of
+// milk" and "five pound bags" stay counts. (S19, 2026-10-09 food review: the
+// patties' own size read as a finished count, so "half a case" moved on.)
+const SIZE_PART = "(?:(?:a|one)[ -]+)?(?:half|third|quarter)";
+const NAME_SIZE = new RegExp(`\\b(?:${SIZE_NUMBER}|${SIZE_PART})(?:[ -]+and[ -]+a[ -]+half)?[ -]*(?:ounce|oz|pound|lb|inch|gallon|gal|quart|qt)\\b(?=[ -]+([a-z]+))`, "gi");
 const withoutFoodSize = (phrase: string) => {
   const blank = (text: string) => " ".repeat(text.length);
   // Keep offsets stable so catalog spans can be masked after the existing
@@ -138,7 +156,7 @@ const withoutFoodSize = (phrase: string) => {
     .replace(PACKAGE_SIZE_AFTER_NAME, (text, name: string) => name + blank(text.slice(name.length)))
     .replace(FOOD_DIAMETER_AFTER_NAME, (text, name: string) => name + blank(text.slice(name.length)));
   if (new RegExp(`\\b${DIMENSION_NAME}\\b`, "i").test(result)) result = result.replace(FOOD_DIMENSIONS, blank);
-  return result;
+  return result.replace(NAME_SIZE, (text, next: string) => (NOT_A_FOOD_NAME.has(next.toLowerCase()) ? text : blank(text)));
 };
 
 /** A food item can take more words than a bottle ("we have point five of a
@@ -195,8 +213,32 @@ export function splitFoodTail(text: string): { head: string; tail: string } {
   return splitFoodTailWithNames(text, []);
 }
 function splitFoodTailWithNames(text: string, names: readonly RegExp[]): { head: string; tail: string } {
+  const from = foodTailStart(text, names, true);
+  if (from == null) return { head: "", tail: "" };
+  const tail = text.slice(from).trim();
+  if (tail.split(/\s+/).length > MAX_HELD_FOOD_WORDS) return { head: text.trim(), tail: "" };
+  return { head: text.slice(0, from).trim(), tail };
+}
+
+/**
+ * Where the last food item starts. `pieceEnd` is false when this is the text
+ * before an "and"-led item (the next words are known), so a trailing count
+ * there is not waiting for a name in a later piece.
+ *
+ * The 2026-10-09 food review's split repairs (Alcohol Pricing incidents/
+ * 2026-10-09/food-voice-review, findings 3, 5, 6 and 11):
+ *  · a correction ("No. Half of a case.") stays with the item it corrects,
+ *    and never leads the next item;
+ *  · a number never moves onto an item that already has one;
+ *  · "and one Diet Pepsi." is sent with the item before it, so the server
+ *    sees the list the counter said, not an orphan "and";
+ *  · count-first with a comma ("Two cases, sausage.") keeps the count with
+ *    the name after it, as liquor's leadsNextName does;
+ *  · a size in a name ("Two ounce patties") is not a count.
+ */
+function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean): number | null {
   const phrases = phrasesOf(text);
-  if (!phrases.length) return { head: "", tail: "" };
+  if (!phrases.length) return null;
   const found = names.flatMap(pattern => [...text.matchAll(pattern)].map(m => ({ start: m.index!, end: m.index! + m[0].length })))
     .sort((a, b) => b.end - b.start - (a.end - a.start));
   const spans: typeof found = [];
@@ -206,39 +248,94 @@ function splitFoodTailWithNames(text: string, names: readonly RegExp[]): { head:
     const owned = spans.filter(s => s.start < end && s.end > start);
     const outside = withoutFoodSize(p.text).split("");
     for (const s of owned) for (let i = Math.max(s.start, start) - start; i < Math.min(s.end, end) - start; i++) outside[i] = " ";
-    return { named: owned.length > 0 || namesFood(p.text), counted: hasNumber(outside.join("")), owned };
+    const named = owned.length > 0 || namesFood(p.text);
+    return { named, counted: hasNumber(outside.join("")), owned, correction: !named && CORRECTION_LEAD.test(p.text) };
   });
   // A count before/after a multi-comma catalog name finishes the entire name,
   // not just its first fragment ("two Butter, Alternative Liquid, Zero Fat").
+  const finishName = (named: (typeof parts)[number]) => {
+    for (const part of parts) if (part === named || part.owned.some(s => named.owned.includes(s))) part.counted = true;
+  };
   for (const span of spans) {
     const owned = parts.filter(p => p.owned.includes(span));
     if (owned.some(p => p.counted)) for (const part of owned) part.counted = true;
   }
+  // The mark that ends the phrase before phrase k ("." for the first).
+  const markBefore = (k: number) => (k > 0 ? text[phrases[k]!.start - 1] : ".");
+  /** A count with no product: "Two cases", "Three", "Half a case". */
+  const pure = (k: number) => !parts[k]!.named && parts[k]!.counted && !parts[k]!.correction;
+  /** The item ending at phrase j has its number ("Sausage, two", "Bananas
+   *  eighteen", or a name a count-first number led). */
+  const finished = (j: number) => pure(j) || (parts[j]!.named && parts[j]!.counted);
+  /** A count that opens a sentence after a finished item, or the text. */
+  const leads = (k: number) => pure(k) && (k === 0 || (/[.!?]/.test(markBefore(k)) && finished(k - 1)));
+  // Count-first with a comma: "One case, pepperoni. Two cases, sausage." The
+  // count leads the name after it. After an uncounted name ("Pizza sauce. Two
+  // cases, sausage.") the number finishes that name instead, as in liquor.
+  const ledBy = parts.map((): number | null => null);
+  for (let k = 0; k + 1 < parts.length; k++) {
+    if (!leads(k) || markBefore(k + 1) !== "," || !parts[k + 1]!.named || parts[k + 1]!.counted) continue;
+    ledBy[k + 1] = k;
+    finishName(parts[k + 1]!);
+  }
+  const sameName = (a: number, b: number) => parts[a]!.owned.some(s => parts[b]!.owned.includes(s));
+  const filler = (k: number) => !parts[k]!.named && !parts[k]!.counted && !parts[k]!.correction;
   let at = parts.findLastIndex(p => p.named);
   if (at < 0) at = 0;
-  while (at > 0 && parts[at - 1]!.named && !parts[at - 1]!.counted) at--;
+  while (at > 0) {
+    if (parts[at - 1]!.named && (!parts[at - 1]!.counted || sameName(at - 1, at))) { at--; continue; }
+    // "Um," or "Alright." between names still waiting for numbers is part
+    // of the wait, as it was before those words stopped naming a product.
+    let k = at - 1;
+    while (k >= 0 && filler(k)) k--;
+    if (k >= 0 && k < at - 1 && parts[k]!.named && !parts[k]!.counted) { at = k; continue; }
+    break;
+  }
+  if (ledBy[at] != null) at = ledBy[at]!;
   // A quantity-first phrase may end with punctuation inserted by ASR before
   // the following name. Keep that orphan quantity with the unfinished item;
   // never swallow an earlier phrase that already names a different product.
-  let quantityStart = at;
-  while (quantityStart > 0 && !parts[quantityStart - 1]!.named) {
-    // A comma separates a name/size/count within one item. A sentence end
-    // can strand a quantity before its product; only extend over that end.
-    const separator = text.slice(phrases[quantityStart - 1]!.start, phrases[quantityStart]!.start).trim().at(-1);
-    if (quantityStart > 1 && !/[.!?]/.test(separator ?? "")) break;
-    quantityStart--;
+  // An item that already has its number takes no second one ("Pizza sauce,
+  // three cases. Two cans. Jalapenos, four cans.": the two cans stay). Its
+  // number is in the name's own sentence ("Jalapenos, four cans", "Bananas
+  // eighteen"); "Mozzarella. Three cases." may be count-first, so a number
+  // after a sentence end does not count.
+  const ownNumber = (k: number): boolean => parts[k]!.counted
+    || (k + 1 < parts.length && !/[.!?]/.test(markBefore(k + 1)) && ownNumber(k + 1));
+  if (!ownNumber(at)) {
+    let quantityStart = at;
+    while (quantityStart > 0 && !parts[quantityStart - 1]!.named) {
+      // A comma separates a name/size/count within one item. A sentence end
+      // can strand a quantity before its product; only extend over that end.
+      const separator = text.slice(phrases[quantityStart - 1]!.start, phrases[quantityStart]!.start).trim().at(-1);
+      if (quantityStart > 1 && !/[.!?]/.test(separator ?? "")) break;
+      quantityStart--;
+    }
+    // "Jalapenos, one case. No. Half of a case." The corrected number belongs
+    // to the item it corrects, whatever comes next.
+    if (parts.slice(Math.max(0, quantityStart - 1), at).some(p => p.correction)) quantityStart = at;
+    if (quantityStart < at) {
+      // In "Oreos, one case. Zero point seven. Spanish rice", the first
+      // quantity finishes Oreos; only the orphan second quantity leads rice.
+      const previous = parts[quantityStart - 1];
+      if (previous?.named && !previous.counted) quantityStart++;
+      at = Math.min(at, quantityStart);
+    }
   }
-  if (quantityStart < at) {
-    // In "Oreos, one case. Zero point seven. Spanish rice", the first
-    // quantity finishes Oreos; only the orphan second quantity leads rice.
-    const previous = parts[quantityStart - 1];
-    if (previous?.named && !previous.counted) quantityStart++;
-    at = Math.min(at, quantityStart);
+  // "Sausage, one case. Two cases," at a cut: the count waits for its name in
+  // the next piece; the finished item before it goes now.
+  const last = parts.length - 1;
+  if (pieceEnd && last > at && /,\s*$/.test(text) && leads(last)) at = last;
+  // "Alright." or "Um," alone is never a request of its own.
+  if (parts.slice(0, at).every(p => !p.named && !p.counted)) at = 0;
+  // "Fry seasoning, one container, and one Diet Pepsi.": a held item that
+  // opens with "and" (after any "um") goes with the item before it.
+  let open = at;
+  while (open > 0 && !parts[open - 1]!.named && !parts[open - 1]!.counted && !parts[open - 1]!.correction) open--;
+  if (open > 0 && phrases.slice(open, at + 1).some(p => CONJUNCTION_LEAD.test(p.text))) {
+    return foodTailStart(text.slice(0, phrases[open]!.start), names, false) ?? 0;
   }
-  const from = phrases[at]!.start;
-  const tail = text.slice(from).trim();
-  if (tail.split(/\s+/).length > MAX_HELD_FOOD_WORDS) return { head: text.trim(), tail: "" };
-  return { head: text.slice(0, from).trim(), tail };
+  return phrases[at]!.start;
 }
 
 /**

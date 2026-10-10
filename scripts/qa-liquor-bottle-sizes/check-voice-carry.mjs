@@ -1,6 +1,7 @@
 // Pure rules behind pause cuts and the voice review: pauseDetector.ts,
 // voiceCarry.ts and voiceReview.ts. No DOM, no network.
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 
@@ -296,10 +297,12 @@ check('food carry: cup package sizes do not separate the GM count from its produ
 });
 
 check('food carry: real counts and weights remain counted when a product has a size', () => {
+  // The next product has no number yet, so the orphan "Point nine." leads it
+  // (2026-10-09: an orphan never moves onto an item that already has one).
   for(const phrase of ['Flour five pounds','Twenty four ounces of milk','One case of twenty four ounce cups',
     'One twelve ounce cup','One cup clear plastic twelve ounce','Twelve flatbreads']) {
-    assert.deepEqual(m.splitFoodTail(`${phrase}. Point nine. Lids, one case.`),
-      {head:`${phrase}.`,tail:'Point nine. Lids, one case.'},phrase);
+    assert.deepEqual(m.splitFoodTail(`${phrase}. Point nine. Lids.`),
+      {head:`${phrase}.`,tail:'Point nine. Lids.'},phrase);
   }
 });
 
@@ -312,7 +315,188 @@ check('food carry: a sized product crosses a successful cut but never a failed c
     const gap=carry.flush(failed?2:1);return{sent,gap};
   };
   assert.deepEqual(run(false),{sent:['Twenty four ounce cups, point nine.','Lids, One case.'],gap:false});
-  assert.deepEqual(run(true),{sent:['Twenty four ounce cups,','point nine. Lids, One case.'],gap:true});
+  // After the failed clip the orphan "point nine." is sent on its own: Lids
+  // already has "One case", so it never takes a second number (2026-10-09).
+  assert.deepEqual(run(true),{sent:['Twenty four ounce cups,','point nine.','Lids, One case.'],gap:true});
+});
+
+// ── 2026-10-09 food review repairs (Alcohol Pricing incidents/2026-10-09/
+// food-voice-review). Pieces go through createCarry exactly as CountFood wires
+// it: the catalog splitter, add per piece, flush at Stop.
+const foodCatalog = JSON.parse(await readFile(new URL('./food-catalog-carry.fixture.json', import.meta.url), 'utf8')).items;
+const foodRequests = (pieces, split = m.createFoodCarrySplitter(foodCatalog)) => {
+  const sent = []; const carry = m.createCarry(text => sent.push(text), split);
+  pieces.forEach((text, i) => (text == null ? carry.fail(i) : carry.add(text, i)));
+  carry.flush(Number.MAX_SAFE_INTEGER); return sent;
+};
+
+// The real food takes (10/3 Mop Room test, and every 10/7 inventory take).
+// null = the requests are the pieces themselves. Three changed on purpose:
+// 6e88b59d keeps "No. Half of a case." with jalapenos, 90cb6dd1 keeps "Oh,
+// wait." with its dough, and 6dfb506f sends the Diet Pepsi with fry seasoning.
+check('food carry: the real food takes split as recorded, with the correction, "Oh, wait" and "and one Diet Pepsi" repaired', () => {
+  for (const [take, pieces, requests] of [
+    ['6e88b59d', ['Sausage, half a case. Bacon bits, one case. Pepperoni, point six of a case. Giant pretzel, one case. Pizza dough, one point six cases, four point two cases of pizza sauce,','Point nine of Spanish rice. We have point five of a case of salsa, two cases of cauliflower crust, six flatbread, four packets of pizza circles, five boxes of gloves,','One case of Oreos, three chocolate cakes, two cheesecakes, beef patties, three and a half ounces, two cases, two ounce patties, five, Cranberry, two five pound bags. Jalapenos, one case. No. Half of a case.','Bananas eighteen.'],
+      ['Sausage, half a case. Bacon bits, one case. Pepperoni, point six of a case. Giant pretzel, one case. Pizza dough, one point six cases,','four point two cases of pizza sauce, Point nine of Spanish rice. We have point five of a case of salsa, two cases of cauliflower crust, six flatbread, four packets of pizza circles,','five boxes of gloves, One case of Oreos, three chocolate cakes, two cheesecakes, beef patties, three and a half ounces, two cases, two ounce patties, five, Cranberry, two five pound bags.','Jalapenos, one case. No. Half of a case.','Bananas eighteen.']],
+    ['6bf4f5a2', ['One Diet Pepsi, two regular Pepsi, one Starry, one blue cotton candy ICEE.'], ['One Diet Pepsi, two regular Pepsi, one Starry,','one blue cotton candy ICEE.']],
+    ['6877a17f', ['Pizza sauce, three cases and two cans. Jalapenos, four cans. Instant refried beans, one case.'], ['Pizza sauce, three cases and two cans. Jalapenos, four cans.','Instant refried beans, one case.']],
+    ['9bb209ea', ['One case of french fries, half a case of onion rings, two containers of ranch dressing'], ['One case of french fries, half a case of onion rings,','two containers of ranch dressing']],
+    ['f7c196f2', ['Two jugs of ranch dressing'], null],
+    ['cf29ddbf', ['Two Diet Pepsi, one Pepsi, three Starry, one Orange Crush, one blue cotton candy, two cans of pizza sauce.'], ['Two Diet Pepsi, one Pepsi, three Starry, one Orange Crush, one blue cotton candy,','two cans of pizza sauce.']],
+    ['43b595e4', ['Pizza sauce, two cases plus three cans, jalapenos, four cans, instant refried beans, one case, black olives, two cans, bacon bits, one bag.'], ['Pizza sauce, two cases plus three cans, jalapenos, four cans, instant refried beans, one case, black olives, two cans,','bacon bits, one bag.']],
+    ['d2a3524f', ['Pizza dough, two cases, cauliflower crust, half a case, giant pretzels, one case, cup and char pepperoni, two bags, sausage, pizza topping, one case.'], ['Pizza dough, two cases, cauliflower crust, half a case, giant pretzels, one case, cup and char pepperoni, two bags,','sausage, pizza topping, one case.']],
+    ['90cb6dd1', ['Pizza Dough. Oh, wait.'], null],
+    ['d86d13e3', ['French fries, one case. Onion rings, half a case. Ranch dressing, two containers. Dino chicken nuggets, one case. Tater Tots, zero.'], ['French fries, one case. Onion rings, half a case. Ranch dressing, two containers. Dino chicken nuggets, one case.','Tater Tots, zero.']],
+    ['6dfb506f', ['Ketchup, one case plus two bottles. Yellow mustard, three bottles. Extra large vinyl gloves, two boxes. Fry seasoning, one container, and one Diet Pepsi.'], ['Ketchup, one case plus two bottles. Yellow mustard, three bottles. Extra large vinyl gloves, two boxes.','Fry seasoning, one container, and one Diet Pepsi.']],
+    ['9134a00c', ['Twenty six cans of pizza sauce, point three of a case of Spanish rice, point six of a case of black olives, four cans of sliced jalapenos, four cans of al dente pasta sauce, six cans of fire roasted salsa.','One point two cases of pasta, one point one cases of instant refried beans, one bag of pico crumbs, one bag of sugar.','A quarter bag of flour.'],
+      ['Twenty six cans of pizza sauce, point three of a case of Spanish rice, point six of a case of black olives, four cans of sliced jalapenos, four cans of al dente pasta sauce,','six cans of fire roasted salsa. One point two cases of pasta, one point one cases of instant refried beans, one bag of pico crumbs,','one bag of sugar.','A quarter bag of flour.']],
+    ['c5c6a664', ['Twenty six cans of pizza sauce, point three of a case of Spanish rice, point six of a case of sliced black olives, four cans of sliced jalapenos, four cans of al dente pasta sauce,','Six cans of fire roasted salsa, one case and three pounds of pasta rigatoni, one case and one bag of instant refried beans.'],
+      ['Twenty six cans of pizza sauce, point three of a case of Spanish rice, point six of a case of sliced black olives, four cans of sliced jalapenos,','four cans of al dente pasta sauce, Six cans of fire roasted salsa, one case and three pounds of pasta rigatoni,','one case and one bag of instant refried beans.']],
+    ['b0a0c257', ['Pizza sauce, twenty six cans. Spanish rice, point three. Sliced black olives, point six. Sliced jalapenos, four cans. Aldente pasta sauce, four cans. Fire roasted jalapeno, six cans.','Rigatoni pasta, one case plus one bag. Refried beans, one case plus one bag.'],
+      ['Pizza sauce, twenty six cans. Spanish rice, point three. Sliced black olives, point six. Sliced jalapenos, four cans. Aldente pasta sauce, four cans.','Fire roasted jalapeno, six cans. Rigatoni pasta, one case plus one bag.','Refried beans, one case plus one bag.']],
+    ['48dadadb', ['A quarter bag of pepperoni. One bag of cheese. A quarter bag of cheese. One can of pizza sauce. One bag of cheese, one can of sliced jalapenos, a quarter bag of Cup and Char Pepperoni,','Ten cookies. Chocolate chip.'],
+      ['A quarter bag of pepperoni. One bag of cheese. A quarter bag of cheese. One can of pizza sauce. One bag of cheese, one can of sliced jalapenos,','a quarter bag of Cup and Char Pepperoni, Ten cookies.','Chocolate chip.']],
+    ['6a7fdd45', ['Alright. One one bag of Italian sausage. One bag of bacon bits. Point three case of Naan bread. One bag of pepperoni.','Twelve flatbreads, three giant pretzels, one case of cauliflower crust, two shells of fourteen inch pizza dough.'],
+      ['Alright. One one bag of Italian sausage. One bag of bacon bits. Point three case of Naan bread.','One bag of pepperoni. Twelve flatbreads, three giant pretzels, one case of cauliflower crust,','two shells of fourteen inch pizza dough.']],
+    ['5b3df927', ['Sixteen ounce cups, one case. Twelve ounce cups, point eight. Twenty four ounce cups, point nine. Lids, One case.',''], ['Sixteen ounce cups, one case. Twelve ounce cups, point eight. Twenty four ounce cups, point nine.','Lids, One case.']],
+    // The 10/6 Beverage Room and kitchen tests, chatter included: unchanged.
+    ['046b1734', ['One Diet Pepsi, one regular Pepsi, one pink lemonade, one Starry, one mug, one Doctor Pepper, one blue cotton candy ICEE.'], ['One Diet Pepsi, one regular Pepsi, one pink lemonade, one Starry, one mug, one Doctor Pepper,','one blue cotton candy ICEE.']],
+    ['1c9f2a76', ["This. Which I kinda ate. Alright. Let me try to fix these things, and we'll come back."], null],
+    ['48ec54d4', [''], []],
+    ['23291b00', ['Hello?'], null],
+    ['f9dabfef', ['One Diet Pepsi. One Pepsi. One Pink Lemonade. One Doctor Pepper. One Root Beer. One Starry. One Blue Cotton Candy ICEE.'], ['One Diet Pepsi. One Pepsi. One Pink Lemonade. One Doctor Pepper. One Root Beer. One Starry.','One Blue Cotton Candy ICEE.']],
+    ['d0aa9080', ["Just... I know you're not saving it. Just count. Say ten pizza sauce."], null],
+    ['b808eba6', ["Pizza sauce cans, fourteen. Jalapenos cans, three. Tomatoes cans, four. Or I guess it's actually salsa. Fire roasted salsa cans. Four. Fuck is this? Pasta. Pasta. One case and a little bit.",'Instant refried beans, one case.'],
+      ["Pizza sauce cans, fourteen. Jalapenos cans, three. Tomatoes cans, four. Or I guess it's actually salsa. Fire roasted salsa cans. Four.",'Fuck is this? Pasta. Pasta. One case and a little bit.','Instant refried beans, one case.']],
+    ['7dc1ca4f', ['Pizza sauce, cans, fourteen. Jalapenos, cans, three. Fire roasted salsa, four. Refried beans, one case.'], ['Pizza sauce, cans, fourteen. Jalapenos, cans, three. Fire roasted salsa, four.','Refried beans, one case.']],
+    ['f31da7c5', ['Three cases of pizza sauce.'], null],
+  ]) assert.deepEqual(foodRequests(pieces), requests ?? pieces, take);
+});
+
+// The review's other synthetic split phrasings (split/synthetic.json S06, S08,
+// S12, S13); S01-S05, S07, S09-S11, S14 and S15 are in the checks below.
+check('food carry: the review\'s remaining split phrasings keep each count with its name', () => {
+  for (const [pieces, requests] of [
+    [['One case, Oreos. Cranberry,', 'two bags.'], ['One case, Oreos.', 'Cranberry, two bags.']],
+    [['Beef patties, two cases. Two ounce patties,', 'five.'], ['Beef patties, two cases.', 'Two ounce patties, five.']],
+    [['Pepperoni, point', 'six. Sausage, one case.'], ['Pepperoni, point six.', 'Sausage, one case.']],
+    [['We have four point two cases', 'of pizza sauce. Five boxes of gloves.'], ['We have four point two cases of pizza sauce.', 'Five boxes of gloves.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
+// Finding 3: a spoken correction takes back the count just said. It stays with
+// that item (the server then holds it as corrected) and never leads the next.
+check('food carry: a correction stays with the item it corrects and never leads the next item', () => {
+  for (const [pieces, requests] of [
+    [['Sausage, one case. No, two cases.', 'Bacon bits, one case.'], ['Sausage, one case. No, two cases.', 'Bacon bits, one case.']],
+    [['Sausage, one case. Actually, two cases.', 'Bacon bits, one case.'], ['Sausage, one case. Actually, two cases.', 'Bacon bits, one case.']],
+    [['Sausage, one case. Sorry. Half a case.', 'Bacon bits, one case.'], ['Sausage, one case. Sorry. Half a case.', 'Bacon bits, one case.']],
+    [['Sausage, one case. Wait. Make that two.', 'Bacon bits, one case.'], ['Sausage, one case. Wait. Make that two.', 'Bacon bits, one case.']],
+    [['Sausage, one case. I mean, two cases.', 'Bacon bits, one case.'], ['Sausage, one case. I mean, two cases.', 'Bacon bits, one case.']],
+    [["Sausage, one case. No, it's actually two cases.", 'Bacon bits, one case.'], ["Sausage, one case. No, it's actually two cases.", 'Bacon bits, one case.']],
+    [['Sausage, one case. No wait, two cases.', 'Bacon bits, one case.'], ['Sausage, one case. No wait, two cases.', 'Bacon bits, one case.']],
+    [['Sausage, one case. Scratch that, two cases.', 'Bacon bits, one case.'], ['Sausage, one case. Scratch that, two cases.', 'Bacon bits, one case.']],
+    [['Sausage, one case. No. Half of a case.', 'Two cases of bacon bits.'], ['Sausage, one case. No. Half of a case.', 'Two cases of bacon bits.']],
+    [['Salsa, one case. No. Point five.', 'Pepperoni, two bags.'], ['Salsa, one case. No. Point five.', 'Pepperoni, two bags.']],
+    // The correction in its own piece, and before a name still waiting for its number.
+    [['Ranch, two.', 'No. Half of a case.', 'Pizza sauce, four.'], ['Ranch, two. No. Half of a case.', 'Pizza sauce, four.']],
+    [['Jalapenos, one case. No. Half of a case. Bananas,', 'eighteen.'], ['Jalapenos, one case. No. Half of a case.', 'Bananas, eighteen.']],
+    [['Jalapenos, one case. Sorry, half a case. Bananas,', 'eighteen.'], ['Jalapenos, one case. Sorry, half a case.', 'Bananas, eighteen.']],
+    [['Jalapenos, one case. No. Half of a case. Bananas eighteen.'], ['Jalapenos, one case. No. Half of a case.', 'Bananas eighteen.']],
+    [['Jalapenos, one case. No, half a case.', 'Bananas eighteen.'], ['Jalapenos, one case. No, half a case.', 'Bananas eighteen.']],
+    [['Sausage, one case. No. Half of a case.'], ['Sausage, one case. No. Half of a case.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+  // "Oh" is a correction only on its own; "oh" is also a spoken zero.
+  assert.deepEqual(m.splitFoodTail('Oreos, one case. Oh point seven. Spanish rice.'), {head:'Oreos, one case.',tail:'Oh point seven. Spanish rice.'});
+});
+
+// Finding 3 (b): an orphan number never moves onto an item that already has one.
+check('food carry: a second number never moves onto an item that already has one', () => {
+  for (const [pieces, requests] of [
+    [['Pizza sauce, three cases. Two cans.', 'Jalapenos, four cans.'], ['Pizza sauce, three cases. Two cans.', 'Jalapenos, four cans.']],
+    [['Ketchup, one case. Plus two bottles.', 'Yellow mustard, three bottles.'], ['Ketchup, one case. Plus two bottles.', 'Yellow mustard, three bottles.']],
+    [['Flour five pounds. Point nine. Lids, one case.'], ['Flour five pounds. Point nine.', 'Lids, one case.']],
+    // A product with no number yet still takes the orphan count before it.
+    [['Oreos, one case. Zero point seven.', 'Spanish rice.'], ['Oreos, one case.', 'Zero point seven. Spanish rice.']],
+    [['Two cases. Mozzarella. Three cases.', 'Pizza dough.'], ['Two cases. Mozzarella. Three cases.', 'Pizza dough.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
+// Finding 5: ", and one Diet Pepsi." sent alone showed a blank box. A held item
+// that opens with and/plus/also goes with the item before it; the "and" is
+// neither stripped nor left at the end of the earlier request.
+check('food carry: an item that opens with "and" is sent with the item before it', () => {
+  for (const [pieces, requests] of [
+    [['Fry seasoning, one container, and one Diet Pepsi.'], ['Fry seasoning, one container, and one Diet Pepsi.']],
+    [['Fry seasoning, one container,', 'and one Diet Pepsi.'], ['Fry seasoning, one container, and one Diet Pepsi.']],
+    [['Fry seasoning, one container, and one Diet Pepsi.', 'Ketchup, one case.'], ['Fry seasoning, one container, and one Diet Pepsi.', 'Ketchup, one case.']],
+    [['Fry seasoning, one container, and Diet Pepsi, one.'], ['Fry seasoning, one container, and Diet Pepsi, one.']],
+    [['Fry seasoning, one container, plus one Diet Pepsi.'], ['Fry seasoning, one container, plus one Diet Pepsi.']],
+    [['Fry seasoning, one container, also one Diet Pepsi.'], ['Fry seasoning, one container, also one Diet Pepsi.']],
+    [['Zero pink lemonade. One Orange Crush. One blue raspberry ICEE. And one cherry ICEE.'], ['Zero pink lemonade. One Orange Crush.', 'One blue raspberry ICEE. And one cherry ICEE.']],
+    [['One case of sausage, and two cases of bacon bits,', 'three bags of cheese.'], ['One case of sausage, and two cases of bacon bits,', 'three bags of cheese.']],
+    [['Pizza sauce, two cases, and jalapenos, four cans.', 'Salsa, one case.'], ['Pizza sauce, two cases, and jalapenos, four cans.', 'Salsa, one case.']],
+    [['Um, four bottles of ketchup, uh, one jug of zero fat butter,', 'and, um, one more bottle of ketchup under the counter.'],
+      ['Um, four bottles of ketchup, uh,', 'one jug of zero fat butter, and, um, one more bottle of ketchup under the counter.']],
+    // "and" inside a remainder or a catalog name is not a new item.
+    [['Salsa, one case and', 'a half. Guacamole, two.'], ['Salsa, one case and a half.', 'Guacamole, two.']],
+    [['Pizza sauce, two. Two bags of cup and char,', 'three giant pretzels.'], ['Pizza sauce, two.', 'Two bags of cup and char,', 'three giant pretzels.']],
+    [['Pizza sauce, two. Two bags of cup and char.'], ['Pizza sauce, two.', 'Two bags of cup and char.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+  // Nothing before it: the "and" item is sent as said.
+  assert.deepEqual(m.splitFoodTail('and one Diet Pepsi.'), {head:'',tail:'and one Diet Pepsi.'});
+});
+
+// Finding 6: count-first with a comma ("Two cases, sausage.") kept the count
+// on the item before it. The count now leads the name after it, as liquor's
+// leadsNextName does: at the start, or after an item that has its number.
+check('food carry: count-first with a comma keeps the count with the name after it', () => {
+  for (const [pieces, requests] of [
+    [['One case, sausage. Two cases,', 'pizza dough. Half a case, pepperoni.'], ['One case, sausage.', 'Two cases, pizza dough.', 'Half a case, pepperoni.']],
+    [['Bacon bits, one case. Two cases,', 'mozzarella.'], ['Bacon bits, one case.', 'Two cases, mozzarella.']],
+    [['Pepperoni, two.', 'Two cases, mozzarella. Oreos, one case.'], ['Pepperoni, two. Two cases, mozzarella.', 'Oreos, one case.']],
+    [['Sausage, two. Two cases,', 'pizza sauce.'], ['Sausage, two.', 'Two cases, pizza sauce.']],
+    [['Point seven Spanish rice. Two cases,', 'salsa.'], ['Point seven Spanish rice.', 'Two cases, salsa.']],
+    [['One case, pepperoni. Two cases, sausage. Three,', 'bacon bits.'], ['One case, pepperoni. Two cases, sausage.', 'Three, bacon bits.']],
+    [['Jalapenos, one case.', 'Two, Diet Pepsi. One, Pepsi.'], ['Jalapenos, one case. Two, Diet Pepsi.', 'One, Pepsi.']],
+    [['Two cans, jalapenos. Three bottles,', 'ranch.'], ['Two cans, jalapenos.', 'Three bottles, ranch.']],
+    [['One case, pepperoni. Two cases, sausage.'], ['One case, pepperoni.', 'Two cases, sausage.']],
+    [['One case, pepperoni. Two cases, sausage. Three bags, bacon bits.'], ['One case, pepperoni. Two cases, sausage.', 'Three bags, bacon bits.']],
+    [['One case, pepperoni. Two cases, sausage.', 'Three bags, bacon bits.'], ['One case, pepperoni.', 'Two cases, sausage.', 'Three bags, bacon bits.']],
+    [['Seventeen cans, pizza sauce. Ten bags,', 'bacon bits.'], ['Seventeen cans, pizza sauce.', 'Ten bags, bacon bits.']],
+    // Name-first lists keep every count with the name before it.
+    [['Pizza dough, two cases, cauliflower crust, half a case,', 'giant pretzels, one case.'], ['Pizza dough, two cases,', 'cauliflower crust, half a case,', 'giant pretzels, one case.']],
+    [['Bacon bits, one case. Pepperoni,', 'point six of a case.'], ['Bacon bits, one case.', 'Pepperoni, point six of a case.']],
+    // After a name with no number, the count finishes that name (as in liquor).
+    [['Pizza sauce. Two cases,', 'sausage.'], ['Pizza sauce. Two cases,', 'sausage.']],
+    // "No. Half a case," after a correction leads nothing.
+    [['Jalapenos, one case. No. Half a case,', 'bananas, eighteen.'], ['Jalapenos, one case. No. Half a case,', 'bananas, eighteen.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+});
+
+// Finding 11: a size said inside a product name read as its count, so the
+// real count moved to the next product at a cut (S19: 30 patties for 60).
+check('food carry: a size inside a name is not a finished count at a cut', () => {
+  for (const [pieces, requests] of [
+    [['Beef patties, three and a half ounce, two cases and three sleeves. Two ounce patties, half a case. Third pound patties, one case.', 'Five ounce burger patties, zero.'],
+      ['Beef patties, three and a half ounce, two cases and three sleeves. Two ounce patties, half a case.', 'Third pound patties, one case.', 'Five ounce burger patties, zero.']],
+    [['Beef patties, two cases. Two ounce patties,', 'half a case. Third pound patties, one case.'], ['Beef patties, two cases.', 'Two ounce patties, half a case.', 'Third pound patties, one case.']],
+    [['Sausage, one case. Two ounce patties. Half a case.', 'Lids, one case.'], ['Sausage, one case.', 'Two ounce patties. Half a case.', 'Lids, one case.']],
+    [['Pizza sauce, two cases. Fourteen inch dough,', 'point five.'], ['Pizza sauce, two cases.', 'Fourteen inch dough, point five.']],
+    [['Pizza sauce, two cases. 14 inch dough,', 'point five.'], ['Pizza sauce, two cases.', '14 inch dough, point five.']],
+    [['Toilet paper, sixteen rolls. Thirty three gallon trash bags,', 'one box.'], ['Toilet paper, sixteen rolls.', 'Thirty three gallon trash bags, one box.']],
+  ]) assert.deepEqual(foodRequests(pieces), requests, pieces.join(' | '));
+  // Real weights and package sizes stay counts.
+  for (const phrase of ['Pepperoni, three pounds', 'Barbacoa, twelve pounds', 'Cranberry, two five pound bags', 'Twenty four ounces of milk'])
+    assert.deepEqual(m.splitFoodTail(`${phrase}. Point nine. Lids.`), {head:`${phrase}.`,tail:'Point nine. Lids.'}, phrase);
+  for (const phrase of ['Two ounce patties', 'Third pound patties', 'A quarter pound burger patties'])
+    assert.deepEqual(m.splitFoodTail(`${phrase}. Point nine. Lids.`), {head:`${phrase}. Point nine.`,tail:'Lids.'}, phrase);
+});
+
+// Filler that opens a take ("Alright.", "Hello?") is not a product.
+check('food carry: greetings and filler are not products', () => {
+  assert.deepEqual(foodRequests(['Alright. Pizza sauce, two cases.', 'Salsa, one case.']), ['Alright. Pizza sauce, two cases.', 'Salsa, one case.']);
+  assert.deepEqual(m.splitFoodTail('Hello? Two cases. Pizza sauce.'), {head:'',tail:'Hello? Two cases. Pizza sauce.'});
 });
 
 check('name numbers: names, not sizes', () => {
