@@ -1,6 +1,11 @@
 import { useRef, useState } from "react";
 import { BarApiError, rejectInvoicePackageSourceCheck, reviewInvoiceCopy, type InvoiceCopyReview } from "../api";
 
+/** The open questions in the server's wording (item and field named); older servers send only `questions`.
+ *  A question that is not a compared row arrives whole in `full`, so no caveat or instruction is lost on this screen. */
+const openQuestions = (review: InvoiceCopyReview): string[] =>
+  review.display?.asks?.length ? review.display.asks.map(ask => ask.full ?? ask.text) : review.questions ?? review.reasons;
+
 export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }: {
   reviews: InvoiceCopyReview[]; currentId: string;
   onOpen: (id: string, lineId?: string) => void; onRefresh: () => Promise<InvoiceCopyReview[]>;
@@ -93,7 +98,7 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
       {currentId !== review.originalId && <button className="lq-btn" onClick={() => onOpen(review.originalId)}>Match items or correct the purchase record</button>}
       {checking && <button type="button" className="lq-btn lq-btn-ghost" disabled={!!busy} onClick={() => void reload(review)}>{busy === review.copyId ? "Loading…" : "Check latest status"}</button>}
     </div>
-    {!checking && !review.automaticallyReconciled && !review.reviewed && (review.questions ?? review.reasons).length > 0 && <ul>{(review.questions ?? review.reasons).map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
+    {!checking && !review.automaticallyReconciled && !review.reviewed && openQuestions(review).length > 0 && <ul>{openQuestions(review).map((reason, i) => <li key={i}>{reason}</li>)}</ul>}
     <details open={!checking && review.differenceCount > 0 && !review.reviewed}>
       <summary>{checking ? "View the current document readings" : review.readingIncomplete ? "View item readings; check source pages first" : review.differenceCount ? `${review.differenceCount} item comparisons to check` : scanRecovery ? "Billed items agree; view source readings" : "Billed items agree; view package readings"}</summary>
       {[...review.rows].sort((a, b) => Number(!!b.issues.length) - Number(!!a.issues.length)).map(row => <div className="lq-invd-line" key={row.code}>
@@ -102,7 +107,7 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
         <p>Email: {row.expected ? `${row.expected.quantity ?? "?"} billed · $${row.expected.amount} · ${row.expected.packages.join(", ")}` : "Item not read"}</p>
         <p>{row.sourceDelivered ? "Scan after the documented shortage" : scanRecovery && review.sourceCheck?.status === "resolved" ? "Source-checked scan" : "Scan"}: {row.delivered ? `${row.delivered.quantity ?? "?"} billed · $${row.delivered.amount} · ${row.delivered.packages.join(", ")}` : "Item not read"}</p>
         {row.sourceDelivered && <p>Original paper line: {row.sourceDelivered.quantity ?? "?"} · ${row.sourceDelivered.amount}, crossed out.</p>}
-        {!checking && row.issues.map((issue, i) => <p className="lq-muted" key={i}>{issue}</p>)}
+        {!checking && (review.display?.rowLines?.[row.code] ?? row.issues).map((issue, i) => <p className="lq-muted" key={i}>{issue}</p>)}
         {row.information?.map((note, i) => <p className="lq-muted" key={`info-${i}`}>{note}</p>)}
         {!checking && row.issues.length > 0 && row.originalLineIds.map((lineId, i) => <button className="lq-linkbtn" key={lineId} onClick={() => onOpen(review.originalId, lineId)}>
           Review purchase item{row.originalLineIds.length > 1 ? ` ${i + 1}` : ""}
@@ -110,9 +115,9 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
       </div>)}
     </details>
     {!checking && !review.reviewed && !review.automaticallyReconciled && <>
-      <p>Check the source pages and record any delivery corrections on the purchase record before finishing. This button records your review; it does not change prices or quantities.</p>
+      <p>Records that you compared the copies. Prices and counts are not changed. Matching papers do not prove what arrived.</p>
       <button className="lq-btn" disabled={!!busy || !review.ready || !!localError?.reloadRequired} onClick={() => void confirm(review)}>
-        {busy === review.copyId ? "Saving…" : "Both copies checked; corrections recorded"}
+        {busy === review.copyId ? "Saving…" : "Mark copies checked"}
       </button>
     </>}
     {localError && <div>

@@ -53,19 +53,25 @@ await run('an excluded supply keeps its dollars without a stock matching prompt'
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));
   assert.match(doc.querySelector('.lq-invd-amt').textContent,/50.00/);assert.match(log(),/\/expense/);
 });
-for(const mode of ['remember-unit','remember-failure','remember-error']) await run('saved package answer '+mode,mode,async({doc,click,dom,log})=>{
+// The route answers most refusals with 409, so the reason comes from the body: a stale code (line_changed / unit_changed, see STALE_ANSWER_CODES) is the shared "changed while you were answering" line.
+// remember-error is a 500 with a different body; it reads the same as remember-server.
+const savedFailure={'remember-failure':/This question changed while you were answering\. Reload to see the latest\. Your number is kept\./,'remember-offline':/No connection/,'remember-signed-out':/You are signed out/,
+  'remember-source':/Not saved\. Check the number against the invoice, or answer this line's other question first\./,'remember-repeat':/repeat copy\. Answer it on the purchase record/,
+  'remember-refused':/server refused this answer/,'remember-server':/Could not save\. Your number is still here/,'remember-error':/Could not save\. Your number is still here/};
+for(const mode of ['remember-unit',...Object.keys(savedFailure)]) await run('saved package answer '+mode,mode,async({doc,button,click,dom,log})=>{
 
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
   assert.equal(input.value,'');
   Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,'2');
   input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));await pause();
   assert.match(doc.body.textContent,/\$25 per pack/);
-  await click('Save package answer');
+  assert.ok(!button('Save package answer'));assert.ok(button('Save 2 per case'));
+  assert.match(doc.body.textContent,/Remembered for this supplier item\. Counts and delivery are not changed\./);
+  await click('Save 2 per case');
   assert.match(log(),/"unitsPerBilledUnit":2/);assert.match(log(),/"expectedPackageKey":"2\|5LB\|"/);
   assert.match(log(),/"expectedRuleFingerprint":null/);
-  // A 409 means the question changed (stale card); any other failure keeps the plain retry wording.
-  if(mode==='remember-failure')assert.match(doc.querySelector('[role=alert]').textContent,/This question changed while you were answering. Reload to see the latest. Your number is kept./);
-  else if(mode==='remember-error')assert.match(doc.querySelector('[role=alert]').textContent,/Could not save this package answer/);
+  if(savedFailure[mode]){assert.match(doc.querySelector('[role=alert]').textContent,savedFailure[mode]);assert.equal(input.value,'2');assert.ok(button('Save 2 per case'));
+    if(mode!=='remember-failure')assert.ok(!doc.querySelector('[role=alert]').textContent.includes('This question changed'),'a refusal that is not a change must not say the question changed');}
   else await until(()=>!doc.querySelector('.lq-invd-hold'));
 });
 await run('credit reason precedes totals, links the original and never auto-confirms','credit',async({doc,button,log})=>{
@@ -189,7 +195,7 @@ await run('scan text renders as text, never markup','escaped',async({doc})=>{
 const STALE='This question changed while you were answering. Reload to see the latest. Your number is kept.';
 await run('a stale package answer says so and keeps the typed number','stale-remember',async({doc,click,dom})=>{
   const input=doc.querySelector('[aria-label="Count units per billed case"]');
-  await enter(dom,input,'2');await click('Save package answer');
+  await enter(dom,input,'2');await click('Save 2 per case');
   assert.equal(doc.querySelector('[role=alert]').textContent,STALE);
   assert.equal(doc.querySelector('[aria-label="Count units per billed case"]').value,'2');
   assert.ok(!doc.querySelector('[aria-label="Count units per billed case"]').disabled);
@@ -544,13 +550,29 @@ await run('linked scan shows the comparison and disables edits on the excluded c
   assert.match(doc.body.textContent,/not evidence of a product shortage/);
   assert.ok(button('Match items or correct the purchase record'));
   assert.ok(!doc.querySelector('input[placeholder="Search items"]'));assert.ok(!button('Came up short?'));
-  assert.ok(!log().includes('POST'));await click('Both copies checked; corrections recorded');
+  assert.ok(!log().includes('POST'));await click('Mark copies checked');
   await until(()=>doc.body.textContent.includes('Comparison reviewed'));
   assert.match(log(),/copy-review/);assert.ok(!log().includes('/received'));
 });
+await run('a case-column difference is named; "Quantities differ" never sits beside equal numbers','linked-case-column',async({doc,button})=>{
+  const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
+  assert.match(panel.textContent,/both copies bill 1, \$180\.00\. Case column: email 1, scan blank\./);
+  assert.match(panel.textContent,/Both copies bill 1, \$180\.00\./);
+  assert.ok(!panel.textContent.includes('Quantities differ'));
+  assert.match(panel.textContent,/Records that you compared the copies\. Prices and counts are not changed\. Matching papers do not prove what arrived\./);
+  assert.ok(button('Mark copies checked'));assert.ok(!panel.textContent.includes('corrections recorded'));
+});
+await run('the missing-pack question names the item and both readings','linked-pack-gap',async({doc,button})=>{
+  const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
+  assert.match(panel.textContent,/\(9615600\): email reads 2 x 4\.25LB, scan reads 24\.25LB\. Count and price match\./);
+  assert.ok(!panel.textContent.includes('Check that source line'));assert.ok(button('Mark copies checked'));
+});
 await run('stale comparison leaves an actionable retry error','linked-stale',async({doc,click})=>{
-  await click('Both copies checked; corrections recorded');
-  assert.match(doc.querySelector('[role=alert]').textContent,/Reopen the invoice/);
+  await click('Mark copies checked');
+  // The panel's own retry message (the older "Reopen the invoice" line was replaced by "Reload the comparison"; this check was left stale and stopped the suite).
+  const alert=()=>doc.querySelector('[aria-label="Invoice and delivery comparison"] [role=alert]');
+  await until(()=>alert());
+  assert.match(alert().textContent,/Reload the comparison to check for changes/);
   assert.ok(!doc.body.textContent.includes('Comparison reviewed'));
 });
 console.log('Invoice catalog and copy-review checks passed');
@@ -577,7 +599,7 @@ for (const mode of ['automatic','automatic-stale']) await run('automatic answer 
 await run('a matching final settles a shortage without asking staff to confirm it again','linked-auto',async({doc,button,log})=>{
   assert.match(doc.body.textContent,/Copies agree automatically/);
   assert.match(doc.body.textContent,/Original paper line: 2.*40.00, crossed out/);
-  assert.ok(!button('Both copies checked; corrections recorded'));
+  assert.ok(!button('Mark copies checked'));
   assert.ok(!button(confirm));assert.ok(!log().includes('POST'));
 });
 await run('ordinary matching copies explain the evidence without pretending to be a supplier final','linked-agree',async({doc,button,log})=>{
@@ -585,15 +607,17 @@ await run('ordinary matching copies explain the evidence without pretending to b
   assert.match(panel.textContent,/Copies agree automatically/);
   assert.match(panel.textContent,/Both copies agree on the billed items, packages, charges and totals/);
   assert.ok(!panel.textContent.includes("supplier's final"));
-  assert.ok(!button('Both copies checked; corrections recorded'));assert.ok(!button(confirm));
+  assert.ok(!button('Mark copies checked'));assert.ok(!button(confirm));
   assert.ok(!log().includes('POST'));
 });
 await run('an incomplete reading asks about source pages instead of assuming a shortage','linked-question',async({doc,button,log})=>{
   const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
   assert.match(panel.textContent,/Check the invoice reading/);
   assert.match(panel.textContent,/saved lines do not reconcile/);
+  // The server now sends `display` for this question (a short email line plus the whole sentence in `full`): the screen must still carry the caveat and the question.
   assert.match(panel.textContent,/before treating missing rows as a delivery shortage/);
-  assert.ok(button('Both copies checked; corrections recorded'));assert.ok(!log().includes('POST'));
+  assert.match(panel.textContent,/The scan contains a written adjustment\. What does it change on the purchase record\?/);
+  assert.ok(button('Mark copies checked'));assert.ok(!log().includes('POST'));
 });
 await run('an automatic deposit credit shows the arithmetic and remains correctable','deposit-auto',async({doc,button,log})=>{
   assert.match(doc.querySelector('[aria-label="Invoice explanation"]').textContent,/180.00.*40.00.*140.00 due/);
