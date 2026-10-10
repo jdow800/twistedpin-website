@@ -610,6 +610,21 @@ await run('ordinary matching copies explain the evidence without pretending to b
   assert.ok(!button('Mark copies checked'));assert.ok(!button(confirm));
   assert.ok(!log().includes('POST'));
 });
+await run('a scan copy that matches the emailed invoice in items, counts and dollars settles itself and says so in plain words','linked-units-dollars',async({doc,button,log})=>{
+  const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
+  assert.match(panel.textContent,/Copies agree automatically/);
+  assert.match(panel.textContent,/Copy matches the emailed invoice: same items, counts and dollars, and no ink that changes them\./);
+  assert.match(panel.textContent,/the emailed invoice governs them\. No answer needed\./);
+  // Both package readings stay on the row, with the server's note about which copy governs them.
+  assert.match(panel.textContent,/Package columns differ \(email 2 × 4\.25LB; scan 24\.25LB\)/);
+  assert.match(panel.textContent,/Email: 3 billed · \$298\.17 · 2 × 4\.25LB/);
+  assert.match(panel.querySelector('summary').textContent,/Billed items agree; view package readings/);
+  assert.ok(!panel.textContent.includes("supplier's final"));
+  assert.ok(!panel.textContent.includes('Both copies agree on the billed items, packages'));
+  assert.ok(!panel.textContent.includes('Mark copies checked'));
+  assert.ok(!button('Mark copies checked'));assert.ok(!button(confirm));
+  assert.ok(!log().includes('POST'));
+});
 await run('an incomplete reading asks about source pages instead of assuming a shortage','linked-question',async({doc,button,log})=>{
   const panel=doc.querySelector('[aria-label="Invoice and delivery comparison"]');
   assert.match(panel.textContent,/Check the invoice reading/);

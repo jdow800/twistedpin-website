@@ -146,6 +146,20 @@ if(mode==='linked-agree' || mode==='linked-question') {
       {kind:'difference',physical:false,text:"The scan's saved lines do not reconcile to its printed total.",full:LINKED_RECONCILE},
       {kind:'difference',physical:true,text:LINKED_ADJUSTMENT,full:LINKED_ADJUSTMENT}]}}:{})}];
 }
+// 2026-10-09: a scan copy whose items, counts, dollars and charges match the emailed invoice settles itself even when a package
+// column reads differently (Sysco 924579399's tiramisu: pack 2 / 4.25LB on the email, 24.25LB on the scan). The row `information` is
+// what tprs invoice-copy-review.ts sends for it; `display` carries no ask because there is no question.
+if(mode==='linked-units-dollars') {
+  invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
+    expected:{id:'test-original',source:'email',printedTotal:'305.65'},delivered:{id:'test-invoice',source:'scan',printedTotal:'305.65'},
+    reviewHash:'a'.repeat(64),reviewed:false,automaticallyReconciled:true,automaticBasis:'matching_units_and_dollars',ready:true,
+    differenceCount:0,feeDifference:0,reasons:[],readingIncomplete:false,questions:[],
+    rows:[{code:'9615600',description:'TASTEIT DESSERT TIRAMISU TRAY FROZEN 3887',originalLineIds:['original-line'],issues:[],
+      information:['Package columns differ (email 2 × 4.25LB; scan 24.25LB). Item, billed count and dollars agree, so no answer is needed. The emailed invoice governs packages and prices.'],
+      expected:{quantity:3,cases:3,amount:'298.17',packages:['2 × 4.25LB']},delivered:{quantity:3,cases:3,amount:'298.17',packages:['? × 24.25LB']}}],
+    display:{asks:[],rowLines:{}}}];
+}
 // 2026-10-09: the server now sends `display` (wording built from the compared fields). linked-case-column is the Breakthru keg:
 // both copies bill 1 at $180.00 and only the case column differs. linked-pack-gap is Sysco's tiramisu, whose scan ran pack and size together.
 if(mode==='linked-case-column' || mode==='linked-pack-gap') {

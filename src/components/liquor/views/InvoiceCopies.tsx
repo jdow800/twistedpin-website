@@ -69,6 +69,8 @@ export default function InvoiceCopies({ reviews, currentId, onOpen, onRefresh }:
       ? "The original scan pages were read independently. Every billed item, package, separate charge and total agrees with the emailed invoice. No answer needed."
       : review.automaticBasis === "matching_copies"
       ? "Both copies agree on the billed items, packages, charges and totals. No answer needed."
+      : review.automaticBasis === "matching_units_and_dollars"
+      ? "Copy matches the emailed invoice: same items, counts and dollars, and no ink that changes them. Package columns may read differently; the emailed invoice governs them. No answer needed."
       : review.automaticBasis === "supplier_final"
       ? "The supplier's final invoice accounts for the scanned items and adjustments. No answer needed."
       : "The document comparison settled automatically. No answer needed."} Open the purchase record if staff found a different delivery problem.</p>}
