@@ -72,6 +72,17 @@ try {
       assert.equal(await evaluate(`document.getElementById('invoice-explanation-text').value`), 'yes empty kegs', `${width}px ${mode}: the typed words are kept`);
       await writeFile(join(dist, `invoice-${mode}-words-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
       console.log(`PASS ${width}px ${mode}: no overflow with a count over the limit, or with the words box and its reply open`);
+      // The longest replies: amounts that do not add up (with the invoice's bill and example) and dollars without the words.
+      for (const [typed, reply] of [['Returned two empty kegs. Deposit credit $5; total due $1.', /^That did not add up\. .* Try: Returned \w+ empty kegs\. Deposit credit \$[\d.]+; total due \$[\d.]+\.$/], ['Empty x2 -60', /^Use the words empty keg, deposit and credit, like: Returned/]]) {
+        await typeInto('#invoice-explanation-text', typed); await settle();
+        await evaluate(`[...document.querySelectorAll('#invoice-explanation button')].find(b => b.textContent.trim() === 'Save answer').click()`);
+        await evaluate(`new Promise((resolve, reject) => { let n = 0; const re = ${reply.toString()}; const tick = () => { const alert = document.querySelector('#invoice-explanation [role=alert]'); if (alert && re.test(alert.textContent)) return resolve(); if (++n > 100) return reject(Error('No reply to ' + ${JSON.stringify(typed)})); setTimeout(tick, 20); }; tick(); })`);
+        assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with the reply to "${typed}"`);
+        assert.equal(await evaluate(`(() => { const a = document.querySelector('#invoice-explanation [role=alert]').getBoundingClientRect(), s = document.getElementById('invoice-explanation').getBoundingClientRect(); return a.left >= s.left - 1 && a.right <= s.right + 1; })()`), true, `${width}px ${mode}: the reply to "${typed}" stays inside the section`);
+        assert.equal(await evaluate(`document.querySelector('#invoice-explanation [role=alert]').textContent.includes('$559')`), false, `${width}px ${mode}: another invoice's $559 in the reply to "${typed}"`);
+        await writeFile(join(dist, `invoice-${mode}-reply-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
+      }
+      console.log(`PASS ${width}px ${mode}: the not-adding-up and missing-words replies fit, stay inside the section and carry no $559`);
     }
     if (['kegs-unread', 'kegs-mixed'].includes(mode)) {
       assert.equal(await evaluate(`!document.getElementById('invoice-deposit-kegs')`), true, `${width}px ${mode}: no number box`);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { BarApiError, explainInvoice, STALE_ANSWER_MESSAGE, type InvoiceDetail } from "../api";
 import {
-  composeDepositSentence, countPlan, depositAmounts, depositPlan, exampleText, formatMoney, hasDepositCredit, hasDollarAmount,
-  noAmountMessage, parseKegCount, printedTotalRead, rangeHint,
+  composeDepositSentence, countPlan, depositAmounts, depositPlan, exampleText, formatMoney, hasCannedDollars, hasDepositCredit,
+  parseKegCount, printedTotalRead, rangeHint, rejectionMessage,
 } from "../deposit-sentence";
 
 export default function InvoiceExplanation({ detail, onRefresh }: { detail: InvoiceDetail; onRefresh: () => void }) {
@@ -55,9 +55,12 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
         setError("The printed total was not read, so the credit cannot be recorded here yet. Check the original invoice.");
       } else if (body.error === "check_invoice_amounts") {
         setError("The saved lines do not add up to the invoice total yet. Check those amounts before applying a deposit return.");
-      // Words with no dollar amount can only be refused; the server's question does not say what to type, this does.
-      } else if (body.question && from === "words" && !hasDollarAmount(answer)) setError(noAmountMessage(plan));
-      else setError(body.question ?? "Could not save this answer. Reopen the invoice and try again.");
+      // The server's questions do not say what to type, and its "does not add up" one ends in another invoice's example
+      // ("total due $559"). Free text is answered with this invoice's own numbers; a question about a sentence this screen
+      // composed (which the server reads) is shown only when it carries no dollars from elsewhere.
+      } else if (body.question && from === "words") setError(rejectionMessage(body.question, answer, plan));
+      else if (body.question && !hasCannedDollars(body.question)) setError(body.question);
+      else setError("Could not save this answer. Reopen the invoice and try again.");
     } finally { setBusy(false); }
   }
   const refresh = stale && <button className="lq-btn lq-btn-ghost" type="button" onClick={onRefresh}>Refresh invoice</button>;

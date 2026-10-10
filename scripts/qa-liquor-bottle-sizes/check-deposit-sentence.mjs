@@ -37,6 +37,27 @@ const GOLDEN_EXAMPLE = [
 // Keep this constant identical in apps/backend/src/bar/invoice-deposit-sentence-contract.test.ts (tprs).
 const GOLDEN_SHA256 = 'aaa6084a16f04a93b5afc52f88e3215b5d06748b0f9a006a85dcc85e2b1c51ec';
 
+// The four questions the server's writtenDepositReturn can answer with, word for word, each with a typed text that earns it on
+// an original bill of $270.00 (27000 cents). The Website recognises them by their opening and must never show the one that ends
+// in another invoice's dollars ("total due $559"). The tprs contract test asserts these against the real parser, and
+// QUESTIONS_SHA256 is the same constant in both repos: if the server rewords a question, the tprs test fails until the Website
+// reads the new wording too.
+const ASKS_WORDS = "Was this an empty-keg deposit return? Tell us the deposit credit in dollars. For a missing product, use that item's delivery quantity.";
+const ASKS_MISSING = "This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.";
+const ASKS_DECIMALS = "Use dollar amounts with at most two decimal places for the deposit credit and revised total.";
+const ASKS_SUM = "What is the empty-keg deposit credit, and the revised amount due? For example: Deposit return $30; total due $559.";
+// [name, what was typed, original bill in cents, the server's question]
+const SERVER_QUESTIONS = [
+  ['words', 'Returned 2 empty kegs, credit $60', 27000, ASKS_WORDS],
+  ['words, handwriting', 'Empty x2 -60', 27000, ASKS_WORDS],
+  ['missing', 'Returned the empty keg. Deposit credit $30, but a full keg was missing', 27000, ASKS_MISSING],
+  ['decimals', 'Returned 2 empty kegs. Deposit credit $60.555; total due $209.445.', 27000, ASKS_DECIMALS],
+  ['sum, credit above the bill', 'Returned two empty kegs. Deposit credit $300; total due $210.', 27000, ASKS_SUM],
+  ['sum, total off', 'Returned two empty kegs. Deposit credit $60; total due $200.', 27000, ASKS_SUM],
+];
+// Keep this constant identical in apps/backend/src/bar/invoice-deposit-sentence-contract.test.ts (tprs).
+const QUESTIONS_SHA256 = '3ef6f7dbdfeaee3fb40216ae7db7768227f550dc5c57629ca4e47218127144ac';
+
 let passed = 0;
 const test = (name, fn) => { fn(); passed++; console.log('PASS', name); };
 
@@ -117,6 +138,43 @@ test('the no-amount reply uses this invoice\'s numbers, or none at all', () => {
     'Add the credit in dollars, like: Returned two empty kegs. Deposit credit $60; total due $210.');
   assert.equal(m.noAmountMessage(null), 'Add the credit in dollars and the total due after it, and say how many empty kegs went back.');
   assert.ok(!m.noAmountMessage(null).includes('$'));
+});
+const WERK = { rateCents: 3000, kegsBilled: 2, originalCents: 27000 };
+test('the server questions listed here are the ones recorded in the tprs contract test', () => {
+  const digest = createHash('sha256').update(JSON.stringify(SERVER_QUESTIONS)).digest('hex');
+  assert.equal(digest, QUESTIONS_SHA256, 'update the same list and constant in the tprs contract test');
+});
+test('a reply with no dollar amount gets the no-amount line whichever question the server asked', () => {
+  assert.equal(m.rejectionMessage(ASKS_WORDS, 'yes empty kegs', WERK), m.noAmountMessage(WERK));
+  assert.equal(m.rejectionMessage(ASKS_SUM, 'Returned two empty kegs. Deposit credit sixty; total due 210.', null), m.noAmountMessage(null));
+});
+test('a typed dollar amount without the words the server reads is told which words, with this invoice\'s example', () => {
+  assert.equal(m.rejectionMessage(ASKS_WORDS, 'Returned 2 empty kegs, credit $60', WERK),
+    'Use the words empty keg, deposit and credit, like: Returned two empty kegs. Deposit credit $60; total due $210.');
+  assert.equal(m.rejectionMessage(ASKS_WORDS, 'Empty x2 -60', null),
+    'Use the words empty keg, deposit and credit, and give the credit and the total due in dollars.');
+});
+test('amounts that do not add up are told so, with this invoice\'s example and never the server\'s $559', () => {
+  for (const [name, typed, , question] of SERVER_QUESTIONS.filter(q => q[3] === ASKS_SUM)) {
+    assert.equal(m.rejectionMessage(question, typed, WERK),
+      'That did not add up. The credit plus the amount due must equal the original bill of $270.00. Try: Returned two empty kegs. Deposit credit $60; total due $210.', name);
+    const without = m.rejectionMessage(question, typed, null);
+    assert.equal(without, 'That did not add up. The credit plus the amount due must equal the original bill. Say how many empty kegs went back, the credit and the total due.', name);
+    assert.ok(!without.includes('$'), name);
+  }
+  assert.ok(!m.rejectionMessage(ASKS_SUM, SERVER_QUESTIONS[4][1], { rateCents: 3000, kegsBilled: 3, originalCents: 58900 }).includes('$60'));
+});
+test('questions that carry no dollar figure from elsewhere are shown as the server wrote them', () => {
+  assert.equal(m.rejectionMessage(ASKS_MISSING, SERVER_QUESTIONS[2][1], WERK), ASKS_MISSING);
+  assert.equal(m.rejectionMessage(ASKS_DECIMALS, SERVER_QUESTIONS[3][1], WERK), ASKS_DECIMALS);
+});
+test('a reworded server question that still carries a canned dollar example is not shown with those dollars', () => {
+  const say = m.rejectionMessage('Check the amounts. Example: credit $15, due $100.', 'Returned 1 empty keg. Deposit credit $30; total due $1.', WERK);
+  assert.ok(!say.includes('$15') && !say.includes('$100'), say);
+});
+test('a question with a dollar figure in it is a canned example from another invoice', () => {
+  assert.equal(m.hasCannedDollars(ASKS_SUM), true);
+  for (const own of [ASKS_WORDS, ASKS_MISSING, ASKS_DECIMALS]) assert.equal(m.hasCannedDollars(own), false, own);
 });
 test('the example paragraph for the text box', () => {
   assert.equal(m.exampleText({ rateCents: 3000, kegsBilled: 2, originalCents: 27000 }),

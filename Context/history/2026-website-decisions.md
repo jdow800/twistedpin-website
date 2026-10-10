@@ -16,6 +16,16 @@ stays. No server change. The composer is `src/components/liquor/deposit-sentence
 sentence it makes (`invoice-deposit-sentence-contract.test.ts`), with golden lists and one hash recorded in both repos.
 Validation: `check-deposit-sentence.mjs`, 18 new `kegs-*` scenarios in `check-invoices.mjs`, and phone/desktop layout at 320, 390 and 960 px.
 
+Review follow-up, same day. The server's other questions still reached the words box raw: after a typo like "Deposit credit $50;
+total due $210" it ended in the fixed example "Deposit return $30; total due $559." (another invoice's numbers, the very thing Jon
+reported), and "Returned 2 empty kegs, credit $60" or "Empty x2 -60" were told to "tell us the deposit credit in dollars" though they
+had. Now, in the words box: amounts that do not add up get "That did not add up. The credit plus the amount due must equal the
+original bill of $270.00. Try: Returned two empty kegs. Deposit credit $60; total due $210."; dollars without the words the server
+reads get "Use the words empty keg, deposit and credit, like: ..."; a question with no dollar figure ("a full keg was missing", "two
+decimal places") is still shown as the server wrote it. With no single rate there is no dollar figure at all. Any server question
+that carries a dollar figure is replaced, and on the number-box path one is replaced by the plain save error. The QA fixture now
+mirrors all four server questions word for word, and tprs pins them against the real parser (`QUESTIONS_SHA256` in both repos).
+
 ## 2026-10-09 — A scan copy that matches the emailed invoice settles itself
 
 Jon: "lets fix things, yes", after an audit of every linked pair (13 pairs, 176 supplier-code rows): 38 rows differed only in a package column with identical units and dollars, and a question about an excluded copy never protects a cost. A scan copy with the same items, counts, dollars, charges and totals as its emailed invoice, and no ink that changes them, now arrives from the server as automatically reconciled with the basis `matching_units_and_dollars`. The linked-copy screen says "Copy matches the emailed invoice: same items, counts and dollars, and no ink that changes them. Package columns may read differently; the emailed invoice governs them. No answer needed." in the same handled-automatically style as the other bases; the package readings stay on each row. There is no new screen and no Not-right button (the older automatic bases have none either): the existing line "Open the purchase record if staff found a different delivery problem" still follows it. Anything with a different count, dollar amount, charge, total or ink asks exactly as before. Backend: tprs `INVOICE_COPY_MATCH_SETTLE` (default on, `off` restores the old behaviour). Deploy order: either order works; an older page shows the generic "settled automatically" line for the new basis.

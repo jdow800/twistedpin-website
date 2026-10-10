@@ -126,7 +126,13 @@ if(mode.startsWith('explain') || mode==='deposit-auto') {
 // "Keg Deposit" line, 2 x 30.000000 = 60.00, printed 270.00) and Phase Three E-7341 (three deposits at 30). Modes:
 // kegs-werk[-stale|-error|-question], kegs-phase3, kegs-cents (27.50 rate), kegs-unread (printed total null), kegs-zero (0.00),
 // kegs-mixed (two deposit rates), kegs-credit-present (a negative adjustment already on the invoice), kegs-saved (answered).
-const KEGS_SERVER_QUESTION="Was this an empty-keg deposit return? Tell us the deposit credit in dollars. For a missing product, use that item's delivery quantity.";
+// The four questions writtenDepositReturn asks, word for word (the tprs contract test holds the same strings against the real parser).
+const KEGS_ASKS={
+  words:"Was this an empty-keg deposit return? Tell us the deposit credit in dollars. For a missing product, use that item's delivery quantity.",
+  missing:"This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.",
+  decimals:"Use dollar amounts with at most two decimal places for the deposit credit and revised total.",
+  sum:"What is the empty-keg deposit credit, and the revised amount due? For example: Deposit return $30; total due $559.",
+};
 let kegsOriginal=null;
 if(mode.startsWith('kegs-')) {
   const mk=(id,name,cost,type='keg')=>({...line,id,lineType:type,rawDescription:name,sizeText:type==='keg'?'1/6 BBL':null,qtyUnits:'1',unitCost:String(cost),extendedAmount:String(cost)});
@@ -279,16 +285,18 @@ window.fetch=async(url,options={})=>{
   }
   if(path.endsWith('/explanation')) {
     if(mode.startsWith('kegs-')) {
-      // A small mirror of the server route (tprs writtenDepositReturn); the real parser is proven in tprs by
-      // invoice-deposit-sentence-contract.test.ts against the same sentences. Real answers: {code,error,question}.
+      // A mirror of the server route's checks, in its order and with its words (tprs writtenDepositReturn); the real parser is
+      // proven in tprs by invoice-deposit-sentence-contract.test.ts. Real answers: {code,error,question}.
       if(mode.endsWith('-stale'))return json({code:409,error:'invoice_changed'},409);
       if(mode.endsWith('-error'))return json({error:'internal'},500);
-      const body=JSON.parse(options.body),text=body.text;
-      if(mode.endsWith('-question'))return json({code:422,error:'answer_needs_detail',question:'What is the empty-keg deposit credit, and the revised amount due?'},422);
-      if(!/(?:\$\s*|-\s*)\d/.test(text))return json({code:422,error:'answer_needs_detail',question:KEGS_SERVER_QUESTION},422);
+      const body=JSON.parse(options.body),text=body.text,ask=question=>json({code:422,error:'answer_needs_detail',question},422);
+      if(mode.endsWith('-question'))return ask(KEGS_ASKS.sum);
+      if(mode.endsWith('-asks-missing'))return ask(KEGS_ASKS.missing);
+      if(!/\b(?:keg|empt(?:y|ies))\b/i.test(text)||!/\bdeposit\b/i.test(text)||!/\b(?:return(?:ed)?|credit|refund)\b/i.test(text))return ask(KEGS_ASKS.words);
+      if(/\b(?:full|missing|short(?:ed)?|broken|damaged|not|wasn['’]?t|didn['’]?t)\b/i.test(text))return ask(KEGS_ASKS.missing);
+      if([...text.matchAll(/(?:\$\s*|-\s*)(\d[\d,.]*)/g)].some(t=>!/^\d+(?:,\d{3})*(?:\.\d{1,2})?$/.test(t[1].replace(/[.,]$/,''))))return ask(KEGS_ASKS.decimals);
       const credit=text.match(/deposit credit \$(\d+(?:\.\d{1,2})?)/i),due=text.match(/total due \$(\d+(?:\.\d{1,2})?)/i);
-      if(!credit||!due||Math.round(kegsOriginal*100)-Math.round(Number(credit[1])*100)!==Math.round(Number(due[1])*100))
-        return json({code:422,error:'answer_needs_detail',question:'What is the empty-keg deposit credit, and the revised amount due?'},422);
+      if(!credit||!due||Math.round(kegsOriginal*100)-Math.round(Number(credit[1])*100)!==Math.round(Number(due[1])*100))return ask(KEGS_ASKS.sum);
       invoice.printedTotal=invoice.extractedTotal=Number(due[1]).toFixed(2);invoice.status='extracted';invoice.reviewNotes=[];
       detail.depositResolution={id:'deposit-action',source:'staff',explanation:text,original_total:kegsOriginal.toFixed(2),credit:Number(credit[1]).toFixed(2),total:Number(due[1]).toFixed(2),remaining_questions:false};
       detail.explanationToken='b'.repeat(64);

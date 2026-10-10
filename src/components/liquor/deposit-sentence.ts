@@ -104,6 +104,31 @@ export const noAmountMessage = (plan: DepositPlan | null): string => plan
   ? `Add the credit in dollars, like: ${composeDepositExample(plan.kegsBilled, plan.rateCents, plan.originalCents)}`
   : "Add the credit in dollars and the total due after it, and say how many empty kegs went back.";
 
+// The server's questions, matched by how they open (tprs writtenDepositReturn; the tprs contract test holds them word for word).
+// A question it words differently falls through and is shown as written, unless it carries dollars from some other invoice.
+const SERVER_ASKS_WORDS = /^Was this an empty-keg deposit return\?/;
+/** A dollar figure inside a question the server wrote: always a canned example from some other invoice, never this one's. */
+export const hasCannedDollars = (question: string): boolean => /\$\s*\d/.test(question);
+
+const needWordsMessage = (plan: DepositPlan | null): string => plan
+  ? `Use the words empty keg, deposit and credit, like: ${composeDepositExample(plan.kegsBilled, plan.rateCents, plan.originalCents)}`
+  : "Use the words empty keg, deposit and credit, and give the credit and the total due in dollars.";
+
+const doesNotAddUpMessage = (plan: DepositPlan | null): string => plan
+  ? `That did not add up. The credit plus the amount due must equal the original bill of ${formatMoney(plan.originalCents)}. Try: ${composeDepositExample(plan.kegsBilled, plan.rateCents, plan.originalCents)}`
+  : "That did not add up. The credit plus the amount due must equal the original bill. Say how many empty kegs went back, the credit and the total due.";
+
+/**
+ * What to show when the server refuses free text with a question. The server's example is one fixed invoice's ("total due $559"),
+ * so the words that ask for dollars or the sum are replaced with this invoice's own. A question with nothing from another
+ * invoice in it ("a full keg was missing", "at most two decimal places") is shown as the server wrote it.
+ */
+export function rejectionMessage(question: string, answer: string, plan: DepositPlan | null): string {
+  if (!hasDollarAmount(answer)) return noAmountMessage(plan);
+  if (SERVER_ASKS_WORDS.test(question)) return needWordsMessage(plan);
+  return hasCannedDollars(question) ? doesNotAddUpMessage(plan) : question;
+}
+
 /** Under the number box when what is typed cannot be recorded. */
 export function rangeHint(count: Exclude<KegCount, { kegs: number }>, kegsBilled: number): string {
   if ("over" in count) return `A deposit was billed on ${kegsBilled} keg${kegsBilled === 1 ? "" : "s"}, so no more than ${kegsBilled} can be credited.`;

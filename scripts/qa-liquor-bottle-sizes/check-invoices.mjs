@@ -760,9 +760,17 @@ await run('a failed save keeps the typed number and allows another try','kegs-we
   assert.equal(kegsInput(doc).value,'1');assert.ok(!button('Record $30.00 credit').disabled);
   await click('Record $30.00 credit');assert.equal(explanationPosts(log).length,2);
 });
-await run('a question from the server is shown as written and the number is kept','kegs-werk-question',async({doc,dom,click})=>{
+await run('a question the server asks of the composed sentence never shows another invoice\'s dollars, and the number is kept','kegs-werk-question',async({doc,dom,click,button})=>{
   await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
-  assert.equal(doc.querySelector('[role=alert]').textContent,'What is the empty-keg deposit credit, and the revised amount due?');
+  // The server's "does not add up" question ends in "For example: Deposit return $30; total due $559." (a different invoice).
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'Could not save this answer. Reopen the invoice and try again.');
+  assert.ok(!says.includes('$559'));
+  assert.equal(kegsInput(doc).value,'1');assert.ok(!button('Record $30.00 credit').disabled);
+});
+await run('a question with nothing from another invoice in it is shown as the server wrote it, and the number is kept','kegs-werk-asks-missing',async({doc,dom,click})=>{
+  await enter(dom,kegsInput(doc),'1');await click('Record $30.00 credit');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.');
   assert.equal(kegsInput(doc).value,'1');
 });
 await run('Describe something else opens the box with an example from this invoice, and the number stays above it','kegs-werk',async({doc,click,button})=>{
@@ -791,10 +799,53 @@ await run('the no-amount line for another invoice carries that invoice\'s number
   assert.equal(says,'Add the credit in dollars, like: Returned three empty kegs. Deposit credit $90; total due $499.');
   assert.ok(!says.includes('$559')&&!says.includes('$60'));
 });
-await run('a typed dollar amount that does not reconcile still shows the server\'s question','kegs-werk',async({doc,dom,click})=>{
+// The server's "does not add up" question ends in another invoice's example ("Deposit return $30; total due $559."), and its
+// "was this a deposit return" question tells someone who gave dollars to give dollars. Neither is shown; this invoice's numbers are.
+const SUM_WERK='That did not add up. The credit plus the amount due must equal the original bill of $270.00. Try: Returned two empty kegs. Deposit credit $60; total due $210.';
+for(const [why,typed] of [['a total that is off','Returned two empty kegs. Deposit credit $60; total due $200.'],['a credit above the bill','Returned two empty kegs. Deposit credit $300; total due $210.'],['a credit typo','Returned two empty kegs. Deposit credit $50; total due $210.']])
+  await run('amounts that do not add up ('+why+') are told so with this invoice\'s numbers, never $559, and the typed words are kept','kegs-werk',async({doc,dom,click,log})=>{
+    await click('Describe something else');
+    await typeInto(dom,sectionOf(doc).querySelector('textarea'),typed);await click('Save answer');
+    const says=doc.querySelector('[role=alert]').textContent;
+    assert.equal(says,SUM_WERK);assert.ok(!says.includes('$559'));assert.ok(!says.includes('For example'));
+    assert.equal(sectionOf(doc).querySelector('textarea').value,typed);
+    assert.equal(explanationPosts(log).length,1);
+  });
+await run('amounts that do not add up on another invoice carry that invoice\'s own bill and example','kegs-phase3',async({doc,dom,click})=>{
   await click('Describe something else');
-  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned two empty kegs. Deposit credit $60; total due $200.');await click('Save answer');
-  assert.equal(doc.querySelector('[role=alert]').textContent,'What is the empty-keg deposit credit, and the revised amount due?');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned three empty kegs. Deposit credit $50; total due $499.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'That did not add up. The credit plus the amount due must equal the original bill of $589.00. Try: Returned three empty kegs. Deposit credit $90; total due $499.');
+  assert.ok(!says.includes('$559')&&!says.includes('$270'));
+});
+await run('a dollar amount without the words the server reads (Empty x2 -60) is told which words to use, with this invoice\'s example','kegs-werk',async({doc,dom,click})=>{
+  await click('Describe something else');
+  for(const typed of ['Empty x2 -60','Returned 2 empty kegs, credit $60','2 kegs deposit credit -60']) {
+    await typeInto(dom,sectionOf(doc).querySelector('textarea'),typed);await click('Save answer');
+    const says=doc.querySelector('[role=alert]').textContent;
+    assert.equal(says,'Use the words empty keg, deposit and credit, like: Returned two empty kegs. Deposit credit $60; total due $210.',typed);
+    assert.ok(!says.includes('Tell us the deposit credit in dollars'),typed);assert.equal(sectionOf(doc).querySelector('textarea').value,typed);
+  }
+});
+await run('words the server reads as missing product, or too many decimals, keep the server\'s own question','kegs-werk',async({doc,dom,click})=>{
+  await click('Describe something else');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned the empty keg. Deposit credit $30, but a full keg was missing');await click('Save answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'This may also describe missing product. State the empty-keg deposit credit separately; record any missing full keg on its item.');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned 2 empty kegs. Deposit credit $60.555; total due $209.445.');await click('Save answer');
+  assert.equal(doc.querySelector('[role=alert]').textContent,'Use dollar amounts with at most two decimal places for the deposit credit and revised total.');
+});
+await run('a correction that does not add up names the original bill, and the text keeps what was typed','kegs-saved',async({doc,dom,click})=>{
+  await click('Correct this answer');
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned two empty kegs. Deposit credit $50; total due $210.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,SUM_WERK);assert.ok(!says.includes('$559'));
+  assert.equal(sectionOf(doc).querySelector('textarea').value,'Returned two empty kegs. Deposit credit $50; total due $210.');
+});
+await run('with no single rate to work from, a sum that does not add up shows no dollar figure from anywhere','kegs-mixed',async({doc,dom,click})=>{
+  await typeInto(dom,sectionOf(doc).querySelector('textarea'),'Returned two empty kegs. Deposit credit $50; total due $210.');await click('Save answer');
+  const says=doc.querySelector('[role=alert]').textContent;
+  assert.equal(says,'That did not add up. The credit plus the amount due must equal the original bill. Say how many empty kegs went back, the credit and the total due.');
+  assert.ok(!says.includes('$'));
 });
 for(const mode of ['kegs-unread','kegs-zero']) await run('an unread printed total keeps the honest message and offers no form: '+mode,mode,async({doc,button,log})=>{
   const section=sectionOf(doc);
