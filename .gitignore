@@ -48,6 +48,9 @@ Context/Playbook and guidebook photos/
 # private twisted-pin-notes repo under google-ads-reviews/. The Ads scripts and
 # their run records carry no figures and ARE committed in scripts/google-ads/.
 Context/google-ads-reviews/
+# SiteGuru SEO reports (2026-10-12). The performance PDF and page CSV hold GA
+# sessions, pageviews and revenue figures; same rule as the Ads reviews above.
+Context/SiteGuru SEO/
 
 
 .vercel

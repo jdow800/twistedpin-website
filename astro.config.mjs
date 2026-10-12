@@ -89,6 +89,12 @@ export default defineConfig({
         // (/coupon-preview + /kids-signup-preview exclusions removed 2026-07-24
         //  — promoted onto /coupon + /free-kids-bowling at the loyalty cutover;
         //  both live pages are meant to be indexed and in the sitemap.)
+        // Legal/compliance pages ship noindex,follow on purpose (footer-linked,
+        // kept out of the index) — same treatment. Exact paths: a substring
+        // match on '/sms' would also drop any future /blog/sms-… post.
+        !['/privacy/', '/terms/', '/accessibility/', '/sms/', '/sms-marketing/'].includes(
+          new URL(page).pathname,
+        ) &&
         !['/1hr', '/bday', '/hrcard'].some((slug) => page.includes(slug)),
     }),
     // React islands for the TPRS customer booking flow (ADR-0029 §1 — the

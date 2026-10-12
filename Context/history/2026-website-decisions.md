@@ -232,6 +232,12 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-12 - SiteGuru follow-ups: /rewards/ headline space, legal pages out of the sitemap (Jon: "fix that").**
+  - **/rewards/ H1:** the 9/23 Loyalty 2.0 copy (`260a0e5`) put the line break straight after "get", so text extraction read "Regulars getthe perks." (SiteGuru's H1 report, and any reader that drops the `<br>`). A space now sits before the `<br />`; the visible two-line break is unchanged.
+  - **Sitemap:** /privacy/, /terms/, /accessibility/, /sms/ and /sms-marketing/ ship `noindex,follow` on purpose (triaged 8/16 and 8/28) but were still listed in `sitemap-0.xml`, against the filter's own rule that noindex pages stay out. They are now filtered by exact path, because a substring match on '/sms' would also drop a future `/blog/sms-…` post. SiteGuru will keep listing them as "not indexable" because it crawls the footer links. That item is intentional; ignore it there.
+  - **`Context/SiteGuru SEO/` is git-ignored:** the reports hold GA sessions and revenue figures, and this repo is public (same rule as `Context/google-ads-reviews/`).
+  - **Not changed:** the two long off-season meta descriptions (Jon ruled 8/28: not worth it). The page-speed flags are stale again: a fresh mobile Lighthouse run on 10/12 scored the flagged pages 91-96, and the control page matched SiteGuru.
+
 - **2026-10-01 - `/api/hours/` also returns `regularHours`, Google's regular weekly schedule (Jon: Avery reads live Google hours).**
   - **Why:** Avery stated hours from hard-coded tables that never learned about the seasonal Thursday 11pm close, which Google has listed since 9/14 (karaoke season; Jon expects it to end around March or April). Jon chose live Google hours for Avery. The existing `hours` map can't serve: it is this week's view with holiday edits merged in, so during Thanksgiving week it would tell Avery every Thursday is closed.
   - **What:** `fetchLivePlacesData()` adds `regularHours` (`regularOpeningHours` alone, through the same `periodsToHours()`). The 4am cron writes it into `src/data/live-hours.json`, and `/api/hours/` returns it beside `hours`. `hours` is unchanged for Roy and the site.
