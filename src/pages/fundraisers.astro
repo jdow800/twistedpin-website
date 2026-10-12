@@ -42,6 +42,7 @@ import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { BUSINESS_URL, BUSINESS_ENTITY_ID } from "../lib/schema";
 
 import { PLAN_EVENT_URL } from "../lib/links";
+import { ICON_PATHS } from "../lib/icons";
 
 // JSON-LD: Service offered by the venue. provider → #business links
 // the program to the canonical entity. No specific Event schema since
@@ -60,7 +61,7 @@ const serviceSchema = {
   name: "Fundraiser Program",
   url: PAGE_URL,
   description:
-    "Twisted Pin returns 50% of bowling, shoe, and arcade revenue from supporters back to host organizations. Thursday nights 5–9pm. Schools, churches, sports teams, charities, community groups in Plainfield, IL and surrounding Will County.",
+    "Twisted Pin returns 50% of supporters' bowling, shoe rental, and front-desk arcade-card spend to host organizations. Thursday nights 5–9pm. Schools, churches, sports teams, charities, community groups in Plainfield, IL and surrounding Will County.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Fundraiser hosting",
   areaServed: {
@@ -68,10 +69,61 @@ const serviceSchema = {
     name: "Plainfield, IL and surrounding Will County",
   },
 };
+
+// Visible HTML and FAQ schema share the same answers (same pattern as
+// /corporate-events). Facts mirror Avery's KB fundraiser block (Section 7)
+// so the page and her replies never disagree: arcade cards count only at
+// the front desk, food and bar never count, checks go to the organization.
+const fundraiserFaqs = [
+  {
+    q: "How does a bowling fundraiser at Twisted Pin work?",
+    answer: "We host, you promote. Pick an open Thursday and spread the word. Every supporter who bowls between 5pm and 9pm and tells the front desk they’re there for your organization sends 50% of their bowling, shoe rental and front-desk arcade cards back to your cause. The more people you get through the door, the more you raise.",
+  },
+  {
+    q: "What does it cost to host?",
+    answer: "Nothing. No setup fee, no deposit, no minimum turnout and nothing to reserve. You don’t even give us a headcount.",
+  },
+  {
+    q: "What counts toward the 50%?",
+    answer: "Bowling, shoe rental and arcade cards bought at the front desk. Cards from the self-serve arcade kiosks can’t be tagged to a fundraiser, and food, drinks and the bar don’t count.",
+  },
+  {
+    q: "How do supporters make sure their spend counts?",
+    answer: "They say your organization’s name at the front desk, for bowling and for arcade cards. Fundraisers run walk-in on our traditional lanes alongside the regular Thursday crowd, first come, first served. Think restaurant spirit night: only the people who name you are counted.",
+  },
+  {
+    q: "How much can we raise?",
+    answer: "It comes down to turnout. Every supporter who names you sends half their bowling, shoes and front-desk arcade cards your way. Organizations find one to three Thursdays a year works best, and a few strong nights add up to thousands.",
+  },
+  {
+    q: "Can we hold a raffle or 50/50?",
+    answer: "Yes, as long as the fundraiser has a tax ID. Tell us ahead of time and we’ll set out a table; one rep on site all night helps. Draw winners after the event and announce them online, because the families who came at 5pm are long gone by 9pm.",
+  },
+  {
+    q: "When and how do we get paid?",
+    answer: "We mail a check the week after your event, usually in the mail by the following Monday. It’s made out to the organization, never an individual, so we’ll need the exact payee name, your tax ID (EIN) and a mailing address first.",
+  },
+  {
+    q: "Which Thursdays are open?",
+    answer: "Fundraisers run Thursdays only, 5pm to 9pm, one organization per night. We skip holidays and school days off. Tell us the month you’re eyeing and we’ll send back the open Thursdays.",
+  },
+  {
+    q: "How do we get the word out?",
+    answer: "That part’s yours, and we make it easy. Every booked fundraiser gets a free event page with a shareable invitation link. Supporters can RSVP so you know who’s coming, and lanes stay first come, first served.",
+  },
+];
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: fundraiserFaqs.map((f) => ({
+    "@type": "Question", name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.answer },
+  })),
+};
 ---
 <Base
-  title="Fundraiser Venue in Plainfield, IL | Twisted Pin"
-  description="Bowling fundraisers: 50% of bowling, shoe, and arcade revenue back to your cause. Thursday nights 5–9pm at Twisted Pin, Plainfield, IL."
+  title="Bowling Fundraisers in Plainfield, IL | Twisted Pin"
+  description="Bowling fundraisers, Thursdays 5–9pm: 50% of your supporters' bowling, shoes and front-desk arcade cards back to your cause. Plainfield, IL."
   lcpPreloadHref="/snap/summer-pass-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
@@ -130,7 +182,7 @@ const serviceSchema = {
         <p class="fundraiser-section-body">
           Tell your supporters when and where. They show up, mention
           they're there for your fundraiser, and pay regular price. We
-          send <strong>50% of their bowling, shoe, and arcade-card spend</strong>
+          send <strong>50% of their bowling, shoe, and front-desk arcade-card spend</strong>
           back to your organization. The more people you get through the
           door, the more you raise.
         </p>
@@ -138,8 +190,7 @@ const serviceSchema = {
         <p class="fundraiser-section-body">
           Fundraisers run on the traditional lanes, walk-in, alongside our
           regular Thursday crowd — no lanes are held, no headcount needed.
-          One organization per Thursday. The 6-lane VIP suite is set aside
-          for booked group events.
+          One organization per Thursday.
         </p>
 
         <ul class="fundraiser-section-list">
@@ -201,9 +252,9 @@ const serviceSchema = {
         </p>
 
         <p class="fundraiser-section-body">
-          Ask about our <strong>arcade promotion</strong> at booking —
-          there's an extra path to raise more on top of the 50% bowling,
-          shoe, and arcade share.
+          Want to raise more on top of the 50%? Run your own
+          <strong>50/50 or raffle</strong>. Tell us ahead of time and
+          we'll set out a table.
         </p>
 
         <ul class="fundraiser-section-list">
@@ -211,9 +262,31 @@ const serviceSchema = {
           <li>Indoors — no rain, snow, or heat-cancel risk</li>
           <li>Full kitchen + 28-tap self-serve wall</li>
           <li>Arcade open all night</li>
-          <li>Up to 80 in the VIP suite — or up to 200 for full-venue buyouts</li>
           <li>Schools, churches, sports teams, charities, community groups</li>
         </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ============================================================
+      FAQ — reuses the global .t2-faq accordion (same as /corporate-events)
+      ============================================================ */}
+  <section class="fundraiser-faq" aria-labelledby="fundraiser-faq-h2">
+    <div class="fundraiser-faq-inner">
+      <p class="t-eyebrow">Questions</p>
+      <h2 class="t-display fundraiser-faq-title" id="fundraiser-faq-h2">Fundraiser FAQs.</h2>
+      <div class="t2-faq">
+        {fundraiserFaqs.map((item) => (
+          <details class="t2-faq-item">
+            <summary class="t2-faq-q">
+              <h3 class="t2-faq-q-text">{item.q}</h3>
+              <svg class="t2-faq-chevron" viewBox="0 0 24 24" width="18" height="18"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" aria-hidden="true" set:html={ICON_PATHS["chevron-down"]} />
+            </summary>
+            <div class="t2-faq-a"><p>{item.answer}</p></div>
+          </details>
+        ))}
       </div>
     </div>
   </section>
@@ -240,6 +313,7 @@ const serviceSchema = {
   <SnapFooter />
 
   <script type="application/ld+json" set:html={JSON.stringify(serviceSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   <BreadcrumbSchema crumbs={[
     { name: "Home", path: "/" },
     { name: "Fundraisers", path: "/fundraisers/" },
@@ -430,6 +504,36 @@ const serviceSchema = {
   @media (min-width: 1025px) {
     .fundraiser-section-list li { font-size: 15.5px; }
   }
+
+  /* ============================================================
+     FAQ — reuses the global .t2-faq* accordion (see global.css);
+     only the section wrapper + heading are page-local.
+     ============================================================ */
+  .fundraiser-faq {
+    background: transparent;
+    padding: 48px 22px 8px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-faq { padding: 72px 64px 24px; }
+  }
+
+  .fundraiser-faq-inner {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+
+  .fundraiser-faq-title {
+    color: var(--warm-white);
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 0.98;
+    letter-spacing: -0.005em;
+    margin-top: 10px;
+  }
+  @media (min-width: 1025px) {
+    .fundraiser-faq-title { font-size: clamp(36px, 3.6vw, 48px); }
+  }
+
+  .fundraiser-faq .t2-faq { margin-top: 20px; }
 
   /* ============================================================
      CLOSING CTA — same recipe as /events for visual rhythm

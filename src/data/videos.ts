@@ -144,7 +144,7 @@ export const VIP_LANES_VIDEO: VideoEntry = {
   slug: "vip-lanes",
   name: "The 6-Lane VIP Suite",
   description:
-    "A walkthrough of the 6-lane VIP suite at Twisted Pin in Plainfield, IL — set apart from the traditional lanes by a wall. Yours for the night when you book the suite. Up to 80 people, AV hookups, in-house catering.",
+    "A walkthrough of the 6-lane VIP suite at Twisted Pin in Plainfield, IL — set apart from the traditional lanes by a wall. Book all six lanes and the whole suite is yours during your event time. Up to 80 people, AV hookups, in-house catering.",
   thumbnailPath: "/snap/vip-lanes-poster.avif",
   contentPath: "/snap/vip-lanes-mobile-h264-1080.mp4",
   durationSeconds: 12,

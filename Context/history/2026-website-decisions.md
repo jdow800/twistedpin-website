@@ -232,6 +232,29 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-12 - Event-page near-misses from the Search Console export (Jon: write the fundraiser FAQ from Avery's KB; the Naperville links "sounds good", "Fine").**
+  - **Why:** the 10/12 export of event-page searches (last 3 months) showed three near-misses, while the money pages get almost no organic clicks:
+    - "bowling fundraiser(s)/fundraising": about 550 impressions at positions 18-27;
+    - "corporate events in naperville" at 10.8;
+    - "bowling birthday party naperville" at 9.5.
+  - **/fundraisers/:**
+    - The title moves from "Fundraiser Venue" to "Bowling Fundraisers in Plainfield, IL", which is what people search.
+    - A 9-question FAQ with FAQPage schema, written from Avery's KB fundraiser block (Section 7) so the page and her replies agree: arcade cards count only at the front desk, food and bar never count, checks go to the organization, raffles need a tax ID, Thursdays only, invitations.
+    - The meta description, the Service schema and the "How it works" sentence now say front-desk arcade cards.
+    - "Ask about our arcade promotion" is replaced by the group's own 50/50 or raffle line. The KB says there are no other promotions (8/28 ruling).
+    - "A few strong nights add up to thousands" answers Jon's "potential to raise thousands". It is framed per year, because one Thursday at $35 a lane-hour, sharing the lanes, rarely returns more than about $1-2K.
+  - **Naperville:**
+    - /corporate-events/ and /why-us/naperville-il/ now link the Naperville corporate guide.
+    - The city page links /birthday-parties/ ("Birthday parties for kids and adults").
+    - The guide gained a holiday-party section and links to /corporate-events/ and /holiday-parties/; `updateDate` is 2026-10-12.
+  - **Fundraisers never mention the VIP suite (Jon: "fundraisers shouldn't mention VIP").** The page drops the "Up to 80 in the VIP suite" bullet and the "VIP suite is set aside for booked group events" sentence. Fundraisers run on the traditional lanes.
+  - **"Yours for the night" retired site-wide (Jon's go, same day).**
+    - Replaced by "the whole suite is yours during your event time", always tied to booking all six lanes.
+    - Changed: /why-us/naperville-il, /why-us/oswego-il (2), /why-us/lockport-il, /wedding-receptions, the Naperville guide, and the VIP walkthrough video description in `src/data/videos.ts`. Two code comments (events.astro, naperville-il.astro) now note the retirement.
+    - `Context/voice.md` lists it under Phrases to retire.
+    - The Playbook keeps its wording-ban exemption.
+  - **Measure:** positions for the three query groups in GSC, 4-6 weeks after release.
+
 - **2026-10-12 - The retired Heyflow subdomain redirects to /events/ (Jon: "do you have vercel mcp to do #2").**
   - **Why:** `event.twistedpin.com` still served the old Heyflow event form and Google still listed it. Heyflow access expired 2026-08-08, so a guest who filled it out landed in an account nobody can open, and no n8n workflow reads Heyflow.
   - **What:** a host-conditioned redirect, first in `vercel.json`, sends every path on `event.twistedpin.com` to `https://www.twistedpin.com/events/` (permanent). The subdomain is attached to the website project. Its Vercel DNS record (`event`, was CNAME `flow.heyflow.domains`) now points at Vercel. To undo, point the record back and drop the rule.

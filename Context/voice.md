@@ -115,6 +115,7 @@ When framing events / group bookings, the load-bearing accurate phrasing is **"T
 ### Phrases to retire
 - "Your Ultimate Dining Destination" (current site headline — undersells the bowling, arcade, VIP)
 - "Just COME HERE" (weak, unprofessional CTA)
+- "Yours for the night" (Jon 2026-09-24: "just weird"; website swept 2026-10-12). Use *"the whole suite is yours during your event time"*, and only when the group books all six lanes.
 - Anything that reads as a typical greasy bowling alley ad
 
 ---
