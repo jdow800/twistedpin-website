@@ -20,6 +20,13 @@
  *   2. Rewrite every inquiry-destination anchor to carry the stored params,
  *      placed correctly *before* any `#hash` (the URL API handles ordering,
  *      so `event.twistedpin.com/#start` → `event.twistedpin.com/?gclid=…#start`).
+ *   3. Also carry the visit's first touch: `tp_ref` (the referrer host the
+ *      visitor arrived from) and `tp_lp` (the first page they landed on).
+ *      Click ids + UTMs only exist when the inbound link was tagged; organic
+ *      search, Maps, shares and typed visits carry none, and Zite's own
+ *      referrer is our page, so WF1 files most website inquiries as "direct".
+ *      Zite stores its full URL in `avery_event.landing_page`, so these land
+ *      in the database with no Zite or WF1 change (2026-10-12).
  *
  * SCOPE
  * Limited to the event-inquiry hosts. The Roller / TPRS reserve flow has its
@@ -82,6 +89,59 @@ function captureParams(): Record<string, string> {
   return stored;
 }
 
+// First touch lives in localStorage with a 30-minute idle window (GA4's
+// session timeout), not sessionStorage: a page opened in a new tab starts with
+// empty sessionStorage and our own page as referrer, which would lose the
+// source for exactly the desktop planners who browse in tabs.
+const FIRST_TOUCH_KEY = "tp_first_touch";
+const FIRST_TOUCH_IDLE_MS = 30 * 60 * 1000;
+
+interface FirstTouch {
+  ref: string;
+  lp: string;
+  seen: number;
+}
+
+// "none" = no referrer (typed, bookmark, many apps). "internal" = arrived from
+// our own page with no live visit stored (storage cleared or blocked).
+function referrerHost(): string {
+  if (!document.referrer) return "none";
+  try {
+    const host = new URL(document.referrer).hostname;
+    if (
+      host === window.location.hostname ||
+      host === "twistedpin.com" ||
+      host.endsWith(".twistedpin.com")
+    ) {
+      return "internal";
+    }
+    return host || "none";
+  } catch {
+    return "none";
+  }
+}
+
+function captureFirstTouch(): Record<string, string> {
+  const now = Date.now();
+  let touch: FirstTouch | null = null;
+  try {
+    touch = JSON.parse(localStorage.getItem(FIRST_TOUCH_KEY) || "null");
+  } catch {
+    touch = null;
+  }
+  if (!touch || typeof touch.seen !== "number" || now - touch.seen > FIRST_TOUCH_IDLE_MS) {
+    touch = { ref: referrerHost(), lp: window.location.pathname, seen: now };
+  } else {
+    touch.seen = now;
+  }
+  try {
+    localStorage.setItem(FIRST_TOUCH_KEY, JSON.stringify(touch));
+  } catch {
+    /* Storage blocked — this page's links still get the first touch below. */
+  }
+  return { tp_ref: touch.ref, tp_lp: touch.lp };
+}
+
 function decorateLinks(params: Record<string, string>): void {
   const keys = Object.keys(params);
   if (keys.length === 0) return;
@@ -106,7 +166,7 @@ function decorateLinks(params: Record<string, string>): void {
 
 export function initGclidPassthrough(): void {
   if (typeof window === "undefined") return;
-  const params = captureParams();
+  const params = { ...captureFirstTouch(), ...captureParams() };
   // Runs once at module execution (deferred, after DOM parse), decorating the
   // inquiry-host anchors that are server-rendered and present at that instant.
   // Sufficient today: there is no Astro ClientRouter / View Transitions in the

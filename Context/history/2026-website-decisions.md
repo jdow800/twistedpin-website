@@ -232,6 +232,22 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-12 - Event inquiries carry the visit's first touch (Jon: "#2 event inquiry source seems useful", then "yes then").**
+  - **Why:** click ids and UTMs exist only when the inbound link was tagged (ads, tagged posts). Organic search, Maps, shares and typed visits carry none, and Zite's own referrer is our page. So WF1 filed most website inquiries as "direct", and organic search's share of event inquiries could not be measured.
+  - **What:** `gclid-passthrough.client.ts` now also stores the visit's first touch and appends it to the Zite links with the existing params.
+    - `tp_ref` is the referrer host. It is `none` when there was no referrer, and `internal` when the visit began on our own page with nothing stored.
+    - `tp_lp` is the first page path.
+    - Storage is localStorage with a 30-minute idle window, so a page opened in a new tab keeps the source, and a visitor back after 30 idle minutes gets a fresh first touch.
+  - **No Zite or WF1 change:** Zite already stores its full URL in `avery_event.landing_page`, so both params land with every new inquiry. WF1 reads `landing_page` only to recover the gclid from the `_gl` linker, and extra params don't affect that. Optional follow-up, not built: WF1 `deriveAttribution()` prefers `tp_ref` when the referrer is twistedpin.com, so the label reads google/organic instead of direct.
+  - **Verified:** production build, plus 16 headless-Chrome checks against it, covering:
+    - an ad click carrying gclid and UTMs;
+    - internal navigation and a new tab;
+    - a typed visit and an expired visit;
+    - a second referrer inside 30 minutes, which does not overwrite the first;
+    - only Zite links touched;
+    - storage blocked.
+  - **Reading it:** use `substring(landing_page from 'tp_ref=([^&]+)')` and `'tp_lp=([^&]+)'` on `avery_event`, from 2026-10-12 forward. `tp_lp` is URL-encoded (`%2F` = `/`).
+
 - **2026-10-12 - SiteGuru follow-ups: /rewards/ headline space, legal pages out of the sitemap (Jon: "fix that").**
   - **/rewards/ H1:** the 9/23 Loyalty 2.0 copy (`260a0e5`) put the line break straight after "get", so text extraction read "Regulars getthe perks." (SiteGuru's H1 report, and any reader that drops the `<br>`). A space now sits before the `<br />`; the visible two-line break is unchanged.
   - **Sitemap:** /privacy/, /terms/, /accessibility/, /sms/ and /sms-marketing/ ship `noindex,follow` on purpose (triaged 8/16 and 8/28) but were still listed in `sitemap-0.xml`, against the filter's own rule that noindex pages stay out. They are now filtered by exact path, because a substring match on '/sms' would also drop a future `/blog/sms-…` post. SiteGuru will keep listing them as "not indexable" because it crawls the footer links. That item is intentional; ignore it there.
