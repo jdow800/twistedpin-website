@@ -232,6 +232,11 @@ Archived out of `Website/CLAUDE.md` on 2026-09-05. Entries are byte-for-byte cop
 
 ## Post-split entries (newest first; not archived copies)
 
+- **2026-10-12 - The retired Heyflow subdomain redirects to /events/ (Jon: "do you have vercel mcp to do #2").**
+  - **Why:** `event.twistedpin.com` still served the old Heyflow event form and Google still listed it. Heyflow access expired 2026-08-08, so a guest who filled it out landed in an account nobody can open, and no n8n workflow reads Heyflow.
+  - **What:** a host-conditioned redirect, first in `vercel.json`, sends every path on `event.twistedpin.com` to `https://www.twistedpin.com/events/` (permanent). The subdomain is attached to the website project. Its Vercel DNS record (`event`, was CNAME `flow.heyflow.domains`) now points at Vercel. To undo, point the record back and drop the rule.
+  - **Toggle note:** `AVERY_OFF_URL` in `src/lib/links.ts` still names that host. Flipping `PLAN_EVENT_URL` to OFF would now loop guests through /events/, so the comment there says so.
+
 - **2026-10-12 - Event inquiries carry the visit's first touch (Jon: "#2 event inquiry source seems useful", then "yes then").**
   - **Why:** click ids and UTMs exist only when the inbound link was tagged (ads, tagged posts). Organic search, Maps, shares and typed visits carry none, and Zite's own referrer is our page. So WF1 filed most website inquiries as "direct", and organic search's share of event inquiries could not be measured.
   - **What:** `gclid-passthrough.client.ts` now also stores the visit's first touch and appends it to the Zite links with the existing params.

@@ -3,8 +3,11 @@
  * inquiry CTAs across the site.
  *
  * AVERY toggle (event-inquiry AI sales agent on Zite):
- *   ON  → Zite events platform (twistedevents.zite.so)
- *   OFF → Heyflow form (event.twistedpin.com/#start) — current default
+ *   ON  → Zite events platform (twistedevents.zite.so) — current default
+ *   OFF → Heyflow form (event.twistedpin.com/#start) — RETIRED. Heyflow
+ *         access expired 2026-08-08, and since 2026-10-12 that host
+ *         redirects to /events/ (vercel.json), so flipping to OFF would
+ *         bounce guests between /events/ and itself. Needs a new target.
  *
  * AI sales agent (Avery on Zite) is a theory under test. The pattern is
  * "turn it on, evaluate, turn it off to troubleshoot" — so the toggle

@@ -13,6 +13,8 @@
     }
   ],
   "redirects": [
+    { "source": "/(.*)", "has": [{ "type": "host", "value": "event.twistedpin.com" }], "destination": "https://www.twistedpin.com/events/", "permanent": true },
+
     { "source": "/book{/}?", "destination": "/reserve/", "permanent": true },
     { "source": "/kb{/}?", "destination": "/reserve/birthdays/", "permanent": true },
 
