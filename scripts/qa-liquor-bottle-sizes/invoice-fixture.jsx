@@ -34,6 +34,12 @@ if(mode==='discontinued'||mode==='stale-discontinued'||mode==='discontinued-arch
 const automatic = mode.startsWith('automatic') || mode.startsWith('clarity') ? [{id:'auto-1',name:'Example freezer packs',skuId:'demo',lineId:'ready-1',token:'a'.repeat(64),
   status:'active',unitsPerCase:4,countUnit:'pack',unitLabel:'pack',costPerUnit:20,sourcePack:4,sourceSize:'4 LB',defaultSpokenUnit:'case',canCorrect:true,definitionEditable:true,correction:null}] : [];
 if (mode.startsWith('automatic')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
+// The "Handled automatically" list the server writes (tprs bar/invoice-handled-notes.ts): sentences, never controls. 'handled-old' is a server that predates it.
+const handled = mode.startsWith('handled') ? [
+  {kind:'printed_package_settle',ref:'line-parm',text:'Cheese, Parmesan, Grated, Individuals: Greco and Sons prints 200/3.5GM, matching the case size saved 9/22 (200 packets a case). Price on file $0.08575 a packet, not updated from this invoice.'},
+  {kind:'printed_package_settle',ref:'line-xss',text:'Pepper <b>red</b> & "crushed": Greco and Sons prints 500/1GM, matching the case size saved 9/22 (500 packets a case).'}] : [];
+const handledScope = handled.length ? 'Listed here: only lines that reused a saved case size through the printed pack. Other things handled automatically are not listed.' : null;
+if (mode.startsWith('handled')) {invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];}
 const detail = {invoice,lines:[line],images:mode==='no-image'?[]:[{id:'test-page',pageNumber:1,contentType:mode==='text-receipt'?'text/plain':'image/jpeg'}],
   buckets:{byBucket:{beer_draft:{matched:0,vendorItem:0,estimated:140}},nonGoods:40,
     unattributed:0,matchedDollars:0,residualDollars:140,residualBasis:'vendor_mix',mixVendor:'Example Brewery',mixInvoices:8,
@@ -271,7 +277,7 @@ window.fetch=async(url,options={})=>{
     if(mode==='linked-stale') return json({error:'comparison_changed'},409);
     detail.copyReviews[0].reviewed=true; return json({ok:true});
   }
-  if(path.endsWith('/automatic-answers')) return json({answers:automatic});
+  if(path.endsWith('/automatic-answers')) return json(mode==='handled-old'?{answers:automatic}:{answers:automatic,handled,handledScope});
   if(path.endsWith('/automatic-answers/auto-1/correct')) {
     if(mode==='automatic-stale')return json({error:'answer_changed'},409);
     const body=JSON.parse(options.body),result={unitsPerCase:body.unitsPerCase,countUnit:'pack',currentCost:10,previousCost:20,

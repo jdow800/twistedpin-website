@@ -25,8 +25,11 @@ export interface AutomaticInvoiceAnswer {
   costPerUnit: number; sourcePack: number; sourceSize: string; defaultSpokenUnit: string | null;
   canCorrect: boolean; definitionEditable: boolean; correction: InvoiceAnswerCorrection | null;
 }
+/** Something the system settled on its own, as one plain sentence the server wrote (tprs bar/invoice-handled-notes.ts). */
+export interface HandledInvoiceItem { kind: string; text: string; ref?: string }
 export const getAutomaticInvoiceAnswers = (id: string) =>
-  gatedJson<{ answers: AutomaticInvoiceAnswer[] }>(`/admin/bar/invoices/${id}/automatic-answers`);
+  // handled / handledScope are newer than answers: an older server omits them, so both are optional.
+  gatedJson<{ answers: AutomaticInvoiceAnswer[]; handled?: HandledInvoiceItem[]; handledScope?: string | null }>(`/admin/bar/invoices/${id}/automatic-answers`);
 export const correctAutomaticInvoiceAnswer = (id: string, actionId: string, body: {
   token: string; lineId: string; unitsPerCase: number; defaultSpokenUnit?: "case" | "base";
 }) => gatedJson<{ resolved: true; result: InvoiceAnswerCorrection }>(`/admin/bar/invoices/${id}/automatic-answers/${actionId}/correct`, {

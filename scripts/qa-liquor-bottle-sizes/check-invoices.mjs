@@ -596,6 +596,25 @@ for (const mode of ['automatic','automatic-stale']) await run('automatic answer 
   }
 });
 
+// "Handled automatically" list (tprs bar/invoice-handled-notes.ts): plain sentences, no controls, scoped, and absent when empty or from an older server.
+await run('the handled list shows what the system settled, with no control and the line that says what is listed','handled',async({doc})=>{
+  await until(()=>doc.body.textContent.includes('Handled automatically'));
+  const block=doc.querySelector('.lq-invd-automatic');
+  assert.ok(block.querySelector('summary').textContent.includes('Handled automatically (2)'));
+  assert.ok(block.textContent.includes('Cheese, Parmesan, Grated, Individuals: Greco and Sons prints 200/3.5GM, matching the case size saved 9/22 (200 packets a case). Price on file $0.08575 a packet, not updated from this invoice.'));
+  assert.ok(block.textContent.includes('Listed here: only lines that reused a saved case size through the printed pack. Other things handled automatically are not listed.'));
+  assert.equal(block.querySelectorAll('.lq-invd-handled button, .lq-invd-handled input').length,0);
+  assert.ok(!block.textContent.includes('Correct unit'));
+  assert.ok(!block.textContent.includes('These package answers were checked against supplier records'));
+  // Server text is data: markup in a name is shown, never run.
+  assert.equal(block.querySelector('.lq-invd-handled b'),null);
+  assert.ok(block.textContent.includes('Pepper <b>red</b> & "crushed"'));
+});
+await run('an older server that sends no handled list shows no handled block','handled-old',async({doc})=>{
+  await pause();await pause();
+  assert.equal(doc.querySelector('.lq-invd-automatic'),null);
+  assert.ok(!doc.body.textContent.includes('Listed here:'));
+});
 await run('a matching final settles a shortage without asking staff to confirm it again','linked-auto',async({doc,button,log})=>{
   assert.match(doc.body.textContent,/Copies agree automatically/);
   assert.match(doc.body.textContent,/Original paper line: 2.*40.00, crossed out/);

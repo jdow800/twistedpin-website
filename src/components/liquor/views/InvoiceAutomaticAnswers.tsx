@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BarApiError, correctAutomaticInvoiceAnswer, getAutomaticInvoiceAnswers,
-  type AutomaticInvoiceAnswer, type InvoiceAnswerCorrection } from "../api";
+  type AutomaticInvoiceAnswer, type HandledInvoiceItem, type InvoiceAnswerCorrection } from "../api";
 
 const money = (value: number | null) => value == null ? "unknown" : `$${value.toFixed(2)}`;
 const plural = (unit: string) => unit === "each" ? "items" : /(?:ch|sh|x)$/.test(unit) ? `${unit}es` : unit.endsWith("s") ? unit : `${unit}s`;
@@ -84,19 +84,28 @@ export default function InvoiceAutomaticAnswers({ invoiceId, revision, onSaved }
   invoiceId: string; revision: unknown; onSaved: () => void;
 }) {
   const [answers, setAnswers] = useState<AutomaticInvoiceAnswer[]>([]);
+  // What the system settled on its own, as sentences the server wrote, and which kinds that list covers (it is never everything).
+  const [handled, setHandled] = useState<HandledInvoiceItem[]>([]);
+  const [scope, setScope] = useState<string | null>(null);
   const [error, setError] = useState(false);
   useEffect(() => {
     let alive = true;
     setError(false);
-    getAutomaticInvoiceAnswers(invoiceId).then(data => { if (alive) setAnswers(data.answers ?? []); })
-      .catch(() => { if (alive) setError(true); });
+    getAutomaticInvoiceAnswers(invoiceId).then(data => {
+      if (!alive) return;
+      setAnswers(data.answers ?? []); setHandled(data.handled ?? []); setScope(data.handledScope ?? null);
+    }).catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
   }, [invoiceId, revision]);
   if (error) return <p className="lq-muted">Automatic-answer details could not load. <button className="lq-linkbtn" type="button" onClick={onSaved}>Try again</button></p>;
-  if (!answers.length) return null;
+  if (!answers.length && !handled.length) return null;
   return <details className="lq-invd-secondary lq-invd-automatic">
-    <summary>Handled automatically ({answers.length}) <span className="lq-muted">No answer needed</span></summary>
-    <p>These package answers were checked against supplier records. No answer needed unless something looks wrong.</p>
+    <summary>Handled automatically ({answers.length + handled.length}) <span className="lq-muted">No answer needed</span></summary>
+    {answers.length > 0 && <p>These package answers were checked against supplier records. No answer needed unless something looks wrong.</p>}
     {answers.map(answer => <Answer key={`${answer.id}:${answer.token}`} answer={answer} invoiceId={invoiceId} onSaved={onSaved} />)}
+    {handled.length > 0 && <div className="lq-invd-handled">
+      {handled.map((item, i) => <p key={item.ref ?? `${item.kind}:${i}`} className="lq-invd-line" style={{ marginTop: 12 }}>{item.text}</p>)}
+      {scope && <p className="lq-muted">{scope}</p>}
+    </div>}
   </details>;
 }
