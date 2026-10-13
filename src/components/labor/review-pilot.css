@@ -177,6 +177,20 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
 }
 @media (prefers-reduced-motion: reduce) { .lr-pilot *, .lr-login-shell * { scroll-behavior: auto; } }
 /* Owner preview 3: evidence, feasible shift proposals, and saved next steps. */
+.lr-surge-period { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 18px 0 10px; font-size: 14px; }
+.lr-surge-period > span { color: #6c627b; }
+.lr-pilot .lr-surge-question .lr-comparison-pairs { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.lr-pilot .lr-surge-question .lr-comparison-pairs > div { padding: 12px; }
+.lr-pilot .lr-surge-question .lr-comparison-pairs strong { font-size: 24px; }
+.lr-surge-crew { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; margin-top: 18px; }
+.lr-surge-crew caption { text-align: left; font-weight: 600; padding-bottom: 8px; }
+.lr-surge-crew th, .lr-surge-crew td { text-align: left; padding: 9px 5px; border-bottom: 1px solid #edeaf1; overflow-wrap: anywhere; }
+.lr-surge-crew th:first-child { width: 40%; }
+.lr-surge-crew thead th { font-weight: 400; color: #6c627b; }
+.lr-surge-question .lr-surge-shifts h3 { font-size: 16px; margin-top: 16px; }
+.lr-surge-question .lr-surge-shifts p { font-size: 14px; overflow-wrap: anywhere; }
+.lr-surge-question .lr-service-summary p { font-size: 14px; margin: 7px 0; }
+.lr-surge-question .lr-service-summary h3 { font-size: 18px; }
 .lr-overview-ideas .lr-metric { padding: 17px 22px; }
 .lr-overview-ideas .lr-metric-value { font-size: 30px; margin: 10px 0 5px; }
 .lr-overview-ideas .lr-review-count { padding: 18px 22px; gap: 18px; }

@@ -65,6 +65,30 @@ export interface ReviewResponse {
   outcome: string; status: "follow_up" | "closed";
   trial?:{state:"not_yet"|"tried"|"stopped";date?:string;service:"okay"|"issues"|"unknown"};
   proposalId?:string;proposalVersion?:number;applicability?:"this_shift"|"comparable_shifts";
+  serviceFeedback?: ServiceFeedback;
+}
+export interface ServiceFeedback {
+  overall: "handled" | "strained" | "fell_behind" | "need_to_check";
+  affectedDepartments: ("desk" | "kitchen" | "bar")[];
+  managerHelp: "yes" | "no" | "unknown";
+  extraStaffingAnticipated: "yes" | "no" | "unknown";
+  anticipatedReason?: string;
+}
+export type DemandMetric = "food_and_beverage_net_sales" | "kitchen_net_sales" | "bar_net_sales" | "desk_interactions";
+export type StaffingClassification = "near_ai" | "material_adds" | "material_cuts" | "material_mixed";
+export interface DemandSurge {
+  comparisonKey:string;date:string;period:{startMinute:number;endMinute:number;label:string};
+  draft:{week:string;origin:string;version:number;sha256:string;madeAt:string};
+  primaryMetric:DemandMetric;
+  metrics:{metric:DemandMetric;unit:"cents"|"interactions";forecastValue:number;actualValue:number;increaseValue:number;increasePercent:number|null;thresholdReached:boolean;materialityReached:boolean}[];
+  hotHours:{startMinute:number;endMinute:number;metric:DemandMetric;forecastValue:number;actualValue:number;increaseValue:number}[];
+  staffing:{classification:StaffingClassification;published:{capturedAt:string;basis:"current_published_named_roster_snapshot"|"pre_service_published_snapshot";complete:true};
+    departments:{department:"desk"|"kitchen"|"bar";original:{role:string;startMinute:number;endMinute:number}[];published:{role:string;startMinute:number;endMinute:number}[];originalMin:number;originalMax:number;publishedMin:number;publishedMax:number;addedPersonMinutes:number;removedPersonMinutes:number;netPersonMinutes:number;classification:StaffingClassification}[]};
+  eventScreen:{complete:true;from:string;through:string;excludedOverlapCount:0};
+  capturedAt:string;sourceRefs:string[];
+  attention:{minimumIncreasePercent:25;minimumMonetaryIncreaseCents:number;minimumDeskInteractionIncrease:number;capacityCalibration:false};
+  operationalOutcomeStatus:"unknown";payrollSavingsCents:null;
+  knownOperatingExplanation?:string;
 }
 export interface ReviewShift {key:string;label:string;role:string;startMinute:number;endMinute:number;eventPost:boolean;sourceId?:string}
 export interface ReviewWorkedShift extends ReviewShift {personKey:string;scheduledKey?:string}
@@ -97,7 +121,7 @@ export interface ReviewQuestion {
   followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
   followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
-  proposal?:StaffingProposal;draftChange?:DraftChange;knownContext?:RememberedContext[];reopenedBecause?:string;
+  proposal?:StaffingProposal;draftChange?:DraftChange;demandSurge?:DemandSurge;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
 export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
 export interface LaborReview {

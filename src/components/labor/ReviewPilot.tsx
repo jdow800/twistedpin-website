@@ -6,6 +6,7 @@ import ProposalCard from './ProposalCard';
 import NextSchedule from './NextSchedule';
 import WeeklyOverview from './WeeklyOverview';
 import {questionIsActive,questionNeedsResponse,reviewProgress} from './review-progress';
+import DemandSurgeQuestion from './DemandSurgeQuestion';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
@@ -69,7 +70,10 @@ export default function ReviewPilot() {
       </details>
       <div className="lr-section-heading"><h2>{progress.active ? "Please review & answer" : "No questions to answer"}</h2><span>{progress.active ? "Your answers stay with the review" : progress.comparisonPending||progress.awaiting===null?"Comparison pending":progress.awaiting>0?"Earlier questions remain open":progress.withdrawn?"Withdrawn questions are retained below":"No response needed"}</span></div>
       {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
-      {review.questions.map((q, index) => q.proposal&&questionIsActive(q)?<ProposalCard key={`${review.id}:${q.id}:${q.revision}`} number={index+1} question={q} review={review} onSaved={r=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}}/>:<Question key={`${review.id}:${q.id}:${q.revision}`} number={index + 1} question={q} review={review} onSaved={r => { setReview(r); setList(old => old.map(x => x.id === r.id ? { ...x, open: r.questions.filter(questionNeedsResponse).length } : x)); }} />)}
+      {review.questions.map((q, index) => {
+        const key=`${review.id}:${q.id}:${q.revision}`,props={number:index+1,question:q,review,onSaved:(r:LaborReview)=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}};
+        return q.demandSurge&&questionIsActive(q)?<DemandSurgeQuestion key={key} {...props}/>:q.proposal&&questionIsActive(q)?<ProposalCard key={key} {...props}/>:<Question key={key} {...props}/>;
+      })}
       {review.packet.version===2?<NextSchedule review={review}/>:null}
       <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
     </> : null}
