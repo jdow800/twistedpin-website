@@ -1382,6 +1382,12 @@ export interface InvoiceDepositResolution {
   credit: string;
   total: string;
   remaining_questions: boolean;
+  /** Set by an automatic settle of a handwritten empty-keg credit. original_total is then the sum of the saved lines before the
+   *  credit (original_total_basis "lines_before_credit"), not a printed bill: nobody printed it, the printed total was struck out. */
+  basis?: "written_total";
+  original_total_basis?: "lines_before_credit";
+  count?: number;
+  rate?: string;
 }
 export async function explainInvoice(id: string, token: string, text: string): Promise<{ applied: boolean; result: InvoiceDepositResolution }> {
   return gatedJson(`/admin/bar/invoices/${id}/explanation`, jsonBody({ token, text }));

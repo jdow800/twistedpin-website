@@ -188,4 +188,13 @@ test('the range lines name the kegs billed', () => {
   assert.equal(m.rangeHint({ over: 3 }, 2), 'A deposit was billed on 2 kegs, so no more than 2 can be credited.');
   assert.equal(m.rangeHint({ over: 2 }, 1), 'A deposit was billed on 1 keg, so no more than 1 can be credited.');
 });
+test('a saved answer is worded as a bill minus a credit, except an automatic settle from a written total, which has no printed bill', () => {
+  const sentence = (saved) => { const w = m.savedSummaryWords(saved); return `${w.bill} $268.00 − ${w.credit} $30.00 = $238.00${w.due}${w.after}`; };
+  assert.equal(sentence({ source: 'staff' }), 'Original bill $268.00 − empty-keg deposit return $30.00 = $238.00 due.');
+  assert.equal(sentence({ source: 'automatic' }), 'Original bill $268.00 − empty-keg deposit return $30.00 = $238.00 due.');
+  assert.equal(sentence({ source: 'automatic', basis: null }), 'Original bill $268.00 − empty-keg deposit return $30.00 = $238.00 due.');
+  assert.equal(sentence({ source: 'automatic', basis: 'written_total' }), 'Lines on the invoice $268.00 − empty-keg return $30.00 = $238.00, the total written on the invoice.');
+  assert.ok(!sentence({ basis: 'written_total' }).includes('Original bill'));
+  assert.ok(!/[—–]/.test(sentence({ basis: 'written_total' })), 'no em or en dash in guest-visible words');
+});
 console.log(`Deposit sentence: ${passed} checks passed`);
