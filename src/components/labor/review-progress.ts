@@ -1,7 +1,7 @@
 import type {LaborReview, PendingReview, ReviewQuestion} from "./api";
 
 export const questionIsActive=(q:Pick<ReviewQuestion,"disposition">)=>q.disposition?.status!=="withdrawn";
-export const questionNeedsResponse=(q:Pick<ReviewQuestion,"disposition"|"response">)=>questionIsActive(q)&&!q.response;
+export const questionNeedsResponse=(q:Pick<ReviewQuestion,"disposition"|"response"|"demandSurge">)=>questionIsActive(q)&&(!q.response||Boolean(q.demandSurge&&(!q.response.serviceFeedback||q.response.serviceFeedback.overall==='need_to_check')));
 
 /** Missing saved history stays unknown; the all-review count is not limited
  * to the two links retained in a frozen packet. Live fields take precedence. */

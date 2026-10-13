@@ -1,3 +1,31 @@
+## 2026-10-13 - Unexpected weekend demand asks how the crew handled it
+
+Built locally for the coordinated Thursday labor review; not deployed. A
+retrospective demand-surprise question shows the saved AI demand forecast,
+actual demand on the same basis, the named four-hour period and strongest
+hourly increases. Money and desk interactions retain separate labels. AI and
+published crew appear together; full shifts and absolute additions/removals
+are available under details. A current published snapshot is explicitly
+different from a pre-service record and does not establish attendance.
+
+The dedicated answer asks whether the crew handled it, was strained, fell
+behind or needs a team check, plus departments affected, management help and
+a short note. Only materially added coverage with no saved explanation asks
+whether that addition anticipated the rush. No staffing-trial or Keep/Try
+controls appear. A need-to-check answer is saved but remains outstanding;
+completed service reports join the existing recap. Revisions, stale-answer
+conflicts, undo, original evidence and owner-withdrawal guards remain in place.
+These reports do not automatically promote staffing rules or prove capacity.
+
+Validation: 25 offline checks (7 new service-feedback checks, 18 existing
+forward-review checks), strict labor TypeScript and the production prebuild/
+build pass. Synthetic localhost browser checks verify save/readback, reload,
+revision conflicts, undo, pending team-check budget and recap behavior,
+conditional anticipation, remembered explanation suppression and withdrawal.
+Question/answer layouts pass at 320, 390 and 960px, with no browser exceptions
+or overflow. No production answer, login, roster change, message or deploy
+is created by these checks. Coordinated release remains separate.
+
 ## 2026-10-09 - The empty-keg deposit form asks one question: how many kegs went back
 
 Built on branch feat/deposit-form-one-number; not deployed. Jon could not answer the empty-keg question on Werk Force INV-004038
