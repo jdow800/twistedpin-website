@@ -18,6 +18,18 @@ const toCents = (value: string | number | null | undefined): number | null => {
   return Number.isFinite(n) ? Math.round(n * 100) : null;
 };
 
+/**
+ * The words around the three figures of a saved answer. A staff answer, or the older automatic one, subtracts the credit from the
+ * ORIGINAL BILL the invoice printed. An automatic settle from a written total (basis "written_total") has no printed bill: the
+ * printed total was struck out and rewritten, so its first figure is the sum of the saved lines, and it says so instead of
+ * calling it a bill nobody printed. The figures themselves are the same fields either way.
+ */
+export function savedSummaryWords(saved: { basis?: string | null }): { bill: string; credit: string; due: string; after: string } {
+  return saved.basis === "written_total"
+    ? { bill: "Lines on the invoice", credit: "empty-keg return", due: "", after: ", the total written on the invoice." }
+    : { bill: "Original bill", credit: "empty-keg deposit return", due: " due", after: "." };
+}
+
 /** A printed total counts as read only when it is a positive amount. Null and 0.00 mean the reader found no total. */
 export const printedTotalRead = (printedTotal: string | number | null | undefined): boolean => (toCents(printedTotal) ?? 0) > 0;
 

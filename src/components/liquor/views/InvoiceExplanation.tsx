@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { BarApiError, explainInvoice, STALE_ANSWER_MESSAGE, type InvoiceDetail } from "../api";
 import {
   composeDepositSentence, countPlan, depositAmounts, depositPlan, exampleText, formatMoney, hasCannedDollars, hasDepositCredit,
-  parseKegCount, printedTotalRead, rangeHint, rejectionMessage,
+  parseKegCount, printedTotalRead, rangeHint, rejectionMessage, savedSummaryWords,
 } from "../deposit-sentence";
 
 export default function InvoiceExplanation({ detail, onRefresh }: { detail: InvoiceDetail; onRefresh: () => void }) {
   const saved = detail.depositResolution;
+  const words = savedSummaryWords(saved ?? {});
   const inv = detail.invoice;
   const [editing, setEditing] = useState(false);
   const [describe, setDescribe] = useState(false);
@@ -70,7 +71,7 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
     <h3>{saved && !editing ? saved.source === "automatic" ? "Handled automatically" : "Answer recorded" : showForm ? "Tell us what happened" : "Deposit returns"}</h3>
     {!saved && !showForm && <button type="button" className="lq-linkbtn" onClick={() => setEditing(true)}>Record a deposit return</button>}
     {saved && <>
-      <p>Original bill <strong>${saved.original_total}</strong> − empty-keg deposit return <strong>${saved.credit}</strong> = <strong>${saved.total} due</strong>.</p>
+      <p>{words.bill} <strong>${saved.original_total}</strong> − {words.credit} <strong>${saved.credit}</strong> = <strong>${saved.total}{words.due}</strong>{words.after}</p>
       <p>Product quantities and costs are unchanged. The credit is recorded separately from the products.</p>
       {saved.source === "staff" && <p className="lq-muted">Your answer: {saved.explanation}</p>}
       {saved.remaining_questions && <p>Other questions on this invoice still need an answer.</p>}
