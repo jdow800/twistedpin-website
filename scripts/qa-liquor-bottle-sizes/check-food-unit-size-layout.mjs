@@ -33,7 +33,8 @@ try {
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));return result.result.value;};
   const waitFor=(condition,what='Screen')=>evaluate(`new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(${condition})return resolve();if(++n>200)return reject(Error(${JSON.stringify(what)}+' did not load: '+document.body.innerText.slice(0,1800)));setTimeout(tick,20);};tick();})`);
   const type=async (selector,text)=>{
-    await evaluate(`document.querySelector(${JSON.stringify(selector)}).focus()`);
+    // Select what is already in the box so the new text replaces it, as a retype does.
+    await evaluate(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});el.focus();el.select();})()`);
     await send('Input.insertText',{text});
     for (const type of ['keyDown','keyUp']) await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13});
   };
@@ -59,7 +60,7 @@ try {
   const state=async name=>evaluate(`(()=>{const row=${rowOf(name)};if(!row)return null;
     const box=el=>{const r=el.getBoundingClientRect();return {w:Math.round(r.width),h:Math.round(r.height)};};
     const input=row.querySelector('input[aria-label^="Package size for"]'), change=[...row.querySelectorAll('button')].find(b=>/Change package size/.test(b.textContent));
-    return {overflow:document.documentElement.scrollWidth>innerWidth+1,blocked:row.classList.contains('lq-fc-rev-row-block'),
+    return {text:row.textContent,overflow:document.documentElement.scrollWidth>innerWidth+1,blocked:row.classList.contains('lq-fc-rev-row-block'),
       question:row.querySelector('.lq-fc-rev-ask label')?.textContent??null,hint:row.querySelector('.lq-fc-rev-ask .lq-rev-hint')?.textContent??null,
       described:input?(input.getAttribute('aria-describedby')||'').split(' ').map(id=>document.getElementById(id)?.textContent).join(' '):null,
       input:input?box(input):null,readback:change?.parentElement.textContent??null,change:change?box(change):null,asks:row.querySelectorAll('.lq-fc-rev-ask').length};})()`);
@@ -90,11 +91,13 @@ try {
     assert.equal(curds.overflow,false,`${width}px: horizontal overflow while asking`);
     if (!before) {
       assert.equal(curds.question,'How many lb in one bag?',`${width}px: curds question`);
-      assert.equal(curds.hint,'For a 5 lb bag, enter 5.',`${width}px: curds example`);
-      assert.equal(curds.described,'How many lb in one bag? For a 5 lb bag, enter 5.',`${width}px: question and example describe the input`);
+      assert.equal(curds.hint,'Example: for a 5 lb bag, enter 5.',`${width}px: curds example`);
+      assert.equal(curds.described,'How many lb in one bag? Example: for a 5 lb bag, enter 5.',`${width}px: question and example describe the input`);
       assert.equal(curds.blocked,true,`${width}px: an unanswered size blocks the row`);
       assert.ok(curds.input.h>=44,`${width}px: input is ${curds.input.h}px tall`);
       assert.equal(carnitas.asks,0,`${width}px: ounces of a pound-counted item ask nothing`);
+      assert.match(carnitas.text,/8 ounces = 0\.5 lb/,`${width}px: the pound row says what the ounces came to`);
+      assert.match(oil.text,/2 quarts = 0\.5 gal/,`${width}px: the gallon row says what the quarts came to`);
       assert.equal(carnitas.blocked,false,`${width}px: carnitas is ready`);
       assert.equal(oil.asks,0,`${width}px: quarts of a gallon-counted item ask nothing`);
       assert.equal(oil.blocked,false,`${width}px: oil is ready`);
@@ -141,7 +144,31 @@ try {
       assert.match((await state('Glove, Vinyl')).readback,/5 box = 0\.5 cases \(1 case = 10 boxes\)/,`${width}px: gloves readback`);
       await shoot(`containers-${width}-answered`);
     }
-    console.log(`PASS ${width}px: ${before?'recorded':'curds, ounces, quarts, packets and boxes'} questions fit, no horizontal overflow`);
+    // 3. A count of shells in a bag cannot be under one: the refusal fits, and so does the answer after it.
+    await openShelf();
+    await hear('fifty taco shells',[{spoken:'fifty taco shells',cases:0,units:50,spokenUnit:'shells',quantityKnown:true,match:{id:'shells'},candidates:[]}]);
+    await show('Taco Shells');
+    let shells=await state('Taco Shells');
+    seen[`${width} shells asks`]=shells.question;
+    if (!before) {
+      assert.equal(shells.question,'How many shells in one bag?',`${width}px: shells question`);
+      assert.equal(shells.hint,null,`${width}px: no pound example for shells`);
+      await type('input[aria-label="Package size for Taco Shells, Hard"]','0.04');
+      await waitFor(`(${rowOf('Taco Shells')}).textContent.includes('Enter 1 or more.')`,'Refusal');
+      await show('Taco Shells');
+      shells=await state('Taco Shells');
+      assert.equal(shells.overflow,false,`${width}px: horizontal overflow with the refusal`);
+      assert.equal(shells.blocked,true,`${width}px: a refused size leaves the row blocked`);
+      assert.match(shells.described,/Enter 1 or more\./,`${width}px: the refusal describes the input`);
+      await shoot(`shells-${width}-refused`);
+      await type('input[aria-label="Package size for Taco Shells, Hard"]','25');
+      await waitFor(`!(${rowOf('Taco Shells')}).querySelector('input[aria-label^="Package size for"]')`,'Shells answer');
+      await show('Taco Shells');
+      shells=await state('Taco Shells');
+      assert.match(shells.readback,/50 shells = 2 bags \(1 bag = 25 shells\)/,`${width}px: shells readback`);
+      assert.doesNotMatch(shells.text,/Enter 1 or more/,`${width}px: the refusal clears once answered`);
+    }
+    console.log(`PASS ${width}px: ${before?'recorded':'curds, ounces, quarts, packets, boxes and shells'} questions fit, no horizontal overflow`);
   }
   if (shots) await writeFile(join(shots,`${label}-questions.json`),JSON.stringify(seen,null,2));
 } finally {

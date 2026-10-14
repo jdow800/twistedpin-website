@@ -25,6 +25,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   // "How many lb in one bag?" and, once answered, what was answered.
   const sizeAsk = sku && r.spokenUnit && (q.needsUnitSize || foodUnitSizeAnswered(r, sku)) ? foodUnitSizeQuestion(sku, r.spokenUnit) : null;
   const sizeId = useId();
+  const [sizeNote, setSizeNote] = useState("");
   const fields = foodQuantityFieldsToConfirm(r);
   const explicitMixed = r.quantityKnown && !r.quantityNeedsReview && q.inputUnit !== "case"
     && (r.cases > 0 && r.units > 0 || !!r.spokenUnit && /\bcases?\b/i.test(r.quantityWords || r.spoken));
@@ -35,6 +36,9 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const looseLabel = q.inputUnit === sku?.countUnit ? foodUnitLabel(sku, 2) : q.inputUnit || foodUnitLabel(sku, 2);
   const unit = singleCases && !mixed ? "Cases" : r.unitNeedsReview || q.needsUnitChoice ? "Quantity" : looseLabel;
   const held = !!fields.length || !!r.quantityNeedsReview || !r.quantityKnown;
+  // The conversion can be said back: the number is settled and nothing else is being asked.
+  const readbackOk = !fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize
+    && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0;
   const caseBreakdown = q.ready && q.cases > 0 && q.caseSize != null && sku?.countUnit !== "case"
     ? `${formatQty(q.cases)} ${q.cases === 1 ? "case" : "cases"} × ${formatQty(q.caseSize)} ${foodUnitLabel(sku, q.caseSize)}`
       + (q.units > 0 ? ` + ${formatQty(q.units)} ${foodUnitLabel(sku, q.units)}` : "")
@@ -123,12 +127,21 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
         </>
       </div>}
       {q.needsUnitSize && sizeAsk && <div className="lq-fc-rev-ask"><label><span id={`${sizeId}-q`}>{sizeAsk.question}</span>
-        <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
-          aria-describedby={`${sizeId}-q${sizeAsk.example ? ` ${sizeId}-e` : ""}`}
-          onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) onEdit({ unitMultiplier: sizeAsk.multiplier(n) }); }}
+        <input type="number" min={sizeAsk.minimum} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
+          aria-describedby={`${sizeId}-q${sizeAsk.example ? ` ${sizeId}-e` : ""}${sizeNote ? ` ${sizeId}-n` : ""}`} aria-invalid={!!sizeNote || undefined}
+          onBlur={e => {
+            const n = Number(e.target.value);
+            if (!Number.isFinite(n) || n <= 0 || n > 10000) return;
+            // A package holds at least one of what is counted in it: 0.2 is the other way round.
+            if (n < sizeAsk.minimum) { setSizeNote(`Enter ${sizeAsk.minimum} or more.`); return; }
+            setSizeNote("");
+            onEdit({ unitMultiplier: sizeAsk.multiplier(n) });
+          }}
           onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label>
-        {sizeAsk.example && <span id={`${sizeId}-e`} className="lq-muted lq-rev-hint">{sizeAsk.example}</span>}</div>}
-      {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)}{sizeAsk && ` (${sizeAsk.said(r.unitMultiplier)})`} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
+        {sizeAsk.example && <span id={`${sizeId}-e`} className="lq-muted lq-rev-hint">{sizeAsk.example}</span>}
+        {sizeNote && <span id={`${sizeId}-n`} className="lq-error lq-rev-hint" role="status">{sizeNote}</span>}</div>}
+      {readbackOk && q.unitFromMeasure && <span className="lq-muted lq-rev-hint">{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)}</span>}
+      {r.unitMultiplier != null && <span className="lq-muted">{readbackOk && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)}{sizeAsk && ` (${sizeAsk.said(r.unitMultiplier)})`} </>}<button type="button" className="lq-linkbtn" onClick={() => { setSizeNote(""); onEdit({ unitMultiplier: undefined }); }}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
       {blockedReason && <span className="lq-error" role="status">{blockedReason}</span>}
       {/* Re-recorded shelf or a repeat mention: the number is never added

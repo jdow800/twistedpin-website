@@ -1029,9 +1029,9 @@ await run('cheese curds, three pounds, asks how many lb are in a bag and counts 
   assert.ok(t.button(/^Add /).disabled,'an unanswered size blocks Add');
   assert.equal(row.querySelector('.lq-fc-rev-ask label').textContent,'How many lb in one bag?');
   const hint=row.querySelector('.lq-fc-rev-ask .lq-rev-hint');
-  assert.equal(hint.textContent,'For a 5 lb bag, enter 5.');
+  assert.equal(hint.textContent,'Example: for a 5 lb bag, enter 5.');
   const described=row.querySelector('input[aria-label="Package size for Cheese Curds"]').getAttribute('aria-describedby').split(' ').map(id=>t.doc.getElementById(id)?.textContent);
-  assert.deepEqual(described,['How many lb in one bag?','For a 5 lb bag, enter 5.'],'the input is described by its question and example');
+  assert.deepEqual(described,['How many lb in one bag?','Example: for a 5 lb bag, enter 5.'],'the input is described by its question and example');
   assert.doesNotMatch(row.textContent,/per lb/);
   await t.input('Package size for Cheese Curds','5');
   assert.equal(row.querySelector('input[aria-label^="Package size"]'),null,'the question closes once answered');
@@ -1061,6 +1061,10 @@ await run('ounces of a pound-counted item and quarts of a gallon-counted item as
   await t.hear([unitSizeItem('carnitas','Pork Carnitas',8,'ounces'),unitSizeItem('oil','Fryer Oil',2,'quarts')]);
   assert.equal(t.doc.querySelectorAll('.lq-fc-rev-ask').length,0);
   assert.equal(t.doc.querySelector('input[aria-label^="Package size"]'),null);
+  const rows=[...t.doc.querySelectorAll('.lq-fc-voice-review-row')].map(r=>r.textContent);
+  assert.ok(rows.some(x=>/8 ounces = 0\.5 lb/.test(x)),'the pound row says what the ounces came to');
+  assert.ok(rows.some(x=>/2 quarts = 0\.5 gal/.test(x)),'the gallon row says what the quarts came to');
+  assert.ok(rows.every(x=>!/Change package size/.test(x)),'nothing was asked, so there is no answer to change');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='carnitas').qtyUnits),0.5,'8 oz is half a pound');
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='oil').qtyUnits),0.5,'2 qt is half a gallon');
@@ -1073,6 +1077,33 @@ await run('a weight said for a gallon-counted item asks how many lb are in a gal
   assert.match(t.doc.body.textContent,/9 lb = 1 gal \(1 gal = 9 lb\)/);
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(Number(t.qa.lines.find(l=>l.skuId==='oil').qtyUnits),1);
+},'unit-size');
+await run('a count of shells in a bag cannot be under one; the old-habit answer is refused with a reason',async t=>{
+  await t.hear([unitSizeItem('shells','Taco Shells, Hard',50,'shells')]);
+  const row=t.doc.querySelector('.lq-fc-voice-review-row');
+  assert.equal(row.querySelector('.lq-fc-rev-ask label').textContent,'How many shells in one bag?');
+  assert.equal(row.querySelector('.lq-fc-rev-ask .lq-rev-hint'),null,'no pound example for shells');
+  await t.input('Package size for Taco Shells, Hard','0.04');
+  assert.match(row.textContent,/Enter 1 or more\./);
+  assert.equal(row.querySelector('input[aria-label^="Package size"]').getAttribute('aria-invalid'),'true');
+  assert.ok(t.button(/^Add /).disabled,'a refused answer leaves the row blocked');
+  await t.input('Package size for Taco Shells, Hard','25');
+  assert.doesNotMatch(row.textContent,/Enter 1 or more/);
+  assert.match(row.textContent,/50 shells = 2 bags \(1 bag = 25 shells\)/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='shells').qtyUnits),2);
+},'unit-size');
+await run('a container the catalog does not list asks the container way, and a bare each in pounds asks what one weighs',async t=>{
+  await t.hear([unitSizeItem('carnitas','Pork Carnitas',3,'pans'),unitSizeItem('philly','Beef, Philly, Flat, Marinated',3,'lb')]);
+  const questions=[...t.doc.querySelectorAll('.lq-fc-rev-ask label')].map(l=>l.textContent);
+  assert.deepEqual(questions,['How many lb in one pan?','How many lb does one weigh?']);
+  await t.input('Package size for Pork Carnitas','5');
+  await t.input('Package size for Beef, Philly, Flat, Marinated','10');
+  assert.match(t.doc.body.textContent,/3 pans = 15 lb \(1 pan = 5 lb\)/);
+  assert.match(t.doc.body.textContent,/3 lb = 0\.3 each \(1 each = 10 lb\)/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='carnitas').qtyUnits),15,'three 5 lb pans');
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='philly').qtyUnits),0.3,'3 lb of a 10 lb flat');
 },'unit-size');
 await run('container and case sizes are asked in the same plain sentence, with the old numbers',async t=>{
   await t.hear([item('circles',4,{spoken:'four packets of pizza circles',spokenUnit:'packet'}),item('gloves',5,{spoken:'five boxes of gloves',spokenUnit:'box'})]);
