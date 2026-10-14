@@ -2,6 +2,7 @@ import type { BarSkuItem, FoodUnitReading, FoodUsualRange, VoiceMatch } from "./
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
 import { foodPhysicalUnit, preciseFoodQty } from "./food-quantity";
+import { foodMeasureMultiplier, foodUnitSizeAsk, type FoodUnitSizeAsk } from "./food-unit-size";
 
 export interface FoodReviewItem {
   key: string;
@@ -178,6 +179,18 @@ export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
   return `${u}s`;
 }
 
+/** The package-size question for a unit with no conversion: "How many lb in one
+ *  bag?", and what the typed number means (see food-unit-size.ts). */
+export function foodUnitSizeQuestion(sku: BarSkuItem, spokenUnit: string): FoodUnitSizeAsk {
+  return foodUnitSizeAsk({ unit: sku.countUnit ?? "each", one: foodUnitLabel(sku, 1), many: foodUnitLabel(sku, 2) }, spokenUnit);
+}
+
+/** The conversion on this row came from a person's answer, not the catalog or
+ *  a same-unit rule, so the readback can say what was answered. */
+export function foodUnitSizeAnswered(r: FoodReviewItem, sku: BarSkuItem | undefined): boolean {
+  return r.unitMultiplier != null && !!r.spokenUnit && foodReviewQuantity({ ...r, unitMultiplier: undefined }, sku).unitMultiplier == null;
+}
+
 /** What a unitless count means for this product, in physical count units. */
 export function foodImplicitUnit(sku: BarSkuItem | undefined): string {
   const definition = currentCountDefinition(sku);
@@ -221,7 +234,9 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const unitMultiplier = r.unitNeedsReview ? null
     : inputUnit === "case" ? caseSize
       : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit)
-        ?? (sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null);
+        ?? (sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null)
+        // Pounds counted and ounces said (or gallons and quarts) is arithmetic.
+        ?? (r.spokenUnit ? foodMeasureMultiplier(foodUnitLabel(sku, 1), r.spokenUnit) : null);
   const needsCaseSize = (r.cases > 0 || (r.units > 0 && inputUnit === "case")) && caseSize == null;
   const needsUnitSize = r.units > 0 && unitMultiplier == null && !r.unitNeedsReview && !needsCaseSize;
   const needsUnitChoice = !!r.unitNeedsReview

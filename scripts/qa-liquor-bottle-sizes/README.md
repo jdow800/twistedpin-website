@@ -151,6 +151,38 @@ partial mixed answers, hidden unconfirmed conversion numbers and changed-product
 invalidation through mocked saves. These are source ownership and review tests,
 not a microphone recognition rate. Rebuild the food fixture before running it.
 
+### Package-size question (2026-10-14)
+
+When the counter says a unit the catalog has no conversion for ("Cheese curds,
+three pounds" on a product counted in bags), the row asks one plain question in
+the form "How many <smaller> in one <bigger>?", for example "How many lb in one
+bag?". The typed number is the smaller per one bigger, so `food-unit-size.ts`
+turns it into the row's multiplier either way round: 5 for a 5 lb bag counts 3 lb
+as 0.6 bag, 12 buns in a tray counts 2 trays as 24 buns, and a product counted in
+cases always has the case as the bigger one. Pounds counted and ounces said, or
+gallons counted and quarts, pints or fluid ounces said, are plain arithmetic and
+ask nothing.
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/check-food-unit-size.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-voice.mjs
+# Layout on a phone (320 and 390px), with the server running in another terminal:
+#   node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice
+$env:FOOD_QA_CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+$env:FOOD_UNIT_SIZE_SHOTS = 'C:/path/to/screens'   # optional screenshots
+node scripts/qa-liquor-bottle-sizes/check-food-unit-size-layout.mjs
+```
+
+The pure check covers the wording, example and direction for every kind of pair
+(package, weight, volume, the item's own noun, cases) and the exact conversions;
+it needs no browser. Five DOM scenarios in the voice check (`?unit-size`) cover
+cheese curds end to end, Change package size and the Enter key, ounces and quarts
+asking nothing, a weight said for a gallon item, and the packet and box questions
+with their old numbers. The layout check asserts the question fits at 320 and
+390px with no horizontal overflow and 44px targets, and saves before and after
+screenshots when `FOOD_UNIT_SIZE_LABEL=before` is set for the old build.
+
 ## Liquor review and phone controls
 
 Voice product controls have a focused native check:

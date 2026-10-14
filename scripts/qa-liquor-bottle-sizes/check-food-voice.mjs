@@ -625,7 +625,7 @@ await run('a manually named unknown unit requires its own conversion',async t =>
   await t.input('Spoken unit for Sample Celery','tray');
   assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
   await t.click('Use unit');
-  assert.match(t.doc.body.textContent,/bunches per tray\?/);
+  assert.match(t.doc.body.textContent,/How many bunches in one tray\?/);
   await t.input('Package size for Sample Celery','2');
   await t.apply();await until(()=>t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='celery').qtyUnits,4);
@@ -1018,6 +1018,72 @@ await run('manual package conversion keeps raw two bags and converts only once',
   await t.input('Package size for Pizza Dough','2');assert.equal(t.doc.querySelector('.lq-fc-rev-quantities input').value,'2');assert.match(t.doc.querySelector('.lq-fc-rev-quantities label').textContent,/bag/);
   await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),1);
 },'definitions');
+
+// 2026-10-14: "Cheese curds, three pounds" on a bag-counted product with no pound
+// entry asked "bags per lb?". It asks how many lb are in one bag, and the typed
+// number is those pounds.
+const unitSizeItem=(id,name,units,spokenUnit)=>item(id,units,{spoken:`${name} ${units} ${spokenUnit}`,spokenUnit,match:{id,name,sizeMl:null}});
+await run('cheese curds, three pounds, asks how many lb are in a bag and counts 0.6 of a 5 lb bag',async t=>{
+  await t.hear([unitSizeItem('curds','Cheese Curds',3,'lb')]);
+  const row=t.doc.querySelector('.lq-fc-voice-review-row');
+  assert.ok(t.button(/^Add /).disabled,'an unanswered size blocks Add');
+  assert.equal(row.querySelector('.lq-fc-rev-ask label').textContent,'How many lb in one bag?');
+  const hint=row.querySelector('.lq-fc-rev-ask .lq-rev-hint');
+  assert.equal(hint.textContent,'For a 5 lb bag, enter 5.');
+  assert.equal(row.querySelector('input[aria-label="Package size for Cheese Curds"]').getAttribute('aria-describedby'),hint.id);
+  assert.doesNotMatch(row.textContent,/per lb/);
+  await t.input('Package size for Cheese Curds','5');
+  assert.equal(row.querySelector('input[aria-label^="Package size"]'),null,'the question closes once answered');
+  assert.match(row.textContent,/3 lb = 0\.6 bags \(1 bag = 5 lb\)/);
+  await t.apply();await until(()=>t.saved().length>0);
+  const line=t.qa.lines.find(l=>l.skuId==='curds');
+  assert.equal(Number(line.qtyUnits),0.6);assert.match(line.rawUtterance,/Cheese Curds 3 lb/);
+},'unit-size');
+await run('Change package size asks again, empty, and a new answer recounts',async t=>{
+  await t.hear([unitSizeItem('curds','Cheese Curds',3,'pounds')]);
+  await t.input('Package size for Cheese Curds','5');
+  assert.match(t.doc.body.textContent,/3 pounds = 0\.6 bags \(1 bag = 5 lb\)/);
+  await t.click('Change package size');
+  const el=t.doc.querySelector('input[aria-label="Package size for Cheese Curds"]');
+  assert.equal(el.value,'');assert.ok(t.button(/^Add /).disabled);
+  // Enter commits the answer, as leaving the box does.
+  el.focus();
+  Object.getOwnPropertyDescriptor(t.dom.window.HTMLInputElement.prototype,'value').set.call(el,'10');
+  el.dispatchEvent(new t.dom.window.Event('input',{bubbles:true}));
+  el.dispatchEvent(new t.dom.window.KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await pause();
+  assert.equal(t.doc.querySelector('input[aria-label="Package size for Cheese Curds"]'),null);
+  assert.match(t.doc.body.textContent,/3 pounds = 0\.3 bags \(1 bag = 10 lb\)/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='curds').qtyUnits),0.3);
+},'unit-size');
+await run('ounces of a pound-counted item and quarts of a gallon-counted item ask nothing',async t=>{
+  await t.hear([unitSizeItem('carnitas','Pork Carnitas',8,'ounces'),unitSizeItem('oil','Fryer Oil',2,'quarts')]);
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-ask').length,0);
+  assert.equal(t.doc.querySelector('input[aria-label^="Package size"]'),null);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='carnitas').qtyUnits),0.5,'8 oz is half a pound');
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='oil').qtyUnits),0.5,'2 qt is half a gallon');
+},'unit-size');
+await run('a weight said for a gallon-counted item asks how many lb are in a gallon',async t=>{
+  await t.hear([unitSizeItem('oil','Fryer Oil',9,'lb')]);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-ask label').textContent,'How many lb in one gal?');
+  assert.equal(t.doc.querySelector('.lq-fc-rev-ask .lq-rev-hint'),null,'no pound-bag example for a gallon');
+  await t.input('Package size for Fryer Oil','9');
+  assert.match(t.doc.body.textContent,/9 lb = 1 gal \(1 gal = 9 lb\)/);
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='oil').qtyUnits),1);
+},'unit-size');
+await run('container and case sizes are asked in the same plain sentence, with the old numbers',async t=>{
+  await t.hear([item('circles',4,{spoken:'four packets of pizza circles',spokenUnit:'packet'}),item('gloves',5,{spoken:'five boxes of gloves',spokenUnit:'box'})]);
+  const questions=[...t.doc.querySelectorAll('.lq-fc-rev-ask label')].map(l=>l.textContent);
+  assert.deepEqual(questions,['How many in one packet?','How many boxes in one case?']);
+  assert.equal(t.doc.querySelector('.lq-fc-rev-ask .lq-rev-hint'),null);
+  await t.input('Package size for Cardboard Pizza Circle 14"','25');
+  await t.input('Package size for Glove, Vinyl, Extra Large','10');
+  await t.apply();await until(()=>t.saved().length>0);
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='circles').qtyUnits),100,'four packets of 25');
+  assert.equal(Number(t.qa.lines.find(l=>l.skuId==='gloves').qtyUnits),0.5,'five boxes at ten a case');
+});
 
 await run('green held product pill opens search without certifying the number',async t=>{
   await t.hear([item('dough',1,{spoken:'twelve dough',quantityWords:'twelve',quantityNeedsReview:true})]);

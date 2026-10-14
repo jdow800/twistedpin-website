@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
-import { foodQuantityFieldsToConfirm, foodReadingAmount, foodRestateAmount, foodReviewQuantity, foodUnitLabel, type FoodReviewItem } from "./food-voice-review";
+import { foodQuantityFieldsToConfirm, foodReadingAmount, foodRestateAmount, foodReviewQuantity, foodUnitLabel, foodUnitSizeAnswered, foodUnitSizeQuestion, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
@@ -22,6 +22,9 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const [productOpen, setProductOpen] = useState(false);
   const [countMode, setCountMode] = useState<"auto" | "single" | "mixed">("auto");
   const q = foodReviewQuantity(r, sku);
+  // "How many lb in one bag?" and, once answered, what was answered.
+  const sizeAsk = sku && r.spokenUnit && (q.needsUnitSize || foodUnitSizeAnswered(r, sku)) ? foodUnitSizeQuestion(sku, r.spokenUnit) : null;
+  const sizeExample = useId();
   const fields = foodQuantityFieldsToConfirm(r);
   const explicitMixed = r.quantityKnown && !r.quantityNeedsReview && q.inputUnit !== "case"
     && (r.cases > 0 && r.units > 0 || !!r.spokenUnit && /\bcases?\b/i.test(r.quantityWords || r.spoken));
@@ -119,11 +122,13 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
             <button type="button" className="lq-linkbtn" disabled={!r.unitDraft?.trim()} onClick={onUnit}>Use unit</button></>}
         </>
       </div>}
-      {q.needsUnitSize && <div className="lq-fc-rev-ask"><label>{sku.countUnit === "case" ? `${r.spokenUnit} per case?` : `${foodUnitLabel(sku, 2)} per ${r.spokenUnit}?`}
+      {q.needsUnitSize && sizeAsk && <div className="lq-fc-rev-ask"><label>{sizeAsk.question}
         <input type="number" min={0.001} max={10000} step="any" inputMode="decimal" aria-label={`Package size for ${sku.name}`}
-          onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) onEdit({ unitMultiplier: sku.countUnit === "case" ? 1 / n : n }); }}
-          onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label></div>}
-      {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
+          aria-describedby={sizeAsk.example ? sizeExample : undefined}
+          onBlur={e => { const n = Number(e.target.value); if (Number.isFinite(n) && n > 0 && n <= 10000) onEdit({ unitMultiplier: sizeAsk.multiplier(n) }); }}
+          onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }} /></label>
+        {sizeAsk.example && <span id={sizeExample} className="lq-muted lq-rev-hint">{sizeAsk.example}</span>}</div>}
+      {r.unitMultiplier != null && <span className="lq-muted">{!fields.includes("units") && !r.invalidQuantityFields?.includes("units") && !r.unitNeedsReview && !q.needsUnitSize && !q.needsUnitChoice && !q.catalogConflict && Number.isFinite(r.units) && r.units >= 0 && <>{formatQty(r.units)} {r.spokenUnit} = {formatQty(q.units)} {foodUnitLabel(sku, q.units)}{sizeAsk && ` (${sizeAsk.said(r.unitMultiplier)})`} </>}<button type="button" className="lq-linkbtn" onClick={() => onEdit({ unitMultiplier: undefined })}>Change package size</button></span>}
       {q.catalogConflict && <span className="lq-error">Correct this product’s case unit before adding.</span>}
       {blockedReason && <span className="lq-error" role="status">{blockedReason}</span>}
       {/* Re-recorded shelf or a repeat mention: the number is never added
