@@ -2,6 +2,7 @@ import type { BarSkuItem, FoodUnitReading, FoodUsualRange, VoiceMatch } from "./
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
 import { foodPhysicalUnit, preciseFoodQty } from "./food-quantity";
+import { foodMeasureMultiplier, foodUnitSizeAsk, type FoodUnitSizeAsk } from "./food-unit-size";
 
 export interface FoodReviewItem {
   key: string;
@@ -178,6 +179,18 @@ export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {
   return `${u}s`;
 }
 
+/** The package-size question for a unit with no conversion: "How many lb in one
+ *  bag?", and what the typed number means (see food-unit-size.ts). */
+export function foodUnitSizeQuestion(sku: BarSkuItem, spokenUnit: string): FoodUnitSizeAsk {
+  return foodUnitSizeAsk({ unit: sku.countUnit ?? "each", one: foodUnitLabel(sku, 1), many: foodUnitLabel(sku, 2) }, spokenUnit, sku.name);
+}
+
+/** The conversion on this row came from a person's answer, not the catalog or
+ *  a same-unit rule, so the readback can say what was answered. */
+export function foodUnitSizeAnswered(r: FoodReviewItem, sku: BarSkuItem | undefined): boolean {
+  return r.unitMultiplier != null && !!r.spokenUnit && foodReviewQuantity({ ...r, unitMultiplier: undefined }, sku).unitMultiplier == null;
+}
+
 /** What a unitless count means for this product, in physical count units. */
 export function foodImplicitUnit(sku: BarSkuItem | undefined): string {
   const definition = currentCountDefinition(sku);
@@ -218,10 +231,16 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const caseSize = foodCaseSize(sku);
   const rawInputUnit = r.unitNeedsReview ? null : r.spokenUnit ?? definition?.defaultSpokenUnit ?? null;
   const inputUnit = rawInputUnit ? normalizeCountUnit(rawInputUnit) : null;
+  const defined = definedUnitMultiplier(sku, r.spokenUnit);
+  const same = sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null;
+  // Pounds counted and ounces said (or gallons and quarts) is arithmetic.
+  const measure = r.spokenUnit ? foodMeasureMultiplier(foodUnitLabel(sku, 1), r.spokenUnit) : null;
   const unitMultiplier = r.unitNeedsReview ? null
     : inputUnit === "case" ? caseSize
-      : r.unitMultiplier ?? definedUnitMultiplier(sku, r.spokenUnit)
-        ?? (sameUnit(base, r.spokenUnit) && (!definition || !r.spokenUnit || normalizeCountUnit(r.spokenUnit) === normalizeCountUnit(base)) ? 1 : null);
+      : r.unitMultiplier ?? defined ?? same ?? measure;
+  // Only this arithmetic made the conversion, so the row says so (8 ounces = 0.5 lb).
+  const unitFromMeasure = !r.unitNeedsReview && inputUnit !== "case" && r.unitMultiplier == null && defined == null && same == null
+    && measure != null && measure !== 1;
   const needsCaseSize = (r.cases > 0 || (r.units > 0 && inputUnit === "case")) && caseSize == null;
   const needsUnitSize = r.units > 0 && unitMultiplier == null && !r.unitNeedsReview && !needsCaseSize;
   const needsUnitChoice = !!r.unitNeedsReview
@@ -233,7 +252,7 @@ export function foodReviewQuantity(r: FoodReviewItem, sku: BarSkuItem | undefine
   const cases = r.cases + (unitsAreCases ? r.units : 0);
   const units = unitsAreCases ? 0 : r.units * (unitMultiplier ?? 0);
   const qty = preciseFoodQty(cases * (caseSize ?? 0) + units);
-  return { cases, caseSize, inputUnit, unitMultiplier, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
+  return { cases, caseSize, inputUnit, unitMultiplier, unitFromMeasure, units, qty, needsCaseSize, needsUnitSize, needsUnitChoice, catalogConflict,
     ready: !!sku && !r.identityNeedsReview && r.quantityKnown && !r.quantityNeedsReview && !foodQuantityFieldsToConfirm(r).length && !(r.invalidQuantityFields?.length) && Number.isFinite(r.cases) && Number.isFinite(r.units) && Number.isFinite(qty) && r.cases >= 0 && r.units >= 0 && qty >= 0 && !needsCaseSize && !needsUnitSize && !needsUnitChoice && !catalogConflict };
 }
 

@@ -132,6 +132,22 @@ if (params.has('usual') || params.has('usual-counted')) {
     countHistory:history({ceiling:24.2,tier:1,onHandMedianCases:6.9,onHandMaxCases:10.2,maxDeliveryCases:14,maxBought28Cases:41})});
   for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
 }
+// Package-size question (2026-10-14): Cheese Curds are counted in bags with no
+// pound entry ("Cheese curds, three pounds" asks), Pork Carnitas are counted in
+// pounds and Fryer Oil in gallons (ounces and quarts need no question).
+if (params.has('unit-size')) {
+  const answer = (countUnit, unitsPerCase, extra) => ({countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-10-14', ...extra});
+  catalog.push(
+    {id:'curds', name:'Cheese Curds', countUnit:'pack', unitsPerCase:2, countDefinition:answer('pack',2,{unitLabel:'bag',spokenUnits:{case:2,bag:1}})},
+    {id:'carnitas', name:'Pork Carnitas', countUnit:'lb', unitsPerCase:null, countDefinition:answer('lb',null,{unitLabel:'lb',spokenUnits:{bag:5,lb:1}})},
+    {id:'oil', name:'Fryer Oil', countUnit:'gal', unitsPerCase:null, countDefinition:answer('gal',null,{unitLabel:'gal',spokenUnits:{jug:3,gal:1}})},
+    // Taco shells come in bags (the noun is on the name), a Philly flat is counted in a bare each.
+    {id:'shells', name:'Taco Shells, Hard', countUnit:'pack', unitsPerCase:6, countDefinition:answer('pack',6,{unitLabel:'bag',spokenUnits:{case:6,bag:1}})},
+    {id:'philly', name:'Beef, Philly, Flat, Marinated', countUnit:'each', unitsPerCase:null},
+  );
+  for (const s of catalog.slice(-5)) Object.assign(s, {category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null});
+  for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
+}
 // Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.
 if (params.has('discontinued')) {
   catalog.push(

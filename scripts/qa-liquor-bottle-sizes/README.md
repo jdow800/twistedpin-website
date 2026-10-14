@@ -96,7 +96,7 @@ component SHA-256, stay under ignored `dist/food-review/`. `COGS_QA_CHROME` can
 select another Chromium executable. These synthetic checks do not establish
 physical Android keyboard or phone microphone behavior.
 
-Food has 128 DOM voice scenarios and liquor has 74. The 2026-10-09 food
+Food has 137 DOM voice scenarios and liquor has 74. The 2026-10-09 food
 follow-ups add an out-of-date page (409 `voice_update_required` on a voice
 read, `refresh_required` on a save): the take stops at the first refused piece,
 the footer offers Reload page instead of Retry, Add is off (every save from
@@ -150,6 +150,54 @@ actual outgoing CountFood requests, same-product package-answer preservation,
 partial mixed answers, hidden unconfirmed conversion numbers and changed-product
 invalidation through mocked saves. These are source ownership and review tests,
 not a microphone recognition rate. Rebuild the food fixture before running it.
+
+### Package-size question (2026-10-14)
+
+When the counter says a unit the catalog has no conversion for ("Cheese curds,
+three pounds" on a product counted in bags), the row asks one plain question in
+the form "How many <smaller> in one <bigger>?", for example "How many lb in one
+bag?". The typed number is the smaller per one bigger, so `food-unit-size.ts`
+turns it into the row's multiplier either way round: 5 for a 5 lb bag counts 3 lb
+as 0.6 bag, 12 buns in a tray counts 2 trays as 24 buns, and a product counted in
+cases always has the case as the bigger one. A word the counter says that is not
+a listed container, a weight or volume, or a noun on the item's own name is taken
+for a container, as the old question did ("How many lb in one pan?"). A product
+counted in a bare "each" and said in pounds is asked what one weighs ("How many lb
+does one weigh?"), since the each is the container. A package holds at least one
+of what is counted in it, so a typed number under 1 is refused there ("Enter 1 or
+more."); a weight can be a fraction. The pound example ("Example: for a 5 lb bag,
+enter 5.") shows only for a bag, sack, pack, pouch, box or tub.
+
+Pounds counted and ounces said, or gallons counted and quarts, pints or fluid
+ounces said, are plain arithmetic and ask nothing; the row says what it came to
+("8 ounces = 0.5 lb"). That arithmetic is in the Website only (`food-unit-size.ts`,
+the last step of `foodReviewQuantity`). The tprs `foodUnitMultiplier` has no weight
+or volume rows, so its extract still flags those rows as needing a size and its
+usual-range running total skips them; the Website never reads that flag. Mirror
+the factors in tprs and extend `check-count-definition-contract.mjs` to close it.
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/check-food-unit-size.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-voice.mjs
+# Layout on a phone (320 and 390px), with the server running in another terminal:
+#   node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice
+$env:FOOD_QA_CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+$env:FOOD_UNIT_SIZE_SHOTS = 'C:/path/to/screens'   # optional screenshots
+node scripts/qa-liquor-bottle-sizes/check-food-unit-size-layout.mjs
+```
+
+The pure check covers the wording, example and direction for every kind of pair
+(package, weight, volume, the item's own noun, cases) and the exact conversions;
+it needs no browser. Seven DOM scenarios in the voice check cover cheese curds end
+to end, Change package size and the Enter key, ounces and quarts asking nothing and
+saying what they came to, a weight said for a gallon item, a count of shells in a
+bag refused under 1, an unlisted pan and a bare each in pounds, and the packet and
+box questions with their old numbers (six use the `?unit-size` fixture; the packet
+and box one runs on the default fixture). The layout check asserts the question,
+the refusal and the answers fit at 320 and 390px with no horizontal overflow and
+44px targets, and saves before and after screenshots when
+`FOOD_UNIT_SIZE_LABEL=before` is set for the old build.
 
 ## Liquor review and phone controls
 
