@@ -123,7 +123,8 @@ export interface ReviewQuestion {
   followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
   proposal?:StaffingProposal;draftChange?:DraftChange;demandSurge?:DemandSurge;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
-export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[]}
+export interface ProvisionalLabor {unapprovedPunchCount:number;hourlyWagesCents:number}
+export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[];provisional?:ProvisionalLabor}
 export interface LaborReview {
   id: string;
   packet: {version:1|2;mode?:"review"|"report";pendingReviews?:PendingReview[];forwardFeedback?:ForwardFeedback;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
@@ -133,7 +134,7 @@ export interface LaborReview {
   withdrawnQuestionCount?:number;
   previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
-  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null};
+  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null;provisional?:ProvisionalLabor};
   questions: ReviewQuestion[];
   recap?:{completedAt:string;dueAt:string;state:"pending"|"cancelled"|"enqueued";emailOutboxId:string|null}|null;
   recapDeliveryEnabled?:boolean;
