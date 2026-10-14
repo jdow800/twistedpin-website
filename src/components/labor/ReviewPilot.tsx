@@ -14,6 +14,16 @@ const money = (c: number | null) => c === null ? "Pending" : new Intl.NumberForm
 const date = (value: string, options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }) => new Date(`${value}T12:00:00Z`).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 const week = (start: string) => { const end = new Date(`${start}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + 6); return `${date(start)} – ${date(end.toISOString().slice(0, 10), { month: "short", day: "numeric", year: "numeric" })}`; };
 
+export function WeeklyLaborMetric({metric}:{metric:LaborReview["metric"]}) {
+  const unapproved=metric.provisional?.unapprovedPunchCount??0;
+  return <section className="lr-metric" aria-label="Weekly labor percentage">
+    <div className="lr-metric-top"><span>Labor / net sales</span><span className="lr-badge lr-badge-dark">{unapproved>0?"Provisional":metric.percent===null?"Data checks pending":metric.estimate?"Estimated":"Verified inputs"}</span></div>
+    <strong className="lr-metric-value">{metric.percent===null?"Pending":`${metric.percent.toFixed(1)}%`}</strong>
+    <p>Hourly wages + management salaries</p><p className="lr-metric-note">Employer taxes and benefits excluded.</p>
+    {unapproved>0?<p className="lr-metric-note">Includes {unapproved} unapproved time {unapproved===1?'entry':'entries'} estimated from recorded hours and pay rates; not finalized payroll.</p>:null}
+  </section>;
+}
+
 export default function ReviewPilot() {
   const [review, setReview] = useState<LaborReview | null>(null);
   const [list, setList] = useState<{ id: string; weekStart: string; open: number }[]>([]);
@@ -42,11 +52,7 @@ export default function ReviewPilot() {
     {!loading && !error && !review ? <p className="lr-notice">No review has been prepared yet. Check back after the next weekly report.</p> : null}
     {review && !loading && !error ? <>
       <div className={`lr-overview ${review.packet.version===2?'lr-overview-ideas':''}`}>
-        <section className="lr-metric" aria-label="Weekly labor percentage">
-          <div className="lr-metric-top"><span>Labor / net sales</span><span className="lr-badge lr-badge-dark">{review.metric.percent === null ? "Data checks pending" : review.metric.estimate ? "Estimated" : "Verified inputs"}</span></div>
-          <strong className="lr-metric-value">{review.metric.percent === null ? "Pending" : `${review.metric.percent.toFixed(1)}%`}</strong>
-          <p>Hourly wages + management salaries</p><p className="lr-metric-note">Employer taxes and benefits excluded.</p>
-        </section>
+        <WeeklyLaborMetric metric={review.metric}/>
         <section className="lr-review-count" aria-label="Review progress">
           <span className="lr-count-number">{progress.awaiting===null?"--":String(progress.awaiting).padStart(2, "0")}</span>
           <div><h2>{progress.heading}</h2><p>{progress.note}</p></div>

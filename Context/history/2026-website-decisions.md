@@ -1,3 +1,23 @@
+## 2026-10-14 - Labor estimates identify unapproved time entries
+
+Prepared locally for the coordinated labor-source release; not deployed. The
+weekly metric consumes optional provisional metadata and says "Provisional"
+with the number of unapproved time entries estimated from recorded hours and
+pay rates. Each affected day is marked in the chart and its wage, total and
+percentage figures carry a matching table footnote. These estimates are not
+finalized payroll. Provisional days remain visible but do not receive the
+highest-hourly-share comparison emphasis; the remaining comparison is explicitly
+limited to days without provisional entries. Missing amounts remain pending;
+older responses without this metadata keep the existing display. The change
+does not recalculate source amounts or rewrite issued packets.
+
+Validation: six new offline checks render the actual weekly metric and daily
+overview for provisional, approved, missing-input and legacy responses; all
+25 existing forward-feedback and demand-surprise checks also pass. Targeted
+strict TypeScript passes. Production build and phone/desktop visual checks
+remain with the release owner. No production login, answer, email or deployment
+is created by this UI work.
+
 ## 2026-10-13 - Unexpected weekend demand asks how the crew handled it
 
 Built locally for the coordinated Thursday labor review; not deployed. A
