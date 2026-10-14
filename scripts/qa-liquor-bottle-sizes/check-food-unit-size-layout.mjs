@@ -61,7 +61,7 @@ try {
     const input=row.querySelector('input[aria-label^="Package size for"]'), change=[...row.querySelectorAll('button')].find(b=>/Change package size/.test(b.textContent));
     return {overflow:document.documentElement.scrollWidth>innerWidth+1,blocked:row.classList.contains('lq-fc-rev-row-block'),
       question:row.querySelector('.lq-fc-rev-ask label')?.textContent??null,hint:row.querySelector('.lq-fc-rev-ask .lq-rev-hint')?.textContent??null,
-      described:input?.getAttribute('aria-describedby')?!!document.getElementById(input.getAttribute('aria-describedby')):null,
+      described:input?(input.getAttribute('aria-describedby')||'').split(' ').map(id=>document.getElementById(id)?.textContent).join(' '):null,
       input:input?box(input):null,readback:change?.parentElement.textContent??null,change:change?box(change):null,asks:row.querySelectorAll('.lq-fc-rev-ask').length};})()`);
   const openShelf=async ()=>{
     await send('Page.navigate',{url:'http://127.0.0.1:4177/?unit-size&pausecuts=0'});
@@ -91,7 +91,7 @@ try {
     if (!before) {
       assert.equal(curds.question,'How many lb in one bag?',`${width}px: curds question`);
       assert.equal(curds.hint,'For a 5 lb bag, enter 5.',`${width}px: curds example`);
-      assert.equal(curds.described,true,`${width}px: example is linked to the input`);
+      assert.equal(curds.described,'How many lb in one bag? For a 5 lb bag, enter 5.',`${width}px: question and example describe the input`);
       assert.equal(curds.blocked,true,`${width}px: an unanswered size blocks the row`);
       assert.ok(curds.input.h>=44,`${width}px: input is ${curds.input.h}px tall`);
       assert.equal(carnitas.asks,0,`${width}px: ounces of a pound-counted item ask nothing`);
@@ -128,6 +128,7 @@ try {
     if (!before) {
       assert.equal(circles.question,'How many in one packet?',`${width}px: circles question`);
       assert.equal(circles.hint,null,`${width}px: no example for a container`);
+      assert.equal(circles.described,'How many in one packet?',`${width}px: circles input is described by its question`);
       assert.equal(gloves.question,'How many boxes in one case?',`${width}px: gloves question`);
     }
     await shoot(`containers-${width}-asking`);

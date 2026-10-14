@@ -1030,7 +1030,8 @@ await run('cheese curds, three pounds, asks how many lb are in a bag and counts 
   assert.equal(row.querySelector('.lq-fc-rev-ask label').textContent,'How many lb in one bag?');
   const hint=row.querySelector('.lq-fc-rev-ask .lq-rev-hint');
   assert.equal(hint.textContent,'For a 5 lb bag, enter 5.');
-  assert.equal(row.querySelector('input[aria-label="Package size for Cheese Curds"]').getAttribute('aria-describedby'),hint.id);
+  const described=row.querySelector('input[aria-label="Package size for Cheese Curds"]').getAttribute('aria-describedby').split(' ').map(id=>t.doc.getElementById(id)?.textContent);
+  assert.deepEqual(described,['How many lb in one bag?','For a 5 lb bag, enter 5.'],'the input is described by its question and example');
   assert.doesNotMatch(row.textContent,/per lb/);
   await t.input('Package size for Cheese Curds','5');
   assert.equal(row.querySelector('input[aria-label^="Package size"]'),null,'the question closes once answered');
