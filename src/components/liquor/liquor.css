@@ -945,6 +945,15 @@
 .lq-count-entry-summary > span { color: var(--lq-muted); font-size: 14px; }
 .lq-count-entry-actions { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 .lq-count-entry-actions > button { min-height: 48px; }
+.lq-count-entry-shelves { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+.lq-count-entry-shelves li { display: flex; justify-content: space-between; gap: 12px; overflow-wrap: anywhere; }
+.lq-count-entry-shelves li > .lq-muted { white-space: nowrap; font-size: 14px; }
+.lq-start-over { margin-top: 20px; }
+.lq-start-over > p { margin: 0 0 12px; font-weight: 600; line-height: 1.5; }
+.lq-start-over > p:focus { outline: none; }
+.lq-start-over-actions { display: flex; flex-direction: column; gap: 12px; }
+.lq-start-over-actions > button { min-height: 48px; }
+.lq-start-over-inline { margin: 8px 0 0; padding: 12px; background: var(--lq-panel-2); border: 1px solid var(--lq-line-strong); border-radius: 10px; font-size: 14px; }
 .lq-fc-count-recovery { margin: 8px 0; }
 .lq-fc-count-recovery > summary { cursor: pointer; padding: 10px 0; min-height: 44px; text-decoration: underline; }
 .lq-fc-count-recovery p { margin: 6px 0 10px; font-size: 14px; line-height: 1.5; }
