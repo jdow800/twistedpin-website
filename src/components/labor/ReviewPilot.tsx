@@ -7,20 +7,23 @@ import NextSchedule from './NextSchedule';
 import WeeklyOverview from './WeeklyOverview';
 import {questionIsActive,questionNeedsResponse,reviewProgress} from './review-progress';
 import DemandSurgeQuestion from './DemandSurgeQuestion';
+import DraftChangeQuestion from './DraftChangeQuestion';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
-const money = (c: number | null) => c === null ? "Pending" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(c / 100);
+const money = (c: number | null) => c === null ? "Pending" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(c / 100);
 const date = (value: string, options: Intl.DateTimeFormatOptions = { month: "short", day: "numeric" }) => new Date(`${value}T12:00:00Z`).toLocaleDateString("en-US", { ...options, timeZone: "UTC" });
 const week = (start: string) => { const end = new Date(`${start}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + 6); return `${date(start)} – ${date(end.toISOString().slice(0, 10), { month: "short", day: "numeric", year: "numeric" })}`; };
+const shortWeek = (start: string) => { const end = new Date(`${start}T12:00:00Z`); end.setUTCDate(end.getUTCDate() + 6); return `${date(start)}–${date(end.toISOString().slice(0, 10))}`; };
 
+/** Jon Oct15 TLDR: the number, the dollars and one provisional line. Definitions live under "How it's measured". */
 export function WeeklyLaborMetric({metric}:{metric:LaborReview["metric"]}) {
   const unapproved=metric.provisional?.unapprovedPunchCount??0;
   return <section className="lr-metric" aria-label="Weekly labor percentage">
-    <div className="lr-metric-top"><span>Labor / net sales</span><span className="lr-badge lr-badge-dark">{unapproved>0?"Provisional":metric.percent===null?"Data checks pending":metric.estimate?"Estimated":"Verified inputs"}</span></div>
+    <div className="lr-metric-top"><span>Labor / sales</span><span className="lr-badge lr-badge-dark">{unapproved>0?"Provisional":metric.percent===null?"Data checks pending":metric.estimate?"Estimated":"Verified inputs"}</span></div>
     <strong className="lr-metric-value">{metric.percent===null?"Pending":`${metric.percent.toFixed(1)}%`}</strong>
-    <p>Hourly wages + management salaries</p><p className="lr-metric-note">Employer taxes and benefits excluded.</p>
-    {unapproved>0?<p className="lr-metric-note">Includes {unapproved} unapproved time {unapproved===1?'entry':'entries'} estimated from recorded hours and pay rates; not finalized payroll.</p>:null}
+    <p>{metric.laborCents===null&&metric.salesCents===null?"Amounts are still being checked.":`${money(metric.laborCents)} labor on ${money(metric.salesCents)} building sales`}</p>
+    {unapproved>0?<p className="lr-metric-note">{unapproved} {unapproved===1?'timecard':'timecards'} not approved yet.</p>:null}
   </section>;
 }
 
@@ -42,46 +45,44 @@ export default function ReviewPilot() {
   useEffect(() => { void load(); }, []);
   const previousReview=review?.previousReviewStatus??review?.packet.previousReview;
   const progress=reviewProgress(review);
+  const forward=review?.packet.forwardFeedback;
+  // Questions come first: they are why the GM opened the page. The week's numbers follow.
+  const heading=progress.awaiting===null?progress.heading:progress.current>0?`${progress.current} quick ${progress.current===1?"question":"questions"}`:progress.active>0?"All answered. Thanks!":progress.comparisonPending?"No questions yet":"No questions this week";
+  const subline=progress.awaiting===null?progress.note:progress.current===0&&progress.comparisonPending?`The ${forward?.targetWeek?date(forward.targetWeek)+" ":""}schedule isn't ready to compare with the AI draft yet.`:progress.current===0&&progress.active===0&&progress.withdrawn>0?progress.note:"";
+  const older=forward?progress.pending:previousReview?.unanswered?[previousReview]:[];
   return <section className="lr-pilot">
     <header className="lr-heading">
-      <div><p className="lr-kicker">The weekly check-in</p><h1>Weekly labor review</h1><p className="lr-intro">Practical scheduling ideas. Your experience completes the picture.</p></div>
-      {review && !loading && !error ? <label className="lr-week">Review week<select aria-label="Review week" value={review.id} onChange={e => void load(e.target.value)}>{list.map(r => <option key={r.id} value={r.id}>{week(r.weekStart)} · {r.open} open</option>)}</select></label> : null}
+      <div><p className="lr-kicker">Weekly labor review</p><h1>{review && !loading && !error ? shortWeek(review.packet.weekStart) : "Weekly labor review"}</h1></div>
     </header>
     {loading ? <p className="lr-notice" role="status">Loading your review…</p> : null}
     {error ? <div role="alert"><p>{error}</p><button onClick={() => void load()}>Retry</button> <a href="/labor/?legacy=1">Existing labor notes</a></div> : null}
     {!loading && !error && !review ? <p className="lr-notice">No review has been prepared yet. Check back after the next weekly report.</p> : null}
     {review && !loading && !error ? <>
-      <div className={`lr-overview ${review.packet.version===2?'lr-overview-ideas':''}`}>
+      <section className="lr-questions" aria-label="Questions">
+        <div className="lr-section-heading"><h2>{heading}</h2></div>
+        {subline?<p className="lr-small">{subline}</p>:null}
+        {older.map(p=><p className="lr-still-open" key={p.id}>Still open: <button className="lr-text-button" onClick={()=>void load(p.id)}>{date(p.weekStart)} review, {p.unanswered} {p.unanswered===1?"question":"questions"}</button></p>)}
+        {review.packet.recommendationStatus==='incomplete'?<p className="lr-small">Some checks are still pending, so only supported ideas are shown.</p>:null}
+        {review.questions.map((q, index) => {
+          const key=`${review.id}:${q.id}:${q.revision}`,props={number:index+1,question:q,review,onSaved:(r:LaborReview)=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}};
+          return q.demandSurge&&questionIsActive(q)?<DemandSurgeQuestion key={key} {...props}/>:q.proposal&&questionIsActive(q)?<ProposalCard key={key} {...props}/>:q.draftChange&&questionIsActive(q)?<DraftChangeQuestion key={key} {...props}/>:<Question key={key} {...props}/>;
+        })}
+      </section>
+      <section className="lr-week-numbers" aria-label="The week's labor">
         <WeeklyLaborMetric metric={review.metric}/>
-        <section className="lr-review-count" aria-label="Review progress">
-          <span className="lr-count-number">{progress.awaiting===null?"--":String(progress.awaiting).padStart(2, "0")}</span>
-          <div><h2>{progress.heading}</h2><p>{progress.note}</p></div>
-        </section>
-      </div>
-      <WeeklyOverview days={review.daily??[]}/>
-      {review.packet.trend?<p className="lr-small"><strong>4-week labor:</strong> {review.packet.trend.percent===null?review.packet.trend.note:`${review.packet.trend.percent.toFixed(1)}% - ${review.packet.trend.note}`}</p>:null}
-      {!review.packet.forwardFeedback&&previousReview?<div className="lr-notice">Last review: {previousReview.answered} answered. {previousReview.unanswered?<><button className="lr-text-button" onClick={()=>void load(previousReview!.id)}>{previousReview.unanswered} still need a response</button>. We have kept the combined list to two items.</>:null}{previousReview.ownerRequests?` ${previousReview.ownerRequests} request(s) sent to Jon.`:''}</div>:null}
-      {review.packet.forwardFeedback?<div className="lr-notice" aria-label="Upcoming schedule review">
-        <strong>{review.packet.forwardFeedback.targetWeek?`Upcoming schedule: ${week(review.packet.forwardFeedback.targetWeek)}`:"Upcoming schedule comparison pending"}</strong>
-        {progress.comparisonPending?<p>Publication or source checks are pending; no new staffing questions are shown for unchecked work.</p>:null}
-        {progress.pending.map(p=><p key={p.id}><button className="lr-text-button" onClick={()=>void load(p.id)}>{week(p.weekStart)}: {p.unanswered} unanswered {p.unanswered===1?"question":"questions"}</button></p>)}
-      </div>:null}
-      <details className="lr-calculation">
-        <summary>How this week is measured <span>{review.metric.percent === null ? "Reconciliation in progress" : "Cost basis & sources"}</span></summary>
-        <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
-          <dl className="lr-totals"><div><dt>Earned labor inputs</dt><dd>{money(review.metric.laborCents)}</dd></div><div><dt>Reported sales inputs</dt><dd>{money(review.metric.salesCents)}</dd></div></dl>
-          {review.metric.issues.length ? <details><summary>View source checks ({review.metric.issues.length})</summary><ul>{review.metric.issues.map(i => <li key={i}>{i}</li>)}</ul></details> : null}
-          <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
-        </div>
-      </details>
-      <div className="lr-section-heading"><h2>{progress.active ? "Please review & answer" : "No questions to answer"}</h2><span>{progress.active ? "Your answers stay with the review" : progress.comparisonPending||progress.awaiting===null?"Comparison pending":progress.awaiting>0?"Earlier questions remain open":progress.withdrawn?"Withdrawn questions are retained below":"No response needed"}</span></div>
-      {review.packet.recommendationStatus==='incomplete'?<p className="lr-notice">Some staffing comparisons are waiting on source checks. Only supported ideas are shown below.</p>:null}
-      {review.questions.map((q, index) => {
-        const key=`${review.id}:${q.id}:${q.revision}`,props={number:index+1,question:q,review,onSaved:(r:LaborReview)=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}};
-        return q.demandSurge&&questionIsActive(q)?<DemandSurgeQuestion key={key} {...props}/>:q.proposal&&questionIsActive(q)?<ProposalCard key={key} {...props}/>:<Question key={key} {...props}/>;
-      })}
-      {review.packet.version===2?<NextSchedule review={review}/>:null}
-      <p className="lr-footer-note">Good reviews need both the numbers and your experience.</p>
+        {review.packet.trend?.percent!=null?<p className="lr-small">4-week labor: {review.packet.trend.percent.toFixed(1)}%</p>:null}
+        <WeeklyOverview days={review.daily??[]}/>
+        <details className="lr-calculation">
+          <summary>How it's measured</summary>
+          <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
+            <dl className="lr-totals"><div><dt>Earned labor inputs</dt><dd>{money(review.metric.laborCents)}</dd></div><div><dt>Reported sales inputs</dt><dd>{money(review.metric.salesCents)}</dd></div></dl>
+            {review.metric.issues.length ? <details><summary>View source checks ({review.metric.issues.length})</summary><ul>{review.metric.issues.map(i => <li key={i}>{i}</li>)}</ul></details> : null}
+            <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
+          </div>
+        </details>
+      </section>
+      {review.packet.version===2&&!forward?<NextSchedule review={review}/>:null}
+      {list.length>1?<label className="lr-week">Other weeks<select aria-label="Review week" value={review.id} onChange={e => void load(e.target.value)}>{list.map(r => <option key={r.id} value={r.id}>{week(r.weekStart)}{r.open?` · ${r.open} open`:""}</option>)}</select></label>:null}
     </> : null}
   </section>;
 }

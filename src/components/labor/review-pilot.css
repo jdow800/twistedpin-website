@@ -288,3 +288,45 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
 .lr-original-expanded > summary { display:none; }
 .lr-original-expanded { border:0; padding:0; margin:0; }
 .lr-original-idea:not([open]) { margin-bottom:1rem; }
+
+/* Jon 2026-10-15 TLDR: questions first, one short card per change, the week's numbers compact underneath. */
+.lr-pilot .lr-heading { margin-bottom: 18px; }
+.lr-questions { margin: 0 0 30px; }
+.lr-pilot .lr-questions .lr-section-heading h2 { font-size: 21px; letter-spacing: -.02em; }
+.lr-pilot .lr-questions > .lr-small { margin: -4px 0 14px; }
+.lr-pilot .lr-still-open { margin: 0 0 14px; font-size: 14px; }
+.lr-pilot .lr-still-open .lr-text-button, .lr-pilot .lr-alt-answers .lr-text-button { padding: 0 2px; min-height: 0; font-weight: 400; text-decoration: underline; }
+.lr-change-question { padding: 20px 22px 22px; }
+.lr-change-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.lr-pilot .lr-change-head h3 { margin: 0; font-size: 19px; }
+.lr-pilot .lr-change-net { margin: 4px 0 12px; color: #1f7f84; font-weight: 700; font-size: 15px; }
+.lr-change-table { width: 100%; max-width: 420px; border-collapse: collapse; font-size: 15px; }
+.lr-change-table th, .lr-change-table td { padding: 8px 4px; border-top: 1px solid #edeaf1; text-align: right; }
+.lr-change-table th[scope=row], .lr-change-table thead th:first-child { text-align: left; font-weight: 400; }
+.lr-change-table thead th { border-top: 0; padding-top: 0; font-size: 12px; font-weight: 400; color: #6c627b; }
+.lr-change-table td:last-child { font-weight: 700; color: #200f53; }
+.lr-change-shifts { margin: 8px 0 0; font-size: 14px; }
+.lr-pilot .lr-change-shifts > summary { color: #176c7e; padding: 8px 0; }
+.lr-change-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-bottom: 6px; }
+.lr-pilot .lr-change-columns h4 { margin: 2px 0 6px; font-size: 13px; color: #6c627b; }
+.lr-pilot .lr-change-columns ul { margin: 0; padding-left: 16px; }
+.lr-pilot .lr-change-columns li { margin-bottom: 4px; }
+.lr-pilot .lr-change-answer label { margin: 12px 0 4px; font-size: 15px; }
+.lr-pilot .lr-change-answer textarea { min-height: 64px; }
+.lr-pilot .lr-dictate { padding: 4px 0; min-height: 36px; font-size: 13px; }
+.lr-pilot .lr-change-answer .lr-actions { margin-top: 10px; }
+.lr-pilot .lr-alt-answers { margin: 10px 0 0; font-size: 13px; color: #6c627b; }
+.lr-pilot .lr-alt-answers .lr-text-button { font-size: 13px; }
+.lr-change-question .lr-saved { margin-top: 14px; padding: 14px 16px; }
+.lr-pilot .lr-change-question .lr-saved p { margin: 0; }
+.lr-change-question .lr-saved .lr-actions { margin-top: 10px; }
+.lr-week-numbers { border-top: 1px solid #dedbe6; padding-top: 24px; }
+.lr-week-numbers .lr-metric { padding: 18px 22px; }
+.lr-week-numbers .lr-metric-value { font-size: 34px; margin: 8px 0 4px; }
+.lr-week-numbers .lr-weekly-overview { margin: 14px 0 6px; padding: 18px 22px 8px; }
+.lr-week-numbers .lr-daily-table { margin: 6px 0 10px; }
+@media (max-width: 600px) {
+  .lr-change-question { padding: 18px 16px 18px; }
+}
+@media (max-width: 420px) { .lr-change-columns { grid-template-columns: 1fr; gap: 6px; } }
+.lr-pilot > .lr-week { display: block; min-width: 0; max-width: 340px; margin: 26px 0 0; }

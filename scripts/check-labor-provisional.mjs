@@ -18,44 +18,43 @@ try {
   const input={...metric,provisional:{unapprovedPunchCount:18,hourlyWagesCents:12345}},before=structuredClone(input);
   const html=renderMetric(input);
   assert.match(html,/>Provisional<\/span>/);assert.match(html,/28\.2%/);
-  assert.match(html,/Includes 18 unapproved time entries estimated from recorded hours and pay rates; not finalized payroll\./);
+  assert.match(html,/\$282 labor on \$1,000 building sales/);assert.match(html,/18 timecards not approved yet\./);
   assert.doesNotMatch(html,/>Verified inputs<|>Estimated</);assert.deepEqual(input,before);
  });
  test('legacy weekly responses preserve estimated, verified and pending states',()=>{
   assert.match(renderMetric(metric),/>Estimated<\/span>/);
   assert.match(renderMetric({...metric,estimate:false}),/>Verified inputs<\/span>/);
   const pending=renderMetric({...metric,percent:null,laborCents:null});
-  assert.match(pending,/>Data checks pending<\/span>/);assert.match(pending,/>Pending<\/strong>/);
-  assert.doesNotMatch(renderMetric(metric),/Provisional|unapproved time/);
-  assert.doesNotMatch(renderMetric({...metric,provisional:{unapprovedPunchCount:0,hourlyWagesCents:0}}),/Provisional|unapproved time/);
+  assert.match(pending,/>Data checks pending<\/span>/);assert.match(pending,/>Pending<\/strong>/);assert.match(pending,/Pending labor on \$1,000/);
+  assert.doesNotMatch(renderMetric(metric),/Provisional|not approved yet/);
+  assert.doesNotMatch(renderMetric({...metric,provisional:{unapprovedPunchCount:0,hourlyWagesCents:0}}),/Provisional|not approved yet/);
  });
  test('one provisional entry uses singular copy while blocked totals remain pending',()=>{
   const html=renderMetric({...metric,percent:null,laborCents:null,provisional:{unapprovedPunchCount:1,hourlyWagesCents:1500}});
   assert.match(html,/>Provisional<\/span>/);assert.match(html,/>Pending<\/strong>/);
-  assert.match(html,/Includes 1 unapproved time entry estimated/);assert.doesNotMatch(html,/28\.2%/);
+  assert.match(html,/1 timecard not approved yet\./);assert.doesNotMatch(html,/28\.2%/);
  });
- test('provisional days remain plotted and marked without ranking as highest shares',()=>{
+ test('provisional days remain plotted and marked, and no day is ranked',()=>{
   const days=[daily('2026-10-05',60000,{unapprovedPunchCount:3,hourlyWagesCents:25000}),daily('2026-10-06',25000),daily('2026-10-07',20000)],before=structuredClone(days);
   const html=renderDays(days);
   assert.match(html,/Mon: 60\.0% hourly wages plus 5\.0% salary; provisional/);
-  assert.match(html,/Provisional · 3 unapproved entries/);
-  assert.match(html,/Highest hourly shares among days without provisional entries/);
-  assert.match(html,/Among days without provisional entries, highest hourly wage share: Tue 25\.0% and Wed 20\.0%/);
-  assert.doesNotMatch(html,/Highest hourly wage share: Mon/);
+  assert.match(html,/<span>65\.0%\*<\/span><\/div>/);
+  assert.match(html,/\* has unapproved timecards/);
+  assert.doesNotMatch(html,/Highest|highest|lr-high-share|#c38526/);
+  // Jon Oct15: "I like the table - visual elements are good." The daily table is shown, not tucked under a tap.
+  assert.doesNotMatch(html,/<details|<summary/);
   assert.match(html,/<th scope="row">Mon<\/th><td>\$1,000<\/td><td>\$600\*<\/td><td>\$50<\/td><td>\$650\*<small>65\.0%\*/);
-  assert.match(html,/\* Provisional: includes unapproved entries estimated from recorded hours and pay rates; not finalized payroll\./);
   assert.deepEqual(days,before);
  });
- test('all provisional days omit the highest-share list and never invent missing amounts',()=>{
+ test('all provisional days never invent missing amounts',()=>{
   const blocked={...daily('2026-10-05',20000,{unapprovedPunchCount:1,hourlyWagesCents:5000}),percent:null,hourlyWagesCents:null,laborCents:null,laborReady:false};
   const html=renderDays([blocked]);
-  assert.match(html,/Provisional · 1 unapproved entry/);assert.match(html,/Mon: pending inputs; provisional/);
-  assert.match(html,/<td>Pending\*<\/td>/);assert.doesNotMatch(html,/Highest hourly wage share:/);
-  assert.doesNotMatch(html,/\$200|20\.0%/);
+  assert.match(html,/Mon: pending inputs; provisional/);assert.match(html,/<span>Pending\*<\/span>/);
+  assert.match(html,/<td>Pending\*<\/td>/);assert.doesNotMatch(html,/\$200|20\.0%/);
  });
- test('legacy daily responses keep numbers and ranking without provisional marks',()=>{
+ test('legacy daily responses keep numbers without provisional marks',()=>{
   const html=renderDays([daily('2026-10-05',30000),daily('2026-10-06',20000)]);
-  assert.match(html,/Highest hourly wage share: Mon 30\.0% and Tue 20\.0%/);
+  assert.match(html,/<span>35\.0%<\/span>/);assert.match(html,/<span>25\.0%<\/span>/);
   assert.doesNotMatch(html,/Provisional|unapproved|\$300\*/);
   assert.equal(renderDays([]),'');
  });
