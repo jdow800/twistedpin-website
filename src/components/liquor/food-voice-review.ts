@@ -50,6 +50,10 @@ export interface FoodReviewItem {
   /** The candidate whose `ifChosen` amount the row now holds. Cleared by a
    *  typed number, which makes the amount the counter's. */
   heardAmountFor?: string;
+  /** The counter typed in this row's box. From then on the number is theirs:
+   *  suggestions show no amount and a tap never replaces it (review
+   *  2026-10-15: a re-tap silently swapped a typed 7 for the heard 2). */
+  typedAmount?: boolean;
   /** The server's held amount, put back when a pick has no proved amount of
    *  its own, so another product never inherits one product's proof. */
   heldAmount?: Pick<FoodReviewItem, "cases" | "units" | "spokenUnit" | "unitNeedsReview" | "quantityWords">;
@@ -58,6 +62,14 @@ export interface FoodReviewItem {
    *  while the row is held on the product it was proved for. */
   proposed?: FoodHeardAmount;
   proposedSkuId?: string;
+}
+
+/** Whether a server-proved amount (`ifChosen`) may stand on a row with this
+ *  reason. A row whose words were already counted, that the counter
+ *  corrected, or that has an extra no number covers keeps asking: a tap must
+ *  never count those words a second time (review 2026-10-15). */
+export function foodHeardAmountStands(reason: FoodReviewItem["quantityReviewReason"]): boolean {
+  return !reason || reason === "source_not_returned";
 }
 
 /** A proved amount applied to a review row: ready, with nothing left to
@@ -74,7 +86,7 @@ function heardPatch(a: FoodHeardAmount): Partial<FoodReviewItem> {
  *  size, an unknown unit) is not offered, so the row asks as before. */
 export function foodHeardAmount(r: FoodReviewItem, a: FoodHeardAmount | undefined, sku: BarSkuItem | undefined):
   { patch: Partial<FoodReviewItem>; qty: number; words: string } | null {
-  if (!a || !sku) return null;
+  if (!a || !sku || !foodHeardAmountStands(r.quantityReviewReason)) return null;
   const n = (x: unknown) => typeof x === "number" && Number.isFinite(x) && x >= 0;
   if (!n(a.cases) || !n(a.units) || (a.spokenUnit != null && typeof a.spokenUnit !== "string")) return null;
   const patch = heardPatch({ ...a, quantityWords: typeof a.quantityWords === "string" ? a.quantityWords : "" });

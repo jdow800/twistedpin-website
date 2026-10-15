@@ -30,6 +30,10 @@ const results={recordedAtUtc:new Date().toISOString(),scope:'Actual CountFood; s
 const js=e=>b.evaluate(e),pause=ms=>new Promise(r=>setTimeout(r,ms));
 async function check(name,e){assert.ok(await js(`!!(${e})`),name);results.assertions.push(name);}
 async function click(text){await js(`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!e||e.disabled)throw Error('Unavailable '+${JSON.stringify(text)});e.click()})()`);await pause(60);}
+// A real phone tap (touch start/end), which the browser turns into a click at that point.
+async function tap(x,y){await b.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await b.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});}
+const centre=text=>js(`(()=>{const e=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===${JSON.stringify(text)});if(!e)return null;const r=e.getBoundingClientRect();return {x:(r.left+r.right)/2,y:(r.top+r.bottom)/2}})()`);
+const newCountPosts="foodQa.calls.filter(c=>c.method==='POST'&&c.path.endsWith('/counts')).length";
 async function shot(name){const {data}=await b.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await writeFile(out+name+'.png',Buffer.from(data,'base64'));results.screens.push(name+'.png');}
 // Every visible button inside `selector` sits inside the viewport, is at least `min` px tall, and nothing scrolls sideways.
 const fits=(selector,min)=>`(()=>{const els=[...document.querySelectorAll(${JSON.stringify(selector)})].filter(e=>e.offsetParent);return els.length>0&&els.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+0.5&&r.height>=${min}})&&document.documentElement.scrollWidth<=innerWidth+1})()`;
@@ -48,11 +52,24 @@ try{
   for(const width of [320,390,412]){
     await b.send('Emulation.setDeviceMetricsOverride',{width,height:915,deviceScaleFactor:1,mobile:true});
     await b.send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+    // A double tap on Start new count (review 2026-10-15: the question's own
+    // Start button used to open under the finger, so 9 of 9 double taps
+    // started over). The second tap must land on Keep, never on Start.
+    for(const gap of [80,250]){
+      await b.send('Page.navigate',{url:base+'?walkin-existing&pausecuts=0'});await b.until("window.foodQa&&document.querySelector('.lq-count-entry')");
+      await pause(150);
+      const {x,y}=await centre('Start new count');
+      await tap(x,y);await pause(gap);
+      await check(`${width}px ${gap}ms: the spot just tapped is not Start new count once the question opens`,`!!document.querySelector('.lq-start-over')&&document.elementFromPoint(${x},${y})?.closest('button')?.textContent.trim()!=='Start new count'`);
+      await tap(x,y);await pause(400);
+      await check(`${width}px ${gap}ms: a double tap on Start new count starts nothing`,`${newCountPosts}===0&&!!document.querySelector('.lq-count-entry')`);
+    }
     // The unfinished count: its shelf, then the second ask.
     await b.send('Page.navigate',{url:base+'?walkin-existing&pausecuts=0'});await b.until("window.foodQa&&document.querySelector('.lq-count-entry')");
     await check(`${width}px entry lists the draft's shelf`,"document.querySelector('.lq-count-entry-shelves li')?.textContent.replace(/\\s+/g,' ').trim()==='Pizza Freezer 1 saved'");
     await check(`${width}px entry actions fit`,fits('.lq-count-entry-actions button',44));
     await click('Start new count');
+    await check(`${width}px Keep this count comes first`,"[...document.querySelectorAll('.lq-start-over-actions button')].map(e=>e.textContent.trim()).join('|')==='Keep this count|Start new count'");
     await check(`${width}px start-over question names the shelf`,"document.querySelector('.lq-start-over p')?.textContent===\"Start over? The 1 saved count on Pizza Freezer stays in the old count and won't be submitted.\"");
     await check(`${width}px start-over answers fit at 44px`,fits('.lq-start-over-actions button',44));
     await check(`${width}px no count was created by the first tap`,"!foodQa.calls.some(c=>c.method==='POST'&&c.path.endsWith('/counts'))");
@@ -72,8 +89,14 @@ try{
     await shot('suggestions-'+width);
     await click('Sauce, Parmesan, Garlic · 4 containers');await click('Cheese, Cheddar · 4.8 packs');await click('Use 10 bottles');
     await check(`${width}px no Which unit after the taps`,"!document.querySelector('.lq-fc-rev').textContent.includes('Which unit?')");
-    await check(`${width}px all three are ready`,"[...document.querySelectorAll('.lq-footer button')].some(e=>e.textContent.trim()==='Add 3 items to Pizza Freezer'&&!e.disabled)||!!document.querySelector('.lq-fc-rev-restate')");
+    const heldHint=spoken=>`![...document.querySelectorAll('.lq-fc-voice-review-row')].find(e=>e.querySelector('.lq-fc-rev-spoken')?.textContent.includes(${JSON.stringify(spoken)}))?.querySelector('.lq-error.lq-rev-hint')`;
+    await check(`${width}px the cheddar row holds nothing after its tap`,heldHint('Mild cheddar slices'));
+    await check(`${width}px the Gatorade row holds nothing after Use 10 bottles`,heldHint('blue gatorade ten'));
     await check(`${width}px the shelf's Garlic Parmesan asks add or replace`,"document.querySelector('.lq-fc-rev-restate')?.textContent.includes('Add to the 2 containers already here, or replace?')");
+    // The footer counts ready rows only: Garlic Parmesan joins once answered.
+    await check(`${width}px Add leaves Garlic Parmesan out until add-or-replace is answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 2 items to /.test(e.textContent.trim()))&&![...document.querySelectorAll('button')].some(e=>/^Add 3 items to /.test(e.textContent.trim()))");
+    await click('Add: 6 containers total');
+    await check(`${width}px all three are ready once answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 3 items to /.test(e.textContent.trim())&&!e.disabled)");
     await check(`${width}px ready rows fit`,"document.documentElement.scrollWidth<=innerWidth+1");
     await shot('tapped-'+width);
   }

@@ -38,7 +38,7 @@ import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
 import CountEntryChoice, { StartOverConfirm, draftShelves } from "../CountEntryChoice";
-import { foodCaseSize, foodCountWarning, foodCountedSoFar, foodHeardAmount, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, foodUsualRange, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import { foodCaseSize, foodCountWarning, foodCountedSoFar, foodHeardAmount, foodHeardAmountStands, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, foodUsualRange, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty } from "../quantity";
 import { foodCanonicalQty, foodLooseQty, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty as roundQty, replaceFoodLoose, singleFoodLoose, foodPhysicalUnit, storedFoodQuantity, foodQuantityBasis, sameFoodQuantityBasis, type FoodQuantity } from "../food-quantity";
@@ -1025,13 +1025,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       ...(it.unitReading ? { unitReading: it.unitReading } : {}),
       // Jon 2026-10-15: a held product's amount the recording proved, per
       // candidate, applied when that candidate is tapped. The held amount is
-      // kept to put back if another product is picked instead.
-      ...(it.ifChosen && (it.identityNeedsReview || !it.match) ? { ifChosen: it.ifChosen,
+      // kept to put back if another product is picked instead. Never on a
+      // row whose words were already counted or corrected, or that has an
+      // extra no number covers: those keep asking.
+      ...(it.ifChosen && foodHeardAmountStands(it.quantityReviewReason) && (it.identityNeedsReview || !it.match) ? { ifChosen: it.ifChosen,
         heldAmount: { cases: it.cases, units: it.units, spokenUnit: it.spokenUnit ?? null,
           unitNeedsReview: it.unitNeedsReview ?? false, quantityWords: it.quantityWords } } : {}),
-      // A matched row the model returned no amount for: one tap offers the
-      // amount the recording proved for that product. Never applied on its own.
-      ...(it.proposed && it.match && !it.identityNeedsReview ? { proposed: it.proposed, proposedSkuId: it.match.id } : {}),
+      // A matched row the model returned no amount for ("source_not_returned"
+      // only): one tap offers the amount the recording proved for that
+      // product. Never applied on its own.
+      ...(it.proposed && it.quantityReviewReason === "source_not_returned" && it.match && !it.identityNeedsReview
+        ? { proposed: it.proposed, proposedSkuId: it.match.id } : {}),
     }));
   }
 
@@ -1141,8 +1145,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // recording proved for THAT product ... ready to add." The server proved
     // it through this product's own definition; nothing is left to confirm,
     // so the restate step and "Which unit?" do not fire. Add-or-replace and
-    // the history warning still apply to the ready row.
-    const heard = suggested ? foodHeardAmount(r, r.ifChosen?.[id], skuById.get(id)) : null;
+    // the history warning still apply to the ready row. Once the counter has
+    // typed a number on the row it is theirs: a tap goes the usual way.
+    const heard = suggested && !r.typedAmount ? foodHeardAmount(r, r.ifChosen?.[id], skuById.get(id)) : null;
     if (heard) {
       editReview(r, { ...heard.patch, chosenSkuId: id, identityNeedsReview: false, unitChoiceConfirmed: false, search: "", heardAmountFor: id });
       return;
@@ -1905,8 +1910,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   function editVoiceQuantity(r: ReviewItem, field: "cases" | "units", raw: string, replacesAll = false) {
     const n = readFoodNumber(raw);
     // A typed number is the counter's own, no longer the amount the recording
-    // proved for a tapped suggestion (2026-10-15), so it behaves as any typed edit.
-    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll), heardAmountFor: undefined,
+    // proved for a tapped suggestion (2026-10-15), so it behaves as any typed
+    // edit, and no later suggestion tap replaces it (`typedAmount`).
+    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll), heardAmountFor: undefined, typedAmount: true,
       ...(n != null && replacesAll && field === "cases" ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
   }
 
@@ -2048,7 +2054,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           onClick={() => totalLines > 0 ? setConfirmStartOver(true) : void startFresh()}>{startingFresh ? "Starting…" : "Start a new count"}</button>
       </div>}
       {resumed && confirmStartOver && <StartOverConfirm className="lq-start-over-inline" shelves={draftShelves({ lines: flatten(counts) }, zoneNames)}
-        busy={startingFresh || checking || submitting || submissionUnknown || voicePending}
+        busy={startingFresh || checking || submitting || submissionUnknown || voicePending} starting={startingFresh}
         onConfirm={() => { setConfirmStartOver(false); void startFresh(); }} onKeep={() => setConfirmStartOver(false)} />}
       {scanNote && totalLines === 0 && (
         <div className="lq-fc-scannote">

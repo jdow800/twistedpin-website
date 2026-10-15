@@ -27,9 +27,13 @@ export function startOverQuestion(shelves: { name: string; count: number }[]): s
   return `Start over? The ${n} saved count${n === 1 ? "" : "s"}${where ? ` on ${where}` : ""} stay${n === 1 ? "s" : ""} in the old count and won't be submitted.`;
 }
 
-/** The second ask before a new count leaves the saved ones behind. */
-export function StartOverConfirm({ shelves, busy, onConfirm, onKeep, className }: {
-  shelves: { name: string; count: number }[]; busy: boolean; onConfirm: () => void; onKeep: () => void; className?: string;
+/** The second ask before a new count leaves the saved ones behind.
+ *  "Keep this count" comes first: the question opens where "Start new count"
+ *  was tapped, so a double tap lands on Keep (or the question), never on a
+ *  second Start (review 2026-10-15: 9 of 9 phone double taps started over).
+ *  `busy` holds the start; only `starting` (the start in flight) holds Keep. */
+export function StartOverConfirm({ shelves, busy, starting = busy, onConfirm, onKeep, className }: {
+  shelves: { name: string; count: number }[]; busy: boolean; starting?: boolean; onConfirm: () => void; onKeep: () => void; className?: string;
 }) {
   const question = useRef<HTMLParagraphElement>(null);
   useEffect(() => { question.current?.focus(); }, []);
@@ -37,8 +41,8 @@ export function StartOverConfirm({ shelves, busy, onConfirm, onKeep, className }
     <div className={`lq-start-over${className ? ` ${className}` : ""}`} role="group" aria-label="Start a new count?">
       <p ref={question} tabIndex={-1}>{startOverQuestion(shelves)}</p>
       <div className="lq-start-over-actions">
-        <button type="button" className="lq-btn" disabled={busy} onClick={onConfirm}>{busy ? "Starting new count…" : "Start new count"}</button>
-        <button type="button" className="lq-btn lq-btn-primary" disabled={busy} onClick={onKeep}>Keep this count</button>
+        <button type="button" className="lq-btn lq-btn-primary" disabled={starting} onClick={onKeep}>Keep this count</button>
+        <button type="button" className="lq-btn" disabled={busy} onClick={onConfirm}>{starting ? "Starting new count…" : "Start new count"}</button>
       </div>
     </div>
   );

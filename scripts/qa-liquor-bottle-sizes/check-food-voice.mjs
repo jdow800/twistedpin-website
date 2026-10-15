@@ -1747,7 +1747,7 @@ await run('walk-in: Use 10 bottles fills the amount the recording proved for a c
   assert.equal(loose(t, 'Gatorade, Raspberry Cool Blue').value, '');
   await t.click('Use 10 bottles');
   assert.equal(loose(t, 'Gatorade, Raspberry Cool Blue').value, '10');
-  assert.equal(t.button('Use 10 bottles'), undefined);
+  assert.ok(!t.button('Use 10 bottles'));
   assert.ok(!t.button(/^Add /).disabled);
   await t.apply(); await until(() => t.saved().length > 0);
   assert.equal(Number(t.qa.lines.find(l => l.skuId === 'gatorade-blue').qtyUnits), 10);
@@ -1759,11 +1759,85 @@ await run('walk-in: rows without the new fields behave exactly as before', async
     candidates:[], identityNeedsReview:false, quantityNeedsReview:true, quantityKnown:false, quantityReviewReason:'source_not_returned',
     unitNeedsReview:false, spokenUnit:null}]);
   assert.match(t.doc.body.textContent, /Heard in your recording\. Enter the count for this item\./);
-  assert.equal(t.button(/^Use \d/), undefined);
-  assert.equal(t.button(/·/), undefined, 'no amount on a suggestion');
+  assert.ok(!t.button(/^Use \d/));
+  assert.ok(!t.button(/·/), 'no amount on a suggestion');
   await t.click('Sauce, Parmesan, Garlic');
   asks(t, 'Sauce, Parmesan, Garlic');
   assert.match(t.doc.body.textContent, /Enter the count\./);
+}, 'walkin');
+
+// Review 2026-10-15: a row whose words were already counted, that the counter
+// corrected, or that has an extra no number covers never takes a proved amount
+// on a tap (it would count those words twice); it keeps its own question.
+for (const [reason, hint] of [['source_already_used', /Source already counted\. Discard or enter a separate count\./],
+  ['source_revised', /You corrected this item\. Discard it or enter a separate count\./],
+  ['unquantified_remainder', /including the extra\./]]) {
+  await run(`walk-in: a ${reason} row offers no proved amount and still asks`, async t => {
+    await t.hear([gp({quantityReviewReason:reason})]);
+    assert.ok(!t.button(/·/), 'no amount on the suggestion');
+    await t.click('Sauce, Parmesan, Garlic');
+    assert.match(t.doc.body.textContent, hint);
+    assert.equal(loose(t, 'Sauce, Parmesan, Garlic')?.value ?? '', '', 'no number filled in');
+    assert.ok(t.button(/^Add /).disabled, 'still held');
+  }, 'walkin');
+}
+
+await run('walk-in: Use N is offered only on a row the model returned no amount for', async t => {
+  const blue = {id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', sizeMl:null, unitsPerCase:24};
+  const row = (spoken, extra) => ({spoken, quantityWords:'ten', cases:0, units:0, qty:0, unitsPerCase:24, needsCaseSize:false,
+    suspectPreMultiplied:false, match:blue, candidates:[], identityNeedsReview:false, quantityNeedsReview:true, quantityKnown:false,
+    unitNeedsReview:false, spokenUnit:null, proposed:{cases:0, units:10, spokenUnit:null, quantityWords:'ten'}, ...extra});
+  await t.hear([row('blue gatorade ten', {quantityReviewReason:'source_already_used'})]);
+  assert.match(t.doc.body.textContent, /Source already counted\./);
+  assert.ok(!t.button(/^Use \d/), 'no Use button on an already-counted row');
+  assert.doesNotMatch(t.doc.body.textContent, /Heard in your recording: ten/);
+  assert.ok(t.button(/^Add /).disabled);
+}, 'walkin');
+
+await run('walk-in: once a number is typed, a suggestion tap never replaces it', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await t.input('Loose quantity for Mayonnaise, Chipotle', '7');
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.click('Mayonnaise');
+  assert.equal(loose(t, 'Mayonnaise').value, '7', 'the typed 7 moves with the product, as any typed edit');
+  await changeProduct(t, 'Mayonnaise');
+  assert.ok(!t.button(/·/), 'suggestions show no amount once a number is typed');
+  await t.click('Mayonnaise, Chipotle');
+  assert.equal(loose(t, 'Mayonnaise, Chipotle').value, '7', 'the tap keeps the typed 7');
+  assert.ok(!t.button(/^Add /).disabled);
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'chipotle-mayo').qtyUnits), 7);
+}, 'walkin');
+
+await run('walk-in: a number typed before any proved tap is kept, and the chips show no amount', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise');
+  await t.click('containers');
+  await t.input('Loose quantity for Mayonnaise', '7');
+  await changeProduct(t, 'Mayonnaise');
+  const chips = [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.ok(chips.includes('Mayonnaise, Chipotle'), `plain chip in ${JSON.stringify(chips)}`);
+  await t.click('Mayonnaise, Chipotle');
+  assert.equal(loose(t, 'Mayonnaise, Chipotle').value, '7');
+}, 'walkin');
+
+await run('walk-in: after a tap, a search lists each suggested product once', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.input('Find product for Chipotle mayo, two gallons', 'mayonnaise');
+  const chips = [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.equal(chips.filter(c => c === 'Mayonnaise').length, 1, `one Mayonnaise in ${JSON.stringify(chips)}`);
+  assert.doesNotMatch(t.doc.body.textContent, /No product on file/);
+  await t.click('Mayonnaise');
+  asks(t, 'Mayonnaise');
 }, 'walkin');
 
 // Jon 2026-10-15: "Start a new count" on a resumed count asks once more,
@@ -1774,14 +1848,27 @@ await run('resumed count: Start a new count asks once more and Keep this count c
   const ask = t.doc.querySelector('.lq-start-over p');
   assert.equal(ask?.textContent, "Start over? The 1 saved count on Pizza Freezer stays in the old count and won't be submitted.");
   assert.equal(t.qa.calls.filter(c => c.method === 'POST' && c.path.endsWith('/counts')).length, 0, 'the first tap only asks');
+  assert.deepEqual([...t.doc.querySelectorAll('.lq-start-over-actions button')].map(b => b.textContent.trim()),
+    ['Keep this count', 'Start new count'], 'Keep comes first, where a second tap would land');
   await t.click('Keep this count');
-  assert.equal(t.doc.querySelector('.lq-start-over'), null);
+  assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
   assert.match(t.doc.body.textContent, /Picked up your count in progress/);
   await t.click('Start a new count');
   await t.click('Start new count');
   await until(() => t.qa.calls.some(c => c.method === 'POST' && c.path.endsWith('/counts')));
   await until(() => !/Picked up your count in progress/.test(t.doc.body.textContent));
   assert.deepEqual(JSON.parse(JSON.stringify(t.qa.calls.find(c => c.method === 'POST' && c.path.endsWith('/counts')).body)), {isFullCount:true, section:'food'});
+}, 'existing');
+
+await run('resumed count: while a take is recording, Keep this count still answers and Start new count waits', async t => {
+  await t.click('Start a new count');
+  await t.start();
+  const keep = t.button('Keep this count'), startOver = t.button('Start new count');
+  assert.ok(keep && !keep.disabled, 'Keep is never held by a pending take');
+  assert.ok(startOver?.disabled, 'Start new count waits for the take');
+  await t.click('Keep this count');
+  assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
+  assert.equal(t.qa.calls.filter(c => c.method === 'POST' && c.path.endsWith('/counts')).length, 0);
 }, 'existing');
 
 if (failed.length) { console.log(`${failed.length} food voice UI scenarios FAILED: ${failed.join(' | ')}`); process.exitCode = 1; }

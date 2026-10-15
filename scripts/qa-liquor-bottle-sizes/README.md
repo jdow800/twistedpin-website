@@ -211,10 +211,14 @@ amount and a tap is ready with no "Which unit?"; a suggestion without an entry
 and every "Find product…" pick ask; moving between suggestions applies each
 one's own amount and never carries one product's amount to another (also
 after Count another way);
-add-or-replace still asks; a typed number afterwards is the counter's; "Use 10
-bottles" applies only on a tap; rows without the new fields look as before.
-The `resumed count` scenario and three in `check-food-waste-entry.mjs` cover the
-second ask before Start new count, for food and liquor.
+add-or-replace still asks; a typed number afterwards is the counter's, and no
+later suggestion tap replaces it; a search after a tap lists each product
+once; a row marked already counted, corrected or with an extra takes no proved
+amount; "Use 10 bottles" applies only on a tap and only on a
+`source_not_returned` row; rows without the new fields look as before.
+The two `resumed count` scenarios and three in `check-food-waste-entry.mjs`
+cover the second ask before Start new count, for food and liquor: "Keep this
+count" first, and Keep still answering while a take is recording.
 
 ```powershell
 node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
@@ -226,10 +230,19 @@ node scripts/qa-liquor-bottle-sizes/check-food-heard-layout.mjs
 ```
 
 The native check builds its own bundle and asserts, at 320, 390 and 412px, the
-entry screen's shelf list and start-over question with 44px answers, the
-suggestion chips with their amounts, "Use 10 bottles", and the rows after the
-taps, with no sideways overflow. Screenshots and JSON go to ignored
-`dist/food-heard-layout/`.
+entry screen's shelf list and start-over question with 44px answers in order
+(Keep first), that a real double tap on Start new count (touch events 80 and
+250 ms apart) lands on Keep and creates no count, the suggestion chips with
+their amounts, "Use 10 bottles", and the rows after the taps (no held hint,
+Add waits for the add-or-replace answer, then is enabled), with no sideways
+overflow. Screenshots and JSON go to ignored `dist/food-heard-layout/`.
+
+Known not running on main or this branch (fail identically on both, 2026-10-15):
+`check-count-phone-layout`, `check-food-recording-layout`,
+`check-food-case-breakdown-layout`, `check-food-discontinued`,
+`check-food-walk-locations` and `check-food-unit-layout` stop at the
+unfinished-count screen or use stale selectors, and three `check-food-review`
+scenarios fail. They need a separate fix.
 
 
 ## Liquor review and phone controls

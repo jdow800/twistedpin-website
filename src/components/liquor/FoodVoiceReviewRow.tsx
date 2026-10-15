@@ -57,12 +57,17 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   const pick = (id: string, suggested = false) => { onChoose(id, suggested); setProductOpen(false); setCountMode("auto"); };
   // Jon 2026-10-15: a suggested product shows the amount the recording proved
   // for it, the amount a tap will fill in ("Sauce, Parmesan, Garlic · 4
-  // containers"), read through the same rules the row saves with.
-  const heardFor = (id: string) => r.ifChosen?.[id] ? foodHeardAmount(r, r.ifChosen[id], catalog.find(s => s.id === id)) : null;
+  // containers"), read through the same rules the row saves with. Not once
+  // the counter has typed a number here: that number is theirs.
+  const heardFor = (id: string) => !r.typedAmount && r.ifChosen?.[id] ? foodHeardAmount(r, r.ifChosen[id], catalog.find(s => s.id === id)) : null;
   const candidateChip = (c: { id: string; name: string }) => {
     const heard = heardFor(c.id);
     return <button key={c.id} type="button" className="lq-chip" onClick={() => pick(c.id, true)}>{heard ? `${c.name} · ${heard.words}` : c.name}</button>;
   };
+  // After a tapped suggestion, the other suggestions stay one tap away in
+  // "Change product"; a search lists each product once, as its suggestion.
+  const panelSuggestions = sku && r.ifChosen ? r.candidates.filter(c => c.id !== sku.id) : [];
+  const searchHits = hits.filter(s => !panelSuggestions.some(c => c.id === s.id));
   // The amount the recording proved for the matched product where the model
   // returned none. Offered while the row is held on that product; one tap.
   const proposal = held && r.proposed && r.proposedSkuId && r.proposedSkuId === sku?.id ? foodHeardAmount(r, r.proposed, sku) : null;
@@ -91,9 +96,8 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
     {productOpen && <div className="lq-rev-assign lq-fc-rev-product">
       <input type="search" className="lq-search" aria-label={`Find product for ${r.spoken}`} placeholder="Search the food catalog…"
         value={r.search ?? ""} onChange={e => onEdit({ search: e.target.value })} />
-      {/* After a tapped suggestion, the other suggestions stay one tap away. */}
-      {sku && r.ifChosen && r.candidates.filter(c => c.id !== sku.id).map(candidateChip)}
-      {hits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
+      {panelSuggestions.map(candidateChip)}
+      {searchHits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
       {r.search?.trim() && hits.length === 0 && <span className="lq-muted">No product on file. Try another name.</span>}
     </div>}
     {!ready && !!enteredCounts?.length && onUseEntered && <FoodCountRecovery choices={enteredCounts}
