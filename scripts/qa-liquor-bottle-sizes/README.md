@@ -202,8 +202,7 @@ the refusal and the answers fit at 320 and 390px with no horizontal overflow and
 ### Heard amounts on a tapped suggestion, and Start over (2026-10-15)
 
 When TPRS holds a product (match null), each suggested product may carry the
-amount the recording proved for it (`ifChosen`); a matched row the model gave
-no amount may carry `proposed`. The `^walk-in` scenarios in
+amount the recording proved for it (`ifChosen`). The `^walk-in` scenarios in
 `check-food-voice.mjs` run on `?walkin` / `?walkin-existing` (the GM's real
 definitions: Garlic Parmesan and Chipotle mayo by the gallon container, cheddar
 by the 1.5 lb pack, Gatorade by the bottle; fictional ids): the chip shows the
@@ -214,8 +213,8 @@ after Count another way);
 add-or-replace still asks; a typed number afterwards is the counter's, and no
 later suggestion tap replaces it; a search after a tap lists each product
 once; a row marked already counted, corrected or with an extra takes no proved
-amount; "Use 10 bottles" applies only on a tap and only on a
-`source_not_returned` row; rows without the new fields look as before.
+amount; rows without the new fields look as before.
+A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
 The two `resumed count` scenarios and three in `check-food-waste-entry.mjs`
 cover the second ask before Start new count, for food and liquor: "Keep this
 count" first, and Keep still answering while a take is recording.
@@ -233,7 +232,7 @@ The native check builds its own bundle and asserts, at 320, 390 and 412px, the
 entry screen's shelf list and start-over question with 44px answers in order
 (Keep first), that a real double tap on Start new count (touch events 80 and
 250 ms apart) lands on Keep and creates no count, the suggestion chips with
-their amounts, "Use 10 bottles", and the rows after the taps (no held hint,
+their amounts, and the rows after the taps (no held hint,
 Add waits for the add-or-replace answer, then is enabled), with no sideways
 overflow. Screenshots and JSON go to ignored `dist/food-heard-layout/`.
 

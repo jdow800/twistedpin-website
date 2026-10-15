@@ -68,9 +68,6 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   // "Change product"; a search lists each product once, as its suggestion.
   const panelSuggestions = sku && r.ifChosen ? r.candidates.filter(c => c.id !== sku.id) : [];
   const searchHits = hits.filter(s => !panelSuggestions.some(c => c.id === s.id));
-  // The amount the recording proved for the matched product where the model
-  // returned none. Offered while the row is held on that product; one tap.
-  const proposal = held && r.proposed && r.proposedSkuId && r.proposedSkuId === sku?.id ? foodHeardAmount(r, r.proposed, sku) : null;
   const anotherWay = () => {
     if (mixed) {
       // A single answer replaces the whole count. Do not guess a reverse
@@ -128,10 +125,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
             unitChoiceConfirmed: true, unitReading: undefined, declinedReading: reading })}>Use {formatQty(n)} {n === 1 ? "case" : "cases"}</button>
         </span>;
       })()}
-      {held && (proposal ? <span className="lq-error lq-rev-hint lq-fc-rev-proposed">
-        Heard in your recording{r.proposed?.quantityWords ? `: ${r.proposed.quantityWords}` : ""}.{" "}
-        <button type="button" className="lq-linkbtn" onClick={() => onEdit(proposal.patch)}>Use {proposal.words}</button>
-      </span> : <span className="lq-error lq-rev-hint">{quantityHint}</span>)}
+      {held && <span className="lq-error lq-rev-hint">{quantityHint}</span>}
       {!!r.invalidQuantityFields?.length && <span className="lq-error lq-rev-hint">Use a number of 0 or more.</span>}
       {q.needsCaseSize && <div className="lq-fc-rev-ask"><label>{foodUnitLabel(sku, 2)} per case?
         <input type="number" min={1} max={10000} inputMode="numeric" aria-label={`Units per case for ${sku.name}`}

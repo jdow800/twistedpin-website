@@ -832,10 +832,6 @@ export interface VoiceExtractItem {
    *  this row's amount, with every rule a matched row gets; never the model's
    *  own numbers. A candidate without an entry still asks. */
   ifChosen?: Record<string, FoodHeardAmount>;
-  /** Food, on a matched row the model returned no amount for
-   *  ("source_not_returned"): the amount the recording proved through the
-   *  matched product. The row stays held; the review offers one tap. */
-  proposed?: FoodHeardAmount;
 }
 
 /** An amount the server proved from the recording for one product, in the

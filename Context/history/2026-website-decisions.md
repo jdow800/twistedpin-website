@@ -32,14 +32,10 @@ bump; a server without them gives exactly today's screen):
 - **Never on a row whose words are spoken for.** A row marked already counted
   (`source_already_used`), corrected (`source_revised`) or with an extra no
   number covers (`unquantified_remainder`) ignores `ifChosen` and keeps its own
-  question, so a tap can never count the same words twice. `proposed` is used
-  only on a `source_not_returned` row. (Review 2026-10-15 showed a tap on such
-  a row saving the amount again; the tprs producer should also drop the entry
-  when it sets one of those reasons.)
-- **`proposed` on a matched "source_not_returned" row** ("blue gatorade ten"):
-  "Heard in your recording: ten. Use 10 bottles". One tap applies it; the row
-  is never filled on its own. This is the build lead's extension of Jon's
-  "keep the heard amount" (it still needs a tap).
+  question, so a tap can never count the same words twice. (Review 2026-10-15
+  showed a tap on such a row saving the amount again; the tprs producer should
+  also drop the entry when it sets one of those reasons.)
+- A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
 - **Start new count asks once more.** The unfinished-count screen (food and
   liquor) lists the shelves the draft's saved counts are on, and "Start new
   count" asks "Start over? The 12 saved counts on Walk-In Cooler (Kitchen) stay
@@ -52,16 +48,16 @@ bump; a server without them gives exactly today's screen):
   saved starts at once. The liquor page's own in-page link is unchanged (not
   in Jon's words).
 
-Validation: 156 food voice DOM scenarios (137 before; 17 walk-in ones on the
+Validation: 154 food voice DOM scenarios (137 before; 15 walk-in ones on the
 GM's shapes and two resumed-count ones), 15 waste/entry scenarios (3 new, food
 and liquor), a new native check (`check-food-heard-layout.mjs`: shelves, the
 start-over answers in order, a real double tap at 80 and 250 ms, chips with
-amounts, "Use 10 bottles", and the rows after the taps, at 320/390/412px), and
+amounts, and the rows after the taps, at 320/390/412px), and
 the existing liquor voice/review, guards, carry, unit size, catalog
 prevention and contract checks; scoped typecheck and `astro build`. Two
 mutations (no proved amount applied; no held amount put back) each fail the
-new scenarios, and the 9 scenarios added for the review fixes fail on the
-first build. Not deployed; ships with the tprs change.
+new scenarios, and the 8 scenarios added or changed for the review fixes
+fail on the first build. Not deployed; ships with the tprs change.
 
 Not running, on main and here alike (same failures, not caused by this
 change): six native food layout checks stop at the unfinished-count screen the

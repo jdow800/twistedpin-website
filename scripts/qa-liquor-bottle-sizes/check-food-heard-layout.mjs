@@ -1,6 +1,6 @@
 // Walk-In Cooler 2026-10-15 on phone-size native Chromium: a suggested product
-// that shows the amount the recording proved for it, the one-tap "Use 10
-// bottles", and the unfinished-count screen's second ask before starting over.
+// that shows the amount the recording proved for it, and the unfinished-count
+// screen's second ask before starting over.
 // Actual CountFood with fictional stock and a controlled recorder/API; the
 // shared CDP helper independently blocks external requests.
 import assert from 'node:assert/strict';
@@ -37,7 +37,6 @@ const newCountPosts="foodQa.calls.filter(c=>c.method==='POST'&&c.path.endsWith('
 async function shot(name){const {data}=await b.send('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});await writeFile(out+name+'.png',Buffer.from(data,'base64'));results.screens.push(name+'.png');}
 // Every visible button inside `selector` sits inside the viewport, is at least `min` px tall, and nothing scrolls sideways.
 const fits=(selector,min)=>`(()=>{const els=[...document.querySelectorAll(${JSON.stringify(selector)})].filter(e=>e.offsetParent);return els.length>0&&els.every(e=>{const r=e.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth+0.5&&r.height>=${min}})&&document.documentElement.scrollWidth<=innerWidth+1})()`;
-const blue={id:'gatorade-blue',name:'Gatorade, Raspberry Cool Blue',sizeMl:null,unitsPerCase:24};
 const rows=JSON.stringify([
   {spoken:'Garlic Parmesan, four gallons',quantityWords:'',cases:0,units:3,qty:0,unitsPerCase:null,needsCaseSize:false,suspectPreMultiplied:false,match:null,identityNeedsReview:true,
     quantityNeedsReview:true,quantityKnown:false,unitNeedsReview:true,spokenUnit:'gal',candidates:[{id:'garlic-parm',name:'Sauce, Parmesan, Garlic',sizeMl:null,unitsPerCase:2}],
@@ -45,8 +44,6 @@ const rows=JSON.stringify([
   {spoken:'Mild cheddar slices, Point six of a case',quantityWords:'',cases:0.6,units:0,qty:0,unitsPerCase:null,needsCaseSize:false,suspectPreMultiplied:false,match:null,identityNeedsReview:true,
     quantityNeedsReview:true,quantityKnown:false,unitNeedsReview:true,spokenUnit:null,candidates:[{id:'cheddar',name:'Cheese, Cheddar',sizeMl:null,unitsPerCase:8},{id:'american',name:'Cheese, American',sizeMl:null,unitsPerCase:4}],
     ifChosen:{cheddar:{cases:0.6,units:0,spokenUnit:null,quantityWords:'Point six of a case'},american:{cases:0.6,units:0,spokenUnit:null,quantityWords:'Point six of a case'}}},
-  {spoken:'blue gatorade ten',quantityWords:'ten',cases:0,units:0,qty:0,unitsPerCase:24,needsCaseSize:false,suspectPreMultiplied:false,match:blue,candidates:[],identityNeedsReview:false,
-    quantityNeedsReview:true,quantityKnown:false,quantityReviewReason:'source_not_returned',unitNeedsReview:false,spokenUnit:null,proposed:{cases:0,units:10,spokenUnit:null,quantityWords:'ten'}},
 ]);
 try{
   for(const width of [320,390,412]){
@@ -75,28 +72,25 @@ try{
     await check(`${width}px no count was created by the first tap`,"!foodQa.calls.some(c=>c.method==='POST'&&c.path.endsWith('/counts'))");
     await shot('start-over-'+width);
     await click('Keep this count');await click('Continue count');await b.until("document.querySelector('.lq-fc-row')");
-    // A take with two held products and one coverage row.
+    // A take with two held products.
     await js("[...document.querySelectorAll('button')].find(e=>/Talk through/.test(e.textContent)).click()");await b.until("document.querySelector('.lq-rec-stop')");
     await js("foodQa.recorder.segment('walk-in take',0)");await b.until('foodQa.extracts.length===1');
     await js(`foodQa.extracts[0].succeed(${rows})`);await pause(80);
     await js("document.querySelector('.lq-rec-stop').click()");await pause(60);
-    await js("foodQa.recorder.finish('walk-in take')");await b.until("document.querySelectorAll('.lq-fc-rev-row').length===3");
+    await js("foodQa.recorder.finish('walk-in take')");await b.until("document.querySelectorAll('.lq-fc-rev-row').length===2");
     await pause(500);
     await check(`${width}px suggestions show the amount a tap fills in`,"[...document.querySelectorAll('.lq-fc-rev-pick .lq-chip')].map(e=>e.textContent.trim()).join('|')==='Sauce, Parmesan, Garlic · 4 containers|Find product…|Cheese, Cheddar · 4.8 packs|Cheese, American · 2.4 packs|Find product…'");
     await check(`${width}px suggestion chips fit the phone`,fits('.lq-fc-rev-pick .lq-chip',30));
-    await check(`${width}px Use 10 bottles is offered beside the hint`,"[...document.querySelectorAll('.lq-fc-rev-proposed button')].some(e=>e.textContent.trim()==='Use 10 bottles')&&document.querySelector('.lq-fc-rev-proposed').textContent.includes('Heard in your recording: ten.')");
-    await check(`${width}px Use 10 bottles fits`,fits('.lq-fc-rev-proposed button',20));
     await shot('suggestions-'+width);
-    await click('Sauce, Parmesan, Garlic · 4 containers');await click('Cheese, Cheddar · 4.8 packs');await click('Use 10 bottles');
+    await click('Sauce, Parmesan, Garlic · 4 containers');await click('Cheese, Cheddar · 4.8 packs');
     await check(`${width}px no Which unit after the taps`,"!document.querySelector('.lq-fc-rev').textContent.includes('Which unit?')");
     const heldHint=spoken=>`![...document.querySelectorAll('.lq-fc-voice-review-row')].find(e=>e.querySelector('.lq-fc-rev-spoken')?.textContent.includes(${JSON.stringify(spoken)}))?.querySelector('.lq-error.lq-rev-hint')`;
     await check(`${width}px the cheddar row holds nothing after its tap`,heldHint('Mild cheddar slices'));
-    await check(`${width}px the Gatorade row holds nothing after Use 10 bottles`,heldHint('blue gatorade ten'));
     await check(`${width}px the shelf's Garlic Parmesan asks add or replace`,"document.querySelector('.lq-fc-rev-restate')?.textContent.includes('Add to the 2 containers already here, or replace?')");
     // The footer counts ready rows only: Garlic Parmesan joins once answered.
-    await check(`${width}px Add leaves Garlic Parmesan out until add-or-replace is answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 2 items to /.test(e.textContent.trim()))&&![...document.querySelectorAll('button')].some(e=>/^Add 3 items to /.test(e.textContent.trim()))");
+    await check(`${width}px Add leaves Garlic Parmesan out until add-or-replace is answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 1 item to /.test(e.textContent.trim()))&&![...document.querySelectorAll('button')].some(e=>/^Add 2 items to /.test(e.textContent.trim()))");
     await click('Add: 6 containers total');
-    await check(`${width}px all three are ready once answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 3 items to /.test(e.textContent.trim())&&!e.disabled)");
+    await check(`${width}px both are ready once answered`,"[...document.querySelectorAll('button')].some(e=>/^Add 2 items to /.test(e.textContent.trim())&&!e.disabled)");
     await check(`${width}px ready rows fit`,"document.documentElement.scrollWidth<=innerWidth+1");
     await shot('tapped-'+width);
   }

@@ -1031,11 +1031,6 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       ...(it.ifChosen && foodHeardAmountStands(it.quantityReviewReason) && (it.identityNeedsReview || !it.match) ? { ifChosen: it.ifChosen,
         heldAmount: { cases: it.cases, units: it.units, spokenUnit: it.spokenUnit ?? null,
           unitNeedsReview: it.unitNeedsReview ?? false, quantityWords: it.quantityWords } } : {}),
-      // A matched row the model returned no amount for ("source_not_returned"
-      // only): one tap offers the amount the recording proved for that
-      // product. Never applied on its own.
-      ...(it.proposed && it.quantityReviewReason === "source_not_returned" && it.match && !it.identityNeedsReview
-        ? { proposed: it.proposed, proposedSkuId: it.match.id } : {}),
     }));
   }
 

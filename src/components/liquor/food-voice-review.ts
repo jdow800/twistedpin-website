@@ -57,11 +57,6 @@ export interface FoodReviewItem {
   /** The server's held amount, put back when a pick has no proved amount of
    *  its own, so another product never inherits one product's proof. */
   heldAmount?: Pick<FoodReviewItem, "cases" | "units" | "spokenUnit" | "unitNeedsReview" | "quantityWords">;
-  /** The matched product's amount the recording proved where the model
-   *  returned none (a "source_not_returned" row). Offered as one tap, only
-   *  while the row is held on the product it was proved for. */
-  proposed?: FoodHeardAmount;
-  proposedSkuId?: string;
 }
 
 /** Whether a server-proved amount (`ifChosen`) may stand on a row with this

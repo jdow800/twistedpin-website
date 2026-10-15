@@ -1614,7 +1614,7 @@ await run('history: Use 10 cases, then one Use 10 cookies brings the reading and
 // ready to add. ... 'Find product…' picks still ask."). The GM's real shapes:
 // the server holds the product (match null) with the model's unverified
 // numbers, and `ifChosen` carries the amount the recording proved per
-// candidate. `proposed` is the one-tap amount on a matched coverage row.
+// candidate.
 const heldRow = (spoken, model, candidates, extra = {}) => ({spoken, quantityWords:'', cases:model.cases ?? 0, units:model.units ?? 0, qty:0,
   unitsPerCase:null, needsCaseSize:false, suspectPreMultiplied:false, match:null, identityNeedsReview:true, quantityNeedsReview:true,
   quantityKnown:false, unitNeedsReview:true, spokenUnit:model.spokenUnit ?? null, candidates, ...extra});
@@ -1736,23 +1736,6 @@ await run('walk-in: a number typed after the tap is the counter\'s, as any typed
   assert.equal(Number(t.qa.lines.find(l => l.skuId === 'garlic-parm').qtyUnits), 5);
 }, 'walkin');
 
-await run('walk-in: Use 10 bottles fills the amount the recording proved for a coverage row, only on a tap', async t => {
-  const blue = {id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', sizeMl:null, unitsPerCase:24};
-  await t.hear([{spoken:'blue gatorade ten', quantityWords:'ten', cases:0, units:0, qty:0, unitsPerCase:24, needsCaseSize:false,
-    suspectPreMultiplied:false, match:blue, candidates:[], identityNeedsReview:false, quantityNeedsReview:true, quantityKnown:false,
-    quantityReviewReason:'source_not_returned', unitNeedsReview:false, spokenUnit:null,
-    proposed:{cases:0, units:10, spokenUnit:null, quantityWords:'ten'}}]);
-  assert.match(t.doc.body.textContent, /Heard in your recording: ten\./);
-  assert.ok(t.button(/^Add /).disabled, 'never applied on its own');
-  assert.equal(loose(t, 'Gatorade, Raspberry Cool Blue').value, '');
-  await t.click('Use 10 bottles');
-  assert.equal(loose(t, 'Gatorade, Raspberry Cool Blue').value, '10');
-  assert.ok(!t.button('Use 10 bottles'));
-  assert.ok(!t.button(/^Add /).disabled);
-  await t.apply(); await until(() => t.saved().length > 0);
-  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'gatorade-blue').qtyUnits), 10);
-}, 'walkin');
-
 await run('walk-in: rows without the new fields behave exactly as before', async t => {
   await t.hear([gp({ifChosen:undefined}), {spoken:'blue gatorade ten', quantityWords:'ten', cases:0, units:0, qty:0, unitsPerCase:24,
     needsCaseSize:false, suspectPreMultiplied:false, match:{id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', sizeMl:null, unitsPerCase:24},
@@ -1781,18 +1764,6 @@ for (const [reason, hint] of [['source_already_used', /Source already counted\. 
     assert.ok(t.button(/^Add /).disabled, 'still held');
   }, 'walkin');
 }
-
-await run('walk-in: Use N is offered only on a row the model returned no amount for', async t => {
-  const blue = {id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', sizeMl:null, unitsPerCase:24};
-  const row = (spoken, extra) => ({spoken, quantityWords:'ten', cases:0, units:0, qty:0, unitsPerCase:24, needsCaseSize:false,
-    suspectPreMultiplied:false, match:blue, candidates:[], identityNeedsReview:false, quantityNeedsReview:true, quantityKnown:false,
-    unitNeedsReview:false, spokenUnit:null, proposed:{cases:0, units:10, spokenUnit:null, quantityWords:'ten'}, ...extra});
-  await t.hear([row('blue gatorade ten', {quantityReviewReason:'source_already_used'})]);
-  assert.match(t.doc.body.textContent, /Source already counted\./);
-  assert.ok(!t.button(/^Use \d/), 'no Use button on an already-counted row');
-  assert.doesNotMatch(t.doc.body.textContent, /Heard in your recording: ten/);
-  assert.ok(t.button(/^Add /).disabled);
-}, 'walkin');
 
 await run('walk-in: once a number is typed, a suggestion tap never replaces it', async t => {
   await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
