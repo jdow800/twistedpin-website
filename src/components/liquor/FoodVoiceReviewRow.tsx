@@ -65,9 +65,11 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
     return <button key={c.id} type="button" className="lq-chip" onClick={() => pick(c.id, true)}>{heard ? `${c.name} · ${heard.words}` : c.name}</button>;
   };
   // After a tapped suggestion, the other suggestions stay one tap away in
-  // "Change product"; a search lists each product once, as its suggestion.
-  const panelSuggestions = sku && r.ifChosen ? r.candidates.filter(c => c.id !== sku.id) : [];
-  const searchHits = hits.filter(s => !panelSuggestions.some(c => c.id === s.id));
+  // "Change product" while its search box is empty. Once a search is typed
+  // the panel lists only the search hits, as plain names, and a pick there
+  // asks, before a tap or after it (Jon 2026-10-15: "'Find product…' picks
+  // still ask"; review 2026-10-15: a search hit shown as a suggestion filled).
+  const panelSuggestions = sku && r.ifChosen && !r.search?.trim() ? r.candidates.filter(c => c.id !== sku.id) : [];
   const anotherWay = () => {
     if (mixed) {
       // A single answer replaces the whole count. Do not guess a reverse
@@ -94,7 +96,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       <input type="search" className="lq-search" aria-label={`Find product for ${r.spoken}`} placeholder="Search the food catalog…"
         value={r.search ?? ""} onChange={e => onEdit({ search: e.target.value })} />
       {panelSuggestions.map(candidateChip)}
-      {searchHits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
+      {hits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
       {r.search?.trim() && hits.length === 0 && <span className="lq-muted">No product on file. Try another name.</span>}
     </div>}
     {!ready && !!enteredCounts?.length && onUseEntered && <FoodCountRecovery choices={enteredCounts}

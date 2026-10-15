@@ -23,18 +23,22 @@ bump; a server without them gives exactly today's screen):
   (no case size, an unknown unit) asks as before; picking the product already
   chosen changes nothing. Moving from a tapped product to one without an entry
   puts back the held amount the row arrived with, so a product never inherits
-  another's proof. After a tap the other suggestions stay in "Change product",
-  and a search there lists each product once (as its suggestion). A typed
+  another's proof. After a tap the other suggestions stay in "Change product"
+  while its search box is empty; once a search is typed the panel lists only
+  plain names, and a pick there asks, before a tap or after it (only a
+  suggestion chip fills; round-2 review). A typed
   number is the counter's: from then on that row's suggestions show no amount
   and a tap never replaces it. Any other change (Count another way, a unit)
   still puts the held amount back if another product without an entry is then
   picked.
-- **Never on a row whose words are spoken for.** A row marked already counted
-  (`source_already_used`), corrected (`source_revised`) or with an extra no
-  number covers (`unquantified_remainder`) ignores `ifChosen` and keeps its own
-  question, so a tap can never count the same words twice. (Review 2026-10-15
-  showed a tap on such a row saving the amount again; the tprs producer should
-  also drop the entry when it sets one of those reasons.)
+- **Only on a row with no quantity review reason.** A row marked already
+  counted (`source_already_used`), corrected (`source_revised`), with an extra
+  no number covers (`unquantified_remainder`) or that the model returned no
+  amount for (`source_not_returned`) ignores `ifChosen` and keeps its own
+  question, so a tap can never count the same words twice or certify a
+  dropped row's amount. (Review 2026-10-15 showed a tap on such a row saving
+  the amount again; the tprs producer sends `ifChosen` only on held rows with
+  no reason, and the page enforces the same rule on its own, round-2 review.)
 - A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
 - **Start new count asks once more.** The unfinished-count screen (food and
   liquor) lists the shelves the draft's saved counts are on, and "Start new
@@ -44,11 +48,13 @@ bump; a server without them gives exactly today's screen):
   count" was tapped, so a double tap lands on Keep, never on a second Start
   (review 2026-10-15: with Start first, 9 of 9 phone double taps started
   over). Keep always answers; only Start waits while a take is pending. The
-  food page's "Start a new count" link asks the same. A draft with nothing
-  saved starts at once. The liquor page's own in-page link is unchanged (not
+  food page's "Start a new count" link asks the same; its Keep returns focus
+  to that link (to the "Picked up your count" line while a take holds the
+  link), as the entry screen's Keep returns it to Continue count. A draft
+  with nothing saved starts at once. The liquor page's own in-page link is unchanged (not
   in Jon's words).
 
-Validation: 154 food voice DOM scenarios (137 before; 15 walk-in ones on the
+Validation: 156 food voice DOM scenarios (137 before; 17 walk-in ones on the
 GM's shapes and two resumed-count ones), 15 waste/entry scenarios (3 new, food
 and liquor), a new native check (`check-food-heard-layout.mjs`: shelves, the
 start-over answers in order, a real double tap at 80 and 250 ms, chips with
@@ -57,7 +63,9 @@ the existing liquor voice/review, guards, carry, unit size, catalog
 prevention and contract checks; scoped typecheck and `astro build`. Two
 mutations (no proved amount applied; no held amount put back) each fail the
 new scenarios, and the 8 scenarios added or changed for the review fixes
-fail on the first build. Not deployed; ships with the tprs change.
+fail on the first build. The round-2 review minors (the `source_not_returned`
+guard, Keep's focus, search picks after a tap) add or extend 4 scenarios,
+and all 4 fail on the pre-fix source. Not deployed; ships with the tprs change.
 
 Not running, on main and here alike (same failures, not caused by this
 change): six native food layout checks stop at the unfinished-count screen the

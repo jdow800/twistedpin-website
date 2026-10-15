@@ -256,6 +256,18 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const [startingFresh, setStartingFresh] = useState(false);
   // Jon 2026-10-15: "Start a new count" asks once more, naming the shelves left behind.
   const [confirmStartOver, setConfirmStartOver] = useState(false);
+  // Keep returns focus to the link that asked (as the entry screen returns it
+  // to Continue count); while a take holds that link disabled, to its line.
+  const startOverLink = useRef<HTMLButtonElement>(null);
+  const resumedLine = useRef<HTMLDivElement>(null);
+  const keepCount = () => {
+    setConfirmStartOver(false);
+    requestAnimationFrame(() => {
+      const link = startOverLink.current;
+      if (link && !link.disabled && !link.closest("fieldset:disabled")) link.focus();
+      else resumedLine.current?.focus();
+    });
+  };
   const startingFreshRef = useRef(false);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
@@ -1026,8 +1038,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       // Jon 2026-10-15: a held product's amount the recording proved, per
       // candidate, applied when that candidate is tapped. The held amount is
       // kept to put back if another product is picked instead. Never on a
-      // row whose words were already counted or corrected, or that has an
-      // extra no number covers: those keep asking.
+      // row with any quantity review reason (already counted, corrected, an
+      // extra no number covers, or no amount returned): those keep asking.
       ...(it.ifChosen && foodHeardAmountStands(it.quantityReviewReason) && (it.identityNeedsReview || !it.match) ? { ifChosen: it.ifChosen,
         heldAmount: { cases: it.cases, units: it.units, spokenUnit: it.spokenUnit ?? null,
           unitNeedsReview: it.unitNeedsReview ?? false, quantityWords: it.quantityWords } } : {}),
@@ -2043,14 +2055,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-fc">
       <fieldset className="lq-count-controls" disabled={startingFresh || checking || submitting || submissionUnknown || !!leaving} inert={!!leaving} aria-label="Kitchen count">
-      {resumed && <div className="lq-resumed">
+      {resumed && <div className="lq-resumed" ref={resumedLine} tabIndex={-1}>
         <span>Picked up your count in progress.</span>
-        <button type="button" className="lq-linkbtn" disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
+        <button type="button" className="lq-linkbtn" ref={startOverLink} disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
           onClick={() => totalLines > 0 ? setConfirmStartOver(true) : void startFresh()}>{startingFresh ? "Starting…" : "Start a new count"}</button>
       </div>}
       {resumed && confirmStartOver && <StartOverConfirm className="lq-start-over-inline" shelves={draftShelves({ lines: flatten(counts) }, zoneNames)}
         busy={startingFresh || checking || submitting || submissionUnknown || voicePending} starting={startingFresh}
-        onConfirm={() => { setConfirmStartOver(false); void startFresh(); }} onKeep={() => setConfirmStartOver(false)} />}
+        onConfirm={() => { setConfirmStartOver(false); void startFresh(); }} onKeep={keepCount} />}
       {scanNote && totalLines === 0 && (
         <div className="lq-fc-scannote">
           <span>Scan any delivery invoices that aren&rsquo;t in yet.</span>

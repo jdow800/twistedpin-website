@@ -212,12 +212,16 @@ one's own amount and never carries one product's amount to another (also
 after Count another way);
 add-or-replace still asks; a typed number afterwards is the counter's, and no
 later suggestion tap replaces it; a search after a tap lists each product
-once; a row marked already counted, corrected or with an extra takes no proved
-amount; rows without the new fields look as before.
+once, by name, and a pick there asks (only a suggestion chip fills); a row
+with any quantity review reason (already counted, corrected, an extra, or no
+amount returned) takes no proved amount; rows without the new fields look as
+before.
 A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
 The two `resumed count` scenarios and three in `check-food-waste-entry.mjs`
 cover the second ask before Start new count, for food and liquor: "Keep this
-count" first, and Keep still answering while a take is recording.
+count" first, Keep still answering while a take is recording, and the food
+page's in-page Keep returning focus to "Start a new count" (or its line while
+a take holds the link).
 
 ```powershell
 node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only

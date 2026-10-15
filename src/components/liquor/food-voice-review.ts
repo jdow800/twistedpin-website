@@ -60,11 +60,13 @@ export interface FoodReviewItem {
 }
 
 /** Whether a server-proved amount (`ifChosen`) may stand on a row with this
- *  reason. A row whose words were already counted, that the counter
- *  corrected, or that has an extra no number covers keeps asking: a tap must
- *  never count those words a second time (review 2026-10-15). */
+ *  reason: only on a row with no quantity review reason at all. A row whose
+ *  words were already counted, that the counter corrected, that has an extra
+ *  no number covers, or that the model returned no amount for keeps asking:
+ *  a tap must never count those words a second time or certify a dropped
+ *  row's amount (review 2026-10-15; tprs never sends `ifChosen` there). */
 export function foodHeardAmountStands(reason: FoodReviewItem["quantityReviewReason"]): boolean {
-  return !reason || reason === "source_not_returned";
+  return !reason;
 }
 
 /** A proved amount applied to a review row: ready, with nothing left to

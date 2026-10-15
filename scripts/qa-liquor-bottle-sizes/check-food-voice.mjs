@@ -1751,10 +1751,13 @@ await run('walk-in: rows without the new fields behave exactly as before', async
 
 // Review 2026-10-15: a row whose words were already counted, that the counter
 // corrected, or that has an extra no number covers never takes a proved amount
-// on a tap (it would count those words twice); it keeps its own question.
+// on a tap (it would count those words twice); it keeps its own question. Nor
+// does a row the model returned no amount for (round-2 review): tprs never
+// sends ifChosen there, and the page would not certify a dropped row if it did.
 for (const [reason, hint] of [['source_already_used', /Source already counted\. Discard or enter a separate count\./],
   ['source_revised', /You corrected this item\. Discard it or enter a separate count\./],
-  ['unquantified_remainder', /including the extra\./]]) {
+  ['unquantified_remainder', /including the extra\./],
+  ['source_not_returned', /Heard in your recording\. Enter the count for this item\./]]) {
   await run(`walk-in: a ${reason} row offers no proved amount and still asks`, async t => {
     await t.hear([gp({quantityReviewReason:reason})]);
     assert.ok(!t.button(/·/), 'no amount on the suggestion');
@@ -1811,6 +1814,31 @@ await run('walk-in: after a tap, a search lists each suggested product once', as
   asks(t, 'Mayonnaise');
 }, 'walkin');
 
+// Round-2 review: a product found through the search box asks after a tap
+// exactly as it does before one; only a suggestion chip fills its amount.
+await run('walk-in: after a tap, a suggested product found through the search asks; its suggestion chip still fills', async t => {
+  await t.hear([heldRow('Mild cheddar slices, Point six of a case', {cases:0.6}, [cand('cheddar', 'Cheese, Cheddar', 8), cand('american', 'Cheese, American', 4)],
+    {unitNeedsReview:true, ifChosen:{cheddar:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'},
+      american:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'}}})]);
+  await t.click('Cheese, American · 2.4 packs');
+  await changeProduct(t, 'Cheese, American');
+  const panelChips = () => [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.ok(panelChips().includes('Cheese, Cheddar · 4.8 packs'), `the suggestion with its amount while the search is empty: ${JSON.stringify(panelChips())}`);
+  await t.input('Find product for Mild cheddar slices, Point six of a case', 'cheddar');
+  assert.deepEqual(panelChips().filter(c => /Cheddar/.test(c)), ['Cheese, Cheddar'], 'a search lists the product once, by name, with no amount');
+  await t.click('Cheese, Cheddar');
+  assert.doesNotMatch(t.doc.body.textContent, /4\.8 packs/, 'the search pick fills nothing');
+  assert.ok(t.button(/^Add /).disabled, 'the search pick asks');
+  // The other suggestion, from an empty search, is still a one-tap fill.
+  await changeProduct(t, 'Cheese, Cheddar');
+  await t.click('Cheese, American · 2.4 packs');
+  assert.match(t.doc.body.textContent, /0\.6 cases × 4 packs = 2\.4 packs/);
+  assert.ok(!t.button(/^Add /).disabled);
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'american').qtyUnits), 2.4);
+  assert.equal(t.qa.lines.some(l => l.skuId === 'cheddar'), false);
+}, 'walkin');
+
 // Jon 2026-10-15: "Start a new count" on a resumed count asks once more,
 // naming the shelves the draft holds, before leaving those counts behind.
 await run('resumed count: Start a new count asks once more and Keep this count changes nothing', async t => {
@@ -1824,6 +1852,8 @@ await run('resumed count: Start a new count asks once more and Keep this count c
   await t.click('Keep this count');
   assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
   assert.match(t.doc.body.textContent, /Picked up your count in progress/);
+  // Round-2 review: Keep hands focus back to the link that asked, not the page body.
+  await until(() => t.doc.activeElement?.textContent === 'Start a new count');
   await t.click('Start a new count');
   await t.click('Start new count');
   await until(() => t.qa.calls.some(c => c.method === 'POST' && c.path.endsWith('/counts')));
@@ -1839,6 +1869,10 @@ await run('resumed count: while a take is recording, Keep this count still answe
   assert.ok(startOver?.disabled, 'Start new count waits for the take');
   await t.click('Keep this count');
   assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
+  // The take holds the link disabled, so focus goes to its line, never the page body.
+  await until(() => t.doc.activeElement && t.doc.activeElement !== t.doc.body);
+  const link = t.button('Start a new count');
+  assert.equal(t.doc.activeElement, link.disabled ? t.doc.querySelector('.lq-resumed') : link, 'focus returns to the start-over line');
   assert.equal(t.qa.calls.filter(c => c.method === 'POST' && c.path.endsWith('/counts')).length, 0);
 }, 'existing');
 
