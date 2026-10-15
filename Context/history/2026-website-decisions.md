@@ -3,7 +3,7 @@
 Jon after the first real weekly review (Oct 15): "We need to keep this VERY easy
 to digest and answer to keep participation ... that page when u log in is man a
 lot of wordyness." JV had answered both questions within an hour, in one line
-each. Prepared on branch `feat/labor-review-tldr`; not deployed.
+each. PR #83 (Jon: "ship it"), paired with tprs #415 for the email.
 
 The page opens on the week (`Oct 5–Oct 11`) and the questions, not the numbers.
 A schedule-change question is one card: day and department, the net staff-hour
