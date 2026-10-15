@@ -1,6 +1,9 @@
 # Twisted Pin — SEO & Copy Guidance
 
-A practical reference for building the new website. This file covers **what to rank for**, **how to structure pages around those keywords**, and **how copy should be written for SEO without breaking brand voice**. It pairs with [brand and voice.md](brand%20and%20voice.md) — voice rules still apply; this file is about discoverability.
+A practical reference for building the new website. This file covers **what to rank for**, **how to structure pages around those keywords**, and **how copy should be written for SEO without breaking brand voice**. It pairs with [voice.md](voice.md) — voice rules still apply; this file is about discoverability.
+
+
+Status: historical pre-launch SEO research with later updates. Old metrics, migration suggestions and sample headings are dated inputs, not current positioning or operational truth. The site is live; current decisions win. See voice.md for the maintained brand reference. Do not restore old headlines or unsupported uniqueness.
 
 ---
 
@@ -37,7 +40,7 @@ Build pages and copy to capture these — current site doesn't.
 |---|---|---|
 | `bars near me`, `cocktail bars near me`, `sports bar near me`, `craft cocktails Plainfield` | No dedicated page. Quality Score of 3 on the bar ad group. | `/bar/` or `/cocktails/` page with cocktail menu, mixologist content, tap wall |
 | `event spaces near me`, `party venues near me`, `party rooms for rent` | Generic event searchers aren't thinking "bowling" yet. We surface as a bowling alley. | Lead the events page with **VIP suite & event space** — not bowling |
-| `self serve beer wall near me`, `28 tap beer wall` | We're the only one in the area. Almost no competition. | Page or strong section calling this out — schema + photos |
+| `self serve beer wall near me`, `28 tap beer wall` | Use the 28-tap self-serve experience; broad exclusivity is unsupported. | Page or strong section calling this out — schema + photos |
 | `fundraiser venue`, `bowling fundraiser` | Fundraisers average 65 attendees (highest of any event type). | Sub-page or section under `/group-events/` (or `/fundraiser/` if standalone — see also voice.md re: avoiding `/private-*` slugs) |
 | `things to do Plainfield`, `things to do Naperville`, `date night ideas Plainfield` | Top-of-funnel discovery searches. | Blog content, not landing pages — `/blog/best-date-night-plainfield/` style |
 | Competitor conquest: `Bowlero`, `Lucky Strike`, `Main Event`, `Round 1`, `Dave & Buster's`, `Topgolf` | 4,500+ Main Event searches alone trigger our GBP. Cheap intent. | Comparison content (subtle) + paid Custom Intent — not the website's main job, but supporting blog content helps |
@@ -47,7 +50,7 @@ Build pages and copy to capture these — current site doesn't.
 
 ## Recommended Page Structure (URL & H1)
 
-Every page below should have a clear primary keyword in the H1, the slug, the page title, and the first paragraph. The voice rules from `brand and voice.md` still apply — keyword stuffing is off-brand and Google penalizes it anyway.
+Every page below should have a clear primary keyword in the H1, the slug, the page title, and the first paragraph. The voice rules from `voice.md` still apply — keyword stuffing is off-brand and Google penalizes it anyway.
 
 **Important:** Several of these URLs already exist on the current site and already rank. **Preserve those URLs** on the new build — changing a URL that ranks for "bowling Plainfield" without a 301 redirect costs us traffic. Migration plan in the next section.
 
@@ -161,7 +164,7 @@ Plainfield, IL 60544
 
 ## Copy Guidance for SEO
 
-The voice rules in `brand and voice.md` are the law. SEO doesn't override voice — it informs **what topics each page covers** and **what natural phrasing the page should include**.
+The voice rules in `voice.md` are the law. SEO doesn't override voice — it informs **what topics each page covers** and **what natural phrasing the page should include**.
 
 ### Do
 
@@ -194,7 +197,7 @@ These work because they include search-friendly nouns while staying on-brand:
 - *"Craft cocktails and a 28-tap self-serve beer wall"*
 - *"Corporate event venue near Naperville"*
 - *"Adult birthday parties — done right"*
-- *"VIP bowling suite — the only one in the area"*
+- *"6-lane VIP bowling suite"*
 - *"From-scratch food, not bowling alley food"*
 
 ### Concrete specs to use (these convert and rank)
@@ -203,7 +206,7 @@ Specifics beat adjectives. These are real, verifiable details — use them in co
 
 - **Bowling:** 23 total lanes — 17 traditional + a 6-lane VIP suite
 - **VIP Suite:** 6 lanes, giant LED video wall, AV hookups, 28-tap beer wall access, couch seating, **groups up to 80**
-- **Tap Wall:** 28 self-serve taps, beer & wine, pay by the ounce — **the only self-serve tap wall in the immediate area**
+- **Tap Wall:** 28 self-serve taps, beer & wine, pay by the ounce
 - **Bar:** Craft cocktails curated by **mixologist Brian Van Flandern** (real differentiator — top-tier mixology pedigree)
 - **Arcade:** VR, pinball, ticket games & redemption prizes
 - **Fundraisers:** **50% of bowling, shoe, and arcade revenue** back to the host organization. Schools, churches, community groups. Thursday nights 5–9pm. **Main floor only — fundraisers do not run in the VIP suite.**
@@ -322,7 +325,7 @@ The audit also confirmed several things working well that the new site should pr
 
 Quick context for design and content decisions — full detail in `TWISTED PIN local MR.txt`.
 
-- **Audience:** Women 28–45, $100k+ HH income, often the planner of the group. Books in advance. Researches on Google + Instagram.
+- **Audience:** The adult choosing a night out or organizing an event. The old narrow demographic and always-books-in-advance persona is superseded; use the maintained positioning reference.
 - **Top paid markets:** Naperville (21.6%), Bolingbrook (13.1%), Shorewood (12.6%), Romeoville (10.7%), Oswego (7%), Plainfield (4.9%).
 - **Device:** 90.4% mobile. Build mobile-first or fail.
 - **Peak search/click hours:** 4pm–8pm, with Saturday 6–7pm the single busiest hour. 54% of clicks happen 9am–4pm — people plan from work.

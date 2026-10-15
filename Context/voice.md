@@ -1,323 +1,72 @@
-# Twisted Pin — Brand & Voice
+# Twisted Pin Website Voice and Copy Placement
 
-A reference for web design copy, headlines, CTAs, and any customer-facing language.
+Positioning and reusable language: ../../Twisted Pin Full System/Marketing/Brand/TWISTED-PIN-POSITIONING.md, relative to this Context folder (v1.0, October 14, 2026). This public-safe file owns website placements and practical execution. On a standalone clone, use the essentials below and obtain the current private reference for deeper strategy.
 
----
+## Positioning and voice
 
-## Who We Are (in one line)
+Twisted Pin is Plainfield's night out: a serious cocktail program, a 28-tap self-serve beer and wine wall, from-scratch food, 17 traditional lanes and one 6-lane VIP suite. Keep the bar-led creative direction. Make bowling clear where it answers the guest's intent.
 
-The premier all-in-one entertainment destination for adults — luxury bowling, craft cocktails, gourmet food, state-of-the-art arcade, and a 28-tap self-serve beer & wine wall. Not your average bowling alley.
+Adults-first and family-welcome. Different hours can have different energy; do not invent an age cutoff. Keep the welcome beneath the dry joke. Never lead with family-friendly. Adult quality is the lever; family welcome is the permission slip. The live FAQ answer to “Can I bring my kids?” uses bedtime as the conversational dividing line, not a new age policy.
 
-## Brand Archetype: The Outlaw
+Push the edge, don't play it safe: Jon would rather dial back a strong idea than read safe corporate defaults. Keep the joke inviting, not gross. Short, specific, casually confident, warm and a little irreverent. Put proof in the statement and wit in a natural turn. Challenge the ordinary plan, include the guest in the joke, and use an occasional aside. Practical service answers need clarity before humor. Default actions: Reserve a lane and Plan an event.
 
-We challenge the status quo of what a bowling and entertainment venue is supposed to be. Family-friendly, greasy food, dated decor — that's the old game. We rewrote it for adults who expect more.
+## Approved copy and placement
 
-Tagline guiding principle: **"Built for adults, kids will come."**
+These mirror the maintained reference. Preserve the wording and existing layout capitalization.
 
----
-
-## Voice & Tone
-
-**Confident. Sophisticatedly playful. Slightly edgy.**
-
-Think "hold my balls" attitude — not a bland "let's bowl." We are the stylish rebel inviting you to a better night out. We are premium without being stuffy, fun without being childish, and edgy without being aggressive.
-
-### Tone Sliders
-
-| Dial up | Dial down |
+| Placement | Wording or behavior |
 |---|---|
-| Confident | Apologetic / hedging |
-| Playful | Stiff / corporate |
-| Edgy | Crude / vulgar |
-| Sophisticated | Pretentious / snobby |
-| Inviting | Exclusionary |
-| Direct | Wordy / hype-y |
-
-### How it should feel
-- Like being invited into a sharper, more grown-up version of a night you already know.
-- Like a confident friend who knows the spot and isn't going to oversell it.
-- Like an escape from the ordinary — never the ordinary itself.
-
----
-
-## Words to Use
-
-### Core vocabulary
-- Elevated, premium, luxurious, upscale, sophisticated
-- Crafted, curated, signature, gourmet, artisanal
-- Vibrant, spirited, lively, dynamic
-- Unforgettable, unrivaled, unparalleled, ultimate
-- Escape, break, unleash, redefine, reimagine, disrupt
-- Adults, grown-up, social hub, destination
-- VIP, exclusive (NOT "private" — see Words to Avoid below; the venue has no fully-private spaces, the suite is *semi*-private)
-
-### Action verbs (good for CTAs and headlines)
-- Unleash, Elevate, Discover, Reserve, Claim, Conquer, Tap into
-- Plan, Book, Secure, Experience, Indulge, Savor
-- Break free, Break the routine, Score, Twist
-
-### Phrases that capture the brand
-- "Eat. Play. Unwind."
-- "Game. Bowl. Eat. Drink."
-- "Playtime, elevated."
-- "A new spin on a night out."
-- "Get a little twisted."
-- "Break free from the ordinary."
-- "This isn't your parents' bowling alley."
-- "Built for adults."
-
----
-
-## Words to Avoid
-
-### Generic / flat
-- "Fun for the whole family" (banned as a marketing lead — but the venue IS family-welcome; see the *"Adults-first, group-friendly, family-welcome"* section below). Family-friendliness is a true *fact* about the venue, not a brand angle. Don't deny families; don't market to families either.
-- "Affordable", "cheap", "budget-friendly", "value", "deals", "cheap eats" — **hard ban**, premium positioning. Even on `/free-10` (the coupon page) frame the offer without leaning into discount language.
-- "Bowling alley" as the **primary** descriptor — fine to use the term descriptively (and the brand uses it deliberately in lines like *"This isn't your parents' bowling alley."* and *"Cocktails this serious aren't supposed to live at bowling alleys."*). Just don't lead with it — we're a bar-program-led entertainment destination, not a bowling alley first.
-- "Just" (as in "just bowling", "just come here") — undersells everything
-- "Ultimate dining destination" (misleading — we are way more than dining)
-
-### Factually inaccurate (do not use)
-- **"Private bar"** — there is no private bar. The bar is shared and serves all guests.
-- **"Private space" / "Private event space"** — the venue has no fully-private event space. The only way to get a fully-private experience is to rent the entire facility (full buyout).
-- **"Private" as a generic descriptor for the VIP suite** — the VIP suite is **semi-private**: when reserved, the 6 lanes are exclusive to that group, but the bar / arcade / shared room around them is not. Use **"VIP suite"**, **"take over the suite"**, or **"the suite to your group"** — never "private suite" or "private room."
-
-### Brian Van Flandern relationship — banned framings (per 2026-05-17 ads-launch reframe)
-Brian is a **consultant who curated** the cocktail program. He did some initial staff training. He is **not** staff, **not** an owner, and never on site. Any framing that implies otherwise is a deceptive claim under Google Ads policy and inaccurate on the website.
-
-- ❌ **"Built by [Brian / Top Mixologist]"** — implies he built the venue or the program is his work
-- ❌ **"Designed by [Brian]"** — same risk; "curated" is the precise verb
-- ❌ **"Backed by"** — implies financial stake / equity
-- ❌ **"Partnered with"** — implies ongoing business partnership
-- ❌ **"Headed by" / "Led by" / "Run by"** — implies active operational role
-- ❌ **"Brian Van Flandern presents"** — implies branded / named partnership
-
-✅ **Canonical phrasing:** *"Curated by Brian Van Flandern, America's Top Mixologist (Food Network)."* — or the short form *"Curated by America's Top Mixologist."*
-
-### Chef language — venue has no executive chef
-The kitchen is run by the F&B team, not a named chef. Using chef-language is a deceptive claim under Google Ads policy.
-
-- ❌ **"Chef-driven"** — implies a chef leads the kitchen
-- ❌ **"Chef-inspired"** — same risk, softer form
-- ❌ **"Chef-led"**, **"Chef's [anything]"** — same
-- ❌ **"Executive chef"** as a credential — there isn't one
-
-✅ **Replacements:** *"from-scratch,"* *"built to share,"* *"crafted in-house,"* or describe the food itself.
-
-When framing events / group bookings, the load-bearing accurate phrasing is **"Take over the 6-lane VIP suite"** (echoes the locked Bowl aside *"(yes, you can take it over)"*) plus **"custom catering"**. The suite is takeable; the bar isn't private; full privacy requires a full venue buyout — frame accordingly.
-
-### Off-brand emotional register
-- Saccharine: "magical", "memories you'll cherish forever", "wholesome"
-- Corporate-stiff: "leverage", "synergy", "solutions", "best-in-class"
-- Try-hard hype: "INSANE", "EPIC" (in all caps), "you won't BELIEVE", excessive exclamation points
-- Crude or aggressive: anything that crosses from edgy into rude or alienating
+| Hero eyebrow | None |
+| Homepage headline, two lines | Built for adults. / Fine, bring the kids. |
+| Homepage subhead | Plainfield's premier night out. Bowling optional. |
+| Hero conversion | Sticky bar: Reserve a lane + Plan an event; no extra hero CTA |
+| Approved homepage closing band; not currently placed | You can keep doing dinner-and-a-movie. Or you can do this. |
+| Cocktail long form, desktop | Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist. |
+| Cocktail short form, mobile | Curated by America's Top Mixologist. / (their words, not ours) |
+| Bowl, mobile | 17 traditional lanes plus a 6-lane VIP suite. / (yes, you can take it over) |
+| Bowl, desktop EBG card | 17 lanes plus a 6-lane VIP suite. |
+| Food statement / aside | Real kitchen. / (built to share) |
+| Events statement / invitation | Events That Don't Suck / Take over the suite. Run the night your way. |
+| Arcade aside | (don't pretend you don't want the giant bear) |
 
-### Phrases to retire
-- "Your Ultimate Dining Destination" (current site headline — undersells the bowling, arcade, VIP)
-- "Just COME HERE" (weak, unprofessional CTA)
-- "Yours for the night" (Jon 2026-09-24: "just weird"; website swept 2026-10-12). Use *"the whole suite is yours during your event time"*, and only when the group books all six lanes.
-- Anything that reads as a typical greasy bowling alley ad
+A slash indicates a line break or separate aside. The desktop Bowl wording is an existing layout-specific exception; use the full canonical wording in general prose. The live homepage was promoted May 1, 2026; the desktop cocktail line is active, not reserved.
 
----
-
-## How We Talk About Ourselves
+The tap-wall fact is 28 self-serve taps. The old “only wall in the area” aside is withdrawn as unsupported. The other locked hero lines are unchanged.
 
-### Lead with the differentiators, not the category
-- ✅ "Luxury bowling, craft cocktails, and a 28-tap self-serve wall."
-- ❌ "A bowling alley with a bar."
+## Claims and scope
 
-### Name the specifics — they do the heavy lifting
-- **17 traditional lanes + a 6-lane VIP suite** (canonical phrasing — traditional first, VIP as the upgrade. Use this exact construction)
-- 6-lane VIP suite (only one in the immediate area)
-- 28-tap self-serve beer & wine wall (only one in the immediate area)
-- State-of-the-art arcade
-- Cocktail program — see "Cocktail Credibility" below for credential framing
-- From-scratch food (NOT "chef-inspired" or "chef-driven" — see Words to Avoid)
+- Lanes: 17 traditional lanes plus one 6-lane VIP suite. Suite reservations sell in pairs: 2, 4 or 6.
+- Whole-suite possession applies only to all six and only for the booked event time. Before secured booking: “When you book all six lanes, the whole suite is yours during your event time.”
+- Capacity: up to 80 in the suite and up to 200 for a full-venue buyout. Operational configurations and booking limits still govern.
+- Do not describe the suite, bar or venue as private in guest copy. Use VIP suite, semi-private when useful, or a factual description.
+- Cocktails: “Curated by Brian Van Flandern, America's Top Mixologist (Food Network).” Short: “Curated by America's Top Mixologist.”
+- Brian is a consultant, not staff or an owner. Do not imply availability, partnership, venue endorsement or an appearance. No built/designed/backed/headed/run by Brian. Use his credential only in a cocktail/bar context.
+- Per Se, Thomas Keller and Michelin framing remain retired everywhere on the website, including long-form copy.
+- Food: from-scratch, built to share, or a verified menu detail. No chef-inspired, chef-driven or executive-chef claim. Do not infer zero frozen food, ingredient-level claims or allergy safety.
+- No unsupported uniqueness, guaranteed outcomes, scarcity, age restriction or new offer.
+- Use traditional lanes, named times and event submission instead of main floor, slot/window or build. Use 12-hour times.
+- Cheap, affordable, discount, deals, value and budget-friendly are banned in guest selling copy, not merely as the lead.
 
----
+Guest-facing bans cover selling copy, metadata, schema and alt text. Internal /playbook and guidebook content retains Jon's explicit wording exemption. Historical quotations and rule documentation are not new marketing claims.
 
-## Cocktail Credibility — Brian Van Flandern
+Use the cocktail aside at most once per page. Brian's credential belongs in a cocktail/bar context; it does not belong in generic food, arcade, bowling, event or service-area copy unless the specific subject is the cocktail program. The homepage hero subhead carries the night-out positioning, not his credential.
 
-Our bar program was set up by **Brian Van Flandern** as a consultant, and he's back to retrain the team this summer (2026). He's not staff, not an owner, not a daily presence. The relationship is real and ownable — almost no entertainment venue in the country has it — but the framing matters: he's an external authority who **curated** the program, not part of the house. **"Curated by"** is the canonical verb; **"built by" / "designed by" are banned** (2026-05-17, see Words to Avoid).
+Avery's narrower suite naming, no-em-dash rule, quoting and booking-state rules remain in her own maintained sources. Website guidance does not override them.
 
-### Who he is (in a sentence)
-Brian Van Flandern is named *"America's Top Mixologist"* by Food Network, with cocktails served in 40+ countries.
+## Live information and visual references
 
-### The credential we lead with — and what we retired
-**Lead credential (website primary positioning):** *America's Top Mixologist* (Food Network). That's how he positions himself on his own site (mymixologist.com), it has broader recognition with the target audience than fine-dining names, and it reads as a clear external credential — which reduces any implication that he's on staff or owns the bar.
+Hours: Google Business Profile through /api/hours/. Prices/products/availability: current reservation system. Food, cocktails and taps: current menus. Programs and policies: current records and operational owner. Do not copy seasonal details into an evergreen voice guide.
 
-**Retired for the website (fully — no carve-out):** the Per Se / Thomas Keller / Michelin three-star framing. Reasons:
-1. It borrows more prestige than the consulting relationship warrants.
-2. It pulls the brand toward *fine-dining-with-bowling*, which is not the locked thesis (the thesis is *bar-program-led entertainment venue*).
-3. The Food Network credential does the same conversion job with less risk.
+Use PLAN_EVENT_URL for website event actions. Long-form public references link /events/ rather than hardcoding an external platform. Follow Website/CLAUDE.md.
 
-The Per Se anchor does not appear anywhere on the website — not in primary positioning, not in headlines, not in hero copy, and **not in long-form body copy on `/craft-bar/` or `/bar/`** (the earlier "long-form OK" carve-out was retired 2026-05-03). The Food Network credential carries the full credential weight on its own.
+Use brand-guidelines.md for the original identity roster and visual-direction.md plus Website/CLAUDE.md for web application. Neither Branding5 report nor a retired generated package supplies a new identity.
 
-### How to use the name in copy
-Lead with the credential, not the personality. Direct, factual, slightly understated reads stronger than clever. Avoid "cute" framings (drink-as-device, wink phrasing) — they undercut the credential.
+## Superseded guidance
 
-When citing the Food Network credential as a self-applied label, the *"(Their words, not ours.)"* parenthetical does double duty: it disclaims the boast on our behalf, and it sources the line to him without naming him. Use sparingly — once per page max.
+The governing Outlaw archetype, luxury word bank, narrow Experience-Seeking Socializer demographics, “Built for adults, kids will come,” alternative tagline lists and unsupported “only” claims no longer govern. They remain in Git history and labeled research.
 
-✅ Approved homepage / craft-bar lines (primary positioning)
-- *"Curated by America's Top Mixologist. (Their words, not ours.)"*
-- *"A craft cocktail program curated by America's Top Mixologist."*
-- *"The bar program was curated by the consulting mixologist Food Network calls America's Top Mixologist."*
-- *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — full credential line for cocktail/bar long-form
+“The bar that bowls,” “yours for the night” and retired Brian/chef constructions stay retired. GAME · BOWL · EAT · DRINK remains part of supplied logo artwork, not the strategic headline for every piece.
 
-✅ Long-form (/bar body copy)
-Use the *America's Top Mixologist (Food Network) + 40+ countries* anchor as the credential, plus the consulting-relationship framing (**curated** the program, not staff, retraining team this summer). **Do not include Per Se, Thomas Keller, or Michelin three-star anywhere** — even in long-form body copy. Retired 2026-05-03 with no carve-out.
+## Copy check
 
-❌ Retired / off-brand
-- *"The mixologist behind Thomas Keller's Per Se built our bar."* (Per Se framing retired for primary positioning — pulls toward fine-dining, overstates the relationship)
-- *"Cocktails by Brian Van Flandern — Michelin three-star mixologist, Per Se."* (same)
-- *"Your old fashioned, by way of Per Se."* (drink-as-device wink + Per Se framing — both retired)
-- *"The famous Brian Van Flandern!"* (undersells the credential, reads as celebrity-chef gimmick)
-
-❌ Avoid
-- Name-dropping him in non-cocktail copy
-- Implying he's staff, on-site daily, an owner, or part of the house
-- Burying the credential — the credential does the heavy lifting, not the name
-
-### Where he belongs
-- **Homepage** — once, in a bar/cocktail spot. Hero subhead carries the credential ("America's Top Mixologist") in the locked line; he's not named in the hero itself.
-- **/bar/** — anchor credential of the page. Long-form context here uses the Food Network credential and the consulting-relationship framing only (no Per Se / Keller / Michelin per 2026-05-03 retirement).
-- **/vip-suite/** — mention as part of *"the bar program in the VIP suite is the same one curated by…"*
-- **Cocktail menu / drink descriptions** — sparingly; let the menu itself carry the design
-- **Press / about** — the long version
-
-### Where he does *not* belong
-- Bowling, arcade, food, events copy (unless it's a cocktail-tasting event specifically)
-- Service-area pages (unless the angle is specifically the cocktail bar)
-- Generic taglines
-
-### Adults-first, family-welcome — segmented by hour, not by audience
-
-The venue self-segments by hour. Saturday at 6pm is family-dinner-and-bowling. Saturday at 11pm is friends-and-cocktails. **Same room, different night.** The adult is always the chooser — but the choice is easier when the parent knows the kid will ask to come back.
-
-**The frame to write toward:**
-- **Adult-quality is the *lever*** — the reason to choose us over Chuck E. Cheese, Bowlero, D&B. Lead copy with it.
-- **Family-welcome is the *permission slip*** — the reason it's OK to bring the kids. Don't bury it; don't lean on it either.
-- We don't have to choose. **Don't write "family-friendly" as a lead noun. Don't write copy that implies kids aren't welcome.** Both fail differently.
-- **The 1am close is a positioning asset**, not just an ops fact. It signals adult time exists, which is what gives family time permission to exist without contradiction.
-
-The voice this supports: warm-but-not-grudging when kids come up, plainspoken about hours, never preachy. *"Fine, bring the kids"* is the locked register — concessive on the surface, genuinely welcoming underneath. The FAQ entry on *"Can I bring my kids?"* is the canonical long-form answer: bedtime as the dividing line, not age.
-
-(The previous *"in that order"* formulation — adults-first, group-friendly, family-welcome — read as a grudging hierarchy. The reality is **co-equal modes segmented by time**, with the adult as the consistent decision-maker across both.)
-
----
-
-## Audience We're Writing For
-
-**The Experience-Seeking Socializer** — 28–45, $100k+ household income, urban/affluent suburban. They are the planner of the group. They've done dinner-and-a-movie too many times. They research on Google and Instagram, book in advance, and pay for quality.
-
-What they want to hear:
-- This solves the "where do we go that everyone will like?" problem
-- The food and drinks are actually good
-- It's premium, but not stuffy or intimidating
-- Booking is easy
-
-What turns them off:
-- Anything that screams kids' birthday party
-- Cheap-looking deals and discount-driven copy
-- Generic "fun for everyone" language that says nothing
-
----
-
-## CTAs — Style Guide
-
-**Strong CTAs for us:**
-- Reserve a Lane / Reserve Your Night
-- Plan an Event / Plan Your Escape
-- Book Your Experience
-- Inquire About Events
-- Tap Into the Night
-
-**CTAs to avoid:**
-- "Click here", "Learn more" (lazy)
-- "Just come in", "Stop by sometime" (weak)
-- Anything begging or apologetic
-
-Pair a CTA with a benefit or hook when possible: *"Reserve the VIP suite — only one in the area."*
-
----
-
-## Locked Lines (Approved)
-
-These have been approved for use in their specified slots. Use as-written.
-
-| Slot | Line |
-|---|---|
-| Hero eyebrow (homepage `/`) | None — eyebrow retired from the live hero. |
-| Hero headline (homepage, two lines) | *Built for adults.* / *Fine, bring the kids.* |
-| Hero subhead (homepage `/`) | *Plainfield's premier night out. Bowling optional.* |
-| Hero CTA (primary) | None — sticky bar carries all hero conversion (*Reserve a lane* + *Plan an event*) |
-| Closing band (homepage, before footer) | *You can keep doing dinner-and-a-movie. Or you can do this.* |
-
-The live `/` hero matches the `/snap-test/` snap 1 hero exactly — the eyebrow + stat-trio variant was retired on 2026-05-01 in favor of the simpler positioning line. The deprecated entries are listed under "Deprecated copy" below.
-
-The closing-band line carries the spiciest attitude on the site — confident, slightly dry, indicts the alternative without punching down. Don't dilute it. The hero headline carries the second spiciest — *"Fine, bring the kids."* is the concessive punchline; never water down the second line.
-
-### 8-snap homepage architecture (staging — `/snap-test/`)
-
-Architecture is locked; copy is in pressure-testing on `/snap-test/`. Promotion to `/` happens after staging review.
-
-| # | Title | Subhead (statement) | Aside (parenthetical) |
-|---|---|---|---|
-| 1 | (Hero — see below) | *Plainfield's premier night out. Bowling optional.* | — |
-| 2 | *Events That Don't Suck* | *Take over the suite. Run the night your way.* | — |
-| 3 | *The Tap Wall* | *28 self-serve taps* | *(only wall in the area)* |
-| 4 | *Craft Cocktails* | *Curated by America's Top Mixologist.* | *(their words, not ours)* |
-| 5 | *Eat* | *Real kitchen.* | *(built to share)* |
-| 6 | *Bowl* | *17 traditional lanes plus a 6-lane VIP suite.* | *(yes, you can take it over)* |
-| 7 | *Game* | *Skee-ball, redemption, jackpot.* | *(don't pretend you don't want the giant bear)* |
-| 8 | *Find Us* | (utility footer — hours, address, contact, social, copyright) | — |
-
-**Snap 1 hero on `/snap-test/`** uses a simplified subhead — *"Plainfield's premier night out. Bowling optional."* — and drops both the *PLAINFIELD, IL* eyebrow and the stat-trio. The live homepage hero (`/`) was promoted to match this on 2026-05-01.
-
-**Snap 4** uses the short variant of the cocktail credential — *"Curated by America's Top Mixologist." (their words, not ours)*. The long-form variant — *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — is now active for the desktop track only (see desktop-track copy below); it was previously reserved.
-
-**Pattern (snaps 3–7) — "statement / (aside)":** the statement is a confident one-liner; the aside is a smaller, dimmer parenthetical that adds attitude or specificity. Visually, the aside is one drop below the statement (warm-dim color, ~0.9em). Implemented via the `subheadParen` prop on the SnapStub component. The aside is voicy-by-design — it carries the playful register; the statement carries the data.
-
-**Snap 6 lane phrasing**: keeps the canonical *"17 traditional lanes + a 6-lane VIP suite"* construction in the statement (*"17 traditional lanes plus a 6-lane VIP suite."*). The aside *(yes, you can take it over)* foreshadows the "Take over the suite" beat from snap 2. **Note:** desktop EBG card uses a tighter no-aside variant — see "Desktop track copy" below.
-
-### Desktop track copy (`/snap-test/` desktop ≥1025px)
-
-The desktop track diverges from mobile in two beats — Bowl and Cocktails. Mobile snaps stay locked as-is; these are the desktop-only variants.
-
-| Slot | Line |
-|---|---|
-| Cocktails (desktop section 3, 50/50 split) — full credential | *Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist.* |
-| Bowl (desktop EBG row card) — tighter, no aside | *17 lanes plus a 6-lane VIP suite.* |
-
-**Why two Bowl variants:** mobile snap 6 has a full viewport-tall slot, so the *(yes, you can take it over)* aside earns its space and foreshadows the Events / "Take over the suite" beat. The desktop EBG card lives in a 33%-width column inside a 3-card row — there's no room for the aside, and trying to keep it produces ugly wraps. The card drops the aside and tightens the data line; the VIP differentiator is preserved (*"plus a 6-lane VIP suite."*) so the card doesn't quietly revert to Bowlero positioning.
-
-**Why the Cocktails long-form on desktop:** the line was reserved for "a future cocktail/bar section on `/` that has more room than the snap-test stub." The desktop 50/50 split (≥640px copy column) IS that room. Mobile snap 4 stays terse because a snap-stub doesn't have the breathing space for two-sentence copy.
-
-### Reserved copy (held for specific future slots)
-
-These lines are written, approved, and waiting for their slot to be built. **Don't pre-spend them elsewhere.**
-
-*(No copy currently reserved.)*
-
-The Cocktails long-form variant — current canonical *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — was previously reserved for a future cocktail/bar section on `/`. It was promoted on 2026-05-02 to active use on the `/snap-test/` desktop section 3 (the 50/50 split). The short variant — *"Curated by America's Top Mixologist. (Their words, not ours.)"* — remains in use on mobile snap 4. See "Desktop track copy" above for the dual-variant rationale. (Both lines previously used "Built by" — retired 2026-05-17 per ads-launch reframe.)
-
-### Deprecated copy (do not use)
-- *"The bar that bowls."* — retired. Reads as a tagline competing with the headline.
-- *"Built for adults. Kids will come."* — superseded by *"Built for adults. Fine, bring the kids."* The Field-of-Dreams reference was traded for a concessive register.
-- ***"Built by [X]" / "Designed by [X]" — entire constructions retired** as of 2026-05-17.* Replaced by **"Curated by [X]"** everywhere — see "Brian Van Flandern relationship — banned framings" in Words to Avoid. The historical context for the hero-subhead retirement (2026-04-30, the "built by carried through from headline" issue) still stands; the broader ban supersedes it. Old form *"Built by America's Top Mixologist. (Their words, not ours.)"* is now *"Curated by America's Top Mixologist. (Their words, not ours.)"*.
-- ***"Chef-inspired" / "Chef-driven" / any chef-language** — entire family retired* as of 2026-05-17. Venue has no executive chef; chef-language is a deceptive claim under Google Ads policy. Replacements: *"from-scratch,"* *"real kitchen,"* *"built to share,"* or describe the food itself. Old snap 5 line *"Chef-inspired menu. (built to share)"* is now *"Real kitchen. (built to share)"* on the homepage; pillar `/eat` uses *"from-scratch menu"* in long-form body copy.
-- *PLAINFIELD, IL* (hero eyebrow) and the hero stat-trio subhead — retired from the live `/` hero on 2026-05-01 when the live page was promoted to match the `/snap-test/` simplified hero. Replaced by *"Plainfield's premier night out. Bowling optional."* and no eyebrow.
-- *"A chef-inspired menu. From the bar program out."* — drafted and discarded as the snap 5 (Eat) subhead on `/snap-test/`. Reads weird because it ties the food back to the bar instead of speaking to the food itself. (Both phrasings are now also retired under the chef-language ban above.)
-- *"Skee-ball, redemption, and the jackpot machine you came for."* — drafted and discarded as the snap 7 subhead. Specific machine claims weren't verified. Replaced by *"Skee-ball, redemption, jackpot. (don't pretend you don't want the giant bear)"* — three-beat statement + voicy aside.
-
-For cocktail credibility lines, see the "Cocktail Credibility — Brian Van Flandern" section above.
-
----
-
-## Quick Copy Test
-
-Before publishing any line, ask:
-1. Would the Experience-Seeking Socializer read this and think *yes, that's for me*?
-2. Does it sound confident — not desperate, not corporate, not childish?
-3. Does it lead with what makes us different (premium, adult-first, all-in-one) — not the generic category?
-4. Could a Main Event or Lucky Strike write the exact same line? If yes, rewrite it.
+Does this answer the guest's decision? Is the proof true and current? Does the joke include the guest? Is the action clear? Does a distinctive headline sound like Twisted Pin? Plain utility labels do not need to be unique.

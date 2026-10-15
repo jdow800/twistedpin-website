@@ -105,7 +105,7 @@ export const BEERWALL_VIDEO: VideoEntry = {
   slug: "beerwall",
   name: "The 28-Tap Self-Serve Wall",
   description:
-    "The 28-tap self-serve beer and wine wall at Twisted Pin in Plainfield, IL — the only one in the immediate area. Bowling-pin tap handles, the live tap list, a guest pouring their own by the ounce, and the bar beyond it.",
+    "The 28-tap self-serve beer and wine wall at Twisted Pin in Plainfield, IL. Bowling-pin tap handles, the live tap list, a guest pouring their own by the ounce, and the bar beyond it.",
   thumbnailPath: "/snap/beerwall-poster.avif",
   contentPath: "/snap/beerwall-mobile-h264-1080.mp4",
   // 10.47s actual, floored. Source swapped 2026-07-20 to the produced

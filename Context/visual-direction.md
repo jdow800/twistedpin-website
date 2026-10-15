@@ -2,6 +2,9 @@
 
 The web look-and-feel reference. Pairs with `brand-guidelines.md` (logo, lockups, typography names) and `voice.md` (copy, tone). This file overrides the original *"vivid celebration of the night and neon lights"* brief — see "What Changed" below.
 
+
+For positioning and voice, use the maintained business reference linked from voice.md. This file owns web visual application.
+
 ---
 
 ## What Changed (Deprecated Brief)
@@ -10,7 +13,7 @@ The original Twisted Pin brand guidelines describe a *"vivid celebration of the 
 
 We've drifted toward something **moodier and more neutral**: dark/saturated backgrounds, warm wood and copper accents, photo-led layouts, bold display typography, generous negative space. Closer to a contemporary cocktail bar / chophouse than a neon arcade. The accent colors from the brand palette still appear, but as *strikes* — not the foundation.
 
-Why: the audience (Experience-Seeking Socializer, planning the night) reads neon-and-glow as "Bowlero." Reading moody-and-confident is what reads as premium and adult-first.
+The established web direction emphasizes the bar program and adult quality through photography, typography and space. This is a design rationale, not a measured claim about a demographic persona.
 
 The brand-guidelines color hex values themselves still hold (Midnight Indigo, Nautical Blue, etc.). What's changed is **how much real estate they get** and **how often the accents appear**.
 
@@ -28,8 +31,8 @@ Adjective shorthand: *moody, editorial, photo-forward, type-led, confident.*
 
 **Twisted Pin is a bar-program-led venue.** Two cornerstone differentiators carry equal weight on the homepage:
 
-1. **A craft cocktail program curated by Brian Van Flandern** — named *America's Top Mixologist* by Food Network, with cocktails served in 40+ countries. One of the highest-level cocktail programs in the area. (Per Se / Thomas Keller / Michelin three-star framing retired 2026-05-03 — see voice.md.) "Built by" / "Designed by" framings retired 2026-05-17; "Curated by" is canonical.
-2. **The 28-tap self-serve beer & wine wall** — unique in our immediate market.
+1. **A craft cocktail program curated by Brian Van Flandern** — named *America's Top Mixologist* by Food Network, with cocktails served in 40+ countries. (Per Se / Thomas Keller / Michelin three-star framing retired 2026-05-03 — see voice.md.) "Built by" / "Designed by" framings retired 2026-05-17; "Curated by" is canonical.
+2. **The 28-tap self-serve beer & wine wall** — use the actual tap count without unsupported exclusivity.
 
 The bowling experience exists, but it isn't the lead. **When bowling shows up on the homepage, it's the VIP suite specifically** — that's the actual differentiator vs Bowlero / Lucky Strike, not "we have lanes." Traditional lanes get acknowledged lower on the page, not in the hero.
 
