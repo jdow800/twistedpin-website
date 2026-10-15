@@ -1,3 +1,42 @@
+## 2026-10-15 - Labor review page: questions first, one box, one Save
+
+Jon after the first real weekly review (Oct 15): "We need to keep this VERY easy
+to digest and answer to keep participation ... that page when u log in is man a
+lot of wordyness." JV had answered both questions within an hour, in one line
+each. Prepared on branch `feat/labor-review-tldr`; not deployed.
+
+The page opens on the week (`Oct 5–Oct 11`) and the questions, not the numbers.
+A schedule-change question is one card: day and department, the net staff-hour
+change, a small Time / AI draft / Published table of every changed period (the
+same department-coverage comparison TPRS asks about, `draft-change.ts`), "Why
+the change?" and Save. Whole crews sit behind "Full shifts". Save keeps the
+published coverage (`keep`); "Ask Jon instead" (`ask_owner`, the existing owner
+alert) and "Comparison looks wrong" (`data_wrong`) save the same note with the
+other two meanings. The context chips, the five decision radios, the optional
+next-step fields and the "Does this sound right?" confirm screen are gone from
+this card; Undo replaces the confirm step. The weekend-rush card keeps its
+answers (crew outcome, pressure, manager help, anticipation, note) but opens
+ready to answer and saves in one step.
+
+The week's numbers follow: the percentage, "$X labor on $Y building sales", one
+provisional line, one bar per day and the daily dollar table, shown rather than
+tucked under a tap (Jon on the preview: "I like the table - visual elements are
+good"). The highest-hourly-share ranking, its caveat paragraph, the
+intro copy, the progress tile, the upcoming-schedule notice, the "Saved
+scheduling context" section for forward reviews and the footer line are
+removed. "How it's measured" keeps the definitions and source checks. The week
+picker moved to the bottom ("Other weeks"). Withdrawn and legacy questions
+keep the existing generic card.
+
+Validation: the Oct 15 review rebuilt from production read-only data renders at
+320/390/1280 with no overflow (5.1 phone screens to 2.8); a mocked-API
+browser run saves a note, saves as a question for Jon, undoes and reaches
+"All answered. Thanks!". Updated offline checks: forward feedback (19, one new
+change-card check), provisional (6), demand surprise (7) and the service browser
+QA (13 checks). Production build passes; targeted TypeScript shows no labor
+errors beyond the existing `import.meta.env` typing gap. No production login,
+answer, email or deployment.
+
 ## 2026-10-14 - Maintained brand reference and retired legacy voice
 
 Jon requested the maintained Twisted Pin guide and cleanup of old remnants. The private business reference owns positioning and reusable language. voice.md retains public-safe essentials and placements; original visual references keep their scopes. Removed the legacy archetype/persona/luxury word bank, reconciled reserved-copy notes, marked pre-launch SEO research historical, and withdrew unsupported regional tap-wall exclusivity from guest-copy pages, metadata and the public video description, including location/menu pages. Existing hero lines, visual design and booking behavior are preserved. The approved dinner-and-a-movie closing line is recorded as unplaced; this cleanup does not add it to the site. Changing public facts link to their current pages. No Avery runtime change.

@@ -24,7 +24,31 @@ for(const status of ['held','unavailable'])test(`${status} publication never cla
 test('held comparison preserves answer path and counts for old questions',()=>{const r=fixture();r.packet.forwardFeedback.status='held';r.forwardOutstandingCount=2;r.pendingReviewsStatus=[pending];const p=reviewProgress(r);assert.equal(p.heading,'Questions to review');assert.equal(p.pending.length,1);assert.equal(p.comparisonPending,true);});
 test('legacy previous review remains supported',()=>{const r=fixture();delete r.packet.forwardFeedback;r.previousReviewStatus=pending;assert.equal(reviewProgress(r).awaiting,2);assert.equal(reviewProgress(r).pending[0].id,'older');});
 test('report-only review does not ask for responses',()=>{const r=fixture();delete r.packet.forwardFeedback;r.packet.mode='report';assert.equal(reviewProgress(r).heading,'No questions to answer');});
-test('forward card shows complete original and published crew before the answer',async()=>{
+test('Oct15 change card: every changed time, whole crews one tap away, one note and Save',async()=>{
+ const server=await createServer({configFile:false,optimizeDeps:{noDiscovery:true,include:[]},esbuild:{jsx:'automatic'},server:{middlewareMode:true},logLevel:'error'});
+ try{
+  const {default:Card}=await server.ssrLoadModule('/src/components/labor/DraftChangeQuestion.tsx');
+  const shift=(sourceRole,startMinute,endMinute)=>({role:sourceRole,sourceRole,startMinute,endMinute});
+  // Shape of the first real forward question (Sunday Oct 25 kitchen); everything else synthetic.
+  const draftChange={comparisonKey:'a'.repeat(64),department:'kitchen',date:'2026-10-25',draft:{week:'2026-10-20',origin:'2026-10-12',version:1,sha256:'b'.repeat(64)},published:{retrievedAt:'2026-10-15T16:00:28.275Z',snapshotSha256:'c'.repeat(64),publicationStatus:'published',paginationComplete:true},
+   original:[shift('Kitchen lead',690,930),shift('Cook',720,960),shift('Kitchen lead',930,1320),shift('Cook',960,1260),shift('Cook',960,1260)],
+   scheduled:[shift('Kitchen Lead',690,930),shift('Cook',720,960),shift('Cook',930,1320),shift('Cook',930,1320),shift('Cook',960,1260),shift('Cook',960,1260)],
+   addedPersonMinutes:390,removedPersonMinutes:0,netPersonMinutes:390,changedRolePersonMinutes:1170,attendanceStatus:'unknown',operationalOutcomeStatus:'unknown',payrollEffectCents:null};
+  const question={id:'draft-change-demo',date:'2026-10-25',title:'Kitchen: AI draft versus your published schedule',prompt:'Stored long prompt: What operating reason explains this coverage change?',kind:'data_check',followUpDate:'2026-10-22',revision:0,response:null,canUndo:false,history:[],sources:['Synthetic fixture only'],evidence:['Original whole department: synthetic'],draftChange};
+  const render=q=>renderToStaticMarkup(createElement(Card,{number:1,question:q,review:fixture(),onSaved:()=>assert.fail('Rendering must not save')}));
+  const html=render(question);
+  assert.match(html,/Sun, Oct 25 · Kitchen/);assert.match(html,/\+6\.5 staff hours vs the AI draft/);
+  for(const row of ['3:30pm–4pm</th><td>2</td><td>3','4pm–9pm</th><td>3</td><td>4','9pm–10pm</th><td>1</td><td>2'])assert.ok(html.includes(row),row);
+  assert.match(html,/<summary>Full shifts<\/summary>/);
+  assert.ok(html.indexOf('Kitchen lead 3:30pm–10pm')>0&&html.indexOf('Kitchen lead 3:30pm–10pm')<html.indexOf('Why the change?'));
+  assert.ok(html.indexOf('Cook 3:30pm–10pm')>0&&html.indexOf('Cook 3:30pm–10pm')<html.indexOf('Why the change?'));
+  assert.match(html,/<textarea[^>]*required/);assert.match(html,/>Save<\/button>/);assert.match(html,/Ask Jon instead/);assert.match(html,/Comparison looks wrong/);
+  assert.doesNotMatch(html,/type="radio"|Stored long prompt|What operating reason|Nothing is saved until you confirm|Add context/);
+  const saved=render({...question,revision:1,canUndo:true,response:{decision:'ask_owner',context:[],note:'Kids are off school Monday.',action:'',followUpDate:'2026-10-22',outcome:'',status:'follow_up'}});
+  assert.match(saved,/Saved · sent to Jon/);assert.match(saved,/Kids are off school Monday\./);assert.match(saved,/>Edit<\/button>/);assert.match(saved,/>Undo<\/button>/);assert.doesNotMatch(saved,/<textarea/);
+ }finally{await server.close();}
+});
+test('the generic card (now used for withdrawn and legacy questions) keeps the whole crew and history',async()=>{
  const server=await createServer({configFile:false,optimizeDeps:{noDiscovery:true,include:[]},esbuild:{jsx:'automatic'},server:{middlewareMode:true},logLevel:'error'});
  try{
   const {Question}=await server.ssrLoadModule('/src/components/labor/ReviewPilot.tsx');
