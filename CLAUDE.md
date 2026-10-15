@@ -4,6 +4,9 @@ Astro marketing site for **twistedpin.com**, live since 2026-05-17. It also carr
 **Deploy:** direct-to-main push → Vercel auto-deploys to production. No staging cushion; copy, schema and perf changes ship straight to real traffic. The 18+ production 301s in `vercel.json` are load-bearing for real traffic.
 Shared context for every repo under `dev\` lives in `../CLAUDE.md` — read that first. **Voice rules and wording bans live in `../CLAUDE.md` and `Context/voice.md`.**
 
+
+Positioning and reusable language: ../Twisted Pin Full System/Marketing/Brand/TWISTED-PIN-POSITIONING.md (v1.0). Context/voice.md owns website placements; original visual references retain their scope.
+
 ---
 
 ## Context Files (the brief)
@@ -12,7 +15,7 @@ All context lives in `Context/`. Read all eight for any meaningful work.
 
 | File | What it owns |
 |---|---|
-| **`Context/voice.md`** | Voice, tone, words to use / avoid, locked headline copy, Brian Van Flandern credential lines |
+| **`Context/voice.md`** | Website voice essentials, Claims and scope, approved-copy placements; maintained reference owns positioning |
 | **`Context/visual-direction.md`** | Web visual thesis (current). Color usage, typography application, photo direction, hero specs. Overrides the original neon brief. |
 | **`Context/brand-guidelines.md`** | Logo system, typography roster, hex values, "the Pin" / Formation marks. Mood description partially deprecated (see header note); everything else is authoritative. |
 | **`Context/seo.md`** | Keywords, page structure, URL migration plan, page-speed targets, meta requirements |
@@ -40,9 +43,9 @@ Pointers (plain paths, never `@` imports — imports load eagerly at launch):
 
 ## Refined Thesis (load-bearing)
 
-**Twisted Pin is a bar-program-led venue.** The website sells the bar, not the bowling alley. Two cornerstone differentiators carry equal weight: a craft cocktail program **curated by *America's Top Mixologist*** (Food Network — Brian Van Flandern, a consultant, not staff or owner; Per Se / Keller / Michelin three-star framing is **fully retired** site-wide), and **the 28-tap self-serve beer & wine wall**, unique in our immediate market.
+**Twisted Pin is a bar-program-led venue.** The website sells the bar, not the bowling alley. Two cornerstone differentiators carry equal weight: a craft cocktail program **curated by *America's Top Mixologist*** (Food Network — Brian Van Flandern, a consultant, not staff or owner; Per Se / Keller / Michelin three-star framing is **fully retired** site-wide), and **the 28-tap self-serve beer & wine wall**.
 The bowling experience exists, but it isn't the lead. **When bowling shows up on the homepage, it's the VIP suite specifically** — that's the actual differentiator vs Bowlero / Lucky Strike, not "we have lanes." Traditional lanes get acknowledged lower on the page.
-**Adults-first, family-welcome — segmented by hour, not by audience.** Saturday at 6pm is family-dinner-and-bowling; Saturday at 11pm is friends-and-cocktails. Same room, different night. Adult-quality is the *lever*, family-welcome the *permission slip*; the 1am close is the structural signal that adult time exists. Full rule in `Context/voice.md`.
+**Adults-first, family-welcome — segmented by hour, not by audience.** Saturday at 6pm is family-dinner-and-bowling; Saturday at 11pm is friends-and-cocktails. Same room, different night. Adult-quality is the *lever*, family-welcome the *permission slip*; the 1am close is the structural signal that adult time exists. Full positioning rule: maintained brand reference section 3; website execution is in Context/voice.md.
 
 ---
 
@@ -86,8 +89,8 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 | Coupon banner | Retired (built and removed same-day). Coupon reaches users via MORE dropdown (`/coupon/`, label "Coupon") + footer. Renamed from legacy `/free-10` 2026-05-04 — old URL gets a 301 to `/coupon` at launch. |
 | Visual mood | Moody/neutral, dark backgrounds, warm wood + copper accents, photo-led, bold display type. *Not* neon. |
 | Bowling positioning | VIP suite is the bowling shot on the homepage. Traditional lanes acknowledged lower. |
-| Reserved copy (cocktail/bar section H2) | Short: *"Curated by America's Top Mixologist. (Their words, not ours.)"* · Full: *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — held for the future cocktail/bar block. Don't pre-spend. (Earlier "Built by" form retired 2026-05-17 — see Decisions Log.) |
-| Deprecated copy | *"The bar that bowls."* (retired) · *"Built for adults. Kids will come."* (superseded by *"Fine, bring the kids."*) · *"Built by [X]" / "Designed by [X]"* — entire constructions retired 2026-05-17 across the site; replaced everywhere by *"Curated by [X]"* (Brian is a consultant, not staff/owner — see voice.md Words to Avoid) · *"Chef-inspired" / "Chef-driven"* — entire family retired 2026-05-17 (venue has no executive chef); replacements: *"from-scratch,"* *"built to share,"* or describe the food itself. |
+| Cocktail copy status | Both short and full variants are active; see Context/voice.md for placements. |
+| Deprecated copy | *"The bar that bowls."* (retired) · *"Built for adults. Kids will come."* (superseded by *"Fine, bring the kids."*) · *"Built by [X]" / "Designed by [X]"* — entire constructions retired 2026-05-17 across the site; replaced everywhere by *"Curated by [X]"* (Brian is a consultant, not staff/owner — see voice.md Claims and scope) · *"Chef-inspired" / "Chef-driven"* — entire family retired 2026-05-17 (venue has no executive chef); replacements: *"from-scratch,"* *"built to share,"* or describe the food itself. |
 | Desktop section architecture (`/snap-test/`) | Parallel mobile/desktop tracks via `display: none/flex` swap at 1025px. Mobile retains 8-snap track exactly. Desktop renders Hero (100dvh) → Tap Wall (70vh, split) → Cocktails (70vh, split, alternates) → Events (60vh, full-bleed) → EBG (70vh, gated on stills) → Footer. Reveal motion: `[data-reveal]` fade-up 12px / 450ms via IntersectionObserver + window/.snap scroll fallback. |
 | Bowl copy (two variants) | Mobile snap 6: *"17 traditional lanes plus a 6-lane VIP suite. (yes, you can take it over)"* — VIP-leading with aside. Desktop EBG card: *"17 lanes plus a 6-lane VIP suite."* — tighter, no aside, VIP differentiator preserved. |
 | Cocktails copy (two variants) | Mobile snap 4: *"Curated by America's Top Mixologist. (their words, not ours)"* — terse, fits stub. Desktop section 3 (50/50 split): *"Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist."* — long-form. (Both variants used "Built by" until 2026-05-17 — see Decisions Log.) |

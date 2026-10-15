@@ -1,3 +1,7 @@
+## 2026-10-14 - Maintained brand reference and retired legacy voice
+
+Jon requested the maintained Twisted Pin guide and cleanup of old remnants. The private business reference owns positioning and reusable language. voice.md retains public-safe essentials and placements; original visual references keep their scopes. Removed the legacy archetype/persona/luxury word bank, reconciled reserved-copy notes, marked pre-launch SEO research historical, and withdrew unsupported regional tap-wall exclusivity from guest-copy pages, metadata and the public video description, including location/menu pages. Existing hero lines, visual design and booking behavior are preserved. The approved dinner-and-a-movie closing line is recorded as unplaced; this cleanup does not add it to the site. Changing public facts link to their current pages. No Avery runtime change.
+
 ## 2026-10-14 - Labor estimates identify unapproved time entries
 
 Prepared locally for the coordinated labor-source release; not deployed. The

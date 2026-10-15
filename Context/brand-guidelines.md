@@ -2,6 +2,9 @@
 
 *Source: Twisted Pin Brand Guidelines, May 2024*
 
+
+Positioning and reusable language live in the business reference linked from voice.md. This original file owns identity artwork, palette and typography. The supplied logo tagline is not a replacement homepage headline.
+
 ---
 
 > ⚠️ **Partial deprecation notice (web only).**
@@ -9,9 +12,9 @@
 
 ---
 
-## Brand Positioning
+## Original Logo Tagline
 
-**Tagline:** `GAME · BOWL · EAT · DRINK`
+**Supplied logo tagline:** `GAME · BOWL · EAT · DRINK`
 
 ---
 
@@ -81,7 +84,7 @@ All brand fonts are available free at **fonts.adobe.com** with a Creative Cloud 
 ### Logo + Custom Sub-text Rules
 When pairing the wordmark with custom text (location, sub-brand, etc.):
 1. **Vertical spacing:** Maintain a clear distance from the bottom of the wordmark to the top of a capital W in your text.
-2. **Width constraint:** Confine your custom text to the width of the word "Paddle" in the wordmark.
+2. **Custom width:** Use the supplied lockup or verify the original artwork before creating custom sub-text. The former extraction named a word absent from this logo and is not a usable measurement.
 
 If using the standard tagline, always use the provided lockup files — do not recreate.
 
