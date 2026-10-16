@@ -2,14 +2,16 @@ import { useId, useState } from "react";
 import type { BarSkuItem } from "./api";
 import FoodNumberInput from "./FoodNumberInput";
 import { foodSearchMatch } from "./FoodReviewCountRow";
-import { foodQuantityFieldsToConfirm, foodReadingAmount, foodRestateAmount, foodReviewQuantity, foodUnitLabel, foodUnitSizeAnswered, foodUnitSizeQuestion, type FoodReviewItem } from "./food-voice-review";
+import { foodHeardAmount, foodQuantityFieldsToConfirm, foodReadingAmount, foodRestateAmount, foodReviewQuantity, foodUnitLabel, foodUnitSizeAnswered, foodUnitSizeQuestion, type FoodReviewItem } from "./food-voice-review";
 import { formatQty } from "./quantity";
 import FoodCountRecovery, { type FoodCountChoice } from "./FoodCountRecovery";
 
 export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, concern, blockedReason, onEdit, onChoose, onQuantity, onUnit, onCaseSize, onDiscard, enteredCounts, countLocation, onUseEntered, restate, onRestate }: {
   item: FoodReviewItem; sku: BarSkuItem | undefined; catalog: BarSkuItem[]; ready: boolean; concern: string | null;
   blockedReason?: string;
-  onEdit: (patch: Partial<FoodReviewItem>) => void; onChoose: (id: string) => void;
+  onEdit: (patch: Partial<FoodReviewItem>) => void;
+  /** `suggested`: one of the row's own suggested products, not a search pick. */
+  onChoose: (id: string, suggested?: boolean) => void;
   onQuantity: (field: "cases" | "units", raw: string, replacesAll: boolean) => void;
   onUnit: () => void; onCaseSize: (n: number) => void; onDiscard: () => void;
   enteredCounts?: FoodCountChoice[]; countLocation?: string;
@@ -52,7 +54,22 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
   // The reading "Use N cases" turned down, while the row still holds those N cases.
   const back = r.declinedReading && !r.unitReading && q.cases === r.declinedReading.n && q.units === 0 ? r.declinedReading : undefined;
   const hits = r.search?.trim() ? catalog.filter(s => foodSearchMatch(s, r.search!)).slice(0, 8) : [];
-  const pick = (id: string) => { onChoose(id); setProductOpen(false); setCountMode("auto"); };
+  const pick = (id: string, suggested = false) => { onChoose(id, suggested); setProductOpen(false); setCountMode("auto"); };
+  // Jon 2026-10-15: a suggested product shows the amount the recording proved
+  // for it, the amount a tap will fill in ("Sauce, Parmesan, Garlic · 4
+  // containers"), read through the same rules the row saves with. Not once
+  // the counter has typed a number here: that number is theirs.
+  const heardFor = (id: string) => !r.typedAmount && r.ifChosen?.[id] ? foodHeardAmount(r, r.ifChosen[id], catalog.find(s => s.id === id)) : null;
+  const candidateChip = (c: { id: string; name: string }) => {
+    const heard = heardFor(c.id);
+    return <button key={c.id} type="button" className="lq-chip" onClick={() => pick(c.id, true)}>{heard ? `${c.name} · ${heard.words}` : c.name}</button>;
+  };
+  // After a tapped suggestion, the other suggestions stay one tap away in
+  // "Change product" while its search box is empty. Once a search is typed
+  // the panel lists only the search hits, as plain names, and a pick there
+  // asks, before a tap or after it (Jon 2026-10-15: "'Find product…' picks
+  // still ask"; review 2026-10-15: a search hit shown as a suggestion filled).
+  const panelSuggestions = sku && r.ifChosen && !r.search?.trim() ? r.candidates.filter(c => c.id !== sku.id) : [];
   const anotherWay = () => {
     if (mixed) {
       // A single answer replaces the whole count. Do not guess a reverse
@@ -72,12 +89,13 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
       aria-label={`Change product: ${sku.name}`} aria-expanded={productOpen} onClick={() => setProductOpen(!productOpen)}>✓ {sku.name}</button>
       : <div className="lq-rev-choices lq-fc-rev-pick">
         <span className="lq-muted">Choose product</span>
-        {r.candidates.map(c => <button key={c.id} type="button" className="lq-chip" onClick={() => pick(c.id)}>{c.name}</button>)}
+        {r.candidates.map(candidateChip)}
         <button type="button" className="lq-chip" onClick={() => setProductOpen(!productOpen)} aria-expanded={productOpen}>Find product…</button>
       </div>}
     {productOpen && <div className="lq-rev-assign lq-fc-rev-product">
       <input type="search" className="lq-search" aria-label={`Find product for ${r.spoken}`} placeholder="Search the food catalog…"
         value={r.search ?? ""} onChange={e => onEdit({ search: e.target.value })} />
+      {panelSuggestions.map(candidateChip)}
       {hits.map(s => <button key={s.id} type="button" className="lq-chip" onClick={() => pick(s.id)}>{s.name}</button>)}
       {r.search?.trim() && hits.length === 0 && <span className="lq-muted">No product on file. Try another name.</span>}
     </div>}

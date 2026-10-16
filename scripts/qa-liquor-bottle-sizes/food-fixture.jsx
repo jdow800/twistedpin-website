@@ -148,6 +148,27 @@ if (params.has('unit-size')) {
   for (const s of catalog.slice(-5)) Object.assign(s, {category:'Kitchen',sizeMl:null,trackingMode:'stock_count',wacCost:null});
   for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
 }
+// Walk-In Cooler, 2026-10-15 (the GM's take): the live definitions of the
+// products he said, fictional ids. Sauces are counted by the container (one
+// gallon jug), cheddar by the 1.5 lb pack (8 a case), Gatorade by the bottle.
+// ?walkin-existing: the shelf already holds 2 containers of Garlic Parmesan.
+if (params.has('walkin') || params.has('walkin-existing')) {
+  const answer = (countUnit, unitsPerCase, extra) => ({countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-10-15', ...extra});
+  const jug = (unitsPerCase, countUnit = 'pack') => answer(countUnit, unitsPerCase, {unitLabel:'container', defaultSpokenUnit:'container',
+    spokenUnits:{gal:1, jug:1, case:unitsPerCase, jugs:1, container:1}});
+  catalog.push(
+    {id:'garlic-parm', name:'Sauce, Parmesan, Garlic', aliases:['Sauce Parmesan Garlic'], countUnit:'pack', unitsPerCase:2, countDefinition:jug(2)},
+    {id:'mayo', name:'Mayonnaise', aliases:[], countUnit:'each', unitsPerCase:4, countDefinition:jug(4, 'each')},
+    {id:'chipotle-mayo', name:'Mayonnaise, Chipotle', aliases:['Mayonnaise Chipotle'], countUnit:'pack', unitsPerCase:2, countDefinition:jug(2)},
+    {id:'cheddar', name:'Cheese, Cheddar', aliases:['Cheese Cheddar'], countUnit:'pack', unitsPerCase:8,
+      countDefinition:answer('pack', 8, {unitLabel:'pack', defaultSpokenUnit:'pack', spokenUnits:{case:8, pack:1}})},
+    {id:'american', name:'Cheese, American', aliases:[], countUnit:'pack', unitsPerCase:4,
+      countDefinition:answer('pack', 4, {unitLabel:'pack', defaultSpokenUnit:'pack', spokenUnits:{case:4, pack:1}})},
+    {id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', aliases:['Gatorade Raspberry Cool Blue'], countUnit:'bottle', unitsPerCase:24, countDefinition:null},
+  );
+  for (const s of catalog.slice(-6)) Object.assign(s, {category:'Kitchen', sizeMl:null, trackingMode:'stock_count', wacCost:null});
+  for (const zone of zones) zone.memberSkuIds = catalog.map(s => s.id);
+}
 // Discontinued (tprs 0196): the 2 oz patties are leftovers, replaced by the 3.5 oz pucks.
 if (params.has('discontinued')) {
   catalog.push(
@@ -176,7 +197,8 @@ const unplacedMore = params.has('many') ? [
   {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
 ] : [];
 const usualLine = (skuId, zoneId, qtyUnits) => ({skuId, zoneId, qtyUnits, source:'grid', enteredCases:null, caseSizeAtEntry:null});
-const initialLines = fixtureOverride?.lines ?? (params.has('usual-counted') ? [
+const initialLines = fixtureOverride?.lines ?? (params.has('walkin-existing') ? [usualLine('garlic-parm','freezer','2')]
+  : params.has('usual-counted') ? [
     usualLine('cookies','cooler','144'), usualLine('beans','freezer','6'), usualLine('beans','cooler','3'), usualLine('dough','cooler','2')]
   : params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]
   : params.has('packs') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'8',source:'voice',enteredCases:null,caseSizeAtEntry:null,enteredPacks:'1',packSizeAtEntry:6}]
@@ -261,6 +283,8 @@ window.fetch = async (input, init = {}) => {
     if (qa.detailFails) throw new Error('Synthetic status unavailable');
     return json({session:{id:'food-trial',status:qa.submitted?'submitted':'draft'},lines:qa.lines});
   }
+  // A new count (Start new count / Start a new count).
+  if (path.endsWith('/admin/bar/counts') && init.method === 'POST') return json({sessionId:'food-new'});
   throw new Error('Unexpected food fixture request: '+path);
 };
 function PreviewControls() {

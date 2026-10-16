@@ -1,3 +1,81 @@
+## 2026-10-15 - Food voice: a tapped suggestion keeps the heard amount; Start new count asks first
+
+The GM's Walk-In Cooler test count (Oct 15): "A lot of choosing which one but
+when I do it asks to reenter amounts even though it heard me." Diagnosis:
+`Opsi/analysis/2026-10-15-walk-in-voice/`. One unreadable phrase in a request
+("one block", "slices, Point six of a case") left every later product in that
+request held by TPRS, and tapping the held product's chip only showed an empty
+box and "Which unit?". Jon's go, same day (verbatim in
+`jon-go-2026-10-15.json`): "Keep the heard amount on a product tap ...
+'Find product…' picks still ask" and "Guard 'Start new count'". The TPRS half
+(the proof per candidate, the narrowed held-boundary rule, packet fractions)
+ships in the paired tprs change.
+
+What this page does (additive DTO fields, food only, no `foodUnitsVersion`
+bump; a server without them gives exactly today's screen):
+- **`ifChosen` on a held row**: per suggested product, the amount the recording
+  proved through that product's own definition. The chip says what a tap will
+  fill in ("Sauce, Parmesan, Garlic · 4 containers", worked out with the same
+  `foodReviewQuantity` the row saves with), and the tap makes the row ready,
+  with no restate and no "Which unit?". Add-or-replace and the history warning
+  still apply. A suggestion without an entry, a "Find product…" pick of any
+  other product, or an entry the page itself could not save without asking
+  (no case size, an unknown unit) asks as before; picking the product already
+  chosen changes nothing. Moving from a tapped product to one without an entry
+  puts back the held amount the row arrived with, so a product never inherits
+  another's proof. After a tap the other suggestions stay in "Change product"
+  while its search box is empty; once a search is typed the panel lists only
+  plain names, and a pick there asks, before a tap or after it (only a
+  suggestion chip fills; round-2 review). A typed
+  number is the counter's: from then on that row's suggestions show no amount
+  and a tap never replaces it. Any other change (Count another way, a unit)
+  still puts the held amount back if another product without an entry is then
+  picked.
+- **Only on a row with no quantity review reason.** A row marked already
+  counted (`source_already_used`), corrected (`source_revised`), with an extra
+  no number covers (`unquantified_remainder`) or that the model returned no
+  amount for (`source_not_returned`) ignores `ifChosen` and keeps its own
+  question, so a tap can never count the same words twice or certify a
+  dropped row's amount. (Review 2026-10-15 showed a tap on such a row saving
+  the amount again; the tprs producer sends `ifChosen` only on held rows with
+  no reason, and the page enforces the same rule on its own, round-2 review.)
+- A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
+- **Start new count asks once more.** The unfinished-count screen (food and
+  liquor) lists the shelves the draft's saved counts are on, and "Start new
+  count" asks "Start over? The 12 saved counts on Walk-In Cooler (Kitchen) stay
+  in the old count and won't be submitted." with Start new count / Keep this
+  count. "Keep this count" comes first: the question opens where "Start new
+  count" was tapped, so a double tap lands on Keep, never on a second Start
+  (review 2026-10-15: with Start first, 9 of 9 phone double taps started
+  over). Keep always answers; only Start waits while a take is pending. The
+  food page's "Start a new count" link asks the same; its Keep returns focus
+  to that link (to the "Picked up your count" line while a take holds the
+  link), as the entry screen's Keep returns it to Continue count. A draft
+  with nothing saved starts at once. The liquor page's own in-page link is unchanged (not
+  in Jon's words).
+
+Validation: 156 food voice DOM scenarios (137 before; 17 walk-in ones on the
+GM's shapes and two resumed-count ones), 15 waste/entry scenarios (3 new, food
+and liquor), a new native check (`check-food-heard-layout.mjs`: shelves, the
+start-over answers in order, a real double tap at 80 and 250 ms, chips with
+amounts, and the rows after the taps, at 320/390/412px), and
+the existing liquor voice/review, guards, carry, unit size, catalog
+prevention and contract checks; scoped typecheck and `astro build`. Two
+mutations (no proved amount applied; no held amount put back) each fail the
+new scenarios, and the 8 scenarios added or changed for the review fixes
+fail on the first build. The round-2 review minors (the `source_not_returned`
+guard, Keep's focus, search picks after a tap) add or extend 4 scenarios,
+and all 4 fail on the pre-fix source. Not deployed; ships with the tprs change.
+
+Not running, on main and here alike (same failures, not caused by this
+change): six native food layout checks stop at the unfinished-count screen the
+default fixture now opens on, or use stale selectors
+(`check-count-phone-layout`, `check-food-recording-layout`,
+`check-food-case-breakdown-layout`, `check-food-discontinued`,
+`check-food-walk-locations`, `check-food-unit-layout`), and three
+`check-food-review` scenarios fail. They need their own fix; until then the
+food review screen's native layout is covered only by `check-food-heard-layout`.
+
 ## 2026-10-15 - Labor review page: questions first, one box, one Save
 
 Jon after the first real weekly review (Oct 15): "We need to keep this VERY easy

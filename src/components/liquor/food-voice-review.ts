@@ -1,4 +1,4 @@
-import type { BarSkuItem, FoodUnitReading, FoodUsualRange, VoiceMatch } from "./api";
+import type { BarSkuItem, FoodHeardAmount, FoodUnitReading, FoodUsualRange, VoiceMatch } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
 import { formatQty } from "./quantity";
 import { foodPhysicalUnit, preciseFoodQty } from "./food-quantity";
@@ -42,6 +42,54 @@ export interface FoodReviewItem {
    *  2026-10-10: a product counted in cases had no way back). Cleared by any
    *  other change to the product, unit or number. */
   declinedReading?: FoodUnitReading;
+  /** A held product's amounts the recording proved, per offered candidate
+   *  (Jon 2026-10-15: "Tapping a suggested product fills in the amount the
+   *  recording proved for THAT product"). Picking a candidate with an entry
+   *  applies it; any other pick still asks. */
+  ifChosen?: Record<string, FoodHeardAmount>;
+  /** The candidate whose `ifChosen` amount the row now holds. Cleared by a
+   *  typed number, which makes the amount the counter's. */
+  heardAmountFor?: string;
+  /** The counter typed in this row's box. From then on the number is theirs:
+   *  suggestions show no amount and a tap never replaces it (review
+   *  2026-10-15: a re-tap silently swapped a typed 7 for the heard 2). */
+  typedAmount?: boolean;
+  /** The server's held amount, put back when a pick has no proved amount of
+   *  its own, so another product never inherits one product's proof. */
+  heldAmount?: Pick<FoodReviewItem, "cases" | "units" | "spokenUnit" | "unitNeedsReview" | "quantityWords">;
+}
+
+/** Whether a server-proved amount (`ifChosen`) may stand on a row with this
+ *  reason: only on a row with no quantity review reason at all. A row whose
+ *  words were already counted, that the counter corrected, that has an extra
+ *  no number covers, or that the model returned no amount for keeps asking:
+ *  a tap must never count those words a second time or certify a dropped
+ *  row's amount (review 2026-10-15; tprs never sends `ifChosen` there). */
+export function foodHeardAmountStands(reason: FoodReviewItem["quantityReviewReason"]): boolean {
+  return !reason;
+}
+
+/** A proved amount applied to a review row: ready, with nothing left to
+ *  confirm, so neither the restate step nor "Which unit?" fires. */
+function heardPatch(a: FoodHeardAmount): Partial<FoodReviewItem> {
+  return { cases: a.cases, units: a.units, spokenUnit: a.spokenUnit, quantityWords: a.quantityWords,
+    unitReading: a.unitReading, quantityKnown: true, quantityNeedsReview: false, unconfirmedQuantityFields: [],
+    invalidQuantityFields: [], unitNeedsReview: false, unitMultiplier: undefined };
+}
+
+/** A server-proved amount for `sku` on this row, with its patch and its
+ *  words ("4 containers"), or null. The page reads the amount through the
+ *  same rules it saves with; one it would still ask about (a missing case
+ *  size, an unknown unit) is not offered, so the row asks as before. */
+export function foodHeardAmount(r: FoodReviewItem, a: FoodHeardAmount | undefined, sku: BarSkuItem | undefined):
+  { patch: Partial<FoodReviewItem>; qty: number; words: string } | null {
+  if (!a || !sku || !foodHeardAmountStands(r.quantityReviewReason)) return null;
+  const n = (x: unknown) => typeof x === "number" && Number.isFinite(x) && x >= 0;
+  if (!n(a.cases) || !n(a.units) || (a.spokenUnit != null && typeof a.spokenUnit !== "string")) return null;
+  const patch = heardPatch({ ...a, quantityWords: typeof a.quantityWords === "string" ? a.quantityWords : "" });
+  const q = foodReviewQuantity({ ...r, ...patch, chosenSkuId: sku.id, identityNeedsReview: false, unitChoiceConfirmed: false }, sku);
+  if (!q.ready) return null;
+  return { patch, qty: q.qty, words: `${formatQty(q.qty)} ${foodUnitLabel(sku, q.qty)}` };
 }
 
 /** "10 cookies", "30 dough": the amount a piece reading read, in the server's

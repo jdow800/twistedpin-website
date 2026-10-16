@@ -199,6 +199,55 @@ the refusal and the answers fit at 320 and 390px with no horizontal overflow and
 44px targets, and saves before and after screenshots when
 `FOOD_UNIT_SIZE_LABEL=before` is set for the old build.
 
+### Heard amounts on a tapped suggestion, and Start over (2026-10-15)
+
+When TPRS holds a product (match null), each suggested product may carry the
+amount the recording proved for it (`ifChosen`). The `^walk-in` scenarios in
+`check-food-voice.mjs` run on `?walkin` / `?walkin-existing` (the GM's real
+definitions: Garlic Parmesan and Chipotle mayo by the gallon container, cheddar
+by the 1.5 lb pack, Gatorade by the bottle; fictional ids): the chip shows the
+amount and a tap is ready with no "Which unit?"; a suggestion without an entry
+and every "Find product…" pick ask; moving between suggestions applies each
+one's own amount and never carries one product's amount to another (also
+after Count another way);
+add-or-replace still asks; a typed number afterwards is the counter's, and no
+later suggestion tap replaces it; a search after a tap lists each product
+once, by name, and a pick there asks (only a suggestion chip fills); a row
+with any quantity review reason (already counted, corrected, an extra, or no
+amount returned) takes no proved amount; rows without the new fields look as
+before.
+A one-tap proposal for rows the model dropped was built and withdrawn on 10-15: not approved, and the safety review showed it could offer short counts and duplicates.
+The two `resumed count` scenarios and three in `check-food-waste-entry.mjs`
+cover the second ask before Start new count, for food and liquor: "Keep this
+count" first, Keep still answering while a take is recording, and the food
+page's in-page Keep returning focus to "Start a new count" (or its line while
+a take holds the link).
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+$env:FOOD_VOICE_QA_FILTER = '^walk-in|^resumed count'; node scripts/qa-liquor-bottle-sizes/check-food-voice.mjs
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-waste --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-waste-entry.mjs
+$env:COGS_QA_CHROME = 'C:/Program Files/Google/Chrome/Application/chrome.exe'
+node scripts/qa-liquor-bottle-sizes/check-food-heard-layout.mjs
+```
+
+The native check builds its own bundle and asserts, at 320, 390 and 412px, the
+entry screen's shelf list and start-over question with 44px answers in order
+(Keep first), that a real double tap on Start new count (touch events 80 and
+250 ms apart) lands on Keep and creates no count, the suggestion chips with
+their amounts, and the rows after the taps (no held hint,
+Add waits for the add-or-replace answer, then is enabled), with no sideways
+overflow. Screenshots and JSON go to ignored `dist/food-heard-layout/`.
+
+Known not running on main or this branch (fail identically on both, 2026-10-15):
+`check-count-phone-layout`, `check-food-recording-layout`,
+`check-food-case-breakdown-layout`, `check-food-discontinued`,
+`check-food-walk-locations` and `check-food-unit-layout` stop at the
+unfinished-count screen or use stale selectors, and three `check-food-review`
+scenarios fail. They need a separate fix.
+
+
 ## Liquor review and phone controls
 
 Voice product controls have a focused native check:

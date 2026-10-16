@@ -826,6 +826,22 @@ export interface VoiceExtractItem {
   unitNeedsReview?: boolean;
   /** Food: a bare number the server read as pieces from history. */
   unitReading?: FoodUnitReading;
+  /** Food, on a row whose product is held (2026-10-15, Jon: "Tapping a
+   *  suggested product fills in the amount the recording proved for THAT
+   *  product"). One entry per offered candidate whose own definition proved
+   *  this row's amount, with every rule a matched row gets; never the model's
+   *  own numbers. A candidate without an entry still asks. */
+  ifChosen?: Record<string, FoodHeardAmount>;
+}
+
+/** An amount the server proved from the recording for one product, in the
+ *  row's own terms (cases, and units in spokenUnit). tprs voice-review-items.ts. */
+export interface FoodHeardAmount {
+  cases: number;
+  units: number;
+  spokenUnit: string | null;
+  quantityWords: string;
+  unitReading?: FoodUnitReading;
 }
 
 /** Answer "how many in a case?" for a SKU. Persists, so the ask happens ONCE

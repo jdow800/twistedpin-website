@@ -37,8 +37,8 @@ import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
 import { useCountFooter } from "../useCountFooter";
 import VoiceProcessing from "../VoiceProcessing";
-import CountEntryChoice from "../CountEntryChoice";
-import { foodCaseSize, foodCountWarning, foodCountedSoFar, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, foodUsualRange, type FoodReviewItem as ReviewItem } from "../food-voice-review";
+import CountEntryChoice, { StartOverConfirm, draftShelves } from "../CountEntryChoice";
+import { foodCaseSize, foodCountWarning, foodCountedSoFar, foodHeardAmount, foodHeardAmountStands, foodReviewQuantity, confirmFoodQuantity, foodImplicitUnit, foodRestatement, foodRestateAnswer, foodUnitLabel as unitLabel, foodUsualRange, type FoodReviewItem as ReviewItem } from "../food-voice-review";
 import FindingSummary from "../FindingSummary";
 import { formatQty } from "../quantity";
 import { foodCanonicalQty, foodLooseQty, legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, preciseFoodQty as roundQty, replaceFoodLoose, singleFoodLoose, foodPhysicalUnit, storedFoodQuantity, foodQuantityBasis, sameFoodQuantityBasis, type FoodQuantity } from "../food-quantity";
@@ -254,6 +254,20 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const entryBusyRef = useRef(false);
   const [entryError, setEntryError] = useState<string | null>(null);
   const [startingFresh, setStartingFresh] = useState(false);
+  // Jon 2026-10-15: "Start a new count" asks once more, naming the shelves left behind.
+  const [confirmStartOver, setConfirmStartOver] = useState(false);
+  // Keep returns focus to the link that asked (as the entry screen returns it
+  // to Continue count); while a take holds that link disabled, to its line.
+  const startOverLink = useRef<HTMLButtonElement>(null);
+  const resumedLine = useRef<HTMLDivElement>(null);
+  const keepCount = () => {
+    setConfirmStartOver(false);
+    requestAnimationFrame(() => {
+      const link = startOverLink.current;
+      if (link && !link.disabled && !link.closest("fieldset:disabled")) link.focus();
+      else resumedLine.current?.focus();
+    });
+  };
   const startingFreshRef = useRef(false);
   const [zones, setZones] = useState<BarZoneItem[]>([]);
   const [catalog, setCatalog] = useState<BarSkuItem[]>([]);
@@ -431,6 +445,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const zone = zones.find((z) => z.id === zoneId);
+  const zoneNames = useMemo(() => Object.fromEntries(zones.map((z) => [z.id, z.name])), [zones]);
 
   // Keep an existing draft pending, with no active session/autosave until chosen.
   useEffect(() => {
@@ -1020,6 +1035,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       unitNeedsReview: it.unitNeedsReview ?? false,
       // A bare number read as pieces from history (2026-10-10), with its reason.
       ...(it.unitReading ? { unitReading: it.unitReading } : {}),
+      // Jon 2026-10-15: a held product's amount the recording proved, per
+      // candidate, applied when that candidate is tapped. The held amount is
+      // kept to put back if another product is picked instead. Never on a
+      // row with any quantity review reason (already counted, corrected, an
+      // extra no number covers, or no amount returned): those keep asking.
+      ...(it.ifChosen && foodHeardAmountStands(it.quantityReviewReason) && (it.identityNeedsReview || !it.match) ? { ifChosen: it.ifChosen,
+        heldAmount: { cases: it.cases, units: it.units, spokenUnit: it.spokenUnit ?? null,
+          unitNeedsReview: it.unitNeedsReview ?? false, quantityWords: it.quantityWords } } : {}),
     }));
   }
 
@@ -1120,9 +1143,29 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (unit) editReview(r, { spokenUnit: unit, unitMultiplier: undefined, unitNeedsReview: false, unitChoiceConfirmed: true });
   }
 
-  function chooseReviewSku(r: ReviewItem, id: string) {
+  function chooseReviewSku(r: ReviewItem, id: string, suggested = false) {
     if (r.chosenSkuId === id && !r.identityNeedsReview) {
       editReview(r, { search: "" });
+      return;
+    }
+    // Jon 2026-10-15: "Tapping a suggested product fills in the amount the
+    // recording proved for THAT product ... ready to add." The server proved
+    // it through this product's own definition; nothing is left to confirm,
+    // so the restate step and "Which unit?" do not fire. Add-or-replace and
+    // the history warning still apply to the ready row. Once the counter has
+    // typed a number on the row it is theirs: a tap goes the usual way.
+    const heard = suggested && !r.typedAmount ? foodHeardAmount(r, r.ifChosen?.[id], skuById.get(id)) : null;
+    if (heard) {
+      editReview(r, { ...heard.patch, chosenSkuId: id, identityNeedsReview: false, unitChoiceConfirmed: false, search: "", heardAmountFor: id });
+      return;
+    }
+    // Any other pick ("Find product…", or a product with no proved amount)
+    // still asks. A row holding a tapped product's amount goes back to the
+    // held amount it arrived with, so the other product never inherits it.
+    if (r.heardAmountFor && r.heldAmount) {
+      editReview(r, { ...r.heldAmount, chosenSkuId: id, identityNeedsReview: false, unitMultiplier: undefined, unitChoiceConfirmed: false,
+        search: "", quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"],
+        invalidQuantityFields: [], unitReading: undefined, heardAmountFor: undefined });
       return;
     }
     const before = reviewSku(r), after = skuById.get(id);
@@ -1873,7 +1916,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
 
   function editVoiceQuantity(r: ReviewItem, field: "cases" | "units", raw: string, replacesAll = false) {
     const n = readFoodNumber(raw);
-    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll),
+    // A typed number is the counter's own, no longer the amount the recording
+    // proved for a tapped suggestion (2026-10-15), so it behaves as any typed
+    // edit, and no later suggestion tap replaces it (`typedAmount`).
+    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll), heardAmountFor: undefined, typedAmount: true,
       ...(n != null && replacesAll && field === "cases" ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
   }
 
@@ -1991,7 +2037,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       </div>
     );
 
-  if (entryDraft) return <CountEntryChoice kind="food" draft={entryDraft} busy={entryBusy} error={entryError}
+  if (entryDraft) return <CountEntryChoice kind="food" draft={entryDraft} zoneNames={zoneNames} busy={entryBusy} error={entryError}
     onContinue={continueEntry} onNew={() => void startEntry()} onBack={() => {
       if (entryBusyRef.current) return;
       entryBusyRef.current = true;
@@ -2009,11 +2055,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   return (
     <div className="lq-fc">
       <fieldset className="lq-count-controls" disabled={startingFresh || checking || submitting || submissionUnknown || !!leaving} inert={!!leaving} aria-label="Kitchen count">
-      {resumed && <div className="lq-resumed">
+      {resumed && <div className="lq-resumed" ref={resumedLine} tabIndex={-1}>
         <span>Picked up your count in progress.</span>
-        <button type="button" className="lq-linkbtn" disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
-          onClick={() => void startFresh()}>{startingFresh ? "Starting…" : "Start a new count"}</button>
+        <button type="button" className="lq-linkbtn" ref={startOverLink} disabled={startingFresh || checking || submitting || submissionUnknown || voicePending}
+          onClick={() => totalLines > 0 ? setConfirmStartOver(true) : void startFresh()}>{startingFresh ? "Starting…" : "Start a new count"}</button>
       </div>}
+      {resumed && confirmStartOver && <StartOverConfirm className="lq-start-over-inline" shelves={draftShelves({ lines: flatten(counts) }, zoneNames)}
+        busy={startingFresh || checking || submitting || submissionUnknown || voicePending} starting={startingFresh}
+        onConfirm={() => { setConfirmStartOver(false); void startFresh(); }} onKeep={keepCount} />}
       {scanNote && totalLines === 0 && (
         <div className="lq-fc-scannote">
           <span>Scan any delivery invoices that aren&rsquo;t in yet.</span>
@@ -2184,7 +2233,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
             ready={applyable(r)} concern={warning(r)} blockedReason={reviewBasisChanged(r) ? "The counting unit changed. Clear the earlier amount on this shelf and recount it." : undefined} onEdit={patch => editReview(r, patch)}
             restate={(() => { const s = restateOf(r); return s && { before: s.before, answer: restateAnswer(r) }; })()}
             onRestate={answer => answerRestate(r, answer)}
-            onChoose={id => chooseReviewSku(r, id)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
+            onChoose={(id, suggested) => chooseReviewSku(r, id, suggested)} onQuantity={(field, raw, replacesAll) => editVoiceQuantity(r, field, raw, replacesAll)}
             onUnit={() => answerSpokenUnit(r)} onCaseSize={n => void answerCaseSize(r.chosenSkuId!, n)}
             enteredCounts={enteredCounts} countLocation={zones.find(z => z.id === reviewZoneId)?.name}
             onUseEntered={choice => useEnteredCount(r, choice)}

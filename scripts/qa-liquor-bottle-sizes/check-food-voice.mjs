@@ -1609,5 +1609,272 @@ await run('history: Use 10 cases, then one Use 10 cookies brings the reading and
   assert.deepEqual(puts(t),[{'freezer:cookies':10}]);
 },'usual');
 
+// Walk-In Cooler, 2026-10-15 (Jon: "Tapping a suggested product fills in the
+// amount the recording proved for THAT product (Garlic Parm -> 4 containers),
+// ready to add. ... 'Find product…' picks still ask."). The GM's real shapes:
+// the server holds the product (match null) with the model's unverified
+// numbers, and `ifChosen` carries the amount the recording proved per
+// candidate.
+const heldRow = (spoken, model, candidates, extra = {}) => ({spoken, quantityWords:'', cases:model.cases ?? 0, units:model.units ?? 0, qty:0,
+  unitsPerCase:null, needsCaseSize:false, suspectPreMultiplied:false, match:null, identityNeedsReview:true, quantityNeedsReview:true,
+  quantityKnown:false, unitNeedsReview:true, spokenUnit:model.spokenUnit ?? null, candidates, ...extra});
+const cand = (id, name, unitsPerCase) => ({id, name, sizeMl:null, unitsPerCase});
+const garlicParm = cand('garlic-parm', 'Sauce, Parmesan, Garlic', 2);
+// The model's own numbers are wrong on purpose (3 for "four gallons"): only the proof is applied.
+const gp = (extra = {}) => heldRow('Garlic Parmesan, four gallons', {units:3, spokenUnit:'gal'}, [garlicParm],
+  {ifChosen:{'garlic-parm':{cases:0, units:4, spokenUnit:'gal', quantityWords:'four gallons'}}, ...extra});
+const changeProduct = async (t, name) => {
+  const b = t.doc.querySelector(`button[aria-label="Change product: ${name}"]`);
+  assert.ok(b, `Missing chosen product ${name}`); b.click(); await pause();
+};
+const loose = (t, name) => t.doc.querySelector(`input[aria-label="Loose quantity for ${name}"]`);
+const asks = (t, name) => {
+  assert.match(t.doc.body.textContent, /Which unit\?/, `${name} asks which unit`);
+  assert.equal(loose(t, name)?.value ?? '', '', `${name} shows no number`);
+  assert.ok(t.button(/^Add /).disabled, `${name} cannot be added yet`);
+};
+
+await run('walk-in: tapping a suggested product fills the amount proved for it, ready, with no Which unit?', async t => {
+  await t.hear([gp()]);
+  assert.ok(t.button(/^Add /).disabled);
+  assert.equal(t.doc.querySelectorAll('.lq-fc-rev-quantities input').length, 0, 'no box before the pick');
+  await t.click('Sauce, Parmesan, Garlic · 4 containers');
+  assert.doesNotMatch(t.doc.body.textContent, /Which unit\?/);
+  assert.doesNotMatch(t.doc.body.textContent, /Enter the count/);
+  assert.equal(loose(t, 'Sauce, Parmesan, Garlic').value, '4');
+  assert.ok(!t.button(/^Add /).disabled, 'ready to add');
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'garlic-parm').qtyUnits), 4, '4 gallons = 4 containers, not the model 3');
+  assert.match(t.qa.lines.find(l => l.skuId === 'garlic-parm').rawUtterance, /Garlic Parmesan, four gallons/);
+}, 'walkin');
+
+await run('walk-in: a suggestion without a proved amount still asks, and re-picking moves between them', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  assert.ok(t.button('Mayonnaise'), 'a candidate with no proved amount shows only its name');
+  await t.click('Mayonnaise');
+  asks(t, 'Mayonnaise');
+  await changeProduct(t, 'Mayonnaise');
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  assert.equal(loose(t, 'Mayonnaise, Chipotle').value, '2');
+  assert.ok(!t.button(/^Add /).disabled);
+  // Back to the product with no proof: it never inherits Chipotle's amount.
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.click('Mayonnaise');
+  asks(t, 'Mayonnaise');
+  await changeProduct(t, 'Mayonnaise');
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'chipotle-mayo').qtyUnits), 2);
+  assert.equal(t.qa.lines.some(l => l.skuId === 'mayo'), false);
+}, 'walkin');
+
+await run('walk-in: re-picking between two proved suggestions applies each one\'s own amount', async t => {
+  await t.hear([heldRow('Mild cheddar slices, Point six of a case', {cases:0.6}, [cand('cheddar', 'Cheese, Cheddar', 8), cand('american', 'Cheese, American', 4)],
+    {unitNeedsReview:true, ifChosen:{cheddar:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'},
+      american:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'}}})]);
+  await t.click('Cheese, American · 2.4 packs');
+  assert.match(t.doc.body.textContent, /0\.6 cases × 4 packs = 2\.4 packs/);
+  await changeProduct(t, 'Cheese, American');
+  await t.click('Cheese, Cheddar · 4.8 packs');
+  assert.match(t.doc.body.textContent, /0\.6 cases × 8 packs = 4\.8 packs/);
+  assert.doesNotMatch(t.doc.body.textContent, /Which unit\?/);
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'cheddar').qtyUnits), 4.8);
+  assert.equal(t.qa.lines.some(l => l.skuId === 'american'), false);
+}, 'walkin');
+
+await run('walk-in: Count another way after a tap does not carry the proved amount to another product', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await t.click('Count another way');
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.click('Mayonnaise');
+  assert.ok(t.button(/^Add /).disabled, 'Mayonnaise asks for its own count');
+  assert.match(t.doc.body.textContent, /Which unit\?/);
+}, 'walkin');
+
+await run('walk-in: a Find product pick asks, even for the product with a proved amount', async t => {
+  await t.hear([gp()]);
+  await t.click('Find product…');
+  await t.input('Find product for Garlic Parmesan, four gallons', 'garlic');
+  await t.click('Sauce, Parmesan, Garlic');
+  asks(t, 'Sauce, Parmesan, Garlic');
+  await changeProduct(t, 'Sauce, Parmesan, Garlic');
+  await t.input('Find product for Garlic Parmesan, four gallons', 'mayonnaise');
+  await t.click('Mayonnaise');
+  asks(t, 'Mayonnaise');
+}, 'walkin');
+
+await run('walk-in: a proved amount the page cannot read with its own rules is not offered', async t => {
+  await t.hear([heldRow('Mystery package, one case', {cases:1}, [cand('unknown', 'Unknown Package', null)],
+    {ifChosen:{unknown:{cases:1, units:0, spokenUnit:null, quantityWords:'one case'}}})]);
+  assert.ok(t.button('Unknown Package'), 'no amount on a product with no case size');
+  await t.click('Unknown Package');
+  assert.ok(t.button(/^Add /).disabled);
+  assert.equal(loose(t, 'Unknown Package')?.value ?? '', '');
+}, 'walkin');
+
+await run('walk-in: add-or-replace still asks after a tap when the shelf already holds the product', async t => {
+  await t.hear([gp()]);
+  await t.click('Sauce, Parmesan, Garlic · 4 containers');
+  assert.match(t.doc.body.textContent, /Add to the 2 containers already here, or replace\?/);
+  assert.ok(t.button(/^Add /).disabled, 'the add-or-replace question comes first');
+  await t.restate('Replace');
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'garlic-parm').qtyUnits), 4);
+}, 'walkin-existing');
+
+await run('walk-in: a number typed after the tap is the counter\'s, as any typed edit', async t => {
+  await t.hear([gp()]);
+  await t.click('Sauce, Parmesan, Garlic · 4 containers');
+  await t.input('Loose quantity for Sauce, Parmesan, Garlic', '5');
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'garlic-parm').qtyUnits), 5);
+}, 'walkin');
+
+await run('walk-in: rows without the new fields behave exactly as before', async t => {
+  await t.hear([gp({ifChosen:undefined}), {spoken:'blue gatorade ten', quantityWords:'ten', cases:0, units:0, qty:0, unitsPerCase:24,
+    needsCaseSize:false, suspectPreMultiplied:false, match:{id:'gatorade-blue', name:'Gatorade, Raspberry Cool Blue', sizeMl:null, unitsPerCase:24},
+    candidates:[], identityNeedsReview:false, quantityNeedsReview:true, quantityKnown:false, quantityReviewReason:'source_not_returned',
+    unitNeedsReview:false, spokenUnit:null}]);
+  assert.match(t.doc.body.textContent, /Heard in your recording\. Enter the count for this item\./);
+  assert.ok(!t.button(/^Use \d/));
+  assert.ok(!t.button(/·/), 'no amount on a suggestion');
+  await t.click('Sauce, Parmesan, Garlic');
+  asks(t, 'Sauce, Parmesan, Garlic');
+  assert.match(t.doc.body.textContent, /Enter the count\./);
+}, 'walkin');
+
+// Review 2026-10-15: a row whose words were already counted, that the counter
+// corrected, or that has an extra no number covers never takes a proved amount
+// on a tap (it would count those words twice); it keeps its own question. Nor
+// does a row the model returned no amount for (round-2 review): tprs never
+// sends ifChosen there, and the page would not certify a dropped row if it did.
+for (const [reason, hint] of [['source_already_used', /Source already counted\. Discard or enter a separate count\./],
+  ['source_revised', /You corrected this item\. Discard it or enter a separate count\./],
+  ['unquantified_remainder', /including the extra\./],
+  ['source_not_returned', /Heard in your recording\. Enter the count for this item\./]]) {
+  await run(`walk-in: a ${reason} row offers no proved amount and still asks`, async t => {
+    await t.hear([gp({quantityReviewReason:reason})]);
+    assert.ok(!t.button(/·/), 'no amount on the suggestion');
+    await t.click('Sauce, Parmesan, Garlic');
+    assert.match(t.doc.body.textContent, hint);
+    assert.equal(loose(t, 'Sauce, Parmesan, Garlic')?.value ?? '', '', 'no number filled in');
+    assert.ok(t.button(/^Add /).disabled, 'still held');
+  }, 'walkin');
+}
+
+await run('walk-in: once a number is typed, a suggestion tap never replaces it', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await t.input('Loose quantity for Mayonnaise, Chipotle', '7');
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.click('Mayonnaise');
+  assert.equal(loose(t, 'Mayonnaise').value, '7', 'the typed 7 moves with the product, as any typed edit');
+  await changeProduct(t, 'Mayonnaise');
+  assert.ok(!t.button(/·/), 'suggestions show no amount once a number is typed');
+  await t.click('Mayonnaise, Chipotle');
+  assert.equal(loose(t, 'Mayonnaise, Chipotle').value, '7', 'the tap keeps the typed 7');
+  assert.ok(!t.button(/^Add /).disabled);
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'chipotle-mayo').qtyUnits), 7);
+}, 'walkin');
+
+await run('walk-in: a number typed before any proved tap is kept, and the chips show no amount', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise');
+  await t.click('containers');
+  await t.input('Loose quantity for Mayonnaise', '7');
+  await changeProduct(t, 'Mayonnaise');
+  const chips = [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.ok(chips.includes('Mayonnaise, Chipotle'), `plain chip in ${JSON.stringify(chips)}`);
+  await t.click('Mayonnaise, Chipotle');
+  assert.equal(loose(t, 'Mayonnaise, Chipotle').value, '7');
+}, 'walkin');
+
+await run('walk-in: after a tap, a search lists each suggested product once', async t => {
+  await t.hear([heldRow('Chipotle mayo, two gallons', {units:2, spokenUnit:'gal'},
+    [cand('chipotle-mayo', 'Mayonnaise, Chipotle', 2), cand('mayo', 'Mayonnaise', 4)],
+    {ifChosen:{'chipotle-mayo':{cases:0, units:2, spokenUnit:'gal', quantityWords:'two gallons'}}})]);
+  await t.click('Mayonnaise, Chipotle · 2 containers');
+  await changeProduct(t, 'Mayonnaise, Chipotle');
+  await t.input('Find product for Chipotle mayo, two gallons', 'mayonnaise');
+  const chips = [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.equal(chips.filter(c => c === 'Mayonnaise').length, 1, `one Mayonnaise in ${JSON.stringify(chips)}`);
+  assert.doesNotMatch(t.doc.body.textContent, /No product on file/);
+  await t.click('Mayonnaise');
+  asks(t, 'Mayonnaise');
+}, 'walkin');
+
+// Round-2 review: a product found through the search box asks after a tap
+// exactly as it does before one; only a suggestion chip fills its amount.
+await run('walk-in: after a tap, a suggested product found through the search asks; its suggestion chip still fills', async t => {
+  await t.hear([heldRow('Mild cheddar slices, Point six of a case', {cases:0.6}, [cand('cheddar', 'Cheese, Cheddar', 8), cand('american', 'Cheese, American', 4)],
+    {unitNeedsReview:true, ifChosen:{cheddar:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'},
+      american:{cases:0.6, units:0, spokenUnit:null, quantityWords:'Point six of a case'}}})]);
+  await t.click('Cheese, American · 2.4 packs');
+  await changeProduct(t, 'Cheese, American');
+  const panelChips = () => [...t.doc.querySelectorAll('.lq-fc-rev-product .lq-chip')].map(b => b.textContent.trim());
+  assert.ok(panelChips().includes('Cheese, Cheddar · 4.8 packs'), `the suggestion with its amount while the search is empty: ${JSON.stringify(panelChips())}`);
+  await t.input('Find product for Mild cheddar slices, Point six of a case', 'cheddar');
+  assert.deepEqual(panelChips().filter(c => /Cheddar/.test(c)), ['Cheese, Cheddar'], 'a search lists the product once, by name, with no amount');
+  await t.click('Cheese, Cheddar');
+  assert.doesNotMatch(t.doc.body.textContent, /4\.8 packs/, 'the search pick fills nothing');
+  assert.ok(t.button(/^Add /).disabled, 'the search pick asks');
+  // The other suggestion, from an empty search, is still a one-tap fill.
+  await changeProduct(t, 'Cheese, Cheddar');
+  await t.click('Cheese, American · 2.4 packs');
+  assert.match(t.doc.body.textContent, /0\.6 cases × 4 packs = 2\.4 packs/);
+  assert.ok(!t.button(/^Add /).disabled);
+  await t.apply(); await until(() => t.saved().length > 0);
+  assert.equal(Number(t.qa.lines.find(l => l.skuId === 'american').qtyUnits), 2.4);
+  assert.equal(t.qa.lines.some(l => l.skuId === 'cheddar'), false);
+}, 'walkin');
+
+// Jon 2026-10-15: "Start a new count" on a resumed count asks once more,
+// naming the shelves the draft holds, before leaving those counts behind.
+await run('resumed count: Start a new count asks once more and Keep this count changes nothing', async t => {
+  assert.match(t.doc.body.textContent, /Picked up your count in progress/);
+  await t.click('Start a new count');
+  const ask = t.doc.querySelector('.lq-start-over p');
+  assert.equal(ask?.textContent, "Start over? The 1 saved count on Pizza Freezer stays in the old count and won't be submitted.");
+  assert.equal(t.qa.calls.filter(c => c.method === 'POST' && c.path.endsWith('/counts')).length, 0, 'the first tap only asks');
+  assert.deepEqual([...t.doc.querySelectorAll('.lq-start-over-actions button')].map(b => b.textContent.trim()),
+    ['Keep this count', 'Start new count'], 'Keep comes first, where a second tap would land');
+  await t.click('Keep this count');
+  assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
+  assert.match(t.doc.body.textContent, /Picked up your count in progress/);
+  // Round-2 review: Keep hands focus back to the link that asked, not the page body.
+  await until(() => t.doc.activeElement?.textContent === 'Start a new count');
+  await t.click('Start a new count');
+  await t.click('Start new count');
+  await until(() => t.qa.calls.some(c => c.method === 'POST' && c.path.endsWith('/counts')));
+  await until(() => !/Picked up your count in progress/.test(t.doc.body.textContent));
+  assert.deepEqual(JSON.parse(JSON.stringify(t.qa.calls.find(c => c.method === 'POST' && c.path.endsWith('/counts')).body)), {isFullCount:true, section:'food'});
+}, 'existing');
+
+await run('resumed count: while a take is recording, Keep this count still answers and Start new count waits', async t => {
+  await t.click('Start a new count');
+  await t.start();
+  const keep = t.button('Keep this count'), startOver = t.button('Start new count');
+  assert.ok(keep && !keep.disabled, 'Keep is never held by a pending take');
+  assert.ok(startOver?.disabled, 'Start new count waits for the take');
+  await t.click('Keep this count');
+  assert.ok(!t.doc.querySelector('.lq-start-over'), 'the question is gone');
+  // The take holds the link disabled, so focus goes to its line, never the page body.
+  await until(() => t.doc.activeElement && t.doc.activeElement !== t.doc.body);
+  const link = t.button('Start a new count');
+  assert.equal(t.doc.activeElement, link.disabled ? t.doc.querySelector('.lq-resumed') : link, 'focus returns to the start-over line');
+  assert.equal(t.qa.calls.filter(c => c.method === 'POST' && c.path.endsWith('/counts')).length, 0);
+}, 'existing');
+
 if (failed.length) { console.log(`${failed.length} food voice UI scenarios FAILED: ${failed.join(' | ')}`); process.exitCode = 1; }
 console.log(`${passed} food voice UI scenarios passed including compact raw counts, case breakdowns, sticky single-apply review, recorder failures, advanced per-field confirmation and identity/source holds.`);

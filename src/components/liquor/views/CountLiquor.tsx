@@ -1441,7 +1441,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         <button className="lq-btn" onClick={onDone}>Back</button>
       </div>
     );
-  if (entryDraft) return <CountEntryChoice kind="liquor" draft={entryDraft} busy={entryBusy} error={entryError}
+  if (entryDraft) return <CountEntryChoice kind="liquor" draft={entryDraft} zoneNames={zoneNames} busy={entryBusy} error={entryError}
     onContinue={continueEntry} onNew={() => void startEntry()} onBack={() => {
       if (entryBusyRef.current) return;
       entryBusyRef.current = true;
