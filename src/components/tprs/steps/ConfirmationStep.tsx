@@ -18,7 +18,10 @@ import type {
 } from "../../../tprs/schemas";
 
 declare global {
-  interface Window { gtag?: (...args: unknown[]) => void; }
+  interface Window {
+    gtag?: (...args: unknown[]) => void;
+    fbq?: (...args: unknown[]) => void;
+  }
 }
 
 interface Props {
@@ -43,12 +46,33 @@ interface Props {
   onReset: () => void;
 }
 
-// Per-page-load guard so a booking's `purchase` event fires at most once,
+// Per-page-load guard so a booking's purchase events fire at most once,
 // keyed on the unique invoice number. The confirmation screen can re-render
 // (React re-render / StrictMode double-invoke) without re-firing. A full reload
 // resets the SPA to step 1, so the same booking can't re-reach this screen —
 // an in-memory Set is sufficient and never throws (unlike sessionStorage).
 const trackedPurchases = new Set<string>();
+
+/** GA4 `purchase` and Meta `Purchase` for one paid booking. No personal data. */
+export function trackConfirmedPurchase(invoice: string | undefined, totalCents: number): void {
+  if (!invoice || trackedPurchases.has(invoice)) return;
+  trackedPurchases.add(invoice);
+  const value = Number.isFinite(totalCents) ? totalCents / 100 : 0;
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "purchase", {
+      transaction_id: invoice,
+      value,
+      currency: "USD",
+    });
+  }
+  try {
+    if (typeof window.fbq === "function") {
+      window.fbq("track", "Purchase", { value, currency: "USD" }, { eventID: invoice });
+    }
+  } catch {
+    // A blocked pixel must not affect the confirmation already on screen.
+  }
+}
 
 export default function ConfirmationStep({
   product,
@@ -68,17 +92,9 @@ export default function ConfirmationStep({
   // Base.astro and the gclid auto-attaches from the _gcl_aw cookie, so this
   // rides the existing GA4 → Google Ads import with no Ads-UI change. value +
   // transaction_id match the amount + confirmation number shown on this screen.
+  // Meta Purchase uses that same dollar value and the invoice as eventID.
   useEffect(() => {
-    const invoice = booking?.invoiceNumber;
-    if (!invoice || trackedPurchases.has(invoice)) return;
-    trackedPurchases.add(invoice);
-    if (typeof window.gtag === "function") {
-      window.gtag("event", "purchase", {
-        transaction_id: invoice,
-        value: Number.isFinite(totalCents) ? totalCents / 100 : 0,
-        currency: "USD",
-      });
-    }
+    trackConfirmedPurchase(booking?.invoiceNumber, totalCents);
   }, [booking?.invoiceNumber, totalCents]);
 
   return (
