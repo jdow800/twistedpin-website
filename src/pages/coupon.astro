@@ -19,6 +19,11 @@
  *   - first_join:true        → success ("check your texts for your $10")
  *   - first_join:false       → already-a-member panel → /rewards
  *
+ * A granted signup also fires GA4 `sign_up` (method: coupon) and Meta
+ * `CompleteRegistration` once. The idempotent replay of that same signup
+ * fires only if the first response never arrived. Already-a-member does
+ * not. The pixels get no name, email, phone, customer id, or offer token.
+ *
  * The first_join gate is load-bearing: Patch-imported members carry
  * joined_loyalty_at, so a returning guest can never double-dip the $10.
  *
@@ -314,6 +319,50 @@ const FAQ = [
       ? window.crypto.randomUUID()
       : String(Date.now()) + "-" + Math.round(performance.now());
 
+    // Conversion guard for this page. Fires once when intake confirms a new
+    // $10 signup, including the idempotent replay of that signup when the
+    // first response never arrived. An already-a-member response, and a
+    // second pass over a submission already tracked, do not fire.
+    var signupTracked = false;
+
+    // True only when intake confirmed a new $10 signup. `first_join` is the
+    // live signal. A retry of that same submission comes back `replayed`
+    // with `first_join` omitted; signup-10off is first-join-only, so a
+    // stored offer token means the original response was the signup. An
+    // already-member replay has no token. The token is never sent onward.
+    function couponSignupGranted(r) {
+      if (!r || r.ok !== true) return false;
+      if (r.first_join === true) return true;
+      return r.replayed === true && typeof r.offer_token === "string" && r.offer_token.length > 0;
+    }
+
+    function trackCouponSignup(r) {
+      if (signupTracked || !couponSignupGranted(r)) return;
+      try {
+        if (window.sessionStorage.getItem("tp-coupon-signup") === submissionId) {
+          signupTracked = true;
+          return;
+        }
+        window.sessionStorage.setItem("tp-coupon-signup", submissionId);
+      } catch (err) {
+        // Private mode can throw. The in-memory flag still covers this page.
+      }
+      signupTracked = true;
+      // Aggregates only. `method` names the form. No name, email, phone,
+      // customer id, or offer token — the privacy and SMS pages promise
+      // phone numbers are not shared with ad platforms.
+      var params = { method: "coupon" };
+      try {
+        if (typeof window.gtag === "function") window.gtag("event", "sign_up", params);
+      } catch (err) { /* a blocked tag must not change the signup result */ }
+      try {
+        if (typeof window.fbq === "function") {
+          // eventID lets Meta collapse a second copy of this same submission.
+          window.fbq("track", "CompleteRegistration", params, { eventID: submissionId });
+        }
+      } catch (err) { /* a blocked pixel must not change the signup result */ }
+    }
+
     function setPhoneStatus(msg, kind) {
       if (!msg) { phoneStatus.hidden = true; phoneStatus.textContent = ""; return; }
       phoneStatus.textContent = msg;
@@ -485,6 +534,9 @@ const FAQ = [
           } else {
             reveal(alreadyEl);
           }
+          // After the panel is up, so a tracker failure cannot hide a
+          // signup that already succeeded.
+          trackCouponSignup(r);
         })
         .catch(function () {
           showError("Something went wrong on our end — please try again in a moment.");
