@@ -7,6 +7,11 @@
  * Videos are visual reuses of the canonical /vip-suite and /events entries;
  * do not emit duplicate VideoObject markup here (see src/data/videos.ts).
  * Release and Bing diagnosis: Context/session-handoffs/2026-09-14-corporate-regional-bing.md.
+ * 2026-10-17: title, H1 and intro now say "team building" and "near Naperville"
+ * (an AI-search check found the page absent for "team building near Naperville"
+ * while winners had those words in their titles). Plain on purpose: no new wit,
+ * no weekday-daytime FAQ, no unverified "groups come from <towns>" list, no
+ * drive-time claim (sources disagree). The "minus the cringe" card stays.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -22,7 +27,7 @@ const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "Service",
   "@id": BUSINESS_URL + "/#corporate-events",
-  name: "Corporate Events & Team Outings",
+  name: "Team Building & Corporate Events",
   url: PAGE_URL,
   description:
     "Team outings, staff appreciation, holiday parties and corporate offsites at Twisted Pin in Plainfield, IL. A semi-private 6-lane VIP suite for up to 80, full-venue buyouts for up to 200, in-house catering and craft cocktails. Serving groups from Romeoville, Shorewood, Naperville, Joliet, Bolingbrook and the surrounding area.",
@@ -101,21 +106,22 @@ const faqSchema = {
 };
 ---
 <Base
-  title="Corporate Events & Team Outings in Plainfield, IL | Twisted Pin"
-  description="Corporate events and team outings in Plainfield, IL. Six-lane VIP suite for up to 80, catering, cocktails and full-venue buyouts for up to 200."
+  title="Team Building Near Naperville | Twisted Pin"
+  description="Team building and corporate events near Naperville, in Plainfield, IL. Bowling in the VIP suite, in-house catering and craft cocktails. Plan an outing."
   ogImage="/og/og-events.jpg"
   ogImageAlt="A corporate team outing in the 6-lane VIP suite at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
 >
   <section class="corp-hero" data-hero aria-labelledby="corp-hero-h1">
     <div class="corp-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">Team Outings · Corporate Events</p>
+      <p class="t-eyebrow hero-fade" data-delay-ms="0">Team Building · Corporate Events</p>
       <h1 class="t-display corp-hero-headline hero-fade" id="corp-hero-h1" data-delay-ms="120">
-        Not your average team&nbsp;outing.
+        Team building near&nbsp;Naperville.
       </h1>
       <p class="corp-hero-sub hero-fade" data-delay-ms="320">
-        Staff outings, employee appreciation, and holiday parties in
-        Plainfield, IL. Bowling, craft cocktails, and catering, all in one place.
+        Team building, staff outings, and holiday parties at Twisted Pin in
+        Plainfield, IL, south of Naperville. Bowling, craft cocktails, and
+        catering, all in one place.
       </p>
     </div>
   </section>
