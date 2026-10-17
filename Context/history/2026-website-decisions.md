@@ -51,7 +51,7 @@ anywhere, nothing blocks Add or Submit, and no number is blanked** (10/9
   this is the rollback.
 - **Older server.** No `quantityHeard`, `unproved` or `unaccounted`: no
   guessed treatment, no block, and the dialog opens exactly as today.
-- The guessed-row text and look were put to Jon with screenshots of the real
+- The guessed-row text and look are shown to Jon with screenshots of the real
   components before merge (`incidents/2026-10-16/liquor-count-review/ui/w4/`).
 
 **Depends on** tprs T2 #422 (`quantityHeard`), T3 #421 (`unaccounted`), T4

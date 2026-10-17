@@ -2852,7 +2852,7 @@ function SoftSummary({ unproved, unaccounted, disabled, onOpen }: {
       {unclear.length > 0 && (
         <div className="lq-soft-line lq-soft-unclear">
           <span className="lq-soft-detail">
-            {unclear.length} {guessed.length > 0 ? "more " : ""}weren't clearly heard.
+            {unclear.length} {guessed.length > 0 ? "more " : ""}{unclear.length === 1 ? "wasn't" : "weren't"} clearly heard.
           </span>
           <button type="button" className="lq-linkbtn" aria-expanded={showUnclear} onClick={() => setShowUnclear(!showUnclear)}>
             {showUnclear ? `Hide the ${unclear.length} not clearly heard` : `Show the ${unclear.length} not clearly heard`}
