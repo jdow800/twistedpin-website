@@ -99,7 +99,8 @@ a particular activity.
 ## For a school, church or team fundraiser
 
 A [Twisted Pin bowling fundraiser](/fundraisers/) returns 50% of
-eligible bowling, shoe and arcade sales to the host organization.
+eligible bowling, shoe and front-desk arcade-card sales to the host
+organization.
 Supporters need to mention the fundraiser at check-in. The program
 page explains how to arrange your night and what counts toward the
 total.
