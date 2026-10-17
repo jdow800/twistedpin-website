@@ -29,9 +29,9 @@ import {
   type VoiceMatch,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
-import { createCarry } from "../voiceCarry";
+import { createCarry, joinSeam, splitUnfinished } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, type HighCheck, type NameCheck } from "../voiceReview";
-import { pauseCutsEnabled } from "../voiceSwitches";
+import { pauseCutsEnabled, seamJoinEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
@@ -290,14 +290,16 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // Pause cuts (on by default; ?pausecuts=0 is the off-switch, voiceSwitches.ts):
   // segments end at a pause, and a segment's unfinished last phrase
   // ("…Frangelico,") waits to lead the next one, so pieces are extracted in
-  // spoken order (voiceCarry.ts).
+  // spoken order (voiceCarry.ts). A cut between a bottle and its number
+  // ("Belvedere." | "Two Tito's twenty") is joined as "Belvedere, Two. Tito's
+  // twenty" (joinSeam; ?seamjoin=0 is its off-switch).
   const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
   const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
   const segmentGapRef = useRef(false);
   if (!carryRef.current) {
     carryRef.current = createCarry((text, idx) => {
       segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this piece's extraction failed
-    });
+    }, splitUnfinished, seamJoinEnabled() ? joinSeam : undefined);
   }
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
     vocabulary: "liquor",

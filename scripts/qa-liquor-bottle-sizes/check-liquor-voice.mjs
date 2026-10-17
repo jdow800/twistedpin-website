@@ -208,6 +208,21 @@ await run('with the off-switch (?pausecuts=0), each piece is matched as it lands
   assert.deepEqual(Array.from(t.qa.extracts, e => e.body.transcript),['Point eight.']);
 }, 'pausecuts=0');
 
+// 10/16 take 26f73d9c: the cut fell between "Belvedere." and its "Two"
+// (voiceCarry.ts joinSeam). ?seamjoin=0 is the per-phone off-switch.
+for (const query of ['', 'seamjoin=0']) await run(`seam join${query ? ' off (?seamjoin=0)' : ''}: "Belvedere." | "Two Tito's twenty" is sent ${query ? 'joined as before' : 'as "Belvedere, Two." and "Tito\'s twenty"'}`,async t => {
+  await t.shelf('Well');
+  await t.start();
+  await t.segment("Two Tito's twenty",1);
+  await t.segment('Ketel One Citron, three. Belvedere.',0);
+  await t.stop(); await t.finish('whole take');
+  assert.deepEqual(Array.from(t.qa.extracts, e => e.body.transcript), query
+    ? ['Ketel One Citron, three.',"Belvedere. Two Tito's twenty"]
+    : ['Ketel One Citron, three.','Belvedere, Two.',"Tito's twenty"]);
+  t.qa.extracts.forEach(e => e.succeed([item('titos',1)]));
+  await until(() => t.doc.querySelector('.lq-sheet'),'Review sheet');
+}, query);
+
 await run("a count that matches the bottle's name number asks before it can be added",async t => {
   await t.shelf('Well');
   const seagrams = {...item('seagrams',7.9), spoken:"Seagram's, seven point nine", match:{id:'seagrams', name:"Seagram's 7", sizeMl:1000}};
