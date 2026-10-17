@@ -519,10 +519,69 @@ await run('held mixed crust quantities cannot count the model multiplication twi
   assert.equal(t.saved().length,0);
   await t.click('Count another way');
   await t.input('Cases for Cauliflower Crust','2');
-  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
-  await t.input('Loose quantity for Cauliflower Crust','0');
+  // Jon 2026-10-17: a positive count in one box is enough. The blank loose
+  // box shows 0, never the model's hidden 24, so nothing is counted twice.
+  assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Cauliflower Crust"]').value,'0');
+  assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled);
   await t.apply(); await until(() => t.saved().length>0);
   assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,24);
+},'definitions');
+
+// Jon 2026-10-17: one positive count in the two-box layout is the whole
+// count. The paths below are the independent review's (2026-10-17).
+const crustHeld = () => item('cauliflower',24,{spoken:'two cases of cauliflower crusts',cases:2,spokenUnit:null,quantityNeedsReview:true});
+const crustBox = (t,label) => t.doc.querySelector(`input[aria-label="${label} for Cauliflower Crust"]`).value;
+await run('two-box count: a typed 0 alone still asks for the other box (2026-10-17)',async t => {
+  await t.hear([crustHeld()]);
+  await t.click('Count another way');
+  assert.ok(t.doc.body.textContent.includes('Fill in either box, or both.'), 'the hint offers either box');
+  await t.input('Cases for Cauliflower Crust','0');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled, 'a typed 0 alone does not finish the count');
+  assert.ok(t.doc.body.textContent.includes('Enter both counts; use 0 for none.'));
+  await t.input('Loose quantity for Cauliflower Crust','5');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,5);
+},'definitions');
+
+await run('two-box count: a box typed by mistake and cleared is blank again; one positive count then finishes (2026-10-17)',async t => {
+  await t.hear([crustHeld()]);
+  await t.click('Count another way');
+  await t.input('Loose quantity for Cauliflower Crust','13');
+  assert.equal(crustBox(t,'Cases'),'0');
+  assert.ok(!t.button(/^Add .*Pizza Freezer/).disabled);
+  await t.input('Loose quantity for Cauliflower Crust','');
+  assert.equal(crustBox(t,'Cases'),'', 'the 0 the screen filled goes back to blank');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.ok(t.doc.body.textContent.includes('Fill in either box, or both.'));
+  assert.ok(!t.doc.body.textContent.includes('Use a number of 0 or more.'), 'a cleared box is not an invalid one');
+  await t.input('Cases for Cauliflower Crust','1.5');
+  assert.equal(crustBox(t,'Loose quantity'),'0');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,18);
+},'definitions');
+
+await run('two-box count: withdrawing the positive count blanks the box it filled (2026-10-17)',async t => {
+  await t.hear([crustHeld()]);
+  await t.click('Count another way');
+  await t.input('Cases for Cauliflower Crust','5');
+  assert.equal(crustBox(t,'Loose quantity'),'0');
+  await t.input('Cases for Cauliflower Crust','0');
+  assert.equal(crustBox(t,'Loose quantity'),'', 'one typed 0 is not an empty shelf');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.ok(t.doc.body.textContent.includes('Enter both counts; use 0 for none.'));
+  assert.equal(t.saved().length,0);
+},'definitions');
+
+await run('two-box count: "one case and a little bit" still asks for the loose count (2026-10-17)',async t => {
+  await t.hear([item('cauliflower',0,{spoken:'one case of cauliflower crusts and a little bit',quantityWords:'one case',cases:1,quantityReviewReason:'unquantified_remainder'})]);
+  await t.click('Count another way');
+  await t.input('Cases for Cauliflower Crust','1');
+  assert.equal(crustBox(t,'Loose quantity'),'', 'the extra the recording says is there is never filled with 0');
+  assert.ok(t.button(/^Add .*Pizza Freezer/).disabled);
+  assert.match(t.doc.body.textContent,/including the extra/);
+  await t.input('Loose quantity for Cauliflower Crust','3');
+  await t.apply(); await until(() => t.saved().length>0);
+  assert.equal(t.qa.lines.find(l=>l.skuId==='cauliflower').qtyUnits,15);
 },'definitions');
 
 await run('a changed crust package uses its current explicit case conversion',async t => {
@@ -889,11 +948,14 @@ await run('Cases zero cannot certify the held twelve-versus-model-one loose quan
   await t.input('Cases for Pizza Dough','0');assert.ok(t.button(/^Add /).disabled);assert.equal(t.doc.querySelector('input[aria-label="Cases for Pizza Dough"]').value,'0');assert.equal(t.saved().length,0);
   await t.input('Loose quantity for Pizza Dough','12');await t.apply();await until(()=>t.saved().length>0);assert.equal(Number(t.qa.lines.find(l=>l.skuId==='dough').qtyUnits),12);
 });
-await run('Loose two cannot certify the held model seven cases',async t=>{
+await run('Loose two alone replaces the held model seven cases with a shown Cases 0',async t=>{
   await t.hear([item('dough',1,{cases:7,spoken:'two pizza dough',quantityWords:'two',quantityNeedsReview:true})]);
   await t.click('Count another way');
-  await t.input('Loose quantity for Pizza Dough','2');assert.ok(t.button(/^Add /).disabled);assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Pizza Dough"]').value,'2');
-  await t.input('Cases for Pizza Dough','0');await t.apply();await until(()=>t.saved().length>0);const row=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(row.qtyUnits),2);assert.ok(!row.enteredCases);
+  // Jon 2026-10-17: loose 2 alone is the count. The blank cases box shows 0,
+  // never the model's held seven.
+  await t.input('Loose quantity for Pizza Dough','2');assert.ok(!t.button(/^Add /).disabled);assert.equal(t.doc.querySelector('input[aria-label="Loose quantity for Pizza Dough"]').value,'2');
+  assert.equal(t.doc.querySelector('input[aria-label="Cases for Pizza Dough"]').value,'0');
+  await t.apply();await until(()=>t.saved().length>0);const row=t.qa.lines.find(l=>l.skuId==='dough');assert.equal(Number(row.qtyUnits),2);assert.ok(!row.enteredCases);
 });
 await run('both explicit zero components certify an observed empty shelf',async t=>{
   await t.hear([item('dough',1,{cases:7,spoken:'zero pizza dough',quantityWords:'zero',quantityNeedsReview:true})]);

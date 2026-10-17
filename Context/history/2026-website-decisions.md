@@ -1,3 +1,31 @@
+## 2026-10-17 - Food count: a positive count in one box of "Count another way" is enough
+
+The GM's 10-17 practice walk: on Toilet Tissue he tapped "Count another way",
+typed 1.3 in Cases, and the row refused with "Enter both counts; use 0 for
+none." until rolls were typed too; a 33 gallon trash bag row did the same with
+a gallons box. Jon, same day: "if he tells you 2.3 cases, don't make him put in
+quantity under gallons; it doesn't even make sense" and "Toilet tissue: 1.3
+cases. You don't need to know rolls; it gives you cases, that's it."
+(Diagnosis and the paired tprs reader fix: `Opsi/analysis/2026-10-17-paper-walk-voice/`.)
+
+- **Either box alone, once it holds more than 0.** In the two-box layout, a
+  positive number typed in Cases or in the loose box confirms the other box,
+  while it is blank, as 0 (`confirmFoodQuantity`). The 0 shows in that box, so
+  what saves is what is on screen; a held row's doubtful server number for that
+  box is never kept (the "held model seven cases" and "held mixed crust"
+  scenarios check the 0 is shown and the save is the typed amount alone).
+- **From the independent review (same day):** a box the counter cleared is blank
+  again, not invalid, so a mis-tap in the wrong box no longer brings back "Enter
+  both counts"; the 0 the screen filled is remembered (`zeroFilled`) and goes
+  back to blank if the positive count is withdrawn, so one typed 0 never saves
+  an empty shelf; a row whose recording said there is more than its count ("one
+  case and a little bit", `unquantified_remainder`) is never filled.
+- **Still both:** a typed 0 ("0 cases", then the loose count) and an invalid
+  entry keep the old rule and its hint, "Enter both counts; use 0 for none."
+  While both boxes are blank the hint is "Fill in either box, or both."
+- The single-box layout, the unit and package questions, add-or-replace and
+  history warnings are unchanged.
+
 ## 2026-10-17 - Liquor review: guessed numbers stand out, the guessed marker survives Add, and a soft summary at submit (Jon 10/9, 10/16)
 
 Jon's fix 4 from the 10/16 liquor count review (design slice W4,

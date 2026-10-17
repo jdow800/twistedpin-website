@@ -74,9 +74,11 @@ Flatbreads and cauliflower crusts support individual and case editors. One third
 held until explicitly answered, including when another field is changed. A
 protocol numeric-review flag cannot be cleared by choosing a unit.
 
-Originally uncertain quantities require independent Cases and Loose answers:
-Cases zero cannot confirm a model's loose one, and Loose two cannot confirm a
-model's seven cases. Both explicit zeros permit an observed empty shelf. A
+Originally uncertain quantities never keep a model component: Cases zero
+cannot confirm a model's loose one, and Loose two alone replaces a model's
+seven cases with a Cases 0 shown on screen (since 2026-10-17 a positive count
+in one box is the whole count; a typed 0 still needs the other box). Both
+explicit zeros permit an observed empty shelf. A
 single quantity answer replaces all prior model components. Identity holds
 ignore even an accidental DTO match until a human picks the product; a reused
 source reason independently holds a duplicate extraction row. Product, unit
@@ -198,6 +200,21 @@ and box one runs on the default fixture). The layout check asserts the question,
 the refusal and the answers fit at 320 and 390px with no horizontal overflow and
 44px targets, and saves before and after screenshots when
 `FOOD_UNIT_SIZE_LABEL=before` is set for the old build.
+
+### One box is enough in "Count another way" (2026-10-17)
+
+In the two-box layout a positive number in Cases or in the loose box confirms
+the other, blank box as 0, shown in that box. `check-food-voice.mjs`: "held
+mixed crust quantities ..." (2 cases alone saves 24, the loose box shows 0,
+never the model's 24), "Loose two alone replaces the held model seven cases
+with a shown Cases 0", and four "two-box count:" scenarios from the 10-17
+independent review: a typed 0 alone still asks for the other box; a box typed
+by mistake and cleared is blank again (not invalid), so one positive count
+then finishes; withdrawing the positive count blanks the box it filled (one
+typed 0 is never an empty shelf); "one case and a little bit"
+(`unquantified_remainder`) is never filled. `check-food-review.mjs`: "Loose two
+alone replaces the held model seven cases with a shown Cases 0". A typed 0 or
+an invalid box still needs both.
 
 ### Heard amounts on a tapped suggestion, and Start over (2026-10-15)
 
