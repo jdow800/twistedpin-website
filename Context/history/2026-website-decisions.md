@@ -1,3 +1,72 @@
+## 2026-10-16 - Count review: a bottles exit for case questions, removed rows offer their number back, a bare re-say can keep the earlier count
+
+Jon's fix 3 from the 10/16 liquor count review (design slice W3,
+`Alcohol Pricing/incidents/2026-10-16/liquor-count-review/amaretto-bare-name/`).
+On 10/16 the GM said "Luxardo Amaretto di Serradura, two cases" in the
+Backstock Room. The bottle has no case size, so the row asked "how many in a
+case?" and he removed it. A 5.9 s re-record of the bare name got the model's
+no-number default of 1, and 1 was saved where 2 was said. Three steps lost the
+2; each now has a way out. **None adds a hold, blanks a box or asks a question
+without a tap** (Jon's 10/9 "number in box, counts ready"; the 10/5 drop rules
+are untouched).
+
+- **A bottles exit on the case question.** A row that heard cases of a bottle
+  with no case size, and no loose bottles, gets "Not cases: 2 bottles" beside
+  Save. One tap makes it 2 bottles, ready, no case size saved. The edit log
+  records `editedBy 'bottles'`. Works on any server.
+- **A removed row remembers its number, as an offer.** ✕ on a row, or
+  Discard on the sheet, remembers each row that had spoken number words
+  (session, the take's shelf, the bottle) and logs a `voice_set_aside` event.
+  A row whose number the review already refused to prefill (a reused source, a
+  possible bottle size, a copy of another row) is not remembered. When a later
+  take on the **same shelf** re-says the **same bottle** with no number (the
+  server's `quantityHeard` is `guessed` or `implicit_one`), that row keeps its
+  own number, amber edge and ready state, and shows a muted
+  `Heard "two cases" earlier.` with chips: "Use 2 bottles" and "2 cases" when
+  the bottle has no case size, else "Use N". A chip tap fills the row
+  (`editedBy 'restored'`); only "2 cases" on a bottle with no case size leads
+  to the existing case question, and only after that tap (with the bottles
+  exit there too). Ignored, Add saves the row's own number. The memory is
+  forgotten when that cell is next added, kept, typed, cleared or corrected,
+  and on submit or a new count. Discard counts as a removal on purpose: the
+  10/16 review cannot tell which one the GM used, and the worst a garbled
+  discarded take can do is show an optional chip.
+- **Keep N on a bare re-say.** When a take re-says a bottle already counted on
+  its shelf and the server says nothing was heard for it (`guessed` or
+  `implicit_one`), the question reads "2 already counted on Backstock Room
+  from an earlier take." with Keep 2 / Recount: 1 / More: 3 total. Keep adds
+  nothing, records no restatement for submit, and logs one `voice_keep` event
+  with no quantities and no `quantityHeard`, so the TPRS mark fold (T4) can
+  never list a kept number as guessed. Any other re-say keeps today's copy and
+  two buttons.
+- **Keep is judged on the whole take (W3 review fix).** The question sits on
+  the take's first row of the bottle, but Keep skips every row of it. The
+  first build offered Keep from that one row's label, so "Belvedere …
+  Belvedere, three" in one take could Keep 2 and silently drop the spoken
+  three. Keep now appears only while **every** row of the bottle in the take
+  is a bare name: label `guessed`/`implicit_one`, no number words, and no
+  number typed, restored or otherwise answered by a person. A later edit that
+  gives the bottle a number withdraws a Keep already tapped, and the question
+  asks again with Recount / More. The "no number words" rule also covers a
+  client seam merge ("Belvedere, a case" | "Belvedere"), which takes the later
+  piece's bare label. The restore offer uses the same rule, and rows left on
+  the sheet after Add re-read their offer, so a number just spent is not
+  offered again.
+
+**Depends on tprs `quantityHeard`** (T2, tprs PR #422) for the offers and
+Keep, and on the edit log (W1 + tprs #423) for the events. On an older server
+neither appears and the bottles exit still works. Pending Jon: the wording
+"Not cases: N bottles" and "Keep N / Recount: M / More: K total".
+
+Rebased 10/17 onto main after W2 (#87) and W1 (#88) merged, as only W3's two
+commits. The one conflict was the `CountLiquor.tsx` import block, kept both
+ways: W2's `joinSeam`/`splitUnfinished`/`seamJoinEnabled` beside W3's
+`voiceReview` imports. After the rebase: `check-voice-carry.mjs` 57 voice rule
+checks plus 8 queue checks and 6 removed-row offer checks;
+`check-liquor-review.mjs` 60 scenarios, 156 assertions; `check-liquor-voice.mjs`
+76; `check-food-voice.mjs` 156; `check-draft-sync.mjs` 7; scoped typecheck
+clean. Merged once tprs #422 (T2) was live.
+
 ## 2026-10-16 - Liquor count keeps what the app heard and every edit
 
 The 10/16 liquor count review (`Alcohol Pricing/incidents/2026-10-16/liquor-count-review/`)

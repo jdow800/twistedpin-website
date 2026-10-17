@@ -1,5 +1,6 @@
-import type { VoiceExtractItem } from "./api";
-import { sourceRefsOf } from "./lineEvents";
+import type { LineEditedBy, QuantityHeard, VoiceExtractItem } from "./api";
+import { personEdited, sourceRefsOf } from "./lineEvents";
+import { formatQty } from "./quantity";
 
 /**
  * Checks on the liquor voice review sheet, from the 2026-10-02 count and its
@@ -133,4 +134,105 @@ export function repeatedSources(items: VoiceExtractItem[]): boolean[] {
   return items.map((it, i) => it.quantityNeedsReview === true && !it.quantityReviewReason && !!it.match &&
     items.some((other, j) => j !== i && other.match?.id === it.match!.id && words(other.spoken).includes(words(it.spoken)) &&
       (j < i || words(other.spoken) !== words(it.spoken))));
+}
+
+/**
+ * The Amaretto fixes (2026-10-16 count review, Jon's fix 3). "Luxardo Amaretto
+ * di Serradura, two cases" asked for a case size, the row was removed, and a
+ * bare re-say of the name got the model's no-number default of 1. A removed
+ * row's spoken number is now remembered for its shelf and bottle, and a later
+ * bare re-say there OFFERS it back as chips. Nothing here changes a number,
+ * adds a hold or asks a question: the re-said row keeps its own number, amber
+ * edge and ready state until the counter taps a chip (Jon 10/9).
+ */
+
+/** A removed review row's number, remembered for this session. */
+export type SetAside = {
+  zoneId: string;
+  skuId: string;
+  cases: number;
+  units: number;
+  unitsPerCase: number | null;
+  quantityWords: string;
+  spoken: string;
+};
+export type RestoreChip = { label: string; cases: number; units: number };
+export type RestoreOffer = { hint: string; chips: RestoreChip[] };
+
+/** The memory is keyed by the take's shelf and the bottle. */
+export const setAsideKey = (zoneId: string, skuId: string) => `${zoneId}:${skuId}`;
+
+type AsideRow = {
+  chosenSkuId: string | null;
+  quantityWords?: string;
+  cases: number;
+  units: number;
+  unitsPerCase: number | null;
+  spoken: string;
+  quantityReviewReason?: string;
+  keepBlank?: boolean;
+};
+
+/**
+ * What ✕ or Discard remembers for one row: only a matched row with spoken
+ * number words and a number above zero. A number the review refused to
+ * prefill (a reused source or another row's copy, a possible bottle size) is
+ * not remembered, so it can never come back as an offer.
+ */
+export function setAsideEntry(row: AsideRow, zoneId: string): SetAside | null {
+  const quantityWords = (row.quantityWords ?? "").trim();
+  if (!row.chosenSkuId || !quantityWords || !(row.cases + row.units > 0)) return null;
+  if (row.quantityReviewReason || row.keepBlank) return null;
+  return { zoneId, skuId: row.chosenSkuId, cases: row.cases, units: row.units, unitsPerCase: row.unitsPerCase,
+    quantityWords, spoken: row.spoken };
+}
+
+/** Nothing was said for this bottle: the server read it as a bare name. */
+const bareName = (heard: QuantityHeard | undefined) => heard === "implicit_one" || heard === "guessed";
+/** No number words on the row. A client seam merge ("Belvedere, a case" |
+ *  "Belvedere", mergeAdjacentRepeats) takes the later piece's label but keeps
+ *  the earlier words, so the label alone can call a spoken case count bare. */
+const noWords = (words: string | undefined) => !(words ?? "").trim();
+const noun = (n: number, one: string, many: string) => `${formatQty(n)} ${n === 1 ? one : many}`;
+
+/**
+ * The offer on a re-said bottle: only a row with no number heard for it
+ * (implicit_one or guessed, and no number words), of the same bottle,
+ * recorded on the same shelf as the remembered row. Chips only; each carries
+ * the cases and units a tap fills in. A remembered "two cases" of a bottle
+ * with no case size offers both readings, and only the "2 cases" tap leads to
+ * the case question.
+ */
+export function restoreOffer(row: { chosenSkuId: string | null; quantityHeard?: QuantityHeard; quantityWords?: string },
+  zoneId: string, memory: ReadonlyMap<string, SetAside>): RestoreOffer | null {
+  if (!row.chosenSkuId || !bareName(row.quantityHeard) || !noWords(row.quantityWords)) return null;
+  const e = memory.get(setAsideKey(zoneId, row.chosenSkuId));
+  if (!e || e.zoneId !== zoneId || e.skuId !== row.chosenSkuId) return null;
+  let chips: RestoreChip[];
+  if (e.cases > 0 && e.unitsPerCase == null) {
+    chips = e.units === 0
+      ? [{ label: `Use ${noun(e.cases, "bottle", "bottles")}`, cases: 0, units: e.cases },
+          { label: noun(e.cases, "case", "cases"), cases: e.cases, units: 0 }]
+      // Cases and loose bottles were both said: the cases reading only.
+      : [{ label: `${noun(e.cases, "case", "cases")} + ${formatQty(e.units)}`, cases: e.cases, units: e.units }];
+  } else if (e.cases > 0) {
+    chips = [{ label: `Use ${formatQty(e.cases * e.unitsPerCase! + e.units)}`, cases: e.cases, units: e.units }];
+  } else {
+    chips = [{ label: `Use ${formatQty(e.units)}`, cases: 0, units: e.units }];
+  }
+  return { hint: `Heard "${e.quantityWords}" earlier.`, chips };
+}
+
+/**
+ * The earlier-take answers a re-said bottle gets, in button order, judged on
+ * ALL of the take's rows of that bottle. Keep (the earlier count stands) only
+ * when nothing gave the bottle a number this time: every row is a bare name
+ * (label implicit_one or guessed, no number words) that nobody answered.
+ * applyReview's Keep skips every row of the bottle in the take, so a single
+ * row with a spoken, typed or restored number would otherwise be dropped.
+ */
+export function restateChoices(rows: ReadonlyArray<{ quantityHeard?: QuantityHeard; quantityWords?: string; editedBy?: LineEditedBy }>):
+  Array<"keep" | "replace" | "add"> {
+  const bare = rows.length > 0 && rows.every((r) => bareName(r.quantityHeard) && noWords(r.quantityWords) && !personEdited(r.editedBy));
+  return bare ? ["keep", "replace", "add"] : ["replace", "add"];
 }

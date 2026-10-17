@@ -953,4 +953,91 @@ check('edit log: a merged repeat keeps both server rows, in order', () => {
   assert.deepEqual(m.sourceRefsOf(row(1, 'a', 'e3')), [{extractionId: 'e3', itemIndex: 0}]);
 });
 
-console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${passed - voiceRules} edit-log queue checks; no DOM, microphone or service calls.`);
+const queueChecks = passed - voiceRules;
+
+// ── The Amaretto fixes (2026-10-16 count review, Jon's fix 3; voiceReview.ts).
+// A removed row's spoken number is offered back on a bare re-say of the same
+// bottle on the same shelf. Offers only: none of these returns a number to
+// apply, a hold or a case question.
+const reviewRow = (skuId, extra = {}) => ({chosenSkuId: skuId, spoken: 'Luxardo Amaretto di Serradura, two cases', quantityWords: 'two cases',
+  cases: 2, units: 0, unitsPerCase: null, ...extra});
+const aside = (...entries) => new Map(entries.map((e) => [m.setAsideKey(e.zoneId, e.skuId), e]));
+
+check('set aside: only a matched row with spoken number words and a number above zero is remembered', () => {
+  assert.deepEqual(m.setAsideEntry(reviewRow('amaretto'), 'backstock'),
+    {zoneId: 'backstock', skuId: 'amaretto', cases: 2, units: 0, unitsPerCase: null, quantityWords: 'two cases', spoken: 'Luxardo Amaretto di Serradura, two cases'});
+  assert.equal(m.setAsideEntry(reviewRow('amaretto', {quantityWords: undefined, cases: 0, units: 1, spoken: 'Luxardo Di Serradura'}), 'backstock'), null, 'a bare name has no number to remember');
+  assert.equal(m.setAsideEntry(reviewRow('amaretto', {quantityWords: '   '}), 'backstock'), null, 'blank words are no words');
+  assert.equal(m.setAsideEntry(reviewRow(null), 'backstock'), null, 'no bottle, nothing to offer it to');
+  assert.equal(m.setAsideEntry(reviewRow('amaretto', {cases: 0, units: 0}), 'backstock'), null, 'a held zero');
+  assert.equal(m.setAsideEntry(reviewRow('ketel', {quantityWords: '0.75', cases: 0, units: 0.75, keepBlank: true}), 'backstock'), null, 'a possible bottle size is never offered back');
+  assert.equal(m.setAsideEntry(reviewRow('titos', {quantityWords: 'two', cases: 0, units: 2, quantityReviewReason: 'source_already_used'}), 'backstock'), null, 'another row\'s number is never offered back');
+  assert.equal(m.setAsideEntry(reviewRow('amaretto', {quantityWords: ' two cases '}), 'backstock').quantityWords, 'two cases');
+});
+
+check('restore offer: only a bare re-say (implicit_one or guessed) of the same bottle on the same shelf', () => {
+  const memory = aside(m.setAsideEntry(reviewRow('amaretto'), 'backstock'));
+  const bare = (heard, skuId = 'amaretto') => ({chosenSkuId: skuId, quantityHeard: heard});
+  assert.ok(m.restoreOffer(bare('guessed'), 'backstock', memory));
+  assert.ok(m.restoreOffer(bare('implicit_one'), 'backstock', memory));
+  assert.equal(m.restoreOffer(bare('guessed'), 'giant', memory), null, 'another shelf');
+  assert.equal(m.restoreOffer(bare('guessed', 'maraschino'), 'backstock', memory), null, 'another bottle');
+  assert.equal(m.restoreOffer({chosenSkuId: null, quantityHeard: 'guessed'}, 'backstock', memory), null, 'no bottle yet');
+  assert.equal(m.restoreOffer(bare(undefined), 'backstock', memory), null, 'an older server sends no label: no offer');
+  assert.equal(m.restoreOffer(bare('guessed'), 'backstock', new Map()), null, 'nothing remembered');
+});
+
+check('restore offer: a re-say that speaks a number gets no offer', () => {
+  const memory = aside(m.setAsideEntry(reviewRow('amaretto'), 'backstock'));
+  assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'proved'}, 'backstock', memory), null);
+  assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'unclear'}, 'backstock', memory), null);
+  // A client seam merge ("Luxardo, two cases" | "Luxardo") takes the later
+  // piece's bare label but keeps the spoken words: not a bare re-say.
+  assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'implicit_one', quantityWords: 'two cases'}, 'backstock', memory), null);
+  assert.ok(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'guessed', quantityWords: ' '}, 'backstock', memory), 'blank words are no words');
+});
+
+check('restore offer: cases with no case size offer both readings, chips only, never a case question', () => {
+  const offer = m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'guessed'}, 'backstock', aside(m.setAsideEntry(reviewRow('amaretto'), 'backstock')));
+  assert.deepEqual(offer, {hint: 'Heard "two cases" earlier.', chips: [{label: 'Use 2 bottles', cases: 0, units: 2}, {label: '2 cases', cases: 2, units: 0}]});
+  assert.equal(JSON.stringify(offer).includes('needsCaseSize'), false, 'the offer never sets needsCaseSize');
+  const one = m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'guessed'}, 'backstock',
+    aside(m.setAsideEntry(reviewRow('amaretto', {quantityWords: 'one case', cases: 1}), 'backstock')));
+  assert.deepEqual(one.chips.map((c) => c.label), ['Use 1 bottle', '1 case']);
+  const mixed = m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'guessed'}, 'backstock',
+    aside(m.setAsideEntry(reviewRow('amaretto', {quantityWords: 'two cases and three', units: 3}), 'backstock')));
+  assert.deepEqual(mixed.chips, [{label: '2 cases + 3', cases: 2, units: 3}], 'cases and loose bottles: the cases reading only');
+  const sized = m.restoreOffer({chosenSkuId: 'boylan', quantityHeard: 'implicit_one'}, 'backstock',
+    aside(m.setAsideEntry(reviewRow('boylan', {quantityWords: 'two cases and three', units: 3, unitsPerCase: 24}), 'backstock')));
+  assert.deepEqual(sized.chips, [{label: 'Use 51', cases: 2, units: 3}], 'a known case size: one total');
+  const loose = m.restoreOffer({chosenSkuId: 'jameson', quantityHeard: 'guessed'}, 'backstock',
+    aside(m.setAsideEntry(reviewRow('jameson', {quantityWords: 'point seven', cases: 0, units: 0.7, unitsPerCase: 12}), 'backstock')));
+  assert.deepEqual(loose, {hint: 'Heard "point seven" earlier.', chips: [{label: 'Use 0.7', cases: 0, units: 0.7}]});
+});
+
+check('restate choices: Keep first, only when nothing was heard for the bottle this time', () => {
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'implicit_one'}]), ['keep', 'replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'guessed', quantityWords: ''}]), ['keep', 'replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'proved'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'unclear'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{}]), ['replace', 'add'], 'an older server: today\'s two answers');
+  assert.deepEqual(m.restateChoices([]), ['replace', 'add'], 'no rows, no Keep');
+});
+
+check('restate choices: Keep is judged on every row of the bottle in the take', () => {
+  const bare = {quantityHeard: 'implicit_one', quantityWords: ''};
+  assert.deepEqual(m.restateChoices([bare, {...bare, quantityHeard: 'guessed'}]), ['keep', 'replace', 'add'], 'two bare re-says');
+  // The W3 review probe: "Belvedere … Belvedere, three" in one take. Keep would
+  // skip both rows and drop the spoken three.
+  assert.deepEqual(m.restateChoices([bare, {quantityHeard: 'proved', quantityWords: 'three'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'unclear', quantityWords: 'two'}, bare]), ['replace', 'add'], 'order does not matter');
+  // A seam merge keeps the later piece's bare label and the earlier words.
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'implicit_one', quantityWords: 'a case'}]), ['replace', 'add']);
+  // A person's number on any row is an answer for this take.
+  for (const editedBy of ['typed', 'restored', 'bottles', 'keep_high', 'name_number', 'suspect_pick'])
+    assert.deepEqual(m.restateChoices([bare, {...bare, editedBy}]), ['replace', 'add'], editedBy);
+  for (const editedBy of ['as_heard', 'case_size', undefined])
+    assert.deepEqual(m.restateChoices([{...bare, editedBy}]), ['keep', 'replace', 'add'], `${editedBy} is not a person's number`);
+});
+
+console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${queueChecks} edit-log queue checks and ${passed - voiceRules - queueChecks} removed-row offer checks; no DOM, microphone or service calls.`);

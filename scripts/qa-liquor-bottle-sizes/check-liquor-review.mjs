@@ -413,6 +413,222 @@ try{
     assert.deepEqual((await puts()).at(-1).events.map(x=>x.skuId),['jaeger'],'a plain 200 acknowledges the events');
     note('Old server: no extractionId tags, lines save as before, events acknowledged on 200');
   });
+  // ── The Amaretto fixes (2026-10-16 count review, Jon's fix 3; Website W3).
+  // "Luxardo Amaretto di Serradura, two cases" asked for a case size, the row
+  // was removed and a bare re-say saved 1 for 2. Ways out of each step; none
+  // adds a hold, blanks a box or asks without a tap (Jon 10/9).
+  const AMARETTO={id:'amaretto',name:'Amaretto Luxardo di Saschira',sizeMl:750};
+  const amarettoCases={spoken:'Luxardo Amaretto di Serradura, two cases',cases:2,units:0,qty:0,unitsPerCase:null,needsCaseSize:true,
+    suspectPreMultiplied:false,quantityNeedsReview:true,quantityWords:'two cases',quantityHeard:'unclear',match:AMARETTO,candidates:[]};
+  const amarettoBare={spoken:'Luxardo Di Serradura',cases:0,units:1,qty:1,unitsPerCase:null,needsCaseSize:false,
+    suspectPreMultiplied:false,quantityNeedsReview:true,quantityWords:'',quantityHeard:'guessed',match:AMARETTO,candidates:[]};
+  const BELVEDERE={id:'belvedere',name:'Belvedere Organic',sizeMl:750};
+  const belvedere=(extra={})=>voiceRow('belvedere','Belvedere Organic','Belvedere',1,{match:BELVEDERE,quantityHeard:'implicit_one',...extra});
+  const sheetText="document.querySelector('.lq-sheet').textContent";
+  const sheetButtons=()=>js("[...document.querySelectorAll('.lq-sheet button')].filter(e=>e.getClientRects().length).map(e=>[e.textContent.trim(),e.disabled])");
+  const qtyBox=`document.querySelector('.lq-sheet input[aria-label^="Total quantity"]')`;
+  const addReady=n=>`[...document.querySelectorAll('.lq-sheet button')].some(e=>/^Add ${n} to/.test(e.textContent.trim())&&!e.disabled)`;
+  // One more take on the shelf now selected, without reloading.
+  async function retake(row,extra={extractionId:EXT}){
+    const n=await js('window.liquorQa.extracts.length');
+    await button(/Record count for/);
+    await js(`window.liquorQa.recorder.segment(${JSON.stringify(row.spoken+'.')},0)`);await until(`window.liquorQa.extracts.length===${n+1}`);
+    await js(`window.liquorQa.extracts[${n}].succeed([${JSON.stringify(row)}],${JSON.stringify(extra)})`);
+    await button(/Stop & review/);await js(`window.liquorQa.recorder.finish(${JSON.stringify(row.spoken)})`);await until("document.querySelector('.lq-sheet')");
+  }
+  // One take that returns several rows.
+  async function retakeRows(rows,extra={extractionId:EXT}){
+    const n=await js('window.liquorQa.extracts.length'),said=rows.map(r=>r.spoken).join('. ');
+    await button(/Record count for/);
+    await js(`window.liquorQa.recorder.segment(${JSON.stringify(said+'.')},0)`);await until(`window.liquorQa.extracts.length===${n+1}`);
+    await js(`window.liquorQa.extracts[${n}].succeed(${JSON.stringify(rows)},${JSON.stringify(extra)})`);
+    await button(/Stop & review/);await js(`window.liquorQa.recorder.finish(${JSON.stringify(said)})`);await until("document.querySelector('.lq-sheet')");
+  }
+  // Each review row: spoken words, Qty box, and its Keep/Recount/More chips.
+  const revRows=()=>js("[...document.querySelectorAll('.lq-sheet .lq-rev')].map(r=>[r.querySelector('.lq-rev-spoken').textContent.slice(1,-1),r.querySelector('input[aria-label^=\"Total quantity\"]')?.value,[...r.querySelectorAll('button')].map(b=>b.textContent.trim()).filter(t=>/^(Keep|Recount|More)/.test(t)).join('|')])");
+  // Take A on Backstock Room: "two cases" of a bottle with no case size, then
+  // ✕ or Discard. Take B: the bare name, on `shelfB`.
+  async function amarettoPair(removeWith,shelfB='Backstock Room',query='?pausecuts=0&backstock',bare=amarettoBare,cases=amarettoCases){
+    await load(query);await button(/^Backstock Room/);
+    await retake(cases);
+    if(removeWith==='x')await js("document.querySelector('.lq-sheet .lq-rev-x').click()");else await button(/^Discard$/);
+    await until("!document.querySelector('.lq-sheet')");
+    if(shelfB!=='Backstock Room')await button(new RegExp('^'+shelfB));
+    await retake(bare,{extractionId:EXT2});
+  }
+  async function offerShown(){
+    await check('The bare re-say stays a READY amber 1 (box not blank)',`(e=>e.value==='1'&&e.classList.contains('lq-qty-unproved'))(${qtyBox})`);
+    await check('It is counted in "Add 1" and the header says 1 ready',`${addReady(1)}&&${sheetText}.includes('1 ready')&&!${sheetText}.includes('need a tap')`);
+    await check('No case-size question without a tap',`!${sheetText}.includes('how many in a case?')`);
+    await check('The earlier number is a muted hint with two chips',`(r=>!!r&&r.querySelector('.lq-muted').textContent==='Heard "two cases" earlier.'&&[...r.querySelectorAll('button')].map(e=>e.textContent.trim()).join('|')==='Use 2 bottles|2 cases')(document.querySelector('.lq-sheet .lq-rev-restore'))`);
+  }
+  await run('amaretto (1): "Not cases: 2 bottles" answers the case question with the spoken 2',async()=>{
+    await load('?pausecuts=0&backstock');await button(/^Backstock Room/);await retake(amarettoCases);
+    await check('The case question asks, with the bottles exit beside Save',`${sheetText}.includes('how many in a case?')&&[...document.querySelectorAll('.lq-sheet .lq-rev-assign button')].map(e=>e.textContent.trim()).at(-1)==='Not cases: 2 bottles'`);
+    await check('Nothing is ready before the tap (as today)',`!${addReady(1)}`);
+    await shot('amaretto-bottles-exit-412');
+    await button(/^Not cases: 2 bottles$/);
+    await check('One tap: two bottles, ready, no question, no amber',`(e=>e.value==='2'&&!e.classList.contains('lq-qty-unproved'))(${qtyBox})&&!${sheetText}.includes('how many in a case?')&&${addReady(1)}`);
+    await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===2&&l.enteredCases==null');
+    const events=await sentEvents();
+    assert.deepEqual(events.map(e=>pick(e,['kind','zoneId','skuId','beforeQty','afterQty','heardCases','heardUnits','heardQty','editedBy','quantityHeard','quantityWords'])),
+      [{kind:'voice_apply',zoneId:'speed',skuId:'amaretto',beforeQty:null,afterQty:2,heardCases:2,heardUnits:0,heardQty:0,editedBy:'bottles',quantityHeard:null,quantityWords:'two cases'}]);
+    assert.equal(await js("window.liquorQa.calls.some(c=>c.path.includes('/case-size'))"),false,'no case size is saved');
+    note('Amaretto two cases → Not cases: 2 bottles → Add saves 2 on Backstock, editedBy bottles');
+  });
+  await run('amaretto (2): after ✕, a bare re-say stays a ready amber 1 and offers the 2 as chips; ignored, Add saves its own 1',async()=>{
+    await amarettoPair('x');await offerShown();await shot('amaretto-offer-412');
+    await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
+    await check('The sheet closed and Record is free (nothing left held)',`!document.querySelector('.lq-sheet')&&[...document.querySelectorAll('button')].some(e=>/Record count for/.test(e.textContent)&&!e.disabled)`);
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    const events=await sentEvents();
+    assert.deepEqual(events.map(e=>pick(e,['kind','zoneId','skuId','heardCases','heardQty','quantityWords','quantityHeard','editedBy','extractionId','afterQty'])),[
+      {kind:'voice_set_aside',zoneId:'speed',skuId:'amaretto',heardCases:2,heardQty:0,quantityWords:'two cases',quantityHeard:'unclear',editedBy:'as_heard',extractionId:EXT,afterQty:undefined},
+      {kind:'voice_apply',zoneId:'speed',skuId:'amaretto',heardCases:0,heardQty:1,quantityWords:null,quantityHeard:'guessed',editedBy:'as_heard',extractionId:EXT2,afterQty:1}]);
+    note('✕ logs voice_set_aside; the ignored offer leaves the guessed 1 as heard (T4 lists it at submit)');
+    // Added: the remembered number is spent. A third bare re-say gets Keep, not the offer.
+    await retake({...amarettoBare,spoken:'Luxardo Di Serradura again'});
+    await check('After Add the shelf forgets the removed number',`!document.querySelector('.lq-sheet .lq-rev-restore')&&[...document.querySelectorAll('.lq-sheet button')].some(e=>e.textContent.trim()==='Keep 1')`);
+  });
+  await run('amaretto (2b): "Use 2 bottles" fills the re-said row with 2, ready, editedBy restored',async()=>{
+    await amarettoPair('x');await button(/^Use 2 bottles$/);
+    await check('2 in the box, no amber, chips gone, still ready, no question',`(e=>e.value==='2'&&!e.classList.contains('lq-qty-unproved'))(${qtyBox})&&!document.querySelector('.lq-sheet .lq-rev-restore')&&${addReady(1)}&&!${sheetText}.includes('how many in a case?')`);
+    await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===2&&l.enteredCases==null');
+    const apply=(await sentEvents()).find(e=>e.kind==='voice_apply');
+    assert.deepEqual(pick(apply,['editedBy','heardQty','afterQty','quantityHeard']),{editedBy:'restored',heardQty:1,afterQty:2,quantityHeard:null});
+    note('Use 2 bottles → saved 2, editedBy restored, heard 1 kept beside it');
+  });
+  await run('amaretto (2c): "2 cases" leads to the case question only on its tap, with the bottles exit there too',async()=>{
+    await amarettoPair('x');await button(/^2 cases$/);
+    await check('Now the existing case question, with the bottles exit',`${sheetText}.includes('Heard 2 cases of Amaretto Luxardo di Saschira')&&${sheetText}.includes('how many in a case?')&&[...document.querySelectorAll('.lq-sheet button')].some(e=>e.textContent.trim()==='Not cases: 2 bottles')`);
+    await check('The case question holds the row, as it does for a spoken case count',`!${addReady(1)}`);
+    await button(/^Not cases: 2 bottles$/);await button(/^Add 1 to Backstock Room/);
+    await savedLine('amaretto','speed','Number(l.qtyUnits)===2&&l.enteredCases==null');
+    assert.equal((await sentEvents()).find(e=>e.kind==='voice_apply').editedBy,'bottles');
+    note('2 cases → the case question appears only after the tap; the bottles exit there saves 2');
+  });
+  await run('amaretto (2d): an ambiguous bare re-say (Amaretto or Maraschino) gets the offer once Amaretto is picked',async()=>{
+    // tprs probe 3 (amaretto-bare-name): the model may ask which Luxardo.
+    await amarettoPair('x','Backstock Room','?pausecuts=0&backstock',{...amarettoBare,match:null,
+      candidates:[{...AMARETTO,unitsPerCase:null},{id:'maraschino',name:'Luxardo Maraschino Originale',sizeMl:750,unitsPerCase:12}]});
+    await check('No offer before the bottle is known',`!document.querySelector('.lq-sheet .lq-rev-restore')&&${sheetText}.includes('Which one?')`);
+    await button(/^Amaretto Luxardo di Saschira/);await offerShown();
+    note('An ambiguous re-say gets the offer after the pick, still a ready amber 1');
+  });
+  await run('amaretto (2e): a row left on the sheet after Add re-reads its offer, so the spent number is not offered again',async()=>{
+    await load('?pausecuts=0&backstock');await button(/^Backstock Room/);await retake(amarettoCases);
+    await js("document.querySelector('.lq-sheet .lq-rev-x').click()");await until("!document.querySelector('.lq-sheet')");
+    // A held zero the server labels guessed (needs review, no words, model 0).
+    const heldZero={...amarettoBare,spoken:'Amaretto',units:0,qty:0};
+    await retakeRows([amarettoBare,voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),heldZero],{extractionId:EXT2});
+    await check('Both Amaretto rows carry the offer; the held one waits with a blank box',`document.querySelectorAll('.lq-sheet .lq-rev-restore').length===2&&document.querySelectorAll('.lq-sheet input[aria-label^="Total quantity"]')[2].value===''&&${sheetText}.includes('2 ready')&&${sheetText}.includes('1 need a tap')`);
+    await button(/^Add 2 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
+    await check('The held row stays, without the spent offer',`document.querySelectorAll('.lq-sheet .lq-rev').length===1&&!document.querySelector('.lq-sheet .lq-rev-restore')`);
+    note('Add spends the removed number; the held Amaretto row left on the sheet no longer offers it');
+  });
+  await run('amaretto (3): Discard remembers like ✕, and the same offer appears',async()=>{
+    await amarettoPair('discard');await offerShown();
+    await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
+    assert.deepEqual((await sentEvents()).map(e=>e.kind),['voice_set_aside','voice_apply']);
+    note('Discard logs voice_set_aside and the re-say offers Use 2 bottles / 2 cases');
+  });
+  await run('amaretto (4): the bare re-say on another shelf is a plain amber 1 with no offer',async()=>{
+    await amarettoPair('x','Giant Bottle Shelf');
+    await check('Amber 1, ready, no offer',`(e=>e.value==='1'&&e.classList.contains('lq-qty-unproved'))(${qtyBox})&&${addReady(1)}&&!document.querySelector('.lq-sheet .lq-rev-restore')&&!${sheetText}.includes('earlier.')`);
+    note('Take B on Giant Bottle Shelf: no offer from the Backstock Room row');
+  });
+  await run('amaretto (5): a bare "Belvedere." over a counted 2 can keep it: Keep 2 / Recount: 1 / More: 3 total',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    const before=(await puts()).length;
+    await retake(belvedere());
+    await check('The question names the earlier count without the recount-or-more line',`${sheetText}.includes('2 already counted on Backstock Room from an earlier take.')&&!${sheetText}.includes('Did you just recount those')`);
+    assert.deepEqual((await sheetButtons()).filter(([t])=>/^(Keep|Recount|More)/.test(t)).map(([t])=>t),['Keep 2','Recount: 1','More: 3 total']);
+    await shot('belvedere-keep-412');
+    await b.send('Emulation.setDeviceMetricsOverride',{width:320,height:915,deviceScaleFactor:1,mobile:true});await pause(80);
+    await check('320px: the three answers fit the phone',`document.documentElement.scrollWidth<=innerWidth+1`);await shot('belvedere-keep-320');
+    await b.send('Emulation.setDeviceMetricsOverride',{width:412,height:915,deviceScaleFactor:1,mobile:true});await pause(80);
+    await button(/^Keep 2$/);
+    await check('The answer reads back, with Change',`${sheetText}.includes('Keeps the earlier 2 on Backstock Room.')&&[...document.querySelectorAll('.lq-sheet button')].some(e=>e.textContent.trim()==='Change')`);
+    await button(/^Add 1 to Backstock Room/);await until("!document.querySelector('.lq-sheet')");
+    await until(`window.liquorQa.calls.filter(c=>c.path.endsWith('/lines')).length>${before}`);
+    await check('The cell stays 2',`${saved}.some(l=>l.skuId==='belvedere'&&l.zoneId==='speed'&&Number(l.qtyUnits)===2)`);
+    const events=await sentEvents();
+    assert.equal(events.length,1,'one event');
+    assert.deepEqual(pick(events[0],['kind','zoneId','skuId','restateAnswer','spoken','extractionId','itemIndex']),
+      {kind:'voice_keep',zoneId:'speed',skuId:'belvedere',restateAnswer:'keep',spoken:'Belvedere',extractionId:EXT,itemIndex:0});
+    for(const k of ['beforeQty','afterQty','heardQty','heardUnits','quantityHeard','editedBy'])assert.equal(events[0][k],undefined,`voice_keep carries no ${k}`);
+    await finish();
+    await check('No restatement at submit',`!document.querySelector('.lq-confirm').textContent.includes('Extra stock or said twice?')`);
+    note('Keep 2: the cell stays 2, the save carries one voice_keep with no quantities, no restatement at submit');
+  });
+  await run('amaretto (6): a re-say with a spoken number keeps today\'s copy and two buttons',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retake(belvedere({spoken:'Belvedere, one',quantityWords:'one',quantityHeard:'proved'}));
+    await check('Today\'s question',`${sheetText}.includes('2 already counted on Backstock Room from an earlier take. Did you just recount those, or find more?')`);
+    assert.deepEqual((await sheetButtons()).filter(([t])=>/^(Keep|Recount|More)/.test(t)).map(([t])=>t),['Recount: 1','More: 3 total']);
+    note('A spoken number: Recount / More only');
+  });
+  // W3 review (2026-10-16): Keep sits on the take's first row of the bottle
+  // but skips every row of it, so it is judged on all of them.
+  await run('amaretto (6b): "Belvedere … Belvedere, three" in one take: no Keep, so the spoken three cannot be dropped',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere(),voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),
+      belvedere({spoken:'Belvedere, three',units:3,qty:3,quantityWords:'three',quantityHeard:'proved'})]);
+    assert.deepEqual(await revRows(),[['Belvedere','1','Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere, three','3','']]);
+    await check('Today\'s question on the first row, Keep nowhere',`${sheetText}.includes('2 already counted on Backstock Room from an earlier take. Did you just recount those, or find more?')&&![...document.querySelectorAll('.lq-sheet button')].some(e=>/^Keep \\d/.test(e.textContent.trim()))`);
+    await check('Both Belvedere rows wait for the answer',`${sheetText}.includes('1 ready')&&${sheetText}.includes('2 need a tap')`);
+    await button(/^Recount: 1$/);await button(/^Add 3 to Backstock Room/);
+    await savedLine('belvedere','speed','Number(l.qtyUnits)===4');
+    const apply=(await sentEvents()).find(e=>e.kind==='voice_apply'&&e.skuId==='belvedere');
+    assert.deepEqual(pick(apply,['restateAnswer','heardQty','afterQty']),{restateAnswer:'replace',heardQty:4,afterQty:4});
+    assert.equal((await sentEvents()).some(e=>e.kind==='voice_keep'),false,'no voice_keep');
+    note('Bare + spoken Belvedere in one take: Recount / More only; Recount saves 1 + 3 = 4');
+  });
+  await run('amaretto (6c): two bare re-says can Keep; a number typed on either withdraws the Keep and it asks again',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere(),voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),
+      belvedere({spoken:'Belvedere again',quantityHeard:'guessed'})]);
+    assert.deepEqual(await revRows(),[['Belvedere','1','Keep 2|Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere again','1','']]);
+    await button(/^Keep 2$/);
+    await check('Kept: every row ready',`${sheetText}.includes('Keeps the earlier 2 on Backstock Room.')&&${addReady(3)}`);
+    await js("document.querySelectorAll('.lq-sheet .lq-rev')[2].dataset.qa='again'");
+    await input('.lq-sheet .lq-rev[data-qa="again"] input[aria-label^="Total quantity"]','3');
+    assert.deepEqual(await revRows(),[['Belvedere','1','Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere again','3','']]);
+    await check('The Keep reads back no more, and the bottle waits again',`!${sheetText}.includes('Keeps the earlier')&&${sheetText}.includes('Did you just recount those, or find more?')&&${sheetText}.includes('1 ready')&&${addReady(1)}`);
+    await button(/^Recount: 1$/);await button(/^Add 3 to Backstock Room/);
+    await savedLine('belvedere','speed','Number(l.qtyUnits)===4');
+    const events=await sentEvents();
+    assert.equal(events.some(e=>e.kind==='voice_keep'),false,'the withdrawn Keep logs nothing');
+    assert.deepEqual(pick(events.find(e=>e.kind==='voice_apply'&&e.skuId==='belvedere'),['restateAnswer','editedBy','afterQty']),{restateAnswer:'replace',editedBy:'typed',afterQty:4});
+    note('Two bare Belvederes: Keep 2 offered; typing 3 on the second asks again; Recount saves 1 + 3 = 4');
+  });
+  await run('amaretto (6d): a seam merge "Belvedere, a case … Belvedere" keeps the case words: no Keep',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere({spoken:'Belvedere, a case',cases:1,units:0,qty:12,quantityWords:'a case',quantityHeard:'proved'}),belvedere()]);
+    assert.deepEqual(await revRows(),[['Belvedere, a case … Belvedere','13','Recount: 13|More: 15 total']]);
+    await check('Today\'s question',`${sheetText}.includes('Did you just recount those, or find more?')`);
+    note('Merged case + bare row (label implicit_one, words "a case"): Recount / More only');
+  });
+  await run('amaretto (7): a number typed on the count screen forgets the removed row',async()=>{
+    await load('?pausecuts=0&backstock');await button(/^Backstock Room/);await retake(amarettoCases);
+    await js("document.querySelector('.lq-sheet .lq-rev-x').click()");await until("!document.querySelector('.lq-sheet')");
+    await input('input[aria-label="Search counted items and catalog"]','Amaretto');await input('input[aria-label="Loose Amaretto Luxardo di Saschira"]','2');
+    await savedLine('amaretto','speed','Number(l.qtyUnits)===2');await button(/^Clear search$/);
+    await retake(amarettoBare,{extractionId:EXT2});
+    await check('No offer; the re-say asks about the typed 2 as usual',`!document.querySelector('.lq-sheet .lq-rev-restore')&&${sheetText}.includes('2 already counted on Backstock Room')`);
+    note('A typed count of the bottle on that shelf forgets the removed number');
+  });
+  await run('amaretto (8): an older server (no quantityHeard) shows no offer and no Keep; the bottles exit still works',async()=>{
+    const {quantityHeard:_a,...oldCases}=amarettoCases,{quantityHeard:_b,...oldBare}=amarettoBare;
+    await amarettoPair('x','Backstock Room','?pausecuts=0&backstock&old-server',oldBare,oldCases);
+    await check('A plain amber 1, ready, no offer',`(e=>e.value==='1'&&e.classList.contains('lq-qty-unproved'))(${qtyBox})&&${addReady(1)}&&!document.querySelector('.lq-sheet .lq-rev-restore')`);
+    await load('?pausecuts=0&backstock&belvedere2&old-server');await button(/^Backstock Room/);
+    const {quantityHeard:_c,...oldBelvedere}=belvedere();await retake(oldBelvedere);
+    assert.deepEqual((await sheetButtons()).filter(([t])=>/^(Keep|Recount|More)/.test(t)).map(([t])=>t),['Recount: 1','More: 3 total']);
+    await load('?pausecuts=0&backstock&old-server');await button(/^Backstock Room/);await retake(oldCases);
+    await button(/^Not cases: 2 bottles$/);await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===2');
+    note('Older server: no offer, no Keep, the bottles exit still saves 2');
+  });
   for(const width of [320,360,412,1280])await run(`${width}px count and Details keep case numeral visible`,async()=>{
     await b.send('Emulation.setDeviceMetricsOverride',{width,height:width===1280?900:915,deviceScaleFactor:1,mobile:width!==1280});
     await load();await input('input[aria-label="Search counted items and catalog"]','Boylan');
