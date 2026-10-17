@@ -1,4 +1,5 @@
 import type { VoiceExtractItem } from "./api";
+import { sourceRefsOf } from "./lineEvents";
 
 /**
  * Checks on the liquor voice review sheet, from the 2026-10-02 count and its
@@ -64,12 +65,16 @@ export function mergeAdjacentRepeats(items: VoiceExtractItem[]): VoiceExtractIte
       continue;
     }
     const spoken = `${prev.spoken} … ${it.spoken}`;
+    // Both server rows stay findable from the merged one (TPRS 0226 retention).
+    const refs = [...sourceRefsOf(prev), ...sourceRefsOf(it)];
+    const { sourceRef: _ref, ...later } = it;
     out[out.length - 1] = caseAndLoose
-      ? { ...it, spoken, cases: prev.cases + it.cases, units: prev.units + it.units, qty: prev.qty + it.qty,
+      ? { ...later, spoken, cases: prev.cases + it.cases, units: prev.units + it.units, qty: prev.qty + it.qty,
           needsCaseSize: prev.needsCaseSize || it.needsCaseSize,
           ...((prev.quantityNeedsReview || it.quantityNeedsReview) ? { quantityNeedsReview: true } : {}),
-          ...((prev.quantityWords || it.quantityWords) ? { quantityWords: [prev.quantityWords, it.quantityWords].filter(Boolean).join(" + ") } : {}) }
-      : { ...it, spoken };
+          ...((prev.quantityWords || it.quantityWords) ? { quantityWords: [prev.quantityWords, it.quantityWords].filter(Boolean).join(" + ") } : {}),
+          ...(refs.length ? { sourceRefs: refs } : {}) }
+      : { ...later, spoken, ...(refs.length ? { sourceRefs: refs } : {}) };
   }
   return out;
 }

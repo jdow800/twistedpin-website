@@ -25,14 +25,19 @@ import {
   type PrecheckFinding,
   type BottleSizeWarning,
   type RetiringSku,
+  type LineEditedBy,
+  type QuantityHeard,
   type VoiceExtractItem,
   type VoiceMatch,
+  type VoiceSourceRef,
+  type VoiceTrace,
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry, joinSeam, splitUnfinished } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, type HighCheck, type NameCheck } from "../voiceReview";
 import { pauseCutsEnabled, seamJoinEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
+import { createLineEventQueue, personEdited, sourceRefsOf, worstHeard, type LineEventInput } from "../lineEvents";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
@@ -117,6 +122,17 @@ type ReviewItem = {
   assignOpen?: boolean; // unmatched → inline search open
   /** A human entered literal zero; missing model quantities never become zeros. */
   explicitZero?: boolean;
+  /** What the voice brought, frozen when the sheet opened: a later edit of the
+   *  row never changes it. Sent with the row's voice_apply event (TPRS 0226). */
+  heard: { cases: number; units: number; qty: number; quantityWords?: string; quantityHeard?: QuantityHeard; spoken: string };
+  /** The server's label for this row's number (TPRS 2026-10-16); absent from older servers. */
+  quantityHeard?: QuantityHeard;
+  /** Who set the number the row will be added with; unset = as heard. */
+  editedBy?: LineEditedBy;
+  /** The server rows behind this one (empty from an older server). */
+  sourceRefs: VoiceSourceRef[];
+  /** The recorder's take (absent on the Web Speech engine). */
+  takeId?: string;
 };
 
 /** Jon, 2026-10-09: "Number in box, counts ready." A model number the server
@@ -298,7 +314,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   const segmentGapRef = useRef(false);
   if (!carryRef.current) {
     carryRef.current = createCarry((text, idx) => {
-      segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this piece's extraction failed
+      segExtractsRef.current.set(idx, extractVoice(text, "bar", undefined, traceFor(idx)).catch(() => null)); // null = this piece's extraction failed
     }, splitUnfinished, seamJoinEnabled() ? joinSeam : undefined);
   }
   const dict = useVoiceDictation((t) => void finalizeVoice(t), {
@@ -321,9 +337,29 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // segment isn't left waiting for it.
       if (pauseCuts) return carryRef.current!.add(text, idx);
       if (!text.trim()) return;
-      segExtractsRef.current.set(idx, extractVoice(text).catch(() => null)); // null = this segment's extraction failed
+      segExtractsRef.current.set(idx, extractVoice(text, "bar", undefined, traceFor(idx)).catch(() => null)); // null = this segment's extraction failed
     },
   });
+  const dictRef = useRef<typeof dict | null>(null);
+  dictRef.current = dict;
+  const takeZoneIdRef = useRef(takeZoneId);
+  takeZoneIdRef.current = takeZoneId;
+  /** The labels TPRS keeps with each extract request (0226): this count, the
+   *  take's shelf, the recorder's take and the piece. The carry's flush index
+   *  (Number.MAX_SAFE_INTEGER) is the text sent at Stop, which has no piece.
+   *  Everything is read through refs: the carry above is created once, before
+   *  `dict` exists, and keeps its first-render closure. */
+  function traceFor(idx: number): VoiceTrace {
+    const atStop = idx >= 1e6;
+    return {
+      sessionId: sessionIdRef.current ?? undefined,
+      zoneId: (takeZoneIdRef.current ?? zoneIdRef.current) || undefined,
+      // The Web Speech engine has no take id.
+      takeId: dictRef.current?.currentTakeId?.() ?? undefined,
+      segment: atStop ? null : idx,
+      atStop,
+    };
+  }
   // A recorder ending or refusing Start releases the shelf immediately. Avoid
   // a delayed false-recording effect clearing the next take's Start flag.
   const capturing = captureRequested && dict.recording && dict.capturing !== false;
@@ -455,6 +491,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // shelf one, having never touched the picker we listen to. Found in review.
       rememberZone(sid, zoneIdRef.current);
       setCounts({});
+      // Unsaved edits of the old count stay behind with it; their events must
+      // not reach the new count's first save.
+      eventsRef.current!.clear();
       pendingRemapsRef.current = [];
       remapConflictsRef.current = [];
       setRemapConflicts([]);
@@ -478,6 +517,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   batchCountsRef.current = batchCounts;
   const sessionIdRef = useRef(sessionId);
   sessionIdRef.current = sessionId;
+  /** Every quantity change of a cell, waiting for the next save (lineEvents.ts,
+   *  TPRS 0226). Retention only: nothing on screen reads it. */
+  const eventsRef = useRef<ReturnType<typeof createLineEventQueue> | null>(null);
+  if (!eventsRef.current) eventsRef.current = createLineEventQueue();
   /** Saves built on the draft this screen last saw, so a stale screen merges
    *  instead of overwriting an edit made elsewhere (draftSync.ts). */
   const [merged, setMerged] = useState(false);
@@ -487,7 +530,17 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       beforeSave: () => {
         if (remapConflictsRef.current.length) throw new DraftMergePausedError("Review the changed item correction first.");
       },
-      save: (lines, baseHash) => saveCountLines(sessionIdRef.current!, lines, true, "bar", baseHash),
+      // The queued events ride along. A failed or refused (409) save puts them
+      // back, and the retry sends the same ids, which the server stores once.
+      save: (lines, baseHash) => {
+        const q = eventsRef.current!;
+        const batch = q.take();
+        const ids = batch.map((e) => e.id);
+        return saveCountLines(sessionIdRef.current!, lines, true, "bar", baseHash, batch).then(
+          (r) => { q.ack(ids); return r; },
+          (e: unknown) => { q.release(ids); throw e; },
+        );
+      },
       current: () => flatten(countsRef.current),
       saved: (lines) => {
         const saved = new Map(lines.map((l) => [`${l.zoneId}:${l.skuId}`, l]));
@@ -533,6 +586,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             cell.caseSize == null && !restoredEndpoints.has(key) && sameDraftCell(line, localLines.get(key))) {
             cell.cases = 0;
             cell.caseSize = previous.caseSize;
+          }
+        }
+        // The audit trail sees a cell another phone changed. TPRS's mark fold
+        // ignores merge_adopt, so adopting never erases this phone's marks.
+        for (const zid of new Set([...Object.keys(local), ...Object.keys(next)])) {
+          for (const sid of new Set([...Object.keys(local[zid] ?? {}), ...Object.keys(next[zid] ?? {})])) {
+            const was = local[zid]?.[sid], now = next[zid]?.[sid];
+            if (was && now && Math.abs(was.qty - now.qty) < 1e-9) continue;
+            eventsRef.current!.push(cellEvent("merge_adopt", zid, sid, was, now));
           }
         }
         countsRef.current = next;
@@ -628,34 +690,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }, [sessionId]);
 
   /** SET the LOOSE container count for (zone, sku), preserving any cases
-   *  already entered. The manual correction path. */
-  function setQty(skuId: string, loose: number, explicit = false, dest = zoneId) {
+   *  already entered. The manual correction path. `meta` marks an edit made
+   *  in the pre-submit Details (TPRS 0226 presubmit_edit). */
+  function setQty(skuId: string, loose: number, explicit = false, dest = zoneId, meta?: PresubmitEdit) {
+    // The edit log reads the cell as last rendered; the updater below reads
+    // React's latest. Keystrokes render in between, so they agree.
+    const was = countsRef.current[dest]?.[skuId];
+    const now = cellAfterSetLoose(was, loose, explicit);
+    if (was || now) eventsRef.current!.pushGrid(cellEvent(meta ? "presubmit_edit" : "grid_set", dest, skuId, was, now, meta));
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
-      const cur = zone[skuId];
-      const cases = cur?.cases ?? 0;
-      const caseSize = cur?.caseSize ?? null;
-      const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
-      const qty = roundQty(Math.max(0, loose) + fromCases);
-      // A cell that ALREADY EXISTS survives at 0 rather than being deleted.
-      // Deleting unmounted the input mid-edit, which closed the Android
-      // keyboard — so backspacing the field to type "0.8" destroyed the row
-      // before the decimal could be typed, on the one surface the counter is
-      // told to use for corrections and for exactly that fractional case.
-      // Removal is the explicit ✕ (clearCell), not an empty field.
-      // It also records a real distinction: 0 means "I looked, none here",
-      // where an absent row means "I never looked".
-      if (qty <= 0 && !cur && !explicit) delete zone[skuId];
-      else
-        zone[skuId] = {
-          qty,
-          // Keep the frozen multiplier while editing through zero. A phone
-          // types 0 before 0.5; dropping the stamp there would silently switch
-          // a corrected/remapped historical case to the catalog's new size.
-          ...(caseSize != null ? { cases, caseSize } : {}),
-          source: "grid",
-          ...(cur?.raw ? { raw: cur.raw } : {}),
-        };
+      const next = cellAfterSetLoose(zone[skuId], loose, explicit);
+      if (next) zone[skuId] = next;
+      else delete zone[skuId];
       return { ...prev, [dest]: zone };
     });
     setSave("idle");
@@ -666,31 +713,25 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  size is stamped from the catalog AT THIS MOMENT and frozen on the cell —
    *  never re-read later, so editing a SKU's case size can't rescale a count
    *  that's already been entered. */
-  function setCases(skuId: string, casesRaw: number, dest = zoneId) {
+  function setCases(skuId: string, casesRaw: number, dest = zoneId, meta?: PresubmitEdit) {
     const cases = Math.max(0, roundQty(casesRaw));
+    // A size ALREADY stamped on this cell wins over the catalog's current
+    // value. Reading the catalog here would rescale a line entered earlier
+    // under a different case size — e.g. resume a draft entered at 2x12,
+    // correct the SKU to 24, touch the box, and 24 becomes 48 silently.
+    const sizeFor = (cur: Cell | undefined) => cur?.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
+    const was = countsRef.current[dest]?.[skuId];
+    const wasSize = sizeFor(was);
+    const now = wasSize == null ? undefined : cellAfterSetCases(was, cases, wasSize);
+    if (wasSize != null && (was || now)) eventsRef.current!.pushGrid(cellEvent(meta ? "presubmit_edit" : "grid_cases", dest, skuId, was, now, meta));
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
       const cur = zone[skuId];
-      // A size ALREADY stamped on this cell wins over the catalog's current
-      // value. Reading the catalog here would rescale a line entered earlier
-      // under a different case size — e.g. resume a draft entered at 2x12,
-      // correct the SKU to 24, touch the box, and 24 becomes 48 silently.
-      const caseSize = cur?.caseSize ?? skuById.get(skuId)?.unitsPerCase ?? null;
+      const caseSize = sizeFor(cur);
       if (caseSize == null) return prev; // no size → the row shows "+ case size" instead of this box
-      const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
-      const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases));
-      const qty = roundQty(cases * caseSize + loose);
-      // Same rule as setQty: an existing cell survives at 0 so backspacing the
-      // case box doesn't unmount the input mid-edit. ✕ is the way to remove.
-      if (qty <= 0 && !cur) delete zone[skuId];
-      else
-        zone[skuId] = {
-          qty,
-          cases,
-          caseSize,
-          source: "grid",
-          ...(cur?.raw ? { raw: cur.raw } : {}),
-        };
+      const next = cellAfterSetCases(cur, cases, caseSize);
+      if (next) zone[skuId] = next;
+      else delete zone[skuId];
       return { ...prev, [dest]: zone };
     });
     setSave("idle");
@@ -700,8 +741,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   /** Remove a bottle from this zone entirely — clears cases AND loose. The ✕
    *  used to call setQty(0), which now only zeroes the loose part and would
    *  leave a case-only row stubbornly on screen. A re-said bottle ("Recount")
-   *  clears the take's shelf this way before addQty writes its new number. */
+   *  clears the take's shelf with clearCellQuietly instead: applyReview logs
+   *  that as one voice_apply, not a clear and an add. */
   function clearCell(skuId: string, dest: string = zoneId) {
+    const was = countsRef.current[dest]?.[skuId];
+    if (was) eventsRef.current!.push(cellEvent("clear", dest, skuId, was, undefined));
+    clearCellQuietly(skuId, dest);
+  }
+  function clearCellQuietly(skuId: string, dest: string) {
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
       delete zone[skuId];
@@ -714,7 +761,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   /** ADD to the running (zone, sku) total — the voice path. Cases and loose
    *  containers accumulate independently so the entry memo stays truthful.
    *  `dest` is the shelf the entry belongs to: the selected one for a grid
-   *  edit, the one the take STARTED on for a voice take. */
+   *  edit, the one the take STARTED on for a voice take. The caller logs the
+   *  change (applyReview's voice_apply). */
   function addQty(
     skuId: string,
     delta: { cases: number; units: number; caseSize: number | null },
@@ -725,32 +773,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   ) {
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
-      const cur = zone[skuId];
-      // SAME FREEZE RULE AS setCases: a size already stamped on this cell wins
-      // over whatever the incoming delta carries. This used to read
-      // `delta.caseSize ?? cur?.caseSize`, which silently rescaled bottles that
-      // were already counted — because line 3 below re-multiplies the SUMMED
-      // cases at whichever size wins. Enter 2 cases of Tito's at 12 (=24), let
-      // the catalog learn 24 from an invoice, then say "two more cases": cases
-      // becomes 4, and 4 x 24 = 96 is stored where the truth is 72. The DB
-      // CHECK passes (96 >= 4x24) and the count detail reads "4 cs x 24", so
-      // nothing anywhere shows the first 24 bottles were re-priced.
-      const caseSize = cur?.caseSize ?? delta.caseSize ?? null;
-      const cases = roundQty((cur?.cases ?? 0) + delta.cases);
-      const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
-      const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases)) + delta.units;
-      const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
-      const next = roundQty(fromCases + loose);
-      if (next <= 0 && !explicitZero) delete zone[skuId];
-      else
-        zone[skuId] = {
-          qty: next,
-          // A loose-only voice addition must not erase a multiplier retained
-          // while the case field is zero. Later case edits still use that stamp.
-          ...(caseSize != null ? { cases, caseSize } : {}),
-          source,
-          ...(raw ? { raw } : {}),
-        };
+      const next = cellAfterAdd(zone[skuId], delta, source, raw, explicitZero);
+      if (next) zone[skuId] = next;
+      else delete zone[skuId];
       return { ...prev, [dest]: zone };
     });
     setSave("idle");
@@ -767,11 +792,15 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dict.seconds, dict.recording]);
-  function toReviewItems(items: VoiceExtractItem[]): ReviewItem[] {
+  function toReviewItems(items: VoiceExtractItem[], takeId?: string): ReviewItem[] {
     const merged = mergeAdjacentRepeats(items);
     const repeated = repeatedSources(merged);
     const rows: ReviewItem[] = merged.map((it, i) => ({
       key: `v${i}`,
+      heard: { cases: it.cases, units: it.units, qty: it.qty, quantityWords: it.quantityWords, quantityHeard: it.quantityHeard, spoken: it.spoken },
+      quantityHeard: it.quantityHeard,
+      sourceRefs: sourceRefsOf(it),
+      ...(takeId ? { takeId } : {}),
       spoken: it.spoken,
       quantityWords: it.quantityWords,
       quantityNeedsReview: it.quantityNeedsReview,
@@ -852,7 +881,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         );
         return;
       }
-      setReview(toReviewItems(items));
+      setReview(toReviewItems(items, dictRef.current?.currentTakeId?.() ?? undefined));
       // Partial loss must not be silent: the sheet still opens with what
       // survived, but the counter is told a piece is missing.
       if (failed) setVoiceErr("Part of the recording couldn't be processed — double-check the list.");
@@ -866,12 +895,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     setVoiceBusy(true);
     setVoiceErr(null);
     try {
-      const items = await extractVoice(transcript);
+      // The whole take at Stop: no piece index (the Web Speech engine, or a
+      // recorder take with no pieces).
+      const items = await extractVoice(transcript, "bar", undefined, traceFor(Number.MAX_SAFE_INTEGER));
       if (items.length === 0) {
         setVoiceErr("Didn't catch any bottles — try again, closer to the shelf.");
         return;
       }
-      setReview(toReviewItems(items));
+      setReview(toReviewItems(items, dictRef.current?.currentTakeId?.() ?? undefined));
     } catch (e) {
       setVoiceErr(e instanceof BarApiError ? e.message : "Couldn't process that — try again or type it.");
     } finally {
@@ -926,6 +957,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   // heard as {cases: 4, units: 48} answers "12 per case" and
                   // applies as 4 x 12 + 48 = 96, double the truth.
                   suspectPreMultiplied: x.cases > 0 && x.units >= unitsPerCase,
+                  // The number now comes from the answered case size, not as
+                  // heard. A person's own edit, if any, still wins.
+                  editedBy: x.editedBy ?? "case_size",
                 }, r, i)
               : x,
           )
@@ -1087,7 +1121,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // The shelf the take was recorded on, not whichever tile is selected now.
     const dest = takeZoneId ?? zoneId;
     // Sum duplicates within this clip, then ADD each into the zone total.
-    const merged = new Map<string, { cases: number; units: number; caseSize: number | null; spoken: string; explicitZero: boolean }>();
+    const merged = new Map<string, { cases: number; units: number; caseSize: number | null; spoken: string; explicitZero: boolean; rows: ReviewItem[] }>();
     for (const it of review) {
       if (!applyable(it)) continue;
       const skuId = it.chosenSkuId!;
@@ -1097,20 +1131,30 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         e.cases = roundQty(e.cases + it.cases);
         e.units = roundQty(e.units + it.units);
         e.explicitZero ||= it.explicitZero === true;
+        e.rows.push(it);
       } else {
-        merged.set(skuId, { cases: it.cases, units: it.units, caseSize, spoken: it.spoken, explicitZero: it.explicitZero === true });
+        merged.set(skuId, { cases: it.cases, units: it.units, caseSize, spoken: it.spoken, explicitZero: it.explicitZero === true, rows: [it] });
       }
     }
     // The counter's earlier-take answers, per bottle.
     const answer = new Map(review.filter((r) => r.restate && r.restateAnswer).map((r) => [r.chosenSkuId!, r.restateAnswer!]));
-    for (const [skuId, { cases, units, caseSize, spoken, explicitZero }] of merged) {
+    // The shelf as the edit log sees it, kept by hand: countsRef only refreshes
+    // on render, and a Recount clears and then adds the same cell in this one
+    // tick, so reading countsRef for the result would log 36 + 20 = 56 where
+    // the shelf now holds 20.
+    const working: Record<string, Cell | undefined> = { ...(countsRef.current[dest] ?? {}) };
+    for (const [skuId, { cases, units, caseSize, spoken, explicitZero, rows }] of merged) {
 
       // Cross-take add onto an occupied cell → remember it for the submit
       // dialog (the Empress double-count shape). Recorded BEFORE addQty so
       // `before` is what the earlier take(s) left, not the summed result.
       // Not when the counter already answered it on this sheet.
       const cur = countsRef.current[dest]?.[skuId];
-      if (answer.get(skuId) === "replace") clearCell(skuId, dest);
+      const was = working[skuId];
+      if (answer.get(skuId) === "replace") {
+        clearCellQuietly(skuId, dest);
+        working[skuId] = undefined;
+      }
       if (cur && cur.qty > 0 && !answer.has(skuId)) {
         const added = roundQty(units + cases * (caseSize ?? cur.caseSize ?? 0));
         if (added > 0) {
@@ -1125,6 +1169,27 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         }
       }
       addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest, explicitZero);
+      const now = cellAfterAdd(working[skuId], { cases, units, caseSize }, "voice", spoken, explicitZero);
+      working[skuId] = now;
+      // One voice_apply per bottle: what was heard beside what was added, and
+      // who changed it. The label is the worst among rows nobody edited
+      // (TPRS's mark fold reads it only when editedBy is not a person's).
+      const sum = (pick: (h: ReviewItem["heard"]) => number) => roundQty(rows.reduce((t, r) => t + pick(r.heard), 0));
+      const person = rows.find((r) => personEdited(r.editedBy));
+      const ref = rows.flatMap((r) => r.sourceRefs)[0];
+      eventsRef.current!.push(cellEvent("voice_apply", dest, skuId, was, now, {
+        heardCases: sum((h) => h.cases),
+        heardUnits: sum((h) => h.units),
+        heardQty: sum((h) => h.qty),
+        quantityWords: rows.map((r) => r.heard.quantityWords).filter(Boolean).join(" + ") || null,
+        quantityHeard: worstHeard(rows.filter((r) => !personEdited(r.editedBy)).map((r) => r.quantityHeard)) ?? null,
+        editedBy: person?.editedBy ?? rows.find((r) => r.editedBy)?.editedBy ?? "as_heard",
+        restateAnswer: answer.get(skuId) ?? (was && was.qty > 0 ? "add" : null),
+        spoken: rows.map((r) => r.heard.spoken).join(" … "),
+        takeId: rows[0]?.takeId ?? null,
+        extractionId: ref?.extractionId ?? null,
+        itemIndex: ref?.itemIndex ?? null,
+      }));
     }
     // Keep any row that couldn't be applied, so nothing is silently dropped.
     const leftover = review.filter((r) => !applyable(r));
@@ -1290,6 +1355,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       const n = await submitCount(sessionId, undefined, checkedRef.current);
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
       restatementsRef.current.clear(); // spent — must not leak into a later session
+      eventsRef.current!.clear(); // the save above sent them; the count is closed
       setDone(n);
     } catch (e) {
       setSubmitting(false);
@@ -1357,8 +1423,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // This deliberate remap answers the paused correction for these endpoints.
     remapConflictsRef.current = remapConflictsRef.current.filter((r) => r.zoneId !== dest || (!r.skus.includes(from) && !r.skus.includes(to)));
     setRemapConflicts(remapConflictsRef.current);
+    const target = zone[to];
     zone[to] = mode === "add" && zone[to] ? combineCorrectedCells(source, zone[to]) : { ...source, source: "grid" };
     delete zone[from];
+    // Both cells changed: the wrong product empties, the right one fills.
+    eventsRef.current!.push(cellEvent("remap", dest, from, source, undefined));
+    eventsRef.current!.push(cellEvent("remap", dest, to, target, zone[to]));
     const next = { ...prev, [dest]: zone };
     countsRef.current = next;
     setCounts(next);
@@ -1416,8 +1486,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           return <ReviewCountRow key={`${dest}:${id}`} sku={s} cell={cell} shelf={shelf}
             catalog={catalog} existing={counts[dest] ?? {}} disabled={checking || submitting}
             quantitiesDisabled={remapConflicts.some((r) => r.zoneId === dest && r.skus.includes(id))}
-            onLoose={(n) => { setQty(id, n, true, dest); changedInReview(dest, id); }}
-            onCases={(n) => { setCases(id, n, dest); changedInReview(dest, id); }}
+            onLoose={(n) => { setQty(id, n, true, dest, { findingKind: f.kind }); changedInReview(dest, id); }}
+            onCases={(n) => { setCases(id, n, dest, { findingKind: f.kind }); changedInReview(dest, id); }}
             onChangeItem={(to, mode) => changeCountedItem(dest, id, to, mode)} />;
         })}
         <button type="button" className="lq-linkbtn" disabled={checking || submitting} onClick={() => {
@@ -1907,6 +1977,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           nameCheck: null,
                           highCheck: null,
                           explicitZero: res.explicitZero,
+                          // Who set this number, for the edit log: the Qty box
+                          // unless the button that answered says otherwise.
+                          editedBy: res.editedBy ?? "typed",
 
                           // A row with no cases cannot need a case size — that
                           // is the server's own rule (cases > 0 && ups == null).
@@ -2206,7 +2279,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       )}
       {submissionUnknown && sessionId && <CountSubmitRecovery sessionId={sessionId} onDone={onDone}
         onDraft={() => { setSubmissionUnknown(false); setSubmitErr("Count saved. It is still open. Tap Finish count to try again."); }}
-        onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); setSubmissionUnknown(false); setDone(n); }} />}
+        onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); eventsRef.current!.clear(); setSubmissionUnknown(false); setDone(n); }} />}
     </div>
   );
 }
@@ -2232,7 +2305,7 @@ function ReviewRow({
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
    *  single total — applyReview reads those two fields, so a handler that only
    *  set `qty` would render a corrected number and then apply the old one. */
-  onResolve: (res: { cases: number; units: number; explicitZero?: boolean; quantityConfirmed?: boolean }) => void;
+  onResolve: (res: { cases: number; units: number; explicitZero?: boolean; quantityConfirmed?: boolean; editedBy?: LineEditedBy }) => void;
   onPick: (skuId: string) => void;
   onToggleAssign: () => void;
   onRemove: () => void;
@@ -2386,10 +2459,10 @@ function ReviewRow({
           </span>
           {/* Keep the case provenance on the "cases" branch so the count detail
               can still show "4 cs x 24"; the "each" branch is loose by definition. */}
-          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: 0 })}>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: 0, editedBy: "suspect_pick" })}>
             {formatQty(item.cases)} case{item.cases === 1 ? "" : "s"} ({formatQty(item.cases * (item.unitsPerCase ?? 0))})
           </button>
-          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units, editedBy: "suspect_pick" })}>
             {formatQty(item.units)} each
           </button>
         </div>
@@ -2404,11 +2477,11 @@ function ReviewRow({
             Heard {item.units} — is the {item.nameCheck.n} part of the name “{chosen?.name ?? "this bottle"}”?
           </span>
           {item.nameCheck.alt != null && item.nameCheck.alt > 0 && (
-            <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.nameCheck!.alt! })}>
+            <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.nameCheck!.alt!, editedBy: "name_number" })}>
               {item.nameCheck.alt}
             </button>
           )}
-          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units })}>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: 0, units: item.units, editedBy: "name_number" })}>
             {item.nameCheck.alt != null && item.nameCheck.alt > 0 ? item.units : `Keep ${item.units}`}
           </button>
         </div>
@@ -2425,7 +2498,7 @@ function ReviewRow({
               .filter(Boolean).join(", ")}
             , last {item.highCheck.days} days). Check the number.
           </span>
-          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: item.units })}>
+          <button type="button" className="lq-chip" onClick={() => onResolve({ cases: item.cases, units: item.units, editedBy: "keep_high" })}>
             Keep {item.qty}
           </button>
         </div>
@@ -2583,6 +2656,96 @@ function ReviewCountRow({ sku, cell, shelf, catalog, existing, disabled, quantit
       </div>}
     </div>
   );
+}
+
+/** An edit made in the pre-submit Details, under one finding. */
+type PresubmitEdit = { findingKind: string };
+
+/** One cell change for the edit log (lineEvents.ts, TPRS 0226). */
+function cellEvent(kind: LineEventInput["kind"], zoneId: string, skuId: string, was: Cell | undefined, now: Cell | undefined,
+  extra: Partial<LineEventInput> = {}): LineEventInput {
+  return { zoneId, skuId, kind, beforeQty: was?.qty ?? null, afterQty: now?.qty ?? null,
+    afterCases: now?.cases ?? null, caseSize: now?.caseSize ?? null, ...extra };
+}
+
+/** setQty's rule: the cell after its LOOSE count is set. undefined = no cell.
+ *  Pure, so the edit log computes the same value the screen stores. */
+function cellAfterSetLoose(cur: Cell | undefined, loose: number, explicit: boolean): Cell | undefined {
+  const cases = cur?.cases ?? 0;
+  const caseSize = cur?.caseSize ?? null;
+  const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
+  const qty = roundQty(Math.max(0, loose) + fromCases);
+  // A cell that ALREADY EXISTS survives at 0 rather than being deleted.
+  // Deleting unmounted the input mid-edit, which closed the Android
+  // keyboard — so backspacing the field to type "0.8" destroyed the row
+  // before the decimal could be typed, on the one surface the counter is
+  // told to use for corrections and for exactly that fractional case.
+  // Removal is the explicit ✕ (clearCell), not an empty field.
+  // It also records a real distinction: 0 means "I looked, none here",
+  // where an absent row means "I never looked".
+  if (qty <= 0 && !cur && !explicit) return undefined;
+  return {
+    qty,
+    // Keep the frozen multiplier while editing through zero. A phone
+    // types 0 before 0.5; dropping the stamp there would silently switch
+    // a corrected/remapped historical case to the catalog's new size.
+    ...(caseSize != null ? { cases, caseSize } : {}),
+    source: "grid",
+    ...(cur?.raw ? { raw: cur.raw } : {}),
+  };
+}
+
+/** setCases's rule: the cell after its CASES are set at `caseSize` (the size
+ *  already stamped on the cell, else the catalog's). undefined = no cell. */
+function cellAfterSetCases(cur: Cell | undefined, cases: number, caseSize: number): Cell | undefined {
+  const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
+  const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases));
+  const qty = roundQty(cases * caseSize + loose);
+  // Same rule as setQty: an existing cell survives at 0 so backspacing the
+  // case box doesn't unmount the input mid-edit. ✕ is the way to remove.
+  if (qty <= 0 && !cur) return undefined;
+  return {
+    qty,
+    cases,
+    caseSize,
+    source: "grid",
+    ...(cur?.raw ? { raw: cur.raw } : {}),
+  };
+}
+
+/** addQty's rule: the cell after a voice (or grid) amount is ADDED.
+ *  undefined = no cell. */
+function cellAfterAdd(
+  cur: Cell | undefined,
+  delta: { cases: number; units: number; caseSize: number | null },
+  source: "grid" | "voice",
+  raw: string | undefined,
+  explicitZero: boolean,
+): Cell | undefined {
+  // SAME FREEZE RULE AS setCases: a size already stamped on this cell wins
+  // over whatever the incoming delta carries. This used to read
+  // `delta.caseSize ?? cur?.caseSize`, which silently rescaled bottles that
+  // were already counted — because line 3 below re-multiplies the SUMMED
+  // cases at whichever size wins. Enter 2 cases of Tito's at 12 (=24), let
+  // the catalog learn 24 from an invoice, then say "two more cases": cases
+  // becomes 4, and 4 x 24 = 96 is stored where the truth is 72. The DB
+  // CHECK passes (96 >= 4x24) and the count detail reads "4 cs x 24", so
+  // nothing anywhere shows the first 24 bottles were re-priced.
+  const caseSize = cur?.caseSize ?? delta.caseSize ?? null;
+  const cases = roundQty((cur?.cases ?? 0) + delta.cases);
+  const prevFromCases = (cur?.cases ?? 0) * (cur?.caseSize ?? 0);
+  const loose = Math.max(0, roundQty((cur?.qty ?? 0) - prevFromCases)) + delta.units;
+  const fromCases = cases > 0 && caseSize ? cases * caseSize : 0;
+  const next = roundQty(fromCases + loose);
+  if (next <= 0 && !explicitZero) return undefined;
+  return {
+    qty: next,
+    // A loose-only voice addition must not erase a multiplier retained
+    // while the case field is zero. Later case edits still use that stamp.
+    ...(caseSize != null ? { cases, caseSize } : {}),
+    source,
+    ...(raw ? { raw } : {}),
+  };
 }
 
 /** The LOOSE portion of a cell — total minus whatever the cases contribute.

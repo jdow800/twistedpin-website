@@ -703,7 +703,12 @@ export function useRecorderDictation(
     // minute. The in-flight onstop sees wantRef=false and finishes for us.
   }, []);
 
-  return { ...state, start, stop };
+  /** This take's id (one per Record tap), or null before the first take or
+   *  without Web Crypto. Kept after Stop, so the text sent at Stop carries it.
+   *  The liquor screen labels its voice-extract requests with it (TPRS 0226). */
+  const currentTakeId = useCallback(() => takeIdRef.current, []);
+
+  return { ...state, start, stop, currentTakeId };
 }
 
 // Which engine handles dictation. Recorder is the default wherever it works;
@@ -727,8 +732,9 @@ function preferWebSpeech(): boolean {
 export function useVoiceDictation(
   onFinal?: (transcript: string) => void,
   opts: RecorderDictationOptions = { vocabulary: "liquor" },
-) {
+): ReturnType<typeof useDictation> & { currentTakeId?: () => string | null } {
   const recorder = useRecorderDictation(onFinal, opts);
   const webSpeech = useDictation(onFinal);
+  // The Web Speech engine has no take id: callers read currentTakeId?.().
   return preferWebSpeech() || !recorder.supported ? webSpeech : recorder;
 }

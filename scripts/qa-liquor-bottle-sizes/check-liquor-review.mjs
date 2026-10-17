@@ -289,6 +289,130 @@ try{
     await input(field,'-2');await check('Negative quantity cannot count as a zero answer',`![...document.querySelectorAll('.lq-sheet button')].some(e=>/^Add 1/.test(e.textContent.trim())&&!e.disabled)`);
     await input(field,'0');await button(/^Add 1/);await savedLine('makers','giant','Number(l.qtyUnits)===0');
   });
+  // ── The edit log (TPRS 0226, Website W1): what the voice heard, who changed
+  // it, and every quantity change, sent with the next PUT /lines. Nothing on
+  // screen changes, so these read the request bodies.
+  const EXT='5a1e0000-0000-4000-8000-000000000001',EXT2='5a1e0000-0000-4000-8000-000000000002';
+  const voiceRow=(id,name,spoken,units,extra={})=>({spoken,cases:0,units,qty:units,unitsPerCase:12,needsCaseSize:false,
+    suspectPreMultiplied:false,quantityNeedsReview:false,quantityWords:'',match:{id,name,sizeMl:1000},candidates:[],...extra});
+  const frangelicoTwo=voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'});
+  const puts=()=>js("window.liquorQa.calls.filter(c=>c.path.endsWith('/lines')&&c.method==='PUT').map(c=>c.body)");
+  const sentEvents=async()=>(await puts()).flatMap(b=>b.events??[]);
+  const pick=(e,keys)=>Object.fromEntries(keys.map(k=>[k,e[k]]));
+  const note=(name)=>results.assertions.push(name);
+  async function voiceTake(query,row,extra={extractionId:EXT}){
+    await load(query);await button(/Record count for/);
+    await js(`window.liquorQa.recorder.segment(${JSON.stringify(row.spoken+'.')},0)`);await until('window.liquorQa.extracts.length===1');
+    await js(`window.liquorQa.extracts[0].succeed([${JSON.stringify(row)}],${JSON.stringify(extra)})`);
+    await button(/Stop & review/);await js(`window.liquorQa.recorder.finish(${JSON.stringify(row.spoken)})`);await until("document.querySelector('.lq-sheet')");
+  }
+  await run('edit log (1): a proved row added untouched sends one voice_apply, as heard',async()=>{
+    await voiceTake('?pausecuts=0',frangelicoTwo);
+    await button(/^Add 1/);await savedLine('frangelico','giant','Number(l.qtyUnits)===2');
+    const events=await sentEvents();
+    assert.equal(events.length,1,'one bottle, one event');
+    assert.deepEqual(pick(events[0],['kind','zoneId','skuId','beforeQty','afterQty','heardCases','heardUnits','heardQty','editedBy','quantityHeard','quantityWords','restateAnswer','spoken','extractionId','itemIndex']),
+      {kind:'voice_apply',zoneId:'giant',skuId:'frangelico',beforeQty:null,afterQty:2,heardCases:0,heardUnits:2,heardQty:2,editedBy:'as_heard',
+        quantityHeard:'proved',quantityWords:'two',restateAnswer:null,spoken:'Frangelico, two',extractionId:EXT,itemIndex:0});
+    assert.equal(events[0].takeId,await js('window.liquorQa.recorder.takeId()'),'the take id rides along');
+    assert.match(events[0].id,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    assert.ok(Number.isFinite(Date.parse(events[0].clientAt))&&events[0].clientAt.endsWith('Z'),'clientAt is ISO');
+    note('A proved untouched Frangelico two logs heard 2, added 2, as heard, proved, with its extraction row');
+  });
+  await run('edit log (2): typing 3 over a heard 2 keeps the 2 beside the typed 3',async()=>{
+    await voiceTake('?pausecuts=0',frangelicoTwo);
+    await input('.lq-sheet input[aria-label^="Total quantity"]','3');
+    await button(/^Add 1/);await savedLine('frangelico','giant','Number(l.qtyUnits)===3');
+    const events=await sentEvents();
+    assert.equal(events.length,1);
+    assert.deepEqual(pick(events[0],['kind','editedBy','heardQty','afterQty','quantityHeard']),{kind:'voice_apply',editedBy:'typed',heardQty:2,afterQty:3,quantityHeard:null});
+    note('Typed 3 over heard 2 logs editedBy typed, heardQty 2, afterQty 3');
+  });
+  await run('edit log (3): an amber unclear number added as shown carries unclear',async()=>{
+    await voiceTake('?pausecuts=0',voiceRow('citron','Ketel One Citroen','Ketel One Citron, three',3,{quantityNeedsReview:true,quantityWords:'three',quantityHeard:'unclear'}));
+    await check('The unproved 3 is in the box with its amber edge (unchanged)',`(e=>e.value==='3'&&e.classList.contains('lq-qty-unproved'))(document.querySelector('.lq-sheet input[aria-label^="Total quantity"]'))`);
+    await button(/^Add 1/);await savedLine('citron','giant','Number(l.qtyUnits)===3');
+    const events=await sentEvents();
+    assert.deepEqual(pick(events[0],['kind','editedBy','quantityHeard','heardQty','afterQty']),{kind:'voice_apply',editedBy:'as_heard',quantityHeard:'unclear',heardQty:3,afterQty:3});
+    note('Amber Ketel One Citron three logs quantityHeard unclear, as heard');
+  });
+  for(const [answer,after] of [['More',56],['Recount',20]])await run(`edit log (${answer==='More'?4:5}): Tito's ${answer} over 36 logs ${after}`,async()=>{
+    await voiceTake('?pausecuts=0&titos36',voiceRow('titos',"Tito's Handmade Vodka","Tito's, twenty",20,{quantityWords:'twenty',quantityHeard:'proved'}));
+    await button(new RegExp(`^${answer}:`));await button(/^Add 1/);
+    await savedLine('titos','giant',`Number(l.qtyUnits)===${after}`);
+    const events=await sentEvents();
+    // A Recount clears and adds the cell in one tick: one voice_apply, never a
+    // clear, and never the stale 36 + 20.
+    assert.equal(events.length,1,'one event, no separate clear');
+    assert.deepEqual(pick(events[0],['kind','restateAnswer','beforeQty','afterQty','heardQty','editedBy']),
+      {kind:'voice_apply',restateAnswer:answer==='More'?'add':'replace',beforeQty:36,afterQty:after,heardQty:20,editedBy:'as_heard'});
+    note(`Tito's ${answer} over 36 with 20 heard logs before 36, after ${after}`);
+  });
+  await run('edit log (6): grid keystrokes 0, 0. and 0.8 are one grid_set',async()=>{
+    await load();const field='input[aria-label="Loose Maker\'s Mark"]';
+    for(const v of ['0','0.','0.8']){await js(`(()=>{const e=${q(field)};e.focus();Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set.call(e,${JSON.stringify(v)});e.dispatchEvent(new Event('input',{bubbles:true}));})()`);await pause(70);}
+    await js(`${q(field)}.blur()`);await savedLine('makers','giant','Number(l.qtyUnits)===0.8');
+    const events=await sentEvents();
+    assert.equal(events.length,1,'three keystrokes, one event');
+    assert.deepEqual(pick(events[0],['kind','skuId','beforeQty','afterQty']),{kind:'grid_set',skuId:'makers',beforeQty:0.7,afterQty:0.8});
+    note('Typing 0 / 0. / 0.8 over 0.7 logs one grid_set 0.7 → 0.8');
+  });
+  await run('edit log (7): a refused (409) save resends the same event ids once, then never again',async()=>{
+    await load();await js('window.liquorQa.refuseSave=true');
+    await input('input[aria-label="Loose Minster\'s Small Batch Kentucky Straight Bourbon"]','10');
+    await savedLine('minsters','giant','Number(l.qtyUnits)===10');
+    const [refused,retry]=await puts();
+    const first=refused.events.map(e=>e.id),second=retry.events.map(e=>e.id);
+    assert.deepEqual(pick(refused.events[0],['kind','skuId','beforeQty','afterQty']),{kind:'grid_set',skuId:'minsters',beforeQty:11,afterQty:10});
+    assert.deepEqual(second.slice(0,first.length),first,'the retry leads with the same ids');
+    const adopt=retry.events.find(e=>e.kind==='merge_adopt');
+    assert.deepEqual(pick(adopt,['skuId','zoneId','beforeQty','afterQty']),{skuId:'makers',zoneId:'giant',beforeQty:0.7,afterQty:8},'the other phone\'s change is logged as merge_adopt');
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await input('input[aria-label="Loose Jägermeister"]','1');await savedLine('jaeger','giant','Number(l.qtyUnits)===1');
+    const third=(await puts())[2].events;
+    assert.deepEqual(third.map(e=>[e.kind,e.skuId]),[['grid_set','jaeger']],'acknowledged events are never sent again');
+    assert.equal((await puts()).flatMap(b=>(b.events??[]).map(e=>e.id)).filter(id=>id===first[0]).length,2,'sent exactly twice');
+    note('A 409 resends the same event ids once; the next save carries only new events');
+  });
+  await run('edit log (8): extract requests carry the take, the piece and the Stop flush',async()=>{
+    await load();await js("window.__qaErrors=[];addEventListener('error',e=>__qaErrors.push(String(e.message)));addEventListener('unhandledrejection',e=>__qaErrors.push(String(e.reason)))");
+    await button(/Record count for/);const take=await js('window.liquorQa.recorder.takeId()');
+    await js(`window.liquorQa.recorder.segment("Tito's, two. Frangelico,",0)`);await until('window.liquorQa.extracts.length===1');
+    assert.deepEqual(await js('window.liquorQa.extracts[0].body.trace'),{sessionId:'review-draft',zoneId:'giant',takeId:take,segment:0,atStop:false});
+    await js(`window.liquorQa.extracts[0].succeed([${JSON.stringify(voiceRow('titos',"Tito's Handmade Vodka","Tito's, two",2,{quantityWords:'two',quantityHeard:'proved'}))}],{extractionId:${JSON.stringify(EXT)}})`);
+    await button(/Stop & review/);await js(`window.liquorQa.recorder.finish("Tito's, two. Frangelico,")`);await until('window.liquorQa.extracts.length===2');
+    assert.equal(await js('window.liquorQa.extracts[1].body.transcript'),'Frangelico,');
+    assert.deepEqual(await js('window.liquorQa.extracts[1].body.trace'),{sessionId:'review-draft',zoneId:'giant',takeId:take,segment:null,atStop:true},'the held phrase sent at Stop has no piece');
+    await js(`window.liquorQa.extracts[1].succeed([${JSON.stringify(voiceRow('frangelico','Frangelico','Frangelico',1,{quantityNeedsReview:true,quantityHeard:'guessed'}))}],{extractionId:${JSON.stringify(EXT2)}})`);
+    await until("document.querySelector('.lq-sheet')");await button(/^Add 2/);
+    await savedLine('frangelico','giant','Number(l.qtyUnits)===1');
+    const events=await sentEvents();
+    assert.deepEqual(events.map(e=>[e.skuId,e.extractionId,e.itemIndex,e.quantityHeard,e.takeId]),
+      [['titos',EXT,0,'proved',take],['frangelico',EXT2,0,'guessed',take]]);
+    assert.deepEqual(await js('window.__qaErrors'),[]);
+    note('Piece 0 carries segment 0; the Stop flush carries segment null and atStop; each row keeps its own extraction');
+    await load('?webspeech&pausecuts=0');await js("window.__qaErrors=[];addEventListener('error',e=>__qaErrors.push(String(e.message)));addEventListener('unhandledrejection',e=>__qaErrors.push(String(e.reason)))");
+    await button(/Record count for/);await button(/Stop & review/);
+    await js("window.liquorQa.recorder.finish('Frangelico, two')");await until('window.liquorQa.extracts.length===1');
+    assert.deepEqual(await js('window.liquorQa.extracts[0].body.trace'),{sessionId:'review-draft',zoneId:'giant',segment:null,atStop:true},'Web Speech: no take id, whole take at Stop');
+    await js(`window.liquorQa.extracts[0].succeed([${JSON.stringify(frangelicoTwo)}],{extractionId:${JSON.stringify(EXT)}})`);
+    await until("document.querySelector('.lq-sheet')");await button(/^Add 1/);await savedLine('frangelico','giant','Number(l.qtyUnits)===2');
+    const [ws]=await sentEvents();
+    assert.equal(ws.takeId??null,null);assert.equal(ws.kind,'voice_apply');
+    assert.deepEqual(await js('window.__qaErrors'),[]);
+    note('Web Speech engine: takeId undefined, nothing throws, the event is still sent');
+  });
+  await run('edit log (9): an older server (no extractionId, no eventsStored) behaves as today',async()=>{
+    await voiceTake('?pausecuts=0&old-server',frangelicoTwo);
+    await button(/^Add 1/);await savedLine('frangelico','giant','Number(l.qtyUnits)===2');
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await check('The sheet closed and the bottle is counted on the shelf',`!document.querySelector('.lq-sheet')&&[...document.querySelectorAll('.lq-captured .lq-name')].some(e=>e.textContent.includes('Frangelico'))`);
+    const [e]=await sentEvents();
+    assert.deepEqual(pick(e,['kind','extractionId','itemIndex','afterQty']),{kind:'voice_apply',extractionId:null,itemIndex:null,afterQty:2});
+    await input('input[aria-label="Loose Jägermeister"]','1');await savedLine('jaeger','giant','Number(l.qtyUnits)===1');
+    assert.deepEqual((await puts()).at(-1).events.map(x=>x.skuId),['jaeger'],'a plain 200 acknowledges the events');
+    note('Old server: no extractionId tags, lines save as before, events acknowledged on 200');
+  });
   for(const width of [320,360,412,1280])await run(`${width}px count and Details keep case numeral visible`,async()=>{
     await b.send('Emulation.setDeviceMetricsOverride',{width,height:width===1280?900:915,deviceScaleFactor:1,mobile:width!==1280});
     await load();await input('input[aria-label="Search counted items and catalog"]','Boylan');

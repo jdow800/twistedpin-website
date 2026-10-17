@@ -1,3 +1,61 @@
+## 2026-10-16 - Liquor count keeps what the app heard and every edit
+
+The 10/16 liquor count review (`Alcohol Pricing/incidents/2026-10-16/liquor-count-review/`)
+could not tell a number the GM typed on the review sheet from one the voice
+set: a count line keeps only its last value, and the model's own rows were
+never kept. Jon approved four fixes on 10/16; this is the client half of fix 1
+(design slice W1). The server half is tprs PR #423 (T1, migration 0226), and
+**this page must merge only after T1 is deployed**: an older server silently
+drops the new fields, so the events would be lost (nothing breaks).
+
+**Nothing visible changes.** No copy, CSS, hold, amber edge, question or number
+changed (Jon's 10/9 "number in box, counts ready" and the 10/5 drop rulings are
+untouched). Food (`CountFood`) is untouched.
+
+What the liquor screen now sends:
+- **A trace on every voice-extract request** (bar only): `sessionId`, the
+  take's shelf `zoneId`, the recorder's `takeId` (absent on the Web Speech
+  engine), the piece index `segment`, and `atStop` for text sent at Stop (the
+  carry's flush and the whole-take path; `segment` is then null). Labels only;
+  TPRS keeps them on the `bar_voice_extraction` row. A reply with
+  `extractionId` tags each row with `{extractionId, itemIndex}`; merged
+  back-to-back repeats keep both.
+- **Each review row remembers what was heard** (cases, units, qty, the
+  quantity words, the server's `quantityHeard` label when T2 sends it, the
+  spoken words), frozen when the sheet opens, and **who changed it**:
+  `typed` (the Qty box), `keep_high` (Keep on the history check),
+  `name_number` (the name-number choices), `suspect_pick` (the cases-or-each
+  choice), `case_size` (re-resolved by an answered case size, unless a person
+  already edited it), else `as_heard`. (`bottles` and `restored` are reserved
+  for W3.)
+- **One event per quantity change of a (shelf, product) cell**, queued and sent
+  with the next PUT `/lines` save: `voice_apply` per bottle on Add (before and
+  after, the summed heard numbers, the worst label among rows nobody edited,
+  the first person's edit or `as_heard`, the Recount/More answer or `add` for
+  an unasked add onto a counted cell, take and extraction row); `grid_set` /
+  `grid_cases` from the count screen; `presubmit_edit` (with the finding kind)
+  from the pre-submit Details; `clear` from ✕; `remap` for both cells of a
+  "Change item or size"; `merge_adopt` for each cell another phone changed.
+  A Recount is one `voice_apply` from the old number to the new one (a local
+  running copy, because the rendered counts are a tick behind), never a clear
+  plus a stale 36 + 20.
+- **Keystrokes merge.** Typing "0", "0.", "0.8" in one box is one event (first
+  before, last after), merged only into the cell's latest event, of the same
+  kind, that has never been sent.
+- **A failed or refused save keeps its events.** A 409 or network failure puts
+  them back in order and the retry sends the same ids, which the server stores
+  once. At most 500 events (about 400 KB) ride one save; text is trimmed to the
+  server's caps, NUL removed, a broken phone clock sends no time, so the server
+  never has to drop one. The queue clears on submit and on Start a new count.
+
+Validation: `check-voice-carry.mjs` 44 voice rule checks byte-identical plus 8
+queue checks; `check-liquor-review.mjs` 45 native scenarios (36 existing + 9
+edit-log ones: proved as heard, typed over heard, amber unclear, More and
+Recount over 36, one merged grid event, 409 resend, take/piece/Stop trace and
+the Web Speech engine, an older server); `check-liquor-voice.mjs` 74;
+typecheck with tprs's TypeScript 5.9.3 over `tsconfig.liquor.json`; each new
+test killed by a targeted mutation.
+
 ## 2026-10-16 - Voice carry joins a bottle to the number the cut split from it
 
 The Oct 16 liquor count saved Belvedere Organic 1 for 2 (Backstock Room, take

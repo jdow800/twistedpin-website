@@ -1,5 +1,6 @@
 // Pure rules behind pause cuts and the voice review: pauseDetector.ts,
-// voiceCarry.ts and voiceReview.ts. No DOM, no network.
+// voiceCarry.ts and voiceReview.ts, and the count's edit-log queue
+// (lineEvents.ts, TPRS 0226). No DOM, no network.
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
@@ -13,6 +14,7 @@ const {outputFiles} = await build({
     export * from './src/components/liquor/voiceCarry';
     export * from './src/components/liquor/voiceReview';
     export * from './src/components/liquor/voiceSwitches';
+    export * from './src/components/liquor/lineEvents';
   `, resolveDir:fileURLToPath(new URL('../../', import.meta.url)), loader:'ts'},
   bundle:true, write:false, platform:'node', format:'esm',
 });
@@ -827,4 +829,128 @@ check('history: far above the 90-day record asks; ordinary counts and new bottle
   assert.equal(m.historyCheck(500, 0, h(null, null), 12), null);
 });
 
-console.log(`${passed} voice rule checks passed; no DOM, microphone or service calls.`);
+const voiceRules = passed;
+
+// ── The count's edit log (lineEvents.ts, TPRS 0226). Not voice rules: the
+// queue that carries every quantity change to the next PUT /lines.
+let clock = Date.UTC(2026, 9, 16, 18, 0, 0), ids = 0;
+const queue = () => m.createLineEventQueue({
+  now: () => new Date(clock += 1000),
+  newId: () => `00000000-0000-4000-8000-${String(++ids).padStart(12, '0')}`,
+});
+const grid = (afterQty, extra = {}) => ({zoneId:'z1', skuId:'makers', kind:'grid_set', afterQty, afterCases:null, caseSize:null, ...extra});
+
+check('edit log: grid keystrokes 0, 0. and 0.8 merge into one event; the first before stays', () => {
+  const q = queue();
+  const a = q.pushGrid(grid(0, {beforeQty:0.7}));
+  q.pushGrid(grid(0, {beforeQty:0}));
+  const c = q.pushGrid(grid(0.8, {beforeQty:0}));
+  assert.equal(q.pending().length, 1);
+  assert.equal(c.id, a.id, 'one id for the whole edit');
+  assert.deepEqual([c.beforeQty, c.afterQty], [0.7, 0.8]);
+  assert.ok(Date.parse(c.clientAt) > Date.parse(a.clientAt), 'the time follows the last keystroke');
+  // Another kind, another cell or a findingKind keeps its own event.
+  q.pushGrid({...grid(1), kind:'grid_cases', beforeQty:0.8});
+  q.pushGrid({...grid(3), skuId:'titos', beforeQty:2});
+  q.pushGrid({...grid(4), kind:'presubmit_edit', findingKind:'big_gain', beforeQty:3});
+  q.pushGrid({...grid(5), kind:'presubmit_edit', findingKind:'zone_missed', beforeQty:4});
+  assert.equal(q.pending().length, 5);
+});
+
+check('edit log: a keystroke never merges past a later event of the same cell', () => {
+  const q = queue();
+  q.pushGrid(grid(1, {beforeQty:0}));
+  q.push({zoneId:'z1', skuId:'makers', kind:'voice_apply', beforeQty:1, afterQty:3});
+  q.pushGrid(grid(2, {beforeQty:3}));
+  assert.deepEqual(q.pending().map((e) => [e.kind, e.beforeQty, e.afterQty]), [['grid_set', 0, 1], ['voice_apply', 1, 3], ['grid_set', 3, 2]]);
+  // Another cell in between does not split this cell's typing.
+  q.pushGrid({...grid(9), skuId:'titos', beforeQty:8});
+  q.pushGrid(grid(2.5, {beforeQty:2}));
+  assert.deepEqual(q.pending().map((e) => [e.skuId, e.afterQty]), [['makers', 1], ['makers', 3], ['makers', 2.5], ['titos', 9]]);
+});
+
+check('edit log: take, ack and release keep order and ids across a failed or refused save', () => {
+  const q = queue();
+  const first = [q.push(grid(1)), q.push(grid(2, {skuId:'titos'}))];
+  const batch = q.take();
+  assert.deepEqual(batch.map((e) => e.id), first.map((e) => e.id));
+  assert.deepEqual(q.take(), [], 'nothing else waits while the batch is out');
+  const later = q.push(grid(3, {skuId:'citron'}));
+  q.release(batch.map((e) => e.id)); // 409 or network error
+  const retry = q.take();
+  assert.deepEqual(retry.map((e) => e.id), [...first, later].map((e) => e.id), 'same ids, still first');
+  q.ack(retry.map((e) => e.id));
+  assert.equal(q.pending().length, 0);
+  // release() with no ids returns every in-flight event; ack of unknown ids is harmless.
+  q.push(grid(4));
+  q.take();
+  q.release();
+  q.ack(['ffffffff-0000-4000-8000-000000000000']);
+  assert.equal(q.take().length, 1);
+  q.clear();
+  assert.equal(q.pending().length, 0);
+});
+
+check('edit log: an event sent once is never merged into, even after a release', () => {
+  const q = queue();
+  const a = q.pushGrid(grid(1, {beforeQty:0}));
+  const out = q.take();
+  const b = q.pushGrid(grid(2, {beforeQty:1}));
+  assert.notEqual(b.id, a.id, 'in flight: a new event');
+  q.release(out.map((e) => e.id));
+  const c = q.pushGrid(grid(3, {beforeQty:2}));
+  assert.equal(c.id, b.id, 'the unsent one still absorbs keystrokes');
+  assert.deepEqual(q.pending().map((e) => [e.id, e.afterQty]), [[a.id, 1], [b.id, 3]], 'the sent one kept its value');
+});
+
+check('edit log: a save carries at most 500 events (and about 400 KB); the rest wait their turn', () => {
+  const q = queue();
+  for (let i = 0; i < 501; i++) q.push(grid(i));
+  assert.equal(q.take().length, 500);
+  assert.equal(q.take().length, 1);
+  const big = queue();
+  for (let i = 0; i < 3; i++) big.push(grid(i, {spoken:'x'.repeat(300)}));
+  const size = JSON.stringify(big.pending()[0]).length + 1;
+  assert.equal(big.take(500, 2 * size + 5).length, 2, 'a character budget splits the batch');
+  assert.equal(big.take(500, 10).length, 1, 'one event always goes');
+  assert.ok(m.MAX_EVENTS_PER_SAVE === 500 && m.MAX_EVENT_CHARS_PER_SAVE <= 500_000, 'well under the 1 MiB body limit');
+});
+
+check('edit log: fields stay inside the server\'s bounds, so the server never drops an event', () => {
+  const e = m.cleanLineEvent({id:'00000000-0000-4000-8000-000000000001', zoneId:'z', skuId:'s', kind:'voice_apply',
+    beforeQty:-1, afterQty:2e9, heardQty:Number.NaN, heardUnits:2.5, caseSize:12.5, itemIndex:3,
+    spoken:'a\u0000b' + 'c'.repeat(400), quantityWords:'w'.repeat(250), findingKind:'k'.repeat(40),
+    takeId:'not-a-uuid', extractionId:'5A1E0000-0000-4000-8000-000000000001', clientAt:'2019-12-31T23:59:59.000Z'});
+  assert.deepEqual([e.beforeQty, e.afterQty, e.heardQty, e.heardUnits, e.caseSize, e.itemIndex], [null, null, null, 2.5, null, 3]);
+  assert.equal(e.spoken.length, 300);
+  assert.ok(e.spoken.startsWith('abc'), 'NUL removed');
+  assert.deepEqual([e.quantityWords.length, e.findingKind.length], [200, 32]);
+  assert.deepEqual([e.takeId, e.extractionId], [null, '5A1E0000-0000-4000-8000-000000000001']);
+  assert.equal('clientAt' in e, false, 'a broken clock sends no time');
+  assert.equal(m.cleanLineEvent({id:'i', zoneId:'z', skuId:'s', kind:'clear', spoken:'a' + '😀'.repeat(200)}).spoken.length, 299, 'no half emoji');
+  assert.match(m.newEventId(), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+});
+
+check('edit log: the worst label wins, and only a person\'s edit is a person\'s', () => {
+  assert.equal(m.worstHeard(['proved', 'unclear', 'implicit_one']), 'unclear');
+  assert.equal(m.worstHeard(['unclear', 'guessed']), 'guessed');
+  assert.equal(m.worstHeard(['proved', undefined, 'implicit_one']), 'implicit_one');
+  assert.equal(m.worstHeard([]), undefined);
+  assert.deepEqual(['as_heard', 'case_size', undefined, null].map(m.personEdited), [false, false, false, false]);
+  assert.deepEqual(['typed', 'bottles', 'keep_high', 'name_number', 'suspect_pick', 'restored'].map(m.personEdited), [true, true, true, true, true, true]);
+});
+
+check('edit log: a merged repeat keeps both server rows, in order', () => {
+  const row = (units, spoken, ref, cases = 0) => ({spoken, cases, units, qty: units + cases * 12, unitsPerCase: 12, needsCaseSize: false,
+    suspectPreMultiplied: false, match: {id: 'gg', name: 'gg', sizeMl: 750, unitsPerCase: 12}, candidates: [],
+    ...(ref ? {sourceRef: {extractionId: ref, itemIndex: 0}} : {})});
+  const merged = m.mergeAdjacentRepeats([row(0.9, 'Grey Goose, point nine', 'e1'), row(1, 'Grey Goose, one', 'e2')]);
+  assert.deepEqual(merged[0].sourceRefs, [{extractionId: 'e1', itemIndex: 0}, {extractionId: 'e2', itemIndex: 0}]);
+  assert.equal('sourceRef' in merged[0], false);
+  const added = m.mergeAdjacentRepeats([row(0, "Tito's, one case", 'e1', 1), row(2, "Tito's, two", 'e2')]);
+  assert.deepEqual(m.sourceRefsOf(added[0]).map((r) => r.extractionId), ['e1', 'e2']);
+  assert.deepEqual(m.sourceRefsOf(m.mergeAdjacentRepeats([row(1, 'a', null), row(2, 'b', null)])[0]), [], 'an older server: no refs');
+  assert.deepEqual(m.sourceRefsOf(row(1, 'a', 'e3')), [{extractionId: 'e3', itemIndex: 0}]);
+});
+
+console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${passed - voiceRules} edit-log queue checks; no DOM, microphone or service calls.`);
