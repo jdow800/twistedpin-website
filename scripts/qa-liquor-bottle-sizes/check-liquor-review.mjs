@@ -629,6 +629,203 @@ try{
     await button(/^Not cases: 2 bottles$/);await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===2');
     note('Older server: no offer, no Keep, the bottles exit still saves 2');
   });
+  // ── W4 (2026-10-16 count review, Jon's fix 4; his defaults of 10/17):
+  // guessed vs not clearly heard on the sheet, the guessed mark through Add,
+  // and the soft pre-submit summary. Nothing blocks Add or Submit, nothing is
+  // blanked, and no amber is added (Jon 10/9; the 10/5 findings untouched).
+  const caseRow=(id,name,sizeMl,spoken,cases,ups,words,heard)=>({spoken,cases,units:0,qty:cases*ups,unitsPerCase:ups,needsCaseSize:false,
+    suspectPreMultiplied:false,quantityNeedsReview:heard!=='proved',quantityWords:words,quantityHeard:heard,match:{id,name,sizeMl},candidates:[]});
+  const guessedBelvedere=(extra={})=>belvedere({quantityNeedsReview:true,quantityHeard:'guessed',...extra});
+  // 10/16 take 26f73d9c's rows on a fresh shelf (no earlier-take questions), plus Frangelico: six ready.
+  const take1016=[
+    caseRow('captain','Captain Morgan Original Spiced Rum',750,'Captain Morgan, one case',1,12,'one case','unclear'),
+    caseRow('maschio','Maschio Prosecco Brut 187ml',187,'Mioneto Prosecco Brut, two cases',2,24,'two cases','unclear'),
+    caseRow('risata',"Risata Moscato d'Asti 187ml",187,"Risata Moscato D'Asti, one case",1,24,'one case','proved'),
+    voiceRow('citron','Ketel One Citroen','Ketel One Citron, three',3,{quantityNeedsReview:true,quantityWords:'three',quantityHeard:'unclear'}),
+    guessedBelvedere(),
+    frangelicoTwo,
+  ];
+  const revCard=i=>`document.querySelectorAll('.lq-sheet .lq-rev')[${i}]`;
+  const headText="document.querySelector('.lq-sheet .lq-sheet-head p').textContent";
+  const NOTE='No number heard. 1 is a guess. Check it.';
+  const gridRow=name=>`[...document.querySelectorAll('.lq-captured .lq-row')].find(r=>r.querySelector('.lq-name').textContent.includes(${JSON.stringify(name)}))`;
+  const tagged="[...document.querySelectorAll('.lq-captured .lq-row')].filter(r=>r.querySelector('.lq-guess-tag')).map(r=>r.querySelector('.lq-name').textContent.replace(/^\\W+/,'').trim())";
+  const soft="document.querySelector('.lq-confirm .lq-soft')";
+  const softText=`(${soft}?.textContent??'')`;
+  const heading="document.querySelector('.lq-confirm h3').textContent.trim()";
+  const submitButton=label=>`[...document.querySelectorAll('.lq-confirm .lq-sheet-foot button')].find(e=>e.textContent.trim()===${JSON.stringify(label)})`;
+  const precheckCalls="window.liquorQa.calls.filter(c=>c.path.endsWith('/precheck')).length";
+  await run('W4 (1): a guessed Belvedere gets the left bar and the line; the unclear Citron keeps only the ring; "6 ready · 1 guessed", Add 6',async()=>{
+    await load('?pausecuts=0');await retakeRows(take1016);
+    await check('The Belvedere card is guessed: bar class and the one line',`${revCard(4)}.classList.contains('lq-rev-guessed')&&${revCard(4)}.querySelector('.lq-rev-guess-note').textContent.trim().endsWith(${JSON.stringify(NOTE)})`);
+    await check('Its 1 stays in the box with the ring (not blanked)',`(e=>e.value==='1'&&e.classList.contains('lq-qty-unproved'))(${revCard(4)}.querySelector('input[aria-label^="Total quantity"]'))`);
+    await check('The unclear Citron 3 keeps only the ring: no bar, no line',`(c=>!c.classList.contains('lq-rev-guessed')&&!c.querySelector('.lq-rev-guess-note')&&c.querySelector('input').classList.contains('lq-qty-unproved')&&c.querySelector('input').value==='3')(${revCard(3)})`);
+    await check('The unclear case rows (Captain Morgan, Maschio) keep only the ring',`[0,1].every(i=>(c=>!c.classList.contains('lq-rev-guessed')&&c.querySelector('input').classList.contains('lq-qty-unproved'))(document.querySelectorAll('.lq-sheet .lq-rev')[i]))`);
+    await check('Proved rows stay plain',`[2,5].every(i=>(c=>!c.classList.contains('lq-rev-guessed')&&!c.querySelector('input').classList.contains('lq-qty-unproved'))(document.querySelectorAll('.lq-sheet .lq-rev')[i]))`);
+    await check('One bar and one line on the whole sheet',`document.querySelectorAll('.lq-sheet .lq-rev-guessed').length===1&&document.querySelectorAll('.lq-sheet .lq-rev-guess-note').length===1`);
+    await check('Header reads "6 ready · 1 guessed", nothing waits',`${headText}.includes('6 ready · 1 guessed')&&!${headText}.includes('need a tap')`);
+    await check('"Add 6" is unchanged (guessed rows stay ready)',addReady(6));
+    await check('Decision 4: no last count on the review sheet',`!/last count/i.test(${sheetText})`);
+    await check('The bar is 4px #ffcf5c on the card\'s left edge only',`(s=>s.borderLeftWidth==='4px'&&s.borderLeftColor==='rgb(255, 207, 92)'&&s.borderTopColor!=='rgb(255, 207, 92)')(getComputedStyle(${revCard(4)}))`);
+    await js(`${revCard(3)}.scrollIntoView({block:'start',behavior:'instant'})`);await shot('w4-guessed-sheet-412');
+    await button(/^Add 6 to Giant Bottle Shelf/);await savedLine('belvedere','giant','Number(l.qtyUnits)===1');
+    const apply=(await sentEvents()).filter(e=>e.kind==='voice_apply').map(e=>[e.skuId,e.quantityHeard]);
+    assert.deepEqual(apply,[['captain','unclear'],['maschio','unclear'],['risata','proved'],['citron','unclear'],['belvedere','guessed'],['frangelico','proved']],'the edit log is unchanged');
+    note('Guessed Belvedere: bar + "No number heard. 1 is a guess. Check it."; unclear rows ring only; 6 ready · 1 guessed; Add 6');
+  });
+  await run('W4 (1b): a bare name the guard proved (implicit_one) stays plain: no bar, no line, no ring, no "guessed"',async()=>{
+    await load('?pausecuts=0');await retake(belvedere());
+    await check('Plain row, 1 in the box, ready',`(c=>!c.classList.contains('lq-rev-guessed')&&!c.querySelector('.lq-rev-guess-note')&&(e=>e.value==='1'&&!e.classList.contains('lq-qty-unproved'))(c.querySelector('input')))(${revCard(0)})&&${addReady(1)}`);
+    await check('Header has no guessed part',`${headText}.includes('1 ready')&&!${headText}.includes('guessed')`);
+    await button(/^Add 1 to Giant Bottle Shelf/);await savedLine('belvedere','giant','Number(l.qtyUnits)===1');
+    await check('No grid tag',`!document.querySelector('.lq-guess-tag')`);
+    note('implicit_one Belvedere: plain on the sheet and the grid');
+  });
+  await run('W4 (2): after Add only the guessed Belvedere carries "no number heard · check"; no ring anywhere; typing 2 clears it',async()=>{
+    await load('?pausecuts=0');await retakeRows(take1016);await button(/^Add 6 to Giant Bottle Shelf/);
+    await savedLine('belvedere','giant','Number(l.qtyUnits)===1');
+    assert.deepEqual(await js(tagged),['Belvedere Organic'],'Belvedere only');
+    await check('The tag reads "no number heard · check", beside heard',`(r=>r.querySelector('.lq-guess-tag').textContent==='no number heard · check'&&r.querySelector('.lq-heard').textContent==='heard: “Belvedere”')(${gridRow('Belvedere Organic')})`);
+    for(const name of ['Ketel One Citroen','Captain Morgan Original Spiced Rum','Maschio Prosecco Brut 187ml'])
+      await check(`${name}: no tag and no ring after Add`,`(r=>!!r&&!r.querySelector('.lq-guess-tag')&&!r.querySelector('.lq-qty-unproved')&&[...r.querySelectorAll('input')].every(i=>getComputedStyle(i).borderTopColor!=='rgb(255, 207, 92)'))(${gridRow(name)})`);
+    await check('No ring anywhere on the count screen',`!document.querySelector('.lq-count .lq-qty-unproved')`);
+    await js(`${gridRow('Belvedere Organic')}.scrollIntoView({block:'center',behavior:'instant'})`);await shot('w4-grid-guessed-412');
+    await input('input[aria-label="Loose Belvedere Organic"]','2');await savedLine('belvedere','giant','Number(l.qtyUnits)===2');
+    await check('Typing 2 clears the tag',`!document.querySelector('.lq-guess-tag')`);
+    note('Grid: guessed tag on Belvedere only, no ring on Citron or the case rows; a typed 2 clears it');
+  });
+  await run('W4 (3): Keep and a proved More keep the tag; a proved Recount clears it; Keep on a plain cell stays plain',async()=>{
+    await load('?pausecuts=0&backstock');await button(/^Backstock Room/);
+    const hasTag=`!!${gridRow('Belvedere Organic')}?.querySelector('.lq-guess-tag')`;
+    await retake(guessedBelvedere());await button(/^Add 1 to Backstock Room/);await savedLine('belvedere','speed','Number(l.qtyUnits)===1');
+    await check('Guessed 1 added: tagged',hasTag);
+    await retake(guessedBelvedere({spoken:'Belvedere again'}));await button(/^Keep 1$/);await button(/^Add 1 to Backstock Room/);await until("!document.querySelector('.lq-sheet')");
+    await check('Keep leaves the mark alone',`${hasTag}&&${saved}.some(l=>l.skuId==='belvedere'&&Number(l.qtyUnits)===1)`);
+    await retake(belvedere({spoken:'Belvedere, two more',units:2,qty:2,quantityWords:'two',quantityHeard:'proved'}));
+    await button(/^More: 3 total$/);await button(/^Add 1 to Backstock Room/);await savedLine('belvedere','speed','Number(l.qtyUnits)===3');
+    await check('A proved More keeps the guessed tag (the 1 inside 3 was never said)',hasTag);
+    await retake(belvedere({spoken:'Belvedere, two',units:2,qty:2,quantityWords:'two',quantityHeard:'proved'}));
+    await button(/^Recount: 2$/);await button(/^Add 1 to Backstock Room/);await savedLine('belvedere','speed','Number(l.qtyUnits)===2');
+    await check('A proved Recount clears it',`!${hasTag}`);
+    await retake(guessedBelvedere({spoken:'Belvedere once more'}));await button(/^Keep 2$/);await button(/^Add 1 to Backstock Room/);await until("!document.querySelector('.lq-sheet')");
+    await check('Keep over a plain 2 stays plain',`!${hasTag}&&${saved}.some(l=>l.skuId==='belvedere'&&Number(l.qtyUnits)===2)`);
+    note('Guessed 1 → Keep (tag) → More 3 (tag) → Recount 2 (plain) → Keep (plain)');
+  });
+  await run('W4 (3b): another phone\'s merge keeps the tag only while the cell is unchanged',async()=>{
+    await load('?pausecuts=0');await retake(guessedBelvedere());await button(/^Add 1 to Giant Bottle Shelf/);await savedLine('belvedere','giant','Number(l.qtyUnits)===1');
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await js('window.liquorQa.refuseSave=true');await input('input[aria-label="Loose Jägermeister"]','1');await savedLine('makers','giant','Number(l.qtyUnits)===8');
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await check('Another cell changed elsewhere: Belvedere keeps its tag',`!!${gridRow('Belvedere Organic')}.querySelector('.lq-guess-tag')`);
+    await js("window.liquorQa.refuseSave='belvedere'");await input('input[aria-label="Loose Jägermeister"]','2');await savedLine('belvedere','giant','Number(l.qtyUnits)===2');
+    await until("document.querySelector('.lq-savestate').textContent.includes('Saved')");
+    await check('Belvedere changed elsewhere: the tag is gone, the other phone\'s 2 shows',`!${gridRow('Belvedere Organic')}.querySelector('.lq-guess-tag')&&document.querySelector('input[aria-label="Loose Belvedere Organic"]').value==='2'`);
+    note('merge_adopt keeps the mark only when sameDraftCell');
+  });
+  await run('W4 (3c): a "Change item or size" in Details moves the number without the tag',async()=>{
+    await load('?pausecuts=0');
+    await retake(voiceRow('minsters',"Minster's Small Batch Kentucky Straight Bourbon",'Minsters',1,{quantityNeedsReview:true,quantityHeard:'guessed'}));
+    await button(/^More: 12 total$/);await button(/^Add 1 to Giant Bottle Shelf/);await savedLine('minsters','giant','Number(l.qtyUnits)===12');
+    await check('A guessed More onto the counted 11: tagged',`!!${gridRow("Minster's Small Batch")}.querySelector('.lq-guess-tag')`);
+    await finish();const scope=await detail('minsters');await rematch('minsters','orange',scope);await button(/^Move count$/,q(scope));
+    await savedLine('orange','giant','Number(l.qtyUnits)===12');await button(/^Go back$/);
+    await check('The moved 12 carries no tag',`!document.querySelector('.lq-guess-tag')&&!!${gridRow('Jameson Orange')}`);
+    note('remap drops the mark (a person moved the number)');
+  });
+  await run('W4 (4): the 10/16 soft summary: "Ready to submit", Submit enabled, guessed with last count, 19 behind Show, Maschio and Bulleit not accounted for',async()=>{
+    await load('?backstock&soft=1016');await finish();
+    await check('Heading and button unchanged: Ready to submit / Submit the count, enabled',`${heading}==='Ready to submit'&&${submitButton('Submit the count')}&&!${submitButton('Submit the count')}.disabled&&!${submitButton('Submit anyway')}`);
+    await check('One soft block, amber, not the red finding style',`document.querySelectorAll('.lq-confirm .lq-soft').length===1&&!document.querySelector('.lq-confirm .lq-precheck-row')&&getComputedStyle(${soft}).borderTopColor==='rgba(255, 207, 92, 0.55)'`);
+    await check('Title says nothing is held',`${soft}.querySelector('.lq-soft-title').textContent==='Numbers to glance at. Nothing is held.'`);
+    const guessedLines=await js(`[...${soft}.querySelectorAll('.lq-soft-guessed')].map(e=>[e.querySelector('.lq-soft-name').textContent,e.querySelector('.lq-soft-detail').textContent.trim()])`);
+    assert.deepEqual(guessedLines,[
+      ['Amaretto Luxardo di Saschira · Backstock Room · 1','1 wasn\'t said (“Luxardo Di Serradura”). Last count 2. About 1 bottle not accounted for.'],
+      ['Belvedere Organic · Backstock Room · 1','1 wasn\'t said (“Belvedere”). Last count 2. About 1 bottle not accounted for.'],
+    ]);
+    await check('Belvedere and Amaretto appear once each',`${softText}.split('Belvedere Organic').length===2&&${softText}.split('Amaretto Luxardo di Saschira').length===2`);
+    await check('19 more, behind Show',`${softText}.includes("19 more weren't clearly heard.")&&[...${soft}.querySelectorAll('button')].some(e=>e.textContent.trim()==='Show the 19 not clearly heard')&&!${soft}.querySelector('.lq-soft-compact')`);
+    const gapLines=await js(`[...${soft}.querySelectorAll('.lq-soft-gap > .lq-soft-detail')].map(e=>e.textContent)`);
+    assert.deepEqual(gapLines,['Maschio Prosecco Brut 187ml: about 8.8 bottles.','Bulleit Bourbon: about 0.9 bottles.'],'only Maschio and Bulleit under not accounted for (decision 9: no swap credit, so Bulleit is listed)');
+    await check('Under its heading',`${softText}.includes('Not accounted for after sales, deliveries and every shelf:')`);
+    await check('Per-shelf lines hidden until Details',`!${softText}.includes('→')&&!${softText}.includes('incl. batches')`);
+    await check('Only Open on count screen, Show and Details, and no question marks',`[...${soft}.querySelectorAll('button')].every(e=>/^(Open on count screen|Show the 19 not clearly heard|Details)$/.test(e.textContent.trim()))&&!${softText}.includes('?')`);
+    await shot('w4-soft-1016-412');
+    await js(`[...${soft}.querySelectorAll('button')].find(e=>e.textContent.trim()==='Details').click()`);await pause(30);
+    await check('Details: totals and each shelf, one decimal at most',`${softText}.includes('Last count 85, now 74 (incl. batches); 2.2 sold, 0 delivered.')&&${softText}.includes('Backstock Room 72 → 48')&&${softText}.includes('Giant Bottle Shelf 13 → 26')&&!${softText}.includes('Speedrails 0.6')`);
+    await button(/^Show the 19 not clearly heard$/);
+    await check('Show: 19 compact rows with last count',`${soft}.querySelectorAll('.lq-soft-compact li').length===19&&${softText}.includes("Tito's Handmade Vodka · Backstock Room · 56 · last count 57")&&${softText}.includes('Clase Azul Reposado · Step Shelf · 1 · last count 0')`);
+    await js(`${soft}.scrollIntoView({block:'end',behavior:'instant'})`);await shot('w4-soft-1016-open-412');
+    await js(`${soft}.querySelectorAll('.lq-soft-guessed')[1].querySelector('button').click()`);await pause(50);
+    await check('Open on count screen: Backstock Room, Belvedere in the search, dialog closed',`!document.querySelector('.lq-confirm')&&document.querySelector('.lq-zone-on').textContent.includes('Backstock Room')&&document.querySelector('input[aria-label="Search counted items and catalog"]').value==='Belvedere Organic'`);
+    await finish();await button(/^Submit the count$/);await until("document.body.textContent.includes('Count submitted')");
+    note('10/16 shapes: Ready to submit; Amaretto and Belvedere once with last count 2 and about 1 bottle; 19 behind Show; Maschio 8.8 and Bulleit 0.9 with Details');
+  });
+  for(const [id,shape,what] of [['4b','guessed','a guessed number'],['4c','gaps','a bottle not accounted for']])await run(`W4 (${id}): ${what} alone opens the pre-submit screen, still "Ready to submit"`,async()=>{
+    await load(`?backstock&soft=${shape}`);await finish();
+    await check('Opened on its own, heading and Submit unchanged',`${heading}==='Ready to submit'&&!${submitButton('Submit the count')}.disabled&&!!${soft}`);
+    await check(shape==='gaps'?'All four products listed, no guessed lines':'Both guessed lines, no not-accounted-for heading',shape==='gaps'
+      ?`${soft}.querySelectorAll('.lq-soft-gap').length===4&&!${soft}.querySelector('.lq-soft-guessed')`
+      :`${soft}.querySelectorAll('.lq-soft-guessed').length===2&&!${softText}.includes('Not accounted for')&&!${softText}.includes('About')`);
+    note(`${shape} alone opens the dialog as "Ready to submit"`);
+  });
+  await run('W4 (5): not-clearly-heard numbers alone submit straight through, as today',async()=>{
+    await load('?backstock&soft=unclear');await button(/^Finish count$/);await until("document.body.textContent.includes('Count submitted')");
+    await check('Checked once, submitted, no dialog',`${precheckCalls}===1&&window.liquorQa.calls.some(c=>c.path.endsWith('/submit'))&&!document.querySelector('.lq-confirm')`);
+    note('Unclear-only precheck: no dialog');
+  });
+  await run('W4 (6): ?softcheck=0 submits the 10/16 shape straight through, stays off on that phone, and ?softcheck=1 turns it back on',async()=>{
+    await load('?backstock&soft=1016&softcheck=0');await button(/^Finish count$/);await until("document.body.textContent.includes('Count submitted')");
+    await check('Submitted with no dialog; the phone remembers the switch',`!document.querySelector('.lq-confirm')&&localStorage.getItem('lq.softCheck')==='0'`);
+    await load('?backstock&soft=1016&keep-storage');await button(/^Finish count$/);await until("document.body.textContent.includes('Count submitted')");
+    await check('Still off on the next load without the parameter',`!document.querySelector('.lq-confirm')`);
+    await load('?backstock&soft=1016&soft-findings&keep-storage');await finish();
+    await check('Off: findings open the dialog as today, with no soft block',`${heading}==='Double-check these first?'&&!${soft}`);
+    await load('?backstock&soft=1016&keep-storage&softcheck=1');await finish();
+    await check('?softcheck=1 turns it back on',`!!${soft}&&localStorage.getItem('lq.softCheck')===null`);
+    note('?softcheck=0: straight through, persisted per phone; ?softcheck=1 restores');
+  });
+  await run('W4 (7): an older server (no quantityHeard, unproved or unaccounted) is identical to today',async()=>{
+    const {quantityHeard:_q,...oldGuess}=guessedBelvedere();
+    await load('?pausecuts=0&old-server');await retake(oldGuess);
+    await check('A plain amber 1: ring, no bar, no line, no "guessed"',`(c=>!c.classList.contains('lq-rev-guessed')&&!c.querySelector('.lq-rev-guess-note')&&c.querySelector('input').classList.contains('lq-qty-unproved'))(${revCard(0)})&&!${headText}.includes('guessed')`);
+    await button(/^Add 1 to Giant Bottle Shelf/);await savedLine('belvedere','giant','Number(l.qtyUnits)===1');
+    await check('No grid tag',`!document.querySelector('.lq-guess-tag')`);
+    await finish();await check('The findings dialog as today, no soft block',`${heading}==='Double-check these first?'&&!${soft}`);
+    await load('?backstock&soft=none');await button(/^Finish count$/);await until("document.body.textContent.includes('Count submitted')");
+    await check('A clean older check submits straight through',`!document.querySelector('.lq-confirm')`);
+    note('Older server: no guessed treatment, no block, dialog unchanged');
+  });
+  await run('W4 (8): findings plus soft items: "Double-check these first?", the soft block below the findings',async()=>{
+    await load('?backstock&soft=1016&soft-findings');await finish();
+    await check('Heading and button as today with findings',`${heading}==='Double-check these first?'&&!!${submitButton('Submit anyway')}`);
+    await check('The soft block comes after the findings list',`!!(document.querySelector('.lq-confirm .lq-precheck').compareDocumentPosition(${soft})&Node.DOCUMENT_POSITION_FOLLOWING)`);
+    await check('Findings keep the red style; the soft block does not',`getComputedStyle(document.querySelector('.lq-confirm .lq-precheck-row')).borderTopColor==='rgb(255, 138, 138)'&&!${soft}.querySelector('.lq-precheck-row')`);
+    note('Findings + soft: existing heading, soft block below the findings');
+  });
+  await run('W4 (9): unaccountedSkipped set: no not-accounted-for section',async()=>{
+    await load('?backstock&soft=skipped');await finish();
+    await check('Guessed lines only, with no not-accounted-for words',`${soft}.querySelectorAll('.lq-soft-guessed').length===2&&!${softText}.includes('Not accounted for')&&!${softText}.includes('not accounted for')`);
+    note('zones_not_counted: no unaccounted section');
+  });
+  await run('W4 (11): decision 6: a guessed re-say keeps its own 1 beside the removed number\'s chips; nothing fills itself',async()=>{
+    await amarettoPair('x');
+    await check('Guessed bar and line, the box still 1, the chips only offered',`(c=>c.classList.contains('lq-rev-guessed')&&c.querySelector('.lq-rev-guess-note')&&c.querySelector('input').value==='1'&&!!c.querySelector('.lq-rev-restore'))(${revCard(0)})`);
+    await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
+    assert.deepEqual(await js(tagged),['Amaretto Luxardo di Saschira'],'the ignored offer leaves a guessed 1, tagged');
+    note('The removed 2 is only a chip; ignored, the guessed 1 is saved and tagged');
+  });
+  for(const width of [320,412])await run(`W4 (10): ${width}px the guessed row and the soft summary fit the phone`,async()=>{
+    await b.send('Emulation.setDeviceMetricsOverride',{width,height:915,deviceScaleFactor:1,mobile:true});
+    try{
+      await load('?pausecuts=0');await retakeRows(take1016);await js(`${revCard(4)}.scrollIntoView({block:'center',behavior:'instant'})`);
+      await check(`${width}px sheet: no sideways scroll, the line inside its card`,`document.documentElement.scrollWidth<=innerWidth+1&&(c=>c.querySelector('.lq-rev-guess-note').getBoundingClientRect().right<=c.getBoundingClientRect().right)(${revCard(4)})`);
+      await shot(`w4-guessed-sheet-${width}`);
+      await load('?backstock&soft=1016');await finish();
+      await js(`[...${soft}.querySelectorAll('button')].find(e=>e.textContent.trim()==='Details').click()`);await button(/^Show the 19 not clearly heard$/);
+      await check(`${width}px dialog: no sideways scroll, Submit visible`,`document.documentElement.scrollWidth<=innerWidth+1&&(r=>r.top>=0&&r.bottom<=innerHeight+1)(${submitButton('Submit the count')}.getBoundingClientRect())`);
+      await js(`${soft}.scrollIntoView({block:'start',behavior:'instant'})`);await shot(`w4-soft-1016-${width}`);
+    }finally{await b.send('Emulation.setDeviceMetricsOverride',{width:412,height:915,deviceScaleFactor:1,mobile:true});}
+  });
   for(const width of [320,360,412,1280])await run(`${width}px count and Details keep case numeral visible`,async()=>{
     await b.send('Emulation.setDeviceMetricsOverride',{width,height:width===1280?900:915,deviceScaleFactor:1,mobile:width!==1280});
     await load();await input('input[aria-label="Search counted items and catalog"]','Boylan');

@@ -656,10 +656,63 @@ export interface PrecheckResult {
   unplaced?: UnplacedItem[];
   /** The rest past the cap of 25, same order, behind "Show N more". */
   unplacedMore?: UnplacedItem[];
+  /** Voice numbers nobody clearly said, still on the count (TPRS 2026-10-16,
+   *  bar/unproved-lines.ts): guessed first. Soft, outside findings. Absent
+   *  from an older server, which shows nothing. */
+  unproved?: UnprovedLine[];
+  /** Products about a whole bottle short after sales, deliveries and every
+   *  counted shelf (TPRS 2026-10-16, bar/unaccounted-bottles.ts), dearest
+   *  first, at most 5. Soft, outside findings. Absent from an older server. */
+  unaccounted?: UnaccountedBottle[];
+  /** Set when the list was skipped because a bar walk shelf has no line at
+   *  all ("zones_not_counted"); unaccounted is then []. */
+  unaccountedSkipped?: "zones_not_counted";
   /** What this check looked at (TPRS 2026-10-03). Hand both back to submit,
    *  which refuses a count that moved since, so it gets checked again. */
   linesHash?: string;
   batchesHash?: string;
+}
+/** One count cell whose number came from voice that nobody clearly said
+ *  (TPRS UnprovedLine). */
+export interface UnprovedLine {
+  zoneId: string;
+  zoneName: string;
+  skuId: string;
+  name: string;
+  qty: number;
+  quantityHeard: "guessed" | "unclear";
+  heardQty: number | null;
+  spoken: string | null;
+  quantityWords: string | null;
+  /** The prior full count's number on this shelf (0 when it had none there);
+   *  null on a baseline. */
+  lastCount: number | null;
+  /** The prior full count's number across every shelf; null on a baseline. */
+  lastCountAll: number | null;
+}
+/** One shelf of an unaccounted product, in bottles of its smallest size. */
+export interface UnaccountedZone {
+  zoneId: string;
+  zoneName: string;
+  prior: number;
+  counted: number;
+}
+/** One product not accounted for (TPRS UnaccountedBottle). Every number is in
+ *  bottles of the product's smallest size. */
+export interface UnaccountedBottle {
+  /** A bottle, or `family:<key>` for a product in sizes. */
+  skuId: string;
+  /** The bottles behind it. */
+  relatedSkuIds: string[];
+  name: string;
+  bottles: number;
+  dollars: number;
+  prior: number;
+  /** Includes batch credit; the shelf numbers in `zones` do not. */
+  countedInclBatch: number;
+  purchased: number;
+  sold: number;
+  zones: UnaccountedZone[];
 }
 export interface UnplacedItem {
   skuId: string;

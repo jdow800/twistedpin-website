@@ -6,7 +6,8 @@ import '../../src/components/liquor/liquor.css';
 // Actual screen and API client; all inventory and responses are fictional.
 // Only the recorder boundary is controlled. No production requests or writes.
 const params = new URL(location.href).searchParams;
-localStorage.clear();
+// ?keep-storage keeps this phone's switches (?softcheck=0) from the last load.
+if (!params.has('keep-storage')) localStorage.clear();
 const sku = (id, name, extra = {}) => ({id, name, section:'bar', category:'Whiskey',
   sizeMl:1000, trackingMode:'variance', countUnit:'bottle', unitsPerCase:12,
   wacCost:null, lastCost:'20.00', active:true, aliases:[], ...extra});
@@ -27,6 +28,18 @@ const catalog = [
   // The 10/16 Amaretto (no case size on file) and Belvedere, for the W3 offers.
   sku('amaretto', 'Amaretto Luxardo di Saschira', {sizeMl:750, category:'Liqueur', unitsPerCase:null}),
   sku('belvedere', 'Belvedere Organic', {sizeMl:750, category:'Vodka'}),
+  // The 10/16 takes 26f73d9c and 2c31ff79 and the 10/16 soft summary (W4).
+  sku('captain', 'Captain Morgan Original Spiced Rum', {sizeMl:750, category:'Rum'}),
+  sku('maschio', 'Maschio Prosecco Brut 187ml', {sizeMl:187, category:'Wine', unitsPerCase:24}),
+  sku('risata', "Risata Moscato d'Asti 187ml", {sizeMl:187, category:'Wine', unitsPerCase:24}),
+  sku('ketel', 'Ketel One', {category:'Vodka'}),
+  sku('ketel750', 'Ketel One 750ml', {sizeMl:750, category:'Vodka'}),
+  sku('bulleit', 'Bulleit Bourbon', {sizeMl:750}),
+  sku('agave', 'Herradura Agave Nectar Syrup', {sizeMl:750, category:'Syrups'}),
+  sku('carpanodry375', 'Carpano Vermouth Dry 375ml', {sizeMl:375, category:'Vermouth'}),
+  sku('carpanodry', 'Vermouth Carpano Dry', {category:'Vermouth'}),
+  sku('fevergb', 'Fever-Tree Ginger Beer 5oz Can', {trackingMode:'stock_count', countUnit:'each', sizeMl:148, category:'Mixers', unitsPerCase:24}),
+  sku('fevertonic', 'Fever-Tree Tonic Water 5oz Can', {trackingMode:'stock_count', countUnit:'each', sizeMl:148, category:'Mixers', unitsPerCase:24}),
   ...Array.from({length:44}, (_,i) => sku('sample'+i, `Sample Shelf Bottle ${String(i+1).padStart(2,'0')}`)),
 ];
 // ?backstock names the second shelf like the 10/16 one; its id stays 'speed'.
@@ -51,7 +64,55 @@ const lines = [
   ...(params.has('historical-cooler')?[line('cooler','boylan',0)]:[]),
   ...(params.has('titos36')?[line('giant','titos',36,{rawUtterance:'thirty six Titos'})]:[]),
   ...(params.has('belvedere2')?[line('speed','belvedere',2,{rawUtterance:'two Belvedere'})]:[]),
+  // ?take26: the Backstock Room before 10/16 take 26f73d9c (Captain Morgan and
+  // Tito's already counted from an earlier take).
+  ...(params.has('take26')?[line('speed','captain',18,{rawUtterance:'Captain Morgan, eighteen'}),
+    line('speed','titos',36,{rawUtterance:'thirty six Titos'})]:[]),
 ];
+// ?soft=<shape>: the pre-submit check's soft lists (TPRS T4 `unproved`, T3
+// `unaccounted`), built from the 10/16 count (session 695a3e79: lines, prior
+// 10/12 lines and the stored variance report, read-only). No findings unless
+// ?soft-findings. Shapes: 1016 (2 guessed, 19 unclear, 4 not accounted for,
+// with no swap credit per Jon 10/17), unclear (unclear only), guessed (the 2
+// guessed only), gaps (not accounted for only), skipped (2 guessed and
+// unaccountedSkipped beside a list), none (an older server with a clean check: no fields).
+const soft = params.get('soft');
+const unprovedLine = (zoneId,zoneName,skuId,name,qty,quantityHeard,spoken,lastCount) => ({zoneId,zoneName,skuId,name,qty,
+  quantityHeard,heardQty:qty,spoken,quantityWords:quantityHeard==='guessed'?'':null,lastCount,lastCountAll:lastCount});
+const guessed1016 = [
+  unprovedLine('speed','Backstock Room','amaretto','Amaretto Luxardo di Saschira',1,'guessed','Luxardo Di Serradura',2),
+  unprovedLine('speed','Backstock Room','belvedere','Belvedere Organic',1,'guessed','Belvedere',2),
+];
+const unclear1016 = [
+  ['Bulleit Bourbon',23,'Bulleit Bourbon, one case',24], ['Captain Morgan Original Spiced Rum',30,'Captain Morgan, one case',31],
+  ['Carpano Antica Formula',1,'Antica formula one thousand. One',1], ['Carpano Antica Formula 375ml',3,'Antica formula three seventy five. Three',3],
+  ['Carpano Vermouth Dry 375ml',2,'Carpano dry, three seventy five, two',2], ['Don Julio Reposado',11,'Don Julio Reposado, five',12],
+  ['Herradura Agave Nectar Syrup',24,'Herradura syrup, agave, two cases',24], ['Jose Cuervo Tradicional Silver 1L',33,'Jose Cuervo Traditial, nine',34],
+  ['Ketel One Citroen',3,'Ketel One Citron, three',3], ['Maschio Prosecco Brut 187ml',48,'Mioneto Prosecco Brut, two cases',72],
+  ['Pisco Barsol Acholado',2,'Barsol Pisco Atralado, two',2], ['Pisco Barsol Puro Quebranta',2,'Barcal Pisco Quabantra two',2],
+  ["Seagram's 7",1,'Seagram, seven. One.',1], ["Tito's Handmade Vodka",56,"Two Tito's",57], ['Vermouth Carpano Dry',2,'Carpano dry one thousand. Two',2],
+].map(([name,qty,spoken,last],i)=>unprovedLine('speed','Backstock Room','u'+i,name,qty,'unclear',spoken,last)).concat([
+  unprovedLine('step','Step Shelf','u15','Clase Azul Reposado',1,'unclear','Clase Azul, tequila Reposado. One',0),
+  unprovedLine('step','Step Shelf','u16','Don Julio 1942',0.9,'unclear','Don Julio, nineteen forty two, point nine',0),
+  unprovedLine('cooler','Beer Cooler','u17','Juice, Cranberry Cocktail',10.8,'unclear','Cranberry juice, point nine of a case',12),
+  unprovedLine('cooler','Beer Cooler','u18','Red Bull 8.4oz',36,'unclear','Red Bull, one point five cases',42),
+]);
+const gap = (skuId,name,bottles,dollars,prior,countedInclBatch,sold,zoneRows) => ({skuId,relatedSkuIds:[skuId],name,bottles,dollars,
+  prior,countedInclBatch,purchased:0,sold,zones:zoneRows.map(([zoneId,zoneName,p,c])=>({zoneId,zoneName,prior:p,counted:c}))});
+const gaps1016 = [
+  gap('maschio','Maschio Prosecco Brut 187ml',8.8,35.14,85,74,2.2,[['speed','Backstock Room',72,48],['giant','Giant Bottle Shelf',13,26]]),
+  gap('belvedere','Belvedere Organic',1,31.57,2,1,0,[['speed','Backstock Room',2,1]]),
+  gap('amaretto','Amaretto Luxardo di Saschira',1,29.09,2.4,1.4,0,[['speed','Backstock Room',2,1],['giant','Giant Bottle Shelf',0.4,0.4]]),
+  gap('bulleit','Bulleit Bourbon',0.9,23.79,25.6,24.6,0.1,[['speed','Backstock Room',24,23],['giant','Giant Bottle Shelf',1,1],['speedrails','Speedrails',0.6,0.6]]),
+];
+const softFields = !soft || soft==='none' ? {} : soft==='unclear' ? {unproved:unclear1016,unaccounted:[]}
+  // A guessed cell left at 0 (T4 lists by the fold alone) is no number to glance at.
+  : soft==='guessed' ? {unproved:[...guessed1016,unprovedLine('speed','Backstock Room','frangelico','Frangelico',0,'guessed','Frangelico',1)],unaccounted:[]}
+  : soft==='gaps' ? {unproved:[],unaccounted:gaps1016}
+  // TPRS sends [] when it skips; the list rides along here so the screen's own
+  // check of the flag is what is tested.
+  : soft==='skipped' ? {unproved:guessed1016,unaccounted:gaps1016,unaccountedSkipped:'zones_not_counted'}
+  : {unproved:[...guessed1016,...unclear1016],unaccounted:gaps1016};
 const qa = window.liquorQa = {nonce:Math.random(),calls:[],extracts:[],lines,recorder:null,
   failSave:false,failCheck:false,holdCheck:false,releaseCheck:null,refuseSave:false,
   remapConflict:null,releaseConflict:null};
@@ -92,6 +153,8 @@ window.fetch = async (input,init={}) => {
     if(qa.refuseSave){const mode=qa.refuseSave;qa.refuseSave=false;
       qa.lines=qa.lines.map(l=>mode==='remote-positive-case'
         ?l.skuId==='orange'&&l.zoneId==='giant'?{...l,qtyUnits:'26',enteredCases:1,caseSizeAtEntry:24}:l
+        // 'belvedere': the other phone changed the Giant Bottle Shelf Belvedere (W4).
+        :mode==='belvedere'?l.skuId==='belvedere'&&l.zoneId==='giant'?{...l,qtyUnits:'2'}:l
         :l.skuId==='makers'?{...l,qtyUnits:'8'}:l);
       return json({error:'draft_changed',message:'This draft changed on another phone.',lines:qa.lines,linesHash:'external'},409);}
     qa.lines=body.lines;
@@ -102,8 +165,8 @@ window.fetch = async (input,init={}) => {
     ++checks;
     if(qa.holdCheck)await new Promise(resolve=>qa.releaseCheck=resolve);
     if(qa.failCheck)return json({error:'synthetic check unavailable'},503);
-    return json({baseline:false,findings:params.has('clean-after-recheck')&&checks>1?[]:findings,
-      more:[],truncated:0,retiring:[],sizeWarnings:[],linesHash:'checked'+checks,batchesHash:'batches0'});
+    return json({baseline:false,findings:(params.has('clean-after-recheck')&&checks>1)||(soft&&!params.has('soft-findings'))?[]:findings,
+      more:[],truncated:0,retiring:[],sizeWarnings:[],linesHash:'checked'+checks,batchesHash:'batches0',...softFields});
   }
   if(path.endsWith('/submit'))return json({lineCount:qa.lines.length});
   throw Error('Unexpected synthetic review request: '+path);

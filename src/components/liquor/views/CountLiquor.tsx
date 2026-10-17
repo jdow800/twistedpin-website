@@ -27,6 +27,8 @@ import {
   type RetiringSku,
   type LineEditedBy,
   type QuantityHeard,
+  type UnaccountedBottle,
+  type UnprovedLine,
   type VoiceExtractItem,
   type VoiceMatch,
   type VoiceSourceRef,
@@ -36,9 +38,9 @@ import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry, joinSeam, splitUnfinished } from "../voiceCarry";
 import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, restateChoices, restoreOffer, setAsideEntry, setAsideKey,
   type HighCheck, type NameCheck, type RestoreOffer, type SetAside } from "../voiceReview";
-import { pauseCutsEnabled, seamJoinEnabled } from "../voiceSwitches";
+import { pauseCutsEnabled, seamJoinEnabled, softCheckEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
-import { createLineEventQueue, personEdited, sourceRefsOf, worstHeard, type LineEventInput } from "../lineEvents";
+import { createLineEventQueue, foldMark, personEdited, sourceRefsOf, worstHeard, type HeardMark, type LineEventInput } from "../lineEvents";
 import { forgetZone, rememberZone, resumeZone } from "../resume-zone";
 import { BottleSizeWarnings } from "../BottleSizeWarnings";
 import { CountSubmitRecovery } from "../CountSubmitRecovery";
@@ -71,6 +73,11 @@ type Cell = {
   caseSize?: number | null;
   source: "grid" | "voice";
   raw?: string;
+  /** The voice mark this screen folded for the cell (lineEvents.ts foldMark,
+   *  the client mirror of TPRS's fold). Set only by a voice Add; every other
+   *  change builds a new cell without it. Never saved: a reload forgets it,
+   *  and the server's own list covers submit. The grid shows only 'guessed'. */
+  mark?: HeardMark;
 };
 type Counts = Record<string, Record<string, Cell>>; // counts[zoneId][skuId]
 type PendingRemap = { zoneId: string; from: string; to: string; skus: string[] };
@@ -141,6 +148,19 @@ type ReviewItem = {
   /** The recorder's take (absent on the Web Speech engine). */
   takeId?: string;
 };
+
+/** A GUESSED number (2026-10-16 count review, Jon's fix 4): the server says
+ *  nobody said a number for this bottle (`quantityHeard` 'guessed'), the
+ *  number is still amber and in the box, and no person has answered the row.
+ *  It gets the left bar and the "No number heard" line; it stays ready and in
+ *  "Add N". A not-clearly-heard row keeps today's ring and nothing else, and
+ *  a bare name the guard proved ('implicit_one') stays plain. */
+const guessedRow = (r: ReviewItem) =>
+  r.quantityHeard === "guessed" && !!r.quantityNeedsReview && !quantityBlocked(r) && r.qty > 0 && !personEdited(r.editedBy);
+
+/** At most one decimal, for the soft summary's numbers. */
+const fmt1 = (n: number) => String(Math.round(n * 10) / 10);
+const bottlesWord = (n: number) => `${fmt1(n)} ${Math.round(n * 10) / 10 === 1 ? "bottle" : "bottles"}`;
 
 /** Jon, 2026-10-09: "Number in box, counts ready." A model number the server
  *  could not re-prove from the transcript stays in the Qty box with an amber
@@ -256,6 +276,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     retiring: RetiringSku[];
     /** The pre-submit check could not run, so nothing above was checked. */
     checkFailed?: boolean;
+    /** The soft summary (TPRS T4 `unproved`, T3 `unaccounted`): guessed and
+     *  not-clearly-heard numbers, and products about a whole bottle short.
+     *  Never findings: no question, no hold, no effect on the heading or
+     *  Submit. Empty from an older server and with ?softcheck=0. */
+    unproved: UnprovedLine[];
+    unaccounted: UnaccountedBottle[];
   } | null>(null);
   // "Show N more" on the review's two capped lists. Each opening starts short.
   const [showAllFindings, setShowAllFindings] = useState(false);
@@ -317,6 +343,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // ("Belvedere." | "Two Tito's twenty") is joined as "Belvedere, Two. Tito's
   // twenty" (joinSeam; ?seamjoin=0 is its off-switch).
   const pauseCuts = useMemo(() => pauseCutsEnabled(), []);
+  // The soft pre-submit summary (on by default; ?softcheck=0 is the per-phone
+  // off-switch, voiceSwitches.ts).
+  const softCheck = useMemo(() => softCheckEnabled(), []);
   const carryRef = useRef<ReturnType<typeof createCarry> | null>(null);
   const segmentGapRef = useRef(false);
   if (!carryRef.current) {
@@ -595,6 +624,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             cell.cases = 0;
             cell.caseSize = previous.caseSize;
           }
+          // A cell's voice mark survives the merge only while the merged cell
+          // still holds this screen's number: another phone's change to it is
+          // a number nobody here has looked at under that mark.
+          if (cell && previous?.mark && sameDraftCell(line, localLines.get(key))) cell.mark = previous.mark;
         }
         // The audit trail sees a cell another phone changed. TPRS's mark fold
         // ignores merge_adopt, so adopting never erases this phone's marks.
@@ -800,7 +833,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
    *  containers accumulate independently so the entry memo stays truthful.
    *  `dest` is the shelf the entry belongs to: the selected one for a grid
    *  edit, the one the take STARTED on for a voice take. The caller logs the
-   *  change (applyReview's voice_apply). */
+   *  change (applyReview's voice_apply) and folds the cell's mark from it. */
   function addQty(
     skuId: string,
     delta: { cases: number; units: number; caseSize: number | null },
@@ -808,10 +841,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     raw?: string,
     dest: string = zoneId,
     explicitZero = false,
+    mark?: HeardMark,
   ) {
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
       const next = cellAfterAdd(zone[skuId], delta, source, raw, explicitZero);
+      if (next && mark) next.mark = mark;
       if (next) zone[skuId] = next;
       else delete zone[skuId];
       return { ...prev, [dest]: zone };
@@ -1239,16 +1274,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
           });
         }
       }
-      addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest, explicitZero);
       const now = cellAfterAdd(working[skuId], { cases, units, caseSize }, "voice", spoken, explicitZero);
-      working[skuId] = now;
       // One voice_apply per bottle: what was heard beside what was added, and
       // who changed it. The label is the worst among rows nobody edited
       // (TPRS's mark fold reads it only when editedBy is not a person's).
       const sum = (pick: (h: ReviewItem["heard"]) => number) => roundQty(rows.reduce((t, r) => t + pick(r.heard), 0));
       const person = rows.find((r) => personEdited(r.editedBy));
       const ref = rows.flatMap((r) => r.sourceRefs)[0];
-      eventsRef.current!.push(cellEvent("voice_apply", dest, skuId, was, now, {
+      const applied = eventsRef.current!.push(cellEvent("voice_apply", dest, skuId, was, now, {
         heardCases: sum((h) => h.cases),
         heardUnits: sum((h) => h.units),
         heardQty: sum((h) => h.qty),
@@ -1261,6 +1294,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         extractionId: ref?.extractionId ?? null,
         itemIndex: ref?.itemIndex ?? null,
       }));
+      // The cell's mark, from the same event TPRS folds (W4): a More keeps
+      // the worse mark, a Recount or a first number takes the new one, and a
+      // person's number is no mark. Only 'guessed' shows on the grid.
+      const mark = foldMark(was?.mark ? { mark: was.mark, lastAfter: was.qty } : undefined, applied).mark ?? undefined;
+      addQty(skuId, { cases, units, caseSize }, "voice", spoken, dest, explicitZero, mark);
+      working[skuId] = now && mark ? { ...now, mark } : now;
     }
     // A Keep changes no line; the save only carries its event.
     if (kept) scheduleSave();
@@ -1272,6 +1311,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   }
   const reviewResolved = review ? review.filter(applyable).length : 0;
   const reviewPending = review ? review.length - reviewResolved : 0;
+  /** Guessed rows on the sheet. Informational only: they stay inside "ready"
+   *  and "Add N". */
+  const reviewGuessed = review ? review.filter(guessedRow).length : 0;
 
   /** Voice work that must land before a count can close. Finish used to stay
    *  live through all of it, so a counter could submit over a take still
@@ -1301,6 +1343,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     let truncated = 0;
     let more: PrecheckFinding[] = [];
     let retiring: RetiringSku[] = [];
+    let unproved: UnprovedLine[] = [];
+    let unaccounted: UnaccountedBottle[] = [];
     let checkFailed = false;
     try {
       // Flush FIRST — the check runs server-side against saved lines, so an
@@ -1324,6 +1368,14 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       truncated = res.truncated ?? 0;
       more = res.more ?? [];
       retiring = res.retiring ?? [];
+      // The soft summary (W4). Absent fields (an older server) and the
+      // per-phone off-switch both leave it empty, so the dialog opens exactly
+      // as before. A listed cell at 0 is no number to glance at (T4 lists by
+      // the fold alone).
+      if (softCheck) {
+        unproved = (res.unproved ?? []).filter((u) => u.qty > 0);
+        unaccounted = res.unaccountedSkipped ? [] : res.unaccounted ?? [];
+      }
       // What it looked at: submit hands these back (finish).
       checkedRef.current = { linesHash: res.linesHash, batchesHash: res.batchesHash };
     } catch {
@@ -1346,7 +1398,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       findings.length > 0 ||
       sizeWarnings.length > 0 ||
       retiring.length > 0 ||
-      restatementsRef.current.size > 0
+      restatementsRef.current.size > 0 ||
+      // Soft lines open the screen on their own (Jon 10/17): a guessed number
+      // or a bottle not accounted for. Not-clearly-heard numbers alone never
+      // do; they are listed when the screen opens for anything else.
+      unproved.some((u) => u.quantityHeard === "guessed") ||
+      unaccounted.length > 0
     ) {
       setShowAllFindings(false);
       setShowAllDoubles(false);
@@ -1359,6 +1416,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         doubles: [...restatementsRef.current.values()],
         retiring,
         checkFailed,
+        unproved,
+        unaccounted,
       });
       return;
     }
@@ -1500,7 +1559,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     remapConflictsRef.current = remapConflictsRef.current.filter((r) => r.zoneId !== dest || (!r.skus.includes(from) && !r.skus.includes(to)));
     setRemapConflicts(remapConflictsRef.current);
     const target = zone[to];
-    zone[to] = mode === "add" && zone[to] ? combineCorrectedCells(source, zone[to]) : { ...source, source: "grid" };
+    // A person moved this number: the voice mark does not travel with it
+    // (TPRS's fold clears on remap too).
+    const { mark: _moved, ...unmarked } = source;
+    zone[to] = mode === "add" && zone[to] ? combineCorrectedCells(source, zone[to]) : { ...unmarked, source: "grid" };
     delete zone[from];
     // Both cells changed: the wrong product empties, the right one fills.
     eventsRef.current!.push(cellEvent("remap", dest, from, source, undefined));
@@ -1568,19 +1630,23 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             onCases={(n) => { setCases(id, n, dest, { findingKind: f.kind }); changedInReview(dest, id); }}
             onChangeItem={(to, mode) => changeCountedItem(dest, id, to, mode)} />;
         })}
-        <button type="button" className="lq-linkbtn" disabled={checking || submitting} onClick={() => {
-          const dest = f.zoneId ?? rows[0]?.dest ?? zoneId;
-          setZoneId(dest);
-          rememberZone(sessionId, dest);
-          setSearch(skuById.get(f.skuId)?.name ?? f.name);
-          setCatalogEditing(null);
-          setCaseAsk(null);
-          setCaseAskErr(null);
-          setConfirmSubmit(null);
-          requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".lq-count > .lq-count-controls .lq-search")?.scrollIntoView({ block: "center" }));
-        }}>Open on count screen</button>
+        <button type="button" className="lq-linkbtn" disabled={checking || submitting}
+          onClick={() => openOnCountScreen(f.zoneId ?? rows[0]?.dest ?? zoneId, skuById.get(f.skuId)?.name ?? f.name)}>Open on count screen</button>
       </div>
     );
+  }
+
+  /** "Open on count screen": close the pre-submit dialog on that shelf with
+   *  the bottle in the search box. */
+  function openOnCountScreen(dest: string, search: string) {
+    setZoneId(dest);
+    rememberZone(sessionId, dest);
+    setSearch(search);
+    setCatalogEditing(null);
+    setCaseAsk(null);
+    setCaseAskErr(null);
+    setConfirmSubmit(null);
+    requestAnimationFrame(() => document.querySelector<HTMLInputElement>(".lq-count > .lq-count-controls .lq-search")?.scrollIntoView({ block: "center" }));
   }
 
   if (phase === "loading") return <div className="lq-center lq-muted">Starting count…</div>;
@@ -1921,6 +1987,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 </span>
                 {sku && <span className="lq-size">{sizeLabel(sku)}</span>}
                 {cell.raw && <span className="lq-size lq-heard">heard: “{cell.raw}”</span>}
+                {/* Guessed only (W4): the review sheet's guessed number, kept
+                    through Add. A not-clearly-heard cell gets no marker here
+                    and no ring; any edit of the cell drops it (Cell.mark). */}
+                {cell.mark === "guessed" && cell.qty > 0 && <span className="lq-size lq-guess-tag">no number heard · check</span>}
                 {(cell.cases ?? 0) > 0 && cell.caseSize && (
                   <span className="lq-size lq-case-total">
                     {formatQty(cell.cases)} case{cell.cases === 1 ? "" : "s"} × {formatQty(cell.caseSize)}
@@ -2024,7 +2094,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               <p className="lq-muted">
                 Going to <strong>{zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this zone"}</strong>
                 {" · "}
-                {reviewResolved} ready{reviewPending > 0 && ` · ${reviewPending} need a tap`}
+                {reviewResolved} ready{reviewGuessed > 0 && ` · ${reviewGuessed} guessed`}{reviewPending > 0 && ` · ${reviewPending} need a tap`}
               </p>
               {voiceErr && <p className="lq-error" role="status">{voiceErr}</p>}
               {dict.error && <p className="lq-error" role="status">Some audio may be missing. Check this list.</p>}
@@ -2271,6 +2341,12 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                 )}
               </div>
             )}
+            {/* The soft summary (W4, Jon 10/16-10/17): after the findings and
+                before the retiring list. Amber, never the red finding style;
+                it asks nothing and changes neither the heading nor Submit. */}
+            <SoftSummary unproved={confirmSubmit.unproved} unaccounted={confirmSubmit.unaccounted}
+              disabled={checking || submitting}
+              onOpen={(u) => openOnCountScreen(zones.some((z) => z.id === u.zoneId) ? u.zoneId : zoneId, skuById.get(u.skuId)?.name ?? u.name)} />
             {confirmSubmit.retiring.length > 0 && (
               <div className="lq-retiring">
                 <p className="lq-retiring-h">Have we stopped carrying these?</p>
@@ -2443,9 +2519,12 @@ function ReviewRow({
             : item.restate && !restateAnswered
               ? "restate"
               : "matched";
+  // A number nobody said (guessedRow): the left bar and one line. A
+  // not-clearly-heard number keeps only the ring below.
+  const guessed = guessedRow(item);
 
   return (
-    <div className={`lq-rev lq-rev-${state}`}>
+    <div className={`lq-rev lq-rev-${state}${guessed ? " lq-rev-guessed" : ""}`}>
       <div className="lq-rev-top">
         <span className="lq-rev-spoken">“{item.spoken}”</span>
         <div className="lq-rev-qtywrap">
@@ -2478,6 +2557,13 @@ function ReviewRow({
           <button type="button" className="lq-rev-x" aria-label="remove" onClick={onRemove}>✕</button>
         </div>
       </div>
+      {/* Jon 10/17 (decision 3): guessed rows only, 0-2 a count. The row
+          stays ready; typing a number answers it and the line goes. */}
+      {guessed && (
+        <p className="lq-rev-guess-note">
+          <span aria-hidden="true">●</span> No number heard. {formatQty(item.qty)} is a guess. Check it.
+        </p>
+      )}
 
       {/* A number removed earlier from this shelf and bottle (✕ or Discard),
           offered back on a bare re-say. Offer only: the row above keeps its
@@ -2710,6 +2796,103 @@ function ReviewRow({
             </div>
           )}
         </div>
+    </div>
+  );
+}
+
+/**
+ * The soft pre-submit summary (2026-10-16 count review, Jon's fix 4; his
+ * defaults of 10/17). One amber-tinted block, never the red finding style,
+ * that asks nothing: no question, no hold, no effect on the heading or Submit
+ * (Jon 10/9, 10/5).
+ *
+ *  - Guessed numbers (TPRS `unproved`, 'guessed'): name, shelf and number,
+ *    what was heard, and the prior full count's number on that shelf. Last
+ *    count appears here only, never on the review sheet (Jon 10/16-10/17). A
+ *    guessed product that is also short says so on its own line.
+ *  - Not clearly heard: a count, with the rows behind "Show".
+ *  - Not accounted for (TPRS `unaccounted`; Jon 10/16: never a backstock-to-
+ *    rail move, which nets to zero server-side; a truly missing bottle may
+ *    get a soft line): one compact line per product not already listed, the
+ *    numbers behind "Details".
+ *
+ * Renders nothing when all three are empty (an older server, ?softcheck=0).
+ */
+function SoftSummary({ unproved, unaccounted, disabled, onOpen }: {
+  unproved: UnprovedLine[];
+  unaccounted: UnaccountedBottle[];
+  disabled: boolean;
+  onOpen: (u: UnprovedLine) => void;
+}) {
+  const [showUnclear, setShowUnclear] = useState(false);
+  const [details, setDetails] = useState<Record<string, true>>({});
+  const guessed = unproved.filter((u) => u.quantityHeard === "guessed");
+  const unclear = unproved.filter((u) => u.quantityHeard === "unclear");
+  const gapFor = (skuId: string) => unaccounted.find((g) => g.skuId === skuId || g.relatedSkuIds.includes(skuId));
+  // Each product once: a guessed line already says it is short.
+  const said = new Set(guessed.map((u) => gapFor(u.skuId)).filter((g): g is UnaccountedBottle => !!g));
+  const others = unaccounted.filter((g) => !said.has(g));
+  if (guessed.length === 0 && unclear.length === 0 && others.length === 0) return null;
+  return (
+    <div className="lq-soft" role="group" aria-label="Numbers to glance at">
+      <p className="lq-soft-title">Numbers to glance at. Nothing is held.</p>
+      {guessed.map((u) => {
+        const gap = gapFor(u.skuId);
+        return (
+          <div key={`${u.zoneId}:${u.skuId}`} className="lq-soft-line lq-soft-guessed">
+            <span className="lq-soft-name">{u.name} · {u.zoneName} · {fmt1(u.qty)}</span>
+            <span className="lq-soft-detail">
+              {fmt1(u.qty)} wasn't said{u.spoken ? ` (“${u.spoken}”)` : ""}.{u.lastCount == null ? "" : ` Last count ${fmt1(u.lastCount)}.`}
+              {gap ? ` About ${bottlesWord(gap.bottles)} not accounted for.` : ""}
+            </span>
+            <button type="button" className="lq-linkbtn" disabled={disabled} onClick={() => onOpen(u)}>Open on count screen</button>
+          </div>
+        );
+      })}
+      {unclear.length > 0 && (
+        <div className="lq-soft-line lq-soft-unclear">
+          <span className="lq-soft-detail">
+            {unclear.length} {guessed.length > 0 ? "more " : ""}weren't clearly heard.
+          </span>
+          <button type="button" className="lq-linkbtn" aria-expanded={showUnclear} onClick={() => setShowUnclear(!showUnclear)}>
+            {showUnclear ? `Hide the ${unclear.length} not clearly heard` : `Show the ${unclear.length} not clearly heard`}
+          </button>
+          {showUnclear && (
+            <ul className="lq-soft-compact">
+              {unclear.map((u) => (
+                <li key={`${u.zoneId}:${u.skuId}`}>
+                  {u.name} · {u.zoneName} · {fmt1(u.qty)}{u.lastCount == null ? "" : ` · last count ${fmt1(u.lastCount)}`}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      {others.length > 0 && (
+        <div className="lq-soft-line lq-soft-gaps">
+          <span className="lq-soft-detail">Not accounted for after sales, deliveries and every shelf:</span>
+          {others.map((g) => (
+            <div key={g.skuId} className="lq-soft-gap">
+              <span className="lq-soft-detail"><strong>{g.name}</strong>: about {bottlesWord(g.bottles)}.</span>
+              <button type="button" className="lq-linkbtn" aria-expanded={!!details[g.skuId]}
+                onClick={() => setDetails((d) => {
+                  const next = { ...d };
+                  if (next[g.skuId]) delete next[g.skuId];
+                  else next[g.skuId] = true;
+                  return next;
+                })}>
+                Details
+              </button>
+              {details[g.skuId] && (
+                <div className="lq-soft-gap-detail">
+                  <span>Last count {fmt1(g.prior)}, now {fmt1(g.countedInclBatch)} (incl. batches); {fmt1(g.sold)} sold, {fmt1(g.purchased)} delivered.</span>
+                  {g.zones.map((z) => <span key={z.zoneId}>{z.zoneName} {fmt1(z.prior)} → {fmt1(z.counted)}</span>)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

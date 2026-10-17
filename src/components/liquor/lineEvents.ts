@@ -48,6 +48,57 @@ export function personEdited(editedBy: LineEditedBy | null | undefined): boolean
   return !!editedBy && editedBy !== "as_heard" && editedBy !== "case_size";
 }
 
+/**
+ * The guessed / not-clearly-heard mark of one count cell (2026-10-16 count
+ * review, Website W4). The client mirror of TPRS's fold (tprs
+ * apps/backend/src/bar/unproved-lines.ts foldCellMark), tested on the same
+ * shared sequences (check-voice-carry.mjs copies its SHARED_FOLD_SEQUENCES):
+ *
+ *  - voice_apply sets the mark from the event's quantityHeard, but only a
+ *    'guessed' or 'unclear' number applied as heard (editedBy unset, as_heard
+ *    or case_size). A person's number (typed, bottles, restored, ...) is no
+ *    mark. A Recount (restateAnswer 'replace') or a first number in an empty
+ *    cell (beforeQty 0 or null) takes the new mark; anything else (a More, an
+ *    unasked add) keeps the WORSE of the two, guessed beating unclear.
+ *  - grid_set, grid_cases, presubmit_edit, clear, correction and remap drop it.
+ *  - voice_keep, voice_set_aside and merge_adopt change nothing.
+ *
+ * `lastAfter` is the cell's quantity after the last event that set or cleared
+ * the mark; the mark speaks for the cell only while the cell still holds that
+ * number (markListed). The screen shows only 'guessed' on the grid; nothing
+ * here blanks, holds or asks (Jon 10/9).
+ */
+export type HeardMark = "guessed" | "unclear";
+export type MarkState = { mark: HeardMark | null; lastAfter: number | null };
+export type MarkEvent = Pick<LineEvent, "kind"> &
+  Partial<Pick<LineEvent, "quantityHeard" | "editedBy" | "restateAnswer" | "beforeQty" | "afterQty">>;
+
+const MARK_RANK: Record<HeardMark, number> = { unclear: 1, guessed: 2 };
+const MARK_CLEARS = new Set<LineEvent["kind"]>(["grid_set", "grid_cases", "presubmit_edit", "clear", "correction", "remap"]);
+/** How close a cell's quantity must be to lastAfter (TPRS SAME_QTY, numeric(14,3)). */
+export const SAME_QTY = 0.0005;
+
+/** Fold one event into a cell's mark. Pure; `prev` is never mutated. */
+export function foldMark(prev: MarkState | undefined, e: MarkEvent): MarkState {
+  const cur = prev ?? { mark: null, lastAfter: null };
+  const lastAfter = e.afterQty ?? null;
+  if (e.kind === "voice_apply") {
+    const heard = e.quantityHeard;
+    const next: HeardMark | null = (heard === "guessed" || heard === "unclear") && !personEdited(e.editedBy) ? heard : null;
+    const fresh = e.restateAnswer === "replace" || e.beforeQty == null || e.beforeQty === 0;
+    const takeNew = fresh || (next != null && (cur.mark == null || MARK_RANK[next] >= MARK_RANK[cur.mark]));
+    return { mark: takeNew ? next : cur.mark, lastAfter };
+  }
+  if (MARK_CLEARS.has(e.kind)) return { mark: null, lastAfter };
+  return cur;
+}
+
+/** The mark still speaks for the cell: set, and the cell still holds the
+ *  number it was set or kept at (TPRS listUnproved's rule). */
+export function markListed(state: MarkState | undefined, qty: number): boolean {
+  return !!state?.mark && state.lastAfter != null && Number.isFinite(qty) && Math.abs(qty - state.lastAfter) <= SAME_QTY;
+}
+
 const QTY_MAX = 1_000_000_000;
 const INT_MAX = 1_000_000;
 const CLIENT_AT_MIN = Date.UTC(2020, 0, 1);
