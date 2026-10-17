@@ -991,6 +991,10 @@ check('restore offer: a re-say that speaks a number gets no offer', () => {
   const memory = aside(m.setAsideEntry(reviewRow('amaretto'), 'backstock'));
   assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'proved'}, 'backstock', memory), null);
   assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'unclear'}, 'backstock', memory), null);
+  // A client seam merge ("Luxardo, two cases" | "Luxardo") takes the later
+  // piece's bare label but keeps the spoken words: not a bare re-say.
+  assert.equal(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'implicit_one', quantityWords: 'two cases'}, 'backstock', memory), null);
+  assert.ok(m.restoreOffer({chosenSkuId: 'amaretto', quantityHeard: 'guessed', quantityWords: ' '}, 'backstock', memory), 'blank words are no words');
 });
 
 check('restore offer: cases with no case size offer both readings, chips only, never a case question', () => {
@@ -1012,11 +1016,28 @@ check('restore offer: cases with no case size offer both readings, chips only, n
 });
 
 check('restate choices: Keep first, only when nothing was heard for the bottle this time', () => {
-  assert.deepEqual(m.restateChoices({quantityHeard: 'implicit_one'}), ['keep', 'replace', 'add']);
-  assert.deepEqual(m.restateChoices({quantityHeard: 'guessed'}), ['keep', 'replace', 'add']);
-  assert.deepEqual(m.restateChoices({quantityHeard: 'proved'}), ['replace', 'add']);
-  assert.deepEqual(m.restateChoices({quantityHeard: 'unclear'}), ['replace', 'add']);
-  assert.deepEqual(m.restateChoices({}), ['replace', 'add'], 'an older server: today\'s two answers');
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'implicit_one'}]), ['keep', 'replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'guessed', quantityWords: ''}]), ['keep', 'replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'proved'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'unclear'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{}]), ['replace', 'add'], 'an older server: today\'s two answers');
+  assert.deepEqual(m.restateChoices([]), ['replace', 'add'], 'no rows, no Keep');
+});
+
+check('restate choices: Keep is judged on every row of the bottle in the take', () => {
+  const bare = {quantityHeard: 'implicit_one', quantityWords: ''};
+  assert.deepEqual(m.restateChoices([bare, {...bare, quantityHeard: 'guessed'}]), ['keep', 'replace', 'add'], 'two bare re-says');
+  // The W3 review probe: "Belvedere … Belvedere, three" in one take. Keep would
+  // skip both rows and drop the spoken three.
+  assert.deepEqual(m.restateChoices([bare, {quantityHeard: 'proved', quantityWords: 'three'}]), ['replace', 'add']);
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'unclear', quantityWords: 'two'}, bare]), ['replace', 'add'], 'order does not matter');
+  // A seam merge keeps the later piece's bare label and the earlier words.
+  assert.deepEqual(m.restateChoices([{quantityHeard: 'implicit_one', quantityWords: 'a case'}]), ['replace', 'add']);
+  // A person's number on any row is an answer for this take.
+  for (const editedBy of ['typed', 'restored', 'bottles', 'keep_high', 'name_number', 'suspect_pick'])
+    assert.deepEqual(m.restateChoices([bare, {...bare, editedBy}]), ['replace', 'add'], editedBy);
+  for (const editedBy of ['as_heard', 'case_size', undefined])
+    assert.deepEqual(m.restateChoices([{...bare, editedBy}]), ['keep', 'replace', 'add'], `${editedBy} is not a person's number`);
 });
 
 console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${queueChecks} edit-log queue checks and ${passed - voiceRules - queueChecks} removed-row offer checks; no DOM, microphone or service calls.`);

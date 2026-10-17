@@ -39,6 +39,19 @@ are untouched).
   with no quantities and no `quantityHeard`, so the TPRS mark fold (T4) can
   never list a kept number as guessed. Any other re-say keeps today's copy and
   two buttons.
+- **Keep is judged on the whole take (W3 review fix).** The question sits on
+  the take's first row of the bottle, but Keep skips every row of it. The
+  first build offered Keep from that one row's label, so "Belvedere …
+  Belvedere, three" in one take could Keep 2 and silently drop the spoken
+  three. Keep now appears only while **every** row of the bottle in the take
+  is a bare name: label `guessed`/`implicit_one`, no number words, and no
+  number typed, restored or otherwise answered by a person. A later edit that
+  gives the bottle a number withdraws a Keep already tapped, and the question
+  asks again with Recount / More. The "no number words" rule also covers a
+  client seam merge ("Belvedere, a case" | "Belvedere"), which takes the later
+  piece's bare label. The restore offer uses the same rule, and rows left on
+  the sheet after Add re-read their offer, so a number just spent is not
+  offered again.
 
 **Depends on tprs `quantityHeard`** (T2, tprs PR #422) for the offers and
 Keep, and on the edit log (W1 + tprs #423) for the events. On an older server

@@ -116,7 +116,8 @@ type ReviewItem = {
   /** The take's shelf already has this bottle from an earlier take: a re-say
    *  or more of it? Asked on the take's first row of the bottle; NOT applyable
    *  until answered. "replace" sets the shelf to this take's number; "keep"
-   *  (only when nothing was heard for it this time) leaves the shelf as is. */
+   *  (only while every row of the bottle in the take is a bare name nobody
+   *  answered; see keepAllowed) leaves the shelf as is. */
   restate: { before: number } | null;
   restateAnswer?: "replace" | "add" | "keep";
   /** A number removed earlier from this shelf and bottle, offered back as
@@ -1153,7 +1154,19 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // An amber (unproved) model number is ready; see quantityBlocked.
   const applyable = (r: ReviewItem) =>
     !!r.chosenSkuId && !quantityBlocked(r) && !r.needsCaseSize && !r.suspectPreMultiplied && !r.nameCheck && !r.highCheck && (r.qty > 0 || r.explicitZero === true) &&
-    !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && x.restate && !x.restateAnswer);
+    !(review ?? []).some((x) => x.chosenSkuId === r.chosenSkuId && restateOpen(x));
+  /** Keep fits only while every row of the bottle in this take is a bare name
+   *  nobody answered (voiceReview.ts restateChoices). The question sits on the
+   *  take's first row of the bottle, but Keep skips all of them, so it is
+   *  judged on all of them: "Belvedere … Belvedere, three" must not let Keep
+   *  drop the spoken three. Read at render and at Add, so a later edit that
+   *  gives the bottle a number withdraws a Keep already tapped. */
+  const keepAllowed = (skuId: string | null) =>
+    !!skuId && restateChoices((review ?? []).filter((x) => x.chosenSkuId === skuId)).includes("keep");
+  /** The earlier-take question still needs a tap: unanswered, or answered Keep
+   *  when Keep no longer fits (it asks again with Recount / More). */
+  const restateOpen = (x: ReviewItem) =>
+    !!x.restate && (!x.restateAnswer || (x.restateAnswer === "keep" && !keepAllowed(x.chosenSkuId)));
 
 
   function applyReview() {
@@ -1190,9 +1203,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       forgetSetAside(dest, skuId);
       if (answer.get(skuId) === "keep") {
         // Keep: the earlier take's number stands. Nothing is added and no
-        // restatement is recorded for submit. One voice_keep with no
-        // quantities and no quantityHeard, which TPRS's mark fold ignores, so
-        // Keep can never make a kept number look guessed.
+        // restatement is recorded for submit. Only reached when every row of
+        // the bottle in this take is a bare name (keepAllowed), so the rows
+        // skipped here carry no number anyone said or typed. One voice_keep
+        // with no quantities and no quantityHeard, which TPRS's mark fold
+        // ignores, so Keep can never make a kept number look guessed.
         const ref = rows.flatMap((r) => r.sourceRefs)[0];
         eventsRef.current!.push({ zoneId: dest, skuId, kind: "voice_keep", restateAnswer: "keep",
           spoken: rows.map((r) => r.heard.spoken).join(" … "), takeId: rows[0]?.takeId ?? null,
@@ -1250,7 +1265,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // A Keep changes no line; the save only carries its event.
     if (kept) scheduleSave();
     // Keep any row that couldn't be applied, so nothing is silently dropped.
-    const leftover = review.filter((r) => !applyable(r));
+    // Its offer is read again: a bottle just added forgot its removed number.
+    const leftover = review.filter((r) => !applyable(r))
+      .map((r) => ({ ...r, restoreOffer: restoreOffer(r, dest, setAsideRef.current) }));
     setReview(leftover.length > 0 ? leftover : null);
   }
   const reviewResolved = review ? review.filter(applyable).length : 0;
@@ -2108,6 +2125,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   }
                   onToggleAssign={() => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, assignOpen: !x.assignOpen } : x)))}
                   shelf={zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "this shelf"}
+                  canKeep={keepAllowed(it.chosenSkuId)}
                   onRestate={(a) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, restateAnswer: a } : x)))}
                   // Indices shift on removal, so a stale error would re-attach
                   // itself to whichever row slid into this slot.
@@ -2361,12 +2379,17 @@ function ReviewRow({
   onCaseSize,
   caseErr,
   shelf,
+  canKeep,
   onRestate,
 }: {
   item: ReviewItem;
   catalog: BarSkuItem[];
   /** The take's shelf, named in the earlier-take question. */
   shelf: string;
+  /** Keep fits: every row of this bottle in the take is a bare name nobody
+   *  answered (the parent's keepAllowed). A Keep answer that no longer fits
+   *  asks again. */
+  canKeep: boolean;
   /** The earlier-take answer; undefined asks again. */
   onRestate: (answer: "replace" | "add" | "keep" | undefined) => void;
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
@@ -2400,6 +2423,9 @@ function ReviewRow({
   // chosen SKU. The row became a dead end whose only exit was deleting it,
   // which drops that bottle from the count entirely.
   const blocked = quantityBlocked(item);
+  // The parent's restateOpen, from the row's side: a Keep that no longer fits
+  // the take is no answer.
+  const restateAnswered = !!item.restateAnswer && (item.restateAnswer !== "keep" || canKeep);
   const state: "quantity" | "needs_case" | "suspect" | "name_number" | "high" | "restate" | "matched" | "ambiguous" | "unmatched" = !item.chosenSkuId
     ? item.candidates.length > 0
       ? "ambiguous"
@@ -2414,7 +2440,7 @@ function ReviewRow({
           ? "name_number"
           : item.highCheck
             ? "high"
-            : item.restate && !item.restateAnswer
+            : item.restate && !restateAnswered
               ? "restate"
               : "matched";
 
@@ -2598,9 +2624,10 @@ function ReviewRow({
       {/* A later take on the same shelf said this bottle again: a recount of
           the same bottles (the 10-02 re-says double-counted) or more of it.
           Asked here, while the counter still remembers. */}
-      {/* A bare re-say (nothing heard for it this time) can also keep the
-          earlier count: Keep adds nothing (voiceReview.ts restateChoices). */}
-      {state === "restate" && item.restate && (restateChoices(item).includes("keep") ? (
+      {/* A bare re-say (nothing heard for the bottle anywhere in this take)
+          can also keep the earlier count: Keep adds nothing (voiceReview.ts
+          restateChoices, judged on all the take's rows of it). */}
+      {state === "restate" && item.restate && (canKeep ? (
         <div className="lq-rev-choices">
           <span className="lq-error lq-rev-hint">
             {formatQty(item.restate.before)} already counted on {shelf} from an earlier take.
@@ -2628,7 +2655,7 @@ function ReviewRow({
           </button>
         </div>
       ))}
-      {item.restate && item.restateAnswer && (
+      {item.restate && restateAnswered && (
         <span className="lq-muted lq-rev-hint">
           {item.restateAnswer === "replace"
             ? `Replaces the earlier ${formatQty(item.restate.before)} on ${shelf}.`

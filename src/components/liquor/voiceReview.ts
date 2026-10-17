@@ -1,5 +1,5 @@
-import type { QuantityHeard, VoiceExtractItem } from "./api";
-import { sourceRefsOf } from "./lineEvents";
+import type { LineEditedBy, QuantityHeard, VoiceExtractItem } from "./api";
+import { personEdited, sourceRefsOf } from "./lineEvents";
 import { formatQty } from "./quantity";
 
 /**
@@ -189,18 +189,23 @@ export function setAsideEntry(row: AsideRow, zoneId: string): SetAside | null {
 
 /** Nothing was said for this bottle: the server read it as a bare name. */
 const bareName = (heard: QuantityHeard | undefined) => heard === "implicit_one" || heard === "guessed";
+/** No number words on the row. A client seam merge ("Belvedere, a case" |
+ *  "Belvedere", mergeAdjacentRepeats) takes the later piece's label but keeps
+ *  the earlier words, so the label alone can call a spoken case count bare. */
+const noWords = (words: string | undefined) => !(words ?? "").trim();
 const noun = (n: number, one: string, many: string) => `${formatQty(n)} ${n === 1 ? one : many}`;
 
 /**
  * The offer on a re-said bottle: only a row with no number heard for it
- * (implicit_one or guessed), of the same bottle, recorded on the same shelf as
- * the remembered row. Chips only; each carries the cases and units a tap
- * fills in. A remembered "two cases" of a bottle with no case size offers both
- * readings, and only the "2 cases" tap leads to the case question.
+ * (implicit_one or guessed, and no number words), of the same bottle,
+ * recorded on the same shelf as the remembered row. Chips only; each carries
+ * the cases and units a tap fills in. A remembered "two cases" of a bottle
+ * with no case size offers both readings, and only the "2 cases" tap leads to
+ * the case question.
  */
-export function restoreOffer(row: { chosenSkuId: string | null; quantityHeard?: QuantityHeard }, zoneId: string,
-  memory: ReadonlyMap<string, SetAside>): RestoreOffer | null {
-  if (!row.chosenSkuId || !bareName(row.quantityHeard)) return null;
+export function restoreOffer(row: { chosenSkuId: string | null; quantityHeard?: QuantityHeard; quantityWords?: string },
+  zoneId: string, memory: ReadonlyMap<string, SetAside>): RestoreOffer | null {
+  if (!row.chosenSkuId || !bareName(row.quantityHeard) || !noWords(row.quantityWords)) return null;
   const e = memory.get(setAsideKey(zoneId, row.chosenSkuId));
   if (!e || e.zoneId !== zoneId || e.skuId !== row.chosenSkuId) return null;
   let chips: RestoreChip[];
@@ -218,8 +223,16 @@ export function restoreOffer(row: { chosenSkuId: string | null; quantityHeard?: 
   return { hint: `Heard "${e.quantityWords}" earlier.`, chips };
 }
 
-/** The earlier-take answers a re-said bottle gets, in button order. Keep (the
- *  earlier count stands) only when nothing was heard for it this time. */
-export function restateChoices(row: { quantityHeard?: QuantityHeard }): Array<"keep" | "replace" | "add"> {
-  return bareName(row.quantityHeard) ? ["keep", "replace", "add"] : ["replace", "add"];
+/**
+ * The earlier-take answers a re-said bottle gets, in button order, judged on
+ * ALL of the take's rows of that bottle. Keep (the earlier count stands) only
+ * when nothing gave the bottle a number this time: every row is a bare name
+ * (label implicit_one or guessed, no number words) that nobody answered.
+ * applyReview's Keep skips every row of the bottle in the take, so a single
+ * row with a spoken, typed or restored number would otherwise be dropped.
+ */
+export function restateChoices(rows: ReadonlyArray<{ quantityHeard?: QuantityHeard; quantityWords?: string; editedBy?: LineEditedBy }>):
+  Array<"keep" | "replace" | "add"> {
+  const bare = rows.length > 0 && rows.every((r) => bareName(r.quantityHeard) && noWords(r.quantityWords) && !personEdited(r.editedBy));
+  return bare ? ["keep", "replace", "add"] : ["replace", "add"];
 }

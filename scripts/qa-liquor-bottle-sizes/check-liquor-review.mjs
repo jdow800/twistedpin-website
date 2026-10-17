@@ -436,6 +436,16 @@ try{
     await js(`window.liquorQa.extracts[${n}].succeed([${JSON.stringify(row)}],${JSON.stringify(extra)})`);
     await button(/Stop & review/);await js(`window.liquorQa.recorder.finish(${JSON.stringify(row.spoken)})`);await until("document.querySelector('.lq-sheet')");
   }
+  // One take that returns several rows.
+  async function retakeRows(rows,extra={extractionId:EXT}){
+    const n=await js('window.liquorQa.extracts.length'),said=rows.map(r=>r.spoken).join('. ');
+    await button(/Record count for/);
+    await js(`window.liquorQa.recorder.segment(${JSON.stringify(said+'.')},0)`);await until(`window.liquorQa.extracts.length===${n+1}`);
+    await js(`window.liquorQa.extracts[${n}].succeed(${JSON.stringify(rows)},${JSON.stringify(extra)})`);
+    await button(/Stop & review/);await js(`window.liquorQa.recorder.finish(${JSON.stringify(said)})`);await until("document.querySelector('.lq-sheet')");
+  }
+  // Each review row: spoken words, Qty box, and its Keep/Recount/More chips.
+  const revRows=()=>js("[...document.querySelectorAll('.lq-sheet .lq-rev')].map(r=>[r.querySelector('.lq-rev-spoken').textContent.slice(1,-1),r.querySelector('input[aria-label^=\"Total quantity\"]')?.value,[...r.querySelectorAll('button')].map(b=>b.textContent.trim()).filter(t=>/^(Keep|Recount|More)/.test(t)).join('|')])");
   // Take A on Backstock Room: "two cases" of a bottle with no case size, then
   // ✕ or Discard. Take B: the bare name, on `shelfB`.
   async function amarettoPair(removeWith,shelfB='Backstock Room',query='?pausecuts=0&backstock',bare=amarettoBare,cases=amarettoCases){
@@ -505,6 +515,17 @@ try{
     await button(/^Amaretto Luxardo di Saschira/);await offerShown();
     note('An ambiguous re-say gets the offer after the pick, still a ready amber 1');
   });
+  await run('amaretto (2e): a row left on the sheet after Add re-reads its offer, so the spent number is not offered again',async()=>{
+    await load('?pausecuts=0&backstock');await button(/^Backstock Room/);await retake(amarettoCases);
+    await js("document.querySelector('.lq-sheet .lq-rev-x').click()");await until("!document.querySelector('.lq-sheet')");
+    // A held zero the server labels guessed (needs review, no words, model 0).
+    const heldZero={...amarettoBare,spoken:'Amaretto',units:0,qty:0};
+    await retakeRows([amarettoBare,voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),heldZero],{extractionId:EXT2});
+    await check('Both Amaretto rows carry the offer; the held one waits with a blank box',`document.querySelectorAll('.lq-sheet .lq-rev-restore').length===2&&document.querySelectorAll('.lq-sheet input[aria-label^="Total quantity"]')[2].value===''&&${sheetText}.includes('2 ready')&&${sheetText}.includes('1 need a tap')`);
+    await button(/^Add 2 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
+    await check('The held row stays, without the spent offer',`document.querySelectorAll('.lq-sheet .lq-rev').length===1&&!document.querySelector('.lq-sheet .lq-rev-restore')`);
+    note('Add spends the removed number; the held Amaretto row left on the sheet no longer offers it');
+  });
   await run('amaretto (3): Discard remembers like ✕, and the same offer appears',async()=>{
     await amarettoPair('discard');await offerShown();
     await button(/^Add 1 to Backstock Room/);await savedLine('amaretto','speed','Number(l.qtyUnits)===1');
@@ -546,6 +567,47 @@ try{
     await check('Today\'s question',`${sheetText}.includes('2 already counted on Backstock Room from an earlier take. Did you just recount those, or find more?')`);
     assert.deepEqual((await sheetButtons()).filter(([t])=>/^(Keep|Recount|More)/.test(t)).map(([t])=>t),['Recount: 1','More: 3 total']);
     note('A spoken number: Recount / More only');
+  });
+  // W3 review (2026-10-16): Keep sits on the take's first row of the bottle
+  // but skips every row of it, so it is judged on all of them.
+  await run('amaretto (6b): "Belvedere … Belvedere, three" in one take: no Keep, so the spoken three cannot be dropped',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere(),voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),
+      belvedere({spoken:'Belvedere, three',units:3,qty:3,quantityWords:'three',quantityHeard:'proved'})]);
+    assert.deepEqual(await revRows(),[['Belvedere','1','Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere, three','3','']]);
+    await check('Today\'s question on the first row, Keep nowhere',`${sheetText}.includes('2 already counted on Backstock Room from an earlier take. Did you just recount those, or find more?')&&![...document.querySelectorAll('.lq-sheet button')].some(e=>/^Keep \\d/.test(e.textContent.trim()))`);
+    await check('Both Belvedere rows wait for the answer',`${sheetText}.includes('1 ready')&&${sheetText}.includes('2 need a tap')`);
+    await button(/^Recount: 1$/);await button(/^Add 3 to Backstock Room/);
+    await savedLine('belvedere','speed','Number(l.qtyUnits)===4');
+    const apply=(await sentEvents()).find(e=>e.kind==='voice_apply'&&e.skuId==='belvedere');
+    assert.deepEqual(pick(apply,['restateAnswer','heardQty','afterQty']),{restateAnswer:'replace',heardQty:4,afterQty:4});
+    assert.equal((await sentEvents()).some(e=>e.kind==='voice_keep'),false,'no voice_keep');
+    note('Bare + spoken Belvedere in one take: Recount / More only; Recount saves 1 + 3 = 4');
+  });
+  await run('amaretto (6c): two bare re-says can Keep; a number typed on either withdraws the Keep and it asks again',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere(),voiceRow('frangelico','Frangelico','Frangelico, two',2,{quantityWords:'two',quantityHeard:'proved'}),
+      belvedere({spoken:'Belvedere again',quantityHeard:'guessed'})]);
+    assert.deepEqual(await revRows(),[['Belvedere','1','Keep 2|Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere again','1','']]);
+    await button(/^Keep 2$/);
+    await check('Kept: every row ready',`${sheetText}.includes('Keeps the earlier 2 on Backstock Room.')&&${addReady(3)}`);
+    await js("document.querySelectorAll('.lq-sheet .lq-rev')[2].dataset.qa='again'");
+    await input('.lq-sheet .lq-rev[data-qa="again"] input[aria-label^="Total quantity"]','3');
+    assert.deepEqual(await revRows(),[['Belvedere','1','Recount: 1|More: 3 total'],['Frangelico, two','2',''],['Belvedere again','3','']]);
+    await check('The Keep reads back no more, and the bottle waits again',`!${sheetText}.includes('Keeps the earlier')&&${sheetText}.includes('Did you just recount those, or find more?')&&${sheetText}.includes('1 ready')&&${addReady(1)}`);
+    await button(/^Recount: 1$/);await button(/^Add 3 to Backstock Room/);
+    await savedLine('belvedere','speed','Number(l.qtyUnits)===4');
+    const events=await sentEvents();
+    assert.equal(events.some(e=>e.kind==='voice_keep'),false,'the withdrawn Keep logs nothing');
+    assert.deepEqual(pick(events.find(e=>e.kind==='voice_apply'&&e.skuId==='belvedere'),['restateAnswer','editedBy','afterQty']),{restateAnswer:'replace',editedBy:'typed',afterQty:4});
+    note('Two bare Belvederes: Keep 2 offered; typing 3 on the second asks again; Recount saves 1 + 3 = 4');
+  });
+  await run('amaretto (6d): a seam merge "Belvedere, a case … Belvedere" keeps the case words: no Keep',async()=>{
+    await load('?pausecuts=0&backstock&belvedere2');await button(/^Backstock Room/);
+    await retakeRows([belvedere({spoken:'Belvedere, a case',cases:1,units:0,qty:12,quantityWords:'a case',quantityHeard:'proved'}),belvedere()]);
+    assert.deepEqual(await revRows(),[['Belvedere, a case … Belvedere','13','Recount: 13|More: 15 total']]);
+    await check('Today\'s question',`${sheetText}.includes('Did you just recount those, or find more?')`);
+    note('Merged case + bare row (label implicit_one, words "a case"): Recount / More only');
   });
   await run('amaretto (7): a number typed on the count screen forgets the removed row',async()=>{
     await load('?pausecuts=0&backstock');await button(/^Backstock Room/);await retake(amarettoCases);
