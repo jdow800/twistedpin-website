@@ -36,10 +36,50 @@ import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import { ICON_PATHS } from "../lib/icons";
 import { formatHoursAnswer } from "../lib/schema";
+import { PRICING } from "../data/pricing";
+import { DAYS } from "../data/hours";
 
 import { PLAN_EVENT_URL } from "../lib/links";
 
 const ROLLER_URL = "/reserve/";
+
+// "How much does bowling cost?": the RATES are written from PRICING (the same
+// constant /pricing renders), never a second set of price literals. Only the
+// shoe price and the holiday sentence are literals, copied from /pricing.
+// The answer states the rate for every day and time rather than a "starts at"
+// floor: a lifted "starts at $35" was read as today's price on a Saturday
+// (2026-10-17), when Saturday evening is $55. Sunday after 7pm drops back to
+// the Monday-Thursday rate, so no sentence here may say weekend rates are
+// higher.
+const money = (n: number) => `$${n}`;
+const windowEnd = (label: string) => (label.split(" – ")[1] ?? "").replace(" ", "").toLowerCase();
+// Consecutive days with identical windows read as one run (today Mon-Thu), so
+// a future Thursday-only price change regroups itself instead of going stale.
+const priceRuns: { days: typeof DAYS; windows: (typeof PRICING)["mon"]["windows"] }[] = [];
+for (const d of DAYS) {
+  const windows = PRICING[d.key].windows;
+  const last = priceRuns[priceRuns.length - 1];
+  if (last && JSON.stringify(last.windows) === JSON.stringify(windows)) last.days.push(d);
+  else priceRuns.push({ days: [d], windows });
+}
+const runName = (days: typeof DAYS) =>
+  days.length === 1 ? days[0].full
+  : days.length === 2 ? `${days[0].full} and ${days[1].full}`
+  : `${days[0].full} through ${days[days.length - 1].full}`;
+// Each line names its own lane type and its unit, so a sentence lifted out of
+// the answer still reads correctly on its own.
+const laneRates = (w: (typeof priceRuns)[number]["windows"][number]) =>
+  `${money(w.traditional)} traditional and ${money(w.suite)} VIP suite`;
+const rateLine = ({ days, windows: [first, second] }: (typeof priceRuns)[number]) =>
+  second
+    ? `${runName(days)}: ${laneRates(first)} per lane per hour until ${windowEnd(first.label)}, then ${laneRates(second)} per lane per hour.`
+    : `${runName(days)}: ${laneRates(first)} per lane per hour.`;
+const bowlingCostText = [
+  "Rates depend on the day and time.",
+  ...priceRuns.map(rateLine),
+  "Holidays and school breaks follow Friday 5pm pricing.",
+  "Shoe rental $5.95/pair.",
+].join(" ");
 
 /**
  * FAQ items grouped by category. Categories render as H2 section
@@ -126,8 +166,8 @@ const faqs: FaqItem[] = [
   {
     category: "Bowling",
     q: "How much does bowling cost?",
-    schemaA: "Pricing varies by day and time. Walk-in starts at $35/hour per lane. Shoe rental $5.95/pair.",
-    htmlA: `<p>Pricing varies by day and time. Walk-in starts at <strong>$35/hour per lane</strong>. Shoe rental <strong>$5.95/pair</strong>.</p><p><a href="/bowl/">See current rates and reserve →</a></p>`,
+    schemaA: bowlingCostText,
+    htmlA: `<p>${bowlingCostText}</p><p><a href="/pricing/">See rates by day →</a> · <a href="/bowl/">Reserve a lane →</a></p>`,
   },
 
   // VIP Suite & Events
