@@ -20,20 +20,21 @@
  * Sticky CTA bar is hidden when this snap is in view (handled by the
  * page-level scroll watcher).
  *
- * Hours strip pulls live data from Google Business Profile via
+ * Hours strip: the week's hours come from Google Business Profile via
  * src/lib/google-hours.ts (currentOpeningHours field — overlays holiday
- * + special-day edits). Daily 4am cron rebuild keeps it fresh. Falls
- * back to static src/data/hours.ts when env vars aren't configured.
+ * + special-day edits; daily 4am cron rebuild). Falls back to static
+ * src/data/hours.ts when env vars aren't configured. The "Open Now" /
+ * "Closed" STATE is NOT baked: the static HTML carries only a neutral
+ * weekly-hours line, and the script at the bottom of this file computes the
+ * real state in the browser (America/Chicago) from the week's hours. A baked
+ * state went stale within hours (2026-10-17: "Closed" at 11:30am while open).
  */
 import { getLiveHours, getLiveReviews } from "../../lib/google-hours";
 import { MAPS_VENUE_URL, GOOGLE_RATING, GOOGLE_REVIEW_COUNT } from "../../lib/schema";
-import {
-  todayKey,
-  previousDay,
-  staticWindow,
-  nowMinutesCentral,
-} from "../../data/hours";
+import { DAYS, staticWindow } from "../../data/hours";
 import type { DayWindow, DayKey } from "../../data/hours";
+import { weekHoursSummary } from "../../lib/hours-status";
+import type { WeekHours } from "../../lib/hours-status";
 
 // Build-time fetch — null when GOOGLE_MAPS_API_KEY / GOOGLE_PLACE_ID
 // env vars aren't set, or on API failure. Hours + reviews share a single
@@ -50,9 +51,6 @@ const googleReviewCount = liveReviews?.reviewCount ?? GOOGLE_REVIEW_COUNT;
 // One-decimal rating ("4.5") + thousands-separated count ("1,141").
 const googleRatingLabel = googleRating.toFixed(1);
 const googleReviewCountLabel = googleReviewCount.toLocaleString("en-US");
-const today = todayKey();
-const yesterday = previousDay(today);
-const nowMin = nowMinutesCentral();
 
 /** Build a DayWindow from live data (preferred) or static (fallback). null = closed all day. */
 function windowFor(day: DayKey): DayWindow | null {
@@ -69,36 +67,11 @@ function windowFor(day: DayKey): DayWindow | null {
   return staticWindow(day);
 }
 
-type FooterHoursStatus =
-  | { state: "closed-today" }
-  | { state: "open"; closeLabel: string }
-  | { state: "before-open"; openLabel: string }
-  | { state: "after-close" };
-
-function getStatus(): FooterHoursStatus {
-  const todayWin = windowFor(today);
-  const yWin = windowFor(yesterday);
-
-  // Yesterday's late-night carry-over still active? (e.g. Sat 12:30am inside Fri 2pm–1am)
-  if (yWin && yWin.closeMinutes >= 24 * 60) {
-    const carryClose = yWin.closeMinutes - 24 * 60;
-    if (nowMin < carryClose) {
-      return { state: "open", closeLabel: yWin.closeLabel };
-    }
-  }
-
-  if (!todayWin) return { state: "closed-today" };
-
-  if (nowMin >= todayWin.openMinutes && nowMin < todayWin.closeMinutes) {
-    return { state: "open", closeLabel: todayWin.closeLabel };
-  }
-  if (nowMin < todayWin.openMinutes) {
-    return { state: "before-open", openLabel: todayWin.openLabel };
-  }
-  return { state: "after-close" };
-}
-
-const status = getStatus();
+// The whole week, handed to the browser as JSON (data-week) and flattened to
+// a neutral one-liner for the static HTML. Neither carries "today" or "now".
+const week = Object.fromEntries(DAYS.map((d) => [d.key, windowFor(d.key)])) as WeekHours;
+const weekJson = JSON.stringify(week);
+const weekSummary = weekHoursSummary(week);
 
 const ADDRESS_STREET = "15610 Joliet Rd";
 const ADDRESS_CITY   = "Plainfield, IL";
@@ -183,31 +156,21 @@ const EXPLORE_LINKS = [
       <div class="footer-find">
         <h2 class="footer-title" id="footer-h2">Find&nbsp;us</h2>
 
-        {/* Hours strip — driven by getStatus() in the frontmatter. Live
-            data when configured, static fallback otherwise. Daily cron
-            keeps the build fresh enough that holiday closures land
-            within ~24h of the Business Profile edit. */}
-        <p class="hours-strip">
-          {status.state === "closed-today" && (
-            <span class="hours-status hours-status-closed">Closed today</span>
-          )}
-          {status.state === "open" && (
-            <>
-              <span class="hours-status">Open Now</span>
-              <span class="hours-dot" aria-hidden="true">·</span>
-              <span class="hours-times">until {status.closeLabel}</span>
-            </>
-          )}
-          {status.state === "before-open" && (
-            <>
-              <span class="hours-status hours-status-closed">Closed</span>
-              <span class="hours-dot" aria-hidden="true">·</span>
-              <span class="hours-times">opens {status.openLabel}</span>
-            </>
-          )}
-          {status.state === "after-close" && (
-            <span class="hours-status hours-status-closed">Closed for tonight</span>
-          )}
+        {/* Hours strip. Static HTML = the neutral weekly line only (no
+            "Open"/"Closed" state, which would be stale by the time anyone
+            reads a cached page). The script below computes the real state
+            in the browser from data-week, then swaps .hours-week for
+            .hours-live. data-nosnippet keeps the computed state out of
+            search snippets; if the script or Intl is unavailable the weekly
+            line simply stays. Daily cron keeps data-week fresh enough that
+            holiday closures land within ~24h of the Business Profile edit. */}
+        <p class="hours-strip" data-hours-strip data-week={weekJson}>
+          <span class="hours-week" data-hours-week>{weekSummary}</span>
+          <span class="hours-live" data-hours-live data-nosnippet hidden>
+            <span class="hours-status" data-hours-status></span>
+            <span class="hours-dot" aria-hidden="true" data-hours-dot>·</span>
+            <span class="hours-times" data-hours-times></span>
+          </span>
         </p>
 
         <address class="footer-address">
@@ -363,6 +326,9 @@ const EXPLORE_LINKS = [
 </section>
 
 <script>
+  import { centralClock, footerHoursStatus } from "../../lib/hours-status";
+  import type { WeekHours } from "../../lib/hours-status";
+
   /* Back-to-top scrolls the .snap container (the actual scrollport on
      mobile). Falls back to window scroll on desktop. */
   document.querySelector("[data-back-to-top]")?.addEventListener("click", () => {
@@ -373,6 +339,57 @@ const EXPLORE_LINKS = [
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   });
+
+  /* Live open/closed status. The static HTML only has the neutral weekly
+     line; this computes the real state from data-week at the venue's
+     (America/Chicago) clock, handling closes past midnight and the holiday
+     or special closures baked into the week. Any failure (bad JSON, no
+     Intl) leaves the weekly line in place. Re-checks every minute and when
+     the tab becomes visible again, so a page left open flips at close. */
+  (() => {
+    const strip = document.querySelector<HTMLElement>("[data-hours-strip]");
+    const weekEl = strip?.querySelector<HTMLElement>("[data-hours-week]");
+    const liveEl = strip?.querySelector<HTMLElement>("[data-hours-live]");
+    const statusEl = strip?.querySelector<HTMLElement>("[data-hours-status]");
+    const dotEl = strip?.querySelector<HTMLElement>("[data-hours-dot]");
+    const timesEl = strip?.querySelector<HTMLElement>("[data-hours-times]");
+    if (!strip || !weekEl || !liveEl || !statusEl || !dotEl || !timesEl) return;
+
+    let week: WeekHours;
+    try {
+      week = JSON.parse(strip.dataset.week ?? "") as WeekHours;
+    } catch {
+      return;
+    }
+
+    const render = () => {
+      try {
+        const clock = centralClock(new Date());
+        if (!clock) return;
+        const s = footerHoursStatus(week, clock.day, clock.minutes);
+        let status = "";
+        let times = "";
+        if (s.state === "open") { status = "Open Now"; times = `until ${s.closeLabel}`; }
+        else if (s.state === "before-open") { status = "Closed"; times = `opens ${s.openLabel}`; }
+        else if (s.state === "closed-today") { status = "Closed today"; }
+        else { status = "Closed for tonight"; }
+        statusEl.textContent = status;
+        statusEl.classList.toggle("hours-status-closed", s.state !== "open");
+        timesEl.textContent = times;
+        timesEl.hidden = dotEl.hidden = times === "";
+        liveEl.hidden = false;
+        weekEl.hidden = true;
+      } catch {
+        /* keep whatever is showing */
+      }
+    };
+
+    render();
+    setInterval(render, 60_000);
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) render();
+    });
+  })();
 </script>
 
 <style>
@@ -522,6 +539,10 @@ const EXPLORE_LINKS = [
   .hours-strip .hours-status { color: var(--glow); }
   .hours-strip .hours-status-closed { color: var(--warm-dim); }
   .hours-strip .hours-dot { color: var(--warm-dim); margin: 0 0.5em; }
+  /* Neutral weekly line: what the static HTML shows until the script
+     replaces it with the live status. Reads as plain information, not a
+     state, so it sits in the quieter body colour. */
+  .hours-strip .hours-week { color: var(--warm-mid); font-weight: 600; }
 
   .footer-address {
     font-style: normal;
