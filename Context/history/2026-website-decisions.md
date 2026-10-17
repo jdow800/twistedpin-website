@@ -58,6 +58,15 @@ Keep, and on the edit log (W1 + tprs #423) for the events. On an older server
 neither appears and the bottles exit still works. Pending Jon: the wording
 "Not cases: N bottles" and "Keep N / Recount: M / More: K total".
 
+Rebased 10/17 onto main after W2 (#87) and W1 (#88) merged, as only W3's two
+commits. The one conflict was the `CountLiquor.tsx` import block, kept both
+ways: W2's `joinSeam`/`splitUnfinished`/`seamJoinEnabled` beside W3's
+`voiceReview` imports. After the rebase: `check-voice-carry.mjs` 57 voice rule
+checks plus 8 queue checks and 6 removed-row offer checks;
+`check-liquor-review.mjs` 60 scenarios, 156 assertions; `check-liquor-voice.mjs`
+76; `check-food-voice.mjs` 156; `check-draft-sync.mjs` 7; scoped typecheck
+clean. Merged once tprs #422 (T2) was live.
+
 ## 2026-10-16 - Liquor count keeps what the app heard and every edit
 
 The 10/16 liquor count review (`Alcohol Pricing/incidents/2026-10-16/liquor-count-review/`)
