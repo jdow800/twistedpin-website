@@ -51,7 +51,9 @@ covering 26f73d9c, 0d253cec, the 10/2 seams, the unit-word, filler and
 same-brand guards, the documented gap, the food carry and the switch);
 `check-liquor-voice.mjs` 76 scenarios (2 new: the real CountLiquor sends the
 split request, and the plain join under `?seamjoin=0`); `check-food-voice.mjs`
-156; scoped typecheck clean. Website-only; nothing depends on a TPRS deploy.
+156; scoped typecheck clean. Six mutations (each of the three guards removed,
+the own-count rule removed, no rewrite at all, CountLiquor without the join)
+each fail at least one check. Website-only; nothing depends on a TPRS deploy.
 
 ## 2026-10-15 - Food voice: a tapped suggestion keeps the heard amount; Start new count asks first
 

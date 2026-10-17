@@ -284,6 +284,8 @@ check('seam join: joins that must not change', () => {
     ["Owen's Ginger Beer.", 'Seventeen bottles Fever Tree tonic water. Ten cans, Herradura Agave syrup. Two'],
     ['Point seven Casamigos Blanco.', 'One bottle of Casamigos Reposado, point eight Herrando One bottle Herrando Silver,'],
     ["Tito's.", 'Two bottles Don Julio Anejo.'],
+    // Count-first with no unit word (10/9 0c17b798's shape): no count after the name.
+    ['Belvedere.', 'Two Don Julio Anejo. One point five Don Julio Reposado.'],
     ['Jagermeister, point', 'Two baileys point seven'],
     ['Crown Blackberry, one point', 'One Crown Royal one Crown Apple point two'],
     ['Fireball, eight. Mitch', "Small batch five Michter's rye two"],
