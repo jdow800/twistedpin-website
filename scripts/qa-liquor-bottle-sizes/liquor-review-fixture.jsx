@@ -24,10 +24,14 @@ const catalog = [
   sku('frangelico', 'Frangelico', {sizeMl:750, category:'Liqueur'}),
   sku('titos', "Tito's Handmade Vodka", {category:'Vodka'}),
   sku('citron', 'Ketel One Citroen', {category:'Vodka'}),
+  // The 10/16 Amaretto (no case size on file) and Belvedere, for the W3 offers.
+  sku('amaretto', 'Amaretto Luxardo di Saschira', {sizeMl:750, category:'Liqueur', unitsPerCase:null}),
+  sku('belvedere', 'Belvedere Organic', {sizeMl:750, category:'Vodka'}),
   ...Array.from({length:44}, (_,i) => sku('sample'+i, `Sample Shelf Bottle ${String(i+1).padStart(2,'0')}`)),
 ];
+// ?backstock names the second shelf like the 10/16 one; its id stays 'speed'.
 const zones = [{id:'giant',name:'Giant Bottle Shelf',walkOrder:1,active:true},
-  {id:'speed',name:'Speed Rail',walkOrder:2,active:true}];
+  {id:'speed',name:params.has('backstock')?'Backstock Room':'Speed Rail',walkOrder:2,active:true}];
 const allZones=[...zones,{id:'cooler',name:'Walk-In Cooler',walkOrder:3,active:true}];
 const line = (zoneId, skuId, qtyUnits, memo = {}) => ({zoneId,skuId,qtyUnits:String(qtyUnits),source:'voice',
   enteredCases:null,caseSizeAtEntry:null,rawUtterance:null,...memo});
@@ -46,6 +50,7 @@ const lines = [
   ...(collision?[line('giant','orange',collision==='compatible'?13:25,{enteredCases:1,caseSizeAtEntry:collision==='compatible'?12:24})]:[]),
   ...(params.has('historical-cooler')?[line('cooler','boylan',0)]:[]),
   ...(params.has('titos36')?[line('giant','titos',36,{rawUtterance:'thirty six Titos'})]:[]),
+  ...(params.has('belvedere2')?[line('speed','belvedere',2,{rawUtterance:'two Belvedere'})]:[]),
 ];
 const qa = window.liquorQa = {nonce:Math.random(),calls:[],extracts:[],lines,recorder:null,
   failSave:false,failCheck:false,holdCheck:false,releaseCheck:null,refuseSave:false,

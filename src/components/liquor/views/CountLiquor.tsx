@@ -34,7 +34,8 @@ import {
 } from "../api";
 import { useVoiceDictation } from "../useRecorderDictation";
 import { createCarry, joinSeam, splitUnfinished } from "../voiceCarry";
-import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, type HighCheck, type NameCheck } from "../voiceReview";
+import { historyCheck, mergeAdjacentRepeats, nameNumberCheck, possibleBareSize, repeatedSources, restateChoices, restoreOffer, setAsideEntry, setAsideKey,
+  type HighCheck, type NameCheck, type RestoreOffer, type SetAside } from "../voiceReview";
 import { pauseCutsEnabled, seamJoinEnabled } from "../voiceSwitches";
 import { createCellSaver, createDraftSaver, DraftMergePausedError, mergeDraft, sameDraftCell, toOpenLines } from "../draftSync";
 import { createLineEventQueue, personEdited, sourceRefsOf, worstHeard, type LineEventInput } from "../lineEvents";
@@ -114,9 +115,14 @@ type ReviewItem = {
   highCheck: HighCheck | null;
   /** The take's shelf already has this bottle from an earlier take: a re-say
    *  or more of it? Asked on the take's first row of the bottle; NOT applyable
-   *  until answered. "replace" sets the shelf to this take's number. */
+   *  until answered. "replace" sets the shelf to this take's number; "keep"
+   *  (only when nothing was heard for it this time) leaves the shelf as is. */
   restate: { before: number } | null;
-  restateAnswer?: "replace" | "add";
+  restateAnswer?: "replace" | "add" | "keep";
+  /** A number removed earlier from this shelf and bottle, offered back as
+   *  chips on a bare re-say (voiceReview.ts restoreOffer). Offer only: the
+   *  row's own number, amber edge and ready state are unchanged. */
+  restoreOffer?: RestoreOffer | null;
   chosenSkuId: string | null; // resolved (from a single match, a picked candidate, or manual assign)
   candidates: VoiceMatch[]; // ambiguous → the choices
   assignOpen?: boolean; // unmatched → inline search open
@@ -494,6 +500,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // Unsaved edits of the old count stay behind with it; their events must
       // not reach the new count's first save.
       eventsRef.current!.clear();
+      setAsideRef.current.clear(); // removed rows of the old count offer nothing here
       pendingRemapsRef.current = [];
       remapConflictsRef.current = [];
       setRemapConflicts([]);
@@ -642,6 +649,33 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   // already merged them before this sees anything. Keyed zone:sku; a later
   // restatement of the same cell overwrites (latest state is what matters).
   const restatementsRef = useRef<Map<string, Restatement>>(new Map());
+  // The Amaretto fixes (2026-10-16, Jon's fix 3): a review row removed with ✕
+  // or Discard remembers its spoken number for the take's shelf and bottle, so
+  // a later bare re-say there can OFFER it back (voiceReview.ts restoreOffer).
+  // Never applied on its own. Forgotten when that cell is next added, kept,
+  // typed, cleared or corrected, and on submit or a new count. Keyed zone:sku.
+  const setAsideRef = useRef<Map<string, SetAside>>(new Map());
+  /** ✕ and Discard: remember each removed row that had a spoken number, and
+   *  log it (TPRS 0226 voice_set_aside, which the mark fold ignores). */
+  function setAsideRows(rows: ReviewItem[]) {
+    const dest = takeZoneId ?? zoneId;
+    let logged = false;
+    for (const row of rows) {
+      const entry = setAsideEntry(row, dest);
+      if (!entry) continue;
+      setAsideRef.current.set(setAsideKey(dest, entry.skuId), entry);
+      const ref = row.sourceRefs[0];
+      eventsRef.current!.push({ zoneId: dest, skuId: entry.skuId, kind: "voice_set_aside",
+        heardCases: row.heard.cases, heardUnits: row.heard.units, heardQty: row.heard.qty,
+        quantityWords: row.heard.quantityWords ?? null, quantityHeard: row.quantityHeard ?? null,
+        editedBy: row.editedBy ?? "as_heard", spoken: row.heard.spoken, takeId: row.takeId ?? null,
+        extractionId: ref?.extractionId ?? null, itemIndex: ref?.itemIndex ?? null });
+      logged = true;
+    }
+    // The lines did not change; the save only carries the event.
+    if (logged) scheduleSave();
+  }
+  const forgetSetAside = (dest: string, skuId: string) => setAsideRef.current.delete(setAsideKey(dest, skuId));
   function scheduleSave() {
     if (!sessionId) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -698,6 +732,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const was = countsRef.current[dest]?.[skuId];
     const now = cellAfterSetLoose(was, loose, explicit);
     if (was || now) eventsRef.current!.pushGrid(cellEvent(meta ? "presubmit_edit" : "grid_set", dest, skuId, was, now, meta));
+    forgetSetAside(dest, skuId); // a typed number answers it
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
       const next = cellAfterSetLoose(zone[skuId], loose, explicit);
@@ -724,6 +759,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const wasSize = sizeFor(was);
     const now = wasSize == null ? undefined : cellAfterSetCases(was, cases, wasSize);
     if (wasSize != null && (was || now)) eventsRef.current!.pushGrid(cellEvent(meta ? "presubmit_edit" : "grid_cases", dest, skuId, was, now, meta));
+    if (wasSize != null) forgetSetAside(dest, skuId);
     setCounts((prev) => {
       const zone = { ...(prev[dest] ?? {}) };
       const cur = zone[skuId];
@@ -746,6 +782,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
   function clearCell(skuId: string, dest: string = zoneId) {
     const was = countsRef.current[dest]?.[skuId];
     if (was) eventsRef.current!.push(cellEvent("clear", dest, skuId, was, undefined));
+    forgetSetAside(dest, skuId);
     clearCellQuietly(skuId, dest);
   }
   function clearCellQuietly(skuId: string, dest: string) {
@@ -975,7 +1012,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     const previous = previousRows.find((row) => row.key === x.key);
     return { ...x, highCheck: highFor(x, rows, i), restate,
       restateAnswer: restate && previous?.chosenSkuId === x.chosenSkuId && x.restate?.before === restate.before
-        ? x.restateAnswer : undefined };
+        ? x.restateAnswer : undefined,
+      // A number removed earlier from this shelf and bottle, offered back.
+      // Attached only: nothing else on the row changes.
+      restoreOffer: restoreOffer(x, takeZoneId ?? zoneId, setAsideRef.current) };
   }
 
   /** Review-sheet caller. Errors render INSIDE the sheet — voiceErr paints in
@@ -1143,7 +1183,23 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // tick, so reading countsRef for the result would log 36 + 20 = 56 where
     // the shelf now holds 20.
     const working: Record<string, Cell | undefined> = { ...(countsRef.current[dest] ?? {}) };
+    let kept = false;
     for (const [skuId, { cases, units, caseSize, spoken, explicitZero, rows }] of merged) {
+      // This bottle is answered on this shelf: a number removed earlier is
+      // no longer offered.
+      forgetSetAside(dest, skuId);
+      if (answer.get(skuId) === "keep") {
+        // Keep: the earlier take's number stands. Nothing is added and no
+        // restatement is recorded for submit. One voice_keep with no
+        // quantities and no quantityHeard, which TPRS's mark fold ignores, so
+        // Keep can never make a kept number look guessed.
+        const ref = rows.flatMap((r) => r.sourceRefs)[0];
+        eventsRef.current!.push({ zoneId: dest, skuId, kind: "voice_keep", restateAnswer: "keep",
+          spoken: rows.map((r) => r.heard.spoken).join(" … "), takeId: rows[0]?.takeId ?? null,
+          extractionId: ref?.extractionId ?? null, itemIndex: ref?.itemIndex ?? null });
+        kept = true;
+        continue;
+      }
 
       // Cross-take add onto an occupied cell → remember it for the submit
       // dialog (the Empress double-count shape). Recorded BEFORE addQty so
@@ -1191,6 +1247,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         itemIndex: ref?.itemIndex ?? null,
       }));
     }
+    // A Keep changes no line; the save only carries its event.
+    if (kept) scheduleSave();
     // Keep any row that couldn't be applied, so nothing is silently dropped.
     const leftover = review.filter((r) => !applyable(r));
     setReview(leftover.length > 0 ? leftover : null);
@@ -1356,6 +1414,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       forgetZone(sessionId); // the walk is over; "where I was" means nothing now
       restatementsRef.current.clear(); // spent — must not leak into a later session
       eventsRef.current!.clear(); // the save above sent them; the count is closed
+      setAsideRef.current.clear();
       setDone(n);
     } catch (e) {
       setSubmitting(false);
@@ -1429,6 +1488,8 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     // Both cells changed: the wrong product empties, the right one fills.
     eventsRef.current!.push(cellEvent("remap", dest, from, source, undefined));
     eventsRef.current!.push(cellEvent("remap", dest, to, target, zone[to]));
+    forgetSetAside(dest, from);
+    forgetSetAside(dest, to);
     const next = { ...prev, [dest]: zone };
     countsRef.current = next;
     setCounts(next);
@@ -1988,7 +2049,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                           // the row needing a size forever: permanently
                           // un-applyable, still showing the prompt, and the only
                           // exit was ✕ — which drops the bottle from the count.
-                          needsCaseSize: res.cases > 0 ? x.needsCaseSize : false,
+                          // A row with cases and no case size asks (the same
+                          // rule): only a restored "2 cases" chip can bring
+                          // cases to a row that had none, and only on its tap.
+                          needsCaseSize: res.cases > 0 ? x.needsCaseSize || x.unitsPerCase == null : false,
                         };
                       });
                       const before = r[idx], after = next[idx];
@@ -2047,7 +2111,10 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
                   onRestate={(a) => setReview((r) => r && r.map((x, i) => (i === idx ? { ...x, restateAnswer: a } : x)))}
                   // Indices shift on removal, so a stale error would re-attach
                   // itself to whichever row slid into this slot.
-                  onRemove={() => { setCaseErr(null); setReview((r) => {
+                  // ✕ remembers the row's spoken number (setAsideRows) before
+                  // the remaining rows recheck, so a bare re-say of the same
+                  // bottle later in this take can be offered it too.
+                  onRemove={() => { setCaseErr(null); setAsideRows([it]); setReview((r) => {
                     if (!r || r.length <= 1) return null;
                     const next = r.filter((_, i) => i !== idx);
                     return next.map((x, i) => recheck(x, next, i, r));
@@ -2058,7 +2125,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
               ))}
             </div>
             <div className="lq-sheet-foot">
-              <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setReview(null); setCaseErr(null); }}>Discard</button>
+              <button type="button" className="lq-btn lq-btn-ghost" onClick={() => { setAsideRows(review); setReview(null); setCaseErr(null); }}>Discard</button>
               <button type="button" className="lq-btn lq-btn-primary" disabled={reviewResolved === 0} onClick={applyReview}>
                 Add {reviewResolved} to {zones.find((z) => z.id === (takeZoneId ?? zoneId))?.name ?? "zone"}
               </button>
@@ -2279,7 +2346,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       )}
       {submissionUnknown && sessionId && <CountSubmitRecovery sessionId={sessionId} onDone={onDone}
         onDraft={() => { setSubmissionUnknown(false); setSubmitErr("Count saved. It is still open. Tap Finish count to try again."); }}
-        onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); eventsRef.current!.clear(); setSubmissionUnknown(false); setDone(n); }} />}
+        onSubmitted={(n) => { forgetZone(sessionId); restatementsRef.current.clear(); eventsRef.current!.clear(); setAsideRef.current.clear(); setSubmissionUnknown(false); setDone(n); }} />}
     </div>
   );
 }
@@ -2301,7 +2368,7 @@ function ReviewRow({
   /** The take's shelf, named in the earlier-take question. */
   shelf: string;
   /** The earlier-take answer; undefined asks again. */
-  onRestate: (answer: "replace" | "add" | undefined) => void;
+  onRestate: (answer: "replace" | "add" | "keep" | undefined) => void;
   /** Set this row's quantity EXPLICITLY. Must carry cases and units, not a
    *  single total — applyReview reads those two fields, so a handler that only
    *  set `qty` would render a corrected number and then apply the old one. */
@@ -2386,6 +2453,22 @@ function ReviewRow({
         </div>
       </div>
 
+      {/* A number removed earlier from this shelf and bottle (✕ or Discard),
+          offered back on a bare re-say. Offer only: the row above keeps its
+          own number, amber edge and ready state until a chip is tapped, and
+          the chips go away once the counter has answered the row. */}
+      {item.restoreOffer && !personEdited(item.editedBy) && (
+        <div className="lq-rev-choices lq-rev-restore">
+          <span className="lq-muted lq-rev-hint">{item.restoreOffer.hint}</span>
+          {item.restoreOffer.chips.map((c) => (
+            <button key={c.label} type="button" className="lq-chip"
+              onClick={() => onResolve({ cases: c.cases, units: c.units, quantityConfirmed: true, editedBy: "restored" })}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* The ask-do-not-guess path. We heard cases but have no case size for
           this bottle, so the count is genuinely unknowable — rather than
           inventing a multiplier we ask once, persist it, and never ask again. */}
@@ -2437,6 +2520,14 @@ function ReviewRow({
             >
               {Number(caseAnswer) >= 2 ? `Save ${Number(caseAnswer)}/case` : "Save"}
             </button>
+            {/* "Two cases" of a bottle may have meant two bottles. A way out
+                that keeps the number, instead of removing the row. */}
+            {item.units === 0 && (
+              <button type="button" className="lq-chip"
+                onClick={() => onResolve({ cases: 0, units: item.cases, quantityConfirmed: true, editedBy: "bottles" })}>
+                Not cases: {formatQty(item.cases)} {item.cases === 1 ? "bottle" : "bottles"}
+              </button>
+            )}
           </div>
           {caseAnswer.trim() !== "" &&
             Number.isInteger(Number(caseAnswer)) &&
@@ -2507,7 +2598,24 @@ function ReviewRow({
       {/* A later take on the same shelf said this bottle again: a recount of
           the same bottles (the 10-02 re-says double-counted) or more of it.
           Asked here, while the counter still remembers. */}
-      {state === "restate" && item.restate && (
+      {/* A bare re-say (nothing heard for it this time) can also keep the
+          earlier count: Keep adds nothing (voiceReview.ts restateChoices). */}
+      {state === "restate" && item.restate && (restateChoices(item).includes("keep") ? (
+        <div className="lq-rev-choices">
+          <span className="lq-error lq-rev-hint">
+            {formatQty(item.restate.before)} already counted on {shelf} from an earlier take.
+          </span>
+          <button type="button" className="lq-chip" onClick={() => onRestate("keep")}>
+            Keep {formatQty(item.restate.before)}
+          </button>
+          <button type="button" className="lq-chip" onClick={() => onRestate("replace")}>
+            Recount: {item.qty}
+          </button>
+          <button type="button" className="lq-chip" onClick={() => onRestate("add")}>
+            More: {formatQty(item.restate.before + item.qty)} total
+          </button>
+        </div>
+      ) : (
         <div className="lq-rev-choices">
           <span className="lq-error lq-rev-hint">
             {formatQty(item.restate.before)} already counted on {shelf} from an earlier take. Did you just recount those, or find more?
@@ -2519,12 +2627,14 @@ function ReviewRow({
             More: {formatQty(item.restate.before + item.qty)} total
           </button>
         </div>
-      )}
+      ))}
       {item.restate && item.restateAnswer && (
         <span className="lq-muted lq-rev-hint">
           {item.restateAnswer === "replace"
             ? `Replaces the earlier ${formatQty(item.restate.before)} on ${shelf}.`
-            : `Adds to the earlier ${item.restate.before} on ${shelf}.`}{" "}
+            : item.restateAnswer === "keep"
+              ? `Keeps the earlier ${formatQty(item.restate.before)} on ${shelf}.`
+              : `Adds to the earlier ${item.restate.before} on ${shelf}.`}{" "}
           <button type="button" className="lq-linkbtn" onClick={() => onRestate(undefined)}>Change</button>
         </span>
       )}
