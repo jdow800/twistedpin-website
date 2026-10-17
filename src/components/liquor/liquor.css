@@ -1126,6 +1126,11 @@
   font-style: italic;
   opacity: 0.85;
 }
+/* The guessed mark kept through Add (2026-10-17): count screen only, guessed
+   only. A not-clearly-heard cell gets no marker. */
+.lq-guess-tag {
+  color: #ffcf5c;
+}
 
 /* voice review bottom-sheet */
 .lq-sheet {
@@ -1191,6 +1196,27 @@
 }
 .lq-rev-unmatched {
   border-color: rgba(255, 138, 138, 0.5);
+}
+/* Voice review: a GUESSED number (2026-10-17, the 10/16 count review). Nobody
+   said a number for this bottle, so the model's default is in the box. A 4px
+   amber bar on the card's left edge and one line under the box. A number that
+   was said but not tied to the bottle keeps the ring (.lq-qty-unproved) and
+   nothing else, so no amber was added anywhere. */
+.lq-rev.lq-rev-guessed {
+  border-left: 4px solid #ffcf5c;
+  padding-left: 9px;
+}
+.lq-rev-guess-note {
+  margin: -3px 0 0;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #ffcf5c;
+}
+.lq-rev-guess-note span {
+  font-size: 10px;
 }
 .lq-rev-top {
   display: flex;
@@ -1383,6 +1409,73 @@
   align-self: flex-start;
   min-height: 44px;
   font-size: 15px;
+}
+
+/* The soft pre-submit summary (2026-10-17, the 10/16 count review): guessed
+   numbers with the last count, the not-clearly-heard behind Show, and the
+   not-accounted-for lines. Amber-tinted, deliberately NOT the red
+   .lq-precheck-row finding style: it asks nothing and holds nothing. */
+.lq-soft {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 207, 92, 0.55);
+  border-radius: 10px;
+  background: rgba(255, 207, 92, 0.06);
+}
+.lq-soft-title {
+  margin: 0;
+  color: #ffcf5c;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.lq-soft-line {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 207, 92, 0.22);
+}
+.lq-soft-name {
+  font-size: 15px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.lq-soft-detail {
+  font-size: 14px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.lq-soft .lq-linkbtn {
+  align-self: flex-start;
+  padding-left: 0;
+}
+.lq-soft-compact {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--lq-muted);
+  overflow-wrap: anywhere;
+}
+.lq-soft-gap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+}
+.lq-soft-gap-detail {
+  flex: 1 1 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--lq-muted);
 }
 
 /* invoice history */

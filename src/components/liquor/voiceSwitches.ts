@@ -32,3 +32,17 @@ export function pauseCutsEnabled(): boolean {
 export function seamJoinEnabled(): boolean {
   return fieldSwitch("seamjoin", SEAM_JOIN_KEY);
 }
+
+/**
+ * The soft pre-submit summary (2026-10-17, the 10/16 count review): guessed
+ * numbers and bottles not accounted for open the pre-submit screen on their
+ * own. ON by default. `?softcheck=0` turns it off for that phone (the soft
+ * block is hidden and never opens the dialog; everything else is as before),
+ * and `?softcheck=1` turns it back on. Website merges go straight to
+ * production, so this is the per-phone rollback.
+ */
+const SOFT_CHECK_KEY = "lq.softCheck";
+
+export function softCheckEnabled(): boolean {
+  return fieldSwitch("softcheck", SOFT_CHECK_KEY);
+}

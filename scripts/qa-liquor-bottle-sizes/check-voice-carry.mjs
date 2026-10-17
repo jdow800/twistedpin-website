@@ -1039,5 +1039,79 @@ check('restate choices: Keep is judged on every row of the bottle in the take', 
   for (const editedBy of ['as_heard', 'case_size', undefined])
     assert.deepEqual(m.restateChoices([{...bare, editedBy}]), ['keep', 'replace', 'add'], `${editedBy} is not a person's number`);
 });
+const offerChecks = passed - voiceRules - queueChecks;
 
-console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${queueChecks} edit-log queue checks and ${passed - voiceRules - queueChecks} removed-row offer checks; no DOM, microphone or service calls.`);
+// ── The guessed mark (2026-10-16 count review, Jon's fix 4; Website W4).
+// lineEvents.ts foldMark is the client mirror of TPRS's fold (tprs
+// apps/backend/src/bar/unproved-lines.ts foldCellMark). THE SHARED TABLE below
+// is copied row for row from tprs unproved-lines.test.ts SHARED_FOLD_SEQUENCES
+// (T4 #424 at 9c3d611a; "the 8 sequences", 10 rows because (8) is split into
+// typed / restored / case_size). A change there is a change here.
+const guessed1 = {kind: 'voice_apply', quantityHeard: 'guessed', editedBy: 'as_heard', beforeQty: 0, afterQty: 1, heardQty: 1, spoken: 'Belvedere', quantityWords: ''};
+const SHARED_FOLD_SEQUENCES = [
+  {id: '1', what: 'a guessed apply is listed', events: [guessed1], lineQty: 1, mark: 'guessed', listed: true},
+  {id: '2', what: 'then grid_set: not listed', events: [guessed1, {kind: 'grid_set', beforeQty: 1, afterQty: 2}], lineQty: 2, mark: null, listed: false},
+  {id: '3', what: 'then presubmit_edit: not listed', events: [guessed1, {kind: 'presubmit_edit', beforeQty: 1, afterQty: 2}], lineQty: 2, mark: null, listed: false},
+  {id: '4', what: 'a proved apply of 2, then voice_keep: not listed (Keep never creates a mark)',
+    events: [
+      {kind: 'voice_apply', quantityHeard: 'proved', editedBy: 'as_heard', beforeQty: 0, afterQty: 2, heardQty: 2, spoken: 'Belvedere, two', quantityWords: 'two'},
+      {kind: 'voice_keep', quantityHeard: 'guessed', editedBy: 'as_heard', restateAnswer: 'keep', beforeQty: 2, afterQty: 2, heardQty: 1, spoken: 'Belvedere'},
+    ],
+    lineQty: 2, mark: null, listed: false},
+  {id: '5', what: 'a guessed apply, then a proved More: still guessed (worst on add)',
+    events: [guessed1, {kind: 'voice_apply', quantityHeard: 'proved', editedBy: 'as_heard', restateAnswer: 'add', beforeQty: 1, afterQty: 3, heardQty: 2, spoken: 'Belvedere, two more', quantityWords: 'two'}],
+    lineQty: 3, mark: 'guessed', listed: true},
+  {id: '6', what: 'a guessed apply, then a proved Recount (replace): not listed',
+    events: [guessed1, {kind: 'voice_apply', quantityHeard: 'proved', editedBy: 'as_heard', restateAnswer: 'replace', beforeQty: 1, afterQty: 2, heardQty: 2, spoken: 'Belvedere, two', quantityWords: 'two'}],
+    lineQty: 2, mark: null, listed: false},
+  {id: '7', what: 'a guessed apply, then merge_adopt from the other phone: still listed',
+    events: [guessed1, {kind: 'merge_adopt', beforeQty: 0, afterQty: 1}],
+    lineQty: 1, mark: 'guessed', listed: true},
+  {id: '8a', what: 'an unclear apply with edited_by \'typed\': not listed',
+    events: [{kind: 'voice_apply', quantityHeard: 'unclear', editedBy: 'typed', beforeQty: 0, afterQty: 3, heardQty: 3, spoken: 'Ketel One Citron, three', quantityWords: 'three'}],
+    lineQty: 3, mark: null, listed: false},
+  {id: '8b', what: 'an unclear apply with edited_by \'restored\': not listed',
+    events: [{kind: 'voice_apply', quantityHeard: 'unclear', editedBy: 'restored', beforeQty: 0, afterQty: 2, heardQty: 1, spoken: 'Luxardo Amaretto', quantityWords: ''}],
+    lineQty: 2, mark: null, listed: false},
+  {id: '8c', what: 'an unclear apply with edited_by \'case_size\': listed',
+    events: [{kind: 'voice_apply', quantityHeard: 'unclear', editedBy: 'case_size', beforeQty: 0, afterQty: 24, heardQty: 24, spoken: 'Luxardo Amaretto di Serradura, two cases', quantityWords: 'two cases'}],
+    lineQty: 24, mark: 'unclear', listed: true},
+];
+const fold = (events) => events.reduce((s, e) => m.foldMark(s, e), undefined);
+for (const seq of SHARED_FOLD_SEQUENCES) check(`guessed mark: shared fold (${seq.id}) ${seq.what}`, () => {
+  const state = fold(seq.events);
+  assert.equal(state?.mark ?? null, seq.mark);
+  assert.equal(m.markListed(state, seq.lineQty), seq.listed);
+});
+
+check('guessed mark: the fold\'s own edges (worst on add, empty cell replaces, kinds)', () => {
+  const unclear = (before, after, extra = {}) => ({kind: 'voice_apply', quantityHeard: 'unclear', editedBy: 'as_heard', restateAnswer: 'add', beforeQty: before, afterQty: after, ...extra});
+  assert.deepEqual(fold([guessed1, unclear(1, 21)]), {mark: 'guessed', lastAfter: 21}, 'guessed beats unclear on an add');
+  assert.deepEqual(fold([unclear(0, 20, {restateAnswer: null}), {...guessed1, beforeQty: 20, afterQty: 21}]), {mark: 'guessed', lastAfter: 21});
+  assert.deepEqual(fold([guessed1, {kind: 'voice_apply', quantityHeard: 'proved', editedBy: 'as_heard', beforeQty: 1, afterQty: 2}]), {mark: 'guessed', lastAfter: 2}, 'an unasked add keeps the worst');
+  // The T4 review's empty-cell row (not in the shared table): a first number
+  // in an empty cell replaces even with no Recount answer.
+  for (const beforeQty of [0, null, undefined])
+    assert.deepEqual(fold([guessed1, {kind: 'voice_apply', quantityHeard: 'proved', editedBy: 'as_heard', beforeQty, afterQty: 2}]), {mark: null, lastAfter: 2}, `before ${beforeQty}`);
+  assert.deepEqual(fold([{kind: 'grid_set', beforeQty: 0, afterQty: 4}, {...guessed1, restateAnswer: 'replace', beforeQty: 4, afterQty: 1}]), {mark: 'guessed', lastAfter: 1}, 'a guessed Recount re-marks');
+  for (const quantityHeard of ['proved', 'implicit_one', null, undefined]) assert.equal(fold([{...guessed1, quantityHeard}]).mark, null, `${quantityHeard} never marks`);
+  for (const editedBy of ['typed', 'bottles', 'keep_high', 'name_number', 'suspect_pick', 'restored']) assert.equal(fold([{...guessed1, editedBy}]).mark, null, `${editedBy} is a person's number`);
+  for (const editedBy of [null, undefined, 'as_heard', 'case_size']) assert.equal(fold([{...guessed1, editedBy}]).mark, 'guessed', `${editedBy} is as heard`);
+  for (const kind of ['grid_set', 'grid_cases', 'presubmit_edit', 'clear', 'correction', 'remap'])
+    assert.deepEqual(fold([guessed1, {kind, beforeQty: 1, afterQty: 1}]), {mark: null, lastAfter: 1}, `${kind} clears`);
+  for (const kind of ['voice_keep', 'voice_set_aside', 'merge_adopt']) {
+    assert.deepEqual(fold([guessed1, {kind, quantityHeard: 'unclear', editedBy: 'as_heard', beforeQty: 1, afterQty: 5}]), {mark: 'guessed', lastAfter: 1}, `${kind} changes nothing`);
+    assert.equal(fold([{kind, quantityHeard: 'guessed', editedBy: 'as_heard', beforeQty: 0, afterQty: 1}])?.mark ?? null, null, `${kind} never creates a mark`);
+  }
+  const first = m.foldMark(undefined, guessed1), copy = {...first};
+  m.foldMark(first, {kind: 'grid_set', beforeQty: 1, afterQty: 2});
+  assert.deepEqual(first, copy, 'prev is never mutated');
+  // listed only while the cell still holds lastAfter (within 0.0005)
+  assert.equal(m.SAME_QTY, 0.0005);
+  assert.equal(m.markListed(first, 1.0004), true);
+  assert.equal(m.markListed(first, 2), false, 'a stale tab that saved 2 without an event');
+  assert.equal(m.markListed(m.foldMark(undefined, {...guessed1, afterQty: null}), 1), false, 'no after_qty, nothing to vouch for');
+  assert.equal(m.markListed(first, Number.NaN), false);
+});
+
+console.log(`${voiceRules} voice rule checks passed (identical to before the edit log), plus ${queueChecks} edit-log queue checks, ${offerChecks} removed-row offer checks and ${passed - voiceRules - queueChecks - offerChecks} guessed-mark fold checks; no DOM, microphone or service calls.`);

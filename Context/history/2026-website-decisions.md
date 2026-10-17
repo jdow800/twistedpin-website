@@ -1,3 +1,72 @@
+## 2026-10-17 - Liquor review: guessed numbers stand out, the guessed marker survives Add, and a soft summary at submit (Jon 10/9, 10/16)
+
+Jon's fix 4 from the 10/16 liquor count review (design slice W4,
+`Alcohol Pricing/incidents/2026-10-16/liquor-count-review/`). Two numbers were
+wrong on 10/16, both a bare name saved as 1 (Belvedere and the Amaretto, 2
+each). Both rows were amber on the review sheet, but so were most rows that
+day, and the amber vanished at Add, so nothing at submit remembered them. Jon
+said "ok continue" to every recommended default on 10/17. **No amber was added
+anywhere, nothing blocks Add or Submit, and no number is blanked** (10/9
+"number in box, counts ready"; the 10/5 findings and their copy are untouched).
+
+- **Guessed vs not clearly heard (the server's rule, tprs T2 `quantityHeard`).**
+  A row is *guessed* when nobody said a number for that bottle and the
+  number in the box is the model's default; *not clearly heard* when a number
+  was said but the guard could not tie it to the bottle. A bare name the guard
+  proves as a clear 1 stays plain (decision 5).
+- **Review sheet.** A guessed row (label `guessed`, still amber, box not
+  blank, more than 0, nobody answered it) gets a 4px amber bar on the card's
+  left edge and one line under the box: "No number heard. 1 is a guess. Check
+  it." (the number varies; decision 3). A not-clearly-heard row keeps exactly
+  today's ring, with no text. The header reads "4 ready · 1 guessed · 3 need a
+  tap"; the guessed part appears only when there is one, and guessed rows stay
+  inside "ready" and "Add N".
+- **The grid carries guessed only.** After Add, a guessed cell shows "no
+  number heard · check" beside "heard: …" on the count screen. Not clearly
+  heard gets no grid marker and no ring, so the amber that vanished at Add
+  stays gone for those. The mark follows TPRS's fold (T4, mirrored as
+  `lineEvents.ts` `foldMark` and tested on the same shared sequences): a More
+  keeps the worse mark, a Recount takes the new one, Keep leaves it alone, and
+  a grid, ✕, Details or item-change edit drops it. Another phone's merge keeps
+  it only when the cell is unchanged. A reload forgets it; the server's list
+  covers submit.
+- **Soft summary at submit.** One amber-tinted block in the pre-submit dialog,
+  after the findings and before the retiring list, never the red finding
+  style: "Numbers to glance at. Nothing is held." Each guessed number lists its
+  shelf, number, what was heard and the last full count's number on that shelf
+  (decision 4: last count appears here only, never on the review sheet), with
+  "Open on count screen". The not-clearly-heard numbers sit behind "Show the N
+  not clearly heard". Products about a whole bottle short after sales,
+  deliveries and every counted shelf (tprs T3 `unaccounted`, $15 floor,
+  decision 1; no swap credit, decision 9) get one compact line each, with the
+  per-shelf numbers behind Details. A guessed product that is also short says
+  so on its own line instead.
+- **When it opens.** A guessed number or a not-accounted-for line opens the
+  pre-submit screen on its own (decision 2); not-clearly-heard numbers alone
+  never do. The heading and the Submit button are unchanged: soft items alone
+  read "Ready to submit" and "Submit the count", and nothing disables Submit.
+- **Per-phone off-switch.** `?softcheck=0` on the count page hides the block
+  and stops it opening the dialog on that phone (stored like `?pausecuts=0`);
+  `?softcheck=1` turns it back on. Website merges go straight to production, so
+  this is the rollback.
+- **Older server.** No `quantityHeard`, `unproved` or `unaccounted`: no
+  guessed treatment, no block, and the dialog opens exactly as today.
+- The guessed-row text and look are shown to Jon with screenshots of the real
+  components before merge (`incidents/2026-10-16/liquor-count-review/ui/w4/`).
+
+**Depends on** tprs T2 #422 (`quantityHeard`), T3 #421 (`unaccounted`), T4
+#424 (`unproved`) being deployed, and on Website #88 (W1) and #89 (W3).
+
+Validation: `check-voice-carry.mjs` 44 voice rules + 8 queue + 6 offer checks
+unchanged, plus 11 guessed-mark fold checks (T4's shared table row for row,
+and its edges); a $0 differential run matched `foldMark` to T4's
+`foldCellMark` on 20,000 random sequences. `check-liquor-review.mjs` 77
+scenarios: the 60 earlier ones unchanged and 17 W4 ones covering every
+decision, the 320/412 px layout and the older server; each of 19 targeted
+mutations of the new code fails at least one. Typecheck with TypeScript 5.9.3
+over `tsconfig.liquor.json`. Contrast: the amber bar and line on the card
+#191430 are 12.1:1.
+
 ## 2026-10-16 - Count review: a bottles exit for case questions, removed rows offer their number back, a bare re-say can keep the earlier count
 
 Jon's fix 3 from the 10/16 liquor count review (design slice W3,
