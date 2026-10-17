@@ -20,6 +20,10 @@ const catalog = [
   sku('boylan', 'Boylan Black Cherry', {trackingMode:'stock_count', countUnit:'each', sizeMl:355, category:'Mixers', unitsPerCase:24}),
   sku('jaeger', 'Jägermeister', {aliases:['Jaeger', 'Jager']}),
   sku('owens', "Owen's Ginger Beer", {trackingMode:'stock_count', countUnit:'each', sizeMl:250, category:'Mixers', unitsPerCase:24}),
+  // Voice-only bottles for the edit-log scenarios (never on a saved line unless asked).
+  sku('frangelico', 'Frangelico', {sizeMl:750, category:'Liqueur'}),
+  sku('titos', "Tito's Handmade Vodka", {category:'Vodka'}),
+  sku('citron', 'Ketel One Citroen', {category:'Vodka'}),
   ...Array.from({length:44}, (_,i) => sku('sample'+i, `Sample Shelf Bottle ${String(i+1).padStart(2,'0')}`)),
 ];
 const zones = [{id:'giant',name:'Giant Bottle Shelf',walkOrder:1,active:true},
@@ -41,6 +45,7 @@ const lines = [
   ...Array.from({length:44},(_,i)=>line('giant','sample'+i,(i%4)+1)),
   ...(collision?[line('giant','orange',collision==='compatible'?13:25,{enteredCases:1,caseSizeAtEntry:collision==='compatible'?12:24})]:[]),
   ...(params.has('historical-cooler')?[line('cooler','boylan',0)]:[]),
+  ...(params.has('titos36')?[line('giant','titos',36,{rawUtterance:'thirty six Titos'})]:[]),
 ];
 const qa = window.liquorQa = {nonce:Math.random(),calls:[],extracts:[],lines,recorder:null,
   failSave:false,failCheck:false,holdCheck:false,releaseCheck:null,refuseSave:false,
@@ -63,7 +68,9 @@ window.fetch = async (input,init={}) => {
   if(path.endsWith('/batches'))return json({batches:[],batchesHash:'batches0'});
   if(path.endsWith('/counts/open'))return json({session:{id:'review-draft',section:'bar',isFullCount:true,
     startedAt:'2026-10-05T12:00:00Z',lines,batches:[],linesHash:'initial',batchesHash:'batches0'}});
-  if(path.endsWith('/voice-extract'))return new Promise(resolve=>qa.extracts.push({body,succeed(items){resolve(json({items}));}}));
+  // succeed(items, {extractionId}) is a TPRS 0226 reply; ?old-server never sends one.
+  if(path.endsWith('/voice-extract'))return new Promise(resolve=>qa.extracts.push({body,succeed(items,extra={}){
+    resolve(json({items,...(params.has('old-server')?{}:extra)}));}}));
   if(path.endsWith('/lines')){
     if(qa.failSave)return json({error:'synthetic save unavailable'},503);
     if(qa.remapConflict){
@@ -82,7 +89,9 @@ window.fetch = async (input,init={}) => {
         ?l.skuId==='orange'&&l.zoneId==='giant'?{...l,qtyUnits:'26',enteredCases:1,caseSizeAtEntry:24}:l
         :l.skuId==='makers'?{...l,qtyUnits:'8'}:l);
       return json({error:'draft_changed',message:'This draft changed on another phone.',lines:qa.lines,linesHash:'external'},409);}
-    qa.lines=body.lines;return json({upserted:body.lines.length,linesHash:'saved'+(++saves)});
+    qa.lines=body.lines;
+    // TPRS 0226 counts the events it stored; an older server ignores them.
+    return json({upserted:body.lines.length,linesHash:'saved'+(++saves),...(params.has('old-server')?{}:{eventsStored:(body.events??[]).length})});
   }
   if(path.endsWith('/precheck')){
     ++checks;

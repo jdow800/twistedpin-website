@@ -468,10 +468,14 @@ export async function saveCountLines(
   /** The fingerprint of the draft these lines were built on (draftSync.ts).
    *  Without it the save replaces the draft unconditionally, as before. */
   baseHash: string | null = null,
-): Promise<{ linesHash?: string }> {
+  /** Liquor retention (TPRS 0226): the quantity changes behind this save.
+   *  Sent only when there are some. A server without the field drops it. */
+  events: LineEvent[] = [],
+): Promise<{ linesHash?: string; eventsStored?: number }> {
   try {
-    return await gatedJson<{ linesHash?: string }>(`/admin/bar/counts/${sessionId}/lines`, {
-      ...jsonBody({ lines, isFullCount, section, ...(section === "food" ? { foodUnitsVersion: FOOD_UNITS_VERSION } : {}), ...(baseHash ? { baseHash } : {}) }), method: "PUT",
+    return await gatedJson<{ linesHash?: string; eventsStored?: number }>(`/admin/bar/counts/${sessionId}/lines`, {
+      ...jsonBody({ lines, isFullCount, section, ...(section === "food" ? { foodUnitsVersion: FOOD_UNITS_VERSION } : {}), ...(baseHash ? { baseHash } : {}),
+        ...(events.length ? { events } : {}) }), method: "PUT",
     });
   } catch (e) {
     if (e instanceof BarApiError && e.status === 409) {
@@ -832,6 +836,70 @@ export interface VoiceExtractItem {
    *  this row's amount, with every rule a matched row gets; never the model's
    *  own numbers. A candidate without an entry still asks. */
   ifChosen?: Record<string, FoodHeardAmount>;
+  /** Liquor (TPRS 2026-10-16): how the server's guard read this row's number.
+   *  Absent from older servers and on food rows. */
+  quantityHeard?: QuantityHeard;
+  /** Liquor retention (TPRS 0226): where this row is kept on the server, set
+   *  by extractVoice when the reply carries an extractionId. */
+  sourceRef?: VoiceSourceRef;
+  /** The rows mergeAdjacentRepeats folded into this one, in spoken order. */
+  sourceRefs?: VoiceSourceRef[];
+}
+
+/** TPRS liquor-voice-quantity classifyHeardQuantity: proved = the guard proved
+ *  the spoken number; implicit_one = a bare name read as 1; guessed = nobody
+ *  said a number for this bottle; unclear = a number was said but could not be
+ *  tied to this bottle. */
+export type QuantityHeard = "proved" | "implicit_one" | "guessed" | "unclear";
+/** One model row as the server kept it: bar_voice_extraction.id + items[i]. */
+export interface VoiceSourceRef { extractionId: string; itemIndex: number }
+/** Labels only, kept on the bar_voice_extraction row (TPRS 0226). */
+export interface VoiceTrace {
+  sessionId?: string;
+  zoneId?: string;
+  /** The recorder's take id (TPRS 0200); absent on the Web Speech engine. */
+  takeId?: string;
+  /** The piece index, or null for the text sent at Stop. */
+  segment?: number | null;
+  atStop?: boolean;
+}
+
+/** bar_count_line_event (TPRS 0226, line-events.ts lineEventZ). One quantity
+ *  change of one (zone, product) cell, sent with the next PUT /lines. */
+export type LineEventKind = "voice_apply" | "voice_keep" | "voice_set_aside" | "grid_set" | "grid_cases" | "clear" | "remap"
+  | "presubmit_edit" | "merge_adopt" | "correction";
+/** Who set the number a voice row was added with. as_heard = nobody changed it. */
+export type LineEditedBy = "as_heard" | "typed" | "bottles" | "case_size" | "keep_high" | "name_number" | "suspect_pick" | "restored";
+export interface LineEvent {
+  /** The client's UUID, so a resent save stores nothing twice. */
+  id: string;
+  zoneId: string;
+  skuId: string;
+  kind: LineEventKind;
+  /** Quantities are nonnegative and at most 1e9 (numeric(14,3)). */
+  beforeQty?: number | null;
+  afterQty?: number | null;
+  afterCases?: number | null;
+  /** Integer. */
+  caseSize?: number | null;
+  heardCases?: number | null;
+  heardUnits?: number | null;
+  heardQty?: number | null;
+  /** At most 200 characters. */
+  quantityWords?: string | null;
+  quantityHeard?: QuantityHeard | null;
+  editedBy?: LineEditedBy | null;
+  restateAnswer?: "replace" | "add" | "keep" | null;
+  /** At most 32 characters. */
+  findingKind?: string | null;
+  /** At most 300 characters. */
+  spoken?: string | null;
+  takeId?: string | null;
+  extractionId?: string | null;
+  /** Integer. */
+  itemIndex?: number | null;
+  /** The phone's clock, ISO with Z, between 2020 and 2100. */
+  clientAt?: string | null;
 }
 
 /** An amount the server proved from the recording for one product, in the
@@ -946,17 +1014,26 @@ export async function extractVoice(
    *  units, so a bare number is read against the whole store (2026-10-10).
    *  Omitted when empty; never sent for the bar. */
   countedSoFar?: Record<string, number>,
+  /** Liquor retention (TPRS 0226): which walk, shelf, take and piece this
+   *  request is. Labels only; never sent for food. An older server drops it. */
+  trace?: VoiceTrace,
 ): Promise<VoiceExtractItem[]> {
+  const sentTrace = section === "bar" ? cleanTrace(trace) : undefined;
   try {
-    const { items } = await deadlineJson<{ items: VoiceExtractItem[] }>(
+    const { items, extractionId } = await deadlineJson<{ items: VoiceExtractItem[]; extractionId?: string }>(
       "/admin/bar/voice-extract",
       jsonBody({ transcript, section, ...(section === "food" ? {
         foodUnitsVersion: FOOD_UNITS_VERSION,
         ...(countedSoFar && Object.keys(countedSoFar).length ? { countedSoFar } : {}),
-      } : {}) }),
+      } : {}), ...(sentTrace ? { trace: sentTrace } : {}) }),
       section === "food" ? 60_000 : 120_000,
       "Reading the items took too long. Your transcript is still available to retry.",
     );
+    // Each row remembers where the server kept it, so the count's edit log
+    // can point back at the model's own row (bar_voice_extraction.items[i]).
+    if (section === "bar" && typeof extractionId === "string" && extractionId && Array.isArray(items)) {
+      return items.map((it, itemIndex) => ({ ...it, sourceRef: { extractionId, itemIndex } }));
+    }
     return items;
   } catch (e) {
     if (e instanceof BarApiError && typeof e.body === "string") {
@@ -970,6 +1047,23 @@ export async function extractVoice(
     }
     throw e;
   }
+}
+
+/** The trace without empty ids, and a segment the server accepts (a whole
+ *  number 0..100000, or null). The server drops a malformed trace whole, never
+ *  the request, so this only keeps one odd field from costing the others. */
+function cleanTrace(trace: VoiceTrace | undefined): VoiceTrace | undefined {
+  if (!trace) return undefined;
+  const out: VoiceTrace = {};
+  for (const key of ["sessionId", "zoneId", "takeId"] as const) {
+    const v = trace[key];
+    if (typeof v === "string" && v) out[key] = v;
+  }
+  const s = trace.segment;
+  if (s === null || (typeof s === "number" && Number.isInteger(s) && s >= 0 && s <= 100_000)) out.segment = s;
+  else if (s !== undefined) out.segment = null;
+  if (typeof trace.atStop === "boolean") out.atStop = trace.atStop;
+  return Object.keys(out).length ? out : undefined;
 }
 
 // ── keg counts ──
