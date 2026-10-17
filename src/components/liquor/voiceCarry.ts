@@ -404,30 +404,57 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
  * number: 10/16 saved Belvedere 1 for 2, and 10/2 had the same seam ("Belvedere,"
  * | "Two Tito's 14"). So when the held tail names a bottle with no number, and
  * the next piece opens with a bare count that runs straight into a product
- * which has its own count later in that sentence, the opening count is the
- * held bottle's. It is joined the way the counter said it: "Belvedere, Two.
- * Tito's twenty". Anything else joins exactly as before (Alcohol Pricing
- * incidents/2026-10-16/liquor-count-review/piece-split-number).
+ * whose own count follows it ("Tito's twenty", "Woodford Reserve, point
+ * three"), the opening count is the held bottle's. It is joined the way the
+ * counter said it: "Belvedere, Two. Tito's twenty". Anything else joins exactly
+ * as before (Alcohol Pricing incidents/2026-10-16/liquor-count-review/
+ * piece-split-number; review round 2 re-cut every comma: w2-branch/
+ * virtual-cuts.mjs).
  *
- * Three shapes keep the plain join:
- *  · a unit word after the count ("Two cases Tito's twenty", "One case and six
- *    …", "Two bottles of Tito's"): that is a count-first item, and moving
- *    "Two" alone would hand the held bottle a loose count the guard proves;
+ * Every other shape keeps the plain join, which is today's text:
+ *  · a unit word after the count, in the product's name or in the held tail
+ *    ("Two cases Tito's twenty", "One case and six …", "three clay cases plus
+ *    eight cans", "case of Bulleit Bourbon," | "two Oban …"): a count-first
+ *    item, and moving "Two" alone would hand the held bottle a loose count the
+ *    guard proves;
+ *  · a size or a name-number after the count: a size word ("Tanqueray," |
+ *    "one liter, two.", "one thousand"), a count longer than a bottle count
+ *    ("Carpano dry," | "three seventy five, two.", "Worthy Park," | "one zero
+ *    nine, one bottle.", "nineteen forty two Don Julio", "1942"), or a count
+ *    a comma cut ("twenty | two, point five"). It is the bottle's size or
+ *    name, not its count;
+ *  · a hedge or a correction after the count ("Three or four.", "Seventeen or
+ *    sixteen and a half.", "Two no three"), or a list word in the name ("Two
+ *    Tito's and three …"): the counter has not settled on one number;
+ *  · a count-first list ("two Oban fourteens, one Basil Hayden", "Point four
+ *    Malibu, Bacardi Superior, point nine"). The product's own count must be
+ *    in its own phrase ("Tito's twenty") or be the whole next phrase
+ *    ("Woodford Reserve, point three");
  *  · a held tail of filler only ("Alright."), which is no bottle;
  *  · the same brand again ("Bullet Bourbon," | "One bullet bourbon point
  *    one"), a re-say the server's back-to-back merge already reads.
  * A held name with a number word in it ("Ketel One.", "Dewar's twelve") also
- * keeps the plain join: hasNumber cannot tell the name from a count.
- * Known risk, zero real takes: "Kahlua." | "Three Dewar's twelve." moves the
- * three onto Kahlua.
+ * keeps the plain join, because hasNumber cannot tell the name from a count.
+ * Known risk, with zero real takes: "Kahlua." | "Three Dewar's twelve." moves
+ * the three onto Kahlua, and the guard proves it there. A product whose name
+ * ends in a number reads exactly like "Tito's twenty". The same goes for one
+ * whose name starts with a single number ("Belvedere." | "7 Leguas, two");
+ * the transcripts write "Siete".
  */
 const SEAM_COUNT = new Set(("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen " +
   "fifteen sixteen seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred point").split(" "));
 const SEAM_UNIT = /^(?:cases?|cs|bottles?|cans?|of|and|a)$/;
+const SEAM_UNIT_WORD = /^(?:cases?|cs|bottles?|cans?)$/;
+const SEAM_TENS = /^(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)$/;
+const SEAM_UNIT_COUNT = /^(?:one|two|three|four|five|six|seven|eight|nine)$/;
+const SEAM_SIZE = /^(?:thousand|liters?|litres?|ml|milliliters?|fifths?|handles?|magnums?)$/;
+// Hedges, corrections and list joins: no single number for the held bottle.
+const SEAM_HEDGE = new Set("or no nope nah actually maybe probably plus sorry wait and then next".split(" "));
 const SEAM_FILLER = new Set("alright okay ok um uh so next and then now".split(" "));
 const seamWord = (w: string) => w.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9.]/g, "");
 const seamBare = (w: string) => w.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]/g, "");
 const seamCount = (w: string) => SEAM_COUNT.has(seamWord(w)) || /^\d*\.?\d+$/.test(seamWord(w));
+const seamPhraseEnd = (w: string) => /[,;:]$/.test(w);
 export function joinSeam(held: string, text: string): string {
   const plain = `${held} ${text}`.trim();
   const next = text.trim();
@@ -439,24 +466,57 @@ export function joinSeam(held: string, text: string): string {
   if (!heldPhrases.length || heldPhrases.some((p) => hasNumber(p.text))) return plain;
   const heldWords = heldPhrases.flatMap((p) => p.text.split(/\s+/)).map(seamBare).filter(Boolean);
   if (heldWords.every((w) => SEAM_FILLER.has(w))) return plain;
+  if (heldWords.some((w) => SEAM_UNIT_WORD.test(w))) return plain; // "case of Bulleit Bourbon," leads a count-first list
   const end = next.search(/[.!?](?=\s|$)/);
   const sentence = end < 0 ? next : next.slice(0, end);
   const words = sentence.split(/\s+/).filter(Boolean);
   // The opening count: number words or digits, with no punctuation inside it.
   let n = 0;
-  while (n < words.length && seamCount(words[n]!) && !/[,;:]$/.test(words[n]!)) n++;
+  while (n < words.length && seamCount(words[n]!) && !seamPhraseEnd(words[n]!)) n++;
   if (n === 0 || n === words.length) return plain; // no count, or a count alone ("One.", "Three")
   if (/^(?:point|and|a)$/i.test(seamWord(words[n - 1]!))) return plain; // "point" waits for its digit
+  // A bottle count is one word, a tens and a unit ("twenty one"), or two digits
+  // before any "point". "nineteen forty two", "one oh nine", "three seventy five"
+  // and "1942" are a name or a size.
+  const whole = words.slice(0, n).map(seamWord);
+  const point = whole.indexOf("point");
+  const wholePart = point < 0 ? whole : whole.slice(0, point);
+  if (wholePart.length > 2 || (wholePart.length === 2 && !(SEAM_TENS.test(wholePart[0]!) && SEAM_UNIT_COUNT.test(wholePart[1]!)))) return plain;
+  if (wholePart.some((w) => /^\d{3,}/.test(w))) return plain;
   const rest = words.slice(n);
+  const first = seamBare(rest[0]!);
   if (!/[a-z]/i.test(rest[0]!)) return plain;
-  if (SEAM_UNIT.test(seamBare(rest[0]!))) return plain; // "Two cases …", "One case and six …"
+  // "one liter, two", "one thousand": the count ran into a size. (When a comma
+  // cut it, "twenty | two, point five", the name check below finds no real
+  // word in "two,".)
+  if (SEAM_SIZE.test(first)) return plain;
+  if (SEAM_UNIT.test(first)) return plain; // "Two cases …", "One case and six …"
   // "Bullet Bourbon," | "One bullet bourbon …" (a leading "Um," is not the brand).
-  if (seamBare(rest[0]!) === heldWords.find((w) => !SEAM_FILLER.has(w))) return plain;
-  // The product after the count has its own count in the same sentence
-  // ("Tito's twenty", "Woodford Reserve, point three", "baileys two"), so the
-  // opening count cannot be that product's. "Seventeen bottles Fever Tree
-  // tonic water." (count-first, no count after) is left alone.
-  if (!rest.slice(1).some(seamCount)) return plain;
+  if (first === heldWords.find((w) => !SEAM_FILLER.has(w))) return plain;
+  // The product's own count: in its own phrase ("Tito's twenty", "baileys two
+  // frangelico two"), or the whole next phrase ("Woodford Reserve, point
+  // three"). Then the opening count cannot be that product's. "Seventeen bottles
+  // Fever Tree tonic water." (no count after) and "two Oban fourteens, one
+  // Basil Hayden" (the next count leads the next bottle) are left alone.
+  const comma = rest.findIndex(seamPhraseEnd);
+  const phrase = comma < 0 ? rest : rest.slice(0, comma + 1);
+  let own = phrase.findIndex((w, i) => i > 0 && seamCount(w));
+  if (own < 0) {
+    if (comma < 0) return plain;
+    const after = rest.slice(comma + 1);
+    const close = after.findIndex(seamPhraseEnd);
+    const quantity = close < 0 ? after : after.slice(0, close + 1);
+    const isCount = (w: string) => seamCount(w) || QUANTITY_WORDS.has(seamBare(w));
+    if (!quantity.length || !quantity.some(seamCount) || !quantity.every(isCount)) return plain;
+    own = comma + 1;
+  }
+  // The product's name, from the word after the count: a real word ("Two um
+  // three.", "twenty | two, point five" have none), with no unit, hedge or
+  // list word in it ("three clay cases plus eight cans", "Three or four.",
+  // "Two Tito's and three …").
+  const name = rest.slice(0, own).map(seamBare).filter(Boolean);
+  if (name.some((w) => SEAM_UNIT_WORD.test(w) || SEAM_HEDGE.has(w))) return plain;
+  if (!name.some((w) => /[a-z]/.test(w) && !SEAM_FILLER.has(w) && !QUANTITY_WORDS.has(w))) return plain;
   return `${held.trim().replace(/[.!?,]$/, "")}, ${words.slice(0, n).join(" ")}. ${rest.join(" ")}${next.slice(sentence.length)}`;
 }
 

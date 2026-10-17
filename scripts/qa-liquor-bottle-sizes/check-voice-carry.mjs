@@ -272,6 +272,63 @@ check('seam join: a count with a unit word after it is a count-first item, joine
   ]) assert.equal(seam(piece, next), plain(piece, next), `${piece} | ${next}`);
 });
 
+// Review round 2: real field speech, re-cut at the comma after a bare bottle
+// (incidents/2026-10-16/.../w2-branch/virtual-cuts.mjs). Each must join as today.
+const joinedAsToday = (cases) => {
+  for (const [piece, next] of cases) {
+    assert.equal(seam(piece, next), plain(piece, next), `${piece} | ${next}`);
+    assert.deepEqual(liquorCarry([piece, next]), liquorCarry([piece, next], null), `${piece} | ${next}`);
+  }
+};
+
+check('seam join: a size or a name-number after the count is the bottle\'s, joined as today', () => joinedAsToday([
+  ['Ketel One Citron, three. Tanqueray,', "one liter, two. Tanqueray number ten, two. Hendrick's, four."], // 10/16 fea84d3f
+  ['Antica formula, one. Carpano dry,', 'three seventy five, two. Lillet, One.'], // 10/16 2c31ff79
+  ['Clase Azul, tequila Reposado. One. Don Julio,', 'nineteen forty two, point nine. Kahlua, point nine.'], // 10/16 f02f7012
+  ['Carpano dry,', 'one thousand, two. Antica formula one thousand. One.'], // 10/12 2645c4b8
+  ["Tito's, point nine. Tanqueray,", 'one thousand point seven. Jose Cuervo Tradicional, point three.'], // 10/12 d04c3250
+  ['Worthy Park,', 'one zero nine, one bottle. Diplomatico, one bottle.'], // 10/5 651fb24b
+  ['Antica formula,', '1 thousand, 1. Contraire one. Campari'], // 10/2 field clip
+  ['Belvedere.', 'One oh nine, two'],
+  ['Belvedere.', 'One oh nine Worthy Park, two.'],
+  ['Belvedere.', 'nineteen forty two Don Julio, one.'],
+  ['Belvedere.', '1942 Don Julio, one.'],
+  ['Belvedere.', "One fifth Tito's, twenty."],
+  ['Belvedere.', "twenty two, point five. Tito's, twenty."], // a comma cut the count
+]));
+
+check('seam join: a hedge, a correction or a list word keeps the plain join', () => joinedAsToday([
+  ["Mioneto Prosecco Brut, two cases. Maschato d'Asti.", 'Seventeen or sixteen and a half. Bottles.'], // 10/5 2932241b
+  ['Five bottles. Puree white peach.', 'Three or four. A strawberry, two.'], // 10/12 2ccad443
+  ['Ketel One, three. Belvedere.', "Two no three. Tito's, twenty."],
+  ['Ketel One, three. Belvedere.', "Two plus point five. Tito's, twenty."],
+  ['Belvedere.', "Two actually Tito's twenty."],
+  ['Belvedere.', 'Two um or three.'],
+  ['Belvedere.', 'Two um three.'],
+  ['Belvedere.', "Two Tito's and three Ketel One."],
+]));
+
+check('seam join: a unit word or a count-first list after a bare bottle keeps the plain join', () => joinedAsToday([
+  ['Pineapple juice,', 'three clay cases plus eight cans.'], // 10/12 3cb6205d
+  ["That's my guess. Carpano dry,", 'two little bottles, probably three seventy fives, and then two of the'], // 10/5 d4c71dda
+  ['two cases of Jose Tradicional, case of Bulleit Bourbon,', 'two Oban fourteens, one Basil Hayden, two Jeffersons, one Elijah Craig, one Knob Creek.'], // 10/5 d7cfeedc
+  ['Belvedere.', 'two Oban fourteens, one Basil Hayden, two Jeffersons, one Elijah Craig, one Knob Creek.'],
+  ['two cases of Jose Tradicional, case of Bulleit Bourbon,', 'two Oban fourteen, one Basil Hayden.'], // the held "case" alone
+  ['Pineapple juice,', 'three clay cases, eight cans.'], // the unit word in the name alone
+  ['Belvedere.', 'Point four Malibu, Bacardi Superior, point nine. Contreau, point one.'], // 10/5 dc90a192 speech
+  ['Belvedere.', 'One point one Patron, point three Patron Silver, point four Patron Reposado.'], // 10/5 9c4f2329 speech
+]));
+
+check('seam join: a re-cut before "point" still gives the bottle its own count', () => {
+  // 10/12 d04c3250 and 10/16 9587e62c, cut one comma early: saved 0.600 and 0.700.
+  assert.equal(seam("Tito's, point nine. Bulleit Bourbon,", 'point Six Bacardi one liter one'),
+    'Bulleit Bourbon, point Six. Bacardi one liter one');
+  assert.equal(seam("Jagermeister, point two. Jack Daniel's, Tennessee,", 'point Seven fireball one'),
+    "Jack Daniel's, Tennessee, point Seven. fireball one");
+  // A tens and a unit is a bottle count.
+  assert.equal(seam('Belvedere.', "Twenty one Tito's, twenty."), "Belvedere, Twenty one. Tito's, twenty.");
+});
+
 check('seam join: joins that must not change', () => {
   for (const [piece, next] of [
     ['Lillet,', 'One. Carpano dry one thousand. Two.'],
@@ -315,6 +372,8 @@ check('seam join: documented gap and accepted risk', () => {
   assert.equal(seam("Dewar's twelve.", "Two Tito's twenty"), "Dewar's twelve. Two Tito's twenty");
   // Accepted risk, zero real takes: a count-first name-number product after a bare bottle.
   assert.equal(seam('Kahlua.', "Three Dewar's twelve."), "Kahlua, Three. Dewar's twelve.");
+  // The same for a name that starts with one number (the transcripts write "Siete").
+  assert.equal(seam('Belvedere.', '7 Leguas, two.'), 'Belvedere, 7. Leguas, two.');
   // 10/9 e75d0ef6 (Jon's test): the same seam with a comma.
   assert.equal(seam('Aviation, three. Kahlua,', 'Three baileys two frangelico two'), 'Kahlua, Three. baileys two frangelico two');
 });

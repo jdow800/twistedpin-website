@@ -10,50 +10,82 @@ Evidence and the design: `Alcohol Pricing/incidents/2026-10-16/
 liquor-count-review/` (`piece-split-number/`, `design-final.json` slice W2).
 Jon approved the fix 10/16 (his fix 2).
 
-The rule (`voiceCarry.ts` `joinSeam`, liquor only): when the held tail names a
-bottle with no number, and the next piece opens with a bare count that runs
-straight into a product which has its own count later in that sentence, the
-opening count is the held bottle's, so the page sends "Belvedere, Two." and
-then "Tito's twenty". Anything else joins exactly as before. Three shapes
-keep the plain join:
-- **A unit word after the count** ("Two cases Tito's twenty", "One case and
-  six …", "Two bottles of Tito's"; cases, cs, bottles, cans, of, and, a). That
-  is a count-first item; moving "Two" alone would hand the held bottle a loose
-  count the guard then proves (critic 2's blocking find on the prototype).
-- **A held tail of filler only** ("Alright.", "Um, okay."), which is no bottle.
-- **The same brand said again** ("Bullet Bourbon," | "One bullet bourbon point
-  one"), a re-say TPRS's back-to-back merge already reads.
+The rule (`voiceCarry.ts` `joinSeam`, liquor only): the held tail names a
+bottle with no number. The next piece opens with a bare bottle count (one
+word, a tens and a unit, or two digits). That count runs straight into a
+product whose own count follows it, in its own phrase ("Tito's twenty") or as
+the whole next phrase ("Woodford Reserve, point three"). Then the opening count
+belongs to the held bottle, so the page sends "Belvedere, Two." and then
+"Tito's twenty". Every other seam joins exactly as before:
+- **A unit word** after the count, in the product's name or in the held tail
+  ("Two cases Tito's twenty", "three clay cases plus eight cans", "case of
+  Bulleit Bourbon," | "two Oban …"). That is a count-first item.
+- **A size or a name-number** ("Tanqueray," | "one liter, two.", "Carpano
+  dry," | "three seventy five, two.", "one thousand", "Worthy Park," | "one
+  zero nine, one bottle.", "nineteen forty two Don Julio"). The count is the
+  bottle's size or name.
+- **A hedge, a correction or a list word** ("Three or four.", "Seventeen or
+  sixteen and a half.", "Two no three", "Two Tito's and three …"). The
+  counter has not settled on one number.
+- **A count-first list** ("two Oban fourteens, one Basil Hayden", "Point four
+  Malibu, Bacardi Superior, point nine"). The next count leads the next bottle.
+- **A held tail of filler only** ("Alright."), or **the same brand said
+  again** ("Bullet Bourbon," | "One bullet bourbon point one").
 
-Measured, all offline and $0 (`piece-split-number/w2-branch/`): every bar take
-since 10/2, 122 in all (the 88 with take ids in `bar_voice_clip`, checked 88
-of 88 against the database, plus the 34 pause-cut takes re-cut from the 10/2
-audio). Exactly 3 change, all toward what was said: 26f73d9c (Belvedere 2),
-10/5 0d253cec (Elijah Craig 1) and the 10/9 test e75d0ef6 (Kahlua 3). A
-quantity answer key (line audit, Jon's corrections, same-shelf re-takes)
-checks the count each rewrite moves; the replay fails on any mismatch. With
-the join off, all 122 takes send byte-for-byte what main sends. The shipped
-TPRS guards prove "Belvedere, Two." as 2; if the model still reads Belvedere
-bare, the row stays amber as today. No TPRS change, no hold, no blank, no
-amber change (Jon's 10/9 ruling).
+Review round 2 (same day) found that the first version re-cut real speech
+wrongly. It moved the pause cut to every comma and sentence end of the
+same takes and found 26 rewrites, about 18 of them wrong: sizes, hedges and
+count-first lists. Each of those gave a new proved number or a new ask that
+main does not give. The guards above are the fix.
 
-Accepted risk (zero real takes): a count-first item with a number in its name
-said straight after a bare bottle ("Kahlua." | "Three Dewar's twelve.") moves
-the three onto Kahlua and proves it. Known gap: a held name with a number word
-in it ("Ketel One." | "Three Tito's twenty", Seagram's 7, Dewar's 12) keeps
-today's join, so that row stays amber; exempting catalog name-numbers is a
-follow-up. Food is untouched (CountFood passes no join).
+Measured, all offline and $0 (`piece-split-number/w2-branch/`):
+- **Real cuts:** every bar take since 10/2, 122 in all. That is the 88 with
+  take ids in `bar_voice_clip` (88 of 88 checked against the database) plus the
+  34 pause-cut takes re-cut from the 10/2 audio. Exactly 3 change, all toward
+  what was said: 26f73d9c (Belvedere 2), 10/5 0d253cec (Elijah Craig 1) and
+  the 10/9 test e75d0ef6 (Kahlua 3).
+- **Virtual cuts** (`virtual-cuts.mjs`): every one of the 2,279 comma and
+  sentence-end positions in those takes and the 59 transcribed 10/2 field
+  clips. 5 rewrite (27 before the fix), and every one moves the saved or
+  spoken count: the 3 above, Bulleit Bourbon point six (10/12) and Jack
+  Daniel's Tennessee point seven (10/16).
+- **Answer key:** a quantity answer key checks the count each rewrite moves.
+  Its sources are the line audit, Jon's corrections, same-shelf re-takes and
+  the saved lines. Both replays fail on any mismatch.
+- **Off-switch:** with the join off, all 122 takes send byte-for-byte what
+  main sends.
+
+What changes on the page: where the join does not rewrite, the page sends
+today's text, so holds, amber and asks are as today. Where it rewrites, the
+shipped TPRS guards prove the spoken count ("Belvedere, Two." as 2); if the
+model still reads the bottle bare, the row stays amber as today. No TPRS
+change, no new hold, no blank (Jon's 10/9 ruling).
+
+Accepted risk (zero real takes): a product whose name ends or starts with a
+number, said count-first straight after a bare bottle, reads exactly like
+"Tito's twenty". "Kahlua." | "Three Dewar's twelve." and "Belvedere." | "7
+Leguas, two" move the count onto the held bottle, and the guard proves it
+there (the transcripts write "Siete"). Known gap: a held name with a number
+word in it ("Ketel One." | "Three Tito's twenty", Seagram's 7, Dewar's 12)
+keeps today's join, so that row stays amber; exempting catalog name-numbers
+is a follow-up. Food is untouched (CountFood passes no join).
 
 Off-switch: `?seamjoin=0` on the count page turns the join off for that phone
 (stored as `lq.seamJoin`), `?seamjoin=1` turns it back on, like `?pausecuts=0`.
 
-Validation: `check-voice-carry.mjs` 53 checks (44 before, 9 new seam checks
-covering 26f73d9c, 0d253cec, the 10/2 seams, the unit-word, filler and
-same-brand guards, the documented gap, the food carry and the switch);
-`check-liquor-voice.mjs` 76 scenarios (2 new: the real CountLiquor sends the
-split request, and the plain join under `?seamjoin=0`); `check-food-voice.mjs`
-156; scoped typecheck clean. Six mutations (each of the three guards removed,
-the own-count rule removed, no rewrite at all, CountLiquor without the join)
-each fail at least one check. Website-only; nothing depends on a TPRS deploy.
+Validation:
+- `check-voice-carry.mjs`: 57 checks (44 before; 13 new seam checks, including
+  every real shape the review found).
+- `check-liquor-voice.mjs`: 76 scenarios. The 2 new ones show the real
+  CountLiquor sends the split request, and the plain join under
+  `?seamjoin=0`.
+- `check-food-voice.mjs`: 156 scenarios.
+- Scoped typecheck clean.
+- 13 mutations, each killed by at least one check: every guard removed, the
+  round-1 "any count later" rule put back, and the count-length rule
+  loosened or tightened.
+
+Website-only; nothing depends on a TPRS deploy.
 
 ## 2026-10-15 - Food voice: a tapped suggestion keeps the heard amount; Start new count asks first
 
