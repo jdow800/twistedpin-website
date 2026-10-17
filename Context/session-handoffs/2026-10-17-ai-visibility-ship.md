@@ -37,6 +37,19 @@ Not changed: `/pricing/` still bakes its "Today" pill and per-day view at build 
 
 **This overrides the 2026-06 paid-scent decision** (`bb9d273`, decisions log): the H1 "Not your average team outing" echoed the Team Outings ad creative. The page still says "team outing(s)" in the intro, first card, FAQ and schema, but the Google Ads Team Outings headline and landing page are no longer an exact match. Re-align the ad headline if message match matters.
 
+## 4. Follow-up the same day (approved ~12:25 PM CDT)
+
+Two of the "still live" items from section 2 are now fixed (live-checked first at 12:27 PM CDT, both still showed the old text):
+
+- **`/wedding-receptions/`** list item "Yours from setup to last call" → "Book all six lanes: the whole suite is yours during your event time" (the list-item form `/why-us/lockport-il/` and `/why-us/oswego-il/` already use). The phrase was not in that page's JSON-LD, so no schema change.
+- **`src/content/blog/things-to-do-plainfield-il.md`** fundraiser sentence → "50% of eligible bowling, shoe and front-desk arcade-card sales" (kiosk cards can't be tagged to a fundraiser; matches `/fundraisers/`).
+
+Deliberately **not** changed: `Context/seo.md` ("50% of bowling, shoe, and arcade revenue") because it carries Jon's uncommitted edits in the main checkout and editing it there would conflict; it still needs the same "front-desk arcade-card" wording. Also untouched: "December books fast" everywhere, and the `/pricing/` "Today" pill.
+
+**Team Outings ad headline: for Jon to apply in Google Ads (no repo copy changed).** The Team Outings RSA (ad group `203215948448`, ad `824656851547`, enabled 2026-09-15) pins "Team Outings in Plainfield" as headline 1, and `/corporate-events/` now reads "Team building near Naperville." Suggested replacement: **"Team Building Near Naperville"** (29 chars, inside the 30-char RSA headline limit). "Not Your Average Team Outing" belonged to the original ad `813141791896`, which the 2026-09-15 execution record shows paused (ad account not re-checked today). Editing an RSA headline restarts ad review, so it's Jon's call when.
+
+Why no repo edit: the only copies are the one-time Script 20 source (`ADS20`, executed 2026-09-14), Script 20B (`PAIRS20B`, which verifies the live ad against that exact headline, and its test pins it), their runbooks and the execution record. Editing any of them would either make the 20B read-only verification fail against the live ad or falsify a record of what is live. There is no current ad-copy spec and no unrun next script (Script 21 does not touch RSAs). Nothing in the repo or any ad account was changed for this item.
+
 ## Validation
 
 `npm run build` (prebuild checks + Astro build) passes. Built HTML checked for every change. Chromium (Playwright) checks against the built output with a mocked clock: Saturday 11:30 AM open, 10:30 AM closed, past-midnight carry-over, after-close, DST end, device time zones Tokyo / London / Los Angeles, a holiday closure, corrupt data, no-JS, and a page left open across closing. An independent four-lens review (brand/voice, footer engineering, scope/parity, SEO/structured data) found no confirmed defects.
