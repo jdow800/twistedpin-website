@@ -397,15 +397,84 @@ function foodTailStart(text: string, names: readonly RegExp[], pieceEnd: boolean
 }
 
 /**
+ * Liquor's seam join. A pause cut between a bottle and its number leaves the
+ * cut's own punctuation at the seam: "…Ketel One Citron, three. Belvedere." |
+ * "Two Tito's twenty". Joined as written, "Two" reads as Tito's leading count
+ * (to the model and to the server's source guard alike) and Belvedere has no
+ * number: 10/16 saved Belvedere 1 for 2, and 10/2 had the same seam ("Belvedere,"
+ * | "Two Tito's 14"). So when the held tail names a bottle with no number, and
+ * the next piece opens with a bare count that runs straight into a product
+ * which has its own count later in that sentence, the opening count is the
+ * held bottle's. It is joined the way the counter said it: "Belvedere, Two.
+ * Tito's twenty". Anything else joins exactly as before (Alcohol Pricing
+ * incidents/2026-10-16/liquor-count-review/piece-split-number).
+ *
+ * Three shapes keep the plain join:
+ *  · a unit word after the count ("Two cases Tito's twenty", "One case and six
+ *    …", "Two bottles of Tito's"): that is a count-first item, and moving
+ *    "Two" alone would hand the held bottle a loose count the guard proves;
+ *  · a held tail of filler only ("Alright."), which is no bottle;
+ *  · the same brand again ("Bullet Bourbon," | "One bullet bourbon point
+ *    one"), a re-say the server's back-to-back merge already reads.
+ * A held name with a number word in it ("Ketel One.", "Dewar's twelve") also
+ * keeps the plain join: hasNumber cannot tell the name from a count.
+ * Known risk, zero real takes: "Kahlua." | "Three Dewar's twelve." moves the
+ * three onto Kahlua.
+ */
+const SEAM_COUNT = new Set(("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen " +
+  "fifteen sixteen seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred point").split(" "));
+const SEAM_UNIT = /^(?:cases?|cs|bottles?|cans?|of|and|a)$/;
+const SEAM_FILLER = new Set("alright okay ok um uh so next and then now".split(" "));
+const seamWord = (w: string) => w.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9.]/g, "");
+const seamBare = (w: string) => w.toLowerCase().replace(/['’]/g, "").replace(/[^a-z0-9]/g, "");
+const seamCount = (w: string) => SEAM_COUNT.has(seamWord(w)) || /^\d*\.?\d+$/.test(seamWord(w));
+export function joinSeam(held: string, text: string): string {
+  const plain = `${held} ${text}`.trim();
+  const next = text.trim();
+  if (!held.trim() || !next) return plain;
+  // Only a held bottle with no number at all ("Belvedere.", "Elijah Craig,",
+  // "Clase Azul, tequila Reposado."); a held "point" or a count-first lead
+  // keeps today's join.
+  const heldPhrases = phrasesOf(held);
+  if (!heldPhrases.length || heldPhrases.some((p) => hasNumber(p.text))) return plain;
+  const heldWords = heldPhrases.flatMap((p) => p.text.split(/\s+/)).map(seamBare).filter(Boolean);
+  if (heldWords.every((w) => SEAM_FILLER.has(w))) return plain;
+  const end = next.search(/[.!?](?=\s|$)/);
+  const sentence = end < 0 ? next : next.slice(0, end);
+  const words = sentence.split(/\s+/).filter(Boolean);
+  // The opening count: number words or digits, with no punctuation inside it.
+  let n = 0;
+  while (n < words.length && seamCount(words[n]!) && !/[,;:]$/.test(words[n]!)) n++;
+  if (n === 0 || n === words.length) return plain; // no count, or a count alone ("One.", "Three")
+  if (/^(?:point|and|a)$/i.test(seamWord(words[n - 1]!))) return plain; // "point" waits for its digit
+  const rest = words.slice(n);
+  if (!/[a-z]/i.test(rest[0]!)) return plain;
+  if (SEAM_UNIT.test(seamBare(rest[0]!))) return plain; // "Two cases …", "One case and six …"
+  // "Bullet Bourbon," | "One bullet bourbon …" (a leading "Um," is not the brand).
+  if (seamBare(rest[0]!) === heldWords.find((w) => !SEAM_FILLER.has(w))) return plain;
+  // The product after the count has its own count in the same sentence
+  // ("Tito's twenty", "Woodford Reserve, point three", "baileys two"), so the
+  // opening count cannot be that product's. "Seventeen bottles Fever Tree
+  // tonic water." (count-first, no count after) is left alone.
+  if (!rest.slice(1).some(seamCount)) return plain;
+  return `${held.trim().replace(/[.!?,]$/, "")}, ${words.slice(0, n).join(" ")}. ${rest.join(" ")}${next.slice(sentence.length)}`;
+}
+
+/**
  * Feeds pieces through the split rule (liquor's splitUnfinished by default) in
  * SPOKEN order. Transcripts arrive in the order they finish, so a piece waits
  * for the one before it. `send` gets each piece's matchable text under that
  * piece's index; `flush` at Stop sends whatever is left (pieces after a failed
  * one, and the last held phrase).
+ *
+ * `join` puts the held tail in front of the next piece. The default is the
+ * plain `held text`; liquor passes joinSeam (CountLiquor.tsx, off with
+ * ?seamjoin=0). Food never does.
  */
 export function createCarry(
   send: (text: string, index: number) => void,
   split: (text: string) => { head: string; tail: string } = splitUnfinished,
+  join: (held: string, text: string) => string = (held, text) => `${held} ${text}`.trim(),
 ) {
   const waiting = new Map<number, string | null>();
   let next = 0;
@@ -430,7 +499,7 @@ export function createCarry(
       waiting.delete(next);
       if (text === null) boundary(next);
       else {
-        const { head, tail } = split(`${held} ${text}`.trim());
+        const { head, tail } = split(held ? join(held, text) : text.trim());
         held = tail;
         if (head) send(head, next);
       }

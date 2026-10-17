@@ -12,6 +12,7 @@ const {outputFiles} = await build({
     export * from './src/components/liquor/pauseDetector';
     export * from './src/components/liquor/voiceCarry';
     export * from './src/components/liquor/voiceReview';
+    export * from './src/components/liquor/voiceSwitches';
   `, resolveDir:fileURLToPath(new URL('../../', import.meta.url)), loader:'ts'},
   bundle:true, write:false, platform:'node', format:'esm',
 });
@@ -208,6 +209,151 @@ check('carry: a count-first count stays with its name; a name-first number stays
     ["Tito's, two, Jameson, three,", "Tito's, two, Jameson, three,", ''],
     ['Captain Morgan, two. Point nine.', 'Captain Morgan, two. Point nine.', ''],
   ]) assert.deepEqual(m.splitUnfinished(text), {head,tail}, text);
+});
+
+// Seam join (2026-10-16 count review, Alcohol Pricing incidents/2026-10-16/
+// liquor-count-review/piece-split-number). A cut between a bottle and its
+// number: "…Belvedere." | "Two Tito's twenty" saved Belvedere 1 for 2.
+const liquorCarry = (pieces, join = m.joinSeam) => {
+  const sent = [];
+  // null stands for ?seamjoin=0, where CountLiquor passes undefined (the default join).
+  const carry = m.createCarry((text, index) => sent.push([index, text]), m.splitUnfinished, join ?? undefined);
+  pieces.forEach((piece, i) => carry.add(piece, i));
+  assert.equal(carry.flush(99), false);
+  return sent;
+};
+// What the carry holds from `piece`, joined to `next`.
+const seam = (piece, next) => m.joinSeam(m.splitUnfinished(piece).tail, next);
+const plain = (piece, next) => `${m.splitUnfinished(piece).tail} ${next}`.trim();
+
+check('seam join: 10/16 take 26f73d9c sends Belvedere with its two, and Tito\'s with its twenty', () => {
+  const pieces = ["Captain Morgan, one case. Mioneto Prosecco Brut, two cases. Risata Moscato D'Asti, one case. Ketel One, three. Ketel One Citron, three. Belvedere.",
+    "Two Tito's twenty"];
+  assert.deepEqual(liquorCarry(pieces), [
+    [0, "Captain Morgan, one case. Mioneto Prosecco Brut, two cases. Risata Moscato D'Asti, one case. Ketel One, three. Ketel One Citron, three."],
+    [1, 'Belvedere, Two.'],
+    [99, "Tito's twenty"],
+  ]);
+  // The off-switch (?seamjoin=0) and createCarry's default are today's join.
+  assert.deepEqual(liquorCarry(pieces, null).slice(1), [[99, "Belvedere. Two Tito's twenty"]]);
+  const sent = [];const carry = m.createCarry(text => sent.push(text));
+  pieces.forEach((piece, i) => carry.add(piece, i));carry.flush(99);
+  assert.equal(sent.at(-1), "Belvedere. Two Tito's twenty");
+});
+
+check('seam join: 10/5 take 0d253cec piece 1 gives Elijah Craig its one', () => {
+  const sent = liquorCarry([
+    'Bulleit bourbon. Looks like a bigger bottle. One. Horse soldier, point two. WhistlePig, one bottle. Jefferson, point six five. Elijah Craig,',
+    "One Woodford Reserve, point three. Michter's bourbon, six. Basil Hayden, one bottle. Longbranch, one bottle. Knob Creek, point",
+    "Eight. Maker's Mark, seven. Crown Royal BlackBerry, one point one. Regular Crown Royal, point eight. Crown Royal, one point one.",
+  ]);
+  assert.deepEqual(sent.map(([index]) => index), [0, 1, 2]);
+  assert.equal(sent[1][1], "Elijah Craig, One. Woodford Reserve, point three. Michter's bourbon, six. Basil Hayden, one bottle. Longbranch, one bottle.");
+  // "Knob Creek, point" | "Eight." is a held "point": unchanged.
+  assert.ok(sent[2][1].startsWith('Knob Creek, point Eight. Maker\'s Mark, seven.'));
+});
+
+check('seam join: the 10/2 field seams', () => {
+  assert.deepEqual(liquorCarry(['Ketel One Vodka, three. Ketel One Citron, three. Belvedere,', "Two Tito's 14"]),
+    [[0, 'Ketel One Vodka, three. Ketel One Citron, three.'], [1, 'Belvedere, Two.'], [99, "Tito's 14"]]);
+  assert.deepEqual(liquorCarry(['Horse Soldier, point one. Drambu', "One Dewar's twelve one"]),
+    [[0, 'Horse Soldier, point one.'], [1, 'Drambu, One.'], [99, "Dewar's twelve one"]]);
+});
+
+check('seam join: a count with a unit word after it is a count-first item, joined as today', () => {
+  for (const [piece, next] of [
+    ['Belvedere.', "Two cases Tito's twenty"],
+    ['Captain Morgan.', 'One case Mioneto Prosecco Brut, two cases.'],
+    ['Belvedere.', "One case and six Tito's twenty"],
+    ['Belvedere.', "Two bottles of Tito's, twenty"],
+    ['Belvedere.', "Two cs Tito's twenty"],
+    ['Belvedere.', "Two cans Tito's twenty"],
+    ['Belvedere.', "One a Tito's twenty"],
+  ]) assert.equal(seam(piece, next), plain(piece, next), `${piece} | ${next}`);
+});
+
+check('seam join: joins that must not change', () => {
+  for (const [piece, next] of [
+    ['Lillet,', 'One. Carpano dry one thousand. Two.'],
+    ['Clase Azul, tequila Reposado.', 'One. Don Julio, nineteen forty two, point nine.'],
+    ['Hennessy VSOP, point', 'Five'],
+    ["Jack Daniel's, Tennessee, point", 'Seven fireball one'],
+    ['Frangelico.', 'Three'],
+    ['Frangelico.', 'Three.'],
+    ['Belvedere.', "Two. Tito's twenty."],
+    ["Owen's Ginger Beer.", 'Seventeen bottles Fever Tree tonic water. Ten cans, Herradura Agave syrup. Two'],
+    ['Point seven Casamigos Blanco.', 'One bottle of Casamigos Reposado, point eight Herrando One bottle Herrando Silver,'],
+    ["Tito's.", 'Two bottles Don Julio Anejo.'],
+    ['Jagermeister, point', 'Two baileys point seven'],
+    ['Crown Blackberry, one point', 'One Crown Royal one Crown Apple point two'],
+    ['Fireball, eight. Mitch', "Small batch five Michter's rye two"],
+    ['Belvedere.', "Two, Tito's twenty"],
+    ['Belvedere.', ''],
+  ]) {
+    assert.equal(seam(piece, next), plain(piece, next), `${piece} | ${next}`);
+    assert.deepEqual(liquorCarry([piece, next]), liquorCarry([piece, next], null), `${piece} | ${next}`);
+  }
+});
+
+check('seam join: filler and the same brand said again are joined as today', () => {
+  for (const [piece, next] of [
+    ['Alright.', "Two Tito's twenty"],
+    ['Um, okay.', "Two Tito's twenty"],
+    ["Tito's, 1.3. Bullet Bourbon,", 'One bullet bourbon point one'],
+    ['Um, Bullet Bourbon,', 'One bullet bourbon point one'],
+    ["Tito's.", "Two Titos twenty"],
+  ]) assert.equal(seam(piece, next), plain(piece, next), `${piece} | ${next}`);
+  // A leading "Um," still lets a real bottle take its number.
+  assert.equal(seam('Um, Belvedere.', "Two Tito's twenty"), "Um, Belvedere, Two. Tito's twenty");
+});
+
+check('seam join: documented gap and accepted risk', () => {
+  // A held name with a number word in it keeps today's join (hasNumber).
+  assert.equal(seam('Ketel One.', "Three Tito's twenty"), "Ketel One. Three Tito's twenty");
+  assert.equal(seam("Dewar's twelve.", "Two Tito's twenty"), "Dewar's twelve. Two Tito's twenty");
+  // Accepted risk, zero real takes: a count-first name-number product after a bare bottle.
+  assert.equal(seam('Kahlua.', "Three Dewar's twelve."), "Kahlua, Three. Dewar's twelve.");
+  // 10/9 e75d0ef6 (Jon's test): the same seam with a comma.
+  assert.equal(seam('Aviation, three. Kahlua,', 'Three baileys two frangelico two'), 'Kahlua, Three. baileys two frangelico two');
+});
+
+check('seam join: the food carry keeps the plain join', () => {
+  // CountFood passes no join, so a seam joinSeam would rewrite reaches the
+  // food split exactly as before.
+  for (const split of [m.splitFoodTail, m.createFoodCarrySplitter([{name: "Tito's"}, {name: 'Belvedere'}])]) {
+    const sent = [];const carry = m.createCarry(text => sent.push(text), split);
+    carry.add('Bacon bits, one case. Belvedere.', 0);carry.add("Two Tito's twenty", 1);carry.flush(99);
+    const expected = [];
+    let held = '';
+    for (const piece of ['Bacon bits, one case. Belvedere.', "Two Tito's twenty"]) {
+      const {head, tail} = split(`${held} ${piece}`.trim());
+      if (head) expected.push(head);
+      held = tail;
+    }
+    if (held) expected.push(held);
+    assert.deepEqual(sent, expected);
+    assert.ok(!sent.some(text => text.includes('Belvedere, Two')), sent.join(' | '));
+  }
+});
+
+check('seam join: ?seamjoin=0 turns it off for this phone, ?seamjoin=1 back on', () => {
+  const store = new Map();
+  const localStorage = {getItem: k => store.get(k) ?? null, setItem: (k, v) => store.set(k, String(v)), removeItem: k => store.delete(k)};
+  const had = Object.getOwnPropertyDescriptor(globalThis, 'window');
+  try {
+    const at = (search) => { globalThis.window = {location: {search}, localStorage}; return m.seamJoinEnabled(); };
+    assert.equal(at(''), true, 'on by default');
+    assert.equal(at('?seamjoin=0'), false);
+    assert.equal(store.get('lq.seamJoin'), '0');
+    assert.equal(at(''), false, 'remembered on this phone');
+    assert.equal(m.pauseCutsEnabled(), true, 'pause cuts are a separate switch');
+    assert.equal(at('?seamjoin=1'), true);
+    assert.equal(store.has('lq.seamJoin'), false);
+    globalThis.window = {location: {search: '?seamjoin=0'}, get localStorage() { throw new Error('blocked'); }};
+    assert.equal(m.seamJoinEnabled(), true, 'storage blocked: the default');
+  } finally {
+    if (had) Object.defineProperty(globalThis, 'window', had); else delete globalThis.window;
+  }
 });
 
 check('food carry: a quantity sentence stays with the following product name', () => {
