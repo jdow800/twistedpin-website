@@ -57,6 +57,11 @@ export interface FoodReviewItem {
   /** The server's held amount, put back when a pick has no proved amount of
    *  its own, so another product never inherits one product's proof. */
   heldAmount?: Pick<FoodReviewItem, "cases" | "units" | "spokenUnit" | "unitNeedsReview" | "quantityWords">;
+  /** The two-box box `confirmFoodQuantity` filled with 0 beside a positive
+   *  count in the other box (2026-10-17). Typing in it makes it the counter's
+   *  own; the fill is withdrawn when the other box no longer holds a positive
+   *  count, so a typed 0 alone never certifies an empty shelf. */
+  zeroFilled?: "cases" | "units";
 }
 
 /** Whether a server-proved amount (`ifChosen`) may stand on a row with this
@@ -203,18 +208,40 @@ export function foodQuantityFieldsToConfirm(r: FoodReviewItem): ("cases" | "unit
 }
 
 /** Editing one component cannot certify the model's other component. A
- * single answer explicitly replaces the whole quantity, including loose. */
-export function confirmFoodQuantity(r: FoodReviewItem, field: "cases" | "units", value: number | null, replacesAll = false): Partial<FoodReviewItem> {
+ * single answer explicitly replaces the whole quantity, including loose.
+ * In the two-box layout, a positive number in one box with the other box
+ * blank counts that box as 0 (Jon, 2026-10-17: "if he tells you 2.3 cases,
+ * don't make him put in quantity under gallons"; "Toilet tissue: 1.3 cases.
+ * You don't need to know rolls"). The 0 is shown in that box, so what saves
+ * is what is on screen; the model's old number for it is never kept. A box
+ * the counter cleared (`blank`) is blank again, not invalid. A typed 0, an
+ * invalid box, and a row whose recording said there is more than its count
+ * ("one case and a little bit") still ask for both; withdrawing the positive
+ * count blanks the box it filled again (independent review, 2026-10-17). */
+export function confirmFoodQuantity(r: FoodReviewItem, field: "cases" | "units", value: number | null, replacesAll = false, blank = false): Partial<FoodReviewItem> {
   const invalid = new Set(r.invalidQuantityFields ?? []);
   const unconfirmed = new Set(foodQuantityFieldsToConfirm(r));
   const valid = value != null && Number.isFinite(value) && value >= 0;
+  const other = field === "cases" ? "units" : "cases";
+  // Typing in the filled box makes its number the counter's own.
+  let zeroFilled = r.zeroFilled === field ? undefined : r.zeroFilled;
   if (valid) { invalid.delete(field); unconfirmed.delete(field); }
-  else { invalid.add(field); unconfirmed.add(field); }
-  if (valid && replacesAll) { invalid.clear(); unconfirmed.clear(); }
-  return { invalidQuantityFields: [...invalid], unconfirmedQuantityFields: [...unconfirmed],
-    quantityKnown: valid && invalid.size === 0 && unconfirmed.size === 0,
-    quantityNeedsReview: unconfirmed.size > 0,
-      ...(valid ? { [field]: value, ...(replacesAll ? { [field === "cases" ? "units" : "cases"]: 0 } : {}) } : {}) };
+  else { unconfirmed.add(field); if (blank && !replacesAll) invalid.delete(field); else invalid.add(field); }
+  if (valid && replacesAll) { invalid.clear(); unconfirmed.clear(); zeroFilled = undefined; }
+  const patch: Partial<FoodReviewItem> = valid ? { [field]: value } : {};
+  if (replacesAll) { if (valid) patch[other] = 0; }
+  else if (valid && value > 0) {
+    // A positive count beside a blank box: that box is 0, shown as 0.
+    if (unconfirmed.has(other) && !invalid.has(other) && r.quantityReviewReason !== "unquantified_remainder") {
+      unconfirmed.delete(other); zeroFilled = other; patch[other] = 0;
+    }
+  } else if (zeroFilled === other) {
+    // The positive count that filled the other box is gone: that box is blank again.
+    unconfirmed.add(other); zeroFilled = undefined;
+  }
+  return { invalidQuantityFields: [...invalid], unconfirmedQuantityFields: [...unconfirmed], zeroFilled,
+    quantityKnown: invalid.size === 0 && unconfirmed.size === 0,
+    quantityNeedsReview: unconfirmed.size > 0, ...patch };
 }
 
 export function foodUnitLabel(sku: BarSkuItem | undefined, n: number): string {

@@ -50,7 +50,9 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
     : r.quantityReviewReason === "unquantified_remainder" ? `Enter a total number${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}, including the extra.`
     : r.quantityReviewReason === "source_already_used" ? "Source already counted. Discard or enter a separate count."
     : r.quantityReviewReason === "source_not_returned" ? "Heard in your recording. Enter the count for this item."
-    : mixed ? "Enter both counts; use 0 for none." : `Enter the count${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}.`;
+    // Either box alone is enough once it holds more than 0 (2026-10-17).
+    : mixed ? fields.length > 1 && !r.invalidQuantityFields?.length ? "Fill in either box, or both." : "Enter both counts; use 0 for none."
+    : `Enter the count${unit === "Quantity" ? "" : ` in ${unit.toLowerCase()}`}.`;
   // The reading "Use N cases" turned down, while the row still holds those N cases.
   const back = r.declinedReading && !r.unitReading && q.cases === r.declinedReading.n && q.units === 0 ? r.declinedReading : undefined;
   const hits = r.search?.trim() ? catalog.filter(s => foodSearchMatch(s, r.search!)).slice(0, 8) : [];
@@ -74,7 +76,7 @@ export default function FoodVoiceReviewRow({ item: r, sku, catalog, ready, conce
     if (mixed) {
       // A single answer replaces the whole count. Do not guess a reverse
       // conversion or let one old mixed component remain hidden and counted.
-      onEdit({ quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] });
+      onEdit({ quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"], zeroFilled: undefined });
       setCountMode("single");
     } else {
       if (singleCases && !r.unitNeedsReview && !q.needsUnitChoice) onEdit({ cases: r.cases + r.units, units: 0,

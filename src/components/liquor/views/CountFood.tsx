@@ -1126,6 +1126,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         // server's history reading (or the one "Use N cases" turned down) no
         // longer describes the row. "Use N cases" and its way back set them.
         ...(meaningChanged ? { restateAnswer: undefined, restateBefore: undefined, unitReading: undefined, declinedReading: undefined } : {}),
+        // Any other change to the amount ends a two-box 0 fill (2026-10-17).
+        ...(meaningChanged && !("zeroFilled" in patch) ? { zeroFilled: undefined } : {}),
         ...(restate ? { quantityKnown: false, quantityNeedsReview: true, unconfirmedQuantityFields: ["cases", "units"] as ("cases" | "units")[] } : {}), ...patch };
     }));
   }
@@ -1919,7 +1921,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     // A typed number is the counter's own, no longer the amount the recording
     // proved for a tapped suggestion (2026-10-15), so it behaves as any typed
     // edit, and no later suggestion tap replaces it (`typedAmount`).
-    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll), heardAmountFor: undefined, typedAmount: true,
+    editReview(r, { ...confirmFoodQuantity(r, field, n, replacesAll, raw.trim() === ""), heardAmountFor: undefined, typedAmount: true,
       ...(n != null && replacesAll && field === "cases" ? { units: 0, unitNeedsReview: false, spokenUnit: null, unitMultiplier: undefined, unitChoiceConfirmed: true } : {}) });
   }
 
