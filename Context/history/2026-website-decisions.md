@@ -56,6 +56,14 @@ the Web Speech engine, an older server); `check-liquor-voice.mjs` 74;
 typecheck with tprs's TypeScript 5.9.3 over `tsconfig.liquor.json`; each new
 test killed by a targeted mutation.
 
+Rebased 10/17 after W2 (#87) merged, keeping both sides: the carry call passes
+W2's seam join and W1's trace, and `check-voice-carry.mjs` loads both
+`voiceSwitches` and `lineEvents`. After the rebase: `check-voice-carry.mjs` 57
+voice rule checks plus 8 queue checks; `check-liquor-review.mjs` 45 scenarios,
+104 assertions; `check-liquor-voice.mjs` 76; `check-draft-sync.mjs` 7; scoped
+typecheck clean. Merged once tprs #423 was live (production has
+`bar_count_line_event`).
+
 ## 2026-10-16 - Voice carry joins a bottle to the number the cut split from it
 
 The Oct 16 liquor count saved Belvedere Organic 1 for 2 (Backstock Room, take
