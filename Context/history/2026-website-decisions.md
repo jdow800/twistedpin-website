@@ -2501,3 +2501,7 @@ tprs #442 hid the Answered Poster look from the host picker (Jon: "Ok let's hide
 ## 2026-10-18 — Invite gallery: Eight O'Clock Cover note and city line
 
 tprs #443 changed the Eight O'Clock Cover look. The note is now a plain notice, with no quote marks and no host credit; Jon: "doesn't need a who quoted it". "Plainfield · Illinois" on the cover is bigger and full cream, so it reads over the bright photo. The look's three `/invite-previews/` renders were re-rendered from the merged templates, and the invitations manual records the ruling.
+
+## 2026-10-18 — Invitations: the default VIP-party photo stays
+
+Jon saw a crop of the default invitation photo (`/snap/vip-energy-*`) that cut out the glitter "ARIA" letters, and kept the original: "I would rather keep the aria". Recorded as a ruling in the invitations manual, so it is not re-pitched.
