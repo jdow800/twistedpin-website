@@ -68,8 +68,15 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 - Kicker: "*Host* invited you to a fundraiser / a party" (kids) / plain for catered. Looks are vibes, not occasion categories; the title carries the occasion.
 - **Naming gate (2026-08-30, tprs #138):** the invitation link (dashboard share box AND the confirmation-email guest link) is withheld until the host saves an Event name. Tagline/note/photo stay optional. Trigger: the first real host read the fallback "<First name>'s event at Twisted Pin" as a name we chose. The fallback is never shown as the input placeholder any more (example names per shape instead).
 - Customize the wording fold opens by default (#137).
-- Defaults: kids → Confetti Strike, else Classic (Jon hasn't ruled further).
+- Defaults: **Confetti Strike for every shape** since 2026-08-31 (`defaultThemeFor`). Before that it was kids → Confetti Strike, else Classic. The DB column default is still `'classic'`, but the code always passes the theme at mint.
 - Answered Poster ignores the host photo **by design**.
+- **Top Shelf replaced Letterpress Ceremony in place (2026-10-17, tprs #441).** No real host had ever picked Letterpress, and the roster had no dressed-up evening look for work and holiday events. Jon approved the mockup. The id stays `letterpress-ceremony`, so there was no migration and stored rows are untouched; only the registry name, vibe and swatch changed. It decides what a host upload is from its pixels:
+  - transparent = a logo, shown whole on a cream plate;
+  - a flat graphic or a wide photo = an uncropped copper frame;
+  - a tall photo = a gentle arch, the only crop;
+  - unreadable pixels (no CORS) = the uncropped cream plate. Prod uploads come from Supabase public storage, which sends `Access-Control-Allow-Origin: *`.
+
+  The 2026-10-17 audit and mockup notes live in tprs `BUILD_NOTES.md`, entry 2026-10-17.
 - Reactivation after cancel → guests re-notified as "moved" (#131). Package change after mint → ignored by ruling.
 - Avery: delivers the hub URL herself once on the deposit-paid turn (SMS or email), never types a link she wasn't given, never gives a numbered walkthrough at inquiry stage. The staff `$/head` anchor and "slot/window" bans from other sessions still apply.
 
@@ -84,7 +91,7 @@ Marketing Avery: KB subsection (~line 2697), fundraiser mention (~520), WF2 prom
 | "Link says cancelled, we didn't cancel" | Booking status is read live. Check `bookings.status` — auto-expiry (lapsed deposit link), refund-to-zero (`refunded`), or no-show all close it. Reactivate re-notifies guests. |
 | "Link not found" | Revoked + re-minted (old links die), or a malformed slug. Host re-shares the new link. |
 | "Guest list cleared / empty" | 14-day purge (`invitees_purged_at` set). Unrecoverable by design. CSV must be downloaded inside the window. |
-| "Photo didn't show / upload failed" | 25 MB, PNG/JPEG/WebP/GIF, 30 MP decode ceiling, rate-limited. Stored in the public Supabase bucket (`SUPABASE_PUBLIC_BUCKET`); dev serves `/api/product-images/`. Answered Poster never shows it. |
+| "Photo didn't show / upload failed" | 25 MB, PNG/JPEG/WebP/GIF, 30 MP decode ceiling, rate-limited. Stored in the public Supabase bucket (`SUPABASE_PUBLIC_BUCKET`); dev serves `/api/product-images/`. Answered Poster never shows it. Top Shelf shows every upload whole except a tall photo, which goes in the arch; if the pixels can't be read it falls back to the uncropped cream plate. |
 | "This invitation has hit its RSVP limit" | `MAX_INVITEES_PER_INVITATION` (300 rows). Raise the constant or clean junk rows. |
 | "Too many attempts" for real guests | `clientIp()` — confirm `x-forwarded-for` is present in prod; 30 writes/min per client. |
 | "Where is my invitation link?" / "it says my name for the event" | Naming gate: the host has not saved an Event name yet. Dashboard shows Step 1; link appears after Save. The fallback title is never a choice. |
@@ -99,7 +106,7 @@ Prod checks: `select shape, max_party_size, invitees_purged_at, revoked_at, them
 
 ## 6. Runbooks
 
-**Add / change a look.** Edit `views/guest/_themes/<id>.eta` on the four-part contract (`head` / `pre` / `masthead` / `post`); shared blocks (`.when`, `.cal-row`, `.banner`, `.rsvp`, `h2 + ul.know`, `.foot`, `.preview-ribbon`, `.slot-hint`) are styled, never re-rendered. New id → add to `THEME_IDS` + `THEMES` **and** a migration widening the `event_invitation_theme_known` CHECK. Run `invitation.routes.test.ts` (the every-look sweep asserts money-free rendering). Then re-render the Website gallery (below). Verify at a true 390px: headless Chrome floors the viewport at 500px, so wrap the page in a 390px iframe (or use DevTools device mode).
+**Add / change a look.** Edit `views/guest/_themes/<id>.eta` on the four-part contract (`head` / `pre` / `masthead` / `post`); shared blocks (`.when`, `.cal-row`, `.banner`, `.rsvp`, `h2 + ul.know`, `.foot`, `.preview-ribbon`, `.slot-hint`) are styled, never re-rendered. New id → add to `THEME_IDS` + `THEMES` **and** a migration widening the `event_invitation_theme_known` CHECK. Run `invitation.routes.test.ts` (the every-look sweep asserts money-free rendering). Then re-render the Website gallery (below). Verify at a true 390px: headless Chrome floors the viewport at 500px, so wrap the page in a 390px iframe (or use DevTools device mode). **Replacing a look keeps its id.** Top Shelf (2026-10-17) rewrote `letterpress-ceremony.eta` and changed only `name` / `vibe` / `swatch` in `THEMES`, so no migration and no stored row moved. Then update the Avery KB line that names the looks (`Avery_KB.md`, "a row of seven looks") and the gallery label in `src/pages/invite-previews.astro`.
 
 **Re-render `/invite-previews/`.** `PREVIEW=1 node scripts/render-invite-previews.cjs` (Website repo; renders the real tprs templates from the sibling `../tprs` checkout, 7 looks × 3 shapes, into `public/invite-previews/`); commit + push (Vercel auto-deploys).
 

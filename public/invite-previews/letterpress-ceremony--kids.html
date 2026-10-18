@@ -11,88 +11,282 @@
   <meta property="og:image" content="https://www.twistedpin.com/snap/vip-energy-900.jpg" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://www.twistedpin.com/snap/vip-energy-900.jpg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <meta name="theme-color" content="#121010" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;900&family=Montserrat:wght@500;600;700&family=Roboto+Slab:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600&family=Fraunces:ital,wght@1,400;1,500&family=Montserrat:wght@500;600;700&family=Roboto+Slab:wght@400&display=swap" />
   <style>
     :root {
-      --night: #0E0A1F; --paper: #F5F1E8; --paper-2: #FCFAF3; --field: #FFFDF8; --ink: #200F53;
-      --ink-80: rgba(32, 15, 83, 0.84); --ink-65: rgba(32, 15, 83, 0.66); --ink-40: rgba(32, 15, 83, 0.40); --ink-20: rgba(32, 15, 83, 0.20);
-      --copper: #D88B5C; --copper-deep: #9C5530; --glow: #4EECC4; --focus: #128198; --err: #9b1c1c;
-      --disp: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; --ui: "Montserrat", "Segoe UI", Arial, sans-serif; --body: "Roboto Slab", Georgia, "Times New Roman", serif;
-      --muted: var(--ink-65);
+      color-scheme: dark;
+      --ground: #121010; --lift: #191514; --field: #1D1917; --indigo: #200F53;
+      --cream: #F5F1E8; --cream-90: rgba(245,241,232,0.9); --cream-80: rgba(245,241,232,0.8); --cream-75: rgba(245,241,232,0.76); --cream-62: rgba(245,241,232,0.64);
+      --edge: rgba(245,241,232,0.22); --copper: #D88B5C; --rule: rgba(216,139,92,0.62); --rule-soft: rgba(216,139,92,0.32);
+      --glow: #4EECC4; --night: #0E0A1F; --err: #FFB0A6;
+      --disp: "Barlow Condensed", "Arial Narrow", Arial, sans-serif; --ui: "Montserrat", "Segoe UI", Arial, sans-serif;
+      --body: "Roboto Slab", Georgia, "Times New Roman", serif; --ital: "Fraunces", Georgia, serif;
+      --muted: var(--cream-62);
+      --dots: radial-gradient(circle at 1.5px 1.5px, rgba(216,139,92,0.85) 1.1px, transparent 1.5px);
     }
     * { box-sizing: border-box; }
-    html { background: var(--night); }
-    body { margin: 0; padding: clamp(24px, 5vh, 72px) 16px clamp(40px, 7vh, 96px); font-family: var(--body); color: var(--ink); background: radial-gradient(120% 55% at 50% 0%, rgba(216, 139, 92, 0.07), transparent 60%), var(--night); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
-    main.sheet { position: relative; max-width: 620px; margin: 0 auto; background: radial-gradient(140% 90% at 50% 0%, rgba(255, 253, 248, 0.65), transparent 55%), var(--paper); border: 1px solid var(--ink-40); border-radius: 3px; padding: clamp(34px, 9vw, 64px) clamp(24px, 6vw, 56px) clamp(26px, 5vw, 44px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45), 0 32px 80px rgba(0, 0, 0, 0.55); text-align: center; }
-    main.sheet::before { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(216, 139, 92, 0.45); border-radius: 2px; pointer-events: none; }
+    html { background: var(--ground); }
+    body { position: relative; margin: 0; padding: 0 0 48px; background: var(--ground); color: var(--cream); font-family: var(--body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: hidden; overflow-x: clip; min-height: 100vh; }
+    /* the Midnight Indigo glow at the top edge: a sibling layer, never behind a text box */
+    body::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 520px; background: radial-gradient(90% 100% at 50% 0%, rgba(32,15,83,0.62), rgba(32,15,83,0) 72%); pointer-events: none; z-index: 0; }
+    ::selection { background: var(--copper); color: var(--ground); }
+
+    /* the venue mark, at its natural aspect (never cover-cropped) */
+    .ts-top { position: relative; z-index: 1; text-align: center; padding: max(12px, env(safe-area-inset-top, 12px)) 20px 0; line-height: 0; }
+    .ts-logo { display: block; margin: 0 auto -8px; width: 148px; height: auto; aspect-ratio: 360 / 154; }
+
+    /* phone: one column; the masthead's pieces join the column so a long note can sit after the calendar row */
+    main.sheet { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; padding: 0 22px; text-align: center; background: transparent; display: flex; flex-direction: column; container: ts-sheet / inline-size; }
+    .ts-mast { display: contents; container-type: inline-size; }
+    main.sheet > .banner, main.sheet > .rsvp, main.sheet > h2, main.sheet > ul.know, main.sheet > .foot { order: 2; }
+    .ts-aside.ts-long { order: 1; }
+
+    /* ---------- the ornament (no upload): five lane arrows, hairlines drawn once ---------- */
+    .ts-orn { align-self: center; display: flex; align-items: center; justify-content: center; gap: 12px; width: min(230px, 70%); margin: 8px auto 22px; }
+    .ts-orn .ts-hair { flex: 1; height: 1px; background: var(--rule); }
+    .ts-orn svg { display: block; flex: none; }
     @media (prefers-reduced-motion: no-preference) {
-      main.sheet { animation: settle 620ms cubic-bezier(0.2, 0.7, 0.3, 1) both; }
-      @keyframes settle { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+      .ts-orn .ts-hair { transform-origin: center; animation: ts-draw 900ms cubic-bezier(0.2, 0.7, 0.2, 1) 150ms both; }
+      @keyframes ts-draw { from { transform: scaleX(0); opacity: 0; } to { transform: scaleX(1); opacity: 1; } }
     }
-    .crest { display: block; width: 40px; height: 40px; margin: 0 auto 22px; opacity: 0.92; }
-    .crest.host { width: 120px; height: 120px; object-fit: contain; opacity: 1; }
-    .eyebrow, .invite-line { margin: 0 0 20px; font-family: var(--ui); font-size: 13px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-65); line-height: 2; }
-    .invite-line b { font-weight: 700; color: var(--ink-80); }
-    h1 { text-wrap: pretty; margin: 0 0 14px; font-family: var(--disp); font-weight: 900; font-size: clamp(52px, 14.5vw, 86px); line-height: 0.94; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink); overflow-wrap: anywhere; }
-    h1.long { font-size: clamp(38px, 10.5vw, 64px); }
-    h1 .l2 { display: block; }
-    .sub { margin: 0 0 14px; font-size: 16.5px; line-height: 1.5; color: var(--ink-65); }
-    .note { margin: 0 0 26px; font-size: 14.5px; line-height: 1.5; font-style: italic; color: var(--ink-65); }
-    .orn { display: block; margin: 0 auto 26px; }
-    /* Scotch rule around the particulars */
-    .when { border-top: 1px solid var(--ink-80); border-bottom: 1px solid var(--ink-80); padding: 3px 0; margin: 0 0 24px; background: transparent; border-radius: 0; }
-    .when::before { content: ""; display: block; border-top: 1px solid var(--ink-20); margin-bottom: 22px; }
-    .when::after { content: ""; display: block; border-top: 1px solid var(--ink-20); margin-top: 24px; }
-    .when .d { margin: 0 0 6px; font-size: clamp(22px, 6vw, 27px); font-weight: 500; color: var(--ink); }
-    .when .t { margin: 0 0 12px; font-size: 17px; color: var(--ink-80); }
-    .when .a { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-65); }
-    .cal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 34px; }
-    .cal-row a { display: flex; align-items: center; justify-content: center; min-height: 46px; padding: 10px 8px; border: 1px solid var(--ink-40); border-radius: 7px; font-family: var(--ui); font-size: 13.5px; font-weight: 600; letter-spacing: 0.02em; text-align: center; text-decoration: none; color: var(--ink); background: transparent; }
-    .cal-row a:hover { background: rgba(32, 15, 83, 0.05); }
-    .banner { text-align: left; background: var(--paper-2); border: 1px solid var(--ink-40); border-radius: 2px; padding: 14px 16px; font-size: 15px; line-height: 1.55; margin: 0 0 24px; color: var(--ink-80); }
-    .banner.warn { border-color: rgba(155,28,28,0.45); color: var(--err); }
-    .banner.ok { border-color: var(--copper-deep); }
-    /* the enclosed reply card */
-    .rsvp { background: var(--paper-2); border: 1px solid var(--ink-40); border-radius: 2px; padding: 22px 18px 24px; margin: 0 0 34px; text-align: left; box-shadow: 0 1px 0 rgba(32, 15, 83, 0.08); }
-    .rsvp .lead { margin: 0 0 16px; font-size: 15.5px; line-height: 1.55; color: var(--ink-80); }
-    .rsvp .lead::before { content: "R.S.V.P."; display: block; text-align: center; font-family: var(--ui); font-size: 12px; font-weight: 700; letter-spacing: 0.26em; text-indent: 0.26em; text-transform: uppercase; color: var(--copper-deep); margin: 0 0 14px; }
-    .rsvp .lead strong { color: var(--ink); }
-    .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ---------- the crest (host photo or logo) ---------- */
+    .ts-crest { align-self: center; position: relative; margin: 12px auto 26px; line-height: 0; }
+    .ts-crest img { display: block; }
+    /* pending / no script / unreadable pixels: an uncropped cream plate, safe for any upload */
+    .ts-crest.is-pending, .ts-crest.is-plate, .ts-crest.is-logo { padding: 10px 12px; background: var(--cream); border-radius: 1px; box-shadow: 0 0 0 1px var(--rule); outline: 1px solid var(--rule-soft); outline-offset: 5px; }
+    .ts-crest.is-pending img, .ts-crest.is-plate img { width: auto; height: auto; max-width: min(240px, 62vw); max-height: 190px; max-height: min(24svh, 190px); }
+    .ts-js .ts-crest.is-pending { opacity: 0; animation: ts-show 0s linear 3s forwards; }
+    @keyframes ts-show { to { opacity: 1; } }
+    /* a logo: dark ink on the cream plate, light ink straight on the black */
+    .ts-crest.is-logo { padding: 12px 16px; }
+    .ts-crest.is-logo img, .ts-crest.is-logo-light img { width: auto; height: auto; max-width: min(224px, 60vw); max-height: 112px; }
+    .ts-crest.is-logo-light { padding: 14px 18px; border: 1px solid var(--rule-soft); }
+    /* a wide photo: copper hairline frame, natural aspect */
+    .ts-crest.is-print { padding: 5px; border: 1px solid var(--rule); outline: 1px solid var(--rule-soft); outline-offset: 4px; }
+    .ts-crest.is-print img { width: auto; height: auto; max-width: min(300px, 74vw); max-height: 210px; max-height: min(26svh, 210px); }
+    /* a tall photo: the arch, in the photo's own shape (--ts-ar, 0.66-0.8, set by
+       the script), with a flattened top (rise = 0.36 of the width, about 0.72 of
+       a half circle) so text near the top of a flyer loses only the corners;
+       a faint copper pool of light under it */
+    .ts-crest.is-arch { --ts-rise: calc(var(--ts-ar, 0.75) * 36%); padding: 5px; border: 1px solid var(--rule); border-radius: 50% 50% 2px 2px / var(--ts-rise) var(--ts-rise) 2px 2px; outline: 1px solid var(--rule-soft); outline-offset: 4px; }
+    .ts-crest.is-arch img { height: 200px; height: min(25svh, 220px); width: auto; aspect-ratio: var(--ts-ar, 0.75); object-fit: cover; object-position: 50% 30%; border-radius: 50% 50% 0 0 / var(--ts-rise) var(--ts-rise) 0 0; }
+    .ts-crest.is-arch:not(.slot-hint)::after { content: ""; position: absolute; z-index: -1; left: -45%; right: -45%; bottom: -34px; height: 70px; background: radial-gradient(closest-side, rgba(216,139,92,0.2), rgba(216,139,92,0)); pointer-events: none; }
+
+    /* ---------- kicker + title ---------- */
+    .ts-kicker { margin: 0 0 12px; line-height: 1.35; text-wrap: pretty; }
+    .ts-kicker .ts-who { display: block; font-family: var(--ui); font-weight: 600; font-size: 12.5px; letter-spacing: 0.24em; text-indent: 0.24em; text-transform: uppercase; color: var(--cream-80); margin-bottom: 5px; }
+    .ts-kicker .ts-who.ts-long { letter-spacing: 0.14em; text-indent: 0.14em; line-height: 1.55; }
+    .ts-kicker .ts-conn { font-family: var(--ital); font-style: italic; font-weight: 400; font-size: 19px; color: var(--cream-90); }
+
+    /* size = the length step, capped so the longest word fits the column (0.57em per tracked cap) */
+    .ts-title { --ts-k: 0.57; margin: 0 0 16px; font-family: var(--disp); font-weight: 600; font-size: max(24px, min(var(--ts-base), calc(100cqi / (var(--ts-mw) * var(--ts-k))))); line-height: 1.02; letter-spacing: 0.07em; text-indent: 0.07em; text-transform: uppercase; color: var(--cream); text-wrap: pretty; overflow-wrap: anywhere; }
+    .ts-s1 { --ts-base: clamp(42px, 12.4vw, 66px); }
+    .ts-s2 { --ts-base: clamp(36px, 10vw, 54px); }
+    .ts-s3 { --ts-base: clamp(28px, 8vw, 42px); line-height: 1.06; letter-spacing: 0.05em; text-indent: 0.05em; }
+    /* Safari before 16 has no container units: without this the var() size above is
+       invalid at computed time and every title drops to 16px. Cap by the viewport
+       column instead (the phone sheet has 22px side padding). */
+    @supports not (width: 1cqi) { .ts-title { font-size: max(24px, min(var(--ts-base), calc((100vw - 44px) / (var(--ts-mw) * var(--ts-k))))); } }
+    .ts-title .ts-tie, .ts-title .ts-nw { white-space: nowrap; }
+    .ts-title .ts-c { font-family: var(--ital); font-style: italic; font-weight: 400; font-size: 0.62em; letter-spacing: 0; text-transform: lowercase; color: var(--cream-90); padding: 0 0.04em; }
+    /* the milestone: its own line, the one big moment on the card */
+    .ts-title .ts-num { display: block; margin: 0.08em 0 -0.02em; font-family: var(--ital); font-style: italic; font-weight: 500; font-size: 2.4em; line-height: 0.92; letter-spacing: 0; text-indent: 0; }
+    .ts-title.ts-photo .ts-num { font-size: 2em; font-size: min(2em, 11svh); }
+    .ts-title .ts-ord { font-family: var(--ital); font-style: italic; font-weight: 400; font-size: 0.3em; letter-spacing: 0; text-transform: lowercase; vertical-align: 1.75em; margin-left: 0.06em; color: var(--cream-90); }
+
+    .ts-tagline { margin: 0 auto 12px; max-width: 32ch; text-wrap: pretty; font-family: var(--body); font-weight: 400; font-size: 16.5px; line-height: 1.55; color: var(--cream-80); }
+    .ts-tagline.ts-long { font-size: 15px; max-width: 38ch; }
+    .ts-aside { margin: 0 auto; max-width: 34ch; font-family: var(--ital); font-style: italic; font-size: 16px; line-height: 1.5; color: var(--cream-75); text-wrap: pretty; overflow-wrap: break-word; }
+    .ts-aside::before { content: ""; display: block; width: 28px; height: 1px; margin: 0 auto 12px; background: var(--rule); }
+    /* a long note: roman, smaller, after the calendar row on a phone */
+    .ts-aside.ts-long { margin: 26px auto 0; max-width: 40ch; font-family: var(--body); font-style: normal; font-size: 15px; line-height: 1.6; color: var(--cream-80); }
+
+    /* ---------- WHEN / TIME / WHERE set as menu lines with dot leaders ---------- */
+    .when { --lw: 6.1em; margin: 26px 0 14px; padding: 10px 0; border-top: 3px double var(--rule); border-bottom: 3px double var(--rule); background: transparent; border-radius: 0; text-align: left; }
+    .when p { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; margin: 0; padding: 8px 0; font-family: var(--body); font-size: 16px; font-weight: 400; line-height: 1.4; color: var(--cream); text-align: right; }
+    /* the label sits in the padding; the leader paints only in the content box after it */
+    .when p::before { box-sizing: border-box; order: -2; flex: 1 1 0; min-width: calc(var(--lw) + 24px); padding: 0 10px 0 var(--lw); text-indent: calc(-1 * var(--lw)); white-space: nowrap; text-align: left; font-family: var(--ui); font-weight: 600; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--cream-75); background: var(--dots) 0 calc(100% - 3px) / 6px 3px repeat-x; background-origin: content-box; background-clip: content-box; }
+    .when .d::before { content: "When"; }
+    .when .t::before { content: "Time"; }
+    .when .a::before { content: "Where"; }
+    /* WHERE: the shell's plain street address, untouched. On a phone it sets as
+       a two-line address block (street, then town) beside the leader, instead
+       of dropping under a leader to nowhere; where there is room (tablet,
+       desktop) it is one line. Set flush right like WHEN and TIME, so the three
+       values share one right edge (the street line then starts a little in
+       from the leader on a phone; accepted for the shared edge). */
+    .when .a { display: grid; grid-template-columns: minmax(calc(var(--lw) + 24px), 1fr) fit-content(9.3em); align-items: baseline; text-align: right; font-size: 15px; line-height: 1.45; color: var(--cream-90); }
+    .when .a::before { min-width: 0; }
+    @container ts-sheet (min-width: 400px) { .when .a { grid-template-columns: minmax(calc(var(--lw) + 24px), 1fr) minmax(0, max-content); } }
+    @media (max-width: 374px) { .when p { font-size: 14.5px; } .when .a { font-size: 14px; } .when p::before { letter-spacing: 0.18em; } .when { --lw: 5.7em; } }
+
+    .cal-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 8px; }
+    .cal-row a { display: flex; align-items: center; justify-content: center; min-height: 46px; padding: 10px 8px; border: 1px solid var(--edge); border-radius: 2px; font-family: var(--ui); font-size: 13px; font-weight: 600; letter-spacing: 0.03em; line-height: 1.3; text-align: center; text-decoration: none; color: var(--cream); background: transparent; transition: border-color 160ms ease; }
+    .cal-row a:hover { border-color: var(--copper); }
+
+
+    /* ---------- banners: cream body; the alert colour only on the lead line and the rule ---------- */
+    .banner { text-align: left; margin: 24px 0 0; padding: 14px 16px 14px 18px; background: var(--lift); border: 1px solid var(--edge); border-left: 3px solid var(--copper); border-radius: 2px; font-family: var(--body); font-size: 15px; line-height: 1.55; color: var(--cream-90); text-wrap: pretty; }
+    .banner strong { font-family: var(--ital); font-style: italic; font-weight: 500; font-size: 18px; color: var(--cream); }
+    .banner.warn { border-left-color: var(--err); }
+    .banner.warn strong { color: var(--err); }
+    .banner + .banner { margin-top: 12px; }
+
+    /* ---------- the reply card ---------- */
+    .rsvp { margin: 36px 0 0; padding: 26px 20px 24px; background: var(--lift); border: 1px solid var(--rule-soft); border-radius: 2px; text-align: left; }
+    .rsvp .lead { margin: 0 0 18px; text-align: center; font-family: var(--body); font-size: 15px; line-height: 1.5; color: var(--cream-75); }
+    .rsvp .lead::before { content: "R.S.V.P."; display: block; margin: 0 0 12px; font-family: var(--ui); font-weight: 600; font-size: 12px; letter-spacing: 0.32em; text-indent: 0.32em; color: var(--cream-75); background: linear-gradient(var(--rule-soft), var(--rule-soft)) left center / 28% 1px no-repeat, linear-gradient(var(--rule-soft), var(--rule-soft)) right center / 28% 1px no-repeat; }
+    .rsvp .lead strong { display: block; margin: 0 0 4px; font-family: var(--ital); font-style: italic; font-weight: 400; font-size: 26px; line-height: 1.2; color: var(--cream); }
+    .rsvp .banner { margin: 0 0 16px; }
+    .choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .choice { position: relative; display: block; }
     .choice input { position: absolute; opacity: 0; }
-    .choice span { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 10px 8px; border: 1.5px solid var(--ink-40); border-radius: 7px; font-family: var(--ui); font-size: 15.5px; font-weight: 600; text-align: center; cursor: pointer; background: var(--field); color: var(--ink-80); }
-    .choice input:checked + span { border-color: var(--copper-deep); background: rgba(216, 139, 92, 0.10); color: var(--ink); }
-    .choice input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
-    .rsvp label.f { display: block; margin: 20px 0 7px; font-family: var(--ui); font-size: 12px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-80); }
-    .rsvp input[type="text"], .rsvp input[type="email"], .rsvp select { width: 100%; padding: 13px 12px; font-family: var(--body); font-size: 16px; border: 1px solid var(--ink-40); border-radius: 4px; background: var(--field); color: var(--ink); }
-    .rsvp input:focus-visible, .rsvp select:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-    .rsvp .hint { margin: 7px 0 0; font-family: var(--ui); font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--ink-65); }
-    .rsvp button { width: 100%; min-height: 52px; margin-top: 22px; background: var(--glow); color: var(--night); border: 0; border-radius: 7px; cursor: pointer; font-family: var(--ui); font-size: 15px; font-weight: 700; letter-spacing: 0.14em; text-indent: 0.14em; text-transform: uppercase; box-shadow: 0 2px 10px rgba(78, 236, 196, 0.28); }
-    .rsvp button:hover { filter: brightness(1.04); }
-    .rsvp button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-    h2 { display: flex; align-items: center; gap: 14px; margin: 0 0 14px; font-family: var(--ui); font-size: 12px; font-weight: 700; letter-spacing: 0.26em; text-indent: 0.26em; text-transform: uppercase; color: var(--copper-deep); }
-    h2::before, h2::after { content: ""; flex: 1; height: 1px; background: var(--ink-20); }
-    ul.know { margin: 0 0 6px; padding: 0 4px; list-style: none; text-align: left; }
-    ul.know li { position: relative; padding-left: 24px; margin-bottom: 10px; font-size: 15.5px; line-height: 1.62; color: var(--ink-80); }
-    ul.know li::before { content: "\25C6"; position: absolute; left: 2px; top: 0.42em; font-size: 10px; line-height: 1; color: var(--copper-deep); }
-    .foot { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--ink-20); font-size: 13px; color: var(--ink-65); line-height: 1.7; }
-    .foot::after { content: "Game \00B7 Bowl \00B7 Eat \00B7 Drink"; display: block; margin-top: 8px; font-family: var(--ui); font-size: 11px; font-weight: 600; letter-spacing: 0.3em; text-indent: 0.3em; text-transform: uppercase; color: var(--ink-40); }
-    .preview-ribbon { position: fixed; top: 10px; right: -34px; z-index: 50; background: var(--copper); color: var(--night); font-family: var(--ui); font-weight: 700; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; padding: 6px 44px; transform: rotate(35deg); pointer-events: none; }
-    .slot-hint { outline: 2px dashed var(--copper-deep); outline-offset: 4px; position: relative; }
-    .slot-hint::after { content: attr(data-slot); position: absolute; top: -18px; left: 0; background: var(--copper-deep); color: var(--paper); font-family: var(--ui); font-style: normal; font-weight: 700; font-size: 10px; letter-spacing: .14em; text-indent: 0; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; line-height: 1.4; }
-    a:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
-    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+    .choice span { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 52px; padding: 10px 8px; border: 1px solid var(--edge); border-radius: 2px; background: var(--field); font-family: var(--ui); font-weight: 600; font-size: 15px; text-align: center; cursor: pointer; color: var(--cream); transition: border-color 160ms ease, background-color 160ms ease; }
+    .choice input:checked + span { border-color: var(--copper); background: rgba(216,139,92,0.12); }
+    .choice input:checked + span::before { content: ""; flex: none; width: 7px; height: 7px; background: var(--copper); transform: rotate(45deg); }
+    .choice input:focus-visible + span { outline: 2px solid var(--cream); outline-offset: 3px; }
+    .rsvp label.f { display: flex; align-items: flex-end; min-height: 44px; margin: 8px 0 0; padding: 0 0 8px; font-family: var(--ui); font-weight: 600; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--cream-75); }
+    .rsvp label.f span { margin-left: 0.5em; letter-spacing: 0.04em; text-transform: none; }
+    .rsvp input[type="text"], .rsvp input[type="email"], .rsvp select { width: 100%; padding: 13px 14px; font-family: var(--body); font-size: 16px; color: var(--cream); background: var(--field); border: 1px solid var(--edge); border-radius: 2px; }
+    .rsvp input::placeholder { color: rgba(245,241,232,0.45); }
+    .rsvp input:focus-visible, .rsvp select:focus-visible { outline: 2px solid var(--cream); outline-offset: 2px; border-color: var(--copper); }
+    .rsvp .hint { margin: 8px 0 0; font-family: var(--body); font-size: 13px; line-height: 1.5; color: var(--cream-62); text-wrap: pretty; }
+    .rsvp button { width: 100%; min-height: 54px; margin-top: 24px; border: 0; border-radius: 2px; cursor: pointer; background: var(--glow); color: var(--night); font-family: var(--ui); font-weight: 700; font-size: 14.5px; letter-spacing: 0.16em; text-indent: 0.16em; text-transform: uppercase; }
+    .rsvp button:hover { filter: brightness(1.05); }
+    .rsvp button:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+    .rsvp button:disabled { cursor: default; }
+
+    /* ---------- house notes + foot ---------- */
+    h2 { display: flex; align-items: center; gap: 14px; margin: 46px 0 18px; font-family: var(--ui); font-weight: 600; font-size: 12.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--cream-75); }
+    h2::before, h2::after { content: ""; flex: 1; height: 1px; background: var(--rule-soft); }
+    ul.know { margin: 0; padding: 0; list-style: none; text-align: left; }
+    ul.know li { position: relative; padding-left: 22px; margin-bottom: 12px; font-family: var(--body); font-size: 15px; line-height: 1.6; color: var(--cream-90); text-wrap: pretty; }
+    ul.know li::before { content: ""; position: absolute; left: 3px; top: 0.62em; width: 6px; height: 6px; background: var(--copper); transform: rotate(45deg); }
+    ul.know strong { font-weight: 400; color: var(--cream); text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+    .foot { margin: 42px 0 0; padding-top: 20px; border-top: 1px solid var(--rule-soft); font-family: var(--ui); font-weight: 500; font-size: 12.5px; letter-spacing: 0.04em; line-height: 1.7; color: var(--cream-62); text-wrap: pretty; }
+
+    /* a very narrow sheet (the host's phone preview in the dashboard, about
+       230-260px): menu lines stack label-over-value, buttons and choices go
+       one per row, the title tie lets go. Last in the sheet so it wins. */
+    @container ts-sheet (max-width: 300px) {
+      .when p, .when .a { display: block; padding: 7px 0; text-align: left; }
+      .when p::before { display: block; min-width: 0; margin: 0 0 2px; padding: 0; text-indent: 0; background: none; }
+      .cal-row, .choices { grid-template-columns: minmax(0, 1fr); }
+      .ts-title .ts-tie { white-space: normal; }
+      .rsvp { padding: 22px 14px 20px; }
+      .rsvp .lead strong { font-size: 22px; }
+      h2 { gap: 10px; letter-spacing: 0.2em; }
+    }
+    /* the PREVIEW tag sits top right: on a very narrow preview, start the logo below it */
+    @media (max-width: 370px) { body.is-preview .ts-top { padding-top: 46px; } }
+
+    /* ---------- cancelled (the shell's own eyebrow + h1 + banner) ---------- */
+    /* the logo above already says Twisted Pin: the shell's eyebrow stays for screen readers only */
+    main.sheet > .eyebrow { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+    main.sheet > h1 { margin: 26px 0 0; font-family: var(--disp); font-weight: 600; font-size: clamp(30px, 8.6vw, 52px); line-height: 1.04; letter-spacing: 0.06em; text-indent: 0.06em; text-transform: uppercase; color: var(--cream-90); text-wrap: pretty; overflow-wrap: anywhere; }
+
+    a:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+    .preview-ribbon { position: fixed; top: 10px; right: 10px; z-index: 50; padding: 5px 10px; background: var(--copper); color: var(--ground); font-family: var(--ui); font-weight: 700; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; border-radius: 2px; pointer-events: none; transform: none; }
+    /* slot tags sit ON the dashed line like a legend, so they never cover the slot above */
+    .slot-hint { outline: 1.5px dashed var(--copper); outline-offset: 5px; position: relative; }
+    .slot-hint::after { content: attr(data-slot); position: absolute; top: -5px; left: 6px; z-index: 2; transform: translateY(-50%); padding: 0 7px; background: #9C5530; color: var(--cream); font-family: var(--ui); font-style: normal; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-indent: 0; text-transform: uppercase; line-height: 1.5; border-radius: 2px; white-space: nowrap; }
+    .ts-aside.slot-hint::before { display: none; }
+    .ts-crest.slot-hint.is-pending::after, .ts-crest.slot-hint.is-plate::after, .ts-crest.slot-hint.is-logo::after { background: var(--copper); color: var(--ground); line-height: 1.5; }
+    .ts-kicker.slot-hint { padding-top: 10px; }
+    body.is-preview .ts-crest.slot-hint { outline: 1.5px dashed var(--copper); outline-offset: 8px; }
+    .ts-mast > .slot-hint { margin-bottom: 30px; }
+    .ts-mast > .ts-aside.slot-hint { margin-bottom: 8px; }
+    .ts-orn.slot-hint { margin-top: 18px; }
+
+    /* ---------- tablet and desktop: the card gets its frame ---------- */
+    @media (min-width: 640px) {
+      .ts-top { padding-top: 44px; }
+      .ts-logo { width: 164px; }
+      main.sheet { margin-top: 22px; padding: 44px 48px 34px; border: 1px solid var(--rule); outline: 1px solid var(--rule-soft); outline-offset: 5px; }
+      main.sheet::before, main.sheet::after { content: ""; position: absolute; left: 50%; width: 9px; height: 9px; background: var(--copper); transform: translateX(-50%) rotate(45deg); }
+      main.sheet::before { top: -5px; }
+      main.sheet::after { bottom: -5px; }
+      .ts-orn { margin-top: 0; }
+      .ts-crest { margin-top: 4px; }
+      .ts-crest.is-arch img { height: min(24svh, 232px); }
+    }
+
+        /* ---------- phone landscape: masthead left; date, calendar and the reply card right ---------- */
+    @media (orientation: landscape) and (max-height: 500px) {
+      body { padding-bottom: 28px; }
+      body::before { height: 300px; }
+      .ts-top { padding: max(8px, env(safe-area-inset-top, 8px)) 24px 0; }
+      .ts-logo { width: 116px; }
+      main.sheet { max-width: 900px; margin-top: 0; padding: 0 max(28px, env(safe-area-inset-right, 28px)) 0 max(28px, env(safe-area-inset-left, 28px)); border: 0; outline: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto auto auto 1fr; column-gap: 44px; align-items: start; }
+      main.sheet::before, main.sheet::after { display: none; }
+      main.sheet > .ts-mast { display: flex; flex-direction: column; grid-column: 1; grid-row: 1 / 7; padding-top: 8px; }
+      /* the upload stays at the top of the left column, sized to the screen
+         height, so it is whole on the first screen (never cut by the bottom edge) */
+      .ts-mast > .ts-crest { margin: 4px auto 18px; }
+      main.sheet > .when { grid-column: 2; grid-row: 1; margin-top: 10px; }
+      main.sheet > .cal-row { grid-column: 2; grid-row: 2; }
+      main.sheet > .banner { grid-column: 2; margin: 10px 0 4px; }
+      main.sheet > .rsvp { grid-column: 2; margin-top: 16px; }
+      main.sheet > h2, main.sheet > ul.know, main.sheet > .foot { grid-column: 1 / -1; }
+      main.sheet > h2 { margin-top: 34px; }
+      .ts-orn { margin: 4px auto 14px; }
+      .ts-crest.is-pending, .ts-crest.is-plate, .ts-crest.is-logo { padding: 8px 12px; }
+      .ts-crest.is-logo-light { padding: 10px 14px; }
+      /* sized by screen height; a logo by area (wide ones by width, tall ones by height) */
+      .ts-crest.is-pending img, .ts-crest.is-plate img { max-height: min(24svh, 96px); max-width: 220px; }
+      .ts-crest.is-logo img, .ts-crest.is-logo-light img { max-height: min(24svh, 92px); max-width: 184px; }
+      .ts-crest.is-print img { max-height: min(30svh, 124px); max-width: 260px; }
+      .ts-crest.is-arch img { height: min(34svh, 136px); }
+      .ts-crest.is-arch:not(.slot-hint)::after { bottom: -26px; height: 52px; }
+      /* a milestone title (its big number is a line of its own): a little smaller */
+      .ts-ms > .ts-crest.is-print img { max-height: min(26svh, 112px); }
+      .ts-ms > .ts-crest.is-arch img { height: min(28svh, 124px); }
+      .ts-ms > .ts-crest ~ .ts-title .ts-num { font-size: 1.45em; }
+      /* a long title or host name: smaller again, so the title keeps the first screen */
+      .ts-dense > .ts-crest.is-pending img, .ts-dense > .ts-crest.is-plate img { max-height: min(19svh, 76px); }
+      .ts-dense > .ts-crest.is-logo img, .ts-dense > .ts-crest.is-logo-light img { max-height: min(17svh, 66px); max-width: 160px; }
+      .ts-dense > .ts-crest.is-print img { max-height: min(22svh, 88px); }
+      .ts-dense > .ts-crest.is-arch img { height: min(24svh, 96px); }
+      .ts-dense > .ts-crest { margin-bottom: 14px; }
+      .ts-kicker { margin-bottom: 8px; }
+      .ts-kicker .ts-conn { font-size: 17px; }
+      .ts-s1 { --ts-base: clamp(34px, 5.2vw, 48px); }
+      .ts-s2 { --ts-base: clamp(30px, 4.2vw, 40px); }
+      .ts-s3 { --ts-base: clamp(24px, 3.3vw, 32px); }
+      .ts-title { margin-bottom: 10px; }
+      .ts-title .ts-num, .ts-title.ts-photo .ts-num { font-size: 1.6em; }
+      .ts-tagline { font-size: 15px; margin-bottom: 8px; }
+      .ts-tagline.ts-long { font-size: 14px; }
+      .ts-aside { font-size: 15px; }
+      .ts-aside.ts-long { margin-top: 14px; font-size: 14px; }
+      .when { padding: 6px 0; margin-bottom: 12px; }
+      .when p { padding: 6px 0; }
+      .when .a { grid-template-columns: minmax(calc(var(--lw) + 24px), 1fr) fit-content(9.3em); }
+      .rsvp { padding: 22px 18px 20px; }
+    }
+        @media (prefers-reduced-motion: reduce) { .ts-orn .ts-hair { animation: none !important; } * { transition: none !important; } }
   </style>
 </head>
 <body data-theme="letterpress-ceremony" data-shape="kids" class="is-preview">
-  <div class="preview-ribbon" aria-hidden="true">Preview</div>    <main class="sheet">
-            <svg class="crest " data-slot="Photo" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="none" stroke="#200F53" stroke-width="5"/><circle cx="38" cy="34" r="6.5" fill="#200F53"/><circle cx="58" cy="28" r="6.5" fill="#200F53"/><circle cx="60" cy="50" r="6.5" fill="#D88B5C"/></svg>  <p class="invite-line " data-slot="Host name"><b>Priya Raman</b><br />invited you to a party</p>
-  <h1 class="long " data-slot="Event name">Maya&#39;s 8th <span class="l2">Birthday</span></h1>
-  <p class="sub " data-slot="Tagline">Lanes, cake, and the good kind of chaos.</p>
-  <p class="note " data-slot="Note">the suite&#39;s ready for takeover</p>
-  <svg class="orn" width="58" height="16" viewBox="0 0 58 16" aria-hidden="true"><path d="M8 15 L13 5 L18 15 Z" fill="#D88B5C" opacity="0.65" /><path d="M24 15 L29 1 L34 15 Z" fill="#D88B5C" /><path d="M40 15 L45 5 L50 15 Z" fill="#D88B5C" opacity="0.65" /></svg>
+  <div class="preview-ribbon" aria-hidden="true">Preview</div>    <script>document.documentElement.classList.add('ts-js');</script>
+  <header class="ts-top">
+    <picture>
+      <source srcset="https://www.twistedpin.com/logo/twisted-pin-horizontal-white.webp" type="image/webp" />
+      <img class="ts-logo" src="https://www.twistedpin.com/logo/twisted-pin-horizontal-white.png" alt="Twisted Pin" width="360" height="154" />
+    </picture>
+  </header>
+  <main class="sheet">
+            <div class="ts-mast">
+          <div class="ts-orn" data-slot="Photo" aria-hidden="true"><span class="ts-hair"></span><svg width="42" height="21" viewBox="0 0 42 21"><path d="M0 21 L3 6 L6 21 Z" fill="#D88B5C" fill-opacity="0.45"/><path d="M9 18 L12 3 L15 18 Z" fill="#D88B5C" fill-opacity="0.7"/><path d="M18 15 L21 0 L24 15 Z" fill="#D88B5C" fill-opacity="1"/><path d="M27 18 L30 3 L33 18 Z" fill="#D88B5C" fill-opacity="0.7"/><path d="M36 21 L39 6 L42 21 Z" fill="#D88B5C" fill-opacity="0.45"/></svg><span class="ts-hair"></span></div>
+        <p class="ts-kicker" data-slot="Host name"><span class="ts-who">Priya Raman</span><span class="ts-conn">invited you to a party</span></p>
+    <h1 class="ts-title ts-s1" data-slot="Event name" style="--ts-mw: 8">Maya&#39;s 8th Birthday</h1>
+    <p class="ts-tagline" data-slot="Tagline">Lanes, cake, and the good kind of chaos.</p>
+    <p class="ts-aside" data-slot="Note">the suite&#39;s ready for takeover</p>
+  </div>
 
       <div class="when">
         <p class="d">Thursday, September 3, 2026</p>
@@ -124,6 +318,116 @@
     <p class="foot">
       Twisted Pin &middot; 15610 Joliet Rd, Plainfield, IL 60544    </p>
   </main>
+      <script>
+    (function () {
+      /* The crest: a person photo, a company logo or a flyer, and the page is
+         never told which. Transparent pixels = a logo. A flat graphic (an even
+         one-colour border, or a few flat colours covering most of it) = framed,
+         uncropped, whatever its shape. Only a tall upload with photo-like pixels
+         (0.58 to 0.92 wide-to-tall) goes in the gentle arch; a taller one (a 9:16
+         story) is framed whole. Unreadable pixels never guess: the uncropped
+         cream plate. */
+      var fig = document.querySelector('[data-ts-crest]');
+      if (!fig) return;
+      var img = fig.querySelector('img');
+      var settled = false;
+      function settle(kind) {
+        if (settled) return;
+        settled = true;
+        fig.classList.remove('is-pending');
+        fig.classList.add('is-' + kind);
+      }
+      function unread() { settle('plate'); }
+      /* 4-bit-per-channel colour bucket */
+      function key(px, i) { return ((px[i] >> 4) << 8) | ((px[i + 1] >> 4) << 4) | (px[i + 2] >> 4); }
+      /* Flat graphic: 85% of the outer 2px ring within a small distance of its
+         commonest colour, or the six commonest colours covering 80% of the
+         sample. Calibrated on the venue's own photos (ring at most 0.78, six colours
+         at most 0.63) against logos and flyers on a flat ground (0.97 / 0.91 and
+         up). A photo that trips it only loses the arch crop: it is framed whole. */
+      function isFlat(px, w, h) {
+        var ring = [], counts = {}, seen = 0, i, x, y, k;
+        for (y = 0; y < h; y++) {
+          for (x = 0; x < w; x++) {
+            i = (y * w + x) * 4;
+            if (px[i + 3] < 128) continue;
+            seen++;
+            k = key(px, i);
+            counts[k] = (counts[k] || 0) + 1;
+            if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) ring.push(i);
+          }
+        }
+        if (!seen) return false;
+        var ringCounts = {}, best = -1, bestN = 0;
+        for (x = 0; x < ring.length; x++) {
+          k = key(px, ring[x]);
+          ringCounts[k] = (ringCounts[k] || 0) + 1;
+          if (ringCounts[k] > bestN) { bestN = ringCounts[k]; best = k; }
+        }
+        if (ring.length) {
+          var mr = 0, mg = 0, mb = 0, mn = 0;
+          for (x = 0; x < ring.length; x++) {
+            if (key(px, ring[x]) !== best) continue;
+            mr += px[ring[x]]; mg += px[ring[x] + 1]; mb += px[ring[x] + 2]; mn++;
+          }
+          mr /= mn; mg /= mn; mb /= mn;
+          var near = 0;
+          for (x = 0; x < ring.length; x++) {
+            i = ring[x];
+            if (Math.max(Math.abs(px[i] - mr), Math.abs(px[i + 1] - mg), Math.abs(px[i + 2] - mb)) <= 24) near++;
+          }
+          if (near >= ring.length * 0.85) return true;
+        }
+        var tops = [];
+        for (k in counts) tops.push(counts[k]);
+        tops.sort(function (a, b) { return b - a; });
+        var six = 0;
+        for (x = 0; x < 6 && x < tops.length; x++) six += tops[x];
+        return six >= seen * 0.8;
+      }
+      function read(r) {
+        var p = new Image();
+        p.crossOrigin = 'anonymous';
+        p.onload = function () {
+          try {
+            var w = 48, h = Math.max(8, Math.min(96, Math.round(48 / r)));
+            var c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            var g = c.getContext('2d');
+            g.drawImage(p, 0, 0, w, h);
+            var px = g.getImageData(0, 0, w, h).data;
+            var clear = 0, light = 0, dark = 0;
+            for (var i = 0; i < px.length; i += 4) {
+              if (px[i + 3] < 128) { clear++; continue; }
+              var l = (0.2126 * px[i] + 0.7152 * px[i + 1] + 0.0722 * px[i + 2]) / 255;
+              if (l > 0.6) light++; else if (l < 0.3) dark++;
+            }
+            if (clear > w * h * 0.04) settle(light > dark ? 'logo-light' : 'logo');
+            else if (r >= 0.58 && r < 0.92 && !isFlat(px, w, h)) {
+              /* the arch takes the photo's own shape, within 0.66-0.8 */
+              fig.style.setProperty('--ts-ar', String(Math.min(0.8, Math.max(0.66, r))));
+              settle('arch');
+            }
+            else settle('print');
+          } catch (e) { unread(); }
+        };
+        p.onerror = unread;
+        p.src = img.currentSrc || img.src;
+      }
+      function start() {
+        var w = img.naturalWidth, h = img.naturalHeight;
+        if (!w || !h) { fig.style.display = 'none'; return; }
+        var r = w / h;
+        setTimeout(unread, 2500);
+        read(r);
+      }
+      if (img.complete) start();
+      else {
+        img.addEventListener('load', start);
+        img.addEventListener('error', function () { fig.style.display = 'none'; });
+      }
+    })();
+  </script>
     <script>
     /* Strip the post-RSVP flash param from the address bar so a guest copying
        the URL onward doesn't hand the next person a false "you're in" banner.
@@ -142,9 +446,14 @@
       if (!email || radios.length === 0) return;
       function sync() {
         var yes = document.querySelector('input[name="attending"][value="yes"]');
+        var no = document.querySelector('input[name="attending"][value="no"]');
         var coming = !!(yes && yes.checked);
+        var declining = !!(no && no.checked);
         email.required = coming;
-        if (opt) opt.hidden = coming;
+        // "(optional)" only once they have actually chosen can't-make-it; with
+        // nothing selected it says nothing (the first live host's page read
+        // "optional" to a guest who was about to say yes, 2026-08-30).
+        if (opt) opt.hidden = !declining;
       }
       for (var i = 0; i < radios.length; i++) {
         radios[i].addEventListener('change', sync);
