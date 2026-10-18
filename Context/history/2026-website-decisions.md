@@ -2497,3 +2497,7 @@ The invitations manual (`Context/session-handoffs/2026-08-28-invitations-product
 ## 2026-10-18 — Invite gallery: Answered Poster hidden
 
 tprs #442 hid the Answered Poster look from the host picker (Jon: "Ok let's hide it"). No real host ever picked it, it ignores host photos, and its giant numeral runs off a phone. `/invite-previews/` drops it to match: the entry is removed from `src/pages/invite-previews.astro` and from the LOOKS list in `scripts/render-invite-previews.cjs`, and its three renders are deleted, so a re-render won't bring them back. The look's id stays valid in tprs, so an old row that stored it would still render. The invitations manual records the change.
+
+## 2026-10-18 — Invite gallery: Eight O'Clock Cover note and city line
+
+tprs #443 changed the Eight O'Clock Cover look. The note is now a plain notice, with no quote marks and no host credit; Jon: "doesn't need a who quoted it". "Plainfield · Illinois" on the cover is bigger and full cream, so it reads over the bright photo. The look's three `/invite-previews/` renders were re-rendered from the merged templates, and the invitations manual records the ruling.
