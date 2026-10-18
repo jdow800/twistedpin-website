@@ -2505,3 +2505,7 @@ tprs #443 changed the Eight O'Clock Cover look. The note is now a plain notice, 
 ## 2026-10-18 — Invitations: the default VIP-party photo stays
 
 Jon saw a crop of the default invitation photo (`/snap/vip-energy-*`) that cut out the glitter "ARIA" letters, and kept the original: "I would rather keep the aria". Recorded as a ruling in the invitations manual, so it is not re-pitched.
+
+## 2026-10-18 — Invitations: the naming gate now covers "Email links to host"; the "takeover" copy stays
+
+tprs #444: the admin "Email links to host" email no longer sends the placeholder title or a guest link before the host names the event. It now matches the dashboard and the confirmation emails. Jon also skipped the audit's suggested rewrite of the "takeover" default copy. Both are recorded in the invitations manual.
