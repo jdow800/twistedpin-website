@@ -2493,3 +2493,7 @@ Validation: 128 food voice DOM scenarios. The 5 new ones are on `?usual` and the
 tprs #441 replaced the never-picked Letterpress Ceremony invitation look in place. It is now **Top Shelf**, a dressed-up evening look (warm black, copper trim, cocktail-menu date lines) for work, holiday and milestone events. Jon approved the mockup on 10-17. `/invite-previews/` now shows it: the three `letterpress-ceremony--*.html` renders were re-rendered from the merged tprs templates, and the label in `src/pages/invite-previews.astro` now reads "Top Shelf" with "Dressed up. Copper on black, your logo up top." The file names keep the id, because the look id did not change.
 
 The invitations manual (`Context/session-handoffs/2026-08-28-invitations-product-handoff.md`) now records the swap, how it handles uploads, and the corrected default look (Confetti Strike for every shape since 08-31).
+
+## 2026-10-18 — Invite gallery: Answered Poster hidden
+
+tprs #442 hid the Answered Poster look from the host picker (Jon: "Ok let's hide it"). No real host ever picked it, it ignores host photos, and its giant numeral runs off a phone. `/invite-previews/` drops it to match: the entry is removed from `src/pages/invite-previews.astro` and from the LOOKS list in `scripts/render-invite-previews.cjs`, and its three renders are deleted, so a re-render won't bring them back. The look's id stays valid in tprs, so an old row that stored it would still render. The invitations manual records the change.

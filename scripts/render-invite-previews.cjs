@@ -20,7 +20,7 @@ const shapes = {
   fundraiser: { shape:"fundraiser", title:"Awesome Organization Fundraiser Night", host_display_name:"Victoria Conner", tagline:"Bowl for a cause. Make sure to tell the front desk you are there for our fundraiser!", note:"lanes are first come, first served", max_party_size:12 },
   shower: { shape:"catered", title:"Danielle's Baby Shower", host_display_name:"Marisol Vega", tagline:"Good food, open lanes, nothing to clean up.", note:"come hungry", max_party_size:null },
 };
-const LOOKS = ["classic","confetti-strike","one-night-only","answered-poster","morning-light","letterpress-ceremony","eight-oclock-cover"]; const SHAPES = ["catered","kids","fundraiser"];
+const LOOKS = ["classic","confetti-strike","one-night-only","morning-light","letterpress-ceremony","eight-oclock-cover"]; const SHAPES = ["catered","kids","fundraiser"];
 const jobs = process.argv.length > 3 ? process.argv.slice(3).map(s => s.split(":")) : LOOKS.flatMap(l => SHAPES.map(s => [l, s]));
 for (const [theme, shape] of jobs) {
   const view = { ...base, ...shapes[shape], theme, photo_url: process.env.PHOTO || null };
