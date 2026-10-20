@@ -5,10 +5,15 @@
 // Booking-question form schemas per ADR-0030 §5/§5.1 (Slice 2).
 //
 // GET /api/products/:id/forms — the product's attached, show_in_checkout +
-//   active forms as a definition the renderer consumes at runtime (ADR-0030
-//   §5.1 — one generic data-driven renderer; no per-form build).
+//   active forms as a definition the Astro renderer consumes at runtime
+//   (ADR-0030 §5.1 — one generic data-driven renderer; no per-form build).
 // POST /api/checkout/convert — the convert body gains an optional `formAnswers`
 //   array; answers persist into `booking_form_answers` in the convert tx.
+//
+// Field casing is camelCase to match the existing /api response convention
+// (customer-flow.ts); the ADR prose used snake_case illustratively. These zod
+// schemas are the single source of truth consumed by the customer-frontend SPA
+// via z.infer per ADR-0012a §4.6 SD6.
 
 import { z } from "zod";
 
@@ -47,20 +52,34 @@ export const formFieldDefinitionSchema = z.object({
   options: z.array(z.string()),
   minSelections: z.number().int().nullable(),
   maxSelections: z.number().int().nullable(),
-  // per_unit_select derived-count config: N = max(1, ceil(quantity /
-  // countDivisor)), quantity = guest headcount or lane count. NULL elsewhere.
-  // The checkout renderer computes N from this + the lanes/guests already
-  // chosen in the wizard. Kept in lockstep with @tprs/shared-schemas/forms.ts.
+  /**
+   * per_unit_select derived-count config (2026-06): the field repeats its
+   * single-select N = max(1, ceil(quantity / countDivisor)) times, where
+   * quantity is the booking's guest headcount (`guest_count`) or lane count
+   * (`lane_count`). NULL on every other field. Exposed so the CHECKOUT renderer
+   * can compute N from the lanes/guests already chosen earlier in the wizard
+   * (the server still validates the derived count at convert).
+   */
   countSource: z.enum(["guest_count", "lane_count"]).nullable(),
   countDivisor: z.number().int().nullable(),
-  // per_unit MULTI-topping mode + free base (send-a-form "toppings per pizza").
-  // checkout is single-select only; mirrored to stay a true copy of canonical.
+  /**
+   * per_unit MULTI-topping mode + its free base option (e.g. "Cheese"), for the
+   * send-a-form "toppings per pizza" variant. Mirrored from the DB so the
+   * vendored website copy stays a true mirror; checkout is single-select only,
+   * so these don't affect the checkout renderer (perUnitMulti=false there).
+   */
   perUnitMulti: z.boolean(),
+  /** Optional during rollout; a role opts this single choice into lane pairing. */
+  perUnitRole: z.enum(["pizza", "pitcher"]).nullable().optional(),
   baseOption: z.string().nullable(),
   displayOrder: z.number().int(),
-  // Conditional visibility — render only when the field `visibleWhenFieldId`
-  // has an answer in `visibleWhenValues`. null = always visible. Kept in
-  // lockstep with @tprs/shared-schemas/forms.ts.
+  /**
+   * Conditional visibility: this field renders only when the field with id
+   * `visibleWhenFieldId` has an answer in `visibleWhenValues`. NULL = always
+   * visible. The renderer hides it (and skips its required-check) when the
+   * controlling field's current answer doesn't match; the server enforces the
+   * same rule at submit.
+   */
   visibleWhenFieldId: z.string().uuid().nullable(),
   visibleWhenValues: z.array(z.string()),
 });
@@ -90,5 +109,6 @@ export type ProductFormsResponse = z.infer<typeof productFormsResponseSchema>;
 export const formAnswerInputSchema = z.object({
   formFieldId: z.string().uuid(),
   value: z.string().min(1).max(5000),
+  unitIndex: z.number().int().positive().optional(),
 });
 export type FormAnswerInput = z.infer<typeof formAnswerInputSchema>;

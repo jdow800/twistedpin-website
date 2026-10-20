@@ -21,8 +21,10 @@ interface Props {
   onMarketingOptIn: (value: boolean) => void;
   /** For the ADR-0030 booking-question forms lookup. */
   productId: string;
+  productCode: number;
+  formAnswers: FormAnswerInput[];
   onFormAnswers: (answers: FormAnswerInput[]) => void;
-  /** Bubbles the booking-form's invalid field ids up so the wizard can gate the
+  /** Bubbles the booking-form's invalid control ids up so the wizard can gate the
    *  CTA + scroll to the first miss (was onFormValidityChange:boolean). */
   onFormInvalidIds: (ids: string[]) => void;
   /** Bumped by a failed Continue → reveal ALL required-field errors at once,
@@ -61,6 +63,8 @@ export default function GuestDetailsStep(props: Props) {
     marketingOptIn,
     onMarketingOptIn,
     productId,
+    productCode,
+    formAnswers,
     onFormAnswers,
     onFormInvalidIds,
     submitAttempt,
@@ -343,6 +347,8 @@ export default function GuestDetailsStep(props: Props) {
           first-miss scroll; reveals per-field errors on a failed Continue. */}
       <FormRenderer
         productId={productId}
+        productCode={productCode}
+        answers={formAnswers}
         onAnswersChange={handleAnswers}
         onInvalidIdsChange={onFormInvalidIds}
         submitAttempt={submitAttempt}

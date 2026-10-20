@@ -182,6 +182,14 @@ export function wizardReducer(
           action.size === null ? null : Math.max(1, Math.round(action.size)),
       };
     case "SELECT_PRODUCT":
+      if (state.product?.id === action.product.id && (action.product.code === 124 || action.product.code === 126)) {
+        const laneQty = clampQty(action.laneQty ?? state.laneQty, action.product);
+        return {
+          ...state, category: action.category, product: action.product, laneQty,
+          formAnswers: state.formAnswers.filter((a) => a.unitIndex === undefined || a.unitIndex <= laneQty),
+          step: "detail",
+        };
+      }
       return {
         ...state,
         category: action.category,
@@ -200,8 +208,14 @@ export function wizardReducer(
       };
     case "SET_SLOT":
       return { ...state, slot: action.slot };
-    case "SET_LANE_QTY":
-      return { ...state, laneQty: clampQty(action.qty, state.product) };
+    case "SET_LANE_QTY": {
+      const laneQty = clampQty(action.qty, state.product);
+      // Trim indexed lane pairs immediately, including cart edits on payment.
+      return {
+        ...state, laneQty,
+        formAnswers: state.formAnswers.filter((a) => a.unitIndex === undefined || a.unitIndex <= laneQty),
+      };
+    }
     case "SET_ADDON_QTY":
       return {
         ...state,

@@ -32,6 +32,7 @@ import type {
 } from "../../tprs/schemas";
 import { getProductForms, getSlotMaxUnits } from "../../tprs/client";
 import { perUnitCount } from "./FormRenderer";
+import { isIndexedField, indexedAnswersComplete } from "./formAnswers";
 import {
   bookingPageConfig,
   DEFAULT_QUANTITY_LABEL,
@@ -302,6 +303,10 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       for (const field of form.fields) {
         if (field.fieldType !== "per_unit_select") continue;
         const expected = perUnitCount(field, q);
+        if (isIndexedField(field)) {
+          if (!indexedAnswersComplete(field, state.formAnswers, expected)) return true;
+          continue;
+        }
         const have = state.formAnswers.filter(
           (a) => a.formFieldId === field.id,
         ).length;
@@ -592,6 +597,8 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
             dispatch({ type: "SET_MARKETING_OPT_IN", value })
           }
           productId={state.product.id}
+          productCode={state.product.code}
+          formAnswers={state.formAnswers}
           onFormAnswers={handleFormAnswers}
           onFormInvalidIds={setFormInvalidIds}
           submitAttempt={submitAttempt}

@@ -1,17 +1,12 @@
 // ADR-0030 §5.1 — the ONE generic, data-driven booking-question form renderer.
 // It draws whatever GET /api/products/:id/forms returns (no per-form build) and
-// emits the convert payload's `formAnswers` shape: a flat [{formFieldId, value}]
-// list, one entry per answered field, and ONE ENTRY PER CHECKED VALUE for a
-// checkbox_list (repeated formFieldId), matching booking_form_answers storage.
-//
-// Slice-1 reality: no bookable product currently has an attached
-// show_in_checkout form, so getProductForms returns 0 forms and this renders
-// nothing. It's wired now so it lights up automatically the moment a form is
-// attached (the renderer is its only intended home). Validation here is
-// light/advisory (required markers + checkbox_list min/max guards); the server
-// is authoritative at convert (form_answer_invalid 400) in Slice 2.
+// emits a flat answer list, one entry per choice. Server-configured NYE fields
+// also carry one-based unitIndex so a pizza and pitcher share purchased-pair
+// identity. The existing wizard owns that draft across step changes.
+// Server validation remains authoritative at convert; this component does not
+// change the separate payment preflight/recovery boundary.
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   formUploadUrl,
   getProductForms,
@@ -26,14 +21,20 @@ import type {
 // [link](url), <br>) so admin-authored form labels + help text render markup
 // instead of literal asterisks. Backend speaks the same dialect (emails/Stripe).
 import Markdown from "./Markdown";
+import {
+  answerMapFromInput, flattenAnswers, fieldVisible, reconcileAnswers,
+  isIndexedField, nyePairFields, unitControlId, type AnswerMap,
+} from "./formAnswers";
 
 /** Booking quantities a per_unit_select field's N is derived from. */
 export type UnitQuantities = { guest_count: number; lane_count: number };
 
 interface Props {
   productId: string;
+  productCode?: number;
+  answers: FormAnswerInput[];
   onAnswersChange: (answers: FormAnswerInput[]) => void;
-  /** Required+visible+unsatisfied field ids, in DISPLAY order (empty = complete).
+  /** Required+visible+unsatisfied control ids, in DISPLAY order (empty = complete).
    *  Replaces the old boolean onValidityChange — the wizard needs the ids (not
    *  just "complete?") so a failed Continue can scroll to the FIRST missed field.
    *  The server still backstops the full set at convert (form_answer_invalid). */
@@ -48,30 +49,8 @@ interface Props {
   unitQuantities?: UnitQuantities;
 }
 
-/** Internal answer state: fieldId → selected/entered values (array form). */
-type AnswerMap = Record<string, string[]>;
-
-/** Stable empty reference so the "nothing invalid" case (the common one) keeps
- *  the same identity across recomputes — the onInvalidIdsChange effect then
- *  bails instead of re-rendering the wizard on every keystroke once forms ship. */
+/** Stable empty reference avoids validity callback loops. */
 const EMPTY_IDS: string[] = [];
-
-function flatten(map: AnswerMap): FormAnswerInput[] {
-  const out: FormAnswerInput[] = [];
-  for (const [formFieldId, values] of Object.entries(map)) {
-    for (const value of values) {
-      if (value !== "") out.push({ formFieldId, value });
-    }
-  }
-  return out;
-}
-
-/** A field shows only when its controlling field's answer ∈ visibleWhenValues. */
-function fieldVisible(field: FormFieldDefinition, answers: AnswerMap): boolean {
-  if (!field.visibleWhenFieldId) return true;
-  const controlling = answers[field.visibleWhenFieldId] ?? [];
-  return controlling.some((a) => field.visibleWhenValues.includes(a));
-}
 
 /**
  * How many pickers a `per_unit_select` field renders: `max(1, ceil(quantity /
@@ -105,7 +84,8 @@ function requiredSatisfied(
       return values.length >= Math.max(1, field.minSelections ?? 1);
     case "per_unit_select":
       // Each of the N lane/guest pickers must be chosen (duplicates allowed).
-      return values.filter((v) => v !== "").length === (perUnitN ?? 1);
+      return Array.from({ length: perUnitN ?? 1 }, (_, i) => values[i] ?? "")
+        .every((value) => value !== "" && (!isIndexedField(field) || field.options.includes(value)));
     default:
       return (values[0] ?? "") !== "";
   }
@@ -113,13 +93,22 @@ function requiredSatisfied(
 
 export default function FormRenderer({
   productId,
+  productCode,
+  answers: inputAnswers,
   onAnswersChange,
   onInvalidIdsChange,
   submitAttempt,
   unitQuantities,
 }: Props) {
   const [forms, setForms] = useState<FormDefinition[] | null>(null);
-  const [answers, setAnswers] = useState<AnswerMap>({});
+  // Unconfigured legacy per-unit fields still have no index on the wire. Keep
+  // their empty local positions while editing, exactly as before this change.
+  // NYE opted-in answers need no local copy: the wizard stores their indices.
+  const [legacySlots, setLegacySlots] = useState<AnswerMap>({});
+  const answers = useMemo(
+    () => ({ ...answerMapFromInput(inputAnswers, forms ?? []), ...legacySlots }),
+    [inputAnswers, forms, legacySlots],
+  );
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<Record<string, string>>({});
 
@@ -132,41 +121,12 @@ export default function FormRenderer({
   useEffect(() => {
     const ctrl = new AbortController();
     setForms(null);
-    setAnswers({});
+    setLegacySlots({});
     getProductForms(productId, ctrl.signal)
-      .then((res) => setForms(res.forms))
-      .catch(() => setForms([])); // forms are optional — never block on failure
+      .then((res) => { if (!ctrl.signal.aborted) setForms(res.forms); })
+      .catch(() => { if (!ctrl.signal.aborted) setForms([]); }); // forms are optional — never block on failure
     return () => ctrl.abort();
   }, [productId]);
-
-  // Bubble the flattened answers up whenever they change.
-  useEffect(() => {
-    onAnswersChange(flatten(answers));
-  }, [answers, onAnswersChange]);
-
-  // Clear answers for fields hidden by their condition, so a stale answer from a
-  // now-hidden field isn't submitted. Guarded so it converges (only setAnswers
-  // when something actually changes).
-  useEffect(() => {
-    if (!forms) return;
-    let changed = false;
-    const next: AnswerMap = { ...answers };
-    for (const form of forms) {
-      for (const field of form.fields) {
-        if (!field.visibleWhenFieldId || (next[field.id]?.length ?? 0) === 0)
-          continue;
-        const controlling = next[field.visibleWhenFieldId] ?? [];
-        const visible = controlling.some((a) =>
-          field.visibleWhenValues.includes(a),
-        );
-        if (!visible) {
-          next[field.id] = [];
-          changed = true;
-        }
-      }
-    }
-    if (changed) setAnswers(next);
-  }, [answers, forms]);
 
   // How many pickers each per_unit_select field needs, from the lanes/guests
   // chosen earlier. Keyed on primitive counts (not the object) so it only
@@ -184,26 +144,46 @@ export default function FormRenderer({
     }
     return m;
   }, [forms, guestCount, laneCount]);
+  // Async uploads may finish after another answer changed. Apply their update
+  // to the current draft rather than the render that started the upload.
+  const draftRef = useRef({ answers, forms, unitCounts });
+  draftRef.current = { answers, forms, unitCounts };
 
-  // When N shrinks (guest reduced lanes/guests), drop the now-out-of-range slot
-  // answers so a stale pick can't survive into convert and over-count. Functional
-  // setState (no `answers` dep) keeps this from looping.
   useEffect(() => {
-    setAnswers((prev) => {
+    setLegacySlots((prev) => {
+      const next = { ...prev };
       let changed = false;
-      const next: AnswerMap = { ...prev };
-      for (const [fieldId, n] of Object.entries(unitCounts)) {
-        const cur = prev[fieldId];
-        if (cur && cur.length > n) {
-          next[fieldId] = cur.slice(0, n);
+      for (const field of forms?.flatMap((form) => form.fields) ?? []) {
+        if (next[field.id] && !fieldVisible(field, answers)) {
+          delete next[field.id];
+          changed = true;
+        }
+      }
+      for (const [id, n] of Object.entries(unitCounts)) {
+        if ((next[id]?.length ?? 0) > n) {
+          next[id] = next[id].slice(0, n);
           changed = true;
         }
       }
       return changed ? next : prev;
     });
-  }, [unitCounts]);
+  }, [unitCounts, forms, answers]);
 
-  // Required+visible+unsatisfied field ids, in DISPLAY order. Sorted by
+  // One existing wizard draft is authoritative. Reconcile after definitions load
+  // and when quantity/visibility changes; a remount never emits an empty draft.
+  useEffect(() => {
+    if (!forms?.length) return;
+    const next = flattenAnswers(reconcileAnswers(answers, forms, unitCounts), forms);
+    if (JSON.stringify(next) !== JSON.stringify(inputAnswers)) onAnswersChange(next);
+  }, [answers, forms, unitCounts, inputAnswers, onAnswersChange]);
+
+  function setAnswers(update: (prev: AnswerMap) => AnswerMap) {
+    const current = draftRef.current;
+    if (!current.forms) return;
+    onAnswersChange(flattenAnswers(reconcileAnswers(update(current.answers), current.forms, current.unitCounts), current.forms));
+  }
+
+  // Required+visible+unsatisfied control ids, in DISPLAY order. Sorted by
   // displayOrder to MATCH the render loop below — a boolean could iterate
   // unsorted, but "first invalid" (the scroll target) must be the visually
   // first one. (Loading → []; near-instant fetch + server backstop at convert.)
@@ -211,16 +191,31 @@ export default function FormRenderer({
     if (!forms) return EMPTY_IDS;
     const ids: string[] = [];
     for (const form of forms) {
+      const pair = nyePairFields(form, productCode);
+      const visiblePair = pair && fieldVisible(pair.pizza, answers) && fieldVisible(pair.pitcher, answers) ? pair : null;
+      let pairChecked = false;
       for (const field of [...form.fields].sort(
         (a, b) => a.displayOrder - b.displayOrder,
       )) {
+        if (visiblePair && (field.id === visiblePair.pizza.id || field.id === visiblePair.pitcher.id)) {
+          if (!pairChecked) {
+            for (let i = 0; i < (unitCounts[visiblePair.pizza.id] ?? 1); i++) {
+              for (const paired of [visiblePair.pizza, visiblePair.pitcher]) {
+                if (paired.required && !paired.options.includes(answers[paired.id]?.[i] ?? "")) ids.push(unitControlId(paired.id, i));
+              }
+            }
+            pairChecked = true;
+          }
+          continue;
+        }
         if (!field.required || !fieldVisible(field, answers)) continue;
-        if (!requiredSatisfied(field, answers[field.id] ?? [], unitCounts[field.id]))
+        if (!requiredSatisfied(field, answers[field.id] ?? [], unitCounts[field.id])) {
           ids.push(field.id);
+        }
       }
     }
     return ids.length ? ids : EMPTY_IDS;
-  }, [forms, answers, unitCounts]);
+  }, [forms, answers, unitCounts, productCode]);
   useEffect(() => {
     onInvalidIdsChange?.(invalidIds);
   }, [invalidIds, onInvalidIdsChange]);
@@ -277,9 +272,15 @@ export default function FormRenderer({
   }
 
   // One slot of a per_unit_select field (slot `index` = lane/guest #index+1).
-  // Empty slots are stored as "" (dense array) so flatten() drops them and the
-  // required-check counts only filled slots; convert enforces "exactly N".
+  // Blank slots stay dense; flattenAnswers assigns the ordinal before filtering.
   function setPerUnitSlot(fieldId: string, index: number, value: string) {
+    const field = forms?.flatMap((form) => form.fields).find((f) => f.id === fieldId);
+    if (field && !isIndexedField(field)) {
+      const cur = [...(answers[fieldId] ?? [])];
+      while (cur.length <= index) cur.push("");
+      cur[index] = value;
+      setLegacySlots((prev) => ({ ...prev, [fieldId]: cur }));
+    }
     setAnswers((prev) => {
       const cur = [...(prev[fieldId] ?? [])];
       while (cur.length <= index) cur.push("");
@@ -641,17 +642,81 @@ export default function FormRenderer({
     }
   }
 
+  function renderPairs(pizza: FormFieldDefinition, pitcher: FormFieldDefinition) {
+    const n = unitCounts[pizza.id] ?? 1;
+    return (
+      <section className="tprs-nye-pairs" key={`pairs-${pizza.id}`} aria-label="Your pizza and pitcher choices">
+        <p className="tprs-help">All pizzas include cheese. Choose from the included options below. Food substitutions aren't available for NYE packages.</p>
+        {Array.from({ length: n }, (_, i) => {
+          const pizzaId = unitControlId(pizza.id, i);
+          const pitcherId = unitControlId(pitcher.id, i);
+          const pizzaValue = answers[pizza.id]?.[i] ?? "";
+          const pitcherValue = answers[pitcher.id]?.[i] ?? "";
+          const pizzaInvalid = showAll && pizza.required && !pizza.options.includes(pizzaValue);
+          const pitcherInvalid = showAll && pitcher.required && !pitcher.options.includes(pitcherValue);
+          return (
+            <section className="tprs-nye-pair" key={i} aria-labelledby={`${pizzaId}-title`}>
+              <h4 id={`${pizzaId}-title`}>Pizza &amp; pitcher {i + 1} of {n}</h4>
+              <fieldset className={`tprs-field${pizzaInvalid ? " is-invalid" : ""}`}>
+                <legend className="tprs-label">Pizza {i + 1}{pizza.required && <span className="tprs-req"> *</span>}</legend>
+                {pizza.options.map((option, j) => (
+                  <label className="tprs-choice" key={option}>
+                    <input
+                      id={j === 0 ? pizzaId : `${pizzaId}-option-${j}`}
+                      name={pizzaId}
+                      type="radio"
+                      value={option}
+                      checked={pizzaValue === option}
+                      aria-invalid={pizzaInvalid || undefined}
+                      aria-describedby={pizzaInvalid ? `${pizzaId}-err` : undefined}
+                      onChange={() => setPerUnitSlot(pizza.id, i, option)}
+                    />
+                    <span>{option === "Cheese" ? "Cheese only" : option}</span>
+                  </label>
+                ))}
+                {pizzaInvalid && <p className="tprs-field-error" id={`${pizzaId}-err`}>Choose pizza {i + 1}.</p>}
+              </fieldset>
+              <div className="tprs-field">
+                <label className="tprs-label" htmlFor={pitcherId}>Pitcher {i + 1}{pitcher.required && <span className="tprs-req"> *</span>}</label>
+                <select
+                  id={pitcherId}
+                  className={`tprs-select${pitcherInvalid ? " is-invalid" : ""}`}
+                  value={pitcherValue}
+                  aria-invalid={pitcherInvalid || undefined}
+                  aria-describedby={pitcherInvalid ? `${pitcherId}-err` : undefined}
+                  onChange={(e) => setPerUnitSlot(pitcher.id, i, e.currentTarget.value)}
+                >
+                  <option value="">Choose your soda</option>
+                  {pitcher.options.map((option) => <option key={option} value={option}>{option}</option>)}
+                </select>
+                {pitcherInvalid && <p className="tprs-field-error" id={`${pitcherId}-err`}>Choose soda for pitcher {i + 1}.</p>}
+              </div>
+            </section>
+          );
+        })}
+      </section>
+    );
+  }
+
   return (
     <>
-      {forms.map((form) => (
-        <div className="tprs-form-block" key={form.id}>
-          {form.title && <h3 className="tprs-form-title">{form.title}</h3>}
-          {[...form.fields]
-            .sort((a, b) => a.displayOrder - b.displayOrder)
-            .filter(isFieldVisible)
-            .map(renderField)}
-        </div>
-      ))}
+      {forms.map((form) => {
+        const pair = nyePairFields(form, productCode);
+        const visiblePair = pair && isFieldVisible(pair.pizza) && isFieldVisible(pair.pitcher) ? pair : null;
+        const fields = [...form.fields].sort((a, b) => a.displayOrder - b.displayOrder).filter(isFieldVisible);
+        const firstPairId = fields.find((f) => visiblePair && (f.id === visiblePair.pizza.id || f.id === visiblePair.pitcher.id))?.id;
+        return (
+          <div className="tprs-form-block" key={form.id}>
+            {form.title && <h3 className="tprs-form-title">{form.title}</h3>}
+            {fields.map((field) => {
+              if (visiblePair && (field.id === visiblePair.pizza.id || field.id === visiblePair.pitcher.id)) {
+                return field.id === firstPairId ? renderPairs(visiblePair.pizza, visiblePair.pitcher) : null;
+              }
+              return renderField(field);
+            })}
+          </div>
+        );
+      })}
     </>
   );
 }
