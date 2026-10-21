@@ -6,7 +6,7 @@ Jon selected **Mirrorball** on October 21, 2026: “mirror ball for sure.” Thi
 
 The protected comparison was released in Website `fc1d2c6752ca0d8e3dbac5ff5e36323c0c7d296b`, Vercel `dpl_Ggo8PRMcvP2kvXnxxdgGJGDcShCQ` (READY), after independent gate review, full build and 27 live checks. Live mobile and desktop captures were visually reviewed. Public review URL: `https://www.twistedpin.com/nye-homepage-concepts/`, using the existing Jingle review password/session.
 
-The public homepage campaign is not activated. December 7 remains the proposed NYE homepage handoff after Jingle through December 6, to be coordinated through one shared campaign policy. NYE reservations still open November 18 at 9am Chicago; creative selection does not change sales opening.
+Jon also confirmed the homepage start date: **December 7, 2026**, venue time (America/Chicago). Mirrorball takes the homepage lead after Jingle through December 6. The shared campaign scheduling/integration still needs implementation and boundary verification; the public homepage campaign is not activated or scheduled by this documentation change. NYE reservations still open November 18 at 9am Chicago.
 
 Worktree: `C:/Users/jdow8/dev/tprs/.claude/worktrees/nye-homepage-options-20261021`
 
@@ -34,7 +34,7 @@ The invitation is below the logo/menu and above the homepage headline. Settled c
 - Pause applies to both entrance and video. Explicit replay resumes motion unless reduced motion is active.
 - System reduced motion and the review toggle use static invitation/poster. No-JS retains a static usable invitation.
 - Dismissal hides the invitation and restores focus to the review Replay button; it does not cover or change the ordinary booking controls.
-- Working homepage campaign lead is **December 7, after Jingle Bowl through December 6 in Chicago**. This remains a design assumption for later shared campaign policy. NYE sales opening stays **November 18 at 9am Central**. No scheduling code is changed here.
+- Confirmed homepage campaign lead is **December 7, after Jingle Bowl through December 6 in Chicago**. Implement it through one shared campaign policy. NYE sales opening stays **November 18 at 9am Central**. No scheduling code is changed here.
 - No edits to Jingle components, homepage, seasonal configuration, booking or API code. Shared review integration is limited to the exact route additions listed above; the root `.js` import is preserved.
 
 ## Review and reproduction

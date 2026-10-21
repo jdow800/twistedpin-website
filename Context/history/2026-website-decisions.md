@@ -1,3 +1,7 @@
+## 2026-10-21 - December 7 confirmed for NYE homepage lead
+
+Jon confirmed “Dec 7 is locked in.” Mirrorball becomes the approved homepage lead starting December 7, 2026, in America/Chicago, following Jingle through December 6. Coordinate one shared campaign policy so the promotions cannot overlap. Implementation and date-boundary checks remain pending; this note does not activate or schedule the homepage component. The separate NYE sales opening stays November 18 at 9am Chicago. Both Jingle and holiday/Roy owners were informed.
+
 ## 2026-10-21 - Mirrorball selected for NYE homepage promotion
 
 Jon selected Mirrorball from the protected homepage concepts: “mirror ball for sure.” Keep the brief entrance and compact NYE invitation over the existing hero video, with navigation, ordinary booking actions, dismissal and reduced motion preserved. The protected comparison is already live at `/nye-homepage-concepts/` from `fc1d2c6`; the public homepage campaign is not activated. December 7 remains the proposed handoff after Jingle through December 6, subject to the shared campaign policy. NYE sales opening remains November 18 at 9am Chicago. Selection was relayed to both the Jingle and holiday/Roy owners. See `Context/session-handoffs/2026-10-21-nye-homepage-options.md`.
