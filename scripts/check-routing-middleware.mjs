@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { stripTypeScriptTypes } from "node:module";
 import { pathToFileURL, fileURLToPath } from "node:url";
-import { join, dirname } from "node:path";
+import { join, dirname, relative, isAbsolute } from "node:path";
 import { randomBytes } from "node:crypto";
 
 const root = fileURLToPath(new URL("../", import.meta.url));
@@ -87,5 +87,7 @@ try {
     if (value === undefined) delete process.env[key]; else process.env[key] = value;
   }
   // Only remove the unique temporary directory created under this worktree.
+  const cleanupPath = relative(scratchRoot, scratch);
+  assert.ok(cleanupPath && !cleanupPath.startsWith("..") && !isAbsolute(cleanupPath));
   await rm(scratch, { recursive: true, force: true });
 }
