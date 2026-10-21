@@ -2674,3 +2674,9 @@ staffed intervals, which are currently empty. Jingle's protected review URL and
 tentative session/30-minute cutoff facts remain withheld. NYE's November 18 at 9am
 Central opening is recorded; an elapsed timestamp does not prove booking readiness.
 This does not activate event products, menus, availability, sales or marketing.
+
+## 2026-10-21 — Local NYE homepage invitation options
+
+Jon requested a separate NYE design review following the Jingle entrance exploration. Three compact treatments sit below the logo/menu: a mirrorball glint, a typographic 2027 reveal and a restrained sparkle. All retain the existing homepage hero videos, headline and ordinary booking controls. Options have replay, pause/resume, dismissal and reduced-motion handling. The new route is DEV-only and returns 404 in production until an approved protected integration exists; no Jingle/shared-auth/homepage/booking/config files are changed.
+
+Working homepage lead is December 7 after Jingle Bowl through December 6 in Chicago. This is a review assumption, not an activated campaign rule, and it does not change the November 18 at 9am NYE sales opening. Source, boundaries and reproduction are recorded in `Context/session-handoffs/2026-10-21-nye-homepage-options.md`.

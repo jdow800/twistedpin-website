@@ -1,0 +1,128 @@
+---
+import { PLAN_EVENT_URL } from '../../lib/links';
+const options = [
+  { id: 'disco', number: '01', label: 'Mirrorball', note: 'A glint of the night ahead' },
+  { id: 'midnight', number: '02', label: 'Hello, 2027', note: 'Bold type. One quick reveal.' },
+  { id: 'spark', number: '03', label: 'A little sparkle', note: 'The quietest invitation' },
+];
+---
+<div class="nye-review" data-nye-home-review>
+  <div class="nye-options" role="group" aria-label="Choose a homepage treatment">
+    {options.map((option, index) => <button type="button" data-nye-option={option.id} aria-pressed={index === 0 ? 'true' : 'false'}><span>{option.number} · {option.label}</span><small>{option.note}</small></button>)}
+  </div>
+  <div class="nye-review-controls">
+    <button type="button" data-nye-replay>Replay entrance <span aria-hidden="true">↻</span></button>
+    <button type="button" data-nye-pause aria-pressed="false">Pause motion</button>
+    <button type="button" data-nye-wide aria-pressed="false">Desktop preview</button>
+    <label><input type="checkbox" data-nye-reduce /> Reduced motion</label>
+  </div>
+  <div class="nye-review-layout" data-nye-layout="mobile">
+    <div class="nye-home-frame" data-nye-mode="disco" data-nye-entrance="settled" data-nye-paused="false" aria-label="Homepage design preview">
+      <div class="nye-home-nav"><img src="/logo/twisted-pin-horizontal-white.webp" width="180" height="77" alt="Twisted Pin" /><div class="nye-desktop-nav" aria-label="Desktop navigation placement">BAR <span>EAT</span> <span>BOWL</span> <span>EVENTS</span></div><div class="nye-desktop-actions"><a href="/reserve/">Reserve a lane</a><a href={PLAN_EVENT_URL}>Plan an event</a></div><button type="button" class="nye-home-menu" aria-label="Open preview menu" aria-expanded="false"><i></i><i></i></button></div>
+      <div class="nye-menu-panel" hidden><a href="/bar/">Bar</a><a href="/bowl/">Bowl</a><a href="/upcoming-events/">Upcoming events</a><p>Menu placement preview</p></div>
+      <div class="nye-home-hero">
+        <video class="nye-home-video" muted loop playsinline preload="none" poster="/hero/hero-poster.webp" aria-hidden="true"><source data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" /></video>
+        <div class="nye-home-scrim" aria-hidden="true"></div>
+        <div class="nye-promo-stage">
+          <div class="nye-invitation" data-nye-invitation>
+            <div class="nye-art nye-art-disco" aria-hidden="true">
+              <svg viewBox="0 0 100 116" fill="none"><defs><radialGradient id="nye-mirror-silver" cx=".3" cy=".25" r=".8"><stop stop-color="#f4efe3"/><stop offset=".38" stop-color="#a9bfca"/><stop offset=".7" stop-color="#496577"/><stop offset="1" stop-color="#1a233e"/></radialGradient><clipPath id="nye-mirror-clip"><circle cx="50" cy="65" r="37"/></clipPath></defs><path d="M50 0v27" stroke="#b7c6cd" stroke-width="1.2"/><circle cx="50" cy="65" r="37" fill="url(#nye-mirror-silver)" stroke="#e9e5e2"/><g clip-path="url(#nye-mirror-clip)" stroke="#18223c" stroke-width="1.5" opacity=".8"><path d="M13 43h74M13 54h74M13 65h74M13 76h74M13 87h74M50 28v74"/><ellipse cx="50" cy="65" rx="13" ry="37"/><ellipse cx="50" cy="65" rx="28" ry="37"/></g><path d="m30 37 3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fffaf0" class="nye-glint"/><path d="m79 77 2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#4eecc4"/></svg>
+            </div>
+            <div class="nye-art nye-art-year" aria-hidden="true"><span>20</span><span>27</span><i></i></div>
+            <div class="nye-art nye-art-spark" aria-hidden="true"><svg viewBox="0 0 80 80" fill="none"><g stroke="#4eecc4" stroke-linecap="round"><path d="M40 4v19M40 57v19M4 40h19M57 40h19M14 14l13 13M53 53l13 13M14 66l13-13M53 27l13-13" stroke-width="2"/><path d="m26 8 5 13m18 38 5 13M8 26l13 5m38 18 13 5M8 54l13-5m38-18 13-5M26 72l5-13m18-38 5-13" opacity=".4"/></g><path d="m40 27 4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#f4efe3"/></svg></div>
+            <a class="nye-invitation-link" href="/new-years-eve/" data-nye-promo-link><span class="nye-invitation-kicker">DECEMBER 31</span><strong data-nye-invitation-title>NYE. DONE RIGHT.</strong><span class="nye-invitation-action">See NYE parties <span aria-hidden="true">→</span></span></a>
+            <button type="button" class="nye-dismiss" aria-label="Dismiss New Year's Eve invitation">×</button>
+          </div>
+        </div>
+        <div class="nye-home-copy"><h2>BUILT FOR ADULTS.<br />FINE, BRING THE KIDS.</h2><p>Plainfield’s premier night out. Bowling optional.</p></div>
+      </div>
+      <div class="nye-home-booking"><a href="/reserve/">Reserve a lane</a><a href={PLAN_EVENT_URL}>Plan an event</a></div>
+    </div>
+    <aside class="nye-option-explanation"><p class="nye-explanation-kicker">01 / MIRRORBALL</p><h2 data-nye-option-heading>A glint.<br />Then an invitation.</h2><p data-nye-option-description>A small mirrorball drops below the header, catches the light once, then settles beside a clear New Year’s Eve link.</p><dl><div><dt>Entrance</dt><dd data-nye-duration>1.7 seconds, once</dd></div><div><dt>What stays</dt><dd>A compact NYE invitation</dd></div><div><dt>Tap ×</dt><dd>The invitation disappears</dd></div></dl><p class="nye-status" data-nye-status role="status">Preview only. Your homepage video stays.</p><p class="nye-review-fine">The logo, menu, homepage headline and ordinary booking actions keep their place. No countdown, price or availability claim in this small message.</p></aside>
+  </div>
+</div>
+<style>
+  .nye-review{--nye-ink:#100b23;--nye-text:#f4efe3;--nye-accent:#4eecc4;color:var(--nye-text)}.nye-review [hidden]{display:none!important}.nye-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}.nye-options button{min-width:0;min-height:76px;padding:16px 18px;text-align:left;border:1px solid #ffffff30;border-radius:7px;background:#1c1434;color:var(--nye-text);cursor:pointer;font:700 14px/1.4 var(--font-ui)}.nye-options small{display:block;color:#cbc5db;font-size:12px;font-weight:400;margin-top:6px}.nye-options [aria-pressed=true]{border-color:var(--nye-accent);box-shadow:inset 0 0 0 1px var(--nye-accent)}.nye-review-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:24px}.nye-review-controls button{min-height:44px;border:1px solid #ffffff50;border-radius:7px;padding:10px 14px;background:transparent;color:var(--nye-text);font:700 12px/1.4 var(--font-ui);cursor:pointer}.nye-review-controls button:first-child{color:var(--nye-ink);background:var(--nye-accent);border-color:var(--nye-accent)}.nye-review-controls button span{padding-left:10px}.nye-review-controls label{min-height:44px;display:flex;align-items:center;gap:8px;font:500 12px/1.4 var(--font-ui);cursor:pointer}.nye-review-controls input{width:19px;height:19px;accent-color:var(--nye-accent)}.nye-review :is(button,a,input):focus-visible{outline:2px solid var(--nye-accent);outline-offset:4px}.nye-review-layout{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:clamp(30px,6vw,80px);align-items:center}
+  .nye-home-frame{height:760px;position:relative;isolation:isolate;background:var(--nye-ink);border:1px solid #ffffff38;border-radius:20px;overflow:hidden;container-type:inline-size;box-shadow:0 24px 64px #0005}.nye-home-nav{height:64px;padding:0 18px;display:flex;align-items:center;justify-content:space-between;background:#120c26;position:relative;z-index:5;border-bottom:1px solid #ffffff20;gap:16px}.nye-home-nav img{width:140px;height:auto}.nye-home-menu{flex-shrink:0;width:44px;height:44px;border:1px solid #ffffff40;border-radius:7px;background:transparent;display:grid;place-content:center;gap:6px;cursor:pointer}.nye-home-menu i{height:1px;width:21px;background:var(--nye-text)}.nye-desktop-nav,.nye-desktop-actions{display:none}.nye-menu-panel{position:absolute;top:64px;left:0;right:0;z-index:7;background:#120c26;padding:18px 24px;box-shadow:0 15px 20px #0005}.nye-menu-panel a{display:block;color:var(--nye-text);font:700 16px/1.5 var(--font-ui);min-height:44px;text-decoration:none;padding:8px 0}.nye-menu-panel p{font:400 12px/1.5 var(--font-ui);color:#cbc5db;margin:8px 0}.nye-home-hero{position:absolute;inset:64px 0 0}.nye-home-video,.nye-home-scrim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.nye-home-scrim{background:linear-gradient(180deg,#100b2310 20%,#100b2300 48%,#100b23e8 82%,#100b23)}.nye-home-copy{position:absolute;bottom:106px;left:20px;right:20px}.nye-home-copy h2{font:900 clamp(32px,10.8cqi,46px)/1.02 var(--font-display);letter-spacing:-.015em;margin:0}.nye-home-copy p{font:400 16px/1.5 var(--font-body);max-width:340px;margin:12px 0 0}.nye-home-booking{position:absolute;bottom:12px;left:12px;right:12px;z-index:6;display:flex;gap:8px;background:#100b23ee;border:1px solid #ffffff30;padding:8px;border-radius:9px}.nye-home-booking a,.nye-desktop-actions a{min-height:48px;flex:1;min-width:0;display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;border:1px solid var(--nye-text);border-radius:7px;font:700 12px/1.3 var(--font-ui);color:var(--nye-text);padding:8px}.nye-home-booking a:first-child,.nye-desktop-actions a:first-child{color:var(--nye-ink);background:var(--nye-accent);border-color:var(--nye-accent)}
+  .nye-promo-stage{position:absolute;top:12px;left:12px;right:12px;z-index:2;height:160px;pointer-events:none}.nye-invitation{position:absolute;top:21px;left:0;right:0;min-height:116px;border:1px solid #97bab888;background:#170f32f5;border-radius:10px;box-shadow:0 12px 32px #0005;pointer-events:auto}.nye-invitation-link{display:block;text-decoration:none;color:var(--nye-text);padding:17px 40px 17px 95px;min-height:116px;box-sizing:border-box}.nye-invitation-kicker{display:block;font:700 12px/1.35 var(--font-ui);letter-spacing:.07em;color:#d9d2e7}.nye-invitation-link strong{display:block;margin:5px 0 8px;font:900 clamp(24px,7.5cqi,31px)/1 var(--font-display);letter-spacing:-.01em}.nye-invitation-action{display:block;color:var(--nye-accent);font:700 12px/1.5 var(--font-ui)}.nye-invitation-action span{padding-left:6px}.nye-dismiss{position:absolute;right:0;top:0;width:44px;height:44px;border:0;border-radius:9px;background:transparent;color:#d9d2e7;font:400 26px/1 var(--font-ui);cursor:pointer}.nye-art{position:absolute;pointer-events:none}.nye-art-disco{top:-32px;left:1px;width:94px;height:112px;transform-origin:50% 0}.nye-art svg{width:100%;height:100%}.nye-art-year{display:none;top:16px;left:17px;width:59px;color:#f4efe3;font:900 44px/.82 var(--font-display);letter-spacing:-.04em}.nye-art-year span{display:block}.nye-art-year span+span{color:var(--nye-accent)}.nye-art-year i{position:absolute;height:1px;left:0;right:0;top:36px;background:#100b23}.nye-art-spark{display:none;width:65px;height:65px;left:14px;top:23px}.nye-glint{transform-origin:30px 48px}
+  [data-nye-mode=midnight] .nye-art-disco,[data-nye-mode=spark] .nye-art-disco{display:none}[data-nye-mode=midnight] .nye-art-year{display:block}[data-nye-mode=midnight] .nye-invitation{border-color:#8b73bb;background:#200f53f5;border-radius:7px}[data-nye-mode=midnight] .nye-invitation-link{padding-left:93px}[data-nye-mode=spark] .nye-art-spark{display:block}[data-nye-mode=spark] .nye-invitation{border-color:#fff5;background:#100b23dd;backdrop-filter:blur(12px)}[data-nye-mode=spark] .nye-invitation-link{padding-left:94px}
+  [data-nye-entrance=entering] .nye-invitation{animation:nye-invite-in 600ms ease-out both}[data-nye-entrance=entering][data-nye-mode=disco] .nye-art-disco{animation:nye-disco-drop 1700ms cubic-bezier(.2,.7,.3,1) both}[data-nye-entrance=entering] .nye-glint{animation:nye-one-glint 800ms 650ms ease both}[data-nye-entrance=entering][data-nye-mode=midnight] .nye-art-year{animation:nye-year-reveal 1100ms cubic-bezier(.2,.7,.3,1) both}[data-nye-entrance=entering][data-nye-mode=spark] .nye-art-spark{animation:nye-spark-reveal 1400ms ease-out both}[data-nye-paused=true] *{animation-play-state:paused!important}.nye-review[data-reduced=true] .nye-invitation,.nye-review[data-reduced=true] .nye-art,.nye-review[data-reduced=true] .nye-glint{animation:none!important}
+  .nye-option-explanation{max-width:480px}.nye-explanation-kicker{font:700 12px/1.5 var(--font-ui);letter-spacing:.1em;color:#cbc5db;margin:0 0 18px}.nye-option-explanation h2{font:900 clamp(40px,4.8vw,64px)/1 var(--font-display);letter-spacing:-.015em;margin:0 0 22px}.nye-option-explanation>p:not(.nye-explanation-kicker){font:400 16px/1.7 var(--font-body);color:#d9d2e7}.nye-option-explanation dl{margin:24px 0}.nye-option-explanation dl>div{display:grid;grid-template-columns:105px 1fr;gap:14px;padding:11px 0;border-top:1px solid #ffffff25;font:400 14px/1.5 var(--font-ui)}.nye-option-explanation dt{font-weight:700}.nye-option-explanation dd{margin:0;color:#d9d2e7}.nye-option-explanation .nye-status{font:700 13px/1.6 var(--font-ui)!important}.nye-option-explanation .nye-review-fine{font:400 13px/1.7 var(--font-ui)!important;color:#cbc5db!important}
+  @keyframes nye-invite-in{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}@keyframes nye-disco-drop{0%{transform:translateY(-90px) rotate(16deg)}50%{transform:translateY(0) rotate(-8deg)}75%{transform:rotate(3deg)}100%{transform:none}}@keyframes nye-one-glint{0%,100%{opacity:.6;transform:scale(.8)}55%{opacity:1;transform:scale(1.35)}}@keyframes nye-year-reveal{from{opacity:0;transform:translateY(12px) rotateX(-40deg)}to{opacity:1;transform:none}}@keyframes nye-spark-reveal{from{opacity:0;transform:scale(.5) rotate(-20deg)}to{opacity:1;transform:none}}
+  @media(max-width:750px){.nye-options{gap:7px}.nye-options button{padding:11px 10px;font-size:12px}.nye-options small{display:none}.nye-review-layout{display:block}.nye-home-frame{margin-inline:-16px;width:calc(100% + 32px);border-left:0;border-right:0;border-radius:0;box-shadow:none;height:740px}.nye-option-explanation{padding-top:30px}.nye-review-controls{gap:8px}.nye-review-controls button{padding:10px 12px}.nye-review-controls [data-nye-wide]{display:none}.nye-invitation-link{padding-right:37px}}
+  @media(min-width:1000px){[data-nye-layout=desktop]{grid-template-columns:1fr;gap:28px}[data-nye-layout=desktop] .nye-home-frame{height:720px;border-radius:12px}[data-nye-layout=desktop] .nye-home-nav{height:84px;padding:0 24px}[data-nye-layout=desktop] .nye-home-nav img{width:165px}[data-nye-layout=desktop] .nye-desktop-nav{display:flex;gap:18px;font:700 12px/1 var(--font-ui);letter-spacing:.08em}[data-nye-layout=desktop] .nye-desktop-actions{display:flex;gap:10px;margin-left:auto}[data-nye-layout=desktop] .nye-desktop-actions a{font-size:12px;flex:none;padding:10px 16px}[data-nye-layout=desktop] .nye-home-hero{top:84px}[data-nye-layout=desktop] .nye-home-copy{bottom:62px;left:54px}[data-nye-layout=desktop] .nye-home-copy h2{font-size:68px}[data-nye-layout=desktop] .nye-home-copy p{max-width:450px;font-size:18px}[data-nye-layout=desktop] .nye-home-booking{display:none}[data-nye-layout=desktop] .nye-promo-stage{width:380px;left:auto;right:26px;top:14px}[data-nye-layout=desktop] .nye-invitation-link strong{font-size:30px}[data-nye-layout=desktop] .nye-option-explanation{max-width:800px}[data-nye-layout=desktop] .nye-option-explanation h2{font-size:40px}[data-nye-layout=desktop] .nye-menu-panel{top:84px}}
+  @media(prefers-reduced-motion:reduce){.nye-invitation,.nye-art,.nye-glint{animation:none!important}}
+</style>
+<script>
+  const root = document.querySelector<HTMLElement>('[data-nye-home-review]');
+  if (root) {
+    const frame = root.querySelector<HTMLElement>('.nye-home-frame')!;
+    const layout = root.querySelector<HTMLElement>('[data-nye-layout]')!;
+    const invitation = root.querySelector<HTMLElement>('[data-nye-invitation]')!;
+    const video = root.querySelector<HTMLVideoElement>('video')!;
+    const replay = root.querySelector<HTMLButtonElement>('[data-nye-replay]')!;
+    const pause = root.querySelector<HTMLButtonElement>('[data-nye-pause]')!;
+    const reducedInput = root.querySelector<HTMLInputElement>('[data-nye-reduce]')!;
+    const systemReduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const status = root.querySelector<HTMLElement>('[data-nye-status]')!;
+    const menu = root.querySelector<HTMLButtonElement>('.nye-home-menu')!;
+    const menuPanel = root.querySelector<HTMLElement>('.nye-menu-panel')!;
+    let paused = false, visible = false, started = false;
+    const reduced = () => systemReduced.matches || reducedInput.checked;
+    const descriptions = {
+      disco: { name: '01 / MIRRORBALL', heading: 'A glint. Then an invitation.', title: 'NYE. DONE RIGHT.', description: 'A small mirrorball drops below the header, catches the light once, then settles beside a clear New Year’s Eve link.', duration: '1.7 seconds, once' },
+      midnight: { name: '02 / HELLO, 2027', heading: 'Next year gets a little closer.', title: 'HELLO, 2027.', description: 'The year turns into view like a small marquee. Bold numbers do the work, with one clear link beside them.', duration: '1.1 seconds, once' },
+      spark: { name: '03 / A LITTLE SPARKLE', heading: 'A small spark. A clear plan.', title: 'MAKE DEC 31 A PLAN.', description: 'One restrained burst of light introduces the invitation. It settles into a quiet, translucent card over the video.', duration: '1.4 seconds, once' },
+    };
+    const syncVideo = () => {
+      if (visible && !paused && !reduced() && !document.hidden) {
+        const codec = video.canPlayType('video/mp4; codecs=av01.0.05M.08') ? 'av1' : 'h264';
+        const target = layout.dataset.nyeLayout === 'desktop' ? `/hero/hero-desktop-${codec}.mp4` : `/hero/hero-mobile-${codec}-540.mp4`;
+        if (video.dataset.loaded !== target) { video.src = target; video.load(); video.dataset.loaded = target; }
+        video.play().catch(() => { /* Poster remains when autoplay is unavailable. */ });
+      } else video.pause();
+    };
+    function syncMotion() {
+      root.dataset.reduced = String(reduced());
+      frame.dataset.nyePaused = String(paused);
+      pause.textContent = paused ? 'Resume motion' : 'Pause motion';
+      pause.setAttribute('aria-pressed', String(paused));
+      pause.disabled = reduced();
+      if (reduced()) { frame.dataset.nyeEntrance = 'settled'; status.textContent = 'Reduced motion: static invitation and video poster.'; }
+      syncVideo();
+    }
+    function playEntrance() {
+      invitation.hidden = false; started = true; frame.dataset.nyeEntrance = 'settled';
+      void invitation.offsetWidth;
+      if (!reduced()) frame.dataset.nyeEntrance = 'entering';
+      status.textContent = reduced() ? 'Reduced motion: static invitation and video poster.' : paused ? 'Motion is paused. Resume to watch this entrance.' : 'The entrance plays once. The invitation stays until dismissed.';
+      syncMotion();
+    }
+    root.querySelectorAll<HTMLButtonElement>('[data-nye-option]').forEach(button => button.addEventListener('click', () => {
+      const mode = button.dataset.nyeOption as keyof typeof descriptions;
+      const option = descriptions[mode]; frame.dataset.nyeMode = mode;
+      root.querySelectorAll('[data-nye-option]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      root.querySelector<HTMLElement>('.nye-explanation-kicker')!.textContent = option.name;
+      root.querySelector<HTMLElement>('[data-nye-option-heading]')!.textContent = option.heading;
+      root.querySelector<HTMLElement>('[data-nye-invitation-title]')!.textContent = option.title;
+      root.querySelector<HTMLElement>('[data-nye-option-description]')!.textContent = option.description;
+      root.querySelector<HTMLElement>('[data-nye-duration]')!.textContent = option.duration;
+      playEntrance();
+    }));
+    replay.addEventListener('click', () => { paused = false; playEntrance(); });
+    pause.addEventListener('click', () => { paused = !paused; syncMotion(); });
+    root.querySelector<HTMLButtonElement>('.nye-dismiss')!.addEventListener('click', () => { invitation.hidden = true; status.textContent = 'Invitation dismissed. Video and ordinary booking stay available.'; replay.focus({ preventScroll: true }); });
+    root.querySelector<HTMLButtonElement>('[data-nye-wide]')!.addEventListener('click', event => {
+      const button = event.currentTarget as HTMLButtonElement;
+      const wide = layout.dataset.nyeLayout !== 'desktop'; layout.dataset.nyeLayout = wide ? 'desktop' : 'mobile';
+      button.textContent = wide ? 'Phone preview' : 'Desktop preview'; button.setAttribute('aria-pressed', String(wide));
+      video.poster = wide ? '/hero/hero-desktop-poster.webp' : '/hero/hero-poster.webp'; syncVideo(); playEntrance();
+    });
+    reducedInput.addEventListener('change', syncMotion); systemReduced.addEventListener('change', syncMotion);
+    document.addEventListener('visibilitychange', syncVideo);
+    menu.addEventListener('click', () => { menuPanel.hidden = !menuPanel.hidden; menu.setAttribute('aria-expanded', String(!menuPanel.hidden)); });
+    root.addEventListener('keydown', event => { if (event.key === 'Escape' && !menuPanel.hidden) { menuPanel.hidden = true; menu.setAttribute('aria-expanded', 'false'); menu.focus(); } });
+    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; syncVideo(); if (visible && !started) playEntrance(); }, { threshold: .2 }).observe(frame);
+    syncMotion();
+  }
+</script>

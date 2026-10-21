@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import HomepageEntranceOptions from '../components/nye/HomepageEntranceOptions.astro';
+export const prerender = false;
+// Local design surface only. Root will integrate an approved protected review
+// route before this can be shared; no new public campaign route is introduced.
+if (!import.meta.env.DEV) return new Response('Not found', { status: 404 });
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
+Astro.response.headers.set('Cache-Control', 'no-store');
+---
+<Base title="NYE homepage options | Twisted Pin" description="Local NYE homepage design review." hideHeader hideNavDrawer hideStickyCTA hidePromo>
+  <meta slot="head" name="robots" content="noindex,nofollow" />
+  <div class="nye-concept-shell">
+    <header class="nye-concept-intro"><p>CREATIVE REVIEW · NEW YEAR’S EVE</p><h1>A LITTLE ENTRANCE.<br />A BIG NIGHT.</h1><div>Three small invitations above your existing homepage video. Pick a treatment, replay it, then see what stays.</div></header>
+    <HomepageEntranceOptions />
+    <footer class="nye-concept-notes"><strong>Design review only.</strong> Working homepage lead: December 7, after Jingle Bowl. NYE sales still open November 18 at 9am. This page changes neither schedule and is not connected to inventory or payment.</footer>
+  </div>
+</Base>
+<style>
+  .nye-concept-shell{max-width:1240px;margin:auto;padding:36px 24px 60px;color:var(--warm-white)}
+  .nye-concept-intro{max-width:760px;margin-bottom:30px}.nye-concept-intro>p{font:700 12px/1.5 var(--font-ui);letter-spacing:.1em;color:#cbc5db;margin:0 0 16px}.nye-concept-intro h1{font:900 clamp(42px,7vw,78px)/.98 var(--font-display);letter-spacing:-.015em;margin:0 0 20px}.nye-concept-intro>div{font:400 17px/1.6 var(--font-body);color:#d9d2e7;max-width:640px}.nye-concept-notes{font:400 14px/1.7 var(--font-ui);color:#cbc5db;margin:36px 0 0;padding-top:22px;border-top:1px solid #ffffff25}.nye-concept-notes strong{color:var(--warm-white)}
+  @media(max-width:600px){.nye-concept-shell{padding:28px 16px 40px}.nye-concept-intro>div{font-size:16px}}
+</style>
