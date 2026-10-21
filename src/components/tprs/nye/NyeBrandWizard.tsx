@@ -108,9 +108,13 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
     // Even a late response is credible accepted-payment evidence. Keep a
     // newer discovered attempt if present; otherwise resolve this one before
     // allowing a fresh payment. Its status is rechecked by recovery.
-    const retained=loadDiscoveredCheckout(sessionStorage)??attempt;
-    setDiscovered(current=>current??retained);
-    saveDiscoveredCheckout(sessionStorage,retained);
+    // Establish the in-memory barrier BEFORE storage access: even reads or
+    // parsing can fail, and a superseded initialization ignores its errors.
+    setDiscovered(current=>current??attempt);
+    try {
+      // Do not overwrite newer persisted evidence with an older response.
+      if(!loadDiscoveredCheckout(sessionStorage))saveDiscoveredCheckout(sessionStorage,attempt);
+    }catch { /* The known attempt remains locked in memory for recovery. */ }
   }
   function save(nextPending:PendingProposal|null = pending, nextDraft=draft, nextStep=step) {
     if (nextStep === 'confirmation') return;

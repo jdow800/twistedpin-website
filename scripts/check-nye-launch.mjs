@@ -130,6 +130,35 @@ try {
     await noPurchase(page); await context.close();
   });
 
+  for (const fault of ['read', 'malformed', 'write']) await scenario(`late accepted-payment evidence survives ${fault} storage failure`, async () => {
+    const { context, page } = await fresh('/reserve/nye/', { faults: { delayFirstDiscovery: true, firstDiscoveryHasAttempt: true } });
+    await page.getByText('Reservations open', { exact: true }).waitFor();
+    await boundary(page, 'focus'); await opened(page);
+    // Fail storage only after the newer empty discovery has opened checkout.
+    // The delayed positive result must lock in memory before touching storage.
+    await page.evaluate(kind => {
+      const key = 'tprs:checkout:discovered:v1';
+      const read = Storage.prototype.getItem, write = Storage.prototype.setItem;
+      window.launchStorageHits = 0;
+      if (kind === 'read') Storage.prototype.getItem = function (name) {
+        if (this === sessionStorage && name === key) { window.launchStorageHits++; throw new Error('Synthetic storage read failure'); }
+        return read.call(this, name);
+      };
+      if (kind === 'malformed') write.call(sessionStorage, key, '{not valid JSON');
+      if (kind === 'write') Storage.prototype.setItem = function (name, value) {
+        if (this === sessionStorage && name === key) { window.launchStorageHits++; throw new Error('Synthetic storage write failure'); }
+        return write.call(this, name, value);
+      };
+      window.releaseFirstDiscovery();
+    }, fault);
+    await page.getByRole('heading', { name: 'Your saved reservation.', exact: true }).waitFor();
+    await page.clock.runFor(1000);
+    assert.equal(await page.locator('.room-choice').count(), 0);
+    assert.equal(await page.locator('.brand-continue').count(), 0);
+    if (fault !== 'malformed') assert.ok(await page.evaluate(() => window.launchStorageHits > 0), 'the late storage fault was exercised');
+    await noPurchase(page); await context.close();
+  });
+
   for (const now of [OPEN, OPEN + 30000]) await scenario(`cold checkout after opening ${now - OPEN}ms`, async () => {
     const { context, page } = await fresh('/reserve/nye/', { now, timezoneId: 'Asia/Tokyo' });
     await opened(page); await noPurchase(page); await context.close();
