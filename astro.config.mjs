@@ -72,7 +72,7 @@ export default defineConfig({
         // Jingle Bowl concept review remains unpublished. Remove the
         // landing-page exclusion only when its launch is approved;
         // the concepts gallery is always an internal review surface.
-        !['/jingle-bowl/', '/jingle-bowl-concepts/', '/review/jingle-calendar/'].includes(new URL(page).pathname) &&
+        !['/jingle-bowl/', '/jingle-bowl-concepts/', '/review/jingle-calendar/', '/nye-homepage-concepts/'].includes(new URL(page).pathname) &&
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.
         !page.includes('/cogs') &&

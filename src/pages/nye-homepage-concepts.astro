@@ -2,13 +2,12 @@
 import Base from '../layouts/Base.astro';
 import HomepageEntranceOptions from '../components/nye/HomepageEntranceOptions.astro';
 export const prerender = false;
-// Local design surface only. Root will integrate an approved protected review
-// route before this can be shared; no new public campaign route is introduced.
-if (!import.meta.env.DEV) return new Response('Not found', { status: 404 });
+// Both Astro and root routing middleware use the same server review gate.
+// This route is an owner review, not an activated public homepage campaign.
 Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 Astro.response.headers.set('Cache-Control', 'no-store');
 ---
-<Base title="NYE homepage options | Twisted Pin" description="Local NYE homepage design review." hideHeader hideNavDrawer hideStickyCTA hidePromo>
+<Base title="NYE homepage options | Twisted Pin" description="Password-protected NYE homepage design review." hideHeader hideNavDrawer hideStickyCTA hidePromo>
   <meta slot="head" name="robots" content="noindex,nofollow" />
   <div class="nye-concept-shell">
     <header class="nye-concept-intro"><p>CREATIVE REVIEW · NEW YEAR’S EVE</p><h1>A LITTLE ENTRANCE.<br />A BIG NIGHT.</h1><div>Three small invitations above your existing homepage video. Pick a treatment, replay it, then see what stays.</div></header>

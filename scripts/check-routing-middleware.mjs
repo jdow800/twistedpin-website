@@ -35,6 +35,7 @@ try {
   delete process.env.JINGLE_REVIEW_PASSWORD;
   delete process.env.JINGLE_REVIEW_SESSION_SECRET;
   assert.equal((await middleware(new Request("https://preview.example/jingle-bowl/"))).status, 503);
+  assert.equal((await middleware(new Request("https://preview.example/nye-homepage-concepts/"))).status, 503);
   pass("unconfigured review fails closed without a startup exception");
 
   const calls = [];
@@ -64,7 +65,7 @@ try {
 
   process.env.JINGLE_REVIEW_PASSWORD = "synthetic-password";
   process.env.JINGLE_REVIEW_SESSION_SECRET = randomBytes(32).toString("hex");
-  for (const path of ["/jingle-bowl/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/jingle-bowl/jingle-wide.webp", "/%6aingle-bowl/jingle-wide.webp"]) {
+  for (const path of ["/jingle-bowl/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/jingle-bowl/jingle-wide.webp", "/%6aingle-bowl/jingle-wide.webp", "/nye-homepage-concepts/", "/%6eye-homepage-concepts/"]) {
     assert.equal((await middleware(new Request("https://preview.example" + path))).status, 401);
   }
   pass("real middleware denies anonymous pages and campaign assets");
@@ -80,6 +81,25 @@ try {
   assert.match(authorized.headers.get("X-Robots-Tag"), /noindex/);
   assert.equal(calls.length, 2);
   pass("real middleware login continues protected responses without API fetches");
+  const nyeLogin = await middleware(new Request("https://preview.example/nye-homepage-concepts/?next=//evil.example", {
+    method: "POST", headers: { Origin: "https://preview.example", "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ password: process.env.JINGLE_REVIEW_PASSWORD }),
+  }));
+  assert.equal(nyeLogin.status, 303);
+  assert.equal(nyeLogin.headers.get('Location'), '/nye-homepage-concepts/');
+  const nyeCookie = nyeLogin.headers.get('set-cookie').split(';')[0];
+  for (const path of ['/nye-homepage-concepts/', '/jingle-bowl/jingle-wide.webp', '/review/jingle-calendar/?month=2026-12']) {
+    const response = await middleware(new Request('https://preview.example' + path, { headers: { Cookie: nyeCookie } }));
+    assert.equal(response.headers.get('x-middleware-next'), '1');
+    assert.match(response.headers.get('Cache-Control'), /private, no-store/);
+  }
+  const calendarLogin = await middleware(new Request('https://preview.example/review/jingle-calendar/?month=2026-12&next=//evil.example', {
+    method: 'POST', headers: { Origin: 'https://preview.example', 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ password: process.env.JINGLE_REVIEW_PASSWORD }),
+  }));
+  assert.equal(calendarLogin.headers.get('Location'), '/review/jingle-calendar/?month=2026-12');
+  assert.equal(calls.length, 2);
+  assert.ok(config.matcher.includes('/nye-homepage-concepts/:path*'));
+  pass('NYE review shares signed login while Jingle assets and calendar return remain unchanged');
   console.log(`${cases} routing middleware checks passed.`);
 } finally {
   globalThis.fetch = originalFetch;

@@ -20,8 +20,8 @@ function check(label, fn) { fn(); cases++; console.log(`PASS ${label}`); }
 async function checkAsync(label, fn) { await fn(); cases++; console.log(`PASS ${label}`); }
 
 check("precise protected routes, encoded route and normal-route bypass", () => {
-  for (const path of ["/jingle-bowl", "/jingle-bowl/", "/jingle-bowl/jingle-square.png", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/%6aingle-bowl/"]) assert.equal(isJingleReviewPath(path), true);
-  for (const path of ["/", "/reserve/", "/reserve/nye/", "/tprs-api/api/cart/", "/jingle-bowling/", "/review/other/"]) assert.equal(isJingleReviewPath(path), false);
+  for (const path of ["/jingle-bowl", "/jingle-bowl/", "/jingle-bowl/jingle-square.png", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/%6aingle-bowl/", "/nye-homepage-concepts/", "/%6eye-homepage-concepts/"]) assert.equal(isJingleReviewPath(path), true);
+  for (const path of ["/", "/reserve/", "/reserve/nye/", "/new-years-eve/", "/tprs-api/api/cart/", "/jingle-bowling/", "/review/other/", "/nye-homepage-concepts-other/"]) assert.equal(isJingleReviewPath(path), false);
 });
 await checkAsync("normal booking bypass does not require configuration", async () => assert.equal(await jingleReviewGate(get("/reserve/"), {}, now), null));
 await checkAsync("missing password or secret fails closed", async () => {
@@ -85,7 +85,37 @@ await checkAsync("repeated failures are temporarily throttled on the serving ins
 });
 check("auth source is server-only and root middleware includes protected assets", () => {
   const source = readFileSync(new URL("../middleware.ts", import.meta.url), "utf8");
-  for (const pattern of ["/jingle-bowl/:path*", "/jingle-bowl-concepts/:path*", "/review/jingle-calendar/:path*", "/tprs-api/:path*"]) assert.ok(source.includes(pattern));
+  for (const pattern of ["/jingle-bowl/:path*", "/jingle-bowl-concepts/:path*", "/review/jingle-calendar/:path*", "/nye-homepage-concepts/:path*", "/tprs-api/:path*"]) assert.ok(source.includes(pattern));
   assert.ok(source.includes("next({ headers: JINGLE_REVIEW_HEADERS })"));
+});
+await checkAsync("NYE owner review gets its own title, with encoded paths also denied", async () => {
+  for (const path of ["/nye-homepage-concepts/", "/%6eye-homepage-concepts/"]) {
+    const response = await jingleReviewGate(get(path), env, now);
+    assert.equal(response.status, 401);
+    const html = await response.text();
+    assert.match(html, /<title>NYE homepage preview \| Twisted Pin<\/title>/);
+    assert.match(html, /action="\/nye-homepage-concepts\/"/);
+    assert.doesNotMatch(html, /<h1>Jingle Bowl/);
+  }
+  assert.match(await (await jingleReviewGate(get('/jingle-bowl/'), env, now)).text(), /<h1>Jingle Bowl preview<\/h1>/);
+});
+await checkAsync("NYE missing configuration fails closed and public NYE pages bypass", async () => {
+  for (const config of [{}, { JINGLE_REVIEW_PASSWORD: env.JINGLE_REVIEW_PASSWORD }, { JINGLE_REVIEW_SESSION_SECRET: env.JINGLE_REVIEW_SESSION_SECRET }]) {
+    const response = await jingleReviewGate(get('/nye-homepage-concepts/'), config, now);
+    assert.equal(response.status, 503);
+    assert.doesNotMatch(await response.text(), /<form/);
+  }
+  for (const path of ['/new-years-eve/', '/reserve/nye/']) assert.equal(await jingleReviewGate(get(path), {}, now), null);
+});
+await checkAsync("NYE login reuses signed cookie and returns only to its allowed review path", async () => {
+  const response = await jingleReviewGate(post('/nye-homepage-concepts/?next=https://evil.example&month=2026-12'), env, now);
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('Location'), '/nye-homepage-concepts/');
+  const setCookie = response.headers.get('Set-Cookie');
+  for (const flag of ['HttpOnly', 'Secure', 'SameSite=Lax', 'Max-Age=43200', 'Path=/']) assert.ok(setCookie.includes(flag));
+  const cookie = setCookie.split(';')[0];
+  for (const path of ['/nye-homepage-concepts/', '/jingle-bowl/', '/review/jingle-calendar/']) assert.equal(await jingleReviewGate(get(path, cookie), env, now), null);
+  assert.equal((await jingleReviewGate(post('/nye-homepage-concepts/', 'wrong'), env, now)).headers.get('Set-Cookie'), null);
+  assert.equal((await jingleReviewGate(post('/nye-homepage-concepts/', env.JINGLE_REVIEW_PASSWORD, { Origin: 'https://evil.example' }), env, now)).status, 403);
 });
 console.log(`${cases} Jingle preview security checks passed. No network or provider calls.`);

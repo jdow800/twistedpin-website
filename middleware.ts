@@ -20,7 +20,7 @@ import { isJingleReviewPath, jingleReviewGate, JINGLE_REVIEW_HEADERS } from "./s
 export const config = {
   // Node runtime: predictable fetch + Set-Cookie passthrough for the cart cookie.
   runtime: "nodejs",
-  matcher: ["/tprs-api/:path*", "/jingle-bowl/:path*", "/jingle-bowl-concepts/:path*", "/review/jingle-calendar/:path*"],
+  matcher: ["/tprs-api/:path*", "/jingle-bowl/:path*", "/jingle-bowl-concepts/:path*", "/review/jingle-calendar/:path*", "/nye-homepage-concepts/:path*"],
 };
 
 const BACKEND = "https://api.twistedpin.com";
