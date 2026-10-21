@@ -2663,7 +2663,7 @@ Jon explicitly asked the NYE owner to build similar mobile homepage options usin
 
 Alternation validation: component compilation and all six repository prebuild suites pass. Twelve focused browser checks cover timer cleanup, fixed card geometry, pause/dismiss, motion preference, visibility and interrupted video playback. Independent real-time checks at 360/390/1280 confirm the approximately 12-second decorative swap, stable invitation, hero playback, focus/hover/offscreen suspension, fresh dwell on return, persistent dismissal and static reduced-motion behavior. Hidden-tab handling used explicit visibility-event emulation because headless Chromium kept background tabs visible; all other interaction/scroll checks used browser actions and wall-clock waits. An initial development hot reload invalidated three measurements; only those were rerun cleanly. Root visually reviewed mobile Santa and control placement. No application errors, unexpected API calls or failed assets were found. Only this component and decision log change; protected production verification follows deployment.
 
-## 2026-10-21 - Roy event facts and staffed-transfer readiness (in progress)
+## 2026-10-21 - Roy event facts and staffed-transfer readiness (live)
 
 Jon authorized Jingle Bowl phone-agent readiness: December 6 is event reservations
 only, while the public listing says Closed. The read-only date helper now carries
@@ -2674,3 +2674,9 @@ staffed intervals, which are currently empty. Jingle's protected review URL and
 tentative session/30-minute cutoff facts remain withheld. NYE's November 18 at 9am
 Central opening is recorded; an elapsed timestamp does not prove booking readiness.
 This does not activate event products, menus, availability, sales or marketing.
+
+Website runtime `de9a7a2` passed Vercel deployment and 68 independent production
+checks. Roy v88 is verified live with the matching event/routing contract. The
+Jingle page remains protected; staffed/session arrays and booking-ready flags
+remain empty/false. See the dated Roy special-events handoff for evidence and
+maintenance instructions. Marketing greeting choices are still proposals.
