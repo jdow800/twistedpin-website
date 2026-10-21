@@ -27,7 +27,7 @@ const sessions = [
 <Base title="New Year's Eve 2026 in Plainfield | Twisted Pin"
   description="Plan New Year's Eve 2026 at Twisted Pin in Plainfield. Traditional and VIP bowling parties with pizza, soda and shoes. Celebrate earlier or ring in 2027."
   ogImage="/og/og-vip-suite.jpg" ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
-  lcpPreloadHref="/snap/nye-poster.avif" lcpPreloadMedia="(max-width: 1024px)"
+  lcpPreloadHref="/snap/nye-poster.avif"
   hideStickyCTA={true} hidePromo={true}
   reservationAction={{ ...NYE_OPEN_CTA, openingNotice: NYE_OPENING_REMINDER }}>
   <div class="nye-page">
@@ -35,10 +35,9 @@ const sessions = [
       <video class="nye-hero-video" preload="none" muted autoplay loop playsinline poster="/snap/nye-poster.avif" aria-hidden="true">
         <source media="(max-width: 480px)" src="/snap/nye-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
         <source media="(max-width: 480px)" src="/snap/nye-mobile-h264-540.mp4" type="video/mp4" />
-        <source media="(min-width: 481px) and (max-width: 1024px)" src="/snap/nye-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
-        <source media="(min-width: 481px) and (max-width: 1024px)" src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
+        <source media="(min-width: 481px)" src="/snap/nye-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(min-width: 481px)" src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
       </video>
-      <picture class="nye-hero-desktop" aria-hidden="true"><source type="image/avif" srcset="/snap/nye-reserve-hero-1600.avif" /><img src="/snap/nye-reserve-hero-1600.webp" alt="" width="1600" height="900" /></picture>
       <div class="nye-hero-scrim" aria-hidden="true"></div>
       <div class="nye-hero-inner">
         <div class="nye-hero-copy">
@@ -138,9 +137,8 @@ const sessions = [
   .nye-page a:not(.btn) { text-underline-offset: 4px; }
   .nye-eyebrow { font: 700 12px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--warm-white); }
   .nye-hero { position: relative; isolation: isolate; overflow: hidden; }
-  .nye-hero-video, .nye-hero-desktop, .nye-hero-scrim { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .nye-hero-video, .nye-hero-desktop img { object-fit: cover; width: 100%; height: 100%; }
-  .nye-hero-desktop { display: none; }
+  .nye-hero-video, .nye-hero-scrim { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .nye-hero-video { object-fit: cover; }
   .nye-hero-scrim { background: linear-gradient(180deg, rgba(14,10,31,.28), rgba(14,10,31,.68) 34%, #100b23 100%); }
   .nye-hero-inner { position: relative; max-width: 1200px; margin: auto; padding: 170px 20px 40px; }
   .nye-hero h1 { font-size: clamp(46px, 12vw, 92px); margin: 10px 0 18px; }
@@ -218,8 +216,6 @@ const sessions = [
     .nye-times thead th { font-size: 16px; }
   }
   @media (min-width: 1025px) {
-    .nye-hero-video { display: none; }
-    .nye-hero-desktop { display: block; }
     .nye-hero-scrim { background: linear-gradient(90deg, rgba(14,10,31,.88), rgba(14,10,31,.38)), linear-gradient(0deg, #100b23, transparent 50%); }
     .nye-hero-inner { min-height: 700px; padding: 160px 48px 80px; display: grid; grid-template-columns: minmax(0,1fr) 370px; gap: 60px; align-items: center; }
     .nye-opening-wrap { margin: 0; }

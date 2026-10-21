@@ -1,3 +1,13 @@
+## 2026-10-21 - Restore NYE desktop video
+
+Jon prefers video on desktop as well as mobile. Restore the existing NYE reel
+behind the desktop hero, extending the existing 1080 source breakpoint and
+removing the desktop photo override. This explicit NYE choice supersedes the
+earlier photo treatment on this page. Jon confirmed mobile playback works on
+his actual phone; leave its autoplay, codec order and playback behavior alone.
+No new playback controller or play button. Reduced-motion poster behavior and
+the approved opening box/hidden pre-opening prices remain intact.
+
 ## 2026-10-21 - NYE pre-opening page keeps booking hidden
 
 Jon selected the proposal without party times or prices before sales open.

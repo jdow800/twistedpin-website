@@ -8,7 +8,10 @@ two-product update and audit live in TPRS's `docs/NYE-OPENING-2026.md`.
 ## Guest experience
 
 The dark Brand direction stays. A compact hero shows the opening date and live
-countdown immediately, with a desktop room photo and the existing mobile video.
+countdown immediately, with the existing NYE video on mobile and desktop.
+Jon explicitly restored desktop video after reviewing the photo version and
+confirmed mobile playback works on his actual phone. Mobile autoplay and codec
+selection remain unchanged; reduced motion still shows the poster.
 Four short inclusion groups explain bowling/shoes, one pizza, one pitcher and
 party favors. Comparable Traditional/VIP photo cards show the actual operational
 per-lane booking limits. All six party times and both prices appear only when
