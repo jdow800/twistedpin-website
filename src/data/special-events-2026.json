@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "source_version": "special-events-2026-v1",
+  "timezone": "America/Chicago",
+  "approved_on": "2026-10-21",
+  "records": [
+    {
+      "id": "jingle_bowl_2026",
+      "name": "Jingle Bowl",
+      "date": "2026-12-06",
+      "valid_through": "2026-12-07",
+      "aliases": ["jingle bowl"],
+      "confirmed": true,
+      "admission": "event_reservations_only",
+      "ordinary_visits": "closed",
+      "page_public": false,
+      "page_url": "https://www.twistedpin.com/jingle-bowl/",
+      "sales_open_at": null,
+      "booking_ready_verified": false,
+      "session_cutoffs_verified": false,
+      "sessions": [],
+      "approved_staffed_intervals": []
+    },
+    {
+      "id": "nye_2026",
+      "name": "New Year's Eve",
+      "date": "2026-12-31",
+      "valid_through": "2027-01-01",
+      "aliases": ["new years eve", "nye"],
+      "confirmed": true,
+      "admission": "bowling_reservations_only",
+      "ordinary_visits": "unknown",
+      "page_public": true,
+      "page_url": "https://www.twistedpin.com/new-years-eve/",
+      "sales_open_at": "2026-11-18T15:00:00Z",
+      "booking_ready_verified": false,
+      "session_cutoffs_verified": false,
+      "sessions": [],
+      "approved_staffed_intervals": []
+    }
+  ]
+}

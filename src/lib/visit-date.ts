@@ -10,6 +10,7 @@
  * weekday asks for an exact date; explicit years can name a past planned date.
  */
 import policy from '../data/visit-policy-2026-27.json' with { type: 'json' };
+import { resolveSpecialEventAlias, specialEventContext, specialEventAnswer, type SpecialEventContext } from './special-events.ts';
 
 export const VISIT_TOPICS = ['hours', 'penny', 'reservations', 'services', 'all'] as const;
 export type VisitTopic = typeof VISIT_TOPICS[number];
@@ -39,6 +40,8 @@ export type VisitDateResponse = {
   capacity: 'not_checked';
   source: { operation_version: string; calendar_sha256: string; valid_through: string };
   link: string;
+  /** Separate event authority; null on ordinary and school-break dates. */
+  event: SpecialEventContext | null;
 };
 type ProjectedDate = {
   coverage: 'school_break' | 'approved_regular_date';
@@ -50,7 +53,6 @@ const dates = policy.dates as Record<string, ProjectedDate>;
 const TIMEZONE = 'America/Chicago';
 const HOURS_LINK = 'https://www.twistedpin.com/#find-us';
 const BOOKING_LINK = 'https://www.twistedpin.com/reserve/';
-const NYE_LINK = 'https://www.twistedpin.com/new-years-eve/';
 const CLARIFY = 'What exact date do you mean? Please give the month, day and year.';
 const UNKNOWN_HOURS: Hours = { status: 'unknown', basis: 'approved_planned', open: null, close: null, closing_date: null };
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
@@ -60,7 +62,7 @@ const HOLIDAYS: Record<string, string> = {
   'thanksgiving': '2026-11-26', 'thanksgiving day': '2026-11-26',
   'thanksgiving eve': '2026-11-25', 'black wednesday': '2026-11-25',
   'christmas': '2026-12-25', 'christmas day': '2026-12-25', 'christmas eve': '2026-12-24',
-  'new years eve': '2026-12-31', 'nye': '2026-12-31', 'new years day': '2027-01-01',
+  'new years day': '2027-01-01',
   'mlk day': '2027-01-18', 'martin luther king day': '2027-01-18',
   'martin luther king jr day': '2027-01-18',
   'presidents day': '2027-02-15', 'president day': '2027-02-15',
@@ -111,6 +113,8 @@ export function resolveVisitDate(input: string, now: Date = new Date()): string 
     return date >= today ? date : null;
   }
   const holiday = /^(.*?)(?: (\d{4}))?$/.exec(phrase)!;
+  const eventAlias = resolveSpecialEventAlias(phrase, now);
+  if (eventAlias) return eventAlias;
   if (Object.hasOwn(HOLIDAYS, holiday[1])) {
     const date = HOLIDAYS[holiday[1]];
     // Never roll an alias into another year's unreviewed holiday calendar.
@@ -151,7 +155,8 @@ export function visitDatePayload(input: { date?: string; topic?: VisitTopic }, n
   const date = resolveVisitDate(input.date ?? '', now);
   const today = chicagoDate(now);
   const row = date ? dates[date] : undefined;
-  const separatelyManaged = date !== null && policy.separately_managed_dates.includes(date);
+  const event = date ? specialEventContext(date, now) : null;
+  const separatelyManaged = event !== null || (date !== null && policy.separately_managed_dates.includes(date));
   const expired = today > policy.valid_through;
   const result: VisitDateResponse = {
     schema_version: 1, status: 'unknown', date, is_today: date === today, topic, timezone: TIMEZONE,
@@ -161,10 +166,21 @@ export function visitDatePayload(input: { date?: string; topic?: VisitTopic }, n
     services: 'unknown', capacity: 'not_checked',
     source: { operation_version: policy.operation_version, calendar_sha256: policy.calendar_sha256, valid_through: policy.valid_through },
     link: topic === 'reservations' ? BOOKING_LINK : HOURS_LINK,
+    event,
   };
   if (!date) {
     result.status = 'needs_date';
     result.answer = CLARIFY;
+    return result;
+  }
+  if (event) {
+    result.coverage = event.status === 'expired' ? 'expired' : 'separately_managed';
+    result.answer = specialEventAnswer(event, topic);
+    result.link = event.public_url ?? HOURS_LINK;
+    if (event.status === 'confirmed') {
+      result.ordinary_online_reservations = event.ordinary_visits === 'closed' ? 'closed' : 'unknown';
+      if (topic === 'reservations' || topic === 'all' || (topic === 'hours' && event.admission === 'event_reservations_only')) result.status = 'partial';
+    }
     return result;
   }
   if (expired) {
@@ -172,12 +188,8 @@ export function visitDatePayload(input: { date?: string; topic?: VisitTopic }, n
     return result;
   }
   if (separatelyManaged) {
-    result.answer = `New Year's Eve on ${spokenDate(date)} is handled separately. Please check the New Year's Eve page or ask the team to confirm.`;
-    if (topic === 'reservations' || topic === 'all') {
-      result.status = 'partial';
-      result.answer = `Bowling on ${spokenDate(date)} is by reservation only. Please check the New Year's Eve page or ask the team to confirm the details.`;
-    }
-    result.link = NYE_LINK;
+    result.answer = `I don't have confirmed event details for ${spokenDate(date)}. The team can confirm.`;
+    result.link = HOURS_LINK;
     return result;
   }
   if (row) {

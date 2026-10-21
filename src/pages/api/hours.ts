@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import liveHoursFile from '../../data/live-hours.json';
 import { buildProgram, programTags, type ProgramEvent } from '../../lib/programs';
+import { currentSpecialEventContext } from '../../lib/special-events';
 import {
   todayKey,
   previousDay,
@@ -56,12 +57,13 @@ function toWindow(day: LiveDayHours | undefined): DayWindow | null {
 }
 
 export const GET: APIRoute = async () => {
+  const nowDate = new Date();
   const snap = liveHoursFile as CachedSnapshot;
   const hours = snap.hours ?? null;
 
-  const today = todayKey();
+  const today = todayKey(nowDate);
   const yesterday = previousDay(today);
-  const nowMin = nowMinutesCentral();
+  const nowMin = nowMinutesCentral(nowDate);
 
   let isOpen = false;
   let todayLabel = '';
@@ -82,7 +84,6 @@ export const GET: APIRoute = async () => {
   // webhook reads `programs.karaoke.answer` and injects it as a dynamic
   // variable, so cancelling a night updates the website AND what the phone
   // agent says in a single edit. Date reasoning happens HERE, not in the LLM.
-  const nowDate = new Date();
   const programEvents: ProgramEvent[] = (await getCollection('events'))
     .filter((e) => !e.data.draft && e.data.tags.length > 0)
     .map((e) => ({
@@ -100,6 +101,7 @@ export const GET: APIRoute = async () => {
     if (p) programs[tag] = p;
   }
 
+  const specialEventContext = currentSpecialEventContext(nowDate);
   const body = {
     fetchedAt: snap.fetchedAt ?? null,
     hours,
@@ -107,6 +109,7 @@ export const GET: APIRoute = async () => {
     // as our generic hours for any event date; `hours` above stays this week's view for Roy and the site.
     regularHours: snap.regularHours ?? null,
     programs,
+    special_event_context: specialEventContext,
     now: {
       is_open: isOpen,
       today,
@@ -123,7 +126,9 @@ export const GET: APIRoute = async () => {
       'Content-Type': 'application/json',
       // 60s edge cache — fresh enough that is_open transitions don't lag
       // meaningfully, but spares the Vercel function on repeat hits.
-      'Cache-Control': 'public, max-age=60, s-maxage=60',
+      // Event staffing is a permission, so never serve a cached event-day
+      // permission across its boundary. Ordinary dates retain the 60s cache.
+      'Cache-Control': specialEventContext.event ? 'no-store' : 'public, max-age=60, s-maxage=60',
       // Keep search engines out of this. It's a machine-readable doorway
       // for Roy's pre-call webhook, not a page anyone should land on.
       'X-Robots-Tag': 'noindex, nofollow, noarchive',

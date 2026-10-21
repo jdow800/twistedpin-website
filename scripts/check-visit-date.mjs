@@ -169,3 +169,5 @@ match(policy.calendar_sha256, /^[0-9a-f]{64}$/);
 check(policy.operation_version, 'holiday-operations-2026-27-v1');
 check(/\$|price|usd|customer|booking_id|staff|credentials/i.test(JSON.stringify(policy)), false, 'projection contains no private evidence or price fields');
 console.log(`Visit-date checks passed: ${checks}; 33 school-break dates, 6 regular dates, 4 exclusions; no network or database calls.`);
+await import('./check-special-events.mjs');
+await import('./check-special-events-route.mjs');
