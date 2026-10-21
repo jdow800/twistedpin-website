@@ -25,6 +25,9 @@
 import NavToggle from "./NavToggle.astro";
 import { PLAN_EVENT_URL } from "../lib/links";
 
+interface Props { reservationAction?: { href: string; label: string } }
+const { reservationAction = { href: "/reserve/", label: "Reserve a lane" } } = Astro.props;
+
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
 interface NavItem { href: string; label: string }
@@ -94,7 +97,7 @@ const isActive = (href: string) => {
       previous MORE ▼ dropdown — see header docstring for rationale. */}
   <div class="header-right">
     <div class="site-cta-cluster">
-      <a class="btn btn-solid" href="/reserve/">Reserve a lane</a>
+      <a class="btn btn-solid" href={reservationAction.href} data-reservation-action>{reservationAction.label}</a>
       <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
     </div>
     <NavToggle />

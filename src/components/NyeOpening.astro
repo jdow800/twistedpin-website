@@ -1,0 +1,115 @@
+---
+import { NYE_OPENING_AT, NYE_OPENING_DATE_LABEL, NYE_OPENING_TIME_LABEL, NYE_EVENT_DATE_LABEL, NYE_OPEN_CTA } from "../config/nye-opening";
+
+interface Props { class?: string }
+const { class: className } = Astro.props;
+---
+<section class:list={["nye-opening", className]} data-nye-opening aria-label="New Year's Eve reservations">
+  <p class="nye-opening__label" data-nye-opening-heading>Reservations open</p>
+  <time class="nye-opening__date" data-nye-opening-date datetime={NYE_OPENING_AT}>
+    <span>{NYE_OPENING_DATE_LABEL}</span>
+    <span class="nye-opening__time">{NYE_OPENING_TIME_LABEL}</span>
+  </time>
+  <p class="nye-opening__date" data-nye-event-date hidden>{NYE_EVENT_DATE_LABEL}</p>
+  {/* The opening date is readable before hydration and without JS. Empty digits stay hidden until the first
+      client calculation; assistive technology does not announce each second. */}
+  <div class="nye-opening__countdown" data-nye-countdown hidden aria-hidden="true">
+    {[["days", "Days"], ["hours", "Hours"], ["minutes", "Minutes"], ["seconds", "Seconds"]].map(([unit, label]) => (
+      <div class="nye-opening__unit">
+        <span class="nye-opening__number" data-nye-unit={unit}></span>
+        <span class="nye-opening__unit-label">{label}</span>
+      </div>
+    ))}
+  </div>
+  <p class="nye-opening__status" data-nye-status aria-live="polite" aria-atomic="true" hidden></p>
+  <noscript><a class="nye-opening__fallback" href={NYE_OPEN_CTA.href}>Check NYE booking</a></noscript>
+</section>
+
+<script>
+  import "../scripts/nye-opening.client";
+</script>
+
+<style>
+  .nye-opening {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 400px;
+    padding: 22px 20px;
+    border: 1px solid rgba(244, 239, 227, .22);
+    border-radius: 12px;
+    background: #160c35;
+    color: #f4efe3;
+    font-family: var(--font-ui, "Montserrat", sans-serif);
+    text-align: left;
+  }
+  .nye-opening [hidden] { display: none !important; }
+  .nye-opening__label {
+    margin: 0 0 10px;
+    color: #d9d2e7;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .nye-opening__date {
+    display: block;
+    margin: 0;
+    font-size: clamp(19px, 5.6vw, 24px);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+  .nye-opening__time {
+    display: block;
+    margin-top: 5px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .nye-opening__countdown {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(244, 239, 227, .18);
+    text-align: center;
+  }
+  .nye-opening__unit { min-width: 0; }
+  .nye-opening__number {
+    display: block;
+    min-height: 1.2em;
+    font-size: clamp(24px, 7vw, 32px);
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  .nye-opening__unit-label {
+    display: block;
+    margin-top: 5px;
+    color: #d9d2e7;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .nye-opening__status {
+    margin: 18px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid rgba(244, 239, 227, .18);
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.5;
+  }
+  .nye-opening__fallback {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin-top: 10px;
+    color: #f4efe3;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    text-underline-offset: 4px;
+  }
+  .nye-opening__fallback:focus-visible { outline: 2px solid #4eecc4; outline-offset: 4px; }
+</style>

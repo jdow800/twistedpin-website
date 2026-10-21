@@ -1,372 +1,230 @@
 ---
-/**
- * 2026 NYE package preview. Jon confirmed all six party times September 14.
- * Per-lane prices verified against the public TPRS quote endpoint that day.
- * The event collection owns the calendar dates. Do not claim sales are open:
- * the booking page follows live availability, and the longer evening booking
- * durations still require a backend correction before launch. See the handoff.
- */
 import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { BUSINESS_URL, eventSchema, videoObjectSchema } from "../lib/schema";
+import NyeOpening from "../components/NyeOpening.astro";
+import { BUSINESS_URL, PHONE_TEL, PHONE_DISPLAY, eventSchema, videoObjectSchema } from "../lib/schema";
 import { NYE_VIDEO } from "../data/videos";
-import { PLAN_EVENT_URL } from "../lib/links";
-
-const BOOK_NYE_URL = "/reserve/nye/";
 const PAGE_URL = `${BUSINESS_URL}/new-years-eve/`;
-const nyeVideoSchema = videoObjectSchema(NYE_VIDEO);
 const nyeEntry = await getEntry("events", "2026-12-31-new-years-eve");
-// No Offer until the real opening date and sale availability are confirmed.
-// An invented validFrom/InStock assertion is not a substitute for that check.
-const nyeJsonLd = nyeEntry ? {
-  "@context": "https://schema.org",
-  ...eventSchema({
-    name: nyeEntry.data.title,
-    start: nyeEntry.data.start,
-    end: nyeEntry.data.end,
-    description: nyeEntry.body?.trim(),
-    image: `${BUSINESS_URL}/snap/nye-poster.avif`,
-    url: PAGE_URL,
-  }),
-} : null;
-
-// Base prices per lane, before the online booking fee and tax. Keep aligned
-// with codes 126 (traditional) and 124 (VIP), including time-based price rules.
+// A known opening date does not establish InStock. Booking owns availability.
+const nyeJsonLd = nyeEntry ? { "@context": "https://schema.org", ...eventSchema({
+  name: nyeEntry.data.title, start: nyeEntry.data.start, end: nyeEntry.data.end,
+  description: nyeEntry.body?.trim(), image: `${BUSINESS_URL}/snap/nye-poster.avif`, url: PAGE_URL,
+}) } : null;
+// Verified October21 against production pricing/scheduling for126/124.
 const sessions = [
-  { time: "11am–12:30pm", traditional: "109.95", vip: "129.95" },
-  { time: "1–2:30pm", traditional: "139.95", vip: "159.95" },
-  { time: "3–4:30pm", traditional: "149.95", vip: "199.95" },
-  { time: "5–7pm", traditional: "189.95", vip: "229.95" },
-  { time: "7:30–9:30pm", traditional: "199.95", vip: "239.95" },
-  { time: "10pm–12:30am", traditional: "219.95", vip: "259.95" },
+  { start: "11am", end: "12:30pm", duration: "90 minutes", traditional: "109.95", vip: "129.95" },
+  { start: "1pm", end: "2:30pm", duration: "90 minutes", traditional: "139.95", vip: "159.95" },
+  { start: "3pm", end: "4:30pm", duration: "90 minutes", traditional: "149.95", vip: "199.95" },
+  { start: "5pm", end: "7pm", duration: "2 hours", traditional: "189.95", vip: "229.95" },
+  { start: "7:30pm", end: "9:30pm", duration: "2 hours", traditional: "199.95", vip: "239.95" },
+  { start: "10pm", end: "12:30am", duration: "2½ hours", traditional: "219.95", vip: "259.95", midnight: true },
 ];
 ---
-<Base
-  title="New Year's Eve 2026 in Plainfield | Twisted Pin"
-  description="Plan New Year's Eve 2026 in Plainfield. Compare six bowling party times with pizza and soda included, plus a midnight toast with the 10pm party."
-  ogImage="/og/og-vip-suite.jpg"
-  ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
-  lcpPreloadHref="/snap/nye-poster.avif"
-  lcpPreloadMedia="(max-width: 1024px)"
->
-
-  <section class="nye-hero" data-hero aria-labelledby="nye-hero-h1">
-    <video
-      class="nye-hero-video"
-      preload="none"
-      muted
-      autoplay
-      loop
-      playsinline
-      poster="/snap/nye-poster.avif"
-      aria-hidden="true"
-    >
-      {/* Bounded media queries (2026-05-17) — same pattern as homepage
-          hero / events first section. Source ordering already prefers
-          540 on phones, but explicit upper bound on 1080 sources is
-          defense-in-depth against browser probe behavior during load. */}
-      <source media="(max-width: 480px)" src="/snap/nye-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-      <source media="(max-width: 480px)" src="/snap/nye-mobile-h264-540.mp4" type="video/mp4" />
-      <source media="(min-width: 481px)" src="/snap/nye-mobile-av1-1080.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
-      <source media="(min-width: 481px)" src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
-    </video>
-
-    <div class="nye-hero-scrim" aria-hidden="true"></div>
-
-    <div class="nye-hero-copy">
-      <p class="t-eyebrow hero-fade" data-delay-ms="0">December 31, 2026 · Plainfield, IL</p>
-      <h1 class="t-display nye-hero-headline" id="nye-hero-h1">
-        <span class="hero-fade" data-delay-ms="120">New Year's Eve.</span>
-        <span class="hero-fade" data-delay-ms="280">Done right.</span>
-      </h1>
-      <p class="nye-hero-sub hero-fade" data-delay-ms="380">
-        Pizza, bowling, cocktails, and your kind of countdown. Pick an afternoon party or stay through midnight with the 10pm crew.
-      </p>
-    </div>
-  </section>
-
-  <section class="nye-section nye-packages" aria-labelledby="nye-packages-h2">
-    <div class="nye-section-inner">
-      <p class="t-eyebrow">The Packages</p>
-      <h2 class="t-display nye-section-title" id="nye-packages-h2">Pick your New Year's Eve party time.</h2>
-      <p class="nye-section-body">
-        Every lane includes unlimited bowling for your selected party time,
-        shoe rental, one large pizza, one pitcher of soda, and party favors.
-        Traditional lanes start at $109.95; VIP suite lanes start at $129.95.
-        Prices are per lane and vary by party time.
-      </p>
-      <ul class="nye-section-list">
-        <li><strong>Traditional lanes:</strong> up to 5 guests per lane.</li>
-        <li><strong>VIP suite lanes:</strong> up to 6 guests per lane, with couch seating.</li>
-        <li>Count everyone in your group, including guests who aren't bowling.</li>
-      </ul>
-
-      <div class="nye-times">
-        <table aria-describedby="nye-price-note">
-          <caption>December 31, 2026 · price per lane</caption>
-          <thead>
-            <tr><th scope="col">Party time</th><th scope="col">Traditional</th><th scope="col">VIP suite</th></tr>
-          </thead>
-          <tbody>
-            {sessions.map((session) => (
-              <tr>
-                <th scope="row">{session.time}</th>
-                <td>${session.traditional}</td>
-                <td>${session.vip}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+<Base title="New Year's Eve 2026 in Plainfield | Twisted Pin"
+  description="Plan New Year's Eve 2026 at Twisted Pin in Plainfield. Compare six Traditional and VIP bowling parties with pizza, soda and shoes, plus a 10pm midnight toast."
+  ogImage="/og/og-vip-suite.jpg" ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
+  lcpPreloadHref="/snap/nye-poster.avif" lcpPreloadMedia="(max-width: 1024px)"
+  hideStickyCTA={true} hidePromo={true}
+  reservationAction={{ href: "#nye-times", label: "NYE party times" }}>
+  <div class="nye-page">
+    <section class="nye-hero" data-hero aria-labelledby="nye-title">
+      <video class="nye-hero-video" preload="none" muted autoplay loop playsinline poster="/snap/nye-poster.avif" aria-hidden="true">
+        <source media="(max-width: 480px)" src="/snap/nye-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(max-width: 480px)" src="/snap/nye-mobile-h264-540.mp4" type="video/mp4" />
+        <source media="(min-width: 481px) and (max-width: 1024px)" src="/snap/nye-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+        <source media="(min-width: 481px) and (max-width: 1024px)" src="/snap/nye-mobile-h264-1080.mp4" type="video/mp4" />
+      </video>
+      <picture class="nye-hero-desktop" aria-hidden="true"><source type="image/avif" srcset="/snap/nye-reserve-hero-1600.avif" /><img src="/snap/nye-reserve-hero-1600.webp" alt="" width="1600" height="900" /></picture>
+      <div class="nye-hero-scrim" aria-hidden="true"></div>
+      <div class="nye-hero-inner">
+        <div class="nye-hero-copy">
+          <p class="nye-eyebrow">Thursday, December 31, 2026 · Plainfield, IL</p>
+          <h1 id="nye-title">New Year's Eve.<br />Done right.</h1>
+          <p class="nye-hero-sub">Bowling, pizza and your people. Celebrate earlier or ring in 2027 with the 10pm crew.</p>
+        </div>
+        <div class="nye-opening-wrap"><NyeOpening /><a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a></div>
       </div>
-      <p class="nye-price-note" id="nye-price-note">
-        Prices above are before tax and the online booking fee. All times are
-        local to Plainfield. The 10pm party ends at 12:30am on January 1, 2027.
-      </p>
-      <p class="nye-section-body">
-        <strong>Here for midnight?</strong> Choose the 10pm–12:30am party.
-        That party includes the midnight toast: champagne for guests 21 and over,
-        or sparkling cider. The earlier parties finish before midnight.
-      </p>
-      <p class="nye-section-body">
-        Choose your pizza and soda during booking. Two lanes include two pizzas
-        and two pitchers, with a separate choice for each lane. Matching orders
-        are fine. Let us know if you're hoping to bowl near another group.
-      </p>
-      <div class="nye-packages-cta">
-        <a class="btn btn-solid" href={BOOK_NYE_URL}>Check NYE availability</a>
+    </section>
+    <section class="nye-section nye-included" aria-labelledby="nye-included-title">
+      <div class="nye-inner">
+        <p class="nye-eyebrow">Included with every lane</p><h2 id="nye-included-title">The party comes with it.</h2>
+        <ul class="nye-inclusions">
+          <li><strong>Bowling + shoes</strong><span>For your party time</span></li>
+          <li><strong>1 large pizza</strong><span>Choose at checkout</span></li>
+          <li><strong>1 pitcher of soda</strong><span>Choose at checkout</span></li>
+          <li><strong>Party favors</strong><span>It is New Year's Eve.</span></li>
+        </ul>
+        <p class="nye-food-example"><strong>Two lanes? Two pizzas and two pitchers.</strong> Choose each separately or keep them the same.</p>
       </div>
-    </div>
-  </section>
-
-  <section class="nye-section nye-night" aria-labelledby="nye-night-h2">
-    <div class="nye-section-inner">
-      <p class="t-eyebrow">The Room &amp; The Bar</p>
-      <h2 class="t-display nye-section-title" id="nye-night-h2">Make it a VIP night.</h2>
-      <p class="nye-section-body">
-        The six-lane semi-private VIP suite sits apart from the traditional lanes.
-        NYE reservations are sold by the lane for the party time you choose.
-        Reserve all six VIP lanes for your group to have the suite's lanes together;
-        smaller reservations may share the suite with other groups.
-      </p>
-      <p class="nye-section-body">
-        Beyond the drinks included with your package, explore cocktails curated by
-        Brian Van Flandern, named America's Top Mixologist by Food Network, and
-        our 28-tap self-serve wall with beer, wine, cider, and non-alcoholic options.
-        Additional food and drinks are available to purchase.
-      </p>
-    </div>
-  </section>
-
-  <section class="nye-cta" aria-labelledby="nye-cta-h2">
-    <div class="nye-cta-inner">
-      <h2 class="t-display nye-cta-title" id="nye-cta-h2">Your crew. Your countdown.</h2>
-      <p class="nye-cta-body">
-        Join us at 15610 Joliet Road in Plainfield, IL, with free on-site parking.
-        Check the booking page for availability. Questions about your group?
-        Our event team can help.
-      </p>
-      <div class="nye-cta-actions">
-        <a class="btn btn-solid" href={BOOK_NYE_URL}>Check NYE availability</a>
-        <a class="btn btn-outline" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
+    </section>
+    <section class="nye-section nye-rooms" aria-labelledby="nye-rooms-title">
+      <div class="nye-inner">
+        <p class="nye-eyebrow">Same party essentials. Two ways to bowl.</p><h2 id="nye-rooms-title">Traditional or VIP?</h2>
+        <div class="nye-room-grid">
+          <article class="nye-room-card">
+            <picture><source srcset="/snap/tile-trad-540.avif" type="image/avif" /><img src="/snap/tile-trad-540.webp" alt="Traditional bowling lanes at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
+            <div class="nye-room-copy"><h3>Traditional lanes</h3><p class="nye-capacity">Up to <strong>5 guests per lane</strong></p><p>Our traditional lanes, with all the NYE essentials included.</p><p class="nye-from">From <strong>${sessions[0].traditional}</strong> / lane</p></div>
+          </article>
+          <article class="nye-room-card">
+            <picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" alt="Couch seating in the VIP bowling suite at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
+            <div class="nye-room-copy"><h3>VIP suite lanes</h3><p class="nye-capacity">Up to <strong>6 guests per lane</strong></p><p>Couch seating in our six-lane suite, set apart from the traditional lanes.</p><p class="nye-from">From <strong>${sessions[0].vip}</strong> / lane</p></div>
+          </article>
+        </div>
+        <p class="nye-room-note"><strong>Count everyone, including non-bowlers and spectators.</strong> VIP reservations may share the suite with other groups unless you reserve all six lanes for the same party time.</p>
+        <p class="nye-secondary">Starting prices are for the 11am party, before tax and the online booking fee.</p>
       </div>
-    </div>
-  </section>
-
+    </section>
+    <section class="nye-section nye-times-section" id="nye-times" aria-labelledby="nye-times-title">
+      <div class="nye-inner nye-times-inner">
+        <p class="nye-eyebrow">December 31 · Six party times</p><h2 id="nye-times-title">Find your party time.</h2>
+        <p class="nye-lede">Compare party times and lane types. Every price below is <strong>per lane</strong>.</p>
+        <div class="nye-times"><table aria-describedby="nye-price-note">
+          <caption class="nye-sr-only">New Year's Eve 2026 party times and prices per lane</caption>
+          <thead><tr><th scope="col">Party time</th><th scope="col">Traditional</th><th scope="col">VIP suite</th></tr></thead>
+          <tbody>{sessions.map((session) => (<tr class:list={{ "nye-midnight-row": session.midnight }}>
+            <th scope="row"><span class="nye-time-range">{session.start}<span class="nye-time-end"> – {session.end}</span></span><span class="nye-duration">{session.duration}{session.midnight ? " · Midnight toast" : ""}</span></th><td>${session.traditional}</td><td>${session.vip}</td>
+          </tr>))}</tbody>
+        </table></div>
+        <p id="nye-price-note" class="nye-secondary">Tax and the online booking fee are added at checkout. All times are Central. The 10pm party ends January 1, 2027.</p>
+        <div class="nye-toast"><strong>Here for midnight? Choose 10pm.</strong><p>Only the 10pm–12:30am party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Earlier parties end before midnight.</p></div>
+        <a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta data-nye-open-only hidden>Book NYE lanes</a><p class="nye-secondary nye-opening-reminder" data-nye-opening-reminder>Reservations open November 18 at 9am Central.</p>
+      </div>
+    </section>
+    <section class="nye-section nye-extras" aria-labelledby="nye-extras-title">
+      <div class="nye-inner nye-extras-inner">
+        <div><p class="nye-eyebrow">Keep the good night going</p><h2 id="nye-extras-title">Make it your kind of party.</h2></div>
+        <div><p>Pick an optional <strong>arcade card at checkout</strong>. At the venue, explore our <a href="/bar/">cocktail bar and 28-tap self-serve beer &amp; wine wall</a>.</p><p class="nye-secondary">Arcade cards, cocktails and additional food and drinks are separate from your lane package.</p></div>
+      </div>
+    </section>
+    <section class="nye-section nye-faq" aria-labelledby="nye-faq-title">
+      <div class="nye-inner nye-times-inner">
+        <p class="nye-eyebrow">A few things to know</p><h2 id="nye-faq-title">Before the confetti.</h2>
+        <details><summary>How many lanes should we book?</summary><p>Each Traditional lane holds up to <strong>5 total guests</strong>; each VIP lane holds up to <strong>6</strong>. Everyone counts, even if they aren't bowling.</p><p><strong>Example: 5 bowlers + 3 spectators = 8 guests. Book 2 lanes.</strong></p></details>
+        <details><summary>How do we choose our pizza and soda?</summary><p>Choose one pizza and one pitcher of soda for each lane during checkout. Pick from the listed options; every pizza already includes cheese. Food substitutions aren't available for NYE packages.</p><p>You can review and edit your choices before paying. Need a correction afterward? Reply to your confirmation email or call us.</p></details>
+        <details><summary>Can we bowl near friends who book separately?</summary><p>Choose the <strong>same party time and lane type</strong>. At checkout, enter the full name on the other group's reservation in the optional bowl-near request.</p><p>We'll do our best, but requests aren't guaranteed. Traditional and VIP groups are in separate areas, and groups booked at different times cannot bowl together.</p></details>
+        <details><summary>When should we arrive, and what should we bring?</summary><p>Arrive about <strong>5 minutes before your party time</strong>. Your lanes shut off at the end of that time.</p><p>For check-in, the cardholder must be present with the card used to book and their driver's license. Outside food, drinks and party décor aren't permitted.</p></details>
+        <details><summary>What if our plans change?</summary><p>NYE reservations are non-refundable. Contact us <strong>14 days or more before your party</strong> for a gift certificate for the reservation amount, less the service fee. Later cancellations forfeit payment.</p></details>
+      </div>
+    </section>
+    <section class="nye-section nye-closing" aria-labelledby="nye-closing-title">
+      <div class="nye-inner"><p class="nye-eyebrow">Your crew. Your countdown.</p><h2 id="nye-closing-title">Make December 31 a plan.</h2><p>15610 Joliet Rd, Plainfield, IL · Free on-site parking.</p><a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a><p class="nye-secondary" data-nye-opening-reminder>Reservations open November 18 at 9am Central.</p><a class="nye-contact" href={`tel:${PHONE_TEL}`}>Questions? {PHONE_DISPLAY}</a></div>
+    </section>
+  </div>
+  <aside class="nye-mobile-bar" aria-label="New Year's Eve reservations"><span data-nye-opening-reminder>Opens Nov 18 · 9am Central</span><a class="btn btn-solid" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a></aside>
   <SnapFooter />
   {nyeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />}
-  <script type="application/ld+json" set:html={JSON.stringify(nyeVideoSchema)} />
-  <BreadcrumbSchema crumbs={[
-    { name: "Home", path: "/" },
-    { name: "New Year's Eve", path: "/new-years-eve/" },
-  ]} />
+  <script type="application/ld+json" set:html={JSON.stringify(videoObjectSchema(NYE_VIDEO))} />
+  <BreadcrumbSchema crumbs={[{ name: "Home", path: "/" }, { name: "New Year's Eve", path: "/new-years-eve/" }]} />
 </Base>
-
+<script>
+  // The mobile action returns after the hero scrolls away, avoiding adjacent
+  // identical buttons in the first viewport. No-JS retains the useful bar.
+  const hero = document.querySelector('.nye-hero');
+  const bar = document.querySelector<HTMLElement>('.nye-mobile-bar');
+  if (hero && bar && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([entry]) => { bar.hidden = entry.isIntersecting; }).observe(hero);
+  }
+</script>
 <style>
-  /* ============================================================
-     HERO
-     ============================================================ */
-  .nye-hero {
-    position: relative;
-    min-height: 100dvh;
-    display: flex;
-    align-items: flex-end;
-    overflow: hidden;
-    isolation: isolate;
-  }
-  .nye-hero-video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 0;
-  }
-  .nye-hero-scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(
-      180deg,
-      rgba(14, 10, 31, 0.35) 0%,
-      rgba(14, 10, 31, 0.05) 35%,
-      rgba(14, 10, 31, 0.55) 75%,
-      rgba(14, 10, 31, 0.85) 100%
-    );
-  }
-  .nye-hero-copy {
-    position: relative;
-    z-index: 2;
-    padding: 0 24px 96px;
-    color: var(--warm-white);
-    max-width: 800px;
-  }
-  @media (min-width: 1025px) {
-    .nye-hero-copy {
-      padding: 0 64px 120px;
-    }
-  }
-  .nye-hero-headline {
-    font-size: clamp(40px, 12vw, 92px);
-    line-height: 0.95;
-    letter-spacing: -0.015em;
-    margin: 8px 0 18px;
-    color: var(--warm-white);
-    text-transform: uppercase;
-    font-family: var(--font-display);
-    font-weight: 900;
-  }
-  .nye-hero-headline span {
-    display: block;
-  }
-  .nye-hero-sub {
-    font-family: var(--font-body);
-    font-size: clamp(16px, 4vw, 22px);
-    line-height: 1.4;
-    color: rgba(255, 252, 245, 0.9);
-    margin: 0;
-    max-width: 28em;
-  }
-
-  /* ============================================================
-     EDITORIAL SECTION
-     ============================================================ */
-  .nye-section {
-    padding: 80px 24px;
-    color: var(--warm-white);
-  }
-  @media (min-width: 1025px) {
-    .nye-section {
-      padding: 120px 64px;
-    }
-  }
-  .nye-section-inner {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-  .nye-section-title {
-    font-size: clamp(28px, 7vw, 48px);
-    line-height: 1.05;
-    letter-spacing: -0.005em;
-    margin: 8px 0 28px;
-    text-transform: uppercase;
-    font-family: var(--font-display);
-    font-weight: 900;
-  }
-  .nye-section-body {
-    font-family: var(--font-body);
-    font-size: clamp(16px, 4vw, 18px);
-    line-height: 1.6;
-    color: rgba(255, 252, 245, 0.88);
-    margin: 0 0 20px;
-  }
-  .nye-section-list {
-    margin: 28px 0 0;
-    padding: 0 0 0 20px;
-    color: rgba(255, 252, 245, 0.82);
-    font-family: var(--font-body);
-    font-size: clamp(15px, 3.8vw, 17px);
-    line-height: 1.55;
-  }
-  .nye-section-list li + li {
-    margin-top: 8px;
-  }
-  .nye-night { padding-top: 0; }
-  .nye-times { margin: 32px 0 20px; }
-  .nye-times table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--font-ui);
-    font-size: clamp(13px, 3.5vw, 16px);
-    line-height: 1.5;
-    font-variant-numeric: tabular-nums;
-  }
-  .nye-times caption {
-    text-align: left;
-    font-weight: 700;
-    margin-bottom: 12px;
-  }
-  .nye-times th, .nye-times td {
-    padding: 14px 8px;
-    border-bottom: 1px solid rgba(255, 252, 245, 0.2);
-    text-align: right;
-  }
-  .nye-times th:first-child {
-    width: 40%;
-    padding-left: 0;
-    text-align: left;
-  }
+  .nye-page { background: #100b23; color: var(--warm-white); }
+  .nye-page [hidden] { display: none !important; }
+  .nye-page h1, .nye-page h2 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; line-height: .98; letter-spacing: -.015em; }
+  .nye-page h2 { font-size: clamp(34px, 8vw, 54px); margin: 10px 0 24px; }
+  .nye-page p { margin: 0 0 16px; }
+  .nye-page a:not(.btn) { text-underline-offset: 4px; }
+  .nye-eyebrow { font: 700 12px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--warm-white); }
+  .nye-hero { position: relative; isolation: isolate; overflow: hidden; }
+  .nye-hero-video, .nye-hero-desktop, .nye-hero-scrim { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .nye-hero-video, .nye-hero-desktop img { object-fit: cover; width: 100%; height: 100%; }
+  .nye-hero-desktop { display: none; }
+  .nye-hero-scrim { background: linear-gradient(180deg, rgba(14,10,31,.28), rgba(14,10,31,.68) 34%, #100b23 100%); }
+  .nye-hero-inner { position: relative; max-width: 1200px; margin: auto; padding: 170px 20px 40px; }
+  .nye-hero h1 { font-size: clamp(46px, 12vw, 92px); margin: 10px 0 18px; }
+  .nye-hero-sub { max-width: 30em; font: 400 18px/1.5 var(--font-body); }
+  .nye-opening-wrap { max-width: 400px; margin-top: 28px; }
+  .nye-primary { display: inline-flex; justify-content: center; align-items: center; min-height: 52px; font-size: 14px; text-align: center; letter-spacing: 0; }
+  .nye-opening-wrap .nye-primary { width: 100%; margin-top: 12px; }
+  .nye-page .btn-solid:hover, .nye-mobile-bar .btn-solid:hover { background: #78f3d5; color: #100b23; border-color: #78f3d5; }
+  .nye-page .btn-solid:focus-visible, .nye-mobile-bar .btn-solid:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+  .nye-section { padding: 48px 20px; }
+  .nye-inner { max-width: 1040px; margin: auto; }
+  .nye-included { padding-top: 28px; }
+  .nye-inclusions { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 14px; margin: 26px 0; padding: 0; }
+  .nye-inclusions li { padding-top: 12px; border-top: 2px solid #4eecc4; }
+  .nye-inclusions strong { display: block; font: 700 16px/1.4 var(--font-ui); }
+  .nye-inclusions span { display: block; margin-top: 6px; font: 400 14px/1.5 var(--font-ui); color: #cbc5db; }
+  .nye-food-example { max-width: 680px; font-size: 16px; }
+  .nye-room-grid { display: grid; gap: 18px; }
+  .nye-room-card { border: 1px solid #514562; border-radius: 10px; overflow: hidden; background: #1c1434; }
+  .nye-room-card picture { display: block; height: 166px; }
+  .nye-room-card img { width: 100%; height: 100%; object-fit: cover; }
+  .nye-room-copy { padding: 22px; }
+  .nye-room-copy h3 { font: 700 24px/1.2 var(--font-ui); margin: 0 0 12px; }
+  .nye-room-copy p { font-size: 16px; }
+  .nye-room-copy .nye-capacity { font-family: var(--font-ui); }
+  .nye-room-copy .nye-from { margin: 20px 0 0; font-family: var(--font-ui); }
+  .nye-from strong { font-size: 24px; }
+  .nye-room-note { margin-top: 22px !important; font-size: 16px; }
+  .nye-secondary { color: #cbc5db; font: 400 14px/1.6 var(--font-ui); }
+  .nye-times-section { background: #1a1036; scroll-margin-top: 90px; }
+  .nye-times-inner { max-width: 800px; }
+  .nye-lede { font-size: 17px; }
+  .nye-times { margin: 26px 0 18px; }
+  .nye-times table { width: 100%; border-collapse: collapse; font: 500 16px/1.45 var(--font-ui); font-variant-numeric: tabular-nums; }
+  .nye-times th, .nye-times td { padding: 17px 6px; border-bottom: 1px solid #514562; text-align: right; vertical-align: top; }
+  .nye-times th:first-child { text-align: left; padding-left: 0; }
   .nye-times th:last-child, .nye-times td:last-child { padding-right: 0; }
-  .nye-times td { white-space: nowrap; }
-  .nye-price-note {
-    font-family: var(--font-body);
-    font-size: 14px;
-    line-height: 1.6;
-    color: rgba(255, 252, 245, 0.82);
-    margin: 0 0 24px;
-  }
-  .nye-packages-cta {
-    margin-top: 32px;
-  }
-
-  /* ============================================================
-     CLOSING CTA BAND
-     ============================================================ */
-  .nye-cta {
-    background: var(--indigo-deep);
-    padding: 80px 24px;
-    text-align: center;
+  .nye-times thead th { font-size: 14px; }
+  .nye-times td { white-space: nowrap; font-weight: 700; }
+  .nye-time-end { display: block; }
+  .nye-duration { display: block; font-size: 12px; font-weight: 500; color: #cbc5db; margin-top: 5px; }
+  .nye-midnight-row { background: rgba(78,236,196,.06); }
+  .nye-midnight-row .nye-duration { color: #4eecc4; max-width: 110px; }
+  .nye-toast { border-left: 3px solid #4eecc4; padding: 4px 0 4px 18px; margin: 28px 0; font-size: 16px; }
+  .nye-toast > strong { font-family: var(--font-ui); }
+  .nye-toast p { margin: 8px 0 0; }
+  .nye-times-section .nye-primary { width: 100%; }
+  .nye-opening-reminder { margin: 12px 0 0 !important; text-align: center; }
+  .nye-extras { border-bottom: 1px solid #352946; }
+  .nye-extras p { font-size: 17px; }
+  .nye-extras .nye-secondary { font-size: 14px; }
+  .nye-faq details { border-top: 1px solid #514562; padding: 0; }
+  .nye-faq details:last-child { border-bottom: 1px solid #514562; }
+  .nye-faq summary { cursor: pointer; padding: 20px 26px 20px 0; font: 700 17px/1.5 var(--font-ui); }
+  .nye-faq details p { font-size: 16px; padding-right: 10px; }
+  .nye-closing { text-align: center; background: #200f53; padding-bottom: 70px; }
+  .nye-closing .nye-primary { margin: 10px 0 16px; }
+  .nye-contact { display: inline-block; padding: 12px; font: 600 16px/1.5 var(--font-ui); }
+  .nye-mobile-bar { position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; display: grid; gap: 6px; padding: 9px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #100b23; border-top: 1px solid #514562; }
+  .nye-mobile-bar[hidden] { display: none !important; }
+  .nye-mobile-bar span { font: 500 12px/1.5 var(--font-ui); text-align: center; color: #e3ddef; }
+  .nye-mobile-bar .btn { min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 0; }
+  .nye-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  :global(body:has(.nye-page)) { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+  @media (prefers-reduced-motion: reduce) { .nye-hero-video { display: none; } .nye-hero { background: url('/snap/nye-poster.avif') center top / cover; } }
+  @media (min-width: 640px) {
+    .nye-section { padding: 64px 32px; }
+    .nye-inclusions { grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .nye-room-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .nye-room-card picture { height: 210px; }
+    .nye-time-end { display: inline; }
+    .nye-duration { font-size: 14px; }
+    .nye-midnight-row .nye-duration { max-width: none; }
+    .nye-times th, .nye-times td { padding: 20px 14px; }
+    .nye-times thead th { font-size: 16px; }
   }
   @media (min-width: 1025px) {
-    .nye-cta {
-      padding: 120px 64px;
-    }
-  }
-  .nye-cta-inner {
-    max-width: 640px;
-    margin: 0 auto;
-  }
-  .nye-cta-title {
-    font-size: clamp(28px, 7vw, 44px);
-    line-height: 1.05;
-    color: var(--warm-white);
-    margin: 0 0 16px;
-    text-transform: uppercase;
-    font-family: var(--font-display);
-    font-weight: 900;
-  }
-  .nye-cta-body {
-    font-family: var(--font-body);
-    font-size: clamp(15px, 3.8vw, 17px);
-    line-height: 1.55;
-    color: rgba(255, 252, 245, 0.85);
-    margin: 0 0 32px;
-  }
-  .nye-cta-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
+    .nye-hero-video { display: none; }
+    .nye-hero-desktop { display: block; }
+    .nye-hero-scrim { background: linear-gradient(90deg, rgba(14,10,31,.88), rgba(14,10,31,.38)), linear-gradient(0deg, #100b23, transparent 50%); }
+    .nye-hero-inner { min-height: 700px; padding: 160px 48px 80px; display: grid; grid-template-columns: minmax(0,1fr) 370px; gap: 60px; align-items: center; }
+    .nye-opening-wrap { margin: 0; }
+    .nye-hero h1 { font-size: clamp(70px, 6vw, 92px); }
+    .nye-extras-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .nye-mobile-bar { display: none; }
+    :global(body:has(.nye-page)) { padding-bottom: 0; }
   }
 </style>

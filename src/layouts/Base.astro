@@ -21,6 +21,8 @@ interface Props {
   ogType?: string;
   /** Hide the global sticky CTA bar (e.g. on the booking flow). */
   hideStickyCTA?: boolean;
+  /** Keep a campaign's header booking action on its relevant page. */
+  reservationAction?: { href: string; label: string };
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
   /** Staff apps can omit the marketing drawer and its offscreen shadow. */
@@ -92,6 +94,7 @@ const {
   ogImageAlt = "A catering buffet set up at Twisted Pin in Plainfield, IL",
   ogType = "website",
   hideStickyCTA = false,
+  reservationAction,
   hideHeader = false,
   hideNavDrawer = false,
   hidePromo = false,
@@ -418,7 +421,7 @@ const webPage = webPageSchema({
         Coupon page lives in the NavDrawer (Visit section); no banner. */}
     {!hideHeader && (
       <div class="site-chrome">
-        <SiteHeader />
+        <SiteHeader reservationAction={reservationAction} />
       </div>
     )}
 

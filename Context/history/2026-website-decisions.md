@@ -1,3 +1,22 @@
+## 2026-10-21 - NYE opening countdown and landing-page clarity
+
+Jon selected November 18, 2026 at 9am America/Chicago for NYE sales opening
+(`2026-11-18T15:00:00Z`). Use that explicit instant, with a readable date even
+without JavaScript. At opening, link to NYE booking without asserting stock;
+after the event ends, stop advertising a future NYE reservation.
+
+Keep the approved dark Brand direction. Bring the opening and action into
+the hero, separate shared inclusions from the Traditional/VIP photo comparison,
+keep all six party times and per-lane prices readable on phones, and place
+the midnight toast beside the only party that includes it. Short FAQs cover
+food choices, bowl-near requests, arrival and the existing cancellation policy.
+The NYE mobile bar and optional desktop header action stay on NYE; ordinary
+pages keep their existing destinations. Twelve prices and both rooms' six
+durations were verified through production pricing/scheduling services using
+enforced read-only transactions. Public Brand checkout and remaining inventory
+launch gates stay separate. Page-speed benchmarking remains deferred.
+Evidence: `Context/session-handoffs/2026-10-21-nye-landing-opening.md`.
+
 ## 2026-10-21 - Event capacity copy invites a conversation
 
 Jon ruled: "I would rather just not name an explicit capacity." Remove event attendance ceilings and guest-count bands from public pages, FAQs, search metadata, JSON-LD (including optional suite/venue maximumAttendeeCapacity), video descriptions and the public AI summary. Lead with the suite, catering, bar and activity; invite organizers to share headcount, occasion and setup needs. Remove the corporate article's headcount-based venue routing. Do not imply every group fits or that a larger inquiry automatically needs a buyout. Lane counts, package quantities and operational booking/estimator limits retain their separate scope. No Avery, TPRS or external form changes.
