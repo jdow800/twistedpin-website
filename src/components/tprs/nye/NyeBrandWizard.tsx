@@ -78,6 +78,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
   const [catalogHeldSelection,setCatalogHeldSelection] = useState<Pick<PendingProposal,'choice'|'addOns'>|null>(null);
   const controller = useMemo(() => createCartSelectionController({api}), []);
   const rootRef = useRef<HTMLDivElement>(null);
+  const initialization = useRef(0);
   const locked = busy || !!recovery || !!discovered || draft.checkoutLocked;
   const product = products.find(p=>p.code===roomCode) ?? null;
   const slot = product && time ? grid[product.id]?.find(s=>s.time===time) ?? null : null;
@@ -103,6 +104,14 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
   const pricing = useQuote(quoteRequest);
   const quote = recovery?.quote ?? (draft.booking ? acceptedQuote : pricing.quote);
 
+  function preserveDiscovered(attempt:ActiveCheckoutAttempt) {
+    // Even a late response is credible accepted-payment evidence. Keep a
+    // newer discovered attempt if present; otherwise resolve this one before
+    // allowing a fresh payment. Its status is rechecked by recovery.
+    const retained=loadDiscoveredCheckout(sessionStorage)??attempt;
+    setDiscovered(current=>current??retained);
+    saveDiscoveredCheckout(sessionStorage,retained);
+  }
   function save(nextPending:PendingProposal|null = pending, nextDraft=draft, nextStep=step) {
     if (nextStep === 'confirmation') return;
     sessionStorage.setItem(DRAFT_KEY,JSON.stringify({version:1,step:nextStep,choice:choiceFromDraft(nextDraft),roomCode,quantity,time,
@@ -119,13 +128,14 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
     return JSON.stringify(expected)===JSON.stringify(actual)&&coverage.length===savedCoverage.length&&coverage.every(c=>
       savedCoverage.some(s=>s.cartLineRef===c.cartLineRef&&s.count===c.count&&Date.parse(s.startTime)===Date.parse(c.startTime)&&Date.parse(s.endTime)===Date.parse(c.endTime)));
   }
-  async function acceptHeldProposal(proposal:PendingProposal,base:WizardState,current:CartState) {
+  async function acceptHeldProposal(proposal:PendingProposal,base:WizardState,current:CartState,isCurrent=()=>true) {
     if(!exactSelectionHeld(current,selectionItems(proposal.choice,proposal.addOns),laneCoverage(proposal.choice)))
       throw new Error('proposal coverage unavailable');
     // The immutable mutation has now been reconciled. Re-read the current
     // dated package before adopting a proposal that may have survived reload.
     // Do not mutate its request/key or silently substitute new package terms.
     const catalog=await loadNyeCatalog();
+    if(!isCurrent())return false;
     const fresh=resolveCatalogChoice(proposal.choice,catalog.products,catalog.grid);
     if(!fresh)throw new Error('current package unavailable');
     const requiresReview=packageDetailsChanged(proposal.choice,fresh);
@@ -134,6 +144,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
     let definitions:FormDefinition[]=[];
     if(base.product?.id===proposal.choice.product.id&&base.formAnswers.length){
       definitions=base.product.id===draft.product?.id&&forms?forms:(await api.getProductForms(base.product.id)).forms;
+      if(!isCurrent())return false;
       if(!validNyeDefinitions(definitions,base.product.code))throw new Error('form definitions unavailable');
     }
     const nextDraft={...base,date:NYE_DATE,product:fresh.product,slot:fresh.slot,laneQty:fresh.quantity,
@@ -153,6 +164,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
     return !requiresReview&&stillHeld;
   }
   const initialize = useCallback(async()=>{
+    // Opening, a retry or unmount may supersede a slow discovery/restoration.
+    // Its response must not replace the newer sales mode or retained payment.
+    const generation=++initialization.current;
+    const isCurrent=()=>initialization.current===generation;
     setInitializedSalesMode(null);setLoadError(null);
     try {
       const activeSaved=loadDiscoveredCheckout(sessionStorage);
@@ -165,6 +180,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
           // Recovery is shared across booking pages. An ordinary reservation
           // must use its server-retained dates/products/money, never NYE copy.
           const original=await api.getActiveCheckoutAttempt();
+          if(!isCurrent()){if(original)preserveDiscovered(original);return;}
           if(!original||(recovered.payment?.attemptId&&original.attemptId!==recovered.payment.attemptId)
             ||(recovered.payment?.paymentIntentId&&original.paymentIntentId!==recovered.payment.paymentIntentId))throw new Error('original payment unavailable');
           saveDiscoveredCheckout(sessionStorage,original);setDiscovered(original);return;
@@ -174,6 +190,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
         setQuantity(recovered.draft.laneQty);setAddOns(recovered.draft.addOnQtys);setStep('pay');return;
       }
       const active=await api.getActiveCheckoutAttempt();
+      if(!isCurrent()){if(active)preserveDiscovered(active);return;}
       if(active){saveDiscoveredCheckout(sessionStorage,active);setDiscovered(active);return;}
       if(new URLSearchParams(location.search).has('payment_intent_client_secret')) throw new Error('returning payment');
       // Opening controls new purchases only. A saved/returning payment above
@@ -197,10 +214,12 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
         // Restore the retry UI without creating a session or reissuing a hold.
         // Only the guest's explicit Check this selection retries the saved key.
         current=await api.getCart();
+        if(!isCurrent())return;
         if(current.cartToken!==retained.pending.cartToken)throw new Error('cart session changed');
         setNotice('Your selection is still being checked. Check this same selection before making another change.');
       }else{
         const session=await controller.establishSession();
+        if(!isCurrent()){if(session.kind==='payment_recovery'&&session.attempt)preserveDiscovered(activeSchema.parse(session.attempt));return;}
         if(session.kind==='payment_recovery'){if(session.attempt){const found=activeSchema.parse(session.attempt);saveDiscoveredCheckout(sessionStorage,found);setDiscovered(found);}else throw new Error('payment discovery');return;}
         if(session.kind!=='session')throw new Error('session unavailable');
         current=session.cart;
@@ -209,7 +228,8 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
             // Server acceptance can precede the parent draft write or reload.
             // Exact current coverage is enough to restore that explicit choice;
             // this path never creates or extends a hold.
-            await acceptHeldProposal(saved.pending,restoredDraft,current);
+            await acceptHeldProposal(saved.pending,restoredDraft,current,isCurrent);
+            if(!isCurrent())return;
           }else{
             const noLiveHolds=!current.holds.length||!current.holdExpiresAt||Date.parse(current.holdExpiresAt)<=Date.now();
             if(!noLiveHolds)throw new Error('unrelated live selection');
@@ -232,11 +252,13 @@ export default function NyeBrandWizard({salesOpen=true,closedContent}:{salesOpen
         const stillHeld=!!original&&exactSelectionHeld(current,selectionItems(original.choice,original.addOns),laneCoverage(original.choice));
         setNotice(stillHeld?'Your lanes are held; package details changed. Please review before continuing.':'Package details changed. Please review before continuing. Your answers are saved.');
       }
-      const catalog=await loadNyeCatalog();setProducts(catalog.products);setGrid(catalog.grid);
-    }catch {setLoadError('We could not safely restore your reservation. Try again, or call (815) 782-7790 before making another payment.');}
-    finally{setInitializedSalesMode(salesOpen);}
+      const catalog=await loadNyeCatalog();
+      if(!isCurrent())return;
+      setProducts(catalog.products);setGrid(catalog.grid);
+    }catch {if(isCurrent())setLoadError('We could not safely restore your reservation. Try again, or call (815) 782-7790 before making another payment.');}
+    finally{if(isCurrent())setInitializedSalesMode(salesOpen);}
   },[controller,salesOpen]);
-  useEffect(()=>{void initialize();},[initialize]);
+  useEffect(()=>{void initialize();return()=>{initialization.current++;};},[initialize]);
   useEffect(()=>{
     // A restored payment intentionally loaded no editable catalog. A proved
     // cancellation/refund can release it later without erasing saved answers.
