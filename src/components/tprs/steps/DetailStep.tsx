@@ -6,7 +6,8 @@
 
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import DateStrip from "../DateStrip";
-import { useDayAvailability, loadDaySlots } from "../useAvailability";
+import { useDayAvailability, loadDaySlots, loadDayAvailability, reservationPolicyMessage, selectedTimeUnavailable } from "../useAvailability";
+import type { BookingDatePolicy } from "../../../tprs/client";
 import type {
   AvailabilitySlot,
   BookableCategory,
@@ -67,6 +68,7 @@ interface Props {
   addOnQtys: Record<string, number>;
   onPickDate: (date: string) => void;
   onSlot: (slot: AvailabilitySlot) => void;
+  onClearSlot: () => void;
   onLaneQty: (qty: number) => void;
   onAddOnQty: (addOnId: string, qty: number) => void;
   onRemoveLane: () => void;
@@ -90,11 +92,14 @@ export default function DetailStep({
   addOnQtys,
   onPickDate,
   onSlot,
+  onClearSlot,
   onLaneQty,
   onAddOnQty,
   onRemoveLane,
 }: Props) {
   const [slots, setSlots] = useState<AvailabilitySlot[] | null>(null);
+  const [policy, setPolicy] = useState<BookingDatePolicy | null>(null);
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
@@ -132,11 +137,17 @@ export default function DetailStep({
   useEffect(() => {
     let stale = false;
     setSlots(null);
+    setPolicy(null);
+    setLoadedFor(null);
     setError(null);
     setShowAll(false);
-    loadDaySlots(product.id, date)
-      .then((s) => {
-        if (!stale) setSlots(s);
+    loadDayAvailability(product.id, date)
+      .then(({ slots: s, policy: nextPolicy }) => {
+        if (!stale) {
+          setSlots(s);
+          setPolicy(nextPolicy);
+          setLoadedFor(`${product.id}:${date}`);
+        }
       })
       .catch(() => {
         if (!stale) setError("Couldn't load times for this date.");
@@ -184,12 +195,19 @@ export default function DetailStep({
   // backend's lead-time rule — a stale slot can't sneak through).
   const bookable = useMemo(() => {
     if (!slots) return null;
+    if (policy) return [];
     const isToday = date === todayIso();
     const cutoff = isToday ? nowMinutes() : -1;
     return slots.filter(
       (s) => s.available && timeToMinutes(s.time) >= cutoff,
     );
-  }, [slots, date]);
+  }, [slots, date, policy]);
+
+  useEffect(() => {
+    if (loadedFor === `${product.id}:${date}` && selectedTimeUnavailable(selectedSlot, bookable, policy)) onClearSlot();
+  }, [loadedFor, product.id, date, selectedSlot, bookable, policy, onClearSlot]);
+
+  const policyMessage = reservationPolicyMessage(policy, product.durationMinutes, category?.products.some(p => p.durationMinutes === 120) ?? false);
 
   const capacityHelp =
     quantityHelp?.trim() ||
@@ -266,9 +284,10 @@ export default function DetailStep({
       <h3 className="tprs-section-h">Select a time</h3>
 
       {error && <p className="tprs-error">{error}</p>}
+      {policyMessage && <p className="tprs-qty-note" role="status">{policyMessage}</p>}
       {bookable === null && !error && <p className="tprs-loading">Loading times…</p>}
 
-      {bookable !== null && bookable.length === 0 && (
+      {!policyMessage && bookable !== null && bookable.length === 0 && (
         <p className="tprs-empty">
           No times left for this date. Trying to throw a last-minute or custom
           event?{" "}

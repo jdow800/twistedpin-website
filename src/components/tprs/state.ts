@@ -100,6 +100,8 @@ export interface WizardState {
   formAnswers: FormAnswerInput[];
   /** The convert result (bookingId + invoiceNumber + …); set on success. */
   booking: BookingConvertedResponse | null;
+  /** Freeze the accepted order until the server resolves/cancels its payment. */
+  checkoutLocked: boolean;
 }
 
 export const initialState: WizardState = {
@@ -117,6 +119,7 @@ export const initialState: WizardState = {
   couponResult: null,
   formAnswers: [],
   booking: null,
+  checkoutLocked: false,
 };
 
 /** Soft cap on the base stepper — the fallback when a product carries no max. */
@@ -134,6 +137,9 @@ export function laneMinFor(product: CustomerProduct | null): number {
 }
 
 export type WizardAction =
+  | { type: "RESTORE_CHECKOUT"; state: WizardState }
+  | { type: "SET_CHECKOUT_LOCK"; locked: boolean }
+  | { type: "CLEAR_SLOT" }
   | { type: "SET_DATE"; date: string }
   | { type: "SET_PARTY_SIZE"; size: number | null }
   | {
@@ -165,7 +171,14 @@ export function wizardReducer(
   state: WizardState,
   action: WizardAction,
 ): WizardState {
+  // Late availability/forms responses cannot rewrite a paid confirmation.
+  // Only the guest's explicit new-reservation action starts a fresh draft.
+  if ((state.booking || state.step === "confirmation") && action.type !== "RESET") return state;
+  if (state.checkoutLocked && !["RESTORE_CHECKOUT", "SET_CHECKOUT_LOCK", "CONVERTED"].includes(action.type)) return state;
   switch (action.type) {
+    case "RESTORE_CHECKOUT": return { ...action.state, step: "payment", checkoutLocked: true, booking: null };
+    case "SET_CHECKOUT_LOCK": return { ...state, checkoutLocked: action.locked };
+    case "CLEAR_SLOT": return { ...state, slot: null, step: "detail" };
     case "SET_DATE":
       // Date is picked on the main screen (and editable on detail). Changing it
       // invalidates any chosen slot (date-specific price/availability) but keeps
@@ -241,7 +254,7 @@ export function wizardReducer(
       return { ...state, formAnswers: action.answers };
     case "CONVERTED":
       // Booking materialized — freeze the result + land on the confirmation step.
-      return { ...state, booking: action.booking, step: "confirmation" };
+      return { ...state, booking: action.booking, step: "confirmation", checkoutLocked: false };
     case "GO_STEP":
       return { ...state, step: action.step };
     case "REMOVE_LANE":

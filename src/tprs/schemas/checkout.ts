@@ -1,4 +1,4 @@
-// VENDORED from isolated TPRS shared-schemas. See src/tprs/README.md.
+// VENDORED from holiday accepted-attempt contract, 2026-10-20.
 import { z } from "zod";
 import { formAnswerInputSchema } from "./forms";
 
@@ -95,6 +95,10 @@ const startTimeSchema = z.string().datetime({ offset: true });
  * v1 PaymentIntent is the full cart total (PaymentRecord.amount = total).
  */
 export const paymentIntentCreateRequestSchema = z.object({
+  checkoutContractVersion: z.literal(1).optional(),
+  reviewToken: z.string().max(2048).optional(),
+  acceptedTerms: z.boolean().optional(),
+  formAnswers: z.array(formAnswerInputSchema).max(200).optional(),
   customer: checkoutCustomerPayloadSchema,
   eventDate: eventDateSchema,
   startTime: startTimeSchema,
@@ -127,6 +131,9 @@ export type PaymentIntentCreateRequest = z.infer<
  * is carried to convert as the `paymentIntentId` body field.
  */
 export const paymentIntentCreateResponseSchema = z.object({
+  attemptId: z.string().uuid().optional(),
+  recoveryToken: z.string().optional(),
+  attemptStatus: z.literal("prepared").optional(),
   clientSecret: z.string(),
   paymentIntentId: z.string(),
 });
@@ -144,6 +151,9 @@ export type PaymentIntentCreateResponse = z.infer<
  * (required-true trust-with-audit precondition per §1 AH-8).
  */
 export const checkoutPayloadSchema = z.object({
+  legacyClientSecret: z.string().max(512).optional(),
+  attemptId: z.string().uuid().optional(),
+  recoveryToken: z.string().max(256).optional(),
   cartToken: z.string().min(1),
   eventDate: eventDateSchema,
   startTime: startTimeSchema,
@@ -216,6 +226,8 @@ export const pointsRewardDetailsSchema = z.object({
 export type PointsRewardDetails = z.infer<typeof pointsRewardDetailsSchema>;
 
 export const checkoutErrorResponseSchema = z.object({
+  attemptId: z.string().uuid().optional(),
+  recoveryToken: z.string().optional(),
   ...pointsRewardDetailsSchema.shape,
   error: z.string(),
   code: z.enum([
@@ -231,6 +243,9 @@ export const checkoutErrorResponseSchema = z.object({
     "loyalty_reward_rejected",
     // ADR-0030 §5 — booking-question form answers failed server-side validation.
     "form_answer_invalid",
+    "checkout_review_required",
+    "checkout_review_changed",
+    "payment_recovery_required",
     "internal",
   ]),
   failureReason: z.string().optional(),
@@ -346,6 +361,7 @@ export type CouponPreviewResponse = z.infer<typeof couponPreviewResponseSchema>;
  * cart cookie / PaymentIntent / redemption — pure pricing read.
  */
 export const quoteRequestSchema = z.object({
+  eventDate: eventDateSchema.optional(),
   items: z.array(checkoutItemSchema).min(1),
   startTime: startTimeSchema,
   couponCode: z.string().min(1).max(64).optional(),
@@ -401,6 +417,9 @@ export type QuoteFee = z.infer<typeof quoteFeeSchema>;
 
 /** Response for `POST /api/checkout/quote` (all amounts integer cents). */
 export const quoteResponseSchema = z.object({
+  reviewToken: z.string().optional(),
+  reviewExpiresAt: z.string().datetime().optional(),
+  contractVersion: z.literal(1).optional(),
   subtotalExcludingTax: z.number().int(),
   taxBreakdown: quoteTaxBreakdownSchema,
   /**
@@ -437,3 +456,25 @@ export const quoteResponseSchema = z.object({
   totalIncludingTax: z.number().int(),
 });
 export type QuoteResponse = z.infer<typeof quoteResponseSchema>;
+
+export const checkoutAttemptStatusRequestSchema = z.object({
+  attemptId: z.string().uuid(), recoveryToken: z.string().min(1).max(256),
+});
+export const checkoutAttemptStatusResponseSchema = z.object({
+  attemptId: z.string().uuid(),
+  status: z.enum(["prepared", "processing", "confirmed", "needs_review", "refund_requested", "refunded", "refund_failed", "cancelled"]),
+  paymentIntentId: z.string().optional(),
+  booking: bookingConvertedResponseSchema.optional(),
+});
+
+export const checkoutAttemptActiveResponseSchema = z.object({ attempt: z.object({
+  ...checkoutAttemptStatusResponseSchema.shape,
+  recoveryToken: z.string(), clientSecret: z.string().optional(),
+  originalRequest: paymentIntentCreateRequestSchema,
+  originalOrder: checkoutPayloadSchema.extend({ paymentIntentId: z.string() }),
+  financialSnapshot: z.object({ subtotalExcludingTax: z.number().int(), totalIncludingTax: z.number().int(),
+    taxBreakdown: quoteTaxBreakdownSchema,
+    lineItems: z.array(z.object({ name: z.string(), quantity: z.number(), unitPrice: z.number().nullable(), lineTotal: z.number().int(), isFee: z.boolean() })) }),
+  endTime: z.string().datetime(),
+}).nullable() });
+export type ActiveCheckoutAttempt = NonNullable<z.infer<typeof checkoutAttemptActiveResponseSchema>["attempt"]>;

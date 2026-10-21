@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import DateStrip from "../DateStrip";
-import { useDayAvailability, loadDaySlots } from "../useAvailability";
+import { useDayAvailability, loadDaySlots, reservationPolicyMessage } from "../useAvailability";
 import { getBookableProducts } from "../../../tprs/client";
 import type {
   BookableCategory,
@@ -211,12 +211,19 @@ export default function MainStep({
     for (const cat of categories) {
       for (const p of cat.products) {
         if (tooBigIds.has(p.id)) continue; // size rules it out before the date does
-        if (availability.isProductAvailable(p.id, day) === false) {
+        if (availability.isProductAvailable(p.id, day) === false && !availability.productPolicyFor(p.id, day)) {
           hidden.push({ p, next: availability.nextOpenFor(p.id, addDays(day, 1)) });
         }
       }
     }
   }
+
+  const policyMessages = [...new Set((categories ?? []).flatMap(cat => cat.products.flatMap(p => {
+    const policy = dateScoped ? availability.productPolicyFor(p.id, day) : null;
+    const hasTwoHours = cat.products.some(other => other.durationMinutes === 120 && !availability.productPolicyFor(other.id, day));
+    const message = reservationPolicyMessage(policy, p.durationMinutes, hasTwoHours);
+    return message ? [message] : [];
+  })))];
 
   // Pre-sale beat: the page opts in (presaleNotice) and its products exist but
   // NONE are bookable on the canonical defaultDate yet — the sales window hasn't
@@ -347,6 +354,10 @@ export default function MainStep({
           ? `Your options for ${partySize}`
           : (selectionCopy?.heading ?? "Choose your lanes")}
       </h2>
+
+      {!overThreshold && policyMessages.map(message => (
+        <p key={message} className="tprs-qty-note" role="status">{message}</p>
+      ))}
 
       {error && <p className="tprs-error">{error}</p>}
       {!error && categories === null && (

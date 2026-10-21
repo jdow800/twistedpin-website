@@ -30,7 +30,7 @@ const CALC_NOTE_WEBHOOK = "https://n8n.twistedpin.com/webhook/builder-calc-note"
  * instead of the wildcard the cached GET route uses. `Vary: Origin` keeps any intermediary honest.
  */
 function beaconCors(origin: string | null): Record<string, string> {
-  const h = { ...corsHeaders(), "Access-Control-Allow-Methods": "POST, OPTIONS" };
+  const h: Record<string, string> = { ...corsHeaders(), "Access-Control-Allow-Methods": "POST, OPTIONS" };
   if (origin) {
     h["Access-Control-Allow-Origin"] = origin;
     h["Access-Control-Allow-Credentials"] = "true";

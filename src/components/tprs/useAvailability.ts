@@ -15,8 +15,9 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   getBookableProducts,
   getProducts,
-  getMonthAvailability,
-  getAvailability,
+  getMonthAvailabilityDetails,
+  getAvailabilityDetails,
+  type BookingDatePolicy,
 } from "../../tprs/client";
 import type { AvailabilitySlot } from "../../tprs/schemas";
 import { todayIso, monthOf, shiftMonth } from "./format";
@@ -31,22 +32,24 @@ import { todayIso, monthOf, shiftMonth } from "./format";
 // `monthInflight` coalesces duplicate concurrent fetches into a single request.
 const MONTH_TTL_MS = 90_000;
 type MonthMap = Map<string, number | null>; // available date → priceCents
-const monthCache = new Map<string, { at: number; map: MonthMap }>();
-const monthInflight = new Map<string, Promise<MonthMap>>();
+type MonthDetails = { map: MonthMap; policiesByDate: Record<string, BookingDatePolicy> };
+const monthCache = new Map<string, { at: number; details: MonthDetails }>();
+const monthInflight = new Map<string, Promise<MonthDetails>>();
 
-function loadMonth(productId: string, month: string): Promise<MonthMap> {
+function loadMonth(productId: string, month: string): Promise<MonthDetails> {
   const key = `${productId}:${month}`;
   const hit = monthCache.get(key);
-  if (hit && Date.now() - hit.at < MONTH_TTL_MS) return Promise.resolve(hit.map);
+  if (hit && Date.now() - hit.at < MONTH_TTL_MS) return Promise.resolve(hit.details);
   const existing = monthInflight.get(key);
   if (existing) return existing;
-  const p = getMonthAvailability(productId, month)
-    .then((days) => {
+  const p = getMonthAvailabilityDetails(productId, month)
+    .then(({ days, policiesByDate }) => {
       const map: MonthMap = new Map(
-        days.filter((d) => d.available).map((d) => [d.date, d.priceCents]),
+        days.filter((d) => d.available && !policiesByDate[d.date]).map((d) => [d.date, d.priceCents]),
       );
-      monthCache.set(key, { at: Date.now(), map });
-      return map;
+      const details = { map, policiesByDate };
+      monthCache.set(key, { at: Date.now(), details });
+      return details;
     })
     .finally(() => monthInflight.delete(key));
   monthInflight.set(key, p);
@@ -62,28 +65,46 @@ function loadMonth(productId: string, month: string): Promise<MonthMap> {
 // `slotsInflight`. First views are the slow path (~0.5s through the proxy);
 // the prefetchers in MainStep/DetailStep warm them via this loader.
 const SLOTS_TTL_MS = 90_000;
-const slotsCache = new Map<string, { at: number; slots: AvailabilitySlot[] }>();
-const slotsInflight = new Map<string, Promise<AvailabilitySlot[]>>();
+export type DayDetails = { slots: AvailabilitySlot[]; policy: BookingDatePolicy | null };
+const slotsCache = new Map<string, { at: number; details: DayDetails }>();
+const slotsInflight = new Map<string, Promise<DayDetails>>();
 
-export function loadDaySlots(
+export function loadDayAvailability(
   productId: string,
   date: string,
-): Promise<AvailabilitySlot[]> {
+): Promise<DayDetails> {
   const key = `${productId}:${date}`;
   const hit = slotsCache.get(key);
   if (hit && Date.now() - hit.at < SLOTS_TTL_MS) {
-    return Promise.resolve(hit.slots);
+    return Promise.resolve(hit.details);
   }
   const existing = slotsInflight.get(key);
   if (existing) return existing;
-  const p = getAvailability(productId, date)
-    .then((slots) => {
-      slotsCache.set(key, { at: Date.now(), slots });
-      return slots;
+  const p = getAvailabilityDetails(productId, date)
+    .then((details) => {
+      slotsCache.set(key, { at: Date.now(), details });
+      return details;
     })
     .finally(() => slotsInflight.delete(key));
   slotsInflight.set(key, p);
   return p;
+}
+
+export async function loadDaySlots(productId: string, date: string): Promise<AvailabilitySlot[]> {
+  const details = await loadDayAvailability(productId, date);
+  return details.policy ? [] : details.slots;
+}
+
+/** Shared guest copy follows server policy, never a second holiday calendar. */
+export function reservationPolicyMessage(policy: BookingDatePolicy | null | undefined, durationMinutes: number | null, hasTwoHourAlternative = false): string | null {
+  if (!policy) return null;
+  if (policy.code === "holiday_removed" && durationMinutes === 60 && hasTwoHourAlternative) return "One-hour reservations are unavailable on this date. Choose a two-hour reservation or another date.";
+  return policy.message;
+}
+
+/** Loading/fetch failure is unknown, not proof that the customer's pick died. */
+export function selectedTimeUnavailable(selected: AvailabilitySlot | null, available: AvailabilitySlot[] | null, policy: BookingDatePolicy | null): boolean {
+  return selected !== null && (policy !== null || (available !== null && !available.some(s => s.available && s.time === selected.time)));
 }
 
 export interface DayAvailability {
@@ -114,6 +135,7 @@ export interface DayAvailability {
    *  when the day isn't open for it. Party-size mode multiplies this by the
    *  computed lane count for the group "from" total. */
   productPriceFor: (productId: string, isoDate: string) => number | null;
+  productPolicyFor: (productId: string, isoDate: string) => BookingDatePolicy | null;
   /** Ask the hook to load a month's availability (idempotent; cached). */
   ensureMonth: (month: string) => void;
   /** True once EVERY probed product's availability for the month has loaded. */
@@ -138,7 +160,7 @@ export function useDayAvailability(
   const [probeIds, setProbeIds] = useState<string[] | null | undefined>(undefined);
   // month → productId → (available date → priceCents).
   const [months, setMonths] = useState<
-    Record<string, Record<string, MonthMap>>
+    Record<string, Record<string, MonthDetails>>
   >({});
   const requested = useRef<Set<string>>(new Set());
 
@@ -201,7 +223,7 @@ export function useDayAvailability(
       if (probeIds === null) return true; // no probe → any future day selectable
       const byPid = months[monthOf(isoDate)];
       if (!byPid) return false; // nothing loaded → isPending carries the wait
-      for (const pid in byPid) if (byPid[pid].has(isoDate)) return true;
+      for (const pid in byPid) if (byPid[pid].map.has(isoDate)) return true;
       return false;
     },
     [today, probeIds, months],
@@ -216,7 +238,7 @@ export function useDayAvailability(
       if (byPid) {
         // The moment ANY product shows the day open it stops being pending —
         // progressive reveal; "unavailable" needs every product's verdict.
-        for (const pid in byPid) if (byPid[pid].has(isoDate)) return false;
+        for (const pid in byPid) if (byPid[pid].map.has(isoDate)) return false;
       }
       return !probeIds.every((pid) => byPid?.[pid]);
     },
@@ -229,7 +251,7 @@ export function useDayAvailability(
       if (probeIds === null) return true; // no probe → never gate the grid
       const map = months[monthOf(isoDate)]?.[pid];
       if (!map) return undefined; // verdict still loading
-      return map.has(isoDate);
+      return map.map.has(isoDate);
     },
     [today, probeIds, months],
   );
@@ -241,7 +263,7 @@ export function useDayAvailability(
       for (let i = 0; i < 3; i++, m = shiftMonth(m, 1)) {
         const map = months[m]?.[pid];
         if (!map) return null; // not loaded → unknown (no fetching here)
-        const dates = [...map.keys()].sort();
+        const dates = [...map.map.keys()].sort();
         for (const d of dates) if (d >= start) return d;
       }
       return null;
@@ -251,9 +273,14 @@ export function useDayAvailability(
 
   const productPriceFor = useCallback(
     (pid: string, isoDate: string): number | null => {
-      const v = months[monthOf(isoDate)]?.[pid]?.get(isoDate);
+      const v = months[monthOf(isoDate)]?.[pid]?.map.get(isoDate);
       return typeof v === "number" ? v : null;
     },
+    [months],
+  );
+
+  const productPolicyFor = useCallback(
+    (pid: string, isoDate: string): BookingDatePolicy | null => months[monthOf(isoDate)]?.[pid]?.policiesByDate[isoDate] ?? null,
     [months],
   );
 
@@ -263,7 +290,7 @@ export function useDayAvailability(
       if (!byPid) return null;
       let min: number | null = null;
       for (const pid in byPid) {
-        const v = byPid[pid].get(isoDate);
+        const v = byPid[pid].map.get(isoDate);
         if (typeof v === "number" && (min === null || v < min)) min = v;
       }
       return min;
@@ -284,6 +311,7 @@ export function useDayAvailability(
     isProductAvailable,
     nextOpenFor,
     productPriceFor,
+    productPolicyFor,
     priceFor,
     ensureMonth,
     isMonthLoaded,

@@ -99,6 +99,15 @@ export function useStepHistory(
       const i = stack.current.findIndex((x) => x.id === st.tprsId);
       if (i >= 0) stack.current = stack.current.slice(0, i + 1);
       const cur = stateRef.current;
+      if (cur.checkoutLocked) {
+        // Keep the browser entry aligned with the accepted payment. Leaving the
+        // page is still recoverable from sessionStorage; Back cannot edit it.
+        const id = nextId.current++;
+        stack.current = [{ id, step: "payment" }];
+        prevStep.current = "payment"; fromPop.current = false;
+        safe(() => history.replaceState({ tprsId: id, tprsStep: "payment" }, ""));
+        return;
+      }
 
       // A completed booking must never reopen the charged steps. Rebuild a clean
       // single entry HERE (not via the reconcile effect — the RESET that follows

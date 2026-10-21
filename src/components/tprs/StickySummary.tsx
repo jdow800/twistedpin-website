@@ -283,7 +283,7 @@ export default function StickySummary({
                   type="button"
                   className="tprs-line-step"
                   aria-label={l.kind === "lane" && l.qty <= 1 ? `Remove ${l.plainName}` : `Fewer ${l.plainName}`}
-                  disabled={l.kind === "addon" && l.qty <= l.min}
+                  disabled={state.checkoutLocked || l.kind === "addon" && l.qty <= l.min}
                   onClick={() => {
                     if (l.kind === "lane" && l.qty <= 1) onRemoveLane();
                     else changeLine(l, l.qty - 1);
@@ -296,7 +296,7 @@ export default function StickySummary({
                   type="button"
                   className="tprs-line-step"
                   aria-label={`More ${l.plainName}`}
-                  disabled={l.qty >= l.max}
+                  disabled={state.checkoutLocked || l.qty >= l.max}
                   onClick={(e) => {
                     changeLine(l, l.qty + 1);
                     flyToCart(e.currentTarget);
@@ -311,6 +311,7 @@ export default function StickySummary({
                 type="button"
                 className="tprs-line-remove"
                 aria-label={`Remove ${l.plainName}`}
+                disabled={state.checkoutLocked}
                 onClick={() => (l.kind === "addon" && l.id ? onAddOnQty(l.id, 0) : onRemoveLane())}
               >
                 ✕
@@ -451,6 +452,7 @@ export default function StickySummary({
               type="button"
               className="tprs-btn tprs-btn--ghost tprs-btn--small"
               onClick={onBack}
+              disabled={state.checkoutLocked}
             >
               Back
             </button>

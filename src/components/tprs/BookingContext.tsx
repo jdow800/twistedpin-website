@@ -28,6 +28,7 @@ interface Props {
    *  event reserves N seats, not lanes. Defaults to lane/lanes. */
   unitNoun?: { one: string; many: string };
   onEdit: () => void;
+  locked?: boolean;
 }
 
 export default function BookingContext({
@@ -41,6 +42,7 @@ export default function BookingContext({
   showDescriptions = true,
   unitNoun = { one: "lane", many: "lanes" },
   onEdit,
+  locked = false,
 }: Props) {
   // For guest products, the base line reads as a party size, and the linked
   // guest add-on is folded into that count (not listed as a separate add-on).
@@ -55,7 +57,7 @@ export default function BookingContext({
     <div className="tprs-reserving">
       <div className="tprs-reserving-head">
         <span className="tprs-reserving-title">What you're reserving</span>
-        <button type="button" className="tprs-context-edit" onClick={onEdit}>
+        <button type="button" className="tprs-context-edit" onClick={onEdit} disabled={locked}>
           Edit
         </button>
       </div>

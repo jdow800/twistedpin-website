@@ -16,6 +16,7 @@
 // the real cart → PaymentIntent → convert checkout. All carry credentials so the
 // cart-token cookie rides along (must be same-origin via the dev proxy).
 
+import { z } from "zod";
 import {
   pointsRewardDetailsSchema,
   type PointsRewardDetails,
@@ -31,6 +32,9 @@ import {
   cartStateSchema,
   paymentIntentCreateResponseSchema,
   bookingConvertedResponseSchema,
+  checkoutAttemptStatusRequestSchema,
+  checkoutAttemptStatusResponseSchema,
+  checkoutAttemptActiveResponseSchema,
   type BookableProductsResponse,
   type ProductsResponse,
   type AvailabilityResponse,
@@ -163,7 +167,7 @@ async function postJson(
       method: "POST",
       headers: {
         Accept: "application/json",
-        "Content-Type": "application/json",
+        ...(payload === undefined ? {} : { "Content-Type": "application/json" }),
       },
       credentials: "include",
       body: JSON.stringify(payload),
@@ -357,6 +361,37 @@ export async function getAvailability(
       signal,
     ),
   );
+}
+
+const bookingDatePolicySchema = z.object({ code: z.enum(["holiday_removed", "date_removed"]), message: z.string() });
+export type BookingDatePolicy = z.infer<typeof bookingDatePolicySchema>;
+export async function getAvailabilityDetails(productId: string, date: string, signal?: AbortSignal) {
+  const body = await getJson(`/api/availability?product_id=${productId}&date=${date}&include_policy=true`, signal);
+  return Array.isArray(body) ? { slots: availabilityResponseSchema.parse(body), policy: null } :
+    z.object({ slots: availabilityResponseSchema, policy: bookingDatePolicySchema.nullable() }).parse(body);
+}
+export async function getMonthAvailabilityDetails(productId: string, month: string, signal?: AbortSignal) {
+  const body = await getJson(`/api/availability/month?product_id=${productId}&month=${month}&include_policy=true`, signal);
+  return Array.isArray(body) ? { days: monthAvailabilityResponseSchema.parse(body), policiesByDate: {} as Record<string, BookingDatePolicy> } :
+    z.object({ days: monthAvailabilityResponseSchema, policiesByDate: z.record(bookingDatePolicySchema) }).parse(body);
+}
+
+export type CheckoutAttemptStatus = z.infer<typeof checkoutAttemptStatusResponseSchema>;
+export type CheckoutAttemptIdentity = z.infer<typeof checkoutAttemptStatusRequestSchema>;
+export async function getActiveCheckoutAttempt() {
+  const { ok, status, json } = await postJson("/api/checkout/attempt-active", undefined);
+  if (!ok) throwCheckout(status, json);
+  return checkoutAttemptActiveResponseSchema.parse(json).attempt;
+}
+export async function getCheckoutAttemptStatus(identity: CheckoutAttemptIdentity): Promise<CheckoutAttemptStatus> {
+  const { ok, status, json } = await postJson("/api/checkout/attempt-status", identity);
+  if (!ok) throwCheckout(status, json);
+  return checkoutAttemptStatusResponseSchema.parse(json);
+}
+export async function cancelCheckoutAttempt(identity: CheckoutAttemptIdentity): Promise<CheckoutAttemptStatus> {
+  const { ok, status, json } = await postJson("/api/checkout/attempt-cancel", identity);
+  if (!ok) throwCheckout(status, json);
+  return checkoutAttemptStatusResponseSchema.parse(json);
 }
 
 /**

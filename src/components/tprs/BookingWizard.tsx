@@ -23,14 +23,18 @@ import { useQuote } from "./useQuote";
 import { useOptInReward } from "./useOptInReward";
 import { consentLanguageFor } from "./consentCopy";
 import { useStepHistory } from "./useStepHistory";
+import { loadCheckoutRecovery, saveCheckoutRecovery, loadDiscoveredCheckout, saveDiscoveredCheckout, type CheckoutRecovery } from "./checkoutRecovery";
 import { toIsoWithOffset } from "./format";
 import type {
   CheckoutItem,
   FormAnswerInput,
   FormDefinition,
   QuoteRequest,
+  QuoteResponse,
+  ActiveCheckoutAttempt,
 } from "../../tprs/schemas";
-import { getProductForms, getSlotMaxUnits } from "../../tprs/client";
+import { getProductForms, getSlotMaxUnits, getActiveCheckoutAttempt, TprsCheckoutError } from "../../tprs/client";
+import DiscoveredCheckout from "./DiscoveredCheckout";
 import { perUnitCount } from "./FormRenderer";
 import { isIndexedField, indexedAnswersComplete } from "./formAnswers";
 import {
@@ -56,6 +60,55 @@ interface Props {
 
 export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
+  const [recovery, setRecovery] = useState<CheckoutRecovery | null>(null);
+  const [discovered, setDiscovered] = useState<ActiveCheckoutAttempt | null>(null);
+  const [acceptedQuote, setAcceptedQuote] = useState<QuoteResponse | null>(null);
+  const [recoveryLoaded, setRecoveryLoaded] = useState(false);
+  const [recoveryError, setRecoveryError] = useState<string | null>(null);
+  const acceptedOrderOwnsFlow = !recoveryLoaded || !!discovered || !!recovery || state.checkoutLocked || state.step === "confirmation";
+  const initializeRecovery = useCallback(async () => {
+    setRecoveryLoaded(false); setRecoveryError(null);
+    let damagedStorage = false;
+    const returningPayment = new URLSearchParams(location.search).has("payment_intent_client_secret");
+    try {
+      try {
+        const existing = loadDiscoveredCheckout(sessionStorage);
+        if (existing) { setDiscovered(existing); return; }
+        const saved = loadCheckoutRecovery(sessionStorage);
+        if (saved) {
+          setRecovery(saved); setAcceptedQuote(saved.quote);
+          dispatch({ type: "RESTORE_CHECKOUT", state: saved.draft });
+          return;
+        }
+      } catch { damagedStorage = true; }
+      // The cart cookie can recover an accepted order even when this tab lost
+      // its original request. Do this before allowing any fresh payment flow.
+      let existing: ActiveCheckoutAttempt | null = null;
+      try { existing = await getActiveCheckoutAttempt(); }
+      catch (err) {
+        // During backend-first rollout an older server lacks discovery. It is
+        // safe to keep its legacy fresh flow only without any active evidence.
+        if (!(err instanceof TprsCheckoutError && err.status === 404 && !damagedStorage && !returningPayment)) throw err;
+      }
+      if (existing) { saveDiscoveredCheckout(sessionStorage, existing); setDiscovered(existing); }
+      else if (damagedStorage) setRecoveryError("We couldn't read your saved payment details. Please call (815) 782-7790 before making another payment.");
+      else if (returningPayment) setRecoveryError("We found a returning payment without its saved reservation details. Please call (815) 782-7790 so we can check it before you make another payment.");
+    } catch {
+      setRecoveryError("We couldn't check for a saved payment. Please try again before starting another reservation, or call (815) 782-7790.");
+    } finally { setRecoveryLoaded(true); }
+  }, []);
+  useEffect(() => { void initializeRecovery(); }, [initializeRecovery]);
+  const discoverAcceptedCheckout = useCallback(async () => {
+    const existing = await getActiveCheckoutAttempt();
+    if (!existing) throw new Error("We couldn't locate this saved payment. Please check again or call (815) 782-7790.");
+    saveDiscoveredCheckout(sessionStorage, existing);
+    setDiscovered(existing);
+  }, []);
+  const handleRecovery = useCallback((value: CheckoutRecovery | null) => {
+    saveCheckoutRecovery(sessionStorage, value);
+    setRecovery(value);
+    if (value) setAcceptedQuote(value.quote);
+  }, []);
 
   // Browser/OS Back button steps back through the wizard instead of leaving the
   // page (critical on mobile). State-only history — URL stays /reserve-preview/.
@@ -202,7 +255,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
   const slotTime = state.slot?.time;
   useEffect(() => {
-    if (!state.product || !state.date || !slotTime || config.partySize) {
+    if (acceptedOrderOwnsFlow || !state.product || !state.date || !slotTime || config.partySize) {
       setSlotMaxUnits(null);
       return;
     }
@@ -221,7 +274,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       ctrl.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.product?.id, state.date, slotTime, config.partySize]);
+  }, [state.product?.id, state.date, slotTime, config.partySize, acceptedOrderOwnsFlow]);
 
   // Effective lane ceiling = lower of the product's online cap and lanes free.
   const effectiveLaneMax = state.product
@@ -233,12 +286,12 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // Clamp a carried-over selection down when the chosen slot has fewer free
   // (picked 2 at a wide-open slot, then switched to a 1-lane slot).
   useEffect(() => {
-    if (slotMaxUnits === null || config.partySize) return;
+    if (acceptedOrderOwnsFlow || slotMaxUnits === null || config.partySize) return;
     if (state.laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
       dispatch({ type: "SET_LANE_QTY", qty: effectiveLaneMax });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize]);
+  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize, acceptedOrderOwnsFlow]);
 
   // A "guests" product (base package + per-guest add-on) vs the lane default.
   const guestStepper = useMemo(
@@ -368,12 +421,10 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     // The opt-in flag is ALSO gated on eligibility (not just the checkbox):
     // an ineligible guest ticking the plain consent box is pure consent, and
     // must not move the previewed total at all.
-    const smsMarketingOptIn =
-      state.marketingOptIn === true && optInReward.amountCents != null
-        ? true
-        : undefined;
+    const smsMarketingOptIn = state.marketingOptIn;
     return {
       items: checkoutItems,
+      eventDate: state.date,
       startTime: toIsoWithOffset(state.date, state.slot.time),
       couponCode,
       // Ticking the marketing opt-in re-quotes, so the cart total drops the
@@ -382,10 +433,8 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       // Display-only: the charge re-derives eligibility server-side from the
       // persisted consent row, so a forged flag here changes nothing real.
       smsMarketingOptIn,
-      ...((couponCode !== undefined || smsMarketingOptIn !== undefined) && {
-        ...(email !== "" && { email }),
-        ...(phone !== "" && { phone }),
-      }),
+      email,
+      phone,
       // claimsTaxExempt: no tax-exempt checkbox in the UI yet → omitted.
     };
   }, [
@@ -400,12 +449,16 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     optInReward.amountCents,
   ]);
   const {
-    quote,
-    loading: quoteLoading,
-    unavailable: quoteUnavailable,
-    error: quoteError,
+    quote: liveQuote,
+    loading: liveQuoteLoading,
+    unavailable: liveQuoteUnavailable,
+    error: liveQuoteError,
     retry: retryQuote,
-  } = useQuote(quoteRequest);
+  } = useQuote(acceptedOrderOwnsFlow ? null : quoteRequest);
+  const quote = recovery?.quote ?? (state.step === "confirmation" ? acceptedQuote : liveQuote);
+  const quoteLoading = recovery ? false : liveQuoteLoading;
+  const quoteUnavailable = recovery ? false : liveQuoteUnavailable;
+  const quoteError = recovery ? null : liveQuoteError;
 
   // The earned reward cannot stack with the signup offer. Keep the disclosure
   // and its recorded consent wording plain while a points reward is selected.
@@ -460,9 +513,9 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     // so the step ↔ history mirror stays in sync (useStepHistory maps popstate →
     // the previous step, honoring the add-ons skip via the entry it pops to). At
     // the first step there's nothing to step back to in-wizard.
-    if (state.step === "main") return;
+    if (state.step === "main" || state.checkoutLocked) return;
     history.back();
-  }, [state.step]);
+  }, [state.step, state.checkoutLocked]);
 
   // Stable identity so FormRenderer's answer effect doesn't loop.
   const handleFormAnswers = useCallback(
@@ -471,6 +524,17 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     [],
   );
 
+  if (!recoveryLoaded) return <p role="status">Checking your reservation…</p>;
+  if (recoveryError) return <div className="tprs-pay-error" role="alert"><p>{recoveryError}</p><button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => void initializeRecovery()}>Check saved payment</button></div>;
+  if (discovered) return <DiscoveredCheckout attempt={discovered}
+    onSave={(attempt) => { saveDiscoveredCheckout(sessionStorage, attempt); setDiscovered(attempt); }}
+    onClear={() => { saveCheckoutRecovery(sessionStorage, null); saveDiscoveredCheckout(sessionStorage, null); }}
+    onNewReservation={() => {
+      try { saveCheckoutRecovery(sessionStorage, null); saveDiscoveredCheckout(sessionStorage, null); }
+      catch { setRecoveryError("We couldn't clear the resolved payment from this tab. Please refresh before starting another reservation."); return; }
+      setDiscovered(null); setRecovery(null); setAcceptedQuote(null);
+      dispatch({ type: "SET_CHECKOUT_LOCK", locked: false }); dispatch({ type: "RESET" });
+    }} />;
   return (
     <div className="tprs-wizard">
       {/* Scroll anchor for the step-change reset (H1). */}
@@ -530,6 +594,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
 
       {state.step === "detail" && state.date && state.product && (
         <DetailStep
+          onClearSlot={() => dispatch({ type: "CLEAR_SLOT" })}
           date={state.date}
           category={state.category}
           product={state.product}
@@ -561,6 +626,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         state.product &&
         state.date && (
           <BookingContext
+            locked={state.checkoutLocked}
             product={state.product}
             date={state.date}
             slot={state.slot}
@@ -620,6 +686,12 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
 
       {state.step === "payment" && state.product && state.date && state.slot && (
         <PaymentStep
+          draft={state}
+          quote={quote}
+          recovery={recovery}
+          onRecovery={handleRecovery}
+          onDiscover={discoverAcceptedCheckout}
+          onLock={(locked) => dispatch({ type: "SET_CHECKOUT_LOCK", locked })}
           customer={{
             firstName: state.guest.firstName.trim(),
             lastName: state.guest.lastName.trim(),
@@ -699,7 +771,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
               : Math.max(0, lineItemSubtotalCents(state) - couponDiscountCents(state))
           }
           guestEmail={state.guest.email}
-          onReset={() => dispatch({ type: "RESET" })}
+          onReset={() => { setAcceptedQuote(null); dispatch({ type: "RESET" }); }}
         />
       )}
         </div>

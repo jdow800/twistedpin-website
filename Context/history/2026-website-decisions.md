@@ -1,3 +1,15 @@
+## 2026-10-20 - Holiday date policy and recoverable accepted checkout
+
+Jon approved the holiday operations plan and its checkout protection. The booking wizard now reads selected-date policy from TPRS, hides unavailable one-hour choices on those dates, explains the two-hour alternative, and clears only stale time selections after a successful matching-date response. No holiday date list is embedded in the website; normal capacity shortages and network failures retain their existing meaning.
+
+Payment creation saves the exact reviewed request and nonce before contacting the provider, then retains the accepted quote, server attempt identity and recovery credentials through reload and authentication. An unresolved payment freezes order edits. Guests can check status or cancel before editing; processing, unknown, review-needed and pending/failed refund states never start another payment. Changed reviews require a fresh explicit review and terms acceptance. Old-backend quotes and retained legacy payments remain supported, with ownership evidence and conservative recovery when status is unknown.
+
+Verified completion clears Stripe's return parameters while preserving unrelated query/hash values, so refreshing a completed authentication return does not report an unresolved payment. Accepted payments stop live availability probes; late responses cannot change the quantity on a paid confirmation. Browser regressions exercise both the authentication return/refresh and an aborted probe delivered after confirmation.
+
+If the tab loses its saved request, the original cart cookie now discovers any retained server attempt before a fresh checkout can open. The recovery screen shows immutable accepted line items and total, resumes only that payment, and requires proven cancellation/refund before starting another order. Unknown discovery/status blocks a new payment; no current-catalog reconstruction or automatic replacement charge is allowed.
+
+The current visual system is preserved. Offline actual-component browser tests cover review changes, lost responses, authentication reload, cancellation, 404s, legacy recovery, selected-date policy and mobile widths. The production build and existing NYE/purchase tests pass. Implementation, deployment order and limits: `src/tprs/HOLIDAY-CHECKOUT-HANDOFF.md`. This entry records local implementation and verification, not deployment or a production payment.
+
 ## 2026-10-17 - Food count: a positive count in one box of "Count another way" is enough
 
 The GM's 10-17 practice walk: on Toilet Tissue he tapped "Count another way",
