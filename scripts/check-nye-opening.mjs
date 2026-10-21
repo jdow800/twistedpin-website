@@ -58,13 +58,14 @@ const html = `<!doctype html><html><head><meta name="viewport" content="width=de
 @font-face {font-family:Montserrat;font-weight:700;src:url(data:font/woff2;base64,${font.toString("base64")}) format("woff2")}
 body{margin:0;padding:16px;--font-ui:Montserrat,sans-serif}a{display:block;margin:12px 0}[hidden]{display:none!important} ${compiled.css.join("\n")}
 </style></head><body>
-<a href="/reserve/" data-reservation-action><span data-reservation-action-label>Reserve a lane</span><svg aria-hidden="true"></svg></a>
+<span data-nye-before-only>Opens Nov 18th @ 9am</span>
+<a href="/reserve/nye/" data-reservation-action data-nye-after-opening hidden><span data-reservation-action-label>Book NYE lanes</span><svg aria-hidden="true"></svg></a>
 ${rendered}
-<a href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a>
-<a href="#nye-times" data-nye-booking-cta data-nye-open-only hidden><span data-nye-booking-cta-label>See party times &amp; prices</span><svg aria-hidden="true"></svg></a>
-<p data-nye-opening-reminder>Reservations open November 18 at 9am Central.</p>
-<span data-nye-opening-reminder>Opens Nov 18 · 9am Central</span>
-<a href="/events/" data-unrelated>Plan an event</a><section id="nye-times">Party times</section>
+<a href="/reserve/nye/" data-nye-booking-cta data-nye-after-opening hidden>Book NYE lanes</a>
+<a href="/reserve/nye/" data-nye-booking-cta data-nye-open-only hidden><span data-nye-booking-cta-label>Book NYE lanes</span><svg aria-hidden="true"></svg></a>
+<p data-nye-opening-reminder>Reservations open Nov 18th @ 9am.</p>
+<span data-nye-opening-reminder>Nov 18th @ 9am</span>
+<a href="/events/" data-unrelated>Plan an event</a><section id="nye-times" data-nye-open-only hidden>Party times and prices</section>
 </body></html>`;
 
 const browser = await chromium.launch({ headless: true });
@@ -79,6 +80,12 @@ async function pageFor(options = {}) {
 }
 const links = page => page.locator("a[data-nye-booking-cta], a[data-reservation-action]").evaluateAll(nodes => nodes.map(node => ({ href: node.getAttribute("href"), text: node.textContent })));
 const numbers = page => page.locator("[data-nye-unit]").allTextContents();
+const visibleCount = (page, selector) => page.locator(selector).evaluateAll(nodes => nodes.filter(node => node.getClientRects().length > 0 && getComputedStyle(node).visibility !== "hidden").length);
+async function checkPhaseVisibility(page, phase) {
+  check(await visibleCount(page, "[data-nye-before-only]"), phase === "before" ? 1 : 0, `${phase}: quiet pre-opening notice has correct visibility`);
+  check(await visibleCount(page, "[data-nye-after-opening]"), phase === "before" ? 0 : 2, `${phase}: header and hero booking links have correct visibility`);
+  check(await visibleCount(page, "[data-nye-open-only]"), phase === "open" ? 2 : 0, `${phase}: times, prices and their booking action have correct visibility`);
+}
 async function install(page, now) {
   await page.clock.install({ time: new Date(now) });
   await page.clock.pauseAt(new Date(now));
@@ -98,12 +105,15 @@ async function install(page, now) {
 try {
   const { context: nojs, page: plain } = await pageFor({ javaScriptEnabled: false });
   await plain.setContent(html);
-  check(await plain.locator("time").innerText(), "November 18, 2026\n9am Central", "no-JS has full readable venue date and time");
+  check(await plain.locator("time").innerText(), "Nov 18th @ 9am", "no-JS uses Jon's exact simple opening copy");
+  check(await plain.locator("time").getAttribute("datetime"), NYE_OPENING_AT, "simple visible date retains unambiguous machine-readable instant");
+  check(await plain.locator("[data-nye-opening-heading]").textContent(), "Reservations open", "no-JS keeps the selected opening heading");
   check(await plain.locator("[data-nye-opening-date]").isVisible(), true, "no-JS retains the opening date");
   check(await plain.locator("[data-nye-event-date]").isVisible(), false, "no-JS cannot confuse opening with the event date");
   check(await plain.locator("[data-nye-countdown]").isVisible(), false, "no-JS never displays empty or zero digits");
   check(await plain.locator("noscript a").getAttribute("href"), "/reserve/nye/", "no-JS can check the authoritative booking page after opening");
   check(await plain.locator("noscript a").isVisible(), true, "no-JS fallback is visible");
+  await checkPhaseVisibility(plain, "before");
   await nojs.close();
 
   for (const timezoneId of ["America/Chicago", "America/Los_Angeles", "Europe/London", "Asia/Tokyo"]) {
@@ -112,8 +122,9 @@ try {
     check(await page.locator("[data-nye-countdown]").isVisible(), false, `${timezoneId}: no placeholder flicker before hydration`);
     await install(page, opensAt - 1001);
     check(await numbers(page), ["00", "00", "00", "02"], `${timezoneId}: same UTC countdown`);
-    check(await links(page), [{ href: "#nye-times", text: "NYE party times" }, ...Array(2).fill({ href: "#nye-times", text: "See party times & prices" })], `${timezoneId}: compact header and page CTAs preview before opening`);
-    check(await page.locator("[data-nye-open-only]").isVisible(), false, "the party-times section has no self-link before opening");
+    await checkPhaseVisibility(page, "before");
+    check(await visibleCount(page, "a[data-nye-booking-cta], a[data-reservation-action]"), 0, `${timezoneId}: no visible booking-like action before opening`);
+    check(await page.locator("[data-nye-opening-date]").innerText(), "Nov 18th @ 9am", "countdown retains the selected simple opening date");
     check(await page.locator("[data-nye-opening-date]").isVisible(), true, "opening date remains visible before opening");
     check(await page.locator("[data-nye-event-date]").isVisible(), false, "event date waits until opening");
     await page.clock.runFor(1000);
@@ -123,7 +134,7 @@ try {
     check(await page.locator("[data-nye-countdown]").isVisible(), false, `${timezoneId}: countdown disappears exactly on time`);
     check(await page.locator("[data-nye-status]").textContent(), "Choose your party time.", "opening makes no stock promise");
     check(await links(page), Array(3).fill({ href: "/reserve/nye/", text: "Book NYE lanes" }), `${timezoneId}: every tagged CTA opens the NYE flow`);
-    check(await page.locator("[data-nye-open-only]").isVisible(), true, "the booking action appears at opening");
+    await checkPhaseVisibility(page, "open");
     check(await page.locator("[data-nye-opening-reminder]").allTextContents(), Array(2).fill("Choose your party time and lane type."), "full and compact opening reminders retire together");
     check(await page.locator("[data-nye-opening-heading]").textContent(), "NYE reservations", "opening label is no longer future-tense");
     check(await page.locator("[data-nye-opening-date]").isVisible(), false, "historical opening date disappears when booking opens");
@@ -141,7 +152,7 @@ try {
       await page.clock.runFor(1);
       check(await links(page), [{ href: "/reserve/", text: "Reserve a lane" }, ...Array(2).fill({ href: "/reserve/", text: "Plan your next visit" })], "event end restores ordinary reservation links");
       check(await page.locator("[data-nye-opening-reminder]").allTextContents(), Array(2).fill("New Year’s Eve 2026 has ended."), "event-ended reminders");
-      check(await page.locator("[data-nye-open-only]").isVisible(), false, "the completed event's booking action hides");
+      await checkPhaseVisibility(page, "ended");
       check(await page.locator("[data-nye-opening-date]").isVisible(), false, "event-ended card keeps the opening date hidden");
       check(await page.locator("[data-nye-event-date]").isVisible(), true, "event-ended card retains the event date");
       check(await page.locator("[data-nye-status]").textContent(), "This New Year's Eve event has ended.", "event-ended card reports completion");
@@ -151,7 +162,8 @@ try {
       check(await numbers(page), ["01", "00", "00", "00"], "focus resynchronizes after a changed clock");
       check(await page.locator("[data-nye-opening-date]").isVisible(), true, "clock resync restores the opening date before opening");
       check(await page.locator("[data-nye-event-date]").isVisible(), false, "clock resync hides the event date before opening");
-      check(await page.locator("[data-nye-opening-reminder]").allTextContents(), ["Reservations open November 18 at 9am Central.", "Opens Nov 18 · 9am Central"], "clock resync preserves each original reminder style");
+      check(await page.locator("[data-nye-opening-reminder]").allTextContents(), ["Reservations open Nov 18th @ 9am.", "Nov 18th @ 9am"], "clock resync preserves each original reminder style");
+      await checkPhaseVisibility(page, "before");
     }
     await context.close();
   }
@@ -163,6 +175,7 @@ try {
     check(await page.locator("[data-nye-opening-date]").isVisible(), false, "fresh post-opening load hides the historical opening date");
     check(await page.locator("[data-nye-event-date]").innerText(), "Thursday, December 31, 2026", "fresh post-opening load has the readable event date");
     check(await page.locator("[data-nye-opening]").getAttribute("data-nye-state"), now === opensAt ? "open" : "ended", "first-load state is current");
+    await checkPhaseVisibility(page, now === opensAt ? "open" : "ended");
     await context.close();
   }
 

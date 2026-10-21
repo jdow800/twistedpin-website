@@ -22,7 +22,7 @@ interface Props {
   /** Hide the global sticky CTA bar (e.g. on the booking flow). */
   hideStickyCTA?: boolean;
   /** Keep a campaign's header booking action on its relevant page. */
-  reservationAction?: { href: string; label: string };
+  reservationAction?: { href: string; label: string; openingNotice?: string };
   /** Hide the persistent header (rare — full-bleed campaign pages). */
   hideHeader?: boolean;
   /** Staff apps can omit the marketing drawer and its offscreen shadow. */

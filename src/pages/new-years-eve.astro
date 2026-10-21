@@ -4,6 +4,7 @@ import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
 import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
 import NyeOpening from "../components/NyeOpening.astro";
+import { NYE_OPEN_CTA, NYE_OPENING_REMINDER } from "../config/nye-opening";
 import { BUSINESS_URL, PHONE_TEL, PHONE_DISPLAY, eventSchema, videoObjectSchema } from "../lib/schema";
 import { NYE_VIDEO } from "../data/videos";
 const PAGE_URL = `${BUSINESS_URL}/new-years-eve/`;
@@ -24,11 +25,11 @@ const sessions = [
 ];
 ---
 <Base title="New Year's Eve 2026 in Plainfield | Twisted Pin"
-  description="Plan New Year's Eve 2026 at Twisted Pin in Plainfield. Compare six Traditional and VIP bowling parties with pizza, soda and shoes, plus a 10pm midnight toast."
+  description="Plan New Year's Eve 2026 at Twisted Pin in Plainfield. Traditional and VIP bowling parties with pizza, soda and shoes. Celebrate earlier or ring in 2027."
   ogImage="/og/og-vip-suite.jpg" ogImageAlt="The VIP suite lanes at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/nye-poster.avif" lcpPreloadMedia="(max-width: 1024px)"
   hideStickyCTA={true} hidePromo={true}
-  reservationAction={{ href: "#nye-times", label: "NYE party times" }}>
+  reservationAction={{ ...NYE_OPEN_CTA, openingNotice: NYE_OPENING_REMINDER }}>
   <div class="nye-page">
     <section class="nye-hero" data-hero aria-labelledby="nye-title">
       <video class="nye-hero-video" preload="none" muted autoplay loop playsinline poster="/snap/nye-poster.avif" aria-hidden="true">
@@ -43,9 +44,9 @@ const sessions = [
         <div class="nye-hero-copy">
           <p class="nye-eyebrow">Thursday, December 31, 2026 · Plainfield, IL</p>
           <h1 id="nye-title">New Year's Eve.<br />Done right.</h1>
-          <p class="nye-hero-sub">Bowling, pizza and your people. Celebrate earlier or ring in 2027 with the 10pm crew.</p>
+          <p class="nye-hero-sub">Bowling, pizza and your people. Celebrate earlier or ring in 2027.</p>
         </div>
-        <div class="nye-opening-wrap"><NyeOpening /><a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a></div>
+        <div class="nye-opening-wrap"><NyeOpening /><a class="btn btn-solid nye-primary" href={NYE_OPEN_CTA.href} data-nye-booking-cta data-nye-after-opening hidden>{NYE_OPEN_CTA.label}</a></div>
       </div>
     </section>
     <section class="nye-section nye-included" aria-labelledby="nye-included-title">
@@ -66,18 +67,18 @@ const sessions = [
         <div class="nye-room-grid">
           <article class="nye-room-card">
             <picture><source srcset="/snap/tile-trad-540.avif" type="image/avif" /><img src="/snap/tile-trad-540.webp" alt="Traditional bowling lanes at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
-            <div class="nye-room-copy"><h3>Traditional lanes</h3><p class="nye-capacity">Up to <strong>5 guests per lane</strong></p><p>Our traditional lanes, with all the NYE essentials included.</p><p class="nye-from">From <strong>${sessions[0].traditional}</strong> / lane</p></div>
+            <div class="nye-room-copy"><h3>Traditional lanes</h3><p class="nye-capacity">Up to <strong>5 guests per lane</strong></p><p>Our traditional lanes, with all the NYE essentials included.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].traditional}</strong> / lane</p></div>
           </article>
           <article class="nye-room-card">
             <picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" alt="Couch seating in the VIP bowling suite at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
-            <div class="nye-room-copy"><h3>VIP suite lanes</h3><p class="nye-capacity">Up to <strong>6 guests per lane</strong></p><p>Couch seating in our six-lane suite, set apart from the traditional lanes.</p><p class="nye-from">From <strong>${sessions[0].vip}</strong> / lane</p></div>
+            <div class="nye-room-copy"><h3>VIP suite lanes</h3><p class="nye-capacity">Up to <strong>6 guests per lane</strong></p><p>Couch seating in our six-lane suite, set apart from the traditional lanes.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].vip}</strong> / lane</p></div>
           </article>
         </div>
         <p class="nye-room-note"><strong>Count everyone, including non-bowlers and spectators.</strong> VIP reservations may share the suite with other groups unless you reserve all six lanes for the same party time.</p>
-        <p class="nye-secondary">Starting prices are for the 11am party, before tax and the online booking fee.</p>
+        <p class="nye-secondary" data-nye-open-only hidden>Starting prices are for the 11am party, before tax and the online booking fee.</p>
       </div>
     </section>
-    <section class="nye-section nye-times-section" id="nye-times" aria-labelledby="nye-times-title">
+    <section class="nye-section nye-times-section" id="nye-times" aria-labelledby="nye-times-title" data-nye-open-only hidden>
       <div class="nye-inner nye-times-inner">
         <p class="nye-eyebrow">December 31 · Six party times</p><h2 id="nye-times-title">Find your party time.</h2>
         <p class="nye-lede">Compare party times and lane types. Every price below is <strong>per lane</strong>.</p>
@@ -90,7 +91,7 @@ const sessions = [
         </table></div>
         <p id="nye-price-note" class="nye-secondary">Tax and the online booking fee are added at checkout. All times are Central. The 10pm party ends January 1, 2027.</p>
         <div class="nye-toast"><strong>Here for midnight? Choose 10pm.</strong><p>Only the 10pm–12:30am party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Earlier parties end before midnight.</p></div>
-        <a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta data-nye-open-only hidden>Book NYE lanes</a><p class="nye-secondary nye-opening-reminder" data-nye-opening-reminder>Reservations open November 18 at 9am Central.</p>
+        <a class="btn btn-solid nye-primary" href={NYE_OPEN_CTA.href} data-nye-booking-cta data-nye-open-only hidden>{NYE_OPEN_CTA.label}</a>
       </div>
     </section>
     <section class="nye-section nye-extras" aria-labelledby="nye-extras-title">
@@ -110,10 +111,10 @@ const sessions = [
       </div>
     </section>
     <section class="nye-section nye-closing" aria-labelledby="nye-closing-title">
-      <div class="nye-inner"><p class="nye-eyebrow">Your crew. Your countdown.</p><h2 id="nye-closing-title">Make December 31 a plan.</h2><p>15610 Joliet Rd, Plainfield, IL · Free on-site parking.</p><a class="btn btn-solid nye-primary" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a><p class="nye-secondary" data-nye-opening-reminder>Reservations open November 18 at 9am Central.</p><a class="nye-contact" href={`tel:${PHONE_TEL}`}>Questions? {PHONE_DISPLAY}</a></div>
+      <div class="nye-inner"><p class="nye-eyebrow">Your crew. Your countdown.</p><h2 id="nye-closing-title">Make December 31 a plan.</h2><p>15610 Joliet Rd, Plainfield, IL · Free on-site parking.</p><a class="btn btn-solid nye-primary" href={NYE_OPEN_CTA.href} data-nye-booking-cta data-nye-after-opening hidden>{NYE_OPEN_CTA.label}</a><p class="nye-secondary nye-closing-opening" data-nye-opening-reminder>{NYE_OPENING_REMINDER}</p><a class="nye-contact" href={`tel:${PHONE_TEL}`}>Questions? {PHONE_DISPLAY}</a></div>
     </section>
   </div>
-  <aside class="nye-mobile-bar" aria-label="New Year's Eve reservations"><span data-nye-opening-reminder>Opens Nov 18 · 9am Central</span><a class="btn btn-solid" href="#nye-times" data-nye-booking-cta>See party times &amp; prices</a></aside>
+  <aside class="nye-mobile-bar" aria-label="New Year's Eve reservations"><span data-nye-opening-reminder>{NYE_OPENING_REMINDER}</span><a class="btn btn-solid" href={NYE_OPEN_CTA.href} data-nye-booking-cta data-nye-after-opening hidden>{NYE_OPEN_CTA.label}</a></aside>
   <SnapFooter />
   {nyeJsonLd && <script type="application/ld+json" set:html={JSON.stringify(nyeJsonLd)} />}
   <script type="application/ld+json" set:html={JSON.stringify(videoObjectSchema(NYE_VIDEO))} />
@@ -187,7 +188,6 @@ const sessions = [
   .nye-toast > strong { font-family: var(--font-ui); }
   .nye-toast p { margin: 8px 0 0; }
   .nye-times-section .nye-primary { width: 100%; }
-  .nye-opening-reminder { margin: 12px 0 0 !important; text-align: center; }
   .nye-extras { border-bottom: 1px solid #352946; }
   .nye-extras p { font-size: 17px; }
   .nye-extras .nye-secondary { font-size: 14px; }
@@ -197,10 +197,11 @@ const sessions = [
   .nye-faq details p { font-size: 16px; padding-right: 10px; }
   .nye-closing { text-align: center; background: #200f53; padding-bottom: 70px; }
   .nye-closing .nye-primary { margin: 10px 0 16px; }
+  .nye-closing .nye-closing-opening { color: #4eecc4; font-weight: 700; font-size: 20px; }
   .nye-contact { display: inline-block; padding: 12px; font: 600 16px/1.5 var(--font-ui); }
   .nye-mobile-bar { position: fixed; z-index: 30; bottom: 0; left: 0; right: 0; display: grid; gap: 6px; padding: 9px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: #100b23; border-top: 1px solid #514562; }
-  .nye-mobile-bar[hidden] { display: none !important; }
-  .nye-mobile-bar span { font: 500 12px/1.5 var(--font-ui); text-align: center; color: #e3ddef; }
+  .nye-mobile-bar[hidden], .nye-mobile-bar [hidden] { display: none !important; }
+  .nye-mobile-bar span { font: 700 14px/1.5 var(--font-ui); text-align: center; color: #e3ddef; }
   .nye-mobile-bar .btn { min-height: 48px; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 0; }
   .nye-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
   :global(body:has(.nye-page)) { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }

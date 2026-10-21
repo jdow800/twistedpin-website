@@ -1,4 +1,4 @@
-import { NYE_OPENING_AT, NYE_EVENT_END_AT, NYE_PREOPEN_CTA, NYE_PREOPEN_HEADER_CTA, NYE_OPEN_CTA, NYE_ENDED_CTA, NYE_ENDED_HEADER_CTA } from "../config/nye-opening.ts";
+import { NYE_OPENING_AT, NYE_EVENT_END_AT, NYE_OPEN_CTA, NYE_ENDED_CTA, NYE_ENDED_HEADER_CTA } from "../config/nye-opening.ts";
 
 const opensAt = Date.parse(NYE_OPENING_AT);
 const endsAt = Date.parse(NYE_EVENT_END_AT);
@@ -68,14 +68,15 @@ export function mountNyeOpening(doc: Document = document): () => void {
     }
     if (state.phase !== previousPhase) {
       for (const element of doc.querySelectorAll<HTMLElement>("[data-nye-open-only]")) element.hidden = state.phase !== "open";
+      for (const element of doc.querySelectorAll<HTMLElement>("[data-nye-before-only]")) element.hidden = state.phase !== "before";
+      for (const element of doc.querySelectorAll<HTMLElement>("[data-nye-after-opening]")) element.hidden = state.phase === "before";
       for (const { element, before } of reminders) {
         element.textContent = state.phase === "before" ? before : state.phase === "open"
           ? "Choose your party time and lane type." : "New Year’s Eve 2026 has ended.";
       }
       for (const anchor of doc.querySelectorAll<HTMLAnchorElement>("a[data-nye-booking-cta], a[data-reservation-action]")) {
         const header = anchor.hasAttribute("data-reservation-action");
-        const cta = state.phase === "before" ? header ? NYE_PREOPEN_HEADER_CTA : NYE_PREOPEN_CTA
-          : state.phase === "open" ? NYE_OPEN_CTA : header ? NYE_ENDED_HEADER_CTA : NYE_ENDED_CTA;
+        const cta = state.phase !== "ended" ? NYE_OPEN_CTA : header ? NYE_ENDED_HEADER_CTA : NYE_ENDED_CTA;
         anchor.setAttribute("href", cta.href);
         const label = anchor.querySelector<HTMLElement>("[data-reservation-action-label], [data-nye-booking-cta-label]");
         (label ?? anchor).textContent = cta.label;

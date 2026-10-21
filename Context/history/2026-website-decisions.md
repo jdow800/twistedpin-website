@@ -1,3 +1,19 @@
+## 2026-10-21 - NYE pre-opening page keeps booking hidden
+
+Jon selected the proposal without party times or prices before sales open.
+The countdown box now reads only "Reservations open", "Nov 18th @ 9am", then
+the clock. Omit the year and Central from the displayed opening message; the
+underlying instant remains November 18, 2026 at 9am America/Chicago.
+
+Hide the party table, room-card starting prices and NYE booking buttons in
+initial HTML. At the opening instant, reveal them together. The desktop header
+uses a quiet noninteractive opening notice until then, and the mobile bottom
+bar shows the same notice without a button. No preview/disclosure link.
+The existing mobile video and desktop photograph stay unchanged. This supersedes
+the initial pre-opening "See party times & prices" action below. The local
+comparison source in `Context/reviews/2026-10-21-nye-preopening/` remains a
+historical proposal, not the final opening-box copy. Page-speed work stays deferred.
+
 ## 2026-10-21 - NYE opening countdown and landing-page clarity
 
 Jon selected November 18, 2026 at 9am America/Chicago for NYE sales opening

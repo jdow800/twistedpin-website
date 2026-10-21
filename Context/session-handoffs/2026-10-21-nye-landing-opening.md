@@ -11,20 +11,28 @@ The dark Brand direction stays. A compact hero shows the opening date and live
 countdown immediately, with a desktop room photo and the existing mobile video.
 Four short inclusion groups explain bowling/shoes, one pizza, one pitcher and
 party favors. Comparable Traditional/VIP photo cards show the actual operational
-per-lane booking limits. All six party times and both prices remain visible,
-with 16px decision text on narrow phones. The 10pm-only toast has its own callout.
+per-lane booking limits. All six party times and both prices appear only when
+reservations open, with 16px decision text on narrow phones. The 10pm-only toast
+has its own callout beside those times.
 
 FAQs cover fixed food choices, per-lane headcount, same-time/same-room bowl-near
 requests, arrival/check-in and the existing cancellation terms. The policies
 were checked against the owner's actual confirmation email. Ordinary site
-navigation is preserved; the NYE header action and mobile bottom action lead
-to NYE. The bottom action appears after the hero has scrolled away.
+navigation is preserved; the NYE header and mobile bottom bar show a quiet
+opening notice before sales. Their booking actions appear at opening and lead
+to NYE. The bottom bar appears after the hero has scrolled away.
 
-Before opening, actions scroll to prices; at opening, they link to
-`/reserve/nye/`. The countdown never calls a booking endpoint, acquires inventory,
+Jon selected a simpler pre-opening state after reviewing the first deployment:
+"Reservations open" / "Nov 18th @ 9am" / countdown. No extra status sentence,
+year or Central in the displayed opening message. The configured UTC instant
+still represents the approved Chicago time. Party times, prices and booking
+buttons are hidden in initial HTML, with no preview link. At opening they reveal
+together and the buttons link to `/reserve/nye/`.
+The countdown never calls a booking endpoint, acquires inventory,
 asserts availability or navigates automatically. At the final party's end,
 January1 at12:30amCentral, it retires the NYE action. Date text and a real booking
-link remain usable without JavaScript. Per-second digits are excluded from
+link remain usable without JavaScript (a quiet "Check NYE booking" fallback).
+Per-second digits are excluded from
 screen-reader announcements; only meaningful state transitions are announced.
 
 ## Validation and reproduction
