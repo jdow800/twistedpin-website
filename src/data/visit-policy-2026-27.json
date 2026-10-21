@@ -1,0 +1,444 @@
+{
+  "schema_version": 1,
+  "operation_version": "holiday-operations-2026-27-v1",
+  "source": "TPRS docs/holiday-operations-2026-27/calendar.json; CURRENT-STATUS.md and RUNBOOK.md govern approval",
+  "calendar_sha256": "2fec1a4dd0a712fc296687df541330a5829197d30f21d2c095c7bd46a89a0513",
+  "approved_on": "2026-10-20",
+  "timezone": "America/Chicago",
+  "valid_from": "2026-10-26",
+  "valid_through": "2027-05-31",
+  "separately_managed_dates": [
+    "2026-12-31"
+  ],
+  "dates": {
+    "2026-10-26": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "15:00",
+        "close": "22:00",
+        "closing_date": "2026-10-26"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2026-11-02": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "15:00",
+        "close": "22:00",
+        "closing_date": "2026-11-02"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2026-11-03": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "15:00",
+        "close": "22:00",
+        "closing_date": "2026-11-03"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2026-11-23": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-11-23"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-11-24": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-11-24"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-11-25": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "01:00",
+        "closing_date": "2026-11-26"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "excluded"
+    },
+    "2026-11-26": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "closed",
+        "open": null,
+        "close": null,
+        "closing_date": null
+      },
+      "ordinary_online_reservations": "closed",
+      "penny": "unknown"
+    },
+    "2026-11-27": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2026-11-28"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-11-28": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2026-11-29"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-11-29": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-11-29"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-21": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-12-21"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-22": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-12-22"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-23": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2026-12-23"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "excluded"
+    },
+    "2026-12-24": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "18:00",
+        "closing_date": "2026-12-24"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-25": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "closed",
+        "open": null,
+        "close": null,
+        "closing_date": null
+      },
+      "ordinary_online_reservations": "closed",
+      "penny": "unknown"
+    },
+    "2026-12-26": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2026-12-27"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-27": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "23:00",
+        "closing_date": "2026-12-27"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-28": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "23:00",
+        "closing_date": "2026-12-28"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-29": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "23:00",
+        "closing_date": "2026-12-29"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2026-12-30": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "23:00",
+        "closing_date": "2026-12-30"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "excluded"
+    },
+    "2027-01-01": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "01:00",
+        "closing_date": "2027-01-02"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-01-02": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2027-01-03"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-01-03": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-01-03"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-01-04": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-01-04"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-01-18": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "15:00",
+        "close": "22:00",
+        "closing_date": "2027-01-18"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2027-02-15": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "15:00",
+        "close": "22:00",
+        "closing_date": "2027-02-15"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2027-02-26": {
+      "coverage": "approved_regular_date",
+      "hours": {
+        "status": "open",
+        "open": "14:00",
+        "close": "01:00",
+        "closing_date": "2027-02-27"
+      },
+      "ordinary_online_reservations": "unknown",
+      "penny": "unknown"
+    },
+    "2027-03-26": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "01:00",
+        "closing_date": "2027-03-27"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-03-27": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2027-03-28"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-03-28": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-03-28"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-03-29": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-03-29"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-03-30": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-03-30"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-03-31": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-03-31"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "excluded"
+    },
+    "2027-04-01": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "23:00",
+        "closing_date": "2027-04-01"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-04-02": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "01:00",
+        "closing_date": "2027-04-03"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-04-03": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "11:00",
+        "close": "01:00",
+        "closing_date": "2027-04-04"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-04-04": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-04-04"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-04-05": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-04-05"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    },
+    "2027-04-06": {
+      "coverage": "school_break",
+      "hours": {
+        "status": "open",
+        "open": "12:00",
+        "close": "22:00",
+        "closing_date": "2027-04-06"
+      },
+      "ordinary_online_reservations": "two_hours_only",
+      "penny": "unknown"
+    }
+  }
+}

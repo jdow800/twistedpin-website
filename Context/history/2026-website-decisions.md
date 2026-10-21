@@ -1,3 +1,24 @@
+## 2026-10-21 - Approved visit-date answers for Roy
+
+Jon asked to prepare Roy for the approved school-break calendar. A read-only
+`/api/visit-date/` endpoint provides planned venue hours, ordinary online reservation
+duration policy and the four approved Penny a Pin exclusions. Its narrow, versioned
+projection comes from the approved 2026-27 operating packet; historical review rows
+and monetary values are excluded. It is not a quote, availability or booking API.
+
+Dates are resolved on the server in America/Chicago. Ambiguous, uncovered or expired
+dates remain unknown. An unlisted Wednesday is not permission to promise Penny, and
+the tool never invents a return date. Holiday kitchen/bar/Beer Wall cutoffs remain
+unknown. New Year's Eve refers to its separate booking page. The existing Google
+hours endpoint continues to own current opening status and Roy's transfer routing.
+
+The endpoint returns a short answer for the requested topic. Retell uses POST with
+only date/topic arguments, so a caller transcript is not needed. Offline tests cover
+the approved date matrix, midnight boundaries, uncertainty and malformed requests.
+All 1,080 focused assertions, projection/source parity and the production build pass.
+Independent source review found no blocking integration, date or privacy issue.
+Release readbacks are recorded with Roy's October 21 changelog in Marketing Avery.
+
 ## 2026-10-20 - Holiday date policy and recoverable accepted checkout
 
 Jon approved the holiday operations plan and its checkout protection. The booking wizard now reads selected-date policy from TPRS, hides unavailable one-hour choices on those dates, explains the two-hour alternative, and clears only stale time selections after a successful matching-date response. No holiday date list is embedded in the website; normal capacity shortages and network failures retain their existing meaning.
