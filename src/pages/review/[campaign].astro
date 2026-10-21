@@ -15,7 +15,7 @@ if (Astro.params.campaign !== "jingle-calendar") {
      long event actions inside their grid column without changing the
      public calendar or hiding clipped content. */
   @media (max-width: 1024px) {
-    html { scrollbar-gutter: auto; }
+    html:has(#upcoming-h1) { scrollbar-gutter: auto; }
     .ev-body .ev-cta {
       max-width: 100%;
       white-space: normal;
