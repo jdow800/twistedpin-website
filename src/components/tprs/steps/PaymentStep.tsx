@@ -1,5 +1,10 @@
 // Step 6 — REAL payment (ADR-0025 §4 two-step checkout), deferred-PaymentElement
-// pattern. The cart-hold is acquired on mount (10-min capacity reservation) and
+// pattern. NYE may supply an already atomically held full selection; that path
+// only verifies it and preserves its deadline. The ordinary flow below keeps
+// its existing acquire-on-mount behavior. Accepted attempts own their recovery
+// independently of either temporary hold's timer.
+// Legacy/ordinary temporary-hold behavior:
+// The cart-hold is acquired on mount (10-min capacity reservation) and
 // the card form renders immediately. The rail PaymentIntent is created only when
 // the guest hits Pay — `/checkout/payment-intents` floors the hold at a 180-second
 // grace window (GREATEST(existing, now+180s) since 2026-07-18 — it EXTENDS a
@@ -14,6 +19,7 @@ import { useRef, useState } from "react";
 import CheckoutForm from "./PaymentCheckoutForm";
 import type { CheckoutRecovery } from "../checkoutRecovery";
 import type { WizardState } from "../state";
+import type { NyeLaneCoverage } from "../nye/cartSelection";
 import { Elements } from "@stripe/react-stripe-js";
 import { getStripe, STRIPE_AVAILABLE, STRIPE_APPEARANCE } from "../stripe";
 import CouponField from "../CouponField";
@@ -36,6 +42,12 @@ export interface PaymentProps {
   customer: CheckoutCustomerPayload;
   /** Resource-consuming lines that need a capacity hold (the lane). */
   cartHoldItems: CartAddRequest;
+  /** The party picker already committed this complete selection atomically. */
+  preAcquiredSelection?: { items: CartAddRequest; coverage: readonly NyeLaneCoverage[] };
+  /** Return to deliberate party selection without releasing or extending holds. */
+  onSelectionLost?: () => void;
+  /** NYE does not offer the ordinary checkout coupon surface. */
+  couponsEnabled?: boolean;
   /** Full priced line set (lane + add-ons) sent to payment-intents + convert. */
   checkoutItems: CheckoutItem[];
   eventDate: string; // YYYY-MM-DD
@@ -60,6 +72,8 @@ export interface PaymentProps {
   /** Back to the time picker (detail step) — the sold-out blocker's recovery
    *  action, so "pick another time" actually lands somewhere they can. */
   onFindNewTime: () => void;
+  /** Event-specific guidance when online sales for the selected time close. */
+  salesClosedMessage?: string;
   termsText: string;
   /** Authoritative total (incl. tax) for the Pay button + deferred amount. */
   totalCents: number;
@@ -97,7 +111,7 @@ export default function PaymentStep(props: PaymentProps) {
 
       {/* "Have a code?" — at checkout, where guests hunt for it. The quote
           (sticky cart) + the PI created at Pay both read the applied code. */}
-      <CouponField
+      {props.couponsEnabled !== false && <CouponField
         disabled={checkoutLocked || !!props.recovery}
         productId={props.cartHoldItems[0]?.productId ?? ""}
         startTime={props.startTime}
@@ -110,7 +124,7 @@ export default function PaymentStep(props: PaymentProps) {
         couponResult={props.couponResult}
         onCouponCode={props.onCouponCode}
         onCouponResult={props.onCouponResult}
-      />
+      />}
 
       {/* Deferred mode: amount is provisional (server re-sizes at PI creation) —
           renders the card form WITHOUT a PaymentIntent so the 60s grace doesn't

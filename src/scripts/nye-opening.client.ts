@@ -1,22 +1,9 @@
-import { NYE_OPENING_AT, NYE_EVENT_END_AT, NYE_OPEN_CTA, NYE_ENDED_CTA, NYE_ENDED_HEADER_CTA } from "../config/nye-opening.ts";
+import { NYE_OPENING_AT, NYE_EVENT_END_AT, NYE_OPEN_CTA, NYE_ENDED_CTA, NYE_ENDED_HEADER_CTA, nyeOpeningState, type NyeOpeningPhase } from "../config/nye-opening.ts";
+export { nyeOpeningState } from "../config/nye-opening.ts";
 
 const opensAt = Date.parse(NYE_OPENING_AT);
 const endsAt = Date.parse(NYE_EVENT_END_AT);
 const MAX_TIMEOUT_MS = 2_147_483_647;
-type NyeOpeningPhase = "before" | "open" | "ended";
-
-/** Explicit UTC instants keep the Chicago schedule independent of browser TZ. */
-export function nyeOpeningState(now = Date.now()) {
-  const phase: NyeOpeningPhase = now >= endsAt ? "ended" : now >= opensAt ? "open" : "before";
-  const seconds = Math.max(0, Math.ceil((opensAt - now) / 1000));
-  return {
-    phase,
-    days: Math.floor(seconds / 86400),
-    hours: Math.floor(seconds / 3600) % 24,
-    minutes: Math.floor(seconds / 60) % 60,
-    seconds: seconds % 60,
-  };
-}
 
 /** Presentation only: no request, reservation, automatic navigation or stock claim. */
 export function mountNyeOpening(doc: Document = document): () => void {

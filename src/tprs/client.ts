@@ -48,6 +48,7 @@ import {
   type QuoteRequest,
   type QuoteResponse,
   type CartAddRequest,
+  type CartReplaceRequest,
   type CartState,
   type PaymentIntentCreateRequest,
   type PaymentIntentCreateResponse,
@@ -526,6 +527,22 @@ export async function addCartItems(
  */
 export async function getCart(signal?: AbortSignal): Promise<CartState> {
   return cartStateSchema.parse(await getJson("/api/cart", signal));
+}
+
+/** Establish cookie ownership before the first deliberate hold. A lost
+ * response consumes no lanes, so session establishment is safe to retry. */
+export async function establishCartSession(signal?: AbortSignal): Promise<CartState> {
+  const { ok, status, json } = await postJson("/api/cart/session", undefined, signal);
+  if (!ok) throwCheckout(status, json);
+  return cartStateSchema.parse(json);
+}
+
+/** Atomically replace the complete selection. Retain the exact body/key after
+ * an uncertain response; replay returns current state without a fresh hold. */
+export async function replaceCartItems(request: CartReplaceRequest, signal?: AbortSignal): Promise<CartState> {
+  const { ok, status, json } = await postJson("/api/cart/replace", request, signal);
+  if (!ok) throwCheckout(status, json);
+  return cartStateSchema.parse(json);
 }
 
 /** DELETE /api/cart/items/:id (:id = cartLineRef) — release a line's hold; returns the updated cart. */

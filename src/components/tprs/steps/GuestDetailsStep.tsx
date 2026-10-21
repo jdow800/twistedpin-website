@@ -13,6 +13,8 @@ import type { FormAnswerInput } from "../../../tprs/schemas";
 import { guestFieldError, guestInvalidFields, type GuestFields } from "../state";
 
 interface Props {
+  /** NYE renders its required food/policy form before contact details. */
+  showBookingForms?: boolean;
   guest: GuestFields;
   onGuestField: (field: keyof GuestFields, value: string) => void;
   /** Marketing-consent checkbox value. `undefined` = never toggled — rendered
@@ -345,7 +347,7 @@ export default function GuestDetailsStep(props: Props) {
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
           agreement, birthday Kids Party). Bubbles invalid ids up for the gate +
           first-miss scroll; reveals per-field errors on a failed Continue. */}
-      <FormRenderer
+      {props.showBookingForms !== false && <FormRenderer
         productId={productId}
         productCode={productCode}
         answers={formAnswers}
@@ -353,7 +355,7 @@ export default function GuestDetailsStep(props: Props) {
         onInvalidIdsChange={onFormInvalidIds}
         submitAttempt={submitAttempt}
         unitQuantities={unitQuantities}
-      />
+      />}
 
       {/* The `*` footnote for the marketing opt-in above. MUST stay on this
           step (same screen as the checkbox = point-of-consent adjacency); the

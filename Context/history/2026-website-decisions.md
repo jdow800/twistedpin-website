@@ -1,3 +1,21 @@
+## 2026-10-21 - Public NYE Brand checkout integration
+
+Extract the approved Brand flow into the NYE booking route, keeping ordinary
+checkout defaults. Direct pre-opening visits show the same simple November18
+9am countdown; an already-open tab loads party choices when it opens. Preserve
+payment recovery before new-sale gating. Production has plain optional SMS
+consent without a signup reward or coupon field; no rehearsal plumbing enters
+the public app. A saved draft survives the opening transition unchanged.
+
+Local synthetic flow, inventory-controller, shared recovery, strict TypeScript,
+responsive route/landing and build checks accompany the extraction. The release
+is reconciled with repaired Website main9101cbf, retaining its protected Jingle
+pages and passing its security and emitted middleware/proxy checks. Backend
+inventory activation, reason-aware availability, exact-opening cache behavior,
+December31 exclusions/blocks and real processor verification remain separate
+launch gates. Page-speed work stays deferred. See
+`Context/session-handoffs/2026-10-21-nye-public-checkout.md`.
+
 ## 2026-10-21 - Restore NYE desktop video
 
 Jon prefers video on desktop as well as mobile. Restore the existing NYE reel

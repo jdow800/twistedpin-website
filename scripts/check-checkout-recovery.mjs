@@ -26,7 +26,7 @@ export const incomplete={...discovered,paymentReady:false,originalRequest:oldReq
 const fixturePlugin = {name:'fixture',setup(b){b.onResolve({filter:/^fixture$/},()=>({path:'fixture',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:fixture,loader:'js'}));}};
 const pure = await build({stdin:{contents:`
 import assert from 'node:assert/strict';
-import {product,customer,quote,items,request,payment,booking,discovered,incomplete} from 'fixture';
+import {product,customer,quote,items,request,payment,booking,discovered,incomplete,id} from 'fixture';
 import {initialState,wizardReducer} from './src/components/tprs/state.ts';
 import {saveCheckoutRecovery,loadCheckoutRecovery,saveDiscoveredCheckout,loadDiscoveredCheckout,canReleaseCheckout,resolvedCheckoutUrl,CHECKOUT_RECOVERY_KEY,DISCOVERED_CHECKOUT_KEY} from './src/components/tprs/checkoutRecovery.ts';
 import {paymentIntentCreateResponseSchema,quoteResponseSchema} from './src/tprs/schemas/checkout.ts';
@@ -63,7 +63,7 @@ import StickySummary from './src/components/tprs/StickySummary.tsx';
 import {useStepHistory} from './src/components/tprs/useStepHistory.ts';
 import {initialState,wizardReducer} from './src/components/tprs/state.ts';
 import {loadCheckoutRecovery,saveCheckoutRecovery,CHECKOUT_RECOVERY_KEY} from './src/components/tprs/checkoutRecovery.ts';
-import {product,customer,quote,items,request,payment,booking,discovered,incomplete} from 'fixture';
+import {product,customer,quote,items,request,payment,booking,discovered,incomplete,id} from 'fixture';
 window.calls=JSON.parse(sessionStorage.getItem('test-calls')||'[]');
 const log=(kind,payload)=>{window.calls.push({kind,payload});sessionStorage.setItem('test-calls',JSON.stringify(window.calls));};
 const setting=()=>JSON.parse(sessionStorage.getItem('test-settings')||'{}');
@@ -76,13 +76,24 @@ window.stripeFake={
  confirmPayment:async()=>{log('confirm',{});window.configure({provider:setting().confirmProcessing?'processing':'succeeded'});if(setting().authReload){const target=new URL(location.href);target.searchParams.set('payment_intent',payment.paymentIntentId);target.searchParams.set('payment_intent_client_secret',payment.clientSecret);target.searchParams.set('redirect_status','succeeded');if(setting().authWizard)target.searchParams.set('wizard','1');location.assign(target.href);await new Promise(()=>{});}return {};},
 };
 window.elementsFake={submit:async()=>{log('submit',{});return {};},update:()=>{}};
-const held={cartToken:'synthetic-cart',holdExpiresAt:new Date(Date.now()+600000).toISOString(),holds:[{id:product.id,cartLineRef:'lane',poolId:product.id,count:1,startTime:new Date(request.startTime).toISOString(),endTime:'2098-11-23T20:50:00.000Z',expiresAt:new Date(Date.now()+600000).toISOString()}]};
+const heldItems=[{...items[0],startTime:request.startTime},{productId:id(6),quantity:2,cartLineRef:'arcade',startTime:request.startTime}];
+const heldDeadline=new Date(Date.now()+600000).toISOString();
+const held={cartToken:'synthetic-cart',revision:3,items:heldItems,holdExpiresAt:heldDeadline,holds:[{id:product.id,cartLineRef:'lane',poolId:product.id,count:1,startTime:new Date(request.startTime).toISOString(),endTime:'2098-11-23T20:50:00.000Z',expiresAt:heldDeadline}]};
 const originalFetch=window.fetch;
 window.fetch=async(url,options={})=>{
  if(!String(url).startsWith('/fixture-api'))return originalFetch(url,options);
  const path=String(url).slice('/fixture-api'.length);const body=options.body?JSON.parse(options.body):null;log(path,body);
  const respond=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});
- if(path==='/api/cart' || path.startsWith('/api/cart/items'))return respond(held);
+ if(path==='/api/cart' || path.startsWith('/api/cart/items')){
+  if(setting().cartNetwork)throw new Error('INTERNAL synthetic cart diagnostics');
+  const copy=structuredClone(held),variant=setting().cartVariant;
+  if(variant==='missing-addon')copy.items=copy.items.slice(0,1);
+  if(variant==='wrong-product')copy.items[0].productId=id(7);
+  if(variant==='expired'){copy.holdExpiresAt='2000-01-01T00:00:00.000Z';copy.holds[0].expiresAt=copy.holdExpiresAt;}
+  if(variant==='missing-hold')copy.holds=[];
+  if(variant==='revisionless')delete copy.revision;
+  return respond(copy);
+ }
  if(path.startsWith('/api/availability/slot')){
   if(setting().delaySlotProbe){options.signal?.addEventListener('abort',()=>log('probe-aborted',{}));await new Promise(resolve=>{window.releaseSlotProbe=resolve;});log('probe-delivered',{});return respond({maxUnits:1});}
   return respond({maxUnits:8});
@@ -93,7 +104,7 @@ window.fetch=async(url,options={})=>{
  if(path==='/api/checkout/optin-reward-preview')return respond({available:false,amountCents:0});
  if(path==='/api/checkout/payment-intents'){
   if(setting().creationCommitted){window.configure({active:true});return respond({code:'payment_recovery_required',error:'The original payment needs recovery.',attemptId:payment.attemptId,recoveryToken:payment.recoveryToken},500);}
-  if(setting().eligibilityReject)return respond({code:setting().eligibilityReject,error:'This date needs another look before payment.'},400);
+  if(setting().eligibilityReject)return respond({code:setting().eligibilityReject,error:setting().privateError?'INTERNAL customer invoice diagnostics':'This date needs another look before payment.'},400);
   if(setting().reviewReject){window.configure({reviewReject:false});return respond({code:'checkout_review_changed',error:'Your reservation changed. Review it before paying.'},400);}
   if(setting().creationDrop){window.configure({creationDrop:false});throw new TypeError('synthetic lost response');}
   return respond(setting().legacy?{clientSecret:payment.clientSecret,paymentIntentId:payment.paymentIntentId}:payment);
@@ -129,7 +140,8 @@ function Harness(){
  return <main className="tprs-shell tprs-wizard"><BookingContext product={product} date={state.date} slot={state.slot} laneQty={state.laneQty} addOnQtys={{}} guestStepper={null} locked={state.checkoutLocked} onEdit={()=>dispatch({type:'GO_STEP',step:'detail'})}/>
  {confirmed?<p role="status">Confirmed {confirmed.invoiceNumber}</p>:state.step!=='payment'?<p>Editing reservation</p>:<PaymentStep
  draft={state} quote={saved?.quote??q} recovery={saved} onRecovery={retain} onLock={locked=>dispatch({type:'SET_CHECKOUT_LOCK',locked})}
- customer={customer} cartHoldItems={[{...items[0],startTime:request.startTime}]} checkoutItems={items} eventDate={request.eventDate} startTime={request.startTime}
+ customer={customer} cartHoldItems={[{...items[0],startTime:request.startTime}]} checkoutItems={setting().preheld?heldItems:items} eventDate={request.eventDate} startTime={request.startTime}
+ {...(setting().preheld?{preAcquiredSelection:{items:heldItems,coverage:[{cartLineRef:'lane',count:1,poolId:product.id,startTime:request.startTime,endTime:'2098-11-23T20:30:00.000Z'}]},couponsEnabled:false,onSelectionLost:()=>{log('selection-lost',{});dispatch({type:'GO_STEP',step:'detail'});}}:{})}
  salesCutoffMinutesBefore={45} couponResult={null} onCouponCode={()=>{}} onCouponResult={()=>{}} formAnswers={request.formAnswers} termsText="Synthetic booking terms."
  totalCents={saved?.quote.totalIncludingTax??q.totalIncludingTax} onRetryPricing={()=>setQuote({...quote,reviewToken:'review-two',totalIncludingTax:12995})}
  onConverted={setConfirmed} onFindNewTime={()=>dispatch({type:'GO_STEP',step:'detail'})}/>}
@@ -137,7 +149,7 @@ function Harness(){
  </main>;
 }
 createRoot(document.getElementById('root')).render(location.search.includes('wizard=1')?<BookingWizard/>:<Harness/>);
-`,resolveDir:site,loader:'tsx'},bundle:true,platform:'browser',format:'iife',write:false,jsx:'automatic',loader:{'.css':'empty'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api')},plugins:[fixturePlugin,{name:'wizard-draft-fixture',setup(b){
+`,resolveDir:site,loader:'tsx'},bundle:true,platform:'browser',format:'iife',write:false,jsx:'automatic',loader:{'.css':'empty'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api'),'import.meta.env.PUBLIC_NYE_REHEARSAL':'false'},plugins:[fixturePlugin,{name:'wizard-draft-fixture',setup(b){
  b.onLoad({filter:/[\\/]BookingWizard\.tsx$/},async args=>{const source=await readFile(args.path,'utf8');const original='useReducer(wizardReducer, initialState)';assert.ok(source.includes(original));return {contents:source.replace(original,'useReducer(wizardReducer, window.fixtureWizardDraft ?? initialState)'),loader:'tsx'};});
 }},{name:'fake-stripe',setup(b){
  b.onResolve({filter:/^@stripe\/react-stripe-js$/},()=>({path:'react',namespace:'fake-stripe'}));
@@ -153,10 +165,51 @@ try{
  browser=await chromium.launch({headless:true});const context=await browser.newContext({viewport:{width:390,height:844}});
  const external=[];await context.route('**/*',route=>{if(new URL(route.request().url()).hostname!=='127.0.0.1'){external.push(route.request().url());return route.abort();}return route.continue();});
  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));const url=`http://127.0.0.1:${server.address().port}`;
- async function start(settings={}){if(page.url().startsWith(url))await page.evaluate(()=>sessionStorage.clear());await page.goto(url);await page.evaluate(s=>{sessionStorage.clear();sessionStorage.setItem('test-settings',JSON.stringify(s));},settings);await page.reload();await page.getByRole('checkbox').waitFor();}
+ async function start(settings={}){if(page.url().startsWith(url))await page.evaluate(()=>sessionStorage.clear());await page.goto(url);await page.evaluate(s=>{sessionStorage.clear();sessionStorage.setItem('test-settings',JSON.stringify(s));},settings);await page.reload();if(settings.preheld&&settings.cartVariant)await page.getByRole('button',{name:'Return to party choices'}).waitFor();else await page.getByRole('checkbox').waitFor();}
  async function pay(){await page.getByRole('checkbox').check();await page.getByRole('button',{name:/^Pay \$/}).click();}
  const count=kind=>page.evaluate(k=>window.calls.filter(c=>c.kind===k).length,kind);
  const saved=()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:checkout:active:v1')));
+
+ // Atomic NYE selection already owns its exact lane + add-on cart. Mount and
+ // payment must only read it; refreshing/editing never silently extends TTL.
+ await start({preheld:true});await page.getByRole('button',{name:'Review party choices'}).waitFor();
+ assert.equal(await page.getByText('Have a code?',{exact:true}).count(),0);
+ assert.equal(await count('/api/cart'),1);assert.equal(await count('/api/cart/items'),0);assert.equal(await count('/api/cart/items/lane'),0);
+ await page.getByRole('button',{name:'Review party choices'}).click();await page.getByText('Editing reservation').waitFor();
+ assert.equal(await count('selection-lost'),1);assert.equal(await count('/api/cart'),1);assert.equal(await count('/api/cart/items'),0);
+
+ for(const cartVariant of ['missing-addon','wrong-product','expired','missing-hold','revisionless']){
+  await start({preheld:true,cartVariant});assert.equal(await page.getByRole('button',{name:/^Pay /}).count(),0);
+  assert.equal(await count('/api/cart/items'),0);assert.equal(await count('/api/cart/items/lane'),0);assert.equal(await count('/api/checkout/payment-intents'),0);
+  if(cartVariant==='missing-addon'){
+   await page.setViewportSize({width:320,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   await mkdir(new URL('../.astro/holiday-qa/',import.meta.url),{recursive:true});await page.screenshot({path:fileURLToPath(new URL('../.astro/holiday-qa/nye-held-selection-review-320.png',import.meta.url)),fullPage:true});
+  }
+ }
+ await start({preheld:true});await page.getByRole('button',{name:'Review party choices'}).waitFor();
+ await page.evaluate(()=>window.configure({cartVariant:'missing-addon'}));await pay();
+ await page.getByRole('button',{name:'Return to party choices'}).waitFor();
+ assert.equal(await count('/api/cart'),2);assert.equal(await count('/api/checkout/payment-intents'),0);assert.equal(await saved(),null);
+
+ await start({preheld:true,cartNetwork:true});await page.getByText(/We couldn't check your held lanes/).waitFor();
+ assert.equal(await page.getByText(/INTERNAL/).count(),0);assert.equal(await page.getByRole('button',{name:/^Pay /}).isDisabled(),true);
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'preheld network recovery fits at 320px');
+ await page.evaluate(()=>window.configure({cartNetwork:false}));await page.getByRole('button',{name:'Check held lanes'}).click();
+ await page.getByRole('button',{name:'Check held lanes'}).waitFor({state:'hidden'});await pay();await page.getByText('Confirmed TP-TEST').waitFor();
+ assert.equal(await count('/api/cart/items'),0);assert.equal(await count('/api/checkout/payment-intents'),1);
+
+ for(const eligibilityReject of ['capacity_exhausted','cart_revision_conflict','cart_hold_expired']){
+  await start({preheld:true,eligibilityReject,privateError:true});await pay();await page.getByRole('button',{name:'Return to party choices'}).waitFor();
+  assert.equal(await page.getByText(/INTERNAL/).count(),0);assert.equal(await saved(),null);assert.equal(await count('confirm'),0);
+ }
+
+ // Once the accepted attempt owns inventory, an empty/expired soft cart on a
+ // later reload must not prompt another hold or block original paid recovery.
+ await start({preheld:true,confirmProcessing:true});await pay();await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();
+ const beforeRecoveryReads=await count('/api/cart');assert.equal(beforeRecoveryReads,2);
+ await page.evaluate(()=>window.configure({cartVariant:'missing-hold',provider:'succeeded'}));await page.reload();
+ await page.getByText('Confirmed TP-TEST').waitFor();assert.equal(await count('/api/cart'),beforeRecoveryReads);
+ assert.equal(await count('/api/cart/items'),0);assert.equal(await count('/api/checkout/payment-intents'),1);assert.equal(await count('confirm'),1);
 
  await start({expiredReview:true});await pay();await page.getByRole('button',{name:/Review current total/}).waitFor();
  assert.equal(await count('/api/checkout/payment-intents'),0);assert.equal(await count('confirm'),0);assert.equal(await page.getByRole('checkbox').isChecked(),false);
@@ -311,5 +364,5 @@ try{
  await start({active404:true});await page.goto(url+'?wizard=1');await page.waitForFunction(()=>window.calls.some(c=>c.kind==='/api/products/bookable'));
  await page.goto(url+'?wizard=1&payment_intent_client_secret=synthetic');await page.getByText(/couldn't check for a saved payment/).waitFor();assert.equal(await page.getByRole('button',{name:/^Pay /}).count(),0);
  assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
- console.log('Checkout browser checks passed: review/re-ack, exact nonce retry, immutable server discovery, incomplete old-client unpaid/paid/processing gates, committed booking recovery, missing readiness fail-closed, missing issuance/404 blocks, cancellation proof, authentication return/refresh, delayed availability, refund/legacy recovery, mobile widths. No external requests.');
+ console.log('Checkout browser checks passed: exact preheld full-cart/no-write checks, pre-pay drift, held recovery, sanitized shortages, review/re-ack, exact nonce retry, immutable server discovery, incomplete old-client unpaid/paid/processing gates, committed booking recovery, missing readiness fail-closed, missing issuance/404 blocks, cancellation proof, authentication return/refresh, delayed availability, refund/legacy recovery, mobile widths. No external requests.');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

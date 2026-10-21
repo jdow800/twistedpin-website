@@ -7,9 +7,20 @@ import { formatUsd } from "../format";
 import Markdown from "../Markdown";
 import { pointsRewardMessage } from "../pointsRewardCopy";
 import type { PaymentProps } from "./PaymentStep";
+import { exactSelectionHeld } from "../nye/cartSelection";
 
-function message(error: unknown): string {
+const selectionErrors: Record<string, string> = {
+  capacity_exhausted: "There aren't enough lanes for this selection. Review another time or lane type.",
+  cart_hold_expired: "Your lane hold expired. Review the available times and lanes before continuing.",
+  cart_session_required: "We couldn't verify your held lanes. Return to your party choices to check them.",
+  cart_revision_conflict: "Your selection changed in another tab. Review your party choices before continuing.",
+  cart_mutation_conflict: "Your selection needs another look. Review your party choices before continuing.",
+  cart_line_conflict: "Your selection needs another look. Review your party choices before continuing.",
+};
+
+function message(error: unknown, preAcquired = false): string {
   if (error instanceof TprsCheckoutError && error.code === "loyalty_reward_rejected") return pointsRewardMessage(error.rewardDetails);
+  if (preAcquired && error instanceof TprsCheckoutError && error.code && selectionErrors[error.code]) return selectionErrors[error.code];
   return error instanceof TprsCheckoutError ? error.message : "We couldn't check the payment. Please try again; your saved payment is still protected.";
 }
 const reviewCodes = new Set(["checkout_review_required", "checkout_review_changed"]);
@@ -24,6 +35,7 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false), busyRef = useRef(false);
   const [holdBusy, setHoldBusy] = useState(false);
+  const [selectionLost, setSelectionLost] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [terms, setTerms] = useState(false);
   const [ready, setReady] = useState(false);
@@ -32,6 +44,9 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
   active.current = props.recovery;
   const restored = useRef(!!props.recovery);
   const holdStarted = useRef(false);
+  const heldSelectionKey = JSON.stringify(props.preAcquiredSelection ?? null);
+  const selectionKey = useRef(heldSelectionKey); selectionKey.current = heldSelectionKey;
+  const holdCheck = useRef(0);
   const quoteKey = JSON.stringify(props.quote);
   const priorQuote = useRef(quoteKey);
   const left = expiresAt ? Math.max(0, Math.floor((Date.parse(expiresAt) - now) / 1000)) : 0;
@@ -55,10 +70,35 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
     if (!props.pricingPending && !props.pricingError) elements?.update({ amount: Math.max(50, props.totalCents) });
   }, [elements, quoteKey, props.pricingPending, props.pricingError, props.totalCents]);
 
+  async function verifyPreAcquiredSelection() {
+    const selection = props.preAcquiredSelection;
+    if (!selection || active.current) return null;
+    const key = heldSelectionKey, check = ++holdCheck.current;
+    let cart;
+    try { cart = await getCart(); }
+    catch {
+      if (active.current || selectionKey.current !== key || holdCheck.current !== check) return null;
+      setCartToken(null); setExpiresAt(null);
+      throw new Error("We couldn't check your held lanes. Try again, or return to your party choices.");
+    }
+    if (active.current || selectionKey.current !== key || holdCheck.current !== check) return null;
+    // The frozen payment request must describe the same complete selection,
+    // including non-resource add-ons, that the party picker committed.
+    const samePayment = selection.items.length === props.checkoutItems.length && props.checkoutItems.every(want =>
+      selection.items.some(have => have.cartLineRef === want.cartLineRef && have.productId === want.productId && have.quantity === want.quantity
+        && Date.parse(have.startTime ?? props.startTime) === Date.parse(props.startTime)));
+    if (!samePayment || !exactSelectionHeld(cart, selection.items, selection.coverage)) {
+      setCartToken(null); setExpiresAt(null); setSelectionLost(true); setTerms(false);
+      return null;
+    }
+    setSelectionLost(false); setCartToken(cart.cartToken); setExpiresAt(cart.holdExpiresAt);
+    return cart;
+  }
   async function acquireHold(adopt = false) {
     if (active.current || busyRef.current) return;
     setHoldBusy(true); setError(null);
     try {
+      if (props.preAcquiredSelection) { await verifyPreAcquiredSelection(); return; }
       const existing = adopt ? await getCart() : null;
       const same = existing?.holdExpiresAt && Date.parse(existing.holdExpiresAt) > Date.now() &&
         props.cartHoldItems.every(want => existing.holds.some(have => have.count === want.quantity && have.cartLineRef === want.cartLineRef && Date.parse(have.startTime) === Date.parse(want.startTime ?? "")));
@@ -68,14 +108,16 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
         const held = await addCartItems(props.cartHoldItems);
         setCartToken(held.cartToken); setExpiresAt(held.holdExpiresAt);
       }
-    } catch (err) { setError(message(err)); }
+    } catch (err) { setError(props.preAcquiredSelection ? "We couldn't check your held lanes. Try again, or return to your party choices." : message(err)); }
     finally { setHoldBusy(false); }
   }
   useEffect(() => {
-    if (holdStarted.current || active.current) return;
+    if (active.current) return;
+    if (props.preAcquiredSelection) { void acquireHold(true); return; }
+    if (holdStarted.current) return;
     holdStarted.current = true;
     void acquireHold(true);
-  }, []);
+  }, [heldSelectionKey]);
 
   function complete(booking: Parameters<PaymentProps["onConverted"]>[0]) {
     // Stripe's authentication return belongs to this resolved attempt. Leaving
@@ -166,16 +208,17 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
         catch { setError("We couldn't recover the saved payment yet. Check its status again, or call (815) 782-7790 before making another payment."); }
         return;
       }
-      if (err instanceof TprsCheckoutError && !record?.payment && (reviewCodes.has(err.code ?? "") || rejectedBeforePayment.has(err.code ?? "")) && !err.rewardDetails.refundStatus) {
+      if (err instanceof TprsCheckoutError && !record?.payment && (reviewCodes.has(err.code ?? "") || rejectedBeforePayment.has(err.code ?? "") || !!props.preAcquiredSelection && !!selectionErrors[err.code ?? ""]) && !err.rewardDetails.refundStatus) {
         retain(null); setTerms(false); setReady(false);
+        if (props.preAcquiredSelection && err.code && selectionErrors[err.code]) setSelectionLost(true);
         if (reviewCodes.has(err.code ?? "")) { setReviewNeeded(true); props.onRetryPricing?.(); }
-        setError(message(err));
+        setError(message(err, !!props.preAcquiredSelection));
       } else {
         // Never infer that a generic conversion error means a refund succeeded.
         const refund = err instanceof TprsCheckoutError ? err.rewardDetails.refundStatus : undefined;
         const status = refund === "succeeded" ? "refunded" : refund === "requested" ? "refund_requested" : refund === "failed" ? "refund_failed" : refund === "needs_review" ? "needs_review" : null;
         if (record && status) retain({ ...record, status });
-        setError(status ? recoveryMessage(status) : !record && err instanceof Error ? err.message : message(err));
+        setError(status ? recoveryMessage(status) : !record && err instanceof Error ? err.message : message(err, !!props.preAcquiredSelection));
       }
     } finally { busyRef.current = false; setBusy(false); props.onLock(!!active.current); }
   }
@@ -200,8 +243,13 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
     await run(async () => {
       const validated = await elements.submit();
       if (validated.error) { setError(validated.error.message ?? "Check your card details."); return; }
+      // Card validation can take time. Re-read exact live full-cart coverage at
+      // the final boundary before accepting a NEW payment request. Retained
+      // attempts above never depend on soft inventory or its original timer.
+      const verified = props.preAcquiredSelection ? await verifyPreAcquiredSelection() : null;
+      if (props.preAcquiredSelection && !verified) return;
       const record: CheckoutRecovery = {
-        version: 1, draft: { ...props.draft, step: "payment", booking: null, checkoutLocked: true }, quote: props.quote!, cartToken,
+        version: 1, draft: { ...props.draft, step: "payment", booking: null, checkoutLocked: true }, quote: props.quote!, cartToken: verified?.cartToken ?? cartToken,
         request: { customer: props.customer, eventDate: props.eventDate, startTime: props.startTime, items: props.checkoutItems,
           attemptKey: crypto.randomUUID(), couponCode: props.couponCode, formAnswers: props.formAnswers, acceptedTerms: true,
           ...(props.quote!.reviewToken ? { checkoutContractVersion: 1, reviewToken: props.quote!.reviewToken } : {}) },
@@ -230,9 +278,14 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
   }
 
   const saved = props.recovery;
+  if (props.preAcquiredSelection && !saved && !busy && (selectionLost || !!expiresAt && left <= 0)) return <div className="tprs-pay-blocker" role="alert">
+    <span className="tprs-pay-blocker__title">Check your party choices</span>
+    <p className="tprs-pay-blocker__body">{error ?? "Your held lanes no longer match this party, or the hold has expired. Review your choices before paying."}</p>
+    <button type="button" className="tprs-btn tprs-btn--solid" onClick={props.onSelectionLost ?? props.onFindNewTime}>Return to party choices</button>
+  </div>;
   if (closed && !saved && !busy) return <div className="tprs-pay-blocker" role="alert">
     <span className="tprs-pay-blocker__title">Online booking for this time has closed</span>
-    <p className="tprs-pay-blocker__body">Choose a later time, or come see us at the counter.</p>
+    <p className="tprs-pay-blocker__body">{props.salesClosedMessage ?? "Choose a later time, or come see us at the counter."}</p>
     <button type="button" className="tprs-btn tprs-btn--solid" onClick={props.onFindNewTime}>Find a new time</button>
   </div>;
   return <form onSubmit={submit} className="tprs-pay-form">
@@ -241,7 +294,10 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
     </div>
     {saved ? <p className="tprs-hold" role="status">{recoveryMessage(saved.status)}</p> : <div className="tprs-hold" aria-live="polite">
       <span>{holdBusy ? "Securing your lanes…" : !cartToken ? "Your lanes aren't held yet." : left <= 0 ? "Your hold expired." : <>Holding your lanes — <strong>{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</strong></>}</span>
-      <button type="button" className="tprs-link-btn tprs-link-btn--sm" disabled={holdBusy || busy} onClick={() => void acquireHold()}>{holdBusy ? "Refreshing…" : "Refresh"}</button>
+      {props.preAcquiredSelection ? <>
+        {!cartToken && <button type="button" className="tprs-link-btn tprs-link-btn--sm" disabled={holdBusy || busy} onClick={() => void acquireHold(true)}>Check held lanes</button>}
+        <button type="button" className="tprs-link-btn tprs-link-btn--sm" disabled={holdBusy || busy} onClick={props.onSelectionLost ?? props.onFindNewTime}>Review party choices</button>
+      </> : <button type="button" className="tprs-link-btn tprs-link-btn--sm" disabled={holdBusy || busy} onClick={() => void acquireHold()}>{holdBusy ? "Refreshing…" : "Refresh"}</button>}
     </div>}
     {!saved && <label className="tprs-terms"><input type="checkbox" checked={terms} disabled={busy || !!props.pricingPending || !!props.pricingError || reviewNeeded} onChange={e => setTerms(e.currentTarget.checked)} />
       <span className="tprs-terms-text"><Markdown text={props.termsText} inline /> I agree to the terms above.</span></label>}

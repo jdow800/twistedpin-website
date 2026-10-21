@@ -50,7 +50,8 @@ const container = await experimental_AstroContainer.create({ manifest: {
 const rendered = await container.renderToString(component.default, { props: { class: "test-layout" } });
 const configSource = await readFile(configUrl, "utf8");
 const clientSource = (await readFile(clientUrl, "utf8"))
-  .replace(/^import[^\n]+from "\.\.\/config\/nye-opening\.ts";\r?\n/, "");
+  .replace(/^import[^\n]+from "\.\.\/config\/nye-opening\.ts";\r?\n/, "")
+  .replace(/^export \{ nyeOpeningState \} from "\.\.\/config\/nye-opening\.ts";\r?\n/m, "");
 check(/^import /m.test(clientSource), false, "offline bundle includes the actual single config import");
 const clientJs = (await stripTypes(`${configSource}\n${clientSource}`, { loader: "ts", format: "iife" })).code;
 const font = await readFile(new URL("../node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2", import.meta.url));

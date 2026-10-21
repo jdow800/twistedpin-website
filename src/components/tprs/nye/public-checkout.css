@@ -1,0 +1,17 @@
+.nye-public-closed{box-sizing:border-box;min-height:100dvh;padding:32px 20px 60px;background:#1a1032;color:#f4efe3;font:400 16px/1.5 var(--font-ui,Montserrat,sans-serif);text-align:center}
+.nye-public-closed *{box-sizing:border-box}
+.nye-public-logo{display:inline-flex;align-items:center;min-height:44px;margin-bottom:34px}
+.nye-public-logo img{object-fit:contain}
+.nye-public-eyebrow{margin:0;letter-spacing:.12em;font-size:13px;font-weight:700}
+.nye-public-closed h1{margin:4px 0 32px;font:900 clamp(56px,14vw,96px)/1 var(--font-display,'Barlow Condensed',sans-serif);text-transform:uppercase}
+.nye-public-opening{max-width:400px;margin:0 auto;padding:22px 20px;background:#160c35;border:1px solid #f4efe338;border-radius:12px;text-align:left}
+.nye-public-opening-label{margin:0 0 10px;color:#4eecc4;font-weight:700;font-size:20px}
+.nye-public-opening time{display:block;font-size:clamp(19px,5.6vw,24px);font-weight:700;line-height:1.3}
+.nye-public-countdown{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:20px;padding-top:18px;border-top:1px solid #f4efe32e;text-align:center}
+.nye-public-countdown strong{display:block;font-size:clamp(24px,7vw,32px);font-variant-numeric:tabular-nums;line-height:1.2}
+.nye-public-countdown span{display:block;margin-top:5px;color:#d9d2e7;font-size:12px;font-weight:700;text-transform:capitalize}
+.nye-public-closed a{display:inline-flex;align-items:center;min-height:44px;color:#f4efe3;text-underline-offset:4px}
+.nye-public-closed a:focus-visible{outline:2px solid #4eecc4;outline-offset:4px}
+.nye-public-recovery-note{padding:16px 20px;background:#291d43;color:#f4efe3;font:400 15px/1.5 var(--font-ui,Montserrat,sans-serif)}
+.nye-public-recovery-note p{max-width:720px;margin:0 auto}
+.nye-public-recovery-note button{display:block;min-height:44px;margin:8px auto 0;padding:8px 20px;border:1px solid #f4efe3;border-radius:7px;background:#160c35;color:#f4efe3;font:inherit}

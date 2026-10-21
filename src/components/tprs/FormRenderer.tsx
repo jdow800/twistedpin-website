@@ -30,6 +30,11 @@ import {
 export type UnitQuantities = { guest_count: number; lane_count: number };
 
 interface Props {
+  /** Already-validated definitions owned by a flow that requires forms before payment. */
+  definitions?: FormDefinition[];
+  hideTitle?: boolean;
+  /** Presentation-only helper copy for exact short_text fields. Definitions and answers stay unchanged. */
+  helpTextOverrides?: Readonly<Record<string, string>>;
   productId: string;
   productCode?: number;
   answers: FormAnswerInput[];
@@ -92,6 +97,9 @@ function requiredSatisfied(
 }
 
 export default function FormRenderer({
+  definitions,
+  hideTitle = false,
+  helpTextOverrides,
   productId,
   productCode,
   answers: inputAnswers,
@@ -119,6 +127,7 @@ export default function FormRenderer({
   const guestCount = unitQuantities?.guest_count ?? 0;
 
   useEffect(() => {
+    if (definitions) { setForms(definitions); setLegacySlots({}); return; }
     const ctrl = new AbortController();
     setForms(null);
     setLegacySlots({});
@@ -126,7 +135,7 @@ export default function FormRenderer({
       .then((res) => { if (!ctrl.signal.aborted) setForms(res.forms); })
       .catch(() => { if (!ctrl.signal.aborted) setForms([]); }); // forms are optional — never block on failure
     return () => ctrl.abort();
-  }, [productId]);
+  }, [productId, definitions]);
 
   // How many pickers each per_unit_select field needs, from the lanes/guests
   // chosen earlier. Keyed on primitive counts (not the object) so it only
@@ -320,6 +329,8 @@ export default function FormRenderer({
 
   function renderField(field: FormFieldDefinition) {
     const val = answers[field.id] ?? [];
+    const overrideHelpText = field.fieldType === "short_text" ? helpTextOverrides?.[field.id] : undefined;
+    const shortTextHelp = overrideHelpText ?? field.helpText;
     const labelEl = (
       <label className="tprs-label" htmlFor={field.id}>
         <Markdown text={field.label} inline />
@@ -344,14 +355,14 @@ export default function FormRenderer({
         return (
           <div className="tprs-field" key={field.id}>
             {labelEl}
-            {field.helpText && <p className="tprs-help"><Markdown text={field.helpText} /></p>}
+            {shortTextHelp && <p className="tprs-help" id={overrideHelpText !== undefined ? `${field.id}-help` : undefined}><Markdown text={shortTextHelp} /></p>}
             <input
               id={field.id}
               className={`tprs-input${fieldInvalid(field) ? " is-invalid" : ""}`}
               type="text"
               placeholder={field.placeholder}
               aria-invalid={fieldInvalid(field) || undefined}
-              aria-describedby={describedBy(field)}
+              aria-describedby={overrideHelpText ? [`${field.id}-help`, describedBy(field)].filter(Boolean).join(" ") : describedBy(field)}
               value={val[0] ?? ""}
               onChange={(e) => setSingle(field.id, e.currentTarget.value)}
             />
@@ -707,7 +718,7 @@ export default function FormRenderer({
         const firstPairId = fields.find((f) => visiblePair && (f.id === visiblePair.pizza.id || f.id === visiblePair.pitcher.id))?.id;
         return (
           <div className="tprs-form-block" key={form.id}>
-            {form.title && <h3 className="tprs-form-title">{form.title}</h3>}
+            {!hideTitle && form.title && <h3 className="tprs-form-title">{form.title}</h3>}
             {fields.map((field) => {
               if (visiblePair && (field.id === visiblePair.pizza.id || field.id === visiblePair.pitcher.id)) {
                 return field.id === firstPairId ? renderPairs(visiblePair.pizza, visiblePair.pitcher) : null;
