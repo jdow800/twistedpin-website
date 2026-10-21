@@ -1,0 +1,266 @@
+---
+import Base from "../layouts/Base.astro";
+import { PHONE_DISPLAY, PHONE_TEL } from "../lib/schema";
+export const prerender = false;
+
+// Local owner-review concept. No products, payments, availability, opening
+// date, Event/Offer schema or final package promises are activated here.
+const proposedInclusions = [
+  { number: "01", title: "90 minutes of bowling", detail: "Time on your lane, with shoe rental included." },
+  { number: "02", title: "Pizza + soft drinks", detail: "One large pizza and a pitcher of soft drink per lane." },
+  { number: "03", title: "Cocoa + cookies", detail: "A little something for the sweet tooth. Santa understands." },
+  { number: "04", title: "A visit with Santa", detail: "Photos with the big guy, coordinated with your bowling time." },
+];
+---
+
+<Base
+  title="Jingle Bowl 2026: Bowl with Santa | Twisted Pin"
+  description="Jingle Bowl returns to Twisted Pin in Plainfield on Sunday, December 6, 2026. Explore the bowling-with-Santa event and the latest reservation details."
+  ogImage="/jingle-bowl/jingle-wide.png"
+  ogImageAlt="Illustrated Santa with a bowling ball, created for the Jingle Bowl campaign"
+  lcpPreloadHref="/jingle-bowl/jingle-square.webp"
+  hideStickyCTA={true}
+  hidePromo={true}
+  reservationAction={{ href: "#the-event", label: "Explore the event" }}
+>
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow" /></Fragment>
+
+  <div class="jb-page">
+    <aside class="jb-review" aria-label="Preview status">
+      <span><i aria-hidden="true"></i> Jingle Bowl design preview</span>
+      <a href="/jingle-bowl-concepts/">Compare homepage ideas <span aria-hidden="true">↗</span></a>
+    </aside>
+
+    <section class="jb-hero" aria-labelledby="jb-title">
+      <div class="jb-hero-topline">
+        <p>Twisted Pin <span aria-hidden="true">/</span> Plainfield, IL</p>
+        <p>Sunday, December 6, 2026</p>
+      </div>
+      <div class="jb-hero-grid">
+        <div class="jb-hero-copy">
+          <h1 id="jb-title"><span class="jb-event-name">Jingle Bowl!</span><span class="jb-hero-headline">SANTA’S <br />TAKING<br /><em>OVER.</em></span></h1>
+          <p class="jb-hero-description">He’s making a list.<br />You’re making a day of it.</p>
+          <a class="jb-button" href="#the-event">Explore the event <span aria-hidden="true">↘</span></a>
+          <p class="jb-hero-footnote">One Sunday. All Jingle Bowl.</p>
+        </div>
+        <div class="jb-hero-art">
+          <picture>
+            <img src="/jingle-bowl/jingle-square.webp" width="1000" height="1000" fetchpriority="high" decoding="async" alt="Illustrated Santa holding a bowling ball. Jingle Bowl, bowl with Santa, Sunday, December 6." />
+          </picture>
+        </div>
+      </div>
+      <div class="jb-hero-bottom"><span>Jingle Bowl returns</span><span>December 6 <span aria-hidden="true">✦</span> Twisted Pin</span><a href="#the-event" aria-label="Explore Jingle Bowl below">Scroll for the good stuff <span aria-hidden="true">↓</span></a></div>
+    </section>
+
+    <section class="jb-intro" id="the-event" aria-labelledby="jb-intro-title">
+      <div class="jb-inner jb-intro-grid">
+        <div><p class="jb-label">The holiday plan</p><h2 id="jb-intro-title">A little less mall.<br />A lot more <em>bowl.</em></h2></div>
+        <div class="jb-intro-body"><p>Bowling with Santa is coming back to Plainfield. Bring your people to Twisted Pin on <strong>Sunday, December 6</strong> for Jingle Bowl.</p><p>We’re giving the whole day to this one. December 6 is reserved for Jingle Bowl through close, with no regular lane reservations before or afterward.</p><div class="jb-date-line"><span>Save the date</span><time datetime="2026-12-06">12.06.26</time></div></div>
+      </div>
+    </section>
+
+    <section class="jb-package" aria-labelledby="jb-package-title">
+      <div class="jb-inner">
+        <div class="jb-section-head"><div><p class="jb-label">The proposed experience</p><h2 id="jb-package-title">More than a<br /><em>photo op.</em></h2></div><p class="jb-proposal-note"><strong>Owner review · package proposal</strong>These inclusions and prices are still being finalized. This preview is not taking reservations.</p></div>
+        <div class="jb-inclusions">{proposedInclusions.map((item) => <article class="jb-inclusion"><span class="jb-number">{item.number}</span><h3>{item.title}</h3><p>{item.detail}</p></article>)}</div>
+        <div class="jb-package-aside"><span aria-hidden="true">✦</span><p>Bowling, a table full of your people, and Santa on the calendar. That’s the idea.</p></div>
+      </div>
+    </section>
+
+    <section class="jb-rooms" aria-labelledby="jb-rooms-title">
+      <div class="jb-inner">
+        <div class="jb-section-head"><div><p class="jb-label">Pick your setting</p><h2 id="jb-rooms-title">Same Santa.<br /><em>Your kind of lane.</em></h2></div><p class="jb-room-intro">Traditional lanes or the VIP suite. Two ways to make Jingle Bowl your holiday outing.</p></div>
+        <div class="jb-room-grid">
+          <article class="jb-room">
+            <div class="jb-room-photo"><picture><source srcset="/snap/tile-trad-540.avif" type="image/avif" /><img src="/snap/tile-trad-540.webp" width="540" height="405" loading="lazy" decoding="async" alt="Traditional bowling lanes and tables at Twisted Pin" /></picture><span>01 / Traditional</span></div>
+            <div class="jb-room-heading"><h3>Traditional lanes</h3><p class="jb-room-price"><span>Proposed / lane</span><strong>$149.95</strong></p></div>
+            <p>Our traditional lanes, your holiday crew, and the proposed Jingle Bowl essentials.</p>
+          </article>
+          <article class="jb-room">
+            <div class="jb-room-photo"><picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" width="540" height="405" loading="lazy" decoding="async" alt="Couch seating and bowling lanes in the Twisted Pin VIP suite" /></picture><span>02 / VIP suite</span></div>
+            <div class="jb-room-heading"><h3>VIP suite lanes</h3><p class="jb-room-price"><span>Proposed / lane</span><strong>$189.95</strong></p></div>
+            <p>Settle into the suite’s couch seating. The proposal adds an appetizer to the Jingle Bowl package.</p>
+          </article>
+        </div>
+        <p class="jb-price-note">Working prices from the current proposal. Final inclusions, booking times, taxes and fees need confirmation before reservations open.</p>
+      </div>
+    </section>
+
+    <section class="jb-faq" aria-labelledby="jb-faq-title">
+      <div class="jb-inner jb-faq-grid">
+        <div><p class="jb-label">Before the big guy arrives</p><h2 id="jb-faq-title">Good to<br /><em>know.</em></h2><p>We’ll keep the practical stuff as clear as the holiday plan.</p></div>
+        <div class="jb-questions">
+          <details open><summary>When is Jingle Bowl?<span aria-hidden="true">+</span></summary><p>Sunday, December 6, 2026, at Twisted Pin in Plainfield. The final reservation times and closing time are still being confirmed.</p></details>
+          <details><summary>Can I book a regular lane that day?<span aria-hidden="true">+</span></summary><p>December 6 is Jingle Bowl only through close. Regular lane reservations will not be offered that day, including before or after Jingle Bowl.</p></details>
+          <details><summary>Are reservations open?<span aria-hidden="true">+</span></summary><p>This is a preview of the event page. Booking is not available here yet. Final packages, times and reservation details will be added before the event goes on sale.</p></details>
+          <details><summary>How will the visit with Santa work?<span aria-hidden="true">+</span></summary><p>The plan includes Santa photos alongside your bowling reservation. Arrival instructions, photo timing and what to bring will be confirmed with the final package.</p></details>
+          <details><summary>Where is Twisted Pin?<span aria-hidden="true">+</span></summary><p>Find us at 15610 Joliet Rd, Plainfield, IL 60544. Explore our <a href="/bowl/">bowling lanes</a> or take a look at the <a href="/vip-suite/">VIP suite</a>.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="jb-closing" aria-labelledby="jb-closing-title">
+      <div class="jb-inner"><p class="jb-label">Sunday, December 6 · Plainfield, IL</p><h2 id="jb-closing-title">Put a little<br /><em>Twisted</em> in your holiday.</h2><p>Jingle Bowl is coming back. The final details are on their way.</p><div class="jb-closing-actions"><a class="jb-button" href="/jingle-bowl-concepts/#booking">Preview the booking direction <span aria-hidden="true">↗</span></a><a class="jb-phone" href={`tel:${PHONE_TEL}`}>{PHONE_DISPLAY}</a></div></div>
+    </section>
+
+    <footer class="jb-footer"><a href="/" aria-label="Twisted Pin home"><img src="/logo/twisted-pin-horizontal-white.webp" width="360" height="154" loading="lazy" alt="Twisted Pin" /></a><p>15610 Joliet Rd<br />Plainfield, IL 60544</p><a href="/jingle-bowl-concepts/">Back to the concept review <span aria-hidden="true">↗</span></a></footer>
+  </div>
+</Base>
+
+<style>
+  /* This normal-scrolling campaign does not need the homepage's paired gutters.
+     Removing them here also keeps its fixed mobile header within the viewport. */
+  :global(html:has(.jb-page)) { scrollbar-gutter: auto; }
+  .jb-page { --jb-line: rgba(244,239,227,.19); background: #110c22; color: var(--warm-white); overflow: clip; }
+  .jb-page h1, .jb-page h2, .jb-page h3 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; }
+  .jb-page h2 { font-size: clamp(48px, 12vw, 78px); line-height: .98; letter-spacing: -.015em; }
+  .jb-page h2 em { font-style: normal; color: var(--glow); }
+  .jb-page p { line-height: 1.65; }
+  .jb-page a { text-underline-offset: 5px; }
+  .jb-page :where(section[id]) { scroll-margin-top: 96px; }
+  .jb-inner { width: min(1200px, calc(100% - 40px)); margin-inline: auto; }
+  .jb-label { font: 700 11px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 19px; }
+  .jb-review { position: relative; z-index: 2; margin-top: calc(70px + var(--safe-top)); padding: 11px 20px; background: #28203d; border-block: 1px solid var(--jb-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px 16px; font: 600 11px/1.5 var(--font-ui); }
+  .jb-review > span { display: inline-flex; align-items: center; gap: 8px; }
+  .jb-review i { width: 6px; height: 6px; background: var(--glow); border-radius: 50%; }
+  .jb-review a { color: var(--warm-white); }
+  .jb-hero { width: min(1440px, 100%); margin-inline: auto; padding: 0 20px; }
+  .jb-hero-topline { padding: 21px 0 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 20px; font: 700 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .09em; border-bottom: 1px solid var(--jb-line); }
+  .jb-hero-topline p:first-child { display: none; }
+  .jb-hero-topline span { color: var(--glow); margin: 0 10px; }
+  .jb-hero-grid { display: grid; padding-top: 22px; }
+  .jb-hero-copy { position: relative; z-index: 1; padding: 28px 0 26px; }
+  .jb-hero h1 { margin: 0 0 20px; letter-spacing: -.025em; }
+  .jb-event-name { display: block; font: 700 12px/1.4 var(--font-ui); letter-spacing: .09em; margin-bottom: 17px; }
+  .jb-hero-headline { display: block; font-size: clamp(48px, 13.3vw, 70px); line-height: .94; }
+  .jb-hero-headline br:first-of-type { display: none; }
+  .jb-hero-headline em { font-style: normal; color: var(--glow); }
+  .jb-hero-description { font-size: 18px; margin: 24px 0; }
+  .jb-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 22px; padding: 17px 20px; border-radius: 7px; color: #110c22; background: var(--glow); font: 700 12px/1.4 var(--font-ui); text-decoration: none; transition: background 160ms ease, transform 160ms ease; }
+  .jb-button:hover { background: #80f4d7; transform: translateY(-2px); }
+  .jb-button span { font-size: 22px; line-height: 1; }
+  .jb-hero-footnote { font: 600 11px/1.4 var(--font-ui); color: var(--warm-dim); margin-top: 15px; }
+  .jb-hero-art { position: relative; order: -1; aspect-ratio: 1; background: #1d1730; isolation: isolate; }
+  .jb-hero-art picture, .jb-hero-art img { display: block; width: 100%; height: 100%; }
+  .jb-hero-art img { object-fit: cover; }
+  .jb-hero-bottom { display: flex; justify-content: space-between; gap: 20px; padding: 18px 0 22px; border-bottom: 1px solid var(--jb-line); font: 600 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .08em; }
+  .jb-hero-bottom > span:first-child { display: none; }
+  .jb-hero-bottom > span span { color: var(--glow); margin-inline: 7px; }
+  .jb-hero-bottom a { color: var(--warm-white); text-decoration: none; }
+  .jb-intro { margin-top: 44px; background: var(--warm-white); color: #1b1330; padding: 60px 0; }
+  .jb-intro-grid { display: grid; gap: 30px; }
+  .jb-intro h2 em { color: #16846f; }
+  .jb-intro-body { font-size: 15px; }
+  .jb-intro-body p + p { margin-top: 16px; }
+  .jb-date-line { margin-top: 28px; padding-top: 15px; border-top: 1px solid #1b133033; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .jb-date-line span { font: 700 10px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
+  .jb-date-line time { font: 900 35px/1 var(--font-display); }
+  .jb-package, .jb-rooms, .jb-faq { padding: 66px 0; }
+  .jb-section-head { display: grid; gap: 25px; margin-bottom: 36px; }
+  .jb-proposal-note { border-left: 2px solid var(--glow); padding-left: 15px; font-size: 12px; color: var(--warm-mid); max-width: 380px; }
+  .jb-proposal-note strong { display: block; font: 700 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; color: var(--warm-white); }
+  .jb-inclusions { border-top: 1px solid var(--jb-line); }
+  .jb-inclusion { padding: 22px 0; border-bottom: 1px solid var(--jb-line); display: grid; grid-template-columns: 35px 1fr; column-gap: 12px; }
+  .jb-number { color: var(--glow); font: 600 11px/1.6 var(--font-ui); padding-top: 6px; }
+  .jb-inclusion h3 { font-size: 27px; line-height: 1.05; margin-bottom: 9px; }
+  .jb-inclusion p { grid-column: 2; font-size: 13px; color: var(--warm-mid); max-width: 290px; }
+  .jb-package-aside { display: flex; align-items: center; gap: 16px; margin-top: 30px; }
+  .jb-package-aside > span { color: var(--glow); font-size: 32px; }
+  .jb-package-aside p { font-size: 13px; max-width: 610px; }
+  .jb-rooms { background: #1a142b; }
+  .jb-room-intro { font-size: 15px; max-width: 340px; color: var(--warm-mid); }
+  .jb-room-grid { display: grid; gap: 38px; }
+  .jb-room-photo { position: relative; overflow: hidden; background: #0e0a1f; }
+  .jb-room-photo picture, .jb-room-photo img { display: block; width: 100%; }
+  .jb-room-photo img { height: auto; aspect-ratio: 4/3; object-fit: cover; }
+  .jb-room-photo > span { position: absolute; left: 12px; bottom: 12px; padding: 8px 10px; background: #100b23eb; font: 700 9px/1.3 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+  .jb-room-heading { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin: 21px 0 12px; }
+  .jb-room-heading h3 { font-size: 29px; line-height: 1; max-width: 58%; }
+  .jb-room-price { flex: 0 0 auto; text-align: right; }
+  .jb-room-price span { display: block; font: 600 9px/1.4 var(--font-ui); color: var(--warm-mid); }
+  .jb-room-price strong { display: block; font: 900 29px/1.15 var(--font-display); color: var(--glow); }
+  .jb-room > p { color: var(--warm-mid); font-size: 13px; max-width: 430px; }
+  .jb-price-note { border-top: 1px solid var(--jb-line); margin-top: 32px; padding-top: 19px; font-size: 11px; color: var(--warm-mid); max-width: 800px; }
+  .jb-faq-grid { display: grid; gap: 30px; }
+  .jb-faq-grid > div:first-child > p:last-child { margin-top: 22px; max-width: 300px; color: var(--warm-mid); font-size: 14px; }
+  .jb-questions { border-top: 1px solid var(--jb-line); }
+  .jb-questions details { border-bottom: 1px solid var(--jb-line); padding-block: 21px; }
+  .jb-questions summary { display: flex; justify-content: space-between; gap: 25px; align-items: center; cursor: pointer; list-style: none; font: 700 13px/1.5 var(--font-ui); }
+  .jb-questions summary::-webkit-details-marker { display: none; }
+  .jb-questions summary > span { color: var(--glow); font: 400 27px/1 var(--font-ui); transition: transform 160ms ease; }
+  .jb-questions details[open] summary > span { transform: rotate(45deg); }
+  .jb-questions details p { margin-top: 17px; font-size: 13px; color: var(--warm-mid); max-width: 590px; }
+  .jb-questions a { color: var(--warm-white); }
+  .jb-closing { border-top: 1px solid var(--jb-line); padding: 60px 0; background: radial-gradient(ellipse at 75% 120%, #2a1b66 0%, transparent 65%), #110c22; }
+  .jb-closing h2 { max-width: 850px; font-size: clamp(53px, 13.7vw, 112px); }
+  .jb-closing > .jb-inner > p:not(.jb-label) { margin-top: 23px; color: var(--warm-mid); max-width: 440px; font-size: 14px; }
+  .jb-closing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 23px; margin-top: 27px; }
+  .jb-closing .jb-button { font-size: 10px; padding-inline: 15px; gap: 15px; }
+  .jb-phone { color: var(--warm-white); font: 700 12px/1.5 var(--font-ui); }
+  .jb-footer { padding: 32px 20px; border-top: 1px solid var(--jb-line); display: flex; flex-wrap: wrap; align-items: center; gap: 25px; }
+  .jb-footer img { display: block; width: 110px; height: auto; }
+  .jb-footer p { color: var(--warm-mid); font-size: 11px; }
+  .jb-footer > a:last-child { color: var(--warm-white); font: 600 10px/1.5 var(--font-ui); }
+  @media (min-width: 600px) {
+    .jb-hero-topline p:first-child { display: block; }
+    .jb-hero-grid { grid-template-columns: 1fr 1fr; align-items: center; gap: 20px; padding: 30px 0; }
+    .jb-hero-headline { font-size: clamp(75px, 12vw, 125px); line-height: .88; }
+    .jb-hero-headline br:first-of-type { display: initial; }
+    .jb-hero-art { order: 0; margin: 0; aspect-ratio: 1; }
+    .jb-hero-description { font-size: 17px; }
+    .jb-hero-copy { padding-bottom: 0; }
+    .jb-hero-bottom > span:first-child { display: block; }
+    .jb-inclusions { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 30px; }
+    .jb-room-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+    .jb-room-heading { display: block; }
+    .jb-room-heading h3 { max-width: none; margin-bottom: 12px; }
+    .jb-room-price { text-align: left; }
+    .jb-footer > a:last-child { margin-left: auto; }
+  }
+  @media (min-width: 1025px) {
+    .jb-review { margin-top: 85px; padding-inline: 36px; font-size: 11px; }
+    .jb-hero { padding-inline: 48px; }
+    .jb-hero-topline { padding-block: 23px; font-size: 11px; }
+    .jb-hero-grid { grid-template-columns: .93fr 1.07fr; gap: 48px; padding: 35px 0 42px; }
+    .jb-hero-copy { padding: 14px 0; }
+    .jb-event-name { font-size: 14px; margin-bottom: 24px; }
+    .jb-hero-headline { font-size: clamp(115px, 11vw, 158px); }
+    .jb-hero h1 { margin: 0 0 32px; }
+    .jb-hero-description { font-size: 21px; margin: 30px 0; }
+    .jb-hero-art { aspect-ratio: 1; }
+    .jb-hero-bottom { padding-block: 20px; font-size: 10px; }
+    .jb-intro { margin-top: 60px; padding-block: 88px; }
+    .jb-intro-grid { grid-template-columns: 1.15fr 1fr; gap: 90px; align-items: center; }
+    .jb-intro-body { font-size: 16px; }
+    .jb-package, .jb-rooms, .jb-faq { padding-block: 92px; }
+    .jb-section-head { grid-template-columns: 1fr .65fr; align-items: end; gap: 90px; margin-bottom: 45px; }
+    .jb-proposal-note { font-size: 13px; }
+    .jb-inclusions { grid-template-columns: repeat(4, 1fr); gap: 26px; border-bottom: 1px solid var(--jb-line); }
+    .jb-inclusion { display: block; border-bottom: 0; padding-block: 30px; }
+    .jb-number { display: block; padding: 0; margin-bottom: 25px; }
+    .jb-inclusion h3 { font-size: 30px; max-width: 230px; }
+    .jb-inclusion p { font-size: 14px; }
+    .jb-room-grid { gap: 35px; }
+    .jb-room-photo img { aspect-ratio: 16/10; }
+    .jb-room-heading { display: flex; margin-top: 25px; }
+    .jb-room-heading h3 { font-size: 38px; }
+    .jb-room-price { text-align: right; }
+    .jb-room-price strong { font-size: 35px; }
+    .jb-room-price span { font-size: 10px; }
+    .jb-room > p { font-size: 14px; }
+    .jb-faq-grid { grid-template-columns: .7fr 1fr; gap: 95px; }
+    .jb-questions summary { font-size: 15px; }
+    .jb-questions details p { font-size: 14px; }
+    .jb-closing { padding-block: 90px; }
+    .jb-closing .jb-button { font-size: 12px; padding: 18px 22px; }
+    .jb-footer { padding: 32px 48px; gap: 50px; }
+    .jb-footer img { width: 125px; }
+    .jb-footer p, .jb-footer > a:last-child { font-size: 12px; }
+  }
+  /* Keep secondary labels readable on phones, including the review layer. */
+  .jb-label, .jb-review, .jb-hero-topline, .jb-hero-footnote,
+  .jb-hero-bottom, .jb-date-line span, .jb-proposal-note strong, .jb-number,
+  .jb-room-photo > span, .jb-room-price span, .jb-price-note,
+  .jb-closing .jb-button, .jb-footer p, .jb-footer > a:last-child { font-size: 12px; }
+  @media (prefers-reduced-motion: reduce) { .jb-button, .jb-questions summary > span { transition: none; } .jb-button:hover { transform: none; } }
+</style>

@@ -69,7 +69,13 @@ const now = new Date();
 const months = monthHorizon(now, HORIZON_MONTHS);
 const horizonEnd = months[months.length - 1].end;
 
-const rawEvents = (await getCollection("events")).filter((e) => !e.data.draft);
+// The password-protected /review/jingle-calendar/ route explicitly opts
+// into this draft. Ordinary calendar requests never receive the prop;
+// query strings cannot activate the preview or publish a draft.
+const previewJingle = Astro.props.protectedPreview === "jingle";
+const rawEvents = (await getCollection("events")).filter(
+  (e) => !e.data.draft || (previewJingle && e.id === "2026-12-06-jingle-bowl"),
+);
 
 // Every calendar-date part below is read in America/Chicago, never via
 // Date#getDate()/getMonth()/getFullYear() — those use the *build server's*
@@ -259,7 +265,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
           availability: "https://schema.org/InStock",
           url: eventUrl,
           ...(e.data.validFrom && { validFrom: e.data.validFrom.toISOString() }),
-          validThrough: occ.start.toISOString(),
+          ...(!e.data.dateOnly && { validThrough: occ.start.toISOString() }),
         }
       : {
           "@type": "AggregateOffer",
@@ -275,7 +281,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
           availability: "https://schema.org/InStock",
           url: eventUrl,
           // validThrough = event start: no sales after kickoff.
-          validThrough: occ.start.toISOString(),
+          ...(!e.data.dateOnly && { validThrough: occ.start.toISOString() }),
         };
     const rec = e.data.recurring;
     return {
@@ -288,7 +294,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
           // Event from advertising a start date that's already in the past
           // for eight months of a nine-month run; `eventSchedule` below
           // carries the full recurrence.
-          start: occ.start,
+          start: e.data.dateOnly ? ctDateKey(occ.start) : occ.start,
           end: occ.end,
           description: e.body?.trim(),
           url: eventUrl,
@@ -325,6 +331,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
   title="Upcoming Events in Plainfield, IL | Twisted Pin"
   description="Themed nights, seasonal events, and holiday parties at Twisted Pin in Plainfield, IL. The live calendar — see what's coming up, or plan your own night."
 >
+  {previewJingle && <meta slot="head" name="robots" content="noindex, nofollow" />}
 
   <section class="t2-hero" data-hero aria-labelledby="upcoming-h1">
     <div class="t2-hero-copy">
@@ -415,7 +422,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
                           date — otherwise a screen reader announces a time
                           with no day attached to it. */}
                       <span class="visually-hidden">When: {srDateFmt.format(occ.start)}, </span>
-                      {timeRange(occ.start, occ.end)}
+                      {e.data.dateOnly ? "Times to be announced" : timeRange(occ.start, occ.end)}
                     </p>
                     {e.data.location && (
                       <p class="ev-meta ev-meta-loc">

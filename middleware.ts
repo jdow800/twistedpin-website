@@ -12,16 +12,23 @@
 // twistedpin.com — no CORS, no cross-site cookie. `PUBLIC_TPRS_API_BASE` must
 // stay UNSET so the SPA keeps calling `/tprs-api/*` (this path).
 
+import { next } from "@vercel/functions";
+import { isJingleReviewPath, jingleReviewGate, JINGLE_REVIEW_HEADERS } from "./src/lib/jingle-review-auth";
+
 export const config = {
   // Node runtime: predictable fetch + Set-Cookie passthrough for the cart cookie.
   runtime: "nodejs",
-  matcher: "/tprs-api/:path*",
+  matcher: ["/tprs-api/:path*", "/jingle-bowl/:path*", "/jingle-bowl-concepts/:path*", "/review/jingle-calendar/:path*"],
 };
 
 const BACKEND = "https://api.twistedpin.com";
 
 export default async function middleware(request: Request): Promise<Response> {
   const url = new URL(request.url);
+  if (isJingleReviewPath(url.pathname)) {
+    const denied = await jingleReviewGate(request);
+    return denied ?? next({ headers: JINGLE_REVIEW_HEADERS });
+  }
   const target = BACKEND + url.pathname.replace(/^\/tprs-api/, "") + url.search;
 
   // Forward the request 1:1 minus Host (fetch sets it from the target URL).

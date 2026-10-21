@@ -1,0 +1,49 @@
+.jingle-route-preview {
+  --route-ink: #f7f2e8;
+  --route-muted: #c4bdcb;
+  --route-accent: #4eecc4;
+  color: var(--route-ink);
+  background: #17131e;
+  border: 1px solid #46404e;
+  border-radius: 16px;
+  padding: clamp(20px, 4vw, 40px);
+  font-family: Montserrat, sans-serif;
+  max-width: 880px;
+  margin-inline: auto;
+}
+.jingle-route-preview *, .jingle-route-preview *::before, .jingle-route-preview *::after { box-sizing: border-box; }
+.jingle-route-preview-head { display: flex; align-items: start; justify-content: space-between; gap: 18px; }
+.jingle-route-preview h2, .jingle-route-preview h3 { font-family: "Barlow Condensed", sans-serif; font-weight: 900; margin: 8px 0 12px; line-height: 1.02; }
+.jingle-route-preview h2 { font-size: clamp(32px, 5vw, 46px); }
+.jingle-route-preview h3 { font-size: clamp(30px, 4vw, 42px); }
+.jingle-route-preview p { font-size: 16px; line-height: 1.6; margin: 0 0 16px; }
+.jingle-route-preview .jingle-route-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; line-height: 1.5; }
+.jingle-route-review-badge { border: 1px solid #786957; color: #f4d5a4; border-radius: 5px; padding: 7px 9px; white-space: nowrap; font-size: 12px; }
+.jingle-route-preview .jingle-route-review-note { color: var(--route-muted); font-size: 14px; }
+.jingle-route-date-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 26px 0 12px; font-weight: 700; }
+.jingle-route-preview button, .jingle-route-preview a { font: inherit; }
+.jingle-route-date-head button { background: none; border: 0; padding: 10px 0 10px 10px; color: var(--route-accent); cursor: pointer; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+.jingle-route-dates { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.jingle-route-dates button { color: var(--route-ink); background: #23202b; border: 1px solid #534b5d; border-radius: 7px; padding: 12px 3px; cursor: pointer; display: flex; align-items: center; flex-direction: column; gap: 6px; }
+.jingle-route-dates button[aria-pressed="true"] { background: var(--route-accent); color: #111a17; border-color: var(--route-accent); }
+.jingle-route-dates span { font-size: 14px; }
+.jingle-route-dates strong { font-size: 26px; line-height: 1; }
+.jingle-route-dates small { font-size: 12px; line-height: 1.3; }
+.jingle-route-card, .jingle-route-ordinary { margin-top: 20px; padding: clamp(20px, 4vw, 30px); border: 1px solid #647267; border-radius: 10px; background: #202a25; }
+.jingle-route-ordinary { background: #24212b; border-color: #534b5d; }
+.jingle-route-preview .jingle-route-pending { color: #ded3ba; font-size: 14px; }
+.jingle-route-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
+.jingle-route-actions a, .jingle-route-actions button { display: inline-flex; align-items: center; justify-content: center; gap: 12px; border-radius: 7px; min-height: 48px; padding: 12px 16px; font-size: 14px; font-weight: 700; line-height: 1.4; text-decoration: none; cursor: pointer; }
+.jingle-route-actions a { background: var(--route-accent); color: #101914; border: 1px solid var(--route-accent); }
+.jingle-route-actions button { background: transparent; border: 1px solid #8b9d92; color: var(--route-ink); }
+.jingle-route-preview button:focus-visible, .jingle-route-preview a:focus-visible, .jingle-route-preview input:focus-visible { outline: 3px solid #ffe236; outline-offset: 4px; }
+.jingle-route-date-input { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 14px; }
+.jingle-route-date-input input { font: inherit; font-size: 16px; min-width: 0; max-width: 100%; border: 1px solid #857e8b; border-radius: 7px; padding: 12px; color: var(--route-ink); background: #23202b; color-scheme: dark; }
+@media (max-width: 440px) {
+  .jingle-route-preview-head { display: block; }
+  .jingle-route-review-badge { display: inline-block; margin: 4px 0 14px; }
+  .jingle-route-dates { gap: 5px; }
+  .jingle-route-dates small { min-height: 31px; display: flex; align-items: center; }
+  .jingle-route-actions { display: grid; }
+  .jingle-route-actions a, .jingle-route-actions button { width: 100%; }
+}

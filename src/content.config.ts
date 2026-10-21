@@ -1,5 +1,6 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
+import { ctClock } from "./lib/recurrence";
 
 const events = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/content/events" }),
@@ -7,6 +8,13 @@ const events = defineCollection({
     title: z.string(),
     start: z.coerce.date(),
     end: z.coerce.date().optional(),
+    /**
+     * A confirmed day whose event times have not been announced. `start`
+     * is a venue-local midnight sorting anchor, never an advertised time.
+     * Calendar copy says "Times to be announced" and JSON-LD uses a date.
+     * Use an explicit local offset in start (December: -06:00).
+     */
+    dateOnly: z.boolean().default(false),
     location: z.string().default("Twisted Pin"),
     cta: z
       .object({
@@ -94,7 +102,10 @@ const events = defineCollection({
         skip: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)).default([]),
       })
       .optional(),
-  }),
+  }).refine(
+    (event) => !event.dateOnly || (!event.end && !event.recurring && ctClock(event.start) === "00:00"),
+    { message: "A date-only event needs a venue-local midnight start anchor and no end or recurrence.", path: ["dateOnly"] },
+  ),
 });
 
 /**

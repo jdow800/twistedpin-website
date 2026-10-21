@@ -4,6 +4,7 @@ import vercel from '@astrojs/vercel';
 import sitemap from '@astrojs/sitemap';
 import react from '@astrojs/react';
 import path from 'node:path';
+import { realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -68,6 +69,10 @@ export default defineConfig({
       // noindex" warnings. Add new offer/preview slugs to the list.
       filter: (page) =>
         !page.includes('/tprs') &&
+        // Jingle Bowl concept review remains unpublished. Remove the
+        // landing-page exclusion only when its launch is approved;
+        // the concepts gallery is always an internal review surface.
+        !['/jingle-bowl/', '/jingle-bowl-concepts/', '/review/jingle-calendar/'].includes(new URL(page).pathname) &&
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.
         !page.includes('/cogs') &&
@@ -123,6 +128,8 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   vite: {
+    // Keep worktree previews from invalidating another checkout's dependency cache.
+    cacheDir: path.join(__dirname, `.astro/vite-${process.env.NODE_ENV === 'production' ? 'build' : 'dev'}`),
     server: {
       // Dev proxy for the TPRS customer-flow API (ADR-0029 §3 cross-origin
       // story, dev variant). The Astro dev origin (localhost:4321) and the
@@ -176,7 +183,7 @@ export default defineConfig({
         // One never loads, and the hero + CTA-bar entry animations never fire
         // (opacity stays at 0). Allowing the great-grandparent unblocks every
         // worktree without affecting the production build.
-        allow: [path.resolve(__dirname, '../../..')],
+        allow: [path.resolve(__dirname, '../../..'), realpathSync(path.join(__dirname, 'node_modules'))],
       },
     },
     build: {

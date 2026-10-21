@@ -151,6 +151,19 @@ console.log("\nOne-shots are untouched by any of this");
   );
 }
 
+console.log("\nConfirmed dates without announced event times");
+{
+  const jingle = { start: new Date("2026-12-06T00:00:00-06:00"), dateOnly: true };
+  const far = new Date("2027-01-01T00:00:00Z");
+  const during = expandOccurrences(jingle, new Date("2026-12-06T18:00:00-06:00"), far);
+  check("date-only event remains listed during its local day", during.length, 1);
+  check("confirmed day remains December 6 in Central Time", ctDateKey(during[0].start), "2026-12-06");
+  check("date-only event does not invent an end time", during[0].end, undefined);
+  check("date-only event is still current at 11:59pm CT", expandOccurrences(jingle, new Date("2026-12-06T23:59:59-06:00"), far).length, 1);
+  check("date-only event expires at next local midnight", expandOccurrences(jingle, new Date("2026-12-07T00:00:00-06:00"), far).length, 0);
+  check("date-only event beyond the horizon stays absent", expandOccurrences(jingle, new Date("2026-11-01T00:00:00-05:00"), new Date("2026-11-30T23:59:59-06:00")).length, 0);
+}
+
 console.log("\nMonth horizon (the pills)");
 {
   const h = monthHorizon(new Date("2026-08-27T12:00:00Z"), 4);

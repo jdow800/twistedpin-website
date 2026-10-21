@@ -152,6 +152,8 @@ export type RecurringSpec = {
 export type EventTiming = {
   start: Date;
   end?: Date;
+  /** Confirmed calendar day; start is a local-midnight sort anchor only. */
+  dateOnly?: boolean;
   recurring?: RecurringSpec;
 };
 
@@ -178,6 +180,13 @@ export function expandOccurrences(data: EventTiming, from: Date, to: Date): Occu
   const rec = data.recurring;
   if (!rec) {
     const one = { start: data.start, end: data.end };
+    // Unknown event times must not make the card disappear at its
+    // midnight sorting anchor. Keep the date through the local day,
+    // without inventing an end time in the returned occurrence/schema.
+    if (data.dateOnly) {
+      const nextDay = ctInstant(addDaysKey(ctDateKey(data.start), 1), 0, 0);
+      return from < nextDay && data.start <= to ? [one] : [];
+    }
     return inRange(one) ? [one] : [];
   }
 

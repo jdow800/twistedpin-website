@@ -1,0 +1,11 @@
+---
+import UpcomingEvents from "../upcoming-events.astro";
+
+// Password-protected by the Jingle review middleware. This route opts
+// into one draft; the ordinary calendar never passes the preview prop.
+export const prerender = false;
+if (Astro.params.campaign !== "jingle-calendar") {
+  return new Response("Not found", { status: 404 });
+}
+---
+<UpcomingEvents protectedPreview="jingle" />

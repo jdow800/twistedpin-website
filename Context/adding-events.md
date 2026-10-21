@@ -107,6 +107,30 @@ how Thanksgiving works — Nov 26 is skipped and
 
 ---
 
+## Confirmed day, times still pending
+
+For a one-off whose day is confirmed but times are not, use `dateOnly: true`
+with a local-midnight sorting anchor, for example:
+
+```yaml
+start: 2026-12-06T00:00:00-06:00
+dateOnly: true
+draft: true
+```
+
+That midnight is internal only. The calendar says "Times to be announced"
+and its Event JSON-LD emits `startDate: "2026-12-06"`. No `end` or
+`recurring` is allowed with this flag. The card stays current through the
+venue-local day. When times are approved, replace `start`, add `end` if
+known, and remove `dateOnly`.
+
+The draft Jingle Bowl entry can be reviewed in the real calendar at
+`/review/jingle-calendar/?month=2026-12`. This password-protected,
+noindexed review route explicitly includes the draft through a component
+prop. The ordinary calendar continues to exclude it; query parameters
+cannot enable the preview there. The review route is excluded from the
+sitemap. Images retain the schema-only treatment described below.
+
 ## Field reference
 
 | Field | Required | Notes |
