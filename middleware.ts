@@ -13,7 +13,9 @@
 // stay UNSET so the SPA keeps calling `/tprs-api/*` (this path).
 
 import { next } from "@vercel/functions";
-import { isJingleReviewPath, jingleReviewGate, JINGLE_REVIEW_HEADERS } from "./src/lib/jingle-review-auth";
+// Vercel emits this Node ESM entrypoint and its TypeScript dependencies as .js.
+// Unlike Astro/Vite, Node cannot resolve an extensionless relative import.
+import { isJingleReviewPath, jingleReviewGate, JINGLE_REVIEW_HEADERS } from "./src/lib/jingle-review-auth.js";
 
 export const config = {
   // Node runtime: predictable fetch + Set-Cookie passthrough for the cart cookie.
