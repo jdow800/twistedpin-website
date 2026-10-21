@@ -408,6 +408,17 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
                     </div>
                     <div class="ev-date-month">{block.month}</div>
                     {block.weekday && <div class="ev-date-weekday">{block.weekday}</div>}
+                    {previewJingle && e.id === "2026-12-06-jingle-bowl" && (
+                      <img
+                        class="ev-jingle-santa"
+                        src="/jingle-bowl/santa-entrance.webp"
+                        width="420"
+                        height="404"
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    )}
                   </div>
                   <div class="ev-body">
                     <div class="ev-flags">
@@ -741,6 +752,17 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
     letter-spacing: 0.14em;
     color: rgba(255, 252, 245, 0.5);
     margin-top: 6px;
+  }
+
+  /* A small, still accent for the approved Jingle review card only.
+     It stays in the date column so the title and actions keep their space. */
+  .ev-jingle-santa {
+    display: block;
+    width: 58px;
+    max-width: 100%;
+    height: auto;
+    margin: 16px auto 0;
+    pointer-events: none;
   }
 
   .ev-body {

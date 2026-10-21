@@ -1,0 +1,115 @@
+---
+import { PLAN_EVENT_URL } from '../../lib/links';
+---
+<div class="entrance-review" data-entrance-review>
+  <div class="entrance-options" role="group" aria-label="Mobile homepage entrance">
+    <button type="button" data-entrance-option="ornament" aria-pressed="true"><span>01 · The ornament</span><small>A little Christmas mischief</small></button>
+    <button type="button" data-entrance-option="santa" aria-pressed="false"><span>02 · Santa drops in</span><small>A familiar face up top</small></button>
+  </div>
+  <div class="entrance-controls"><button type="button" data-replay-entrance>Watch entrance again <span aria-hidden="true">↻</span></button><button type="button" data-video-toggle aria-pressed="false">Pause video</button></div>
+  <div class="entrance-layout">
+    <div class="mobile-home" data-entrance-mode="ornament" data-entrance-state="idle" aria-label="Mobile homepage preview">
+      <div class="mobile-nav"><img src="/logo/twisted-pin-horizontal-white.webp" width="140" height="60" alt="Twisted Pin"/><span class="mobile-menu" aria-label="Menu placement preview" role="img"><i></i><i></i></span></div>
+      <div class="mobile-hero">
+        <video class="mobile-hero-video" muted loop playsinline preload="none" poster="/hero/hero-poster.webp" aria-hidden="true">
+          <source data-src="/hero/hero-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
+          <source data-src="/hero/hero-mobile-h264-540.mp4" type="video/mp4" />
+        </video>
+        <div class="mobile-scrim" aria-hidden="true"></div>
+        <div class="promo-stage">
+          <div class="usual-promo" data-usual-promo><span class="promo-dot"></span><span>Holiday parties — December books fast</span><span class="promo-arrow">→</span></div>
+          <div class="jingle-promo" data-jingle-promo inert aria-hidden="true">
+            <div class="entrance-character" aria-hidden="true">
+              <svg class="bowling-ornament" viewBox="0 0 100 168" fill="none"><defs><radialGradient id="jingle-entrance-ball" cx=".34" cy=".27" r=".8"><stop stop-color="#5c9e88"/><stop offset=".5" stop-color="#135c49"/><stop offset="1" stop-color="#04241c"/></radialGradient></defs><path d="M50 0v64" stroke="#d8bb7a" stroke-width="2"/><path d="M44 70v-7a6 6 0 0 1 12 0v7" stroke="#d8bb7a" stroke-width="2"/><rect x="39" y="68" width="22" height="12" rx="3" fill="#d8bb7a"/><circle cx="50" cy="119" r="42" fill="url(#jingle-entrance-ball)" stroke="#d8bb7a" stroke-width="1.5"/><ellipse cx="32" cy="99" rx="9" ry="5" fill="#b8e5ca" opacity=".35" transform="rotate(-35 32 99)"/><g fill="#031a13" stroke="#539b7d"><circle cx="57" cy="101" r="5"/><circle cx="70" cy="111" r="5"/><circle cx="56" cy="120" r="5"/></g><path d="m23 131 3 5 6 1-5 4-1 6-4-5-6-1 5-4z" fill="#e5c98b"/></svg>
+              <img class="entrance-santa" src="/jingle-bowl/santa-entrance.webp" width="420" height="404" alt="" loading="lazy" />
+            </div>
+            <div class="jingle-message">
+              <a href="/jingle-bowl/" class="jingle-message-link"><strong>SANTA’S COMING.</strong><span>Jingle Bowl · Sunday, Dec 6</span><b>Take a look <span aria-hidden="true">→</span></b></a>
+              <button type="button" class="dismiss-entrance" aria-label="Dismiss Jingle Bowl and restore the holiday message">×</button>
+            </div>
+          </div>
+        </div>
+        <div class="mobile-hero-copy"><h3>BUILT FOR ADULTS.<br/>FINE, BRING THE KIDS.</h3><p>Plainfield’s premier night out. Bowling optional.</p></div>
+      </div>
+      <div class="mobile-booking"><a href="/reserve/">Reserve a lane</a><a href={PLAN_EVENT_URL}>Plan an event</a></div>
+    </div>
+    <div class="entrance-direction">
+      <p class="direction-eyebrow">YOUR VIDEO. A CHRISTMAS CAMEO.</p>
+      <h3 data-entrance-heading>A little swing.<br/>A big hint.</h3>
+      <p data-entrance-description>The holiday message steps aside. A bowling-ball ornament drops from just beneath the header, swings once, and introduces Jingle Bowl.</p>
+      <ol><li>The current promo makes room.</li><li>The entrance happens above the video.</li><li>A small event link stays until dismissed.</li></ol>
+      <p class="entrance-status" data-entrance-status role="status" aria-live="polite">Mobile preview · the existing hero video stays.</p>
+      <p class="entrance-footnote">The logo, menu position, headline and booking buttons stay in place. Tap × to bring the holiday promo back. Reduced motion shows the invitation without an animated entrance.</p>
+    </div>
+  </div>
+</div>
+<style>
+  .entrance-options{display:flex;gap:10px;margin:0 0 26px}.entrance-options button{flex:1;text-align:left;background:#1b1630;color:var(--warm-white);border:1px solid #ffffff30;border-radius:7px;padding:17px 20px;min-height:68px;cursor:pointer;font:700 13px var(--font-ui)}.entrance-options small{display:block;font-size:11px;line-height:1.5;color:var(--warm-dim);margin-top:7px}.entrance-options button[aria-pressed=true]{border-color:var(--glow);background:#15332f}.entrance-options button[aria-pressed=true] small{color:var(--glow)}
+  .entrance-layout{display:grid;grid-template-columns:minmax(0,430px) minmax(0,1fr);gap:clamp(32px,6vw,90px);align-items:center;max-width:1040px;margin:auto}.mobile-home{height:780px;position:relative;isolation:isolate;background:#100b20;overflow:hidden;border:1px solid #ffffff35;border-radius:24px;box-shadow:0 28px 70px #0006;container-type:inline-size;color:#fffaf0}.mobile-nav{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:#120c26;position:relative;z-index:3;border-bottom:1px solid #ffffff12}.mobile-nav img{width:138px;height:auto}.mobile-menu{width:44px;height:44px;border:1px solid #ffffff30;border-radius:7px;display:grid;align-content:center;justify-content:center;gap:6px}.mobile-menu i{width:21px;height:1px;background:#fffaf0;display:block}.mobile-hero{position:absolute;inset:64px 0 0}.mobile-hero-video,.mobile-scrim{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.mobile-scrim{background:linear-gradient(180deg,#0e092022 20%,#0e092000 48%,#0e0920e8 80%,#0e0920 100%)}
+  .mobile-hero-copy{position:absolute;bottom:100px;left:20px;right:20px}.mobile-hero-copy h3{font:900 clamp(32px,10.8cqi,46px)/1.02 var(--font-display);letter-spacing:-.015em;margin:0}.mobile-hero-copy p{font:400 16px/1.5 var(--font-body);margin:12px 0 0;max-width:350px}.mobile-booking{position:absolute;z-index:4;bottom:12px;left:12px;right:12px;display:flex;gap:8px;border:1px solid #ffffff30;background:#100b20e8;padding:9px;border-radius:9px}.mobile-booking a{flex:1;min-width:0;min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;border:1px solid #fffaf0;border-radius:6px;font:800 11px var(--font-ui);text-transform:uppercase;letter-spacing:.035em;color:#fffaf0}.mobile-booking a:first-child{background:var(--glow);border-color:var(--glow);color:#100b20}
+  .promo-stage{position:absolute;top:10px;left:12px;right:12px;height:185px;z-index:2;pointer-events:none}.usual-promo{min-height:44px;display:flex;gap:9px;align-items:center;padding:9px 12px;background:#120c26f5;border:1px solid #ffffff25;border-radius:9px;font:700 11px/1.4 var(--font-ui);transition:opacity .28s,transform .28s}.promo-dot{width:7px;height:7px;border-radius:50%;background:var(--glow);box-shadow:0 0 9px #47e5bc80;flex-shrink:0}.promo-arrow{margin-left:auto;color:var(--glow);font-size:22px}.jingle-promo{position:absolute;inset:0;visibility:hidden;pointer-events:none}.entrance-character{position:absolute;left:0;top:-10px;width:112px;height:166px;pointer-events:none}.bowling-ornament{width:94px;height:158px;transform-origin:50% 0;filter:drop-shadow(0 8px 10px #0008)}.entrance-santa{display:none;position:absolute;top:24px;left:-4px;width:116px;height:auto;filter:drop-shadow(0 6px 7px #0008)}.jingle-message{position:absolute;top:60px;left:88px;right:0;border:1px solid #e2bc7899;border-radius:9px;background:#431426f7;box-shadow:0 8px 24px #0005;pointer-events:auto}.jingle-message-link{display:block;color:#fffaf0;text-decoration:none;padding:14px 36px 14px 14px}.jingle-message-link strong{display:block;font:900 25px/1 var(--font-display);letter-spacing:-.01em}.jingle-message-link>span{display:block;font:600 11px/1.5 var(--font-ui);margin-top:7px}.jingle-message-link b{display:block;color:#f6d18c;font:700 12px/1.4 var(--font-ui);margin-top:8px}.dismiss-entrance{position:absolute;right:-1px;top:-1px;width:44px;height:44px;border:0;border-radius:9px;background:none;color:#c9c1d0;font:400 23px var(--font-ui);cursor:pointer}.jingle-message-link:focus-visible,.dismiss-entrance:focus-visible,.entrance-controls button:focus-visible,.entrance-options button:focus-visible{outline:2px solid var(--glow);outline-offset:3px}
+  [data-entrance-mode=santa] .bowling-ornament{display:none}[data-entrance-mode=santa] .entrance-santa{display:block}[data-entrance-mode=santa] .jingle-message{top:48px}[data-entrance-state=clearing] .usual-promo,[data-entrance-state=entering] .usual-promo,[data-entrance-state=settled] .usual-promo{opacity:0;transform:translateY(-9px)}[data-entrance-state=entering] .usual-promo,[data-entrance-state=settled] .usual-promo{visibility:hidden}[data-entrance-state=entering] .jingle-promo,[data-entrance-state=settled] .jingle-promo{visibility:visible}[data-entrance-state=entering] .bowling-ornament{animation:mobile-ornament 1.8s cubic-bezier(.2,.7,.3,1) both}[data-entrance-state=entering] .entrance-santa{animation:mobile-santa 1.3s cubic-bezier(.2,.7,.3,1) both}[data-entrance-state=entering] .jingle-message{animation:mobile-invitation .6s .35s ease-out both}
+  .direction-eyebrow{font:700 11px/1.7 var(--font-ui);letter-spacing:.12em;color:var(--glow);margin:0 0 22px}.entrance-direction h3{font:900 clamp(40px,5vw,68px)/.95 var(--font-display);letter-spacing:-.02em;margin:0 0 25px}.entrance-direction>p:not(.direction-eyebrow){font:400 15px/1.8 var(--font-body);color:var(--warm-mid)}.entrance-direction ol{list-style-position:inside;padding:0;margin:25px 0;font:600 13px/2 var(--font-ui);color:var(--warm-white)}.entrance-controls{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 22px}.entrance-controls button{border:1px solid var(--glow);border-radius:7px;color:var(--glow);background:none;min-height:46px;padding:12px 16px;font:700 12px var(--font-ui);cursor:pointer}.entrance-controls button:first-child{background:var(--glow);color:#100b20}.entrance-controls button span{margin-left:12px}.entrance-direction .entrance-status{font:700 12px/1.6 var(--font-ui)!important;color:var(--warm-white)!important}.entrance-direction .entrance-footnote{font:400 12px/1.8 var(--font-ui)!important;margin-top:18px}
+  @keyframes mobile-ornament{0%{transform:translateY(-160px) rotate(28deg)}42%{transform:translateY(0) rotate(-16deg)}67%{transform:rotate(9deg)}85%{transform:rotate(-4deg)}100%{transform:rotate(0)}}@keyframes mobile-santa{0%{transform:translateY(-160px) rotate(-9deg)}65%{transform:translateY(8px) rotate(4deg)}85%{transform:translateY(-3px) rotate(-2deg)}100%{transform:none}}@keyframes mobile-invitation{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+  @media(max-width:750px){.entrance-options{gap:8px}.entrance-options button{padding:14px 12px;font-size:12px}.entrance-options small{font-size:10px}.entrance-layout{display:block}.mobile-home{margin-inline:-20px;width:calc(100% + 40px);height:740px;max-height:850px;border-left:0;border-right:0;border-radius:0;box-shadow:none}.entrance-direction{padding-top:30px}.entrance-direction h3{font-size:45px}.entrance-direction>p:not(.direction-eyebrow){font-size:14px}.entrance-controls{margin-top:0}.entrance-options small{min-height:30px}.mobile-hero-copy{bottom:100px}}
+  @media(prefers-reduced-motion:reduce){.usual-promo{transition:none}.bowling-ornament,.entrance-santa,.jingle-message{animation:none!important}}
+</style>
+<script>
+  const review = document.querySelector<HTMLElement>('[data-entrance-review]');
+  if (review) {
+    const frame = review.querySelector<HTMLElement>('.mobile-home')!;
+    const promo = review.querySelector<HTMLElement>('[data-jingle-promo]')!;
+    const ordinary = review.querySelector<HTMLElement>('[data-usual-promo]')!;
+    const video = review.querySelector<HTMLVideoElement>('video')!;
+    const videoToggle = review.querySelector<HTMLButtonElement>('[data-video-toggle]')!;
+    const replay = review.querySelector<HTMLButtonElement>('[data-replay-entrance]')!;
+    const status = review.querySelector<HTMLElement>('[data-entrance-status]')!;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    let timers: ReturnType<typeof setTimeout>[] = [];
+    let videoPaused = reduced.matches;
+    let visible = false;
+    let played = false;
+    const clear = () => { timers.forEach(clearTimeout); timers = []; };
+    const expose = (show: boolean) => { promo.inert = !show; promo.setAttribute('aria-hidden', String(!show)); ordinary.setAttribute('aria-hidden', String(show)); };
+    function syncVideo() {
+      videoToggle.textContent = videoPaused ? 'Play video' : 'Pause video';
+      videoToggle.setAttribute('aria-pressed', String(videoPaused));
+      if (visible && !videoPaused) {
+        if (!video.dataset.loaded) {
+          video.querySelectorAll<HTMLSourceElement>('source').forEach(source => { source.src = source.dataset.src!; });
+          video.load(); video.dataset.loaded = 'true';
+        }
+        video.play().catch((error: unknown) => {
+          // Scrolling away or a user pause can interrupt a pending play.
+          // That is not an autoplay refusal and must not disable later resume.
+          if ((error instanceof DOMException && error.name === 'AbortError') || !visible || videoPaused) return;
+          videoPaused = true;
+          videoToggle.textContent = 'Play video';
+          videoToggle.setAttribute('aria-pressed', 'true');
+        });
+      } else video.pause();
+    }
+    function playEntrance() {
+      clear(); played = true; expose(false); frame.dataset.entranceState = 'idle';
+      if (reduced.matches) { expose(true); frame.dataset.entranceState = 'settled'; status.textContent = 'Reduced motion: the invitation appears without movement.'; return; }
+      status.textContent = 'The holiday promo steps aside. Here comes Jingle Bowl.';
+      timers.push(setTimeout(() => { frame.dataset.entranceState = 'clearing'; }, 450));
+      timers.push(setTimeout(() => { expose(true); frame.dataset.entranceState = 'entering'; }, 850));
+      timers.push(setTimeout(() => { frame.dataset.entranceState = 'settled'; status.textContent = 'The Jingle Bowl link stays. Tap × to restore the holiday promo.'; }, 2700));
+    }
+    review.querySelectorAll<HTMLButtonElement>('[data-entrance-option]').forEach(button => button.addEventListener('click', () => {
+      const santa = button.dataset.entranceOption === 'santa';
+      frame.dataset.entranceMode = santa ? 'santa' : 'ornament';
+      review.querySelectorAll('[data-entrance-option]').forEach(item => item.setAttribute('aria-pressed', String(item === button)));
+      review.querySelector<HTMLElement>('[data-entrance-heading]')!.innerHTML = santa ? 'Well, look<br/>who dropped in.' : 'A little swing.<br/>A big hint.';
+      review.querySelector<HTMLElement>('[data-entrance-description]')!.textContent = santa ? 'The holiday message steps aside. Santa drops into the space beneath your header and brings a small invitation to bowl with him.' : 'The holiday message steps aside. A bowling-ball ornament drops from just beneath the header, swings once, and introduces Jingle Bowl.';
+      playEntrance();
+    }));
+    replay.addEventListener('click', playEntrance);
+    review.querySelector<HTMLButtonElement>('.dismiss-entrance')!.addEventListener('click', () => { clear(); expose(false); frame.dataset.entranceState = 'idle'; status.textContent = 'Holiday promo restored. Replay either entrance when you like.'; replay.focus({ preventScroll: true }); });
+    videoToggle.addEventListener('click', () => { videoPaused = !videoPaused; syncVideo(); });
+    reduced.addEventListener('change', () => { if (reduced.matches) { videoPaused = true; syncVideo(); if (frame.dataset.entranceState !== 'idle') { clear(); expose(true); frame.dataset.entranceState = 'settled'; } } });
+    new IntersectionObserver(entries => { visible = entries[0].isIntersecting; syncVideo(); if (visible && !played) playEntrance(); }, { threshold: .3 }).observe(frame);
+    syncVideo();
+  }
+</script>

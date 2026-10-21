@@ -38,7 +38,7 @@ const proposedInclusions = [
       </div>
       <div class="jb-hero-grid">
         <div class="jb-hero-copy">
-          <h1 id="jb-title"><span class="jb-event-name">Jingle Bowl!</span><span class="jb-hero-headline">SANTA’S <br />TAKING<br /><em>OVER.</em></span></h1>
+          <h1 id="jb-title"><span class="jb-event-name">Jingle Bowl!<svg class="jb-candy-cane" viewBox="0 0 70 92" width="46" height="60" aria-hidden="true" focusable="false"><path d="M21 79V26a17 17 0 0 1 34 0v10" fill="none" stroke="#dfc18a" stroke-width="18" stroke-linecap="round"/><path d="M21 79V26a17 17 0 0 1 34 0v10" fill="none" stroke="#fff4df" stroke-width="14" stroke-linecap="round"/><path d="M21 79V26a17 17 0 0 1 34 0v10" fill="none" stroke="#b93545" stroke-width="14" stroke-dasharray="11 12" stroke-linecap="butt"/></svg></span><span class="jb-hero-headline">SANTA’S <br />TAKING<br /><em>OVER.</em></span></h1>
           <p class="jb-hero-description">He’s making a list.<br />You’re making a day of it.</p>
           <a class="jb-button" href="#the-event">Explore the event <span aria-hidden="true">↘</span></a>
           <p class="jb-hero-footnote">One Sunday. All Jingle Bowl.</p>
@@ -63,7 +63,7 @@ const proposedInclusions = [
       <div class="jb-inner">
         <div class="jb-section-head"><div><p class="jb-label">The proposed experience</p><h2 id="jb-package-title">More than a<br /><em>photo op.</em></h2></div><p class="jb-proposal-note"><strong>Owner review · package proposal</strong>These inclusions and prices are still being finalized. This preview is not taking reservations.</p></div>
         <div class="jb-inclusions">{proposedInclusions.map((item) => <article class="jb-inclusion"><span class="jb-number">{item.number}</span><h3>{item.title}</h3><p>{item.detail}</p></article>)}</div>
-        <div class="jb-package-aside"><span aria-hidden="true">✦</span><p>Bowling, a table full of your people, and Santa on the calendar. That’s the idea.</p></div>
+        <div class="jb-package-aside"><svg class="jb-gift" viewBox="0 0 84 88" width="64" height="67" aria-hidden="true" focusable="false"><path d="M42 28C17 28 16 9 27 11c10 1 15 17 15 17Zm0 0C67 28 68 9 57 11 47 12 42 28 42 28Z" fill="none" stroke="#e8c78b" stroke-width="4" stroke-linejoin="round"/><rect x="14" y="37" width="56" height="40" rx="3" fill="#fff4df"/><path d="m17 50 17 10M52 66l14 8M54 43l13 8" stroke="#e8c78b" stroke-width="2"/><rect x="10" y="28" width="64" height="14" rx="2" fill="#e8c78b"/><path d="M42 29v48" stroke="#ac3041" stroke-width="12"/><path d="M36 28h12" stroke="#fff4df" stroke-width="3"/></svg><p>Bowling, a table full of your people, and Santa on the calendar. That’s the idea.</p></div>
       </div>
     </section>
 
@@ -111,7 +111,8 @@ const proposedInclusions = [
   /* This normal-scrolling campaign does not need the homepage's paired gutters.
      Removing them here also keeps its fixed mobile header within the viewport. */
   :global(html:has(.jb-page)) { scrollbar-gutter: auto; }
-  .jb-page { --jb-line: rgba(244,239,227,.19); background: #110c22; color: var(--warm-white); overflow: clip; }
+  :global(html:has(.jb-page) .site-header) { --glow: #e8c78b; --indigo-deep: #11372b; background: rgba(7,31,23,.95); }
+  .jb-page { --jb-green: #103b2c; --jb-deep: #09291f; --jb-cranberry: #641e2d; --jb-cream: #fff4df; --jb-gold: #e8c78b; --jb-line: rgba(255,244,223,.22); --warm-white: var(--jb-cream); --warm-mid: #e6dac6; --warm-dim: #c9c5b2; --glow: var(--jb-gold); background: var(--jb-deep); color: var(--warm-white); overflow: clip; }
   .jb-page h1, .jb-page h2, .jb-page h3 { font-family: var(--font-display); font-weight: 900; text-transform: uppercase; }
   .jb-page h2 { font-size: clamp(48px, 12vw, 78px); line-height: .98; letter-spacing: -.015em; }
   .jb-page h2 em { font-style: normal; color: var(--glow); }
@@ -120,42 +121,47 @@ const proposedInclusions = [
   .jb-page :where(section[id]) { scroll-margin-top: 96px; }
   .jb-inner { width: min(1200px, calc(100% - 40px)); margin-inline: auto; }
   .jb-label { font: 700 11px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 19px; }
-  .jb-review { position: relative; z-index: 2; margin-top: calc(70px + var(--safe-top)); padding: 11px 20px; background: #28203d; border-block: 1px solid var(--jb-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px 16px; font: 600 11px/1.5 var(--font-ui); }
+  .jb-review { position: relative; z-index: 2; margin-top: calc(70px + var(--safe-top)); padding: 11px 20px; background: var(--jb-cranberry); border-block: 1px solid var(--jb-line); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 7px 16px; font: 600 11px/1.5 var(--font-ui); }
   .jb-review > span { display: inline-flex; align-items: center; gap: 8px; }
   .jb-review i { width: 6px; height: 6px; background: var(--glow); border-radius: 50%; }
   .jb-review a { color: var(--warm-white); }
-  .jb-hero { width: min(1440px, 100%); margin-inline: auto; padding: 0 20px; }
+  .jb-hero { position: relative; isolation: isolate; width: min(1440px, 100%); margin-inline: auto; padding: 0 20px; }
+  .jb-hero::before, .jb-closing::before { content: ""; position: absolute; z-index: -1; inset: 0; background: url('/pattern/pin-tilt-white.png') 30px 35px / 330px auto repeat; opacity: .035; pointer-events: none; }
   .jb-hero-topline { padding: 21px 0 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 20px; font: 700 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .09em; border-bottom: 1px solid var(--jb-line); }
   .jb-hero-topline p:first-child { display: none; }
   .jb-hero-topline span { color: var(--glow); margin: 0 10px; }
   .jb-hero-grid { display: grid; padding-top: 22px; }
   .jb-hero-copy { position: relative; z-index: 1; padding: 28px 0 26px; }
   .jb-hero h1 { margin: 0 0 20px; letter-spacing: -.025em; }
-  .jb-event-name { display: block; font: 700 12px/1.4 var(--font-ui); letter-spacing: .09em; margin-bottom: 17px; }
+  .jb-event-name { display: flex; align-items: center; justify-content: space-between; gap: 20px; font: 700 12px/1.4 var(--font-ui); letter-spacing: .09em; margin-bottom: 17px; color: var(--jb-gold); }
+  .jb-candy-cane { flex: 0 0 auto; width: 42px; height: 55px; transform: rotate(14deg); margin-right: 12px; }
   .jb-hero-headline { display: block; font-size: clamp(48px, 13.3vw, 70px); line-height: .94; }
   .jb-hero-headline br:first-of-type { display: none; }
   .jb-hero-headline em { font-style: normal; color: var(--glow); }
   .jb-hero-description { font-size: 18px; margin: 24px 0; }
-  .jb-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 22px; padding: 17px 20px; border-radius: 7px; color: #110c22; background: var(--glow); font: 700 12px/1.4 var(--font-ui); text-decoration: none; transition: background 160ms ease, transform 160ms ease; }
-  .jb-button:hover { background: #80f4d7; transform: translateY(-2px); }
+  .jb-button { display: inline-flex; align-items: center; justify-content: space-between; gap: 22px; padding: 17px 20px; border: 1px solid #dbb26d; border-radius: 7px; color: var(--jb-cream); background: #a32d40; font: 700 12px/1.4 var(--font-ui); text-decoration: none; transition: background 160ms ease, transform 160ms ease; }
+  .jb-button:hover { background: #bd3a4d; transform: translateY(-2px); }
+  .jb-page :is(a, summary):focus-visible { outline: 3px solid var(--jb-gold); outline-offset: 5px; }
   .jb-button span { font-size: 22px; line-height: 1; }
   .jb-hero-footnote { font: 600 11px/1.4 var(--font-ui); color: var(--warm-dim); margin-top: 15px; }
-  .jb-hero-art { position: relative; order: -1; aspect-ratio: 1; background: #1d1730; isolation: isolate; }
+  .jb-hero-art { position: relative; order: -1; aspect-ratio: 1; background: #071910; isolation: isolate; border: 1px solid #d3ad6b80; box-shadow: 0 18px 50px #03120d55; }
   .jb-hero-art picture, .jb-hero-art img { display: block; width: 100%; height: 100%; }
   .jb-hero-art img { object-fit: cover; }
   .jb-hero-bottom { display: flex; justify-content: space-between; gap: 20px; padding: 18px 0 22px; border-bottom: 1px solid var(--jb-line); font: 600 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .08em; }
   .jb-hero-bottom > span:first-child { display: none; }
   .jb-hero-bottom > span span { color: var(--glow); margin-inline: 7px; }
   .jb-hero-bottom a { color: var(--warm-white); text-decoration: none; }
-  .jb-intro { margin-top: 44px; background: var(--warm-white); color: #1b1330; padding: 60px 0; }
+  .jb-intro { position: relative; margin-top: 44px; background: var(--jb-cream); color: var(--jb-green); padding: 60px 0; }
+  .jb-intro::before { content: ""; position: absolute; inset: 0 0 auto; height: 7px; background: repeating-linear-gradient(135deg, #a32d40 0 14px, var(--jb-cream) 14px 28px); }
   .jb-intro-grid { display: grid; gap: 30px; }
-  .jb-intro h2 em { color: #16846f; }
+  .jb-intro h2 em { color: #962b3c; }
   .jb-intro-body { font-size: 15px; }
   .jb-intro-body p + p { margin-top: 16px; }
-  .jb-date-line { margin-top: 28px; padding-top: 15px; border-top: 1px solid #1b133033; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
+  .jb-date-line { margin-top: 28px; padding-top: 15px; border-top: 1px solid #103b2c40; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
   .jb-date-line span { font: 700 10px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
-  .jb-date-line time { font: 900 35px/1 var(--font-display); }
+  .jb-date-line time { font: 900 35px/1 var(--font-display); color: #962b3c; }
   .jb-package, .jb-rooms, .jb-faq { padding: 66px 0; }
+  .jb-package { background: var(--jb-cranberry); }
   .jb-section-head { display: grid; gap: 25px; margin-bottom: 36px; }
   .jb-proposal-note { border-left: 2px solid var(--glow); padding-left: 15px; font-size: 12px; color: var(--warm-mid); max-width: 380px; }
   .jb-proposal-note strong { display: block; font: 700 10px/1.5 var(--font-ui); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; color: var(--warm-white); }
@@ -165,15 +171,15 @@ const proposedInclusions = [
   .jb-inclusion h3 { font-size: 27px; line-height: 1.05; margin-bottom: 9px; }
   .jb-inclusion p { grid-column: 2; font-size: 13px; color: var(--warm-mid); max-width: 290px; }
   .jb-package-aside { display: flex; align-items: center; gap: 16px; margin-top: 30px; }
-  .jb-package-aside > span { color: var(--glow); font-size: 32px; }
+  .jb-gift { flex: 0 0 auto; width: 58px; height: 61px; transform: rotate(-7deg); }
   .jb-package-aside p { font-size: 13px; max-width: 610px; }
-  .jb-rooms { background: #1a142b; }
+  .jb-rooms { background: var(--jb-green); }
   .jb-room-intro { font-size: 15px; max-width: 340px; color: var(--warm-mid); }
   .jb-room-grid { display: grid; gap: 38px; }
-  .jb-room-photo { position: relative; overflow: hidden; background: #0e0a1f; }
+  .jb-room-photo { position: relative; overflow: hidden; background: var(--jb-deep); border: 1px solid #e8c78b66; }
   .jb-room-photo picture, .jb-room-photo img { display: block; width: 100%; }
   .jb-room-photo img { height: auto; aspect-ratio: 4/3; object-fit: cover; }
-  .jb-room-photo > span { position: absolute; left: 12px; bottom: 12px; padding: 8px 10px; background: #100b23eb; font: 700 9px/1.3 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
+  .jb-room-photo > span { position: absolute; left: 12px; bottom: 12px; padding: 8px 10px; background: #641e2df2; font: 700 9px/1.3 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
   .jb-room-heading { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin: 21px 0 12px; }
   .jb-room-heading h3 { font-size: 29px; line-height: 1; max-width: 58%; }
   .jb-room-price { flex: 0 0 auto; text-align: right; }
@@ -181,6 +187,9 @@ const proposedInclusions = [
   .jb-room-price strong { display: block; font: 900 29px/1.15 var(--font-display); color: var(--glow); }
   .jb-room > p { color: var(--warm-mid); font-size: 13px; max-width: 430px; }
   .jb-price-note { border-top: 1px solid var(--jb-line); margin-top: 32px; padding-top: 19px; font-size: 11px; color: var(--warm-mid); max-width: 800px; }
+  .jb-faq { --jb-line: #103b2c33; --warm-mid: #365044; background: var(--jb-cream); color: var(--jb-green); }
+  .jb-faq h2 em, .jb-faq .jb-questions summary > span { color: #962b3c; }
+  .jb-faq :is(a, summary):focus-visible { outline-color: #962b3c; }
   .jb-faq-grid { display: grid; gap: 30px; }
   .jb-faq-grid > div:first-child > p:last-child { margin-top: 22px; max-width: 300px; color: var(--warm-mid); font-size: 14px; }
   .jb-questions { border-top: 1px solid var(--jb-line); }
@@ -190,12 +199,14 @@ const proposedInclusions = [
   .jb-questions summary > span { color: var(--glow); font: 400 27px/1 var(--font-ui); transition: transform 160ms ease; }
   .jb-questions details[open] summary > span { transform: rotate(45deg); }
   .jb-questions details p { margin-top: 17px; font-size: 13px; color: var(--warm-mid); max-width: 590px; }
-  .jb-questions a { color: var(--warm-white); }
-  .jb-closing { border-top: 1px solid var(--jb-line); padding: 60px 0; background: radial-gradient(ellipse at 75% 120%, #2a1b66 0%, transparent 65%), #110c22; }
+  .jb-questions a { color: #962b3c; }
+  .jb-closing { position: relative; isolation: isolate; border-top: 1px solid var(--jb-line); padding: 60px 0; background: var(--jb-cranberry); }
+  .jb-closing::before { background-size: 420px auto; background-position: 80% 45%; opacity: .045; }
   .jb-closing h2 { max-width: 850px; font-size: clamp(53px, 13.7vw, 112px); }
   .jb-closing > .jb-inner > p:not(.jb-label) { margin-top: 23px; color: var(--warm-mid); max-width: 440px; font-size: 14px; }
   .jb-closing-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 23px; margin-top: 27px; }
-  .jb-closing .jb-button { font-size: 10px; padding-inline: 15px; gap: 15px; }
+  .jb-closing .jb-button { font-size: 10px; padding-inline: 15px; gap: 15px; background: var(--jb-cream); color: var(--jb-green); }
+  .jb-closing .jb-button:hover { background: var(--jb-gold); }
   .jb-phone { color: var(--warm-white); font: 700 12px/1.5 var(--font-ui); }
   .jb-footer { padding: 32px 20px; border-top: 1px solid var(--jb-line); display: flex; flex-wrap: wrap; align-items: center; gap: 25px; }
   .jb-footer img { display: block; width: 110px; height: auto; }
