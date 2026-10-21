@@ -129,4 +129,17 @@ a worktree-local junction; no packages or credentials were copied or installed.
 
 ## Release evidence
 
-Pending root release coordination. Local checks are not deployment evidence.
+Runtime source `de9a7a2f3844420f9da35b8bcdcaaebe19d0c144` deployed successfully
+October 21, 2026 on Vercel deployment `8BTNsz2q2uf3JG6mxse4DwukjMzK`.
+All 68 independent production checks passed: named/date Jingle admission,
+protected guest-link absence, correct NYE opening, ordinary school-break policy,
+the additive hours context, anonymous Jingle 401 and public home/reserve/NYE/health
+routes. Local 1,080 date + 123 event + 29 SSR checks, prebuild and TypeScript passed.
+Local compilation/prerender succeeded; Windows symlink packaging was deferred to
+the successful normal Vercel build. No local fallback-menu artifacts were deployed.
+
+Roy v88 was published at 20:50:32 UTC and independently verified at 20:50:50 UTC.
+Its saved/active pre-call version is `eb4f647f-e9f6-4c83-b407-34cdd65ec60e`.
+The isolated KB and previous v87 version are retained for rollback. Jingle guest
+page, booking readiness, staffed intervals and session cutoffs remain pending.
+Promotional greetings remain proposals, separate from the event-day access notice.
