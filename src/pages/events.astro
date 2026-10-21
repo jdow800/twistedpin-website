@@ -32,13 +32,13 @@
  *   - "private" hard-banned — used "take over," "set apart from the
  *     traditional lanes" ("yours for the night" retired 2026-10-12; the
  *     whole-suite line is "the whole suite is yours during your event time")
- *   - Specifics > adjectives — 6-lane VIP suite, up to 80, 28 self-serve
+ *   - Specifics > adjectives — 6-lane VIP suite, 28 self-serve
  *     taps, 50% of bowling revenue back to fundraiser hosts
  *   - Adults-first, not Chuck E Cheese
  *
  * TODOs (non-blocking):
- *   - Capacity numbers for full-venue buyouts not yet confirmed by ops.
- *     "More for full-venue buyouts" hand-waves until ops gives a number.
+ *   - Guest copy omits explicit event capacities. Invite organizers to
+ *     discuss their headcount and plans; booking limits remain operational.
  *   - Section photos reuse homepage events-bg + cocktails-bg shots.
  *     Distinct event-energy photography flagged in Context/media-needs.md.
  *   - Real success-story content (e.g. "X companies hosted last quarter")
@@ -73,14 +73,14 @@ const eventVenueSchema = {
     url: PAGE_URL,
     image: `${BUSINESS_URL}/snap/events-bg-600.webp`,
     description:
-      "Group events at Twisted Pin: take over the 6-lane VIP suite (up to 80) or the whole venue (up to 200), in-house catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties. Plainfield, IL.",
+      "Group events at Twisted Pin: a 6-lane VIP suite, full-venue buyouts, in-house catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties. Tell us your headcount and plans. Plainfield, IL.",
   })),
   "@type": ["EventVenue", "EntertainmentBusiness"],
 };
 ---
 <Base
   title="Group Events in Plainfield, IL | Twisted Pin"
-  description="VIP suite for up to 80, or up to 200 for full-venue buyouts. In-house catering, craft cocktails. Adult birthdays, corporate offsites, fundraisers, holiday parties — Plainfield, IL."
+  description="Plan a group event in Plainfield: a 6-lane VIP suite, full-venue buyouts, in-house catering and craft cocktails. Tell us what you're planning."
   ogImage="/og/og-events.jpg"
   ogImageAlt="A group event at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/buffet-poster.avif"
@@ -223,10 +223,10 @@ const eventVenueSchema = {
         <p class="events-section-body">
           The 6-lane VIP suite sits behind a wall, set apart from the
           traditional lanes — semi-private. When you book all six lanes,
-          the whole suite is yours during your event time. Up to 80
-          people in the suite, or up to 200 if you take over the whole
-          venue (the suite plus 17 traditional lanes). LED video
-          wall for slideshows, sports, or whatever you want playing. AV
+          the whole suite is yours during your event time. Tell us your
+          headcount and plans so we can discuss the right setup,
+          including full-venue options. LED video wall for slideshows,
+          sports, or whatever you want playing. AV
           solutions available. Couch seating wraps the lanes for the
           people who'd rather watch than throw.
         </p>
@@ -245,7 +245,7 @@ const eventVenueSchema = {
         </p>
 
         <ul class="events-section-list">
-          <li>6-lane VIP suite, up to 80 — or up to 200 for full-venue buyouts</li>
+          <li>6-lane VIP suite + full-venue buyout options</li>
           <li>28-tap self-serve beer &amp; wine wall</li>
           <li>Cocktail program curated by Brian Van Flandern</li>
           <li>In-house catering through the kitchen</li>

@@ -55,9 +55,10 @@ settle in together.
 ## For adult birthdays and company outings
 
 The [six-lane semi-private VIP suite](/vip-suite/) is set apart from
-the traditional lanes by a wall and accommodates up to 80 guests.
-Full-venue buyouts accommodate up to 200. The event team confirms your
-reserved space, party time, layout, catering and bar arrangements.
+the traditional lanes by a wall. Share your headcount, occasion, and
+plans for the event so we can discuss the suite or a full-venue buyout.
+The event team confirms your reserved space, party time, layout,
+catering and bar arrangements.
 
 Choose the page that fits what you're planning:
 

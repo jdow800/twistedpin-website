@@ -12,21 +12,10 @@
  * Cross-promotion bonus — the same planner often knows someone
  * planning the other.
  *
- * Group size differs from corporate / weddings — showers run 20-40
- * guests typically. The VIP suite still works (it just doesn't fill
- * — and a quieter, more spread-out suite is actually the right
- * shower vibe).
- *
- * **DELIBERATELY does not mention "up to 200 for full-venue buyouts"**
- * the way the rest of the event-funnel pages do (vip-suite, events,
- * corporate-events, holiday-parties, fundraisers, why-us cities). The
- * page is positioned around right-sized intimate gatherings — "room
- * for 80 if it grows" is already a generous ceiling-lifter for a
- * shower planner thinking 20-40. Surfacing "or 200 for full-venue"
- * would step on the intimate-positioning lead. The 200 still lives in
- * the global localBusiness schema (truthful at the venue level); just
- * not in shower copy. Same logic excludes /wedding-receptions (also
- * positioned around intimate). 2026-05-18.
+ * Lead with the shower experience: couch seating, catering, gifts,
+ * slideshows, and optional bowling. Guest copy omits explicit event
+ * capacities and group-size bands. Discuss the organizer's headcount
+ * and plans before recommending a setup; booking limits still govern.
  *
  * Same pillar skeleton as /corporate-events + /holiday-parties (rule
  * of eleven — .pillar-* CSS hoist remains overdue):
@@ -79,7 +68,7 @@ const serviceSchema = {
   name: "Bridal and Baby Shower Hosting",
   url: PAGE_URL,
   description:
-    "Bridal showers and baby showers at Twisted Pin in Plainfield, IL. The 6-lane VIP suite seats up to 80 — runs perfectly for the 20-40 guest shower. In-house catering, a cocktail program curated by Brian Van Flandern (America's Top Mixologist), and a real mocktail menu for the guest of honor when she isn't drinking. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
+    "Bridal showers and baby showers at Twisted Pin in Plainfield, IL. A 6-lane VIP suite with couch seating and an LED video wall for slideshows. In-house catering, a cocktail program curated by Brian Van Flandern (America's Top Mixologist), and a real mocktail menu for the guest of honor when she isn't drinking. Tell us your headcount and plans. Serving the I-55/I-80 corridor — Plainfield, Naperville, Bolingbrook, Joliet, Romeoville, Oswego, Shorewood, Lockport.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Bridal and baby shower hosting",
   areaServed: [
@@ -113,7 +102,7 @@ const serviceSchema = {
         A shower that isn't a hotel&nbsp;brunch.
       </h1>
       <p class="showers-hero-sub hero-fade" data-delay-ms="320">
-        The 6-lane VIP suite for 20-40 guests. In-house catering.
+        The 6-lane VIP suite. In-house catering.
         Mocktails serious enough for the guest of honor. Run a tab for
         the rest of the party.
       </p>
@@ -151,14 +140,15 @@ const serviceSchema = {
       <div class="showers-section-copy">
         <p class="t-eyebrow">The Room</p>
         <h2 class="t-display showers-section-title" id="showers-room-h2">
-          A suite that fits 80. Just yours for the 30.
+          Gifts. Toasts. A little friendly competition.
         </h2>
         <p class="showers-section-aside">(don't pretend a hotel ballroom does this)</p>
 
         <p class="showers-section-body">
           The <a href="/vip-suite/">6-lane VIP suite</a> sits behind a
-          wall, set apart from the traditional lanes — semi-private, yours
-          for the afternoon when you book it. Couch seating wraps the
+          wall, set apart from the traditional lanes — semi-private.
+          When you book all six lanes, the whole suite is yours during
+          your event time. Couch seating wraps the
           lanes, so the guest of honor has somewhere to sit when she's
           opening gifts and the rest of the party has somewhere to
           spread out.
@@ -173,7 +163,7 @@ const serviceSchema = {
 
         <ul class="showers-section-list">
           <li>6-lane VIP suite, set apart from the traditional lanes</li>
-          <li>Right-sized for 20-40 (room for 80 if it grows)</li>
+          <li>Tell us your headcount and plans to discuss the right setup</li>
           <li>LED video wall for slideshows</li>
           <li>Couch seating wraps the lanes</li>
           <li>Bowl one round or zero — your call</li>

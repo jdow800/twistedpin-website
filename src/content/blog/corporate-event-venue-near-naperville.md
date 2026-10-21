@@ -26,16 +26,16 @@ first.
 Before the venues, the categories — because the right venue depends on
 which one you're planning.
 
-- **Corporate offsite / team building** — half-day or full-day, 10–80
-  people, mix of structured time and unstructured social time.
-- **Holiday party** — evening, 40–150 people, food and drinks, some
-  light entertainment, 3–4 hours.
+- **Corporate offsite / team building** — half-day or full-day, a mix
+  of structured time and unstructured social time.
+- **Holiday party** — evening, food and drinks, some light
+  entertainment, 3–4 hours.
 - **Staff appreciation night** — similar to a holiday party but
   smaller and more casual.
-- **Client appreciation / partner event** — 20–60 people, evening,
-  needs to feel like an investment rather than a meeting.
+- **Client appreciation / partner event** — an evening that needs
+  to feel like an investment rather than a meeting.
 - **Milestone celebration** — anniversary, retirement, big sales
-  number — 30–80 people.
+  number — something worth getting everyone together for.
 
 Most "corporate venue" pages on the internet don't draw these
 distinctions. The right answer changes a lot depending on which one
@@ -43,8 +43,8 @@ you're hosting.
 
 ## Hotel ballrooms (Naperville proper)
 
-What they're good for: large headcounts (100+), formal sit-down
-dinners, conferences with breakouts. The Naperville hotels along Diehl
+What they're good for: formal sit-down dinners and conferences with
+breakouts. The Naperville hotels along Diehl
 Rd and Warrenville Rd run this format reliably.
 
 What they're not great for: smaller groups, anything that wants to feel
@@ -53,7 +53,7 @@ people out of meeting-room energy.
 
 ## Restaurants with private dining rooms
 
-What they're good for: 10–40 people, dinner, conversation as the main
+What they're good for: dinner and conversation as the main
 event. Naperville and Lisle both have a handful of restaurants set up
 this way.
 
@@ -64,7 +64,7 @@ isn't a side room of a working restaurant.
 ## Twisted Pin — the 6-lane VIP suite
 
 What it is: a [6-lane VIP suite](/vip-suite/) set apart from the
-venue's traditional lanes by a wall. Capacity to 80, AV hookups for
+venue's traditional lanes by a wall. AV hookups for
 slideshows and walk-in music, in-house catering from the kitchen,
 billiards-style group dynamics, and bar billing you control on a tab
 or drink tickets — your call. Set apart, semi-private, and when you
@@ -79,14 +79,14 @@ pour their own, pay by the ounce.
 
 What it's good for: [corporate offsites](/corporate-events/),
 [holiday parties](/holiday-parties/), staff appreciation, milestone
-celebrations, client appreciation, partner events. Anything 20–80 people where you want the energy to *not* feel
-like a meeting room with a buffet.
+celebrations, client appreciation, partner events. The common thread is
+a group that wants activity, food and drinks in the same place, with
+room for conversation between turns.
 
-What it's not: it's not a wedding venue, it's not a
-sit-down-conference room with rows of folding chairs, it's not a
-ballroom for 200, and it's not "let's bring the whole company on a
-weekend with their kids" — for that, the traditional-lanes side of the
-venue handles family events separately.
+The setup matters as much as the guest list. Tell us your headcount,
+occasion, and how you want the event to run. We'll talk through the
+suite, traditional lanes, or a full-venue buyout and help determine
+which arrangement fits.
 
 [See /vip-suite for the full pitch →](/vip-suite/)
 
@@ -94,32 +94,38 @@ venue handles family events separately.
 
 December books fast. If the office holiday party is still on the
 "we should figure that out" list, now's the time. The
-[6-lane VIP suite](/vip-suite/) takes up to 80, the kitchen handles
-the food, and the bar runs on a tab or drink tickets you control. Need
-room for the whole company? A full-venue buyout fits up to 200. Dates,
-food and the rest live on our [holiday parties page](/holiday-parties/).
+[6-lane VIP suite](/vip-suite/) brings bowling, in-house catering,
+and a bar tab or drink tickets you control into the same event. Tell
+us your headcount and plans, and we'll discuss the suite or a full-venue
+buyout. Dates, food and the rest live on our
+[holiday parties page](/holiday-parties/).
 
 ## How to choose between them
 
 A short framework:
 
-- **>100 people, sit-down dinner format** — hotel ballroom.
-- **40–80 people, you want activity built in** — VIP suite.
-- **10–30 people, dinner is the event** — restaurant private dining.
-- **20–60 people, evening, needs to feel like an investment** — VIP suite.
-- **Half-day with breakouts** — hotel conference rooms or a corporate
-  retreat space; we're not the answer.
-- **Holiday party where you want people to actually have fun** — VIP suite.
+- **Formal dinner with a stage and a fixed seating plan** — ask about
+  the room layout, catering service, and AV before choosing a venue.
+- **Activity woven into the evening** — ask about the VIP suite,
+  bowling time, and how food and drinks fit around it.
+- **Dinner and conversation as the whole event** — compare dining
+  arrangements and service styles.
+- **Structured sessions or breakouts** — share the agenda and AV
+  needs so the venue can assess the setup.
+- **A holiday party with room to move around** — talk through the
+  guest list, catering, bar plan, and activity together.
 
 ## What to ask any venue you're evaluating
 
 A short list, and the answers we give for the VIP suite:
 
-1. **What's the actual capacity, seated vs. standing?** — Up to 80
-   when you take the whole suite.
-2. **Is the space exclusive to my group or shared?** — Six lanes are
-   exclusive to your group; bar and arcade access is shared with the
-   rest of the venue (semi-private).
+1. **What setup works for our headcount and event format?** — Share
+   your guest list, seating needs, and plans for bowling. We'll discuss
+   the arrangement before you book.
+2. **Is the space exclusive to my group or shared?** — When you book
+   all six lanes, the whole suite is yours during your event time.
+   Bar and arcade access is shared with the rest of the venue
+   (semi-private).
 3. **What's the AV setup?** — Hookups for slideshows and walk-in music.
 4. **Catering — in-house or external?** — In-house, custom-built per
    event from the kitchen.
@@ -133,20 +139,18 @@ A short list, and the answers we give for the VIP suite:
 
 ## How to start
 
-If you're planning something for 20–80 people and the format above
-fits, start on [the events page](/events/) — the inquiry takes about
-90 seconds to fill out. We follow up the same week.
+Start on [the events page](/events/) with your headcount, occasion,
+and the kind of event you have in mind. The inquiry takes about
+90 seconds to fill out. We follow up the same week to talk through
+the setup and whether it's a fit.
 
-If you're planning something larger, or it's a different format than
-the suite handles cleanly, email
-[contactus@twistedpin.com](mailto:contactus@twistedpin.com) and we'll
-either make it work or tell you honestly that we're not the right fit
-and point you somewhere that is.
+Have a question before you start? Email
+[contactus@twistedpin.com](mailto:contactus@twistedpin.com).
 
 ## Related reading
 
-- [/vip-suite/](/vip-suite/) — full page on the suite, with capacity
-  details and what's included
+- [/vip-suite/](/vip-suite/) — full page on the suite, the setup,
+  and what's included
 - [/why-us/naperville-il/](/why-us/naperville-il/) — the venue
   positioned for the Naperville commute specifically
 - [/corporate-events/](/corporate-events/) — team outings, staff

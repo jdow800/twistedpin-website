@@ -37,7 +37,7 @@ The tap-wall fact is 28 self-serve taps. The old “only wall in the area” asi
 
 - Lanes: 17 traditional lanes plus one 6-lane VIP suite. Suite reservations sell in pairs: 2, 4 or 6.
 - Whole-suite possession applies only to all six and only for the booked event time. Before secured booking: “When you book all six lanes, the whole suite is yours during your event time.”
-- Capacity: up to 80 in the suite and up to 200 for a full-venue buyout. Operational configurations and booking limits still govern.
+- Guest capacity (Jon, October 21, 2026): do not publish explicit attendance ceilings or group-size bands in website marketing copy, FAQs, metadata, schema, video descriptions or public AI summaries. Lead with the suite's features and invite guests to discuss headcount, occasion and setup with the event team. Do not infer that a larger group requires a buyout or promise every group will fit. Lane counts, package quantities and operational booking limits retain their own scope.
 - Do not describe the suite, bar or venue as private in guest copy. Use VIP suite, semi-private when useful, or a factual description.
 - Cocktails: “Curated by Brian Van Flandern, America's Top Mixologist (Food Network).” Short: “Curated by America's Top Mixologist.”
 - Brian is a consultant, not staff or an owner. Do not imply availability, partnership, venue endorsement or an appearance. No built/designed/backed/headed/run by Brian. Use his credential only in a cocktail/bar context.

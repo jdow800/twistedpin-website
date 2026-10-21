@@ -67,6 +67,7 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 | Decision | Locked value |
 |---|---|
 | Lane phrasing (canonical) | *"17 traditional lanes + a 6-lane VIP suite"* — traditional first, VIP as upgrade |
+| Guest capacity in marketing (Jon, 2026-10-21) | No explicit guest-capacity numbers or group-size bands in public website copy, FAQs, metadata, schema, video descriptions or AI summaries. Invite the planning conversation around headcount, occasion and setup. Keep lane counts, package quantities and operational booking limits. See `Context/voice.md`. |
 | Mobile hero source | Splice direction locked: pour (`Bank Vs Stories.mp4`) → tap wall (`Beer Wall.mov`) → cocktail (`Best Things To Order.mov`). Total ≤4–5s at current CRF. **Specific window timestamps pending user.** Currently live: Bank Vs Stories 0–4s, single shot. |
 | Desktop hero | Video placeholder (`After Social Highlight…_v2.mp4`, 8s recut). Final desktop hero (photo or video) still pending shoot. |
 | Hero eyebrow | Retired per 2026-05-01 promotion. Live `/` and `/snap-test/` ship without an eyebrow. (Old: *PLAINFIELD, IL* — warm-white, no Glow.) |
@@ -120,7 +121,7 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 - **The VIP suite hero photo reads as regular lanes** (tester V4, 2026-05-11) — it undercuts the one differentiator that page exists to sell. Needs a real suite shot.
 - **Named perf backlog** (none blocking): ~60 KiB unused GTM JS (Partytown territory), forced reflow on `/game`, homepage hero still WebP not AVIF, `/menu/taps` iframe slowness.
 - **Real photography** — pillar pages still use placeholders / homepage reuses. Encoder pipeline ready (`scripts/build-snap-images.mjs`); when sources land in `Context/pictures/`, AVIFs auto-generate.
-- **Outstanding ops confirmations (post-launch sweep):** VIP suite capacity, fundraiser stat, NYE packages. Phone number is real (`(815) 782-7790` in `PHONE_DISPLAY`/`PHONE_TEL` in `src/lib/schema.ts`).
+- **Outstanding ops confirmations (post-launch sweep):** fundraiser stat, NYE packages. Event layouts remain staff-confirmed; do not restore public capacity numbers (Jon, 2026-10-21). Phone number is real (`(815) 782-7790` in `PHONE_DISPLAY`/`PHONE_TEL` in `src/lib/schema.ts`).
 - **Post-cutover GSC actions:** (1) Validate Fix on `/events` Review-Snippets error (per 2026-05-17 schema-LCP handoff). (2) Submit `/sitemap-videos.xml` (shipped in Stage 4 of 2026-05-17 punch list). (3) Spot-check that the 18 production 301 redirects are firing on real traffic. **All four GSC fixes validated 2026-05-19** — Review Snippets (from 2026-05-17), Videos uploadDate timezone, Events organizer.url+performer, Redirect error on apex `twistedpin.com`. Resolutions expected in 3-10 days via Google's natural re-crawl cadence.
 - **Mobile hero video splice** — direction approved (pour → tap wall → cocktail), window timestamps still pending user. Live today: Bank Vs Stories 0–4s, single shot.
 - **Desktop type sweep still open:** `/free-kids-bowling` (18 sub-15px values, 1 desktop query), `/coupon`, `/rewards`, `/upcoming-events` (partial). The 8/03 batch swept the *globals* — **when a page "still looks small" after it, check that page's own `<style>` block.** Mobile floors were reviewed and CLOSED by Jon 2026-08-03; don't re-raise without a new trigger.

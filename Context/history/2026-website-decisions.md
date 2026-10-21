@@ -1,3 +1,11 @@
+## 2026-10-21 - Event capacity copy invites a conversation
+
+Jon ruled: "I would rather just not name an explicit capacity." Remove event attendance ceilings and guest-count bands from public pages, FAQs, search metadata, JSON-LD (including optional suite/venue maximumAttendeeCapacity), video descriptions and the public AI summary. Lead with the suite, catering, bar and activity; invite organizers to share headcount, occasion and setup needs. Remove the corporate article's headcount-based venue routing. Do not imply every group fits or that a larger inquiry automatically needs a buyout. Lane counts, package quantities and operational booking/estimator limits retain their separate scope. No Avery, TPRS or external form changes.
+
+Release preparation uses an isolated checkout of current main so later homepage, event-page, fundraiser and booking fixes are retained. This supersedes the May 19 public capacity-copy/schema rollout; operational sources continue to own actual event arrangements. Website voice/SEO guidance and the Spanish localization status record this ruling.
+
+Validation: the full production build and all prebuild checks pass on the reconciled release. Direct inspection of all 19 changed rendered pages, 61 JSON-LD blocks, `llms.txt` and the video sitemap finds no explicit event-capacity claims. Booking/API sources, pricing, the homepage and dependencies are unchanged. Jon authorized shipping this release.
+
 ## 2026-10-21 - Approved visit-date answers for Roy
 
 Jon asked to prepare Roy for the approved school-break calendar. A read-only

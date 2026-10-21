@@ -81,12 +81,12 @@ runs Friday-night specials. Naperville is fine but adds 30 minutes of
 driving and parking on top of the night. The casual places are too
 familiar to feel like an occasion.
 
-The third option is what we sell — a [VIP suite booking](/vip-suite/)
-for two, which sounds excessive but works for a milestone night. The
-six-lane suite holds up to 80, but if you want it to yourselves for
-the hour and a half — quiet bowling, a private(-ish) cocktail
-experience, and a meal at the rail — it's available, and the night has
-the kind of weight that an anniversary deserves.
+The third option is a [VIP suite reservation](/vip-suite/) for a
+milestone night. The six-lane suite is set apart from the traditional
+lanes, with the same cocktail program and kitchen. Reservations come
+in pairs of two, four, or six lanes. When you book all six lanes, the
+whole suite is yours during your event time. Tell us the occasion
+and what you have in mind, and we'll talk through the setup.
 
 For most anniversaries and milestones, the simpler version of the
 above (table reservation at the bar, two games on the traditional lanes)

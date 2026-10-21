@@ -71,7 +71,7 @@ Three of these (kid-bowling, teens-arcade, arcade-interior) are queued for next 
 | Hero photo | None (typography-only title section per pattern) | Optional |
 | **The Room section photo (P0)** | `events-bg-600.webp` (same shot as homepage Events snap) | **Clean, empty-but-set VIP suite shot.** Wide enough to show couch seating + LED video wall + the spatial separation that makes it semi-private. Empty room (not "party in progress" — V4 explicitly flagged that pattern). `DSC00785-Enhanced-NR` already approved per `visual-direction.md` may work; if not, dedicated shoot |
 | What You Can Do section photo | `events-bg-540.webp` (same shot, smaller crop — placeholder) | Distinct event-energy shot — group celebrating, food on a table in the suite, AV in use, etc. (This is the place for the "people enjoying it" energy — NOT the room hero) |
-| Capacity number | "Up to 80" (from `seo.md` / `CLAUDE.md`) | Confirm with operations; if different, update in copy + alt text |
+| Event setup information | Guest-capacity numbers omitted per Jon's October 21, 2026 ruling | Staff confirms the setup for each inquiry; do not add attendance ceilings to copy, metadata or alt text |
 | Fundraiser stat | "50% of bowling revenue back to the host" (from `seo.md`) | Confirm with operations — this is a public-facing claim |
 
 ## Site-wide / shared

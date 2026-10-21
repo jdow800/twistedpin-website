@@ -8,6 +8,8 @@ Source-of-truth doc for Spanish-language pages on twistedpin.com. Mirrors the sp
 
 **Phase 1 live (2026-05-18):** `/es/bowl/` only.
 
+**October 21, 2026 capacity-copy ruling:** English and Spanish event descriptions omit explicit guest capacities and invite organizers to discuss headcount, occasion and setup. Lane counts and booking limits retain their separate scope. The May audit below remains historical; use the current `/bowl/` and `/es/bowl/` source for the updated VIP paragraphs and lists.
+
 **September 14, 2026 refresh:** /bowl/ and /es/bowl/ now share the visit-planning structure, accurate walk-in availability, top reservation/pricing/directions links, separate lane/party booking paths and calendar-derived karaoke/Singo mentions. The Spanish summer-program link now follows the English off-season state. See [the current release handoff](session-handoffs/2026-09-14-bowling-visit-page.md). The May audit and ad-market estimates below are historical, not current copy or live advertising evidence. Navigation and linked destination pages remain English where no Spanish version exists.
 
 
