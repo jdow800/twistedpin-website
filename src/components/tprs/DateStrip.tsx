@@ -9,6 +9,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import CalendarModal from "./CalendarModal";
+import { specialDateLabel } from "./calendarDestinations";
 import type { DayAvailability } from "./useAvailability";
 import type { BookingPageConfig } from "../../tprs/pageConfig";
 import { useMediaQuery, DESKTOP_QUERY } from "./useMediaQuery";
@@ -49,6 +50,7 @@ interface Props {
    *  outside-food → events handoff shown on the main screen. Main screen only
    *  (DetailStep omits it); unset = none. */
   windowNotice?: BookingPageConfig["windowNotice"];
+  specialDates?: Readonly<Record<string, string>>;
 }
 
 export default function DateStrip({
@@ -58,6 +60,7 @@ export default function DateStrip({
   onPick,
   label = "When are you attending?",
   windowNotice,
+  specialDates,
 }: Props) {
   const today = useMemo(todayIso, []);
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -94,6 +97,8 @@ export default function DateStrip({
       return;
     }
     if (forwardedFor.current === probeKey || availability.loadingProbe) return;
+    // A deliberate event-date selection must not jump to an ordinary day.
+    if (selected && specialDateLabel(specialDates, selected, today)) return;
 
     // Decide-on-first: walk the horizon months IN ORDER and jump to the first
     // open day in the first month that has one — reaching into the next month
@@ -124,7 +129,7 @@ export default function DateStrip({
       });
       onPick(firstOpen);
     }
-  }, [probeKey, selected, availability, today, onPick]);
+  }, [probeKey, selected, availability, today, onPick, specialDates]);
 
   // If a date is picked that's OUTSIDE the visible window (e.g. from the
   // calendar modal), rotate the strip to center on it so they can page left or
@@ -194,8 +199,9 @@ export default function DateStrip({
 
         <div className="tprs-datestrip-chips">
           {days.map((date) => {
-            const pending = availability.isPending(date);
-            const avail = availability.isAvailable(date);
+            const special = specialDateLabel(specialDates, date, today);
+            const pending = !special && availability.isPending(date);
+            const avail = !!special || availability.isAvailable(date);
             const isSel = date === selected;
             const isToday = date === today;
             const { dow, day } = chipParts(date);
@@ -205,6 +211,7 @@ export default function DateStrip({
                 type="button"
                 disabled={pending || !avail}
                 aria-pressed={isSel}
+                aria-label={special ? `${formatDateLong(date)}: ${special} packages` : undefined}
                 aria-busy={pending || undefined}
                 className={[
                   "tprs-chip",
@@ -217,6 +224,7 @@ export default function DateStrip({
               >
                 <span className="tprs-chip-dow">{isToday ? "Today" : dow}</span>
                 {!isToday && <span className="tprs-chip-day">{day}</span>}
+                {special && <span className="tprs-special-date-label">{special}</span>}
               </button>
             );
           })}
@@ -248,6 +256,7 @@ export default function DateStrip({
           onPick={manualPick}
           onClose={() => setCalOpen(false)}
           windowNotice={windowNotice}
+          specialDates={specialDates}
         />
       )}
     </div>

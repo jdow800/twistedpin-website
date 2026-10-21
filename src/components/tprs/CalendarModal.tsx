@@ -16,6 +16,7 @@ import {
 import type { DayAvailability } from "./useAvailability";
 import type { BookingPageConfig } from "../../tprs/pageConfig";
 import Markdown from "./Markdown";
+import { specialDateLabel } from "./calendarDestinations";
 
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
@@ -28,6 +29,7 @@ interface Props {
    *  legend (greyed = window, not sellout) plus the same bigger-group /
    *  outside-food → events handoff shown on the main screen. */
   windowNotice?: BookingPageConfig["windowNotice"];
+  specialDates?: Readonly<Record<string, string>>;
 }
 
 export default function CalendarModal({
@@ -36,6 +38,7 @@ export default function CalendarModal({
   onPick,
   onClose,
   windowNotice,
+  specialDates,
 }: Props) {
   const today = useMemo(todayIso, []);
   const [month, setMonth] = useState<string>(
@@ -104,9 +107,10 @@ export default function CalendarModal({
           {grid.map((cell, i) => {
             if (cell.date === null)
               return <div key={`b-${i}`} className="tprs-cal-cell is-empty" />;
-            const pending = availability.isPending(cell.date);
-            const avail = isAvailable(cell.date);
-            const price = !pending && avail ? availability.priceFor(cell.date) : null;
+            const special = specialDateLabel(specialDates, cell.date, today);
+            const pending = !special && availability.isPending(cell.date);
+            const avail = !!special || isAvailable(cell.date);
+            const price = !special && !pending && avail ? availability.priceFor(cell.date) : null;
             const isSel = cell.date === selected;
             const isToday = cell.date === today;
             return (
@@ -115,6 +119,7 @@ export default function CalendarModal({
                 type="button"
                 disabled={pending || !avail}
                 aria-pressed={isSel}
+                aria-label={special ? `${cell.date}: ${special} packages` : undefined}
                 aria-busy={pending || undefined}
                 className={[
                   "tprs-cal-cell",
@@ -130,6 +135,7 @@ export default function CalendarModal({
                 }}
               >
                 <span className="tprs-cal-day">{cell.day}</span>
+                {special && <span className="tprs-special-date-label">{special}</span>}
                 {price != null && (
                   <span className="tprs-cal-price">{formatUsd(price)}</span>
                 )}

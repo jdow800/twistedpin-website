@@ -364,7 +364,7 @@ export async function getAvailability(
   );
 }
 
-const bookingDatePolicySchema = z.object({ code: z.enum(["holiday_removed", "date_removed"]), message: z.string() });
+const bookingDatePolicySchema = z.object({ code: z.enum(["holiday_removed", "date_removed", "special_booking_day_only", "special_event_date"]), message: z.string() });
 export type BookingDatePolicy = z.infer<typeof bookingDatePolicySchema>;
 export async function getAvailabilityDetails(productId: string, date: string, signal?: AbortSignal) {
   const body = await getJson(`/api/availability?product_id=${productId}&date=${date}&include_policy=true`, signal);

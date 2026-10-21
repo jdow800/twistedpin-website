@@ -51,6 +51,9 @@ import AddOnsStep from "./steps/AddOnsStep";
 import GuestDetailsStep from "./steps/GuestDetailsStep";
 import PaymentStep from "./steps/PaymentStep";
 import ConfirmationStep from "./steps/ConfirmationStep";
+import NyeDateHandoff from "./NyeDateHandoff";
+import { NYE_CALENDAR_DATES } from "./calendarDestinations";
+import { NYE_EVENT_DATE, nyeOpeningState } from "../../config/nye-opening";
 
 interface Props {
   /** The page's config (ADR-0025 §1) — `productCodes` curates a page (e.g.
@@ -66,6 +69,53 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [recoveryLoaded, setRecoveryLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const acceptedOrderOwnsFlow = !recoveryLoaded || !!discovered || !!recovery || state.checkoutLocked || state.step === "confirmation";
+  const [nyeHandoff, setNyeHandoff] = useState(false);
+  const handoffQueryChecked = useRef(false);
+  const showNyeHandoff = config.nyeDateHandoff === true && nyeHandoff && !acceptedOrderOwnsFlow;
+  const specialDates = config.nyeDateHandoff && nyeOpeningState().phase !== "ended" ? NYE_CALENDAR_DATES : undefined;
+
+  const returnFromNye = useCallback(() => {
+    if (acceptedOrderOwnsFlow) return;
+    try {
+      if (history.state?.nyeDateHandoffPushed) { history.back(); return; }
+      const url = new URL(location.href);
+      url.searchParams.delete("date");
+      const { nyeDateHandoff: _handoff, nyeDateHandoffPushed: _pushed, ...entry } = history.state ?? {};
+      history.replaceState(entry, "", url);
+    } catch { /* Restricted embeddings can still return to the original draft. */ }
+    setNyeHandoff(false);
+  }, [acceptedOrderOwnsFlow]);
+
+  const pickDate = useCallback((date: string) => {
+    if (acceptedOrderOwnsFlow) return;
+    if (config.nyeDateHandoff && date === NYE_EVENT_DATE && nyeOpeningState().phase !== "ended") {
+      // This is a destination choice. Never overwrite the ordinary draft's
+      // date, time, quantity, arcade choices or guest details to show it.
+      const url = new URL(location.href); url.searchParams.set("date", NYE_EVENT_DATE);
+      try { history.pushState({ ...history.state, nyeDateHandoff: true, nyeDateHandoffPushed: true }, "", url); }
+      catch { /* Restricted embeddings still get the inline handoff. */ }
+      setNyeHandoff(true);
+      return;
+    }
+    dispatch({ type: "SET_DATE", date });
+  }, [acceptedOrderOwnsFlow, config.nyeDateHandoff]);
+
+  useEffect(() => {
+    if (!recoveryLoaded || handoffQueryChecked.current) return;
+    handoffQueryChecked.current = true;
+    if (acceptedOrderOwnsFlow || !config.nyeDateHandoff || nyeOpeningState().phase === "ended") return;
+    if (new URLSearchParams(location.search).get("date") === NYE_EVENT_DATE) {
+      try { history.replaceState({ ...history.state, nyeDateHandoff: true, nyeDateHandoffPushed: false }, ""); }
+      catch { /* The date query still resolves without History API access. */ }
+      setNyeHandoff(true);
+    }
+  }, [recoveryLoaded, acceptedOrderOwnsFlow, config.nyeDateHandoff]);
+
+  useEffect(() => {
+    const onPop = (event: PopStateEvent) => setNyeHandoff(event.state?.nyeDateHandoff === true);
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
   const initializeRecovery = useCallback(async () => {
     setRecoveryLoaded(false); setRecoveryError(null);
     let damagedStorage = false;
@@ -255,7 +305,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
   const slotTime = state.slot?.time;
   useEffect(() => {
-    if (acceptedOrderOwnsFlow || !state.product || !state.date || !slotTime || config.partySize) {
+    if (acceptedOrderOwnsFlow || showNyeHandoff || !state.product || !state.date || !slotTime || config.partySize) {
       setSlotMaxUnits(null);
       return;
     }
@@ -274,7 +324,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       ctrl.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.product?.id, state.date, slotTime, config.partySize, acceptedOrderOwnsFlow]);
+  }, [state.product?.id, state.date, slotTime, config.partySize, acceptedOrderOwnsFlow, showNyeHandoff]);
 
   // Effective lane ceiling = lower of the product's online cap and lanes free.
   const effectiveLaneMax = state.product
@@ -286,12 +336,12 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // Clamp a carried-over selection down when the chosen slot has fewer free
   // (picked 2 at a wide-open slot, then switched to a 1-lane slot).
   useEffect(() => {
-    if (acceptedOrderOwnsFlow || slotMaxUnits === null || config.partySize) return;
+    if (acceptedOrderOwnsFlow || showNyeHandoff || slotMaxUnits === null || config.partySize) return;
     if (state.laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
       dispatch({ type: "SET_LANE_QTY", qty: effectiveLaneMax });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize, acceptedOrderOwnsFlow]);
+  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize, acceptedOrderOwnsFlow, showNyeHandoff]);
 
   // A "guests" product (base package + per-guest add-on) vs the lane default.
   const guestStepper = useMemo(
@@ -454,7 +504,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     unavailable: liveQuoteUnavailable,
     error: liveQuoteError,
     retry: retryQuote,
-  } = useQuote(acceptedOrderOwnsFlow ? null : quoteRequest);
+  } = useQuote(acceptedOrderOwnsFlow || showNyeHandoff ? null : quoteRequest);
   const quote = recovery?.quote ?? (state.step === "confirmation" ? acceptedQuote : liveQuote);
   const quoteLoading = recovery ? false : liveQuoteLoading;
   const quoteUnavailable = recovery ? false : liveQuoteUnavailable;
@@ -480,6 +530,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   }, [state.step, state.guest, formInvalidIds]);
 
   const handleNext = useCallback(() => {
+    if (showNyeHandoff) return;
     // The payment step owns its own Pay action (Stripe confirm → convert →
     // CONVERTED), so there's no sticky-bar "next" out of it.
     if (state.step === "payment") return;
@@ -506,7 +557,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     if (idx < STEP_ORDER.length - 1) {
       dispatch({ type: "GO_STEP", step: STEP_ORDER[idx + 1] });
     }
-  }, [state.step, noAddOns, guestStepInvalidIds]);
+  }, [state.step, noAddOns, guestStepInvalidIds, showNyeHandoff]);
 
   const handleBack = useCallback(() => {
     // Unify the in-wizard Back with the browser/OS Back: both go through history
@@ -535,6 +586,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       setDiscovered(null); setRecovery(null); setAcceptedQuote(null);
       dispatch({ type: "SET_CHECKOUT_LOCK", locked: false }); dispatch({ type: "RESET" });
     }} />;
+  if (showNyeHandoff) return <div className="tprs-wizard tprs-wizard--nye-handoff"><NyeDateHandoff onReturn={returnFromNye} /></div>;
   return (
     <div className="tprs-wizard">
       {/* Scroll anchor for the step-change reset (H1). */}
@@ -573,6 +625,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       {state.step === "main" && (
         <MainStep
           productCodes={config.productCodes}
+          specialDates={specialDates}
           defaultDate={config.defaultDate}
           showDescriptions={config.cardDescriptions !== false}
           tileCards={config.tileCards === true}
@@ -585,7 +638,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           partySize={state.partySize}
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           selectedDate={state.date}
-          onPickDate={(date) => dispatch({ type: "SET_DATE", date })}
+          onPickDate={pickDate}
           onSelectProduct={(category, product, laneQty) =>
             dispatch({ type: "SELECT_PRODUCT", category, product, laneQty })
           }
@@ -596,6 +649,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         <DetailStep
           onClearSlot={() => dispatch({ type: "CLEAR_SLOT" })}
           date={state.date}
+          specialDates={specialDates}
           category={state.category}
           product={state.product}
           selectedSlot={state.slot}
@@ -610,7 +664,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
           partySize={state.partySize}
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           addOnQtys={state.addOnQtys}
-          onPickDate={(date) => dispatch({ type: "SET_DATE", date })}
+          onPickDate={pickDate}
           onSlot={(slot) => dispatch({ type: "SET_SLOT", slot })}
           onLaneQty={(qty) => dispatch({ type: "SET_LANE_QTY", qty })}
           onAddOnQty={(addOnId, qty) =>

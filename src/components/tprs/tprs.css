@@ -60,6 +60,25 @@
 .tprs-layout { display: block; }
 .tprs-main { min-width: 0; }
 
+/* A special calendar destination is not an available ordinary lane price. */
+.tprs-special-date-label { color: inherit; font-size: 12px; line-height: 1; font-weight: 700; }
+.tprs-wizard.tprs-wizard--nye-handoff { max-width: 720px; padding-bottom: 32px; }
+.tprs-nye-handoff {
+  border: 1px solid var(--tw-border-strong);
+  border-top: 4px solid var(--tw-accent);
+  border-radius: 10px;
+  padding: clamp(20px, 4vw, 32px);
+  background: #1a1035;
+}
+.tprs-nye-handoff-date { font-size: 14px; color: var(--tw-text-muted); margin: 0 0 12px; }
+.tprs-nye-handoff h2 { font-size: clamp(27px, 6vw, 36px); line-height: 1.15; margin: 0 0 18px; scroll-margin-top: 90px; }
+.tprs-nye-handoff h2:focus { outline: none; }
+.tprs-nye-handoff > p:not(.tprs-nye-handoff-date) { font-family: var(--font-body); font-size: 16px; font-weight: 400; line-height: 1.55; margin: 0 0 18px; }
+.tprs-nye-handoff > p.tprs-nye-handoff-opening { font-family: var(--font-ui); color: var(--tw-accent); font-weight: 700; }
+.tprs-nye-handoff .tprs-btn { width: 100%; min-height: 48px; height: auto; white-space: normal; font-size: 14px; text-align: center; text-decoration: none; margin-top: 8px; }
+.tprs-nye-handoff .tprs-btn--solid:hover { color: var(--tw-btn-text); background: var(--tw-btn-bg-hover); }
+.tprs-nye-handoff .tprs-btn:focus-visible { outline: 3px solid var(--tw-accent); outline-offset: 4px; }
+
 /* ── Progress bar ───────────────────────────────────────────────────── */
 .tprs-progress {
   height: 3px;

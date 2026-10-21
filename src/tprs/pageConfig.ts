@@ -12,6 +12,8 @@
 export interface BookingPageConfig {
   /** Optional curated Product code set (ADR-0025 AH-1). Unset = use bookable. */
   productCodes?: number[];
+  /** Offer Dec 31 as an NYE handoff, never as an ordinary lane reservation. */
+  nyeDateHandoff?: boolean;
   /** SPA-rendered terms text (ADR-0025 §1 AH-8). Shown at checkout in Slice 2. */
   termsText: string;
   uxCopy: {
@@ -224,6 +226,7 @@ export const bookingPageConfig: BookingPageConfig = {
   // NOTE: codes are TPRS-DB-specific — re-confirm them at the prod-DB cutover
   // (the temp staging DB re-seeded once already: birthdays went 9→109, 18→118).
   productCodes: [4, 5, 121, 123],
+  nyeDateHandoff: true,
   // The four lane names say everything ("1 Hour w/ Shoes (VIP Suite)") — the
   // pitch line under each card was scroll without information.
   cardDescriptions: false,

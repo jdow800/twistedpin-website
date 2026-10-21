@@ -39,6 +39,7 @@ const DESC_SENTENCES = 3;
 
 interface Props {
   date: string;
+  specialDates?: Readonly<Record<string, string>>;
   category: BookableCategory | null;
   product: CustomerProduct;
   selectedSlot: AvailabilitySlot | null;
@@ -76,6 +77,7 @@ interface Props {
 
 export default function DetailStep({
   date,
+  specialDates,
   category,
   product,
   selectedSlot,
@@ -279,6 +281,7 @@ export default function DetailStep({
         selected={date}
         onPick={onPickDate}
         label="Select a date"
+        specialDates={specialDates}
       />
 
       <h3 className="tprs-section-h">Select a time</h3>

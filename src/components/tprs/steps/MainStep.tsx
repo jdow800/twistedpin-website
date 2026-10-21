@@ -25,6 +25,7 @@ import { laneMaxFor } from "../state";
 
 interface Props {
   productCodes?: number[];
+  specialDates?: Readonly<Record<string, string>>;
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
   showDescriptions?: boolean;
   /** Duration-led tiles instead of image cards (pageConfig.tileCards). */
@@ -80,6 +81,7 @@ function durationLabel(mins: number | null): string | null {
 
 export default function MainStep({
   productCodes,
+  specialDates,
   defaultDate,
   showDescriptions = true,
   tileCards = false,
@@ -298,6 +300,7 @@ export default function MainStep({
         onPick={onPickDate}
         label="When are you attending?"
         windowNotice={windowNotice}
+        specialDates={specialDates}
       />
 
       {showPresale && presaleNotice ? (
