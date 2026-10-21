@@ -1,3 +1,7 @@
+## 2026-10-21 - Mirrorball selected for NYE homepage promotion
+
+Jon selected Mirrorball from the protected homepage concepts: “mirror ball for sure.” Keep the brief entrance and compact NYE invitation over the existing hero video, with navigation, ordinary booking actions, dismissal and reduced motion preserved. The protected comparison is already live at `/nye-homepage-concepts/` from `fc1d2c6`; the public homepage campaign is not activated. December 7 remains the proposed handoff after Jingle through December 6, subject to the shared campaign policy. NYE sales opening remains November 18 at 9am Chicago. Selection was relayed to both the Jingle and holiday/Roy owners. See `Context/session-handoffs/2026-10-21-nye-homepage-options.md`.
+
 ## 2026-10-21 - Public NYE Brand checkout integration
 
 Extract the approved Brand flow into the NYE booking route, keeping ordinary
