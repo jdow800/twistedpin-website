@@ -13,6 +13,7 @@ interface Props {
   onClear: () => void;
   onNewReservation: () => void;
 }
+const incompleteCheckoutMessage = "This saved checkout is missing required booking details or terms acceptance. Please check its payment status or call (815) 782-7790 before making another payment. An unpaid payment can be cancelled below.";
 
 /** Recovery without a browser draft uses only the server's accepted snapshot. */
 export default function DiscoveredCheckout(props: Props) {
@@ -58,6 +59,10 @@ function RecoveredPayment(props: Props) {
     const provider = await stripe.retrievePaymentIntent(attempt.clientSecret);
     if (provider.error || !provider.paymentIntent) throw new Error("We couldn't check your payment. Your original reservation is still saved.");
     if (provider.paymentIntent.status === "succeeded") {
+      if (!attempt.paymentReady) {
+        setError("Your payment was received, but the saved reservation is missing required booking details or terms acceptance. Please call (815) 782-7790 so our team can help finish it. Do not make another payment.");
+        return;
+      }
       const result = await convertCheckout({ ...attempt.originalOrder, ...identity, paymentIntentId: attempt.paymentIntentId });
       complete(result); return;
     }
@@ -69,6 +74,7 @@ function RecoveredPayment(props: Props) {
       return;
     }
     if (attempt.status !== "prepared" || !["requires_payment_method", "requires_confirmation", "requires_action"].includes(provider.paymentIntent.status)) return;
+    if (!attempt.paymentReady) { setError(incompleteCheckoutMessage); return; }
     setReady(true);
     if (!allowConfirm) return;
     const submitted = await elements.submit();
@@ -116,7 +122,7 @@ function RecoveredPayment(props: Props) {
   const end = new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", hour: "numeric", minute: "2-digit" }).format(new Date(attempt.endTime));
   return <div className="tprs-wizard tprs-confirm">
     <h2 className="tprs-h2">{booking ? "You're booked." : "Your saved reservation"}</h2>
-    {booking ? <p className="tprs-confirm-sub">Confirmation <strong>{booking.invoiceNumber}</strong></p> : <p className="tprs-sub">We found your original payment. Check or continue it before starting another reservation.</p>}
+    {booking ? <p className="tprs-confirm-sub">Confirmation <strong>{booking.invoiceNumber}</strong></p> : <p className="tprs-sub">{attempt.paymentReady ? "We found your original payment. Check or continue it before starting another reservation." : "We found your original payment. Check it before starting another reservation."}</p>}
     <p className="tprs-confirm-when">{when} – {end}</p>
     <div className="tprs-confirm-card">
       {attempt.financialSnapshot.lineItems.map((line, index) => <div className="tprs-confirm-line" key={index}><span>{line.name} × {line.quantity}</span><span>{formatUsd(line.lineTotal)}</span></div>)}
@@ -124,9 +130,10 @@ function RecoveredPayment(props: Props) {
     </div>
     {booking ? <><p className="tprs-confirm-email">A confirmation is on its way to <strong>{attempt.originalRequest.customer.email}</strong>.</p><button type="button" className="tprs-btn tprs-btn--solid" onClick={props.onNewReservation}>Book another reservation</button></> : <>
       <p role="status">{recoveryMessage(attempt.status)}</p>
-      <div hidden={!ready}><PaymentElement options={{ layout: "tabs" }} /></div>
+      <div hidden={!ready || !attempt.paymentReady}><PaymentElement options={{ layout: "tabs" }} /></div>
+      {!attempt.paymentReady && !error && !canReleaseCheckout(attempt.status) && <p className="tprs-pay-error-msg" role="alert">{incompleteCheckoutMessage}</p>}
       {error && <p className="tprs-pay-error-msg" role="alert">{error}</p>}
-      <button type="button" className="tprs-btn tprs-btn--solid" disabled={busy} onClick={() => void run(() => inspect(ready))}>{busy ? "Checking…" : ready ? `Continue saved payment ${formatUsd(attempt.financialSnapshot.totalIncludingTax)}` : "Check payment status"}</button>
+      <button type="button" className="tprs-btn tprs-btn--solid" disabled={busy} onClick={() => void run(() => inspect(ready && attempt.paymentReady))}>{busy ? "Checking…" : ready && attempt.paymentReady ? `Continue saved payment ${formatUsd(attempt.financialSnapshot.totalIncludingTax)}` : "Check payment status"}</button>
       <button type="button" className="tprs-btn tprs-btn--ghost" disabled={busy} onClick={() => void cancel()}>{canReleaseCheckout(attempt.status) ? "Edit reservation" : "Cancel payment and edit"}</button>
     </>}
   </div>;

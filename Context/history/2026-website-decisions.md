@@ -8,6 +8,8 @@ Verified completion clears Stripe's return parameters while preserving unrelated
 
 If the tab loses its saved request, the original cart cookie now discovers any retained server attempt before a fresh checkout can open. The recovery screen shows immutable accepted line items and total, resumes only that payment, and requires proven cancellation/refund before starting another order. Unknown discovery/status blocks a new payment; no current-catalog reconstruction or automatic replacement charge is allowed.
 
+Discovered payment continuation additionally requires the server's explicit paymentReady flag; missing flags fail closed. Older requests without accepted terms or retained form answers keep status/cancellation and confirmed-booking recovery, but cannot confirm another charge or attempt incomplete conversion. Already-paid incomplete orders retain their identity and ask for team assistance; the client does not invent consent or answers.
+
 The current visual system is preserved. Offline actual-component browser tests cover review changes, lost responses, authentication reload, cancellation, 404s, legacy recovery, selected-date policy and mobile widths. The production build and existing NYE/purchase tests pass. Implementation, deployment order and limits: `src/tprs/HOLIDAY-CHECKOUT-HANDOFF.md`. This entry records local implementation and verification, not deployment or a production payment.
 
 ## 2026-10-17 - Food count: a positive count in one box of "Count another way" is enough

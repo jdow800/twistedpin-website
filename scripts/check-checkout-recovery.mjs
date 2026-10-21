@@ -17,20 +17,26 @@ export const items = [{productId:product.id,quantity:1,cartLineRef:'lane'}];
 export const request = {customer,eventDate:'2098-11-23',startTime:'2098-11-23T12:30:00-06:00',items,attemptKey:'stable-original-key',checkoutContractVersion:1,reviewToken:quote.reviewToken,acceptedTerms:true,formAnswers:[{formFieldId:id(8),value:'Original choice'}]};
 export const payment = {clientSecret:'pi_fixture_secret_synthetic',paymentIntentId:'pi_fixture',attemptId:id(90),recoveryToken:'synthetic-recovery',attemptStatus:'prepared'};
 export const booking = {bookingId:id(20),paymentRecordId:id(21),customerId:id(22),invoiceNumber:'TP-TEST',railStatus:'succeeded'};
-export const discovered = {attemptId:payment.attemptId,recoveryToken:payment.recoveryToken,paymentIntentId:payment.paymentIntentId,clientSecret:payment.clientSecret,status:'prepared',originalRequest:{...request,items:[{...items[0],quantity:2}]},originalOrder:{cartToken:'synthetic-cart',eventDate:request.eventDate,startTime:request.startTime,paymentType:'full',items:[{...items[0],quantity:2}],paymentIntentId:payment.paymentIntentId,acceptedTerms:true,formAnswers:request.formAnswers},financialSnapshot:{subtotalExcludingTax:23990,totalIncludingTax:23990,taxBreakdown:{...quote.taxBreakdown,untaxedSubtotal:23990},lineItems:[{name:'Original accepted bowling',quantity:2,unitPrice:11995,lineTotal:23990,isFee:false}]},endTime:'2098-11-23T20:30:00.000Z'};
+export const discovered = {attemptId:payment.attemptId,recoveryToken:payment.recoveryToken,paymentIntentId:payment.paymentIntentId,clientSecret:payment.clientSecret,status:'prepared',paymentReady:true,originalRequest:{...request,items:[{...items[0],quantity:2}]},originalOrder:{cartToken:'synthetic-cart',eventDate:request.eventDate,startTime:request.startTime,paymentType:'full',items:[{...items[0],quantity:2}],paymentIntentId:payment.paymentIntentId,acceptedTerms:true,formAnswers:request.formAnswers},financialSnapshot:{subtotalExcludingTax:23990,totalIncludingTax:23990,taxBreakdown:{...quote.taxBreakdown,untaxedSubtotal:23990},lineItems:[{name:'Original accepted bowling',quantity:2,unitPrice:11995,lineTotal:23990,isFee:false}]},endTime:'2098-11-23T20:30:00.000Z'};
+// The pre-upgrade client genuinely omitted these fields; do not fabricate a
+// modern request with accepted terms and call it a legacy recovery fixture.
+export const oldRequest={customer,eventDate:request.eventDate,startTime:request.startTime,items:[{...items[0],quantity:2}],attemptKey:'original-old-client-key'};
+export const incomplete={...discovered,paymentReady:false,originalRequest:oldRequest,originalOrder:{...discovered.originalOrder,acceptedTerms:false,formAnswers:undefined}};
 `;
 const fixturePlugin = {name:'fixture',setup(b){b.onResolve({filter:/^fixture$/},()=>({path:'fixture',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:fixture,loader:'js'}));}};
 const pure = await build({stdin:{contents:`
 import assert from 'node:assert/strict';
-import {product,customer,quote,items,request,payment,booking,discovered} from 'fixture';
+import {product,customer,quote,items,request,payment,booking,discovered,incomplete} from 'fixture';
 import {initialState,wizardReducer} from './src/components/tprs/state.ts';
-import {saveCheckoutRecovery,loadCheckoutRecovery,saveDiscoveredCheckout,loadDiscoveredCheckout,canReleaseCheckout,resolvedCheckoutUrl,CHECKOUT_RECOVERY_KEY} from './src/components/tprs/checkoutRecovery.ts';
+import {saveCheckoutRecovery,loadCheckoutRecovery,saveDiscoveredCheckout,loadDiscoveredCheckout,canReleaseCheckout,resolvedCheckoutUrl,CHECKOUT_RECOVERY_KEY,DISCOVERED_CHECKOUT_KEY} from './src/components/tprs/checkoutRecovery.ts';
 import {paymentIntentCreateResponseSchema,quoteResponseSchema} from './src/tprs/schemas/checkout.ts';
 const draft={...initialState,step:'payment',date:request.eventDate,product,slot:{time:'12:30',priceCents:11995,available:true},guest:customer,checkoutLocked:true};
 const record={version:1,draft,quote,request,payment,cartToken:'synthetic-cart',confirmStarted:true,status:'processing'};
 const map=new Map();const storage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};
 saveCheckoutRecovery(storage,record);const restored=loadCheckoutRecovery(storage);
 saveDiscoveredCheckout(storage,discovered);assert.deepEqual(loadDiscoveredCheckout(storage),discovered);
+storage.setItem(DISCOVERED_CHECKOUT_KEY,JSON.stringify({...discovered,paymentReady:undefined}));assert.equal(loadDiscoveredCheckout(storage).paymentReady,false);
+saveDiscoveredCheckout(storage,incomplete);assert.equal(loadDiscoveredCheckout(storage).originalRequest.acceptedTerms,undefined);assert.equal(loadDiscoveredCheckout(storage).originalOrder.acceptedTerms,false);
 assert.deepEqual(restored.request,request);assert.deepEqual(restored.payment,payment);
 for(const action of [{type:'SET_LANE_QTY',qty:2},{type:'REMOVE_LANE'},{type:'GO_STEP',step:'main'},{type:'SET_DATE',date:'2098-11-24'},{type:'RESET'},{type:'SET_FORM_ANSWERS',answers:[]}])assert.equal(wizardReducer(draft,action),draft);
 const confirmed=wizardReducer({...draft,laneQty:2},{type:'CONVERTED',booking});
@@ -57,7 +63,7 @@ import StickySummary from './src/components/tprs/StickySummary.tsx';
 import {useStepHistory} from './src/components/tprs/useStepHistory.ts';
 import {initialState,wizardReducer} from './src/components/tprs/state.ts';
 import {loadCheckoutRecovery,saveCheckoutRecovery,CHECKOUT_RECOVERY_KEY} from './src/components/tprs/checkoutRecovery.ts';
-import {product,customer,quote,items,request,payment,booking,discovered} from 'fixture';
+import {product,customer,quote,items,request,payment,booking,discovered,incomplete} from 'fixture';
 window.calls=JSON.parse(sessionStorage.getItem('test-calls')||'[]');
 const log=(kind,payload)=>{window.calls.push({kind,payload});sessionStorage.setItem('test-calls',JSON.stringify(window.calls));};
 const setting=()=>JSON.parse(sessionStorage.getItem('test-settings')||'{}');
@@ -69,7 +75,7 @@ window.stripeFake={
  retrievePaymentIntent:async()=>({paymentIntent:{id:'pi_fixture',status:setting().provider||'requires_payment_method'}}),
  confirmPayment:async()=>{log('confirm',{});window.configure({provider:setting().confirmProcessing?'processing':'succeeded'});if(setting().authReload){const target=new URL(location.href);target.searchParams.set('payment_intent',payment.paymentIntentId);target.searchParams.set('payment_intent_client_secret',payment.clientSecret);target.searchParams.set('redirect_status','succeeded');if(setting().authWizard)target.searchParams.set('wizard','1');location.assign(target.href);await new Promise(()=>{});}return {};},
 };
-window.elementsFake={submit:async()=>({}),update:()=>{}};
+window.elementsFake={submit:async()=>{log('submit',{});return {};},update:()=>{}};
 const held={cartToken:'synthetic-cart',holdExpiresAt:new Date(Date.now()+600000).toISOString(),holds:[{id:product.id,cartLineRef:'lane',poolId:product.id,count:1,startTime:new Date(request.startTime).toISOString(),endTime:'2098-11-23T20:50:00.000Z',expiresAt:new Date(Date.now()+600000).toISOString()}]};
 const originalFetch=window.fetch;
 window.fetch=async(url,options={})=>{
@@ -97,7 +103,7 @@ window.fetch=async(url,options={})=>{
   if(setting().activeNetwork)throw new TypeError('synthetic discovery network failure');
   if(setting().active404)return respond({error:'Unavailable'},404);
   if(!setting().active)return respond({attempt:null});
-  return respond({attempt:{...discovered,status:setting().serverStatus||'prepared',...(setting().activeNoSecret?{clientSecret:undefined,paymentIntentId:undefined,originalOrder:{...discovered.originalOrder,paymentIntentId:''}}:{})}});
+  return respond({attempt:{...(setting().oldClientIncomplete?incomplete:discovered),status:setting().serverStatus||'prepared',...(setting().activeNoSecret?{clientSecret:undefined,paymentIntentId:undefined,originalOrder:{...discovered.originalOrder,paymentIntentId:''}}:{})}});
  }
  if(path==='/api/checkout/attempt-status'){
   if(setting().status404)return respond({error:'Unavailable'},404);
@@ -262,6 +268,36 @@ try{
  assert.ok(await discovery());assert.equal(await count('/api/checkout/attempt-active'),2);
  await page.getByRole('button',{name:'Continue saved payment $239.90',exact:true}).click();await page.getByRole('heading',{name:"You're booked."}).waitFor();assert.equal(await count('/api/checkout/payment-intents'),1);
 
+ // An actual older request omitted terms, answers and reviewed-contract fields.
+ // Discovery must never collect/confirm a new charge from that incomplete order.
+ await start({active:true,oldClientIncomplete:true});await page.goto(url+'?wizard=1');
+ await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();await page.getByText(/saved checkout is missing required booking details/).waitFor();
+ assert.equal(await page.getByRole('button',{name:/Continue saved payment/}).count(),0);assert.equal(await page.getByLabel('Synthetic card').isVisible(),false);
+ const old=await discovery();for(const key of ['acceptedTerms','formAnswers','checkoutContractVersion','reviewToken'])assert.equal(key in old.originalRequest,false);
+ assert.equal(old.originalOrder.acceptedTerms,false);assert.equal(old.paymentReady,false);
+ await page.getByRole('button',{name:'Check payment status',exact:true}).click();
+ for(const kind of ['submit','confirm','/api/checkout/convert','/api/checkout/payment-intents'])assert.equal(await count(kind),0);
+ assert.equal((await discovery()).attemptId,old.attemptId);
+ await page.getByRole('button',{name:'Cancel payment and edit'}).click();await page.waitForFunction(()=>window.calls.some(c=>c.kind==='/api/products/bookable'));assert.equal(await discovery(),null);
+
+ for(const provider of ['succeeded','processing']){
+  await start({active:true,oldClientIncomplete:true,provider});await page.goto(url+'?wizard=1');
+  await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();
+  if(provider==='succeeded')await page.getByText(/Your payment was received, but the saved reservation/).waitFor();
+  else await page.waitForFunction(()=>JSON.parse(sessionStorage.getItem('tprs:checkout:discovered:v1')).status==='processing');
+  assert.equal(await page.getByRole('button',{name:/Continue saved payment/}).count(),0);
+  for(const kind of ['submit','confirm','/api/checkout/convert','/api/checkout/payment-intents'])assert.equal(await count(kind),0);
+  assert.equal((await discovery()).recoveryToken,'synthetic-recovery');
+  if(provider==='succeeded'){
+   await page.evaluate(()=>window.configure({serverStatus:'confirmed'}));await page.getByRole('button',{name:'Check payment status',exact:true}).click();
+   await page.getByRole('heading',{name:"You're booked."}).waitFor();assert.equal(await discovery(),null);assert.equal(await count('/api/checkout/convert'),0);
+  }
+ }
+ // A pre-field session record must fail closed even if its request looks modern.
+ await start({active:true});await page.goto(url+'?wizard=1');await page.getByRole('button',{name:'Continue saved payment $239.90',exact:true}).waitFor();
+ await page.evaluate(()=>{const value=JSON.parse(sessionStorage.getItem('tprs:checkout:discovered:v1'));delete value.paymentReady;sessionStorage.setItem('tprs:checkout:discovered:v1',JSON.stringify(value));});
+ await page.reload();await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:/Continue saved payment/}).count(),0);assert.equal((await discovery()).paymentReady,false);assert.equal(await count('confirm'),0);
+
  await start({active:true,activeNoSecret:true});await page.goto(url+'?wizard=1');await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();
  assert.equal(await page.getByRole('button',{name:/Continue saved payment/}).count(),0);assert.equal(await count('/api/checkout/payment-intents'),0);
  await page.evaluate(()=>window.configure({activeNoSecret:false}));await page.getByRole('button',{name:'Check payment status',exact:true}).click();
@@ -275,5 +311,5 @@ try{
  await start({active404:true});await page.goto(url+'?wizard=1');await page.waitForFunction(()=>window.calls.some(c=>c.kind==='/api/products/bookable'));
  await page.goto(url+'?wizard=1&payment_intent_client_secret=synthetic');await page.getByText(/couldn't check for a saved payment/).waitFor();assert.equal(await page.getByRole('button',{name:/^Pay /}).count(),0);
  assert.deepEqual(external,[]);assert.deepEqual(errors,[]);
- console.log('Checkout browser checks passed: review/re-ack, exact nonce retry, immutable server discovery after lost storage or retained 500, missing issuance/processing/404/needs-review blocks, cancellation proof, authentication return/refresh, delayed availability after confirmation, refund/legacy recovery, mobile widths. No external requests.');
+ console.log('Checkout browser checks passed: review/re-ack, exact nonce retry, immutable server discovery, incomplete old-client unpaid/paid/processing gates, committed booking recovery, missing readiness fail-closed, missing issuance/404 blocks, cancellation proof, authentication return/refresh, delayed availability, refund/legacy recovery, mobile widths. No external requests.');
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}

@@ -469,6 +469,8 @@ export const checkoutAttemptStatusResponseSchema = z.object({
 
 export const checkoutAttemptActiveResponseSchema = z.object({ attempt: z.object({
   ...checkoutAttemptStatusResponseSchema.shape,
+  // Older persisted discovery records cannot authorize another confirmation.
+  paymentReady: z.boolean().default(false),
   recoveryToken: z.string(), clientSecret: z.string().optional(),
   originalRequest: paymentIntentCreateRequestSchema,
   originalOrder: checkoutPayloadSchema.extend({ paymentIntentId: z.string() }),
