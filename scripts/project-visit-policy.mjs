@@ -7,6 +7,8 @@
  * new projection. The raw calendar includes historical proposal labels; only
  * applied/verified school-break rows and explicit approved regular hours pass.
  * A changed selection/count requires review here, not automatic publication.
+ * Walk-in overrides come only from the calendar's explicit H/HF profiles;
+ * weekdays and the school-break flag alone never select holiday prices.
  */
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -24,6 +26,22 @@ const rows = calendar.rows;
 const applied = rows.filter(row => row.publication?.tprs === 'applied_verified');
 assert.equal(applied.length, 33, 'Reviewed scope must remain exactly 33 dates');
 assert.equal(applied.filter(row => row.closed).length, 2);
+const walkInRows = applied.filter(row => ['H', 'HF'].includes(row.walk_in_profile));
+assert.equal(walkInRows.length, 21, 'Reviewed hourly override scope must remain exactly 21 dates');
+assert.equal(walkInRows.filter(row => row.walk_in_profile === 'H').length, 17);
+assert.equal(walkInRows.filter(row => row.walk_in_profile === 'HF').length, 4);
+const walkInHourly = {
+  traditional: calendar.decisions.holiday_traditional_hourly_usd,
+  suite: calendar.decisions.holiday_vip_hourly_usd,
+};
+assert.deepEqual(walkInHourly, { traditional: 50, suite: 70 }, 'Changed hourly amounts require review');
+for (const row of walkInRows) {
+  assert.equal(row.closed, false, 'Closed dates cannot advertise walk-in prices');
+  const weekday = new Date(`${row.date}T12:00:00Z`).getUTCDay();
+  assert.ok(row.walk_in_profile === 'HF' ? weekday === 5 : weekday >= 1 && weekday <= 4);
+  assert.equal(row.online_package_profile, row.walk_in_profile === 'HF' ? 'normal_friday' : 'holiday_proposed',
+    'Friday hourly changes do not change online package pricing');
+}
 const regular = rows.filter(row => row.hours_approved && row.hours_status === 'regular_confirmed' && row.open && row.close && row.closing_date);
 assert.equal(regular.length, 6, 'Only the six explicit, approved regular-hour dates are projected');
 const dates = {};
@@ -37,6 +55,7 @@ for (const row of [...applied, ...regular].sort((a, b) => a.date.localeCompare(b
     hours: { status: row.closed ? 'closed' : 'open', open: row.open, close: row.close, closing_date: row.closing_date },
     ordinary_online_reservations: schoolBreak ? (row.closed ? 'closed' : 'two_hours_only') : 'unknown',
     penny: row.penny === 'excluded_by_school_break_policy' ? 'excluded' : 'unknown',
+    ...(schoolBreak && ['H', 'HF'].includes(row.walk_in_profile) ? { walk_in_hourly: walkInHourly } : {}),
   };
 }
 assert.deepEqual(Object.entries(dates).filter(([, row]) => row.penny === 'excluded').map(([date]) => date),
@@ -58,7 +77,7 @@ const target = new URL('../src/data/visit-policy-2026-27.json', import.meta.url)
 const output = `${JSON.stringify(projection, null, 2)}\n`;
 if (args.includes('--check')) {
   assert.equal(await readFile(target, 'utf8'), output, 'Projection differs from its reviewed source');
-  console.log('Visit policy projection matches: 33 school-break dates, 6 approved regular dates, 4 Penny exclusions.');
+  console.log('Visit policy projection matches: 33 school-break dates, 6 approved regular dates, 21 hourly overrides, 4 Penny exclusions.');
 } else {
   await writeFile(target, output);
   console.log('Wrote the public visit policy projection. Review the diff before publishing.');

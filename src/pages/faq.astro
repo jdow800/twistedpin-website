@@ -45,7 +45,8 @@ const ROLLER_URL = "/reserve/";
 
 // "How much does bowling cost?": the RATES are written from PRICING (the same
 // constant /pricing renders), never a second set of price literals. Only the
-// shoe price and the holiday sentence are literals, copied from /pricing.
+// shoe price is a literal. Dated exceptions stay on /pricing rather than
+// duplicating the season's calendar in this evergreen answer.
 // The answer states the rate for every day and time rather than a "starts at"
 // floor: a lifted "starts at $35" was read as today's price on a Saturday
 // (2026-10-17), when Saturday evening is $55. Sunday after 7pm drops back to
@@ -75,9 +76,10 @@ const rateLine = ({ days, windows: [first, second] }: (typeof priceRuns)[number]
     ? `${runName(days)}: ${laneRates(first)} per lane per hour until ${windowEnd(first.label)}, then ${laneRates(second)} per lane per hour.`
     : `${runName(days)}: ${laneRates(first)} per lane per hour.`;
 const bowlingCostText = [
-  "Rates depend on the day and time.",
+  "Regular walk-in rates depend on the day and time.",
   ...priceRuns.map(rateLine),
-  "Holidays and school breaks follow Friday 5pm pricing.",
+  "Selected holiday and school-break weekdays have special rates; standard weekend bowling keeps its regular rate schedule. Choose your exact date on our pricing page for exceptions and special events.",
+  "Online reservation package prices are shown at checkout.",
   "Shoe rental $5.95/pair.",
 ].join(" ");
 
@@ -167,7 +169,7 @@ const faqs: FaqItem[] = [
     category: "Bowling",
     q: "How much does bowling cost?",
     schemaA: bowlingCostText,
-    htmlA: `<p>${bowlingCostText}</p><p><a href="/pricing/">See rates by day →</a> · <a href="/bowl/">Reserve a lane →</a></p>`,
+    htmlA: `<p>${bowlingCostText}</p><p><a href="/pricing/">Choose your date and see rates →</a> · <a href="/bowl/">Reserve a lane →</a></p>`,
   },
 
   // VIP Suite & Events

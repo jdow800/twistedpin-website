@@ -1,3 +1,22 @@
+## 2026-10-22 - Dated school-break pricing and Penny exclusions
+
+Jon requested the remaining public holiday-pricing work and confirmed December 6
+is already Closed in Yext. Replace weekday-only pricing with a request-time date
+selector. Project only the approved 21 hourly overrides ($50 Traditional/$70 VIP)
+from the existing operating calendar, retaining normal weekend tiers and TPRS
+as the online-package price authority. Show the four dated Penny exclusions,
+two-hour online policy, closures and separate Jingle/NYE admission. December 6
+explains regular-visit closure while linking to Jingle; no event departure time
+is volunteered. Future unreviewed Penny dates remain unconfirmed. FAQ/schema
+and the date-night blog point to the same dated explanation.
+
+Preserve existing calendar styling, readable mobile tables, ordinary booking
+controls and event authority. Fresh Google intervals apply only to their real
+seven dates; later dates use approved plans or a labeled regular baseline.
+The annual maintenance/source/testing map is
+`Context/session-handoffs/2026-10-22-holiday-pricing.md`. No booking, payment,
+campaign, Google or Roy-greeting configuration is changed by this release.
+
 ## 2026-10-22 - Jingle Bowl SMS short link
 
 Add `/jb/` as a temporary redirect to the public Jingle Bowl landing page, with

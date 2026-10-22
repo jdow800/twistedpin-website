@@ -53,7 +53,11 @@
         "closing_date": "2026-11-23"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-11-24": {
       "coverage": "school_break",
@@ -64,7 +68,11 @@
         "closing_date": "2026-11-24"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-11-25": {
       "coverage": "school_break",
@@ -75,7 +83,11 @@
         "closing_date": "2026-11-26"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "excluded"
+      "penny": "excluded",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-11-26": {
       "coverage": "school_break",
@@ -97,7 +109,11 @@
         "closing_date": "2026-11-28"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-11-28": {
       "coverage": "school_break",
@@ -130,7 +146,11 @@
         "closing_date": "2026-12-21"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-22": {
       "coverage": "school_break",
@@ -141,7 +161,11 @@
         "closing_date": "2026-12-22"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-23": {
       "coverage": "school_break",
@@ -152,7 +176,11 @@
         "closing_date": "2026-12-23"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "excluded"
+      "penny": "excluded",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-24": {
       "coverage": "school_break",
@@ -163,7 +191,11 @@
         "closing_date": "2026-12-24"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-25": {
       "coverage": "school_break",
@@ -207,7 +239,11 @@
         "closing_date": "2026-12-28"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-29": {
       "coverage": "school_break",
@@ -218,7 +254,11 @@
         "closing_date": "2026-12-29"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2026-12-30": {
       "coverage": "school_break",
@@ -229,7 +269,11 @@
         "closing_date": "2026-12-30"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "excluded"
+      "penny": "excluded",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-01-01": {
       "coverage": "school_break",
@@ -240,7 +284,11 @@
         "closing_date": "2027-01-02"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-01-02": {
       "coverage": "school_break",
@@ -273,7 +321,11 @@
         "closing_date": "2027-01-04"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-01-18": {
       "coverage": "approved_regular_date",
@@ -317,7 +369,11 @@
         "closing_date": "2027-03-27"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-03-27": {
       "coverage": "school_break",
@@ -350,7 +406,11 @@
         "closing_date": "2027-03-29"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-03-30": {
       "coverage": "school_break",
@@ -361,7 +421,11 @@
         "closing_date": "2027-03-30"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-03-31": {
       "coverage": "school_break",
@@ -372,7 +436,11 @@
         "closing_date": "2027-03-31"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "excluded"
+      "penny": "excluded",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-04-01": {
       "coverage": "school_break",
@@ -383,7 +451,11 @@
         "closing_date": "2027-04-01"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-04-02": {
       "coverage": "school_break",
@@ -394,7 +466,11 @@
         "closing_date": "2027-04-03"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-04-03": {
       "coverage": "school_break",
@@ -427,7 +503,11 @@
         "closing_date": "2027-04-05"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     },
     "2027-04-06": {
       "coverage": "school_break",
@@ -438,7 +518,11 @@
         "closing_date": "2027-04-06"
       },
       "ordinary_online_reservations": "two_hours_only",
-      "penny": "unknown"
+      "penny": "unknown",
+      "walk_in_hourly": {
+        "traditional": 50,
+        "suite": 70
+      }
     }
   }
 }

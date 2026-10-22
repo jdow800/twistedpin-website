@@ -172,7 +172,13 @@ eq((await response.json()).event.public_url, 'https://www.twistedpin.com/jingle-
 const clockOverride = new Request('https://example.invalid/api/visit-date/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: 'Jingle Bowl', topic: 'reservations', booking_ready_verified: true }) });
 eq((await visitDateRequest(clockOverride, before)).status, 400, 'no caller-provided event readiness');
 const frozen = await readFile(new URL('../src/data/visit-policy-2026-27.json', import.meta.url));
-eq(createHash('sha256').update(JSON.stringify(JSON.parse(frozen))).digest('hex'), '7b087e24ac44f35db679bbf479525b756d1faff69e2bc3d18c8352cf63f8de60', 'frozen school-break projection unchanged');
+const originalProjection = JSON.parse(frozen);
+// The pricing-page extension adds only a per-date walk-in presentation field.
+// Its exact 21-date scope and amounts are checked by check-pricing-policy.mjs.
+// Preserve the original fingerprint for every pre-existing field; do not let
+// special-event work silently change hours, Penny, duration or source evidence.
+for (const row of Object.values(originalProjection.dates)) delete row.walk_in_hourly;
+eq(createHash('sha256').update(JSON.stringify(originalProjection)).digest('hex'), '7b087e24ac44f35db679bbf479525b756d1faff69e2bc3d18c8352cf63f8de60', 'frozen school-break projection unchanged except authorized walk-in presentation');
 eq(source.records.every(row => row.approved_staffed_intervals.length === 0), true, 'event starts do not invent staffing or transfer hours');
 eq(source.records.find(row => row.id === 'nye_2026').sessions, [], 'Jingle launch does not publish unverified NYE sessions');
 eq(/\$|price|capacity|customer|staff_id|password/i.test(JSON.stringify(source)), false, 'only public-safe operating facts');

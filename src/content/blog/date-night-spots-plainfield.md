@@ -95,12 +95,11 @@ gets you 80% of the same effect at 20% of the price. We'll be honest
 
 ## For the mid-week date
 
-Wednesday is [Penny A Pin](/pricing/) on the traditional lanes — a
-specific deal we run that lets you bowl a game for the price of the
-pins you knock down. Pair it with a cocktail at the bar and an
-appetizer split, and you have a Wednesday-night date for under what
-two movie tickets cost. Mid-week dates don't need to be expensive to
-feel like effort.
+[Penny A Pin](/pricing/#penny-a-pin) runs on eligible Wednesdays on
+the traditional lanes, with school-break Wednesdays excluded. Check
+the dates before you plan around it. Pair a game with a cocktail at
+the bar and an appetizer to share. There's your mid-week change of
+pace.
 
 ## For the double date
 

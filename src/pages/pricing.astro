@@ -1,413 +1,131 @@
 ---
-/**
- * /pricing — walk-in lane rates, day-by-day.
- *
- * Architecturally a tier-2 utility page reachable through the
- * NavDrawer Info section. Replaces the homepage SnapToday concept
- * (decided 2026-05-06: pricing is reference content that doesn't
- * need to be in the homepage tasting menu — but it does need a real
- * URL with SEO chrome and proper headings).
- *
- * Three layers stacked:
- *   1. Typography hero (brand-voiced H1)
- *   2. Day-tabbed pricing calendar (live Google hours when configured;
- *      falls back to static src/data/hours.ts)
- *   3. SEO copy block (keyword-rich H2 + body that contextualizes
- *      walk-in vs reservation vs full suite buyout)
- *
- * Visual: NOT a boxed card. Section sits transparent on the page bg
- * so the body's Pin Tilt watermark shows through — explicit user
- * direction 2026-05-06. Cards within the module (specials callout,
- * pricing table) carry their own subtle chrome.
- *
- * No Reserve / Plan-an-event CTAs in the module — those are global
- * (sticky bar + header) and don't need duplication on a reference
- * page. Suite buyout is mentioned in the SEO block as a hand-off.
- *
- * Holiday note: "Holidays follow Friday 5pm pricing" — preserved from
- * current twistedpin.com/bowling per ops practice.
- *
- * TODOs (non-blocking):
- *   - GOOGLE_MAPS_API_KEY + GOOGLE_PLACE_ID env vars on Vercel — once
- *     set, the hours line auto-populates from Google Business Profile.
- *     Falls back gracefully to static hours until then.
- */
-import { getCollection } from "astro:content";
-import Base from "../layouts/Base.astro";
-import SnapFooter from "../components/snap/SnapFooter.astro";
-import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
-import { MAPS_VENUE_URL } from "../lib/schema";
-import { PLAN_EVENT_URL } from "../lib/links";
-import { DAYS, HOURS, hoursLabel, todayKey, type DayKey } from "../data/hours";
-import { PRICING, SHOE_RENTAL_LABEL, type PriceWindow } from "../data/pricing";
-import { getLiveHours } from "../lib/google-hours";
+export const prerender = false;
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import SnapFooter from '../components/snap/SnapFooter.astro';
+import BreadcrumbSchema from '../components/BreadcrumbSchema.astro';
+import { MAPS_VENUE_URL } from '../lib/schema';
+import { PLAN_EVENT_URL } from '../lib/links';
+import { DAYS } from '../data/hours';
+import { SHOE_RENTAL_LABEL } from '../data/pricing';
+import snapshot from '../data/live-hours.json';
+import { pricingForDate, pricingToday, pricingDay, movePricingDate, validPricingDate, pricingDateLabel, upcomingPennyExclusions, holidayPricingDates } from '../lib/pricing-date';
 
-const today = todayKey();
+// Request-time rendering keeps selected dates, event cutoffs and Today correct.
+// No booking/API mutation; Google data remains the existing daily snapshot.
+Astro.response.headers.set('Cache-Control', 'no-store');
 const now = new Date();
-
-// Live hours from Google when GOOGLE_MAPS_API_KEY + GOOGLE_PLACE_ID
-// are set. Returns null otherwise; callers fall back to static.
-const liveHours = await getLiveHours();
-
-function hoursFor(day: DayKey): { label: string; live: boolean; closed: boolean; openLabel: string; closeLabel: string } {
-  // When live hours are flowing, honor the closed signal — that's the whole
-  // point of pulling currentOpeningHours (catches holidays + special closures).
-  if (liveHours) {
-    return {
-      label: liveHours[day].label,
-      live: true,
-      closed: liveHours[day].closed,
-      openLabel: liveHours[day].openLabel,
-      closeLabel: liveHours[day].closeLabel,
-    };
-  }
-  return {
-    label: hoursLabel(day),
-    live: false,
-    closed: false,
-    openLabel: HOURS[day].open,
-    closeLabel: HOURS[day].close,
-  };
-}
-
-/**
- * Format a time label consistently with the static window labels in
- * pricing.ts (uppercase + space, e.g. "3pm" → "3 PM", "11:30am" → "11:30 AM").
- * Google API returns lowercase no-space; static labels are uppercase with space.
- */
-function timeForLabel(time: string): string {
-  const m = time.trim().match(/^(\d{1,2}(?::\d{2})?)(am|pm)$/i);
-  if (!m) return time.toUpperCase();
-  return `${m[1]} ${m[2].toUpperCase()}`;
-}
-
-/**
- * Compose the time-range label for a pricing window, applying dynamic
- * open/close substitution where appropriate.
- *
- * Rule (2026-05-12):
- *   - First window's START time becomes the day's live open time
- *   - Last window's END time becomes the day's live close time
- *   - Middle boundaries stay static (they're rate-tier transitions, not hours)
- *
- * That means Mon-Thu single-window days now show the day's full open-close
- * range in the TIME column (was previously "All open hours" hidden). Fri/Sat/Sun
- * multi-window days get their first window's start and last window's end
- * synced to whatever Google says — when ops moves Friday's open from 2pm
- * to 11am, the pricing window adjusts on the next build.
- */
-function windowLabelFor(
-  windowIndex: number,
-  totalWindows: number,
-  originalLabel: string,
-  hrs: { openLabel: string; closeLabel: string },
-): string {
-  const openFmt = timeForLabel(hrs.openLabel);
-  const closeFmt = timeForLabel(hrs.closeLabel);
-
-  // Single-window day: show the day's full open-close range
-  if (totalWindows === 1) {
-    return `${openFmt} – ${closeFmt}`;
-  }
-
-  // Multi-window day: split the static label on the en-dash separator
-  // ("2 PM – 5 PM" → ["2 PM", "5 PM"]). Replace start of first window
-  // with live open, end of last window with live close, keep middle
-  // boundaries as-is.
-  const parts = originalLabel.split(" – ");
-  if (parts.length !== 2) return originalLabel;
-  const [staticStart, staticEnd] = parts;
-
-  if (windowIndex === 0) {
-    return `${openFmt} – ${staticEnd}`;
-  }
-  if (windowIndex === totalWindows - 1) {
-    return `${staticStart} – ${closeFmt}`;
-  }
-  return originalLabel;
-}
-
-/**
- * Eyebrow label for a special — derives from its days array.
- * Wed-only → "Wed Special". Multi-day specials would render as
- * e.g. "Tue–Thu Special" but we don't have any yet.
- */
-function specialEyebrow(days: readonly DayKey[]): string {
-  if (days.length === 1) {
-    const d = DAYS.find((x) => x.key === days[0]);
-    return `${d?.short ?? days[0]} Special`;
-  }
-  return "Special";
-}
-
-// Active specials (drafts + out-of-window filtered out).
-const allSpecials = await getCollection("specials");
-const activeSpecials = allSpecials
-  .filter((s) => !s.data.draft)
-  .filter((s) => {
-    if (s.data.showFrom && now < s.data.showFrom) return false;
-    if (s.data.showUntil && now > s.data.showUntil) return false;
-    return true;
-  });
-
-function specialsForDay(day: DayKey) {
-  return activeSpecials.filter((s) => s.data.days.includes(day));
-}
+const today = pricingToday(now);
+const requested = Astro.url.searchParams.get('date');
+const legacyDay = Astro.url.searchParams.get('day')?.toLowerCase();
+const legacyOffset = DAYS.find(d => d.key === legacyDay)
+  ? Array.from({ length: 7 }, (_, i) => i).find(i => pricingDay(movePricingDate(today, i)) === legacyDay) : undefined;
+const invalidRequest = requested !== null && (!validPricingDate(requested) || requested < today);
+const date = requested && !invalidRequest ? requested : legacyOffset !== undefined ? movePricingDate(today, legacyOffset) : today;
+const view = pricingForDate(date, now, snapshot);
+const monday = movePricingDate(date, -((new Date(`${date}T12:00:00Z`).getUTCDay() + 6) % 7));
+const week = DAYS.map((d, i) => ({ ...d, date: movePricingDate(monday, i) }));
+const exclusions = upcomingPennyExclusions(now);
+const holidayDates = holidayPricingDates(now);
+const penny = (await getCollection('specials')).find(s => s.id === 'penny-a-pin' && !s.data.draft);
+const selectedInstant = new Date(`${date}T18:00:00Z`);
+const pennyActive = penny && (!penny.data.showFrom || selectedInstant >= penny.data.showFrom) && (!penny.data.showUntil || selectedInstant <= penny.data.showUntil);
+const ordinary = view.kind === 'ordinary';
+const event = view.event;
 ---
-<Base
-  title="Walk-in Bowling Prices in Plainfield, IL | Twisted Pin"
-  description="Walk-in lane rates at Twisted Pin in Plainfield, IL. Day-by-day pricing for traditional lanes and the 6-lane VIP suite. Shoe rental $5.95 per pair."
->
-
-  {/* ============================================================
-      HERO — typography-led title section
-      ============================================================ */}
+<Base title="Walk-in Bowling Prices in Plainfield, IL | Twisted Pin" description="Choose your visit date for Twisted Pin's walk-in lane rates, holiday hours and Penny a Pin availability. Online reservations use separate package pricing.">
   <section class="pricing-hero" data-hero aria-labelledby="pricing-hero-h1">
     <div class="pricing-hero-copy">
       <p class="t-eyebrow hero-fade" data-delay-ms="0">Pricing</p>
-      <h1 class="t-display pricing-hero-headline hero-fade" id="pricing-hero-h1" data-delay-ms="120">
-        Walk-in pricing.
-      </h1>
-      <p class="pricing-hero-sub hero-fade" data-delay-ms="320">
-        Day-by-day rates for traditional lanes and the 6-lane VIP suite.
-      </p>
+      <h1 class="t-display pricing-hero-headline hero-fade" id="pricing-hero-h1" data-delay-ms="120">Walk-in pricing.</h1>
+      <p class="pricing-hero-sub hero-fade" data-delay-ms="320">Pick your date. See your rates.</p>
     </div>
   </section>
-
-  {/* ============================================================
-      CALENDAR — day pill nav + per-day views
-      ============================================================ */}
-  <section
-    class="pricing-calendar"
-    data-snap-today
-    data-active-day={today}
-    aria-labelledby="pricing-calendar-h2"
-  >
-    <h2 id="pricing-calendar-h2" class="visually-hidden">Hourly rates by day</h2>
-
-    <nav class="today-pills" aria-label="Pick a day">
-      {DAYS.map((d) => (
-        <button
-          type="button"
-          class="today-pill"
-          data-pill-day={d.key}
-          data-is-today={d.key === today ? "" : null}
-          aria-pressed={d.key === today ? "true" : "false"}
-        >
-          <span class="today-pill-label">{d.abbr3}</span>
-          <span class="today-pill-dot" aria-hidden="true"></span>
-        </button>
+  <section class="pricing-calendar" aria-labelledby="pricing-calendar-h2" data-pricing-date={date} data-pricing-kind={view.kind}>
+    <h2 id="pricing-calendar-h2" class="visually-hidden">Hourly rates for your visit</h2>
+    <form action="/pricing/" method="get" class="pricing-date-form">
+      <label for="pricing-date">When are you coming?</label>
+      <div class="pricing-date-controls">
+        <input id="pricing-date" name="date" type="date" required min={today} value={date} />
+        <button type="submit" class="btn btn-outline">See rates</button>
+      </div>
+    </form>
+    {invalidRequest && <p class="pricing-date-error" role="status">Choose today or a future date. Showing today's rates.</p>}
+    <nav class="today-pills" aria-label="Days in the selected week">
+      {week.map(d => d.date < today ? (
+        <span class="today-pill past-day" aria-label={`${pricingDateLabel(d.date)}, past date`}><span class="today-pill-label">{d.abbr3}</span><span class="pricing-pill-date">{Number(d.date.slice(-2))}</span></span>
+      ) : (
+        <a class="today-pill" href={`/pricing/?date=${d.date}`} aria-label={pricingDateLabel(d.date)} aria-current={d.date === date ? 'date' : undefined} data-is-today={d.date === today ? '' : null}>
+          <span class="today-pill-label">{d.abbr3}</span><span class="pricing-pill-date">{Number(d.date.slice(-2))}</span>
+        </a>
       ))}
     </nav>
-
-    {DAYS.map((d) => {
-      const schedule = PRICING[d.key];
-      const dailySpecials = specialsForDay(d.key);
-      const isToday = d.key === today;
-      const hrs = hoursFor(d.key);
-
-      return (
-        <article class="today-view" data-view-day={d.key} aria-hidden={isToday ? "false" : "true"}>
-          <header class="today-header">
-            {isToday && (
-              <p class="today-pill-today-wrap">
-                <span class="today-pill-today">Today</span>
-              </p>
-            )}
-            <p class="today-day-name">{d.full}</p>
-            <p class="today-hours">
-              {hrs.closed ? (isToday ? "Closed today" : "Closed") : `Open ${hrs.label}`}
-              {!hrs.live && (
-                <span class="today-hours-caveat">
-                  {" · "}<a href={MAPS_VENUE_URL} target="_blank" rel="noopener">verify on Google</a>
-                </span>
-              )}
-            </p>
-          </header>
-
-          {dailySpecials.length > 0 && (
-            <div class="today-specials">
-              {dailySpecials.map((s) => (
-                <div class="today-special">
-                  {/* "Wed Special" eyebrow + (hours) next to name
-                      (2026-05-12) — surfaces this as a special offer
-                      vs a regular price, AND answers the planning-mode
-                      question "what hours is this offer available?"
-                      Hours dynamic from Google when configured. */}
-                  <p class="today-special-eyebrow">{specialEyebrow(s.data.days)}</p>
-                  <p class="today-special-head">
-                    <span class="today-special-mark" aria-hidden="true">✦</span>
-                    <span class="today-special-name">{s.data.name}</span>
-                    {!hrs.closed && (
-                      <span class="today-special-hours">({hrs.label})</span>
-                    )}
-                  </p>
-                  <p class="today-special-tagline">{s.data.tagline}</p>
-                  {s.body && s.body.trim() && (
-                    <p class="today-special-body">{s.body.trim()}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Always 3-column now (2026-05-12) — single-rate days
-              (Mon-Thu) show the day's full hours range in the TIME
-              column instead of "All open hours" hidden. Dynamic
-              from Google when configured. */}
-          <table class="today-table" data-cols="3">
-            <thead>
-              <tr>
-                <th class="today-th-time">Time</th>
-                <th class="today-th-tier">
-                  <span class="today-th-name">Traditional</span>
-                  <span class="today-th-cap">{schedule.traditionalCapacity}</span>
-                </th>
-                <th class="today-th-tier">
-                  <span class="today-th-name">VIP Suite</span>
-                  <span class="today-th-cap">{schedule.suiteCapacity}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {schedule.windows.map((w: PriceWindow, i: number) => (
-                <tr>
-                  <td class="today-td-time">
-                    {windowLabelFor(i, schedule.windows.length, w.label, hrs)}
-                  </td>
-                  <td class="today-td-rate">
-                    <span class="today-rate-num">${w.traditional}</span>
-                    <span class="today-rate-unit">/hr</span>
-                  </td>
-                  <td class="today-td-rate">
-                    <span class="today-rate-num">${w.suite}</span>
-                    <span class="today-rate-unit">/hr</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <p class="today-shoe-line">
-            Shoe rental{" "}
-            <span class="today-shoe-price">{SHOE_RENTAL_LABEL}</span>
-          </p>
-        </article>
-      );
-    })}
-
-    {/* Two quick-action pills — renders once below all per-day
-        views. Both outlined: Reserve a lane is the global primary
-        CTA (sticky bar / header), so these two are deliberate
-        "before you commit" hand-offs at the same lower visual
-        weight. Wraps on narrow viewports if needed. */}
-    <div class="today-quick-actions">
-      <a class="btn btn-outline" href="/waitlist/">Check the waitlist &rarr;</a>
-      <a class="btn btn-outline" href="/coupon/">Get the coupon &rarr;</a>
-    </div>
-
-    {/* Global note — applies to every day, render once below the views */}
-    <p class="today-holiday-note">
-      Holidays and school breaks follow Friday 5pm pricing.
-      Hours can shift — call ahead if you're cutting it close.
-    </p>
+    <article class="today-view" aria-hidden="false">
+      <header class="today-header">
+        {date === today && <p class="today-pill-today-wrap"><span class="today-pill-today">Today</span></p>}
+        <p class="pricing-selected-date">{view.label}</p>
+        {ordinary && <p class="today-hours">Open {view.hours}</p>}
+        {view.kind === 'closed' && <p class="today-day-name">Closed</p>}
+      </header>
+      {view.kind === 'event' && event && (
+        <div class="pricing-event" data-event-id={event.id}>
+          <h3>{event.id === 'jingle_bowl_2026' ? 'Jingle Bowl reservations only.' : "New Year's Eve bowling is by reservation only."}</h3>
+          <p>{event.admission === 'event_reservations_only'
+            ? 'Closed for regular visits on this date. Jingle Bowl reservations still take place; your confirmation has your booked time.'
+            : "Regular walk-in lane pricing does not apply on this date. See the New Year's Eve page for party details."}</p>
+          {event.public_url && <a class="btn btn-outline" href={event.public_url}>View {event.name} &rarr;</a>}
+        </div>
+      )}
+      {view.kind === 'closed' && <p class="pricing-policy-note">No regular walk-in bowling or ordinary online lane reservations on this date.</p>}
+      {view.kind === 'unknown' && <p class="pricing-policy-note">Please <a href={MAPS_VENUE_URL} target="_blank" rel="noopener">check Google</a> or contact the team to confirm this date.</p>}
+      {ordinary && <>
+        {view.holiday && <p class="pricing-policy-badge">Holiday hourly rates &middot; all open hours</p>}
+        {view.day === 'wed' && (view.pennyExcluded ? (
+          <div class="today-special" data-penny="excluded"><p class="today-special-name">Penny a Pin is not offered on this date.</p><p class="today-special-body">The hourly lane rates below apply.</p></div>
+        ) : pennyActive && !view.pennyScheduleReviewed ? (
+          <div class="today-special" data-penny="unconfirmed"><p class="today-special-name">Penny a Pin normally runs Wednesdays.</p><p class="today-special-body">School-break and holiday exclusions for this date are not yet confirmed. Check with the team before visiting.</p></div>
+        ) : pennyActive && (
+          <div class="today-special" data-penny="regular"><p class="today-special-name">{penny.data.name}</p><p class="today-special-tagline">{penny.data.tagline}</p><p class="today-special-body">Traditional lanes only. <a href="#penny-a-pin">See school-break exclusions.</a></p></div>
+        ))}
+        <table class="today-table" data-cols="3">
+          <caption class="visually-hidden">Walk-in rates per lane, per hour for {view.label}</caption>
+          <thead><tr><th class="today-th-time" scope="col">Time</th><th class="today-th-tier" scope="col"><span class="today-th-name">Traditional</span></th><th class="today-th-tier" scope="col"><span class="today-th-name">VIP suite</span></th></tr></thead>
+          <tbody>{view.rows.map(row => <tr><td class="today-td-time">{row.label.replace(' next day', '')}{row.label.endsWith(' next day') && <span class="pricing-next-day">next day</span>}</td><td class="today-td-rate"><span class="today-rate-num">${row.traditional}</span><span class="today-rate-unit">/hr</span></td><td class="today-td-rate"><span class="today-rate-num">${row.suite}</span><span class="today-rate-unit">/hr</span></td></tr>)}</tbody>
+        </table>
+        <p class="today-shoe-line">Per lane, per hour. Shoe rental <span class="today-shoe-price">{SHOE_RENTAL_LABEL}</span>.</p>
+        {view.twoHoursOnly && <p class="pricing-policy-note" data-two-hours>Online lane reservations are two hours only on this date. Walk-in bowling uses the hourly rates above.</p>}
+        <p class="pricing-policy-note">Online reservations use separate package pricing. <a href="/reserve/">Choose your date in booking &rarr;</a></p>
+        <div class="today-quick-actions"><a class="btn btn-outline" href="/waitlist/">Check the waitlist &rarr;</a><a class="btn btn-outline" href="/coupon/">Get the coupon &rarr;</a></div>
+      </>}
+      {view.note && <p class="today-holiday-note">{view.note} <a href={MAPS_VENUE_URL} target="_blank" rel="noopener">View on Google &rarr;</a></p>}
+    </article>
+    {holidayDates.length > 0 && <details class="pricing-exceptions"><summary>Upcoming holiday-rate dates</summary><p>Holiday hourly rates apply throughout open hours on these dates. Select a date to see prices. Standard weekends keep their regular rates; reserved events have their own packages.</p><ul>{holidayDates.map(d => <li><a href={`/pricing/?date=${d}`}>{pricingDateLabel(d, true)}{`, ${d.slice(0, 4)}`}</a></li>)}</ul></details>}
   </section>
-
-  {/* ============================================================
-      SEO COPY — H2 + keyword-rich body
-      ============================================================ */}
+  <section class="pricing-seo" id="penny-a-pin" aria-labelledby="penny-h2">
+    <div class="pricing-seo-inner">
+      <h2 id="penny-h2" class="t-display pricing-seo-headline">Penny a Pin Wednesdays.</h2>
+      <p class="pricing-seo-body">Traditional lanes only. Your score is your game price: bowl 103, pay $1.03. Shoe rental is separate. Penny a Pin is not offered during the school-break dates listed below.</p>
+      {exclusions.length > 0 ? <><p class="pricing-seo-body">Not offered on:</p><ul class="pricing-exclusion-dates">{exclusions.map(d => <li><a href={`/pricing/?date=${d}`}>{pricingDateLabel(d)}</a></li>)}</ul></> : <p class="pricing-seo-body">Choose your visit date above and check with the team for any upcoming school-break or holiday changes.</p>}
+    </div>
+  </section>
   <section class="pricing-seo" aria-labelledby="pricing-seo-h2">
     <div class="pricing-seo-inner">
-      <h2 id="pricing-seo-h2" class="t-display pricing-seo-headline">
-        How pricing works.
-      </h2>
-
-      <p class="pricing-seo-body">
-        Bowling at Twisted Pin in Plainfield, IL is priced by the lane,
-        by the hour. One lane fits up to five players for traditional
-        lanes; the VIP suite seats six per lane. Walk-in welcome any
-        open hour, with rates shifting by day and by time of day —
-        early sessions are friendlier, peak Friday and Saturday nights
-        run at the top of the range.
-      </p>
-
-      <p class="pricing-seo-body">
-        Shoe rental is $5.95 per pair. Reservations guarantee your
-        time but aren't required for one or two lanes; busy nights
-        may mean a wait if you walk in. Larger groups (three lanes
-        and up) — book ahead.
-      </p>
-
-      <p class="pricing-seo-body">
-        The 6-lane VIP suite is available two ways: by-the-lane at
-        the rates above, or as a full suite buyout for groups, parties,
-        and corporate events. Buyouts run through our event team —
-        <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">plan an event &rarr;</a>.
-        For the broader bowling story (lanes, leagues, the night), see
-        <a href="/bowl/">/bowl</a>.
-      </p>
-
-      <p class="pricing-seo-body pricing-seo-meta">
-        Twisted Pin · 15610 Joliet Rd, Plainfield, IL 60544
-      </p>
+      <h2 id="pricing-seo-h2" class="t-display pricing-seo-headline">How pricing works.</h2>
+      <p class="pricing-seo-body">Walk-in bowling is priced by the lane, by the hour. Choose your visit date above for hourly rates, planned school-break hours and any reserved-event exceptions. Lane availability can vary.</p>
+      <p class="pricing-seo-body">Online lane reservations use package pricing. During the main school breaks, ordinary online lane reservations are two hours only; that requirement appears when you select an affected date. The reservation page shows current packages and availability.</p>
+      <p class="pricing-seo-body">For a suite event, party or corporate gathering, <a href={PLAN_EVENT_URL} target="_blank" rel="noopener">plan an event with our team &rarr;</a>. For lanes, leagues and the bowling experience, see <a href="/bowl/">bowling at Twisted Pin</a>.</p>
+      <p class="pricing-seo-body pricing-seo-meta">Twisted Pin &middot; 15610 Joliet Rd, Plainfield, IL 60544</p>
     </div>
   </section>
-
   <SnapFooter />
-  <BreadcrumbSchema crumbs={[
-    { name: "Home", path: "/" },
-    { name: "Pricing", path: "/pricing/" },
-  ]} />
+  <BreadcrumbSchema crumbs={[{ name: 'Home', path: '/' }, { name: 'Pricing', path: '/pricing/' }]} />
 </Base>
-
 <script>
-  // Day-pill toggle — same pattern as the SnapToday draft.
-  //
-  // Deep-link support (2026-05-26): /pricing/?day=wed OR /pricing/#wed
-  // opens the calendar pre-activated to that day. Falls back to the
-  // server-rendered TODAY view if the URL param is missing or invalid.
-  // Query param wins over hash when both are set; both are case-insensitive.
-  // Intended for ads, SMS, and social posts (e.g. linking the Penny A Pin
-  // special directly to Wednesday). Brief flicker on initial paint is
-  // accepted — the server still renders TODAY first, then JS swaps.
-  const root = document.querySelector<HTMLElement>("[data-snap-today]");
-  if (root) {
-    const pills = root.querySelectorAll<HTMLButtonElement>("[data-pill-day]");
-    const views = root.querySelectorAll<HTMLElement>("[data-view-day]");
-    const VALID_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-    function activate(day: string) {
-      if (!VALID_DAYS.includes(day)) return;
-      root!.setAttribute("data-active-day", day);
-      pills.forEach((p) =>
-        p.setAttribute(
-          "aria-pressed",
-          p.getAttribute("data-pill-day") === day ? "true" : "false",
-        ),
-      );
-      views.forEach((v) =>
-        v.setAttribute(
-          "aria-hidden",
-          v.getAttribute("data-view-day") === day ? "false" : "true",
-        ),
-      );
-    }
-
-    // Read URL on load: query param first, then hash.
-    const url = new URL(location.href);
-    const fromQuery = url.searchParams.get("day");
-    const fromHash = location.hash.slice(1);
-    const requested = (fromQuery || fromHash || "").toLowerCase();
-    if (requested && VALID_DAYS.includes(requested)) {
-      activate(requested);
-    }
-
-    pills.forEach((pill) => {
-      pill.addEventListener("click", () => {
-        const day = pill.getAttribute("data-pill-day");
-        if (day) activate(day);
-      });
-    });
+  // Preserve old Wednesday SMS/ad links. Exact date queries always win.
+  const url = new URL(location.href);
+  const day = url.hash.slice(1).toLowerCase();
+  if (!url.searchParams.has('date') && !url.searchParams.has('day') && ['mon','tue','wed','thu','fri','sat','sun'].includes(day)) {
+    url.hash = ''; url.searchParams.set('day', day); location.replace(url.href);
   }
 </script>
 
@@ -860,6 +578,37 @@ function specialsForDay(day: DayKey) {
     color: rgba(255, 252, 245, 0.5);
   }
 
+  /* Dated pricing retains the established calendar typography and surfaces. */
+  .pricing-date-form { margin: 0 auto 24px; max-width: 480px; }
+  .pricing-date-form label { display: block; margin-bottom: 10px; font-family: var(--font-ui); font-size: 15px; font-weight: 700; color: var(--warm-white); }
+  .pricing-date-controls { display: flex; align-items: stretch; gap: 10px; }
+  .pricing-date-controls input { color-scheme: dark; min-width: 0; width: 100%; flex: 1; padding: 12px; border-radius: 7px; border: 1px solid rgba(255,252,245,.4); background: #141029; color: var(--warm-white); font-family: var(--font-ui); font-size: 16px; }
+  .pricing-date-controls .btn { flex: 0 0 auto; padding: 12px; font-size: 12px; letter-spacing: .04em; }
+  .pricing-date-error { color: var(--warm-white); text-align: center; font-size: 15px; }
+  .today-pill { display: block; text-align: center; text-decoration: none; letter-spacing: .03em; }
+  .today-pill[aria-current="date"] { background: var(--glow); color: var(--indigo-deep); }
+  .today-pill.past-day { opacity: .42; cursor: default; }
+  .pricing-pill-date { display: block; margin-top: 6px; font-size: 12px; letter-spacing: 0; white-space: nowrap; }
+  .today-table .today-td-time { white-space: normal; line-height: 1.5; }
+  .pricing-next-day { display: block; font-size: 12px; text-transform: none; }
+  .today-th-name { font-size: 12px; letter-spacing: 0; text-transform: none; }
+  .pricing-selected-date { margin: 0 0 12px; font-family: var(--font-display); font-size: clamp(26px, 7vw, 40px); font-weight: 800; line-height: 1.15; color: var(--warm-white); }
+  .pricing-event { padding: 24px; border: 1px solid rgba(255,252,245,.2); border-radius: 7px; background: #141029; text-align: center; color: var(--warm-white); }
+  .pricing-event h3 { font-family: var(--font-display); font-size: 30px; line-height: 1.1; margin: 0 0 16px; }
+  .pricing-event p { font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+  .pricing-event .btn { margin-top: 10px; font-size: 12px; padding: 14px; }
+  .pricing-policy-note { margin: 20px auto; max-width: 580px; font-family: var(--font-body); font-size: 15px; line-height: 1.65; text-align: center; color: rgba(255,252,245,.85); }
+  .pricing-policy-note a, .today-special-body a, .pricing-exceptions a, .pricing-exclusion-dates a { color: var(--warm-white); text-decoration: underline; text-underline-offset: 3px; }
+  .pricing-policy-badge { margin: 24px 0 12px; color: var(--warm-white); font: 700 12px/1.5 var(--font-ui); text-align: center; }
+  .pricing-exceptions { margin: 36px auto 0; max-width: 640px; border-top: 1px solid rgba(255,252,245,.2); padding-top: 20px; color: var(--warm-white); font: 15px/1.65 var(--font-body); }
+  .pricing-exceptions summary { cursor: pointer; font-family: var(--font-ui); font-weight: 700; }
+  .pricing-exceptions ul { columns: 2; padding-left: 20px; }
+  .pricing-exceptions li { break-inside: avoid; padding: 5px 0; }
+  .pricing-exclusion-dates { padding-left: 22px; font: 15px/1.65 var(--font-body); }
+  .pricing-exclusion-dates li { padding: 6px 0; }
+  #penny-a-pin { scroll-margin-top: 110px; padding-bottom: 24px; }
+  .pricing-calendar :is(a, button, input, summary):focus-visible { outline: 2px solid var(--glow); outline-offset: 4px; }
+
   /* a11y */
   .visually-hidden {
     position: absolute;
@@ -913,6 +662,13 @@ function specialsForDay(day: DayKey) {
        type. Rates are tabular but they're THE content here, so
        they scale too. */
     .today-pills { max-width: 680px; }
+    .pricing-date-form { max-width: 580px; }
+    .pricing-date-form label { font-size: 17px; }
+    .pricing-date-controls .btn { font-size: 15px; padding: 14px 22px; }
+    .pricing-pill-date { font-size: 12px; }
+    .pricing-selected-date { font-size: 42px; }
+    .pricing-policy-note, .pricing-exceptions, .pricing-exclusion-dates { font-size: 17px; }
+    .pricing-policy-badge { font-size: 15px; }
     .today-pill { font-size: 16px; padding: 17px 0 15px; }
     .today-pill-today { font-size: 12px; padding: 5px 11px; }
     .today-day-name { font-size: 72px; }
