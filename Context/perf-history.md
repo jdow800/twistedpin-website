@@ -361,3 +361,25 @@ When the next run happens, append below (keeping baseline + this entry intact):
 ### What we did in response
 - ...
 ```
+
+
+## October 22, 2026 ? NYE launch page check
+
+Jon requested a final SEO and page-speed check for /new-years-eve/. One fresh mobile and one desktop Lighthouse 13.5.0 CLI run, Chrome 155, default simulated throttling / desktop preset, against production Website 8eeb976. Normal analytics loaded; no blocked-third-party speed claim. No booking interaction. Raw JSON/HTML: .astro/nye-final-audit/{mobile,desktop}.report.{json,html} in nye-final-release-website-20261022. Compact durable receipt: Context/marketing/nye-2026/page-audit-20261022.json.
+
+| Metric | Mobile | Desktop |
+| --- | ---: | ---: |
+| Performance | 94 | 100 |
+| Accessibility | 96 | 100 |
+| Best practices | 77 | 77 |
+| SEO | 100 | 100 |
+| FCP | 1.62s | 0.40s |
+| LCP | 2.77s | 0.68s |
+| Total blocking | 96ms | 0ms |
+| CLS | 0.067 | 0.003 |
+
+No Lighthouse runtime warnings. Mobile performance meets the 85+ score target, but LCP remains above the 2.5s house target. Flagged refinements: responsive first-frame poster (estimated 32KiB), offscreen mobile nav drawer focusability, and third-party tracking/cookie diagnostics (main reason for best-practices77). This release does not change the shared nav or tracking. These are lab samples, not field results or proof Google has indexed/ranked the page.
+
+Fresh static checks also found200/no noindex, robots allowed, self canonical, sitemap inclusion, unique year/location title/description, oneH1 and valid Event/VideoObject/Breadcrumb markup. A dedicated104KB 1200x630 NYE link-preview card is included in the forthcoming polish release. No reservation or Mirrorball timing changes.
+
+Reproduction: npx --yes --package=lighthouse@13.5.0 lighthouse https://www.twistedpin.com/new-years-eve/ --only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags="--headless=new --no-first-run". Add --preset=desktop for the desktop run. Keep reports outside Git and do not run concurrently with heavy local tests.

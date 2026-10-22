@@ -1,3 +1,42 @@
+## 2026-10-22 - Final NYE copy integration and dedicated share image
+
+After Jingle released `8eeb976`, integrate the saved singular lane/pizza/pitcher corrections and both events' Desktop delivery records on that exact successor. The public NYE page now has its own 1200 × 630 share card using the existing approved photograph, logo, typography and Mirrorball code artwork. Its evergreen text does not announce sales or assert remaining inventory. The renderer blocks network requests and records asset hashes; the final 104 KB JPEG is tracked with its editable source. No checkout, inventory, sales opening or homepage campaign policy changes are included. The paid NYE rehearsal and its original operations origin remain untouched. Combined checks, page-speed measurements and release proof will be recorded below.
+
+Combined verification: 23 current NYE flow groups, eight Jingle entry groups, checkout recovery, 175 opening checks, 19 auth and seven native proxy/middleware checks pass; all prebuild suites and the complete Vercel build pass. An initial local bundle failed on a Windows dependency junction; installing the same locked dependencies inside this worktree resolved it without source/package changes. The existing paid rehearsal is untouched. Fresh production Lighthouse samples: mobile94/96/77/100 and desktop100/100/77/100 (performance/accessibility/best practices/SEO); mobile LCP2.77s remains above the2.5s house target. See Context/perf-history.md and the compact page-audit receipt for limitations and deferred refinements. No claim of search ranking or field Core Web Vitals is made.
+
+## 2026-10-22 - NYE Desktop marketing delivery
+
+Jon requested an `NYE 2026` folder on his Desktop containing copies of all social images and suggested copy for Meta events and text blasts. The pack retains the eight original PNGs, adds the visual overview and a plain-text copy file with pre-opening/open Meta, Google, feed/Story and SMS variants. Windows resolves the actual Desktop to `C:/Users/jdow8/OneDrive/Desktop`; this is the explicitly requested delivery destination, while editable source and originals stay in this dev/Git project. No website deployment, social publication or message send is part of packaging. Jon separately asked the Jingle owner to prepare `2026 Jingle Bowl` after completing its active booking/release work; that deferred request was relayed through Paseo.
+
+Jon also reports that NYE almost always fully sells out and asks about FOMO. The text file includes optional historical wording, “Our NYE parties usually sell out,” for the invitation/social/SMS, with a small supporting artwork-line suggestion. This does not change the existing approved images, homepage runtime or opening schedule, and does not assert current remaining inventory.
+
+## 2026-10-22 - Quantity wording in NYE and shared event checkout
+
+Jon approved the cleaner Card checkout and asked to check quantity wording, including guest emails. Review/pay, confirmation and alternative-party/change reviews now use singular lane, pizza and soda pitcher for one, retaining plurals for multiple. This is display-only; selection, payment, recovery, quantities and terms are unchanged. Email/receipt wording is audited in the separate backend slice. Keep this commit separate from Jingle's frozen connected release; no production release or paid-rehearsal restart is part of this edit.
+
+Validation: all 24 existing Brand checkout scenario groups pass, including multi-lane review and confirmation, alternatives, recovery and 320/390/1440 layouts. Root reviewed the generated mobile review screen. The shared countdown and campaign selector also pass their existing 175 and 39 offline boundary checks. These are synthetic/local checks; the previous hosted preview remains unchanged until a separate deployment.
+
+## 2026-10-22 - Jingle connection verified live and Desktop pack delivered
+
+Website 8eeb976 is live on Vercel 5GguzZSvTFNd7Y9ryfwNzVdVNBA8 against backend
+09d937c0 and its activated catalog. The protected landing/card links and real
+checkout bootstrap passed 149 browser assertions with 54 settled 200 API responses.
+Traditional and VIP each show the approved five starts and prices at 390/1280px;
+regular and birthday bookings show available times. Root reviewed the screenshots.
+No holds, payment or guest submission was made. Anonymous/encoded protection,
+no-store/noindex and the production rehearsal 404 remain intact. The shared Link
+removal is included. Full evidence: backend docs/JINGLE-PRODUCTION-CONNECTION-20261022.md
+and local .astro/jingle-connected-production-1792684040779/receipt.json.
+
+Jon separately requested a delivery copy on his actual redirected Desktop.
+`C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl` now contains the two finished
+Santa-visit PNG designs, their two smaller WebP derivatives, recommended-copy.txt
+(Meta event, GBP, social, text blast), and README-delivery.txt. All six copies
+were verified byte-for-byte against the dev sources. Current artwork and masters
+remain tracked; the old "Bowl with Santa" design and decorative cutout are excluded.
+New plain-text sources are in Context/jingle-bowl-2026/delivery/. No announcement
+or customer message was sent, and the page remains password-protected.
+
 ## 2026-10-22 - Connect protected Jingle lane cards to checkout
 
 Jon authorized connecting the customer-looking preview to real booking while

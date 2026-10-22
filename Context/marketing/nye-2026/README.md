@@ -1,6 +1,12 @@
 # NYE. Done right.
 
+## Website link preview
+
+The public NYE page uses [a dedicated 1200 × 630 JPEG](../../../public/og/og-nye-2026.jpg), rendered from the same approved code-native artwork. Its evergreen “Six party times” line makes no claim that reservations are open or inventory remains. Reproduce it with `node scripts/render-nye-og.mjs`; source/asset hashes and output dimensions are recorded in [share-card-manifest.json](share-card-manifest.json). This extra card does not replace the eight platform exports below. Sharing platforms may retain an older cached preview until they fetch the page again.
+
 Review pack prepared October 22, 2026. **Eight rendered PNGs, editable artwork and ready-to-paste copy. Nothing published.** The top row is the reservations-opening teaser; the bottom row is the reservations-open version.
+
+[Plain-text recommended copy](recommended-social-copy.txt) adds ready-to-paste Meta event, Google post/event, feed/Story and text-blast variants. Jon requested a delivery copy of all eight images plus the overview and this text file in the actual Windows Desktop folder `NYE 2026`; editable originals remain here. Desktop packaging does not publish or schedule a campaign.
 
 ![Eight-format campaign review: four teaser exports above four reservations-open exports](contact-sheet.png)
 

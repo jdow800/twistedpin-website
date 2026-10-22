@@ -1,0 +1,47 @@
+{
+  "scope": "One fresh mobile and one desktop lab navigation, normal third-party scripts enabled. No booking interaction. Not field Core Web Vitals or a ranking/indexing guarantee.",
+  "results": [
+    {
+      "profile": "mobile",
+      "fetchTime": "2026-10-22T16:08:07.122Z",
+      "lighthouse": "13.5.0",
+      "source": "Website 8eeb97627ac8d1a73de7ffcaa912bd586cfe2207",
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "scores": {
+        "performance": 94,
+        "accessibility": 96,
+        "best-practices": 77,
+        "seo": 100
+      },
+      "metrics": {
+        "first-contentful-paint": 1623.55,
+        "largest-contentful-paint": 2767.175,
+        "total-blocking-time": 96,
+        "cumulative-layout-shift": 0.06724033614682125,
+        "speed-index": 1623.55
+      },
+      "runWarnings": []
+    },
+    {
+      "profile": "desktop",
+      "fetchTime": "2026-10-22T16:09:14.386Z",
+      "lighthouse": "13.5.0",
+      "source": "Website 8eeb97627ac8d1a73de7ffcaa912bd586cfe2207",
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 77,
+        "seo": 100
+      },
+      "metrics": {
+        "first-contentful-paint": 404.9885,
+        "largest-contentful-paint": 684.9884999999999,
+        "total-blocking-time": 0,
+        "cumulative-layout-shift": 0.0033257154426558,
+        "speed-index": 525.9474540857545
+      },
+      "runWarnings": []
+    }
+  ]
+}
