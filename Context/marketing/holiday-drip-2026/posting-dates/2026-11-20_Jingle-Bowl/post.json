@@ -10,7 +10,7 @@
   "timezone": "America/Chicago",
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
-  "copy_revision": "series-copy-v2",
+  "copy_revision": "series-copy-v3",
   "status": "prepared_for_review",
   "recommended_concept_id": "series-17-jingle-cookie-cocoa",
   "assets": {

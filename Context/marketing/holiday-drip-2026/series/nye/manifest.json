@@ -3,12 +3,12 @@
   "status": "Prepared complete artwork pairs for user review; no scheduling/publication.",
   "source_template": {
     "path": "Context/marketing/holiday-drip-2026/series/nye/artwork/series.html",
-    "sha256": "8c4d8f7ecc3ccce844cd1ea80d001fd7362d43296c2d20cfac5f35697bcfa9f9",
+    "sha256": "690fd9c7d6bb4203d1b9fd8337c0e22d638379733b2ce81c433486605e9bf6b1",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "renderer": {
     "path": "scripts/render-holiday-series-nye.mjs",
-    "sha256": "d8794559a520b41cea9a4844c1bd29b68423b56f80ce02286c2bbb7095261647",
+    "sha256": "c9c3bf02f8eb25d9d683a2f1ad69480810d922864c97d27a9df4fc6bf0048a04",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "toolVersions": {
@@ -151,16 +151,16 @@
       "filename": "2026-11-17-nye-feed.png",
       "width": 1080,
       "height": 1350,
-      "bytes": 226900,
-      "sha256": "ce803403f23deb74f82726d57bc8cc822eb25f6906f4c5b64b3895977008fa8c",
-      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 224005,
+      "sha256": "632b6caeb8fd44f37db4920f796e433e15be04db63d590f2da808cb6009d9625",
+      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [],
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -195,17 +195,9 @@
             "text": "9AM"
           },
           {
-            "element": "central",
-            "x": 84,
-            "y": 779,
-            "width": 242.1875,
-            "height": 42,
-            "text": "CENTRAL"
-          },
-          {
             "element": "opening-date",
             "x": 82,
-            "y": 912,
+            "y": 852,
             "width": 662.46875,
             "height": 114.78125,
             "text": "NEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026"
@@ -233,10 +225,10 @@
       "filename": "2026-11-17-nye-story.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 298239,
-      "sha256": "d717895e6ebed0ed60185626494856dce047fa46ba0a0c205550a727f6989863",
-      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 298264,
+      "sha256": "df3814e1b70c00b878d8b064927afef390d48ea21db76b3c70c91fe8c4f6b281",
+      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [],
       "suggested_link_sticker_area": {
@@ -249,7 +241,7 @@
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -284,17 +276,9 @@
             "text": "9AM"
           },
           {
-            "element": "central",
-            "x": 84,
-            "y": 1035,
-            "width": 242.1875,
-            "height": 42,
-            "text": "CENTRAL"
-          },
-          {
             "element": "opening-date",
             "x": 82,
-            "y": 1170,
+            "y": 1090,
             "width": 662.46875,
             "height": 111.1875,
             "text": "NEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026"
@@ -322,10 +306,10 @@
       "filename": "2026-11-18-nye-feed.png",
       "width": 1080,
       "height": 1350,
-      "bytes": 601836,
-      "sha256": "db461e199c771afb973f380735b3868bc08f7edd65f8125e11ba18e3ccaecdb5",
-      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 601098,
+      "sha256": "bcbc23776721c4f646b1ae2bfe625130439f750e244e94277a15fbfd9d2f9c36",
+      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [
         "public/snap/nye-reserve-hero-1600.webp"
@@ -333,7 +317,7 @@
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -365,7 +349,7 @@
             "y": 702,
             "width": 928,
             "height": 288.09375,
-            "text": "DECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
+            "text": "DECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
           },
           {
             "element": "schedule-note",
@@ -398,10 +382,10 @@
       "filename": "2026-11-18-nye-story.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 672979,
-      "sha256": "a592b8779fa28f9ed43d090a6ea8bc6aabaced28f86ca4783b025ec973b251c5",
-      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 672192,
+      "sha256": "8340ccba1456db574af328c0375d1400506ed8678221489787eb702e30698a18",
+      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [
         "public/snap/nye-reserve-hero-1600.webp"
@@ -416,7 +400,7 @@
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -448,7 +432,7 @@
             "y": 957,
             "width": 916,
             "height": 308.09375,
-            "text": "DECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
+            "text": "DECEMBER 31 PARTY STARTS\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
           },
           {
             "element": "schedule-note",
@@ -652,10 +636,10 @@
       "filename": "2026-12-07-nye-feed.png",
       "width": 1080,
       "height": 1350,
-      "bytes": 985100,
-      "sha256": "b5e67df14aa0382ec76b13089e63deb365164104492cbc6abe4a92a5f2bfc7fe",
-      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 984578,
+      "sha256": "d5c5edbe3b5a24f1bae2670fba90ed0fd122a5c1f051c8b755b1a8b93685b803",
+      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [
         "public/snap/nye-reserve-hero-1600.webp",
@@ -664,7 +648,7 @@
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -704,7 +688,7 @@
             "y": 908,
             "width": 450,
             "height": 127.078125,
-            "text": "10PM–12:30AM\n\nDec 31–Jan 1 · Central"
+            "text": "10PM–12:30AM\n\nDec 31–Jan 1"
           },
           {
             "element": "toast-note",
@@ -737,10 +721,10 @@
       "filename": "2026-12-07-nye-story.png",
       "width": 1080,
       "height": 1920,
-      "bytes": 928988,
-      "sha256": "12fd9cd2831432c3c9414542dd7ecbbabb295f5fae7603e4ebe83989ea9c377c",
-      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
-      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "bytes": 928454,
+      "sha256": "5f7552a03c4ff7f31800aa09ea3c32e579c1d5c043aa60bc96d2a77490e4375b",
+      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
       "status": "prepared-for-review-not-scheduled-or-published",
       "source_assets": [
         "public/snap/nye-reserve-hero-1600.webp",
@@ -756,7 +740,7 @@
       "checks": {
         "fonts": true,
         "overflow": false,
-        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
         "bounds": [
           {
             "element": "logo",
@@ -796,7 +780,7 @@
             "y": 1108,
             "width": 444,
             "height": 127.078125,
-            "text": "10PM–12:30AM\n\nDec 31–Jan 1 · Central"
+            "text": "10PM–12:30AM\n\nDec 31–Jan 1"
           },
           {
             "element": "toast-note",

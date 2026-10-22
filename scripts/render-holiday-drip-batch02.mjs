@@ -20,7 +20,7 @@ const templatePath = 'Context/marketing/holiday-drip-2026/batch-02/artwork/campa
 const source = await readFile(resolve(repo, templatePath), 'utf8');
 const assets = {
   NYE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png', 'image/png', repo],
-  JINGLE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/jingle-hero-v2.png', 'image/png', repo],
+  JINGLE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/jingle-hero-v3-grip-corrected.png', 'image/png', repo],
   LOGO: ['public/logo/twisted-pin-horizontal-white.png', 'image/png', repo],
   DISPLAY_FONT: ['node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2', 'font/woff2', dependencyRoot],
   UI_FONT: ['node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2', 'font/woff2', dependencyRoot],
@@ -39,9 +39,9 @@ const concepts = [
     destination: 'https://www.twistedpin.com/new-years-eve/',
     identity: 'NYE. DONE RIGHT.<span>DECEMBER 31, 2026</span>',
     headline: '<span>GIVE 2026 A</span><span>PROPER SEND-OFF.</span>',
-    action: '<p class="status">Reservations open</p><p class="date">WEDNESDAY, NOVEMBER 18, 2026</p><p class="time">9AM CENTRAL</p><p class="url">www.twistedpin.com/new-years-eve/</p>',
+    action: '<p class="status">Reservations open</p><p class="date">WEDNESDAY, NOVEMBER 18, 2026</p><p class="time">9AM</p><p class="url">www.twistedpin.com/new-years-eve/</p>',
     eventDate: '2026-12-31', openingAt: '2026-11-18T15:00:00Z', stickerLabel: 'See NYE details',
-    alt: 'An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/',
+    alt: 'An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/',
   },
   {
     id: '05-jingle-santa-arrives', event: 'jingle', hero: 'JINGLE_HERO', phase: 'jingle-reservations-open',
@@ -95,7 +95,8 @@ try {
     if (checks.copyBounds.some(r => r.x < m.left || r.y < m.top || r.x + r.width > format.width - m.right || r.y + r.height > format.height - m.bottom)) throw Error(`Copy exceeds house margins: ${concept.id} ${format.format}: ${JSON.stringify(checks.copyBounds)}`);
     if (checks.imageBounds.some(r => Math.abs(r.width / r.height - r.naturalWidth / r.naturalHeight) > .001)) throw Error(`Image stretched: ${concept.id} ${format.format}`);
     const visibleCopy = checks.copyBounds.map(r => r.text).join('\n');
-    for (const required of concept.event === 'nye' ? ['DECEMBER 31, 2026', 'WEDNESDAY, NOVEMBER 18, 2026', '9AM CENTRAL', 'www.twistedpin.com/new-years-eve/'] : ['SUNDAY, DECEMBER 6, 2026', 'Reservations open now', 'www.twistedpin.com/jingle-bowl/']) {
+    if (/\b(?:central|cst|cdt|ct|utc)\b|America\/Chicago/i.test(visibleCopy + ' ' + concept.alt)) throw new Error(`Guest-facing timezone label: ${concept.id}`);
+    for (const required of concept.event === 'nye' ? ['DECEMBER 31, 2026', 'WEDNESDAY, NOVEMBER 18, 2026', '9AM', 'www.twistedpin.com/new-years-eve/'] : ['SUNDAY, DECEMBER 6, 2026', 'Reservations open now', 'www.twistedpin.com/jingle-bowl/']) {
       if (!visibleCopy.toUpperCase().includes(required.toUpperCase())) throw Error(`Required absolute fact missing: ${required}`);
     }
     const filename = `${concept.id}-${format.format}.png`;
@@ -116,7 +117,7 @@ await writeFile(resolve(pack, 'render-manifest.json'), JSON.stringify({
   renderer: { path: relative(repo, fileURLToPath(import.meta.url)).replaceAll('\\', '/'), sha256: shaText(await readFile(fileURLToPath(import.meta.url), 'utf8')), hashNormalization: textHashNormalization },
   toolVersions, sourceAssets,
   method: 'Separate HTML/CSS feed and Story compositions around generated editorial hero images. Real supplied logo and existing approved font substitutions. Original generated masters remain unmodified; displayed at a uniform scale with layout gradients. Heroes are artistic illustrations, not photographs of the venue or documentary evidence of an event.',
-  provenance: ['artwork/nye-imagegen-provenance.json', 'artwork/nye-grip-correction.provenance.json', 'artwork/jingle-hero-v2.provenance.json'],
+  provenance: ['artwork/nye-imagegen-provenance.json', 'artwork/nye-grip-correction.provenance.json', 'artwork/jingle-hero-v2.provenance.json', '../artwork/santa-grip-correction.provenance.json'],
   reproduction: ['From the Website repository root, install locked dependencies with npm ci and the bundled browser with npx playwright install chromium.', 'Run node scripts/render-holiday-drip-batch02.mjs.', 'HOLIDAY_RENDER_DEPS optionally points at an existing compatible Website dependency tree; HOLIDAY_RENDER_BROWSER_CHANNEL optionally selects an installed Chromium channel.', 'Script writes only these four final PNGs and render-manifest.json under batch-02; no Website build, deployment, environment files or production access.'],
   limitations: ['House margins are design choices, not platform-certified safe zones; check actual organic Facebook/Instagram previews.', 'Story printed URLs are not clickable: publisher must add the native link sticker.', 'NYE artwork is for before November 18, 2026 at 9am Central only.', 'Jingle reservations-open wording requires a current availability check before publishing.', 'No current scarcity, party times/prices, package additions or documentary venue appearance are asserted.'],
   outboundNetworkRequests, records,

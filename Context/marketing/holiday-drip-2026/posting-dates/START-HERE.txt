@@ -16,4 +16,4 @@ For a later assistant session, provide SCHEDULING-PROMPT.txt and this entire fol
 
 Source: C:/Users/jdow8/dev/website-holiday-drip-20261022/Context/marketing/holiday-drip-2026
 Branch: codex/holiday-drip-20261022
-Copy: series-copy-v2 | Delivery: posting-folders-v1
+Copy: series-copy-v3 | Delivery: posting-folders-v1

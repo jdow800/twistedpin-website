@@ -10,7 +10,7 @@
   "timezone": "America/Chicago",
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
-  "copy_revision": "series-copy-v2",
+  "copy_revision": "series-copy-v3",
   "status": "prepared_for_review",
   "recommended_concept_id": "series-14-nye-december-invitation",
   "assets": {
@@ -18,8 +18,8 @@
       "filename": "01-FEED-Facebook-and-Instagram.png",
       "width": 1080,
       "height": 1350,
-      "sha256": "b5e67df14aa0382ec76b13089e63deb365164104492cbc6abe4a92a5f2bfc7fe",
-      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "sha256": "d5c5edbe3b5a24f1bae2670fba90ed0fd122a5c1f051c8b755b1a8b93685b803",
+      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
       "source": "series/nye/exports/2026-12-07-nye-feed.png",
       "source_manifest": "series/nye/manifest.json",
       "concept_id": "series-14-nye-december-invitation"
@@ -28,8 +28,8 @@
       "filename": "02-OPTIONAL-STORY.png",
       "width": 1080,
       "height": 1920,
-      "sha256": "12fd9cd2831432c3c9414542dd7ecbbabb295f5fae7603e4ebe83989ea9c377c",
-      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "sha256": "5f7552a03c4ff7f31800aa09ea3c32e579c1d5c043aa60bc96d2a77490e4375b",
+      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
       "source": "series/nye/exports/2026-12-07-nye-story.png",
       "source_manifest": "series/nye/manifest.json",
       "concept_id": "series-14-nye-december-invitation"

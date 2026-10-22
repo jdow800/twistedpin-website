@@ -1,7 +1,7 @@
 filename,width,height,placement,phase,status,sha256
-exports/01-nye-set-the-clock-feed.png,1080,1350,feed,before-reservations-open,review-draft,a8a0050838e2c122408aa64161bdf2f9100ce3206c24d81236568047f96fa081
-exports/01-nye-set-the-clock-story.png,1080,1920,story,before-reservations-open,review-draft,786a6b54b20b163e12df7578f1cf222b368e991dafbbaf482daa75b09482b108
-exports/03-nye-usually-sells-out-feed.png,1080,1350,feed,before-reservations-open,review-draft,d7b0a75ce5aeb7d40b71a44697b88d8c68c41d8eae8e74471b5a7fad44938fc9
-exports/03-nye-usually-sells-out-story.png,1080,1920,story,before-reservations-open,review-draft,0689de07589a6f133348a4851a8f912054444e18b05a376267362a4c0220bbf6
-exports/02-jingle-santa-coming-feed.png,1080,1350,feed,jingle-reservations-open,review-draft,71f98c8f6831eac46105941d890b9908a18c0fd0b17cc6595cb83424cbdaf2c2
-exports/02-jingle-santa-coming-story.png,1080,1920,story,jingle-reservations-open,review-draft,2ba4983043b27f8f868bffde561914732200e36e9765bc52079c5ab00d6ce46a
+exports/01-nye-set-the-clock-feed.png,1080,1350,feed,before-reservations-open,review-draft,ee3ec7e7f64f43ba5029fff58a02b50f85041e7ce86ec0340169eb93b3648671
+exports/01-nye-set-the-clock-story.png,1080,1920,story,before-reservations-open,review-draft,cb649ff5a189ed6f0f0700a1809b8e319c5586f24996c4e887a54e65b8597757
+exports/03-nye-usually-sells-out-feed.png,1080,1350,feed,before-reservations-open,review-draft,809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5
+exports/03-nye-usually-sells-out-story.png,1080,1920,story,before-reservations-open,review-draft,a07d50d81ed6c4db2fcd6db307409dee8cf7c716835c5436fb220a7c3405fd9d
+exports/02-jingle-santa-coming-feed.png,1080,1350,feed,jingle-reservations-open,review-draft,af340770b4b3fff2c9e7c5a6435fc5d86fc9252fb7b2fe9d4c866529da054c14
+exports/02-jingle-santa-coming-story.png,1080,1920,story,jingle-reservations-open,review-draft,b59a59f85604a167ded635ee1a74b17dab17b7425eaff732b461ab64d286ad33

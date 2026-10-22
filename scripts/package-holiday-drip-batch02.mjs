@@ -54,7 +54,7 @@ for (const item of concepts) {
   alternativeChecks.push({ alternative: item.id, original: original.id, same_event: true, same_proposed_occasion: true, extra_post: false, creative_choice_group: group.id, calendar_occasion_id: group.calendar_occasion_id, recommended_concept_id: group.recommended_concept_id, selected_concept_id: group.selected_concept_id });
 }
 if (campaign.scheduling_authorized || campaign.publication_authorized) throw Error('This gallery is only for an unscheduled review campaign');
-const dateLabel = stamp => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(stamp)) + ' Central';
+const dateLabel = stamp => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Chicago', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(stamp));
 const localAsset = path => path.replace(/^batch-02\//, '');
 const figures = item => ['facebook_feed', 'instagram_story'].map((name, i) => {
   const variant = item.variants[name], filename = localAsset(variant.asset);

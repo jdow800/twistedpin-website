@@ -2,13 +2,15 @@
 
 **Start with the [dated posting folders](posting-dates/START-HERE.html).** Each of the 16 occasions has one recommended feed graphic, a separate optional Story graphic and the matching Facebook/Instagram copy in its own folder. The full delivery is `posting-folders-v1`; the original three concepts and two Batch 02 alternatives remain source material, not extra posts.
 
+**Latest owner refinements:** guest-facing graphics and all caption/Story variants omit time-zone labels; the scheduler still uses America/Chicago and UTC. Both Santa illustrations now use corrected bowling-ball grips, with a close finger pair and a separated lower thumb. The exact imagegen edit prompts, original sources and corrected masters are preserved in [edit provenance](artwork/santa-grip-correction.provenance.json). Facebook copy includes the matching event URL; Instagram uses a verified bio link or the supplied plain-address fallback, and Stories require the supplied native link sticker.
+
 **Latest cadence: Jon's revised direction is adopted; exact publishing dates/times, creative selection and channels remain proposed. Nothing in this pack is approved for scheduling or publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
 
 This supplements the social team's regular content. NYE starts slowly, has a tomorrow reminder on November 17 and an opening announcement on November 18, then continues with varied booking posts through December 28. Jingle runs weekly on Fridays through December 4, its final weekend reminder. Paired Facebook/Instagram versions count as one editorial occasion. Usually there are one or two combined event feed occasions a week; November 17, 18 and 20 deliberately create three during NYE opening week. Stories remain optional companions.
 
 The active calendar has **16 Meta occasions plus three optional extras**, totaling 19 rows. The first NYE announcement is part of the revised plan, not an optional additional kickoff. The campaign contains no November 15 reminder or December 6 Jingle post.
 
-**The complete series is prepared for review: 16 feed images, 16 optional Stories and copy revision `series-copy-v2`.** Jon accepted the independent review direction and requested this complete dated delivery. That does not authorize scheduling or publication. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block. All 32 source/export hashes and exact caption mappings passed verification. GPT-6.1 Sol on Ultra reviewed the finished pack; see [review notes](posting-dates/REVIEW-NOTES.txt) and the [handoff](HANDOFF.md) for verification and backup status.
+**The complete series is prepared for review: 16 feed images, 16 optional Stories and copy revision `series-copy-v3`.** Jon accepted the independent review direction and requested this complete dated delivery. That does not authorize scheduling or publication. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block. All 32 source/export hashes and exact caption mappings passed verification. GPT-6.1 Sol on Ultra reviewed the finished pack; see [review notes](posting-dates/REVIEW-NOTES.txt) and the [handoff](HANDOFF.md) for verification and backup status.
 
 **Audience direction:** Jingle is explicitly for families and may depart substantially from the venue's usual positioning. NYE's earlier parties strongly welcome families; later parties lean more adult in tone while still welcoming families. Jon's event-specific direction controls this campaign. The current positioning report may lightly inform imagery and copy, but generic adults-first emphasis must not crowd out this welcome. Do not invent an adults-only rule or a late-party age cutoff. Guest-facing Santa copy still promises a visit with Santa, not bowling alongside him.
 
@@ -19,7 +21,7 @@ The active calendar has **16 Meta occasions plus three optional extras**, totali
 - [Full-series copy gallery](copy-review.html) and [readable copy](full-series-copy.md): 16 artwork headlines, Facebook/Instagram captions, bio-link alternatives and optional Story messages for review.
 - [Calendar](calendar.md): proposed dated cadence, audience, objective, links and actual artwork readiness.
 - [First-batch copy](batch-01-copy.txt): synchronized prepared-art captions and the unchanged selective SMS/Google drafts.
-- [Scheduling manifest](campaign.json): `post_copy_drafts` is canonical for all 16 occasions, keyed by `calendar_id`, with copy revision `series-copy-v2`. `delivery_folder`, `delivery_concept_id` and variant asset paths identify the supplied recommendation. `artwork_status: prepared_for_review` and calendar `ready_for_review` describe preparation, not approval.
+- [Scheduling manifest](campaign.json): `post_copy_drafts` is canonical for all 16 occasions, keyed by `calendar_id`, with copy revision `series-copy-v3`. `delivery_folder`, `delivery_concept_id` and variant asset paths identify the supplied recommendation. `artwork_status: prepared_for_review` and calendar `ready_for_review` describe preparation, not approval.
 - [Original gallery](review.html) and [Batch 02 gallery](batch-02/review.html): preserved source concepts and alternatives for comparison, not another publishing series.
 - [Brief research](research-notes.md): source links, evidence limits and the rationale for a light supplemental cadence.
 - [Creative brief](creative-brief.md): the identified October 2026 positioning report, later owner corrections and the campaign-specific family/daypart direction. Read it before new image or copy work; do not assume the maintained v1.0 file is the newest authority.
@@ -64,6 +66,7 @@ npm ci --no-audit --no-fund
 npx playwright install chromium
 node scripts/render-holiday-drip-nye.mjs
 node scripts/render-holiday-drip-jingle.mjs
+node scripts/render-holiday-drip-batch02.mjs
 node scripts/render-holiday-series-nye.mjs
 node scripts/render-holiday-series-jingle.mjs
 node scripts/package-holiday-posting-folders.mjs

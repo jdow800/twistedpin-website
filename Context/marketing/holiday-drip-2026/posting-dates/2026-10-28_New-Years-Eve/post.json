@@ -10,7 +10,7 @@
   "timezone": "America/Chicago",
   "phase": "before_reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
-  "copy_revision": "series-copy-v2",
+  "copy_revision": "series-copy-v3",
   "status": "prepared_for_review",
   "recommended_concept_id": "04-nye-mirrorball-moment",
   "assets": {
@@ -18,8 +18,8 @@
       "filename": "01-FEED-Facebook-and-Instagram.png",
       "width": 1080,
       "height": 1350,
-      "sha256": "9fde009795419a17b1fee9320ed30266b528c68a6ce8e460b3a07d5b68656bc8",
-      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+      "sha256": "b521e213dadba373a1a2582f5903e7efa33d98b49d79ad8b8a28e903bc21b513",
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/",
       "source": "batch-02/exports/04-nye-mirrorball-moment-feed.png",
       "source_manifest": "batch-02/render-manifest.json",
       "concept_id": "04-nye-mirrorball-moment"
@@ -28,8 +28,8 @@
       "filename": "02-OPTIONAL-STORY.png",
       "width": 1080,
       "height": 1920,
-      "sha256": "587f3955ccd8cc96670504ced4cab8687ed255a0a4149102ed443b0eb3da8ea9",
-      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+      "sha256": "90413b85cdb598e436c406b1a90bb02a57bfbde2831691b8857720fc921e4769",
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/",
       "source": "batch-02/exports/04-nye-mirrorball-moment-story.png",
       "source_manifest": "batch-02/render-manifest.json",
       "concept_id": "04-nye-mirrorball-moment"
@@ -37,12 +37,12 @@
   },
   "copy_file": "RECOMMENDED-COPY.txt",
   "captions": {
-    "facebook": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
-    "instagram": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details at the New Year's Eve link in our bio.",
-    "instagram_without_verified_bio": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/"
+    "facebook": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details at the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/"
   },
   "story": {
-    "message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
+    "message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am. Save the date.",
     "link_sticker": {
       "label": "NYE details",
       "url": "https://www.twistedpin.com/new-years-eve/"

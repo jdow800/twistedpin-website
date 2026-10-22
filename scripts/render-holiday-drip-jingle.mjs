@@ -19,7 +19,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const shaText = text => sha(text.replace(/\r\n?/g, '\n'));
 const textHashNormalization = 'UTF-8 text with LF line endings';
 const assets = {
-  SANTA: ['Context/jingle-bowl-2026/artwork/santa-entrance-master.png', 'image/png', repo],
+  SANTA: ['Context/marketing/holiday-drip-2026/artwork/santa-entrance-v2-grip-corrected.png', 'image/png', repo],
   LOGO: ['public/logo/twisted-pin-horizontal-white.png', 'image/png', repo],
   DISPLAY_FONT: ['node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2', 'font/woff2', dependencyRoot],
   UI_FONT: ['node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2', 'font/woff2', dependencyRoot],
@@ -94,7 +94,7 @@ await writeFile(resolve(pack, 'jingle-manifest.json'), JSON.stringify({
   sourceTemplate: { path: templatePath, sha256: shaText(source), hashNormalization: textHashNormalization },
   renderer: { path: relative(repo, fileURLToPath(import.meta.url)).replaceAll('\\', '/'), sha256: shaText(await readFile(fileURLToPath(import.meta.url), 'utf8')), hashNormalization: textHashNormalization },
   toolVersions,
-  method: 'New HTML/CSS compositions around an unchanged approved transparent Santa master and supplied logo. Uniform image scaling only; no raster retouching, generated imagery or alteration to an existing finished campaign image.',
+  method: 'HTML/CSS compositions around the approved Santa illustration with the owner-requested grip correction made through built-in imagegen. Prior master retained; corrected transparent raster is uniformly scaled. Supplied logo remains unchanged. See artwork/santa-grip-correction.provenance.json.',
   sourceAssets,
   facts: ['Context/session-handoffs/2026-10-22-jingle-closeout.md', 'Context/jingle-bowl-2026/delivery/recommended-copy.txt', 'Context/jingle-bowl-2026/README.md', 'src/pages/jingle-bowl.astro'],
   reproduction: ['Install the Website locked dependencies (npm ci), then install the matching bundled browser with npx playwright install chromium. Alternatively set HOLIDAY_RENDER_DEPS to an existing compatible Website dependency tree.', 'Run node scripts/render-holiday-drip-jingle.mjs from the Website repository. Bundled Chromium is the default; HOLIDAY_RENDER_BROWSER_CHANNEL optionally selects another installed Chromium channel.', 'Inspect both full-size PNG exports. Use actual Facebook/Instagram upload previews before publishing.'],

@@ -2,6 +2,8 @@
 
 Updated October 22, 2026. **Review guidance, not publication approval.** Pair with `calendar.md`, `campaign.json` and current event facts. No global brand or runtime change.
 
+**Latest owner correction:** omit time-zone labels from all guest copy and graphics. Print dates and 12-hour times such as November 18 at 9am. Internal scheduling retains America/Chicago and UTC. Both Santa illustrations use the campaign-local corrected ball grips; keep the prior originals as history.
+
 ## Who the creative welcomes
 
 - **Jingle Bowl:** explicitly family-focused: bowling, pizza, cocoa, Santa and time together. Jon permits a substantial departure from the usual adult-led presentation. Keep polished execution and playful warmth; families are the intended audience.
@@ -18,7 +20,7 @@ Keep supplied logos, established fonts and recognizable Santa/Mirrorball directi
 
 ## Offer and wording guardrails
 
-- **NYE:** December 31, 2026. Reservations open **Wednesday, November 18 at 9am Central**, independently of the event date. Per lane: bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Arcade cards, cocktails, additional food and drinks are separate. Historical “Our NYE parties usually sell out” is supported; current scarcity requires verification. [Current source](../../../src/pages/new-years-eve.astro).
+- **NYE:** December 31, 2026. Reservations open **Wednesday, November 18 at 9am**, independently of the event date. Per lane: bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Arcade cards, cocktails, additional food and drinks are separate. Historical “Our NYE parties usually sell out” is supported; current scarcity requires verification. [Current source](../../../src/pages/new-years-eve.astro).
 - **Jingle:** Sunday, December 6, 2026; reservations are already open. Use **“Bowling, pizza & a visit with Santa.”** Each lane includes 90 minutes, shoes, one large pizza, one soda pitcher, cookie/cocoa bar access and a Santa photo on the guest's device; VIP adds one basket of fries. Do not promise that Santa bowls with each group. No invented Santa hours, unlimited refills or extras. [Current source](../../../src/pages/jingle-bowl.astro).
 - No blanket food-preparation claims, coupons, invented amenities, guest-capacity claims or age restrictions. The suite is VIP or semi-private, never private. Public package quantities are distinct from guest-capacity marketing.
 

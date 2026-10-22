@@ -1,6 +1,6 @@
 TWISTED PIN HOLIDAY CAMPAIGN | INDEPENDENT CRITIQUE
 Reviewed October 22, 2026 by GPT-6.1 Sol on Ultra.
-Copy: series-copy-v2 | Delivery: posting-folders-v1
+Copy: series-copy-v3 | Delivery: posting-folders-v1
 
 VERDICT
 Ready to deliver. No must-fix visual, factual, copy or folder-usability issue was found.
@@ -30,6 +30,28 @@ OPTIONAL FUTURE OPPORTUNITY
 An approved genuine cookie/cocoa photo could add appetite and warmth to the
 November 20 piece. The current symbolic line-art design is complete and usable;
 no fictional food photograph was substituted.
+
+OWNER REFINEMENTS: COPY V3 AND SANTA GRIPS
+Guest-facing graphics, captions, Story messages and alt text now omit time-zone
+labels. Dates and times are unchanged; America/Chicago and UTC remain internal
+scheduling data. Both Santa illustrations now show two close finger holes with
+a distinctly lower thumb hole, following Jon's supplied bowling-ball references.
+The current October 23, November 13 and December 4 feed/Story pairs use these
+corrected masters. Prior artwork remains in the editable source archive.
+
+GPT-6.1 Sol on Ultra independently rechecked both corrected masters, all six
+dated Santa exports and the five revised NYE feed/Story pairs. It found no
+blockers, confirmed no guest time-zone labels, exact caption parity for all 16
+dates and no regression to the December 28 numeral spacing. Corrected cutout
+transparency and targeted source/export hashes also passed.
+
+LINK AUDIT
+All 16 Facebook captions point to the matching canonical event page. Every
+Instagram variant includes either a bio-link direction or its correct plain-
+address fallback, and every native Story destination matches the event.
+The reviewer independently confirmed both landing pages loaded with matching
+titles and canonical URLs. Actual bio links and native stickers are publishing
+checks; an Instagram caption address is not presented as a clickable link.
 
 REVIEW SCOPE
 The reviewer viewed the full campaign contact sheet, all seven new NYE phone

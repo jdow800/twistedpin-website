@@ -1,3 +1,15 @@
+## 2026-10-22 - Guest time wording and Santa grip refinement
+
+Jon requested removal of time-zone labels from all guest-facing holiday campaign
+graphics and copy. Retain actual dates and 12-hour times; America/Chicago and UTC
+remain internal scheduling facts. This supersedes the earlier campaign instruction
+to print Central on time-sensitive creative. Correct both Santa bowling-ball
+illustrations to show two close finger holes and a more separated thumb hole,
+using the supplied grip photographs as geometry references. Preserve prior masters
+and carry corrected assets through all consuming campaign layouts. Verify each
+Facebook/Instagram/Story variant points to its matching canonical event page.
+No runtime, publishing, scheduling or messaging changes are authorized.
+
 ## 2026-10-22 - Complete holiday campaign by posting date
 
 Jon accepted the independent GPT-6.1 Sol Ultra review direction and requested a

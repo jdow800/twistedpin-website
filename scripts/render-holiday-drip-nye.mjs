@@ -38,14 +38,14 @@ for (const [token, [path, mime, assetRoot]] of Object.entries(assets)) {
 }
 const concepts = [
   {
-    name: '01-nye-set-the-clock', css: 'clock', proposedPublicationDate: '2026-10-23',
+    name: '01-nye-set-the-clock', css: 'clock', proposedPublicationDate: '2026-10-28',
     headline: '<span>SET THE</span><span class="accent">CLOCK.</span>',
-    alt: 'Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/',
+    alt: 'Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/',
   },
   {
-    name: '03-nye-usually-sells-out', css: 'sellout', proposedPublicationDate: '2026-10-28',
+    name: '03-nye-usually-sells-out', css: 'sellout', proposedPublicationDate: '2026-11-09',
     headline: '<span>OUR NYE PARTIES</span><span>USUALLY</span><span class="accent">SELL OUT.</span>',
-    alt: 'Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/',
+    alt: 'Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/',
   },
 ];
 const formats = [
@@ -89,6 +89,7 @@ try {
       eventWording: document.querySelector('.event').innerText,
     }));
     if (!checks.fonts || checks.overflow || checks.bounds.some(r => r.x < 0 || r.y < 0 || r.x + r.width > format.width || r.y + r.height > format.height)) throw new Error(`Canvas/font check failed: ${concept.name} ${format.name}: ${JSON.stringify(checks)}`);
+    if (/\b(?:central|cst|cdt|ct|utc)\b|America\/Chicago/i.test(checks.openingWording + ' ' + concept.alt)) throw new Error(`Guest-facing timezone label: ${concept.name}`);
     // House margins; actual platform UI/crop is still a publishing-stage check.
     if (format.name === 'story' && checks.bounds.some(r => r.x < 70 || r.y < 250 || r.x + r.width > 1010 || r.y + r.height > 1530)) throw new Error(`Story text exceeds house margins: ${concept.name}`);
     const filename = `${concept.name}-${format.name}.png`;

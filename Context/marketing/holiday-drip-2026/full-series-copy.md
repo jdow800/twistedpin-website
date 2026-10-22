@@ -1,6 +1,6 @@
 # Twisted Pin · Full holiday caption review
 
-Revision: series-copy-v2. Prepared October 22, 2026. **All 16 occasions are drafts; nothing is scheduled or published.** Dates/times are proposed in America/Chicago. The fixed NYE reservations opening is November 18, 2026 at 9am Central.
+Revision: series-copy-v3. Prepared October 22, 2026. **All 16 occasions are drafts; nothing is scheduled or published.** Dates/times are proposed in America/Chicago. The fixed NYE reservations opening is November 18, 2026 at 9am.
 
 Use the same core caption on Facebook and Instagram. Facebook gets the direct event-page link below; on Instagram, replace the last paragraph with the supplied bio CTA only after checking that destination. A plain-address fallback is in campaign.json. Stories are optional, shorter companions with a native link sticker. Do not paste duplicate text over artwork that already carries the message.
 
@@ -10,7 +10,7 @@ Use the same core caption on Facebook and Instagram. Facebook gets the direct ev
 
 Edit campaign.json post_copy_drafts, synchronize any prepared concept variants, and run node scripts/package-holiday-drip-copy.mjs from the repository to regenerate this file and the review page. The same copy appears in the prepared batch text files.
 
-## 1. Fri, Oct 23, 12:00 PM Central · Jingle Bowl
+## 1. Fri, Oct 23, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** Make way for Santa.
 
@@ -34,7 +34,7 @@ Reserve through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed October 23 announcement; pair with the chosen Santa hero and verify the event-specific bio link before using the primary Instagram CTA.
 
-## 2. Wed, Oct 28, 12:00 PM Central · New Year's Eve
+## 2. Wed, Oct 28, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** GIVE 2026 A PROPER SEND-OFF.
 
@@ -42,7 +42,7 @@ Reserve through the Jingle Bowl link in our bio.
 
 Give 2026 a proper send-off. 🪩
 
-Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.
+Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.
 
 Get your family or friends in on the plan.
 
@@ -52,7 +52,7 @@ Save the opening date and see NYE details: https://www.twistedpin.com/new-years-
 
 Save the opening date. NYE details at the New Year's Eve link in our bio.
 
-**Optional Story:** December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.
+**Optional Story:** December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am. Save the date.
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
@@ -60,7 +60,7 @@ Save the opening date. NYE details at the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed October 28 kickoff. One mirrorball emoji at the end of the hook connects to the corrected hero; no other emoji. The recommended visual remains alternative 04, occupying this existing calendar occasion. Pre-opening only. Verify the bio destination before using the primary Instagram CTA. Draft for review, not approval or scheduling.
 
-## 3. Fri, Oct 30, 12:00 PM Central · Jingle Bowl
+## 3. Fri, Oct 30, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** A little less mall. A lot more bowl.
 
@@ -84,7 +84,7 @@ Reserve your family's lane through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed October 30 family-outing post; use approved real family-bowling imagery and keep the humor welcoming.
 
-## 4. Fri, Nov 6, 12:00 PM Central · Jingle Bowl
+## 4. Fri, Nov 6, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** Bowling. Pizza. Santa. Sunday handled.
 
@@ -110,7 +110,7 @@ Choose your lane through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed November 6 package explainer; keep per-lane quantities explicit and show fries only as the VIP inclusion.
 
-## 5. Mon, Nov 9, 12:00 PM Central · New Year's Eve
+## 5. Mon, Nov 9, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** OUR NYE PARTIES USUALLY SELL OUT.
 
@@ -118,7 +118,7 @@ Choose your lane through the Jingle Bowl link in our bio.
 
 Our NYE parties usually sell out.
 
-If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.
+If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.
 
 Round up your family or friends now, so you're ready to choose your party when booking begins.
 
@@ -128,7 +128,7 @@ Keep the NYE link handy: https://www.twistedpin.com/new-years-eve/
 
 Find the details at the New Year's Eve link in our bio, and save the opening date.
 
-**Optional Story:** Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.
+**Optional Story:** Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am for December 31 reservations.
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
@@ -136,7 +136,7 @@ Find the details at the New Year's Eve link in our bio, and save the opening dat
 
 **Publisher note:** Proposed November 9. Historical sellout statement is supported by Jon; it makes no current scarcity or remaining-lane claim. No emoji: let the headline carry this reminder. Pre-opening only; verify the bio destination. Draft for review.
 
-## 6. Fri, Nov 13, 12:00 PM Central · Jingle Bowl
+## 6. Fri, Nov 13, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** Bring your people. Charge your phone.
 
@@ -162,15 +162,15 @@ Reserve through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed November 13 Santa-photo post; the guest supplies the photo device and no exact Santa appearance time is promised.
 
-## 7. Tue, Nov 17, 6:00 PM Central · New Year's Eve
+## 7. Tue, Nov 17, 6:00 PM · New Year's Eve
 
-**Angle / proposed image headline:** TOMORROW AT 9AM CENTRAL.
+**Angle / proposed image headline:** TOMORROW AT 9AM.
 
 **Facebook caption**
 
 Set the alarm. ⏰
 
-New Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Decide who's coming tonight, then choose your December 31 party when booking opens.
+New Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.
 
 Save this link for tomorrow: https://www.twistedpin.com/new-years-eve/
 
@@ -178,7 +178,7 @@ Save this link for tomorrow: https://www.twistedpin.com/new-years-eve/
 
 Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.
 
-**Optional Story:** Tomorrow: Wednesday, November 18, 2026, 9am Central. NYE reservations open for December 31. Save the link.
+**Optional Story:** Tomorrow: Wednesday, November 18, 2026, 9am. NYE reservations open for December 31. Save the link.
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
@@ -186,7 +186,7 @@ Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.
 
 **Publisher note:** Proposed November 17 at 6pm Central only. The single alarm emoji belongs at the end of the hook. Reword tomorrow/tonight if this date changes. Keep the absolute opening line on artwork as well. The Instagram CTA requires the NYE bio link to be correct before publication. Draft for review.
 
-## 8. Wed, Nov 18, 9:00 AM Central · New Year's Eve
+## 8. Wed, Nov 18, 9:00 AM · New Year's Eve
 
 **Angle / proposed image headline:** NYE RESERVATIONS ARE OPEN.
 
@@ -194,7 +194,7 @@ Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.
 
 NYE reservations are open.
 
-Six party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm Central. Each reservation covers the party time you choose.
+Six party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers the party time you choose.
 
 Bring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.
 
@@ -212,7 +212,7 @@ Choose your party through the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed November 18 at 9am Central, only after public booking is confirmed open. The launch reveals six distinct party starts, not all-day admission. Verify current choices and the Instagram bio destination. Facebook event creation is separate and its event date is December 31.
 
-## 9. Fri, Nov 20, 12:00 PM Central · Jingle Bowl
+## 9. Fri, Nov 20, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** A little cocoa between frames.
 
@@ -236,7 +236,7 @@ Make it your family's Sunday. Reserve through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed November 20 cocoa-and-cookies post; use the approved offering without depicting unconfirmed toppings, refills or extras.
 
-## 10. Wed, Nov 25, 12:00 PM Central · New Year's Eve
+## 10. Wed, Nov 25, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** THE PARTY ESSENTIALS ARE COVERED.
 
@@ -262,7 +262,7 @@ See the packages and reserve through the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed November 25. Concrete inclusion/convenience angle; per-lane quantities and selected-party duration are explicit. No all-inclusive, unlimited-food, decoration-service or entire-evening promise. Keep cocktails and other paid extras out of this inclusion-led image unless clearly labeled separate. Check availability and bio link before publication. Draft for review.
 
-## 11. Fri, Nov 27, 12:00 PM Central · Jingle Bowl
+## 11. Fri, Nov 27, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** Same Santa. Your kind of lane.
 
@@ -288,7 +288,7 @@ Choose your December 6 reservation through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.
 
-## 12. Fri, Dec 4, 12:00 PM Central · Jingle Bowl
+## 12. Fri, Dec 4, 12:00 PM · Jingle Bowl
 
 **Angle / proposed image headline:** Santa comes this Sunday. Let's roll.
 
@@ -314,7 +314,7 @@ See available times and reserve through the Jingle Bowl link in our bio.
 
 **Publisher note:** Proposed December 4 final campaign post; verify that booking is still available, and never imply reservations close Friday.
 
-## 13. Mon, Dec 7, 12:00 PM Central · New Year's Eve
+## 13. Mon, Dec 7, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?
 
@@ -340,7 +340,7 @@ Choose your NYE celebration through the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed December 7. Publish the 10pm invitation only while that party remains bookable; otherwise revise to current choices. The 10pm–12:30am party alone includes the midnight toast, champagne for 21+ or sparkling cider. Families are welcome at every party. Verify bio destination.
 
-## 14. Wed, Dec 16, 12:00 PM Central · New Year's Eve
+## 14. Wed, Dec 16, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** YOUR PEOPLE. YOUR KIND OF NYE.
 
@@ -364,7 +364,7 @@ Choose your party and lane option through the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed December 16. Couch seating is a sourced VIP feature. No private-suite, suite-possession, guest-capacity or generic pair-selling claim. Publish a two-setting comparison only while both options are relevant to current choices; otherwise adapt accurately. Verify bio link. Draft for review.
 
-## 15. Wed, Dec 23, 12:00 PM Central · New Year's Eve
+## 15. Wed, Dec 23, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** GIVE THE GROUP CHAT AN ACTUAL PLAN.
 
@@ -390,7 +390,7 @@ Make the plan through the New Year's Eve link in our bio.
 
 **Publisher note:** Proposed December 23. One cheers emoji at the end of the hook supports the night-out angle without implying an included drink. The caption explicitly states the cocktail is sold separately. Historical sellouts are not current scarcity. Check availability and bio destination before publication. Draft for review.
 
-## 16. Mon, Dec 28, 12:00 PM Central · New Year's Eve
+## 16. Mon, Dec 28, 12:00 PM · New Year's Eve
 
 **Angle / proposed image headline:** NEW YEAR'S EVE IS THIS THURSDAY.
 

@@ -7,11 +7,11 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 841884,
-      "sha256": "a8a0050838e2c122408aa64161bdf2f9100ce3206c24d81236568047f96fa081",
+      "bytes": 840758,
+      "sha256": "ee3ec7e7f64f43ba5029fff58a02b50f85041e7ce86ec0340169eb93b3648671",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
+      "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/01-nye-set-the-clock-story.png",
@@ -19,11 +19,11 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 855917,
-      "sha256": "786a6b54b20b163e12df7578f1cf222b368e991dafbbaf482daa75b09482b108",
+      "bytes": 854655,
+      "sha256": "cb649ff5a189ed6f0f0700a1809b8e319c5586f24996c4e887a54e65b8597757",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
+      "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/03-nye-usually-sells-out-feed.png",
@@ -31,11 +31,11 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 1549362,
-      "sha256": "d7b0a75ce5aeb7d40b71a44697b88d8c68c41d8eae8e74471b5a7fad44938fc9",
+      "bytes": 1548232,
+      "sha256": "809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
+      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/03-nye-usually-sells-out-story.png",
@@ -43,11 +43,11 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 1504944,
-      "sha256": "0689de07589a6f133348a4851a8f912054444e18b05a376267362a4c0220bbf6",
+      "bytes": 1503743,
+      "sha256": "a07d50d81ed6c4db2fcd6db307409dee8cf7c716835c5436fb220a7c3405fd9d",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
+      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/02-jingle-santa-coming-feed.png",
@@ -55,8 +55,8 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 712165,
-      "sha256": "71f98c8f6831eac46105941d890b9908a18c0fd0b17cc6595cb83424cbdaf2c2",
+      "bytes": 704275,
+      "sha256": "af340770b4b3fff2c9e7c5a6435fc5d86fc9252fb7b2fe9d4c866529da054c14",
       "phase": "jingle-reservations-open",
       "status": "review-draft",
       "alt_text": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball."
@@ -67,8 +67,8 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 805366,
-      "sha256": "2ba4983043b27f8f868bffde561914732200e36e9765bc52079c5ab00d6ce46a",
+      "bytes": 797319,
+      "sha256": "b59a59f85604a167ded635ee1a74b17dab17b7425eaff732b461ab64d286ad33",
       "phase": "jingle-reservations-open",
       "status": "review-draft",
       "alt_text": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball."

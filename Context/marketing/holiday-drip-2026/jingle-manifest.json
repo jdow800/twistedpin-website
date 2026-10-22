@@ -12,7 +12,7 @@
   },
   "renderer": {
     "path": "scripts/render-holiday-drip-jingle.mjs",
-    "sha256": "028dbc02e92f27e2fe6d0e3b7f6c177b7aaffd044237a8fae6516aedd1bfac4e",
+    "sha256": "3a0c60719f47c2d383879522e67903a63dccf677981ae4064f3da932b1adb2ff",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "toolVersions": {
@@ -22,12 +22,12 @@
     "browser": "131.0.6778.33",
     "browserChannel": "bundled-chromium"
   },
-  "method": "New HTML/CSS compositions around an unchanged approved transparent Santa master and supplied logo. Uniform image scaling only; no raster retouching, generated imagery or alteration to an existing finished campaign image.",
+  "method": "HTML/CSS compositions around the approved Santa illustration with the owner-requested grip correction made through built-in imagegen. Prior master retained; corrected transparent raster is uniformly scaled. Supplied logo remains unchanged. See artwork/santa-grip-correction.provenance.json.",
   "sourceAssets": [
     {
-      "path": "Context/jingle-bowl-2026/artwork/santa-entrance-master.png",
-      "bytes": 1783647,
-      "sha256": "28813602face372ffa10958ecea9988b26ef0df6670ca56babdfa0a26660981d",
+      "path": "Context/marketing/holiday-drip-2026/artwork/santa-entrance-v2-grip-corrected.png",
+      "bytes": 1638142,
+      "sha256": "cabc5516698dac8a8cd4a367adc527e8862a77b1ed78237baf04b03bf025f918",
       "width": 1278,
       "height": 1230
     },
@@ -81,8 +81,8 @@
       "width": 1080,
       "height": 1350,
       "format": "feed",
-      "bytes": 712165,
-      "sha256": "71f98c8f6831eac46105941d890b9908a18c0fd0b17cc6595cb83424cbdaf2c2",
+      "bytes": 704275,
+      "sha256": "af340770b4b3fff2c9e7c5a6435fc5d86fc9252fb7b2fe9d4c866529da054c14",
       "alt": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball.",
       "target": "https://www.twistedpin.com/jingle-bowl/",
       "houseMargins": {
@@ -166,8 +166,8 @@
       "width": 1080,
       "height": 1920,
       "format": "story",
-      "bytes": 805366,
-      "sha256": "2ba4983043b27f8f868bffde561914732200e36e9765bc52079c5ab00d6ce46a",
+      "bytes": 797319,
+      "sha256": "b59a59f85604a167ded635ee1a74b17dab17b7425eaff732b461ab64d286ad33",
       "alt": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball.",
       "target": "https://www.twistedpin.com/jingle-bowl/",
       "houseMargins": {

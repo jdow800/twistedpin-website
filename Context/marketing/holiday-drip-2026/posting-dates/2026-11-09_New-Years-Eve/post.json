@@ -10,7 +10,7 @@
   "timezone": "America/Chicago",
   "phase": "before_reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
-  "copy_revision": "series-copy-v2",
+  "copy_revision": "series-copy-v3",
   "status": "prepared_for_review",
   "recommended_concept_id": "03-nye-usually-sells-out",
   "assets": {
@@ -18,8 +18,8 @@
       "filename": "01-FEED-Facebook-and-Instagram.png",
       "width": 1080,
       "height": 1350,
-      "sha256": "d7b0a75ce5aeb7d40b71a44697b88d8c68c41d8eae8e74471b5a7fad44938fc9",
-      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/",
+      "sha256": "809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5",
+      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/",
       "source": "exports/03-nye-usually-sells-out-feed.png",
       "source_manifest": "nye-manifest.json",
       "concept_id": "03-nye-usually-sells-out"
@@ -28,8 +28,8 @@
       "filename": "02-OPTIONAL-STORY.png",
       "width": 1080,
       "height": 1920,
-      "sha256": "0689de07589a6f133348a4851a8f912054444e18b05a376267362a4c0220bbf6",
-      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/",
+      "sha256": "a07d50d81ed6c4db2fcd6db307409dee8cf7c716835c5436fb220a7c3405fd9d",
+      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/",
       "source": "exports/03-nye-usually-sells-out-story.png",
       "source_manifest": "nye-manifest.json",
       "concept_id": "03-nye-usually-sells-out"
@@ -37,12 +37,12 @@
   },
   "copy_file": "RECOMMENDED-COPY.txt",
   "captions": {
-    "facebook": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
-    "instagram": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nFind the details at the New Year's Eve link in our bio, and save the opening date.",
-    "instagram_without_verified_bio": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/"
+    "facebook": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nFind the details at the New Year's Eve link in our bio, and save the opening date.",
+    "instagram_without_verified_bio": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/"
   },
   "story": {
-    "message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.",
+    "message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am for December 31 reservations.",
     "link_sticker": {
       "label": "NYE details",
       "url": "https://www.twistedpin.com/new-years-eve/"

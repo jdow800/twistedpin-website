@@ -1,16 +1,16 @@
 TWISTED PIN HOLIDAY DRIPS · Original art options
-Copy revision: series-copy-v2
+Copy revision: series-copy-v3
 Drafts for review. Nothing scheduled or published. Dates are proposed, America/Chicago.
 Use campaign.json post_copy_drafts for the current full-series copy and calendar.
 Alternatives occupy the same occasion; they do not add posts.
 
-01-nye-set-the-clock · Wed, Oct 28, 12:00 PM Central
+01-nye-set-the-clock · Wed, Oct 28, 12:00 PM
 ART OPTION: Set the clock.
 
 FACEBOOK
 Give 2026 a proper send-off. 🪩
 
-Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.
+Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.
 
 Get your family or friends in on the plan.
 
@@ -19,7 +19,7 @@ Save the opening date and see NYE details: https://www.twistedpin.com/new-years-
 INSTAGRAM (VERIFY EVENT-SPECIFIC BIO LINK)
 Give 2026 a proper send-off. 🪩
 
-Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.
+Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.
 
 Get your family or friends in on the plan.
 
@@ -29,15 +29,15 @@ INSTAGRAM FALLBACK FINAL PARAGRAPH
 Save the opening date. NYE details: twistedpin.com/new-years-eve/
 
 OPTIONAL STORY MESSAGE
-December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.
+December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am. Save the date.
 Native sticker: NYE details · https://www.twistedpin.com/new-years-eve/
 Do not duplicate text already present on the artwork.
 
 FEED FILE: exports/01-nye-set-the-clock-feed.png
 STORY FILE: exports/01-nye-set-the-clock-story.png
-ALT TEXT: Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/
+ALT TEXT: Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/
 
-02-jingle-santa-coming · Fri, Oct 23, 12:00 PM Central
+02-jingle-santa-coming · Fri, Oct 23, 12:00 PM
 ART OPTION: Santa's coming. Let's roll.
 
 FACEBOOK
@@ -66,13 +66,13 @@ FEED FILE: exports/02-jingle-santa-coming-feed.png
 STORY FILE: exports/02-jingle-santa-coming-story.png
 ALT TEXT: Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball.
 
-03-nye-usually-sells-out · Mon, Nov 9, 12:00 PM Central
+03-nye-usually-sells-out · Mon, Nov 9, 12:00 PM
 ART OPTION: Our NYE parties usually sell out.
 
 FACEBOOK
 Our NYE parties usually sell out.
 
-If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.
+If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.
 
 Round up your family or friends now, so you're ready to choose your party when booking begins.
 
@@ -81,7 +81,7 @@ Keep the NYE link handy: https://www.twistedpin.com/new-years-eve/
 INSTAGRAM (VERIFY EVENT-SPECIFIC BIO LINK)
 Our NYE parties usually sell out.
 
-If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.
+If Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.
 
 Round up your family or friends now, so you're ready to choose your party when booking begins.
 
@@ -91,22 +91,22 @@ INSTAGRAM FALLBACK FINAL PARAGRAPH
 Save the opening date. Details: twistedpin.com/new-years-eve/
 
 OPTIONAL STORY MESSAGE
-Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.
+Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am for December 31 reservations.
 Native sticker: NYE details · https://www.twistedpin.com/new-years-eve/
 Do not duplicate text already present on the artwork.
 
 FEED FILE: exports/03-nye-usually-sells-out-feed.png
 STORY FILE: exports/03-nye-usually-sells-out-story.png
-ALT TEXT: Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/
+ALT TEXT: Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/
 
 OPTIONAL EXTRA · 02-jingle-santa-coming-google
-Fri, Oct 23, 12:15 PM Central · google_business_profile_update
+Fri, Oct 23, 12:15 PM · google_business_profile_update
 Santa's coming. Let's roll. Jingle Bowl is Sunday, December 6 at Twisted Pin in Plainfield. Each lane includes 90 minutes of bowling, shoes, one large pizza and one pitcher of soda, plus cookie & cocoa bar access and a photo with Santa on your device. Reservations are open. See packages and choose your reservation time.
 CTA: Book · https://www.twistedpin.com/jingle-bowl/
 Unselected; needs separate channel approval and action authorization.
 
 OPTIONAL EXTRA · 02-jingle-santa-coming-sms
-Fri, Nov 6, 12:00 PM Central · sms
+Fri, Nov 6, 12:00 PM · sms
 Twisted Pin: Santa's coming. Let's roll! Jingle Bowl is Dec 6. Bowling, pizza & a visit with Santa. Reserve: https://www.twistedpin.com/jingle-bowl/ Reply STOP to opt out.
 Omit by default. Owner checks recent Jingle sends and eligible marketing audience. Requires separate send instruction. Verify full rendered segment count and opt-out footer once. Do not substitute the separately attributed /jb/ short link.
 Unselected; needs separate channel approval and action authorization.

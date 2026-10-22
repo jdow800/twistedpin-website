@@ -4,13 +4,13 @@
   "event": "nye-2026",
   "event_name": "New Year's Eve",
   "event_date": "2026-12-31",
-  "headline": "TOMORROW AT 9AM CENTRAL.",
+  "headline": "TOMORROW AT 9AM.",
   "proposed_publish_at": "2026-11-17T18:00:00-06:00",
   "proposed_publish_at_utc": "2026-11-18T00:00:00.000Z",
   "timezone": "America/Chicago",
   "phase": "before_reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
-  "copy_revision": "series-copy-v2",
+  "copy_revision": "series-copy-v3",
   "status": "prepared_for_review",
   "recommended_concept_id": "series-09-nye-opens-tomorrow",
   "assets": {
@@ -18,8 +18,8 @@
       "filename": "01-FEED-Facebook-and-Instagram.png",
       "width": 1080,
       "height": 1350,
-      "sha256": "ce803403f23deb74f82726d57bc8cc822eb25f6906f4c5b64b3895977008fa8c",
-      "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "sha256": "632b6caeb8fd44f37db4920f796e433e15be04db63d590f2da808cb6009d9625",
+      "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
       "source": "series/nye/exports/2026-11-17-nye-feed.png",
       "source_manifest": "series/nye/manifest.json",
       "concept_id": "series-09-nye-opens-tomorrow"
@@ -28,8 +28,8 @@
       "filename": "02-OPTIONAL-STORY.png",
       "width": 1080,
       "height": 1920,
-      "sha256": "d717895e6ebed0ed60185626494856dce047fa46ba0a0c205550a727f6989863",
-      "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "sha256": "df3814e1b70c00b878d8b064927afef390d48ea21db76b3c70c91fe8c4f6b281",
+      "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
       "source": "series/nye/exports/2026-11-17-nye-story.png",
       "source_manifest": "series/nye/manifest.json",
       "concept_id": "series-09-nye-opens-tomorrow"
@@ -37,12 +37,12 @@
   },
   "copy_file": "RECOMMENDED-COPY.txt",
   "captions": {
-    "facebook": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
-    "instagram": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave the date. Tomorrow, use the New Year's Eve link in our bio to reserve.",
-    "instagram_without_verified_bio": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this address for tomorrow: twistedpin.com/new-years-eve/"
+    "facebook": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave the date. Tomorrow, use the New Year's Eve link in our bio to reserve.",
+    "instagram_without_verified_bio": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this address for tomorrow: twistedpin.com/new-years-eve/"
   },
   "story": {
-    "message": "Tomorrow: Wednesday, November 18, 2026, 9am Central. NYE reservations open for December 31. Save the link.",
+    "message": "Tomorrow: Wednesday, November 18, 2026, 9am. NYE reservations open for December 31. Save the link.",
     "link_sticker": {
       "label": "NYE details",
       "url": "https://www.twistedpin.com/new-years-eve/"

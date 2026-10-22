@@ -14,7 +14,7 @@ READ FIRST
    October 2026 positioning report, later owner corrections and event-specific
    audience direction; do not assume the maintained v1.0 guide is latest truth.
 3. campaign.json: post_copy_drafts is canonical for all 16 Meta occasions,
-   keyed by calendar_id with copy_revision series-copy-v2. Read its
+   keyed by calendar_id with copy_revision series-copy-v3. Read its
    caption_body and variants.facebook_feed.caption / instagram_feed.caption,
    including the full Instagram alternate without a verified bio link. Story
    variants contain editorial_message and the native link_sticker destination.
@@ -70,7 +70,7 @@ the complete dated delivery. This does not authorize scheduling/publication.
 Do not turn preserved alternatives into additional occasions.
 Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG.
 Stories, Google and SMS are separately selectable companions, not automatic adds.
-The optional extras are unchanged and retain separate manifest entries.
+The optional extras retain separate manifest entries. Guest copy and graphics omit time-zone labels; internal scheduling still uses America/Chicago and UTC.
 
 Six of the 16 captions use one relevant emoji each; ten use none. There is no
 automatic hashtag block and no emoji-related reach or performance claim.

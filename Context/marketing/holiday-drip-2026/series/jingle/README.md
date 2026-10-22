@@ -6,6 +6,6 @@ Edit artwork.html, then run `node scripts/render-holiday-series-jingle.mjs` from
 
 The manifest is the integration contract: records[].calendar_id, format, path (relative to the campaign folder), width, height, sha256, alt, text and phase. It also records the exact input assets, provenance and reproduction steps.
 
-The actual bowling and suite photos retain their original pixels. Santa remains the approved illustration. The cocoa piece uses symbolic code-native line art and typography, not a food-product photograph. The package quantities remain per lane. No new generated raster was needed.
+The actual bowling and suite photos retain their original pixels. Santa uses the approved illustration with the owner-requested finger/thumb-hole correction; prior master retained. The cocoa piece uses symbolic code-native line art and typography, not a food-product photograph. The package quantities remain per lane. The grip correction used built-in imagegen. Exact edit prompts, references and selected masters are preserved in artwork/santa-grip-correction.provenance.json at the campaign root.
 
 Story controls and a native link sticker must be checked in the actual app. Suggested sticker area: x260 y1620, 560×110. Verify availability before booking invitations; December4 is not a booking deadline.

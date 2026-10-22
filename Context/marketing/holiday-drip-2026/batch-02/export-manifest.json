@@ -3,12 +3,12 @@
   "role": "Recommended alternatives, not extra posts.",
   "packager": {
     "path": "scripts/package-holiday-drip-batch02.mjs",
-    "sha256": "9007156050571c8e9748008c07bb18b3f9b486c171fe8db95b962794fa6799d0",
+    "sha256": "4938cd50c5f88b789c95204077078beb85579f204e1f8903ec4c364c31390947",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "render_manifest": {
     "path": "render-manifest.json",
-    "sha256": "eed34e655c630870832d5091c31188b9875e54bf03f196ca9906e0a9dddd5c2d",
+    "sha256": "32c6ed3aa06e682b4282ba88ec05aea3809b645cd0bd65539990b520d50bf6eb",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "outputs": [
@@ -18,11 +18,11 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 1995846,
-      "sha256": "9fde009795419a17b1fee9320ed30266b528c68a6ce8e460b3a07d5b68656bc8",
+      "bytes": 1995710,
+      "sha256": "b521e213dadba373a1a2582f5903e7efa33d98b49d79ad8b8a28e903bc21b513",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/04-nye-mirrorball-moment-story.png",
@@ -30,11 +30,11 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 2058874,
-      "sha256": "587f3955ccd8cc96670504ced4cab8687ed255a0a4149102ed443b0eb3da8ea9",
+      "bytes": 2058648,
+      "sha256": "90413b85cdb598e436c406b1a90bb02a57bfbde2831691b8857720fc921e4769",
       "phase": "before-reservations-open",
       "status": "review-draft",
-      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/"
     },
     {
       "filename": "exports/05-jingle-santa-arrives-feed.png",
@@ -42,8 +42,8 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 2216539,
-      "sha256": "77de859e40a7ec14635e69a1be1797452a15dad983dc9cbb0f387f5a4fdc4003",
+      "bytes": 2156731,
+      "sha256": "ffb1789833af5ccb7b6cce8b16d5fc88c2aab3f4cba2ed133c6e42bd8b82d0da",
       "phase": "jingle-reservations-open",
       "status": "review-draft",
       "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
@@ -54,8 +54,8 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 2327906,
-      "sha256": "43b8e3904f73f8ba5cf42856ad178b0c7f5e9dcf5a60fe2157af4eb1f4c59ed9",
+      "bytes": 2266494,
+      "sha256": "3c6897aaf4225db1ccb1b8d3c66a5262a8116e6ff3da1a2b84e1e077d65e1d33",
       "phase": "jingle-reservations-open",
       "status": "review-draft",
       "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
@@ -88,15 +88,15 @@
   "review_artifacts": [
     {
       "filename": "review.html",
-      "sha256": "ebcc791ab20c6f3f648cdf3bd13896066ed4c810d3069f52b2b97a143652a46e",
+      "sha256": "1b35a813a908bf1b2f317fbd4f84e252a6d1025f6ab2c528324eb5258a2abe2a",
       "hashNormalization": "UTF-8 text with LF line endings"
     },
     {
       "filename": "contact-sheet.png",
       "width": 1440,
       "height": 1920,
-      "bytes": 2514176,
-      "sha256": "18ded86e8639e221162e464f7e0bfbe0ca759bd99e0eb0f7d339f40d440ed702",
+      "bytes": 2488319,
+      "sha256": "c8426ea7ccad0f4e52ce17adc2367037d3dcf8c352457c3edf9cebe45f138bd7",
       "purpose": "Review overview only; not a publishing asset"
     }
   ]
