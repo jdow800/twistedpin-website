@@ -2,6 +2,8 @@
 
 ## Latest creative follow-up · Batch 02
 
+**Latest correction:** Jon supplied two bowling-ball photos to correct the NYE mirrorball grip. The current master is `batch-02/artwork/nye-hero-v3-grip-corrected.png`: a close finger pair and distinctly lower thumb. Current NYE feed/Story exports and previews have been rerendered, with updated hashes and preserved exact edit provenance/reference files. The older `nye-hero-v2.png` remains an archived proposal. Jingle, copy, dates and approval/publication state are unchanged. The same batch 02 Desktop folders and ZIPs carry the correction.
+
 Jon invited stronger creative judgment and new visuals, asking for an “epic” result. The recommended follow-up is [batch 02](batch-02/README.md): a cinematic mirrored bowling ball for NYE and a festive illustrated Santa scene for Jingle, each in feed/Story formats with editable typography. The first batch is preserved. These are visual alternatives for the same Oct 23/Oct 26 occasions, not extra posts. `campaign.json` carries the new copy/assets and explicit mutually exclusive choice groups; no creative selection, approval or action permission is inferred from openness to suggestions. Use the batch 02 gallery as the latest visual review.
 
 The new hero originals, exact built-in-imagegen prompts/provenance, editable layouts and four final exports are preserved in the isolated feature branch. New Desktop folders named `Drip review - batch 02` and `Holiday-drip-2026-batch-02-REVIEW.zip` include both batches; batch 01 deliveries are retained. The branch remains a local review snapshot, not a production release or a claim of social publication. [Research notes](research-notes.md) preserve the sources and distinguish general account evidence from this supplemental plan.

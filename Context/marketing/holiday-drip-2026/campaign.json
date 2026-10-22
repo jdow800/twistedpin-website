@@ -599,7 +599,13 @@
       "alternative_to": "01-nye-set-the-clock",
       "creative_choice_group": "nye-kickoff-visual",
       "recommendation": "recommended_visual_direction",
-      "batch": "batch-02"
+      "batch": "batch-02",
+      "visual_revision": {
+        "date": "2026-10-22",
+        "description": "Corrected finger-pair/thumb spacing using user-supplied bowling-ball references.",
+        "master": "batch-02/artwork/nye-hero-v3-grip-corrected.png",
+        "provenance": "batch-02/artwork/nye-grip-correction.provenance.json"
+      }
     },
     {
       "id": "05-jingle-santa-arrives",

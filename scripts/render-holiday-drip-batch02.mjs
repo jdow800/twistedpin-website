@@ -19,7 +19,7 @@ const output = resolve(pack, 'exports');
 const templatePath = 'Context/marketing/holiday-drip-2026/batch-02/artwork/campaign.html';
 const source = await readFile(resolve(repo, templatePath), 'utf8');
 const assets = {
-  NYE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v2.png', 'image/png', repo],
+  NYE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png', 'image/png', repo],
   JINGLE_HERO: ['Context/marketing/holiday-drip-2026/batch-02/artwork/jingle-hero-v2.png', 'image/png', repo],
   LOGO: ['public/logo/twisted-pin-horizontal-white.png', 'image/png', repo],
   DISPLAY_FONT: ['node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2', 'font/woff2', dependencyRoot],
@@ -116,7 +116,7 @@ await writeFile(resolve(pack, 'render-manifest.json'), JSON.stringify({
   renderer: { path: relative(repo, fileURLToPath(import.meta.url)).replaceAll('\\', '/'), sha256: shaText(await readFile(fileURLToPath(import.meta.url), 'utf8')), hashNormalization: textHashNormalization },
   toolVersions, sourceAssets,
   method: 'Separate HTML/CSS feed and Story compositions around generated editorial hero images. Real supplied logo and existing approved font substitutions. Original generated masters remain unmodified; displayed at a uniform scale with layout gradients. Heroes are artistic illustrations, not photographs of the venue or documentary evidence of an event.',
-  provenance: ['artwork/nye-imagegen-provenance.json', 'artwork/jingle-hero-v2.provenance.json'],
+  provenance: ['artwork/nye-imagegen-provenance.json', 'artwork/nye-grip-correction.provenance.json', 'artwork/jingle-hero-v2.provenance.json'],
   reproduction: ['From the Website repository root, install locked dependencies with npm ci and the bundled browser with npx playwright install chromium.', 'Run node scripts/render-holiday-drip-batch02.mjs.', 'HOLIDAY_RENDER_DEPS optionally points at an existing compatible Website dependency tree; HOLIDAY_RENDER_BROWSER_CHANNEL optionally selects an installed Chromium channel.', 'Script writes only these four final PNGs and render-manifest.json under batch-02; no Website build, deployment, environment files or production access.'],
   limitations: ['House margins are design choices, not platform-certified safe zones; check actual organic Facebook/Instagram previews.', 'Story printed URLs are not clickable: publisher must add the native link sticker.', 'NYE artwork is for before November 18, 2026 at 9am Central only.', 'Jingle reservations-open wording requires a current availability check before publishing.', 'No current scarcity, party times/prices, package additions or documentary venue appearance are asserted.'],
   outboundNetworkRequests, records,

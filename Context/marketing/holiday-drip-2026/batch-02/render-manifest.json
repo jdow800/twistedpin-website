@@ -8,7 +8,7 @@
   },
   "renderer": {
     "path": "scripts/render-holiday-drip-batch02.mjs",
-    "sha256": "1b476046185f3b4044b67c494b0a28c734a3540fbcc877d7fdd4a8984d1c8b3f",
+    "sha256": "895e61b0506470b72ed47017e1ce8c8f881ad3a99f6627a5a56ce27adf185de0",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "toolVersions": {
@@ -20,9 +20,9 @@
   },
   "sourceAssets": [
     {
-      "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v2.png",
-      "bytes": 2342298,
-      "sha256": "7352fdc68a747c080bb32849f44bad1d3d55039edaa9ee495fa60a47602b2d7c",
+      "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png",
+      "bytes": 2204698,
+      "sha256": "7a738b776e6194c1d0200f355d36a61c5ec4ea51820922e99d42b1c707e48eed",
       "width": 1122,
       "height": 1402
     },
@@ -59,6 +59,7 @@
   "method": "Separate HTML/CSS feed and Story compositions around generated editorial hero images. Real supplied logo and existing approved font substitutions. Original generated masters remain unmodified; displayed at a uniform scale with layout gradients. Heroes are artistic illustrations, not photographs of the venue or documentary evidence of an event.",
   "provenance": [
     "artwork/nye-imagegen-provenance.json",
+    "artwork/nye-grip-correction.provenance.json",
     "artwork/jingle-hero-v2.provenance.json"
   ],
   "reproduction": [
@@ -87,8 +88,8 @@
       "width": 1080,
       "height": 1350,
       "format": "feed",
-      "bytes": 2035009,
-      "sha256": "a14d5c0a3f95c61243515c478cbdd1df54eae5eb31339078d1714e5b37b1610e",
+      "bytes": 1995846,
+      "sha256": "9fde009795419a17b1fee9320ed30266b528c68a6ce8e460b3a07d5b68656bc8",
       "alt": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
       "houseMargins": {
         "left": 70,
@@ -166,8 +167,8 @@
       "width": 1080,
       "height": 1920,
       "format": "story",
-      "bytes": 2098341,
-      "sha256": "e018a3d62cac56cc2aed0876368b149a5012eb5c03c0d8091582151bffec7e64",
+      "bytes": 2058874,
+      "sha256": "587f3955ccd8cc96670504ced4cab8687ed255a0a4149102ed443b0eb3da8ea9",
       "alt": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
       "suggestedLinkStickerArea": {
         "x": 260,

@@ -4,6 +4,8 @@
 
 My recommended pair is the mirrored bowling ball for NYE and the festive Santa scene for Jingle. These are alternative visuals for the existing October 23 and October 26 occasions, not two additional posts. The October 28 historical-sellout reminder remains available from batch 01.
 
+**Mirrorball correction:** Jon's two bowling-ball references now guide the grip: two close finger holes with the thumb distinctly farther below. The current NYE exports use `artwork/nye-hero-v3-grip-corrected.png`. The prior hero, reference images and exact edit prompt are retained in `artwork/`; [edit provenance](artwork/nye-grip-correction.provenance.json) records the built-in imagegen call. Jingle, copy and proposed dates are unchanged.
+
 ## Review and use
 
 - [Preview/contact sheet](contact-sheet.png) and [gallery with actual copy](review.html).
@@ -21,7 +23,7 @@ The first batch is preserved. `campaign.json` records mutually exclusive visual 
 
 ## Editable source and preservation
 
-`artwork/campaign.html` and `scripts/render-holiday-drip-batch02.mjs` own final compositions, logo, text, opening/date lines and format positioning. `artwork/nye-hero-v2.png` and `artwork/jingle-hero-v2.png` are the saved original hero outputs. Their exact generation prompts, references and built-in-tool provenance are in the adjacent JSON files. Originals remain at their generated-images location too; project consumption does not depend on that location.
+`artwork/campaign.html` and `scripts/render-holiday-drip-batch02.mjs` own final compositions, logo, text, opening/date lines and format positioning. `artwork/nye-hero-v3-grip-corrected.png` and `artwork/jingle-hero-v2.png` are the current hero masters; `artwork/nye-hero-v2.png` preserves the original NYE proposal. Exact generation/edit prompts, references and built-in-tool provenance are in the adjacent JSON files. Originals remain at their generated-images location too; project consumption does not depend on that location. Files in `artwork/reference-grips/` are user-supplied geometry references, not campaign publication assets.
 
 The built-in image-generation tool was used; no external API/CLI fallback was used. It produced the hero art only. Jingle's unselected initial generation is archived in `artwork/source-history/` so its subsequent composition edit has a preserved input; it is not a publication asset. The supplied logo and existing Barlow Condensed/Montserrat/Roboto Slab font assets remain independent editable layers. The rejected September brand kit was not used.
 

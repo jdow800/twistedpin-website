@@ -8,7 +8,7 @@
   },
   "render_manifest": {
     "path": "render-manifest.json",
-    "sha256": "ea1bdad5e4257d79169799b17e469b2d24c4715343f0f863d3c9db4feb99ab99",
+    "sha256": "eed34e655c630870832d5091c31188b9875e54bf03f196ca9906e0a9dddd5c2d",
     "hashNormalization": "UTF-8 text with LF line endings"
   },
   "outputs": [
@@ -18,8 +18,8 @@
       "placement": "feed",
       "width": 1080,
       "height": 1350,
-      "bytes": 2035009,
-      "sha256": "a14d5c0a3f95c61243515c478cbdd1df54eae5eb31339078d1714e5b37b1610e",
+      "bytes": 1995846,
+      "sha256": "9fde009795419a17b1fee9320ed30266b528c68a6ce8e460b3a07d5b68656bc8",
       "phase": "before-reservations-open",
       "status": "review-draft",
       "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
@@ -30,8 +30,8 @@
       "placement": "story",
       "width": 1080,
       "height": 1920,
-      "bytes": 2098341,
-      "sha256": "e018a3d62cac56cc2aed0876368b149a5012eb5c03c0d8091582151bffec7e64",
+      "bytes": 2058874,
+      "sha256": "587f3955ccd8cc96670504ced4cab8687ed255a0a4149102ed443b0eb3da8ea9",
       "phase": "before-reservations-open",
       "status": "review-draft",
       "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
@@ -95,8 +95,8 @@
       "filename": "contact-sheet.png",
       "width": 1440,
       "height": 1920,
-      "bytes": 2517809,
-      "sha256": "bdc1de831f0b4095afb587cbcc1fb200889b29378bf3460801482be5d544ec42",
+      "bytes": 2513965,
+      "sha256": "9720354f4861240a5adbffb4cb3675dab21d8f9542f6f4fbaa07a932fcfbea76",
       "purpose": "Review overview only; not a publishing asset"
     }
   ]

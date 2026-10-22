@@ -1,3 +1,14 @@
+## 2026-10-22 - NYE mirrorball grip correction
+
+Jon supplied two bowling-ball references and requested more accurate finger/thumb
+spacing, focused on the mirrorball. Edit the NYE illustration with the built-in
+image tool: two close finger holes and a distinctly lower thumb hole, preserving
+the composition. Retain the earlier hero, the supplied reference files and exact
+edit provenance. Use the corrected sibling master in the existing feed/Story
+exports and refresh previews/manifests/Desktop deliveries. Jingle artwork and all
+copy/calendar/publication states remain unchanged. This is a visual correction,
+not scheduling or production authorization.
+
 ## 2026-10-22 - Cinematic holiday drip alternatives
 
 Jon invited creative judgment beyond the first batch and asked for an epic result.
