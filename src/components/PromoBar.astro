@@ -47,7 +47,10 @@
  *   - Dismiss is a real <button> with aria-label
  *   - prefers-reduced-motion: skip the entry slide
  */
-import { getActivePromos } from "../config/promos";
+import { getActivePromos, PROMOS } from "../config/promos";
+
+interface Props { homepageManaged?: boolean }
+const { homepageManaged = false } = Astro.props;
 
 // Trailing-slash normalize so "/free-kids-bowling" and "/free-kids-bowling/"
 // both match.
@@ -57,7 +60,7 @@ const currentPath = Astro.url.pathname.endsWith("/")
 
 // Per-promo page gates: hide a promo on its own landing page, and hide
 // homepage-only promos everywhere but `/`. The rest keep rotating.
-const promos = getActivePromos().filter((promo) => {
+const promos = (homepageManaged ? PROMOS : getActivePromos()).filter((promo) => {
   const targetPath = promo.hideOnPath ?? promo.href;
   const targetPathNormalized = targetPath.endsWith("/")
     ? targetPath
@@ -67,12 +70,14 @@ const promos = getActivePromos().filter((promo) => {
   return true;
 });
 
-const shouldRender = promos.length > 0;
+const shouldRender = homepageManaged || promos.length > 0;
 ---
 {shouldRender && (
   <aside
     class="promo-bar"
     data-promo-bar
+    data-homepage-fallback={homepageManaged ? "" : undefined}
+    hidden={homepageManaged}
     data-promo-id={promos.map((p) => p.id).join(",")}
     role="region"
     aria-label={promos.length > 1 ? "Promotions" : "Promotion"}
@@ -83,6 +88,7 @@ const shouldRender = promos.length > 0;
           class="promo-link"
           href={promo.href}
           data-promo-slide
+          data-promo-key={promo.id}
           data-active={i === 0 ? "" : undefined}
           aria-hidden={i === 0 ? undefined : "true"}
           tabindex={i === 0 ? undefined : -1}
@@ -107,6 +113,7 @@ const shouldRender = promos.length > 0;
 )}
 
 <style>
+  .promo-bar[hidden], .promo-link[hidden] { display: none !important; }
   /* ---------- Mobile (default) ---------- */
 
   .promo-bar {
@@ -315,6 +322,8 @@ const shouldRender = promos.length > 0;
   (function () {
     var bar = document.querySelector("[data-promo-bar]");
     if (!bar) return;
+    // The homepage has one date-aware controller for generic and event promos.
+    if (bar.hasAttribute("data-homepage-fallback")) return;
 
     // Trigger entry slide-in after the CTA bar has finished its own.
     window.setTimeout(function () {

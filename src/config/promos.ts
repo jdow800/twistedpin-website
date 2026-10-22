@@ -3,14 +3,14 @@
  * surface site-wide for a bounded window.
  *
  * Render contract:
- *   - PromoBar.astro renders ALL active promos at build time in ONE bar.
+ *   - PromoBar.astro renders active promos at build time in ONE bar.
+ *     The homepage renders all candidates hidden, then the shared campaign
+ *     controller selects current promos using America/Chicago time.
  *     A single promo renders static; two or more rotate in place (cross-fade
  *     every ~7s, paused on hover/focus). Never stacked — one pill footprint
  *     regardless of how many promos are live.
- *   - User can dismiss the X; dismissal is stored in localStorage by `id`
- *     and never re-shows that specific promo on that device until the
- *     window closes. Bump the `id` (e.g. `kbf-2026` → `kbf-2027`) to
- *     re-show with refreshed copy.
+ *   - User can dismiss the X for the current page view. No storage is used;
+ *     reload or navigation restores eligible promotions.
  *   - Build runs daily at 9 UTC via cron, so windows go in/out of effect
  *     overnight without manual deploys (same mechanic as nav-seasonal.ts).
  *
@@ -29,8 +29,7 @@
  */
 export interface Promo {
   /**
-   * Stable ID for localStorage dismissal. Bump this when the content
-   * changes so previously-dismissed users see the new copy.
+   * Stable ID used to match a candidate with its rendered slide.
    * Convention: `<slug>-<year>` e.g. "kbf-summer-2026".
    */
   id: string;
@@ -47,8 +46,8 @@ export interface Promo {
    */
   hideOnPath?: string;
   /**
-   * ISO date "YYYY-MM-DD". Promo first shows from start-of-day in build
-   * server tz. Omit to show immediately.
+   * ISO date "YYYY-MM-DD". Starts at Chicago midnight on the homepage;
+   * other pages retain build-time selection. Omit to show immediately.
    */
   showFrom?: string;
   /**
@@ -122,17 +121,8 @@ export const PROMOS: readonly Promo[] = [
     showUntil: "2026-09-13",
     homepageOnly: true,
   },
-  // NYE before holiday-parties — when both Q4 promos are active
-  // (Nov 15 → Dec 15 overlap) the more time-sensitive one gets the entry
-  // beat; the two rotate.
-  {
-    id: "nye-2026",
-    message: "New Year's Eve 2026 — see party times and packages",
-    href: "/new-years-eve/",
-    showFrom: "2026-11-15",
-    showUntil: "2026-12-31",
-    homepageOnly: true,
-  },
+  // NYE now owns the homepage lead from Dec 7 through the shared campaign
+  // selector. Do not add a second NYE bar or a separate November start here.
   // Holiday parties — picks up the day after the kids promo expires so the
   // bar never goes dark into the season (Jon-approved copy 2026-08-01).
   {

@@ -1,0 +1,68 @@
+---
+import PromoBar from "../PromoBar.astro";
+---
+{/* Client clock selects one homepage promotion. Hidden HTML is safe with no JS
+    or a stale cached document; all ordinary homepage navigation stays usable. */}
+<div data-homepage-promotions>
+  <aside class="homepage-nye" data-homepage-nye data-entrance="settled" hidden aria-label="New Year's Eve at Twisted Pin">
+    <div class="homepage-nye-art" aria-hidden="true">
+      <svg viewBox="0 0 100 116" fill="none"><defs><radialGradient id="homepage-mirror-silver" cx=".3" cy=".25" r=".8"><stop stop-color="#f4efe3"/><stop offset=".38" stop-color="#a9bfca"/><stop offset=".7" stop-color="#496577"/><stop offset="1" stop-color="#1a233e"/></radialGradient><clipPath id="homepage-mirror-clip"><circle cx="50" cy="65" r="37"/></clipPath></defs><path d="M50 0v27" stroke="#b7c6cd" stroke-width="1.2"/><circle cx="50" cy="65" r="37" fill="url(#homepage-mirror-silver)" stroke="#e9e5e2"/><g clip-path="url(#homepage-mirror-clip)" stroke="#18223c" stroke-width="1.5" opacity=".8"><path d="M13 43h74M13 54h74M13 65h74M13 76h74M13 87h74M50 28v74"/><ellipse cx="50" cy="65" rx="13" ry="37"/><ellipse cx="50" cy="65" rx="28" ry="37"/></g><path d="m30 37 3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fffaf0" class="homepage-nye-glint"/><path d="m79 77 2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#4eecc4"/></svg>
+    </div>
+    <a class="homepage-nye-link" href="/new-years-eve/" data-homepage-nye-link>
+      <span class="homepage-nye-kicker">DECEMBER 31</span><strong>NYE. DONE RIGHT.</strong>
+      <span class="homepage-nye-action">See NYE parties <span aria-hidden="true">→</span></span>
+    </a>
+    <div class="homepage-nye-controls">
+      <button type="button" data-homepage-nye-dismiss aria-label="Dismiss New Year's Eve invitation">×</button>
+      <button type="button" data-homepage-nye-pause aria-label="Pause homepage motion" aria-pressed="false"><span aria-hidden="true" data-homepage-pause-icon>Ⅱ</span></button>
+    </div>
+  </aside>
+  <PromoBar homepageManaged />
+</div>
+<style>
+  [data-homepage-promotions] { display: contents; }
+  .homepage-nye[hidden] { display: none !important; }
+  .homepage-nye { position: absolute; z-index: 6; top: calc(var(--homepage-header-height, 72px) + 34px); left: 12px; right: 12px; color: #f4efe3; background: #170f32f5; border: 1px solid #97bab888; border-radius: 10px; box-shadow: 0 12px 32px #0005; }
+  .homepage-nye-link { display: block; color: inherit; text-decoration: none; padding: 17px 44px 17px 95px; min-height: 116px; box-sizing: border-box; }
+  .homepage-nye-kicker { display: block; font: 700 12px/1.35 var(--font-ui); letter-spacing: .07em; color: #d9d2e7; }
+  .homepage-nye-link strong { display: block; margin: 5px 0 8px; font: 900 clamp(24px,7.5vw,31px)/1 var(--font-display); letter-spacing: -.01em; }
+  .homepage-nye-action { display: block; color: #4eecc4; font: 700 12px/1.5 var(--font-ui); }
+  .homepage-nye-action span { padding-left: 6px; }
+  .homepage-nye-art { position: absolute; pointer-events: none; top: -32px; left: 1px; width: 94px; height: 112px; transform-origin: 50% 0; }
+  .homepage-nye-art svg { width: 100%; height: 100%; }
+  .homepage-nye-glint { transform-origin: 30px 48px; }
+  .homepage-nye-controls { position: absolute; right: 0; top: 0; display: grid; }
+  .homepage-nye-controls button { width: 44px; height: 44px; border: 0; border-radius: 9px; background: transparent; color: #d9d2e7; font: 400 26px/1 var(--font-ui); cursor: pointer; }
+  .homepage-nye-controls button:last-child { font-size: 17px; }
+  .homepage-nye-controls button:disabled { opacity: .45; cursor: default; }
+  .homepage-nye :is(a,button):focus-visible { outline: 2px solid #4eecc4; outline-offset: 3px; }
+  .homepage-nye[data-entrance=entering] { animation: homepage-invite-in 600ms ease-out both; }
+  .homepage-nye[data-entrance=entering] .homepage-nye-art { animation: homepage-mirrorball-drop 1700ms cubic-bezier(.2,.7,.3,1) both; }
+  .homepage-nye[data-entrance=entering] .homepage-nye-glint { animation: homepage-one-glint 800ms 650ms ease both; }
+  .homepage-nye[data-paused=true], .homepage-nye[data-paused=true] * { animation-play-state: paused !important; }
+  @keyframes homepage-invite-in { from { opacity: 0; transform: translateY(-7px); } to { opacity: 1; transform: none; } }
+  @keyframes homepage-mirrorball-drop { 0% { transform: translateY(-90px) rotate(16deg); } 50% { transform: translateY(0) rotate(-8deg); } 75% { transform: rotate(3deg); } 100% { transform: none; } }
+  @keyframes homepage-one-glint { 0%,100% { opacity: .6; transform: scale(.8); } 55% { opacity: 1; transform: scale(1.35); } }
+  @media (max-height: 600px) and (max-width: 1024px) {
+    .homepage-nye { top: calc(var(--homepage-header-height, 72px) + 20px); }
+    .homepage-nye-link { min-height: 91px; padding: 10px 44px 10px 75px; }
+    .homepage-nye-link strong { margin: 3px 0 5px; font-size: 24px; }
+    .homepage-nye-art { width: 72px; height: 88px; top: -17px; }
+  }
+  @media (max-height: 450px) and (min-width: 500px) and (max-width: 1024px) {
+    .homepage-nye { top: calc(var(--homepage-header-height, 72px) + 4px); }
+    .homepage-nye-link { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 96px 8px 48px; }
+    .homepage-nye-link strong { margin: 0; font-size: 24px; }
+    .homepage-nye-art { width: 34px; height: 40px; top: 2px; left: 7px; }
+    .homepage-nye-controls { display: flex; }
+  }
+  @media (min-width: 1025px) {
+    .homepage-nye { left: auto; right: 26px; width: 380px; }
+    .homepage-nye-link strong { font-size: 30px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .homepage-nye, .homepage-nye-art, .homepage-nye-glint { animation: none !important; } }
+</style>
+<script>
+  import { initHomepagePromotions } from "../../scripts/homepage-campaign.client";
+  initHomepagePromotions();
+</script>

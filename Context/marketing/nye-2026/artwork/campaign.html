@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Twisted Pin · New Year's Eve campaign artwork</title>
+  <style>
+    @font-face { font-family: Barlow; font-style: normal; font-weight: 900; src: url('{{DISPLAY_FONT}}') format('woff2'); }
+    @font-face { font-family: Montserrat; font-style: normal; font-weight: 700; src: url('{{UI_FONT}}') format('woff2'); }
+    @font-face { font-family: Slab; font-style: normal; font-weight: 400; src: url('{{BODY_FONT}}') format('woff2'); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: {{WIDTH}}px; height: {{HEIGHT}}px; overflow: hidden; }
+    body { color: #f4efe3; background: #100b23; }
+    .art { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; }
+    .photo { position: absolute; inset: 0 0 0 auto; width: 70%; height: 100%; object-fit: cover; object-position: 48% 50%; }
+    .shade { position: absolute; inset: 0; background: linear-gradient(90deg, #100b23 0%, #100b23 21%, rgba(16,11,35,.93) 34%, rgba(16,11,35,.53) 57%, rgba(16,11,35,.06) 80%), linear-gradient(0deg, rgba(16,11,35,.83), transparent 43%, rgba(16,11,35,.12)); }
+    .logo { position: absolute; left: 108px; top: 70px; width: 260px; height: auto; }
+    .mirror { position: absolute; width: 335px; top: 0; right: 116px; filter: drop-shadow(0 12px 24px rgba(0,0,0,.28)); }
+    .headline { position: absolute; left: 108px; top: 267px; }
+    .eyebrow { margin: 0 0 22px; font: 700 32px/1.25 Montserrat, sans-serif; letter-spacing: .07em; }
+    h1 { margin: 0; font: 900 190px/.84 Barlow, sans-serif; letter-spacing: -.015em; text-transform: uppercase; }
+    h1 span { display: block; }
+    h1 span:last-child { color: #4eecc4; }
+    .subhead { margin: 30px 0 0; font: 400 32px/1.45 Slab, serif; }
+    .action { position: absolute; left: 108px; bottom: 100px; }
+    .status { margin: 0 0 12px; color: #4eecc4; font: 700 28px/1.25 Montserrat, sans-serif; letter-spacing: .055em; text-transform: uppercase; }
+    .detail { margin: 0; font: 900 53px/1.1 Barlow, sans-serif; text-transform: uppercase; }
+    .url { margin: 22px 0 0; font: 700 28px/1.3 Montserrat, sans-serif; }
+    .place { position: absolute; right: 105px; bottom: 100px; margin: 0; font: 700 20px/1.25 Montserrat, sans-serif; letter-spacing: .12em; }
+    .feed .photo { top: 525px; width: 100%; height: 825px; object-position: 50% 55%; }
+    .feed .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 38%, rgba(16,11,35,.05) 55%, rgba(16,11,35,.04) 66%, #100b23 88%); }
+    .feed .logo { left: 74px; top: 40px; width: 240px; }
+    .feed .mirror { width: 286px; right: 65px; }
+    .feed .headline { left: 74px; top: 235px; }
+    .feed .eyebrow { font-size: 28px; margin-bottom: 23px; }
+    .feed h1 { font-size: 162px; }
+    .feed .subhead { font-size: 31px; margin-top: 25px; }
+    .feed .action { left: 74px; bottom: 83px; }
+    .feed .status { font-size: 28px; margin-bottom: 12px; }
+    .feed .detail { font-size: 49px; }
+    .feed .url { font-size: 28px; margin-top: 22px; }
+    .feed .place { display: none; }
+    .story .photo { top: 660px; width: 100%; height: 1260px; object-position: 47% 50%; }
+    .story .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 36%, rgba(16,11,35,.1) 50%, rgba(16,11,35,.06) 59%, #100b23 77%); }
+    .story .logo { left: 82px; top: 268px; width: 260px; }
+    .story .mirror { width: 300px; right: 74px; top: 155px; }
+    .story .headline { left: 82px; top: 461px; }
+    .story .eyebrow { font-size: 30px; margin-bottom: 29px; }
+    .story h1 { font-size: 174px; }
+    .story .subhead { font-size: 32px; margin-top: 29px; }
+    .story .action { left: 82px; top: 1300px; bottom: auto; }
+    .story .status { font-size: 30px; margin-bottom: 16px; }
+    .story .detail { font-size: 51px; }
+    .story .url { font-size: 28px; margin-top: 25px; }
+    .story .place { display: none; }
+    .google .photo { width: 76%; object-position: 43% 50%; }
+    .google .shade { background: linear-gradient(90deg, #100b23 0%, rgba(16,11,35,.98) 20%, rgba(16,11,35,.87) 38%, rgba(16,11,35,.22) 73%), linear-gradient(0deg, #100b23 0%, transparent 57%); }
+    .google .logo { left: 69px; top: 44px; width: 230px; }
+    .google .mirror { width: 265px; right: 58px; }
+    .google .headline { left: 69px; top: 248px; }
+    .google .eyebrow { font-size: 26px; margin-bottom: 22px; }
+    .google h1 { font-size: 140px; }
+    .google .subhead { font-size: 27px; margin-top: 25px; }
+    .google .action { left: 69px; bottom: 72px; }
+    .google .status { font-size: 26px; }
+    .google .detail { font-size: 45px; }
+    .google .url { font-size: 25px; margin-top: 20px; }
+    .google .place { display: none; }
+  </style>
+</head>
+<body>
+  <main class="art {{FORMAT}}" aria-label="{{ALT}}">
+    <img class="photo" src="{{PHOTO}}" alt="">
+    <div class="shade"></div>
+    <img class="logo" data-safe src="{{LOGO}}" alt="Twisted Pin">
+    <!-- Unmodified drawing from the approved HomepageEntranceOptions.astro Mirrorball concept. -->
+    <svg class="mirror" viewBox="0 0 100 116" fill="none" aria-hidden="true">
+      <defs><radialGradient id="silver" cx=".3" cy=".25" r=".8"><stop stop-color="#f4efe3"/><stop offset=".38" stop-color="#a9bfca"/><stop offset=".7" stop-color="#496577"/><stop offset="1" stop-color="#1a233e"/></radialGradient><clipPath id="ball"><circle cx="50" cy="65" r="37"/></clipPath></defs>
+      <path d="M50 0v27" stroke="#b7c6cd" stroke-width="1.2"/>
+      <circle cx="50" cy="65" r="37" fill="url(#silver)" stroke="#e9e5e2"/>
+      <g clip-path="url(#ball)" stroke="#18223c" stroke-width="1.5" opacity=".8"><path d="M13 43h74M13 54h74M13 65h74M13 76h74M13 87h74M50 28v74"/><ellipse cx="50" cy="65" rx="13" ry="37"/><ellipse cx="50" cy="65" rx="28" ry="37"/></g>
+      <path d="m30 37 3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fffaf0"/><path d="m79 77 2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#4eecc4"/>
+    </svg>
+    <section class="headline" data-safe>
+      <p class="eyebrow">DECEMBER 31, 2026 · BOWLING</p>
+      <h1><span>NYE.</span><span>DONE RIGHT.</span></h1>
+      <p class="subhead">Bowling, pizza and your people.</p>
+    </section>
+    <section class="action" data-safe>
+      <p class="status">Reservations open</p>
+      <p class="detail">{{DETAIL}}</p>
+      <p class="url">www.twistedpin.com/new-years-eve/</p>
+    </section>
+    <p class="place" data-safe>PLAINFIELD, IL</p>
+  </main>
+</body>
+</html>

@@ -1,3 +1,13 @@
+## 2026-10-21 - NYE Mirrorball schedule and event marketing pack
+
+Jon selected items 2 and 3 from the visible next-step list: schedule the approved Mirrorball homepage treatment for December 7 and prepare Meta/Facebook plus Google Business Profile event visuals and copy. This does not request the separately noted sold-out display work or the connected checkout rehearsal.
+
+The homepage lead starts December 7, 2026 at midnight America/Chicago. One shared selector will own the homepage promotion area and replace the obsolete November 15 NYE rotating bar, retaining the existing hero videos, navigation, headline and ordinary booking actions. Jingle public readiness remains false: its promotion start and event-day retirement are unselected, and its guest page remains protected. No public Jingle activation is part of this work.
+
+A bounded public catalog read on October 22 UTC confirms VIP NYE's 30-minute and Traditional NYE's 60-minute sales cutoff. The final party starts at 10pm, so the homepage booking invitation retires at the latest online cutoff, December 31 at 9:30pm Chicago. This is campaign timing, not an inventory or purchase-policy change. The selector must update from actual browser time on load and resume, rather than depending on a daily build. With JavaScript unavailable, the ordinary homepage navigation remains usable without a potentially stale seasonal overlay.
+
+The marketing pack uses the selected Mirrorball direction and original supplied logo, with editable source and exported cover/feed/story/Google crops kept in the repository. Separate pre-opening and reservations-open copy retains the approved November 18 at 9am sales opening and December 31 event date. The pre-opening version omits times and prices. Social/Google publishing is not part of this preparation. Source validation, visual checks and release evidence will be recorded in the dated campaign handoff; no deployment is claimed by this entry.
+
 ## 2026-10-21 - Jingle activities finish at 5:15pm; venue closes at 5:30pm
 
 Jon relayed Shanna's confirmation: "5:15 we're done - kicking people out as of
