@@ -1,3 +1,16 @@
+## 2026-10-21 - Jingle activities finish at 5:15pm; venue closes at 5:30pm
+
+Jon relayed Shanna's confirmation: "5:15 we're done - kicking people out as of
+5:30." Jingle activities finish at 5:15pm; the venue closes and all guests depart
+by 5:30pm. Shanna's form remains authoritative: arrive on time, clear the booked
+lane/seats/belongings at the reserved end, then use the arcade or an available
+waiting area only until 5:30pm. Do not infer early entry or staffed opening hours.
+Updated protected Jingle landing/concepts and rehearsal copy, reconciled already
+approved prices/schedule/cutoff labels, and retained owner-review/no-live-booking
+and tax/fee/VIP-appetizer caveats. No public release, event-policy change, general
+hours, NYE, campaign or shared checkout runtime change. See the resumed Jingle
+handoff for the current approved facts and remaining gates.
+
 ## 2026-10-21 - Resume Jingle with approved schedule and fresh isolated review
 
 Jon explicitly approved $149.95 Traditional / $189.95 VIP per lane, the

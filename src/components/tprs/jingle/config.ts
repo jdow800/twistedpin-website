@@ -13,13 +13,13 @@ export const jingleReviewConfig: EventBookingConfig = {
   identity: {
     name: 'Jingle Bowl', headline: ['JINGLE', 'BOWL!'],
     invitation: ['Santa has a lane with your name on it.', 'Bring your people.'],
-    closing: ['Bowling, pizza and a visit with Santa.', 'One very merry Sunday.'],
+    closing: ['Bowling, pizza and a visit with Santa.', 'Activities end at 5:15pm. All guests depart by 5:30pm.'],
     photo: '/snap/tile-trad-540.webp', theme: 'jingle',
   },
-  termsText: 'This is an owner-only booking rehearsal using approved lane prices of $149.95 Traditional and $189.95 VIP, the approved 39-reservation schedule, and a 30-minute booking cutoff before each start. Tax and fee allocation and final cancellation terms remain under review. No real reservation, payment, email or text is created.',
+  termsText: 'This is an owner-only booking rehearsal using approved lane prices of $149.95 Traditional and $189.95 VIP, the approved 39-reservation schedule, and a 30-minute booking cutoff before each start. Jingle Bowl activities end at 5:15pm. The venue closes at 5:30pm, and all guests must depart by then. Tax and fee allocation and final cancellation terms remain under review. No real reservation, payment, email or text is created.',
   intro: ['Bowling, pizza & a visit with Santa.', 'Choose one lane type for this reservation.'],
   included: ['90 minutes of bowling & shoes', '1 large pizza per lane', '1 soft-drink pitcher per lane', 'Hot cocoa, cookies & Santa photos'],
-  packageDescription: 'Proposed package: 90 minutes of bowling with shoes, one large pizza and one soft-drink pitcher per lane, self-serve hot cocoa and cookies, and Santa photos on your device. Pitcher refills are not included. The VIP appetizer and final event details are still being reviewed.',
+  packageDescription: '90 minutes of bowling with shoes, one large pizza and one soft-drink pitcher per lane, self-serve hot cocoa and cookies, and Santa photos on your device. Pitcher refills are not included. The VIP appetizer is still being reviewed.',
   foodHelp: 'Each lane includes 1 large pizza + 1 soda pitcher. No pitcher refills.',
   pairedPresentation: {
     intro: '', unitLabel: 'Lane', useFieldLabels: true, showFieldHelp: false,
@@ -28,7 +28,8 @@ export const jingleReviewConfig: EventBookingConfig = {
     reservationInfo: {
       heading: 'Before you book',
       essentials: [
-        'Bowling ends at your reserved time. Clear your lane and seating for the next group.',
+        'Arrive on time. Clear your lane, seats and belongings at your reserved end time.',
+        'Jingle Bowl activities end at 5:15pm. After bowling, enjoy the arcade or an available waiting area until 5:30pm, when the venue closes and all guests must depart.',
         'Everyone attending counts toward lane capacity, including non-bowlers.',
         'No outside food, drinks, cakes, decorations or presents.',
       ],

@@ -25,10 +25,20 @@ and ordinary arcade offer ($15 per separate card for $20 play) remain as reviewe
 The compact food UI retains all seven complete operational information blocks
 inside a native disclosure and the exact visible required acknowledgment.
 
+Jon relayed Shanna's final closing direction: "5:15 we're done -
+kicking people out as of 5:30." Jingle Bowl activities end at 5:15pm. The venue
+closes and all guests depart by 5:30pm. Arrive on time; clear the booked lane,
+seats and belongings at the reservation's end. Guests may then use the arcade
+or an available waiting area only until 5:30pm. This is not a requirement to
+leave the venue at each reservation's end, and it does not establish early
+entry, doors-open or staffed opening hours. Protected landing/concepts and
+rehearsal essentials now agree; the backend form owner updates its complete
+informational text separately. No live hours/booking flag changes are implied.
+
 Jon approved opening sales immediately at2026-10-22T01:19:04Z (October21 Central),
 with no announcement yet. That decision does not imply technical sales readiness.
 Final tax/fee allocation, production product/form identities and verified sales
-configuration, final staffed/Santa/closing hours, cancellation terms, VIP
+configuration, final staffed/opening/Santa hours, cancellation terms, VIP
 appetizer, and Shanna's proof remain pending. Base lane prices and the schedule
 are approved, not price placeholders. This fixture's untaxed totals do not
 approve final tax treatment. The password and DEV-only booking boundary remain.
@@ -156,3 +166,16 @@ ignored at `.astro/jingle-resumed-build.log`. Frontend review copy now reflects
 approved prices/times, while the older backend projection template's provisional
 wording has been flagged to its owner separately. No push or deployment is part
 of this local integration.
+
+## Protected revision release checks
+
+The October22 closing-copy revision on54dbb23 passed a fresh full production
+build, all six prebuild scripts, focused strict TypeScript across ordinary/NYE/
+Jingle checkout entrypoints,17 review-auth checks,7 native middleware/proxy checks
+and the Jingle event-config check. Build used `/tprs-api` with outbound connections
+blocked; existing GoTab fallback and chunk-size warnings are unchanged. The log
+is ignored at `.astro/jingle-final-build.log`. Both emitted rehearsal routes are
+unconditional404 in production, and protected routes remain outside the sitemap.
+The shared no-coupon owner cleared the release hold after independent ordinary
+and birthday mobile checks. Root owns the subsequent protected Website release
+and live readback. No public campaign or Jingle booking activation is included.

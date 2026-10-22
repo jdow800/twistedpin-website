@@ -4,8 +4,8 @@ This Website worktree contains the event landing page, three homepage visual tre
 
 ## Review routes
 
-- `/jingle-bowl/` — event-page design; package content is proposed.
-- `/jingle-bowl-concepts/` — homepage options, downloadable art, booking-date demo, preferred 39-reservation session table.
+- `/jingle-bowl/` — event-page design with approved lane prices, reservation times and closing information; final taxes/fees and VIP appetizer remain under review.
+- `/jingle-bowl-concepts/` — homepage options, downloadable art, booking-date demo, approved 39-reservation session table.
 - `/review/jingle-calendar/?month=2026-12` — actual calendar renderer with the draft event included.
 
 The ordinary Upcoming Events calendar excludes the draft. These paths are noindex and excluded from the sitemap; public booking and checkout are unchanged. The preview uses no TPRS inventory, carts or payments.
@@ -18,7 +18,7 @@ The ordinary Upcoming Events calendar excludes the draft. These paths are noinde
 
 ## Operating assumptions
 
-Confirmed Sunday, December 6, 2026; only Jingle Bowl reservations all day. The preferred 39-reservation option contains 29 Traditional and 10 VIP reservations over five 90-minute starts. Proposed sales cutoff is 30 minutes before each start when availability remains. Both are working preferences pending final confirmation. Package prices/menu, hours, on-sale date, food/arrival/cancellation policy and forms remain open. Google Closed must not block event reservations; Roy should offer the actual booking link during potential same-day availability without promising space.
+Confirmed Sunday, December 6, 2026; only Jingle Bowl reservations all day. The approved 39-reservation schedule contains 29 Traditional and 10 VIP reservations over five 90-minute starts, with a 30-minute per-start booking cutoff when space remains. Base lane prices are $149.95 Traditional and $189.95 VIP. Jingle Bowl activities end at 5:15pm; the venue closes and all guests depart by 5:30pm. Arrive on time, clear the booked lane/seats/belongings at the reserved end, and use the arcade or an available waiting area afterward only until 5:30pm. Opening/staffed and Santa visit times remain unconfirmed; no early entry is implied. Jon approved immediate sales opening without announcement, but production catalog/tax/fee verification and booking readiness remain separate gates. The VIP appetizer, cancellation terms and final proof remain pending. Google Closed must not block event reservations; Roy's guest link stays withheld until actual booking readiness is verified. See the resumed rehearsal handoff for current implementation evidence.
 
 TPRS implementation needs all-channel event-day exclusivity and aggregate per-start quotas alongside shared physical pools, cart/payment ownership and turnover. Current NYE infrastructure is reusable, but event-specific reports/messages/forms need deliberate Jingle work.
 
