@@ -67,6 +67,9 @@ interface Props {
 
 /** Stepper ceiling — far enough past any threshold to trip the events handoff. */
 const PARTY_MAX = 30;
+// Ordinary rental/birthday catalogs only. Event sales keep their own opening,
+// discovery and availability contract; a new curated page must opt in here.
+const PRIORITY_DAY_CODES = new Set([4, 5, 121, 123, 109, 118]);
 
 /** "1 Hour" / "2 Hours" from durationMinutes — the tile's headline. Falls back
  *  to the product name when duration is unset. */
@@ -99,13 +102,22 @@ export default function MainStep({
 }: Props) {
   const [categories, setCategories] = useState<BookableCategory[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
   const today = useMemo(todayIso, []);
+  const day = selectedDate ?? today;
+  const prioritizeDay = !!productCodes?.length && productCodes.length <= 4
+    && productCodes.every(code => PRIORITY_DAY_CODES.has(code))
+    && !defaultDate && !presaleNotice;
 
   // ONE availability instance shared between the date strip and the product
   // grid, so both read the same per-product data: the strip greys a day only
   // when NOTHING on the page is bookable (union); the grid below scopes to
   // what's bookable on the SELECTED day.
-  const availability = useDayAvailability(productCodes);
+  const expectedProductIds = useMemo(() => categories?.flatMap(cat => cat.products.map(product => product.id)), [categories]);
+  const availability = useDayAvailability(productCodes, undefined, {
+    priorityDate: prioritizeDay ? day : undefined,
+    expectedProductIds: productCodes?.length ? expectedProductIds : undefined,
+  });
   const probeKey =
     productCodes && productCodes.length > 0
       ? `codes:${productCodes.join(",")}`
@@ -113,7 +125,6 @@ export default function MainStep({
   // Date-scoping only makes sense when the probe covers exactly this page's
   // products (the curated case) — the generic catalog probes one product.
   const dateScoped = probeKey !== null;
-  const day = selectedDate ?? today;
 
   // Default the date on first mount: the page's configured date when one is
   // set and still ahead (single-date pages like /reserve/nye), else today
@@ -128,6 +139,8 @@ export default function MainStep({
 
   useEffect(() => {
     const ctrl = new AbortController();
+    setError(null);
+    setCategories(null);
     const codes = productCodes;
     // Always load the GROUPED bookable catalog so the category headers +
     // subtitles ("VIP Suite Lanes · up to 6 guests…") render. A curated page
@@ -147,13 +160,13 @@ export default function MainStep({
               .filter((c) => c.products.length > 0)
           : res.categories,
       )
-      .then((cats) => setCategories(cats))
+      .then((cats) => { if (!ctrl.signal.aborted) setCategories(cats); })
       .catch(() => {
         if (ctrl.signal.aborted) return;
-        setError("Couldn't load the lanes. Please refresh.");
+        setError("We couldn't load the packages. Please try again.");
       });
     return () => ctrl.abort();
-  }, [productCodes]);
+  }, [productCodes, catalogAttempt]);
 
   // PREFETCH the selected day's time slots for the page's products while the
   // guest is still choosing a card — by the time they tap one, DetailStep's
@@ -362,7 +375,10 @@ export default function MainStep({
         <p key={message} className="tprs-qty-note" role="status">{message}</p>
       ))}
 
-      {error && <p className="tprs-error">{error}</p>}
+      {error && <div className="tprs-read-error" role="alert">
+        <p>{error}</p>
+        <button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => setCatalogAttempt(n => n + 1)}>Retry packages</button>
+      </div>}
       {!error && categories === null && (
         <p className="tprs-loading">{selectionCopy?.loading ?? "Loading lanes…"}</p>
       )}
@@ -421,11 +437,20 @@ export default function MainStep({
           <div className={`tprs-card-list${tileCards ? " tprs-card-list--tiles" : ""}`}>
             {visible.map(({ p, verdict }) =>
               verdict === undefined ? (
-                <div
+                <button
                   key={p.id}
-                  className="tprs-card tprs-card--skel"
-                  aria-hidden="true"
-                />
+                  type="button"
+                  disabled
+                  aria-busy={!availability.errorFor?.(day) || undefined}
+                  className="tprs-card tprs-card--pending"
+                >
+                  <span className="tprs-card-main">
+                    <span className="tprs-card-name"><Markdown text={p.name} inline /></span>
+                    <span className="tprs-card-pending-note">
+                      {availability.errorFor?.(day) ? "Availability needs another check" : "Checking availability…"}
+                    </span>
+                  </span>
+                </button>
               ) : tileCards ? (
                 /* Duration tile — the card's whole job here is duration +
                    price (category header carries room/capacity/shoes). Full

@@ -56,6 +56,7 @@ export default function CalendarModal({
   }, [onClose]);
 
   const grid = useMemo(() => buildMonthGrid(month), [month]);
+  const readError = grid.flatMap(cell => cell.date ? [availability.errorFor?.(cell.date)] : []).find(Boolean);
   const canGoPrev = month > monthOf(today);
 
   return (
@@ -98,6 +99,11 @@ export default function CalendarModal({
           </div>
         </div>
 
+        {readError && <div className="tprs-read-error" role="alert">
+          <p>{readError}</p>
+          <button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => availability.retry?.()}>Retry availability</button>
+        </div>}
+
         <div className="tprs-cal-grid" role="grid">
           {DOW.map((d, i) => (
             <div key={`dow-${i}`} className="tprs-cal-dow">
@@ -110,6 +116,7 @@ export default function CalendarModal({
             const special = specialDateLabel(specialDates, cell.date, today);
             const pending = !special && availability.isPending(cell.date);
             const avail = !!special || isAvailable(cell.date);
+            const failed = !special && !avail && cell.date >= today && !!availability.errorFor?.(cell.date);
             const price = !special && !pending && avail ? availability.priceFor(cell.date) : null;
             const isSel = cell.date === selected;
             const isToday = cell.date === today;
@@ -119,11 +126,12 @@ export default function CalendarModal({
                 type="button"
                 disabled={pending || !avail}
                 aria-pressed={isSel}
-                aria-label={special ? `${cell.date}: ${special} packages` : undefined}
+                aria-label={special ? `${cell.date}: ${special} packages` : failed ? `${cell.date}: availability needs another check` : undefined}
                 aria-busy={pending || undefined}
                 className={[
                   "tprs-cal-cell",
                   pending ? "is-pending" : avail ? "is-available" : "",
+                  failed ? "is-error" : "",
                   isSel ? "is-selected" : "",
                   isToday && !isSel ? "is-today" : "",
                 ]

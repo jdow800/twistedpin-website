@@ -97,6 +97,8 @@ export default function DateStrip({
       return;
     }
     if (forwardedFor.current === probeKey || availability.loadingProbe) return;
+    // Failed selected-date reads are unknown, not a reason to move the guest.
+    if (selected && availability.errorFor?.(selected)) return;
     // A deliberate event-date selection must not jump to an ordinary day.
     if (selected && specialDateLabel(specialDates, selected, today)) return;
 
@@ -158,6 +160,8 @@ export default function DateStrip({
   // then flip to greyed.)
   const checking =
     availability.loadingProbe || days.some((d) => availability.isPending(d));
+  const readError = availability.errorFor?.(selected ?? windowStart)
+    ?? days.map(date => availability.errorFor?.(date)).find(Boolean);
 
   return (
     <div className="tprs-datestrip">
@@ -167,7 +171,7 @@ export default function DateStrip({
           type="button"
           className="tprs-cal-open"
           aria-label="Open full calendar"
-          onClick={() => setCalOpen(true)}
+          onClick={() => { availability.requestCalendar?.(); setCalOpen(true); }}
         >
           <span className="tprs-cal-open-icon" aria-hidden="true">📅</span>
           Calendar
@@ -177,9 +181,14 @@ export default function DateStrip({
       <p className="tprs-datestrip-month">
         {monthLabel}
         {checking && (
-          <span className="tprs-datestrip-checking"> · checking availability…</span>
+          <span className="tprs-datestrip-checking">{selected && availability.isAvailable(selected) ? " · checking other dates…" : " · checking availability…"}</span>
         )}
       </p>
+
+      {!calOpen && readError && <div className="tprs-read-error" role="alert">
+        <p>{readError}</p>
+        <button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => availability.retry?.()}>Retry availability</button>
+      </div>}
 
       <div className="tprs-datestrip-row">
         <button
@@ -187,12 +196,13 @@ export default function DateStrip({
           className="tprs-cal-arrow"
           aria-label="Earlier days"
           disabled={!canGoBack}
-          onClick={() =>
+          onClick={() => {
+            availability.requestCalendar?.();
             setWindowStart((s) => {
               const back = addDays(s, -windowSize);
               return back < today ? today : back;
-            })
-          }
+            });
+          }}
         >
           ‹
         </button>
@@ -202,6 +212,7 @@ export default function DateStrip({
             const special = specialDateLabel(specialDates, date, today);
             const pending = !special && availability.isPending(date);
             const avail = !!special || availability.isAvailable(date);
+            const failed = !special && !avail && date >= today && !!availability.errorFor?.(date);
             const isSel = date === selected;
             const isToday = date === today;
             const { dow, day } = chipParts(date);
@@ -211,11 +222,12 @@ export default function DateStrip({
                 type="button"
                 disabled={pending || !avail}
                 aria-pressed={isSel}
-                aria-label={special ? `${formatDateLong(date)}: ${special} packages` : undefined}
+                aria-label={special ? `${formatDateLong(date)}: ${special} packages` : failed ? `${formatDateLong(date)}: availability needs another check` : undefined}
                 aria-busy={pending || undefined}
                 className={[
                   "tprs-chip",
                   pending ? "is-pending" : avail ? "is-available" : "",
+                  failed ? "is-error" : "",
                   isSel ? "is-selected" : "",
                 ]
                   .filter(Boolean)
@@ -234,7 +246,7 @@ export default function DateStrip({
           type="button"
           className="tprs-cal-arrow"
           aria-label="Later days"
-          onClick={() => setWindowStart((s) => addDays(s, windowSize))}
+          onClick={() => { availability.requestCalendar?.(); setWindowStart((s) => addDays(s, windowSize)); }}
         >
           →
         </button>

@@ -103,6 +103,7 @@ export default function DetailStep({
   const [policy, setPolicy] = useState<BookingDatePolicy | null>(null);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [readAttempt, setReadAttempt] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const [descOpen, setDescOpen] = useState(false);
   const qtyRef = useRef<HTMLDivElement>(null);
@@ -157,7 +158,7 @@ export default function DetailStep({
     return () => {
       stale = true;
     };
-  }, [product.id, date]);
+  }, [product.id, date, readAttempt]);
 
   // Per-slot live lane count is fetched by the wizard (so the cart-rail stepper
   // shares it + the clamp lives in one place) and passed in. Here it caps the
@@ -286,7 +287,10 @@ export default function DetailStep({
 
       <h3 className="tprs-section-h">Select a time</h3>
 
-      {error && <p className="tprs-error">{error}</p>}
+      {error && <div className="tprs-read-error" role="alert">
+        <p>{error}</p>
+        <button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => setReadAttempt(n => n + 1)}>Retry times</button>
+      </div>}
       {policyMessage && <p className="tprs-qty-note" role="status">{policyMessage}</p>}
       {bookable === null && !error && <p className="tprs-loading">Loading times…</p>}
 

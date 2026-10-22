@@ -1,3 +1,14 @@
+## 2026-10-21 - Prioritize the selected reservation date
+
+Jon approved implementing and shipping the initial availability improvements,
+then trying regular reservations and birthdays himself. Prioritize selected-day
+details before background calendar work, show useful pending package information,
+and provide explicit retry for failed read requests. Preserve payment discovery,
+accepted recovery, event readiness and product-specific booking horizons. The
+ordinary ten-day rule remains inclusive and backend-owned; birthdays retain their
+longer calendar. Coordinate release after backend connection-repair acceptance.
+See `Context/session-handoffs/2026-10-21-availability-first-day.md` for evidence.
+
 ## 2026-10-21 - Public NYE Brand checkout integration
 
 Extract the approved Brand flow into the NYE booking route, keeping ordinary

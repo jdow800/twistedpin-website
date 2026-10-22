@@ -131,7 +131,36 @@ function throwCheckout(status: number, json: unknown): never {
   );
 }
 
+export const AVAILABILITY_READ_TIMEOUT_MS = 8_000;
+
+// Only disposable browsing reads get a deadline. Cart reads, payment status,
+// discovery and every mutation retain their existing recovery semantics.
 async function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
+  const bounded = /^\/api\/products(?:\?|\/bookable(?:\?|$))/.test(path)
+    || /^\/api\/availability(?:\?|\/)/.test(path);
+  if (!bounded) return readJsonResponse(path, signal);
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(signal?.reason);
+  signal?.addEventListener("abort", onAbort, { once: true });
+  if (signal?.aborted) onAbort();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new TprsApiError("Availability request timed out. Please try again.", 0));
+    }, AVAILABILITY_READ_TIMEOUT_MS);
+  });
+  try {
+    // Keep the deadline through body parsing, not just response headers. Racing
+    // also settles callers when a transport does not promptly honour abort.
+    return await Promise.race([readJsonResponse(path, controller.signal), deadline]);
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
+
+async function readJsonResponse(path: string, signal?: AbortSignal): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(buildUrl(path), {

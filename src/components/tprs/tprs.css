@@ -1438,6 +1438,15 @@ fieldset.tprs-field.is-invalid > legend { color: var(--tw-danger); }
 /* ── States ─────────────────────────────────────────────────────────── */
 .tprs-loading, .tprs-error { font-family: var(--font-body); font-size: 14px; color: var(--tw-text-muted); padding: 28px 0; text-align: center; }
 .tprs-error { color: var(--tw-danger); }
+.tprs-card--pending:disabled { opacity: 1; cursor: progress; text-align: left; }
+.tprs-card--pending .tprs-card-main { min-width: 0; }
+.tprs-card-pending-note { display: block; margin-top: 8px; font-family: var(--font-body); font-size: 14px; line-height: 1.4; color: var(--tw-text-muted); }
+.tprs-read-error { margin: 12px 0; padding: 12px; border: 1px solid var(--tw-danger); border-radius: 7px; font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+.tprs-read-error p { margin: 0 0 8px; }
+.tprs-read-error .tprs-btn { width: auto; max-width: 100%; min-height: 44px; }
+.tprs-chip.is-error .tprs-chip-day, .tprs-cal-cell.is-error .tprs-cal-day { text-decoration: none; }
+.tprs-chip.is-error, .tprs-cal-cell.is-error { border-style: dashed; }
+.tprs-card--pending:hover { transform: none; box-shadow: none; border-color: var(--tw-border); }
 
 /* Fly-to-cart dot (spawned on body by flyToCart.ts). */
 .tprs-fly {
