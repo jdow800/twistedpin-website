@@ -47,6 +47,14 @@ export interface SeasonalNavItem {
  */
 export const SEASONAL_ITEMS: SeasonalNavItem[] = [
   {
+    label: "Jingle Bowl",
+    href: "/jingle-bowl/",
+    icon: "tree-pine",
+    section: "Visit",
+    showFrom: "2026-10-22",
+    showUntil: "2026-12-06",
+  },
+  {
     label: "New Year's Eve",
     href: "/new-years-eve/",
     icon: "sparkles",

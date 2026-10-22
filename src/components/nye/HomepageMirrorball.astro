@@ -1,10 +1,12 @@
 ---
 import PromoBar from "../PromoBar.astro";
+import HomepageJingle from "../jingle/HomepageJingle.astro";
 ---
 {/* Client clock selects one homepage promotion. Hidden HTML is safe with no JS
     or a stale cached document; all ordinary homepage navigation stays usable. */}
 <div data-homepage-promotions>
-  <aside class="homepage-nye" data-homepage-nye data-entrance="settled" hidden aria-label="New Year's Eve at Twisted Pin">
+  <HomepageJingle />
+  <aside class="homepage-nye" data-homepage-nye data-homepage-campaign="nye-mirrorball-2026" data-entrance="settled" hidden aria-label="New Year's Eve at Twisted Pin">
     <div class="homepage-nye-art" aria-hidden="true">
       <svg viewBox="0 0 100 116" fill="none"><defs><radialGradient id="homepage-mirror-silver" cx=".3" cy=".25" r=".8"><stop stop-color="#f4efe3"/><stop offset=".38" stop-color="#a9bfca"/><stop offset=".7" stop-color="#496577"/><stop offset="1" stop-color="#1a233e"/></radialGradient><clipPath id="homepage-mirror-clip"><circle cx="50" cy="65" r="37"/></clipPath></defs><path d="M50 0v27" stroke="#b7c6cd" stroke-width="1.2"/><circle cx="50" cy="65" r="37" fill="url(#homepage-mirror-silver)" stroke="#e9e5e2"/><g clip-path="url(#homepage-mirror-clip)" stroke="#18223c" stroke-width="1.5" opacity=".8"><path d="M13 43h74M13 54h74M13 65h74M13 76h74M13 87h74M50 28v74"/><ellipse cx="50" cy="65" rx="13" ry="37"/><ellipse cx="50" cy="65" rx="28" ry="37"/></g><path d="m30 37 3 8 8 3-8 3-3 8-3-8-8-3 8-3z" fill="#fffaf0" class="homepage-nye-glint"/><path d="m79 77 2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#4eecc4"/></svg>
     </div>
@@ -13,8 +15,8 @@ import PromoBar from "../PromoBar.astro";
       <span class="homepage-nye-action">See NYE parties <span aria-hidden="true">→</span></span>
     </a>
     <div class="homepage-nye-controls">
-      <button type="button" data-homepage-nye-dismiss aria-label="Dismiss New Year's Eve invitation">×</button>
-      <button type="button" data-homepage-nye-pause aria-label="Pause homepage motion" aria-pressed="false"><span aria-hidden="true" data-homepage-pause-icon>Ⅱ</span></button>
+      <button type="button" data-homepage-nye-dismiss data-homepage-campaign-dismiss aria-label="Dismiss New Year's Eve invitation">×</button>
+      <button type="button" data-homepage-nye-pause data-homepage-campaign-pause aria-label="Pause homepage motion" aria-pressed="false"><span aria-hidden="true" data-homepage-pause-icon>Ⅱ</span></button>
     </div>
   </aside>
   <PromoBar homepageManaged />

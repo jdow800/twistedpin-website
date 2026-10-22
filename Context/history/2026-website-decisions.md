@@ -1,3 +1,36 @@
+## 2026-10-22 - Public Jingle launch, homepage and staff/LED delivery
+
+After confirming the repeat-visit VIP fix, Jon authorized public launch including
+the homepage. Exact landing/booking and approved art routes become public;
+concepts, calendar review and isolated rehearsal remain protected. Checkout keeps
+noindex/no-store. The invitation gains event/breadcrumb metadata, sitemap inclusion,
+public calendar/nav discovery and the ordinary/birthday December 6 handoff.
+Known production opening, five starts and 30-minute cutoffs populate the existing
+special-event read model; no staffed opening hours are inferred. Backend booking,
+payment recovery, inventory and the approved morning event remain unchanged.
+
+The shared homepage selector now shows the approved Jingle ornament/Santa
+alternation, with pause/dismiss and reduced-motion support, through December 6 at
+3:15pm Central (the final booking cutoff). The existing NYE campaign still starts
+December 7 at midnight Central. Hero video, ordinary navigation and sticky actions
+ retain their existing behavior. Final combined checks and live proof follow below.
+
+Jon also requested a brief staff message to send himself through 7shifts and a
+booking QR graphic for the LED wall. Editable sources stay in this repository;
+delivery copies go to the existing actual Desktop folder, `2026 Jingle Bowl`.
+His subsequent size guidance is 1920 x 1080, with Santa/ornament animation welcome.
+The QR remains stationary throughout the animation. No staff/customer message or
+LED-player upload is part of this task.
+
+Pre-release checks pass: 58 campaign-policy and 199 actual homepage assertions,
+20 auth and 10 native routing checks, 134 special-event assertions and 31 actual
+hours-route assertions, 38 date-handoff browser scenarios, ten Jingle entry
+groups and the complete checkout recovery suite. Full production build and
+28 anonymous requests/assertions against its emitted Astro server pass. Root
+visually reviewed the mobile/desktop homepage and narrow birthday handoff.
+Independent source review found no launch blocker. No production mutations or
+payment/provider calls were used in these checks. Final live receipt follows.
+
 ## 2026-10-22 - Honor explicit Jingle lane buttons after an earlier visit
 
 Jon reported Book VIP opening Traditional. The original entry guard let every

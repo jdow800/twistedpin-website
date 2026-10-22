@@ -9,14 +9,17 @@
 // Copy obeys the ADR-0029 brand rules: "lanes" never "tickets", "Reserve a
 // Lane", no discount vocabulary, English-first.
 
-import type { EventDateRoute } from './eventDateRoutes';
+import { jingleBookingDateRoute, type EventDateRoute } from './eventDateRoutes';
+
+const publicJingleRoute = jingleBookingDateRoute({ enabled: true });
+const publicJingleHandoffs = publicJingleRoute ? [publicJingleRoute] : [];
 
 export interface BookingPageConfig {
   /** Optional curated Product code set (ADR-0025 AH-1). Unset = use bookable. */
   productCodes?: number[];
   /** Offer Dec 31 as an NYE handoff, never as an ordinary lane reservation. */
   nyeDateHandoff?: boolean;
-  /** Explicit event destinations; omitted on public ordinary pages until enabled. */
+  /** Reviewed event destinations, independently enforced by backend eligibility. */
   eventDateHandoffs?: readonly EventDateRoute[];
   /** SPA-rendered terms text (ADR-0025 §1 AH-8). Shown at checkout in Slice 2. */
   termsText: string;
@@ -231,6 +234,7 @@ export const bookingPageConfig: BookingPageConfig = {
   // (the temp staging DB re-seeded once already: birthdays went 9→109, 18→118).
   productCodes: [4, 5, 121, 123],
   nyeDateHandoff: true,
+  eventDateHandoffs: publicJingleHandoffs,
   // The four lane names say everything ("1 Hour w/ Shoes (VIP Suite)") — the
   // pitch line under each card was scroll without information.
   cardDescriptions: false,
@@ -322,6 +326,7 @@ export const birthdaysPageConfig: BookingPageConfig = {
   // those in TPRS admin to match 4–12. This termsText (below) is the only
   // age string the website owns.
   productCodes: [109, 118],
+  eventDateHandoffs: publicJingleHandoffs,
   heroImage: {
     base: "/snap/birthdays-hero",
     alt: "The VIP suite set for a party at Twisted Pin",

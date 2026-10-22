@@ -13,12 +13,18 @@
       "confirmed": true,
       "admission": "event_reservations_only",
       "ordinary_visits": "closed",
-      "page_public": false,
+      "page_public": true,
       "page_url": "https://www.twistedpin.com/jingle-bowl/",
-      "sales_open_at": null,
-      "booking_ready_verified": false,
-      "session_cutoffs_verified": false,
-      "sessions": [],
+      "sales_open_at": "2026-10-22T15:30:00Z",
+      "booking_ready_verified": true,
+      "session_cutoffs_verified": true,
+      "sessions": [
+        { "starts_at": "2026-12-06T19:45:00Z", "booking_closes_at": "2026-12-06T19:15:00Z" },
+        { "starts_at": "2026-12-06T20:00:00Z", "booking_closes_at": "2026-12-06T19:30:00Z" },
+        { "starts_at": "2026-12-06T20:30:00Z", "booking_closes_at": "2026-12-06T20:00:00Z" },
+        { "starts_at": "2026-12-06T21:30:00Z", "booking_closes_at": "2026-12-06T21:00:00Z" },
+        { "starts_at": "2026-12-06T21:45:00Z", "booking_closes_at": "2026-12-06T21:15:00Z" }
+      ],
       "approved_staffed_intervals": []
     },
     {

@@ -16,8 +16,8 @@ function dateLabel(date: string): string {
   }).format(new Date(`${date}T12:00:00Z`));
 }
 
-/** Shared message for the eventual normal-booking handoff. Does not claim
- * reservations are on sale and never reserves inventory or starts checkout. */
+/** Shared event handoff. Readiness comes from reviewed facts; the linked page
+ * checks current options. This message never reserves inventory. */
 export function EventDateHandoff({ route, onChangeDate, focusOnMount = false }: {
   route: EventDateRoute;
   onChangeDate: () => void;
@@ -30,7 +30,9 @@ export function EventDateHandoff({ route, onChangeDate, focusOnMount = false }: 
       <p className="jingle-route-eyebrow">Jingle Bowl only · {route.dateLabel}</p>
       <h3 ref={heading} tabIndex={focusOnMount ? -1 : undefined}>{route.title}</h3>
       <p>{route.message}</p>
-      <p className="jingle-route-pending">Reservation details and sales opening are still being finalized.</p>
+      <p className="jingle-route-pending">{route.salesState === 'booking_ready'
+        ? 'Choose your lane type and check current times on the Jingle Bowl page.'
+        : 'Reservation details and sales opening are still being finalized.'}</p>
       <div className="jingle-route-actions">
         {route.href && <a href={route.href}>{route.actionLabel} <span aria-hidden="true">↗</span></a>}
         <button type="button" onClick={onChangeDate}>Choose another date</button>

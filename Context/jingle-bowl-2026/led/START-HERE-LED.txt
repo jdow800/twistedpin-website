@@ -1,0 +1,25 @@
+JINGLE BOWL - LED WALL
+
+START WITH: Jingle-Bowl-LED-1920x1080.mp4
+
+A silent 20-second loop, 1920 x 1080, H.264 MP4 at 30fps.
+Santa runs into the graphic. The booking QR and words stay still the whole time.
+
+STATIC BACKUP: Jingle-Bowl-LED-1920x1080.png
+
+Use your normal 1920 x 1080 video/image workflow. Loop the full video, or leave
+the static graphic visible for at least 20 seconds. Keep the QR's white border
+intact and avoid cropping, overlays or transitions over it.
+
+The QR opens https://www.twistedpin.com/jingle-bowl/booking/ directly.
+It was decoded from 24 actual video frames at full and half size, plus the PNG.
+Please test a phone scan from the guest viewing area before regular rotation;
+the physical wall and playback setup have not been tested here.
+
+The optional-native folder holds exact-size static BMS wall/zone alternatives.
+Those are only for a workflow requiring native dimensions. You do not need to
+change the normal 1920 x 1080 setup to use the main video.
+
+No wall/controller settings were changed and nothing was uploaded to it.
+Editable source and evidence stay with the Website project under
+Context/jingle-bowl-2026/led/. This Desktop pack is a delivery copy.

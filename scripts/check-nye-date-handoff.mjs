@@ -34,13 +34,14 @@ for(const dev of [false,true]){
  const configCheck=await build({stdin:{contents:`
  import assert from 'node:assert/strict';
  import {jingleBookingDateRoute} from './src/tprs/eventDateRoutes';
- import {bookingPageConfig} from './src/tprs/pageConfig';
- assert.equal(bookingPageConfig.eventDateHandoffs,undefined);
+ import {bookingPageConfig,birthdaysPageConfig} from './src/tprs/pageConfig';
  assert.equal(jingleBookingDateRoute({enabled:false,protectedReview:true}),null);
- const info=jingleBookingDateRoute({enabled:true});assert.equal(info.href,undefined);
- assert.equal(info.date,'2026-12-06');assert.equal(info.salesState,'details_pending');
+ const info=jingleBookingDateRoute({enabled:true});assert.equal(info.href,'/jingle-bowl/');
+ assert.equal(info.date,'2026-12-06');assert.equal(info.salesState,'booking_ready');
+ for(const config of [bookingPageConfig,birthdaysPageConfig]) assert.deepEqual(config.eventDateHandoffs,[info]);
  const review=jingleBookingDateRoute({enabled:true,protectedReview:true});
- assert.equal(review.href,${dev?JSON.stringify('/jingle-bowl/booking/'):'undefined'});
+ assert.equal(review.href,${JSON.stringify(dev?'/jingle-bowl/booking/':'/jingle-bowl/')});
+ assert.equal(review.salesState,${JSON.stringify(dev?'details_pending':'booking_ready')});
  `,resolveDir:site,loader:'ts'},bundle:true,platform:'node',format:'esm',write:false,define:{'import.meta.env.DEV':String(dev)}});
  await import('data:text/javascript;base64,'+Buffer.from(configCheck.outputFiles[0].text).toString('base64'));
 }
@@ -91,8 +92,9 @@ if(settings.activeStatus)window.fixture.active={attemptId:id(99),recoveryToken:'
 window.stripeFake={retrievePaymentIntent:async()=>({paymentIntent:{status:'processing'}})};
 window.elementsFake={};
 if(settings.detail)window.fixtureWizardDraft={...initialState,step:'detail',date:'2026-12-30',category,product,laneQty:2,slot:{time:'15:00',priceCents:9995,available:true},addOnQtys:{[arcade.id]:2},guest:customer};
-const jingleRoute=jingleBookingDateRoute({enabled:settings.jingle===true,protectedReview:settings.reviewLink===true});
-const config=settings.birthday?birthdaysPageConfig:jingleRoute?{...bookingPageConfig,eventDateHandoffs:[jingleRoute]}:bookingPageConfig;
+const baseConfig=settings.birthday?birthdaysPageConfig:bookingPageConfig;
+const jingleRoute=jingleBookingDateRoute({enabled:settings.jingle!==false,protectedReview:settings.reviewLink===true});
+const config=settings.jingle===false?{...baseConfig,eventDateHandoffs:[]}:settings.reviewLink?{...baseConfig,eventDateHandoffs:[jingleRoute]}:baseConfig;
 createRoot(document.getElementById('root')).render(<BookingWizard config={config}/>);
 `, loader: 'tsx', resolveDir: site }, bundle: true, platform: 'browser', format: 'iife', write: false, jsx: 'automatic', outdir: output, external: ['/snap/*','/pattern/*'], loader: {'.woff2':'dataurl','.woff':'dataurl'},
 define:{'import.meta.env.DEV':'true'},
@@ -188,15 +190,32 @@ try {
   await page.context().close();results.push(`retained ${activeStatus} owns flow`);
  }
  const failure=await fresh({discoveryFailure:true},390,'?date=2026-12-31');await failure.getByRole('alert').waitFor();assert.equal(await failure.locator('.tprs-nye-handoff').count(),0);await failure.context().close();results.push('unknown saved payment blocks handoff');
- const birthday=await fresh({birthday:true});await birthday.getByRole('button',{name:'Open full calendar'}).click();while(!(await birthday.locator('.tprs-cal-month').innerText()).includes('December'))await birthday.getByRole('button',{name:'Next month'}).click();assert.equal(await birthday.getByRole('button',{name:/NYE packages/}).count(),0);await birthday.context().close();results.push('other page configs remain unchanged');
+ const birthday=await fresh({birthday:true});await birthday.getByRole('button',{name:'Open full calendar'}).click();while(!(await birthday.locator('.tprs-cal-month').innerText()).includes('December'))await birthday.getByRole('button',{name:'Next month'}).click();assert.equal(await birthday.getByRole('button',{name:/NYE packages/}).count(),0);assert.equal(await birthday.getByRole('button',{name:'2026-12-06: Jingle Bowl packages',exact:true}).isEnabled(),true);await birthday.context().close();results.push('birthday keeps NYE behavior and gains the approved Jingle date destination');
  const ended=await fresh({now:'2027-01-01T06:30:00.000Z'},390,'?date=2026-12-31');await ended.getByRole('button',{name:'Open full calendar'}).waitFor();assert.equal(await ended.locator('.tprs-nye-handoff').count(),0);assert.equal(await ended.getByRole('button',{name:/NYE packages/}).count(),0);await ended.context().close();results.push('past event query cannot reopen NYE handoff');
  async function assertJingle(page,reviewLink=false){
   const heading=page.getByRole('heading',{name:'December 6 belongs to Jingle Bowl.',exact:true});await heading.waitFor();
   assert.match(await page.locator('.jingle-route-card').innerText(),/Regular lane reservations won't be offered before, during or after/);
-  assert.match(await page.locator('.jingle-route-card').innerText(),/still being finalized/);
-  assert.equal(await page.locator('.jingle-route-card a').count(),reviewLink?1:0);
-  if(reviewLink)assert.equal(await page.locator('.jingle-route-card a').getAttribute('href'),'/jingle-bowl/booking/');
+  const text=await page.locator('.jingle-route-card').innerText();
+  if(reviewLink)assert.match(text,/still being finalized/);
+  else {assert.match(text,/Choose your lane type and check current times/);assert.doesNotMatch(text,/still being finalized/);}
+  assert.equal(await page.locator('.jingle-route-card a').count(),1);
+  assert.equal(await page.locator('.jingle-route-card a').getAttribute('href'),reviewLink?'/jingle-bowl/booking/':'/jingle-bowl/');
+  assert.equal(await page.locator('.tprs-summary,.tprs-product-card,.tprs-tile,.tprs-slot-grid').count(),0,'ordinary packages cannot be sold on the event date');
   assert.equal(await page.evaluate(()=>window.fixture.calls.some(c=>/Cart|Payment|convert/.test(c.kind))),false);
+ }
+ for(const birthday of [false,true])for(const width of [320,390,1280]){
+  const page=await fresh({birthday},width);await calendarDecember(page);
+  const day=page.getByRole('button',{name:'2026-12-06: Jingle Bowl packages',exact:true});
+  assert.equal(await day.isEnabled(),true);assert.equal(await day.locator('.tprs-cal-price').count(),0);
+  await day.focus();await page.keyboard.press('Enter');await assertJingle(page);
+  assert.equal(await page.evaluate(()=>document.activeElement.textContent),'December 6 belongs to Jingle Bowl.');
+  await page.keyboard.press('Tab');assert.match(await page.evaluate(()=>document.activeElement.textContent),/Explore Jingle Bowl/);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.evaluate(()=>document.fonts.ready);await page.screenshot({path:resolve(output,`jingle-public-${birthday?'birthday':'ordinary'}-${width}.png`),fullPage:true});
+  await page.reload();await assertJingle(page);
+  await page.getByRole('button',{name:'Choose another date',exact:true}).click();
+  await page.getByRole('button',{name:'Open full calendar'}).waitFor();assert.equal(new URL(page.url()).searchParams.has('date'),false);
+  await page.context().close();results.push(`Jingle public ${birthday?'birthday':'ordinary'} keyboard/reload/return/width ${width}`);
  }
  for(const width of [320,390,1280]){
   const page=await fresh({jingle:true,reviewLink:true},width);await calendarDecember(page);
@@ -229,13 +248,15 @@ try {
  for(const day of ['5','7'])assert.equal(await jingleDetail.locator('.tprs-cal-cell').filter({has:jingleDetail.locator('.tprs-cal-day').getByText(day,{exact:true})}).isEnabled(),true);
  await jingleDetail.locator('.tprs-cal-cell').filter({has:jingleDetail.locator('.tprs-cal-day').getByText('7',{exact:true})}).click();
  await jingleDetail.waitForFunction(()=>window.fixtureDraft.date==='2026-12-07');await jingleDetail.context().close();results.push('Jingle preserves ordinary draft/history and adjacent ordinary dates');
- for(const activeStatus of ['processing','needs_review','confirmed']){
-  const page=await fresh({jingle:true,reviewLink:true,activeStatus},390,'?date=2026-12-06');
+ for(const birthday of [false,true])for(const activeStatus of ['processing','needs_review','confirmed']){
+  const page=await fresh({birthday,activeStatus},390,'?date=2026-12-06');
   await page.getByRole('heading',{name:activeStatus==='confirmed'?"You're booked.":'Your saved reservation',exact:true}).waitFor();
   assert.equal(await page.locator('.jingle-route-card').count(),0);assert.equal(await page.locator('a[href^="/jingle-bowl"]').count(),0);
-  await page.context().close();results.push(`Jingle retained ${activeStatus} wins over date query`);
+  await page.context().close();results.push(`Jingle ${birthday?'birthday':'ordinary'} retained ${activeStatus} wins over date query`);
  }
- const jingleFailure=await fresh({jingle:true,discoveryFailure:true},390,'?date=2026-12-06');await jingleFailure.getByRole('alert').waitFor();assert.equal(await jingleFailure.locator('.jingle-route-card').count(),0);await jingleFailure.context().close();results.push('Jingle discovery failure blocks handoff');
+ for(const birthday of [false,true]){
+  const jingleFailure=await fresh({birthday,discoveryFailure:true},390,'?date=2026-12-06');await jingleFailure.getByRole('alert').waitFor();assert.equal(await jingleFailure.locator('.jingle-route-card').count(),0);await jingleFailure.context().close();results.push(`Jingle ${birthday?'birthday':'ordinary'} discovery failure blocks handoff`);
+ }
  const tokyo=await fresh({jingle:true,timezone:'Asia/Tokyo',now:'2026-12-07T05:59:59.999Z'});
  await calendarDecember(tokyo);
  const tokyoDay=tokyo.getByRole('button',{name:'2026-12-06: Jingle Bowl packages',exact:true});
@@ -246,10 +267,10 @@ try {
  await tokyo.reload();await tokyo.getByRole('button',{name:'Open full calendar'}).waitFor();assert.equal(await tokyo.locator('.jingle-route-card').count(),0);
  await calendarDecember(tokyo);assert.equal(await tokyo.getByRole('button',{name:/Jingle Bowl packages/}).count(),0);
  await tokyo.context().close();results.push('Tokyo calendar and query expire exactly at Chicago December 7 midnight');
- for(const settings of [{},{jingle:true,birthday:true},{jingle:true,now:'2026-12-07T08:00:00Z'}]){
+ for(const settings of [{jingle:false},{jingle:false,birthday:true},{jingle:true,now:'2026-12-07T08:00:00Z'}]){
   const page=await fresh(settings,390,'?date=2026-12-06');await page.getByRole('button',{name:'Open full calendar'}).waitFor();
   assert.equal(await page.locator('.jingle-route-card').count(),0);assert.equal(await page.locator('a[href^="/jingle-bowl"]').count(),0);
-  await page.context().close();results.push(`Jingle absent from default/other/expired configuration ${JSON.stringify(settings)}`);
+  await page.context().close();results.push(`Jingle absent from disabled/expired configuration ${JSON.stringify(settings)}`);
  }
  assert.deepEqual(errors,[]);assert.deepEqual(external,[]);
  await writeFile(resolve(output,'results.json'),JSON.stringify({results,errors,external},null,2));

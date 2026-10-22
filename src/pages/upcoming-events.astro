@@ -408,7 +408,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
                     </div>
                     <div class="ev-date-month">{block.month}</div>
                     {block.weekday && <div class="ev-date-weekday">{block.weekday}</div>}
-                    {previewJingle && e.id === "2026-12-06-jingle-bowl" && (
+                    {e.id === "2026-12-06-jingle-bowl" && (
                       <img
                         class="ev-jingle-santa"
                         src="/jingle-bowl/santa-entrance.webp"
@@ -754,7 +754,7 @@ const upcomingEventsJsonLd = schemaEntries.length === 0 ? null : {
     margin-top: 6px;
   }
 
-  /* A small, still accent for the approved Jingle review card only.
+  /* A small, still accent for the approved Jingle event card.
      It stays in the date column so the title and actions keep their space. */
   .ev-jingle-santa {
     display: block;

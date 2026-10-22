@@ -1,11 +1,13 @@
 ---
+import { getEntry } from "astro:content";
 import Base from "../layouts/Base.astro";
-import { PHONE_DISPLAY, PHONE_TEL } from "../lib/schema";
+import BreadcrumbSchema from "../components/BreadcrumbSchema.astro";
+import { BUSINESS_URL, PHONE_DISPLAY, PHONE_TEL, eventSchema } from "../lib/schema";
 import { jingleBookingEnabled, jingleBookingHref } from "../config/jingle-booking";
 export const prerender = false;
 
-// The review password is separate from booking readiness. Only the verified
-// release switch (or exact isolated DEV transport) exposes booking links.
+// The public invitation keeps the booking switch and server readiness checks.
+// An isolated DEV rehearsal remains a separate, protected transport.
 const bookingEnabled = jingleBookingEnabled(process.env.JINGLE_BOOKING_ENABLED ?? import.meta.env.JINGLE_BOOKING_ENABLED)
   || (import.meta.env.DEV && import.meta.env.PUBLIC_TPRS_API_BASE === '/jingle-bowl/rehearsal-api');
 const inclusions = [
@@ -14,10 +16,17 @@ const inclusions = [
   { number: "03", title: "Cocoa + cookies", detail: "A little something for the sweet tooth. Santa understands." },
   { number: "04", title: "A visit with Santa", detail: "Photos with the big guy, coordinated with your bowling time." },
 ];
+const eventEntry = await getEntry("events", "2026-12-06-jingle-bowl");
+// Availability belongs to checkout; this invitation does not claim InStock.
+const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSchema({
+  name: eventEntry.data.title, start: eventEntry.data.start, end: eventEntry.data.end,
+  description: eventEntry.body?.trim(), image: `${BUSINESS_URL}/jingle-bowl/jingle-wide.png`,
+  url: `${BUSINESS_URL}/jingle-bowl/`,
+}) } : null;
 ---
 
 <Base
-  title="Jingle Bowl 2026: Bowling & a Visit with Santa | Twisted Pin"
+  title="Jingle Bowl 2026: Santa & Bowling | Twisted Pin"
   description="Bowling, pizza and a visit with Santa at Twisted Pin in Plainfield on Sunday, December 6, 2026. Explore Jingle Bowl packages and reservation details."
   ogImage="/jingle-bowl/jingle-wide.png"
   ogImageAlt="Illustrated Santa with a bowling ball, created for the Jingle Bowl campaign"
@@ -26,7 +35,10 @@ const inclusions = [
   hidePromo={true}
   reservationAction={{ href: "#lane-packages", label: "See packages" }}
 >
-  <Fragment slot="head"><meta name="robots" content="noindex, nofollow" /></Fragment>
+  <Fragment slot="head">
+    {eventJsonLd && <script type="application/ld+json" set:html={JSON.stringify(eventJsonLd)} />}
+    <BreadcrumbSchema crumbs={[{ name: "Home", path: "/" }, { name: "Jingle Bowl", path: "/jingle-bowl/" }]} />
+  </Fragment>
 
   <div class="jb-page">
     <section class="jb-hero" aria-labelledby="jb-title">

@@ -1,0 +1,258 @@
+{
+  "createdAt": "2026-10-22T17:15:03.734Z",
+  "target": "https://www.twistedpin.com/jingle-bowl/booking/",
+  "rendererSha256": "1894f031e16992fd24f115981c940642a14b1883bde74dbcadadbfb881f2a4bd",
+  "qr": {
+    "errorCorrection": "Q",
+    "symbolModules": 37,
+    "quietZoneModules": 4,
+    "nativePixelsPerModule": {
+      "traditional": 6,
+      "vip": 5,
+      "standard": 8
+    }
+  },
+  "outboundNetworkRequests": 0,
+  "assets": {
+    "santa": {
+      "path": "public/jingle-bowl/santa-entrance.webp",
+      "sha256": "aae1e5137a75d281da1ab1227a8c8e050f46d6b6c01665f0367d449330c5456c"
+    },
+    "logo": {
+      "path": "Context/logos/new-logo/New Logo/Raster/Horizontal Logo/Logo_Horizontal_White.png",
+      "sha256": "5268bd8f761753a1d4aea04906022190008b70f32b940bb6a7e61455ff30a41a"
+    },
+    "display": {
+      "path": "node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2",
+      "sha256": "aa01966de3f608a765a172237a3ffc6161fe4c7e3870b1a904dc6437e54c4e24"
+    },
+    "body": {
+      "path": "node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2",
+      "sha256": "f9d9e65b15372cebcafc3acd1e664a564c5c4b23278de4d5760de9a13c530371"
+    }
+  },
+  "exports": [
+    {
+      "file": "Jingle-QR-1280x720-STANDARD-SCREEN.png",
+      "width": 1280,
+      "height": 720,
+      "sha256": "da9aeea4bd6eaff09393e8d6fd521c2337bdd12592310d5fa3b5a16078f1957e"
+    },
+    {
+      "file": "Jingle-QR-1023x420-ZONE.png",
+      "width": 1023,
+      "height": 420,
+      "sha256": "e997e61f64b2d8dc0079eeaf6ad59b39a09a4e57cfe305faeedcc229e5533417"
+    },
+    {
+      "file": "Jingle-QR-736x420-ZONE.png",
+      "width": 736,
+      "height": 420,
+      "sha256": "8aed1deefd74ad44288c7554352415571d2b2fac5eb348d5b5a8000bd4d90381"
+    },
+    {
+      "file": "Jingle-QR-5908x448-TRADITIONAL-WALL.png",
+      "width": 5908,
+      "height": 448,
+      "sha256": "1a504587aa780c56fa5a656a5a0cefe8a816b499ab87af8faa22bffb24a84df1"
+    },
+    {
+      "file": "Jingle-QR-2210x448-VIP-WALL.png",
+      "width": 2210,
+      "height": 448,
+      "sha256": "3e0e588da3132838ececcd5a99e0f026fb0525b6b84af75d9df13a5a4eabc2fa"
+    }
+  ],
+  "checks": [
+    {
+      "name": "Jingle-QR-1280x720-STANDARD-SCREEN: whole native image",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1280x720-STANDARD-SCREEN: whole image at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1280x720-STANDARD-SCREEN: QR crop",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1023x420-ZONE: whole native image",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1023x420-ZONE: whole image at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1023x420-ZONE: QR crop",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1022x420-ZONE: whole native image",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1022x420-ZONE: whole image at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-1022x420-ZONE: QR crop",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-789x420-ZONE: whole native image",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-789x420-ZONE: whole image at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-789x420-ZONE: QR crop",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-736x420-ZONE: whole native image",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-736x420-ZONE: whole image at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-736x420-ZONE: QR crop",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 1 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 1 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 2 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 2 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 3 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 3 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 4 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 4 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 5 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 5 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 6 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-5908x448-TRADITIONAL-WALL: zone 6 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 1 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 1 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 2 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 2 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 3 native square QR",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Jingle-QR-2210x448-VIP-WALL: zone 3 at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Standard screen diagnostic: nonuniform HDMI stretch to 1023x420",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/",
+      "recommended": false
+    },
+    {
+      "name": "Standard screen diagnostic: nonuniform HDMI stretch to 1022x420",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/",
+      "recommended": false
+    },
+    {
+      "name": "Standard screen diagnostic: nonuniform HDMI stretch to 789x420",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/",
+      "recommended": false
+    },
+    {
+      "name": "Standard screen diagnostic: nonuniform HDMI stretch to 736x420",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/",
+      "recommended": false
+    }
+  ],
+  "physicalPhoneScanPerformed": false
+}

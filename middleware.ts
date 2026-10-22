@@ -15,7 +15,7 @@
 import { next } from "@vercel/functions";
 // Vercel emits this Node ESM entrypoint and its TypeScript dependencies as .js.
 // Unlike Astro/Vite, Node cannot resolve an extensionless relative import.
-import { isJingleReviewPath, jingleReviewGate, JINGLE_REVIEW_HEADERS } from "./src/lib/jingle-review-auth.js";
+import { isJingleReviewPath, isJinglePublicPath, isJingleBookingPath, jingleReviewGate, JINGLE_REVIEW_HEADERS, JINGLE_BOOKING_HEADERS } from "./src/lib/jingle-review-auth.js";
 
 export const config = {
   // Node runtime: predictable fetch + Set-Cookie passthrough for the cart cookie.
@@ -27,6 +27,10 @@ const BACKEND = "https://api.twistedpin.com";
 
 export default async function middleware(request: Request): Promise<Response> {
   const url = new URL(request.url);
+  if (isJinglePublicPath(url.pathname)) {
+    const denied = await jingleReviewGate(request);
+    return denied ?? (isJingleBookingPath(url.pathname) ? next({ headers: JINGLE_BOOKING_HEADERS }) : next());
+  }
   if (isJingleReviewPath(url.pathname)) {
     const denied = await jingleReviewGate(request);
     return denied ?? next({ headers: JINGLE_REVIEW_HEADERS });

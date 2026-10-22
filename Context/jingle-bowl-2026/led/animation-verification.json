@@ -1,0 +1,303 @@
+{
+  "createdAt": "2026-10-22T17:12:32.913Z",
+  "sourceSha256": "84c9985ad4e8e31e93bba6b885ed21e6f1e5a3b50e5963cdbea0faaa95b31d60",
+  "assets": {
+    "santa": {
+      "path": "public/jingle-bowl/santa-entrance.webp",
+      "sha256": "aae1e5137a75d281da1ab1227a8c8e050f46d6b6c01665f0367d449330c5456c"
+    },
+    "logo": {
+      "path": "Context/logos/new-logo/New Logo/Raster/Horizontal Logo/Logo_Horizontal_White.png",
+      "sha256": "5268bd8f761753a1d4aea04906022190008b70f32b940bb6a7e61455ff30a41a"
+    },
+    "display": {
+      "path": "node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2",
+      "sha256": "aa01966de3f608a765a172237a3ffc6161fe4c7e3870b1a904dc6437e54c4e24"
+    },
+    "body": {
+      "path": "node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2",
+      "sha256": "f9d9e65b15372cebcafc3acd1e664a564c5c4b23278de4d5760de9a13c530371"
+    }
+  },
+  "target": "https://www.twistedpin.com/jingle-bowl/booking/",
+  "width": 1920,
+  "height": 1080,
+  "durationSeconds": 20,
+  "framesPerSecond": 30,
+  "codec": "H.264",
+  "pixelFormat": "yuv420p",
+  "audio": false,
+  "qr": {
+    "pixels": 540,
+    "modulePixels": 12,
+    "errorCorrection": "Q",
+    "quietZoneModules": 4,
+    "stationaryWholeLoop": true
+  },
+  "outboundNetworkRequests": 0,
+  "files": {
+    "Jingle-Bowl-LED-1920x1080.png": {
+      "bytes": 676062,
+      "sha256": "947cf7f0ef2138c1a0a950aafb2b9de79b6871a2ffec6320f4615d722f16cf75"
+    },
+    "Jingle-Bowl-LED-1920x1080.mp4": {
+      "bytes": 1784443,
+      "sha256": "31f2751bec3fdd9b75ed969bab1d827b6f093aa7c4a225f00887a8bf3fe88bae"
+    }
+  },
+  "decodedVideoFrames": 24,
+  "checks": [
+    {
+      "name": "Matching PNG native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Matching PNG at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-0.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-0.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-0_5.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-0_5.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-19_966667.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-19_966667.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-2_5.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 boundary-2_5.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-01.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-01.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-02.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-02.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-03.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-03.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-04.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-04.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-05.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-05.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-06.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-06.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-07.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-07.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-08.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-08.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-09.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-09.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-10.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-10.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-11.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-11.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-12.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-12.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-13.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-13.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-14.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-14.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-15.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-15.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-16.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-16.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-17.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-17.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-18.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-18.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-19.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-19.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-20.png native",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    },
+    {
+      "name": "Encoded MP4 frame-20.png at 50%",
+      "result": "pass",
+      "decoded": "https://www.twistedpin.com/jingle-bowl/booking/"
+    }
+  ],
+  "physicalWallPlaybackTested": false,
+  "physicalPhoneScanTested": false
+}

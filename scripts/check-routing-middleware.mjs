@@ -34,7 +34,7 @@ try {
 
   delete process.env.JINGLE_REVIEW_PASSWORD;
   delete process.env.JINGLE_REVIEW_SESSION_SECRET;
-  assert.equal((await middleware(new Request("https://preview.example/jingle-bowl/"))).status, 503);
+  assert.equal((await middleware(new Request("https://preview.example/jingle-bowl-concepts/"))).status, 503);
   assert.equal((await middleware(new Request("https://preview.example/nye-homepage-concepts/"))).status, 503);
   pass("unconfigured review fails closed without a startup exception");
 
@@ -63,19 +63,53 @@ try {
   assert.equal(calls[1].init.redirect, "manual");
   pass("ordinary API POST body, query and manual redirects remain intact");
 
+  for (const path of ['/jingle-bowl', '/jingle-bowl/', '/%6aingle-bowl/', '/jingle-bowl/jingle-square.png', '/jingle-bowl/jingle-square.webp', '/jingle-bowl/jingle-wide.png', '/jingle-bowl/jingle-wide.webp', '/jingle-bowl/santa-entrance.webp', '/%6aingle-bowl/jingle-wide.webp']) {
+    for (const method of ['GET', 'HEAD']) {
+      const response = await middleware(new Request('https://preview.example' + path, {method}));
+      assert.equal(response.headers.get('x-middleware-next'), '1');
+      assert.equal(response.headers.get('X-Robots-Tag'), null);
+      assert.equal(response.headers.get('Cache-Control'), null);
+      assert.equal(response.headers.get('Set-Cookie'), null);
+    }
+  }
+  assert.equal(calls.length, 2);
+  pass('anonymous public marketing and exact approved artwork continue without review headers or upstream calls');
+
+  for (const path of ['/jingle-bowl/booking', '/jingle-bowl/booking/', '/jingle-bowl/booking/?lane=traditional', '/jingle-bowl/booking/?lane=vip', '/%6aingle-bowl/booking/?lane=vip']) {
+    for (const method of ['GET', 'HEAD']) {
+      const response = await middleware(new Request('https://preview.example' + path, {method}));
+      assert.equal(response.headers.get('x-middleware-next'), '1');
+      assert.match(response.headers.get('Cache-Control'), /private, no-store/);
+      assert.equal(response.headers.get('CDN-Cache-Control'), 'no-store');
+      assert.equal(response.headers.get('Vercel-CDN-Cache-Control'), 'no-store');
+      assert.match(response.headers.get('X-Robots-Tag'), /noindex/);
+      assert.equal(response.headers.get('Set-Cookie'), null);
+    }
+  }
+  assert.equal(calls.length, 2);
+  pass('anonymous checkout is credential-independent and retains private no-store/noindex response headers');
+
+  for (const path of ['/jingle-bowl/', '/jingle-bowl/booking/', '/jingle-bowl/jingle-wide.png']) {
+    const response = await middleware(new Request('https://preview.example' + path, {method:'POST'}));
+    assert.equal(response.status, 405);
+    assert.equal(response.headers.get('Allow'), 'GET, HEAD');
+  }
+  assert.equal(calls.length, 2);
+  pass('public page/image writes are refused and never fall through to the API proxy');
+
   process.env.JINGLE_REVIEW_PASSWORD = "synthetic-password";
   process.env.JINGLE_REVIEW_SESSION_SECRET = randomBytes(32).toString("hex");
-  for (const path of ["/jingle-bowl/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/jingle-bowl/jingle-wide.webp", "/%6aingle-bowl/jingle-wide.webp", "/nye-homepage-concepts/", "/%6eye-homepage-concepts/"]) {
+  for (const path of ["/jingle-bowl-concepts/", "/review/jingle-calendar/", "/jingle-bowl/draft.webp", "/%6aingle-bowl/draft.webp", "/jingle-bowl/rehearsal-api/api/products/", "/jingle-bowl/booking/other/", "/nye-homepage-concepts/", "/%6eye-homepage-concepts/"]) {
     assert.equal((await middleware(new Request("https://preview.example" + path))).status, 401);
   }
-  pass("real middleware denies anonymous pages and campaign assets");
-  const login = await middleware(new Request("https://preview.example/jingle-bowl/", {
+  pass("real middleware denies anonymous concepts, review calendar, rehearsal and unapproved assets");
+  const login = await middleware(new Request("https://preview.example/jingle-bowl-concepts/", {
     method: "POST", headers: { Origin: "https://preview.example", "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ password: process.env.JINGLE_REVIEW_PASSWORD }),
   }));
   assert.equal(login.status, 303);
   const cookie = login.headers.get("set-cookie").split(";")[0];
-  const authorized = await middleware(new Request("https://preview.example/jingle-bowl/", { headers: { Cookie: cookie } }));
+  const authorized = await middleware(new Request("https://preview.example/jingle-bowl-concepts/", { headers: { Cookie: cookie } }));
   assert.equal(authorized.headers.get("x-middleware-next"), "1");
   assert.match(authorized.headers.get("Cache-Control"), /private, no-store/);
   assert.match(authorized.headers.get("X-Robots-Tag"), /noindex/);
@@ -88,7 +122,7 @@ try {
   assert.equal(nyeLogin.status, 303);
   assert.equal(nyeLogin.headers.get('Location'), '/nye-homepage-concepts/');
   const nyeCookie = nyeLogin.headers.get('set-cookie').split(';')[0];
-  for (const path of ['/nye-homepage-concepts/', '/jingle-bowl/jingle-wide.webp', '/review/jingle-calendar/?month=2026-12']) {
+  for (const path of ['/nye-homepage-concepts/', '/jingle-bowl/draft.webp', '/review/jingle-calendar/?month=2026-12']) {
     const response = await middleware(new Request('https://preview.example' + path, { headers: { Cookie: nyeCookie } }));
     assert.equal(response.headers.get('x-middleware-next'), '1');
     assert.match(response.headers.get('Cache-Control'), /private, no-store/);
@@ -99,7 +133,7 @@ try {
   assert.equal(calendarLogin.headers.get('Location'), '/review/jingle-calendar/?month=2026-12');
   assert.equal(calls.length, 2);
   assert.ok(config.matcher.includes('/nye-homepage-concepts/:path*'));
-  pass('NYE review shares signed login while Jingle assets and calendar return remain unchanged');
+  pass('NYE review shares signed login while protected Jingle assets and calendar return remain unchanged');
   console.log(`${cases} routing middleware checks passed.`);
 } finally {
   globalThis.fetch = originalFetch;

@@ -5,7 +5,15 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 export const JINGLE_REVIEW_COOKIE = "tp_jingle_review";
 export const JINGLE_REVIEW_TTL_MS = 12 * 60 * 60 * 1000;
-const PAGE_PATHS = new Set(["/jingle-bowl/", "/jingle-bowl/booking/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/nye-homepage-concepts/"]);
+const PAGE_PATHS = new Set(["/jingle-bowl-concepts/", "/review/jingle-calendar/", "/nye-homepage-concepts/"]);
+// Public launch is an exact allowlist, never the whole Jingle prefix. Draft
+// artwork, concepts, calendar review and the local rehearsal remain protected.
+const PUBLIC_PATHS = new Set([
+  "/jingle-bowl", "/jingle-bowl/", "/jingle-bowl/booking", "/jingle-bowl/booking/",
+  "/jingle-bowl/jingle-square.png", "/jingle-bowl/jingle-square.webp",
+  "/jingle-bowl/jingle-wide.png", "/jingle-bowl/jingle-wide.webp",
+  "/jingle-bowl/santa-entrance.webp",
+]);
 const PREFIXES = ["/jingle-bowl", "/jingle-bowl-concepts", "/review/jingle-calendar", "/nye-homepage-concepts"];
 type ReviewEnv = { JINGLE_REVIEW_PASSWORD?: string; JINGLE_REVIEW_SESSION_SECRET?: string };
 const failedAttempts = new Map<string, { count: number; until: number }>();
@@ -21,13 +29,33 @@ export const JINGLE_REVIEW_HEADERS = {
   Vary: "Cookie",
 } as const;
 
+// Checkout is publicly reachable but must never become a shared cached page or
+// a search result. Marketing pages and approved artwork can be indexed/cached.
+export const JINGLE_BOOKING_HEADERS = {
+  "Cache-Control": "private, no-store, max-age=0",
+  "CDN-Cache-Control": "no-store",
+  "Vercel-CDN-Cache-Control": "no-store",
+  "X-Robots-Tag": "noindex, nofollow, noarchive",
+  "Referrer-Policy": "same-origin",
+  "X-Content-Type-Options": "nosniff",
+} as const;
+
 function decodedPath(pathname: string): string {
   try { return decodeURIComponent(pathname); } catch { return pathname; }
 }
 
+export function isJinglePublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.has(decodedPath(pathname));
+}
+
+export function isJingleBookingPath(pathname: string): boolean {
+  const path = decodedPath(pathname);
+  return path === "/jingle-bowl/booking" || path === "/jingle-bowl/booking/";
+}
+
 export function isJingleReviewPath(pathname: string): boolean {
   const path = decodedPath(pathname);
-  return PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
+  return !PUBLIC_PATHS.has(path) && PREFIXES.some(prefix => path === prefix || path.startsWith(`${prefix}/`));
 }
 
 function pagePath(pathname: string): string | null {
@@ -76,14 +104,9 @@ function escapeHtml(value: string): string {
 }
 
 /** Redirect only to an allowlisted review page; caller-supplied next/return URLs
- * are ignored. Booking retains one valid lane and no other query parameters;
- * calendar retains only a valid month, never an arbitrary query. */
+ * are ignored. Calendar retains only a valid month, never an arbitrary query. */
 export function jingleReviewReturnPath(url: URL): string {
-  const path = pagePath(url.pathname) ?? "/jingle-bowl/";
-  if (path === "/jingle-bowl/booking/" && url.searchParams.size === 1) {
-    const lane = url.searchParams.get("lane");
-    if (lane === "traditional" || lane === "vip") return `${path}?lane=${lane}`;
-  }
+  const path = pagePath(url.pathname) ?? "/jingle-bowl-concepts/";
   const month = url.searchParams.get("month");
   return path === "/review/jingle-calendar/" && month && /^20\d{2}-(0[1-9]|1[0-2])$/.test(month)
     ? `${path}?month=${month}` : path;
@@ -116,15 +139,18 @@ async function readPassword(request: Request): Promise<string | null> {
   return values.length === 1 && values[0].length <= 256 ? values[0] : null;
 }
 
-/** null means authorized or outside this gate. The caller must apply the same
- * private/no-store headers when continuing a protected response. */
+/** null means public GET/HEAD, authorized review access, or outside this gate.
+ * The caller must retain private/no-store headers on checkout and review pages. */
 export async function jingleReviewGate(request: Request, env: ReviewEnv = process.env, now = Date.now()): Promise<Response | null> {
   const url = new URL(request.url);
+  const method = request.method.toUpperCase();
+  if (isJinglePublicPath(url.pathname)) {
+    return method === "GET" || method === "HEAD" ? null : simpleResponse("Method not allowed", 405, { Allow: "GET, HEAD" });
+  }
   if (!isJingleReviewPath(url.pathname)) return null;
   const page = pagePath(url.pathname);
   const action = jingleReviewReturnPath(url);
   if (!configured(env)) return page ? loginResponse(action, 503, "This preview is temporarily unavailable.") : simpleResponse("Preview unavailable", 503);
-  const method = request.method.toUpperCase();
   // The development-only rehearsal proxy also needs authenticated mutations.
   // This exception is loopback-only; the route independently requires DEV and
   // its exact isolated transport configuration before contacting any backend.

@@ -57,6 +57,8 @@ export default defineConfig({
   }),
   integrations: [
     sitemap({
+      // The public landing is rendered on request to retain its booking switch.
+      customPages: ['https://www.twistedpin.com/jingle-bowl/'],
       // Exclude the internal TPRS booking-flow preview (ADR-0029 §2). The
       // /tprs/* route is noindex,nofollow + unlinked; it must also stay out
       // of the sitemap so it's never surfaced to crawlers. Defense-in-depth
@@ -69,10 +71,8 @@ export default defineConfig({
       // noindex" warnings. Add new offer/preview slugs to the list.
       filter: (page) =>
         !page.includes('/tprs') &&
-        // Jingle Bowl concept review remains unpublished. Remove the
-        // landing-page exclusion only when its launch is approved;
-        // the concepts gallery is always an internal review surface.
-        !new URL(page).pathname.startsWith('/jingle-bowl/') &&
+        // Publish only the invitation, never checkout or review descendants.
+        !(new URL(page).pathname.startsWith('/jingle-bowl/') && new URL(page).pathname !== '/jingle-bowl/') &&
         !['/jingle-bowl-concepts/', '/review/jingle-calendar/', '/nye-homepage-concepts/'].includes(new URL(page).pathname) &&
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.

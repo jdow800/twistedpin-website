@@ -1,6 +1,6 @@
-/** Draft display routing only. The backend must independently enforce event
- * eligibility before this can be enabled for public reservations. No NYE route
- * is registered here: its existing booking behavior remains authoritative. */
+/** Display routing backed by reviewed event facts. The backend independently
+ * enforces event eligibility. No NYE route is registered here: its existing
+ * booking behavior remains authoritative. */
 import eventFacts from '../data/special-events-2026.json' with { type: 'json' };
 
 export interface EventDateRoute {
@@ -12,7 +12,7 @@ export interface EventDateRoute {
   href?: `/${string}/`;
   actionLabel: string;
   message: string;
-  salesState: "details_pending";
+  salesState: "details_pending" | "booking_ready";
 }
 
 const DRAFT_EVENT_DATE_ROUTES: readonly EventDateRoute[] = [
@@ -38,8 +38,10 @@ export function jingleBookingDateRoute(options: {enabled: boolean; protectedRevi
   if (import.meta.env.DEV && options.protectedReview === true) {
     return {...route, href: '/jingle-bowl/booking/', actionLabel: 'Review Jingle Bowl booking'};
   }
-  const publicPage = eventFacts.records.find(event => event.id === 'jingle_bowl_2026')?.page_public === true;
-  return publicPage ? {...route, href: '/jingle-bowl/'} : route;
+  const facts = eventFacts.records.find(event => event.id === 'jingle_bowl_2026');
+  if (!facts?.page_public) return route;
+  const ready = facts.confirmed && facts.booking_ready_verified && facts.session_cutoffs_verified && facts.sales_open_at !== null;
+  return {...route, href: '/jingle-bowl/', salesState: ready ? 'booking_ready' : 'details_pending'};
 }
 
 /** Protected concepts only; ordinary booking uses jingleBookingDateRoute.

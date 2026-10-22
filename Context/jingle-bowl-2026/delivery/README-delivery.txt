@@ -6,7 +6,7 @@ C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl
 
 This folder is a delivery copy. Keep the editable copy, artwork masters, export script and provenance in the Website repository under dev. Creating the Desktop folder does not publish an event, send a message, remove page protection or announce reservations.
 
-The Jingle page remains password-protected. Use recommended-copy.txt only after public launch is verified. The copy intentionally contains no access password.
+Public launch has been approved. The release connects the homepage invitation, public Jingle page and booking flow. Use recommended-copy.txt after the release is verified. The copy contains no access password. Staff can use staff-7shifts-tldr.txt as a quick phone reference; Jon will send it himself.
 
 
 FINISHED ARTWORK TO DELIVER
@@ -77,7 +77,7 @@ To reproduce the Desktop delivery after review:
 4. Copy recommended-copy.txt and README-delivery.txt from Context/jingle-bowl-2026/delivery/ into it.
 5. Compare the delivered files with their repository sources before sharing. Leave the original repository files and masters in place.
 
-This source preparation does not claim that a Desktop copy has already been made.
+The original six-file Desktop delivery was verified October 22. The public-launch delivery adds the staff brief and LED-wall artwork; its exact files and hashes are recorded with the launch receipt. Editable originals stay in this repository.
 
 
 EXCLUDED HISTORICAL / DECORATIVE MATERIAL

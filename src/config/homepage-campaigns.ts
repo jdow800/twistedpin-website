@@ -18,10 +18,10 @@ export interface HomepageCampaign {
 export const HOMEPAGE_CAMPAIGNS: readonly HomepageCampaign[] = [
   { id: "nye-mirrorball-2026", enabled: true, publicPageReady: true,
     startsAt: "2026-12-07T06:00:00Z", endsAt: "2027-01-01T03:30:00Z", href: "/new-years-eve/", priority: 20 },
-  // Jingle's start and retirement remain unselected. Its protected review URL
-  // must never become a public promotion just because December has arrived.
-  { id: "jingle-2026", enabled: false, publicPageReady: false,
-    startsAt: null, endsAt: null, href: null, priority: 10 },
+  // Public launch approved October 22. Retire at the final 3:45pm start's
+  // 30-minute booking cutoff; checkout remains authoritative for availability.
+  { id: "jingle-2026", enabled: true, publicPageReady: true,
+    startsAt: "2026-10-22T05:00:00Z", endsAt: "2026-12-06T21:15:00Z", href: "/jingle-bowl/", priority: 10 },
 ];
 
 const dateFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: HOMEPAGE_TIME_ZONE,

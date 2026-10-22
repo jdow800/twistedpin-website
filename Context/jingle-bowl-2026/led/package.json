@@ -1,0 +1,11 @@
+{
+  "name": "jingle-bowl-led-artwork",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Offline QR generation and verification for the 2026 Jingle Bowl LED delivery.",
+  "dependencies": {
+    "qrcode": "1.5.4",
+    "jsqr": "1.4.0"
+  }
+}

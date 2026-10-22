@@ -3,7 +3,7 @@ title: Jingle Bowl! Bowling & a Visit with Santa
 # First bowling start through the confirmed end of event activities.
 start: 2026-12-06T13:45:00-06:00
 end: 2026-12-06T17:15:00-06:00
-draft: true
+draft: false
 location: Twisted Pin · Plainfield, IL
 image: /jingle-bowl/jingle-wide.webp
 cta:

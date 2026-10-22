@@ -10,6 +10,7 @@ await mkdir(out, { recursive: true });
 const output = name => fileURLToPath(new URL(name, out));
 const browser = await chromium.launch();
 const start = Date.parse('2026-12-07T06:00:00Z'), end = Date.parse('2027-01-01T03:30:00Z');
+const jingleStart = Date.parse('2026-10-22T05:00:00Z'), jingleEnd = Date.parse('2026-12-06T21:15:00Z');
 let checks = 0;
 const errors = [], blocked = [], captures = [];
 const check = (actual, expected, label) => { assert.deepEqual(actual, expected, label); checks++; };
@@ -43,26 +44,98 @@ async function advance(page, at, event = 'focus') {
     else window.dispatchEvent(new Event(event));
   }, event);
 }
-async function layout(page, label) {
-  const measured = await page.evaluate(() => {
+async function layout(page, label, event = 'nye') {
+  const measured = await page.evaluate(event => {
     const box = s => { const r = document.querySelector(s).getBoundingClientRect(); return { left:r.left, right:r.right, top:r.top, bottom:r.bottom, width:r.width, height:r.height }; };
-    const card = box('[data-homepage-nye]'), art = box('.homepage-nye-art'), nav = box('.site-chrome'), copy = box('.hero-copy'), sticky = box('[data-cta-bar]');
+    const card = box(`[data-homepage-${event}]`), art = box(`.homepage-${event}-art`), nav = box('.site-chrome'), copy = box('.hero-copy'), sticky = box('[data-cta-bar]');
     const intersects = (a,b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-    const text = [...document.querySelectorAll('.homepage-nye-link,.homepage-nye-link strong,.homepage-nye-action')].map(el => el.scrollWidth <= el.clientWidth + 1);
+    const text = [...document.querySelectorAll(`.homepage-${event}-link,.homepage-${event}-link strong,.homepage-${event}-action`)].map(el => el.scrollWidth <= el.clientWidth + 1);
     return { width:innerWidth, scrollWidth:document.documentElement.scrollWidth, card, art, nav, copy, sticky,
       navClear:art.top >= nav.bottom - 1, headlineClear:!intersects(card,copy), stickyClear:!sticky.width || !intersects(card,sticky), textClear:text.every(Boolean) };
-  });
+  }, event);
   await page.screenshot({ path: output(`${label}.png`) });
   check(measured.scrollWidth <= measured.width, true, `${label}: no viewport overflow`);
   check(measured.navClear && measured.headlineClear && measured.stickyClear, true, `${label}: artwork/card clear navigation, headline and sticky booking ${JSON.stringify(measured)}`);
   check(measured.textClear, true, `${label}: complete text`);
   check(measured.card.height <= 150, true, `${label}: compact invitation`);
-  check(await page.locator('[data-homepage-nye-link]').getAttribute('href'), '/new-years-eve/', 'approved landing destination');
+  check(await page.locator(`[data-homepage-${event}-link]`).getAttribute('href'), event === 'jingle' ? '/jingle-bowl/' : '/new-years-eve/', 'approved landing destination');
   check(await page.locator('[data-homepage-fallback]').isVisible(), false, 'generic bar does not compete');
   check(await page.locator('[data-cta-bar] a').first().getAttribute('href'), '/reserve/', 'ordinary booking CTA preserved');
   captures.push({ label, ...measured });
 }
 try {
+  for (const [width,height] of [[320,568],[390,844],[430,932],[844,390],[1280,900]]) {
+    const { context, page } = await open({ at:jingleStart, width, height });
+    await layout(page, `jingle-${width}x${height}`, 'jingle');
+    check(await page.locator('[data-homepage-nye]').isVisible(), false, 'Jingle never competes with NYE');
+    check(await page.locator('[data-hero] video').count(), 2, 'Jingle retains both existing hero videos');
+    check((await page.locator('#hero-h1').innerText()).replace(/\s+/g,' ').toLowerCase(), 'built for adults. fine, bring the kids.', 'Jingle retains the homepage headline');
+    await context.close();
+  }
+  const jingleCutoff = await open({ at:jingleEnd-1, installedClock:true });
+  check(await jingleCutoff.page.locator('[data-homepage-jingle]').isVisible(), true, 'Jingle visible through last eligible millisecond');
+  await jingleCutoff.page.clock.runFor(1);
+  check(await jingleCutoff.page.locator('[data-homepage-jingle]').isVisible(), false, 'Jingle retires exactly at 3:15pm Chicago without reload');
+  check(await jingleCutoff.page.locator('[data-homepage-fallback]').isVisible(), true, 'generic promotion fills the post-cutoff gap');
+  await advance(jingleCutoff.page, start);
+  check(await jingleCutoff.page.locator('[data-homepage-nye]').isVisible(), true, 'same mounted page hands off to NYE at Dec 7 midnight');
+  await jingleCutoff.context.close();
+  const jingleDismissed = await open({ at:jingleStart, storageFails:true });
+  await jingleDismissed.page.locator('[data-homepage-jingle] [data-homepage-campaign-dismiss]').click();
+  check(await jingleDismissed.page.locator('[data-homepage-jingle]').isVisible(), false, 'Jingle dismissal persists without storage');
+  check(await jingleDismissed.page.locator('[data-homepage-fallback]').isVisible(), false, 'dismissed Jingle does not expose a competing promotion');
+  await advance(jingleDismissed.page, start);
+  check(await jingleDismissed.page.locator('[data-homepage-nye]').isVisible(), true, 'dismissing Jingle never dismisses the later NYE campaign');
+  await jingleDismissed.context.close();
+  const rotating = await open({ at:jingleStart, motion:'no-preference', installedClock:true });
+  const card = rotating.page.locator('[data-homepage-jingle]');
+  await rotating.page.clock.runFor(4000);
+  await card.waitFor({ state:'visible' });
+  // CSS animations use the compositor clock, independent of Playwright timers.
+  await rotating.page.waitForFunction(() => document.querySelector('[data-homepage-jingle]').dataset.entrance === 'settled');
+  const initialBox = await card.boundingBox();
+  await rotating.page.clock.runFor(12_000);
+  check(await card.getAttribute('data-character'), 'santa', 'approved ornament and Santa alternate after a readable dwell');
+  await rotating.page.waitForFunction(() => { const img=document.querySelector('.homepage-jingle-santa'); return img.naturalWidth > 0 && Number(getComputedStyle(img).opacity) === 1; });
+  await rotating.page.screenshot({ path:output('jingle-santa-390x844.png') });
+  check(await card.boundingBox(), initialBox, 'only decorative artwork moves, never the invitation');
+  await card.locator('[data-homepage-campaign-pause]').click();
+  await rotating.page.clock.runFor(24_000);
+  check(await card.getAttribute('data-character'), 'santa', 'pause stops decorative rotation');
+  check(await rotating.page.locator('.hero-video-mobile').evaluate(v => v.paused), true, 'Jingle pause stops the actual hero video');
+  await card.locator('[data-homepage-campaign-pause]').click();
+  await rotating.page.locator('.site-logo').focus();
+  await rotating.page.mouse.move(1,500);
+  await rotating.page.clock.runFor(11_999);
+  check(await card.getAttribute('data-character'), 'santa', 'resume gives a full fresh dwell');
+  await rotating.page.clock.runFor(1);
+  check(await card.getAttribute('data-character'), 'ornament', 'rotation resumes after the full dwell');
+  await rotating.page.evaluate(() => document.querySelector('.snap').scrollTo({ top:innerHeight, behavior:'instant' }));
+  await rotating.page.waitForFunction(() => document.querySelector('[data-homepage-jingle]').getBoundingClientRect().bottom <= 0);
+  await rotating.page.clock.runFor(24_000);
+  check(await card.getAttribute('data-character'), 'ornament', 'offscreen Jingle rotation stays suspended');
+  await rotating.page.evaluate(() => document.querySelector('.snap').scrollTo({ top:0, behavior:'instant' }));
+  await rotating.page.waitForFunction(() => document.querySelector('[data-homepage-jingle]').getBoundingClientRect().top > 0);
+  await rotating.page.clock.runFor(11_000);
+  check(await card.getAttribute('data-character'), 'ornament', 'returning to the hero gets a full fresh dwell');
+  await card.locator('a').focus();
+  const focusedCharacter = await card.getAttribute('data-character');
+  await rotating.page.clock.runFor(24_000);
+  check(await card.getAttribute('data-character'), focusedCharacter, 'keyboard interaction pauses decorative rotation');
+  await rotating.page.locator('.site-logo').focus();
+  await rotating.page.emulateMedia({ reducedMotion:'reduce' });
+  await rotating.page.clock.runFor(24_000);
+  check(await card.getAttribute('data-character'), focusedCharacter, 'reduced motion keeps the artwork still');
+  check(await card.locator('[data-homepage-campaign-pause]').isDisabled(), true, 'Jingle reduced-motion control is explicit');
+  await rotating.context.close();
+  const desktopSanta = await open({ at:jingleStart, width:1280, height:900, motion:'no-preference', installedClock:true });
+  await desktopSanta.page.clock.runFor(4000);
+  await desktopSanta.page.waitForFunction(() => document.querySelector('[data-homepage-jingle]').dataset.entrance === 'settled');
+  await desktopSanta.page.clock.runFor(12_000);
+  check(await desktopSanta.page.locator('[data-homepage-jingle]').getAttribute('data-character'), 'santa', 'desktop retains the same approved character rotation');
+  await desktopSanta.page.waitForFunction(() => { const img=document.querySelector('.homepage-jingle-santa'); return img.naturalWidth > 0 && Number(getComputedStyle(img).opacity) === 1; });
+  await desktopSanta.page.screenshot({ path:output('jingle-santa-1280x900.png') });
+  await desktopSanta.context.close();
   // The original headline begins immediately below the header on the smallest
   // phone landscape; hide this decoration instead of altering the hero layout.
   const cramped = await open({ width:568, height:320, motion:'no-preference' });

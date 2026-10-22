@@ -1,0 +1,45 @@
+{/* Approved ornament/Santa invitation, in the shared homepage campaign area.
+    Its client clock is the same owner as the December 7 NYE handoff. */}
+<aside class="homepage-jingle" data-homepage-jingle data-homepage-campaign="jingle-2026" data-entrance="settled" data-character="ornament" hidden aria-label="Jingle Bowl at Twisted Pin">
+  <div class="homepage-jingle-art" aria-hidden="true">
+    <svg class="homepage-jingle-ornament" viewBox="0 0 100 168" fill="none"><defs><radialGradient id="homepage-jingle-ball" cx=".34" cy=".27" r=".8"><stop stop-color="#5c9e88"/><stop offset=".5" stop-color="#135c49"/><stop offset="1" stop-color="#04241c"/></radialGradient></defs><path d="M50 0v64" stroke="#d8bb7a" stroke-width="2"/><path d="M44 70v-7a6 6 0 0 1 12 0v7" stroke="#d8bb7a" stroke-width="2"/><rect x="39" y="68" width="22" height="12" rx="3" fill="#d8bb7a"/><circle cx="50" cy="119" r="42" fill="url(#homepage-jingle-ball)" stroke="#d8bb7a" stroke-width="1.5"/><ellipse cx="32" cy="99" rx="9" ry="5" fill="#b8e5ca" opacity=".35" transform="rotate(-35 32 99)"/><g fill="#031a13" stroke="#539b7d"><circle cx="57" cy="101" r="5"/><circle cx="70" cy="111" r="5"/><circle cx="56" cy="120" r="5"/></g><path d="m23 131 3 5 6 1-5 4-1 6-4-5-6-1 5-4z" fill="#e5c98b"/></svg>
+    <img class="homepage-jingle-santa" data-homepage-campaign-image="/jingle-bowl/santa-entrance.webp" width="420" height="404" alt="" decoding="async" />
+  </div>
+  <a class="homepage-jingle-link" data-homepage-jingle-link href="/jingle-bowl/">
+    <span class="homepage-jingle-kicker">JINGLE BOWL · SUNDAY, DEC 6</span><strong>SANTA’S COMING.</strong>
+    <span class="homepage-jingle-action">See Jingle Bowl <span aria-hidden="true">→</span></span>
+  </a>
+  <div class="homepage-jingle-controls">
+    <button type="button" data-homepage-campaign-dismiss aria-label="Dismiss Jingle Bowl invitation">×</button>
+    <button type="button" data-homepage-campaign-pause aria-label="Pause homepage motion" aria-pressed="false"><span aria-hidden="true">Ⅱ</span></button>
+  </div>
+</aside>
+<style>
+  .homepage-jingle[hidden] { display:none!important; }
+  .homepage-jingle { position:absolute; z-index:6; top:calc(var(--homepage-header-height,72px) + 34px); left:12px; right:12px; color:#fffaf0; background:#431426f5; border:1px solid #e2bc7899; border-radius:10px; box-shadow:0 12px 32px #0005; }
+  .homepage-jingle-link { display:block; color:inherit; text-decoration:none; padding:17px 44px 17px 95px; min-height:116px; box-sizing:border-box; }
+  .homepage-jingle-kicker { display:block; font:700 12px/1.5 var(--font-ui); letter-spacing:.02em; color:#e6dbc7; }
+  .homepage-jingle-link strong { display:block; margin:5px 0 8px; font:900 clamp(24px,7.5vw,31px)/1 var(--font-display); letter-spacing:-.01em; }
+  .homepage-jingle-action { display:block; color:#f6d18c; font:700 12px/1.5 var(--font-ui); }
+  .homepage-jingle-action span { padding-left:6px; }
+  .homepage-jingle-art { position:absolute; pointer-events:none; top:-32px; left:1px; width:94px; height:132px; }
+  .homepage-jingle-ornament { width:94px; height:132px; transform-origin:50% 0; }
+  .homepage-jingle-santa { position:absolute; top:30px; left:1px; width:94px; height:auto; opacity:0; visibility:hidden; transform:translateY(-8px); filter:drop-shadow(0 6px 7px #0008); }
+  .homepage-jingle[data-character=santa] .homepage-jingle-ornament { opacity:0; visibility:hidden; transform:translateY(-8px); }
+  .homepage-jingle[data-character=santa] .homepage-jingle-santa { opacity:1; visibility:visible; transform:none; }
+  .homepage-jingle[data-entrance=settled] :is(.homepage-jingle-ornament,.homepage-jingle-santa) { transition:opacity .28s ease,transform .28s ease,visibility .28s; }
+  .homepage-jingle-controls { position:absolute; right:0; top:0; display:grid; }
+  .homepage-jingle-controls button { width:44px; height:44px; border:0; border-radius:9px; background:transparent; color:#e6dbc7; font:400 26px/1 var(--font-ui); cursor:pointer; }
+  .homepage-jingle-controls button:last-child { font-size:17px; }
+  .homepage-jingle-controls button:disabled { opacity:.45; cursor:default; }
+  .homepage-jingle :is(a,button):focus-visible { outline:2px solid #f6d18c; outline-offset:3px; }
+  .homepage-jingle[data-entrance=entering] { animation:homepage-jingle-in 600ms ease-out both; }
+  .homepage-jingle[data-entrance=entering] .homepage-jingle-ornament { animation:homepage-ornament-drop 1700ms cubic-bezier(.2,.7,.3,1) both; }
+  .homepage-jingle[data-paused=true],.homepage-jingle[data-paused=true] * { animation-play-state:paused!important; }
+  @keyframes homepage-jingle-in { from { opacity:0; transform:translateY(-7px); } to { opacity:1; transform:none; } }
+  @keyframes homepage-ornament-drop { 0% { transform:translateY(-90px) rotate(16deg); } 50% { transform:translateY(0) rotate(-8deg); } 75% { transform:rotate(3deg); } 100% { transform:none; } }
+  @media(max-height:600px) and (max-width:1024px) { .homepage-jingle { top:calc(var(--homepage-header-height,72px) + 20px); }.homepage-jingle-link { min-height:91px; padding:10px 44px 10px 75px; }.homepage-jingle-link strong { margin:3px 0 5px; font-size:24px; }.homepage-jingle-art { width:72px; height:104px; top:-17px; }.homepage-jingle-ornament { width:72px; height:104px; }.homepage-jingle-santa { width:72px; top:20px; } }
+  @media(max-height:450px) and (min-width:500px) and (max-width:1024px) { .homepage-jingle { top:calc(var(--homepage-header-height,72px) + 4px); }.homepage-jingle-link { display:flex; align-items:center; gap:12px; min-height:44px; padding:8px 96px 8px 48px; }.homepage-jingle-link strong { margin:0; font-size:24px; }.homepage-jingle-art { width:34px; height:40px; top:2px; left:7px; }.homepage-jingle-ornament { width:34px; height:40px; }.homepage-jingle-santa { width:34px; top:3px; }.homepage-jingle-controls { display:flex; } }
+  @media(min-width:1025px) { .homepage-jingle { left:auto; right:26px; width:420px; }.homepage-jingle-link strong { font-size:30px; } }
+  @media(prefers-reduced-motion:reduce) { .homepage-jingle,.homepage-jingle-ornament,.homepage-jingle-santa { animation:none!important; transition:none!important; } }
+</style>

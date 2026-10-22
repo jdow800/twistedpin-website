@@ -1,5 +1,5 @@
-/** Offline event/context regressions. Future readiness/staffing below is
- * deliberately synthetic, NOT the proposed Jingle schedule or approved hours.
+/** Offline event/context regressions. Published Jingle facts are reviewed;
+ * separately injected future readiness/staffing below is deliberately synthetic.
  * No network, Google, TPRS, caller data, provider or booking mutations.
  */
 import assert from 'node:assert/strict';
@@ -12,7 +12,7 @@ import { visitDatePayload, visitDateRequest, VISIT_TOPICS } from '../src/lib/vis
 let checks = 0;
 const eq = (actual, expected, message) => { assert.deepEqual(actual, expected, message); checks++; };
 const match = (actual, expected, message) => { assert.match(actual, expected, message); checks++; };
-const before = new Date('2026-10-21T19:00:00Z');
+const before = new Date('2026-10-22T16:00:00Z');
 const at = time => new Date(time);
 const ask = (date, topic = 'all', clock = before) => visitDatePayload({ date, topic }, clock);
 const jingle = ask('Jingle Bowl');
@@ -22,13 +22,24 @@ eq(jingle.event.admission, 'event_reservations_only');
 eq(jingle.event.ordinary_visits, 'closed');
 eq(jingle.ordinary_online_reservations, 'closed');
 eq(jingle.hours.status, 'unknown', 'ordinary closure does not invent all-day event hours');
-eq(jingle.event.page_public, false);
-eq(jingle.event.public_url, null);
-eq(jingle.event.sales_open_at, null);
-eq(jingle.event.sales_open_answer, null);
-eq(jingle.event.booking_status, 'unverified');
-eq(jingle.event.sessions_status, 'pending');
-eq(jingle.event.sessions, []);
+eq(jingle.event.page_public, true);
+eq(jingle.event.public_url, 'https://www.twistedpin.com/jingle-bowl/');
+eq(jingle.event.sales_open_at, '2026-10-22T15:30:00Z');
+match(jingle.event.sales_open_answer, /booking page is ready/);
+eq(jingle.event.booking_status, 'verified');
+eq(jingle.event.sessions_status, 'verified');
+eq(jingle.event.sessions.map(({starts_at, booking_closes_at}) => ({starts_at, booking_closes_at})), [
+  { starts_at: '2026-12-06T19:45:00Z', booking_closes_at: '2026-12-06T19:15:00Z' },
+  { starts_at: '2026-12-06T20:00:00Z', booking_closes_at: '2026-12-06T19:30:00Z' },
+  { starts_at: '2026-12-06T20:30:00Z', booking_closes_at: '2026-12-06T20:00:00Z' },
+  { starts_at: '2026-12-06T21:30:00Z', booking_closes_at: '2026-12-06T21:00:00Z' },
+  { starts_at: '2026-12-06T21:45:00Z', booking_closes_at: '2026-12-06T21:15:00Z' },
+]);
+eq(jingle.event.sessions.every(s => Date.parse(s.starts_at) - Date.parse(s.booking_closes_at) === 30 * 60_000), true);
+eq(ask('Jingle Bowl', 'reservations', at('2026-10-22T15:29:59Z')).event.booking_status, 'not_open');
+eq(ask('Jingle Bowl', 'reservations', at('2026-10-22T15:30:00Z')).event.booking_status, 'verified');
+eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T19:15:00Z')).event.sessions.map(s => s.booking_status), ['cutoff_passed', 'before_cutoff', 'before_cutoff', 'before_cutoff', 'before_cutoff']);
+eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T21:15:00Z')).event.booking_status, 'ended');
 eq(jingle.service_cutoffs_must_confirm, true);
 match(jingle.answer, /Jingle Bowl.*Sunday, December 6, 2026.*event reservations only all day/);
 match(jingle.answer, /Regular visits aren't available/);
@@ -38,10 +49,11 @@ for (const topic of VISIT_TOPICS) {
   eq(result.event.name, 'Jingle Bowl');
   eq(result.capacity, 'not_checked');
   eq(result.service_cutoffs_must_confirm, true);
-  eq(/jingle-bowl\/|39|30.minute|thirty.minute|\$|priceCents|cancel(?:ed|led)|all.day.*closed|New Year's Eve|NYE/i.test(serialized), false, 'no protected link/proposals/NYE conflation');
+  eq(result.event.public_url, 'https://www.twistedpin.com/jingle-bowl/');
+  eq(/39|\$|priceCents|cancel(?:ed|led)|all.day.*closed|New Year's Eve|NYE/i.test(serialized), false, 'no prices, inventory claims or NYE conflation');
   eq('is_open' in result, false, 'event lookup does not replace current-open status');
 }
-match(ask('Jingle Bowl', 'hours').answer, /Session, entry and closing times still need confirmation/);
+match(ask('Jingle Bowl', 'hours').answer, /Event entry and closing hours still need confirmation/);
 eq(ask('Jingle Bowl', 'penny').status, 'unknown');
 eq(ask('Jingle Bowl', 'services').status, 'unknown');
 match(ask('Jingle Bowl', 'services').answer, /don't have confirmed kitchen, bar or Beer Wall/);
@@ -73,8 +85,8 @@ match(ask('NYE', 'reservations', at('2026-11-18T15:00:01Z')).answer, /cannot con
 eq(ask('NYE', 'hours').hours.status, 'unknown');
 eq(ask('NYE', 'services').services, 'unknown');
 
-// Future reviewed states, with deliberately odd synthetic times to avoid
-// publishing or testing against the protected event's proposed sessions.
+// Future alternate states use deliberately odd synthetic times. They test
+// configuration gates independently of the published Jingle schedule.
 const ready = structuredClone(source);
 const future = ready.records[0];
 future.page_public = true;
@@ -156,11 +168,12 @@ eq(currentSpecialEventContext(at('2027-01-01T06:30:00Z')).event, null, 'no tail 
 const request = new Request('https://example.invalid/api/visit-date/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: 'Jingle Bowl', topic: 'reservations' }) });
 const response = await visitDateRequest(request, before);
 eq(response.status, 200);
-eq((await response.json()).event.public_url, null);
+eq((await response.json()).event.public_url, 'https://www.twistedpin.com/jingle-bowl/');
 const clockOverride = new Request('https://example.invalid/api/visit-date/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: 'Jingle Bowl', topic: 'reservations', booking_ready_verified: true }) });
 eq((await visitDateRequest(clockOverride, before)).status, 400, 'no caller-provided event readiness');
 const frozen = await readFile(new URL('../src/data/visit-policy-2026-27.json', import.meta.url));
 eq(createHash('sha256').update(JSON.stringify(JSON.parse(frozen))).digest('hex'), '7b087e24ac44f35db679bbf479525b756d1faff69e2bc3d18c8352cf63f8de60', 'frozen school-break projection unchanged');
-eq(source.records.every(row => row.approved_staffed_intervals.length === 0 && row.sessions.length === 0), true, 'current source carries no provisional times');
+eq(source.records.every(row => row.approved_staffed_intervals.length === 0), true, 'event starts do not invent staffing or transfer hours');
+eq(source.records.find(row => row.id === 'nye_2026').sessions, [], 'Jingle launch does not publish unverified NYE sessions');
 eq(/\$|price|capacity|customer|staff_id|password/i.test(JSON.stringify(source)), false, 'only public-safe operating facts');
-console.log(`Special-event checks passed: ${checks}; synthetic readiness/staffing only, no network or database calls.`);
+console.log(`Special-event checks passed: ${checks}; reviewed Jingle facts plus synthetic boundary/staffing cases, no network or database calls.`);
