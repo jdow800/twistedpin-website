@@ -1,3 +1,15 @@
+## 2026-10-22 - Dedicated Jingle Facebook Event cover
+
+Jon's Facebook event creation preview cropped the existing campaign artwork.
+Retain the current social/site exports and add a separate 1920x1005 event-cover
+composition under Context/jingle-bowl-2026/facebook, using the approved Santa
+and bowling-ball artwork through the built-in image_gen editor. Main copy is
+more centralized. The generated master, exact prompt, export script and
+centered 2.7:1 crop proofs remain in the project; Desktop receives the clearly
+named final PNG and brief upload notes. This is artwork delivery only, with
+no Website runtime change, deployment or Facebook publication. The resolution
+is a common event-cover recommendation, not a claimed mandatory Meta rule.
+
 ## 2026-10-22 - Load the public date-handoff styles from the actual pages
 
 Final live screenshots caught the public December 6 handoff rendering as plain
