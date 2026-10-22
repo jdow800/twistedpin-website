@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "campaign": "Twisted Pin holiday event drips 2026",
   "prepared_on": "2026-10-22",
   "timezone": "America/Chicago",
@@ -18,7 +18,8 @@
     "NYE before Nov18 2026 9am America/Chicago is pre-opening; no party times/prices.",
     "Stories and Google/SMS extras are optional. selected_channels starts empty.",
     "Verify IG bio CTA. Plain URL alternate is not claimed clickable.",
-    "Any current inventory claim needs fresh event/party-specific verification."
+    "Any current inventory claim needs fresh event/party-specific verification.",
+    "For each creative_choice_group select exactly one original or alternative concept when that occasion is used. A recommended concept is not a selected or approved concept. Alternatives do not add calendar occasions."
   ],
   "events": {
     "nye-2026": {
@@ -101,7 +102,8 @@
           },
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task."
         }
-      }
+      },
+      "creative_choice_group": "nye-kickoff-visual"
     },
     {
       "id": "02-jingle-santa-coming",
@@ -162,7 +164,8 @@
           },
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task."
         }
-      }
+      },
+      "creative_choice_group": "jingle-announcement-visual"
     },
     {
       "id": "03-nye-usually-sells-out",
@@ -273,10 +276,12 @@
       "channel_plan": "FB + IG feed; optional one-frame Story",
       "objective": "Establish the opening date",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "angle": "Batch 01 / optional kickoff: “Set the clock.” November 18 at 9am Central; December 31 is the party date. Skip if the team has just announced NYE.",
+      "angle": "Recommended Batch 02 / optional kickoff: \"Give 2026 a proper send-off.\" Cinematic mirrored bowling ball; save November 18 at 9am Central. Original \"Set the clock\" is an alternative, not another post. Skip if the team has just announced NYE.",
       "status": "proposed",
       "content_readiness": "ready_for_review",
-      "notes": "12pm"
+      "notes": "12pm",
+      "creative_choice_group": "nye-kickoff-visual",
+      "recommended_concept_id": "04-nye-mirrorball-moment"
     },
     {
       "id": "02-jingle-santa-coming",
@@ -286,10 +291,12 @@
       "channel_plan": "FB + IG feed; optional one-frame Story",
       "objective": "Drive Jingle reservations now",
       "url": "https://www.twistedpin.com/jingle-bowl/",
-      "angle": "Batch 01: “Santa's coming. Let's roll.” Bowling, pizza and a visit with Santa on December 6.",
+      "angle": "Recommended Batch 02: \"Make way for Santa.\" Festive illustrated Santa; bowling, pizza and a visit with Santa on December 6. Reservations open now. Original \"Santa's coming. Let's roll.\" is an alternative, not another post.",
       "status": "proposed",
       "content_readiness": "ready_for_review",
-      "notes": "12pm"
+      "notes": "12pm",
+      "creative_choice_group": "jingle-announcement-visual",
+      "recommended_concept_id": "05-jingle-santa-arrives"
     },
     {
       "id": "03-nye-usually-sells-out",
@@ -513,5 +520,189 @@
       "notes": "6pm"
     }
   ],
-  "execution_log": []
+  "execution_log": [],
+  "alternative_concepts": [
+    {
+      "id": "04-nye-mirrorball-moment",
+      "title": "Give 2026 a proper send-off.",
+      "event": "nye-2026",
+      "status": "draft",
+      "content_readiness": "ready_for_review",
+      "optional_occasion": true,
+      "timezone": "America/Chicago",
+      "proposed_publish_at": "2026-10-23T12:00:00-05:00",
+      "proposed_publish_at_utc": "2026-10-23T17:00:00.000Z",
+      "event_date": "2026-12-31",
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "phase": "before_reservations_open",
+      "must_publish_before": "2026-11-18T09:00:00-06:00",
+      "inventory_claim": "none",
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {},
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "2026 deserves a proper send-off.\n\nPick your people. We'll give you something to put on the calendar.\n\nNew Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.\n\nSave the opening date. See NYE details: https://www.twistedpin.com/new-years-eve/",
+          "asset": "batch-02/exports/04-nye-mirrorball-moment-feed.png",
+          "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "2026 deserves a proper send-off.\n\nPick your people. We'll give you something to put on the calendar.\n\nNew Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.\n\nSave the opening date. NYE details at the link in our bio.",
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. Details: twistedpin.com/new-years-eve/",
+          "requires_verified_bio_link": true,
+          "asset": "batch-02/exports/04-nye-mirrorball-moment-feed.png",
+          "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+        },
+        "facebook_story": {
+          "optional": true,
+          "asset": "batch-02/exports/04-nye-mirrorball-moment-story.png",
+          "editorial_message": "Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "See NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
+          "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+          "suggested_link_sticker_area": {
+            "x": 260,
+            "y": 1620,
+            "width": 560,
+            "height": 110
+          }
+        },
+        "instagram_story": {
+          "optional": true,
+          "asset": "batch-02/exports/04-nye-mirrorball-moment-story.png",
+          "editorial_message": "Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "See NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
+          "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+          "suggested_link_sticker_area": {
+            "x": 260,
+            "y": 1620,
+            "width": 560,
+            "height": 110
+          }
+        }
+      },
+      "alternative_to": "01-nye-set-the-clock",
+      "creative_choice_group": "nye-kickoff-visual",
+      "recommendation": "recommended_visual_direction",
+      "batch": "batch-02"
+    },
+    {
+      "id": "05-jingle-santa-arrives",
+      "title": "Make way for Santa.",
+      "event": "jingle-bowl-2026",
+      "status": "draft",
+      "content_readiness": "ready_for_review",
+      "optional_occasion": false,
+      "timezone": "America/Chicago",
+      "proposed_publish_at": "2026-10-26T12:00:00-05:00",
+      "proposed_publish_at_utc": "2026-10-26T17:00:00.000Z",
+      "event_date": "2026-12-06",
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "phase": "reservations_open",
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "inventory_claim": "none",
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {},
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "The big guy's on the calendar. Your move.\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.\n\nYour lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.\n\nBring your people. Charge your phone. Reservations are open: https://www.twistedpin.com/jingle-bowl/",
+          "asset": "batch-02/exports/05-jingle-santa-arrives-feed.png",
+          "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "The big guy's on the calendar. Your move.\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.\n\nYour lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.\n\nBring your people. Charge your phone. Reserve through the Jingle Bowl link in our bio.",
+          "alternate_final_paragraph_without_bio_link": "Bring your people. Charge your phone. Reservations: twistedpin.com/jingle-bowl/",
+          "requires_verified_bio_link": true,
+          "asset": "batch-02/exports/05-jingle-santa-arrives-feed.png",
+          "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
+        },
+        "facebook_story": {
+          "optional": true,
+          "asset": "batch-02/exports/05-jingle-santa-arrives-story.png",
+          "editorial_message": "Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
+          "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+          "suggested_link_sticker_area": {
+            "x": 260,
+            "y": 1620,
+            "width": 560,
+            "height": 110
+          }
+        },
+        "instagram_story": {
+          "optional": true,
+          "asset": "batch-02/exports/05-jingle-santa-arrives-story.png",
+          "editorial_message": "Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
+          "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+          "suggested_link_sticker_area": {
+            "x": 260,
+            "y": 1620,
+            "width": 560,
+            "height": 110
+          }
+        }
+      },
+      "alternative_to": "02-jingle-santa-coming",
+      "creative_choice_group": "jingle-announcement-visual",
+      "recommendation": "recommended_visual_direction",
+      "batch": "batch-02"
+    }
+  ],
+  "creative_choice_groups": [
+    {
+      "id": "nye-kickoff-visual",
+      "calendar_occasion_id": "01-nye-set-the-clock",
+      "concept_ids": [
+        "01-nye-set-the-clock",
+        "04-nye-mirrorball-moment"
+      ],
+      "recommended_concept_id": "04-nye-mirrorball-moment",
+      "selected_concept_id": null,
+      "selection_rule": "Choose one concept for this occasion, if used. Do not schedule both alternatives. Recommendation is not approval."
+    },
+    {
+      "id": "jingle-announcement-visual",
+      "calendar_occasion_id": "02-jingle-santa-coming",
+      "concept_ids": [
+        "02-jingle-santa-coming",
+        "05-jingle-santa-arrives"
+      ],
+      "recommended_concept_id": "05-jingle-santa-arrives",
+      "selected_concept_id": null,
+      "selection_rule": "Choose one concept for this occasion, if used. Do not schedule both alternatives. Recommendation is not approval."
+    }
+  ]
 }

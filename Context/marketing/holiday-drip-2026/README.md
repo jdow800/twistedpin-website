@@ -1,5 +1,7 @@
 # Holiday event drips · 2026
 
+**Latest recommendation: [Batch 02 cinematic direction](batch-02/README.md).** Two new hero illustrations with editable typography offer stronger NYE/Jingle visuals for the same first two proposed occasions. Review [the new gallery](batch-02/review.html). Original batch 01 remains below for comparison. The scheduling manifest records the alternatives as mutually exclusive choices, not additional posts.
+
 **Review batch 01. All new dates, captions and compositions are proposed. Nothing in this pack is approved for publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
 
 This supplements the social team's regular content. Reserve roughly one weekly NYE feed insertion until reservations open, with a Jingle insertion about every 10–14 days. Some weeks have two event feed posts, separated by several days. Paired Facebook/Instagram versions count as one editorial occasion. Story versions are alternatives or a light companion, not an instruction to publish every asset everywhere.
@@ -9,7 +11,8 @@ This supplements the social team's regular content. Reserve roughly one weekly N
 - [Visual gallery](review.html) and [contact sheet](contact-sheet.png): three new compositions, each with independent feed and Story layouts.
 - [Calendar](calendar.md): proposed dated cadence, audience, objective and links, including later concepts that have not been produced.
 - [Actual first-batch copy](batch-01-copy.txt): platform captions, Story/link treatment and selective SMS/Google options.
-- [Scheduling manifest](campaign.json): structured copy, dates, timezone, asset mapping, phase and approval state. This is the scheduling source for batch 01.
+- [Scheduling manifest](campaign.json): structured copy, dates, timezone, asset mapping, phase and approval state for both batches. Choose one visual per occasion.
+- [Brief research](research-notes.md): source links, evidence limits and the rationale for a light supplemental cadence.
 - [Scheduling prompt](schedule-this-campaign.txt): bring this file and the campaign folder into a later session.
 - [Publishing checklist](publishing-checklist.md): actual platform checks still needed.
 - [QA receipt](qa/verification.json) and [handoff](HANDOFF.md): what was checked and actual Git/delivery status.

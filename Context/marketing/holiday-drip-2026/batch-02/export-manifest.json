@@ -1,0 +1,103 @@
+{
+  "status": "review-drafts",
+  "role": "Recommended alternatives, not extra posts.",
+  "packager": {
+    "path": "scripts/package-holiday-drip-batch02.mjs",
+    "sha256": "9007156050571c8e9748008c07bb18b3f9b486c171fe8db95b962794fa6799d0",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "render_manifest": {
+    "path": "render-manifest.json",
+    "sha256": "ea1bdad5e4257d79169799b17e469b2d24c4715343f0f863d3c9db4feb99ab99",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "outputs": [
+    {
+      "filename": "exports/04-nye-mirrorball-moment-feed.png",
+      "concept": "04-nye-mirrorball-moment",
+      "placement": "feed",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 2035009,
+      "sha256": "a14d5c0a3f95c61243515c478cbdd1df54eae5eb31339078d1714e5b37b1610e",
+      "phase": "before-reservations-open",
+      "status": "review-draft",
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "filename": "exports/04-nye-mirrorball-moment-story.png",
+      "concept": "04-nye-mirrorball-moment",
+      "placement": "story",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 2098341,
+      "sha256": "e018a3d62cac56cc2aed0876368b149a5012eb5c03c0d8091582151bffec7e64",
+      "phase": "before-reservations-open",
+      "status": "review-draft",
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "filename": "exports/05-jingle-santa-arrives-feed.png",
+      "concept": "05-jingle-santa-arrives",
+      "placement": "feed",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 2216539,
+      "sha256": "77de859e40a7ec14635e69a1be1797452a15dad983dc9cbb0f387f5a4fdc4003",
+      "phase": "jingle-reservations-open",
+      "status": "review-draft",
+      "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
+    },
+    {
+      "filename": "exports/05-jingle-santa-arrives-story.png",
+      "concept": "05-jingle-santa-arrives",
+      "placement": "story",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 2327906,
+      "sha256": "43b8e3904f73f8ba5cf42856ad178b0c7f5e9dcf5a60fe2157af4eb1f4c59ed9",
+      "phase": "jingle-reservations-open",
+      "status": "review-draft",
+      "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
+    }
+  ],
+  "alternatives": [
+    {
+      "alternative": "04-nye-mirrorball-moment",
+      "original": "01-nye-set-the-clock",
+      "same_event": true,
+      "same_proposed_occasion": true,
+      "extra_post": false,
+      "creative_choice_group": "nye-kickoff-visual",
+      "calendar_occasion_id": "01-nye-set-the-clock",
+      "recommended_concept_id": "04-nye-mirrorball-moment",
+      "selected_concept_id": null
+    },
+    {
+      "alternative": "05-jingle-santa-arrives",
+      "original": "02-jingle-santa-coming",
+      "same_event": true,
+      "same_proposed_occasion": true,
+      "extra_post": false,
+      "creative_choice_group": "jingle-announcement-visual",
+      "calendar_occasion_id": "02-jingle-santa-coming",
+      "recommended_concept_id": "05-jingle-santa-arrives",
+      "selected_concept_id": null
+    }
+  ],
+  "review_artifacts": [
+    {
+      "filename": "review.html",
+      "sha256": "7581887f3dfe969bfce4fc522dd895c9c340c6812f4c23e7ab2bc8ed2d9d111f",
+      "hashNormalization": "UTF-8 text with LF line endings"
+    },
+    {
+      "filename": "contact-sheet.png",
+      "width": 1440,
+      "height": 1920,
+      "bytes": 2517809,
+      "sha256": "bdc1de831f0b4095afb587cbcc1fb200889b29378bf3460801482be5d544ec42",
+      "purpose": "Review overview only; not a publishing asset"
+    }
+  ]
+}

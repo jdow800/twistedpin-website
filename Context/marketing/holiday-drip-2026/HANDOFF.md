@@ -1,4 +1,14 @@
-# Holiday drips · Batch 01 handoff
+# Holiday drips · Combined handoff
+
+## Latest creative follow-up · Batch 02
+
+Jon invited stronger creative judgment and new visuals, asking for an “epic” result. The recommended follow-up is [batch 02](batch-02/README.md): a cinematic mirrored bowling ball for NYE and a festive illustrated Santa scene for Jingle, each in feed/Story formats with editable typography. The first batch is preserved. These are visual alternatives for the same Oct 23/Oct 26 occasions, not extra posts. `campaign.json` carries the new copy/assets and explicit mutually exclusive choice groups; no creative selection, approval or action permission is inferred from openness to suggestions. Use the batch 02 gallery as the latest visual review.
+
+The new hero originals, exact built-in-imagegen prompts/provenance, editable layouts and four final exports are preserved in the isolated feature branch. New Desktop folders named `Drip review - batch 02` and `Holiday-drip-2026-batch-02-REVIEW.zip` include both batches; batch 01 deliveries are retained. The branch remains a local review snapshot, not a production release or a claim of social publication. [Research notes](research-notes.md) preserve the sources and distinguish general account evidence from this supplemental plan.
+
+Root and an independent reviewer inspected all four new exports, including a phone-size preview. Main headlines, date/action blocks and subjects are clear; small printed URLs are supported by full caption links or native Story stickers. Renderer checks cover dimensions, fonts, image proportions, copy bounds and hashes. The manifest retains 19 calendar rows; both alternative concepts match the original occasions' dates, event, phase and cutoff. An independent review compared all new platform messages and alt text against `copy.txt`. Batch 02 gallery/package checks are recorded in `batch-02/qa/verification.json`.
+
+The remaining sections record batch 01's original creation evidence and source paths. Batch 02's new originals, four final PNGs, HTML, renderer, packager, manifests, gallery, copy and contact sheet are included in the latest local snapshot too.
 
 Prepared October 22, 2026. **Creative review, not publication.**
 

@@ -1,0 +1,27 @@
+# Holiday drip campaign: brief research and recommendation
+
+Research checked October 22, 2026 during this conversation. These notes preserve the sources already reviewed; they are not a new platform audit. The proposed calendar and creative remain drafts. Nothing has been scheduled or published.
+
+**Recommendation:** use occasional, useful event reminders alongside the social team's normal content. Give NYE a roughly weekly feed reminder before its November 18 opening, with a couple of short Stories closer to opening. Give the already-bookable Jingle Bowl an insertion roughly every 10–14 days. Keep the two events together at one or two extra feed concepts per week maximum, and skip a proposed insertion when the existing calendar already covers that message. This cadence is our interpretation of Jon's needs and the event dates, not a frequency proven to maximize ticket sales.
+
+## Evidence worth using
+
+| Source | What it supports | Limits for this campaign |
+| --- | --- | --- |
+| [Buffer: How Often Should You Post on Instagram?](https://buffer.com/resources/how-often-to-post-on-instagram/) | Original analysis of 2.1 million posts from 102,000 Instagram accounts. Buffer recommends 3–5 feed posts a week as a sustainable overall cadence and reports diminishing returns at higher frequency. Its feed category includes photos, carousels and Reels; Stories are excluded. | Observational account-level growth/reach data, not an experiment on local event reservations. It does not mean adding 3–5 event promotions on top of an existing social program. No numerical performance improvement is promised here. |
+| [Buffer: State of Social Media Engagement 2026](https://buffer.com/resources/state-of-social-media-engagement-2026/) | Original analysis of content published through Buffer. Facebook image, video and text engagement results are relatively close, supporting a useful mix instead of requiring video for every announcement. The report explicitly treats posting frequency and timing as amplifiers of content, with no universal winning schedule. | Buffer users are a sample, not the whole platform. Correlation cannot fully separate content quality, resources and existing momentum. Some Instagram format findings in this 2026 report reuse January 2022–October 2024 data; the title does not make every underlying dataset current to 2026. Engagement is not a ticket-sales measure. |
+| [Meta: Introducing Best Practices on Instagram](https://about.fb.com/news/2024/10/best-practices-education-hub-creators-instagram/) | Meta's professional-dashboard resource covers posting frequency, attention, Reel length, reach and engagement, including personalized guidance for the account. This supports checking native account results alongside general research. | This announcement does not prescribe one universal organic posting cadence or a required image dimension for this campaign. It establishes no guaranteed reach or event-notification behavior. |
+
+These sources support consistent, relevant communication and testing a mix of formats. They do **not** establish that a particular countdown sequence causes a small business event to sell out. Jon's historical NYE sellout statement is a separate owner-confirmed fact, not a research finding or evidence of current scarcity.
+
+## How the findings translate here
+
+- **Each drip needs a new reason to care:** the opening date, the people/experience, what a lane includes, a clear reservation choice or a useful guest reminder. A sequence can build anticipation without withholding the basic event identity or repeating the same poster daily.
+- **NYE and Jingle have different actions:** NYE asks guests to remember November 18 at 9am Central until reservations actually open. Jingle asks guests to reserve now for December 6. Always include the absolute date so an older post still makes sense.
+- **Images can carry the campaign.** Use a striking hero image with short editable text; use carousels when multiple details help the decision. A short video or animation is an optional creative treatment when motion adds something. The reviewed evidence does not justify guaranteeing that video will outperform a good image for Twisted Pin.
+- **Stories are selective reminders:** optional companions to early feed posts, then short November 15 and 17 NYE reminders. They are not a daily obligation. Keep a real destination link where the publishing tool supports it.
+- **Formats are production choices:** 1080 × 1350 feed and 1080 × 1920 Story exports are this pack's chosen compositions, not a claim that Meta mandates those dimensions. Check the actual Facebook and Instagram crop/overlay preview. The separate event cover has a different job.
+- **SMS stays sparse:** an opening announcement may warrant a text after separate authorization; a weekly social drip does not imply a weekly text. Review recent marketing sends before selecting any extra SMS.
+- **Judge useful response:** record link taps, inquiries and attributable reservations when available, alongside saves/shares and other account insights. Do not treat likes, event responses or landing visits as confirmed bookings. Change the next batch based on results and the team's existing plan.
+
+The dated application is in [calendar.md](calendar.md). Copy and artwork options should be selected within those proposed publishing occasions, rather than turning every creative alternative into another post.

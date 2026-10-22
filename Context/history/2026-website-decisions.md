@@ -1,3 +1,17 @@
+## 2026-10-22 - Cinematic holiday drip alternatives
+
+Jon invited creative judgment beyond the first batch and asked for an epic result.
+Prepare two new illustrative hero assets with the built-in image tool: mirrored
+bowling ball for NYE and festive Santa for Jingle. Retain the approved directions,
+supplied logo/fonts and exact booking/date facts in editable HTML overlays.
+Preserve original generated PNGs and exact prompts/provenance with independent
+feed/Story exports under `Context/marketing/holiday-drip-2026/batch-02`.
+These are recommended alternatives for the existing first two calendar occasions,
+not additional posts. Preserve batch01 and explicitly represent mutually exclusive
+creative choices in the scheduling manifest. This creative invitation does not
+approve a schedule, publication or runtime change. Validation/delivery evidence
+stays with the campaign pack; no main push or production action.
+
 ## 2026-10-22 - Holiday drip review batch
 
 Jon requested occasional NYE/Jingle inserts alongside the social team's normal

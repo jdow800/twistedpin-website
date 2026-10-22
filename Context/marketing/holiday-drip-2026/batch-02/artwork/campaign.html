@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Twisted Pin · Holiday hero concepts · Review batch 02</title>
+  <style>
+    @font-face { font-family: Display; font-style: normal; font-weight: 900; src: url('{{DISPLAY_FONT}}') format('woff2'); }
+    @font-face { font-family: UI; font-style: normal; font-weight: 700; src: url('{{UI_FONT}}') format('woff2'); }
+    @font-face { font-family: Body; font-style: normal; font-weight: 400; src: url('{{BODY_FONT}}') format('woff2'); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: {{WIDTH}}px; height: {{HEIGHT}}px; overflow: hidden; }
+    body { background: #080b15; color: #f4efe3; }
+    .art { position: relative; width: 100%; height: 100%; isolation: isolate; overflow: hidden; }
+    /* Generated editorial hero, not a depiction of the actual venue or event. */
+    .hero { position: absolute; left: 0; top: 110px; width: 1080px; height: auto; }
+    .shade { position: absolute; inset: 0; background: linear-gradient(180deg, #080b15 0%, rgba(8,11,21,.8) 11%, transparent 29%, transparent 72%, rgba(8,11,21,.83) 82%, #080b15 92%); }
+    .logo { position: absolute; left: 76px; top: 46px; width: 226px; height: auto; }
+    .identity { position: absolute; right: 76px; top: 78px; margin: 0; text-align: right; font: 700 25px/1.4 UI, sans-serif; letter-spacing: .045em; color: #4eecc4; }
+    .identity span { display: block; margin-top: 4px; color: #f4efe3; font-size: 24px; letter-spacing: .01em; }
+    h1 { position: absolute; left: 76px; right: 76px; top: 178px; margin: 0; text-align: center; font: 900 96px/.94 Display, sans-serif; letter-spacing: -.005em; text-transform: uppercase; }
+    h1 span { display: block; }
+    .action { position: absolute; left: 76px; right: 76px; top: 1080px; text-align: center; }
+    .status { margin: 0 0 10px; color: #4eecc4; font: 700 25px/1.3 UI, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+    .date { margin: 0; font: 900 40px/1.2 Display, sans-serif; text-transform: uppercase; letter-spacing: .015em; }
+    .time { margin: 2px 0 0; font: 900 43px/1.2 Display, sans-serif; text-transform: uppercase; }
+    .url { margin: 20px 0 0; font: 700 26px/1.3 UI, sans-serif; }
+    .promise { margin: 0 0 26px; font: 400 30px/1.35 Body, serif; }
+    .jingle .hero { top: 90px; }
+    .jingle .shade { background: linear-gradient(180deg, #040c14 0%, rgba(4,12,20,.62) 10%, transparent 28%, transparent 70%, rgba(4,12,20,.91) 80%, #040c14 91%); }
+    .jingle .identity { top: 89px; font-size: 28px; }
+    .jingle h1 { top: 166px; font-size: 104px; }
+    .jingle .action { top: 1051px; }
+    .jingle .date { font-size: 43px; }
+    .jingle .status { margin: 18px 0 0; }
+    .jingle .url { margin-top: 19px; }
+    /* Independently composed 9:16 canvas. No full-card crop or stretch. */
+    .story .hero { top: 355px; }
+    .story .shade { background: linear-gradient(180deg, #080b15 0%, #080b15 14%, rgba(8,11,21,.64) 23%, transparent 34%, transparent 64%, rgba(8,11,21,.88) 72%, #080b15 82%); }
+    .story .logo { left: 82px; top: 247px; width: 245px; }
+    .story .identity { right: 82px; top: 280px; font-size: 25px; }
+    .story .identity span { font-size: 24px; }
+    .story h1 { left: 82px; right: 82px; top: 389px; font-size: 100px; }
+    .story .action { left: 82px; right: 82px; top: 1334px; }
+    .story .status { font-size: 25px; }
+    .story .date { font-size: 40px; }
+    .story .time { font-size: 43px; }
+    .story .url { margin-top: 20px; font-size: 25px; }
+    .jingle.story .hero { top: 340px; }
+    .jingle.story .shade { background: linear-gradient(180deg, #040c14 0%, #040c14 14%, rgba(4,12,20,.52) 23%, transparent 32%, transparent 65%, rgba(4,12,20,.92) 73%, #040c14 82%); }
+    .jingle.story .identity { top: 288px; font-size: 27px; }
+    .jingle.story h1 { top: 386px; font-size: 108px; }
+    .jingle.story .action { top: 1326px; }
+    .jingle.story .promise { font-size: 28px; margin-bottom: 23px; }
+    .jingle.story .date { font-size: 43px; }
+    .jingle.story .status { margin-top: 16px; }
+    .jingle.story .url { margin-top: 18px; }
+  </style>
+</head>
+<body>
+  <main class="art {{EVENT}} {{FORMAT}}" aria-label="{{ALT}}">
+    <img class="hero" src="{{HERO}}" alt="">
+    <div class="shade"></div>
+    <img class="logo" data-safe src="{{LOGO}}" alt="Twisted Pin">
+    <p class="identity" data-safe>{{IDENTITY}}</p>
+    <h1 data-safe>{{HEADLINE}}</h1>
+    <section class="action" data-safe>{{ACTION}}</section>
+    <!-- Clear Story area below the printed URL: add the native link sticker in
+         y=1620..1730 and check the actual app overlay. No fake sticker is baked in. -->
+  </main>
+</body>
+</html>

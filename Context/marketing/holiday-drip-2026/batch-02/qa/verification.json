@@ -1,0 +1,149 @@
+{
+  "checked_at": "2026-10-22T20:22:43.368Z",
+  "checks": {
+    "four_unique_exports": true,
+    "dimensions_and_binary_hashes_match_render_manifest": true,
+    "alternative_event_and_proposed_date_match_original_occasion": true,
+    "approval_selection_schedule_publication_empty": true,
+    "chicago_dates_and_offsets": true,
+    "all_variant_asset_paths_match": true,
+    "gallery_390_and_1440": true,
+    "outbound_network_requests": 0
+  },
+  "date_checks": [
+    {
+      "id": "04-nye-mirrorball-moment",
+      "proposed_local": "2026-10-23T12:00:00-05:00",
+      "utc": "2026-10-23T17:00:00.000Z"
+    },
+    {
+      "id": "05-jingle-santa-arrives",
+      "proposed_local": "2026-10-26T12:00:00-05:00",
+      "utc": "2026-10-26T17:00:00.000Z"
+    }
+  ],
+  "alternative_checks": [
+    {
+      "alternative": "04-nye-mirrorball-moment",
+      "original": "01-nye-set-the-clock",
+      "same_event": true,
+      "same_proposed_occasion": true,
+      "extra_post": false,
+      "creative_choice_group": "nye-kickoff-visual",
+      "calendar_occasion_id": "01-nye-set-the-clock",
+      "recommended_concept_id": "04-nye-mirrorball-moment",
+      "selected_concept_id": null
+    },
+    {
+      "alternative": "05-jingle-santa-arrives",
+      "original": "02-jingle-santa-coming",
+      "same_event": true,
+      "same_proposed_occasion": true,
+      "extra_post": false,
+      "creative_choice_group": "jingle-announcement-visual",
+      "calendar_occasion_id": "02-jingle-santa-coming",
+      "recommended_concept_id": "05-jingle-santa-arrives",
+      "selected_concept_id": null
+    }
+  ],
+  "browser_checks": [
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "horizontalOverflow": false,
+      "articleCount": 2,
+      "images": [
+        {
+          "source": "exports/04-nye-mirrorball-moment-feed.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1350,
+          "displayedWidth": 308
+        },
+        {
+          "source": "exports/04-nye-mirrorball-moment-story.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1920,
+          "displayedWidth": 308
+        },
+        {
+          "source": "exports/05-jingle-santa-arrives-feed.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1350,
+          "displayedWidth": 308
+        },
+        {
+          "source": "exports/05-jingle-santa-arrives-story.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1920,
+          "displayedWidth": 308
+        }
+      ],
+      "captionCount": 4,
+      "captionsNonempty": true,
+      "alternativesNotice": true,
+      "noScheduledClaim": true,
+      "pageErrors": []
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "horizontalOverflow": false,
+      "articleCount": 2,
+      "images": [
+        {
+          "source": "exports/04-nye-mirrorball-moment-feed.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1350,
+          "displayedWidth": 612.765625
+        },
+        {
+          "source": "exports/04-nye-mirrorball-moment-story.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1920,
+          "displayedWidth": 539.21875
+        },
+        {
+          "source": "exports/05-jingle-santa-arrives-feed.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1350,
+          "displayedWidth": 612.765625
+        },
+        {
+          "source": "exports/05-jingle-santa-arrives-story.png",
+          "complete": true,
+          "naturalWidth": 1080,
+          "naturalHeight": 1920,
+          "displayedWidth": 539.21875
+        }
+      ],
+      "captionCount": 4,
+      "captionsNonempty": true,
+      "alternativesNotice": true,
+      "noScheduledClaim": true,
+      "pageErrors": []
+    }
+  ],
+  "tools": {
+    "node": "v24.15.0",
+    "playwright": "1.49.1",
+    "sharp": "0.34.5",
+    "browser": "131.0.6778.33",
+    "browserChannel": "bundled-chromium"
+  },
+  "limitations": [
+    "No actual Facebook/Instagram upload crop, link sticker or account scheduling preview was tested.",
+    "No inventory lookup, social publication, customer send, runtime build or deployment occurred.",
+    "Dates and creative remain proposed. Choosing an alternative does not create another editorial occasion."
+  ]
+}

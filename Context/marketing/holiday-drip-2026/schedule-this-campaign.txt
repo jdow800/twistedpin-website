@@ -5,8 +5,10 @@ Help me work with the saved Twisted Pin holiday drip campaign.
 READ FIRST
 1. My current instruction in this chat. It controls whether this is review, revision, approval, scheduling or publication.
 2. README.md, HANDOFF.md, calendar.md and publishing-checklist.md in this folder.
-3. campaign.json: the structured first-batch copy, proposed dates, America/Chicago timezone, per-platform fields, image paths, phase constraints and actual status.
+3. campaign.json: the structured copy for both batches, proposed dates, America/Chicago timezone, per-platform fields, image paths, phase constraints and actual status.
+   Also read alternative_concepts and creative_choice_groups: Batch 02 is the recommended visual alternative for the first two occasions. Choose ONE concept per group. Do not schedule an original and its alternative for the same occasion. Recommended is not selected or approved.
 4. batch-01-copy.txt for editorial context; use the platform text fields in campaign.json for execution. If the two disagree, resolve the discrepancy before action.
+   For Batch 02 concepts use batch-02/copy.txt and batch-02/README.md. Both batches remain available; do not mistake two available designs for two planned posts.
 5. The source manifests and individual exports. Contact sheets and QA images must never be uploaded as posts.
 
 INTENT
@@ -15,7 +17,7 @@ These are occasional special-event insertions around an existing social media te
 SCHEDULING RULES
 - This saved prompt alone is not authorization to post, schedule or send. Follow my explicit instruction in the new chat and use only the assets/copy I approve. Do not repeatedly ask for approval already recorded in the current conversation.
 - Reconcile the manifest with the existing social team's calendar and current platform schedule before creating anything. Ask once for unavailable account/calendar details; do not invent them. Use a dry-run schedule if the needed platform capability is unavailable.
-- Only first-batch entries with final copy and exports are prepared. Later calendar concepts are not ready to schedule; do not substitute unrelated artwork or mass-produce the series without my direction.
+- Only entries marked ready_for_review have prepared copy and exports, across both batches. Later calendar concepts are not ready to schedule; do not substitute unrelated artwork or mass-produce the series without my direction.
 - Preserve exact proposed dates unless I approve changes. If a date has passed, request a new date; do not immediately publish an old teaser. Convert America/Chicago correctly, including the November DST change. Proposed posting times are planning choices, not proven engagement optima.
 - Before November 18, 2026 at 9am Central, NYE creative says reservations WILL open at that time; the event is December31. Never publish the reservations-open phase early. Never reveal NYE party times/prices in pre-opening teasers.
 - Jingle is already bookable and is December6. Do not apply NYE's opening gate to it. Current availability still requires checking before a booking push.

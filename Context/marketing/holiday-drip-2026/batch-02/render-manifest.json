@@ -1,0 +1,408 @@
+{
+  "status": "Batch 02 new visual concepts for review. Not approved for publication, scheduled or published.",
+  "timezone": "America/Chicago",
+  "sourceTemplate": {
+    "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/campaign.html",
+    "sha256": "f3f5354711e1c4bd8e1244b1fe6597c90a493264d7003672ba78950a6f6e0cfd",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "renderer": {
+    "path": "scripts/render-holiday-drip-batch02.mjs",
+    "sha256": "1b476046185f3b4044b67c494b0a28c734a3540fbcc877d7fdd4a8984d1c8b3f",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "toolVersions": {
+    "node": "v24.15.0",
+    "playwright": "1.49.1",
+    "sharp": "0.34.5",
+    "browser": "131.0.6778.33",
+    "browserChannel": "bundled-chromium"
+  },
+  "sourceAssets": [
+    {
+      "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v2.png",
+      "bytes": 2342298,
+      "sha256": "7352fdc68a747c080bb32849f44bad1d3d55039edaa9ee495fa60a47602b2d7c",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/jingle-hero-v2.png",
+      "bytes": 2377636,
+      "sha256": "8f5c79a744238d5d163e4a6af8decb4f02013120e55d9cd349b7a549e472134b",
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "path": "public/logo/twisted-pin-horizontal-white.png",
+      "bytes": 7281,
+      "sha256": "fa0a29cfbb3526b156bbfb04ea18d08a3187490909e39d89fb390409b69c6ba7",
+      "width": 360,
+      "height": 154
+    },
+    {
+      "path": "node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2",
+      "bytes": 21968,
+      "sha256": "aa01966de3f608a765a172237a3ffc6161fe4c7e3870b1a904dc6437e54c4e24"
+    },
+    {
+      "path": "node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2",
+      "bytes": 18824,
+      "sha256": "f9d9e65b15372cebcafc3acd1e664a564c5c4b23278de4d5760de9a13c530371"
+    },
+    {
+      "path": "node_modules/@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2",
+      "bytes": 13968,
+      "sha256": "484e9925bb3045e88a8eec1103ab125e6dbe486172fb56b06fe6751c8b570839"
+    }
+  ],
+  "method": "Separate HTML/CSS feed and Story compositions around generated editorial hero images. Real supplied logo and existing approved font substitutions. Original generated masters remain unmodified; displayed at a uniform scale with layout gradients. Heroes are artistic illustrations, not photographs of the venue or documentary evidence of an event.",
+  "provenance": [
+    "artwork/nye-imagegen-provenance.json",
+    "artwork/jingle-hero-v2.provenance.json"
+  ],
+  "reproduction": [
+    "From the Website repository root, install locked dependencies with npm ci and the bundled browser with npx playwright install chromium.",
+    "Run node scripts/render-holiday-drip-batch02.mjs.",
+    "HOLIDAY_RENDER_DEPS optionally points at an existing compatible Website dependency tree; HOLIDAY_RENDER_BROWSER_CHANNEL optionally selects an installed Chromium channel.",
+    "Script writes only these four final PNGs and render-manifest.json under batch-02; no Website build, deployment, environment files or production access."
+  ],
+  "limitations": [
+    "House margins are design choices, not platform-certified safe zones; check actual organic Facebook/Instagram previews.",
+    "Story printed URLs are not clickable: publisher must add the native link sticker.",
+    "NYE artwork is for before November 18, 2026 at 9am Central only.",
+    "Jingle reservations-open wording requires a current availability check before publishing.",
+    "No current scarcity, party times/prices, package additions or documentary venue appearance are asserted."
+  ],
+  "outboundNetworkRequests": 0,
+  "records": [
+    {
+      "filename": "04-nye-mirrorball-moment-feed.png",
+      "concept": "04-nye-mirrorball-moment",
+      "phase": "before-reservations-open",
+      "status": "review-draft-not-approved-scheduled-or-published",
+      "destination": "https://www.twistedpin.com/new-years-eve/",
+      "eventDate": "2026-12-31",
+      "openingAt": "2026-11-18T15:00:00Z",
+      "width": 1080,
+      "height": 1350,
+      "format": "feed",
+      "bytes": 2035009,
+      "sha256": "a14d5c0a3f95c61243515c478cbdd1df54eae5eb31339078d1714e5b37b1610e",
+      "alt": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+      "houseMargins": {
+        "left": 70,
+        "top": 40,
+        "right": 70,
+        "bottom": 50
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 46,
+            "width": 226,
+            "height": 96.671875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 745.765625,
+            "y": 78,
+            "width": 258.234375,
+            "height": 72.59375,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 178,
+            "width": 928,
+            "height": 180.46875,
+            "text": "GIVE 2026 A\nPROPER SEND-OFF."
+          },
+          {
+            "element": "action",
+            "x": 76,
+            "y": 1080,
+            "width": 928,
+            "height": 197.890625,
+            "text": "RESERVATIONS OPEN\n\nWEDNESDAY, NOVEMBER 18, 2026\n\n9AM CENTRAL\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "hero",
+            "x": 0,
+            "y": 110,
+            "width": 1080,
+            "height": 1349.515625,
+            "naturalWidth": 1122,
+            "naturalHeight": 1402
+          },
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 46,
+            "width": 226,
+            "height": 96.671875,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          }
+        ]
+      }
+    },
+    {
+      "filename": "04-nye-mirrorball-moment-story.png",
+      "concept": "04-nye-mirrorball-moment",
+      "phase": "before-reservations-open",
+      "status": "review-draft-not-approved-scheduled-or-published",
+      "destination": "https://www.twistedpin.com/new-years-eve/",
+      "eventDate": "2026-12-31",
+      "openingAt": "2026-11-18T15:00:00Z",
+      "width": 1080,
+      "height": 1920,
+      "format": "story",
+      "bytes": 2098341,
+      "sha256": "e018a3d62cac56cc2aed0876368b149a5012eb5c03c0d8091582151bffec7e64",
+      "alt": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/",
+      "suggestedLinkStickerArea": {
+        "x": 260,
+        "y": 1620,
+        "width": 560,
+        "height": 110
+      },
+      "stickerLabel": "See NYE details",
+      "houseMargins": {
+        "left": 70,
+        "top": 240,
+        "right": 70,
+        "bottom": 340
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 739.765625,
+            "y": 280,
+            "width": 258.234375,
+            "height": 72.59375,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 389,
+            "width": 916,
+            "height": 188,
+            "text": "GIVE 2026 A\nPROPER SEND-OFF."
+          },
+          {
+            "element": "action",
+            "x": 82,
+            "y": 1334,
+            "width": 916,
+            "height": 196.59375,
+            "text": "RESERVATIONS OPEN\n\nWEDNESDAY, NOVEMBER 18, 2026\n\n9AM CENTRAL\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "hero",
+            "x": 0,
+            "y": 355,
+            "width": 1080,
+            "height": 1349.515625,
+            "naturalWidth": 1122,
+            "naturalHeight": 1402
+          },
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          }
+        ]
+      }
+    },
+    {
+      "filename": "05-jingle-santa-arrives-feed.png",
+      "concept": "05-jingle-santa-arrives",
+      "phase": "jingle-reservations-open",
+      "status": "review-draft-not-approved-scheduled-or-published",
+      "destination": "https://www.twistedpin.com/jingle-bowl/",
+      "eventDate": "2026-12-06",
+      "width": 1080,
+      "height": 1350,
+      "format": "feed",
+      "bytes": 2216539,
+      "sha256": "77de859e40a7ec14635e69a1be1797452a15dad983dc9cbb0f387f5a4fdc4003",
+      "alt": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+      "houseMargins": {
+        "left": 70,
+        "top": 40,
+        "right": 70,
+        "bottom": 50
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 46,
+            "width": 226,
+            "height": 96.671875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 784.5,
+            "y": 89,
+            "width": 219.5,
+            "height": 39.1875,
+            "text": "JINGLE BOWL"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 166,
+            "width": 928,
+            "height": 195.5,
+            "text": "MAKE WAY\nFOR SANTA."
+          },
+          {
+            "element": "action",
+            "x": 76,
+            "y": 1051,
+            "width": 928,
+            "height": 221.390625,
+            "text": "Bowling, pizza & a visit with Santa.\n\nSUNDAY, DECEMBER 6, 2026\n\nRESERVATIONS OPEN NOW\n\nwww.twistedpin.com/jingle-bowl/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "hero",
+            "x": 0,
+            "y": 90,
+            "width": 1080,
+            "height": 1349.515625,
+            "naturalWidth": 1122,
+            "naturalHeight": 1402
+          },
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 46,
+            "width": 226,
+            "height": 96.671875,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          }
+        ]
+      }
+    },
+    {
+      "filename": "05-jingle-santa-arrives-story.png",
+      "concept": "05-jingle-santa-arrives",
+      "phase": "jingle-reservations-open",
+      "status": "review-draft-not-approved-scheduled-or-published",
+      "destination": "https://www.twistedpin.com/jingle-bowl/",
+      "eventDate": "2026-12-06",
+      "width": 1080,
+      "height": 1920,
+      "format": "story",
+      "bytes": 2327906,
+      "sha256": "43b8e3904f73f8ba5cf42856ad178b0c7f5e9dcf5a60fe2157af4eb1f4c59ed9",
+      "alt": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+      "suggestedLinkStickerArea": {
+        "x": 260,
+        "y": 1620,
+        "width": 560,
+        "height": 110
+      },
+      "stickerLabel": "Reserve Jingle Bowl",
+      "houseMargins": {
+        "left": 70,
+        "top": 240,
+        "right": 70,
+        "bottom": 340
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 786.34375,
+            "y": 288,
+            "width": 211.65625,
+            "height": 37.796875,
+            "text": "JINGLE BOWL"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 386,
+            "width": 916,
+            "height": 203.03125,
+            "text": "MAKE WAY\nFOR SANTA."
+          },
+          {
+            "element": "action",
+            "x": 82,
+            "y": 1326,
+            "width": 916,
+            "height": 211.390625,
+            "text": "Bowling, pizza & a visit with Santa.\n\nSUNDAY, DECEMBER 6, 2026\n\nRESERVATIONS OPEN NOW\n\nwww.twistedpin.com/jingle-bowl/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "hero",
+            "x": 0,
+            "y": 340,
+            "width": 1080,
+            "height": 1349.515625,
+            "naturalWidth": 1122,
+            "naturalHeight": 1402
+          },
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          }
+        ]
+      }
+    }
+  ]
+}

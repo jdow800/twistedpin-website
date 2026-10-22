@@ -1,0 +1,15 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "use_case": "ads-marketing",
+  "intent": "new hero image",
+  "prompt": "Use case: ads-marketing.\nAsset: epic premium New Year's Eve social campaign HERO ART, portrait 4:5. Create one exceptionally polished cinematic advertising image, with NO typography. It will receive editable brand/date overlays afterward.\nPrimary idea: a silver mirrorball reimagined as a bowling ball. A single massive hero sphere made of hundreds of tiny real mirrored square tiles, with three convincing bowling-ball finger holes worked naturally into its upper-right face. It sits on a subtly reflective warm dark wooden lane-like surface. Object is a surreal visual metaphor for a bowling venue NYE campaign, NOT a photograph of a real venue or a promised installation.\nComposition: editorial luxury-event poster framing, low camera angle, hero sphere centered around x=52%, y=53%, spanning about 68% of canvas width and 48% height. Keep the top 22% and bottom 20% of the canvas richly dark and visually quiet for later headline/date overlays. The ball must have a clean, powerful silhouette. Very subtle lane perspective, no visible lane numbers, no actual room architecture, no people.\nStyle: premium photorealistic CGI / art-directed campaign still; tactile mirrored facets, beautiful speculars and physically plausible reflections. Cinematic depth and negative space. Make the image feel like the one arresting visual on a major NYE campaign.\nLighting/color: deep midnight indigo almost black #100b23, silver and icy-white mirror tiles, concentrated mint-teal #4EECC4 rim light, a restrained warm champagne glint. One striking narrow beam from above/behind and scattered elegant points of reflected light. Small amount of floating celebratory sparkle and two or three out-of-focus metallic confetti pieces toward the outside edges only. Luminous central object; dark quiet copy zones.\nConstraints: no words, numbers, logo, watermark, borders, fake UI or countdown digits. No alcohol glasses, no fireworks, no extra balls, no gift props. Avoid cartoon globe lines, clip-art, excessive neon, busy confetti, stock-party look, plastic materials or washed-out fog. Beautiful high-detail final artwork.",
+  "reference_images": [],
+  "original_path": "C:/Users/jdow8/.codex/generated_images/01a16506-84b2-7861-bfd5-57d8272a3fa9/exec-ebfd40a8-83e7-480c-b7ca-4bbd15ed4a0d.png",
+  "project_path": "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v2.png",
+  "status": "review-draft",
+  "notes": "Cinematic symbolic mirrorball bowling-ball illustration, not a photograph of the venue or a promise of a physical installation. Logo/headline/dates added as editable HTML layers.",
+  "sha256": "7352fdc68a747c080bb32849f44bad1d3d55039edaa9ee495fa60a47602b2d7c",
+  "width": 1122,
+  "height": 1402,
+  "bytes": 2342298
+}

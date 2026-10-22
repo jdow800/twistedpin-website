@@ -1,0 +1,78 @@
+{
+  "status": "Generated creative review master; not approved, scheduled, or published.",
+  "prepared_on": "2026-10-22",
+  "tool": "Built-in image_gen.imagegen",
+  "execution_mode": "built-in; no CLI, API key, or one-off API runner",
+  "intent": "New ads-marketing illustration using approved Santa and released Jingle campaign as references; followed by a targeted composition edit.",
+  "fictional_scene_notice": "The evergreen, ornaments, lights and gifts form a fictional illustrated Christmas tableau. It does not depict the real venue or promise gifts, decor, or Santa bowling with guests.",
+  "references": [
+    {
+      "path": "Context/jingle-bowl-2026/artwork/santa-entrance-master.png",
+      "sha256": "28813602face372ffa10958ecea9988b26ef0df6670ca56babdfa0a26660981d",
+      "role": "Approved Santa character/face/materials reference"
+    },
+    {
+      "path": "public/jingle-bowl/jingle-square.png",
+      "sha256": "bb82ccb9ba6497d5a1acf52419c7db54799715ed514e5216d8a863cb8f9658d6",
+      "role": "Released Jingle campaign illustration style reference; existing typography not reproduced"
+    }
+  ],
+  "generations": [
+    {
+      "step": 1,
+      "operation": "generate using references",
+      "prompt": "Use case: ads-marketing.\nAsset type: a new cinematic illustrated hero bitmap for Twisted Pin's Jingle Bowl campaign, portrait 4:5, very high resolution.\nInput images: Image 1 (transparent running Santa) is the approved Santa character/face, rich red velvet, warm ivory beard, green bowling ball, and painterly material reference. Image 2 (released Jingle Bowl square poster) is a campaign-identity, facial-character, and illustration-finish reference only. Do not reproduce either image's existing typography or layout.\nPrimary request: create an epic, sophisticated Christmas poster image centered on this same charismatic, warmly mischievous Santa, carrying a glossy deep-evergreen bowling ball with exactly three finger holes. Santa is the unmistakable visual hero, looking toward the viewer with the same open, delighted expression and luxuriant beard as the approved character. Preserve his recognizable facial styling, red velvet coat and hat, cream fur, and black leather/gold buckle details; new composition and natural carrying pose are welcome.\nScene/backdrop: a fictional theatrical Christmas tableau, NOT a real venue photograph: rich dark evergreen and almost-black indigo depth, a few lush evergreen branches framing the middle edges, two or three beautifully wrapped cranberry/evergreen gifts with subtle champagne-gold satin ribbon near Santa's lower silhouette, softly glowing warm holiday lights receding into atmospheric shadow. A small number of tasteful glass ornaments add depth. This is editorial fantasy illustration, not a depiction of Twisted Pin's actual room or an offer of gifts.\nComposition/framing: purpose-composed vertical 4:5 artwork. Keep the top approximately 20% and bottom approximately 20% quiet, near-black dark evergreen/indigo atmospheric negative space so the designer can add editable headline and date/CTA later. The central 60% contains the large Santa portrait and bowling ball; Santa's face near 36% canvas height and ball near 61%. Frame him roughly mid-thigh upward, with strong sculptural silhouette, depth and layered foreground/background. Keep his face, hat, hands and ball entirely inside the image, never cropped. The bottom dark field must not be filled with objects or ornaments. No flat hard-edged blank bands: negative space should blend seamlessly into the atmospheric scene.\nStyle/medium: exceptionally art-directed, cinematic premium Christmas illustration, painterly realism with dimensional light, exquisite beard/fur detail, tactile velvet and reflective green ball. Same sophisticated illustration family as the references, with stronger depth and materials. Warm inviting human expression; confident, playful and adult-quality. It must feel striking at phone-thumbnail size without becoming cluttered.\nLighting/mood: rich directional warm gold key light and restrained evergreen rim light. Deep shadows, warm light behind shoulders, subtle luminous dust/bokeh; not neon. Preserve fine texture rather than an airbrushed plastic face.\nColor palette: deep evergreen, near-black indigo, rich cranberry red, warm ivory and restrained champagne gold.\nText: NONE. No lettering, numbers, logo, brand mark, date, watermark, labels or borders.\nConstraints: single Santa, no guests, no children, no crowd, no lanes or identifiable venue interiors, no pizza/cocoa imagery, no implication of Santa bowling with guests. He carries the ball as an ornament-like hero object, not throwing or bowling. No additional promises or offers. No generic clipart, cartoons, grinning plastic 3D, collage, busy snowstorm, neon saturation or excessive props.",
+      "referenced_image_paths": [
+        "C:/Users/jdow8/dev/website-holiday-drip-20261022/Context/jingle-bowl-2026/artwork/santa-entrance-master.png",
+        "C:/Users/jdow8/dev/website-holiday-drip-20261022/public/jingle-bowl/jingle-square.png"
+      ],
+      "transparent_background": false,
+      "generated_original_path": "C:/Users/jdow8/.codex/generated_images/01a1650d-da78-7543-bd6c-337a431cf6c4/exec-a28ffa53-d3d4-4a73-857e-ee8ed36a58b3.png",
+      "selected": false,
+      "reason": "Strong Santa hero and material finish, but insufficient quiet top area for editable headline. Intermediate original retained at built-in output path, not required for using the selected master.",
+      "archived_project_path": "Context/marketing/holiday-drip-2026/batch-02/artwork/source-history/jingle-hero-initial.png",
+      "sha256": "95d060748cd31feca2a081398cba2d03b90813142c0ff3d6cbd214d6a2f5800d",
+      "bytes": 2774239,
+      "archive_note": "Unselected intermediate retained for the targeted edit provenance; never use as a publication asset."
+    },
+    {
+      "step": 2,
+      "operation": "targeted composition edit",
+      "prompt": "Use case: compositing. Edit only the COMPOSITION of this generated Jingle Bowl illustration.\nPreserve the same Santa character, face, joyful mischievous expression, painterly realism, red velvet/cream fur, black gloves, glossy green bowling ball with exactly three holes, evergreen/cranberry/gold palette, lighting quality, ornaments and restrained gift details.\nThe image needs room for editable design text that will be added later. Zoom the illustrated Santa-and-festive-tableau OUT substantially within the same portrait 4:5 canvas, keeping the hero centered. Santa's hat must begin at about 23% of canvas height; the main Santa silhouette and green ball must occupy the middle, ending around 78%. Keep face and ball large and readable within that central area. Scale the associated gifts and branches coherently with the tableau.\nMake the top 0–20% and bottom 80–100% of the frame QUIET NEAR-BLACK evergreen/indigo atmosphere. No face, hat, gloved hand, gift, ornament or bright light in those bands; they need clean usable room for a large headline above and dates below. Gentle atmospheric texture is fine. These areas should transition seamlessly into the illustration, not look like hard blank letterboxing bars.\nKeep the subject fully inside the frame, no cropped hat, fingers or ball. No new props, guests or venue interior. Santa carries the ball; he is not bowling. No typography, text, logos, dates, labels or watermark anywhere. Preserve excellent rich tactile illustration quality; this is a fictional campaign tableau, not a real venue photograph.",
+      "referenced_image_paths": [
+        "C:/Users/jdow8/.codex/generated_images/01a1650d-da78-7543-bd6c-337a431cf6c4/exec-a28ffa53-d3d4-4a73-857e-ee8ed36a58b3.png"
+      ],
+      "transparent_background": false,
+      "generated_original_path": "C:/Users/jdow8/.codex/generated_images/01a1650d-da78-7543-bd6c-337a431cf6c4/exec-4ec018a8-cdc1-4b5d-b885-befbcf07d98c.png",
+      "selected": true,
+      "archived_reference_path": "Context/marketing/holiday-drip-2026/batch-02/artwork/source-history/jingle-hero-initial.png"
+    }
+  ],
+  "selected_master": {
+    "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/jingle-hero-v2.png",
+    "width": 1122,
+    "height": 1402,
+    "format": "png",
+    "hasAlpha": false,
+    "bytes": 2377636,
+    "sha256": "8f5c79a744238d5d163e4a6af8decb4f02013120e55d9cd349b7a549e472134b",
+    "preservation": "Byte-for-byte copy of selected built-in generated original; no raster edit, resize, crop or compression after generation."
+  },
+  "visual_review": {
+    "performed": true,
+    "date": "2026-10-22",
+    "observations": [
+      "Single recognizable approved-style Santa, rich red velvet and ivory fur, warm expression, carries a green ball showing three holes.",
+      "No text/logo/date is baked into the illustration.",
+      "Face, hat, gloves and ball are visible; there are no guests, lanes or real venue claims.",
+      "Central subject and warm Christmas depth are distinct from batch-01 flat-dark composition.",
+      "Quiet dark area at top approximately y0–270 and bottom approximately y1150–1402, with atmospheric transitions. Some small edge lights remain; inspect final copy contrast."
+    ],
+    "recommended_layout": "Place strong headline in the upper dark area, and date/bookable CTA in lower dark area. Preserve face and bowling ball. Use separate 4:5 feed and 9:16 Story layouts around this illustration; actual social crops and overlays still require review."
+  },
+  "limits": [
+    "AI generation is stochastic; exact regeneration is not guaranteed from prompts alone. The selected full-resolution original is preserved in Git-intended project artwork.",
+    "No publishing, scheduling, customer messaging, website/backend change or commit/push was performed by this subtask.",
+    "User review of the new creative direction remains pending."
+  ]
+}
