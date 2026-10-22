@@ -1,3 +1,11 @@
+## 2026-10-22 - Repeat cocoa and Santa inclusions in both Jingle lane cards
+
+Shanna reviewed the page and approved the copy, requesting that guests scanning
+the lane cards also see "Access to cookie & cocoa bar" and "Photo with Santa on
+your device." Added both to the Traditional and VIP inclusion lists; VIP retains
+its separate basket of fries. This is a protected landing-page copy update only.
+Prices, booking readiness, password protection and the event schedule are unchanged.
+
 ## 2026-10-22 - Jingle Santa wording and lane inclusions
 
 Released as713d96e on Vercel4dY4Qm4q5XVQuVk6remsS91jBMU8. All74 live
