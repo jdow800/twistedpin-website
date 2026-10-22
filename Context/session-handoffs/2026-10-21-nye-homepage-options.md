@@ -1,8 +1,14 @@
-# NYE homepage invitation options — protected review preparation
+# NYE homepage invitation — Mirrorball selected
+
+> Historical design-decision record restored from d7f8a81. Mirrorball selection and the December 7 start are approved; the shared campaign implementation subsequently shipped. See the [campaign release receipt](2026-10-22-nye-campaign.md) and [events closeout](2026-10-22-events-closeout.md) for the implementation and current status.
 
 ## State
 
-Design review only. The original five design files are committed as `cd00611`, rebased onto Website main `de9a7a2`. Protected sharing is prepared locally and awaits root/Jingle-owner review. No homepage activation, production deployment, push, booking/API/payment action or campaign scheduling change.
+Jon selected **Mirrorball** on October 21, 2026: “mirror ball for sure.” This is the approved NYE homepage creative direction. Retain the brief drop/glint, compact invitation, existing hero video, navigation and ordinary booking actions, dismissal and reduced-motion behavior. The other two concepts remain historical comparisons.
+
+The protected comparison was released in Website `fc1d2c6752ca0d8e3dbac5ff5e36323c0c7d296b`, Vercel `dpl_Ggo8PRMcvP2kvXnxxdgGJGDcShCQ` (READY), after independent gate review, full build and 27 live checks. Live mobile and desktop captures were visually reviewed. Public review URL: `https://www.twistedpin.com/nye-homepage-concepts/`, using the existing Jingle review password/session.
+
+Jon also confirmed the homepage start date: **December 7, 2026**, venue time (America/Chicago). Mirrorball takes the homepage lead after Jingle through December 6. The shared campaign scheduling/integration still needs implementation and boundary verification; the public homepage campaign is not activated or scheduled by this documentation change. NYE reservations still open November 18 at 9am Chicago.
 
 Worktree: `C:/Users/jdow8/dev/tprs/.claude/worktrees/nye-homepage-options-20261021`
 
@@ -10,11 +16,11 @@ Branch: `codex/nye-homepage-options-20261021`
 
 Local review: `http://127.0.0.1:55616/nye-homepage-concepts/`
 
-The SSR review route now uses the existing Jingle owner-review password and signed cookie through both Astro and root routing middleware. Only `/nye-homepage-concepts/` was added to the protected review prefixes/page-return allowlist, root matcher, tracker exclusions and sitemap exclusions. NYE gets its own login title; Jingle titles and all signing, cookie, return-path and CSRF behavior remain unchanged. Public `/new-years-eve/` and `/reserve/nye/` are not gated. Missing review configuration fails closed. Local testing uses synthetic credentials only; the normal existing production review password will apply after an approved release.
+The SSR review route uses the existing Jingle owner-review password and signed cookie through both Astro and root routing middleware. Only `/nye-homepage-concepts/` was added to the protected review prefixes/page-return allowlist, root matcher, tracker exclusions and sitemap exclusions. NYE gets its own login title; Jingle titles and all signing, cookie, return-path and CSRF behavior remain unchanged. Public `/new-years-eve/` and `/reserve/nye/` are not gated. Missing review configuration fails closed. Local testing used synthetic credentials; live checks used the ordinary existing review password.
 
 ## Three treatments
 
-1. **Mirrorball:** one 1.7-second drop and glint, then a compact invitation. “NYE. DONE RIGHT.” This is the strongest clear seasonal signal and the recommended starting point.
+1. **Mirrorball — selected:** one 1.7-second drop and glint, then a compact invitation. “NYE. DONE RIGHT.”
 2. **Hello, 2027:** the year turns into view once, then settles. “HELLO, 2027.” More typographic and restrained; less immediately specific about NYE until the link is read.
 3. **A little sparkle:** one small burst, then a translucent invitation. “MAKE DEC 31 A PLAN.” Quietest, with the least visual weight over the video.
 
@@ -30,7 +36,7 @@ The invitation is below the logo/menu and above the homepage headline. Settled c
 - Pause applies to both entrance and video. Explicit replay resumes motion unless reduced motion is active.
 - System reduced motion and the review toggle use static invitation/poster. No-JS retains a static usable invitation.
 - Dismissal hides the invitation and restores focus to the review Replay button; it does not cover or change the ordinary booking controls.
-- Working homepage campaign lead is **December 7, after Jingle Bowl through December 6 in Chicago**. This remains a design assumption for later shared campaign policy. NYE sales opening stays **November 18 at 9am Central**. No scheduling code is changed here.
+- Confirmed homepage campaign lead is **December 7, after Jingle Bowl through December 6 in Chicago**. Implement it through one shared campaign policy. NYE sales opening stays **November 18 at 9am Central**. No scheduling code is changed here.
 - No edits to Jingle components, homepage, seasonal configuration, booking or API code. Shared review integration is limited to the exact route additions listed above; the root `.js` import is preserved.
 
 ## Review and reproduction
@@ -56,4 +62,4 @@ Regenerable screenshots and `results.json` are in ignored `.astro/nye-homepage-o
 
 ## Release boundary
 
-Root and the Jingle owner approved preparing the narrow shared gate. Root must review the final diff and obtain the Jingle owner's independent check before any deployment. No activation should follow automatically from selecting a design. No new `public/` assets exist: all artwork is inline SVG and media reuse stays at the existing homepage video/poster/logo URLs.
+Root and the Jingle owner completed the independent gate review before the protected release. Selecting Mirrorball locks the creative direction; public homepage integration and coordinated campaign timing remain separate work. No new `public/` assets exist: all artwork is inline SVG and media reuse stays at the existing homepage video/poster/logo URLs.

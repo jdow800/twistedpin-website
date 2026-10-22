@@ -1,3 +1,9 @@
+## 2026-10-22 - Combined NYE and Jingle session closeout
+
+Jon requested durable troubleshooting/content pointers before starting a new combined social-drip session. Consolidate the saved NYE final/campaign/availability/Mirrorball receipts and Jingle public-release/closeout records, including both corrected Facebook covers and tracked masters/exporters. The current index is `Context/session-handoffs/2026-10-22-events-closeout.md`; the backend owns the combined operational index and prompt-only kickoff. Correct the annual NYE playbook's old backend-only/December1 assumptions. No runtime, homepage timing, checkout, auth, public media or dependencies change.
+
+Private backup tags in TPRS retain unpublished rehearsal histories; they were not published to this public repository. All25 delivered NYE/Jingle files checked against their manifests/copies pass, with five text source files differing only by Git newline conversion. Full-size media hashes remain exact. Existing crop/visual proof is retained, not rerun as an actual Facebook upload. All relative documentation links resolve and the application/runtime diff against0729566 is empty. A normal Website deployment may follow this documentation/artwork merge; final source/hosting evidence is retained in the combined PR470 ledger. Paid fixtures and all other worktrees remain untouched; no social posts, customer sends or new agent are authorized by this closeout.
+
 ## 2026-10-22 - Jingle final closeout and preservation handoff
 
 Read-only local/Git reconciliation found no pending Jingle runtime change. Save

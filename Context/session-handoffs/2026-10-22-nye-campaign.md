@@ -1,5 +1,7 @@
 # NYE Mirrorball homepage campaign and marketing pack
 
+> Historical release receipt restored from 27474dc. The verification below describes that release; Jingle subsequently launched publicly and its current timing is in the [events closeout](2026-10-22-events-closeout.md). Keep the recorded evidence and limitations as history.
+
 ## Owner decisions and scope
 
 Jon selected the Mirrorball treatment and confirmed December 7 for the homepage lead. On October 21 local time he authorized the next-step list's items 2 and 3: schedule that campaign and prepare Meta/Facebook plus Google Business Profile event visuals and copy. The connected booking rehearsal and sold-out display work are separate.
@@ -43,4 +45,12 @@ Strict TypeScript passes for the two new TypeScript files. Existing protected-re
 
 The creative pack contains eight reviewed PNGs (13,054,168 bytes total, each under 2.4 MB), source HTML/SVG, a deterministic renderer, contact sheet, gallery, manifest and platform copy. Every export passed dimensions/hash/font/bounds checks; all local documentation links resolve. No Meta or Google account was accessed and nothing was posted there.
 
-Production deployment and acceptance are pending. Add the exact source/deployment identifiers and bounded live readback before closing the slice. The current live baseline remains `1a508912` until that release is verified.
+**Released and verified:** Website main `2c6b1f12e53d4d788f0a984013a66ff07074d277`, parent `1a508912`, Vercel `dpl_7k5FvtcYf5z4TT36T2hjrwJdKmnb`. GitHub's Vercel status is successful, and the custom-domain HTML and loaded browser assets identify that exact deployment.
+
+The bounded production acceptance on October 22 UTC verified homepage, NYE landing, regular/NYE/birthday reservation pages and proxied health at HTTP 200; Jingle and NYE concept reviews remain anonymous HTTP 401. Actual homepage checks showed no Mirrorball today, one invitation at December 7 midnight and removal at the final purchase cutoff on resume. The simulated date existed only inside the browser, never in a server or booking request. True mobile 390 and landscape 844, plus desktop 1440, had no application errors/overflow, preserved videos playing and original navigation/booking actions. The first capture used desktop scrollbar emulation at mobile widths; the final visual receipt corrects that harness setting rather than changing the site's existing gutter behavior.
+
+One sequential regular and birthday journey reached available times without selecting a time or continuing checkout. Regular at `2026-10-22T02:42:56Z` had six visible times and 22 settled HTTP 200 API requests; birthday at `02:43:35Z` had two visible times and 14 settled HTTP 200 requests. Both had zero page errors or horizontal overflow. The script blocked mutations except the established read-only accepted-attempt discovery/status calls; no hold, booking, payment or customer submission was created. These are bounded stability checks, not speed benchmarks.
+
+Ignored production evidence and reproductions: `.astro/nye-campaign/live-proof.json` (route/deployment proof), `live-browser-proof.json` (final true-mobile readback), `live-*.png`, `incident-{regular,birthday}-nye-campaign.{json,png}`, `live-proof.mjs` and `booking-proof.mjs`. Browser processes are closed; no continuous probes remain. The editable marketing source and final exports are committed and pushed in the released source. Social publication remains unperformed.
+
+This release receipt is a documentation-only successor on `codex/nye-campaign-20261022`; it does not trigger a second main deployment. Subsequent campaign changes should preserve the single selector and retain Jingle's disabled/null readiness until its owner supplies the separate approved activation facts.
