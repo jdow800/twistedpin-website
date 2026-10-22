@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-22",
+  "method": "Built-in image_gen",
+  "useCase": "ads-marketing / compositing",
+  "input": "Context/jingle-bowl-2026/artwork/jingle-wide-santa-visit-master.png",
+  "master": "Context/jingle-bowl-2026/facebook/Jingle-Bowl-Facebook-Event-master.png",
+  "target": {
+    "width": 1920,
+    "height": 1005
+  },
+  "prompt": "Use case: ads-marketing / compositing.\nAsset type: Facebook Event cover for Twisted Pin Jingle Bowl 2026.\nInput image 1 is the approved current campaign art, use as an edit target and preserve its cheerful vintage illustrated Santa holding an emerald green bowling ball, navy-black background, cream tall bold condensed type, mint lettering and restrained gold ribbons/starbursts.\nCreate a NEW more crop-safe composition, full-bleed landscape, exact target 1920 x 1005 pixels (1.91:1).\nImportant: Facebook's create-event preview may crop to a centered 2.7:1 strip. Therefore EVERY word must lie within x=120 to x=1760 and y=210 to y=790 of the 1920x1005 canvas. Leave the upper 200 pixels and bottom 200 pixels mostly atmospheric navy background with small gold stars, no essential text. No border or letterbox.\nSanta stays on the right roughly x=1230..1880, with his face centered y=420, green bowling ball y=680. His hat or body can extend beyond the safe strip; his face must remain visible in the centered crop. Left text block roughly x=120..1200, y=230..765, clear separation from Santa.\nExact text only, spelled correctly:\n\"TWISTED PIN\" in small mint type at y~245.\n\"JINGLE BOWL!\" in very large tall cream condensed display type, one line, at y~330..520.\n\"A VISIT WITH SANTA\" mint at y~565.\n\"SUNDAY, DECEMBER 6\" cream at y~655.\n\"2026 • PLAINFIELD, IL\" small cream at y~745.\nKeep same title capitalization and retro typography character as reference. Center the total composition in the safe zone; do not stretch existing raster. Re-layout it.\nNo QR, no website, no prices, no extra words, no snowflake overlay on letters. No claim that Santa bowls with guests. This is a polished finished upload graphic, high quality crisp readable text. Preserve the personality and likeness of the approved illustrated Santa."
+}

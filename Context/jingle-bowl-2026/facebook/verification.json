@@ -1,0 +1,52 @@
+{
+    "generatedAt":  "2026-10-22T18:10:50.690Z",
+    "sourceDimensions":  {
+                             "width":  1733,
+                             "height":  907
+                         },
+    "files":  [
+                  {
+                      "file":  "Jingle-Bowl-Facebook-Event-master.png",
+                      "width":  1733,
+                      "height":  907,
+                      "bytes":  2385632,
+                      "sha256":  "c74185981c3a0b206fa6ce4c7583935ed66fc11fbdd08727b2380c105cb4237c"
+                  },
+                  {
+                      "file":  "Jingle-Bowl-Facebook-Event-Cover-1920x1005.png",
+                      "width":  1920,
+                      "height":  1005,
+                      "bytes":  3557804,
+                      "sha256":  "0a550cf1fe6ebc427c583a5dbf224717894cfe2d203f63acc63fb101d5173dd1"
+                  },
+                  {
+                      "file":  "QA-centered-2.7-to-1-preview.png",
+                      "width":  1920,
+                      "height":  711,
+                      "bytes":  2651898,
+                      "sha256":  "64bdb632811e0ec2ea4828d3eb4aa4322941903df548e9494927c236af204776"
+                  },
+                  {
+                      "file":  "QA-centered-2.7-to-1-preview-600px.png",
+                      "width":  600,
+                      "height":  222,
+                      "bytes":  285234,
+                      "sha256":  "0d048a1213f045a849777a628749a0d2ebd90ce0e8ff74d0ad5d5150c5c2d8b0"
+                  }
+              ],
+    "qa":  "Centered 2.7:1 crop approximates the owner-supplied Facebook creation preview; it is not a guarantee of every Facebook placement.",
+    "postingPerformed":  false,
+    "visualReview":  {
+                         "fullExport":  "PASS: correct Santa style and exact text; no clipping",
+                         "centeredWidePreview":  "PASS: name, title, subtitle, date and year readable at 600px wide; footer has a small lower margin",
+                         "actualFacebookUpload":  false
+                     },
+    "desktopDelivery":  {
+                            "directory":  "C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl",
+                            "files":  [
+                                          "Jingle-Bowl-Facebook-Event-Cover-1920x1005.png",
+                                          "READ-ME-Facebook-Event-Cover.txt"
+                                      ],
+                            "checksumsMatched":  true
+                        }
+}
