@@ -1,3 +1,23 @@
+## 2026-10-22 - Jingle Santa wording and lane inclusions
+
+Jon approved removing "Bowl with Santa" because guests bowl and visit Santa
+separately. The event headline becomes "Santa's coming. Let's roll."; description,
+metadata, draft calendar title and campaign artwork say "a visit with Santa."
+Both lane cards explicitly list90 minutes of bowling, shoe rental, one pizza and
+one pitcher of soda per lane. VIP adds one basket of fries. No four-shoe accounting
+allocation is presented as a guest entitlement limit. Pitcher refills are excluded.
+Keep the approved Christmas design, prices, password and public-readiness gates.
+This slice contains no backend, checkout, homepage campaign or event activation.
+Source, artwork and mobile/desktop release proof are recorded in the Jingle handoff.
+
+Jon then requested the preview look like the final customer page, with only the
+password retained. Removed the review banner, implementation notes, pending-time
+language and concept links from the landing page. Use approved facts and the
+coordinated Santa visit; do not invent exact Santa/staffed hours. Package buttons
+use real section anchors while checkout verification remains pending, rather than
+linking guests to a404 or simulating a production purchase. Public readiness,
+password, noindex and draft event status are unchanged.
+
 ## 2026-10-22 - Protected Jingle fries and reservation terms released
 
 Website main `0b923164176482a16d4a487a02735781f5b5510e` deployed successfully

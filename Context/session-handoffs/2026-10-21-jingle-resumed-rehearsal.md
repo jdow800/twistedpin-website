@@ -285,3 +285,28 @@ the NYE owner's docs-onlycf2352ea release evidence. Runtime/CI files are unchang
 from the already reviewed local156f3010 tree. No backend Jingle release or
 production identity registration occurred. This evidence follow-up is saved on
 the Website feature branch; production remains the exact1a508912 source above.
+# October22 morning: guest copy and Santa wording
+
+Jon approved replacing "Bowl with Santa" with a separate Santa visit and listing
+the90-minute/shoes/pizza/pitcher inclusions beneath each lane type, plus fries for
+VIP. He then requested the landing look like the final customer page behind the
+existing password. The page now uses "Santa's coming. Let's roll." and
+"Bowling, pizza & a visit with Santa." Review banners, implementation notes and
+concept links are removed. Exact Santa hours are not invented. Current package
+actions use functional section anchors; the production checkout connection still
+requires its separate verification, and no simulated sale is presented as live.
+
+Square and wide campaign images replace the baked-in line with "A VISIT WITH
+SANTA" using the built-in image_gen tool. Revised masters and exact prompts are
+tracked under Context/jingle-bowl-2026/artwork; scripts/build-jingle-campaign-assets.mjs
+reproduces PNG/WebP exports. WebP square is127,324 bytes, wide118,522 bytes. Earlier
+artwork remains preserved in Git/source. No rejected generated brand guide used.
+
+Draft calendar copy uses the approved first start1:45pm through activities ending
+5:15pm, with5:30pm departure in the description; draft remains true. Shared public
+readiness, NYE campaign, auth, middleware, checkout and backend source are unchanged.
+Local checks at320/390/1280 pass, including headline fit, per-lane inclusions,
+no internal review language, working section anchors, artwork hashes and no
+horizontal overflow/browser errors. The page footer now provides the existing
+Find Us navigation anchor. Seventeen auth and seven native middleware checks pass;
+full production build/prebuild passes. Live source/verification follows below.

@@ -1,0 +1,17 @@
+{
+  "method": "Built-in image_gen tool",
+  "date": "2026-10-22",
+  "useCase": "text-localization",
+  "reason": "Owner approved replacing Bowl with Santa with a visit with Santa; Santa does not bowl alongside guests.",
+  "square": {
+    "input": "public/jingle-bowl/jingle-square.png (prior revision in Git)",
+    "master": "Context/jingle-bowl-2026/artwork/jingle-square-santa-visit-master.png",
+    "prompt": "Use case: text-localization. Edit target: the provided square Jingle Bowl campaign poster. Make exactly one copy correction: replace the small mint-colored supporting headline 'BOWL WITH SANTA' with 'A VISIT WITH SANTA'. Keep its placement, condensed typeface, mint color and single-line legibility, adjusting size/tracking slightly only as needed to fit. Preserve the entire existing composition and square aspect ratio: Santa's exact face/pose/beard/red suit/green bowling ball, dark indigo texture, gold stars and ribbon, large JINGLE BOWL! type, TWISTED PIN, SUNDAY, DECEMBER 6, and 2026 · PLAINFIELD, IL. No new illustration, objects, claims, text, logos, or prices. This event has bowling and a separate Santa visit; the old phrase must disappear entirely. Output finished square artwork."
+  },
+  "landscape": {
+    "input": "Context/jingle-bowl-2026/artwork/jingle-wide-master.png",
+    "master": "Context/jingle-bowl-2026/artwork/jingle-wide-santa-visit-master.png",
+    "prompt": "Use case: text-localization. Edit target: the provided wide landscape Jingle Bowl campaign poster. Make exactly one copy correction: replace the mint supporting headline 'BOWL WITH SANTA' with 'A VISIT WITH SANTA'. Keep placement, condensed typeface, mint color and one-line legibility, adjusting size/tracking only to fit. Preserve the landscape 1.91:1 composition and all other details: exact Santa face/pose/beard/red suit/green bowling ball with three holes, navy texture, gold stars/ribbon, giant JINGLE BOWL!, TWISTED PIN, SUNDAY, DECEMBER 6, and 2026 · PLAINFIELD, IL. Preserve comfortable safe margins. No new objects, text, logo, prices or scene. The old phrase must disappear entirely. Output finished wide landscape artwork."
+  },
+  "exports": "Run node scripts/build-jingle-campaign-assets.mjs; originals and earlier prompts retained in Git."
+}
