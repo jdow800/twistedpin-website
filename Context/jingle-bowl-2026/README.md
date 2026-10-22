@@ -1,4 +1,16 @@
-# Jingle Bowl campaign review
+# Jingle Bowl campaign
+
+## Current status — October 22, 2026 closeout
+
+Jingle is publicly launched. `/jingle-bowl/` and `/jingle-bowl/booking/` require no password; the homepage invitation and regular-calendar handoff are connected. The production catalog, fees, quotas, coupon exclusion and guest confirmations are installed. The last verified Website runtime is `0729566add2a3692853c2a577c394990194f514e`; the backend successor is `0a724bfb066f9640eed214281bb41f107b5d22da`.
+
+Start with [the final closeout handoff](../session-handoffs/2026-10-22-jingle-closeout.md) for release proof, remaining operational observations, preserved fixtures, source/delivery locations and safe troubleshooting. Backend activation evidence is in TPRS `docs/JINGLE-PRODUCTION-CONNECTION-20261022.md`. Roy's bounded Jingle greeting is live; its release and private rollback pointers are in the closeout handoff.
+
+Use `facebook/Jingle-Bowl-Facebook-Event-Cover-1920x1005.png` for the Facebook event cover, `public/jingle-bowl/jingle-square.png` for square posts, and `led/` for the 1920x1080 QR video/static delivery. The Desktop folder is a delivery copy, not the editable source. Publication, physical LED playback and a saved public Facebook crop have not been verified by this work.
+
+## Historical preview notes — superseded by the closeout above
+
+The following records the protected-review stage. Its pending-launch statements and route restrictions describe that earlier stage, not current production. Preserve it as implementation history; do not undo the public launch to match these notes.
 
 This Website worktree contains the event landing page, three homepage visual treatments, a calendar review and an isolated booking-date handoff demo. Jon authorized a live review protected by his chosen password on October 21, 2026. The intended event URL is `/jingle-bowl/`.
 

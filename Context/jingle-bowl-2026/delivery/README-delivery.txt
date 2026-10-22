@@ -8,6 +8,12 @@ This folder is a delivery copy. Keep the editable copy, artwork masters, export 
 
 Public launch was verified October 22, 2026. The homepage invitation, public Jingle page and booking flow are connected. The page and booking links are ready to share, with no password needed. Staff can use staff-7shifts-tldr.txt as a quick phone reference; Jon will send it himself.
 
+FINAL FACEBOOK COVER ADDITION
+
+Use Jingle-Bowl-Facebook-Event-Cover-1920x1005.png for the Facebook event cover. Its editable master, prompt, export script and crop proof are in Context/jingle-bowl-2026/facebook/. READ-ME-Facebook-Event-Cover.txt explains upload placement. The 1920x1005 canvas is a common recommendation, not a mandatory Meta size; the tested tighter crop is a simulation of Jon's creation preview, not a saved public event check.
+
+The square and 1200x630 landscape designs below remain useful for other placements. The LED MP4/PNG and staff brief are separate finished deliverables. Final source/delivery checks and all preserved runtime pointers are in Context/session-handoffs/2026-10-22-jingle-closeout.md. No social publishing, customer message, staff send or LED upload is performed by this delivery.
+
 
 FINISHED ARTWORK TO DELIVER
 
