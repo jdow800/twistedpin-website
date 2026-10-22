@@ -117,13 +117,14 @@ async function fresh(settings = {}, width = 390) {
       return respond(monthData(call.month, settings));
     }
     if (path.endsWith('/availability')) {
-      if (state.dayGate && call.date === (settings.date ?? '2026-10-24')) await state.dayGate.promise;
+      if (state.dayGate && (settings.holdDayDates ?? [settings.date ?? '2026-10-24']).includes(call.date)) await state.dayGate.promise;
       if (settings.failedDayDates?.includes(call.date)) return respond({ error: 'Synthetic date offline' }, 503);
       if (state.dayFailures-- > 0) return respond({ error: 'Synthetic day failure' }, 503);
       if (state.dayFailuresByDate[call.date] > 0) { state.dayFailuresByDate[call.date]--; return respond({ error: 'Synthetic date read failure' }, 503); }
       const code = Number(call.id.slice(-12));
       const policy = settings.dayPolicies?.[code] ?? (settings.oldDatePolicy && call.date === settings.date ? { code: 'date_removed', message: 'Choose another date.' } : null);
-      const available = settings.dayUnavailable ? false : settings.openDates ? settings.openDates.includes(call.date) : [109, 118].includes(code) || call.date <= '2026-11-03';
+      const dayOpenDates = settings.dayOpenDates ?? settings.openDates;
+      const available = settings.dayUnavailable ? false : dayOpenDates ? dayOpenDates.includes(call.date) : [109, 118].includes(code) || call.date <= '2026-11-03';
       return respond({ slots: [{ time: call.date === '2026-10-25' ? '16:00' : '15:00', priceCents: 9995, available }], policy });
     }
     if (/\/products\/[^/]+\/forms$/.test(path)) return respond({ forms: [] });
@@ -144,6 +145,46 @@ function selectedDayCalls(state, code = 5, date = '2026-10-24') { return state.c
 
 try {
   browser = await chromium.launch({ headless: true, ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
+  // Slow priority day outlives the 1,200ms month-release budget. A fast month
+  // must not consume the initial smart-forward decision before today's exact
+  // result is known. Deliberate future selections retain their old semantics.
+  for (const outcome of ['unavailable', 'available', 'error', 'manual-future']) {
+    const f = await fresh({
+      mode: 'main', holdDay: true, holdDayDates: ['2026-10-24', '2026-10-26'],
+      openDates: ['2026-10-25', '2026-10-26'],
+      dayOpenDates: outcome === 'available' ? ['2026-10-24', '2026-10-25', '2026-10-26'] : outcome === 'manual-future' ? ['2026-10-25'] : ['2026-10-25', '2026-10-26'],
+      failedDayDates: outcome === 'error' ? ['2026-10-24'] : [],
+    });
+    await f.page.locator('.tprs-card--pending').first().waitFor();
+    // Enabled tomorrow proves React has consumed the fast month, not merely
+    // that the synthetic HTTP request completed. No Calendar interaction.
+    await f.page.locator('.tprs-chip').filter({ hasText: '25' }).click({ trial: true });
+    assert.equal(f.state.calls.filter(c => c.path.endsWith('/availability/month') && c.completed).length, 4);
+    assert.equal(selectedDayCalls(f.state).some(c => c.completed), false, 'selected day is still pending beyond the month-release budget');
+    assert.equal(await f.page.evaluate(() => window.fixtureDate), '2026-10-24', 'do not forward before exact-day result');
+    if (outcome === 'manual-future') {
+      await f.page.locator('.tprs-chip').filter({ hasText: '26' }).click();
+      await f.page.waitForFunction(() => window.fixtureDate === '2026-10-26');
+    }
+    f.state.dayGate.resolve();
+    if (outcome === 'unavailable') {
+      await f.page.waitForFunction(() => window.fixtureDate === '2026-10-25', {}, { timeout: 5000 });
+      await ready(productButton(f.page, 'Traditional 2 hours'));
+    } else if (outcome === 'error') {
+      await f.page.getByRole('button', { name: 'Retry availability', exact: true }).waitFor();
+      assert.equal(await f.page.evaluate(() => window.fixtureDate), '2026-10-24');
+      assert.equal(await productButton(f.page, 'Traditional 2 hours').isEnabled(), false);
+    } else if (outcome === 'manual-future') {
+      await f.page.getByText('Sitting this one out', { exact: true }).waitFor();
+      await delay(100); // Allow the smart-forward effect to run after the late denial.
+      assert.equal(await f.page.evaluate(() => window.fixtureDate), '2026-10-26', 'late denial must not replace a deliberately picked future date');
+      assert.equal(await productButton(f.page, 'Traditional 2 hours').isEnabled(), false);
+    } else {
+      await ready(productButton(f.page, 'Traditional 2 hours'));
+      assert.equal(await f.page.evaluate(() => window.fixtureDate), '2026-10-24');
+    }
+    await f.close(); results.push(`slow selected day after fast month: ${outcome}`);
+  }
   for (const birthday of [false, true]) for (const width of [320, 390]) {
     const { page, state, close } = await fresh({ birthday, holdMonth: true, holdDay: true, holdDiscovery: true }, width);
     await page.waitForFunction(() => document.body.innerText.includes('Checking'));

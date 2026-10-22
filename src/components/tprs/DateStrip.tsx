@@ -118,6 +118,12 @@ export default function DateStrip({
       // month loaded but empty → fall through to the next one
     }
 
+    // The background month can finish before today's priority day read. Don't
+    // consume the initial decision until that day is authoritative: a late
+    // unavailable result still needs to advance. Deliberate future picks keep
+    // the pending-as-valid behavior below so we never move them on a late read.
+    if ((!selected || selected === today) && availability.isPending(today)) return;
+
     forwardedFor.current = probeKey; // decided — don't fight the guest after this
     // A pick whose month hasn't loaded for THIS probe yet counts as valid —
     // don't stomp a deliberate far-future date while its verdict is in flight.

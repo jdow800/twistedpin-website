@@ -49,9 +49,13 @@ usable. Late responses from a previous date or product scope are ignored.
 
 Completed offline verification:
 
-- 19 real-component/typed-client behavior groups at 320/390 px, including day
+- 23 real-component/typed-client behavior groups at 320/390 px, including day
   priority, shared day-cache reuse, payment discovery, policy precedence, stale
   date replies, explicit retries, NYE handoff and distinct server booking limits.
+  Four added timing cases reproduce and prevent a fast month consuming the
+  initial smart-forward decision while today's exact read is still pending.
+  Late unavailability advances, availability stays, errors remain unknown, and
+  a manually selected future date stays selected even after a late denial.
 - 22 bundled-client deadline checks, including pending headers/body, absolute
   deadline, caller abort, cleanup and untouched cart/form/payment read behavior.
 - Strict TypeScript, full production Astro/Vercel build and repository prebuild
@@ -63,7 +67,7 @@ Completed offline verification:
 
 Run the new checks with `node scripts/check-availability-first-day.mjs` and
 `node scripts/check-availability-read-deadline.mjs`. Regenerable screenshots and
-the 19-group receipt live under ignored `.astro/availability-first-day/`.
+the 23-group receipt live under ignored `.astro/availability-first-day/`.
 
 ## Production baseline and release status
 
