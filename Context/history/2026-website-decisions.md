@@ -18,6 +18,18 @@ also failed before query consumption. Final ten Jingle entry groups pass, plus
 checks and the production build. Independent source review found no blocker.
 Live same-browser button verification follows the deployment; no backend change.
 
+Live proof: source `27028c0222943c0d39ee2164aa5eb343b5b8975b`, Vercel
+`dpl_HzbK9PFkErdyqoN9nECNGP21Yn3q` READY; the custom-domain checkout assets identify
+that exact deployment. Actual landing-page clicks Traditional → VIP → Traditional
+in one browser session pass at 390 and 1280 pixels, with the prior draft retained
+across landing visits and the new room saved correctly. Root visually reviewed
+VIP at both widths and the return to Traditional. All 80 API reads settled with
+200 responses, 213 assertions passed, no errors or overflow; every Jingle session
+remained empty at revision zero. Regular and birthday journeys showed six and two
+available times. No time selection, hold, payment or email was created. Receipt
+and screenshots: `.astro/jingle-vip-repeat-live-1792687788836/`. This evidence-only
+successor is retained on the feature branch to avoid another production rebuild.
+
 ## 2026-10-22 - Final NYE copy integration and dedicated share image
 
 After Jingle released `8eeb976`, integrate the saved singular lane/pizza/pitcher corrections and both events' Desktop delivery records on that exact successor. The public NYE page now has its own 1200 × 630 share card using the existing approved photograph, logo, typography and Mirrorball code artwork. Its evergreen text does not announce sales or assert remaining inventory. The renderer blocks network requests and records asset hashes; the final 104 KB JPEG is tracked with its editable source. No checkout, inventory, sales opening or homepage campaign policy changes are included. The paid NYE rehearsal and its original operations origin remain untouched. Combined checks, page-speed measurements and release proof will be recorded below.
