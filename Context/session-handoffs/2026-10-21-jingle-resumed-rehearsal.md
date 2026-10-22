@@ -25,10 +25,13 @@ and ordinary arcade offer ($15 per separate card for $20 play) remain as reviewe
 The compact food UI retains all seven complete operational information blocks
 inside a native disclosure and the exact visible required acknowledgment.
 
-Final tax/fee allocation, production product/form identities, sales opening,
-final staffed/Santa/closing hours, cancellation terms, VIP appetizer, and Shanna's
-proof remain pending. Base lane prices and the schedule are approved, not price
-placeholders. This fixture's untaxed totals do not approve final tax treatment.
+Jon approved opening sales immediately at2026-10-22T01:19:04Z (October21 Central),
+with no announcement yet. That decision does not imply technical sales readiness.
+Final tax/fee allocation, production product/form identities and verified sales
+configuration, final staffed/Santa/closing hours, cancellation terms, VIP
+appetizer, and Shanna's proof remain pending. Base lane prices and the schedule
+are approved, not price placeholders. This fixture's untaxed totals do not
+approve final tax treatment. The password and DEV-only booking boundary remain.
 
 ## Source and isolated profile
 
@@ -112,15 +115,44 @@ offline testing was concurrent, but the earlier slowdown's cause is not proven.
 Exactly three synthetic bookings were completed; no fixture reset, provider
 call, or production change was made in response.
 
+After rebase, `check-jingle-saved-rehearsal.mjs` reads an existing booking's
+persisted projection and its confirmation/kitchen pages at390px with the original
+cookie. All new cart/payment/booking writes and external browser traffic are
+blocked. The backend owner generated ignored `local/recovery-readback.json` from
+the exact synthetic owner/attempt association; its capability is not logged.
+Confirmed attempts are not returned by active-attempt discovery, so this is
+saved-output readback, not a claim of a new discovered-checkout recovery run.
+Actual interrupted-payment recovery was covered by the first two connected
+journeys and the merged offline suites. No additional reservation was created.
+Evidence is under `.astro/jingle-saved-rehearsal/`.
+
+The earlier timeout capture remains separately preserved as
+`.astro/jingle-arcade-food/failure-availability-timeout.png`. The arcade captures
+include a transient quote-loading frame and the320px food capture deliberately
+includes the required-acknowledgment validation notice; the later completed
+booking receipt is the settled total evidence. Do not present those test frames
+as final clean marketing screenshots.
+
+Run development processes with different API/Stripe-alias profiles sequentially
+within a worktree: they share the Vite development cache. The temporary synthetic
+NYE route server55687 was stopped, then fresh55686 was restarted with its isolated
+rehearsal alias. Original55636 and the fresh backend/database stayed untouched.
+
 Screenshots are regenerable local evidence, not a Git backup. Source and these
 reproduction instructions are tracked. Connected checks consume isolated quota;
 do not run repeatedly without coordinating the owned fixture.
 
-## Next safe integration step
+## Released NYE reconciliation
 
-NYE owns the first Website release. Its upcoming initialization-generation and
-memory-first discovered-recovery changes touch `NyeBrandWizard.tsx`. Before any
-Jingle release, rebase onto the exact released main and retain those guards around
-the event-aware `loadEventCatalog(eventConfig)` path and all awaited recovery work.
-Repeat affected recovery/opening tests and the production build after reconciliation.
-No push or deployment is part of this local integration commit.
+The initial validated local state was saved as4d26155, then rebased onto released
+NYE46bf92c as3f9f5bb. Three conflict blocks in `NyeBrandWizard.tsx` retain both
+the event-aware catalog/form scope and NYE's post-await generation checks,
+guarded catch/finally, and cleanup invalidation. The memory-first discovered
+recovery barrier remains unchanged. Independent source review cleared the merge.
+After rebase, strict TypeScript,23 actual-route opening/recovery scenarios,
+175 clock checks, and23 full-flow groups pass. The final normal production build,
+protected auth and Jingle config/form checks also pass; final build output is
+ignored at `.astro/jingle-resumed-build.log`. Frontend review copy now reflects
+approved prices/times, while the older backend projection template's provisional
+wording has been flagged to its owner separately. No push or deployment is part
+of this local integration.

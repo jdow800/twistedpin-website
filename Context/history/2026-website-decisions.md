@@ -6,9 +6,11 @@ Integrate the saved protected Jingle booking, compact food/ordinary arcade and
 event-date handoff work onto live b6458eb while preserving selected-day priority,
 bounded read recovery and accepted-checkout precedence. Use a new quota-aware
 local profile (Website55686 / API55684 / PostgreSQL55688); keep the original
-55636 review intact. Production identity/tax/fees/sales/staffing and public
-readiness remain separate gates. NYE releases first, with an exact-main rebase
-and shared initialization/recovery review required before Jingle publication.
+55636 review intact. Jon later approved opening sales immediately, with no
+announcement yet (2026-10-22T01:19:04Z). Production identity/tax/fees, verified
+sales configuration, staffing and public readiness remain separate gates;
+keep the password and DEV-only booking boundary. Rebase onto NYE's released
+46bf92c retains its initialization/recovery guards, independently reviewed.
 See `Context/session-handoffs/2026-10-21-jingle-resumed-rehearsal.md` for reproduction,
 tests, approved allocations, and the fresh connected evidence. No public activation.
 

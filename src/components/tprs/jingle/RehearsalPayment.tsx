@@ -46,7 +46,7 @@ export default function RehearsalPayment(props:EventPaymentProps) {
   return <section className="jingle-simulated-payment" aria-label="Simulated payment">
     <h3>Complete a test reservation.</h3><p>No card details. No charge. Confirmation and kitchen previews are created locally.</p>
     <p>{props.termsText}</p>
-    {!props.recovery&&<label style={{display:'flex',gap:12,alignItems:'flex-start',margin:'20px 0'}}><input type="checkbox" checked={accepted} onChange={event=>setAccepted(event.target.checked)} disabled={busy}/>I understand this is a rehearsal with proposed prices and times.</label>}
+    {!props.recovery&&<label style={{display:'flex',gap:12,alignItems:'flex-start',margin:'20px 0'}}><input type="checkbox" checked={accepted} onChange={event=>setAccepted(event.target.checked)} disabled={busy}/>I understand this is a rehearsal with no real reservation or payment.</label>}
     {error&&<p role="alert">{error}</p>}
     <button type="button" className="primary" disabled={busy||(!props.recovery&&(!accepted||!!props.formStale||!!props.pricingPending||!!props.pricingError))} onClick={()=>void complete()}>{busy?'Completing test reservation…':props.recovery?'Check and finish test reservation':'Complete test reservation'}</button>
   </section>;
