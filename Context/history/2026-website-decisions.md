@@ -8,6 +8,20 @@ A bounded public catalog read on October 22 UTC confirms VIP NYE's 30-minute and
 
 The marketing pack uses the selected Mirrorball direction and original supplied logo, with editable source and exported cover/feed/story/Google crops kept in the repository. Separate pre-opening and reservations-open copy retains the approved November 18 at 9am sales opening and December 31 event date. The pre-opening version omits times and prices. Social/Google publishing is not part of this preparation. Source validation, visual checks and release evidence will be recorded in the dated campaign handoff; no deployment is claimed by this entry.
 
+## 2026-10-21 - Protected Jingle revision released and ordinary booking verified
+
+Website main1a5089125488694a9fe8105b3c782b6d357615c4 is live on Vercel
+5qgWNwWA2KyEi8rcQZBzpd7J7KnS, based on the released NYE46bf92c.
+The approved schedule/prices and5:15/5:30 guest timing appear behind the owner
+password. All41 protected/public checks pass, including mobile390/desktop1280,
+anonymous/encoded denial, normal login, noindex/no-store, no trackers, and
+production rehearsal404. A subsequent independent390px regular/birthday journey
+settled all38 API reads with visible times, no errors or overflow and no holds
+or payment actions. The Jingle backend stays draftPR468; production catalog
+registration, activation and public campaign remain pending. Evidence is recorded
+in the resumed Jingle handoff. This documentation follow-up is feature-branch-only
+and does not trigger another production Website release.
+
 ## 2026-10-21 - Jingle activities finish at 5:15pm; venue closes at 5:30pm
 
 Jon relayed Shanna's confirmation: "5:15 we're done - kicking people out as of
