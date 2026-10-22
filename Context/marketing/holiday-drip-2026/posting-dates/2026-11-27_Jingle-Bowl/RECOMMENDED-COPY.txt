@@ -1,14 +1,18 @@
 TWISTED PIN | JINGLE BOWL
-PROPOSED POST: Friday, November 27, 2026 at 12:00 PM
+SCHEDULED POST: 2026-11-27T12:00:00-06:00
+STATUS: Scheduled in AdaptlyPost for Facebook + Instagram feeds. Not yet published. Do not duplicate.
 ANGLE: Same Santa. Your kind of lane.
-STATUS: Prepared for review. Not scheduled or published.
 COPY REVISION: series-copy-v3
+APPROVED BY: Jon
+VERIFIED: 2026-10-22T23:17:54.338Z
+ADAPTLYPOST POST ID: cmvk5txgs1j7f01lnl2imhj5x
+RECEIPT: ../scheduling-receipt.json
 
-UPLOAD TO FACEBOOK + INSTAGRAM FEEDS
+SCHEDULED FEED IMAGE
 01-FEED-Facebook-and-Instagram.png
-1080 x 1350 (4:5). Use this same image on both feeds.
+1080 x 1350 (4:5). Same image scheduled on both feeds.
 
-FACEBOOK CAPTION — COPY THIS SECTION
+FACEBOOK — ACTUALLY SCHEDULED CAPTION
 
 Same Santa. Your kind of lane.
 
@@ -18,8 +22,19 @@ Put Santa on the family calendar.
 
 Choose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/
 
-INSTAGRAM CAPTION — COPY THIS SECTION
-Use this version after verifying the matching event link in the bio/link hub.
+INSTAGRAM — ACTUALLY SCHEDULED CAPTION
+The supplied plain-address fallback was used. It makes no unverified bio-link claim. A caption address is not a clickable link.
+
+Same Santa. Your kind of lane.
+
+Traditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.
+
+Put Santa on the family calendar.
+
+December 6 reservations: twistedpin.com/jingle-bowl/
+
+INSTAGRAM BIO-LINK VERSION — NOT SCHEDULED
+Retained only as an alternative for a separately authorized edit after verifying the bio destination.
 
 Same Santa. Your kind of lane.
 
@@ -29,27 +44,18 @@ Put Santa on the family calendar.
 
 Choose your December 6 reservation through the Jingle Bowl link in our bio.
 
-INSTAGRAM ALTERNATIVE IF THE BIO LINK IS NOT VERIFIED
-Replace only the last paragraph with this. A caption address is not a clickable link.
-
-December 6 reservations: twistedpin.com/jingle-bowl/
-
-OPTIONAL STORY — FACEBOOK / INSTAGRAM
-Upload: 02-OPTIONAL-STORY.png
-1080 x 1920 (9:16). Separate composition, not a crop of the feed image.
+OPTIONAL STORY — NOT SCHEDULED OR AUTHORIZED
+File: 02-OPTIONAL-STORY.png
+1080 x 1920 (9:16).
 Message: Traditional lanes or VIP? Jingle Bowl is Sunday, December 6. Choose your time and reserve.
-Native link sticker label: Reserve Jingle Bowl
-Native link sticker URL: https://www.twistedpin.com/jingle-bowl/
-The image already carries its own message. Do not paste a duplicate block of text over it. Add the native link sticker in the clear lower area and inspect the actual preview.
+Native link sticker: Reserve Jingle Bowl
+Destination: https://www.twistedpin.com/jingle-bowl/
+Do not publish this companion without an additional instruction.
 
-BEFORE POSTING
-Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.
-Check the actual upload crop and event-page link. Coordinate the proposed time with the social team. This folder does not authorize posting or scheduling.
+BEFORE AUTOMATIC PUBLICATION
+Review opening phase, date-specific wording and relevant booking availability. If facts change, update or cancel the existing scheduled post; do not create another one. Actual app crop and Story overlay checks are distinct from scheduler acceptance.
 
 FEED IMAGE ALT TEXT
-Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/
-
-STORY IMAGE DESCRIPTION
 Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/
 
 EVENT PAGE

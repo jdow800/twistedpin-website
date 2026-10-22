@@ -1,19 +1,19 @@
-Help me work with this prepared Twisted Pin holiday campaign. Read my current instruction first; this saved prompt does not itself authorize publishing or scheduling.
+Help me review or maintain this already scheduled Twisted Pin holiday campaign. Read my current instruction first.
 
-Read START-HERE.txt, POSTING-CALENDAR.txt and campaign-manifest.json. Each of the 16 dated folders contains the exact feed PNG, optional Story PNG, RECOMMENDED-COPY.txt and post.json. The supplied image is the recommended visual for that occasion; do not turn older alternatives into extra posts.
+16 feed occasions are scheduled on Facebook and Instagram in AdaptlyPost. Nothing is recorded as published. Do not schedule duplicates. Stories, Google/SMS/email and paid ads are not included.
+Verified: 2026-10-22T23:17:54.338Z
+Receipt: scheduling-receipt.json
 
-Dates and times are proposed in America/Chicago. Reconcile with our social team's normal content, existing scheduled posts and what has already been published. Do not automatically catch up a past date. The NYE reservations opening is Wednesday November 18, 2026 at 9am (15:00 UTC), while the event itself is December 31. Never publish reservations-open text before opening is confirmed. Jingle Bowl is December 6 and is already bookable.
+Read START-HERE.txt, scheduling-receipt.json, campaign-manifest.json and each relevant post.json. First reconcile the existing AdaptlyPost IDs/statuses with the service before taking any new action. The receipt proves scheduling acceptance and the recorded readback; it does not prove later publication or current inventory. Never silently create duplicate posts or catch up a missed date.
 
-Use the full Facebook caption or Instagram caption from the matching entry. Verify the event-specific Instagram bio/link-hub destination; otherwise use the supplied plain-address fallback without claiming it is clickable. Feed artwork is 1080x1350 and shared by Facebook/Instagram; optional Story artwork is 1080x1920 and requires a native link sticker. If the tool cannot add the required sticker, report a manual Story task. Check actual app crop and controls.
+Jon authorized these sixteen Facebook and Instagram feed occasions to publish automatically at their recorded times. That existing approval persists; do not ask for it again. Other posts, Stories, Google/SMS/email and ad spending need separate instruction. No website/backend/Roy, production-data or payment changes are part of this campaign.
 
-Before booking invitations, verify current relevant availability. Historical 'usually sell out' is supported; no invented last-few or remaining-lane claims. Specific comparisons require the mentioned choices to remain relevant; December 7's 10pm invitation needs that party to remain bookable. The midnight toast belongs only to the 10pm party. Before November 18, withhold party times and prices. Jingle promises a visit with Santa and a photo on the guest's device, not bowling alongside Santa. December 4 is a campaign reminder, not a booking deadline.
+Actual scheduled captions are in actual_scheduled_captions and RECOMMENDED-COPY.txt. Instagram uses the supplied plain-address fallback, not an unverified bio-link claim. Facebook uses the canonical event-page URL. Keep guest timezone labels omitted and preserve internal America/Chicago/UTC timing.
 
-Direct canonical event website URLs are primary. A verified Facebook event URL can be secondary; Going/Interested does not reserve a lane. Do not invent an event URL. Earlier NYE parties are very family friendly; later parties still welcome families. No coupons or added offers.
+Before each target date, check the opening phase, relative-date wording and relevant booking availability. NYE bookings open November 18, 2026 at 9am (15:00 UTC); December31 is the event. The midnight toast belongs only to the 10pm party. Jingle is December6 and promises a visit/photo with Santa, not bowling alongside him. If facts change, revise or cancel the existing scheduled item as authorized; do not invent scarcity.
 
-Do not add time-zone labels to guest copy or graphics. Keep America/Chicago and UTC in the internal scheduling data.
+The review packagers intentionally reject scheduled campaign state. Do not reset authorization/execution fields to rerun them. Reproduce an old review only from a historical pre-scheduling commit in a separate checkout. Use this receipt recorder for durable scheduling records; it never reschedules anything.
 
-Only take the action I explicitly authorize in this session. Publication/scheduling, SMS/email and ad spend are separate actions. No website/backend/Roy/runtime, production data or payments changes. Do not ask again for approval already supplied in the session.
+Record actual platform publication URLs only after observing publication. Scheduler IDs are not published social-post IDs. Preserve failures and any later state.
 
-After an authorized action, record actual chosen channels, approval and platform scheduling/publication IDs/URLs accurately in the source manifest and a handoff. Preserve failures/pending entries. Do not mark review-ready as already approved or scheduled. Editable source and reproduction scripts live in the Website feature branch, not only on Desktop. Never push Website main as part of this content task; it auto-deploys.
-
-My instruction: [review, revise or schedule specified items/channels]
+My current instruction: [review or maintain specified existing posts]

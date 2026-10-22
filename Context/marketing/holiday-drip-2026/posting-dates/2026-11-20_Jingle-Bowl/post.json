@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-17-jingle-cookie-cocoa",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 20 cocoa-and-cookies post; use the approved offering without depicting unconfirmed toppings, refills or extras.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-20T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx7i1j7201lnsuef0bfu",
+      "platform_record_id": "cmvk5tx7j1j7501ln5v4m8p3h",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx7i1j7201lnsuef0bfu",
+      "platform_record_id": "cmvk5tx7j1j7601lnvq3kq8sk",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-17-jingle-cookie-cocoa",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-20T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5tx7i1j7201lnsuef0bfu",
+  "actual_scheduled_captions": {
+    "facebook_feed": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reservations: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/07982b22-d57e-4c22-bc80-24ddfd633399/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "ba70251d9b0fb94f50c9bff06dea773acf19dfb1317c73d50e420cf95809666f",
+    "alt_text": "Cranberry and cream ornamental typography with an original SVG outline mug and steam; illustration, not a food photograph. Printed text: A LITTLE COCOA BETWEEN FRAMES. Cookie & cocoa bar access with every Jingle Bowl lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/"
+  }
 }

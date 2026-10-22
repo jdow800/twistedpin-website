@@ -1,0 +1,572 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduled_created_at": "2026-10-22T23:16:17.701Z",
+  "authorization": {
+    "approved_by": "Jon",
+    "approved_at": "2026-10-22T23:16:17.701Z",
+    "approved_at_basis": "Authorization recorded when the authorized submission began; not an exact chat message timestamp.",
+    "instruction": "Jon: yup go for it - just double check your work in relation to right platorm, right time, right copy, right etc",
+    "scope": [
+      "facebook_feed",
+      "instagram_feed"
+    ],
+    "excluded": [
+      "Stories",
+      "Google Business",
+      "SMS",
+      "email",
+      "ads",
+      "runtime changes"
+    ]
+  },
+  "profile": "twisted-pin-holiday-2026",
+  "timezone": "America/Chicago",
+  "accounts": {
+    "facebookConnectionId": "cmv9vrb2m006u01pbd2ynqdmy",
+    "pageId": "1482359171984495",
+    "instagramConnectionId": "cmv9vsohm006v01pbdtl3rto2",
+    "workspaceId": "cmv9vq1w4006p01pb0c0mh3fg"
+  },
+  "status": "scheduled",
+  "occasions": 16,
+  "platform_targets": 32,
+  "failed": 0,
+  "published": 0,
+  "duplicate_count": 0,
+  "copy_revision": "series-copy-v3",
+  "instagram_caption_variant": "instagram_without_verified_bio",
+  "payload_sha256": "3fed244ac6658fe733570ee76fc56af6b6209e31519c8aa4153ffb30a5434258",
+  "verification": {
+    "source_hashes": true,
+    "uploaded_media_download_hashes": true,
+    "utc_and_local_times": true,
+    "server_validation": true,
+    "remote_captions": true,
+    "remote_media_and_alt": true,
+    "remote_accounts": true,
+    "remote_feed_types": true,
+    "queue_has_exactly_expected_ids": true,
+    "actual_meta_app_crop_preview": false
+  },
+  "limitations": [
+    "Future platform publishing outcome is not yet known.",
+    "Account access and inventory may change before publication.",
+    "Instagram caption web addresses are plain text; no unverified bio-link claim is used.",
+    "Actual native Meta crop preview was not available; the saved feed uses the original 1080x1350 PNG without aspect transforms."
+  ],
+  "posts": [
+    {
+      "calendar_id": "02-jingle-santa-coming",
+      "folder": "2026-10-23_Jingle-Bowl",
+      "post_id": "cmvk5twwf1j6j01lnv3fosx02",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:19.791Z",
+      "scheduled_at_utc": "2026-10-23T17:00:00.000Z",
+      "scheduled_at_local": "2026-10-23T12:00:00-05:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5twwg1j6k01ln6r7py416",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5twwg1j6l01lnah1x0j5t",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/ea42835c-87eb-45ca-9061-c9daaf6b4473/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "ffb1789833af5ccb7b6cce8b16d5fc88c2aab3f4cba2ed133c6e42bd8b82d0da",
+      "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "01-nye-set-the-clock",
+      "folder": "2026-10-28_New-Years-Eve",
+      "post_id": "cmvk5twvp1j6g01lnlv3ijsfi",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:19.765Z",
+      "scheduled_at_utc": "2026-10-28T17:00:00.000Z",
+      "scheduled_at_local": "2026-10-28T12:00:00-05:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5twvx1j6h01lnvega1a6m",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5twvx1j6i01lnnfimg75y",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/17ae0f04-1637-43f5-9582-052d2c79b3c3/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "b521e213dadba373a1a2582f5903e7efa33d98b49d79ad8b8a28e903bc21b513",
+      "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am. www.twistedpin.com/new-years-eve/",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "18-jingle-family-outing",
+      "folder": "2026-10-30_Jingle-Bowl",
+      "post_id": "cmvk5twpm1j6a01lnf393tfqw",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:19.546Z",
+      "scheduled_at_utc": "2026-10-30T17:00:00.000Z",
+      "scheduled_at_local": "2026-10-30T12:00:00-05:00",
+      "platforms": {
+        "INSTAGRAM": {
+          "id": "cmvk5twpo1j6c01lny72ilfna",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's lane: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "FACEBOOK": {
+          "id": "cmvk5twpo1j6b01lnljh6gr9v",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/62833bdb-c667-42ac-8647-091923ab2226/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "ec29fd2a23eacb7a4ce3dfe4dee0717f4901b0b143b27c3e41ed48af79b2b24e",
+      "alt_text": "Actual Twisted Pin photograph of a child bowling, paired with an evergreen editorial panel. Printed text: A LITTLE LESS MALL. A LOT MORE BOWL. Bowling, pizza & a visit with Santa. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "05-jingle-whats-included",
+      "folder": "2026-11-06_Jingle-Bowl",
+      "post_id": "cmvk5twni1j6701lnmsykylby",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:19.470Z",
+      "scheduled_at_utc": "2026-11-06T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-06T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5twni1j6801ln4lght8vg",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5twnj1j6901lnwz8p45vd",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/8bb5f4ea-4890-42d2-88b9-a2c53282e7df/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "1047e2478858cbc4558401e654e9afb47a7bf36baf8b26cf772750f280d854dc",
+      "alt_text": "Cream and cranberry typographic package composition; no food or guest imagery. Printed text: BOWLING. PIZZA. SANTA. Sunday handled. 90MINUTES OF BOWLING Shoes included ONE PIZZA. ONE PITCHER. One large pizza + one pitcher of soda per lane. COOKIES & COCOA. Cookie & cocoa bar access with your lane package. A VISIT WITH SANTA. Your Santa photo, on your own device. VIP adds one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "03-nye-usually-sells-out",
+      "folder": "2026-11-09_New-Years-Eve",
+      "post_id": "cmvk5tws21j6d01lnulcf63kp",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:19.634Z",
+      "scheduled_at_utc": "2026-11-09T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-09T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tws31j6e01ln1mw0jtxr",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tws31j6f01lncqypwpsf",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/f7cfe76c-6582-4acb-984b-ffac2c9c6654/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5",
+      "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "08-jingle-santa-photo",
+      "folder": "2026-11-13_Jingle-Bowl",
+      "post_id": "cmvk5tx6m1j6y01lnql3um2vv",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.158Z",
+      "scheduled_at_utc": "2026-11-13T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-13T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tx6n1j6z01ln3v1juasb",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tx6n1j7001lnov1xdl4t",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/24542461-3da2-40e7-835a-c1f881f2a573/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "92ec5b05d10c12b9812493d08d7865fb492e2035273b516f79688d4ea79ba7b1",
+      "alt_text": "Approved illustrated Santa inside a clearly graphic phone frame, with photo-on-your-device language. Printed text: BRING YOUR PEOPLE. CHARGE YOUR PHONE. YOUR PHOTO. YOUR DEVICE. A visit with Santa, with a little bowling on the side. Bowling + pizza + Santa visit. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "folder": "2026-11-17_New-Years-Eve",
+      "post_id": "cmvk5tx3i1j6t01lnlazw7ytg",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.046Z",
+      "scheduled_at_utc": "2026-11-18T00:00:00.000Z",
+      "scheduled_at_local": "2026-11-17T18:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tx3k1j6w01lnxmeaduwe",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tx3k1j6x01ln6h0p4emd",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this address for tomorrow: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/51ab7384-b734-4c71-a975-9fb34aa37200/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "632b6caeb8fd44f37db4920f796e433e15be04db63d590f2da808cb6009d9625",
+      "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "folder": "2026-11-18_New-Years-Eve",
+      "post_id": "cmvk5tx7i1j7101lnfmeex87a",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.190Z",
+      "scheduled_at_utc": "2026-11-18T15:00:00.000Z",
+      "scheduled_at_local": "2026-11-18T09:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tx7i1j7301lnlu5at680",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "NYE reservations are open.\n\nSix party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers the party time you choose.\n\nBring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.\n\nChoose your party and reserve: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tx7i1j7401ln03a5l0yx",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "NYE reservations are open.\n\nSix party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers the party time you choose.\n\nBring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.\n\nChoose your party: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/caac3ac4-1ef6-4bb0-a509-20a383cb784b/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "bcbc23776721c4f646b1ae2bfe625130439f750e244e94277a15fbfd9d2f9c36",
+      "alt_text": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "17-jingle-cookie-cocoa",
+      "folder": "2026-11-20_Jingle-Bowl",
+      "post_id": "cmvk5tx7i1j7201lnsuef0bfu",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.190Z",
+      "scheduled_at_utc": "2026-11-20T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-20T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tx7j1j7501ln5v4m8p3h",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tx7j1j7601lnvq3kq8sk",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reservations: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/07982b22-d57e-4c22-bc80-24ddfd633399/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "ba70251d9b0fb94f50c9bff06dea773acf19dfb1317c73d50e420cf95809666f",
+      "alt_text": "Cranberry and cream ornamental typography with an original SVG outline mug and steam; illustration, not a food photograph. Printed text: A LITTLE COCOA BETWEEN FRAMES. Cookie & cocoa bar access with every Jingle Bowl lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "folder": "2026-11-25_New-Years-Eve",
+      "post_id": "cmvk5tx3h1j6s01ln9hbitwex",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.045Z",
+      "scheduled_at_utc": "2026-11-25T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-25T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5tx3j1j6u01ln5l1se1cb",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nSee the packages and reserve: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5tx3j1j6v01lnzz1hpgx3",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nPackages and reservations: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/6fb33adc-de82-448e-a5f7-75460b4f329c/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30",
+      "alt_text": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "11-jingle-december-plan",
+      "folder": "2026-11-27_Jingle-Bowl",
+      "post_id": "cmvk5txgs1j7f01lnl2imhj5x",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.524Z",
+      "scheduled_at_utc": "2026-11-27T18:00:00.000Z",
+      "scheduled_at_local": "2026-11-27T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txgt1j7g01ln3mm04be8",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nChoose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txgt1j7h01lnjy46grk1",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nDecember 6 reservations: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/bc9c65f2-460b-4171-b0c7-eb94e3dfa5dc/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "cd0dc8330c1cb8f02ea5403b0312baa12c413fe452af2fade92fa0dd52227fe4",
+      "alt_text": "Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "12-jingle-this-sunday",
+      "folder": "2026-12-04_Jingle-Bowl",
+      "post_id": "cmvk5txfq1j7c01lnyk2ja4dk",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.486Z",
+      "scheduled_at_utc": "2026-12-04T18:00:00.000Z",
+      "scheduled_at_local": "2026-12-04T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txfr1j7d01lngftnq1sj",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve your lane: https://www.twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txfr1j7e01ln5aw9cyan",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nCurrent times and reservations: twistedpin.com/jingle-bowl/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/75704608-797e-4803-89fa-fdffcaac6928/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "0453c42b94e30fbc21826c982d0a5556c03f71cfaa5ce81aefd34f88d95ed618",
+      "alt_text": "Cream calendar card showing Sunday December 6, 2026, with the approved illustrated Santa beside it. Printed text: SANTA COMES THIS SUNDAY. DECEMBER 2026 06 SUNDAY LET'S ROLL. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 CHECK TIMES & RESERVE twistedpin.com/jingle-bowl/",
+      "event_url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "folder": "2026-12-07_New-Years-Eve",
+      "post_id": "cmvk5txkb1j7m01lnkhc6s4zc",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.651Z",
+      "scheduled_at_utc": "2026-12-07T18:00:00.000Z",
+      "scheduled_at_local": "2026-12-07T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txkd1j7p01lnvdjseqq2",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txkd1j7q01lngz4bws6c",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/9d6a9c4a-6c11-4029-bfa5-adb2a5e7275c/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "d5c5edbe3b5a24f1bae2670fba90ed0fd122a5c1f051c8b755b1a8b93685b803",
+      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "folder": "2026-12-16_New-Years-Eve",
+      "post_id": "cmvk5txhq1j7i01lnev05e7si",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.558Z",
+      "scheduled_at_utc": "2026-12-16T18:00:00.000Z",
+      "scheduled_at_local": "2026-12-16T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txhr1j7j01ln6g1ff8db",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nChoose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txhr1j7k01ln5wjcjvkh",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nChoose your party and lane option: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/bb18e5d0-4667-4a10-9b83-dc51755fdba8/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "d050fa5c46ee7daef74731667bd4e48057f1a0945f5e19a573bf40d702eb6c4a",
+      "alt_text": "Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "folder": "2026-12-23_New-Years-Eve",
+      "post_id": "cmvk5txkb1j7l01ln8qd08j58",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.651Z",
+      "scheduled_at_utc": "2026-12-23T18:00:00.000Z",
+      "scheduled_at_local": "2026-12-23T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txkc1j7n01lngnf1l13r",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out.\n\nMake the plan here: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txkc1j7o01lnal81ahfa",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out.\n\nMake the plan here: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/8ad85d81-6de2-4bfe-8382-162dd0462d81/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "65ec8a99d2869bb08b65da8c975bcbb6e05dbaa49b57f90856a2b42f2c6ae63e",
+      "alt_text": "A real Twisted Pin cocktail photograph accompanies the message Give the group chat an actual plan. December 31, 2026. Bowling, pizza and your people. Cocktails and additional food and drinks are separate from the lane package. Reserve at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "folder": "2026-12-28_New-Years-Eve",
+      "post_id": "cmvk5txo71j7s01lnoqwomwn9",
+      "status": "SCHEDULED",
+      "created_at": "2026-10-22T23:16:20.791Z",
+      "scheduled_at_utc": "2026-12-28T18:00:00.000Z",
+      "scheduled_at_local": "2026-12-28T12:00:00-06:00",
+      "platforms": {
+        "FACEBOOK": {
+          "id": "cmvk5txo81j7t01ln2kgajntx",
+          "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+          "page_id": "1482359171984495",
+          "account_name": "Twisted Pin",
+          "status": "PENDING",
+          "text": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: https://www.twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        },
+        "INSTAGRAM": {
+          "id": "cmvk5txo81j7u01lniq0939yv",
+          "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+          "account_name": "TWISTED PIN",
+          "status": "PENDING",
+          "text": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: twistedpin.com/new-years-eve/",
+          "post_type": "FEED"
+        }
+      },
+      "media_url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/2b65f08f-15d0-44ef-ba81-75e8255837ec/01-FEED-Facebook-and-Instagram.png",
+      "sha256": "bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7",
+      "alt_text": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.",
+      "event_url": "https://www.twistedpin.com/new-years-eve/"
+    }
+  ]
+}

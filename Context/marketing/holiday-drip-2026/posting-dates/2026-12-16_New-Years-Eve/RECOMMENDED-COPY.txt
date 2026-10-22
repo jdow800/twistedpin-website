@@ -1,14 +1,18 @@
 TWISTED PIN | NEW YEAR'S EVE
-PROPOSED POST: Wednesday, December 16, 2026 at 12:00 PM
+SCHEDULED POST: 2026-12-16T12:00:00-06:00
+STATUS: Scheduled in AdaptlyPost for Facebook + Instagram feeds. Not yet published. Do not duplicate.
 ANGLE: YOUR PEOPLE. YOUR KIND OF NYE.
-STATUS: Prepared for review. Not scheduled or published.
 COPY REVISION: series-copy-v3
+APPROVED BY: Jon
+VERIFIED: 2026-10-22T23:17:54.338Z
+ADAPTLYPOST POST ID: cmvk5txhq1j7i01lnev05e7si
+RECEIPT: ../scheduling-receipt.json
 
-UPLOAD TO FACEBOOK + INSTAGRAM FEEDS
+SCHEDULED FEED IMAGE
 01-FEED-Facebook-and-Instagram.png
-1080 x 1350 (4:5). Use this same image on both feeds.
+1080 x 1350 (4:5). Same image scheduled on both feeds.
 
-FACEBOOK CAPTION — COPY THIS SECTION
+FACEBOOK — ACTUALLY SCHEDULED CAPTION
 
 Your people. Your kind of NYE.
 
@@ -16,8 +20,17 @@ Traditional lanes or couch seating in the VIP suite? Choose your setting for Dec
 
 Choose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/
 
-INSTAGRAM CAPTION — COPY THIS SECTION
-Use this version after verifying the matching event link in the bio/link hub.
+INSTAGRAM — ACTUALLY SCHEDULED CAPTION
+The supplied plain-address fallback was used. It makes no unverified bio-link claim. A caption address is not a clickable link.
+
+Your people. Your kind of NYE.
+
+Traditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.
+
+Choose your party and lane option: twistedpin.com/new-years-eve/
+
+INSTAGRAM BIO-LINK VERSION — NOT SCHEDULED
+Retained only as an alternative for a separately authorized edit after verifying the bio destination.
 
 Your people. Your kind of NYE.
 
@@ -25,27 +38,18 @@ Traditional lanes or couch seating in the VIP suite? Choose your setting for Dec
 
 Choose your party and lane option through the New Year's Eve link in our bio.
 
-INSTAGRAM ALTERNATIVE IF THE BIO LINK IS NOT VERIFIED
-Replace only the last paragraph with this. A caption address is not a clickable link.
-
-Choose your party and lane option: twistedpin.com/new-years-eve/
-
-OPTIONAL STORY — FACEBOOK / INSTAGRAM
-Upload: 02-OPTIONAL-STORY.png
-1080 x 1920 (9:16). Separate composition, not a crop of the feed image.
+OPTIONAL STORY — NOT SCHEDULED OR AUTHORIZED
+File: 02-OPTIONAL-STORY.png
+1080 x 1920 (9:16).
 Message: Traditional lanes or VIP suite? Choose your December 31 party, then reserve your kind of New Year's Eve.
-Native link sticker label: Reserve NYE
-Native link sticker URL: https://www.twistedpin.com/new-years-eve/
-The image already carries its own message. Do not paste a duplicate block of text over it. Add the native link sticker in the clear lower area and inspect the actual preview.
+Native link sticker: Reserve NYE
+Destination: https://www.twistedpin.com/new-years-eve/
+Do not publish this companion without an additional instruction.
 
-BEFORE POSTING
-Proposed December 16. Couch seating is a sourced VIP feature. No private-suite, suite-possession, guest-capacity or generic pair-selling claim. Publish a two-setting comparison only while both options are relevant to current choices; otherwise adapt accurately. Verify bio link.
-Check the actual upload crop and event-page link. Coordinate the proposed time with the social team. This folder does not authorize posting or scheduling.
+BEFORE AUTOMATIC PUBLICATION
+Review opening phase, date-specific wording and relevant booking availability. If facts change, update or cancel the existing scheduled post; do not create another one. Actual app crop and Story overlay checks are distinct from scheduler acceptance.
 
 FEED IMAGE ALT TEXT
-Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.
-
-STORY IMAGE DESCRIPTION
 Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.
 
 EVENT PAGE

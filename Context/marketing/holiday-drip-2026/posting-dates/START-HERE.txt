@@ -1,19 +1,16 @@
 TWISTED PIN | HOLIDAY CAMPAIGN 2026
 
-OPEN START-HERE.html for the visual overview, or open any dated folder. Read REVIEW-NOTES.txt for the independent GPT-6.1 Sol Ultra critique and final refinements.
+16 feed occasions are scheduled on Facebook and Instagram in AdaptlyPost. Nothing is recorded as published. Do not schedule duplicates. Stories, Google/SMS/email and paid ads are not included.
+Verified: 2026-10-22T23:17:54.338Z
+Receipt: scheduling-receipt.json
 
-Every date contains:
-- 01-FEED-Facebook-and-Instagram.png: recommended feed image for both platforms.
-- 02-OPTIONAL-STORY.png: a separate portrait Story composition.
-- RECOMMENDED-COPY.txt: exact proposed time, complete Facebook and Instagram captions, optional Story link instructions and alt text.
-- post.json: structured details for a later scheduling assistant.
+Open START-HERE.html for images and actual scheduled captions. Each dated folder retains the feed image, optional unscheduled Story, RECOMMENDED-COPY.txt and post.json. The Instagram plain-address fallback is scheduled; the bio-link version is retained only as an unused alternative.
 
-The 16 dates supplement the social team's regular content. Proposed times are Central; coordinate them with the team's calendar. The November 18 9am NYE sales opening is fixed. No post has been scheduled or published. Stories are optional; do not post them automatically just because a file exists.
+Scheduling metadata uses America/Chicago. Guest copy and graphics omit timezone labels.
 
-Use only the full-size PNG in the relevant folder. CONTACT-SHEET.png is a review overview, not a post. One recommended image is supplied for each occasion; alternatives and editable masters remain in the repository source pack.
+To check or change a post, look up its existing AdaptlyPost ID from scheduling-receipt.json or post.json. Check current opening phase, event-specific availability and relative wording before the target date; edit/cancel that existing post if needed. Do not add duplicate feed posts.
 
-For a later assistant session, provide SCHEDULING-PROMPT.txt and this entire folder. It contains the actual copy, assets and date mappings. Review current availability and relative wording before publication.
+The review packagers intentionally reject scheduled campaign state. Do not reset authorization/execution fields to rerun them. Reproduce an old review only from a historical pre-scheduling commit in a separate checkout. Use this receipt recorder for durable scheduling records; it never reschedules anything.
 
 Source: C:/Users/jdow8/dev/website-holiday-drip-20261022/Context/marketing/holiday-drip-2026
 Branch: codex/holiday-drip-20261022
-Copy: series-copy-v3 | Delivery: posting-folders-v1

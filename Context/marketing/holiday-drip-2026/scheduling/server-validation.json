@@ -1,0 +1,748 @@
+{
+  "ok": true,
+  "command": "post.bulk",
+  "data": [
+    {
+      "line": 1,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-10-23T17:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 2,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-10-28T17:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 3,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-10-30T17:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 4,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-06T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 5,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-09T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 6,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-13T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 7,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-18T00:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 8,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-18T15:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 9,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-20T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 10,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-25T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 11,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-11-27T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 12,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-12-04T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 13,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-12-07T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 14,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-12-16T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 15,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-12-23T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    },
+    {
+      "line": 16,
+      "report": {
+        "valid": true,
+        "outcome": "SCHEDULED",
+        "scheduledAt": "2026-12-28T18:00:00.000Z",
+        "requiredPermissions": [
+          "posts.schedule"
+        ],
+        "issues": [],
+        "accounts": [
+          {
+            "platform": "FACEBOOK",
+            "connectionId": "1482359171984495",
+            "accountName": "Twisted Pin",
+            "status": "READY",
+            "issues": []
+          },
+          {
+            "platform": "INSTAGRAM",
+            "connectionId": "cmv9vsohm006v01pbdtl3rto2",
+            "accountName": "TWISTED PIN",
+            "status": "READY",
+            "issues": []
+          }
+        ],
+        "notChecked": [
+          {
+            "code": "PLATFORM_PROCESSING",
+            "message": "The platform processes media after upload and can still reject it then"
+          },
+          {
+            "code": "DUPLICATE_CONTENT",
+            "message": "Platforms that refuse duplicate posts are only checked when the post is published"
+          },
+          {
+            "code": "PLATFORM_RATE_LIMITS",
+            "message": "Platform rate limits and daily caps are only known at publish time"
+          },
+          {
+            "code": "LIVE_ACCOUNT_ACCESS",
+            "message": "Accounts are checked against our records. A permission removed on the platform side shows up only when publishing"
+          }
+        ]
+      }
+    }
+  ],
+  "meta": {
+    "dryRun": true,
+    "total": 16,
+    "valid": 16,
+    "invalid": 0
+  }
+}

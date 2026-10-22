@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-11-jingle-december-plan",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-27T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txgs1j7f01lnl2imhj5x",
+      "platform_record_id": "cmvk5txgt1j7g01ln3mm04be8",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txgs1j7f01lnl2imhj5x",
+      "platform_record_id": "cmvk5txgt1j7h01lnjy46grk1",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-11-jingle-december-plan",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-27T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5txgs1j7f01lnl2imhj5x",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nChoose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nDecember 6 reservations: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/bc9c65f2-460b-4171-b0c7-eb94e3dfa5dc/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "cd0dc8330c1cb8f02ea5403b0312baa12c413fe452af2fade92fa0dd52227fe4",
+    "alt_text": "Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/"
+  }
 }

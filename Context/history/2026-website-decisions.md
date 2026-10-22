@@ -1,3 +1,9 @@
+## 2026-10-22 - Authorized holiday feed scheduling through AdaptlyPost
+
+Jon explicitly authorized scheduling the prepared 16 feed occasions on Twisted Pin's Facebook and Instagram accounts and requested a full account/time/copy/artwork double-check. This supersedes the earlier preparation-only scope for these 32 feed targets. Optional Stories, Google/SMS extras, paid ads and runtime changes remain outside this action.
+
+Use the approved series-copy-v3 Facebook captions and the existing Instagram plain-address fallback because the event-specific bio destinations are unverified. Keep exact America/Chicago dates, including November 17 at 6pm and November 18 at 9am, and full-size 1080x1350 feed images. The execution script performs source/hash/time checks, individual media uploads with downloaded hash verification, server validation and post-submission readback. Final results and IDs belong in the campaign scheduling receipt and handoff; do not infer success from this authorization entry.
+
 ## 2026-10-22 - Guest time wording and Santa grip refinement
 
 Jon requested removal of time-zone labels from all guest-facing holiday campaign

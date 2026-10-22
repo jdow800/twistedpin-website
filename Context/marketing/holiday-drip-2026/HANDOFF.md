@@ -1,5 +1,25 @@
 # Holiday drips: current handoff
 
+## Current execution: scheduled October 22, 2026
+
+Jon authorized all 16 prepared feed occasions on Facebook Twisted Pin and Instagram @twistedpinplainfield. AdaptlyPost accepted 16 scheduled posts, each with two platform targets: **32 feed deliveries, zero failures, zero duplicates, none published yet**. The final queue and all individual entries were read back against the exact approved payload. [Receipt with IDs and actual captions](scheduling/receipt.json); [submitted body](scheduling/submitted-payload.json). These records supersede the historical preparation notes below. Do not schedule this campaign again.
+
+The dates are October 23 through December 28, 2026. All are noon America/Chicago except November 17 at 6pm and November 18 at 9am. Explicit UTC instants preserve the daylight saving change. The reservation opening remains November 18 at 9am; the NYE event remains December 31.
+
+Facebook captions include each canonical event URL. Instagram uses the prepared plain-address fallback, not an unverified link-in-bio claim. The address in an Instagram caption is not clickable. All files are the approved 1080x1350 feed PNGs with no crop transform or Story auto-share. Optional 1080x1920 Stories, Google/SMS, email, paid ads and Facebook event creation were not scheduled or sent.
+
+Verification covered all source/dated PNG hashes; downloaded uploaded-media hashes; platform account identity; date, local time and UTC; phase; exact Facebook and Instagram text; event URLs; alt text; saved FEED types; all 32 pending platform targets; and exact queue IDs. Both event URLs returned HTTP 200. Jingle's public configuration was booking-ready and both lane types had available starts at the check. This does not establish future availability. No current-scarcity wording was invented. Actual native Meta upload/crop previews were unavailable; future platform publishing success is still pending.
+
+Operational follow-up: watch the November 18 opening announcement if the sales opening changes. Recheck later booking invitations as inventory changes, especially December 7's explicit 10pm choice; pause or revise an invitation that is no longer relevant. This session did not create an automated inventory monitor or inspect the social team's calendars outside AdaptlyPost.
+
+`campaign.json`, the dated manifest and each `post.json` record the actual execution state. `scheduling-receipt.json` and `SCHEDULING-RECEIPT.txt` are included in the portable Desktop folder. Public platform post URLs do not exist yet and were not invented. AdaptlyPost parent IDs and child target IDs are explicitly labeled.
+
+Use `scripts/schedule-holiday-drip-adaptlypost.mjs` only for documented readback/verification; **never repeat submit**. It uses the authenticated CLI profile `twisted-pin-holiday-2026` without reading credentials. Raw receipts are ignored under `.astro/holiday-adaptlypost/`; durable sanitized records are in `scheduling/`. `scripts/record-holiday-scheduling.mjs` regenerates status from the saved receipt without remote actions. Refresh Desktop copies with `scripts/deliver-holiday-posting-folders.ps1`. The older review packagers reject scheduled manifests deliberately; use historical commit `f96ca957845713d648e226bbdf0bde8a8a40fe70` in another checkout to reproduce a pre-scheduling review.
+
+Work stays on `codex/holiday-drip-20261022`. Website main, runtime, production booking data and payment fixtures were not changed. See the branch log for the latest source backup; the commit IDs below describe prior creative checkpoints.
+
+## Historical preparation record (superseded execution status)
+
 Updated October 22, 2026. **Jon's revised cadence and audience direction are adopted. Exact publishing dates/times, creative choices and channel selections remain proposed. No scheduling, publication or send is authorized by this pack.** Nothing has been scheduled or published.
 
 ## Authoritative current plan

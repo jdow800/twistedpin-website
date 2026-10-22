@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "05-jingle-santa-arrives",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed October 23 announcement; pair with the chosen Santa hero and verify the event-specific bio link before using the primary Instagram CTA.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-10-23T17:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twwf1j6j01lnv3fosx02",
+      "platform_record_id": "cmvk5twwg1j6k01ln6r7py416",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twwf1j6j01lnv3fosx02",
+      "platform_record_id": "cmvk5twwg1j6l01lnah1x0j5t",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "05-jingle-santa-arrives",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-10-23T12:00:00-05:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5twwf1j6j01lnv3fosx02",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/ea42835c-87eb-45ca-9061-c9daaf6b4473/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "ffb1789833af5ccb7b6cce8b16d5fc88c2aab3f4cba2ed133c6e42bd8b82d0da",
+    "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
+  }
 }

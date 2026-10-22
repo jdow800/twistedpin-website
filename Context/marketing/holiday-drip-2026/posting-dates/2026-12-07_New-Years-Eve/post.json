@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-14-nye-december-invitation",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed December 7. Publish the 10pm invitation only while that party remains bookable; otherwise revise to current choices. The 10pm–12:30am party alone includes the midnight toast, champagne for 21+ or sparkling cider. Families are welcome at every party. Verify bio destination.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-12-07T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txkb1j7m01lnkhc6s4zc",
+      "platform_record_id": "cmvk5txkd1j7p01lnvdjseqq2",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txkb1j7m01lnkhc6s4zc",
+      "platform_record_id": "cmvk5txkd1j7q01lngz4bws6c",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-14-nye-december-invitation",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-12-07T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5txkb1j7m01lnkhc6s4zc",
+  "actual_scheduled_captions": {
+    "facebook_feed": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: https://www.twistedpin.com/new-years-eve/",
+    "instagram_feed": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: twistedpin.com/new-years-eve/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/9d6a9c4a-6c11-4029-bfa5-adb2a5e7275c/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "d5c5edbe3b5a24f1bae2670fba90ed0fd122a5c1f051c8b755b1a8b93685b803",
+    "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/."
+  }
 }

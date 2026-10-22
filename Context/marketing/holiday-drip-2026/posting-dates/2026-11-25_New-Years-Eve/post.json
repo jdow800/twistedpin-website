@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-19-nye-party-essentials",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 25. Concrete inclusion/convenience angle; per-lane quantities and selected-party duration are explicit. No all-inclusive, unlimited-food, decoration-service or entire-evening promise. Keep cocktails and other paid extras out of this inclusion-led image unless clearly labeled separate. Check availability and bio link before publication.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-25T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx3h1j6s01ln9hbitwex",
+      "platform_record_id": "cmvk5tx3j1j6u01ln5l1se1cb",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx3h1j6s01ln9hbitwex",
+      "platform_record_id": "cmvk5tx3j1j6v01lnzz1hpgx3",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-19-nye-party-essentials",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-25T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5tx3h1j6s01ln9hbitwex",
+  "actual_scheduled_captions": {
+    "facebook_feed": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nSee the packages and reserve: https://www.twistedpin.com/new-years-eve/",
+    "instagram_feed": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nPackages and reservations: twistedpin.com/new-years-eve/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/6fb33adc-de82-448e-a5f7-75460b4f329c/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30",
+    "alt_text": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/."
+  }
 }

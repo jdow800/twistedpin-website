@@ -6,7 +6,15 @@ $repoRoot = Split-Path $PSScriptRoot -Parent
 $campaignRoot = Join-Path $repoRoot 'Context/marketing/holiday-drip-2026'
 $postingRoot = Join-Path $campaignRoot 'posting-dates'
 $manifest = Get-Content -LiteralPath (Join-Path $postingRoot 'campaign-manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
-if ($manifest.posts.Count -ne 16 -or $manifest.scheduling_authorized -or $manifest.publication_authorized) { throw 'Expected sixteen prepared, unscheduled posting folders.' }
+if ($manifest.posts.Count -ne 16) { throw 'Expected sixteen posting folders.' }
+if ($manifest.scheduling_authorized -or $manifest.publication_authorized) {
+  $scheduleReceipt = Get-Content -LiteralPath (Join-Path $postingRoot 'scheduling-receipt.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+  if ($manifest.status -ne 'scheduled' -or $scheduleReceipt.posts.Count -ne 16 -or $scheduleReceipt.platform_targets -ne 32 -or $scheduleReceipt.failed -ne 0) { throw 'Scheduled delivery requires the verified 16-post receipt.' }
+  foreach ($post in $manifest.posts) {
+    $actual = @($scheduleReceipt.posts | Where-Object { $_.calendar_id -eq $post.calendar_id })
+    if ($actual.Count -ne 1 -or $post.status -ne 'scheduled' -or $post.scheduled_at -ne $actual[0].scheduled_at_utc) { throw "Scheduling receipt mismatch: $($post.calendar_id)" }
+  }
+}
 $deliveryRoot = Join-Path $DesktopRoot 'Twisted Pin Holiday Campaign 2026'
 $cacheRoot = Join-Path $repoRoot '.astro/holiday-posting'
 New-Item -ItemType Directory -Path $cacheRoot -Force | Out-Null

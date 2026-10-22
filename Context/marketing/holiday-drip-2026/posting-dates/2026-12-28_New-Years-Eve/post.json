@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-21-nye-this-thursday",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed December 28 only; December 31, 2026 is Thursday. Final planned sales invitation requires a fresh availability check. If sold out, do not post this version: replace with verified guest-preparation information. No last-few, last-chance or inventory-count claim. Verify bio link.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-12-28T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txo71j7s01lnoqwomwn9",
+      "platform_record_id": "cmvk5txo81j7t01ln2kgajntx",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txo71j7s01lnoqwomwn9",
+      "platform_record_id": "cmvk5txo81j7u01lniq0939yv",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-21-nye-this-thursday",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-12-28T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5txo71j7s01lnoqwomwn9",
+  "actual_scheduled_captions": {
+    "facebook_feed": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: https://www.twistedpin.com/new-years-eve/",
+    "instagram_feed": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: twistedpin.com/new-years-eve/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/2b65f08f-15d0-44ef-ba81-75e8255837ec/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7",
+    "alt_text": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/."
+  }
 }

@@ -1,69 +1,105 @@
 TWISTED PIN HOLIDAY CAMPAIGN 2026
-16 proposed posting occasions | All times America/Chicago
-Facebook + Instagram feed; Stories optional. Nothing scheduled.
 
-Friday, October 23, 2026 at 12:00 PM | Jingle Bowl
+16 feed occasions are scheduled on Facebook and Instagram in AdaptlyPost. Nothing is recorded as published. Do not schedule duplicates. Stories, Google/SMS/email and paid ads are not included.
+Verified: 2026-10-22T23:17:54.338Z
+Receipt: scheduling-receipt.json
+
+All scheduling times use America/Chicago.
+
+2026-10-23T12:00:00-05:00 | Jingle Bowl
 Make way for Santa.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5twwf1j6j01lnv3fosx02
 Folder: 2026-10-23_Jingle-Bowl
 
-Wednesday, October 28, 2026 at 12:00 PM | New Year's Eve
+2026-10-28T12:00:00-05:00 | New Year's Eve
 GIVE 2026 A PROPER SEND-OFF.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5twvp1j6g01lnlv3ijsfi
 Folder: 2026-10-28_New-Years-Eve
 
-Friday, October 30, 2026 at 12:00 PM | Jingle Bowl
+2026-10-30T12:00:00-05:00 | Jingle Bowl
 A little less mall. A lot more bowl.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5twpm1j6a01lnf393tfqw
 Folder: 2026-10-30_Jingle-Bowl
 
-Friday, November 6, 2026 at 12:00 PM | Jingle Bowl
+2026-11-06T12:00:00-06:00 | Jingle Bowl
 Bowling. Pizza. Santa. Sunday handled.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5twni1j6701lnmsykylby
 Folder: 2026-11-06_Jingle-Bowl
 
-Monday, November 9, 2026 at 12:00 PM | New Year's Eve
+2026-11-09T12:00:00-06:00 | New Year's Eve
 OUR NYE PARTIES USUALLY SELL OUT.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tws21j6d01lnulcf63kp
 Folder: 2026-11-09_New-Years-Eve
 
-Friday, November 13, 2026 at 12:00 PM | Jingle Bowl
+2026-11-13T12:00:00-06:00 | Jingle Bowl
 Bring your people. Charge your phone.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tx6m1j6y01lnql3um2vv
 Folder: 2026-11-13_Jingle-Bowl
 
-Tuesday, November 17, 2026 at 6:00 PM | New Year's Eve
+2026-11-17T18:00:00-06:00 | New Year's Eve
 TOMORROW AT 9AM.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tx3i1j6t01lnlazw7ytg
 Folder: 2026-11-17_New-Years-Eve
 
-Wednesday, November 18, 2026 at 9:00 AM | New Year's Eve
+2026-11-18T09:00:00-06:00 | New Year's Eve
 NYE RESERVATIONS ARE OPEN.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tx7i1j7101lnfmeex87a
 Folder: 2026-11-18_New-Years-Eve
 
-Friday, November 20, 2026 at 12:00 PM | Jingle Bowl
+2026-11-20T12:00:00-06:00 | Jingle Bowl
 A little cocoa between frames.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tx7i1j7201lnsuef0bfu
 Folder: 2026-11-20_Jingle-Bowl
 
-Wednesday, November 25, 2026 at 12:00 PM | New Year's Eve
+2026-11-25T12:00:00-06:00 | New Year's Eve
 THE PARTY ESSENTIALS ARE COVERED.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5tx3h1j6s01ln9hbitwex
 Folder: 2026-11-25_New-Years-Eve
 
-Friday, November 27, 2026 at 12:00 PM | Jingle Bowl
+2026-11-27T12:00:00-06:00 | Jingle Bowl
 Same Santa. Your kind of lane.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txgs1j7f01lnl2imhj5x
 Folder: 2026-11-27_Jingle-Bowl
 
-Friday, December 4, 2026 at 12:00 PM | Jingle Bowl
+2026-12-04T12:00:00-06:00 | Jingle Bowl
 Santa comes this Sunday. Let's roll.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txfq1j7c01lnyk2ja4dk
 Folder: 2026-12-04_Jingle-Bowl
 
-Monday, December 7, 2026 at 12:00 PM | New Year's Eve
+2026-12-07T12:00:00-06:00 | New Year's Eve
 AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txkb1j7m01lnkhc6s4zc
 Folder: 2026-12-07_New-Years-Eve
 
-Wednesday, December 16, 2026 at 12:00 PM | New Year's Eve
+2026-12-16T12:00:00-06:00 | New Year's Eve
 YOUR PEOPLE. YOUR KIND OF NYE.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txhq1j7i01lnev05e7si
 Folder: 2026-12-16_New-Years-Eve
 
-Wednesday, December 23, 2026 at 12:00 PM | New Year's Eve
+2026-12-23T12:00:00-06:00 | New Year's Eve
 GIVE THE GROUP CHAT AN ACTUAL PLAN.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txkb1j7l01ln8qd08j58
 Folder: 2026-12-23_New-Years-Eve
 
-Monday, December 28, 2026 at 12:00 PM | New Year's Eve
+2026-12-28T12:00:00-06:00 | New Year's Eve
 NEW YEAR'S EVE IS THIS THURSDAY.
+Channels: Facebook feed + Instagram feed
+AdaptlyPost ID: cmvk5txo71j7s01lnoqwomwn9
 Folder: 2026-12-28_New-Years-Eve
 
-NYE reservations open November 18, 2026 at 9am; NYE event is December 31. Jingle Bowl is December 6 and is already bookable.
+NYE reservations open November 18, 2026 at 9am; NYE event is December 31. Jingle Bowl is December 6.

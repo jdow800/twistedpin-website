@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-18-jingle-family-outing",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed October 30 family-outing post; use approved real family-bowling imagery and keep the humor welcoming.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-10-30T17:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twpm1j6a01lnf393tfqw",
+      "platform_record_id": "cmvk5twpo1j6b01lnljh6gr9v",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twpm1j6a01lnf393tfqw",
+      "platform_record_id": "cmvk5twpo1j6c01lny72ilfna",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-18-jingle-family-outing",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-10-30T12:00:00-05:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5twpm1j6a01lnf393tfqw",
+  "actual_scheduled_captions": {
+    "facebook_feed": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's lane: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/62833bdb-c667-42ac-8647-091923ab2226/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "ec29fd2a23eacb7a4ce3dfe4dee0717f4901b0b143b27c3e41ed48af79b2b24e",
+    "alt_text": "Actual Twisted Pin photograph of a child bowling, paired with an evergreen editorial panel. Printed text: A LITTLE LESS MALL. A LOT MORE BOWL. Bowling, pizza & a visit with Santa. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/"
+  }
 }

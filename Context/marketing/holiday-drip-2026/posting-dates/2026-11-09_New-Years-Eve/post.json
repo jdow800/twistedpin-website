@@ -11,7 +11,7 @@
   "phase": "before_reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "03-nye-usually-sells-out",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 9. Historical sellout statement is supported by Jon; it makes no current scarcity or remaining-lane claim. No emoji: let the headline carry this reminder. Pre-opening only; verify the bio destination.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-09T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tws21j6d01lnulcf63kp",
+      "platform_record_id": "cmvk5tws31j6e01ln1mw0jtxr",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tws21j6d01lnulcf63kp",
+      "platform_record_id": "cmvk5tws31j6f01lncqypwpsf",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "03-nye-usually-sells-out",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-09T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5tws21j6d01lnulcf63kp",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+    "instagram_feed": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/f7cfe76c-6582-4acb-984b-ffac2c9c6654/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5",
+    "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
+  }
 }

@@ -1,14 +1,18 @@
 TWISTED PIN | NEW YEAR'S EVE
-PROPOSED POST: Monday, December 28, 2026 at 12:00 PM
+SCHEDULED POST: 2026-12-28T12:00:00-06:00
+STATUS: Scheduled in AdaptlyPost for Facebook + Instagram feeds. Not yet published. Do not duplicate.
 ANGLE: NEW YEAR'S EVE IS THIS THURSDAY.
-STATUS: Prepared for review. Not scheduled or published.
 COPY REVISION: series-copy-v3
+APPROVED BY: Jon
+VERIFIED: 2026-10-22T23:17:54.338Z
+ADAPTLYPOST POST ID: cmvk5txo71j7s01lnoqwomwn9
+RECEIPT: ../scheduling-receipt.json
 
-UPLOAD TO FACEBOOK + INSTAGRAM FEEDS
+SCHEDULED FEED IMAGE
 01-FEED-Facebook-and-Instagram.png
-1080 x 1350 (4:5). Use this same image on both feeds.
+1080 x 1350 (4:5). Same image scheduled on both feeds.
 
-FACEBOOK CAPTION — COPY THIS SECTION
+FACEBOOK — ACTUALLY SCHEDULED CAPTION
 
 New Year's Eve is this Thursday.
 
@@ -18,8 +22,19 @@ Then get to work on that victory dance.
 
 Check current NYE availability: https://www.twistedpin.com/new-years-eve/
 
-INSTAGRAM CAPTION — COPY THIS SECTION
-Use this version after verifying the matching event link in the bio/link hub.
+INSTAGRAM — ACTUALLY SCHEDULED CAPTION
+The supplied plain-address fallback was used. It makes no unverified bio-link claim. A caption address is not a clickable link.
+
+New Year's Eve is this Thursday.
+
+If December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.
+
+Then get to work on that victory dance.
+
+Check current NYE availability: twistedpin.com/new-years-eve/
+
+INSTAGRAM BIO-LINK VERSION — NOT SCHEDULED
+Retained only as an alternative for a separately authorized edit after verifying the bio destination.
 
 New Year's Eve is this Thursday.
 
@@ -29,27 +44,18 @@ Then get to work on that victory dance.
 
 Check current availability through the New Year's Eve link in our bio.
 
-INSTAGRAM ALTERNATIVE IF THE BIO LINK IS NOT VERIFIED
-Replace only the last paragraph with this. A caption address is not a clickable link.
-
-Check current NYE availability: twistedpin.com/new-years-eve/
-
-OPTIONAL STORY — FACEBOOK / INSTAGRAM
-Upload: 02-OPTIONAL-STORY.png
-1080 x 1920 (9:16). Separate composition, not a crop of the feed image.
+OPTIONAL STORY — NOT SCHEDULED OR AUTHORIZED
+File: 02-OPTIONAL-STORY.png
+1080 x 1920 (9:16).
 Message: NYE is this Thursday, December 31. Check available parties and reserve your lane for your people.
-Native link sticker label: Reserve NYE
-Native link sticker URL: https://www.twistedpin.com/new-years-eve/
-The image already carries its own message. Do not paste a duplicate block of text over it. Add the native link sticker in the clear lower area and inspect the actual preview.
+Native link sticker: Reserve NYE
+Destination: https://www.twistedpin.com/new-years-eve/
+Do not publish this companion without an additional instruction.
 
-BEFORE POSTING
-Proposed December 28 only; December 31, 2026 is Thursday. Final planned sales invitation requires a fresh availability check. If sold out, do not post this version: replace with verified guest-preparation information. No last-few, last-chance or inventory-count claim. Verify bio link.
-Check the actual upload crop and event-page link. Coordinate the proposed time with the social team. This folder does not authorize posting or scheduling.
+BEFORE AUTOMATIC PUBLICATION
+Review opening phase, date-specific wording and relevant booking availability. If facts change, update or cancel the existing scheduled post; do not create another one. Actual app crop and Story overlay checks are distinct from scheduler acceptance.
 
 FEED IMAGE ALT TEXT
-An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.
-
-STORY IMAGE DESCRIPTION
 An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.
 
 EVENT PAGE

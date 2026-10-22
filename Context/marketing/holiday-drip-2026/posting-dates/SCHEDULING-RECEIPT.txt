@@ -1,0 +1,147 @@
+TWISTED PIN | VERIFIED SCHEDULING RECEIPT
+
+16 feed occasions are scheduled on Facebook and Instagram in AdaptlyPost. Nothing is recorded as published. Do not schedule duplicates. Stories, Google/SMS/email and paid ads are not included.
+Verified: 2026-10-22T23:17:54.338Z
+Receipt: scheduling-receipt.json
+
+Created: 2026-10-22T23:16:17.701Z
+Approved by Jon: 2026-10-22T23:16:17.701Z
+Approval-time basis: Authorization recorded when the authorized submission began; not an exact chat message timestamp.
+Scope: sixteen Facebook feed posts + sixteen Instagram feed posts. Parent records are SCHEDULED; each platform delivery is PENDING until its future publication time. These are scheduler IDs, not published social-post IDs or URLs.
+
+Jingle Bowl | 2026-10-23T12:00:00-05:00
+Make way for Santa.
+Parent: cmvk5twwf1j6j01lnv3fosx02
+Facebook target: cmvk5twwg1j6k01ln6r7py416 | page 1482359171984495
+Instagram target: cmvk5twwg1j6l01lnah1x0j5t | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: ffb1789833af5ccb7b6cce8b16d5fc88c2aab3f4cba2ed133c6e42bd8b82d0da
+Folder: 2026-10-23_Jingle-Bowl
+
+New Year's Eve | 2026-10-28T12:00:00-05:00
+GIVE 2026 A PROPER SEND-OFF.
+Parent: cmvk5twvp1j6g01lnlv3ijsfi
+Facebook target: cmvk5twvx1j6h01lnvega1a6m | page 1482359171984495
+Instagram target: cmvk5twvx1j6i01lnnfimg75y | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: b521e213dadba373a1a2582f5903e7efa33d98b49d79ad8b8a28e903bc21b513
+Folder: 2026-10-28_New-Years-Eve
+
+Jingle Bowl | 2026-10-30T12:00:00-05:00
+A little less mall. A lot more bowl.
+Parent: cmvk5twpm1j6a01lnf393tfqw
+Facebook target: cmvk5twpo1j6b01lnljh6gr9v | page 1482359171984495
+Instagram target: cmvk5twpo1j6c01lny72ilfna | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: ec29fd2a23eacb7a4ce3dfe4dee0717f4901b0b143b27c3e41ed48af79b2b24e
+Folder: 2026-10-30_Jingle-Bowl
+
+Jingle Bowl | 2026-11-06T12:00:00-06:00
+Bowling. Pizza. Santa. Sunday handled.
+Parent: cmvk5twni1j6701lnmsykylby
+Facebook target: cmvk5twni1j6801ln4lght8vg | page 1482359171984495
+Instagram target: cmvk5twnj1j6901lnwz8p45vd | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 1047e2478858cbc4558401e654e9afb47a7bf36baf8b26cf772750f280d854dc
+Folder: 2026-11-06_Jingle-Bowl
+
+New Year's Eve | 2026-11-09T12:00:00-06:00
+OUR NYE PARTIES USUALLY SELL OUT.
+Parent: cmvk5tws21j6d01lnulcf63kp
+Facebook target: cmvk5tws31j6e01ln1mw0jtxr | page 1482359171984495
+Instagram target: cmvk5tws31j6f01lncqypwpsf | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 809fccb5128e2ec87a46d4d5142a490b060acb21fe5fa6d5943a5084d4f199d5
+Folder: 2026-11-09_New-Years-Eve
+
+Jingle Bowl | 2026-11-13T12:00:00-06:00
+Bring your people. Charge your phone.
+Parent: cmvk5tx6m1j6y01lnql3um2vv
+Facebook target: cmvk5tx6n1j6z01ln3v1juasb | page 1482359171984495
+Instagram target: cmvk5tx6n1j7001lnov1xdl4t | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 92ec5b05d10c12b9812493d08d7865fb492e2035273b516f79688d4ea79ba7b1
+Folder: 2026-11-13_Jingle-Bowl
+
+New Year's Eve | 2026-11-17T18:00:00-06:00
+TOMORROW AT 9AM.
+Parent: cmvk5tx3i1j6t01lnlazw7ytg
+Facebook target: cmvk5tx3k1j6w01lnxmeaduwe | page 1482359171984495
+Instagram target: cmvk5tx3k1j6x01ln6h0p4emd | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 632b6caeb8fd44f37db4920f796e433e15be04db63d590f2da808cb6009d9625
+Folder: 2026-11-17_New-Years-Eve
+
+New Year's Eve | 2026-11-18T09:00:00-06:00
+NYE RESERVATIONS ARE OPEN.
+Parent: cmvk5tx7i1j7101lnfmeex87a
+Facebook target: cmvk5tx7i1j7301lnlu5at680 | page 1482359171984495
+Instagram target: cmvk5tx7i1j7401ln03a5l0yx | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: bcbc23776721c4f646b1ae2bfe625130439f750e244e94277a15fbfd9d2f9c36
+Folder: 2026-11-18_New-Years-Eve
+
+Jingle Bowl | 2026-11-20T12:00:00-06:00
+A little cocoa between frames.
+Parent: cmvk5tx7i1j7201lnsuef0bfu
+Facebook target: cmvk5tx7j1j7501ln5v4m8p3h | page 1482359171984495
+Instagram target: cmvk5tx7j1j7601lnvq3kq8sk | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: ba70251d9b0fb94f50c9bff06dea773acf19dfb1317c73d50e420cf95809666f
+Folder: 2026-11-20_Jingle-Bowl
+
+New Year's Eve | 2026-11-25T12:00:00-06:00
+THE PARTY ESSENTIALS ARE COVERED.
+Parent: cmvk5tx3h1j6s01ln9hbitwex
+Facebook target: cmvk5tx3j1j6u01ln5l1se1cb | page 1482359171984495
+Instagram target: cmvk5tx3j1j6v01lnzz1hpgx3 | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30
+Folder: 2026-11-25_New-Years-Eve
+
+Jingle Bowl | 2026-11-27T12:00:00-06:00
+Same Santa. Your kind of lane.
+Parent: cmvk5txgs1j7f01lnl2imhj5x
+Facebook target: cmvk5txgt1j7g01ln3mm04be8 | page 1482359171984495
+Instagram target: cmvk5txgt1j7h01lnjy46grk1 | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: cd0dc8330c1cb8f02ea5403b0312baa12c413fe452af2fade92fa0dd52227fe4
+Folder: 2026-11-27_Jingle-Bowl
+
+Jingle Bowl | 2026-12-04T12:00:00-06:00
+Santa comes this Sunday. Let's roll.
+Parent: cmvk5txfq1j7c01lnyk2ja4dk
+Facebook target: cmvk5txfr1j7d01lngftnq1sj | page 1482359171984495
+Instagram target: cmvk5txfr1j7e01ln5aw9cyan | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 0453c42b94e30fbc21826c982d0a5556c03f71cfaa5ce81aefd34f88d95ed618
+Folder: 2026-12-04_Jingle-Bowl
+
+New Year's Eve | 2026-12-07T12:00:00-06:00
+AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?
+Parent: cmvk5txkb1j7m01lnkhc6s4zc
+Facebook target: cmvk5txkd1j7p01lnvdjseqq2 | page 1482359171984495
+Instagram target: cmvk5txkd1j7q01lngz4bws6c | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: d5c5edbe3b5a24f1bae2670fba90ed0fd122a5c1f051c8b755b1a8b93685b803
+Folder: 2026-12-07_New-Years-Eve
+
+New Year's Eve | 2026-12-16T12:00:00-06:00
+YOUR PEOPLE. YOUR KIND OF NYE.
+Parent: cmvk5txhq1j7i01lnev05e7si
+Facebook target: cmvk5txhr1j7j01ln6g1ff8db | page 1482359171984495
+Instagram target: cmvk5txhr1j7k01ln5wjcjvkh | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: d050fa5c46ee7daef74731667bd4e48057f1a0945f5e19a573bf40d702eb6c4a
+Folder: 2026-12-16_New-Years-Eve
+
+New Year's Eve | 2026-12-23T12:00:00-06:00
+GIVE THE GROUP CHAT AN ACTUAL PLAN.
+Parent: cmvk5txkb1j7l01ln8qd08j58
+Facebook target: cmvk5txkc1j7n01lngnf1l13r | page 1482359171984495
+Instagram target: cmvk5txkc1j7o01lnal81ahfa | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: 65ec8a99d2869bb08b65da8c975bcbb6e05dbaa49b57f90856a2b42f2c6ae63e
+Folder: 2026-12-23_New-Years-Eve
+
+New Year's Eve | 2026-12-28T12:00:00-06:00
+NEW YEAR'S EVE IS THIS THURSDAY.
+Parent: cmvk5txo71j7s01lnoqwomwn9
+Facebook target: cmvk5txo81j7t01ln2kgajntx | page 1482359171984495
+Instagram target: cmvk5txo81j7u01lniq0939yv | connection cmv9vsohm006v01pbdtl3rto2
+Image SHA-256: bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7
+Folder: 2026-12-28_New-Years-Eve
+
+Instagram uses the complete plain-address fallback; no bio-link destination is assumed. The JSON receipt retains exact captions, media URLs, alt text, accounts and verification details.
+
+Future platform publishing outcome is not yet known.
+Account access and inventory may change before publication.
+Instagram caption web addresses are plain text; no unverified bio-link claim is used.
+Actual native Meta crop preview was not available; the saved feed uses the original 1080x1350 PNG without aspect transforms.
+
+CONTACT-SHEET.png remains a visual review image made before scheduling; its earlier status wording is historical. This receipt and the manifests are current.

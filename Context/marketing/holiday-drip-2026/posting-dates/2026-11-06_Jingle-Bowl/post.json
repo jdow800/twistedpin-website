@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-05-jingle-whats-included",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 6 package explainer; keep per-lane quantities explicit and show fries only as the VIP inclusion.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-06T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twni1j6701lnmsykylby",
+      "platform_record_id": "cmvk5twni1j6801ln4lght8vg",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5twni1j6701lnmsykylby",
+      "platform_record_id": "cmvk5twnj1j6901lnwz8p45vd",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-05-jingle-whats-included",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-06T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5twni1j6701lnmsykylby",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/8bb5f4ea-4890-42d2-88b9-a2c53282e7df/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "1047e2478858cbc4558401e654e9afb47a7bf36baf8b26cf772750f280d854dc",
+    "alt_text": "Cream and cranberry typographic package composition; no food or guest imagery. Printed text: BOWLING. PIZZA. SANTA. Sunday handled. 90MINUTES OF BOWLING Shoes included ONE PIZZA. ONE PITCHER. One large pizza + one pitcher of soda per lane. COOKIES & COCOA. Cookie & cocoa bar access with your lane package. A VISIT WITH SANTA. Your Santa photo, on your own device. VIP adds one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/"
+  }
 }

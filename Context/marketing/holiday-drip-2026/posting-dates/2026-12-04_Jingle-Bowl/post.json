@@ -11,7 +11,7 @@
   "phase": "reservations_open",
   "url": "https://www.twistedpin.com/jingle-bowl/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-12-jingle-this-sunday",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed December 4 final campaign post; verify that booking is still available, and never imply reservations close Friday.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-12-04T18:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txfq1j7c01lnyk2ja4dk",
+      "platform_record_id": "cmvk5txfr1j7d01lngftnq1sj",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5txfq1j7c01lnyk2ja4dk",
+      "platform_record_id": "cmvk5txfr1j7e01ln5aw9cyan",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-12-jingle-this-sunday",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-12-04T12:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5txfq1j7c01lnyk2ja4dk",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve your lane: https://www.twistedpin.com/jingle-bowl/",
+    "instagram_feed": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nCurrent times and reservations: twistedpin.com/jingle-bowl/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/75704608-797e-4803-89fa-fdffcaac6928/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "0453c42b94e30fbc21826c982d0a5556c03f71cfaa5ce81aefd34f88d95ed618",
+    "alt_text": "Cream calendar card showing Sunday December 6, 2026, with the approved illustrated Santa beside it. Printed text: SANTA COMES THIS SUNDAY. DECEMBER 2026 06 SUNDAY LET'S ROLL. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 CHECK TIMES & RESERVE twistedpin.com/jingle-bowl/"
+  }
 }

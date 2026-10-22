@@ -4,13 +4,13 @@
 
 **Latest owner refinements:** guest-facing graphics and all caption/Story variants omit time-zone labels; the scheduler still uses America/Chicago and UTC. Both Santa illustrations now use corrected bowling-ball grips, with a close finger pair and a separated lower thumb. The exact imagegen edit prompts, original sources and corrected masters are preserved in [edit provenance](artwork/santa-grip-correction.provenance.json). Facebook copy includes the matching event URL; Instagram uses a verified bio link or the supplied plain-address fallback, and Stories require the supplied native link sticker.
 
-**Latest cadence: Jon's revised direction is adopted; exact publishing dates/times, creative selection and channels remain proposed. Nothing in this pack is approved for scheduling or publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
+**Current execution: all 16 occasions are scheduled through AdaptlyPost to Facebook Twisted Pin and Instagram @twistedpinplainfield, following Jon's explicit authorization on October 22.** This is 32 feed deliveries, October 23 through December 28. All saved accounts, captions, images, alt text and dates were read back and verified; zero failures or duplicates. Nothing is published yet. See the [schedule receipt](scheduling/receipt.json) and [current handoff](HANDOFF.md). Do not submit the campaign again. Optional Stories and Google/SMS extras remain unscheduled.
 
 This supplements the social team's regular content. NYE starts slowly, has a tomorrow reminder on November 17 and an opening announcement on November 18, then continues with varied booking posts through December 28. Jingle runs weekly on Fridays through December 4, its final weekend reminder. Paired Facebook/Instagram versions count as one editorial occasion. Usually there are one or two combined event feed occasions a week; November 17, 18 and 20 deliberately create three during NYE opening week. Stories remain optional companions.
 
 The active calendar has **16 Meta occasions plus three optional extras**, totaling 19 rows. The first NYE announcement is part of the revised plan, not an optional additional kickoff. The campaign contains no November 15 reminder or December 6 Jingle post.
 
-**The complete series is prepared for review: 16 feed images, 16 optional Stories and copy revision `series-copy-v3`.** Jon accepted the independent review direction and requested this complete dated delivery. That does not authorize scheduling or publication. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block. All 32 source/export hashes and exact caption mappings passed verification. GPT-6.1 Sol on Ultra reviewed the finished pack; see [review notes](posting-dates/REVIEW-NOTES.txt) and the [handoff](HANDOFF.md) for verification and backup status.
+**The scheduled series uses the 16 selected feed images and copy revision `series-copy-v3`.** The 16 optional Stories remain prepared only. Facebook uses the full canonical caption; Instagram uses the approved plain-address fallback because the corresponding bio links were unverified. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block. GPT-6.1 Sol on Ultra reviewed the creative pack, final submission payload and remote readback.
 
 **Audience direction:** Jingle is explicitly for families and may depart substantially from the venue's usual positioning. NYE's earlier parties strongly welcome families; later parties lean more adult in tone while still welcoming families. Jon's event-specific direction controls this campaign. The current positioning report may lightly inform imagery and copy, but generic adults-first emphasis must not crowd out this welcome. Do not invent an adults-only rule or a late-party age cutoff. Guest-facing Santa copy still promises a visit with Santa, not bowling alongside him.
 
@@ -37,9 +37,9 @@ The active calendar has **16 Meta occasions plus three optional extras**, totali
 | 02-jingle-santa-coming | Fri Oct 23, 12pm | Santa is coming December 6; reservations are open now | `02-jingle-santa-coming-feed.png`, `02-jingle-santa-coming-story.png` |
 | 03-nye-usually-sells-out | Mon Nov 9, 12pm | Historical sellouts give guests a reason to plan ahead | `03-nye-usually-sells-out-feed.png`, `03-nye-usually-sells-out-story.png` |
 
-The dated delivery recommends Batch 02's `04-nye-mirrorball-moment` for October 28 and `05-jingle-santa-arrives` for October 23, plus the original historical-sellout layout for November 9. Thirteen additional feed/Story pairs complete the series. Each date receives one recommendation; retained originals and alternatives do not create extra occasions. Approval, channel-selection and execution fields remain empty.
+The scheduled delivery selects Batch 02's `04-nye-mirrorball-moment` for October 28 and `05-jingle-santa-arrives` for October 23, plus the original historical-sellout layout for November 9. Thirteen additional feed/Story pairs complete the prepared series. Only the feed is scheduled. Retained originals and alternatives do not create extra occasions. The structured source records approval, chosen channels and exact AdaptlyPost IDs.
 
-**Proposed NYE dates:** October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am after opening is confirmed; November 25, December 7, 16, 23 and 28 at noon. **Proposed Jingle dates:** October 23, 30, November 6, 13, 20, 27 and December 4 at noon. All are America/Chicago. November 18 at 9am is the fixed reservations-opening fact; other publishing times are planning choices, not measured best times. Reconcile with the social team's calendar and actual prior posts/sends before execution. Recalculate relative wording after any approved date move.
+**Scheduled NYE dates:** October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am; November 25, December 7, 16, 23 and 28 at noon. **Scheduled Jingle dates:** October 23, 30, November 6, 13, 20, 27 and December 4 at noon. All are America/Chicago, with daylight saving offsets verified. These are practical chosen times, not measured engagement optima. The AdaptlyPost queue was empty before this submission; calendars outside AdaptlyPost were not inspected. Recalculate relative wording if a post is moved.
 
 ## Format choices
 
@@ -59,7 +59,9 @@ The existing 1920 × 1005 Facebook event covers remain in their original packs. 
 
 Original assets remain in their tracked source paths; see [NYE index](../nye-2026/README.md) and [Jingle index](../../jingle-bowl-2026/README.md). Current facts come from `src/pages/new-years-eve.astro`, `src/config/nye-opening.ts`, `src/pages/jingle-bowl.astro` and the October 22 event closeouts. New layouts live in `artwork/`, with source hashes and output details in `nye-manifest.json` and `jingle-manifest.json`. The rejected September brand kit was not used.
 
-From the Website repository root, with Node meeting `package.json` and locked dependencies installed:
+The following render/package commands reproduce the historical review pack from commit `f96ca957845713d648e226bbdf0bde8a8a40fe70` in an isolated checkout. Review packagers intentionally refuse the now-scheduled manifest so they cannot erase execution records. Do not rerun them over this current delivery. Current status/receipt regeneration uses `node scripts/record-holiday-scheduling.mjs`, followed by `scripts/deliver-holiday-posting-folders.ps1`; neither sends or schedules a post.
+
+Historical review reproduction, with Node meeting `package.json` and locked dependencies installed:
 
 ```powershell
 npm ci --no-audit --no-fund

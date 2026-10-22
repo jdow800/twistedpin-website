@@ -11,7 +11,7 @@
   "phase": "before_reservations_open",
   "url": "https://www.twistedpin.com/new-years-eve/",
   "copy_revision": "series-copy-v3",
-  "status": "prepared_for_review",
+  "status": "scheduled",
   "recommended_concept_id": "series-09-nye-opens-tomorrow",
   "assets": {
     "feed": {
@@ -50,11 +50,56 @@
     "optional": true
   },
   "publishing_note": "Proposed November 17 at 6pm Central only. The single alarm emoji belongs at the end of the hook. Reword tomorrow/tonight if this date changes. Keep the absolute opening line on artwork as well. The Instagram CTA requires the NYE bio link to be correct before publication.",
-  "approved_by": null,
-  "approved_at": null,
-  "selected_channels": [],
-  "scheduled_at": null,
+  "approved_by": "Jon",
+  "approved_at": "2026-10-22T23:16:17.701Z",
+  "selected_channels": [
+    "facebook_feed",
+    "instagram_feed"
+  ],
+  "scheduled_at": "2026-11-18T00:00:00.000Z",
   "published_at": null,
-  "platform_ids": {},
-  "platform_urls": {}
+  "platform_ids": {
+    "facebook_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx3i1j6t01lnlazw7ytg",
+      "platform_record_id": "cmvk5tx3k1j6w01lnxmeaduwe",
+      "connection_id": "cmv9vrb2h006t01pbca67v1jo",
+      "page_id": "1482359171984495",
+      "account_name": "Twisted Pin",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    },
+    "instagram_feed": {
+      "provider": "AdaptlyPost",
+      "post_id": "cmvk5tx3i1j6t01lnlazw7ytg",
+      "platform_record_id": "cmvk5tx3k1j6x01ln6h0p4emd",
+      "connection_id": "cmv9vsohm006v01pbdtl3rto2",
+      "account_name": "TWISTED PIN",
+      "status": "PENDING",
+      "post_type": "FEED",
+      "id_type": "scheduler_record_not_published_social_post"
+    }
+  },
+  "platform_urls": {},
+  "selected_concept_id": "series-09-nye-opens-tomorrow",
+  "scheduling_authorized": true,
+  "publication_authorized": true,
+  "authorization_scope": "Facebook and Instagram feed only; automatic publication at the recorded target times.",
+  "scheduled_at_local": "2026-11-17T18:00:00-06:00",
+  "scheduling_created_at": "2026-10-22T23:16:17.701Z",
+  "scheduling_verified_at": "2026-10-22T23:17:54.338Z",
+  "scheduler": "AdaptlyPost",
+  "scheduler_post_id": "cmvk5tx3i1j6t01lnlazw7ytg",
+  "actual_scheduled_captions": {
+    "facebook_feed": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
+    "instagram_feed": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am. Decide who's coming tonight, then choose your December 31 party when booking opens.\n\nSave this address for tomorrow: twistedpin.com/new-years-eve/"
+  },
+  "scheduled_instagram_variant": "alternate_caption_without_verified_bio_link",
+  "scheduling_receipt": "../scheduling-receipt.json",
+  "scheduled_media": {
+    "url": "https://cdn.adaptlypost.com/social-media-posts/workspaces/cmv9vq1w4006p01pb0c0mh3fg/51ab7384-b734-4c71-a975-9fb34aa37200/01-FEED-Facebook-and-Instagram.png",
+    "sha256": "632b6caeb8fd44f37db4920f796e433e15be04db63d590f2da808cb6009d9625",
+    "alt_text": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/."
+  }
 }
