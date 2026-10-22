@@ -1,5 +1,5 @@
 {
-  "checked_at": "2026-10-22T20:39:33.684Z",
+  "checked_at": "2026-10-22T21:23:19.950Z",
   "checks": {
     "four_unique_exports": true,
     "dimensions_and_binary_hashes_match_render_manifest": true,
@@ -13,13 +13,13 @@
   "date_checks": [
     {
       "id": "04-nye-mirrorball-moment",
-      "proposed_local": "2026-10-23T12:00:00-05:00",
-      "utc": "2026-10-23T17:00:00.000Z"
+      "proposed_local": "2026-10-28T12:00:00-05:00",
+      "utc": "2026-10-28T17:00:00.000Z"
     },
     {
       "id": "05-jingle-santa-arrives",
-      "proposed_local": "2026-10-26T12:00:00-05:00",
-      "utc": "2026-10-26T17:00:00.000Z"
+      "proposed_local": "2026-10-23T12:00:00-05:00",
+      "utc": "2026-10-23T17:00:00.000Z"
     }
   ],
   "alternative_checks": [

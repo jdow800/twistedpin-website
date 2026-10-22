@@ -1,62 +1,75 @@
-# Holiday drips · Combined handoff
+# Holiday drips: current handoff
 
-## Latest creative follow-up · Batch 02
+Updated October 22, 2026. **Jon's revised cadence and audience direction are adopted. Exact publishing dates/times, creative choices and channel selections remain proposed. No scheduling, publication or send is authorized by this pack.** Nothing has been scheduled or published.
 
-**Latest correction:** Jon supplied two bowling-ball photos to correct the NYE mirrorball grip. The current master is `batch-02/artwork/nye-hero-v3-grip-corrected.png`: a close finger pair and distinctly lower thumb. Current NYE feed/Story exports and previews have been rerendered, with updated hashes and preserved exact edit provenance/reference files. The older `nye-hero-v2.png` remains an archived proposal. Jingle, copy, dates and approval/publication state are unchanged. The same batch 02 Desktop folders and ZIPs carry the correction.
+## Authoritative current plan
 
-Jon invited stronger creative judgment and new visuals, asking for an “epic” result. The recommended follow-up is [batch 02](batch-02/README.md): a cinematic mirrored bowling ball for NYE and a festive illustrated Santa scene for Jingle, each in feed/Story formats with editable typography. The first batch is preserved. These are visual alternatives for the same Oct 23/Oct 26 occasions, not extra posts. `campaign.json` carries the new copy/assets and explicit mutually exclusive choice groups; no creative selection, approval or action permission is inferred from openness to suggestions. Use the batch 02 gallery as the latest visual review.
+Use [campaign.json](campaign.json) for structured execution fields and [calendar.md](calendar.md) for the readable calendar. This handoff supersedes the earlier weekly-NYE / every-10-to-14-days-Jingle recommendation. Earlier review artifacts do not supply current publishing dates.
 
-The new hero originals, exact built-in-imagegen prompts/provenance, editable layouts and four final exports are preserved in the isolated feature branch. New Desktop folders named `Drip review - batch 02` and `Holiday-drip-2026-batch-02-REVIEW.zip` include both batches; batch 01 deliveries are retained. The branch remains a local review snapshot, not a production release or a claim of social publication. [Research notes](research-notes.md) preserve the sources and distinguish general account evidence from this supplemental plan.
+The campaign adds **16 Meta occasions** to the social team's normal program: nine NYE and seven Jingle. Three separately selectable Google/SMS extras bring the active calendar to **19 rows**. A paired Facebook/Instagram feed treatment is one editorial occasion; an alternate design is not another occasion. Stories are optional companions. Usually there are one or two feed occasions per week, with a deliberate three-occasion exception on November 17, 18 and 20.
 
-Root and an independent reviewer inspected all four new exports, including a phone-size preview. Main headlines, date/action blocks and subjects are clear; small printed URLs are supported by full caption links or native Story stickers. Renderer checks cover dimensions, fonts, image proportions, copy bounds and hashes. The manifest retains 19 calendar rows; both alternative concepts match the original occasions' dates, event, phase and cutoff. An independent review compared all new platform messages and alt text against `copy.txt`. Batch 02 gallery/package checks are recorded in `batch-02/qa/verification.json`.
+| Event | Proposed dates and times, America/Chicago | Purpose |
+| --- | --- | --- |
+| NYE before opening | October 28 at noon; November 9 at noon | Slow introduction and historical sellout reminder |
+| NYE opening | November 17 at 6pm; November 18 at 9am after opening is confirmed | Tomorrow reminder, then reservations-open announcement |
+| NYE after opening | November 25; December 7, 16, 23 and 28, all at noon | Varied reasons to book, while relevant choices remain available |
+| Jingle | Fridays October 23, 30; November 6, 13, 20, 27; December 4, all at noon | Weekly booking posts; December 4 is the final weekend reminder |
 
-The remaining sections record batch 01's original creation evidence and source paths. Batch 02's new originals, four final PNGs, HTML, renderer, packager, manifests, gallery, copy and contact sheet are included in the latest local snapshot too.
+**November 18, 2026 at 9am Central is a fixed NYE sales-opening fact** (2026-11-18T15:00:00Z). Other publishing times are proposals. The first NYE announcement is included in the plan, not an optional extra kickoff. There is no November 15 reminder and no December 6 Jingle post in this campaign. Reconcile proposed dates with the team's existing schedule and actual publishing history before execution.
 
-Prepared October 22, 2026. **Creative review, not publication.**
+## Audience and creative scope
 
-## Current deliverable
+Jingle is explicitly aimed at families, with permission for a substantial departure from the venue's usual positioning. NYE's earlier parties are strongly family-friendly; later parties lean more adult in tone while still welcoming families. Do not imply an adults-only event or late-party age cutoff. Jon's current event-specific direction takes precedence over generic adults-first emphasis.
 
-Three new compositions, each in 1080×1350 feed and 1080×1920 Story: NYE “Set the clock,” Jingle “Santa's coming. Let's roll,” and NYE historical sellout reminder. Shared feed files work as the starting composition for both Facebook and Instagram; separate captions provide the correct link treatment. Story files are independently laid out, not crops of event covers.
+Read [creative-brief.md](creative-brief.md) for the identified October 2026 positioning report and later owner corrections; do not assume the maintained v1.0 file is the newest authority. Use that report lightly to inform future imagery/copy. It must not erase the family audience, impose a new visual identity, change the offer or restore the rejected September guide. Guest-facing Jingle language stays "a visit with Santa"; conversational "Bowl with Santa" does not establish that Santa bowls alongside guests.
 
-The combined proposed calendar has 19 rows, including optional channels and later concepts. Only the first three creative concepts plus the optional Jingle Google/SMS copy have been prepared. The remainder are clearly `concept_only_not_ready_to_schedule` in `campaign.json`. No daily campaign is intended. The first NYE kickoff is optional; the lightest start is Jingle October 26 at noon and NYE October 28 at 9am Central.
+## Prepared creative versus later concepts
 
-NYE's opening remains November 18, 2026 at 9am America/Chicago, distinct from the December 31 parties. Jingle is bookable now for December 6. New artwork includes absolute dates and avoids fragile numeric countdowns. Historical sellout wording comes from Jon; no inventory count was accessed or invented.
+Three original concepts have completed feed/Story art and platform copy:
+
+| Original concept | Revised proposed use | Batch 02 alternative for the same occasion |
+| --- | --- | --- |
+| 01-nye-set-the-clock | October 28, noon | 04-nye-mirrorball-moment, "Give 2026 a proper send-off" |
+| 02-jingle-santa-coming | October 23, noon | 05-jingle-santa-arrives, "Make way for Santa" |
+| 03-nye-usually-sells-out | November 9, noon | No additional alternative in this pack |
+
+The [Batch 02 gallery](batch-02/review.html) is the latest recommended visual direction. The original batch remains available for comparison. The manifest's creative_choice_groups require one selection per used occasion; a recommendation is not selection or approval. All selected-concept fields remain null and selected-channel arrays empty. Later dates remain concept_only_not_ready_to_schedule; they need reviewed copy/art, not a pre-opening teaser reused after booking opens.
+
+Jon requested stronger visuals, then supplied two bowling-ball photographs to correct the NYE grip. The current NYE master is batch-02/artwork/nye-hero-v3-grip-corrected.png, with a close finger pair and a lower thumb. The earlier hero is retained as history. Exact generation/edit prompts, supplied references, editable overlays, final exports and manifests stay with the project. The NYE illustration is symbolic campaign art, not documentary evidence of the venue or promised decorations. Jingle uses an illustrated Santa scene.
+
+## Facts and links that must survive the next edit
+
+- NYE's event is December 31. Before November 18 at 9am, the action is to remember when reservations open; disclose no party times/prices. "Our NYE parties usually sell out" is Jon's confirmed historical statement, not current scarcity. Post-opening booking invitations stop or change when the relevant choices sell out.
+- Jingle is already publicly bookable for Sunday, December 6. Keep "Bowling, pizza & a visit with Santa." Do not promise unverified Santa appearance times.
+- Primary destinations stay https://www.twistedpin.com/new-years-eve/ and https://www.twistedpin.com/jingle-bowl/. A verified Facebook event link is optional and secondary after NYE event creation on November 18; it does not replace the booking page. No Jingle Facebook event URL has been verified. Going/Interested does not reserve a lane.
+- NYE covers bowling for the selected party time, shoes, one large pizza, one soda pitcher and party favors per lane. "The party essentials are covered. You bring your people" is supportable when paired with that list. "Everything handled" and "all-inclusive" imply more than the source confirms. Decor service is not promised; arcade cards, cocktails and additional food/drinks are separate. The midnight toast belongs only to the 10pm party; do not reveal that time in pre-opening copy.
+- Neither event accepts coupons or loyalty reward offers. No runtime, homepage timing, checkout, production data or paid rehearsal changes belong to this content task.
 
 ## Start the next session
 
-Use `schedule-this-campaign.txt` with this whole campaign folder. `campaign.json` owns the machine-readable dates, captions, variants, assets, URLs, phase constraints and execution states. `calendar.md` is the readable overview. The future agent must reconcile the team's existing calendar and the selected channels, rather than treating every optional image/variant as another post.
+Bring [schedule-this-campaign.txt](schedule-this-campaign.txt) and the whole campaign folder. Read the user's new instruction first, then this handoff, the manifest, calendar and publishing checklist. Reconcile creative groups, selected channels, live phase and existing platform schedule before any authorized action. Do not treat an old proposed date as permission to publish immediately. The saved prompt is a resumption aid, not posting authorization.
 
-New creative, proposed times and channel selections await Jon's review. All approval fields are null and selected channels are empty. Publication/scheduling/SMS authorization is false. The separate authority needed for posting, scheduling, sends or ad spend is stated in Jon's task; this is not a new permission rule introduced by the pack.
+Optional SMS/Google drafts are choices, not another weekly series. Review recent Jingle broadcasts and ordinary marketing sends before selecting any SMS; do not silently reuse the separately attributed /jb/ campaign link. No audience, messaging history or existing platform schedule was inspected during preparation. Native Instagram bio links, actual upload crops and Story sticker/control previews still need the publisher's check.
 
-## Validation completed
+## Verification and source status
 
-- Root visually inspected all six exports, then the combined contact sheet. The Jingle renderer's switch from Edge to bundled Chromium was also visually rechecked by its artwork reviewer.
-- Fonts and images decode; canvas bounds and conservative Story text margins pass. All six PNGs are below 5MB. Source/output manifests retain dimensions and hashes, with LF normalization explicitly labeled for editable text and exact bytes for binary assets.
-- Both renderers record Node, Playwright, Sharp and browser versions. Browser network is blocked during rendering. Reproduction uses locked dependencies plus the matching Playwright Chromium; no production configuration is needed.
-- Packaging verifies six unique exports, dimensions/hashes, phase/asset mappings, NYE opening instant, Chicago offsets and all 19 calendar records. Independent review compared every FB/IG caption, alternate IG closing paragraph, optional Google/SMS draft and calendar timestamp to the human-readable sources.
-- The local review gallery loaded all six images without horizontal overflow at 390px and 1440px. Root inspected both viewport captures. Temporary screenshots stay in ignored `.astro/holiday-drip/`.
-- Direct anonymous GETs returned HTTP200 for both canonical landing URLs on October22, with no password form. This is link/readiness evidence only, not an inventory or checkout test. Web-search's cached NYE page was stale, so it was not used to override current tracked content or the direct read.
-- `git diff --check` is clean. Only campaign documentation/artwork/render scripts and the Decisions Log are in scope; no runtime files were changed and no application test/build was necessary.
+Before this cadence revision, reviewers inspected the six original exports and four Batch 02 exports, including phone-size presentation. Local render/packaging checks covered dimensions, font/image loading, bounds, hashes and phase/asset mapping. Independent review checked Batch 02 platform text against the JSON and both alternative-to-original date/choice mappings. Those historical checks do not certify newly edited calendar fields: current packaging receipts and the coordinator's final readback establish the revised delivery state. See qa/verification.json and batch-02/qa/verification.json for the latest saved receipts.
 
-Actual Facebook/Instagram upload/reposition, grid crops and Story link/control overlays remain untested. No social account/schedule or messaging history was inspected. The Jingle Facebook event URL is unknown; this pack uses the canonical website. No guaranteed notifications, reach or sales outcome is claimed.
+Direct anonymous GETs returned HTTP 200 for both canonical landing pages on October 22 without a password form. That is link/readiness evidence, not a fresh inventory test. No social account was accessed for publishing or scheduling, and no notification/reach/sales guarantee is made. [Research notes](research-notes.md) preserve the evidence and distinguish Jon's current cadence choice from general platform findings.
 
-## Source and backup status
+Worktree: C:/Users/jdow8/dev/website-holiday-drip-20261022.
 
-Worktree: `C:/Users/jdow8/dev/website-holiday-drip-20261022`.
+Branch: codex/holiday-drip-20261022, based on fresh origin/main f8d3e8e23964e554d721eb7725931800d87de489. **Review snapshots are local and have not been pushed.** b189fcf precedes the cadence revision. The current revision is saved as its own local commit; use git status --short and git log -1 --oneline -- Context/marketing/holiday-drip-2026 to obtain the actual snapshot ID. Being under dev does not establish a GitHub backup. Do not push/merge Website main; it auto-deploys.
 
-Branch: `codex/holiday-drip-20261022`, freshly based on origin/main `f8d3e8e23964e554d721eb7725931800d87de489`. Shared Website/tprs checkouts and retained paid fixtures were left alone.
+Editable source, copy, exports, original generated art, supplied references, manifests and galleries belong in this feature branch. Dependencies, caches and temporary viewport screenshots remain ignored. Existing source assets and other worktrees are retained. The rejected September design kit is not an authority.
 
-The review snapshot is committed locally on this branch. **It has not been pushed.** New creative remains unapproved; Jon's brief requests pushing approved durable source/content. Record approval and push the feature branch after review. Do not push/merge Website main; it auto-deploys. Obtain the actual snapshot commit with `git log -1 --oneline -- Context/marketing/holiday-drip-2026` rather than assuming the base hash above is the deliverable commit.
+## Desktop delivery destinations
 
-Editable HTML, render scripts, all six final PNGs, the existing Google reference image, copy, calendar, manifest, contact sheet and gallery are included in the review snapshot. Original Santa/Mirrorball/logo/photo assets remain in their tracked original locations. Dependencies/caches and temporary viewport screenshots are ignored. The rejected September brand kit was not used.
+The current combined delivery uses these Batch 02 locations, including the originals for comparison:
 
-## Desktop delivery
+- C:/Users/jdow8/OneDrive/Desktop/NYE 2026/Drip review - batch 02
+- C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl/Drip review - batch 02
+- C:/Users/jdow8/OneDrive/Desktop/NYE 2026/Holiday-drip-2026-batch-02-REVIEW.zip
+- C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl/Holiday-drip-2026-batch-02-REVIEW.zip
 
-The combined review pack is copied into `Drip review - batch 01` beneath both requested Desktop folders:
-
-- `C:/Users/jdow8/OneDrive/Desktop/NYE 2026`
-- `C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl`
-
-Each parent also receives `Holiday-drip-2026-batch-01-REVIEW.zip`, a convenient bundle for a later prompt. The zip is a scheduling/review bundle; full asset reproduction uses this repository and its original tracked inputs. Existing Desktop files are retained. Source/delivery file hashes are checked; Desktop copies are not the editable authority or a claim of GitHub backup.
-
-No posts, schedules, texts, emails, ad purchases, runtime edits, holds, charges, refunds or production data changes were made.
+These destinations are refreshed from the revised repository pack and file hashes are checked during delivery. Batch 01 Desktop folders/ZIPs remain historical review copies and may contain superseded publishing dates; start a future session from the current Batch 02 pack. Desktop is a convenience delivery, not the editable authority or proof of GitHub backup.

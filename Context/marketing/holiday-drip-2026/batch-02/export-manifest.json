@@ -88,15 +88,15 @@
   "review_artifacts": [
     {
       "filename": "review.html",
-      "sha256": "7581887f3dfe969bfce4fc522dd895c9c340c6812f4c23e7ab2bc8ed2d9d111f",
+      "sha256": "9bdfc0a72c0b48d956c433f979c570df7de113939137fc45e3431fc2ea3d611e",
       "hashNormalization": "UTF-8 text with LF line endings"
     },
     {
       "filename": "contact-sheet.png",
       "width": 1440,
       "height": 1920,
-      "bytes": 2513965,
-      "sha256": "9720354f4861240a5adbffb4cb3675dab21d8f9542f6f4fbaa07a932fcfbea76",
+      "bytes": 2514176,
+      "sha256": "18ded86e8639e221162e464f7e0bfbe0ca759bd99e0eb0f7d339f40d440ed702",
       "purpose": "Review overview only; not a publishing asset"
     }
   ]

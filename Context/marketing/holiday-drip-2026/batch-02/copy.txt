@@ -2,11 +2,11 @@ TWISTED PIN HOLIDAY DRIP - BATCH 02
 Recommended visual alternatives - prepared October 22, 2026
 All proposed, not selected, approved, scheduled or published.
 
-These replace the creative choice for the existing Oct23/Oct26 occasions. Do not add them as extra posts alongside Batch01. All times America/Chicago. Full machine-readable fields and phase constraints: ../campaign.json.
+These replace the creative choice for the revised NYE October 28 / Jingle October 23 occasions. Do not add them as extra posts alongside Batch 01. All times America/Chicago. Full machine-readable fields and phase constraints: ../campaign.json.
 
 ======================================================================
 04-nye-mirrorball-moment - Give 2026 a proper send-off.
-Proposed: 2026-10-23T12:00:00-05:00 (America/Chicago)
+Proposed: 2026-10-28T12:00:00-05:00 (America/Chicago)
 Alternative to: 01-nye-set-the-clock
 Approved destination: https://www.twistedpin.com/new-years-eve/
 Phase: before_reservations_open
@@ -63,7 +63,7 @@ The image already carries the message. Add the native link sticker in the clear 
 
 ======================================================================
 05-jingle-santa-arrives - Make way for Santa.
-Proposed: 2026-10-26T12:00:00-05:00 (America/Chicago)
+Proposed: 2026-10-23T12:00:00-05:00 (America/Chicago)
 Alternative to: 02-jingle-santa-coming
 Approved destination: https://www.twistedpin.com/jingle-bowl/
 Phase: reservations_open
@@ -118,4 +118,4 @@ Alt text: An illustrated Santa carrying a green bowling ball stands among festiv
 Native link sticker: Reserve Jingle Bowl - https://www.twistedpin.com/jingle-bowl/
 The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.
 
-No additional SMS/Google repetition is recommended for this visual revision. The optional Batch01 drafts remain available; review prior sends before selecting them. Printed artwork URLs are not interactive Story links.
+No additional SMS/Google repetition is recommended for this visual revision. The optional Batch 01 drafts remain available; review prior sends before selecting them. Printed artwork URLs are not interactive Story links.

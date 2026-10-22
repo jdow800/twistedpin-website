@@ -1,31 +1,126 @@
-Use this prompt with the entire holiday-drip-2026 folder available, not just the preview image.
+Use this prompt with the entire current holiday-drip-2026 folder available, not
+just a preview image. Prefer the latest Batch 02 Desktop package; earlier
+Batch 01 delivery copies may contain superseded publishing dates.
 
 Help me work with the saved Twisted Pin holiday drip campaign.
 
 READ FIRST
-1. My current instruction in this chat. It controls whether this is review, revision, approval, scheduling or publication.
-2. README.md, HANDOFF.md, calendar.md and publishing-checklist.md in this folder.
-3. campaign.json: the structured copy for both batches, proposed dates, America/Chicago timezone, per-platform fields, image paths, phase constraints and actual status.
-   Also read alternative_concepts and creative_choice_groups: Batch 02 is the recommended visual alternative for the first two occasions. Choose ONE concept per group. Do not schedule an original and its alternative for the same occasion. Recommended is not selected or approved.
-4. batch-01-copy.txt for editorial context; use the platform text fields in campaign.json for execution. If the two disagree, resolve the discrepancy before action.
-   For Batch 02 concepts use batch-02/copy.txt and batch-02/README.md. Both batches remain available; do not mistake two available designs for two planned posts.
-5. The source manifests and individual exports. Contact sheets and QA images must never be uploaded as posts.
+1. My current instruction in this chat. It controls whether this is review,
+   revision, approval, scheduling or publication.
+2. README.md, HANDOFF.md, calendar.md, creative-brief.md and
+   publishing-checklist.md in this folder. The creative brief identifies the
+   October 2026 positioning report, later owner corrections and event-specific
+   audience direction; do not assume the maintained v1.0 guide is latest truth.
+3. campaign.json: structured copy, current proposed dates, America/Chicago,
+   platform fields, image paths, phase constraints and actual status.
+   Read alternative_concepts and creative_choice_groups. Choose ONE concept per
+   used group; recommended is not selected or approved. An original and its
+   alternative are not separate posts.
+4. batch-01-copy.txt and batch-02/copy.txt for editorial context. Use the platform
+   text fields in campaign.json for execution. Resolve a discrepancy before
+   action. batch-02/README.md identifies the latest artwork and provenance.
+5. Source manifests and individual exports. Contact sheets and QA images must
+   never be uploaded as posts.
 
-INTENT
-These are occasional special-event insertions around an existing social media team's normal content. Do not create a daily campaign or publish every optional variant. Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG. Treat optional same-day Stories, Google and SMS as separately selectable channels, not automatic additions.
+CURRENT INTENT AND CADENCE
+The campaign supplements our social media team's normal content. I revised the
+direction to slow pre-opening NYE, a tomorrow reminder, an opening announcement,
+then varied booking posts through December 28; Jingle posts weekly through its
+final weekend reminder on Friday, December 4. That direction is adopted. Exact
+publishing dates/times other than the fixed NYE opening remain proposals until
+selected in this session or already authorized in its context.
+
+The active calendar contains 16 Meta occasions plus three optional Google/SMS
+extras, totaling 19 rows. A paired Facebook/Instagram feed post is one editorial
+occasion. Usually there are one or two event feed occasions per week. November
+17, 18 and 20 deliberately create three during NYE opening week.
+
+Current proposed main dates, all America/Chicago:
+- NYE: October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am
+  after opening is confirmed; November 25, December 7, 16, 23 and 28 at noon.
+- Jingle: Fridays October 23, 30; November 6, 13, 20, 27; December 4, at noon.
+
+There is no optional extra NYE kickoff, November 15 reminder or December 6
+Jingle campaign post. Do not restore those superseded dates from an older pack.
+
+Prepared original IDs and current occasions:
+- 01-nye-set-the-clock: October 28 at noon. Alternative:
+  04-nye-mirrorball-moment, on the same occasion.
+- 02-jingle-santa-coming: October 23 at noon. Alternative:
+  05-jingle-santa-arrives, on the same occasion.
+- 03-nye-usually-sells-out: November 9 at noon.
+
+Later posts remain concept-only until their copy and artwork are produced and
+reviewed. Do not turn every available design into another calendar occasion.
+Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG.
+Stories, Google and SMS are separately selectable companions, not automatic adds.
+
+AUDIENCE AND POSITIONING
+Jingle is explicitly for families, and its creative may depart substantially
+from the usual venue positioning. Earlier NYE parties strongly welcome families;
+later parties have a more adult tone while still welcoming families. Do not
+invent an adults-only policy or late-party age cutoff. Use the current
+positioning report lightly for future imagery and copy, subject to my specific
+campaign direction and the verified event offer. Do not bring back the rejected
+September guide. In guest copy, Santa is a visit/photo opportunity, not a promise
+that he bowls with guests.
 
 SCHEDULING RULES
-- This saved prompt alone is not authorization to post, schedule or send. Follow my explicit instruction in the new chat and use only the assets/copy I approve. Do not repeatedly ask for approval already recorded in the current conversation.
-- Reconcile the manifest with the existing social team's calendar and current platform schedule before creating anything. Ask once for unavailable account/calendar details; do not invent them. Use a dry-run schedule if the needed platform capability is unavailable.
-- Only entries marked ready_for_review have prepared copy and exports, across both batches. Later calendar concepts are not ready to schedule; do not substitute unrelated artwork or mass-produce the series without my direction.
-- Preserve exact proposed dates unless I approve changes. If a date has passed, request a new date; do not immediately publish an old teaser. Convert America/Chicago correctly, including the November DST change. Proposed posting times are planning choices, not proven engagement optima.
-- Before November 18, 2026 at 9am Central, NYE creative says reservations WILL open at that time; the event is December31. Never publish the reservations-open phase early. Never reveal NYE party times/prices in pre-opening teasers.
-- Jingle is already bookable and is December6. Do not apply NYE's opening gate to it. Current availability still requires checking before a booking push.
-- Use the canonical URLs supplied in the manifest. Verify Instagram bio/link-hub instructions and Story stickers. If the publishing tool cannot create the selected format or native sticker, explain that specific limitation and prepare the supported part without claiming the entire job succeeded.
-- Check actual upload crops, link targets, historical versus current inventory wording, and event dates using publishing-checklist.md. No invented scarcity, prices, ages, offers or Santa schedule. No changes to website/backend/Roy runtime, checkout, homepage promotion timing or paid fixtures.
-- SMS, email and ad spend each require explicit instructions, even if copy is in the pack.
+- This saved prompt alone is not authorization to post, schedule or send. Follow
+  my explicit instruction in the new chat and use the assets/copy I approve.
+  Do not repeat an approval request already satisfied in the current context.
+- Reconcile the manifest with the social team's calendar, existing platform
+  schedule and actual previous posts before creating anything. Ask once for
+  unavailable necessary account/calendar details; do not invent them. If the
+  needed platform capability is unavailable, prepare a dry-run schedule and
+  identify the specific limitation.
+- Only ready_for_review entries have prepared copy and exports. That status
+  does not itself mean approved. Later concept-only entries are not ready to
+  schedule. Do not substitute unrelated artwork or mass-produce the remainder
+  without my direction.
+- Preserve proposed dates unless I authorize changes. If a date has passed,
+  obtain a new date instead of immediately publishing an old teaser. Convert
+  America/Chicago correctly across November's DST change. Times are planning
+  choices, not proven engagement optima.
+- NYE reservations open November 18, 2026 at 9am Central. Its event is December
+  31. Before opening, say reservations WILL open and withhold party times/prices.
+  Do not publish reservations-open creative early. Post-opening purchase posts
+  require current relevant availability; stop or adapt them if sold out.
+- Jingle is already bookable for December 6. Do not give it NYE's opening gate.
+  Its last campaign reminder is December 4. Check current availability before
+  any purchase invitation. Do not invent exact Santa appearance times.
+- Use the canonical NYE/Jingle website URLs in the manifest as the primary
+  booking destinations. A verified Facebook event link may be secondary after
+  the NYE event is created on November 18. Event dates are December 31 through
+  January 1, not the booking-release date, and Going/Interested does not reserve
+  a lane. Do not invent a Jingle Facebook event URL.
+- Verify Instagram bio/link-hub instructions and native Story link stickers.
+  A printed URL is not clickable. If the tool cannot add a required sticker,
+  prepare a manual Story task without claiming it is scheduled completely.
+- Check actual upload crops, links, date/phase, historical versus current
+  inventory wording and inclusions using publishing-checklist.md. NYE's party
+  essentials are bowling for the chosen time, shoes, one large pizza, one soda
+  pitcher and party favors per lane. Do not expand that to "everything handled,"
+  all-inclusive, decor service or included cocktails. Arcade and extra food/
+  drinks are separate; the specified midnight toast belongs only to the 10pm
+  party, whose time must not appear in pre-opening copy.
+- SMS, email and ad spend each need explicit instructions. Review recent sends
+  before selecting an optional SMS; social cadence does not imply text cadence.
+- Make no website/backend/Roy runtime, checkout, homepage timing, production
+  data or paid-fixture changes as part of content scheduling.
 
 AFTER AUTHORIZED ACTION
-Update campaign.json with the chosen channels, approved_at/approved_by, exact scheduled_at and platform IDs/URLs, or published_at and public URLs as appropriate. Preserve failures/unscheduled entries accurately. Save a dated handoff. Commit and push approved durable campaign changes on the isolated feature branch when authorized; never merge/push Website main as part of content scheduling. Main auto-deploys.
+Update campaign.json with selected_concept_id for each used creative group,
+chosen channels, approved_at/approved_by and the actual platform scheduling or
+publication state. Record exact scheduled_at with platform IDs/URLs, or
+published_at and public URLs, as appropriate. Preserve failures and unscheduled
+entries accurately. Save a dated handoff.
 
-My instruction for this session: [I will tell you which items/channels to review, revise or schedule.]
+Check actual Git status: previous review snapshots were local and not pushed.
+Commit and push approved durable campaign changes on the isolated feature
+branch when authorized. Never merge/push Website main as part of content
+scheduling; main auto-deploys. Refresh the Batch 02 Desktop folders and ZIPs
+from the repository and record which revision they contain.
+
+My instruction for this session: [I will tell you which items/channels to review,
+revise or schedule.]

@@ -6,7 +6,8 @@ Nothing here is approved, scheduled, published or sent.
 Copy only the public caption or Story text, not the internal instructions.
 
 Three concepts only. These are occasional additions to the social team's normal
-posts. The October 23 kickoff is optional; October 26 and 28 are the lighter start.
+posts. Revised cadence: Jingle starts October 23; NYE begins October 28, with
+a second reminder November 9. Later concepts are in calendar.md.
 All proposed publishing times are America/Chicago.
 
 NYE landing: https://www.twistedpin.com/new-years-eve/
@@ -20,7 +21,7 @@ for that concept. Add a real clickable link sticker to the Story.
 
 01 | NYE: SET THE CLOCK
 Stable ID: 01-nye-set-the-clock
-Proposed: Friday, October 23 at 12pm. Optional kickoff.
+Proposed: Wednesday, October 28 at 12pm.
 Phase: before reservations open.
 Job: make the November 18 opening date memorable.
 
@@ -71,7 +72,7 @@ Confirm this description against the final artwork before posting.
 
 02 | JINGLE: SANTA'S COMING. LET'S ROLL.
 Stable ID: 02-jingle-santa-coming
-Proposed: Monday, October 26 at 12pm.
+Proposed: Friday, October 23 at 12pm.
 Phase: reservations already open.
 Job: invite people to book their December 6 outing.
 
@@ -126,7 +127,7 @@ Sunday, December 6, 2026. Reservations are open.
 Confirm this description against the final artwork before posting.
 
 ONE OPTIONAL GOOGLE BUSINESS PROFILE VARIANT
-Proposed: October 26 at 12:15pm; only if it adds to existing profile content.
+Proposed: October 23 at 12:15pm; only if it adds to existing profile content.
 Post type: Update
 Action label: Book
 Action URL: https://www.twistedpin.com/jingle-bowl/
@@ -150,7 +151,7 @@ Twisted Pin: Santa's coming. Let's roll! Jingle Bowl is Dec 6. Bowling, pizza & 
 
 03 | NYE: OUR NYE PARTIES USUALLY SELL OUT
 Stable ID: 03-nye-usually-sells-out
-Proposed: Wednesday, October 28 at 9am.
+Proposed: Monday, November 9 at 12pm.
 Phase: before reservations open.
 Job: connect the opening reminder to Jon's confirmed sellout history.
 
@@ -211,10 +212,10 @@ EDITORIAL / PUBLISHING NOTES | INTERNAL ONLY
   history confirmed by Jon; it says nothing about today's remaining lanes.
 - These Jingle posts summarize selected inclusions. Full package prices,
   fees, rules and current reservation choices remain on the linked page.
-  No unlimited soda, drink inclusion, coupon or Santa bowling claim is made.
-- Stories are optional companions. For the lightest first week, publish the
-  October 26 and 28 feed concepts and use Stories only where the team wants
-  a clickable reminder. Do not add the optional kickoff to catch up later.
+  No unlimited soda, alcoholic-drink inclusion, coupon or Santa bowling claim is made.
+- Stories are optional companions. Prepared feed concepts now map to Jingle
+  October 23, NYE October 28 and NYE November 9. Use Stories selectively where
+  the team wants a clickable reminder; do not add old proposed dates as extra posts.
 - Each caption stands alone: event name, date, opening/bookable state and
   useful next action. A follower does not need to have seen an earlier drip.
 - Check the final composition, actual upload crop, link/bio/sticker, date

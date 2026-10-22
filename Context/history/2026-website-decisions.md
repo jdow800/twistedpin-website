@@ -1,3 +1,20 @@
+## 2026-10-22 - Holiday drip cadence and audience revision
+
+Jon clarified a slower NYE pre-opening drip, a November 17 tomorrow reminder,
+the fixed November 18 9am opening announcement, and varied booking invitations
+through December 28. Jingle should run weekly, ending Friday December 4 with a
+this-weekend invitation. Supersede the earlier weekly-NYE / 10-14-day-Jingle plan
+in the campaign calendar, machine-readable manifest, copy headers and previews.
+Exact editorial dates/times remain proposals; scheduling/sends are not authorized.
+
+The newer maintained brand positioning report should lightly guide creative.
+For this campaign Jon explicitly permits a family-led Jingle direction. NYE's
+earlier parties are also very family friendly; later parties lean more adult but
+still welcome families. Honor these audience instructions over generic placement
+preferences, without inventing age restrictions. Preserve the approved Santa
+visit/photo offer and actual NYE package inclusions; cocktails and extras remain
+separate. Source/report findings and final date map live with the campaign pack.
+
 ## 2026-10-22 - NYE mirrorball grip correction
 
 Jon supplied two bowling-ball references and requested more accurate finger/thumb

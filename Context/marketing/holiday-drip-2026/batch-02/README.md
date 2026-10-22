@@ -2,7 +2,7 @@
 
 **Recommended creative proposal, October 22, 2026. Not scheduled or published.** Jon invited stronger creative judgment: “open to whatever suggestion(s) ... it just needs to be epic.” This batch takes the existing Mirrorball and Santa ideas into new campaign illustrations, keeping event facts and typography editable.
 
-My recommended pair is the mirrored bowling ball for NYE and the festive Santa scene for Jingle. These are alternative visuals for the existing October 23 and October 26 occasions, not two additional posts. The October 28 historical-sellout reminder remains available from batch 01.
+My recommended pair is the mirrored bowling ball for NYE and the festive Santa scene for Jingle. Under Jon's revised cadence, these are alternative visuals for the NYE October 28 and Jingle October 23 occasions. The separate historical-sellout reminder is now proposed for November 9. The alternatives do not add posts; the current cadence and family/earlier/later audience direction are in the parent calendar and campaign manifest.
 
 **Mirrorball correction:** Jon's two bowling-ball references now guide the grip: two close finger holes with the thumb distinctly farther below. The current NYE exports use `artwork/nye-hero-v3-grip-corrected.png`. The prior hero, reference images and exact edit prompt are retained in `artwork/`; [edit provenance](artwork/nye-grip-correction.provenance.json) records the built-in imagegen call. Jingle, copy and proposed dates are unchanged.
 
@@ -14,8 +14,8 @@ My recommended pair is the mirrored bowling ball for NYE and the festive Santa s
 
 | Concept | Proposed occasion, America/Chicago | Angle | Formats |
 |---|---|---|---|
-| 04-nye-mirrorball-moment | Fri Oct 23, 12pm, optional kickoff | Give 2026 a proper send-off. Silver mirrorball reimagined as a bowling ball; save the Nov 18 9am reservations opening. | 1080×1350 feed + 1080×1920 Story |
-| 05-jingle-santa-arrives | Mon Oct 26, 12pm | Make way for Santa. Festive illustrated Santa, December 6; reservations already open. | 1080×1350 feed + 1080×1920 Story |
+| 04-nye-mirrorball-moment | Wed Oct 28, 12pm | Give 2026 a proper send-off. Silver mirrorball reimagined as a bowling ball; save the Nov 18 9am reservations opening. | 1080×1350 feed + 1080×1920 Story |
+| 05-jingle-santa-arrives | Fri Oct 23, 12pm | Make way for Santa. Festive illustrated Santa, December 6; reservations already open. | 1080×1350 feed + 1080×1920 Story |
 
 One 4:5 feed composition can be used on both Facebook and Instagram, with the platform-specific caption. Each 9:16 Story is laid out separately. The new generated imagery is illustrative, not a claim about an actual installation or a photograph of the venue. Santa carries a bowling ball in keeping with the approved character; the offer remains a visit/photo with Santa, not bowling alongside him.
 

@@ -1,10 +1,14 @@
 # Holiday event drips · 2026
 
-**Latest recommendation: [Batch 02 cinematic direction](batch-02/README.md).** Two new hero illustrations with editable typography offer stronger NYE/Jingle visuals for the same first two proposed occasions. Review [the new gallery](batch-02/review.html). Original batch 01 remains below for comparison. The scheduling manifest records the alternatives as mutually exclusive choices, not additional posts.
+**Latest recommendation: [Batch 02 cinematic direction](batch-02/README.md).** Two hero illustrations with editable typography offer NYE/Jingle alternatives for the same campaign occasions. Review [the new gallery](batch-02/review.html). Original batch 01 remains below for comparison. The scheduling manifest records the alternatives as mutually exclusive choices, not additional posts.
 
-**Review batch 01. All new dates, captions and compositions are proposed. Nothing in this pack is approved for publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
+**Latest cadence: Jon's revised direction is adopted; exact publishing dates/times, creative selection and channels remain proposed. Nothing in this pack is approved for scheduling or publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
 
-This supplements the social team's regular content. Reserve roughly one weekly NYE feed insertion until reservations open, with a Jingle insertion about every 10–14 days. Some weeks have two event feed posts, separated by several days. Paired Facebook/Instagram versions count as one editorial occasion. Story versions are alternatives or a light companion, not an instruction to publish every asset everywhere.
+This supplements the social team's regular content. NYE starts slowly, has a tomorrow reminder on November 17 and an opening announcement on November 18, then continues with varied booking posts through December 28. Jingle runs weekly on Fridays through December 4, its final weekend reminder. Paired Facebook/Instagram versions count as one editorial occasion. Usually there are one or two combined event feed occasions a week; November 17, 18 and 20 deliberately create three during NYE opening week. Stories remain optional companions.
+
+The active calendar has **16 Meta occasions plus three optional extras**, totaling 19 rows. The first NYE announcement is part of the revised plan, not an optional additional kickoff. The campaign contains no November 15 reminder or December 6 Jingle post.
+
+**Audience direction:** Jingle is explicitly for families and may depart substantially from the venue's usual positioning. NYE's earlier parties strongly welcome families; later parties lean more adult in tone while still welcoming families. Jon's event-specific direction controls this campaign. The current positioning report may lightly inform imagery and copy, but generic adults-first emphasis must not crowd out this welcome. Do not invent an adults-only rule or a late-party age cutoff. Guest-facing Santa copy still promises a visit with Santa, not bowling alongside him.
 
 ## Review first
 
@@ -13,19 +17,22 @@ This supplements the social team's regular content. Reserve roughly one weekly N
 - [Actual first-batch copy](batch-01-copy.txt): platform captions, Story/link treatment and selective SMS/Google options.
 - [Scheduling manifest](campaign.json): structured copy, dates, timezone, asset mapping, phase and approval state for both batches. Choose one visual per occasion.
 - [Brief research](research-notes.md): source links, evidence limits and the rationale for a light supplemental cadence.
+- [Creative brief](creative-brief.md): the identified October 2026 positioning report, later owner corrections and the campaign-specific family/daypart direction. Read it before new image or copy work; do not assume the maintained v1.0 file is the newest authority.
 - [Scheduling prompt](schedule-this-campaign.txt): bring this file and the campaign folder into a later session.
 - [Publishing checklist](publishing-checklist.md): actual platform checks still needed.
 - [QA receipt](qa/verification.json) and [handoff](HANDOFF.md): what was checked and actual Git/delivery status.
 
-## The three ideas
+## Prepared creative and revised dates
 
 | ID | Proposed first use, Central | Message | Asset files |
 |---|---|---|---|
-| 01-nye-set-the-clock | Fri Oct 23, 12pm, optional kickoff | The calendar reminder is for reservations opening | `01-nye-set-the-clock-feed.png`, `01-nye-set-the-clock-story.png` |
-| 02-jingle-santa-coming | Mon Oct 26, 12pm | Santa is coming December 6; reservations are open now | `02-jingle-santa-coming-feed.png`, `02-jingle-santa-coming-story.png` |
-| 03-nye-usually-sells-out | Wed Oct 28, 9am | Historical sellouts give guests a reason to plan ahead | `03-nye-usually-sells-out-feed.png`, `03-nye-usually-sells-out-story.png` |
+| 01-nye-set-the-clock | Wed Oct 28, 12pm | The calendar reminder is for reservations opening | `01-nye-set-the-clock-feed.png`, `01-nye-set-the-clock-story.png` |
+| 02-jingle-santa-coming | Fri Oct 23, 12pm | Santa is coming December 6; reservations are open now | `02-jingle-santa-coming-feed.png`, `02-jingle-santa-coming-story.png` |
+| 03-nye-usually-sells-out | Mon Nov 9, 12pm | Historical sellouts give guests a reason to plan ahead | `03-nye-usually-sells-out-feed.png`, `03-nye-usually-sells-out-story.png` |
 
-These are starting proposals, not measured best posting times. The social team's existing calendar takes precedence over a needless collision. If a suitable NYE announcement has already run, skip the optional Oct 23 kickoff. Check recent Jingle posts/texts before adding another announcement. Recalculate relative wording after any date move; absolute dates are printed on these designs.
+Batch 02's `04-nye-mirrorball-moment` is an alternative for NYE's October 28 occasion; `05-jingle-santa-arrives` is an alternative for Jingle's October 23 occasion. Choose one concept per group. Neither the recommendation nor the revised calendar selects a creative automatically. The third prepared concept remains November 9. Later artwork/copy are concept-only until produced and reviewed.
+
+**Proposed NYE dates:** October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am after opening is confirmed; November 25, December 7, 16, 23 and 28 at noon. **Proposed Jingle dates:** October 23, 30, November 6, 13, 20, 27 and December 4 at noon. All are America/Chicago. November 18 at 9am is the fixed reservations-opening fact; other publishing times are planning choices, not measured best times. Reconcile with the social team's calendar and actual prior posts/sends before execution. Recalculate relative wording after any approved date move.
 
 ## Format choices
 
@@ -38,7 +45,8 @@ The existing 1920 × 1005 Facebook event covers remain in their original packs. 
 - NYE: https://www.twistedpin.com/new-years-eve/. Reservations open **Wednesday, November 18, 2026 at 9am America/Chicago** (`2026-11-18T15:00:00Z`). The event date is December 31. Pre-opening copy does not disclose party times/prices. “Our NYE parties usually sell out” is the approved historical claim; it is not a current inventory statement.
 - Jingle: https://www.twistedpin.com/jingle-bowl/. Public and bookable now; event **Sunday, December 6, 2026**. “Santa's coming. Let's roll.” and “Bowling, pizza & a visit with Santa.” remain the approved language. Do not imply Santa bowls alongside guests.
 - Neither event takes coupons or loyalty reward offers. No new offer, age restriction, package inclusion or Santa appearance schedule is introduced here.
-- November 18 Facebook event creation is separate from its December 31–January 1 event dates. Existing approved copy describes six distinct reservation times. Going/Interested is not a reservation. Jingle's Facebook event URL remains unverified; this pack uses its website link.
+- November 18 Facebook event creation is separate from its December 31–January 1 event dates. Existing approved copy describes six distinct reservation times. Going/Interested is not a reservation. The canonical website link is primary for booking posts; a verified Facebook event URL may be a secondary link after the NYE event is created. Jingle's Facebook event URL remains unverified.
+- Safe NYE convenience wording is “The party essentials are covered. You bring your people,” followed by the actual inclusions: bowling for the chosen party time, shoes, one large pizza, one soda pitcher and party favors per lane. “Everything handled” or “all-inclusive” overstates the package. Decor service is not promised. Arcade cards, cocktails and additional food/drinks are separate; only the 10pm party includes the specified midnight toast, and that time stays out of pre-opening copy.
 
 ## Sources and reproduction
 
