@@ -1,121 +1,67 @@
-TWISTED PIN HOLIDAY DRIP - BATCH 02
-Recommended visual alternatives - prepared October 22, 2026
-All proposed, not selected, approved, scheduled or published.
+TWISTED PIN HOLIDAY DRIPS · Cinematic alternatives
+Copy revision: series-copy-v1
+Drafts for review. Nothing scheduled or published. Dates are proposed, America/Chicago.
+Use campaign.json post_copy_drafts for the current full-series copy and calendar.
+Alternatives occupy the same occasion; they do not add posts.
 
-These replace the creative choice for the revised NYE October 28 / Jingle October 23 occasions. Do not add them as extra posts alongside Batch 01. All times America/Chicago. Full machine-readable fields and phase constraints: ../campaign.json.
+04-nye-mirrorball-moment · Wed, Oct 28, 12:00 PM Central
+ART OPTION: Give 2026 a proper send-off.
 
-======================================================================
-04-nye-mirrorball-moment - Give 2026 a proper send-off.
-Proposed: 2026-10-28T12:00:00-05:00 (America/Chicago)
-Alternative to: 01-nye-set-the-clock
-Approved destination: https://www.twistedpin.com/new-years-eve/
-Phase: before_reservations_open
-Must publish before: 2026-11-18T09:00:00-06:00
+FACEBOOK
+Give 2026 a proper send-off. 🪩
 
-FACEBOOK_FEED
-Asset: ../batch-02/exports/04-nye-mirrorball-moment-feed.png
+Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.
 
-2026 deserves a proper send-off.
+Get your family or friends in on the plan.
 
-Pick your people. We'll give you something to put on the calendar.
+Save the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/
 
-New Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.
+INSTAGRAM (VERIFY EVENT-SPECIFIC BIO LINK)
+Give 2026 a proper send-off. 🪩
 
-Save the opening date. See NYE details: https://www.twistedpin.com/new-years-eve/
+Bowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.
 
-Alt text: An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/
+Get your family or friends in on the plan.
 
-INSTAGRAM_FEED
-Asset: ../batch-02/exports/04-nye-mirrorball-moment-feed.png
+Save the opening date. NYE details at the New Year's Eve link in our bio.
 
-2026 deserves a proper send-off.
+INSTAGRAM FALLBACK FINAL PARAGRAPH
+Save the opening date. NYE details: twistedpin.com/new-years-eve/
 
-Pick your people. We'll give you something to put on the calendar.
+OPTIONAL STORY MESSAGE
+December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.
+Native sticker: NYE details · https://www.twistedpin.com/new-years-eve/
+Do not duplicate text already present on the artwork.
 
-New Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.
+FEED FILE: batch-02/exports/04-nye-mirrorball-moment-feed.png
+STORY FILE: batch-02/exports/04-nye-mirrorball-moment-story.png
+ALT TEXT: An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/
 
-Save the opening date. NYE details at the link in our bio.
+05-jingle-santa-arrives · Fri, Oct 23, 12:00 PM Central
+ART OPTION: Make way for Santa.
 
-Alt text: An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/
+FACEBOOK
+Santa's coming. Let's roll. 🎅
 
-Instagram bio CTA requires verification. If unavailable, replace ONLY the final paragraph with:
-Save the opening date. Details: twistedpin.com/new-years-eve/
+Jingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.
 
-FACEBOOK_STORY (OPTIONAL)
-Asset: ../batch-02/exports/04-nye-mirrorball-moment-story.png
+Reserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/
 
-Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.
+INSTAGRAM (VERIFY EVENT-SPECIFIC BIO LINK)
+Santa's coming. Let's roll. 🎅
 
-Alt text: An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/
+Jingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.
 
-Native link sticker: See NYE details - https://www.twistedpin.com/new-years-eve/
-The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.
+Reserve through the Jingle Bowl link in our bio.
 
-INSTAGRAM_STORY (OPTIONAL)
-Asset: ../batch-02/exports/04-nye-mirrorball-moment-story.png
+INSTAGRAM FALLBACK FINAL PARAGRAPH
+Jingle Bowl reservations: twistedpin.com/jingle-bowl/
 
-Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.
+OPTIONAL STORY MESSAGE
+Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.
+Native sticker: Reserve Jingle Bowl · https://www.twistedpin.com/jingle-bowl/
+Do not duplicate text already present on the artwork.
 
-Alt text: An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/
-
-Native link sticker: See NYE details - https://www.twistedpin.com/new-years-eve/
-The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.
-
-======================================================================
-05-jingle-santa-arrives - Make way for Santa.
-Proposed: 2026-10-23T12:00:00-05:00 (America/Chicago)
-Alternative to: 02-jingle-santa-coming
-Approved destination: https://www.twistedpin.com/jingle-bowl/
-Phase: reservations_open
-Must publish before: 2026-12-06T15:15:00-06:00
-
-FACEBOOK_FEED
-Asset: ../batch-02/exports/05-jingle-santa-arrives-feed.png
-
-The big guy's on the calendar. Your move.
-
-Jingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.
-
-Your lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.
-
-Bring your people. Charge your phone. Reservations are open: https://www.twistedpin.com/jingle-bowl/
-
-Alt text: An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.
-
-INSTAGRAM_FEED
-Asset: ../batch-02/exports/05-jingle-santa-arrives-feed.png
-
-The big guy's on the calendar. Your move.
-
-Jingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.
-
-Your lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.
-
-Bring your people. Charge your phone. Reserve through the Jingle Bowl link in our bio.
-
-Alt text: An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.
-
-Instagram bio CTA requires verification. If unavailable, replace ONLY the final paragraph with:
-Bring your people. Charge your phone. Reservations: twistedpin.com/jingle-bowl/
-
-FACEBOOK_STORY (OPTIONAL)
-Asset: ../batch-02/exports/05-jingle-santa-arrives-story.png
-
-Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.
-
-Alt text: An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.
-
-Native link sticker: Reserve Jingle Bowl - https://www.twistedpin.com/jingle-bowl/
-The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.
-
-INSTAGRAM_STORY (OPTIONAL)
-Asset: ../batch-02/exports/05-jingle-santa-arrives-story.png
-
-Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.
-
-Alt text: An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.
-
-Native link sticker: Reserve Jingle Bowl - https://www.twistedpin.com/jingle-bowl/
-The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.
-
-No additional SMS/Google repetition is recommended for this visual revision. The optional Batch 01 drafts remain available; review prior sends before selecting them. Printed artwork URLs are not interactive Story links.
+FEED FILE: batch-02/exports/05-jingle-santa-arrives-feed.png
+STORY FILE: batch-02/exports/05-jingle-santa-arrives-story.png
+ALT TEXT: An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.

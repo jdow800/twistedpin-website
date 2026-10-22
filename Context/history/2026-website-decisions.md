@@ -1,3 +1,15 @@
+## 2026-10-22 - Full holiday series caption review
+
+Jon asked to expand the revised calendar into the actual post copy, assuming
+imagery and timing for discussion, including emoji treatment. Draft all sixteen
+Meta occasions with artwork headlines, Facebook/Instagram caption variants and
+optional one-frame Story text. Keep imagery readiness truthful: the hypothetical
+does not create the remaining art or authorize scheduling/publication. Save the
+full review set with date/phase/asset mappings and link it from the reusable prompt.
+Use selective relevant emojis as editorial tone, not a reach claim; no automatic
+hashtag block, duplicate blasts, unsupported scarcity or expanded package promise.
+Retain the current family-led Jingle and earlier-family/later-party NYE direction.
+
 ## 2026-10-22 - Holiday drip cadence and audience revision
 
 Jon clarified a slower NYE pre-opening drip, a November 17 tomorrow reminder,

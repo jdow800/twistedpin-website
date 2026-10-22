@@ -11,14 +11,21 @@ READ FIRST
    publishing-checklist.md in this folder. The creative brief identifies the
    October 2026 positioning report, later owner corrections and event-specific
    audience direction; do not assume the maintained v1.0 guide is latest truth.
-3. campaign.json: structured copy, current proposed dates, America/Chicago,
-   platform fields, image paths, phase constraints and actual status.
+3. campaign.json, schema 4: post_copy_drafts is canonical for all 16 Meta copy
+   drafts, keyed by calendar_id with copy_revision series-copy-v1. Read its
+   caption_body and variants.facebook_feed.caption / instagram_feed.caption,
+   including the full Instagram alternate without a verified bio link. Story
+   variants contain editorial_message and the native link_sticker destination.
+   Proposed dates mirror the calendar. Check image readiness separately.
    Read alternative_concepts and creative_choice_groups. Choose ONE concept per
    used group; recommended is not selected or approved. An original and its
    alternative are not separate posts.
-4. batch-01-copy.txt and batch-02/copy.txt for editorial context. Use the platform
-   text fields in campaign.json for execution. Resolve a discrepancy before
-   action. batch-02/README.md identifies the latest artwork and provenance.
+4. full-series-copy.md or copy-review.html for the full readable series, plus
+   batch-01-copy.txt and batch-02/copy.txt for prepared-art views. These are
+   synchronized/generated views, not separate editable authorities. Resolve a
+   discrepancy before action. Intermediate proposals live only in the ignored
+   local workspace, not this delivery. batch-02/README.md identifies artwork
+   and provenance.
 5. Source manifests and individual exports. Contact sheets and QA images must
    never be uploaded as posts.
 
@@ -50,10 +57,15 @@ Prepared original IDs and current occasions:
   05-jingle-santa-arrives, on the same occasion.
 - 03-nye-usually-sells-out: November 9 at noon.
 
-Later posts remain concept-only until their copy and artwork are produced and
-reviewed. Do not turn every available design into another calendar occasion.
+All 16 occasions now have actual copy drafts for review. Thirteen still need
+artwork; this copy pass made no additional art. Do not confuse copy readiness
+with a complete post, or turn every available design into another occasion.
 Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG.
 Stories, Google and SMS are separately selectable companions, not automatic adds.
+The optional extras are unchanged and retain separate manifest entries.
+
+Six of the 16 captions use one relevant emoji each; ten use none. There is no
+automatic hashtag block and no emoji-related reach or performance claim.
 
 AUDIENCE AND POSITIONING
 Jingle is explicitly for families, and its creative may depart substantially
@@ -74,10 +86,11 @@ SCHEDULING RULES
   unavailable necessary account/calendar details; do not invent them. If the
   needed platform capability is unavailable, prepare a dry-run schedule and
   identify the specific limitation.
-- Only ready_for_review entries have prepared copy and exports. That status
-  does not itself mean approved. Later concept-only entries are not ready to
-  schedule. Do not substitute unrelated artwork or mass-produce the remainder
-  without my direction.
+- Check copy readiness and actual artwork separately. All Meta copy is drafted;
+  only three occasions have prepared artwork choices, with two alternatives
+  for the same occasions. The remaining 13 cannot be treated as complete posts.
+  Review status is not approval. Do not substitute unrelated artwork or create
+  the remaining images without my direction.
 - Preserve proposed dates unless I authorize changes. If a date has passed,
   obtain a new date instead of immediately publishing an old teaser. Convert
   America/Chicago correctly across November's DST change. Times are planning
@@ -110,6 +123,12 @@ SCHEDULING RULES
   data or paid-fixture changes as part of content scheduling.
 
 AFTER AUTHORIZED ACTION
+Update the matching post_copy_drafts entries for the copy revision used and
+its actual approval/channel/execution state; keep prepared concept records and
+creative-choice selection consistent with those entries.
+Keep post_copy_drafts as the canonical Meta copy source. After any approved copy
+edit, regenerate full-series-copy.md and copy-review.html with
+node scripts/package-holiday-drip-copy.mjs and synchronize prepared-art views.
 Update campaign.json with selected_concept_id for each used creative group,
 chosen channels, approved_at/approved_by and the actual platform scheduling or
 publication state. Record exact scheduled_at with platform IDs/URLs, or

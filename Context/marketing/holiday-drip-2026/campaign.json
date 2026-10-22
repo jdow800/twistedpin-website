@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "campaign": "Twisted Pin holiday event drips 2026",
   "prepared_on": "2026-10-22",
   "timezone": "America/Chicago",
@@ -12,7 +12,7 @@
   "rules": [
     "Supplement the social team: usually 1-2 combined event feed occasions/week; intentional Nov17/18/20 opening-week exception. No daily duplicate blasts.",
     "Dates/times proposed, not approved or scheduled. Reconcile with the existing calendar.",
-    "Only ready_for_review entries have complete copy/art; concept_only entries must not be scheduled.",
+    "Only ready_for_review entries have prepared copy/art, still subject to review. copy_drafted_art_pending entries must not be scheduled. Optional concept_only entries are also incomplete.",
     "Approval of creative is separate from posting/scheduling/send authorization.",
     "Passed proposed dates require a revised date; no automatic catch-up.",
     "NYE before Nov18 2026 9am America/Chicago is pre-opening; no party times/prices.",
@@ -70,22 +70,25 @@
       "variants": {
         "facebook_feed": {
           "optional": false,
-          "caption": "Set the clock.\n\nNot for midnight. For November 18 at 9am Central.\n\nThat's when New Year's Eve reservations open at Twisted Pin. Bowling, pizza and your people. December 31, done right.\n\nPut the opening on your calendar. See NYE details: https://www.twistedpin.com/new-years-eve/",
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Save the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
           "asset": "exports/01-nye-set-the-clock-feed.png",
           "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
         },
         "instagram_feed": {
           "optional": false,
-          "caption": "Set the clock.\n\nNot for midnight. For November 18 at 9am Central.\n\nThat's when New Year's Eve reservations open at Twisted Pin. Bowling, pizza and your people. December 31, done right.\n\nPut the opening on your calendar. NYE details at the link in our bio.",
-          "alternate_final_paragraph_without_bio_link": "Put the opening on your calendar. Details: twistedpin.com/new-years-eve/",
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details at the New Year's Eve link in our bio.",
+          "cta": "Save the opening date. NYE details at the New Year's Eve link in our bio.",
           "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. NYE details: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/",
           "asset": "exports/01-nye-set-the-clock-feed.png",
           "alt_text": "Twisted Pin NYE. Done right. Set the clock. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. A silver Mirrorball above a real bowling party. www.twistedpin.com/new-years-eve/"
         },
         "facebook_story": {
           "optional": true,
           "asset": "exports/01-nye-set-the-clock-story.png",
-          "editorial_message": "Set the clock. NYE reservations open November 18 at 9am Central. The party? December 31.",
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "NYE details",
@@ -96,7 +99,7 @@
         "instagram_story": {
           "optional": true,
           "asset": "exports/01-nye-set-the-clock-story.png",
-          "editorial_message": "Set the clock. NYE reservations open November 18 at 9am Central. The party? December 31.",
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "NYE details",
@@ -105,7 +108,9 @@
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task."
         }
       },
-      "creative_choice_group": "nye-kickoff-visual"
+      "creative_choice_group": "nye-kickoff-visual",
+      "copy_revision": "series-copy-v1",
+      "copy_draft_id": "01-nye-set-the-clock"
     },
     {
       "id": "02-jingle-santa-coming",
@@ -132,22 +137,25 @@
       "variants": {
         "facebook_feed": {
           "optional": false,
-          "caption": "Santa's coming. Let's roll.\n\nA little less mall. A lot more bowl.\n\nJingle Bowl is Sunday, December 6 at Twisted Pin. Every lane includes 90 minutes of bowling, shoes, one large pizza and one pitcher of soda, plus access to the cookie & cocoa bar and a photo with Santa on your device.\n\nBring your people. Charge your phone. Reservations are open: https://www.twistedpin.com/jingle-bowl/",
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Reserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
           "asset": "exports/02-jingle-santa-coming-feed.png",
           "alt_text": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball."
         },
         "instagram_feed": {
           "optional": false,
-          "caption": "Santa's coming. Let's roll.\n\nA little less mall. A lot more bowl.\n\nJingle Bowl is Sunday, December 6 at Twisted Pin. Every lane includes 90 minutes of bowling, shoes, one large pizza and one pitcher of soda, plus access to the cookie & cocoa bar and a photo with Santa on your device.\n\nBring your people. Charge your phone. Reserve through the Jingle Bowl link in our bio.",
-          "alternate_final_paragraph_without_bio_link": "Bring your people. Charge your phone. Reservations: twistedpin.com/jingle-bowl/",
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve through the Jingle Bowl link in our bio.",
+          "cta": "Reserve through the Jingle Bowl link in our bio.",
           "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Jingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
           "asset": "exports/02-jingle-santa-coming-feed.png",
           "alt_text": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball."
         },
         "facebook_story": {
           "optional": true,
           "asset": "exports/02-jingle-santa-coming-story.png",
-          "editorial_message": "Santa's coming. Let's roll. Jingle Bowl | Sunday, December 6 Bowling, pizza & a visit with Santa. Reservations are open.",
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "Reserve Jingle Bowl",
@@ -158,7 +166,7 @@
         "instagram_story": {
           "optional": true,
           "asset": "exports/02-jingle-santa-coming-story.png",
-          "editorial_message": "Santa's coming. Let's roll. Jingle Bowl | Sunday, December 6 Bowling, pizza & a visit with Santa. Reservations are open.",
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "Reserve Jingle Bowl",
@@ -167,7 +175,9 @@
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task."
         }
       },
-      "creative_choice_group": "jingle-announcement-visual"
+      "creative_choice_group": "jingle-announcement-visual",
+      "copy_revision": "series-copy-v1",
+      "copy_draft_id": "02-jingle-santa-coming"
     },
     {
       "id": "03-nye-usually-sells-out",
@@ -194,22 +204,25 @@
       "variants": {
         "facebook_feed": {
           "optional": false,
-          "caption": "Our NYE parties usually sell out.\n\nConsider this your calendar nudge.\n\nReservations open Wednesday, November 18 at 9am Central. Bowling, pizza and your people, December 31 at Twisted Pin.\n\nPick your people. Save the opening date. https://www.twistedpin.com/new-years-eve/",
+          "caption": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Keep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
           "asset": "exports/03-nye-usually-sells-out-feed.png",
           "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
         },
         "instagram_feed": {
           "optional": false,
-          "caption": "Our NYE parties usually sell out.\n\nConsider this your calendar nudge.\n\nReservations open Wednesday, November 18 at 9am Central. Bowling, pizza and your people, December 31 at Twisted Pin.\n\nPick your people. Save the opening date. NYE details at the link in our bio.",
-          "alternate_final_paragraph_without_bio_link": "Pick your people. Save the opening date. Details: twistedpin.com/new-years-eve/",
+          "caption": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nFind the details at the New Year's Eve link in our bio, and save the opening date.",
+          "cta": "Find the details at the New Year's Eve link in our bio, and save the opening date.",
           "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. Details: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/",
           "asset": "exports/03-nye-usually-sells-out-feed.png",
           "alt_text": "Twisted Pin NYE. Done right. Our NYE parties usually sell out. New Year’s Eve is December 31, 2026. Reservations open Wednesday, November 18, 2026 at 9am Central. Silver Mirrorball and real bowling-party photograph. www.twistedpin.com/new-years-eve/"
         },
         "facebook_story": {
           "optional": true,
           "asset": "exports/03-nye-usually-sells-out-story.png",
-          "editorial_message": "Our NYE parties usually sell out. Reservations open November 18 at 9am Central. December 31 at Twisted Pin.",
+          "editorial_message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "NYE details",
@@ -220,7 +233,7 @@
         "instagram_story": {
           "optional": true,
           "asset": "exports/03-nye-usually-sells-out-story.png",
-          "editorial_message": "Our NYE parties usually sell out. Reservations open November 18 at 9am Central. December 31 at Twisted Pin.",
+          "editorial_message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "NYE details",
@@ -228,7 +241,9 @@
           },
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task."
         }
-      }
+      },
+      "copy_revision": "series-copy-v1",
+      "copy_draft_id": "03-nye-usually-sells-out"
     }
   ],
   "optional_extras": [
@@ -289,7 +304,9 @@
       "creative_choice_group": "jingle-announcement-visual",
       "recommended_concept_id": "05-jingle-santa-arrives",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "02-jingle-santa-coming"
     },
     {
       "id": "02-jingle-santa-coming-google",
@@ -315,7 +332,7 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Put the opening date on the calendar",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "Give 2026 a proper send-off.",
+      "headline_draft": "GIVE 2026 A PROPER SEND-OFF.",
       "angle": "Introduce December 31 NYE at Twisted Pin. Reservations open November 18 at 9am Central. No party times or prices yet.",
       "visual_direction": "Corrected cinematic mirrorball; original Set the clock layout is an alternative.",
       "status": "proposed",
@@ -323,7 +340,9 @@
       "phase": "before_reservations_open",
       "creative_choice_group": "nye-kickoff-visual",
       "recommended_concept_id": "04-nye-mirrorball-moment",
-      "must_publish_before": "2026-11-18T09:00:00-06:00"
+      "must_publish_before": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "01-nye-set-the-clock"
     },
     {
       "id": "18-jingle-family-outing",
@@ -338,10 +357,12 @@
       "angle": "A family outing with bowling, pizza and a visit with Santa on December 6.",
       "visual_direction": "Real, approved family bowling imagery or a new family-led composition. No fictional scene presented as a venue photograph.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "18-jingle-family-outing"
     },
     {
       "id": "05-jingle-whats-included",
@@ -353,13 +374,15 @@
       "objective": "Explain the lane package",
       "url": "https://www.twistedpin.com/jingle-bowl/",
       "headline_draft": "Bowling. Pizza. Santa. Sunday handled.",
-      "angle": "Per lane:90 minutes, shoes, one pizza, one soda pitcher, cookie/cocoa bar access and a Santa photo on the guest device. VIP adds one basket of fries.",
+      "angle": "Per lane: 90 minutes, shoes, one pizza, one soda pitcher, cookie/cocoa bar access and a Santa photo on the guest device. VIP adds one basket of fries.",
       "visual_direction": "Food/bowling detail carousel; keep package facts readable without inventing inclusions.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "05-jingle-whats-included"
     },
     {
       "id": "02-jingle-santa-coming-sms",
@@ -385,13 +408,15 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Give a light second nudge before opening",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "Our NYE parties usually sell out.",
+      "headline_draft": "OUR NYE PARTIES USUALLY SELL OUT.",
       "angle": "Historical sellouts give people a reason to save November 18 at 9am Central. December 31 is the event date.",
       "visual_direction": "Distinct existing historical-sellout layout; no new numeric countdown.",
       "status": "proposed",
       "content_readiness": "ready_for_review",
       "phase": "before_reservations_open",
-      "must_publish_before": "2026-11-18T09:00:00-06:00"
+      "must_publish_before": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "03-nye-usually-sells-out"
     },
     {
       "id": "08-jingle-santa-photo",
@@ -406,10 +431,12 @@
       "angle": "A visit with Santa and a photo on your own device are part of Jingle Bowl. December 6.",
       "visual_direction": "Santa/photo-focused image, clear family warmth; no promise Santa bowls with guests or appears at a specific time.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "08-jingle-santa-photo"
     },
     {
       "id": "09-nye-opens-tomorrow",
@@ -420,13 +447,15 @@
       "channel_plan": "FB + IG concise feed; optional one-frame Story",
       "objective": "Remind people about the morning opening",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "Tomorrow at 9am Central.",
+      "headline_draft": "TOMORROW AT 9AM CENTRAL.",
       "angle": "NYE reservations open Wednesday, November 18, 2026 at 9am Central. Keep this short; December 31 parties are the event.",
       "visual_direction": "Bold simple opening-date layout, distinct from the hero; optional one-frame Story.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "before_reservations_open",
-      "must_publish_before": "2026-11-18T09:00:00-06:00"
+      "must_publish_before": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "09-nye-opens-tomorrow"
     },
     {
       "id": "10-nye-reservations-open",
@@ -437,16 +466,18 @@
       "channel_plan": "FB + IG feed + optional Story; coordinate Facebook event creation",
       "objective": "Announce the actual sales opening",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "NYE reservations are open.",
+      "headline_draft": "NYE RESERVATIONS ARE OPEN.",
       "angle": "Pick your people. Choose your December 31 party. Family-friendly earlier celebrations and later parties are both available according to the live choices.",
       "visual_direction": "Dedicated reservations-open layout; never reuse pre-opening artwork unchanged.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "publication_gate": "Release only after the public opening is confirmed. Fixed intended announcement time 9am Central.",
       "source_pack": "../nye-2026/recommended-social-copy.txt",
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "10-nye-reservations-open"
     },
     {
       "id": "10-nye-reservations-open-sms",
@@ -476,10 +507,12 @@
       "angle": "Jingle Bowl includes cookie/cocoa bar access with your lane package, plus bowling, pizza and a visit with Santa.",
       "visual_direction": "Warm cocoa/cookie detail treatment; depict approved offering without adding unconfirmed food.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "17-jingle-cookie-cocoa"
     },
     {
       "id": "19-nye-party-essentials",
@@ -490,14 +523,16 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Show what the reserved lane includes",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "The party essentials are covered. You bring your people.",
+      "headline_draft": "THE PARTY ESSENTIALS ARE COVERED.",
       "angle": "Bowling for the selected party time, shoes, one large pizza, one soda pitcher and party favors per lane. Cocktails and other extras are separate.",
       "visual_direction": "Package/party detail carousel using real food and venue assets; no blanket decor-service promise.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "19-nye-party-essentials"
     },
     {
       "id": "11-jingle-december-plan",
@@ -508,14 +543,16 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Help families commit to December6",
       "url": "https://www.twistedpin.com/jingle-bowl/",
-      "headline_draft": "Put Santa on the family calendar.",
+      "headline_draft": "Same Santa. Your kind of lane.",
       "angle": "Choose your December 6 Jingle reservation. Traditional/VIP choices can be shown from current details.",
       "visual_direction": "Family planning angle, bowling/holiday atmosphere; a new composition, not the original poster repeated.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "11-jingle-december-plan"
     },
     {
       "id": "12-jingle-this-sunday",
@@ -527,15 +564,17 @@
       "objective": "Give the final campaign invitation",
       "url": "https://www.twistedpin.com/jingle-bowl/",
       "headline_draft": "Santa comes this Sunday. Let's roll.",
-      "angle": "Jingle Bowl is Sunday, December 6. Still time to make it your family outing if reservations remain available. Final campaign post; no implication that booking closesFriday.",
+      "angle": "Jingle Bowl is Sunday, December 6. Still time to make it your family outing if reservations remain available. Final campaign post; no implication that booking closes Friday.",
       "visual_direction": "Simple Sunday/December 6 design with Santa; optional Story companion.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "final_campaign_post": true,
       "claim_rule": "Last-chance tone is tied to the approaching event, not an invented remaining-lane count or Friday cutoff.",
       "requires_current_availability_check": true,
-      "must_publish_before": "2026-12-06T15:15:00-06:00"
+      "must_publish_before": "2026-12-06T15:15:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "12-jingle-this-sunday"
     },
     {
       "id": "14-nye-december-invitation",
@@ -546,14 +585,16 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Show that NYE can fit different plans",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "An earlier celebration or the midnight moment?",
-      "angle": "Earlier parties are very family friendly. The10pm party runs through midnight. Choose a current available party; later parties are not advertised as adults-only.",
+      "headline_draft": "AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?",
+      "angle": "Earlier parties are very family friendly. The 10pm party runs through midnight. Choose a current available party; later parties are not advertised as adults-only.",
       "visual_direction": "Show contrasting earlier-family and later-celebration scenes, with accurate party labels after opening.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "14-nye-december-invitation"
     },
     {
       "id": "15-nye-choose-your-party",
@@ -564,14 +605,16 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Make the booking choice easy",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "Your people. Your kind of NYE.",
-      "angle": "Traditional lanes or the VIP suite: pick the actual party and lane choice that suits your plans. No private-suite or genericVIPpair-selling claim.",
+      "headline_draft": "YOUR PEOPLE. YOUR KIND OF NYE.",
+      "angle": "Traditional lanes or the VIP suite: pick the actual party and lane choice that suits your plans. No private-suite or generic VIP pair-selling claim.",
       "visual_direction": "Real traditional/VIP venue imagery; keep event-specific configuration accurate.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "15-nye-choose-your-party"
     },
     {
       "id": "20-nye-group-chat",
@@ -582,14 +625,16 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Turn loose plans into a reservation",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "The group chat needs a New Year's plan.",
+      "headline_draft": "GIVE THE GROUP CHAT AN ACTUAL PLAN.",
       "angle": "Bring your family or friends for bowling and pizza. Make a night of it with a drink from the bar; cocktails and extra food/drinks are separate. Our NYE parties usually sell out, so choose your party while bookable.",
       "visual_direction": "People-led celebration imagery with a different composition; drinks can be a supporting angle, not an included-open-bar claim.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "20-nye-group-chat"
     },
     {
       "id": "21-nye-this-thursday",
@@ -600,15 +645,17 @@
       "channel_plan": "FB + IG feed; optional Story companion",
       "objective": "Make the final planned booking invitation useful",
       "url": "https://www.twistedpin.com/new-years-eve/",
-      "headline_draft": "New Year's Eve is this Thursday.",
+      "headline_draft": "NEW YEAR'S EVE IS THIS THURSDAY.",
       "angle": "Check the current December 31 choices and reserve if available. If sold out, replace with a factual guest-preparation message after verification.",
       "visual_direction": "Final-week layout with current action; no invented last-few-lanes claim.",
       "status": "proposed",
-      "content_readiness": "concept_only_not_ready_to_schedule",
+      "content_readiness": "copy_drafted_art_pending",
       "phase": "reservations_open",
       "final_campaign_post": true,
       "requires_current_availability_check": true,
-      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00"
+      "must_publish_on_or_after": "2026-11-18T09:00:00-06:00",
+      "copy_status": "draft_for_review",
+      "copy_draft_id": "21-nye-this-thursday"
     }
   ],
   "execution_log": [],
@@ -638,25 +685,28 @@
       "variants": {
         "facebook_feed": {
           "optional": false,
-          "caption": "2026 deserves a proper send-off.\n\nPick your people. We'll give you something to put on the calendar.\n\nNew Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.\n\nSave the opening date. See NYE details: https://www.twistedpin.com/new-years-eve/",
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Save the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
           "asset": "batch-02/exports/04-nye-mirrorball-moment-feed.png",
           "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
         },
         "instagram_feed": {
           "optional": false,
-          "caption": "2026 deserves a proper send-off.\n\nPick your people. We'll give you something to put on the calendar.\n\nNew Year's Eve at Twisted Pin: bowling, pizza and your people on December 31. Reservations open Wednesday, November 18, 2026 at 9am Central.\n\nSave the opening date. NYE details at the link in our bio.",
-          "alternate_final_paragraph_without_bio_link": "Save the opening date. Details: twistedpin.com/new-years-eve/",
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details at the New Year's Eve link in our bio.",
+          "cta": "Save the opening date. NYE details at the New Year's Eve link in our bio.",
           "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. NYE details: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/",
           "asset": "batch-02/exports/04-nye-mirrorball-moment-feed.png",
           "alt_text": "An artistic silver mirrorball shaped like a bowling ball glows in teal and gold. Give 2026 a proper send-off. NYE. Done right. December 31, 2026 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central. www.twistedpin.com/new-years-eve/"
         },
         "facebook_story": {
           "optional": true,
           "asset": "batch-02/exports/04-nye-mirrorball-moment-story.png",
-          "editorial_message": "Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.",
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
           "additional_overlay_text": null,
           "link_sticker": {
-            "label": "See NYE details",
+            "label": "NYE details",
             "url": "https://www.twistedpin.com/new-years-eve/"
           },
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
@@ -671,10 +721,10 @@
         "instagram_story": {
           "optional": true,
           "asset": "batch-02/exports/04-nye-mirrorball-moment-story.png",
-          "editorial_message": "Give 2026 a proper send-off. December 31 at Twisted Pin. Reservations open Wednesday, November 18, 2026 at 9am Central.",
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
           "additional_overlay_text": null,
           "link_sticker": {
-            "label": "See NYE details",
+            "label": "NYE details",
             "url": "https://www.twistedpin.com/new-years-eve/"
           },
           "instructions": "The image already carries the message. Add the native link sticker in the clear bottom area and inspect controls. Do not paste duplicate text over the art. If the tool cannot add the required sticker, prepare a manual Story task.",
@@ -696,7 +746,9 @@
         "description": "Corrected finger-pair/thumb spacing using user-supplied bowling-ball references.",
         "master": "batch-02/artwork/nye-hero-v3-grip-corrected.png",
         "provenance": "batch-02/artwork/nye-grip-correction.provenance.json"
-      }
+      },
+      "copy_revision": "series-copy-v1",
+      "copy_draft_id": "01-nye-set-the-clock"
     },
     {
       "id": "05-jingle-santa-arrives",
@@ -723,22 +775,25 @@
       "variants": {
         "facebook_feed": {
           "optional": false,
-          "caption": "The big guy's on the calendar. Your move.\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.\n\nYour lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.\n\nBring your people. Charge your phone. Reservations are open: https://www.twistedpin.com/jingle-bowl/",
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Reserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
           "asset": "batch-02/exports/05-jingle-santa-arrives-feed.png",
           "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
         },
         "instagram_feed": {
           "optional": false,
-          "caption": "The big guy's on the calendar. Your move.\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026.\n\nYour lane includes 90 minutes of bowling, shoes, one pizza, one soda pitcher, cookie & cocoa bar access and a Santa photo on your device.\n\nBring your people. Charge your phone. Reserve through the Jingle Bowl link in our bio.",
-          "alternate_final_paragraph_without_bio_link": "Bring your people. Charge your phone. Reservations: twistedpin.com/jingle-bowl/",
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve through the Jingle Bowl link in our bio.",
+          "cta": "Reserve through the Jingle Bowl link in our bio.",
           "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Jingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
           "asset": "batch-02/exports/05-jingle-santa-arrives-feed.png",
           "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/."
         },
         "facebook_story": {
           "optional": true,
           "asset": "batch-02/exports/05-jingle-santa-arrives-story.png",
-          "editorial_message": "Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.",
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "Reserve Jingle Bowl",
@@ -756,7 +811,7 @@
         "instagram_story": {
           "optional": true,
           "asset": "batch-02/exports/05-jingle-santa-arrives-story.png",
-          "editorial_message": "Make way for Santa. Jingle Bowl: Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now.",
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
           "additional_overlay_text": null,
           "link_sticker": {
             "label": "Reserve Jingle Bowl",
@@ -775,7 +830,9 @@
       "alternative_to": "02-jingle-santa-coming",
       "creative_choice_group": "jingle-announcement-visual",
       "recommendation": "recommended_visual_direction",
-      "batch": "batch-02"
+      "batch": "batch-02",
+      "copy_revision": "series-copy-v1",
+      "copy_draft_id": "02-jingle-santa-coming"
     }
   ],
   "creative_choice_groups": [
@@ -858,5 +915,1130 @@
       "date": "2026-10-19"
     },
     "do_not_use": "Rejected September8 generated brand guide/source kit."
-  }
+  },
+  "copy_revision": "series-copy-v1",
+  "copy_style": {
+    "status": "draft_for_review",
+    "authority": "post_copy_drafts is the current full-series Meta copy authority; prepared concept variants mirror it. Optional extras remain separate.",
+    "voice": "Warm, specific and playful. Jingle is family-led. NYE welcomes families earlier and later, with a more adult night-out angle in selected later posts.",
+    "emoji": "Zero or one relevant emoji in the caption hook; six of sixteen captions use one. No emoji added to artwork headlines or Story text by default.",
+    "hashtags": "No automatic hashtag block in these drafts. This is an editorial choice, not a reach claim.",
+    "platforms": "Share the caption body across Facebook and Instagram; use a direct website CTA on Facebook and a verified event-specific bio CTA on Instagram. A full plain-address Instagram fallback is supplied.",
+    "story": "Short optional companion with a native link sticker. If final art already carries the text, do not paste a duplicate overlay.",
+    "imagery": "Headlines describe the proposed artwork. Only three editorial occasions currently have prepared art. The remaining thirteen still need artwork and review."
+  },
+  "post_copy_drafts": [
+    {
+      "calendar_id": "02-jingle-santa-coming",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-10-23T12:00:00-05:00",
+      "proposed_publish_at_utc": "2026-10-23T17:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families planning a holiday outing",
+      "objective": "Introduce the bookable family outing",
+      "artwork_headline": "Make way for Santa.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "prepared_options_require_selection_and_review",
+      "candidate_concept_ids": [
+        "02-jingle-santa-coming",
+        "05-jingle-santa-arrives"
+      ],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.",
+      "emoji": "🎅",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Reserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve through the Jingle Bowl link in our bio.",
+          "cta": "Reserve through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Jingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed October 23 announcement; pair with the chosen Santa hero and verify the event-specific bio link before using the primary Instagram CTA.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "01-nye-set-the-clock",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-10-28T12:00:00-05:00",
+      "proposed_publish_at_utc": "2026-10-28T17:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "before_reservations_open",
+      "audience": "Families and friends considering NYE",
+      "objective": "Put the opening date on the calendar",
+      "artwork_headline": "GIVE 2026 A PROPER SEND-OFF.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "prepared_options_require_selection_and_review",
+      "candidate_concept_ids": [
+        "01-nye-set-the-clock",
+        "04-nye-mirrorball-moment"
+      ],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.",
+      "emoji": "🪩",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Save the opening date and see NYE details: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details at the New Year's Eve link in our bio.",
+          "cta": "Save the opening date. NYE details at the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. NYE details: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Give 2026 a proper send-off. 🪩\n\nBowling, pizza and your people. New Year's Eve is December 31 at Twisted Pin, and the first date to save is Wednesday, November 18, 2026 at 9am Central. That's when reservations open.\n\nGet your family or friends in on the plan.\n\nSave the opening date. NYE details: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "December 31 plans start here. Reservations open Wednesday, November 18, 2026 at 9am Central. Save the date.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed October 28 kickoff. One mirrorball emoji at the end of the hook connects to the corrected hero; no other emoji. The recommended visual remains alternative 04, occupying this existing calendar occasion. Pre-opening only. Verify the bio destination before using the primary Instagram CTA. Draft for review, not approval or scheduling.",
+      "requires_current_availability_check": false,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "18-jingle-family-outing",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-10-30T12:00:00-05:00",
+      "proposed_publish_at_utc": "2026-10-30T17:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families with children",
+      "objective": "Help families picture the experience",
+      "artwork_headline": "A little less mall. A lot more bowl.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Reserve your family's Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's lane through the Jingle Bowl link in our bio.",
+          "cta": "Reserve your family's lane through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Reserve your family's lane: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "A little less mall. A lot more bowl.\n\nTrade another errand for a family outing on Sunday, December 6, 2026. Jingle Bowl at Twisted Pin brings 90 minutes of bowling, pizza and a visit with Santa. The kids can show off their bowling. You can defend your reputation.\n\nReserve your family's lane: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Less mall. More bowl. Jingle Bowl is Sunday, December 6. Reserve your family's lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Less mall. More bowl. Jingle Bowl is Sunday, December 6. Reserve your family's lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed October 30 family-outing post; use approved real family-bowling imagery and keep the humor welcoming.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "05-jingle-whats-included",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-06T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-06T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families comparing holiday plans",
+      "objective": "Explain the lane package",
+      "artwork_headline": "Bowling. Pizza. Santa. Sunday handled.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Choose your lane and reserve: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane through the Jingle Bowl link in our bio.",
+          "cta": "Choose your lane through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Choose your lane and reserve: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Bowling, pizza & Santa. Jingle Bowl, Sunday, December 6. See the lane packages and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Bowling, pizza & Santa. Jingle Bowl, Sunday, December 6. See the lane packages and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 6 package explainer; keep per-lane quantities explicit and show fries only as the VIP inclusion.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "03-nye-usually-sells-out",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-09T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-09T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "before_reservations_open",
+      "audience": "Returning NYE guests, families and friends",
+      "objective": "Give a light second nudge before opening",
+      "artwork_headline": "OUR NYE PARTIES USUALLY SELL OUT.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "prepared_options_require_selection_and_review",
+      "candidate_concept_ids": [
+        "03-nye-usually-sells-out"
+      ],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nKeep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Keep the NYE link handy: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nFind the details at the New Year's Eve link in our bio, and save the opening date.",
+          "cta": "Find the details at the New Year's Eve link in our bio, and save the opening date.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save the opening date. Details: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Our NYE parties usually sell out.\n\nIf Twisted Pin is your December 31 plan, put the opening on your calendar: Wednesday, November 18, 2026 at 9am Central. Reservations open then.\n\nRound up your family or friends now, so you're ready to choose your party when booking begins.\n\nSave the opening date. Details: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Our NYE parties usually sell out. Save Wednesday, November 18, 2026 at 9am Central for December 31 reservations.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 9. Historical sellout statement is supported by Jon; it makes no current scarcity or remaining-lane claim. No emoji: let the headline carry this reminder. Pre-opening only; verify the bio destination. Draft for review.",
+      "requires_current_availability_check": false,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "08-jingle-santa-photo",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-13T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-13T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families planning Santa photos",
+      "objective": "Make the Santa visit concrete",
+      "artwork_headline": "Bring your people. Charge your phone.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.",
+      "emoji": "📷",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Reserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.\n\nReserve through the Jingle Bowl link in our bio.",
+          "cta": "Reserve through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Jingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Bring your people. Charge your phone. 📷\n\nJingle Bowl is Sunday, December 6, 2026 at Twisted Pin. Come for bowling, pizza and a visit with Santa, then capture the holiday photo on your own device.\n\nYour camera roll could use a little Christmas.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Santa photo? Bring your phone. Jingle Bowl is Sunday, December 6. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Santa photo? Bring your phone. Jingle Bowl is Sunday, December 6. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 13 Santa-photo post; the guest supplies the photo device and no exact Santa appearance time is promised.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-17T18:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-18T00:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "before_reservations_open",
+      "audience": "All interested NYE planners",
+      "objective": "Remind people about the morning opening",
+      "artwork_headline": "TOMORROW AT 9AM CENTRAL.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Pick your people tonight, then choose your December 31 party when booking opens.",
+      "emoji": "⏰",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Pick your people tonight, then choose your December 31 party when booking opens.\n\nSave this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Save this link for tomorrow: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Pick your people tonight, then choose your December 31 party when booking opens.\n\nSave the date. Tomorrow, use the New Year's Eve link in our bio to reserve.",
+          "cta": "Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Save this address for tomorrow: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Set the alarm. ⏰\n\nNew Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Pick your people tonight, then choose your December 31 party when booking opens.\n\nSave this address for tomorrow: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Tomorrow: Wednesday, November 18, 2026, 9am Central. NYE reservations open for December 31. Save the link.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Tomorrow: Wednesday, November 18, 2026, 9am Central. NYE reservations open for December 31. Save the link.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "NYE details",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 17 at 6pm Central only. The single alarm emoji belongs at the end of the hook. Reword tomorrow/tonight if this date changes. Keep the absolute opening line on artwork as well. The Instagram CTA requires the NYE bio link to be correct before publication. Draft for review.",
+      "requires_current_availability_check": false,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-18T09:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-18T15:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Families, returning guests and friends planning NYE",
+      "objective": "Announce the actual sales opening",
+      "artwork_headline": "NYE RESERVATIONS ARE OPEN.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "NYE reservations are open.\n\nDecember 31 at Twisted Pin: bowling, pizza and your favorite people. Pick an earlier party with the kids, a later celebration with friends, or bring the whole crew along.\n\nChoose your party time and reserve your lane online.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "NYE reservations are open.\n\nDecember 31 at Twisted Pin: bowling, pizza and your favorite people. Pick an earlier party with the kids, a later celebration with friends, or bring the whole crew along.\n\nChoose your party time and reserve your lane online.\n\nReserve your New Year's Eve party: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Reserve your New Year's Eve party: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "NYE reservations are open.\n\nDecember 31 at Twisted Pin: bowling, pizza and your favorite people. Pick an earlier party with the kids, a later celebration with friends, or bring the whole crew along.\n\nChoose your party time and reserve your lane online.\n\nReserve through the New Year's Eve link in our bio.",
+          "cta": "Reserve through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "NYE reservations: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "NYE reservations are open.\n\nDecember 31 at Twisted Pin: bowling, pizza and your favorite people. Pick an earlier party with the kids, a later celebration with friends, or bring the whole crew along.\n\nChoose your party time and reserve your lane online.\n\nNYE reservations: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "NYE reservations are open. December 31: bring your people, choose your party time and reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "NYE reservations are open. December 31: bring your people, choose your party time and reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Fixed intended opening announcement November 18 at 9am Central, released only after public booking is confirmed open. No emoji: direct action takes priority. Check current party choices and the bio destination. The Facebook event's date is December 31, not November 18; event creation remains separately controlled. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "17-jingle-cookie-cocoa",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-20T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-20T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families looking for a festive Sunday",
+      "objective": "Highlight another reason for a family visit",
+      "artwork_headline": "A little cocoa between frames.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.",
+      "emoji": "☕",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Make it your family's Sunday. Reserve: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve through the Jingle Bowl link in our bio.",
+          "cta": "Make it your family's Sunday. Reserve through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Make it your family's Sunday. Reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reservations: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Cocoa, cookies and a little competition. Jingle Bowl is Sunday, December 6. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Cocoa, cookies and a little competition. Jingle Bowl is Sunday, December 6. Reserve your lane.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 20 cocoa-and-cookies post; use the approved offering without depicting unconfirmed toppings, refills or extras.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-25T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-25T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Families and friends who want an organized celebration",
+      "objective": "Show what the reserved lane includes",
+      "artwork_headline": "THE PARTY ESSENTIALS ARE COVERED.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin. Reserve your NYE party online.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin. Reserve your NYE party online.\n\nSee the packages and reserve: https://www.twistedpin.com/new-years-eve/",
+          "cta": "See the packages and reserve: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin. Reserve your NYE party online.\n\nSee the packages and reserve through the New Year's Eve link in our bio.",
+          "cta": "See the packages and reserve through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Packages and reservations: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin. Reserve your NYE party online.\n\nPackages and reservations: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Your December 31 lane package covers the party essentials. Pick your people, reserve your NYE party.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Your December 31 lane package covers the party essentials. Pick your people, reserve your NYE party.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 25. Concrete inclusion/convenience angle; per-lane quantities and selected-party duration are explicit. No all-inclusive, unlimited-food, decoration-service or entire-evening promise. Keep cocktails and other paid extras out of this inclusion-led image unless clearly labeled separate. Check availability and bio link before publication. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "11-jingle-december-plan",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-11-27T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-11-27T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families who have not reserved",
+      "objective": "Help families commit to December6",
+      "artwork_headline": "Same Santa. Your kind of lane.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "Same Santa. Your kind of lane.\n\nTraditional lanes or the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPick your time and put Santa on the family calendar.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Same Santa. Your kind of lane.\n\nTraditional lanes or the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPick your time and put Santa on the family calendar.\n\nChoose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "Choose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Same Santa. Your kind of lane.\n\nTraditional lanes or the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPick your time and put Santa on the family calendar.\n\nChoose your December 6 reservation through the Jingle Bowl link in our bio.",
+          "cta": "Choose your December 6 reservation through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "December 6 reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Same Santa. Your kind of lane.\n\nTraditional lanes or the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPick your time and put Santa on the family calendar.\n\nDecember 6 reservations: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Traditional lanes or VIP? Jingle Bowl is Sunday, December 6. Choose your time and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Traditional lanes or VIP? Jingle Bowl is Sunday, December 6. Choose your time and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "12-jingle-this-sunday",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-12-04T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-12-04T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "jingle-bowl-2026",
+      "event_date": "2026-12-06",
+      "phase": "reservations_open",
+      "audience": "Families considering this weekend",
+      "objective": "Give the final campaign invitation",
+      "artwork_headline": "Santa comes this Sunday. Let's roll.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/jingle-bowl/",
+      "caption_body": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve your lane: https://www.twistedpin.com/jingle-bowl/",
+          "cta": "See available times and reserve your lane: https://www.twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve through the Jingle Bowl link in our bio.",
+          "cta": "See available times and reserve through the Jingle Bowl link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Current times and reservations: twistedpin.com/jingle-bowl/",
+          "alternate_caption_without_verified_bio_link": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nCurrent times and reservations: twistedpin.com/jingle-bowl/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Santa comes this Sunday, December 6. Jingle Bowl at Twisted Pin. Check times and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Santa comes this Sunday, December 6. Jingle Bowl at Twisted Pin. Check times and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve Jingle Bowl",
+            "url": "https://www.twistedpin.com/jingle-bowl/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed December 4 final campaign post; verify that booking is still available, and never imply reservations close Friday.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-12-07T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-12-07T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Families planning earlier celebrations and groups considering later parties",
+      "objective": "Show that NYE can fit different plans",
+      "artwork_headline": "AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "An early celebration or the midnight moment?\n\nOn December 31, bring the family for bowling and pizza earlier in the day, or join our 10pm party to ring in 2027. Later parties bring more of a night-out feel, and families are still welcome.\n\nChoose the party that works for your people and reserve online.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "An early celebration or the midnight moment?\n\nOn December 31, bring the family for bowling and pizza earlier in the day, or join our 10pm party to ring in 2027. Later parties bring more of a night-out feel, and families are still welcome.\n\nChoose the party that works for your people and reserve online.\n\nExplore the current party choices: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Explore the current party choices: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "An early celebration or the midnight moment?\n\nOn December 31, bring the family for bowling and pizza earlier in the day, or join our 10pm party to ring in 2027. Later parties bring more of a night-out feel, and families are still welcome.\n\nChoose the party that works for your people and reserve online.\n\nExplore the current party choices through the New Year's Eve link in our bio.",
+          "cta": "Explore the current party choices through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Party choices and reservations: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "An early celebration or the midnight moment?\n\nOn December 31, bring the family for bowling and pizza earlier in the day, or join our 10pm party to ring in 2027. Later parties bring more of a night-out feel, and families are still welcome.\n\nChoose the party that works for your people and reserve online.\n\nParty choices and reservations: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "December 31: celebrate earlier or ring in 2027 with the 10pm party. Families welcome. Reserve online.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "December 31: celebrate earlier or ring in 2027 with the 10pm party. Families welcome. Reserve online.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed December 7. Different dayparts, with explicit family welcome for later parties and no invented age cutoff. The 10pm party runs through midnight; earlier parties do not. Publish this particular time invitation only if the 10pm party remains bookable; otherwise revise to actual choices. Verify bio link. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-12-16T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-12-16T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Families and friend groups choosing their setting",
+      "objective": "Make the booking choice easy",
+      "artwork_headline": "YOUR PEOPLE. YOUR KIND OF NYE.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nSee the current choices, pick your party time and reserve online.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nSee the current choices, pick your party time and reserve online.\n\nChoose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Choose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nSee the current choices, pick your party time and reserve online.\n\nChoose your party and lane option through the New Year's Eve link in our bio.",
+          "cta": "Choose your party and lane option through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Choose your party and lane option: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nSee the current choices, pick your party time and reserve online.\n\nChoose your party and lane option: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "Traditional lanes or VIP suite? Choose your December 31 party, then reserve your kind of New Year's Eve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "Traditional lanes or VIP suite? Choose your December 31 party, then reserve your kind of New Year's Eve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed December 16. Couch seating is a sourced VIP feature. No private-suite, suite-possession, guest-capacity or generic pair-selling claim. Publish a two-setting comparison only while both options are relevant to current choices; otherwise adapt accurately. Verify bio link. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-12-23T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-12-23T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Families, friend groups and mixed groups still deciding",
+      "objective": "Turn loose plans into a reservation",
+      "artwork_headline": "GIVE THE GROUP CHAT AN ACTUAL PLAN.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out. Check the current choices and reserve.",
+      "emoji": "🥂",
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out. Check the current choices and reserve.\n\nMake the plan here: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Make the plan here: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out. Check the current choices and reserve.\n\nMake the plan through the New Year's Eve link in our bio.",
+          "cta": "Make the plan through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Make the plan here: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "Give the group chat an actual plan. 🥂\n\nDecember 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.\n\nOur NYE parties usually sell out. Check the current choices and reserve.\n\nMake the plan here: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "December 31 needs a plan. Bring family or friends for bowling and pizza. Check NYE choices and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "December 31 needs a plan. Bring family or friends for bowling and pizza. Check NYE choices and reserve.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed December 23. One cheers emoji at the end of the hook supports the night-out angle without implying an included drink. The caption explicitly states the cocktail is sold separately. Historical sellouts are not current scarcity. Check availability and bio destination before publication. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "copy_revision": "series-copy-v1",
+      "status": "draft_for_review",
+      "proposed_publish_at": "2026-12-28T12:00:00-06:00",
+      "proposed_publish_at_utc": "2026-12-28T18:00:00.000Z",
+      "timezone": "America/Chicago",
+      "event": "nye-2026",
+      "event_date": "2026-12-31",
+      "phase": "reservations_open",
+      "audience": "Unbooked NYE planners; booked guests only if converted to guest service",
+      "objective": "Make the final planned booking invitation useful",
+      "artwork_headline": "NEW YEAR'S EVE IS THIS THURSDAY.",
+      "artwork_headline_status": "proposal_not_necessarily_rendered",
+      "artwork_status": "pending",
+      "candidate_concept_ids": [],
+      "selected_concept_id": null,
+      "url": "https://www.twistedpin.com/new-years-eve/",
+      "caption_body": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and time with your people. Celebrate earlier with the family or make it a later night.\n\nChoose an available party and reserve your lane online. Then get to work on that victory dance.",
+      "emoji": null,
+      "variants": {
+        "facebook_feed": {
+          "optional": false,
+          "caption": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and time with your people. Celebrate earlier with the family or make it a later night.\n\nChoose an available party and reserve your lane online. Then get to work on that victory dance.\n\nCheck current NYE availability: https://www.twistedpin.com/new-years-eve/",
+          "cta": "Check current NYE availability: https://www.twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "instagram_feed": {
+          "optional": false,
+          "caption": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and time with your people. Celebrate earlier with the family or make it a later night.\n\nChoose an available party and reserve your lane online. Then get to work on that victory dance.\n\nCheck current availability through the New Year's Eve link in our bio.",
+          "cta": "Check current availability through the New Year's Eve link in our bio.",
+          "requires_verified_bio_link": true,
+          "alternate_final_paragraph_without_bio_link": "Check current NYE availability: twistedpin.com/new-years-eve/",
+          "alternate_caption_without_verified_bio_link": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and time with your people. Celebrate earlier with the family or make it a later night.\n\nChoose an available party and reserve your lane online. Then get to work on that victory dance.\n\nCheck current NYE availability: twistedpin.com/new-years-eve/",
+          "asset": null
+        },
+        "facebook_story": {
+          "optional": true,
+          "editorial_message": "NYE is this Thursday, December 31. Check available parties and reserve your lane for your people.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        },
+        "instagram_story": {
+          "optional": true,
+          "editorial_message": "NYE is this Thursday, December 31. Check available parties and reserve your lane for your people.",
+          "additional_overlay_text": null,
+          "link_sticker": {
+            "label": "Reserve NYE",
+            "url": "https://www.twistedpin.com/new-years-eve/"
+          },
+          "asset": null,
+          "instructions": "Use as a short Story message with separately composed artwork and a native link sticker. If the final artwork already carries the message, do not duplicate it in an overlay. Select the actual reviewed asset; if stickers are unsupported, prepare a manual Story task."
+        }
+      },
+      "editorial_note": "Proposed December 28 only; December 31, 2026 is Thursday. Final planned sales invitation requires a fresh availability check. If sold out, do not post this version: replace with verified guest-preparation information. No last-few, last-chance or inventory-count claim. Verify bio link. Draft for review.",
+      "requires_current_availability_check": true,
+      "approved_by": null,
+      "approved_at": null,
+      "selected_channels": [],
+      "scheduled_at": null,
+      "published_at": null,
+      "platform_ids": {},
+      "platform_urls": {}
+    }
+  ]
 }

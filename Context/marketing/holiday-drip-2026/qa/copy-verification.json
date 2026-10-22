@@ -1,0 +1,46 @@
+{
+  "checked_at": "2026-10-22T21:43:55.166Z",
+  "copy_revision": "series-copy-v1",
+  "source_sha256_lf": "e84fed84691f08ebca337e54dd0449b885fdf94f306ec119a61bc1dba45fa3b0",
+  "draft_count": 16,
+  "emoji_count": 6,
+  "art_pending": 13,
+  "checks": {
+    "all_meta_calendar_rows_have_copy": true,
+    "prepared_concept_captions_synchronized": true,
+    "canonical_links_and_bio_fallbacks": true,
+    "chicago_dates_and_phase": true,
+    "empty_execution_and_approval_state": true,
+    "outbound_requests": 0
+  },
+  "browser_checks": [
+    {
+      "width": 390,
+      "captions_match_source": true,
+      "filter_counts": {
+        "all": 16,
+        "jingle": 7,
+        "nye": 9
+      },
+      "platform_toggle": true,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "width": 1440,
+      "captions_match_source": true,
+      "filter_counts": {
+        "all": 16,
+        "jingle": 7,
+        "nye": 9
+      },
+      "platform_toggle": true,
+      "horizontal_overflow": false,
+      "page_errors": []
+    }
+  ],
+  "limitations": [
+    "Editorial drafts, not approved copy. Thirteen occasions still need artwork.",
+    "No actual platform crop, inventory, bio destination, account schedule, publication or send was tested."
+  ]
+}

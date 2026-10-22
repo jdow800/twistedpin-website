@@ -8,14 +8,17 @@ This supplements the social team's regular content. NYE starts slowly, has a tom
 
 The active calendar has **16 Meta occasions plus three optional extras**, totaling 19 rows. The first NYE announcement is part of the revised plan, not an optional additional kickoff. The campaign contains no November 15 reminder or December 6 Jingle post.
 
+**Full-series copy is now drafted for all 16 Meta occasions.** Review [the copy gallery](copy-review.html) or [the readable copy file](full-series-copy.md). Three occasions have existing artwork choices; **13 still need artwork**. This copy pass creates no additional art or scheduling approval. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block.
+
 **Audience direction:** Jingle is explicitly for families and may depart substantially from the venue's usual positioning. NYE's earlier parties strongly welcome families; later parties lean more adult in tone while still welcoming families. Jon's event-specific direction controls this campaign. The current positioning report may lightly inform imagery and copy, but generic adults-first emphasis must not crowd out this welcome. Do not invent an adults-only rule or a late-party age cutoff. Guest-facing Santa copy still promises a visit with Santa, not bowling alongside him.
 
 ## Review first
 
 - [Visual gallery](review.html) and [contact sheet](contact-sheet.png): three new compositions, each with independent feed and Story layouts.
-- [Calendar](calendar.md): proposed dated cadence, audience, objective and links, including later concepts that have not been produced.
-- [Actual first-batch copy](batch-01-copy.txt): platform captions, Story/link treatment and selective SMS/Google options.
-- [Scheduling manifest](campaign.json): structured copy, dates, timezone, asset mapping, phase and approval state for both batches. Choose one visual per occasion.
+- [Full-series copy gallery](copy-review.html) and [readable copy](full-series-copy.md): 16 artwork headlines, Facebook/Instagram captions, bio-link alternatives and optional Story messages for review.
+- [Calendar](calendar.md): proposed dated cadence, audience, objective, links and actual artwork readiness.
+- [First-batch copy](batch-01-copy.txt): synchronized prepared-art captions and the unchanged selective SMS/Google drafts.
+- [Scheduling manifest](campaign.json): schema 4; `post_copy_drafts` is canonical for the 16 Meta copy drafts, keyed by `calendar_id`, with revision `series-copy-v1`. Existing concepts and alternatives mirror those captions. Choose one visual per occasion; dates remain proposed.
 - [Brief research](research-notes.md): source links, evidence limits and the rationale for a light supplemental cadence.
 - [Creative brief](creative-brief.md): the identified October 2026 positioning report, later owner corrections and the campaign-specific family/daypart direction. Read it before new image or copy work; do not assume the maintained v1.0 file is the newest authority.
 - [Scheduling prompt](schedule-this-campaign.txt): bring this file and the campaign folder into a later session.
@@ -30,7 +33,7 @@ The active calendar has **16 Meta occasions plus three optional extras**, totali
 | 02-jingle-santa-coming | Fri Oct 23, 12pm | Santa is coming December 6; reservations are open now | `02-jingle-santa-coming-feed.png`, `02-jingle-santa-coming-story.png` |
 | 03-nye-usually-sells-out | Mon Nov 9, 12pm | Historical sellouts give guests a reason to plan ahead | `03-nye-usually-sells-out-feed.png`, `03-nye-usually-sells-out-story.png` |
 
-Batch 02's `04-nye-mirrorball-moment` is an alternative for NYE's October 28 occasion; `05-jingle-santa-arrives` is an alternative for Jingle's October 23 occasion. Choose one concept per group. Neither the recommendation nor the revised calendar selects a creative automatically. The third prepared concept remains November 9. Later artwork/copy are concept-only until produced and reviewed.
+Batch 02's `04-nye-mirrorball-moment` is an alternative for NYE's October 28 occasion; `05-jingle-santa-arrives` is an alternative for Jingle's October 23 occasion. Choose one concept per group. Neither the recommendation nor the revised calendar selects a creative automatically. The third occasion with artwork remains November 9. All 16 occasions now have copy drafts; the other 13 still need matching artwork before they can become complete posts.
 
 **Proposed NYE dates:** October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am after opening is confirmed; November 25, December 7, 16, 23 and 28 at noon. **Proposed Jingle dates:** October 23, 30, November 6, 13, 20, 27 and December 4 at noon. All are America/Chicago. November 18 at 9am is the fixed reservations-opening fact; other publishing times are planning choices, not measured best times. Reconcile with the social team's calendar and actual prior posts/sends before execution. Recalculate relative wording after any approved date move.
 
@@ -59,9 +62,12 @@ npm ci --no-audit --no-fund
 npx playwright install chromium
 node scripts/render-holiday-drip-nye.mjs
 node scripts/render-holiday-drip-jingle.mjs
+node scripts/package-holiday-drip-copy.mjs
 node scripts/package-holiday-drip.mjs
 ```
 
 The rendering scripts use local assets, block browser network requests and do not build/deploy the Website. `npm ci` / browser installation only prepare local dependencies. No environment files or production credentials are needed. Renderers write this campaign folder; final exports, editable sources, manifests and contact sheet are intended to stay in Git. Dependencies and temporary caches remain ignored. Desktop folders are convenience deliveries, not the only archive.
+
+The copy packager generates `full-series-copy.md`, `copy-review.html` and the prepared batch copy files from `campaign.json.post_copy_drafts`. Edit the canonical copy fields, synchronize any prepared concept variants, and regenerate. Intermediate proposal inputs are retained only in the ignored `.astro/holiday-copy/` workspace; the durable draft authority is `campaign.json`. Optional Google/SMS extras retain their separate manifest entries. See [copy verification](qa/copy-verification.json) for coverage, date/link consistency and mobile/desktop review checks.
 
 New work remains review material until Jon chooses the direction. His request specifies committing/pushing approved durable content to the feature branch; check the handoff for the actual approval and backup status rather than assuming that the folder's location means it is backed up.

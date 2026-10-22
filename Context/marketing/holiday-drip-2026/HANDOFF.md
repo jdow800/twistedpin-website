@@ -6,6 +6,8 @@ Updated October 22, 2026. **Jon's revised cadence and audience direction are ado
 
 Use [campaign.json](campaign.json) for structured execution fields and [calendar.md](calendar.md) for the readable calendar. This handoff supersedes the earlier weekly-NYE / every-10-to-14-days-Jingle recommendation. Earlier review artifacts do not supply current publishing dates.
 
+**All 16 Meta occasions now have actual copy drafts for review.** Start with [copy-review.html](copy-review.html) or [full-series-copy.md](full-series-copy.md). Schema 4's post_copy_drafts is the canonical source, keyed by calendar_id with copy_revision series-copy-v1. It holds the common caption_body, full Facebook/Instagram feed captions, the full Instagram fallback without a verified bio link, and optional Story editorial_message/native link_sticker fields. Proposed dates mirror the calendar. Existing three concepts and two alternatives have synchronized caption variants; optional Google/SMS extras are unchanged.
+
 The campaign adds **16 Meta occasions** to the social team's normal program: nine NYE and seven Jingle. Three separately selectable Google/SMS extras bring the active calendar to **19 rows**. A paired Facebook/Instagram feed treatment is one editorial occasion; an alternate design is not another occasion. Stories are optional companions. Usually there are one or two feed occasions per week, with a deliberate three-occasion exception on November 17, 18 and 20.
 
 | Event | Proposed dates and times, America/Chicago | Purpose |
@@ -23,7 +25,7 @@ Jingle is explicitly aimed at families, with permission for a substantial depart
 
 Read [creative-brief.md](creative-brief.md) for the identified October 2026 positioning report and later owner corrections; do not assume the maintained v1.0 file is the newest authority. Use that report lightly to inform future imagery/copy. It must not erase the family audience, impose a new visual identity, change the offer or restore the rejected September guide. Guest-facing Jingle language stays "a visit with Santa"; conversational "Bowl with Santa" does not establish that Santa bowls alongside guests.
 
-## Prepared creative versus later concepts
+## Copy readiness and remaining artwork
 
 Three original concepts have completed feed/Story art and platform copy:
 
@@ -33,7 +35,9 @@ Three original concepts have completed feed/Story art and platform copy:
 | 02-jingle-santa-coming | October 23, noon | 05-jingle-santa-arrives, "Make way for Santa" |
 | 03-nye-usually-sells-out | November 9, noon | No additional alternative in this pack |
 
-The [Batch 02 gallery](batch-02/review.html) is the latest recommended visual direction. The original batch remains available for comparison. The manifest's creative_choice_groups require one selection per used occasion; a recommendation is not selection or approval. All selected-concept fields remain null and selected-channel arrays empty. Later dates remain concept_only_not_ready_to_schedule; they need reviewed copy/art, not a pre-opening teaser reused after booking opens.
+The [Batch 02 gallery](batch-02/review.html) is the latest recommended visual direction. The original batch remains available for comparison. The manifest's creative_choice_groups require one selection per used occasion; a recommendation is not selection or approval. All selected-concept fields remain null and selected-channel arrays empty. **Thirteen occasions still need artwork**, despite having complete caption drafts. This pass made no new art. Do not mark those rows ready to schedule or reuse a pre-opening teaser after booking opens.
+
+Emoji treatment is editorial: one relevant emoji in six of the 16 captions, none in the other ten, and no automatic hashtag block. Headlines remain clean. There is no claimed reach or sales benefit from emoji use. Full copy review is separate from selecting a visual, approving a date/channel or authorizing publication.
 
 Jon requested stronger visuals, then supplied two bowling-ball photographs to correct the NYE grip. The current NYE master is batch-02/artwork/nye-hero-v3-grip-corrected.png, with a close finger pair and a lower thumb. The earlier hero is retained as history. Exact generation/edit prompts, supplied references, editable overlays, final exports and manifests stay with the project. The NYE illustration is symbolic campaign art, not documentary evidence of the venue or promised decorations. Jingle uses an illustrated Santa scene.
 
@@ -49,6 +53,8 @@ Jon requested stronger visuals, then supplied two bowling-ball photographs to co
 
 Bring [schedule-this-campaign.txt](schedule-this-campaign.txt) and the whole campaign folder. Read the user's new instruction first, then this handoff, the manifest, calendar and publishing checklist. Reconcile creative groups, selected channels, live phase and existing platform schedule before any authorized action. Do not treat an old proposed date as permission to publish immediately. The saved prompt is a resumption aid, not posting authorization.
 
+Use post_copy_drafts for Meta execution text. The prepared-batch text files and generated full-series review are views of that source. Intermediate proposal files were moved to the ignored .astro/holiday-copy/ workspace after consolidation; they are not execution authority. After canonical edits, synchronize prepared concept variants and regenerate the review with node scripts/package-holiday-drip-copy.mjs. Resolve any mismatch before action.
+
 Optional SMS/Google drafts are choices, not another weekly series. Review recent Jingle broadcasts and ordinary marketing sends before selecting any SMS; do not silently reuse the separately attributed /jb/ campaign link. No audience, messaging history or existing platform schedule was inspected during preparation. Native Instagram bio links, actual upload crops and Story sticker/control previews still need the publisher's check.
 
 ## Verification and source status
@@ -57,9 +63,11 @@ Before this cadence revision, reviewers inspected the six original exports and f
 
 Direct anonymous GETs returned HTTP 200 for both canonical landing pages on October 22 without a password form. That is link/readiness evidence, not a fresh inventory test. No social account was accessed for publishing or scheduling, and no notification/reach/sales guarantee is made. [Research notes](research-notes.md) preserve the evidence and distinguish Jon's current cadence choice from general platform findings.
 
+The 16 caption proposals received an independent phase/package/audience/date/CTA/scarcity review. The copy packager verified all 16 calendar mappings, phase/date and canonical links, synchronized prepared captions and empty approval/execution fields. The local review page passed at 390px and 1440px: exact Facebook/Instagram caption parity, event filters (7 Jingle / 9 NYE), platform toggle, no horizontal overflow, page errors or outbound network requests. Both widths were visually inspected. See qa/copy-verification.json. The original and Batch 02 packagers also passed after caption updates. These checks do not validate nonexistent later artwork, current inventory or actual platform publishing previews. No runtime build or production test was needed for this content-only change.
+
 Worktree: C:/Users/jdow8/dev/website-holiday-drip-20261022.
 
-Branch: codex/holiday-drip-20261022, based on fresh origin/main f8d3e8e23964e554d721eb7725931800d87de489. **Review snapshots are local and have not been pushed.** b189fcf precedes the cadence revision. The current revision is saved as its own local commit; use git status --short and git log -1 --oneline -- Context/marketing/holiday-drip-2026 to obtain the actual snapshot ID. Being under dev does not establish a GitHub backup. Do not push/merge Website main; it auto-deploys.
+Branch: codex/holiday-drip-20261022, based on fresh origin/main f8d3e8e23964e554d721eb7725931800d87de489. **Review commits are local and have not been pushed.** Use git status --short and git log -1 --oneline -- Context/marketing/holiday-drip-2026 to determine which full-copy changes are committed and obtain the actual snapshot ID. Being under dev does not establish a GitHub backup. Do not push/merge Website main; it auto-deploys.
 
 Editable source, copy, exports, original generated art, supplied references, manifests and galleries belong in this feature branch. Dependencies, caches and temporary viewport screenshots remain ignored. Existing source assets and other worktrees are retained. The rejected September design kit is not an authority.
 
@@ -72,4 +80,4 @@ The current combined delivery uses these Batch 02 locations, including the origi
 - C:/Users/jdow8/OneDrive/Desktop/NYE 2026/Holiday-drip-2026-batch-02-REVIEW.zip
 - C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl/Holiday-drip-2026-batch-02-REVIEW.zip
 
-These destinations are refreshed from the revised repository pack and file hashes are checked during delivery. Batch 01 Desktop folders/ZIPs remain historical review copies and may contain superseded publishing dates; start a future session from the current Batch 02 pack. Desktop is a convenience delivery, not the editable authority or proof of GitHub backup.
+These destinations are refreshed from the revised repository pack, including the full-series copy review, with file hashes checked during delivery. Batch 01 Desktop folders/ZIPs remain historical review copies and may contain superseded publishing dates; start a future session from the current Batch 02 pack. Desktop is a convenience delivery, not the editable authority or proof of GitHub backup.
