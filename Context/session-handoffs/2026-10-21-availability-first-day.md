@@ -90,6 +90,39 @@ two hours in the first sample), so these are stability observations, not a
 matched-package performance benchmark. Neither journey selected a time or
 created a hold/payment. All adjacent-day prefetch requests also settled.
 
-Website source remains local while the backend's 30-minute acceptance runs.
-Deployment identity and fresh production evidence must be recorded after the
-coordinated release; no live performance improvement is claimed yet.
+Backend acceptance cleared before publication: 31 rounds over 30 minutes,
+95 GETs without failure, plus the independent early/late mobile journeys.
+Website main `b6458ebe301a3c755122d53a03b60df1548816bd` then deployed successfully
+as Vercel `dpl_3rwdL9rNzGhhJkf6CojrDcFeGxUV`. The loaded production component
+explicitly references that deployment. NYE opening commits `5bc9661`/`babcefb`
+remain untouched and unpublished in their owner's worktree.
+
+At 00:33 UTC, separate fresh 390 px contexts measured first usable package
+readiness without opening the calendar or interacting first:
+
+| Flow | Actual initial selection | First usable package from navigation | Times after package click |
+| --- | --- | --- | --- |
+| Regular | October 21 | 2,835 ms | 42 ms |
+| Birthday | October 31, after automatic next-opening selection | 3,805 ms | 45 ms |
+
+These are single observations, not an A/B benchmark or a latency guarantee.
+CDN/backend cache state was uncontrolled. Ordinary query-string dates do not seed
+the wizard; the actual dates above were verified separately using the selected
+product's forms GET and its exact day-read history. The prior incident journeys
+deliberately opened calendars, so their navigation figures are not comparable.
+For regular booking, day reads began at 1,837 ms and month reads at 2,962 ms:
+the first usable package appeared before the background month requests began.
+Both selected products reused exactly one existing day request after the click;
+no additional selected-product/date request was needed for their times.
+
+All 16 regular and 14 birthday API requests settled with HTTP 200, with no page
+errors or horizontal overflow. Package and time-list screenshots were visually
+reviewed. No time, Continue, customer-form, hold or payment action was performed.
+Independent final checks confirmed home, NYE landing, NYE reserve and proxy health
+return 200, anonymous Jingle remains protected at 401, and the real December 31
+ordinary-booking handoff shows the NYE countdown link without layout/errors.
+
+Ignored release receipts/screens are under `.astro/availability-first-day/`:
+`live-released-b6458eb-{regular,birthday}-receipt.json`, corresponding package/time
+PNGs, and `live-route-checks.json`. Durable results are summarized here; the new
+offline test scripts above reproduce the behavior without production traffic.
