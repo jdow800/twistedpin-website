@@ -1,0 +1,128 @@
+{
+    "verifiedAt":  "2026-10-22T18:47:13.4535563Z",
+    "scope":  "Local source and Desktop copies only; no publication or production probe",
+    "destination":  "Windows Desktop/2026 Jingle Bowl",
+    "lastVerifiedWebsiteRuntime":  "0729566add2a3692853c2a577c394990194f514e",
+    "allMatched":  true,
+    "files":  [
+                  {
+                      "source":  "public/jingle-bowl/jingle-square.png",
+                      "file":  "jingle-square.png",
+                      "bytes":  2275802,
+                      "sha256":  "bb82ccb9ba6497d5a1acf52419c7db54799715ed514e5216d8a863cb8f9658d6",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "public/jingle-bowl/jingle-square.webp",
+                      "file":  "jingle-square.webp",
+                      "bytes":  127324,
+                      "sha256":  "4a2c7789b84884da8b9c8d4c049940c3ab4113a800e3ac6adfd699c852a2d510",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "public/jingle-bowl/jingle-wide.png",
+                      "file":  "jingle-wide.png",
+                      "bytes":  1480551,
+                      "sha256":  "71d840f189a64bbceb2fa840a40bdb8de834af245e9bfd410b57af7d606cd88e",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "public/jingle-bowl/jingle-wide.webp",
+                      "file":  "jingle-wide.webp",
+                      "bytes":  118522,
+                      "sha256":  "a49c398fbae4d66e747124fe40a1276f3251b92ea2a62224d354e181f3e8625f",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/delivery/README-delivery.txt",
+                      "file":  "README-delivery.txt",
+                      "bytes":  5260,
+                      "sha256":  "8ab2d36df6b33c96701cabb4cfc7d0b4ceaaa522a86ddcd3200dd8ffe5125830",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/delivery/recommended-copy.txt",
+                      "file":  "recommended-copy.txt",
+                      "bytes":  3607,
+                      "sha256":  "673d4c80148a16408bf7a4b69388ab0f00439792880c5b43f58ae412dc0de60c",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/delivery/staff-7shifts-tldr.txt",
+                      "file":  "staff-7shifts-tldr.txt",
+                      "bytes":  1205,
+                      "sha256":  "366b57e5e305a0a420cf1124d1528798b77694c842af17e34874019eff3f6abf",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/Jingle-Bowl-LED-1920x1080.mp4",
+                      "file":  "Jingle-Bowl-LED-1920x1080.mp4",
+                      "bytes":  1784443,
+                      "sha256":  "31f2751bec3fdd9b75ed969bab1d827b6f093aa7c4a225f00887a8bf3fe88bae",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/Jingle-Bowl-LED-1920x1080.png",
+                      "file":  "Jingle-Bowl-LED-1920x1080.png",
+                      "bytes":  676062,
+                      "sha256":  "947cf7f0ef2138c1a0a950aafb2b9de79b6871a2ffec6320f4615d722f16cf75",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/START-HERE-LED.txt",
+                      "file":  "START-HERE-LED.txt",
+                      "bytes":  1191,
+                      "sha256":  "041f4b940e7113152fbfe9c77be4fd8268b238ee94799f6742bcd11bb9d6d3f6",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/facebook/Jingle-Bowl-Facebook-Event-Cover-1920x1005.png",
+                      "file":  "Jingle-Bowl-Facebook-Event-Cover-1920x1005.png",
+                      "bytes":  3557804,
+                      "sha256":  "0a550cf1fe6ebc427c583a5dbf224717894cfe2d203f63acc63fb101d5173dd1",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/facebook/README.txt",
+                      "file":  "READ-ME-Facebook-Event-Cover.txt",
+                      "bytes":  1903,
+                      "sha256":  "4d69d65cbf0e36d45e8c1cc1fa07f4dfaa90854b52081844747ecdaef54b9eee",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/optional-native/Jingle-QR-1023x420-ZONE.png",
+                      "file":  "optional-native/Jingle-QR-1023x420-ZONE.png",
+                      "bytes":  181417,
+                      "sha256":  "e997e61f64b2d8dc0079eeaf6ad59b39a09a4e57cfe305faeedcc229e5533417",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/optional-native/Jingle-QR-1280x720-STANDARD-SCREEN.png",
+                      "file":  "optional-native/Jingle-QR-1280x720-STANDARD-SCREEN.png",
+                      "bytes":  378656,
+                      "sha256":  "da9aeea4bd6eaff09393e8d6fd521c2337bdd12592310d5fa3b5a16078f1957e",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/optional-native/Jingle-QR-2210x448-VIP-WALL.png",
+                      "file":  "optional-native/Jingle-QR-2210x448-VIP-WALL.png",
+                      "bytes":  123990,
+                      "sha256":  "3e0e588da3132838ececcd5a99e0f026fb0525b6b84af75d9df13a5a4eabc2fa",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/optional-native/Jingle-QR-5908x448-TRADITIONAL-WALL.png",
+                      "file":  "optional-native/Jingle-QR-5908x448-TRADITIONAL-WALL.png",
+                      "bytes":  371134,
+                      "sha256":  "1a504587aa780c56fa5a656a5a0cefe8a816b499ab87af8faa22bffb24a84df1",
+                      "matched":  true
+                  },
+                  {
+                      "source":  "Context/jingle-bowl-2026/led/optional-native/Jingle-QR-736x420-ZONE.png",
+                      "file":  "optional-native/Jingle-QR-736x420-ZONE.png",
+                      "bytes":  119520,
+                      "sha256":  "8aed1deefd74ad44288c7554352415571d2b2fac5eb348d5b5a8000bd4d90381",
+                      "matched":  true
+                  }
+              ]
+}
