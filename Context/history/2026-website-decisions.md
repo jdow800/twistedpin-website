@@ -9,6 +9,37 @@ against both actual emitted page stylesheet closures fails before this fix.
 The production rebuild and all 30 emitted-page assertions pass after the two
 explicit imports. Final visual readback follows; no backend change or customer mutation.
 
+Final release: `0729566add2a3692853c2a577c394990194f514e`, Vercel
+`dpl_2aAcz3cFMiFdpAL8oqibQAtdd5Wr` READY, succeeding the public launch
+`ba3b2e358b6c7f8d9915853a222e061a9216735b` / `dpl_FKA5m9kx8EKVK2DQjWiHcX8Fdwgp`.
+The launch readback completed anonymous homepage/landing/SEO/assets and repeated
+Traditional → VIP → Traditional at 390/1280, with 42 settled 200 API responses.
+Regular and birthday journeys returned six and two times, with 22 and 16 settled
+200 reads. No time, hold, payment or customer submission was made.
+
+The initial harness stopped on two catalog cancellations during the Dec 6
+handoff. Source inspection confirmed MainStep aborts unused catalog reads when
+the event handoff takes over. A focused repeat required the exact browser reason
+`net::ERR_ABORTED` on those two paths, rather than ignoring arbitrary failures.
+Final public/mobile proof passed 51 assertions, including actual green card and
+48px action styling; both handoffs completed safe discovery and intentionally
+cancelled their unused catalog pair. Root reviewed actual mobile screenshots.
+Receipts: `.astro/jingle-public-live-1792689451701/` (main journeys and initial
+styling finding), `.astro/jingle-public-handoff-live-1792689579510/` (cancellation
+diagnosis), `.astro/jingle-public-handoff-live-1792689950642/` (final PASS).
+All probes stopped. Backend remains unchanged. NYE coordination is released.
+
+The Desktop pack now includes the staff TLDR, main 1920x1080 silent 20-second
+Santa animation, matching PNG, short LED notes and optional native-size PNGs.
+All 11 new/updated delivery copies were hash-checked against project sources.
+The QR opens the public booking route without a password or lane hint. Fifty
+actual video-frame/PNG decoding checks passed; root reviewed the exported image
+and encoded frames. Physical wall playback/phone scanning is still untested.
+Nothing was sent to 7shifts, published socially or uploaded to a wall/controller.
+Editable sources and finished media were committed and pushed with the launch;
+this final evidence-only successor stays on the feature branch to avoid another
+production rebuild.
+
 ## 2026-10-22 - Public Jingle launch, homepage and staff/LED delivery
 
 After confirming the repeat-visit VIP fix, Jon authorized public launch including

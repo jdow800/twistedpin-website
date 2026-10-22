@@ -1,0 +1,65 @@
+﻿{
+    "verifiedAt":  "2026-10-22T17:27:46.3262712Z",
+    "destination":  "Windows Desktop/2026 Jingle Bowl",
+    "websiteRevision":  "0729566add2a3692853c2a577c394990194f514e",
+    "copies":  {
+                   "value":  [
+                                 {
+                                     "file":  "README-delivery.txt",
+                                     "sha256":  "B90087816A513AFE5A178DD190D487601444608E6F790C40048F9098A787A338",
+                                     "bytes":  4435
+                                 },
+                                 {
+                                     "file":  "recommended-copy.txt",
+                                     "sha256":  "26E22138F7C1AEB627A760F7893CC4B308B93528D9442E3623A74F7503EAD9E6",
+                                     "bytes":  3576
+                                 },
+                                 {
+                                     "file":  "staff-7shifts-tldr.txt",
+                                     "sha256":  "366B57E5E305A0A420CF1124D1528798B77694C842AF17E34874019EFF3F6ABF",
+                                     "bytes":  1205
+                                 },
+                                 {
+                                     "file":  "Jingle-Bowl-LED-1920x1080.mp4",
+                                     "sha256":  "31F2751BEC3FDD9B75ED969BAB1D827B6F093AA7C4A225F00887A8BF3FE88BAE",
+                                     "bytes":  1784443
+                                 },
+                                 {
+                                     "file":  "Jingle-Bowl-LED-1920x1080.png",
+                                     "sha256":  "947CF7F0EF2138C1A0A950AAFB2B9DE79B6871A2FFEC6320F4615D722F16CF75",
+                                     "bytes":  676062
+                                 },
+                                 {
+                                     "file":  "START-HERE-LED.txt",
+                                     "sha256":  "041F4B940E7113152FBFE9C77BE4FD8268B238EE94799F6742BCD11BB9D6D3F6",
+                                     "bytes":  1191
+                                 },
+                                 {
+                                     "file":  "optional-native/Jingle-QR-1023x420-ZONE.png",
+                                     "sha256":  "E997E61F64B2D8DC0079EEAF6AD59B39A09A4E57CFE305FAEEDCC229E5533417",
+                                     "bytes":  181417
+                                 },
+                                 {
+                                     "file":  "optional-native/Jingle-QR-1280x720-STANDARD-SCREEN.png",
+                                     "sha256":  "DA9AEEA4BD6EAFF09393E8D6FD521C2337BDD12592310D5FA3B5A16078F1957E",
+                                     "bytes":  378656
+                                 },
+                                 {
+                                     "file":  "optional-native/Jingle-QR-2210x448-VIP-WALL.png",
+                                     "sha256":  "3E0E588DA3132838ECECCD5A99E0F026FB0525B6B84AF75D9DF13A5A4EABC2FA",
+                                     "bytes":  123990
+                                 },
+                                 {
+                                     "file":  "optional-native/Jingle-QR-5908x448-TRADITIONAL-WALL.png",
+                                     "sha256":  "1A504587AA780C56FA5A656A5A0CEFE8A816B499AB87AF8FAA22BFFB24A84DF1",
+                                     "bytes":  371134
+                                 },
+                                 {
+                                     "file":  "optional-native/Jingle-QR-736x420-ZONE.png",
+                                     "sha256":  "8AED1DEEFD74AD44288C7554352415571D2B2FAC5EB348D5B5A8000BD4D90381",
+                                     "bytes":  119520
+                                 }
+                             ],
+                   "Count":  11
+               }
+}
