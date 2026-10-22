@@ -1,0 +1,12 @@
+---
+import Base from '../../../layouts/Base.astro';
+import JingleRehearsal from '../../../components/tprs/jingle/JingleRehearsal';
+export const prerender = false;
+// This route cannot use production transport, even behind the review password.
+if (!import.meta.env.DEV || import.meta.env.PUBLIC_TPRS_API_BASE !== '/jingle-bowl/rehearsal-api') {
+  return new Response('Local rehearsal unavailable', {status:404});
+}
+---
+<Base title="Jingle Bowl booking rehearsal | Twisted Pin" description="Private booking rehearsal" hideStickyCTA={true} hideHeader={true} hideNavDrawer={true} hidePromo={true}>
+  <JingleRehearsal client:only="react"><p slot="fallback">Loading the isolated booking rehearsal…</p></JingleRehearsal>
+</Base>

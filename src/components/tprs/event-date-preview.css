@@ -39,6 +39,17 @@
 .jingle-route-preview button:focus-visible, .jingle-route-preview a:focus-visible, .jingle-route-preview input:focus-visible { outline: 3px solid #ffe236; outline-offset: 4px; }
 .jingle-route-date-input { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 14px; }
 .jingle-route-date-input input { font: inherit; font-size: 16px; min-width: 0; max-width: 100%; border: 1px solid #857e8b; border-radius: 7px; padding: 12px; color: var(--route-ink); background: #23202b; color-scheme: dark; }
+/* The same card can stand alone in the ordinary wizard without the concepts
+   page's parent variables or typography. This scope leaves NYE unchanged. */
+.tprs-wizard > .jingle-route-card { --route-ink: #fff4df; --route-accent: #e8c78b; color: var(--route-ink); margin-top: 0; background: #103b2c; border-top: 4px solid var(--route-accent); }
+.tprs-wizard > .jingle-route-card h3 { font-family: var(--font-display); font-weight: 900; font-size: clamp(27px, 6vw, 36px); line-height: 1.15; margin: 0 0 18px; scroll-margin-top: 90px; }
+.tprs-wizard > .jingle-route-card h3:focus { outline: none; }
+.tprs-wizard > .jingle-route-card p { font-family: var(--font-body); font-size: 16px; font-weight: 400; line-height: 1.55; margin: 0 0 18px; }
+.tprs-wizard > .jingle-route-card .jingle-route-eyebrow { font-family: var(--font-ui); color: #e3d9c5; font-size: 14px; margin-bottom: 12px; }
+.tprs-wizard > .jingle-route-card .jingle-route-pending { color: #e8c78b; font-size: 14px; }
+.tprs-wizard > .jingle-route-card .jingle-route-actions { align-items: stretch; }
+.tprs-wizard > .jingle-route-card .jingle-route-actions :is(a, button) { font-family: var(--font-ui); text-align: center; }
+.tprs-wizard > .jingle-route-card :is(a, button):focus-visible { outline: 3px solid #fff4df; outline-offset: 4px; }
 @media (max-width: 440px) {
   .jingle-route-preview-head { display: block; }
   .jingle-route-review-badge { display: inline-block; margin: 4px 0 14px; }

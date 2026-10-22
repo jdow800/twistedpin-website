@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import "./brand.css";
+import {nyeEventConfig,type EventBookingIdentity} from "./eventConfig";
 
 export type BrandStep = "lanes" | "time" | "arcade" | "food" | "pay" | "confirmation";
 
@@ -27,6 +28,7 @@ export interface BrandShellProps {
   previewNotice?: ReactNode;
   /** ISO calendar date. Formatting deliberately avoids the browser's timezone. */
   eventDate?: string;
+  identity?: EventBookingIdentity;
   onViewSummary?: () => void;
   summaryExpanded?: boolean;
   footerSecondary?: ReactNode;
@@ -38,7 +40,7 @@ export interface BrandShellProps {
 export default function BrandShell({
   step, children, locked = false, onNavigate, canNavigate, onBack,
   summary, primary, contextLabel, holdStatus, notice, previewNotice,
-  eventDate = "2026-12-31", onViewSummary, summaryExpanded, footerSecondary,
+  eventDate = "2026-12-31", identity=nyeEventConfig.identity, onViewSummary, summaryExpanded, footerSecondary,
   secondaryPrimary = false,
 }: BrandShellProps) {
   const shellRef = useRef<HTMLDivElement>(null);
@@ -80,12 +82,12 @@ export default function BrandShell({
     heading?.focus({ preventScroll: true });
   } : undefined);
 
-  return <div className="nye-brand" ref={shellRef}>
+  return <div className={`nye-brand${identity.theme==='jingle'?' jingle-booking':''}`} ref={shellRef}>
     {previewNotice && <div className="brand-preview-notice" ref={bannerRef}>{previewNotice}</div>}
     <header className="mobile-brand">
       <div className="brand-top">
         <img src="/logo/twisted-pin-horizontal-white.webp" alt="Twisted Pin" width="137" height="45" />
-        <div className="mobile-date">NEW YEAR'S EVE<strong>{shortDate.toUpperCase()}</strong></div>
+        <div className="mobile-date">{identity.name.toUpperCase()}<strong>{shortDate.toUpperCase()}</strong></div>
       </div>
       <div className="mobile-progress">
         <button className="mobile-back" type="button" hidden={!onBack || terminal} disabled={locked} onClick={onBack}>
@@ -93,21 +95,21 @@ export default function BrandShell({
         </button>
         <button className="mobile-context" type="button" disabled={!allowed("time") || terminal}
           onClick={() => onNavigate?.("time")} aria-label="Review your lane and party time selection">
-          {contextLabel ?? "Your New Year's reservation"}
+          {contextLabel ?? (identity.theme==='nye'?"Your New Year's reservation":`Your ${identity.name} reservation`)}
         </button>
         {!terminal && <span className="mobile-step" aria-label={`Step ${index + 1} of ${STEPS.length}`}>{index + 1} / {STEPS.length}</span>}
       </div>
     </header>
     <div className="shell">
-      <aside className="identity" aria-label="New Year's Eve at Twisted Pin">
-        <img className="identity-photo" src="/snap/nye-reserve-hero-1080.webp" alt="Guests bowling at Twisted Pin" width="1080" height="720" />
+      <aside className="identity" aria-label={`${identity.name} at Twisted Pin`}>
+        <img className="identity-photo" src={identity.photo} alt="Guests bowling at Twisted Pin" width="1080" height="720" />
         <div className="identity-copy">
           <img className="logo" src="/logo/twisted-pin-horizontal-white.webp" alt="Twisted Pin" width="178" height="70" />
           <p className="date-line">{longDate.toUpperCase()}</p>
-          <h1><span>RING</span><span>IT IN.</span></h1>
-          <p className="invitation">Good company.<br />One last round of {year}.</p>
-          <div className="identity-bottom"><div className="identity-rule" /><span className="caps">New Year's Eve at Twisted Pin</span>
-            <p>Pick your party time. Bring your people.<br />We'll have the lanes ready.</p>
+          <h1>{identity.headline.map(line=><span key={line}>{line}</span>)}</h1>
+          <p className="invitation">{identity.invitation.map((line,i)=><span key={line}>{line}{i<identity.invitation.length-1&&<br/>}</span>)}</p>
+          <div className="identity-bottom"><div className="identity-rule" /><span className="caps">{identity.name} at Twisted Pin</span>
+            <p>{identity.closing.map((line,i)=><span key={line}>{line}{i<identity.closing.length-1&&<br/>}</span>)}</p>
           </div>
         </div>
       </aside>

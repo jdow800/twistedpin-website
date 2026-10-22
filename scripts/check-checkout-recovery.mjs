@@ -149,7 +149,7 @@ function Harness(){
  </main>;
 }
 createRoot(document.getElementById('root')).render(location.search.includes('wizard=1')?<BookingWizard/>:<Harness/>);
-`,resolveDir:site,loader:'tsx'},bundle:true,platform:'browser',format:'iife',write:false,jsx:'automatic',loader:{'.css':'empty'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api'),'import.meta.env.PUBLIC_NYE_REHEARSAL':'false'},plugins:[fixturePlugin,{name:'wizard-draft-fixture',setup(b){
+`,resolveDir:site,loader:'tsx'},bundle:true,platform:'browser',format:'iife',write:false,jsx:'automatic',loader:{'.css':'empty'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api'),'import.meta.env.PUBLIC_NYE_REHEARSAL':'false','import.meta.env.DEV':'false'},plugins:[fixturePlugin,{name:'wizard-draft-fixture',setup(b){
  b.onLoad({filter:/[\\/]BookingWizard\.tsx$/},async args=>{const source=await readFile(args.path,'utf8');const original='useReducer(wizardReducer, initialState)';assert.ok(source.includes(original));return {contents:source.replace(original,'useReducer(wizardReducer, window.fixtureWizardDraft ?? initialState)'),loader:'tsx'};});
 }},{name:'fake-stripe',setup(b){
  b.onResolve({filter:/^@stripe\/react-stripe-js$/},()=>({path:'react',namespace:'fake-stripe'}));

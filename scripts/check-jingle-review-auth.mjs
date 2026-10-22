@@ -118,4 +118,15 @@ await checkAsync("NYE login reuses signed cookie and returns only to its allowed
   assert.equal((await jingleReviewGate(post('/nye-homepage-concepts/', 'wrong'), env, now)).headers.get('Set-Cookie'), null);
   assert.equal((await jingleReviewGate(post('/nye-homepage-concepts/', env.JINGLE_REVIEW_PASSWORD, { Origin: 'https://evil.example' }), env, now)).status, 403);
 });
+await checkAsync('loopback rehearsal writes require authentication and matching origin', async () => {
+  const local='http://127.0.0.1:55686';
+  const cookie=`${JINGLE_REVIEW_COOKIE}=${issueJingleReviewToken(env,now)}`;
+  const request=(base,headers={})=>new Request(base+'/jingle-bowl/rehearsal-api/api/cart/session/',{method:'POST',headers:{Origin:base,...headers}});
+  assert.equal((await jingleReviewGate(request(local),env,now)).status,401);
+  assert.equal((await jingleReviewGate(request(local,{Cookie:cookie,Origin:'https://evil.example'}),env,now)).status,403);
+  assert.equal(await jingleReviewGate(request(local,{Cookie:cookie}),env,now),null);
+  assert.equal((await jingleReviewGate(request(origin,{Cookie:cookie}),env,now)).status,405);
+  const login=await jingleReviewGate(post('/jingle-bowl/booking/?next=https://evil.example'),env,now);
+  assert.equal(login.headers.get('Location'),'/jingle-bowl/booking/');
+});
 console.log(`${cases} Jingle preview security checks passed. No network or provider calls.`);

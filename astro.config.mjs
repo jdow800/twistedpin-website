@@ -72,7 +72,8 @@ export default defineConfig({
         // Jingle Bowl concept review remains unpublished. Remove the
         // landing-page exclusion only when its launch is approved;
         // the concepts gallery is always an internal review surface.
-        !['/jingle-bowl/', '/jingle-bowl-concepts/', '/review/jingle-calendar/', '/nye-homepage-concepts/'].includes(new URL(page).pathname) &&
+        !new URL(page).pathname.startsWith('/jingle-bowl/') &&
+        !['/jingle-bowl-concepts/', '/review/jingle-calendar/', '/nye-homepage-concepts/'].includes(new URL(page).pathname) &&
         // Staff-only bar-inventory SPA (noindex, PIN-gated) — keep it out of
         // the sitemap alongside its robots.txt Disallow + per-page noindex.
         !page.includes('/cogs') &&
@@ -128,6 +129,13 @@ export default defineConfig({
     inlineStylesheets: 'always',
   },
   vite: {
+    // The dedicated local simulation never mounts Stripe. Its normal SDK entry
+    // eagerly loads a remote script on import, so use the installed lazy entry
+    // for this development process only. Normal and production builds are exact.
+    resolve: {
+      alias: process.env.NODE_ENV !== 'production' && process.env.PUBLIC_TPRS_API_BASE === '/jingle-bowl/rehearsal-api'
+        ? [{find: /^@stripe\/stripe-js$/, replacement: '@stripe/stripe-js/pure'}] : [],
+    },
     // Keep worktree previews from invalidating another checkout's dependency cache.
     cacheDir: path.join(__dirname, `.astro/vite-${process.env.NODE_ENV === 'production' ? 'build' : 'dev'}`),
     server: {

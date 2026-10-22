@@ -1,0 +1,58 @@
+/** Offline checks for shared event configuration. No API/database/provider calls. */
+import {build} from 'esbuild';
+const source = `
+import assert from 'node:assert/strict';
+import {eventSelection,validNyeDefinitions,nyeAnswersComplete} from './src/components/tprs/nye/selection';
+import {nyeEventConfig,eventDateLabels} from './src/components/tprs/nye/eventConfig';
+import {jingleReviewConfig} from './src/components/tprs/jingle/config';
+import {nyePairFields} from './src/components/tprs/formAnswers';
+import {resolveCatalogChoice,packageDetailsChanged} from './src/components/tprs/nye/selectionCatalog';
+const event=jingleReviewConfig;
+const helpers=eventSelection(event);
+const trad={id:'c0d96e76-cbfc-4e5b-98ec-cddac2fd9106',code:9106,name:'Jingle Bowl Traditional',durationMinutes:90,durationOverrides:[],defaultPriceCents:14995,minQuantityPerBooking:1,maxQuantityPerBooking:6,salesCutoffMinutesBefore:30,addOnProducts:[]};
+const vip={...trad,id:'d61e83c0-5cb4-4cc8-a391-cddac2fd9107',code:9107,name:'Jingle Bowl VIP',defaultPriceCents:18995};
+assert.equal(nyeEventConfig.date,'2026-12-31');
+assert.equal(nyeEventConfig.draftKey,'tprs:nye:brand-draft:v1');
+assert.equal(nyeEventConfig.historyKey,'nyeStep');
+assert.equal(nyeEventConfig.traditionalCode,126);assert.equal(nyeEventConfig.vipCode,124);
+assert.equal(nyeEventConfig.initialGuest,undefined);assert.equal(nyeEventConfig.confirmation?.previewPath,undefined);
+assert.equal(eventDateLabels(event).full,'Sunday, December 6, 2026');
+assert.notEqual(event.draftKey,nyeEventConfig.draftKey);
+assert.equal(event.marketingEnabled,false);assert.equal(event.midnightToastTime,undefined);assert.equal(event.arcadeMegaCode,undefined);
+assert.match(event.reviewNotice,/approved prices and schedule/);
+assert.ok(event.termsText.includes('$149.95 Traditional and $189.95 VIP'));
+assert.match(event.termsText,/approved 39-reservation schedule/);
+assert.match(event.termsText,/30-minute booking cutoff/);
+assert.match(event.confirmation.message,/No real lanes, payment, email or text/);
+assert.deepEqual(event.initialGuest,{firstName:'Jingle',lastName:'Rehearsal',email:'jingle-rehearsal@example.invalid',phone:'8155550198',zip:'60544'});
+assert.equal(event.confirmation.previewPath,'/jingle-bowl/rehearsal-api/rehearsal/booking');
+assert.equal(helpers.roomName(trad),'Traditional');assert.equal(helpers.roomName(vip),'VIP');
+assert.equal(helpers.guestsPerLane(trad),5);assert.equal(helpers.guestsPerLane(vip),6);
+const times=['13:45','14:00','14:30','15:30','15:45'];
+for(const time of times){
+ const choice={product:trad,quantity:2,slot:{time,priceCents:14995,available:true}};
+ const start='2026-12-06T'+time+':00-06:00';
+ assert.equal(helpers.partyStart(time),start);assert.equal(helpers.partyDuration(choice),90);
+ assert.equal(helpers.laneCoverage(choice)[0].endTime,new Date(Date.parse(start)+90*60000).toISOString());
+ assert.equal(helpers.selectionItems(choice)[0].startTime,start);
+ assert.doesNotMatch(helpers.partyRange(choice),/Jan|midnight/);
+ const grid={[trad.id]:[choice.slot]};
+ assert.deepEqual(resolveCatalogChoice(choice,[trad,vip],grid,event),choice);
+ assert.equal(packageDetailsChanged(choice,{...choice,product:{...trad,durationOverrides:[{date:event.date,startTime:time,durationMinutes:120}]}},event),true);
+}
+assert.equal(helpers.safeAlternativeQuantity({product:vip,quantity:2,slot:{time:'14:00'}},trad),3);
+const field=(role)=>({id:role,fieldType:'per_unit_select',required:true,perUnitRole:role,countSource:'lane_count',countDivisor:1,perUnitMulti:false,options:role==='pizza'?['Cheese','Pepperoni']:['Pepsi','Starry'],visibleWhenFieldId:null});
+const form={id:'review-form',fields:[field('pizza'),field('pitcher'),{id:'ack',required:true,fieldType:'checkbox',visibleWhenFieldId:null}]};
+const answers=[{formFieldId:'pizza',value:'Cheese',unitIndex:1},{formFieldId:'pitcher',value:'Pepsi',unitIndex:1},{formFieldId:'ack',value:'true'}];
+const codes=[event.traditionalCode,event.vipCode];
+assert.equal(nyePairFields(form,9106),null,'Fixture identities do not activate the ordinary renderer');
+assert.ok(nyePairFields(form,9106,codes));assert.ok(nyePairFields(form,124));
+assert.equal(validNyeDefinitions([form],9106),false);assert.equal(validNyeDefinitions([form],9106,codes),true);
+assert.equal(nyeAnswersComplete([form],9106,answers,1,codes),true);
+assert.equal(nyeAnswersComplete([form],9106,answers,2,codes),false);
+assert.equal(nyeAnswersComplete([form],9106,answers.filter(a=>a.formFieldId!=='ack'),1,codes),false);
+assert.equal(nyeAnswersComplete([form],9106,answers.map(a=>a.formFieldId==='pitcher'?{...a,value:'Water'}:a),1,codes),false);
+console.log('Jingle event config passed: five dated starts, room identity, explicit food opt-in, required acknowledgment, NYE defaults and rehearsal-only messaging.');
+`;
+const result=await build({stdin:{contents:source,resolveDir:process.cwd(),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
+await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));

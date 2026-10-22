@@ -11,7 +11,7 @@ const site = fileURLToPath(new URL('../', import.meta.url));
 const bundled = await build({
   entryPoints: [site + 'src/tprs/client.ts'], bundle: true, write: false,
   platform: 'browser', format: 'iife', globalName: 'TprsClient',
-  define: { 'import.meta.env.PUBLIC_TPRS_API_BASE': '"/tprs-api"' },
+  define: { 'import.meta.env.PUBLIC_TPRS_API_BASE': '"/tprs-api"', 'import.meta.env.DEV': 'false' },
 });
 const productId = '00000000-0000-4000-8000-000000000005';
 const attemptId = '00000000-0000-4000-8000-000000000090';

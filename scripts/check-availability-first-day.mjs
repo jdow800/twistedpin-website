@@ -45,7 +45,7 @@ const built = await build({
   stdin: { contents: source, loader: 'tsx', resolveDir: site },
   bundle: true, platform: 'browser', format: 'iife', write: false, jsx: 'automatic', outdir: output,
   external: ['/snap/*', '/pattern/*'], loader: { '.woff2': 'dataurl', '.woff': 'dataurl' },
-  define: { 'import.meta.env.PUBLIC_TPRS_API_BASE': '"/tprs-api"', 'import.meta.env.PUBLIC_NYE_REHEARSAL': 'false' },
+  define: { 'import.meta.env.PUBLIC_TPRS_API_BASE': '"/tprs-api"', 'import.meta.env.PUBLIC_NYE_REHEARSAL': 'false', 'import.meta.env.DEV': 'false' },
   plugins: [{ name: 'offline-stripe', setup(b) {
     b.onResolve({ filter: /^@stripe\/react-stripe-js$/ }, () => ({ path: 'react', namespace: 'offline-stripe' }));
     b.onResolve({ filter: /^\.\.?\/stripe$/ }, () => ({ path: 'stripe', namespace: 'offline-stripe' }));

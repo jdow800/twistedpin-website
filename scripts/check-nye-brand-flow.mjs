@@ -27,7 +27,7 @@ installFixture();
 function Fixture(){const[open,setOpen]=useState(window.fixtureState().settings.salesOpen!==false);window.setFixtureSalesOpen=setOpen;return <NyeBrandWizard salesOpen={open}/>;}
 createRoot(document.getElementById('root')).render(window.fixtureState().settings.publicPage?<NyePublicCheckout/>:<Fixture/>);
 `,loader:'tsx',resolveDir:site},bundle:true,platform:'browser',format:'iife',write:false,jsx:'automatic',outdir:output,external:['/snap/*','/pattern/*'],
-  loader:{'.woff2':'dataurl','.woff':'dataurl'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api'),'import.meta.env.PUBLIC_NYE_REHEARSAL':'false'},plugins:[{name:'synthetic-stripe',setup(b){
+  loader:{'.woff2':'dataurl','.woff':'dataurl'},define:{'import.meta.env.PUBLIC_TPRS_API_BASE':JSON.stringify('/fixture-api'),'import.meta.env.PUBLIC_NYE_REHEARSAL':'false','import.meta.env.DEV':'false'},plugins:[{name:'synthetic-stripe',setup(b){
     b.onResolve({filter:/^@stripe\/react-stripe-js$/},()=>({path:'react',namespace:'synthetic-stripe'}));
     b.onResolve({filter:/^\.\.?\/stripe$/},()=>({path:'stripe',namespace:'synthetic-stripe'}));
     b.onLoad({filter:/.*/,namespace:'synthetic-stripe'},args=>({loader:'tsx',resolveDir:site,contents:args.path==='stripe'
@@ -318,16 +318,16 @@ try{
     }
   });
   await scenario('Lost successful response survives reload and retries only the original mutation on explicit request',async()=>{
-    const page=await fresh({dropNextReplaceResponse:true});await choose(page,126,2);await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();
+    const page=await fresh({dropNextReplaceResponse:true});await choose(page,126,2);await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();
     const first=(await state(page)).calls.find(c=>c.path==='/api/cart/replace').body,deadline=(await state(page)).cart.holdExpiresAt;
-    await page.reload();await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();
+    await page.reload();await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();
     assert.equal(await count(page,'/api/cart/replace'),1,'Reload must not retry automatically');
     await page.getByRole('button',{name:'Check this selection',exact:true}).click();await page.getByRole('heading',{name:'Add arcade play.',exact:true}).waitFor();
     const calls=(await state(page)).calls.filter(c=>c.path==='/api/cart/replace');assert.equal(calls.length,2);assert.deepEqual(calls[1].body,first);assert.equal((await state(page)).cart.holdExpiresAt,deadline);await page.context().close();
   });
   await scenario('Accepted response with cleared controller but pending parent draft restores by GET, without another write',async()=>{
     const page=await fresh();await choose(page,126,2);await page.evaluate(()=>window.configure({failAcceptedDraftWrite:true}));await primary(page).click();
-    await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();const writes=await count(page,'/api/cart/replace');
+    await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();const writes=await count(page,'/api/cart/replace');
     await page.reload();await page.getByRole('heading',{name:'Add arcade play.',exact:true}).waitFor();assert.equal(await count(page,'/api/cart/replace'),writes);
     assert.equal((await state(page)).cart.holds[0].count,2);assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).pending),null);await page.context().close();
   });
@@ -344,7 +344,7 @@ try{
     const page=await fresh({},'America/Chicago',1440);await choose(page,126,2);await hold(page);await food(page);await fillFood(page,2);
     const original=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).answers.filter(a=>a.unitIndex));
     await page.getByRole('navigation',{name:'Booking steps'}).getByRole('button',{name:'Party time',exact:true}).click();await page.locator('.time-choice').nth(3).click();await ready(page);await primary(page).click();await ready(page);
-    await page.evaluate(()=>window.configure({failAcceptedDraftWrite:true}));await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();
+    await page.evaluate(()=>window.configure({failAcceptedDraftWrite:true}));await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();
     await page.evaluate(()=>window.configure({delayForms:true}));const writes=await count(page,'/api/cart/replace');await page.reload();
     await page.waitForFunction(()=>window.calls.some(c=>c.path.endsWith('/forms'))&&document.querySelector('h2')?.textContent==='Getting your party ready.');
     assert.deepEqual(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).answers.filter(a=>a.unitIndex)),original);
@@ -361,9 +361,9 @@ try{
     const page=await fresh({},'America/Chicago',1440);await choose(page,126,2);await hold(page);await food(page);await fillFood(page,2);
     const answers=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).answers.filter(a=>a.unitIndex));
     await page.getByRole('navigation',{name:'Booking steps'}).getByRole('button',{name:'Party time',exact:true}).click();await page.getByRole('button',{name:'More',exact:true}).click();await ready(page);await primary(page).click();await page.getByRole('heading',{name:'Review your change.',exact:true}).waitFor();await ready(page);
-    await page.evaluate(()=>window.configure({dropNextReplaceResponse:true}));await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();
+    await page.evaluate(()=>window.configure({dropNextReplaceResponse:true}));await primary(page).click();await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();
     const accepted=(await state(page)).cart,lastWrite=(await state(page)).calls.filter(c=>c.path==='/api/cart/replace').at(-1).body,writes=await count(page,'/api/cart/replace');
-    await page.evaluate(()=>window.configure({catalogDurationMinutes:120}));await page.reload();await page.getByRole('button',{name:'Check this selection',exact:true}).waitFor();assert.equal(await count(page,'/api/cart/replace'),writes);
+    await page.evaluate(()=>window.configure({catalogDurationMinutes:120}));await page.reload();await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();assert.equal(await count(page,'/api/cart/replace'),writes);
     await page.getByRole('button',{name:'Check this selection',exact:true}).click();await page.getByText('Your lanes are held; package details changed. Please review before continuing.',{exact:true}).waitFor();
     assert.equal(await page.getByRole('heading',{name:'Choose your time.',exact:true}).count(),1);assert.equal(await page.getByRole('heading',{name:'Add arcade play.',exact:true}).count(),0);
     const final=await state(page);assert.deepEqual(final.cart,accepted);assert.equal(await count(page,'/api/cart/replace'),writes+1);assert.deepEqual(final.calls.filter(c=>c.path==='/api/cart/replace').at(-1).body,lastWrite);

@@ -15,6 +15,9 @@ import { guestFieldError, guestInvalidFields, type GuestFields } from "../state"
 interface Props {
   /** NYE renders its required food/policy form before contact details. */
   showBookingForms?: boolean;
+  /** Only isolated owner rehearsals suppress enrollment; production defaults remain. */
+  showMarketingConsent?: boolean;
+  contactNotice?: string;
   guest: GuestFields;
   onGuestField: (field: keyof GuestFields, value: string) => void;
   /** Marketing-consent checkbox value. `undefined` = never toggled — rendered
@@ -247,8 +250,8 @@ export default function GuestDetailsStep(props: Props) {
           checkbox — never bundled into terms (TCPA: consent to marketing can't
           be a condition of purchase). */}
       <p className="tprs-help">
-        We'll text you about your booking and visit. Msg &amp; data rates may
-        apply. Reply STOP anytime.
+        {props.contactNotice??<>We'll text you about your booking and visit. Msg &amp; data rates may
+        apply. Reply STOP anytime.</>}
       </p>
 
       {/* Marketing opt-in (2026-07-19) — the separate UNCHECKED checkbox the
@@ -295,7 +298,7 @@ export default function GuestDetailsStep(props: Props) {
             reads promo-cheap against the moody thesis.
           When consent-evidence stamping lands (~Sept), consent_language must
           capture the box text AND the footnote text together. */}
-      <div
+      {props.showMarketingConsent !== false && <div
         className={rewardLabel ? "tprs-consent tprs-consent--card" : "tprs-consent"}
         key={rewardLabel ? "offer" : "plain"}
       >
@@ -342,7 +345,7 @@ export default function GuestDetailsStep(props: Props) {
             </label>
           </>
         )}
-      </div>
+      </div>}
 
       {/* ADR-0030 booking-question forms — LIVE on all products (VIP/NYE booking
           agreement, birthday Kids Party). Bubbles invalid ids up for the gate +
@@ -361,7 +364,7 @@ export default function GuestDetailsStep(props: Props) {
           step (same screen as the checkbox = point-of-consent adjacency); the
           only disclosure that may never move down here is "you're agreeing to
           texts", which lives in the checkbox label itself. */}
-      <p className="tprs-consent-footnote">
+      {props.showMarketingConsent !== false && <p className="tprs-consent-footnote">
         * Occasional marketing texts from Twisted Pin. Optional — not required
         to book.{" "}
         {rewardAmountCents != null && rewardAmountCents > 0
@@ -372,7 +375,7 @@ export default function GuestDetailsStep(props: Props) {
         <a href="/terms/" target="_blank" rel="noopener noreferrer">Terms</a>
         {" & "}
         <a href="/privacy/" target="_blank" rel="noopener noreferrer">Privacy</a>.
-      </p>
+      </p>}
 
     </div>
   );

@@ -173,6 +173,7 @@ try {
   assert.equal(await page.getByLabel('Name on the other reservation').inputValue(),'Sub for wings');
   await pair(2).getByLabel('Cheese only',{exact:true}).check();
   await pair(2).getByLabel('Pitcher 2').selectOption('Pepsi');
+  await page.waitForFunction(()=>window.testInvalid.length===0);
   assert.deepEqual(await page.evaluate(()=>window.testInvalid),[]);
   await page.getByRole('button',{name:'2 lanes',exact:true}).click();
   assert.equal(await page.locator('.tprs-nye-pair').count(),2);

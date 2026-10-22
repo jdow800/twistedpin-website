@@ -5,7 +5,7 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 
 export const JINGLE_REVIEW_COOKIE = "tp_jingle_review";
 export const JINGLE_REVIEW_TTL_MS = 12 * 60 * 60 * 1000;
-const PAGE_PATHS = new Set(["/jingle-bowl/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/nye-homepage-concepts/"]);
+const PAGE_PATHS = new Set(["/jingle-bowl/", "/jingle-bowl/booking/", "/jingle-bowl-concepts/", "/review/jingle-calendar/", "/nye-homepage-concepts/"]);
 const PREFIXES = ["/jingle-bowl", "/jingle-bowl-concepts", "/review/jingle-calendar", "/nye-homepage-concepts"];
 type ReviewEnv = { JINGLE_REVIEW_PASSWORD?: string; JINGLE_REVIEW_SESSION_SECRET?: string };
 const failedAttempts = new Map<string, { count: number; until: number }>();
@@ -120,6 +120,16 @@ export async function jingleReviewGate(request: Request, env: ReviewEnv = proces
   const action = jingleReviewReturnPath(url);
   if (!configured(env)) return page ? loginResponse(action, 503, "This preview is temporarily unavailable.") : simpleResponse("Preview unavailable", 503);
   const method = request.method.toUpperCase();
+  // The development-only rehearsal proxy also needs authenticated mutations.
+  // This exception is loopback-only; the route independently requires DEV and
+  // its exact isolated transport configuration before contacting any backend.
+  if (decodedPath(url.pathname).startsWith('/jingle-bowl/rehearsal-api/')
+    && url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)
+    && ['POST', 'DELETE'].includes(method)) {
+    if (!verifyJingleReviewToken(tokenFromRequest(request), env, now)) return simpleResponse('Preview authorization required', 401);
+    if (request.headers.get('origin') !== url.origin) return simpleResponse('Invalid request origin', 403);
+    return null;
+  }
   if (method === "GET" || method === "HEAD") {
     if (verifyJingleReviewToken(tokenFromRequest(request), env, now)) return null;
     const response = page ? loginResponse(action, 401) : simpleResponse("Preview authorization required", 401);

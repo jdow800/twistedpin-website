@@ -23,7 +23,7 @@ import type {
 import Markdown from "./Markdown";
 import {
   answerMapFromInput, flattenAnswers, fieldVisible, reconcileAnswers,
-  isIndexedField, nyePairFields, unitControlId, type AnswerMap,
+  isIndexedField, nyePairFields, unitControlId, type AnswerMap, type PairedFoodPresentation,
 } from "./formAnswers";
 
 /** Booking quantities a per_unit_select field's N is derived from. */
@@ -35,6 +35,9 @@ interface Props {
   hideTitle?: boolean;
   /** Presentation-only helper copy for exact short_text fields. Definitions and answers stay unchanged. */
   helpTextOverrides?: Readonly<Record<string, string>>;
+  pairedPresentation?: PairedFoodPresentation;
+  /** Explicit event opt-in. Ordinary renderers retain the NYE-only default. */
+  pairedProductCodes?: readonly number[];
   productId: string;
   productCode?: number;
   answers: FormAnswerInput[];
@@ -100,6 +103,8 @@ export default function FormRenderer({
   definitions,
   hideTitle = false,
   helpTextOverrides,
+  pairedPresentation,
+  pairedProductCodes,
   productId,
   productCode,
   answers: inputAnswers,
@@ -108,7 +113,7 @@ export default function FormRenderer({
   submitAttempt,
   unitQuantities,
 }: Props) {
-  const [forms, setForms] = useState<FormDefinition[] | null>(null);
+  const [forms, setForms] = useState<FormDefinition[] | null>(definitions ?? null);
   // Unconfigured legacy per-unit fields still have no index on the wire. Keep
   // their empty local positions while editing, exactly as before this change.
   // NYE opted-in answers need no local copy: the wizard stores their indices.
@@ -200,7 +205,7 @@ export default function FormRenderer({
     if (!forms) return EMPTY_IDS;
     const ids: string[] = [];
     for (const form of forms) {
-      const pair = nyePairFields(form, productCode);
+      const pair = nyePairFields(form, productCode, pairedProductCodes);
       const visiblePair = pair && fieldVisible(pair.pizza, answers) && fieldVisible(pair.pitcher, answers) ? pair : null;
       let pairChecked = false;
       for (const field of [...form.fields].sort(
@@ -224,7 +229,7 @@ export default function FormRenderer({
       }
     }
     return ids.length ? ids : EMPTY_IDS;
-  }, [forms, answers, unitCounts, productCode]);
+  }, [forms, answers, unitCounts, productCode, pairedProductCodes]);
   useEffect(() => {
     onInvalidIdsChange?.(invalidIds);
   }, [invalidIds, onInvalidIdsChange]);
@@ -655,9 +660,10 @@ export default function FormRenderer({
 
   function renderPairs(pizza: FormFieldDefinition, pitcher: FormFieldDefinition) {
     const n = unitCounts[pizza.id] ?? 1;
+    const intro = pairedPresentation?.intro ?? "All pizzas include cheese. Choose from the included options below. Food substitutions aren't available for NYE packages.";
     return (
       <section className="tprs-nye-pairs" key={`pairs-${pizza.id}`} aria-label="Your pizza and pitcher choices">
-        <p className="tprs-help">All pizzas include cheese. Choose from the included options below. Food substitutions aren't available for NYE packages.</p>
+        {intro && <p className="tprs-help">{intro}</p>}
         {Array.from({ length: n }, (_, i) => {
           const pizzaId = unitControlId(pizza.id, i);
           const pitcherId = unitControlId(pitcher.id, i);
@@ -667,9 +673,11 @@ export default function FormRenderer({
           const pitcherInvalid = showAll && pitcher.required && !pitcher.options.includes(pitcherValue);
           return (
             <section className="tprs-nye-pair" key={i} aria-labelledby={`${pizzaId}-title`}>
-              <h4 id={`${pizzaId}-title`}>Pizza &amp; pitcher {i + 1} of {n}</h4>
+              <h4 id={`${pizzaId}-title`}>{pairedPresentation?.unitLabel ?? 'Pizza & pitcher'} {i + 1} of {n}</h4>
               <fieldset className={`tprs-field${pizzaInvalid ? " is-invalid" : ""}`}>
-                <legend className="tprs-label">Pizza {i + 1}{pizza.required && <span className="tprs-req"> *</span>}</legend>
+                <legend className="tprs-label">{pairedPresentation?.controlLabels?.pizza ? <>{pairedPresentation.controlLabels.pizza}<span className="sr-only"> — <Markdown text={pizza.label} inline/></span></> : pairedPresentation?.useFieldLabels ? <Markdown text={pizza.label} inline/> : <>Pizza {i + 1}</>}{pizza.required && <span className="tprs-req"> *</span>}</legend>
+                {pairedPresentation?.showFieldHelp && pizza.helpText && <p className="tprs-help" id={`${pizzaId}-help`}><Markdown text={pizza.helpText} inline/></p>}
+                <div className="tprs-choice-grid">
                 {pizza.options.map((option, j) => (
                   <label className="tprs-choice" key={option}>
                     <input
@@ -679,22 +687,24 @@ export default function FormRenderer({
                       value={option}
                       checked={pizzaValue === option}
                       aria-invalid={pizzaInvalid || undefined}
-                      aria-describedby={pizzaInvalid ? `${pizzaId}-err` : undefined}
+                      aria-describedby={[pairedPresentation?.showFieldHelp && pizza.helpText ? `${pizzaId}-help` : '', pizzaInvalid ? `${pizzaId}-err` : ''].filter(Boolean).join(' ') || undefined}
                       onChange={() => setPerUnitSlot(pizza.id, i, option)}
                     />
                     <span>{option === "Cheese" ? "Cheese only" : option}</span>
                   </label>
                 ))}
+                </div>
                 {pizzaInvalid && <p className="tprs-field-error" id={`${pizzaId}-err`}>Choose pizza {i + 1}.</p>}
               </fieldset>
               <div className="tprs-field">
-                <label className="tprs-label" htmlFor={pitcherId}>Pitcher {i + 1}{pitcher.required && <span className="tprs-req"> *</span>}</label>
+                <label className="tprs-label" htmlFor={pitcherId}>{pairedPresentation?.controlLabels?.pitcher ? <>{pairedPresentation.controlLabels.pitcher}<span className="sr-only"> — <Markdown text={pitcher.label} inline/></span></> : pairedPresentation?.useFieldLabels ? <Markdown text={pitcher.label} inline/> : <>Pitcher {i + 1}</>}{pitcher.required && <span className="tprs-req"> *</span>}</label>
+                {pairedPresentation?.showFieldHelp && pitcher.helpText && <p className="tprs-help" id={`${pitcherId}-help`}><Markdown text={pitcher.helpText} inline/></p>}
                 <select
                   id={pitcherId}
                   className={`tprs-select${pitcherInvalid ? " is-invalid" : ""}`}
                   value={pitcherValue}
                   aria-invalid={pitcherInvalid || undefined}
-                  aria-describedby={pitcherInvalid ? `${pitcherId}-err` : undefined}
+                  aria-describedby={[pairedPresentation?.showFieldHelp && pitcher.helpText ? `${pitcherId}-help` : '', pitcherInvalid ? `${pitcherId}-err` : ''].filter(Boolean).join(' ') || undefined}
                   onChange={(e) => setPerUnitSlot(pitcher.id, i, e.currentTarget.value)}
                 >
                   <option value="">Choose your soda</option>
@@ -705,6 +715,7 @@ export default function FormRenderer({
             </section>
           );
         })}
+        {pairedPresentation?.laneNote && <p className="tprs-pair-note">{pairedPresentation.laneNote}</p>}
       </section>
     );
   }
@@ -712,16 +723,29 @@ export default function FormRenderer({
   return (
     <>
       {forms.map((form) => {
-        const pair = nyePairFields(form, productCode);
+        const pair = nyePairFields(form, productCode, pairedProductCodes);
         const visiblePair = pair && isFieldVisible(pair.pizza) && isFieldVisible(pair.pitcher) ? pair : null;
         const fields = [...form.fields].sort((a, b) => a.displayOrder - b.displayOrder).filter(isFieldVisible);
         const firstPairId = fields.find((f) => visiblePair && (f.id === visiblePair.pizza.id || f.id === visiblePair.pitcher.id))?.id;
+        const reservationInfo = visiblePair && pairedPresentation?.reservationInfo;
+        const infoFields = reservationInfo ? fields.filter((field) => field.fieldType === 'rich_text') : [];
         return (
           <div className="tprs-form-block" key={form.id}>
             {!hideTitle && form.title && <h3 className="tprs-form-title">{form.title}</h3>}
             {fields.map((field) => {
               if (visiblePair && (field.id === visiblePair.pizza.id || field.id === visiblePair.pitcher.id)) {
                 return field.id === firstPairId ? renderPairs(visiblePair.pizza, visiblePair.pitcher) : null;
+              }
+              if (reservationInfo && field.fieldType === 'rich_text') {
+                if (field.id !== infoFields[0]?.id) return null;
+                return <section className="tprs-reservation-info" key={`info-${form.id}`} aria-labelledby={`reservation-info-${form.id}`}>
+                  <h3 id={`reservation-info-${form.id}`}>{reservationInfo.heading}</h3>
+                  <ul>{reservationInfo.essentials.map((text) => <li key={text}>{text}</li>)}</ul>
+                  <details className="tprs-reservation-details">
+                    <summary>{reservationInfo.detailsLabel}</summary>
+                    <div className="tprs-reservation-details-copy">{infoFields.map(renderField)}</div>
+                  </details>
+                </section>;
               }
               return renderField(field);
             })}

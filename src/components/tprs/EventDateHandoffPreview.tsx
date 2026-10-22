@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { eventDateRoute, type EventDateRoute } from "../../tprs/eventDateRoutes";
 import "./event-date-preview.css";
 
@@ -18,18 +18,21 @@ function dateLabel(date: string): string {
 
 /** Shared message for the eventual normal-booking handoff. Does not claim
  * reservations are on sale and never reserves inventory or starts checkout. */
-export function EventDateHandoff({ route, onChangeDate }: {
+export function EventDateHandoff({ route, onChangeDate, focusOnMount = false }: {
   route: EventDateRoute;
   onChangeDate: () => void;
+  focusOnMount?: boolean;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {if (focusOnMount) heading.current?.focus();}, [focusOnMount, route.id]);
   return (
     <div className="jingle-route-card">
       <p className="jingle-route-eyebrow">Jingle Bowl only · {route.dateLabel}</p>
-      <h3>{route.title}</h3>
+      <h3 ref={heading} tabIndex={focusOnMount ? -1 : undefined}>{route.title}</h3>
       <p>{route.message}</p>
       <p className="jingle-route-pending">Reservation details and sales opening are still being finalized.</p>
       <div className="jingle-route-actions">
-        <a href={route.href}>{route.actionLabel} <span aria-hidden="true">↗</span></a>
+        {route.href && <a href={route.href}>{route.actionLabel} <span aria-hidden="true">↗</span></a>}
         <button type="button" onClick={onChangeDate}>Choose another date</button>
       </div>
     </div>

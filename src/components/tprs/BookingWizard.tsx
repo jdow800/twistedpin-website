@@ -52,7 +52,8 @@ import GuestDetailsStep from "./steps/GuestDetailsStep";
 import PaymentStep from "./steps/PaymentStep";
 import ConfirmationStep from "./steps/ConfirmationStep";
 import NyeDateHandoff from "./NyeDateHandoff";
-import { NYE_CALENDAR_DATES } from "./calendarDestinations";
+import { EventDateHandoff } from "./EventDateHandoffPreview";
+import { bookingVenueDate, NYE_CALENDAR_DATES } from "./calendarDestinations";
 import { NYE_EVENT_DATE, nyeOpeningState } from "../../config/nye-opening";
 
 interface Props {
@@ -69,50 +70,81 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [recoveryLoaded, setRecoveryLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
   const acceptedOrderOwnsFlow = !recoveryLoaded || !!discovered || !!recovery || state.checkoutLocked || state.step === "confirmation";
-  const [nyeHandoff, setNyeHandoff] = useState(false);
+  const [handoffDate, setHandoffDate] = useState<string | null>(null);
   const handoffQueryChecked = useRef(false);
-  const showNyeHandoff = config.nyeDateHandoff === true && nyeHandoff && !acceptedOrderOwnsFlow;
-  const specialDates = config.nyeDateHandoff && nyeOpeningState().phase !== "ended" ? NYE_CALENDAR_DATES : undefined;
+  const [currentDate, setCurrentDate] = useState(bookingVenueDate);
+  const nyePhase = nyeOpeningState().phase;
+  useEffect(() => {
+    if (!config.eventDateHandoffs?.length) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const update = () => {
+      clearTimeout(timer);
+      setCurrentDate(bookingVenueDate());
+      // Chicago's midnight is a UTC minute boundary, including DST changes.
+      timer = setTimeout(update, 60_000 - Date.now() % 60_000);
+    };
+    update();
+    window.addEventListener('focus', update);
+    document.addEventListener('visibilitychange', update);
+    return () => {clearTimeout(timer);window.removeEventListener('focus', update);document.removeEventListener('visibilitychange', update);};
+  }, [config.eventDateHandoffs]);
+  const destinationForDate = useCallback((date: string | null) => {
+    if (!date) return null;
+    if (config.nyeDateHandoff && date === NYE_EVENT_DATE && nyePhase !== "ended") return {kind: 'nye' as const};
+    const routes = config.eventDateHandoffs?.filter(route => route.date === date && date >= currentDate) ?? [];
+    return routes.length === 1 ? {kind: 'event' as const, route: routes[0]} : null;
+  }, [config.nyeDateHandoff, config.eventDateHandoffs, currentDate, nyePhase]);
+  const destination = destinationForDate(handoffDate);
+  const showEventHandoff = !!destination && !acceptedOrderOwnsFlow;
+  const specialDates = useMemo(() => {
+    const dates: Record<string, string> = {};
+    for (const route of config.eventDateHandoffs ?? []) {
+      if (destinationForDate(route.date)?.kind === 'event') dates[route.date] = route.calendarLabel;
+    }
+    if (destinationForDate(NYE_EVENT_DATE)?.kind === 'nye') Object.assign(dates, NYE_CALENDAR_DATES);
+    return Object.keys(dates).length ? dates : undefined;
+  }, [config.eventDateHandoffs, destinationForDate]);
 
-  const returnFromNye = useCallback(() => {
+  const returnFromEvent = useCallback(() => {
     if (acceptedOrderOwnsFlow) return;
     try {
-      if (history.state?.nyeDateHandoffPushed) { history.back(); return; }
+      if (history.state?.eventDateHandoffPushed || history.state?.nyeDateHandoffPushed) { history.back(); return; }
       const url = new URL(location.href);
       url.searchParams.delete("date");
-      const { nyeDateHandoff: _handoff, nyeDateHandoffPushed: _pushed, ...entry } = history.state ?? {};
+      const { eventDateHandoff: _event, eventDateHandoffPushed: _eventPushed, nyeDateHandoff: _handoff, nyeDateHandoffPushed: _pushed, ...entry } = history.state ?? {};
       history.replaceState(entry, "", url);
     } catch { /* Restricted embeddings can still return to the original draft. */ }
-    setNyeHandoff(false);
+    setHandoffDate(null);
   }, [acceptedOrderOwnsFlow]);
 
   const pickDate = useCallback((date: string) => {
     if (acceptedOrderOwnsFlow) return;
-    if (config.nyeDateHandoff && date === NYE_EVENT_DATE && nyeOpeningState().phase !== "ended") {
+    if (destinationForDate(date)) {
       // This is a destination choice. Never overwrite the ordinary draft's
       // date, time, quantity, arcade choices or guest details to show it.
-      const url = new URL(location.href); url.searchParams.set("date", NYE_EVENT_DATE);
-      try { history.pushState({ ...history.state, nyeDateHandoff: true, nyeDateHandoffPushed: true }, "", url); }
+      const url = new URL(location.href); url.searchParams.set("date", date);
+      try { history.pushState({ ...history.state, eventDateHandoff: date, eventDateHandoffPushed: true, nyeDateHandoff: date === NYE_EVENT_DATE, nyeDateHandoffPushed: date === NYE_EVENT_DATE }, "", url); }
       catch { /* Restricted embeddings still get the inline handoff. */ }
-      setNyeHandoff(true);
+      setHandoffDate(date);
       return;
     }
     dispatch({ type: "SET_DATE", date });
-  }, [acceptedOrderOwnsFlow, config.nyeDateHandoff]);
+  }, [acceptedOrderOwnsFlow, destinationForDate]);
 
   useEffect(() => {
     if (!recoveryLoaded || handoffQueryChecked.current) return;
     handoffQueryChecked.current = true;
-    if (acceptedOrderOwnsFlow || !config.nyeDateHandoff || nyeOpeningState().phase === "ended") return;
-    if (new URLSearchParams(location.search).get("date") === NYE_EVENT_DATE) {
-      try { history.replaceState({ ...history.state, nyeDateHandoff: true, nyeDateHandoffPushed: false }, ""); }
+    if (acceptedOrderOwnsFlow) return;
+    const date = new URLSearchParams(location.search).get("date");
+    if (destinationForDate(date)) {
+      try { history.replaceState({ ...history.state, eventDateHandoff: date, eventDateHandoffPushed: false, nyeDateHandoff: date === NYE_EVENT_DATE, nyeDateHandoffPushed: false }, ""); }
       catch { /* The date query still resolves without History API access. */ }
-      setNyeHandoff(true);
+      setHandoffDate(date);
     }
-  }, [recoveryLoaded, acceptedOrderOwnsFlow, config.nyeDateHandoff]);
+  }, [recoveryLoaded, acceptedOrderOwnsFlow, destinationForDate]);
 
   useEffect(() => {
-    const onPop = (event: PopStateEvent) => setNyeHandoff(event.state?.nyeDateHandoff === true);
+    const onPop = (event: PopStateEvent) => setHandoffDate(typeof event.state?.eventDateHandoff === 'string' ? event.state.eventDateHandoff : event.state?.nyeDateHandoff === true ? NYE_EVENT_DATE : null);
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -305,7 +337,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   const [slotMaxUnits, setSlotMaxUnits] = useState<number | null>(null);
   const slotTime = state.slot?.time;
   useEffect(() => {
-    if (acceptedOrderOwnsFlow || showNyeHandoff || !state.product || !state.date || !slotTime || config.partySize) {
+    if (acceptedOrderOwnsFlow || showEventHandoff || !state.product || !state.date || !slotTime || config.partySize) {
       setSlotMaxUnits(null);
       return;
     }
@@ -324,7 +356,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       ctrl.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.product?.id, state.date, slotTime, config.partySize, acceptedOrderOwnsFlow, showNyeHandoff]);
+  }, [state.product?.id, state.date, slotTime, config.partySize, acceptedOrderOwnsFlow, showEventHandoff]);
 
   // Effective lane ceiling = lower of the product's online cap and lanes free.
   const effectiveLaneMax = state.product
@@ -336,12 +368,12 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   // Clamp a carried-over selection down when the chosen slot has fewer free
   // (picked 2 at a wide-open slot, then switched to a 1-lane slot).
   useEffect(() => {
-    if (acceptedOrderOwnsFlow || showNyeHandoff || slotMaxUnits === null || config.partySize) return;
+    if (acceptedOrderOwnsFlow || showEventHandoff || slotMaxUnits === null || config.partySize) return;
     if (state.laneQty > effectiveLaneMax && effectiveLaneMax >= 1) {
       dispatch({ type: "SET_LANE_QTY", qty: effectiveLaneMax });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize, acceptedOrderOwnsFlow, showNyeHandoff]);
+  }, [slotMaxUnits, effectiveLaneMax, state.laneQty, config.partySize, acceptedOrderOwnsFlow, showEventHandoff]);
 
   // A "guests" product (base package + per-guest add-on) vs the lane default.
   const guestStepper = useMemo(
@@ -504,7 +536,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     unavailable: liveQuoteUnavailable,
     error: liveQuoteError,
     retry: retryQuote,
-  } = useQuote(acceptedOrderOwnsFlow || showNyeHandoff ? null : quoteRequest);
+  } = useQuote(acceptedOrderOwnsFlow || showEventHandoff ? null : quoteRequest);
   const quote = recovery?.quote ?? (state.step === "confirmation" ? acceptedQuote : liveQuote);
   const quoteLoading = recovery ? false : liveQuoteLoading;
   const quoteUnavailable = recovery ? false : liveQuoteUnavailable;
@@ -530,7 +562,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
   }, [state.step, state.guest, formInvalidIds]);
 
   const handleNext = useCallback(() => {
-    if (showNyeHandoff) return;
+    if (showEventHandoff) return;
     // The payment step owns its own Pay action (Stripe confirm → convert →
     // CONVERTED), so there's no sticky-bar "next" out of it.
     if (state.step === "payment") return;
@@ -557,7 +589,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
     if (idx < STEP_ORDER.length - 1) {
       dispatch({ type: "GO_STEP", step: STEP_ORDER[idx + 1] });
     }
-  }, [state.step, noAddOns, guestStepInvalidIds, showNyeHandoff]);
+  }, [state.step, noAddOns, guestStepInvalidIds, showEventHandoff]);
 
   const handleBack = useCallback(() => {
     // Unify the in-wizard Back with the browser/OS Back: both go through history
@@ -586,7 +618,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
       setDiscovered(null); setRecovery(null); setAcceptedQuote(null);
       dispatch({ type: "SET_CHECKOUT_LOCK", locked: false }); dispatch({ type: "RESET" });
     }} />;
-  if (showNyeHandoff) return <div className="tprs-wizard tprs-wizard--nye-handoff"><NyeDateHandoff onReturn={returnFromNye} /></div>;
+  if (showEventHandoff && destination) return <div className="tprs-wizard tprs-wizard--nye-handoff">{destination.kind === 'nye' ? <NyeDateHandoff onReturn={returnFromEvent} /> : <EventDateHandoff route={destination.route} onChangeDate={returnFromEvent} focusOnMount />}</div>;
   return (
     <div className="tprs-wizard">
       {/* Scroll anchor for the step-change reset (H1). */}

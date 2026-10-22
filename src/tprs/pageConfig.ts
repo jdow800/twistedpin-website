@@ -9,11 +9,15 @@
 // Copy obeys the ADR-0029 brand rules: "lanes" never "tickets", "Reserve a
 // Lane", no discount vocabulary, English-first.
 
+import type { EventDateRoute } from './eventDateRoutes';
+
 export interface BookingPageConfig {
   /** Optional curated Product code set (ADR-0025 AH-1). Unset = use bookable. */
   productCodes?: number[];
   /** Offer Dec 31 as an NYE handoff, never as an ordinary lane reservation. */
   nyeDateHandoff?: boolean;
+  /** Explicit event destinations; omitted on public ordinary pages until enabled. */
+  eventDateHandoffs?: readonly EventDateRoute[];
   /** SPA-rendered terms text (ADR-0025 §1 AH-8). Shown at checkout in Slice 2. */
   termsText: string;
   uxCopy: {

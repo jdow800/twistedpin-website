@@ -2,6 +2,22 @@ import type { FormAnswerInput, FormDefinition, FormFieldDefinition } from "../..
 
 export type AnswerMap = Record<string, string[]>;
 
+/** Presentation only; field identities, options and required answers remain
+ * owned by the product-attached definitions. */
+export type PairedFoodPresentation = {
+  intro: string;
+  unitLabel: 'Lane';
+  useFieldLabels: boolean;
+  showFieldHelp: boolean;
+  controlLabels?: {pizza: string; pitcher: string};
+  laneNote?: string;
+  reservationInfo?: {
+    heading: string;
+    essentials: readonly string[];
+    detailsLabel: string;
+  };
+};
+
 /** Only the server's explicit fixed-choice opt-in carries purchased-pair identity. */
 export function isIndexedField(field: FormFieldDefinition): boolean {
   return (field.perUnitRole === "pizza" || field.perUnitRole === "pitcher") &&
@@ -83,8 +99,8 @@ export function indexedAnswersComplete(field: FormFieldDefinition, input: FormAn
 }
 
 /** A semantic pair, independent of labels or their editable display order. */
-export function nyePairFields(form: FormDefinition, productCode?: number) {
-  if (productCode !== 124 && productCode !== 126) return null;
+export function nyePairFields(form: FormDefinition, productCode?: number, productCodes: readonly number[] = [124, 126]) {
+  if (productCode === undefined || !productCodes.includes(productCode)) return null;
   const pizzas = form.fields.filter((f) => isIndexedField(f) && f.perUnitRole === "pizza");
   const pitchers = form.fields.filter((f) => isIndexedField(f) && f.perUnitRole === "pitcher");
   return pizzas.length === 1 && pitchers.length === 1

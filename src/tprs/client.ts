@@ -64,7 +64,8 @@ const API_BASE: string =
   ) ?? "/tprs-api";
 
 /** True when hitting the same-origin Vite dev proxy (vs. a real API host). */
-const USING_DEV_PROXY = API_BASE === "/tprs-api";
+const USING_DEV_PROXY = API_BASE === "/tprs-api"
+  || (import.meta.env.DEV && API_BASE === "/jingle-bowl/rehearsal-api");
 
 /**
  * Build the request URL. Through the dev proxy we must insert a trailing slash

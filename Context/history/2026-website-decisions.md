@@ -1,3 +1,17 @@
+## 2026-10-21 - Resume Jingle with approved schedule and fresh isolated review
+
+Jon explicitly approved $149.95 Traditional / $189.95 VIP per lane, the
+39-reservation allocation, and a 30-minute booking cutoff for each start.
+Integrate the saved protected Jingle booking, compact food/ordinary arcade and
+event-date handoff work onto live b6458eb while preserving selected-day priority,
+bounded read recovery and accepted-checkout precedence. Use a new quota-aware
+local profile (Website55686 / API55684 / PostgreSQL55688); keep the original
+55636 review intact. Production identity/tax/fees/sales/staffing and public
+readiness remain separate gates. NYE releases first, with an exact-main rebase
+and shared initialization/recovery review required before Jingle publication.
+See `Context/session-handoffs/2026-10-21-jingle-resumed-rehearsal.md` for reproduction,
+tests, approved allocations, and the fresh connected evidence. No public activation.
+
 ## 2026-10-21 - Prioritize the selected reservation date
 
 Jon approved implementing and shipping the initial availability improvements,
@@ -8,6 +22,40 @@ accepted recovery, event readiness and product-specific booking horizons. The
 ordinary ten-day rule remains inclusive and backend-owned; birthdays retain their
 longer calendar. Coordinate release after backend connection-repair acceptance.
 See `Context/session-handoffs/2026-10-21-availability-first-day.md` for evidence.
+
+## 2026-10-21 - Shared ordinary-booking event handoff preparation
+
+Jon approved continuing into December 6 routing and the proposed reservation
+allocation. Reuse the released NYE date handoff in the ordinary BookingWizard
+with explicit event destinations. December 6 can show the Jingle message without
+changing the ordinary draft; accepted checkout recovery/discovery keeps priority.
+Public configuration still does not register Jingle, and readiness false withholds
+the protected guest URL. Explicit DEV review can link to the local rehearsal.
+
+Twenty-eight synthetic browser scenarios cover NYE/Jingle dates, calendar and
+deep-query entry, history/draft restoration, recovery precedence and a Tokyo
+browser at the Chicago December 6/7 boundary. Mobile320/390 and desktop1280
+captures are reviewed; strict types pass. Standalone Jingle card styles preserve
+readable text and actions outside the concepts page. No backend/API calls,
+production release, campaign scheduling or Jingle activation in this slice.
+
+## 2026-10-21 - Jingle rehearsal arcade and mobile food feedback
+
+Jon selected the ordinary one-/two-hour bowling arcade offer for Jingle: $15 for
+a separate card with $20 in game play. Both current ordinary products attach
+public catalog code122; the isolated rehearsal uses synthetic9108. Show this
+optional offer with quantity controls and the existing arcade photograph. Keep
+NYE's separate offer and defaults intact.
+
+Shorten Jingle's food step by removing repeated instructions, grouping choices
+per lane, and putting the complete unchanged reservation information in an
+accessible disclosure beside its required acknowledgment. Keep the essentials
+visible. Lane prices remain illustrative, and the footer says final pricing is
+pending. This is local rehearsal work; no production release or activation.
+
+## 2026-10-21 - Protected local Jingle booking rehearsal
+
+Continue Jon's approved Jingle work with the NYE Brand checkout mechanics, explicit event configuration and the approved shared pizza/soda menu. Keep NYE defaults and shared cart/payment recovery identity. The Jingle wrapper requires simulated payment and draftless recovery adapters, omits marketing enrollment, shows seven information blocks plus one acknowledgment, and renders saved confirmation/kitchen previews. New /jingle-bowl/booking/ and its proxy work only on the isolated local development service with the existing review password; production returns404. No homepage/event activation or production booking mutation. Source/tests/reproduction: Context/session-handoffs/2026-10-21-jingle-booking-rehearsal.md.
 
 ## 2026-10-21 - Public NYE Brand checkout integration
 
