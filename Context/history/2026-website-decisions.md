@@ -1,3 +1,24 @@
+## 2026-10-22 - Jingle connection verified live and Desktop pack delivered
+
+Website 8eeb976 is live on Vercel 5GguzZSvTFNd7Y9ryfwNzVdVNBA8 against backend
+09d937c0 and its activated catalog. The protected landing/card links and real
+checkout bootstrap passed 149 browser assertions with 54 settled 200 API responses.
+Traditional and VIP each show the approved five starts and prices at 390/1280px;
+regular and birthday bookings show available times. Root reviewed the screenshots.
+No holds, payment or guest submission was made. Anonymous/encoded protection,
+no-store/noindex and the production rehearsal 404 remain intact. The shared Link
+removal is included. Full evidence: backend docs/JINGLE-PRODUCTION-CONNECTION-20261022.md
+and local .astro/jingle-connected-production-1792684040779/receipt.json.
+
+Jon separately requested a delivery copy on his actual redirected Desktop.
+`C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl` now contains the two finished
+Santa-visit PNG designs, their two smaller WebP derivatives, recommended-copy.txt
+(Meta event, GBP, social, text blast), and README-delivery.txt. All six copies
+were verified byte-for-byte against the dev sources. Current artwork and masters
+remain tracked; the old "Bowl with Santa" design and decorative cutout are excluded.
+New plain-text sources are in Context/jingle-bowl-2026/delivery/. No announcement
+or customer message was sent, and the page remains password-protected.
+
 ## 2026-10-22 - Connect protected Jingle lane cards to checkout
 
 Jon authorized connecting the customer-looking preview to real booking while
