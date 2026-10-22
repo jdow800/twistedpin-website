@@ -80,6 +80,16 @@ and selects the date, so it is not an untouched startup benchmark or proof of
 this frontend improvement. Its screenshots/receipts are retained in the sibling
 Jingle worktree under `.local/incident-*-session-first.{json,png}`.
 
+The independent late check also passed at 00:28 UTC, before Website changed:
+all 18 regular and 14 birthday requests settled with HTTP 200, no browser errors,
+no overflow and both time lists visually verified at 390 px. Exact Oct 24 day
+reads took 1,337–1,368 ms; Nov 7 reads took 1,406–1,428 ms. Receipts/screens are
+`.local/incident-*-session-late.{json,png}` in the sibling Jingle worktree.
+The regular script clicked the first enabled package (one hour in this sample,
+two hours in the first sample), so these are stability observations, not a
+matched-package performance benchmark. Neither journey selected a time or
+created a hold/payment. All adjacent-day prefetch requests also settled.
+
 Website source remains local while the backend's 30-minute acceptance runs.
 Deployment identity and fresh production evidence must be recorded after the
 coordinated release; no live performance improvement is claimed yet.
