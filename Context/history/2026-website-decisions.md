@@ -1,3 +1,14 @@
+## 2026-10-22 - Jingle Bowl SMS short link
+
+Add `/jb/` as a temporary redirect to the public Jingle Bowl landing page, with
+fixed loyalty SMS campaign tags on the destination. The short link keeps the
+first broadcast within one GSM-7 segment while preserving a first-party URL.
+It is reserved for SMS so its landing visits have one campaign meaning. The
+redirect can be repointed or removed after the December 6 event. This change
+creates the Website route; no guest message or Loyalty audience is created by
+it. Verify the redirect target and tags on the deployed site before using the
+link in a text. Landing analytics can count visits, not paid bookings.
+
 ## 2026-10-22 - Combined NYE and Jingle session closeout
 
 Jon requested durable troubleshooting/content pointers before starting a new combined social-drip session. Consolidate the saved NYE final/campaign/availability/Mirrorball receipts and Jingle public-release/closeout records, including both corrected Facebook covers and tracked masters/exporters. The current index is `Context/session-handoffs/2026-10-22-events-closeout.md`; the backend owns the combined operational index and prompt-only kickoff. Correct the annual NYE playbook's old backend-only/December1 assumptions. No runtime, homepage timing, checkout, auth, public media or dependencies change.

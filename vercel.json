@@ -172,6 +172,7 @@
 
     { "source": "/summerpinpass{/}?", "destination": "/summer-pin-pass/", "permanent": true },
     { "source": "/nye{/}?", "destination": "/new-years-eve/", "permanent": true },
+    { "source": "/jb{/}?", "destination": "/jingle-bowl/?utm_source=loyalty&utm_medium=sms&utm_campaign=jingle_bowl_2026", "permanent": false },
 
     { "source": "/mon{/}?", "destination": "/pricing/#mon", "permanent": true },
     { "source": "/tue{/}?", "destination": "/pricing/#tue", "permanent": true },
