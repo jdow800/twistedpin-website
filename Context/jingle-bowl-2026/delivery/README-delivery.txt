@@ -6,7 +6,7 @@ C:/Users/jdow8/OneDrive/Desktop/2026 Jingle Bowl
 
 This folder is a delivery copy. Keep the editable copy, artwork masters, export script and provenance in the Website repository under dev. Creating the Desktop folder does not publish an event, send a message, remove page protection or announce reservations.
 
-Public launch has been approved. The release connects the homepage invitation, public Jingle page and booking flow. Use recommended-copy.txt after the release is verified. The copy contains no access password. Staff can use staff-7shifts-tldr.txt as a quick phone reference; Jon will send it himself.
+Public launch was verified October 22, 2026. The homepage invitation, public Jingle page and booking flow are connected. The page and booking links are ready to share, with no password needed. Staff can use staff-7shifts-tldr.txt as a quick phone reference; Jon will send it himself.
 
 
 FINISHED ARTWORK TO DELIVER
