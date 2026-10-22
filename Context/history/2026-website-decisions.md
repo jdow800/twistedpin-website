@@ -1,3 +1,21 @@
+## 2026-10-22 - Jingle VIP fries, NYE financial setup and ordinary cancellation
+
+Jon confirmed the VIP appetizer is fries: one basket per VIP lane. Jingle uses
+the NYE financial setup, with four shoes at $5.95 and a $25 food allocation
+carved out of each base lane price, plus the 10% Online Booking Fee. These are
+revenue allocations, not extra charges or a four-guest/shoe-entitlement limit.
+Guest copy states the base price plus the booking fee and applicable tax; no
+all-in total or tax rate is invented. Actual product/quote verification remains
+separate. Existing retained rehearsal amounts remain untaxed and fee-free.
+
+Jingle uses ordinary one-/two-hour cancellation terms. Verified current
+Website2c6b1f12 pageConfig.ts and terms.astro, corroborated by backend
+magic_link.ts: cancellations must be made at least72 hours before the reservation
+to avoid forfeiting payment. No NYE14-day/certificate/fee-retention rule is copied.
+Protected landing/config/recovery copy is updated; one existing acknowledgment
+remains. Password, DEV-only booking, public readiness and campaigns are unchanged.
+This is a local copy revision, not a release or production booking activation.
+
 ## 2026-10-21 - NYE Mirrorball schedule and event marketing pack
 
 Jon selected items 2 and 3 from the visible next-step list: schedule the approved Mirrorball homepage treatment for December 7 and prepare Meta/Facebook plus Google Business Profile event visuals and copy. This does not request the separately noted sold-out display work or the connected checkout rehearsal.

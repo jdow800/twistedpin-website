@@ -42,7 +42,7 @@ export default function RehearsalDiscovered(props:EventDiscoveredProps) {
   return <section aria-label="Saved test reservation">
     <p>Owner rehearsal · simulated payment · no real booking, charge, email or text</p>
     <h2>{booking?'Rehearsal complete.':'Your saved test checkout'}</h2>
-    <p>Retained test total: {formatUsd(props.attempt.financialSnapshot.totalIncludingTax)}. Lane prices are approved; final tax and fee allocation remain under review.</p>
+    <p>Retained test total: {formatUsd(props.attempt.financialSnapshot.totalIncludingTax)}. This saved rehearsal amount excludes tax and the Online Booking Fee. Approved sales add a 10% Online Booking Fee and applicable tax.</p>
     {booking?<><p>Confirmation {booking.invoiceNumber}</p><p>The original test reservation was recovered from the isolated service.</p>
       <p><a href={`/jingle-bowl/rehearsal-api/rehearsal/booking/${booking.bookingId}/confirmation/`} target="_blank" rel="noreferrer">Confirmation preview</a> · <a href={`/jingle-bowl/rehearsal-api/rehearsal/booking/${booking.bookingId}/kitchen/`} target="_blank" rel="noreferrer">Kitchen preview</a></p></>:resolved?<p>This test checkout is {props.attempt.status}.</p>:<>
       <button type="button" disabled={busy} onClick={()=>void inspect('complete')}>Complete recovered test reservation</button>

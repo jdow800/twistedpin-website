@@ -1,5 +1,28 @@
 # Jingle Bowl resumed Website rehearsal
 
+## October22 protected copy follow-up
+
+The local branch was reconciled with live Website2c6b1f12, preserving its NYE
+Mirrorball campaign. The prior Jingle release-verification documentation was
+rebased ase996274; only the decision-log prepend conflicted and both entries
+were retained. The new copy revision is local and unpushed.
+
+Scoped runtime changes: `src/pages/jingle-bowl.astro`,
+`src/pages/jingle-bowl-concepts.astro`, and Jingle's `config.ts` plus the
+recovered-test-total sentence in `RehearsalDiscovered.tsx`. VIP now includes one
+basket of fries per lane. Fee/cancellation wording follows the approvals and
+source evidence below. Shared wizard/payment/controller code, homepage timing,
+password, DEV-only transport, public readiness, and retained financial data are
+unchanged. No production probes or fixture resets were used.
+
+Verification passes: focused strict TypeScript, `check-jingle-event-config.mjs`,
+`check-jingle-pairs.mjs`,17 auth checks, and normal `/tprs-api` production build
+with all prebuild checks. Actual protected landing/concepts pages at320/390/1280
+pass copy, exact72-hour wording and horizontal-overflow checks while API and
+external browser traffic are blocked. Local receipts/screenshots live under
+`.astro/jingle-copy-20261022/`, and build output at `.astro/jingle-copy-build.log`.
+The temporary page-only server55689 was stopped; it used no backend capability.
+
 This supersedes the active setup instructions and pending-price/schedule notes in
 `2026-10-21-jingle-booking-rehearsal.md`. That file remains a historical account
 of the original review. The original review on ports 55632/55634/55636 is intact.
@@ -22,6 +45,7 @@ minutes of bowling with 15 minutes of turnover. Times are America/Chicago.
 
 The shared NYE pizza/soft-drink choices, per-lane food pairs, no pitcher refills,
 and ordinary arcade offer ($15 per separate card for $20 play) remain as reviewed.
+Jon confirmed the VIP appetizer is one basket of fries per VIP lane.
 The compact food UI retains all seven complete operational information blocks
 inside a native disclosure and the exact visible required acknowledgment.
 
@@ -37,11 +61,28 @@ informational text separately. No live hours/booking flag changes are implied.
 
 Jon approved opening sales immediately at2026-10-22T01:19:04Z (October21 Central),
 with no announcement yet. That decision does not imply technical sales readiness.
-Final tax/fee allocation, production product/form identities and verified sales
-configuration, final staffed/opening/Santa hours, cancellation terms, VIP
-appetizer, and Shanna's proof remain pending. Base lane prices and the schedule
-are approved, not price placeholders. This fixture's untaxed totals do not
-approve final tax treatment. The password and DEV-only booking boundary remain.
+Jon also approved the same financial setup as NYE: four shoes at $5.95 and a
+$25 food allocation carved out of each lane's base price, plus the 10% Online
+Booking Fee. The allocations are not additional charges and do not limit the
+package to four guests or four shoe rentals. Guest copy says base price plus
+the booking fee and applicable tax. No tax rate or all-in total is inferred.
+Actual production product/quote setup still requires verification. The three
+retained rehearsal bookings keep their original untaxed, fee-free snapshots;
+copy must not relabel those amounts as including the newly approved fee.
+
+Cancellation follows ordinary one-/two-hour reservations: "Cancellations must
+be made at least 72 hours before your reservation to avoid forfeiting payment."
+The current deployed Website2c6b1f12 `src/tprs/pageConfig.ts:264` and
+`src/pages/terms.astro:198` establish this rule; backend
+`apps/backend/src/services/magic_link.ts:625` corroborates it.
+Within72 hours payment is final; exactly72 hours is outside that final-payment
+threshold. No refund method, gift certificate or service-fee-retention promise
+is added. NYE's14-day policy does not apply.
+
+Production product/form identities, verified sales configuration and quote
+totals, final staffed/opening/Santa hours, and Shanna's proof remain pending.
+Base lane prices, financial structure, cancellation and the schedule are approved.
+The password and DEV-only booking boundary remain.
 
 ## Source and isolated profile
 
