@@ -68,6 +68,36 @@ await checkAsync("redirect ignores external next/return URLs; calendar preserves
   assert.equal((await jingleReviewGate(post("/review/jingle-calendar/?month=2026-12&next=//evil.example"), env, now)).headers.get("Location"), "/review/jingle-calendar/?month=2026-12");
   assert.equal((await jingleReviewGate(post("/review/jingle-calendar/?month=%22%3E%3Cscript%3E"), env, now)).headers.get("Location"), "/review/jingle-calendar/");
 });
+await checkAsync("anonymous lane entry survives login with a signed cookie", async () => {
+  for (const lane of ["traditional", "vip"]) {
+    const path = `/jingle-bowl/booking/?lane=${lane}`;
+    const anonymous = await jingleReviewGate(get(path), env, now);
+    assert.equal(anonymous.status, 401);
+    assert.ok((await anonymous.text()).includes(`action="${path}"`));
+    const login = await jingleReviewGate(post(path), env, now);
+    assert.equal(login.status, 303);
+    assert.equal(login.headers.get("Location"), path);
+    const cookie = login.headers.get("Set-Cookie").split(";")[0];
+    assert.equal(verifyJingleReviewToken(cookie.slice(JINGLE_REVIEW_COOKIE.length + 1), env, now), true);
+    assert.equal(await jingleReviewGate(get(path, cookie), env, now), null);
+    const crossOrigin = await jingleReviewGate(post(path, env.JINGLE_REVIEW_PASSWORD, { Origin: "https://evil.example" }), env, now);
+    assert.equal(crossOrigin.status, 403);
+    assert.equal(crossOrigin.headers.get("Set-Cookie"), null);
+  }
+});
+await checkAsync("lane return accepts only one exact value and no additional query parameters", async () => {
+  for (const query of ["lane=", "lane=VIP", "lane=other", "lane=vip%20", "lane=%22%3E%3Cscript%3E", "lane=https://evil.example", "lane=vip&lane=vip", "lane=traditional&lane=vip", "lane=vip&next=//evil.example", "lane=vip&extra=", "lane=vip&month=2026-12"]) {
+    const path = `/jingle-bowl/booking/?${query}`;
+    const anonymous = await jingleReviewGate(get(path), env, now);
+    assert.equal(anonymous.status, 401);
+    assert.ok((await anonymous.text()).includes('action="/jingle-bowl/booking/"'));
+    assert.equal((await jingleReviewGate(post(path), env, now)).headers.get("Location"), "/jingle-bowl/booking/");
+  }
+  for (const path of ["/jingle-bowl/", "/jingle-bowl-concepts/", "/nye-homepage-concepts/"]) {
+    assert.equal((await jingleReviewGate(post(`${path}?lane=vip`), env, now)).headers.get("Location"), path);
+  }
+  assert.equal((await jingleReviewGate(post("/jingle-bowl/booking/other/?lane=vip"), env, now)).status, 405);
+});
 await checkAsync("cross-origin login and unsupported asset writes rejected", async () => {
   assert.equal((await jingleReviewGate(post("/jingle-bowl/", env.JINGLE_REVIEW_PASSWORD, { Origin: "https://evil.example" }), env, now)).status, 403);
   assert.equal((await jingleReviewGate(post("/jingle-bowl/jingle-wide.png"), env, now)).status, 405);

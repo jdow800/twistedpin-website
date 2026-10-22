@@ -61,3 +61,9 @@
   .jingle-booking .tprs-nye-pair .tprs-choice > span {font-size: 14px; line-height: 1.4; padding: 9px 4px;}
   .jingle-booking .tprs-reservation-info {padding: 14px;}
 }
+.jingle-booking-message {min-height:100dvh;background:#09291f;color:#fff4df;padding:clamp(28px,8vw,80px);font:16px/1.6 var(--font-ui,system-ui);}
+.jingle-booking-message h1 {font:900 clamp(36px,8vw,72px)/1.1 var(--font-display,system-ui);margin:24px 0;}
+.jingle-booking-message p {max-width:640px;margin:18px 0;}
+.jingle-booking-message a {color:#e8c78b;text-underline-offset:4px;}
+.jingle-booking-message button {font:inherit;padding:12px 20px;border:1px solid #e8c78b;border-radius:7px;background:#641e2d;color:#fff4df;cursor:pointer;}
+.jingle-booking-message :is(a,button):focus-visible {outline:3px solid #e8c78b;outline-offset:5px;}

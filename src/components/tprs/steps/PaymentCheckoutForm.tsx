@@ -290,7 +290,7 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
   </div>;
   return <form onSubmit={submit} className="tprs-pay-form">
     <div hidden={!!saved && !ready || !saved && !!(props.pricingPending || props.pricingError)}>
-      <PaymentElement options={{ layout: "tabs" }} />
+      <PaymentElement options={{ layout: "tabs", wallets: { link: "never" } }} />
     </div>
     {saved ? <p className="tprs-hold" role="status">{recoveryMessage(saved.status)}</p> : <div className="tprs-hold" aria-live="polite">
       <span>{holdBusy ? "Securing your lanes…" : !cartToken ? "Your lanes aren't held yet." : left <= 0 ? "Your hold expired." : <>Holding your lanes — <strong>{Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</strong></>}</span>

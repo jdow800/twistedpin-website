@@ -1,3 +1,36 @@
+## 2026-10-22 - Connect protected Jingle lane cards to checkout
+
+Jon authorized connecting the customer-looking preview to real booking while
+retaining the password. Both lane cards gain an accessible full-card link and an
+explicit Book Traditional or Book VIP action. A fresh visit selects that room and
+opens time selection; saved drafts (including an empty room), pending carts and
+accepted payment recovery keep priority. NYE ignores the optional Jingle hint.
+
+The real booking wrapper reads verified product identities and readiness from
+the backend, then uses the existing checkout/payment flow. It has no synthetic
+customer or test-payment fallback. The exact DEV rehearsal path stays separate.
+A server-side JINGLE_BOOKING_ENABLED switch controls fresh-sale links and entry;
+Jon approved the protected connection being enabled when this override is absent.
+The exact string `true` enables an explicit override; `false` and invalid values
+disable fresh sales while keeping accepted-payment recovery available. Backend
+readiness must also pass, so no hosting environment change is needed to connect
+the approved release. Protected login preserves only one valid lane
+parameter. Password/noindex, public campaign flags and NYE opening remain intact.
+
+Local scenario, switch, strict type, auth (19), native routing/proxy (7), and full
+production-build checks pass. The actual emitted Astro route passes 37 synthetic
+checks at 320/390px with the override absent, including selected-lane login/card
+entry, backend readiness, explicit true/false/invalid overrides and accepted
+recovery while sales are disabled. Evidence is in
+`.astro/jingle-default-built-route/results.json` and
+`.astro/jingle-default-production-build.log`. No production release or payment
+is claimed here. The original homepage video and December 7 NYE campaign are unchanged.
+
+Jon also requested removing Stripe Link from Jingle. The reviewed shared two-line
+change from NYE commit `5255d4c` sets `wallets.link: never` on fresh and recovered
+PaymentElements, preserving tabs, card, Apple Pay, Google Pay and payment logic.
+The combined release rechecks existing recovery and booking flows before shipping.
+
 ## 2026-10-22 - Repeat cocoa and Santa inclusions in both Jingle lane cards
 
 Shanna reviewed the page and approved the copy, requesting that guests scanning

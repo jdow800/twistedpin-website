@@ -1,4 +1,5 @@
 import { useEffect, useRef, type ReactNode } from "react";
+import "../tprs.css";
 import "./brand.css";
 import {nyeEventConfig,type EventBookingIdentity} from "./eventConfig";
 

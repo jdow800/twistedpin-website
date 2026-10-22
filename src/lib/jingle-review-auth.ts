@@ -76,9 +76,14 @@ function escapeHtml(value: string): string {
 }
 
 /** Redirect only to an allowlisted review page; caller-supplied next/return URLs
- * are ignored. Calendar retains only a valid month, never an arbitrary query. */
+ * are ignored. Booking retains one valid lane and no other query parameters;
+ * calendar retains only a valid month, never an arbitrary query. */
 export function jingleReviewReturnPath(url: URL): string {
   const path = pagePath(url.pathname) ?? "/jingle-bowl/";
+  if (path === "/jingle-bowl/booking/" && url.searchParams.size === 1) {
+    const lane = url.searchParams.get("lane");
+    if (lane === "traditional" || lane === "vip") return `${path}?lane=${lane}`;
+  }
   const month = url.searchParams.get("month");
   return path === "/review/jingle-calendar/" && month && /^20\d{2}-(0[1-9]|1[0-2])$/.test(month)
     ? `${path}?month=${month}` : path;

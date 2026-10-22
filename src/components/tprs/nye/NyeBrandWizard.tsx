@@ -42,11 +42,12 @@ async function loadEventCatalog(event:EventBookingConfig,signal?:AbortSignal) {
   const response=await api.getProducts([event.traditionalCode,event.vipCode],signal);
   const products=response.products.filter(p=>p.code===event.vipCode||p.code===event.traditionalCode);
   if(products.length!==2)throw new Error('catalog unavailable');
+  if(event.productIds&&products.some(p=>p.id!==(p.code===event.vipCode?event.productIds!.vip:event.productIds!.traditional)))throw new Error('catalog identity changed');
   const availability=await Promise.allSettled(products.map(async p=>[p.id,await api.getAvailability(p.id,event.date,signal)] as const));
   return {products,grid:Object.fromEntries(availability.flatMap(r=>r.status==='fulfilled'?[r.value]:[]))};
 }
 
-export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig=nyeEventConfig,PaymentComponent=PaymentStep,DiscoveredComponent=DiscoveredCheckout}:{salesOpen?:boolean;closedContent?:ReactNode;eventConfig?:EventBookingConfig;PaymentComponent?:ComponentType<EventPaymentProps>;DiscoveredComponent?:ComponentType<EventDiscoveredProps>} = {}) {
+export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig=nyeEventConfig,initialLaneType,PaymentComponent=PaymentStep,DiscoveredComponent=DiscoveredCheckout}:{salesOpen?:boolean;closedContent?:ReactNode;eventConfig?:EventBookingConfig;initialLaneType?:'traditional'|'vip';PaymentComponent?:ComponentType<EventPaymentProps>;DiscoveredComponent?:ComponentType<EventDiscoveredProps>} = {}) {
   const EVENT_DATE=eventConfig.date, DRAFT_KEY=eventConfig.draftKey;
   const freshDraft=():WizardState=>({...initialState,date:EVENT_DATE,guest:{...(eventConfig.initialGuest??initialState.guest)}});
   const codes=useMemo(()=>[eventConfig.traditionalCode,eventConfig.vipCode],[eventConfig]);
@@ -84,6 +85,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const controller = useMemo(() => createCartSelectionController({api}), []);
   const rootRef = useRef<HTMLDivElement>(null);
   const initialization = useRef(0);
+  // A Jingle package link is a fresh entry preference, never a replacement for
+  // a saved draft, pending cart change or accepted payment. Keep it mount-local.
+  const entryLaneType = useRef(initialLaneType);
+  const entryChoiceUsed = useRef(false);
   const locked = busy || !!recovery || !!discovered || draft.checkoutLocked;
   const product = products.find(p=>p.code===roomCode) ?? null;
   const slot = product && time ? grid[product.id]?.find(s=>s.time===time) ?? null : null;
@@ -265,6 +270,13 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       const catalog=await loadCatalog();
       if(!isCurrent())return;
       setProducts(catalog.products);setGrid(catalog.grid);
+      if(!saved&&!entryChoiceUsed.current&&eventConfig.id==='jingle'){
+        const code=entryLaneType.current==='traditional'?eventConfig.traditionalCode:entryLaneType.current==='vip'?eventConfig.vipCode:null;
+        if(code!==null&&catalog.products.some(p=>p.code===code)){
+          setRoomCode(code);setStep('time');
+        }
+      }
+      entryChoiceUsed.current=true;
     }catch {if(isCurrent())setLoadError('We could not safely restore your reservation. Try again, or call (815) 782-7790 before making another payment.');}
     finally{if(isCurrent())setInitializedSalesMode(salesOpen);}
   },[controller,salesOpen,eventConfig]);
@@ -501,6 +513,8 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     // confirmed booking. Keep any paired pending cart proposal: only its same
     // mutation retry/current authoritative read can resolve that identity.
     setInitializedSalesMode(null);
+    // Finishing a previous payment must not replay a landing-page preference.
+    entryChoiceUsed.current=true;
     saveCheckoutRecovery(sessionStorage,null);saveDiscoveredCheckout(sessionStorage,null);
     const retained=controller.readPending();
     if(retained.kind==='blocked'){setLoadError('We could not read the saved lane selection. Please allow browser storage before continuing.');setInitializedSalesMode(salesOpen);return;}

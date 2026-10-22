@@ -19,6 +19,8 @@ export type EventBookingConfig = {
   utcOffset: string;
   traditionalCode: number;
   vipCode: number;
+  /** Optional verified UUIDs bind public bootstrap codes to exact catalog roots. */
+  productIds?: {traditional: string; vip: string};
   guests: { traditional: number; vip: number };
   maxLanes: number;
   draftKey: string;

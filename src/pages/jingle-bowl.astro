@@ -1,10 +1,13 @@
 ---
 import Base from "../layouts/Base.astro";
 import { PHONE_DISPLAY, PHONE_TEL } from "../lib/schema";
+import { jingleBookingEnabled, jingleBookingHref } from "../config/jingle-booking";
 export const prerender = false;
 
-// Guest-facing landing copy remains password-protected until booking verification.
-// No sales, public discovery or Event/Offer schema is activated by this page.
+// The review password is separate from booking readiness. Only the verified
+// release switch (or exact isolated DEV transport) exposes booking links.
+const bookingEnabled = jingleBookingEnabled(process.env.JINGLE_BOOKING_ENABLED ?? import.meta.env.JINGLE_BOOKING_ENABLED)
+  || (import.meta.env.DEV && import.meta.env.PUBLIC_TPRS_API_BASE === '/jingle-bowl/rehearsal-api');
 const inclusions = [
   { number: "01", title: "90 minutes of bowling", detail: "Time on your lane, with shoe rental included." },
   { number: "02", title: "Pizza + soft drinks", detail: "One large pizza and a pitcher of soft drink per lane." },
@@ -71,12 +74,14 @@ const inclusions = [
             <div class="jb-room-heading"><h3>Traditional lanes</h3><p class="jb-room-price"><span>Base price / lane</span><strong>$149.95</strong></p></div>
             <ul class="jb-room-inclusions" aria-label="Included with each Traditional lane"><li>90 minutes of bowling</li><li>Shoe rental included</li><li>One large pizza per lane</li><li>One pitcher of soda per lane</li><li>Access to cookie &amp; cocoa bar</li><li>Photo with Santa on your device</li></ul>
             <p class="jb-room-note">Pitcher refills are not included.</p>
+            {bookingEnabled && <a class="jb-button jb-room-cta" href={jingleBookingHref('traditional')}>Book Traditional <span aria-hidden="true">↗</span></a>}
           </article>
           <article class="jb-room">
             <div class="jb-room-photo"><picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" width="540" height="405" loading="lazy" decoding="async" alt="Couch seating and bowling lanes in the Twisted Pin VIP suite" /></picture><span>02 / VIP suite</span></div>
             <div class="jb-room-heading"><h3>VIP suite lanes</h3><p class="jb-room-price"><span>Base price / lane</span><strong>$189.95</strong></p></div>
             <ul class="jb-room-inclusions" aria-label="Included with each VIP lane"><li>90 minutes of bowling</li><li>Shoe rental included</li><li>One large pizza per lane</li><li>One pitcher of soda per lane</li><li>Access to cookie &amp; cocoa bar</li><li>Photo with Santa on your device</li><li class="jb-vip-extra">One basket of fries per lane</li></ul>
             <p class="jb-room-note">Enjoy the suite’s couch seating. Pitcher refills are not included.</p>
+            {bookingEnabled && <a class="jb-button jb-room-cta" href={jingleBookingHref('vip')}>Book VIP <span aria-hidden="true">↗</span></a>}
           </article>
         </div>
         <p class="jb-price-note">Base lane prices are shown above. A 10% Online Booking Fee and applicable tax are added at checkout.</p>
@@ -170,6 +175,12 @@ const inclusions = [
   .jb-rooms { background: var(--jb-green); }
   .jb-room-intro { font-size: 15px; max-width: 340px; color: var(--warm-mid); }
   .jb-room-grid { display: grid; gap: 38px; }
+  .jb-room { position: relative; }
+  .jb-room-cta { margin-top: 22px; }
+  .jb-room-cta:hover { transform: none; }
+  .jb-room-cta::after { content: ""; position: absolute; inset: 0; }
+  .jb-room:has(.jb-room-cta:focus-visible) { outline: 3px solid var(--jb-gold); outline-offset: 8px; }
+  .jb-room:has(.jb-room-cta:hover) .jb-room-photo { border-color: var(--jb-gold); }
   .jb-room-photo { position: relative; overflow: hidden; background: var(--jb-deep); border: 1px solid #e8c78b66; }
   .jb-room-photo picture, .jb-room-photo img { display: block; width: 100%; }
   .jb-room-photo img { height: auto; aspect-ratio: 4/3; object-fit: cover; }

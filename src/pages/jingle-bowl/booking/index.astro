@@ -1,12 +1,15 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import JingleRehearsal from '../../../components/tprs/jingle/JingleRehearsal';
+import JinglePublicCheckout from '../../../components/tprs/jingle/JinglePublicCheckout';
+import { jingleBookingEnabled } from '../../../config/jingle-booking';
 export const prerender = false;
-// This route cannot use production transport, even behind the review password.
-if (!import.meta.env.DEV || import.meta.env.PUBLIC_TPRS_API_BASE !== '/jingle-bowl/rehearsal-api') {
-  return new Response('Local rehearsal unavailable', {status:404});
-}
+// Preserve the exact isolated local entry used by retained review scripts.
+// Every other environment uses the separate real-checkout bootstrap.
+const rehearsal = import.meta.env.DEV && import.meta.env.PUBLIC_TPRS_API_BASE === '/jingle-bowl/rehearsal-api';
+const enabled = jingleBookingEnabled(process.env.JINGLE_BOOKING_ENABLED ?? import.meta.env.JINGLE_BOOKING_ENABLED);
 ---
-<Base title="Jingle Bowl booking rehearsal | Twisted Pin" description="Private booking rehearsal" hideStickyCTA={true} hideHeader={true} hideNavDrawer={true} hidePromo={true}>
-  <JingleRehearsal client:only="react"><p slot="fallback">Loading the isolated booking rehearsal…</p></JingleRehearsal>
+<Base title="Book Jingle Bowl 2026 | Twisted Pin Plainfield" description="Choose Traditional or VIP lanes, your Jingle Bowl time, pizza and soda at Twisted Pin on December 6, 2026." hideStickyCTA={true} hideHeader={true} hideNavDrawer={true} hidePromo={true} lockViewportZoom={true}>
+  <Fragment slot="head"><meta name="robots" content="noindex, nofollow" /></Fragment>
+  {rehearsal ? <JingleRehearsal client:only="react"><p slot="fallback">Loading the isolated booking rehearsal…</p></JingleRehearsal> : <JinglePublicCheckout enabled={enabled} client:only="react"><section slot="fallback" class="jingle-booking-message"><h1>Jingle Bowl</h1><p>Loading booking…</p><noscript><p>Please enable JavaScript to book online, or call <a href="tel:+18157827790">(815) 782-7790</a>.</p></noscript><a href="/jingle-bowl/">About Jingle Bowl</a></section></JinglePublicCheckout>}
 </Base>

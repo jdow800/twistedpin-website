@@ -409,6 +409,11 @@ export async function getMonthAvailabilityDetails(productId: string, month: stri
 
 export type CheckoutAttemptStatus = z.infer<typeof checkoutAttemptStatusResponseSchema>;
 export type CheckoutAttemptIdentity = z.infer<typeof checkoutAttemptStatusRequestSchema>;
+/** Non-sensitive Jingle release configuration; the event wrapper validates its contract. */
+export async function getJingleBookingConfig(signal?: AbortSignal): Promise<unknown> {
+  return getJson('/api/jingle-bowl/config', signal);
+}
+
 export async function getActiveCheckoutAttempt() {
   const { ok, status, json } = await postJson("/api/checkout/attempt-active", undefined);
   if (!ok) throwCheckout(status, json);

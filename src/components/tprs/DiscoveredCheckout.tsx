@@ -130,7 +130,7 @@ function RecoveredPayment(props: Props) {
     </div>
     {booking ? <><p className="tprs-confirm-email">A confirmation is on its way to <strong>{attempt.originalRequest.customer.email}</strong>.</p><button type="button" className="tprs-btn tprs-btn--solid" onClick={props.onNewReservation}>Book another reservation</button></> : <>
       <p role="status">{recoveryMessage(attempt.status)}</p>
-      <div hidden={!ready || !attempt.paymentReady}><PaymentElement options={{ layout: "tabs" }} /></div>
+      <div hidden={!ready || !attempt.paymentReady}><PaymentElement options={{ layout: "tabs", wallets: { link: "never" } }} /></div>
       {!attempt.paymentReady && !error && !canReleaseCheckout(attempt.status) && <p className="tprs-pay-error-msg" role="alert">{incompleteCheckoutMessage}</p>}
       {error && <p className="tprs-pay-error-msg" role="alert">{error}</p>}
       <button type="button" className="tprs-btn tprs-btn--solid" disabled={busy} onClick={() => void run(() => inspect(ready && attempt.paymentReady))}>{busy ? "Checking…" : ready && attempt.paymentReady ? `Continue saved payment ${formatUsd(attempt.financialSnapshot.totalIncludingTax)}` : "Check payment status"}</button>
