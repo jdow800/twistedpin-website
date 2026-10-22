@@ -73,6 +73,11 @@ remained empty at revision zero. Regular and birthday journeys showed six and tw
 available times. No time selection, hold, payment or email was created. Receipt
 and screenshots: `.astro/jingle-vip-repeat-live-1792687788836/`. This evidence-only
 successor is retained on the feature branch to avoid another production rebuild.
+## 2026-10-22 - Facebook event cover crop correction
+
+Jon asked to fix the NYE event cover after Jingle's Facebook creation dialog exposed a tighter crop, and confirmed the Facebook event will be created November 18 when reservations open. Keep both 1920 x 1005 phase exports and all approved source artwork/wording; move the logo, headline, opening line, URL and location into a conservative central band, with the full Mirrorball circle visible. Extend the existing local renderer with the observed centered 2.7:1 crop proof and small preview files. This is artwork-only delivery on the feature branch, with no Website deployment, Facebook publication, sales or campaign schedule change.
+
+Verification: both full exports and 600px crop previews pass font, bounds and no-overflow checks plus independent visual review. Essential text stays within y210–800, with the complete Mirrorball circle inside the simulated crop. A Facebook-only template class isolates the existing website share-card renderer. All six feed/Story/Google exports retain their original hashes. Both Desktop phase-folder covers and the overview were replaced and hash-verified; originals, source and crop evidence stay in the project. The actual Facebook upload/reposition preview remains a final publishing check, not claimed tested here.
 
 ## 2026-10-22 - Final NYE copy integration and dedicated share image
 

@@ -9,6 +9,7 @@ import { chromium } from 'playwright';
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pack = resolve(repo, 'Context/marketing/nye-2026');
 const output = resolve(pack, 'exports');
+const qaOutput = resolve(pack, 'qa');
 const source = await readFile(resolve(pack, 'artwork/campaign.html'), 'utf8');
 const assets = {
   PHOTO: ['public/snap/nye-reserve-hero-1600.webp', 'image/webp'],
@@ -25,7 +26,7 @@ for (const [token, [path, mime]] of Object.entries(assets)) {
   sourceAssets.push({ path, sha256: createHash('sha256').update(bytes).digest('hex') });
 }
 const formats = [
-  { name: 'facebook-event', css: 'cover', width: 1920, height: 1005 },
+  { name: 'facebook-event', css: 'facebook-cover', width: 1920, height: 1005 },
   { name: 'feed', css: 'feed', width: 1080, height: 1350 },
   { name: 'story', css: 'story', width: 1080, height: 1920 },
   { name: 'google-event', css: 'google', width: 1200, height: 900 },
@@ -35,6 +36,7 @@ const phases = [
   { name: 'reservations-open', detail: 'CHOOSE YOUR PARTY TIME.', alt: 'New Year’s Eve bowling at Twisted Pin, December 31, 2026. Reservations open. Choose your party time at www.twistedpin.com/new-years-eve/' },
 ];
 await mkdir(output, { recursive: true });
+await mkdir(qaOutput, { recursive: true });
 const browser = await chromium.launch();
 const records = [];
 try {
@@ -62,10 +64,23 @@ try {
     if (!checks.fonts || checks.overflow || checks.bounds.some(r => r.x < 0 || r.y < 0 || r.x + r.width > format.width || r.y + r.height > format.height)) throw new Error(`Canvas/font check failed: ${format.name} ${phase.name}`);
     // House margins, not a claim of platform-certified safe zones.
     if (format.css === 'story' && checks.bounds.some(r => r.x < 70 || r.y < 250 || r.x + r.width > 1010 || r.y + r.height > 1530)) throw new Error('Story text exceeds conservative house margins');
+    if (format.css === 'facebook-cover') {
+      // Matches the centered 2.7:1 creation preview supplied by Jon. It is a
+      // simulated crop, not proof of a saved Facebook upload or every placement.
+      const cropHeight = Math.round(format.width / 2.7);
+      const cropTop = Math.round((format.height - cropHeight) / 2);
+      const mirrorBall = await page.locator('.mirror > circle').boundingBox();
+      if (checks.bounds.some(r => r.x < 96 || r.y < 200 || r.x + r.width > 1824 || r.y + r.height > 805)) throw new Error(`Facebook essential copy exceeds crop margins: ${phase.name}`);
+      if (!mirrorBall || mirrorBall.y < cropTop || mirrorBall.y + mirrorBall.height > cropTop + cropHeight) throw new Error('Facebook Mirrorball is clipped by the observed crop');
+      checks.facebookCrop = { ratio: 2.7, top: cropTop, height: cropHeight, essentialTop: 200, essentialBottom: 805, mirrorBall, simulatedOnly: true };
+    }
     const filename = `${format.name}-${phase.name}.png`;
     const png = await sharp(await page.screenshot({ type: 'png' })).png({ compressionLevel: 9 }).toBuffer();
     if (png.length > 5_000_000) throw new Error(`Export larger than 5 MB: ${filename}`);
     await writeFile(resolve(output, filename), png);
+    if (format.css === 'facebook-cover') {
+      await sharp(png).extract({ left: 0, top: checks.facebookCrop.top, width: format.width, height: checks.facebookCrop.height }).resize({ width: 600 }).png({ compressionLevel: 9 }).toFile(resolve(qaOutput, `facebook-event-${phase.name}-centered-2p7-at-600.png`));
+    }
     records.push({ filename, phase: phase.name, format: format.name, width: format.width, height: format.height, bytes: png.length, sha256: createHash('sha256').update(png).digest('hex'), alt: phase.alt, checks });
     await page.close();
     console.log(`${filename} ${format.width}×${format.height} ${Math.round(png.length / 1024)} KB`);

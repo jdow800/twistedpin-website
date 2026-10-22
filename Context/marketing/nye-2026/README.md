@@ -21,6 +21,12 @@ Open [the local review gallery](review.html) for individual images, or use the e
 
 These dimensions are composition choices, not a claim that every placement requires them. Use the portrait feed asset for feed posts; do not rely on an automatic crop of the wide event cover. Use the teaser Google image in an **Update**, then the open image in an **Event**. Publishing-interface crop and overlay previews remain necessary, especially on Meta. The Story leaves generous empty space above and below the important content; this is a house margin, not a certified platform safe zone. Put its link sticker in the clear area below the printed URL and verify the actual overlay preview.
 
+## Facebook event cover correction, October 22
+
+Jon approved creating the Facebook event on November 18 when reservations open. Use `exports/facebook-event-reservations-open.png` for that event; the teaser remains available for pre-opening promotion. Both 1920 x 1005 covers now place all essential copy within a conservative central band, preserving the approved photograph, logo, Mirrorball and wording. Supporting copy stays at 32px or larger. The logo, URL and complete Mirrorball circle survive the centered approximately 2.7:1 crop observed in Jon's Jingle creation-dialog screenshot.
+
+The renderer checks those bounds and writes 600px crop previews into `qa/`. These simulate that one creation-dialog crop; no Facebook event was uploaded, published or scheduled, and they are not a guarantee for every placement. Inspect Facebook's actual reposition preview before saving. Upload the full-size export, not the QA crop. The website share image and the six feed/Story/Google exports are unchanged. Updated copies replace the matching files in the Desktop `NYE 2026` phase folders and its overview image.
+
 ## Timing and factual basis
 
 The teaser runs before **November 18, 2026, 9am Central** (`2026-11-18T15:00:00Z`). It shows the December 31 event date and the sales-opening time, with no party times or prices. Switch to the open version only once reservations have opened; this pack does not schedule or publish anything. Remove time-sensitive creative when it is no longer bookable. Availability and current purchasing rules remain on the reservation page.
