@@ -179,3 +179,31 @@ unconditional404 in production, and protected routes remain outside the sitemap.
 The shared no-coupon owner cleared the release hold after independent ordinary
 and birthday mobile checks. Root owns the subsequent protected Website release
 and live readback. No public campaign or Jingle booking activation is included.
+
+## Verified protected release
+
+Main1a5089125488694a9fe8105b3c782b6d357615c4 deployed successfully to Vercel
+5qgWNwWA2KyEi8rcQZBzpd7J7KnS. At02:12UTC on October22, all41 bounded live checks
+passed: anonymous/encoded page and asset401, normal password303, authenticated
+Jingle/concepts/calendar200 with noindex/no-store, and authenticated production
+booking/rehearsal API404. The revised landing was visually reviewed at390/1280,
+including prices and5:15/5:30 copy, with no overflow, trackers or browser errors.
+Public home/calendar remain Jingle-free; ordinary, birthday, NYE and proxy health
+routes returned200. Reproduction and captures are ignored under
+`.astro/jingle-protected-live.mjs` and `.astro/jingle-protected-live/`.
+
+One independent sequential390px regular then birthday journey subsequently
+passed: all38 tracked API requests settled200 (36GET plus2 read-only active-attempt
+discovery calls), visible times, zero errors/overflow/pending requests. No time,
+Continue, hold, payment or customer submission occurred. Regular times appeared
+at4.744s/all reads6.551s; birthday times4.304s/all reads5.594s. These deliberately
+include calendar interaction and are not pristine first-load performance claims.
+Receipts and screenshots remain in the retained jingle-capacity worktree under
+`.local/incident-{regular,birthday}-jingle-website-release.{json,png}`. Further
+production probes stopped after this checkpoint.
+
+Backend draftPR468 now reconciles actual shared mainf268d51f asdb0f5d3e and includes
+the NYE owner's docs-onlycf2352ea release evidence. Runtime/CI files are unchanged
+from the already reviewed local156f3010 tree. No backend Jingle release or
+production identity registration occurred. This evidence follow-up is saved on
+the Website feature branch; production remains the exact1a508912 source above.
