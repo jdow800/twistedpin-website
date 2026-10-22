@@ -1,6 +1,6 @@
 {
   "basis": "Website 1a5089125488694a9fe8105b3c782b6d357615c4",
-  "templateSha256": "5320f3ef379f095c2d780d26e6122c0299567321957f7561ef85c135847db38b",
+  "templateSha256": "7829f36e0bbac0730f7b085271ea35c826e02a1c5255752eddcb914bc2409241",
   "sourceAssets": [
     {
       "path": "public/snap/nye-reserve-hero-1600.webp",
@@ -30,8 +30,8 @@
       "format": "facebook-event",
       "width": 1920,
       "height": 1005,
-      "bytes": 2373379,
-      "sha256": "efbfed35d5796ada8674308310e30f9a9d27a1afaf7f8b3ba5e043be3153bba5",
+      "bytes": 2375747,
+      "sha256": "8a4461b761cf48054d0ed2ecb4807051fb3b134002f8282b75fe9a9b35bf701b",
       "alt": "New Year’s Eve bowling at Twisted Pin, December 31, 2026. Reservations open November 18 at 9am Central. www.twistedpin.com/new-years-eve/",
       "checks": {
         "fonts": true,
@@ -39,33 +39,47 @@
           {
             "element": "logo",
             "x": 108,
-            "y": 70,
-            "width": 260,
-            "height": 111.21875
+            "y": 210,
+            "width": 240,
+            "height": 102.65625
           },
           {
             "element": "headline",
             "x": 108,
-            "y": 267,
-            "width": 830.875,
-            "height": 457.578125
+            "y": 332,
+            "width": 586.40625,
+            "height": 338.140625
           },
           {
             "element": "action",
             "x": 108,
-            "y": 741.3125,
-            "width": 546.65625,
-            "height": 163.6875
+            "y": 694.40625,
+            "width": 798.1875,
+            "height": 105.59375
           },
           {
             "element": "place",
-            "x": 1626.25,
-            "y": 880,
-            "width": 188.75,
-            "height": 25
+            "x": 1513.015625,
+            "y": 760,
+            "width": 301.984375,
+            "height": 40
           }
         ],
-        "overflow": false
+        "overflow": false,
+        "facebookCrop": {
+          "ratio": 2.7,
+          "top": 147,
+          "height": 711,
+          "essentialTop": 200,
+          "essentialBottom": 805,
+          "mirrorBall": {
+            "x": 1510.8770751953125,
+            "y": 202.12351989746094,
+            "width": 251.2459716796875,
+            "height": 251.24595642089844
+          },
+          "simulatedOnly": true
+        }
       }
     },
     {
@@ -185,8 +199,8 @@
       "format": "facebook-event",
       "width": 1920,
       "height": 1005,
-      "bytes": 2373206,
-      "sha256": "1fcfa1663201f8ae09e520e0db89f6e7b308eb3aba415625a7c54def5753039f",
+      "bytes": 2374721,
+      "sha256": "bf4bd6578bde0bf2b7fb4645fdc513f54d6ec09db68866700995e060321c2fbd",
       "alt": "New Year’s Eve bowling at Twisted Pin, December 31, 2026. Reservations open. Choose your party time at www.twistedpin.com/new-years-eve/",
       "checks": {
         "fonts": true,
@@ -194,33 +208,47 @@
           {
             "element": "logo",
             "x": 108,
-            "y": 70,
-            "width": 260,
-            "height": 111.21875
+            "y": 210,
+            "width": 240,
+            "height": 102.65625
           },
           {
             "element": "headline",
             "x": 108,
-            "y": 267,
-            "width": 830.875,
-            "height": 457.578125
+            "y": 332,
+            "width": 586.40625,
+            "height": 338.140625
           },
           {
             "element": "action",
             "x": 108,
-            "y": 741.3125,
-            "width": 546.65625,
-            "height": 163.6875
+            "y": 694.40625,
+            "width": 868.75,
+            "height": 105.59375
           },
           {
             "element": "place",
-            "x": 1626.25,
-            "y": 880,
-            "width": 188.75,
-            "height": 25
+            "x": 1513.015625,
+            "y": 760,
+            "width": 301.984375,
+            "height": 40
           }
         ],
-        "overflow": false
+        "overflow": false,
+        "facebookCrop": {
+          "ratio": 2.7,
+          "top": 147,
+          "height": 711,
+          "essentialTop": 200,
+          "essentialBottom": 805,
+          "mirrorBall": {
+            "x": 1510.8770751953125,
+            "y": 202.12351989746094,
+            "width": 251.2459716796875,
+            "height": 251.24595642089844
+          },
+          "simulatedOnly": true
+        }
       }
     },
     {

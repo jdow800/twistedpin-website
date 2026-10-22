@@ -26,6 +26,20 @@
     .detail { margin: 0; font: 900 53px/1.1 Barlow, sans-serif; text-transform: uppercase; }
     .url { margin: 22px 0 0; font: 700 28px/1.3 Montserrat, sans-serif; }
     .place { position: absolute; right: 105px; bottom: 100px; margin: 0; font: 700 20px/1.25 Montserrat, sans-serif; letter-spacing: .12em; }
+    /* Facebook creation-dialog crop observed by Jon: centered ~2.7:1.
+       Keep essential copy inside y=200..805 on this 1920x1005 canvas.
+       These are conservative artwork margins, not a Meta-certified safe zone. */
+    .facebook-cover .logo { top: 210px; width: 240px; }
+    .facebook-cover .mirror { top: 110px; }
+    .facebook-cover .headline { top: 332px; }
+    .facebook-cover .eyebrow { margin-bottom: 14px; }
+    .facebook-cover h1 { font-size: 132px; }
+    .facebook-cover .subhead { margin-top: 16px; }
+    .facebook-cover .action { bottom: 205px; display: grid; grid-template-columns: max-content max-content; gap: 12px 20px; align-items: baseline; }
+    .facebook-cover .status { margin: 0; font-size: 32px; }
+    .facebook-cover .detail { font-size: 46px; }
+    .facebook-cover .url { grid-column: 1 / -1; margin: 0; font-size: 32px; }
+    .facebook-cover .place { bottom: 205px; font-size: 32px; }
     .feed .photo { top: 525px; width: 100%; height: 825px; object-position: 50% 55%; }
     .feed .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 38%, rgba(16,11,35,.05) 55%, rgba(16,11,35,.04) 66%, #100b23 88%); }
     .feed .logo { left: 74px; top: 40px; width: 240px; }
