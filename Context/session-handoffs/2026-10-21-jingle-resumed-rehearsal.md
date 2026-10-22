@@ -1,5 +1,25 @@
 # Jingle Bowl resumed Website rehearsal
 
+## October 22 lane-card review and booking connection priority
+
+Shanna's repeated cookie/cocoa-bar and on-device Santa-photo inclusions are live
+in both lane cards at Website `5d327a221870677dee773284ec859d4fa565b5f6`, Vercel
+`HP2b8qxw8jB8NbeP6vEqpb1qhutz`. Production build and live 390/1280 checks pass;
+anonymous access stays 401, authenticated access 200 with noindex/no-store,
+and both screens have no horizontal overflow or browser errors. Local receipts
+and screenshots are in `.astro/jingle-inclusions-live/`; no checkout was attempted.
+
+Jon also requested clickable Traditional/VIP choices that open booking with the
+selected lane type. This remains unimplemented: production `/jingle-bowl/booking/`
+is deliberately 404, and the current FakeRail rehearsal is loopback-only. Do not
+publish dead booking links or silently present test bookings as purchases. Next
+priority is the actual protected booking connection, using the approved products,
+prices and schedule, preserving payment/draft recovery before any URL preselection.
+The backend packet still requires concrete catalog/GL/form identities, guarded
+configuration, startup food/coupon registration, real quote proof and production
+confirmation delivery. Immediate sales opening was already approved; no new price
+or schedule question is needed. Staffed opening is a separate Roy-transfer gate.
+
 ## October22 verified protected copy release
 
 The approved copy commit `0b923164176482a16d4a487a02735781f5b5510e` is live on
