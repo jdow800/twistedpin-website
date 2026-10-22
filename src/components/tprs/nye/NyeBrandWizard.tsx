@@ -85,8 +85,8 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const controller = useMemo(() => createCartSelectionController({api}), []);
   const rootRef = useRef<HTMLDivElement>(null);
   const initialization = useRef(0);
-  // A Jingle package link is a fresh entry preference, never a replacement for
-  // a saved draft, pending cart change or accepted payment. Keep it mount-local.
+  // An explicit Jingle package link changes requested controls, not held lanes.
+  // Pending changes and accepted payments keep priority. Keep it mount-local.
   const entryLaneType = useRef(initialLaneType);
   const entryChoiceUsed = useRef(false);
   const locked = busy || !!recovery || !!discovered || draft.checkoutLocked;
@@ -270,10 +270,21 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       const catalog=await loadCatalog();
       if(!isCurrent())return;
       setProducts(catalog.products);setGrid(catalog.grid);
-      if(!saved&&!entryChoiceUsed.current&&eventConfig.id==='jingle'){
+      if(!entryChoiceUsed.current&&eventConfig.id==='jingle'&&retained.kind==='empty'
+        &&!saved?.pending&&!saved?.catalogReviewRequired&&!saved?.catalogHeldSelection){
         const code=entryLaneType.current==='traditional'?eventConfig.traditionalCode:entryLaneType.current==='vip'?eventConfig.vipCode:null;
         if(code!==null&&catalog.products.some(p=>p.code===code)){
-          setRoomCode(code);setStep('time');
+          if(code!==saved?.roomCode){
+            // Match chooseRoom: retain the original draft/hold and party size.
+            // Continue still requires change review before replacing held lanes.
+            setRoomCode(code);setTime(null);setStep('time');
+          }
+          // Consume this entry instruction so a later in-checkout room change
+          // survives reload. Other URL parameters and Back state stay intact.
+          try{
+            const entryUrl=new URL(location.href);entryUrl.searchParams.delete('lane');
+            history.replaceState(history.state,'',entryUrl.pathname+entryUrl.search+entryUrl.hash);
+          }catch{/* URL cleanup must not block a safely restored reservation. */}
         }
       }
       entryChoiceUsed.current=true;

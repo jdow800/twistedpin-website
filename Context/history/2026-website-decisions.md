@@ -1,3 +1,23 @@
+## 2026-10-22 - Honor explicit Jingle lane buttons after an earlier visit
+
+Jon reported Book VIP opening Traditional. The original entry guard let every
+saved draft override the landing-page button, including a room merely browsed.
+An explicit different room now opens that room's time choices and clears the old
+requested time. Quantity and saved guest details remain. Same-room reloads retain
+the selected time. The consumed lane query is removed while other URL parameters,
+hash and history state remain, so a later in-checkout choice survives reload.
+Existing held lanes remain held until the usual change review
+and explicit confirmation; pending cart changes, catalog review and accepted
+payments retain their recovery priority. NYE behavior is unchanged. Regression
+coverage includes both navigation directions, an empty draft, reload, held lanes,
+pending requests and retained payments.
+
+The regression first failed against the prior entry guard; the reload scenario
+also failed before query consumption. Final ten Jingle entry groups pass, plus
+23 shared Brand flow groups, the checkout recovery suite, 19 protected-route
+checks and the production build. Independent source review found no blocker.
+Live same-browser button verification follows the deployment; no backend change.
+
 ## 2026-10-22 - Final NYE copy integration and dedicated share image
 
 After Jingle released `8eeb976`, integrate the saved singular lane/pizza/pitcher corrections and both events' Desktop delivery records on that exact successor. The public NYE page now has its own 1200 × 630 share card using the existing approved photograph, logo, typography and Mirrorball code artwork. Its evergreen text does not announce sales or assert remaining inventory. The renderer blocks network requests and records asset hashes; the final 104 KB JPEG is tracked with its editable source. No checkout, inventory, sales opening or homepage campaign policy changes are included. The paid NYE rehearsal and its original operations origin remain untouched. Combined checks, page-speed measurements and release proof will be recorded below.

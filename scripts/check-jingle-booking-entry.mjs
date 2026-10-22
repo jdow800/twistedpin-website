@@ -111,15 +111,59 @@ try{
   }
   const page=await fresh('?lane=vip',{nye:true});await heading(page,'Choose your lanes.');assert.equal(await page.locator('.room-choice[aria-pressed="true"]').count(),0);await page.context().close();
  });
- await scenario('An existing draft including an unselected room wins over a new landing hint',async()=>{
-  for(const original of ['', '?lane=traditional']){
+ await scenario('Explicit lane links replace browsing choices in both directions, including an empty draft',async()=>{
+  for(const [original,next] of [['','vip'],['?lane=traditional','vip'],['?lane=vip','traditional']]){
    const page=await fresh(original);await heading(page,original?'Choose your time.':'Choose your lanes.');
+   if(original){await page.getByRole('button',{name:'More',exact:true}).click();await page.locator('.time-choice').nth(1).click();}
    await page.waitForFunction(key=>sessionStorage.getItem(key)!==null,draftKey);
-   const saved=await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey);
-   await page.goto(`${origin}/?lane=vip`);await heading(page,original?'Choose your time.':'Choose your lanes.');
-   assert.deepEqual(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey),saved);
+   await page.goto(`${origin}/?lane=${next}`);await heading(page,'Choose your time.');
+   assert.match(await page.locator('.time-request').innerText(),next==='vip'?/VIP lanes/:/Traditional lanes/);
+   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),original?'2':'1');
+   assert.equal(await page.locator('.time-choice[aria-pressed="true"]').count(),0);
+   assert.equal(await page.locator('.brand-continue').isDisabled(),true);
+   assert.equal((await calls(page,'/api/cart/replace')).length,0);
+   await page.locator('.time-choice').nth(2).click();
+   await page.waitForFunction(key=>JSON.parse(sessionStorage.getItem(key)).time==='14:30',draftKey);
+   await page.reload();await heading(page,'Choose your time.');
+   assert.equal(await page.locator('.time-choice').nth(2).getAttribute('aria-pressed'),'true');
+   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),original?'2':'1');
    assert.equal((await calls(page,'/api/cart/replace')).length,0);await page.context().close();
   }
+ });
+ await scenario('A consumed landing choice cannot override a later in-checkout room change on reload',async()=>{
+  const page=await fresh('?lane=vip&source=lane-card#booking');await heading(page,'Choose your time.');
+  await page.locator('.mobile-back').click();await heading(page,'Choose your lanes.');
+  await page.locator('.room-choice').filter({hasText:'Traditional'}).click();
+  await page.locator('.brand-continue').click();await heading(page,'Choose your time.');
+  await page.waitForFunction(key=>JSON.parse(sessionStorage.getItem(key)).roomCode===126,draftKey);
+  await page.reload();await heading(page,'Choose your time.');
+  assert.match(await page.locator('.time-request').innerText(),/Traditional lanes/);
+  assert.equal(new URL(page.url()).searchParams.get('lane'),null);
+  assert.equal(new URL(page.url()).searchParams.get('source'),'lane-card');
+  assert.equal(new URL(page.url()).hash,'#booking');
+  assert.equal((await calls(page,'/api/cart/replace')).length,0);await page.context().close();
+ });
+ await scenario('A contrary link opens the requested room while existing lanes stay held until explicit change review',async()=>{
+  const page=await fresh('?lane=traditional');await heading(page,'Choose your time.');
+  await timeAndHold(page);await heading(page,'Add arcade play.');
+  const held=(await state(page)).cart;
+  await page.goto(`${origin}/?lane=vip`);await heading(page,'Choose your time.');
+  assert.match(await page.locator('.time-request').innerText(),/VIP lanes/);
+  assert.equal(await page.locator('.time-choice[aria-pressed="true"]').count(),0);
+  assert.deepEqual((await state(page)).cart,held);
+  assert.equal((await calls(page,'/api/cart/replace')).length,1);
+  await page.getByRole('button',{name:'Keep my held lanes',exact:true}).click();await heading(page,'Choose your pizza & soda.');
+  assert.deepEqual((await state(page)).cart,held);
+  await page.goto(`${origin}/?lane=vip`);await heading(page,'Choose your time.');
+  await page.locator('.time-choice').nth(1).click();await page.locator('.brand-continue:enabled').waitFor();await page.locator('.brand-continue').click();
+  await heading(page,'Review your change.');
+  assert.deepEqual((await state(page)).cart,held);
+  assert.equal((await calls(page,'/api/cart/replace')).length,1);
+  await page.getByRole('button',{name:'Use this party',exact:true}).and(page.locator(':enabled')).click();await heading(page,'Add arcade play.');
+  const replacement=(await calls(page,'/api/cart/replace'))[1].body;
+  assert(replacement.items.some(item=>item.productId.endsWith('000000000124')));
+  assert.equal((await calls(page,'/api/checkout/payment-intents')).length,0);
+  await page.context().close();
  });
  await scenario('Accepted cart with lost response retains exact pending proposal and retries only on request',async()=>{
   const page=await fresh('?lane=traditional',{dropNextReplaceResponse:true});await heading(page,'Choose your time.');
