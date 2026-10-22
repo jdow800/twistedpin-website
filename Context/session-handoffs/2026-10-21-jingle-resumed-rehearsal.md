@@ -1,11 +1,48 @@
 # Jingle Bowl resumed Website rehearsal
 
+## October22 verified protected copy release
+
+The approved copy commit `0b923164176482a16d4a487a02735781f5b5510e` is live on
+Vercel `HTncRiqF7rEJT6wBSbwG5PGKwXat`. A fresh fetch confirmed predecessor
+`2c6b1f12e53d4d788f0a984013a66ff07074d277` before the exact fast-forward main
+push. Seven native middleware checks passed on the existing production build.
+
+At 03:09 UTC on October22, all 44 bounded protected live checks passed: normal
+password login; anonymous and encoded page/asset 401; authenticated production
+booking/rehearsal API 404; noindex/no-store; no trackers, browser errors or
+horizontal overflow. The landing was visually reviewed at 390/1280px for one
+basket of fries per VIP lane, base price plus the 10% Online Booking Fee and
+applicable tax, and the exact ordinary 72-hour cancellation sentence. Public
+home/upcoming-events remain Jingle-free. NYE campaign files and the Jingle
+public-readiness source are unchanged from `2c6b1f12`.
+
+Exactly one subsequent sequential 390px regular/birthday checkpoint passed:
+22 regular plus 16 birthday API responses settled at 200, with visible times,
+zero errors, pending reads or overflow. The 38 requests comprise 36 GETs and
+two read-only active-attempt discovery calls. No time, Continue, hold, payment
+or customer submission occurred. This was a guarded functional checkpoint,
+not a new performance benchmark. No further live probes were made.
+
+Ignored reproduction and evidence in this worktree:
+`.astro/jingle-fries-terms-live.mjs` and `.astro/jingle-fries-terms-live/`, including
+`release-receipt.json`, `receipt.json`, and `rooms-{390,1280}.png` /
+`cancellation-{390,1280}.png`. The existing guarded checkpoint script and its
+`.local/incident-{regular,birthday}-jingle-fries-terms.{json,png}` receipts are in
+the retained `jingle-capacity-20261021` worktree. These are local regenerable
+evidence, not a Git backup.
+
+The password, DEV-only booking boundary, public-readiness flags and NYE
+campaign remain unchanged. No production Jingle activation, announcement,
+social publication, fixture reset or provider mutation was performed. This
+release-evidence documentation is committed and pushed only to the feature
+branch; production stays on the exact `0b923164` source above.
+
 ## October22 protected copy follow-up
 
 The local branch was reconciled with live Website2c6b1f12, preserving its NYE
 Mirrorball campaign. The prior Jingle release-verification documentation was
 rebased ase996274; only the decision-log prepend conflicted and both entries
-were retained. The new copy revision is local and unpushed.
+were retained. The copy revision was validated locally before the release above.
 
 Scoped runtime changes: `src/pages/jingle-bowl.astro`,
 `src/pages/jingle-bowl-concepts.astro`, and Jingle's `config.ts` plus the
@@ -13,7 +50,7 @@ recovered-test-total sentence in `RehearsalDiscovered.tsx`. VIP now includes one
 basket of fries per lane. Fee/cancellation wording follows the approvals and
 source evidence below. Shared wizard/payment/controller code, homepage timing,
 password, DEV-only transport, public readiness, and retained financial data are
-unchanged. No production probes or fixture resets were used.
+unchanged. Local copy validation used no production probes or fixture resets.
 
 Verification passes: focused strict TypeScript, `check-jingle-event-config.mjs`,
 `check-jingle-pairs.mjs`,17 auth checks, and normal `/tprs-api` production build

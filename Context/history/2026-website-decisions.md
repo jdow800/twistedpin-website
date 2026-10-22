@@ -1,3 +1,19 @@
+## 2026-10-22 - Protected Jingle fries and reservation terms released
+
+Website main `0b923164176482a16d4a487a02735781f5b5510e` deployed successfully
+to Vercel `HTncRiqF7rEJT6wBSbwG5PGKwXat`, directly after NYE campaign release
+`2c6b1f12`. Seven native middleware checks and 44 protected live checks passed,
+including normal password access, anonymous/encoded page and asset denial,
+production rehearsal 404, noindex/no-store, and fries/fee/72-hour copy at
+390/1280px. One sequential regular/birthday mobile checkpoint settled all 38
+API responses at 200 with visible times and no errors, pending reads or overflow.
+No time selection, Continue, hold, payment or customer submission occurred.
+NYE campaign source and Jingle public-readiness flags remain unchanged; no
+announcement, social publication or production Jingle booking activation occurred.
+Receipts and screenshot paths are recorded in the resumed Jingle handoff. This
+documentation follow-up is pushed to the feature branch only, with no new main
+push or production probes.
+
 ## 2026-10-22 - Jingle VIP fries, NYE financial setup and ordinary cancellation
 
 Jon confirmed the VIP appetizer is fries: one basket per VIP lane. Jingle uses
