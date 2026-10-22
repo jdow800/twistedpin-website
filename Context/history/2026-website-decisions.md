@@ -1,5 +1,10 @@
 ## 2026-10-22 - Jingle Santa wording and lane inclusions
 
+Released as713d96e on Vercel4dY4Qm4q5XVQuVk6remsS91jBMU8. All74 live
+protected/page/artwork checks pass at320/390/1280, plus the sequential regular/
+birthday checkpoint (38 settled200 responses, no mutations). Password and public
+readiness gates are retained. Full source and evidence limits are in the handoff.
+
 Jon approved removing "Bowl with Santa" because guests bowl and visit Santa
 separately. The event headline becomes "Santa's coming. Let's roll."; description,
 metadata, draft calendar title and campaign artwork say "a visit with Santa."

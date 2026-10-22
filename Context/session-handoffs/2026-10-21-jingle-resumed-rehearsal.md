@@ -285,7 +285,26 @@ the NYE owner's docs-onlycf2352ea release evidence. Runtime/CI files are unchang
 from the already reviewed local156f3010 tree. No backend Jingle release or
 production identity registration occurred. This evidence follow-up is saved on
 the Website feature branch; production remains the exact1a508912 source above.
-# October22 morning: guest copy and Santa wording
+# October22 morning release: guest copy and Santa wording
+
+Released Website `713d96e03c8b38ae81cf406bfd6940493b530e1c` atop latest hours
+snapshot `bd5da4a1610577ac576a5a49215e3aa029a6c23a`. GitHub reports successful
+Vercel deployment `4dY4Qm4q5XVQuVk6remsS91jBMU8`. The live custom-domain readback
+at13:43:58UTC passed74 checks at320/390/1280: normal password login, anonymous/
+encoded page and artwork denial, exact revised image hashes, approved headline
+and inclusions, no review language or concept links, working section anchors,
+noindex/no-store, and no horizontal overflow/browser errors. Production rehearsal
+routes remain404; home/events/reservation/NYE routes return200 and public Jingle
+links remain absent. Live hero/card captures were visually inspected.
+
+One sequential regular/birthday390px checkpoint passed:22+16 API responses
+settled200, six/two available times, zero page errors or overflow. No time selection,
+Continue, cart, hold, payment or customer submission occurred. Receipts are
+`.astro/jingle-santa-copy-live/receipt.json` and PNGs in this Website worktree;
+booking receipts/captures are `jingle-capacity-20261021/.local/incident-{regular,birthday}-santa-copy-20261022.{json,png}`.
+These are bounded stability checks, not speed benchmarks. Temporary QA server55689
+is stopped; existing Jingle/NYE rehearsal services were untouched. Release evidence
+is saved to the feature branch without another main push.
 
 Jon approved replacing "Bowl with Santa" with a separate Santa visit and listing
 the90-minute/shoes/pizza/pitcher inclusions beneath each lane type, plus fries for
