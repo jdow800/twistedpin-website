@@ -1,0 +1,29 @@
+Use this prompt with the entire holiday-drip-2026 folder available, not just the preview image.
+
+Help me work with the saved Twisted Pin holiday drip campaign.
+
+READ FIRST
+1. My current instruction in this chat. It controls whether this is review, revision, approval, scheduling or publication.
+2. README.md, HANDOFF.md, calendar.md and publishing-checklist.md in this folder.
+3. campaign.json: the structured first-batch copy, proposed dates, America/Chicago timezone, per-platform fields, image paths, phase constraints and actual status.
+4. batch-01-copy.txt for editorial context; use the platform text fields in campaign.json for execution. If the two disagree, resolve the discrepancy before action.
+5. The source manifests and individual exports. Contact sheets and QA images must never be uploaded as posts.
+
+INTENT
+These are occasional special-event insertions around an existing social media team's normal content. Do not create a daily campaign or publish every optional variant. Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG. Treat optional same-day Stories, Google and SMS as separately selectable channels, not automatic additions.
+
+SCHEDULING RULES
+- This saved prompt alone is not authorization to post, schedule or send. Follow my explicit instruction in the new chat and use only the assets/copy I approve. Do not repeatedly ask for approval already recorded in the current conversation.
+- Reconcile the manifest with the existing social team's calendar and current platform schedule before creating anything. Ask once for unavailable account/calendar details; do not invent them. Use a dry-run schedule if the needed platform capability is unavailable.
+- Only first-batch entries with final copy and exports are prepared. Later calendar concepts are not ready to schedule; do not substitute unrelated artwork or mass-produce the series without my direction.
+- Preserve exact proposed dates unless I approve changes. If a date has passed, request a new date; do not immediately publish an old teaser. Convert America/Chicago correctly, including the November DST change. Proposed posting times are planning choices, not proven engagement optima.
+- Before November 18, 2026 at 9am Central, NYE creative says reservations WILL open at that time; the event is December31. Never publish the reservations-open phase early. Never reveal NYE party times/prices in pre-opening teasers.
+- Jingle is already bookable and is December6. Do not apply NYE's opening gate to it. Current availability still requires checking before a booking push.
+- Use the canonical URLs supplied in the manifest. Verify Instagram bio/link-hub instructions and Story stickers. If the publishing tool cannot create the selected format or native sticker, explain that specific limitation and prepare the supported part without claiming the entire job succeeded.
+- Check actual upload crops, link targets, historical versus current inventory wording, and event dates using publishing-checklist.md. No invented scarcity, prices, ages, offers or Santa schedule. No changes to website/backend/Roy runtime, checkout, homepage promotion timing or paid fixtures.
+- SMS, email and ad spend each require explicit instructions, even if copy is in the pack.
+
+AFTER AUTHORIZED ACTION
+Update campaign.json with the chosen channels, approved_at/approved_by, exact scheduled_at and platform IDs/URLs, or published_at and public URLs as appropriate. Preserve failures/unscheduled entries accurately. Save a dated handoff. Commit and push approved durable campaign changes on the isolated feature branch when authorized; never merge/push Website main as part of content scheduling. Main auto-deploys.
+
+My instruction for this session: [I will tell you which items/channels to review, revise or schedule.]

@@ -1,0 +1,7 @@
+filename,width,height,placement,phase,status,sha256
+exports/01-nye-set-the-clock-feed.png,1080,1350,feed,before-reservations-open,review-draft,a8a0050838e2c122408aa64161bdf2f9100ce3206c24d81236568047f96fa081
+exports/01-nye-set-the-clock-story.png,1080,1920,story,before-reservations-open,review-draft,786a6b54b20b163e12df7578f1cf222b368e991dafbbaf482daa75b09482b108
+exports/03-nye-usually-sells-out-feed.png,1080,1350,feed,before-reservations-open,review-draft,d7b0a75ce5aeb7d40b71a44697b88d8c68c41d8eae8e74471b5a7fad44938fc9
+exports/03-nye-usually-sells-out-story.png,1080,1920,story,before-reservations-open,review-draft,0689de07589a6f133348a4851a8f912054444e18b05a376267362a4c0220bbf6
+exports/02-jingle-santa-coming-feed.png,1080,1350,feed,jingle-reservations-open,review-draft,71f98c8f6831eac46105941d890b9908a18c0fd0b17cc6595cb83424cbdaf2c2
+exports/02-jingle-santa-coming-story.png,1080,1920,story,jingle-reservations-open,review-draft,2ba4983043b27f8f868bffde561914732200e36e9765bc52079c5ab00d6ce46a

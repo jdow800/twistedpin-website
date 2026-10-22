@@ -1,0 +1,247 @@
+{
+  "status": "Reviewable new compositions using approved source artwork; not newly approved for publishing.",
+  "event": {
+    "date": "2026-12-06",
+    "timezone": "America/Chicago",
+    "phase": "Reservations are open; this is not an opening-countdown campaign."
+  },
+  "sourceTemplate": {
+    "path": "Context/marketing/holiday-drip-2026/artwork/jingle.html",
+    "sha256": "1490954f168381f005d7b1b990e9dee43949a6261e447c0fc2b14143a8c6d129",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "renderer": {
+    "path": "scripts/render-holiday-drip-jingle.mjs",
+    "sha256": "028dbc02e92f27e2fe6d0e3b7f6c177b7aaffd044237a8fae6516aedd1bfac4e",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "toolVersions": {
+    "node": "v24.15.0",
+    "playwright": "1.49.1",
+    "sharp": "0.34.5",
+    "browser": "131.0.6778.33",
+    "browserChannel": "bundled-chromium"
+  },
+  "method": "New HTML/CSS compositions around an unchanged approved transparent Santa master and supplied logo. Uniform image scaling only; no raster retouching, generated imagery or alteration to an existing finished campaign image.",
+  "sourceAssets": [
+    {
+      "path": "Context/jingle-bowl-2026/artwork/santa-entrance-master.png",
+      "bytes": 1783647,
+      "sha256": "28813602face372ffa10958ecea9988b26ef0df6670ca56babdfa0a26660981d",
+      "width": 1278,
+      "height": 1230
+    },
+    {
+      "path": "public/logo/twisted-pin-horizontal-white.png",
+      "bytes": 7281,
+      "sha256": "fa0a29cfbb3526b156bbfb04ea18d08a3187490909e39d89fb390409b69c6ba7",
+      "width": 360,
+      "height": 154
+    },
+    {
+      "path": "node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2",
+      "bytes": 21968,
+      "sha256": "aa01966de3f608a765a172237a3ffc6161fe4c7e3870b1a904dc6437e54c4e24"
+    },
+    {
+      "path": "node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2",
+      "bytes": 18824,
+      "sha256": "f9d9e65b15372cebcafc3acd1e664a564c5c4b23278de4d5760de9a13c530371"
+    },
+    {
+      "path": "node_modules/@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2",
+      "bytes": 13968,
+      "sha256": "484e9925bb3045e88a8eec1103ab125e6dbe486172fb56b06fe6751c8b570839"
+    }
+  ],
+  "facts": [
+    "Context/session-handoffs/2026-10-22-jingle-closeout.md",
+    "Context/jingle-bowl-2026/delivery/recommended-copy.txt",
+    "Context/jingle-bowl-2026/README.md",
+    "src/pages/jingle-bowl.astro"
+  ],
+  "reproduction": [
+    "Install the Website locked dependencies (npm ci), then install the matching bundled browser with npx playwright install chromium. Alternatively set HOLIDAY_RENDER_DEPS to an existing compatible Website dependency tree.",
+    "Run node scripts/render-holiday-drip-jingle.mjs from the Website repository. Bundled Chromium is the default; HOLIDAY_RENDER_BROWSER_CHANNEL optionally selects another installed Chromium channel.",
+    "Inspect both full-size PNG exports. Use actual Facebook/Instagram upload previews before publishing."
+  ],
+  "limitations": [
+    "House margins are composition choices, not platform-certified safe zones.",
+    "No actual Facebook or Instagram upload/reposition preview was performed.",
+    "The Story leaves bottom space for a publisher-added link sticker; the exported URL is text, not a clickable sticker.",
+    "Current inventory was not queried. Confirm that reservations remain available before publishing the reservations-open CTA."
+  ],
+  "outboundNetworkRequests": 0,
+  "records": [
+    {
+      "filename": "02-jingle-santa-coming-feed.png",
+      "concept": "02-jingle-santa-coming",
+      "phase": "jingle-reservations-open",
+      "publicationStatus": "review draft; not approved, scheduled or published",
+      "width": 1080,
+      "height": 1350,
+      "format": "feed",
+      "bytes": 712165,
+      "sha256": "71f98c8f6831eac46105941d890b9908a18c0fd0b17cc6595cb83424cbdaf2c2",
+      "alt": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball.",
+      "target": "https://www.twistedpin.com/jingle-bowl/",
+      "houseMargins": {
+        "left": 70,
+        "top": 50,
+        "right": 70,
+        "bottom": 50
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 64,
+            "width": 250,
+            "height": 106.9375,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "eyebrow",
+            "x": 770.109375,
+            "y": 81,
+            "width": 233.890625,
+            "height": 33.59375,
+            "text": "JINGLE BOWL!"
+          },
+          {
+            "element": "headline",
+            "x": 76,
+            "y": 176,
+            "width": 842.53125,
+            "height": 247.5,
+            "text": "SANTA’S COMING.\nLET’S ROLL."
+          },
+          {
+            "element": "support",
+            "x": 76,
+            "y": 1044,
+            "width": 559.578125,
+            "height": 45.890625,
+            "text": "Bowling, pizza & a visit with Santa."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1115,
+            "width": 928,
+            "height": 181.59375,
+            "text": "SUNDAY, DECEMBER 6, 2026\n\nRESERVATIONS OPEN NOW\n\nwww.twistedpin.com/jingle-bowl/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 64,
+            "width": 250,
+            "height": 106.9375,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          },
+          {
+            "element": "santa",
+            "x": 263,
+            "y": 413,
+            "width": 655,
+            "height": 630.390625,
+            "naturalWidth": 1278,
+            "naturalHeight": 1230
+          }
+        ]
+      }
+    },
+    {
+      "filename": "02-jingle-santa-coming-story.png",
+      "concept": "02-jingle-santa-coming",
+      "phase": "jingle-reservations-open",
+      "publicationStatus": "review draft; not approved, scheduled or published",
+      "width": 1080,
+      "height": 1920,
+      "format": "story",
+      "bytes": 805366,
+      "sha256": "2ba4983043b27f8f868bffde561914732200e36e9765bc52079c5ab00d6ce46a",
+      "alt": "Santa’s coming. Let’s roll. Jingle Bowl at Twisted Pin, Sunday, December 6, 2026. Bowling, pizza & a visit with Santa. Reservations open now at www.twistedpin.com/jingle-bowl/. Illustrated Santa in a red suit carries a green bowling ball.",
+      "target": "https://www.twistedpin.com/jingle-bowl/",
+      "houseMargins": {
+        "left": 70,
+        "top": 250,
+        "right": 70,
+        "bottom": 320
+      },
+      "checks": {
+        "fontsLoaded": true,
+        "canvasOverflow": false,
+        "copyBounds": [
+          {
+            "element": "logo",
+            "x": 80,
+            "y": 252,
+            "width": 260,
+            "height": 111.21875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "eyebrow",
+            "x": 80,
+            "y": 370,
+            "width": 242.25,
+            "height": 34.796875,
+            "text": "JINGLE BOWL!"
+          },
+          {
+            "element": "headline",
+            "x": 80,
+            "y": 429,
+            "width": 830.140625,
+            "height": 243.875,
+            "text": "SANTA’S COMING.\nLET’S ROLL."
+          },
+          {
+            "element": "support",
+            "x": 80,
+            "y": 1344,
+            "width": 543.125,
+            "height": 44.546875,
+            "text": "Bowling, pizza & a visit with Santa."
+          },
+          {
+            "element": "footer",
+            "x": 80,
+            "y": 1420,
+            "width": 920,
+            "height": 176.046875,
+            "text": "SUNDAY, DECEMBER 6, 2026\n\nRESERVATIONS OPEN NOW\n\nwww.twistedpin.com/jingle-bowl/"
+          }
+        ],
+        "imageBounds": [
+          {
+            "element": "logo",
+            "x": 80,
+            "y": 252,
+            "width": 260,
+            "height": 111.21875,
+            "naturalWidth": 360,
+            "naturalHeight": 154
+          },
+          {
+            "element": "santa",
+            "x": 231,
+            "y": 678,
+            "width": 670,
+            "height": 644.828125,
+            "naturalWidth": 1278,
+            "naturalHeight": 1230
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Jingle Bowl 2026 · Santa's coming</title>
+  <style>
+    @font-face { font-family: Display; src: url('{{DISPLAY_FONT}}') format('woff2'); font-weight: 900; }
+    @font-face { font-family: UI; src: url('{{UI_FONT}}') format('woff2'); font-weight: 700; }
+    @font-face { font-family: Body; src: url('{{BODY_FONT}}') format('woff2'); font-weight: 400; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: {{WIDTH}}px; height: {{HEIGHT}}px; overflow: hidden; }
+    body { background: #0e0a1f; color: #f4efe3; }
+    .art { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; background: radial-gradient(ellipse at 64% 50%, #202444 0%, #100d25 44%, #0e0a1f 78%); }
+    .logo { position: absolute; top: 64px; left: 76px; width: 250px; height: auto; }
+    .eyebrow { position: absolute; top: 81px; right: 76px; margin: 0; font: 700 28px/1.2 UI, sans-serif; letter-spacing: .06em; }
+    .headline { position: absolute; top: 176px; left: 76px; margin: 0; z-index: 2; font: 900 136px/.91 Display, sans-serif; text-transform: uppercase; letter-spacing: -.01em; }
+    .headline span { display: block; white-space: nowrap; }
+    .headline .roll { color: #4eecc4; }
+    /* Unchanged transparent approved master, uniformly scaled and fully visible. */
+    .santa { position: absolute; width: 655px; height: auto; top: 413px; left: 263px; }
+    .support { position: absolute; top: 1044px; left: 76px; margin: 0; font: 400 34px/1.35 Body, serif; }
+    .footer { position: absolute; top: 1115px; left: 76px; right: 76px; border-top: 2px solid #4eecc455; padding-top: 22px; }
+    .date { margin: 0; font: 900 51px/1.1 Display, sans-serif; text-transform: uppercase; letter-spacing: .015em; }
+    .status { margin: 19px 0 0; color: #4eecc4; font: 700 27px/1.25 UI, sans-serif; text-transform: uppercase; letter-spacing: .025em; }
+    .url { margin: 15px 0 0; font: 700 27px/1.25 UI, sans-serif; }
+    /* Story is a separate composition, not a crop of the feed.
+       Essential copy uses conservative house margins; actual platform preview still required. */
+    .story .logo { top: 252px; left: 80px; width: 260px; }
+    .story .eyebrow { left: 80px; right: auto; top: 370px; font-size: 29px; }
+    .story .headline { left: 80px; top: 429px; font-size: 134px; }
+    .story .santa { left: 231px; top: 678px; width: 670px; }
+    .story .support { left: 80px; top: 1344px; font-size: 33px; }
+    .story .footer { left: 80px; right: 80px; top: 1420px; padding-top: 22px; }
+    .story .date { font-size: 48px; }
+    .story .status { margin-top: 18px; font-size: 26px; }
+    .story .url { margin-top: 15px; font-size: 27px; }
+  </style>
+</head>
+<body>
+  <main class="art {{FORMAT}}" aria-label="{{ALT}}">
+    <img class="logo" data-safe src="{{LOGO}}" alt="Twisted Pin">
+    <p class="eyebrow" data-safe>JINGLE BOWL!</p>
+    <h1 class="headline" data-safe><span>Santa’s coming.</span><span class="roll">Let’s roll.</span></h1>
+    <img class="santa" src="{{SANTA}}" alt="">
+    <p class="support" data-safe>Bowling, pizza &amp; a visit with Santa.</p>
+    <section class="footer" data-safe>
+      <p class="date">Sunday, December 6, 2026</p>
+      <p class="status">Reservations open now</p>
+      <p class="url">www.twistedpin.com/jingle-bowl/</p>
+    </section>
+  </main>
+</body>
+</html>

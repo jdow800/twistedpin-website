@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Twisted Pin · NYE holiday drip · review artwork</title>
+  <style>
+    @font-face { font-family: Barlow; font-style: normal; font-weight: 900; src: url('{{DISPLAY_FONT}}') format('woff2'); }
+    @font-face { font-family: Montserrat; font-style: normal; font-weight: 700; src: url('{{UI_FONT}}') format('woff2'); }
+    @font-face { font-family: Slab; font-style: normal; font-weight: 400; src: url('{{BODY_FONT}}') format('woff2'); }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: {{WIDTH}}px; height: {{HEIGHT}}px; overflow: hidden; }
+    body { color: #f4efe3; background: #100b23; }
+    .art { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; }
+    .photo { position: absolute; left: 0; top: 500px; width: 100%; height: 850px; object-fit: cover; object-position: 50% 58%; }
+    .shade { position: absolute; inset: 0; background: linear-gradient(180deg, #100b23 0%, #100b23 35%, rgba(16,11,35,.23) 49%, rgba(16,11,35,.03) 65%, #100b23 84%); }
+    .logo { position: absolute; left: 74px; top: 57px; width: 242px; height: auto; }
+    .mirror { position: absolute; width: 290px; top: 0; right: 54px; filter: drop-shadow(0 12px 24px rgba(0,0,0,.28)); }
+    .headline { position: absolute; left: 74px; top: 227px; }
+    .eyebrow { margin: 0 0 22px; font: 700 30px/1.25 Montserrat, sans-serif; letter-spacing: .045em; }
+    h1 { margin: 0; font: 900 166px/.88 Barlow, sans-serif; letter-spacing: -.015em; text-transform: uppercase; }
+    h1 span { display: block; }
+    h1 .accent { color: #4eecc4; }
+    .event { margin: 24px 0 0; font: 700 28px/1.3 Montserrat, sans-serif; letter-spacing: .02em; }
+    .action { position: absolute; left: 74px; right: 74px; top: 1043px; }
+    .status { margin: 0 0 12px; color: #4eecc4; font: 700 28px/1.25 Montserrat, sans-serif; letter-spacing: .035em; text-transform: uppercase; }
+    .date { margin: 0; font: 900 49px/1.12 Barlow, sans-serif; text-transform: uppercase; }
+    .time { margin: 3px 0 0; font: 900 49px/1.12 Barlow, sans-serif; text-transform: uppercase; }
+    .url { margin: 22px 0 0; font: 700 27px/1.3 Montserrat, sans-serif; }
+    .support { display: none; position: absolute; margin: 0; font: 400 32px/1.45 Slab, serif; }
+    /* Separate portrait composition. These are house margins, not certified platform safe zones. */
+    .story .photo { top: 675px; height: 1245px; object-position: 49% 54%; }
+    .story .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 35%, rgba(16,11,35,.09) 48%, rgba(16,11,35,.03) 59%, #100b23 72%); }
+    .story .logo { left: 82px; top: 262px; width: 260px; }
+    .story .mirror { width: 305px; right: 73px; top: 150px; }
+    .story .headline { left: 82px; top: 445px; }
+    .story .eyebrow { font-size: 31px; margin-bottom: 27px; }
+    .story h1 { font-size: 175px; }
+    .story .event { font-size: 29px; margin-top: 28px; }
+    .story .action { left: 82px; right: 82px; top: 1273px; }
+    .story .status { font-size: 29px; }
+    .story .date, .story .time { font-size: 49px; }
+    .story .url { font-size: 27px; margin-top: 23px; }
+    /* Kickoff: oversized Mirrorball is the visual lead; centered clock message.
+       This is a fresh composition, not a crop or a headline swap on the launch card. */
+    .clock .mirror { width: 540px; top: 50px; right: 270px; }
+    .clock .photo { top: 800px; height: 550px; object-position: 50% 51%; }
+    .clock .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 59%, rgba(16,11,35,.32) 67%, rgba(16,11,35,.03) 72%, #100b23 84%); }
+    .clock .headline { top: 640px; left: 74px; right: 74px; text-align: center; }
+    .clock h1 { font-size: 122px; line-height: 1; }
+    .clock h1 span { display: inline; }
+    .clock h1 span:first-child::after { content: ' '; }
+    .clock .event { margin-top: 20px; }
+    .clock .action { text-align: center; }
+    .clock.story .mirror { width: 520px; top: 210px; right: 280px; }
+    .clock.story .headline { top: 835px; left: 82px; right: 82px; }
+    .clock.story h1 { font-size: 119px; }
+    .clock.story .photo { top: 1010px; height: 910px; object-position: 50% 45%; }
+    .clock.story .shade { background: linear-gradient(180deg, #100b23 0%, #100b23 52%, rgba(16,11,35,.26) 58%, rgba(16,11,35,.01) 61%, #100b23 72%); }
+    /* Historical sellout claim: photo-led and distinct from the opening-clock card. */
+    .sellout .photo { top: 0; height: 1350px; object-position: 47% 50%; }
+    .sellout .shade { background: linear-gradient(180deg, rgba(16,11,35,.95), rgba(16,11,35,.84) 27%, rgba(16,11,35,.35) 52%, rgba(16,11,35,.12) 64%, #100b23 83%), linear-gradient(90deg, rgba(16,11,35,.45), transparent 70%); }
+    .sellout .mirror { width: 250px; right: 50px; top: 0; }
+    .sellout .headline { top: 217px; }
+    .sellout .eyebrow { margin-bottom: 18px; font-size: 29px; }
+    .sellout h1 { font-size: 143px; line-height: .90; }
+    .sellout h1 span:first-child { font-size: 98px; line-height: 1.05; }
+    .sellout .event { margin-top: 28px; }
+    .sellout .support { display: block; left: 74px; top: 919px; }
+    .sellout.story .photo { height: 1920px; object-position: 44% 48%; }
+    .sellout.story .shade { background: linear-gradient(180deg, rgba(16,11,35,.98), rgba(16,11,35,.89) 23%, rgba(16,11,35,.56) 45%, rgba(16,11,35,.03) 56%, #100b23 69%), linear-gradient(90deg, rgba(16,11,35,.25), transparent 70%); }
+    .sellout.story .mirror { width: 285px; right: 73px; top: 150px; }
+    .sellout.story .headline { top: 445px; }
+    .sellout.story h1 { font-size: 157px; }
+    .sellout.story h1 span:first-child { font-size: 107px; }
+    .sellout.story .event { margin-top: 27px; }
+    .sellout.story .support { left: 82px; top: 1165px; font-size: 30px; }
+  </style>
+</head>
+<body>
+  <main class="art {{FORMAT}} {{CONCEPT}}" aria-label="{{ALT}}">
+    <img class="photo" src="{{PHOTO}}" alt="">
+    <div class="shade"></div>
+    <img class="logo" data-safe src="{{LOGO}}" alt="Twisted Pin">
+    <!-- Exact drawing imported from the tracked, approved NYE campaign template. -->
+    {{MIRRORBALL}}
+    <section class="headline" data-safe>
+      <p class="eyebrow">NYE. DONE RIGHT.</p>
+      <h1>{{HEADLINE}}</h1>
+      <p class="event">DECEMBER 31, 2026 · TWISTED PIN</p>
+    </section>
+    <p class="support" data-safe>Put the opening on your calendar.</p>
+    <section class="action" data-safe>
+      <p class="status">Reservations open</p>
+      <p class="date">WEDNESDAY, NOVEMBER 18, 2026</p>
+      <p class="time">9AM CENTRAL</p>
+      <p class="url">www.twistedpin.com/new-years-eve/</p>
+    </section>
+    <!-- Story link sticker belongs in clear area y=1580..1710, below the URL.
+         Check the actual app overlay preview. Do not flatten a fake sticker into the export. -->
+  </main>
+</body>
+</html>

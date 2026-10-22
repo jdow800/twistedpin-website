@@ -1,0 +1,143 @@
+{
+  "checked_at": "2026-10-22T19:29:11.029Z",
+  "checks": {
+    "six_unique_exports": true,
+    "dimensions_and_binary_hashes_match_source_manifests": true,
+    "google_reference_matches_tracked_art": true,
+    "chicago_offsets_and_local_dates": true,
+    "first_batch_calendar_manifest_consistent": true,
+    "all_variant_asset_paths_exist": true,
+    "nye_opening_instant": true
+  },
+  "date_checks": [
+    {
+      "id": "01-nye-set-the-clock",
+      "local": "2026-10-23T12:00:00-05:00",
+      "utc": "2026-10-23T17:00:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming",
+      "local": "2026-10-26T12:00:00-05:00",
+      "utc": "2026-10-26T17:00:00.000Z"
+    },
+    {
+      "id": "03-nye-usually-sells-out",
+      "local": "2026-10-28T09:00:00-05:00",
+      "utc": "2026-10-28T14:00:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming-google",
+      "local": "2026-10-26T12:15:00-05:00",
+      "utc": "2026-10-26T17:15:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming-sms",
+      "local": "2026-11-06T12:00:00-06:00",
+      "utc": "2026-11-06T18:00:00.000Z"
+    },
+    {
+      "id": "01-nye-set-the-clock",
+      "local": "2026-10-23T12:00:00-05:00",
+      "utc": "2026-10-23T17:00:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming",
+      "local": "2026-10-26T12:00:00-05:00",
+      "utc": "2026-10-26T17:00:00.000Z"
+    },
+    {
+      "id": "03-nye-usually-sells-out",
+      "local": "2026-10-28T09:00:00-05:00",
+      "utc": "2026-10-28T14:00:00.000Z"
+    },
+    {
+      "id": "04-nye-picture-the-plan",
+      "local": "2026-11-04T09:00:00-06:00",
+      "utc": "2026-11-04T15:00:00.000Z"
+    },
+    {
+      "id": "05-jingle-whats-included",
+      "local": "2026-11-06T12:00:00-06:00",
+      "utc": "2026-11-06T18:00:00.000Z"
+    },
+    {
+      "id": "06-nye-one-week",
+      "local": "2026-11-11T09:00:00-06:00",
+      "utc": "2026-11-11T15:00:00.000Z"
+    },
+    {
+      "id": "07-nye-opens-wednesday",
+      "local": "2026-11-15T18:00:00-06:00",
+      "utc": "2026-11-16T00:00:00.000Z"
+    },
+    {
+      "id": "08-jingle-santa-photo",
+      "local": "2026-11-16T12:00:00-06:00",
+      "utc": "2026-11-16T18:00:00.000Z"
+    },
+    {
+      "id": "09-nye-opens-tomorrow",
+      "local": "2026-11-17T18:00:00-06:00",
+      "utc": "2026-11-18T00:00:00.000Z"
+    },
+    {
+      "id": "10-nye-reservations-open",
+      "local": "2026-11-18T09:00:00-06:00",
+      "utc": "2026-11-18T15:00:00.000Z"
+    },
+    {
+      "id": "11-jingle-december-plan",
+      "local": "2026-11-27T12:00:00-06:00",
+      "utc": "2026-11-27T18:00:00.000Z"
+    },
+    {
+      "id": "12-jingle-this-sunday",
+      "local": "2026-12-03T18:00:00-06:00",
+      "utc": "2026-12-04T00:00:00.000Z"
+    },
+    {
+      "id": "13-jingle-guest-preparation",
+      "local": "2026-12-06T10:00:00-06:00",
+      "utc": "2026-12-06T16:00:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming-google",
+      "local": "2026-10-26T12:15:00-05:00",
+      "utc": "2026-10-26T17:15:00.000Z"
+    },
+    {
+      "id": "02-jingle-santa-coming-sms",
+      "local": "2026-11-06T12:00:00-06:00",
+      "utc": "2026-11-06T18:00:00.000Z"
+    },
+    {
+      "id": "10-nye-reservations-open-sms",
+      "local": "2026-11-18T10:00:00-06:00",
+      "utc": "2026-11-18T16:00:00.000Z"
+    },
+    {
+      "id": "14-nye-december-invitation",
+      "local": "2026-12-07T12:00:00-06:00",
+      "utc": "2026-12-07T18:00:00.000Z"
+    },
+    {
+      "id": "15-nye-choose-your-party",
+      "local": "2026-12-17T12:00:00-06:00",
+      "utc": "2026-12-17T18:00:00.000Z"
+    },
+    {
+      "id": "16-nye-guest-preparation",
+      "local": "2026-12-28T18:00:00-06:00",
+      "utc": "2026-12-29T00:00:00.000Z"
+    }
+  ],
+  "renderer_qa": [
+    "nye-manifest.json",
+    "jingle-manifest.json"
+  ],
+  "limitations": [
+    "Actual Facebook/Instagram upload crop and Story sticker overlays not tested.",
+    "No inventory lookup, social schedule/account inspection or publication.",
+    "No website/backend/runtime test suite needed for this documentation/artwork-only change."
+  ]
+}

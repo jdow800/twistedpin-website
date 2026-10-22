@@ -1,3 +1,19 @@
+## 2026-10-22 - Holiday drip review batch
+
+Jon requested occasional NYE/Jingle inserts alongside the social team's normal
+content, fresh visuals within the approved directions, Facebook/Instagram
+versions and a reusable scheduling handoff. Prepare three concepts with separate
+portrait feed/Story compositions in `Context/marketing/holiday-drip-2026`, plus
+dated proposed cadence, platform copy, selective ancillary variants and a
+machine-readable manifest. Work starts from fresh origin/main `f8d3e8e` in the
+isolated `codex/holiday-drip-20261022` worktree. New creative/dates remain review
+drafts. Preserve the approved Mirrorball and Santa source artwork and current
+event phase/fact constraints. No website/backend/Roy runtime, publication,
+scheduling, customer send or ad spend is authorized by this preparation.
+
+Validation and actual commit/push/delivery status are recorded in the campaign
+handoff. The first batch is the review boundary before producing the full series.
+
 ## 2026-10-22 - Jingle Bowl SMS short link
 
 Add `/jb/` as a temporary redirect to the public Jingle Bowl landing page, with

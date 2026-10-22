@@ -1,0 +1,222 @@
+TWISTED PIN | HOLIDAY EVENT DRIPS | BATCH 01
+Prepared October 22, 2026
+
+STATUS: DRAFT / PROPOSED. Awaiting Jon's review.
+Nothing here is approved, scheduled, published or sent.
+Copy only the public caption or Story text, not the internal instructions.
+
+Three concepts only. These are occasional additions to the social team's normal
+posts. The October 23 kickoff is optional; October 26 and 28 are the lighter start.
+All proposed publishing times are America/Chicago.
+
+NYE landing: https://www.twistedpin.com/new-years-eve/
+Jingle landing: https://www.twistedpin.com/jingle-bowl/
+
+Instagram CTA rule: use the primary bio CTA only after verifying a clearly
+labeled link that reaches the correct event page. Keep both event links available
+if a link hub is used. Otherwise use the alternate plain-address CTA supplied
+for that concept. Add a real clickable link sticker to the Story.
+
+
+01 | NYE: SET THE CLOCK
+Stable ID: 01-nye-set-the-clock
+Proposed: Friday, October 23 at 12pm. Optional kickoff.
+Phase: before reservations open.
+Job: make the November 18 opening date memorable.
+
+ON-ART WORDING
+SET THE CLOCK.
+NYE reservations open
+NOVEMBER 18 AT 9AM CENTRAL
+Party date: December 31, 2026
+
+FACEBOOK CAPTION
+Set the clock.
+
+Not for midnight. For November 18 at 9am Central.
+
+That's when New Year's Eve reservations open at Twisted Pin. Bowling, pizza
+and your people. December 31, done right.
+
+Put the opening on your calendar. See NYE details:
+https://www.twistedpin.com/new-years-eve/
+
+INSTAGRAM CAPTION
+Set the clock.
+
+Not for midnight. For November 18 at 9am Central.
+
+That's when New Year's Eve reservations open at Twisted Pin. Bowling, pizza
+and your people. December 31, done right.
+
+Put the opening on your calendar. NYE details at the link in our bio.
+
+Instagram alternate final line if the matching bio link is not in place:
+Put the opening on your calendar. Details: twistedpin.com/new-years-eve/
+
+STORY TEXT | ONE FRAME
+Set the clock.
+NYE reservations open
+November 18 at 9am Central.
+The party? December 31.
+
+Story link sticker label: NYE details
+Story link sticker URL: https://www.twistedpin.com/new-years-eve/
+
+ALT TEXT DRAFT
+Twisted Pin's New Year's Eve teaser with a silver mirrorball. “Set the clock.”
+Reservations open November 18, 2026 at 9am Central for December 31 parties.
+Confirm this description against the final artwork before posting.
+
+
+02 | JINGLE: SANTA'S COMING. LET'S ROLL.
+Stable ID: 02-jingle-santa-coming
+Proposed: Monday, October 26 at 12pm.
+Phase: reservations already open.
+Job: invite people to book their December 6 outing.
+
+ON-ART WORDING
+SANTA'S COMING.
+LET'S ROLL.
+JINGLE BOWL
+Bowling, pizza & a visit with Santa.
+SUNDAY, DECEMBER 6, 2026
+Reservations are open.
+
+FACEBOOK CAPTION
+Santa's coming. Let's roll.
+
+A little less mall. A lot more bowl.
+
+Jingle Bowl is Sunday, December 6 at Twisted Pin. Every lane includes
+90 minutes of bowling, shoes, one large pizza and one pitcher of soda,
+plus access to the cookie & cocoa bar and a photo with Santa on your device.
+
+Bring your people. Charge your phone. Reservations are open:
+https://www.twistedpin.com/jingle-bowl/
+
+INSTAGRAM CAPTION
+Santa's coming. Let's roll.
+
+A little less mall. A lot more bowl.
+
+Jingle Bowl is Sunday, December 6 at Twisted Pin. Every lane includes
+90 minutes of bowling, shoes, one large pizza and one pitcher of soda,
+plus access to the cookie & cocoa bar and a photo with Santa on your device.
+
+Bring your people. Charge your phone. Reserve through the Jingle Bowl link
+in our bio.
+
+Instagram alternate final paragraph if the matching bio link is not in place:
+Bring your people. Charge your phone. Reservations: twistedpin.com/jingle-bowl/
+
+STORY TEXT | ONE FRAME
+Santa's coming. Let's roll.
+Jingle Bowl | Sunday, December 6
+Bowling, pizza & a visit with Santa.
+Reservations are open.
+
+Story link sticker label: Reserve Jingle Bowl
+Story link sticker URL: https://www.twistedpin.com/jingle-bowl/
+
+ALT TEXT DRAFT
+Illustrated Santa with a bowling ball in Twisted Pin's Jingle Bowl artwork.
+“Santa's coming. Let's roll.” Bowling, pizza and a visit with Santa on
+Sunday, December 6, 2026. Reservations are open.
+Confirm this description against the final artwork before posting.
+
+ONE OPTIONAL GOOGLE BUSINESS PROFILE VARIANT
+Proposed: October 26 at 12:15pm; only if it adds to existing profile content.
+Post type: Update
+Action label: Book
+Action URL: https://www.twistedpin.com/jingle-bowl/
+
+Santa's coming. Let's roll. Jingle Bowl is Sunday, December 6 at Twisted Pin
+in Plainfield. Each lane includes 90 minutes of bowling, shoes, one large
+pizza and one pitcher of soda, plus cookie & cocoa bar access and a photo
+with Santa on your device. Reservations are open. See packages and choose
+your reservation time.
+
+ONE OPTIONAL SMS VARIANT
+Fallback review point: November 6 at 12pm. Omit by default if this audience has
+already received the Jingle announcement. This is not a weekly text series.
+Use only for the messaging owner's eligible marketing audience after separate
+send authorization. Retain the opt-out text once if the platform adds it.
+The full canonical URL is intentional; this draft is not claimed to fit one
+SMS segment. Do not silently substitute a campaign-specific short link.
+
+Twisted Pin: Santa's coming. Let's roll! Jingle Bowl is Dec 6. Bowling, pizza & a visit with Santa. Reserve: https://www.twistedpin.com/jingle-bowl/ Reply STOP to opt out.
+
+
+03 | NYE: OUR NYE PARTIES USUALLY SELL OUT
+Stable ID: 03-nye-usually-sells-out
+Proposed: Wednesday, October 28 at 9am.
+Phase: before reservations open.
+Job: connect the opening reminder to Jon's confirmed sellout history.
+
+ON-ART WORDING
+OUR NYE PARTIES
+USUALLY SELL OUT.
+Reservations open
+NOVEMBER 18 AT 9AM CENTRAL
+Party date: December 31, 2026
+
+FACEBOOK CAPTION
+Our NYE parties usually sell out.
+
+Consider this your calendar nudge.
+
+Reservations open Wednesday, November 18 at 9am Central. Bowling, pizza
+and your people, December 31 at Twisted Pin.
+
+Pick your people. Save the opening date.
+https://www.twistedpin.com/new-years-eve/
+
+INSTAGRAM CAPTION
+Our NYE parties usually sell out.
+
+Consider this your calendar nudge.
+
+Reservations open Wednesday, November 18 at 9am Central. Bowling, pizza
+and your people, December 31 at Twisted Pin.
+
+Pick your people. Save the opening date. NYE details at the link in our bio.
+
+Instagram alternate final line if the matching bio link is not in place:
+Pick your people. Save the opening date. Details: twistedpin.com/new-years-eve/
+
+STORY TEXT | ONE FRAME
+Our NYE parties usually sell out.
+Reservations open November 18
+at 9am Central.
+December 31 at Twisted Pin.
+
+Story link sticker label: NYE details
+Story link sticker URL: https://www.twistedpin.com/new-years-eve/
+
+ALT TEXT DRAFT
+Twisted Pin New Year's Eve artwork with a silver mirrorball. “Our NYE parties
+usually sell out.” Reservations open November 18, 2026 at 9am Central for
+December 31 parties.
+Confirm this description against the final artwork before posting.
+
+
+EDITORIAL / PUBLISHING NOTES | INTERNAL ONLY
+
+- All three are distinct concepts, not three daily variations to blast out.
+- Use approved Mirrorball direction for NYE and released visit-with-Santa
+  artwork for Jingle. No new visual identity or promise is introduced.
+- NYE copy before November 18 at 9am contains no party times or prices. The
+  opening time is not the event's start time. “Usually sell out” describes
+  history confirmed by Jon; it says nothing about today's remaining lanes.
+- These Jingle posts summarize selected inclusions. Full package prices,
+  fees, rules and current reservation choices remain on the linked page.
+  No unlimited soda, drink inclusion, coupon or Santa bowling claim is made.
+- Stories are optional companions. For the lightest first week, publish the
+  October 26 and 28 feed concepts and use Stories only where the team wants
+  a clickable reminder. Do not add the optional kickoff to catch up later.
+- Each caption stands alone: event name, date, opening/bookable state and
+  useful next action. A follower does not need to have seen an earlier drip.
+- Check the final composition, actual upload crop, link/bio/sticker, date
+  and live booking phase before publication. Approval of this draft is not
+  publication authorization. Actual publishing and sends need Jon's instruction.
