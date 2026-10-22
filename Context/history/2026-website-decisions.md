@@ -1,3 +1,14 @@
+## 2026-10-22 - Load the public date-handoff styles from the actual pages
+
+Final live screenshots caught the public December 6 handoff rendering as plain
+text/buttons, while its links and recovery priority worked. The synthetic harness
+included the nested stylesheet, but Astro's client-only BookingWizard entry did
+not emit it on regular/birthday pages. Import the existing scoped stylesheet
+directly from both Astro page entries, with no booking logic change. A new assertion
+against both actual emitted page stylesheet closures fails before this fix.
+The production rebuild and all 30 emitted-page assertions pass after the two
+explicit imports. Final visual readback follows; no backend change or customer mutation.
+
 ## 2026-10-22 - Public Jingle launch, homepage and staff/LED delivery
 
 After confirming the repeat-visit VIP fix, Jon authorized public launch including

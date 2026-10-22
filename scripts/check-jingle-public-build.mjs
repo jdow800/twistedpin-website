@@ -45,4 +45,14 @@ check('calendar uses approved Santa art', calendar.includes('/jingle-bowl/santa-
 const home = await readFile(new URL('../.vercel/output/static/index.html', import.meta.url), 'utf8');
 check('shared homepage has Jingle and NYE candidates', home.includes('data-homepage-jingle') && home.includes('data-homepage-nye'));
 check('nav includes public Jingle', home.includes('href="/jingle-bowl/"'));
+for (const route of ['reserve', 'reserve/birthdays']) {
+  const page = await readFile(new URL(`../.vercel/output/static/${route}/index.html`, import.meta.url), 'utf8');
+  let styles = [...page.matchAll(/[<]style[^>]*>([^]*?)[<][/]style>/g)].map(m => m[1]).join('');
+  for (const [tag] of page.matchAll(/[<]link[^>]*>/g)) {
+    if (!tag.includes('rel="stylesheet"')) continue;
+    const href = tag.match(/href="([^"]+)"/)?.[1];
+    if (href?.startsWith('/')) styles += await readFile(new URL('../.vercel/output/static' + href, import.meta.url), 'utf8');
+  }
+  check(route + ' emitted page loads handoff card and action styles', styles.includes('.jingle-route-card') && styles.includes('.jingle-route-actions'));
+}
 console.log(`PASS ${checks} actual public-build assertions; no outbound requests or API mutations.`);

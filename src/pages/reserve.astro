@@ -18,6 +18,8 @@
  */
 import Base from "../layouts/Base.astro";
 import BookingWizard from "../components/tprs/BookingWizard.tsx";
+// Explicit page ownership: the shared concepts island otherwise owns this CSS.
+import "../components/tprs/event-date-preview.css";
 import { bookingPageConfig } from "../tprs/pageConfig";
 
 const { uxCopy, heroImage } = bookingPageConfig;
