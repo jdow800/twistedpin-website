@@ -1,0 +1,60 @@
+{
+  "calendar_id": "15-nye-choose-your-party",
+  "folder": "2026-12-16_New-Years-Eve",
+  "event": "nye-2026",
+  "event_name": "New Year's Eve",
+  "event_date": "2026-12-31",
+  "headline": "YOUR PEOPLE. YOUR KIND OF NYE.",
+  "proposed_publish_at": "2026-12-16T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-12-16T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/new-years-eve/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-15-nye-choose-your-party",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "d050fa5c46ee7daef74731667bd4e48057f1a0945f5e19a573bf40d702eb6c4a",
+      "alt_text": "Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-16-nye-feed.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-15-nye-choose-your-party"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1c22037c316ed28de5697523f5896870c03f0fa4d55715e60c4c40b9a02d7e83",
+      "alt_text": "Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-16-nye-story.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-15-nye-choose-your-party"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nChoose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nChoose your party and lane option through the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "Your people. Your kind of NYE.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.\n\nChoose your party and lane option: twistedpin.com/new-years-eve/"
+  },
+  "story": {
+    "message": "Traditional lanes or VIP suite? Choose your December 31 party, then reserve your kind of New Year's Eve.",
+    "link_sticker": {
+      "label": "Reserve NYE",
+      "url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed December 16. Couch seating is a sourced VIP feature. No private-suite, suite-possession, guest-capacity or generic pair-selling claim. Publish a two-setting comparison only while both options are relevant to current choices; otherwise adapt accurately. Verify bio link.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

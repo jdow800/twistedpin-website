@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><title>Twisted Pin · Jingle Bowl series</title>
+<style>
+@font-face{font-family:Display;font-weight:900;src:url('{{DISPLAY_FONT}}')}@font-face{font-family:UI;font-weight:700;src:url('{{UI_FONT}}')}@font-face{font-family:Body;font-weight:400;src:url('{{BODY_FONT}}')}
+*{box-sizing:border-box}html,body{margin:0;width:{{WIDTH}}px;height:{{HEIGHT}}px;overflow:hidden}body{color:#fff2d9;background:#092e2b}.art{position:relative;width:100%;height:100%;overflow:hidden;isolation:isolate}.scene{display:none;position:absolute;inset:0}.{{CONCEPT}} .scene.{{CONCEPT}}{display:block}p,h1,h2{margin:0}h1{font:900 110px/.96 Display;text-transform:uppercase;letter-spacing:-.012em}h1 em{font-style:normal;color:#e2bf7f}.small{font:400 33px/1.35 Body}.label{font:700 26px/1.35 UI;letter-spacing:.04em;text-transform:uppercase}.gold{color:#e2bf7f}.logo{position:absolute;width:234px;height:auto;left:72px;top:48px;z-index:10}.event-name{position:absolute;right:72px;top:83px;font:700 28px/1.25 UI;letter-spacing:.055em;z-index:10}.rule{position:absolute;height:1px;background:#d8be7d66;left:72px;right:72px;top:169px;z-index:10}.footer{position:absolute;bottom:65px;left:72px;right:72px;z-index:10;border-top:2px solid #d8be7d88;padding-top:25px}.date{font:900 49px/1.15 Display;letter-spacing:.01em;text-transform:uppercase}.cta{font:700 27px/1.4 UI;margin-top:13px;color:#e2bf7f;text-transform:uppercase;letter-spacing:.045em}.url{font:700 25px/1.35 UI;margin-top:11px}.corner-star{position:absolute;right:53px;top:195px;width:82px;height:82px;color:#e2bf7f}.story .logo{top:247px}.story .event-name{top:282px}.story .rule{top:368px}.story .footer{bottom:350px}.story .corner-star{top:397px}
+/* Oct 30: real bowling photograph, split editorial composition. */
+.family{background:#08352f}.family .image-panel{position:absolute;left:477px;top:207px;width:603px;height:842px;overflow:hidden;border-left:2px solid #dbbd7b}.family .image-panel img{position:absolute;width:810px;height:auto;left:-180px;top:-340px}.family .image-panel:after{content:'';position:absolute;inset:0;box-shadow:inset 0 -100px 85px -60px #08352f}.family h1{position:absolute;left:72px;top:261px;width:403px;font-size:80px;line-height:1.08;white-space:nowrap}.family h1 em{display:inline-block;font-size:156px;line-height:1;margin-top:7px}.family .small{position:absolute;left:72px;top:828px;width:350px;font-size:34px}.story .family .image-panel{top:407px;height:945px}.story .family .image-panel img{width:900px;left:-220px;top:-340px}.story .family h1{top:488px;font-size:80px}.story .family .small{top:1102px}
+/* Nov 6: the exact package as a clean typographic menu. */
+.package{background:#f4e9d2;color:#143c35}.package h1{position:absolute;left:72px;top:204px;font-size:106px}.package h1 em{color:#9e3341}.package .handled{position:absolute;right:78px;top:365px;font:400 33px Body;transform:rotate(-4deg);border-bottom:2px solid #9e3341;padding-bottom:8px}.package .grid{position:absolute;left:72px;right:72px;top:500px;display:grid;grid-template-columns:1fr 1fr;column-gap:54px;row-gap:38px}.package .cell{min-height:235px;border-top:2px solid #143c354d;padding-top:19px}.package .cell:nth-child(2n){padding-left:25px}.package .number{font:900 178px/.86 Display;color:#9e3341;display:inline-block;vertical-align:top}.package .minutes{display:inline-block;padding-left:10px;font:900 50px/1 Display;text-transform:uppercase;padding-top:15px}.package .cell h2{font:900 59px/1 Display;text-transform:uppercase}.package .cell p{font:400 31px/1.35 Body;margin-top:14px}.package .vip-extra{position:absolute;left:72px;top:1041px;font:700 24px UI}.package .number-note{display:block;font:700 27px UI;margin-top:10px}.package.art .event-name,.package.art .footer{color:#143c35}.package.art .rule{background:#143c3560}.package.art .footer{border-color:#143c3566}.package.art .cta{color:#9e3341}.story .package h1{top:422px}.story .package .handled{top:586px}.story .package .grid{top:734px;row-gap:45px}.story .package .vip-extra{top:1305px}
+/* Nov 13: Santa illustration in a deliberately graphic camera frame. */
+.photo{background:radial-gradient(ellipse at 25% 55%,#912f41,#4c1829 73%)}.photo h1{position:absolute;left:72px;top:213px;font-size:99px}.photo .phone{position:absolute;left:95px;top:479px;width:472px;height:559px;border:16px solid #f4e9d2;border-radius:47px;transform:rotate(-4deg);background:#123d36;box-shadow:22px 27px 0 #2d0e1a66;overflow:hidden}.photo .phone:before{content:'';position:absolute;z-index:2;top:12px;left:180px;right:180px;height:9px;background:#f4e9d2;border-radius:10px}.photo .phone img{position:absolute;width:610px;height:auto;left:-66px;top:43px}.photo .phone:after{content:'';position:absolute;inset:72px 30px 60px;border:2px solid #fff2d958;border-radius:20px}.photo .photo-copy{position:absolute;left:637px;top:540px;width:370px}.photo .photo-copy h2{font:900 73px/.98 Display;text-transform:uppercase;color:#e2bf7f}.photo .photo-copy p{font:400 30px/1.4 Body;margin-top:33px}.photo .photo-copy .device{font:700 27px/1.4 UI}.story .photo h1{top:423px}.story .photo .phone{top:719px;height:608px;width:490px}.story .photo .phone img{width:650px;left:-80px;top:50px}.story .photo .photo-copy{top:822px}
+/* Nov 20: ornamental typography and code-native line art, not a food photograph. */
+.cocoa{background:radial-gradient(ellipse at 50% 52%,#8e3140,#571c2c 72%)}.cocoa h1{position:absolute;left:72px;right:72px;top:222px;text-align:center;font-size:75px;line-height:1.02}.cocoa h1 strong{display:block;font:900 235px/.9 Display;color:#f5dfb4;margin:15px 0 9px;letter-spacing:-.02em}.cocoa .mug{position:absolute;left:350px;top:648px;width:380px;height:249px;color:#e2bf7f}.cocoa .support{position:absolute;left:110px;right:110px;top:951px;text-align:center;font:400 34px/1.35 Body}.cocoa .ornament{position:absolute;top:180px;left:-56px;width:167px;height:520px;opacity:.5;color:#e2bf7f}.cocoa .ornament.second{left:auto;right:-56px;transform:scaleX(-1)}.story .cocoa h1{top:433px;font-size:79px}.story .cocoa h1 strong{font-size:249px}.story .cocoa .mug{top:928px}.story .cocoa .support{top:1224px}.story .cocoa .ornament{top:380px;height:620px}
+/* Nov 27: actual traditional and VIP suite photographs; no event decor implied. */
+.lanes{background:#092f2c}.lanes h1{position:absolute;left:72px;top:211px;font-size:102px}.lanes .settings{position:absolute;left:72px;right:72px;top:476px;display:grid;grid-template-columns:1fr 1fr;gap:28px}.lanes .setting img{display:block;width:100%;height:340px;object-fit:cover;border:6px solid #f1dec0}.lanes .setting h2{font:900 47px/1.1 Display;text-transform:uppercase;margin-top:23px}.lanes .setting p{font:400 29px/1.35 Body;margin-top:13px}.lanes .setting .extra{color:#e2bf7f;font:700 25px/1.4 UI;margin-top:14px}.story .lanes h1{top:424px}.story .lanes .settings{top:737px}.story .lanes .setting img{height:365px}.story .lanes .setting h2{font-size:49px}.story .lanes .setting p{font-size:30px}
+/* Dec 4: a real date, not a fabricated booking deadline. */
+.sunday{background:#f1e5cb;color:#123d35}.sunday h1{position:absolute;left:72px;top:215px;font-size:109px;line-height:.96}.sunday h1 em{color:#9e3341}.sunday .calendar-card{position:absolute;left:72px;top:496px;width:410px;height:510px;border:3px solid #ae4150;background:#fff5e0;box-shadow:14px 16px 0 #9e33411c;transform:rotate(-3deg);text-align:center}.sunday .month{background:#9e3341;color:#fff4dd;font:700 29px/1.3 UI;padding:22px 0;letter-spacing:.08em}.sunday .day{font:900 244px/.9 Display;letter-spacing:-.03em;color:#9e3341;margin-top:22px}.sunday .weekday{font:900 50px Display;text-transform:uppercase;margin-top:7px}.sunday .santa{position:absolute;width:653px;height:auto;left:430px;top:455px}.sunday .roll{position:absolute;left:568px;top:1038px;font:900 57px Display;text-transform:uppercase;color:#9e3341}.sunday.art .event-name,.sunday.art .footer{color:#143c35}.sunday.art .rule{background:#143c3560}.sunday.art .footer{border-color:#143c3566}.sunday.art .cta{color:#9e3341}.story .sunday h1{top:425px}.story .sunday .calendar-card{top:778px}.story .sunday .santa{top:716px}.story .sunday .roll{top:1293px}
+</style>
+</head>
+<body><main class="art {{CONCEPT}} {{FORMAT}}" aria-label="{{ALT}}">
+  <section class="scene family">
+    <div class="image-panel"><img src="{{FAMILY}}" alt=""></div>
+    <h1 data-safe>A little<br>less mall.<br>A lot more<br><em>bowl.</em></h1>
+    <p class="small" data-safe>Bowling, pizza<br>&amp; a visit<br>with Santa.</p>
+  </section>
+  <section class="scene package">
+    <h1 data-safe>Bowling. Pizza.<br><em>Santa.</em></h1><p class="handled" data-safe>Sunday handled.</p>
+    <div class="grid" data-safe>
+      <div class="cell"><span class="number">90</span><span class="minutes">minutes<br>of bowling</span><span class="number-note">Shoes included</span></div>
+      <div class="cell"><h2>One pizza.<br>One pitcher.</h2><p>One large pizza + one<br>pitcher of soda per lane.</p></div>
+      <div class="cell"><h2>Cookies<br>&amp; cocoa.</h2><p>Cookie &amp; cocoa bar access<br>with your lane package.</p></div>
+      <div class="cell"><h2>A visit<br>with Santa.</h2><p>Your Santa photo,<br>on your own device.</p></div>
+    </div><p class="vip-extra" data-safe>VIP adds one basket of fries per lane.</p>
+  </section>
+  <section class="scene photo">
+    <h1 data-safe>Bring your people.<br><em>Charge your phone.</em></h1>
+    <div class="phone"><img src="{{SANTA}}" alt=""></div>
+    <div class="photo-copy" data-safe><h2>Your photo.<br>Your device.</h2><p>A visit with Santa,<br>with a little bowling<br>on the side.</p><p class="device">Bowling + pizza<br>+ Santa visit.</p></div>
+  </section>
+  <section class="scene cocoa">
+    <h1 data-safe>A little<strong>Cocoa</strong>between frames.</h1>
+    <svg class="mug" viewBox="0 0 380 249" fill="none" aria-hidden="true"><path d="M71 93h222v80c0 37-34 58-111 58s-111-21-111-58V93Z" stroke="currentColor" stroke-width="5"/><path d="M293 103h24c59 0 59 77-5 77h-19M47 235h273M112 93c22-18 15-30 0-42s-16-25 0-38M176 93c25-20 19-33 0-48s-19-27 0-42M240 93c25-20 17-31 0-45s-18-25 0-38" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M106 118h148" stroke="currentColor" stroke-width="2" opacity=".5"/></svg>
+    <svg class="ornament" viewBox="0 0 167 520" fill="none" aria-hidden="true"><path d="M84 0v270m-17 0h34v25H67z" stroke="currentColor" stroke-width="2"/><circle cx="84" cy="366" r="72" stroke="currentColor" stroke-width="2"/><ellipse cx="84" cy="366" rx="44" ry="72" stroke="currentColor"/><ellipse cx="84" cy="366" rx="18" ry="72" stroke="currentColor"/><path d="M12 366h144" stroke="currentColor"/></svg>
+    <svg class="ornament second" viewBox="0 0 167 520" fill="none" aria-hidden="true"><path d="M84 0v270m-17 0h34v25H67z" stroke="currentColor" stroke-width="2"/><circle cx="84" cy="366" r="72" stroke="currentColor" stroke-width="2"/><ellipse cx="84" cy="366" rx="44" ry="72" stroke="currentColor"/><ellipse cx="84" cy="366" rx="18" ry="72" stroke="currentColor"/><path d="M12 366h144" stroke="currentColor"/></svg>
+    <p class="support" data-safe>Cookie &amp; cocoa bar access<br>with every Jingle Bowl lane.</p>
+  </section>
+  <section class="scene lanes">
+    <h1 data-safe>Same Santa.<br><em>Your kind of lane.</em></h1>
+    <div class="settings" data-safe>
+      <div class="setting"><img src="{{TRADITIONAL}}" alt=""><h2>Traditional lanes</h2><p>Bowling, pizza &amp;<br>a visit with Santa.</p></div>
+      <div class="setting"><img src="{{VIP}}" alt=""><h2>VIP suite lanes</h2><p>Couch seating.</p><p class="extra">Plus one basket of fries<br>per lane.</p></div>
+    </div>
+  </section>
+  <section class="scene sunday">
+    <h1 data-safe>Santa comes<br><em>this Sunday.</em></h1>
+    <div class="calendar-card" data-safe><p class="month">DECEMBER 2026</p><p class="day">06</p><p class="weekday">Sunday</p></div>
+    <img class="santa" src="{{SANTA}}" alt=""><p class="roll" data-safe>Let's roll.</p>
+  </section>
+  <img class="logo" src="{{LOGO}}" data-safe alt="Twisted Pin">
+  <p class="event-name" data-safe>JINGLE BOWL</p><div class="rule"></div>
+  <footer class="footer" data-safe><p class="date">Sunday, December 6, 2026</p><p class="cta">{{CTA}}</p><p class="url">twistedpin.com/jingle-bowl/</p></footer>
+  <!-- Story: native link sticker may be placed at x260 y1620 w560 h110.
+       Inspect actual app controls before publication; these are house margins. -->
+</main></body></html>

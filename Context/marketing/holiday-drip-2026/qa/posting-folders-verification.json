@@ -1,0 +1,584 @@
+{
+  "checked_at": "2026-10-22T22:27:18.685Z",
+  "copy_revision": "series-copy-v2",
+  "delivery_revision": "posting-folders-v1",
+  "folders": 16,
+  "outputs": [
+    {
+      "calendar_id": "02-jingle-santa-coming",
+      "filename": "2026-10-23_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "77de859e40a7ec14635e69a1be1797452a15dad983dc9cbb0f387f5a4fdc4003",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "02-jingle-santa-coming",
+      "filename": "2026-10-23_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "43b8e3904f73f8ba5cf42856ad178b0c7f5e9dcf5a60fe2157af4eb1f4c59ed9",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "01-nye-set-the-clock",
+      "filename": "2026-10-28_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "9fde009795419a17b1fee9320ed30266b528c68a6ce8e460b3a07d5b68656bc8",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "01-nye-set-the-clock",
+      "filename": "2026-10-28_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "587f3955ccd8cc96670504ced4cab8687ed255a0a4149102ed443b0eb3da8ea9",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "18-jingle-family-outing",
+      "filename": "2026-10-30_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "ec29fd2a23eacb7a4ce3dfe4dee0717f4901b0b143b27c3e41ed48af79b2b24e",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "18-jingle-family-outing",
+      "filename": "2026-10-30_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "ad7107cbe103ac97f176b4081c387f080292cac7e40fb25830cf2e6abb559c6d",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "05-jingle-whats-included",
+      "filename": "2026-11-06_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "1047e2478858cbc4558401e654e9afb47a7bf36baf8b26cf772750f280d854dc",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "05-jingle-whats-included",
+      "filename": "2026-11-06_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "cdcd1d5baf981eb769ad3a9d6167015fb2f1f6b5c7e29e829b396138aca1916a",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "03-nye-usually-sells-out",
+      "filename": "2026-11-09_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "d7b0a75ce5aeb7d40b71a44697b88d8c68c41d8eae8e74471b5a7fad44938fc9",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "03-nye-usually-sells-out",
+      "filename": "2026-11-09_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "0689de07589a6f133348a4851a8f912054444e18b05a376267362a4c0220bbf6",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "08-jingle-santa-photo",
+      "filename": "2026-11-13_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "13affb581c72bffad187b45935fc7c1746b3252a1689f41645d612c9937fbebb",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "08-jingle-santa-photo",
+      "filename": "2026-11-13_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "9349bd7d627d972caeba7de64acfcb1a2b3473f6617382c777ecf9de8d685844",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "filename": "2026-11-17_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "ce803403f23deb74f82726d57bc8cc822eb25f6906f4c5b64b3895977008fa8c",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "filename": "2026-11-17_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "d717895e6ebed0ed60185626494856dce047fa46ba0a0c205550a727f6989863",
+      "phase": "before_reservations_open"
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "filename": "2026-11-18_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "db461e199c771afb973f380735b3868bc08f7edd65f8125e11ba18e3ccaecdb5",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "filename": "2026-11-18_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "a592b8779fa28f9ed43d090a6ea8bc6aabaced28f86ca4783b025ec973b251c5",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "17-jingle-cookie-cocoa",
+      "filename": "2026-11-20_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "ba70251d9b0fb94f50c9bff06dea773acf19dfb1317c73d50e420cf95809666f",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "17-jingle-cookie-cocoa",
+      "filename": "2026-11-20_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "6cc560153e585341f274b2447a019ddb60fa9731597239076151ca2f38bf9af8",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "filename": "2026-11-25_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "filename": "2026-11-25_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "6190d83ebf1937ef9a41e9031cdfb3116ca0a186d46593bf09a8883d624e0dd2",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "11-jingle-december-plan",
+      "filename": "2026-11-27_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "cd0dc8330c1cb8f02ea5403b0312baa12c413fe452af2fade92fa0dd52227fe4",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "11-jingle-december-plan",
+      "filename": "2026-11-27_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "b234406e60c21701d654968778e66286d96156b086a93bb1e7e226ffa6c5d9fe",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "12-jingle-this-sunday",
+      "filename": "2026-12-04_Jingle-Bowl/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "bc675554dc121c1b5016e861fc1d822e19c373c3e28c94ac94b0d782c9eef956",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "12-jingle-this-sunday",
+      "filename": "2026-12-04_Jingle-Bowl/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1b590454c468200c4579737ebb2f5189a4792f0621bcbeae89740b07f4fd9145",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "filename": "2026-12-07_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "b5e67df14aa0382ec76b13089e63deb365164104492cbc6abe4a92a5f2bfc7fe",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "filename": "2026-12-07_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "12fd9cd2831432c3c9414542dd7ecbbabb295f5fae7603e4ebe83989ea9c377c",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "filename": "2026-12-16_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "d050fa5c46ee7daef74731667bd4e48057f1a0945f5e19a573bf40d702eb6c4a",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "filename": "2026-12-16_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1c22037c316ed28de5697523f5896870c03f0fa4d55715e60c4c40b9a02d7e83",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "filename": "2026-12-23_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "65ec8a99d2869bb08b65da8c975bcbb6e05dbaa49b57f90856a2b42f2c6ae63e",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "filename": "2026-12-23_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "4fa908f5b53ad4457fc994543f1846a44a9288885eb972dd8bacb5d2c0579ca1",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "filename": "2026-12-28_New-Years-Eve/01-FEED-Facebook-and-Instagram.png",
+      "format": "feed",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7",
+      "phase": "reservations_open"
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "filename": "2026-12-28_New-Years-Eve/02-OPTIONAL-STORY.png",
+      "format": "story",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "f0a00b53987a8b6ec26d501e095aa4d71bea952d68ab8930265dff74b8fb0366",
+      "phase": "reservations_open"
+    }
+  ],
+  "checks": {
+    "source_hashes_and_dimensions": true,
+    "exact_copy_and_story_links": true,
+    "unique_compositions": 32,
+    "empty_execution_state": true,
+    "all_paths_portable": true,
+    "outbound_requests": 0
+  },
+  "browser_checks": [
+    {
+      "width": 390,
+      "overflow": false,
+      "images": [
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        }
+      ],
+      "articles": 16,
+      "filters_pass": true,
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "overflow": false,
+      "images": [
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        },
+        {
+          "w": 1080,
+          "h": 1350
+        },
+        {
+          "w": 1080,
+          "h": 1920
+        }
+      ],
+      "articles": 16,
+      "filters_pass": true,
+      "errors": []
+    }
+  ],
+  "limitations": [
+    "No live inventory, actual platform crop/sticker, bio link or social schedule checked.",
+    "Prepared review delivery does not authorize scheduling or publication."
+  ]
+}

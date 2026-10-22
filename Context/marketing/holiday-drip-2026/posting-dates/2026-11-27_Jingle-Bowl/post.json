@@ -1,0 +1,60 @@
+{
+  "calendar_id": "11-jingle-december-plan",
+  "folder": "2026-11-27_Jingle-Bowl",
+  "event": "jingle-bowl-2026",
+  "event_name": "Jingle Bowl",
+  "event_date": "2026-12-06",
+  "headline": "Same Santa. Your kind of lane.",
+  "proposed_publish_at": "2026-11-27T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-11-27T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/jingle-bowl/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-11-jingle-december-plan",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "cd0dc8330c1cb8f02ea5403b0312baa12c413fe452af2fade92fa0dd52227fe4",
+      "alt_text": "Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-27-11-jingle-december-plan-feed.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-11-jingle-december-plan"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "b234406e60c21701d654968778e66286d96156b086a93bb1e7e226ffa6c5d9fe",
+      "alt_text": "Actual Twisted Pin traditional-lane and VIP couch-seating photographs, shown as two clearly labeled settings. Printed text: SAME SANTA. YOUR KIND OF LANE. TRADITIONAL LANES Bowling, pizza & a visit with Santa. VIP SUITE LANES Couch seating. Plus one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-27-11-jingle-december-plan-story.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-11-jingle-december-plan"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nChoose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/",
+    "instagram": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nChoose your December 6 reservation through the Jingle Bowl link in our bio.",
+    "instagram_without_verified_bio": "Same Santa. Your kind of lane.\n\nTraditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.\n\nPut Santa on the family calendar.\n\nDecember 6 reservations: twistedpin.com/jingle-bowl/"
+  },
+  "story": {
+    "message": "Traditional lanes or VIP? Jingle Bowl is Sunday, December 6. Choose your time and reserve.",
+    "link_sticker": {
+      "label": "Reserve Jingle Bowl",
+      "url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

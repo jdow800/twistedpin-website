@@ -1,0 +1,19 @@
+TWISTED PIN | HOLIDAY CAMPAIGN 2026
+
+OPEN START-HERE.html for the visual overview, or open any dated folder. Read REVIEW-NOTES.txt for the independent GPT-6.1 Sol Ultra critique and final refinements.
+
+Every date contains:
+- 01-FEED-Facebook-and-Instagram.png: recommended feed image for both platforms.
+- 02-OPTIONAL-STORY.png: a separate portrait Story composition.
+- RECOMMENDED-COPY.txt: exact proposed time, complete Facebook and Instagram captions, optional Story link instructions and alt text.
+- post.json: structured details for a later scheduling assistant.
+
+The 16 dates supplement the social team's regular content. Proposed times are Central; coordinate them with the team's calendar. The November 18 9am NYE sales opening is fixed. No post has been scheduled or published. Stories are optional; do not post them automatically just because a file exists.
+
+Use only the full-size PNG in the relevant folder. CONTACT-SHEET.png is a review overview, not a post. One recommended image is supplied for each occasion; alternatives and editable masters remain in the repository source pack.
+
+For a later assistant session, provide SCHEDULING-PROMPT.txt and this entire folder. It contains the actual copy, assets and date mappings. Review current availability and relative wording before publication.
+
+Source: C:/Users/jdow8/dev/website-holiday-drip-20261022/Context/marketing/holiday-drip-2026
+Branch: codex/holiday-drip-20261022
+Copy: series-copy-v2 | Delivery: posting-folders-v1

@@ -1,3 +1,23 @@
+## 2026-10-22 - Complete holiday campaign by posting date
+
+Jon accepted the independent GPT-6.1 Sol Ultra review direction and requested a
+folder per posting date containing the chosen graphic and recommended copy.
+Apply the specific launch, midnight-toast and VIP-setting improvements, trim
+repeated CTAs, and complete the remaining feed/Story layouts as a coordinated
+series. Package one recommended visual per occasion, with exact Central dates,
+platform copy text, short optional Story instructions, alt text and manifest.
+Preserve original artwork/source history and the corrected mirrorball grip.
+Keep editable sources and reproduction scripts in the feature worktree and
+provide convenient Desktop copies. This authorizes creative preparation and
+organization, not posting, scheduling, sends, ads or runtime changes. New final
+layouts remain reviewable; no production or main-branch deployment is needed.
+
+The completed 16-date delivery contains 32 full-size PNGs and matching copy.
+GPT-6.1 Sol on Ultra reviewed the finished campaign without blocking findings;
+its larger toast text and more specific final NYE line suggestions were applied.
+Jon then requested more separation between the 3 and 1 in the December 28
+graphic. Both feed and Story numeral spacing were corrected and checked.
+
 ## 2026-10-22 - Full holiday series caption review
 
 Jon asked to expand the revised calendar into the actual post copy, assuming

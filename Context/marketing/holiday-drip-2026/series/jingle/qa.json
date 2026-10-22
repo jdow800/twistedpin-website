@@ -1,0 +1,40 @@
+{
+  "reviewed_on": "2026-10-22",
+  "records": 12,
+  "calendar_matches": true,
+  "dimensions_and_hashes_match": true,
+  "all_exports_visually_inspected": true,
+  "phone_preview": "contact-sheet-phone.png",
+  "phone_preview_image_width_per_card": 360,
+  "fonts_loaded": true,
+  "canvas_overflow": false,
+  "text_box_overlaps": 0,
+  "outbound_requests": 0,
+  "story_essential_text_house_margins": {
+    "top": 230,
+    "bottom": 325,
+    "left": 58,
+    "right": 58
+  },
+  "story_native_sticker_area": {
+    "x": 260,
+    "y": 1620,
+    "width": 560,
+    "height": 110
+  },
+  "manual_findings": [
+    "All six feed/Story pairs inspected at full size and on the 360-pixel-wide contact sheet.",
+    "Oct30 headline wrap/overlap corrected; real child-bowling photograph cropped toward the action without raster alteration.",
+    "Nov6 quantities remain per lane; VIP-only fries explicit.",
+    "Nov13 Santa illustration/photo framing states guest device; no Santa bowling promise.",
+    "Nov20 line-art mug is symbolic, with no toppings, product photograph, or unlimited/refill claim.",
+    "Nov27 actual lane/suite photos show seating, with fries stated only under VIP.",
+    "Dec4 states Sunday December6 and check-times CTA, not a Friday booking deadline."
+  ],
+  "independent_review": "frequency_evidence reviewed phone contact sheet and manifest text/provenance; no factual or readability blocker found.",
+  "remaining_publishing_checks": [
+    "Actual platform upload/crop preview",
+    "Current bookable inventory",
+    "Native Story link sticker destination and control overlap"
+  ]
+}

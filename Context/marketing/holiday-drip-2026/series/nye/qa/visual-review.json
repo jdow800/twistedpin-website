@@ -1,0 +1,36 @@
+{
+    "reviewed_by":  "NYE artwork agent",
+    "reviewed_at":  "2026-10-22T17:26:43.5944907-05:00",
+    "scope":  "All 14 final exports, inspected in paired 390-pixel-wide proofs and final contact sheet",
+    "status":  "passed",
+    "dates":  [
+                  "2026-11-17",
+                  "2026-11-18",
+                  "2026-11-25",
+                  "2026-12-07",
+                  "2026-12-16",
+                  "2026-12-23",
+                  "2026-12-28"
+              ],
+    "formats":  [
+                    "feed 1080x1350",
+                    "story 1080x1920"
+                ],
+    "findings":  [
+                     "All primary headlines, dates, opening instructions, party choices and conditions remain legible at phone width.",
+                     "No visible clipping, overlapping text or accidental photo crops remain.",
+                     "Launch photo crop adjusted upward to preserve faces and activity.",
+                     "Distinct compositions use typography, actual venue imagery, actual cocktail imagery and corrected illustrative mirrorball.",
+                     "November 17 uses the absolute opening date and time; party time details begin November 18.",
+                     "Midnight toast explicitly applies only to the 10pm party; champagne 21+ or sparkling cider; families welcome at every party.",
+                     "Story content leaves space above and below for interface overlays and the native link sticker.",
+                     "Final polish: December 7 toast/family conditions increased to 34px in both formats and visually rechecked at 390px wide; no clipping or overlap.",
+                     "Final polish: December 28 now says Bowling. Pizza. New Year\u0027s Eve. in both formats, with updated manifest text and alt; visually rechecked at 390px wide.",
+                     "User-requested December 28 numeral correction: shared big-date letter-spacing increased from -0.055em to +0.025em in feed and Story. Both final 390px phone proofs show a clear gap between 3 and 1, balanced composition, and unchanged bowling/pizza/NYE supporting copy."
+                 ],
+    "limitations":  [
+                        "This is local export review, not an actual Facebook or Instagram upload/reposition preview.",
+                        "Current party availability and launch status must be checked before any post is published."
+                    ],
+    "contact_sheet":  "series/nye/qa/contact-sheet.png"
+}

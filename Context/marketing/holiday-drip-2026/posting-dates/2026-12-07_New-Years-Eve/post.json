@@ -1,0 +1,60 @@
+{
+  "calendar_id": "14-nye-december-invitation",
+  "folder": "2026-12-07_New-Years-Eve",
+  "event": "nye-2026",
+  "event_name": "New Year's Eve",
+  "event_date": "2026-12-31",
+  "headline": "AN EARLY CELEBRATION OR THE MIDNIGHT MOMENT?",
+  "proposed_publish_at": "2026-12-07T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-12-07T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/new-years-eve/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-14-nye-december-invitation",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "b5e67df14aa0382ec76b13089e63deb365164104492cbc6abe4a92a5f2bfc7fe",
+      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-07-nye-feed.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-14-nye-december-invitation"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "12fd9cd2831432c3c9414542dd7ecbbabb295f5fae7603e4ebe83989ea9c377c",
+      "alt_text": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-07-nye-story.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-14-nye-december-invitation"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration through the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "An early celebration or the midnight moment?\n\nBring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.\n\nOnly the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.\n\nChoose your NYE celebration: twistedpin.com/new-years-eve/"
+  },
+  "story": {
+    "message": "December 31: celebrate earlier or ring in 2027 with the 10pm party. Families welcome. Reserve online.",
+    "link_sticker": {
+      "label": "Reserve NYE",
+      "url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed December 7. Publish the 10pm invitation only while that party remains bookable; otherwise revise to current choices. The 10pm–12:30am party alone includes the midnight toast, champagne for 21+ or sparkling cider. Families are welcome at every party. Verify bio destination.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

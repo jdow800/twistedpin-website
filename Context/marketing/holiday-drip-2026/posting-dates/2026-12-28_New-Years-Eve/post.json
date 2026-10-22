@@ -1,0 +1,60 @@
+{
+  "calendar_id": "21-nye-this-thursday",
+  "folder": "2026-12-28_New-Years-Eve",
+  "event": "nye-2026",
+  "event_name": "New Year's Eve",
+  "event_date": "2026-12-31",
+  "headline": "NEW YEAR'S EVE IS THIS THURSDAY.",
+  "proposed_publish_at": "2026-12-28T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-12-28T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/new-years-eve/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-21-nye-this-thursday",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7",
+      "alt_text": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-28-nye-feed.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-21-nye-this-thursday"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "f0a00b53987a8b6ec26d501e095aa4d71bea952d68ab8930265dff74b8fb0366",
+      "alt_text": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-12-28-nye-story.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-21-nye-this-thursday"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current availability through the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "New Year's Eve is this Thursday.\n\nIf December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.\n\nThen get to work on that victory dance.\n\nCheck current NYE availability: twistedpin.com/new-years-eve/"
+  },
+  "story": {
+    "message": "NYE is this Thursday, December 31. Check available parties and reserve your lane for your people.",
+    "link_sticker": {
+      "label": "Reserve NYE",
+      "url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed December 28 only; December 31, 2026 is Thursday. Final planned sales invitation requires a fresh availability check. If sold out, do not post this version: replace with verified guest-preparation information. No last-few, last-chance or inventory-count claim. Verify bio link.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

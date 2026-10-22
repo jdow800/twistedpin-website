@@ -1,0 +1,60 @@
+{
+  "calendar_id": "02-jingle-santa-coming",
+  "folder": "2026-10-23_Jingle-Bowl",
+  "event": "jingle-bowl-2026",
+  "event_name": "Jingle Bowl",
+  "event_date": "2026-12-06",
+  "headline": "Make way for Santa.",
+  "proposed_publish_at": "2026-10-23T12:00:00-05:00",
+  "proposed_publish_at_utc": "2026-10-23T17:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/jingle-bowl/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "05-jingle-santa-arrives",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "77de859e40a7ec14635e69a1be1797452a15dad983dc9cbb0f387f5a4fdc4003",
+      "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+      "source": "batch-02/exports/05-jingle-santa-arrives-feed.png",
+      "source_manifest": "batch-02/render-manifest.json",
+      "concept_id": "05-jingle-santa-arrives"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "43b8e3904f73f8ba5cf42856ad178b0c7f5e9dcf5a60fe2157af4eb1f4c59ed9",
+      "alt_text": "An illustrated Santa carrying a green bowling ball stands among festive trees, warm lights and wrapped gifts. Make way for Santa. Jingle Bowl at Twisted Pin. Bowling, pizza and a visit with Santa. Sunday, December 6, 2026. Reservations open now at www.twistedpin.com/jingle-bowl/.",
+      "source": "batch-02/exports/05-jingle-santa-arrives-story.png",
+      "source_manifest": "batch-02/render-manifest.json",
+      "concept_id": "05-jingle-santa-arrives"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve your Jingle Bowl lane: https://www.twistedpin.com/jingle-bowl/",
+    "instagram": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nReserve through the Jingle Bowl link in our bio.",
+    "instagram_without_verified_bio": "Santa's coming. Let's roll. 🎅\n\nJingle Bowl brings bowling, pizza & a visit with Santa to Twisted Pin on Sunday, December 6, 2026. Ninety minutes on your lane, your people around the table, and a proper start to the holiday fun. Reservations are open.\n\nJingle Bowl reservations: twistedpin.com/jingle-bowl/"
+  },
+  "story": {
+    "message": "Santa's coming. Jingle Bowl is Sunday, December 6. Bowling, pizza & a visit with Santa. Reserve your lane.",
+    "link_sticker": {
+      "label": "Reserve Jingle Bowl",
+      "url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed October 23 announcement; pair with the chosen Santa hero and verify the event-specific bio link before using the primary Instagram CTA.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

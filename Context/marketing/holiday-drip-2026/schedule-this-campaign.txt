@@ -1,5 +1,7 @@
-Use this prompt with the entire current holiday-drip-2026 folder available, not
-just a preview image. Prefer the latest Batch 02 Desktop package; earlier
+Use this prompt with the current source pack, or use SCHEDULING-PROMPT.txt with
+the complete portable dated delivery at:
+C:/Users/jdow8/OneDrive/Desktop/Twisted Pin Holiday Campaign 2026
+That delivery contains START-HERE.html/.txt and 16 posting-date folders. Earlier
 Batch 01 delivery copies may contain superseded publishing dates.
 
 Help me work with the saved Twisted Pin holiday drip campaign.
@@ -11,16 +13,21 @@ READ FIRST
    publishing-checklist.md in this folder. The creative brief identifies the
    October 2026 positioning report, later owner corrections and event-specific
    audience direction; do not assume the maintained v1.0 guide is latest truth.
-3. campaign.json, schema 4: post_copy_drafts is canonical for all 16 Meta copy
-   drafts, keyed by calendar_id with copy_revision series-copy-v1. Read its
+3. campaign.json: post_copy_drafts is canonical for all 16 Meta occasions,
+   keyed by calendar_id with copy_revision series-copy-v2. Read its
    caption_body and variants.facebook_feed.caption / instagram_feed.caption,
    including the full Instagram alternate without a verified bio link. Story
    variants contain editorial_message and the native link_sticker destination.
-   Proposed dates mirror the calendar. Check image readiness separately.
-   Read alternative_concepts and creative_choice_groups. Choose ONE concept per
-   used group; recommended is not selected or approved. An original and its
-   alternative are not separate posts.
-4. full-series-copy.md or copy-review.html for the full readable series, plus
+   Proposed dates mirror the calendar. delivery_folder, delivery_concept_id and
+   variant asset paths identify the supplied recommendation. Artwork is
+   prepared_for_review and calendar rows are ready_for_review; approval and
+   execution fields remain empty. Original concepts/alternatives are preserved
+   sources, not extra posts. Recommended does not mean selected or approved.
+4. posting-dates/START-HERE.html and POSTING-CALENDAR.txt for the complete
+   delivery. Each date contains 01-FEED-Facebook-and-Instagram.png,
+   02-OPTIONAL-STORY.png, RECOMMENDED-COPY.txt and post.json. Read the portable
+   campaign-manifest.json if working from Desktop. Delivery revision is
+   posting-folders-v1. Also read full-series-copy.md or copy-review.html, plus
    batch-01-copy.txt and batch-02/copy.txt for prepared-art views. These are
    synchronized/generated views, not separate editable authorities. Resolve a
    discrepancy before action. Intermediate proposals live only in the ignored
@@ -50,16 +57,17 @@ Current proposed main dates, all America/Chicago:
 There is no optional extra NYE kickoff, November 15 reminder or December 6
 Jingle campaign post. Do not restore those superseded dates from an older pack.
 
-Prepared original IDs and current occasions:
+Preserved original IDs and current recommended uses:
 - 01-nye-set-the-clock: October 28 at noon. Alternative:
   04-nye-mirrorball-moment, on the same occasion.
 - 02-jingle-santa-coming: October 23 at noon. Alternative:
   05-jingle-santa-arrives, on the same occasion.
 - 03-nye-usually-sells-out: November 9 at noon.
 
-All 16 occasions now have actual copy drafts for review. Thirteen still need
-artwork; this copy pass made no additional art. Do not confuse copy readiness
-with a complete post, or turn every available design into another occasion.
+All 16 occasions have a recommended feed image, optional Story image and copy
+prepared for review. Jon accepted the independent review direction and requested
+the complete dated delivery. This does not authorize scheduling/publication.
+Do not turn preserved alternatives into additional occasions.
 Facebook and Instagram feeds use the 4:5 PNG; Stories use the separate 9:16 PNG.
 Stories, Google and SMS are separately selectable companions, not automatic adds.
 The optional extras are unchanged and retain separate manifest entries.
@@ -86,11 +94,10 @@ SCHEDULING RULES
   unavailable necessary account/calendar details; do not invent them. If the
   needed platform capability is unavailable, prepare a dry-run schedule and
   identify the specific limitation.
-- Check copy readiness and actual artwork separately. All Meta copy is drafted;
-  only three occasions have prepared artwork choices, with two alternatives
-  for the same occasions. The remaining 13 cannot be treated as complete posts.
-  Review status is not approval. Do not substitute unrelated artwork or create
-  the remaining images without my direction.
+- Use the recommended files and copy together from the matching date folder.
+  Confirm the source/export hashes and latest packaging receipt before action;
+  completed preparation is not approval. Record the visual actually approved
+  and chosen channels. Never upload a contact sheet or QA preview as a post.
 - Preserve proposed dates unless I authorize changes. If a date has passed,
   obtain a new date instead of immediately publishing an old teaser. Convert
   America/Chicago correctly across November's DST change. Times are planning
@@ -127,19 +134,23 @@ Update the matching post_copy_drafts entries for the copy revision used and
 its actual approval/channel/execution state; keep prepared concept records and
 creative-choice selection consistent with those entries.
 Keep post_copy_drafts as the canonical Meta copy source. After any approved copy
-edit, regenerate full-series-copy.md and copy-review.html with
-node scripts/package-holiday-drip-copy.mjs and synchronize prepared-art views.
+edit, synchronize prepared concept variants and regenerate dated folders with
+node scripts/package-holiday-posting-folders.mjs. Then run the copy and historical
+packagers to refresh full-series-copy.md, copy-review.html and earlier views.
+Art revisions use scripts/render-holiday-series-nye.mjs and/or
+scripts/render-holiday-series-jingle.mjs before packaging affected exports.
 Update campaign.json with selected_concept_id for each used creative group,
 chosen channels, approved_at/approved_by and the actual platform scheduling or
 publication state. Record exact scheduled_at with platform IDs/URLs, or
 published_at and public URLs, as appropriate. Preserve failures and unscheduled
 entries accurately. Save a dated handoff.
 
-Check actual Git status: previous review snapshots were local and not pushed.
-Commit and push approved durable campaign changes on the isolated feature
-branch when authorized. Never merge/push Website main as part of content
-scheduling; main auto-deploys. Refresh the Batch 02 Desktop folders and ZIPs
-from the repository and record which revision they contain.
+Check actual Git and remote status; do not infer a push from a delivery folder.
+The coordinator is to commit and push the completed, verified content on the
+isolated feature branch. Never merge/push Website main as part of content
+scheduling; main auto-deploys. Refresh the main portable Desktop delivery and
+the existing Batch 02 full-pack folders/ZIPs from the repository, verify hashes
+and record the exact revision delivered.
 
 My instruction for this session: [I will tell you which items/channels to review,
 revise or schedule.]

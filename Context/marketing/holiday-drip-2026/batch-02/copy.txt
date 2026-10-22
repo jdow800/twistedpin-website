@@ -1,5 +1,5 @@
 TWISTED PIN HOLIDAY DRIPS · Cinematic alternatives
-Copy revision: series-copy-v1
+Copy revision: series-copy-v2
 Drafts for review. Nothing scheduled or published. Dates are proposed, America/Chicago.
 Use campaign.json post_copy_drafts for the current full-series copy and calendar.
 Alternatives occupy the same occasion; they do not add posts.

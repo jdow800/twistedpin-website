@@ -1,0 +1,60 @@
+{
+  "calendar_id": "19-nye-party-essentials",
+  "folder": "2026-11-25_New-Years-Eve",
+  "event": "nye-2026",
+  "event_name": "New Year's Eve",
+  "event_date": "2026-12-31",
+  "headline": "THE PARTY ESSENTIALS ARE COVERED.",
+  "proposed_publish_at": "2026-11-25T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-11-25T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/new-years-eve/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-19-nye-party-essentials",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30",
+      "alt_text": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-11-25-nye-feed.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-19-nye-party-essentials"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "6190d83ebf1937ef9a41e9031cdfb3116ca0a186d46593bf09a8883d624e0dd2",
+      "alt_text": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-11-25-nye-story.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-19-nye-party-essentials"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nSee the packages and reserve: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nSee the packages and reserve through the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "The party essentials are covered.\n\nEvery December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.\n\nBring your family or friends, and let the rivalry begin.\n\nPackages and reservations: twistedpin.com/new-years-eve/"
+  },
+  "story": {
+    "message": "Your December 31 lane package covers the party essentials. Pick your people, reserve your NYE party.",
+    "link_sticker": {
+      "label": "Reserve NYE",
+      "url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed November 25. Concrete inclusion/convenience angle; per-lane quantities and selected-party duration are explicit. No all-inclusive, unlimited-food, decoration-service or entire-evening promise. Keep cocktails and other paid extras out of this inclusion-led image unless clearly labeled separate. Check availability and bio link before publication.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

@@ -1,0 +1,121 @@
+import {readFile,writeFile,copyFile,mkdir,readdir,stat} from 'node:fs/promises';
+import {resolve,dirname,relative} from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+import {createHash} from 'node:crypto';
+import {createRequire} from 'node:module';
+
+// Build a portable, dated review delivery. This never accesses a social account.
+const repo=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const pack=resolve(repo,'Context/marketing/holiday-drip-2026');
+const out=resolve(pack,'posting-dates');
+const require=createRequire(resolve(process.env.HOLIDAY_RENDER_DEPS||repo,'package.json'));
+const sharp=require('sharp'),{chromium}=require('playwright');
+const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+const esc=value=>String(value).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const c=JSON.parse(await readFile(resolve(pack,'campaign.json'),'utf8'));
+const posts=c.post_copy_drafts;
+if(posts?.length!==16||c.scheduling_authorized||c.publication_authorized)throw Error('Expected sixteen unscheduled review drafts');
+const eventName=p=>p.event==='nye-2026'?"New Year's Eve":'Jingle Bowl';
+const dateLabel=p=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',weekday:'long',year:'numeric',month:'long',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(p.proposed_publish_at))+' Central';
+const shortDate=p=>new Intl.DateTimeFormat('en-US',{timeZone:'America/Chicago',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(p.proposed_publish_at));
+const preparedChoice={'02-jingle-santa-coming':'05-jingle-santa-arrives','01-nye-set-the-clock':'04-nye-mirrorball-moment','03-nye-usually-sells-out':'03-nye-usually-sells-out'};
+const series=[];
+for(const event of ['jingle','nye']){
+ const manifest=JSON.parse(await readFile(resolve(pack,`series/${event}/manifest.json`),'utf8'));
+ for(const record of manifest.records)series.push({...record,source_manifest:`series/${event}/manifest.json`});
+}
+const assetFor=(p,format)=>{
+ const oldId=preparedChoice[p.calendar_id];
+ if(oldId){
+  const concept=[...c.concepts,...c.alternative_concepts].find(x=>x.id===oldId);
+  const variant=concept.variants[format==='feed'?'facebook_feed':'instagram_story'];
+  return {path:variant.asset,alt:variant.alt_text||concept.variants.facebook_feed.alt_text,source_manifest:oldId.startsWith('0')&&['04','05'].includes(oldId.slice(0,2))?'batch-02/render-manifest.json':p.event==='nye-2026'?'nye-manifest.json':'jingle-manifest.json',concept_id:oldId,phase:p.phase};
+ }
+ const matches=series.filter(r=>r.calendar_id===p.calendar_id&&r.format===format);
+ if(matches.length!==1)throw Error(`Need one ${format} for ${p.calendar_id}, got ${matches.length}`);
+ return {...matches[0],concept_id:`series-${p.calendar_id}`};
+};
+
+await mkdir(out,{recursive:true});
+const folders=[],outputs=[];
+for(const p of posts){
+ const folder=`${p.proposed_publish_at.slice(0,10)}_${p.event==='nye-2026'?'New-Years-Eve':'Jingle-Bowl'}`;
+ const folderPath=resolve(out,folder);
+ await mkdir(folderPath,{recursive:true});
+ const assets={};
+ for(const format of ['feed','story']){
+  const source=assetFor(p,format);
+  if(!source.path||source.phase!==p.phase)throw Error('Source/phase mismatch: '+p.calendar_id);
+  const bytes=await readFile(resolve(pack,source.path)),meta=await sharp(bytes).metadata();
+  const expectedHeight=format==='feed'?1350:1920;
+  if(meta.width!==1080||meta.height!==expectedHeight||source.sha256&&source.sha256!==hash(bytes))throw Error('Invalid export: '+source.path);
+  const filename=format==='feed'?'01-FEED-Facebook-and-Instagram.png':'02-OPTIONAL-STORY.png';
+  await copyFile(resolve(pack,source.path),resolve(folderPath,filename));
+  assets[format]={filename,width:meta.width,height:meta.height,sha256:hash(bytes),alt_text:source.alt,source:source.path,source_manifest:source.source_manifest,concept_id:source.concept_id};
+  outputs.push({calendar_id:p.calendar_id,filename:`${folder}/${filename}`,format,width:meta.width,height:meta.height,sha256:hash(bytes),phase:p.phase});
+ }
+ const note=p.editorial_note.replace(/Draft for review(?:, not approval or scheduling)?\.?/gi,'').trim();
+ const text=`TWISTED PIN | ${eventName(p).toUpperCase()}\nPROPOSED POST: ${dateLabel(p)}\nANGLE: ${p.artwork_headline}\nSTATUS: Prepared for review. Not scheduled or published.\nCOPY REVISION: ${c.copy_revision}\n\nUPLOAD TO FACEBOOK + INSTAGRAM FEEDS\n${assets.feed.filename}\n1080 x 1350 (4:5). Use this same image on both feeds.\n\nFACEBOOK CAPTION — COPY THIS SECTION\n\n${p.variants.facebook_feed.caption}\n\nINSTAGRAM CAPTION — COPY THIS SECTION\nUse this version after verifying the matching event link in the bio/link hub.\n\n${p.variants.instagram_feed.caption}\n\nINSTAGRAM ALTERNATIVE IF THE BIO LINK IS NOT VERIFIED\nReplace only the last paragraph with this. A caption address is not a clickable link.\n\n${p.variants.instagram_feed.alternate_final_paragraph_without_bio_link}\n\nOPTIONAL STORY — FACEBOOK / INSTAGRAM\nUpload: ${assets.story.filename}\n1080 x 1920 (9:16). Separate composition, not a crop of the feed image.\nMessage: ${p.variants.instagram_story.editorial_message}\nNative link sticker label: ${p.variants.instagram_story.link_sticker.label}\nNative link sticker URL: ${p.url}\nThe image already carries its own message. Do not paste a duplicate block of text over it. Add the native link sticker in the clear lower area and inspect the actual preview.\n\nBEFORE POSTING\n${note}\nCheck the actual upload crop and event-page link. Coordinate the proposed time with the social team. This folder does not authorize posting or scheduling.\n\nFEED IMAGE ALT TEXT\n${assets.feed.alt_text}\n\nSTORY IMAGE DESCRIPTION\n${assets.story.alt_text}\n\nEVENT PAGE\n${p.url}\n`;
+ await writeFile(resolve(folderPath,'RECOMMENDED-COPY.txt'),text);
+ const entry={calendar_id:p.calendar_id,folder,event:p.event,event_name:eventName(p),event_date:p.event_date,headline:p.artwork_headline,proposed_publish_at:p.proposed_publish_at,proposed_publish_at_utc:p.proposed_publish_at_utc,timezone:'America/Chicago',phase:p.phase,url:p.url,copy_revision:c.copy_revision,status:'prepared_for_review',recommended_concept_id:assets.feed.concept_id,assets,copy_file:'RECOMMENDED-COPY.txt',captions:{facebook:p.variants.facebook_feed.caption,instagram:p.variants.instagram_feed.caption,instagram_without_verified_bio:p.variants.instagram_feed.alternate_caption_without_verified_bio_link},story:{message:p.variants.instagram_story.editorial_message,link_sticker:p.variants.instagram_story.link_sticker,optional:true},publishing_note:note,approved_by:null,approved_at:null,selected_channels:[],scheduled_at:null,published_at:null,platform_ids:{},platform_urls:{}};
+ await writeFile(resolve(folderPath,'post.json'),JSON.stringify(entry,null,2)+'\n');
+ folders.push(entry);
+ // Record the specific artwork supplied for review without inventing approval.
+ p.artwork_status='prepared_for_review';
+ p.delivery_concept_id=assets.feed.concept_id;
+ p.delivery_folder='posting-dates/'+folder;
+ if(!p.candidate_concept_ids.includes(assets.feed.concept_id))p.candidate_concept_ids.push(assets.feed.concept_id);
+ for(const channel of ['facebook_feed','instagram_feed']){p.variants[channel].asset=`posting-dates/${folder}/${assets.feed.filename}`;p.variants[channel].alt_text=assets.feed.alt_text;}
+ for(const channel of ['facebook_story','instagram_story']){p.variants[channel].asset=`posting-dates/${folder}/${assets.story.filename}`;p.variants[channel].alt_text=assets.story.alt_text;}
+ const row=c.calendar.find(x=>x.id===p.calendar_id);row.content_readiness='ready_for_review';row.recommended_concept_id=assets.feed.concept_id;row.delivery_folder=p.delivery_folder;
+}
+if(new Set(outputs.map(x=>x.sha256)).size!==32)throw Error('Expected 32 distinct compositions');
+c.delivery={revision:'posting-folders-v1',prepared_on:'2026-10-22',status:'prepared_for_review',folder:'posting-dates',index:'posting-dates/START-HERE.html',manifest:'posting-dates/campaign-manifest.json',occasions:16,feed_images:16,optional_story_images:16,source_note:'One recommended visual is supplied per occasion. Historical originals/alternatives remain in the source pack. No selected channels, posting, scheduling or send authorization is implied.'};
+c.copy_style.imagery='All sixteen occasions have matching feed and separately composed Story artwork prepared for review. Dated delivery folders contain one recommended visual per occasion; earlier alternatives remain in the source pack.';
+await writeFile(resolve(pack,'campaign.json'),JSON.stringify(c,null,2)+'\n');
+const manifest={campaign:c.campaign,copy_revision:c.copy_revision,delivery_revision:c.delivery.revision,status:'prepared_for_review',timezone:'America/Chicago',scheduling_authorized:false,publication_authorized:false,source_repository:'jdow800/twistedpin-website',source_branch:c.source_branch,posts:folders};
+await writeFile(resolve(out,'campaign-manifest.json'),JSON.stringify(manifest,null,2)+'\n');
+await writeFile(resolve(out,'POSTING-CALENDAR.txt'),`TWISTED PIN HOLIDAY CAMPAIGN 2026\n16 proposed posting occasions | All times America/Chicago\nFacebook + Instagram feed; Stories optional. Nothing scheduled.\n\n${folders.map(p=>`${dateLabel(p)} | ${p.event_name}\n${p.headline}\nFolder: ${p.folder}\n`).join('\n')}\nNYE reservations open November 18, 2026 at 9am Central; NYE event is December 31. Jingle Bowl is December 6 and is already bookable.\n`);
+await writeFile(resolve(out,'START-HERE.txt'),`TWISTED PIN | HOLIDAY CAMPAIGN 2026\n\nOPEN START-HERE.html for the visual overview, or open any dated folder. Read REVIEW-NOTES.txt for the independent GPT-6.1 Sol Ultra critique and final refinements.\n\nEvery date contains:\n- 01-FEED-Facebook-and-Instagram.png: recommended feed image for both platforms.\n- 02-OPTIONAL-STORY.png: a separate portrait Story composition.\n- RECOMMENDED-COPY.txt: exact proposed time, complete Facebook and Instagram captions, optional Story link instructions and alt text.\n- post.json: structured details for a later scheduling assistant.\n\nThe 16 dates supplement the social team's regular content. Proposed times are Central; coordinate them with the team's calendar. The November 18 9am NYE sales opening is fixed. No post has been scheduled or published. Stories are optional; do not post them automatically just because a file exists.\n\nUse only the full-size PNG in the relevant folder. CONTACT-SHEET.png is a review overview, not a post. One recommended image is supplied for each occasion; alternatives and editable masters remain in the repository source pack.\n\nFor a later assistant session, provide SCHEDULING-PROMPT.txt and this entire folder. It contains the actual copy, assets and date mappings. Review current availability and relative wording before publication.\n\nSource: C:/Users/jdow8/dev/website-holiday-drip-20261022/Context/marketing/holiday-drip-2026\nBranch: codex/holiday-drip-20261022\nCopy: ${c.copy_revision} | Delivery: ${c.delivery.revision}\n`);
+await writeFile(resolve(out,'SCHEDULING-PROMPT.txt'),`Help me work with this prepared Twisted Pin holiday campaign. Read my current instruction first; this saved prompt does not itself authorize publishing or scheduling.\n\nRead START-HERE.txt, POSTING-CALENDAR.txt and campaign-manifest.json. Each of the 16 dated folders contains the exact feed PNG, optional Story PNG, RECOMMENDED-COPY.txt and post.json. The supplied image is the recommended visual for that occasion; do not turn older alternatives into extra posts.\n\nDates and times are proposed in America/Chicago. Reconcile with our social team's normal content, existing scheduled posts and what has already been published. Do not automatically catch up a past date. The NYE reservations opening is Wednesday November 18, 2026 at 9am Central (15:00 UTC), while the event itself is December 31. Never publish reservations-open text before opening is confirmed. Jingle Bowl is December 6 and is already bookable.\n\nUse the full Facebook caption or Instagram caption from the matching entry. Verify the event-specific Instagram bio/link-hub destination; otherwise use the supplied plain-address fallback without claiming it is clickable. Feed artwork is 1080x1350 and shared by Facebook/Instagram; optional Story artwork is 1080x1920 and requires a native link sticker. If the tool cannot add the required sticker, report a manual Story task. Check actual app crop and controls.\n\nBefore booking invitations, verify current relevant availability. Historical 'usually sell out' is supported; no invented last-few or remaining-lane claims. Specific comparisons require the mentioned choices to remain relevant; December 7's 10pm invitation needs that party to remain bookable. The midnight toast belongs only to the 10pm party. Before November 18, withhold party times and prices. Jingle promises a visit with Santa and a photo on the guest's device, not bowling alongside Santa. December 4 is a campaign reminder, not a booking deadline.\n\nDirect canonical event website URLs are primary. A verified Facebook event URL can be secondary; Going/Interested does not reserve a lane. Do not invent an event URL. Earlier NYE parties are very family friendly; later parties still welcome families. No coupons or added offers.\n\nOnly take the action I explicitly authorize in this session. Publication/scheduling, SMS/email and ad spend are separate actions. No website/backend/Roy/runtime, production data or payments changes. Do not ask again for approval already supplied in the session.\n\nAfter an authorized action, record actual chosen channels, approval and platform scheduling/publication IDs/URLs accurately in the source manifest and a handoff. Preserve failures/pending entries. Do not mark review-ready as already approved or scheduled. Editable source and reproduction scripts live in the Website feature branch, not only on Desktop. Never push Website main as part of this content task; it auto-deploys.\n\nMy instruction: [review, revise or schedule specified items/channels]\n`);
+
+const cards=folders.map((p,i)=>`<article id="${p.calendar_id}" data-event="${p.event}"><div class="meta"><span>${String(i+1).padStart(2,'0')} · ${esc(p.event_name)}</span><time>${esc(shortDate(p))} Central</time></div><h2>${esc(p.headline)}</h2><div class="art"><a href="${encodeURI(p.folder+'/'+p.assets.feed.filename)}"><img src="${encodeURI(p.folder+'/'+p.assets.feed.filename)}" alt="${esc(p.assets.feed.alt_text)}" width="1080" height="1350" loading="lazy"><span>FEED · FACEBOOK + INSTAGRAM · 1080 × 1350</span></a><a href="${encodeURI(p.folder+'/'+p.assets.story.filename)}"><img src="${encodeURI(p.folder+'/'+p.assets.story.filename)}" alt="${esc(p.assets.story.alt_text)}" width="1080" height="1920" loading="lazy"><span>OPTIONAL STORY · 1080 × 1920</span></a></div><div class="actions"><a href="${encodeURI(p.folder+'/RECOMMENDED-COPY.txt')}">Open recommended copy ↗</a><a href="${encodeURI(p.folder+'/')}">Open date folder ↗</a></div><details><summary>Read the captions here</summary><p class="small-label">FACEBOOK</p><div class="caption">${esc(p.captions.facebook)}</div><p class="small-label">INSTAGRAM · VERIFY BIO DESTINATION</p><div class="caption">${esc(p.captions.instagram)}</div><p><strong>Optional Story:</strong> ${esc(p.story.message)}</p><p><strong>Native link sticker:</strong> ${esc(p.story.link_sticker.label)} · <a href="${esc(p.url)}">${esc(p.url)}</a></p><p class="note">${esc(p.publishing_note)}</p></details></article>`).join('\n');
+const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Twisted Pin · Holiday campaign · Posting folders</title><style>*{box-sizing:border-box}body{margin:0;background:#0a1019;color:#f4efe5;font:16px/1.6 system-ui,sans-serif}header,main,footer{max-width:1230px;margin:auto;padding:32px}header{padding-top:58px}.eyebrow,.small-label{color:#64e6c5;letter-spacing:.1em;font-size:12px;font-weight:750}h1{font-size:clamp(38px,6vw,72px);line-height:1.02;letter-spacing:-.045em;margin:20px 0 24px}header p{max-width:810px;color:#b8c2cf}strong{color:#f4efe5}nav,.filters{display:flex;gap:12px;flex-wrap:wrap;margin-top:23px}a{color:#64e6c5;overflow-wrap:anywhere}nav a,.actions a{font-size:14px}button{background:#172436;color:#eaf2f7;border:1px solid #35465e;border-radius:6px;padding:9px 16px;font:inherit;font-size:14px;cursor:pointer}button[aria-pressed=true]{color:#09251e;background:#64e6c5}button:focus-visible,a:focus-visible,summary:focus-visible{outline:3px solid #ffcb7c;outline-offset:4px}.count{font-size:13px}article{padding:30px;border:1px solid #2c3c50;border-radius:16px;margin-bottom:34px;background:#101b29}.meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:700;color:#64e6c5}h2{font-size:clamp(27px,3.5vw,39px);letter-spacing:-.025em;line-height:1.12;margin:18px 0 26px}.art{display:grid;grid-template-columns:1fr .7fr;gap:30px;align-items:start;max-width:960px;margin:auto}.art a{text-decoration:none}.art img{width:100%;height:auto;display:block;border-radius:5px;border:1px solid #344359}.art span{display:block;color:#aebbd0;font-size:11px;letter-spacing:.04em;margin-top:9px}.actions{display:flex;gap:24px;flex-wrap:wrap;margin-top:25px}details{border-top:1px solid #2d3b50;margin-top:24px;padding-top:20px}summary{cursor:pointer;font-weight:650}.caption{white-space:pre-wrap;overflow-wrap:anywhere;background:#0a111b;border-left:3px solid #64e6c5;padding:18px}.note{color:#aab7ca;font-size:13px}footer{color:#aab7ca;font-size:13px}[hidden]{display:none!important}@media(max-width:600px){header,main,footer{padding:20px}header{padding-top:32px}article{padding:18px}.art{grid-template-columns:1fr;gap:22px}.art a:nth-child(2){max-width:285px;width:100%;margin:auto}.meta{display:grid;gap:2px}.actions{gap:12px}.caption{font-size:15px}}</style></head><body><header><div class="eyebrow">TWISTED PIN · HOLIDAY CAMPAIGN 2026</div><h1>One date.<br>One complete post.</h1><p><strong>16 occasions. 16 feed images. 16 optional Stories.</strong> Every dated folder contains the recommended graphic and ready-to-copy Facebook/Instagram text. Scroll through the campaign, or open a date folder and take exactly what you need.</p><p>Dates are proposed in Central time. <strong>Nothing is scheduled or published.</strong> Coordinate with the social team's normal calendar and check current booking choices before posting.</p><nav><a href="POSTING-CALENDAR.txt">Posting calendar</a><a href="CONTACT-SHEET.png">Campaign at a glance</a><a href="START-HERE.txt">How to use this folder</a><a href="SCHEDULING-PROMPT.txt">Prompt for a later session</a><a href="REVIEW-NOTES.txt">Independent critique</a></nav><div class="filters"><button data-event-filter="all" aria-pressed="true">All dates</button><button data-event-filter="jingle-bowl-2026" aria-pressed="false">Jingle Bowl</button><button data-event-filter="nye-2026" aria-pressed="false">New Year's Eve</button></div><p class="count" aria-live="polite">16 posting folders</p></header><main>${cards}</main><footer>Copy ${c.copy_revision} · Delivery ${c.delivery.revision}. Only the full-size PNG files in dated folders are publishing assets. The contact sheet is for review. Source artwork and alternatives are preserved in the repository.</footer><script>document.querySelectorAll('[data-event-filter]').forEach(button=>button.addEventListener('click',()=>{const selected=button.dataset.eventFilter;document.querySelectorAll('article').forEach(article=>article.hidden=selected!=='all'&&article.dataset.event!==selected);document.querySelectorAll('[data-event-filter]').forEach(b=>b.setAttribute('aria-pressed',b===button));document.querySelector('.count').textContent=document.querySelectorAll('article:not([hidden])').length+' posting folders';}));</script></body></html>`;
+await writeFile(resolve(out,'START-HERE.html'),html);
+const sheetWidth=1800,cellWidth=420,cellHeight=600,layers=[];
+let svg='<rect width="100%" height="100%" fill="#0a1019"/><g font-family="Arial,sans-serif" fill="#f4efe5"><text x="30" y="49" font-size="30" font-weight="700">TWISTED PIN · HOLIDAY CAMPAIGN 2026</text><text x="30" y="82" font-size="17" fill="#aebbd0">16 proposed posting dates · Central time · Feed overview · Nothing scheduled</text>';
+for(const [i,p]of folders.entries()){
+ const x=30+(i%4)*440,y=115+Math.floor(i/4)*cellHeight;
+ svg+=`<text x="${x}" y="${y+20}" font-size="17" font-weight="700" fill="#64e6c5">${esc(shortDate(p))} · ${p.event==='nye-2026'?'NYE':'JINGLE'}</text>`;
+ layers.push({input:await sharp(resolve(out,p.folder,p.assets.feed.filename)).resize(cellWidth,525).png().toBuffer(),left:x,top:y+35});
+}
+svg+='</g>';
+await sharp(Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${sheetWidth}" height="2530">${svg}</svg>`)).composite(layers).png({compressionLevel:9}).toFile(resolve(out,'CONTACT-SHEET.png'));
+
+const browser=await chromium.launch({headless:true,...(process.env.HOLIDAY_RENDER_BROWSER_CHANNEL?{channel:process.env.HOLIDAY_RENDER_BROWSER_CHANNEL}:{})});
+const browserChecks=[];let network=0;
+await mkdir(resolve(repo,'.astro/holiday-posting'),{recursive:true});
+try{
+ for(const width of [390,1440]){
+  const page=await browser.newPage({viewport:{width,height:1000}}),errors=[];
+  page.on('pageerror',e=>errors.push(e.message));await page.route(/^https?:/i,r=>{network++;return r.abort()});
+  await page.goto(pathToFileURL(resolve(out,'START-HERE.html')).href);
+  await page.evaluate(async()=>{await document.fonts.ready;document.querySelectorAll('img').forEach(img=>img.loading='eager');await Promise.all([...document.images].map(img=>img.decode()))});
+  const measured=await page.evaluate(()=>({overflow:document.documentElement.scrollWidth>innerWidth,images:[...document.images].map(x=>({w:x.naturalWidth,h:x.naturalHeight})),articles:document.querySelectorAll('article').length}));
+  if(measured.overflow||measured.images.length!==32||measured.images.some(x=>x.w!==1080||![1350,1920].includes(x.h))||measured.articles!==16||errors.length)throw Error('Gallery failure '+JSON.stringify({width,measured,errors}));
+  await page.locator('[data-event-filter="jingle-bowl-2026"]').click();if(await page.locator('article:visible').count()!==7)throw Error('Jingle filter');
+  await page.locator('[data-event-filter="nye-2026"]').click();if(await page.locator('article:visible').count()!==9)throw Error('NYE filter');
+  await page.locator('[data-event-filter="all"]').click();
+  await page.screenshot({path:resolve(repo,`.astro/holiday-posting/index-${width}.png`)});
+  browserChecks.push({width,...measured,filters_pass:true,errors});await page.close();
+ }
+}finally{await browser.close()}
+if(network)throw Error('Unexpected outbound gallery requests');
+for(const entry of folders){
+ const copy=await readFile(resolve(out,entry.folder,'RECOMMENDED-COPY.txt'),'utf8');
+ if(!copy.includes(entry.captions.facebook)||!copy.includes(entry.captions.instagram)||!copy.includes(entry.story.link_sticker.url))throw Error('Copy mismatch '+entry.folder);
+ for(const asset of Object.values(entry.assets))if(hash(await readFile(resolve(out,entry.folder,asset.filename)))!==asset.sha256)throw Error('Copy hash mismatch');
+}
+await mkdir(resolve(pack,'qa'),{recursive:true});
+await writeFile(resolve(pack,'qa/posting-folders-verification.json'),JSON.stringify({checked_at:new Date().toISOString(),copy_revision:c.copy_revision,delivery_revision:c.delivery.revision,folders:folders.length,outputs,checks:{source_hashes_and_dimensions:true,exact_copy_and_story_links:true,unique_compositions:32,empty_execution_state:true,all_paths_portable:true,outbound_requests:network},browser_checks:browserChecks,limitations:['No live inventory, actual platform crop/sticker, bio link or social schedule checked.','Prepared review delivery does not authorize scheduling or publication.']},null,2)+'\n');
+console.log(JSON.stringify({folders:folders.length,images:outputs.length,copy_revision:c.copy_revision,index:'posting-dates/START-HERE.html',checks:'passed'}));

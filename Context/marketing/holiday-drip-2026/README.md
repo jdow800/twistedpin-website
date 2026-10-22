@@ -1,6 +1,6 @@
 # Holiday event drips · 2026
 
-**Latest recommendation: [Batch 02 cinematic direction](batch-02/README.md).** Two hero illustrations with editable typography offer NYE/Jingle alternatives for the same campaign occasions. Review [the new gallery](batch-02/review.html). Original batch 01 remains below for comparison. The scheduling manifest records the alternatives as mutually exclusive choices, not additional posts.
+**Start with the [dated posting folders](posting-dates/START-HERE.html).** Each of the 16 occasions has one recommended feed graphic, a separate optional Story graphic and the matching Facebook/Instagram copy in its own folder. The full delivery is `posting-folders-v1`; the original three concepts and two Batch 02 alternatives remain source material, not extra posts.
 
 **Latest cadence: Jon's revised direction is adopted; exact publishing dates/times, creative selection and channels remain proposed. Nothing in this pack is approved for scheduling or publication, scheduled or published.** Prepared October 22, 2026 on `codex/holiday-drip-20261022`, from fresh Website `origin/main` at `f8d3e8e23964e554d721eb7725931800d87de489`.
 
@@ -8,24 +8,26 @@ This supplements the social team's regular content. NYE starts slowly, has a tom
 
 The active calendar has **16 Meta occasions plus three optional extras**, totaling 19 rows. The first NYE announcement is part of the revised plan, not an optional additional kickoff. The campaign contains no November 15 reminder or December 6 Jingle post.
 
-**Full-series copy is now drafted for all 16 Meta occasions.** Review [the copy gallery](copy-review.html) or [the readable copy file](full-series-copy.md). Three occasions have existing artwork choices; **13 still need artwork**. This copy pass creates no additional art or scheduling approval. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block.
+**The complete series is prepared for review: 16 feed images, 16 optional Stories and copy revision `series-copy-v2`.** Jon accepted the independent review direction and requested this complete dated delivery. That does not authorize scheduling or publication. Six captions use one relevant emoji each, ten use none, and there is no automatic hashtag block. All 32 source/export hashes and exact caption mappings passed verification. GPT-6.1 Sol on Ultra reviewed the finished pack; see [review notes](posting-dates/REVIEW-NOTES.txt) and the [handoff](HANDOFF.md) for verification and backup status.
 
 **Audience direction:** Jingle is explicitly for families and may depart substantially from the venue's usual positioning. NYE's earlier parties strongly welcome families; later parties lean more adult in tone while still welcoming families. Jon's event-specific direction controls this campaign. The current positioning report may lightly inform imagery and copy, but generic adults-first emphasis must not crowd out this welcome. Do not invent an adults-only rule or a late-party age cutoff. Guest-facing Santa copy still promises a visit with Santa, not bowling alongside him.
 
 ## Review first
 
-- [Visual gallery](review.html) and [contact sheet](contact-sheet.png): three new compositions, each with independent feed and Story layouts.
+- [Dated-folder overview](posting-dates/START-HERE.html), [posting calendar](posting-dates/POSTING-CALENDAR.txt) and [complete contact sheet](posting-dates/CONTACT-SHEET.png): the recommended 16-occasion delivery.
+- Each dated folder contains `01-FEED-Facebook-and-Instagram.png`, `02-OPTIONAL-STORY.png`, `RECOMMENDED-COPY.txt` and `post.json`.
 - [Full-series copy gallery](copy-review.html) and [readable copy](full-series-copy.md): 16 artwork headlines, Facebook/Instagram captions, bio-link alternatives and optional Story messages for review.
 - [Calendar](calendar.md): proposed dated cadence, audience, objective, links and actual artwork readiness.
 - [First-batch copy](batch-01-copy.txt): synchronized prepared-art captions and the unchanged selective SMS/Google drafts.
-- [Scheduling manifest](campaign.json): schema 4; `post_copy_drafts` is canonical for the 16 Meta copy drafts, keyed by `calendar_id`, with revision `series-copy-v1`. Existing concepts and alternatives mirror those captions. Choose one visual per occasion; dates remain proposed.
+- [Scheduling manifest](campaign.json): `post_copy_drafts` is canonical for all 16 occasions, keyed by `calendar_id`, with copy revision `series-copy-v2`. `delivery_folder`, `delivery_concept_id` and variant asset paths identify the supplied recommendation. `artwork_status: prepared_for_review` and calendar `ready_for_review` describe preparation, not approval.
+- [Original gallery](review.html) and [Batch 02 gallery](batch-02/review.html): preserved source concepts and alternatives for comparison, not another publishing series.
 - [Brief research](research-notes.md): source links, evidence limits and the rationale for a light supplemental cadence.
 - [Creative brief](creative-brief.md): the identified October 2026 positioning report, later owner corrections and the campaign-specific family/daypart direction. Read it before new image or copy work; do not assume the maintained v1.0 file is the newest authority.
 - [Scheduling prompt](schedule-this-campaign.txt): bring this file and the campaign folder into a later session.
 - [Publishing checklist](publishing-checklist.md): actual platform checks still needed.
 - [QA receipt](qa/verification.json) and [handoff](HANDOFF.md): what was checked and actual Git/delivery status.
 
-## Prepared creative and revised dates
+## Preserved original concepts and current dates
 
 | ID | Proposed first use, Central | Message | Asset files |
 |---|---|---|---|
@@ -33,7 +35,7 @@ The active calendar has **16 Meta occasions plus three optional extras**, totali
 | 02-jingle-santa-coming | Fri Oct 23, 12pm | Santa is coming December 6; reservations are open now | `02-jingle-santa-coming-feed.png`, `02-jingle-santa-coming-story.png` |
 | 03-nye-usually-sells-out | Mon Nov 9, 12pm | Historical sellouts give guests a reason to plan ahead | `03-nye-usually-sells-out-feed.png`, `03-nye-usually-sells-out-story.png` |
 
-Batch 02's `04-nye-mirrorball-moment` is an alternative for NYE's October 28 occasion; `05-jingle-santa-arrives` is an alternative for Jingle's October 23 occasion. Choose one concept per group. Neither the recommendation nor the revised calendar selects a creative automatically. The third occasion with artwork remains November 9. All 16 occasions now have copy drafts; the other 13 still need matching artwork before they can become complete posts.
+The dated delivery recommends Batch 02's `04-nye-mirrorball-moment` for October 28 and `05-jingle-santa-arrives` for October 23, plus the original historical-sellout layout for November 9. Thirteen additional feed/Story pairs complete the series. Each date receives one recommendation; retained originals and alternatives do not create extra occasions. Approval, channel-selection and execution fields remain empty.
 
 **Proposed NYE dates:** October 28 and November 9 at noon; November 17 at 6pm; November 18 at 9am after opening is confirmed; November 25, December 7, 16, 23 and 28 at noon. **Proposed Jingle dates:** October 23, 30, November 6, 13, 20, 27 and December 4 at noon. All are America/Chicago. November 18 at 9am is the fixed reservations-opening fact; other publishing times are planning choices, not measured best times. Reconcile with the social team's calendar and actual prior posts/sends before execution. Recalculate relative wording after any approved date move.
 
@@ -62,12 +64,17 @@ npm ci --no-audit --no-fund
 npx playwright install chromium
 node scripts/render-holiday-drip-nye.mjs
 node scripts/render-holiday-drip-jingle.mjs
+node scripts/render-holiday-series-nye.mjs
+node scripts/render-holiday-series-jingle.mjs
+node scripts/package-holiday-posting-folders.mjs
 node scripts/package-holiday-drip-copy.mjs
 node scripts/package-holiday-drip.mjs
+node scripts/package-holiday-drip-batch02.mjs
+& scripts/deliver-holiday-posting-folders.ps1
 ```
 
 The rendering scripts use local assets, block browser network requests and do not build/deploy the Website. `npm ci` / browser installation only prepare local dependencies. No environment files or production credentials are needed. Renderers write this campaign folder; final exports, editable sources, manifests and contact sheet are intended to stay in Git. Dependencies and temporary caches remain ignored. Desktop folders are convenience deliveries, not the only archive.
 
-The copy packager generates `full-series-copy.md`, `copy-review.html` and the prepared batch copy files from `campaign.json.post_copy_drafts`. Edit the canonical copy fields, synchronize any prepared concept variants, and regenerate. Intermediate proposal inputs are retained only in the ignored `.astro/holiday-copy/` workspace; the durable draft authority is `campaign.json`. Optional Google/SMS extras retain their separate manifest entries. See [copy verification](qa/copy-verification.json) for coverage, date/link consistency and mobile/desktop review checks.
+The dated-folder packager reads the canonical captions and source-art manifests, then produces the portable `posting-dates/` delivery, including `campaign-manifest.json`, the per-date `post.json` files, `START-HERE.html/.txt`, `POSTING-CALENDAR.txt`, `SCHEDULING-PROMPT.txt` and `CONTACT-SHEET.png`. The copy and historical packagers refresh their views afterward. Edit canonical fields and sources, then regenerate; do not maintain independent Desktop copy. Intermediate proposals remain only in the ignored `.astro/holiday-copy/` workspace. Optional Google/SMS extras remain separate and are not additional dated Meta folders.
 
-New work remains review material until Jon chooses the direction. His request specifies committing/pushing approved durable content to the feature branch; check the handoff for the actual approval and backup status rather than assuming that the folder's location means it is backed up.
+The main convenient delivery is `C:/Users/jdow8/OneDrive/Desktop/Twisted Pin Holiday Campaign 2026`, containing the portable `posting-dates/` contents. The prior Batch 02 full-pack locations are also refreshed. Editable source remains in this feature branch. The coordinator will commit and push the completed content to the feature branch; check the handoff and actual Git state before claiming that happened. Never merge or push Website main as part of this content task.

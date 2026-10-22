@@ -1,0 +1,60 @@
+{
+  "calendar_id": "10-nye-reservations-open",
+  "folder": "2026-11-18_New-Years-Eve",
+  "event": "nye-2026",
+  "event_name": "New Year's Eve",
+  "event_date": "2026-12-31",
+  "headline": "NYE RESERVATIONS ARE OPEN.",
+  "proposed_publish_at": "2026-11-18T09:00:00-06:00",
+  "proposed_publish_at_utc": "2026-11-18T15:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/new-years-eve/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-10-nye-reservations-open",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "db461e199c771afb973f380735b3868bc08f7edd65f8125e11ba18e3ccaecdb5",
+      "alt_text": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-11-18-nye-feed.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-10-nye-reservations-open"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "a592b8779fa28f9ed43d090a6ea8bc6aabaced28f86ca4783b025ec973b251c5",
+      "alt_text": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "source": "series/nye/exports/2026-11-18-nye-story.png",
+      "source_manifest": "series/nye/manifest.json",
+      "concept_id": "series-10-nye-reservations-open"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "NYE reservations are open.\n\nSix party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm Central. Each reservation covers the party time you choose.\n\nBring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.\n\nChoose your party and reserve: https://www.twistedpin.com/new-years-eve/",
+    "instagram": "NYE reservations are open.\n\nSix party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm Central. Each reservation covers the party time you choose.\n\nBring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.\n\nChoose your party through the New Year's Eve link in our bio.",
+    "instagram_without_verified_bio": "NYE reservations are open.\n\nSix party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm Central. Each reservation covers the party time you choose.\n\nBring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.\n\nChoose your party: twistedpin.com/new-years-eve/"
+  },
+  "story": {
+    "message": "NYE reservations are open. December 31: bring your people, choose your party time and reserve your lane.",
+    "link_sticker": {
+      "label": "Reserve NYE",
+      "url": "https://www.twistedpin.com/new-years-eve/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed November 18 at 9am Central, only after public booking is confirmed open. The launch reveals six distinct party starts, not all-day admission. Verify current choices and the Instagram bio destination. Facebook event creation is separate and its event date is December 31.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

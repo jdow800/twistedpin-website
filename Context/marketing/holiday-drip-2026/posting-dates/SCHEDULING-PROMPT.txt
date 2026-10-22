@@ -1,0 +1,17 @@
+Help me work with this prepared Twisted Pin holiday campaign. Read my current instruction first; this saved prompt does not itself authorize publishing or scheduling.
+
+Read START-HERE.txt, POSTING-CALENDAR.txt and campaign-manifest.json. Each of the 16 dated folders contains the exact feed PNG, optional Story PNG, RECOMMENDED-COPY.txt and post.json. The supplied image is the recommended visual for that occasion; do not turn older alternatives into extra posts.
+
+Dates and times are proposed in America/Chicago. Reconcile with our social team's normal content, existing scheduled posts and what has already been published. Do not automatically catch up a past date. The NYE reservations opening is Wednesday November 18, 2026 at 9am Central (15:00 UTC), while the event itself is December 31. Never publish reservations-open text before opening is confirmed. Jingle Bowl is December 6 and is already bookable.
+
+Use the full Facebook caption or Instagram caption from the matching entry. Verify the event-specific Instagram bio/link-hub destination; otherwise use the supplied plain-address fallback without claiming it is clickable. Feed artwork is 1080x1350 and shared by Facebook/Instagram; optional Story artwork is 1080x1920 and requires a native link sticker. If the tool cannot add the required sticker, report a manual Story task. Check actual app crop and controls.
+
+Before booking invitations, verify current relevant availability. Historical 'usually sell out' is supported; no invented last-few or remaining-lane claims. Specific comparisons require the mentioned choices to remain relevant; December 7's 10pm invitation needs that party to remain bookable. The midnight toast belongs only to the 10pm party. Before November 18, withhold party times and prices. Jingle promises a visit with Santa and a photo on the guest's device, not bowling alongside Santa. December 4 is a campaign reminder, not a booking deadline.
+
+Direct canonical event website URLs are primary. A verified Facebook event URL can be secondary; Going/Interested does not reserve a lane. Do not invent an event URL. Earlier NYE parties are very family friendly; later parties still welcome families. No coupons or added offers.
+
+Only take the action I explicitly authorize in this session. Publication/scheduling, SMS/email and ad spend are separate actions. No website/backend/Roy/runtime, production data or payments changes. Do not ask again for approval already supplied in the session.
+
+After an authorized action, record actual chosen channels, approval and platform scheduling/publication IDs/URLs accurately in the source manifest and a handoff. Preserve failures/pending entries. Do not mark review-ready as already approved or scheduled. Editable source and reproduction scripts live in the Website feature branch, not only on Desktop. Never push Website main as part of this content task; it auto-deploys.
+
+My instruction: [review, revise or schedule specified items/channels]

@@ -1,0 +1,60 @@
+{
+  "calendar_id": "17-jingle-cookie-cocoa",
+  "folder": "2026-11-20_Jingle-Bowl",
+  "event": "jingle-bowl-2026",
+  "event_name": "Jingle Bowl",
+  "event_date": "2026-12-06",
+  "headline": "A little cocoa between frames.",
+  "proposed_publish_at": "2026-11-20T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-11-20T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/jingle-bowl/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-17-jingle-cookie-cocoa",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "ba70251d9b0fb94f50c9bff06dea773acf19dfb1317c73d50e420cf95809666f",
+      "alt_text": "Cranberry and cream ornamental typography with an original SVG outline mug and steam; illustration, not a food photograph. Printed text: A LITTLE COCOA BETWEEN FRAMES. Cookie & cocoa bar access with every Jingle Bowl lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-20-17-jingle-cookie-cocoa-feed.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-17-jingle-cookie-cocoa"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "6cc560153e585341f274b2447a019ddb60fa9731597239076151ca2f38bf9af8",
+      "alt_text": "Cranberry and cream ornamental typography with an original SVG outline mug and steam; illustration, not a food photograph. Printed text: A LITTLE COCOA BETWEEN FRAMES. Cookie & cocoa bar access with every Jingle Bowl lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-20-17-jingle-cookie-cocoa-story.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-17-jingle-cookie-cocoa"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve: https://www.twistedpin.com/jingle-bowl/",
+    "instagram": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reserve through the Jingle Bowl link in our bio.",
+    "instagram_without_verified_bio": "A little cocoa between frames. ☕\n\nJingle Bowl on Sunday, December 6, 2026 brings bowling, pizza, a visit with Santa and access to our cookie & cocoa bar. A little competition, a little Christmas, and a good reason to get the family around the same lane at Twisted Pin.\n\nMake it your family's Sunday. Reservations: twistedpin.com/jingle-bowl/"
+  },
+  "story": {
+    "message": "Cocoa, cookies and a little competition. Jingle Bowl is Sunday, December 6. Reserve your lane.",
+    "link_sticker": {
+      "label": "Reserve Jingle Bowl",
+      "url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed November 20 cocoa-and-cookies post; use the approved offering without depicting unconfirmed toppings, refills or extras.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

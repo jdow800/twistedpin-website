@@ -1,0 +1,60 @@
+{
+  "calendar_id": "12-jingle-this-sunday",
+  "folder": "2026-12-04_Jingle-Bowl",
+  "event": "jingle-bowl-2026",
+  "event_name": "Jingle Bowl",
+  "event_date": "2026-12-06",
+  "headline": "Santa comes this Sunday. Let's roll.",
+  "proposed_publish_at": "2026-12-04T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-12-04T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/jingle-bowl/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-12-jingle-this-sunday",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "bc675554dc121c1b5016e861fc1d822e19c373c3e28c94ac94b0d782c9eef956",
+      "alt_text": "Cream calendar card showing Sunday December 6, 2026, with the approved illustrated Santa beside it. Printed text: SANTA COMES THIS SUNDAY. DECEMBER 2026 06 SUNDAY LET'S ROLL. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 CHECK TIMES & RESERVE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-12-04-12-jingle-this-sunday-feed.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-12-jingle-this-sunday"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "1b590454c468200c4579737ebb2f5189a4792f0621bcbeae89740b07f4fd9145",
+      "alt_text": "Cream calendar card showing Sunday December 6, 2026, with the approved illustrated Santa beside it. Printed text: SANTA COMES THIS SUNDAY. DECEMBER 2026 06 SUNDAY LET'S ROLL. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 CHECK TIMES & RESERVE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-12-04-12-jingle-this-sunday-story.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-12-jingle-this-sunday"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve your lane: https://www.twistedpin.com/jingle-bowl/",
+    "instagram": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nSee available times and reserve through the Jingle Bowl link in our bio.",
+    "instagram_without_verified_bio": "Santa comes this Sunday. Let's roll.\n\nDecember 6 is Jingle Bowl at Twisted Pin: bowling, pizza and a visit with Santa, plus cookie & cocoa bar access.\n\nStill need a family plan for the weekend? This one comes with bowling shoes.\n\nCurrent times and reservations: twistedpin.com/jingle-bowl/"
+  },
+  "story": {
+    "message": "Santa comes this Sunday, December 6. Jingle Bowl at Twisted Pin. Check times and reserve.",
+    "link_sticker": {
+      "label": "Reserve Jingle Bowl",
+      "url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed December 4 final campaign post; verify that booking is still available, and never imply reservations close Friday.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}

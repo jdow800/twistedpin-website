@@ -1,12 +1,12 @@
 # Twisted Pin · Full holiday caption review
 
-Revision: series-copy-v1. Prepared October 22, 2026. **All 16 occasions are drafts; nothing is scheduled or published.** Dates/times are proposed in America/Chicago. The fixed NYE reservations opening is November 18, 2026 at 9am Central.
+Revision: series-copy-v2. Prepared October 22, 2026. **All 16 occasions are drafts; nothing is scheduled or published.** Dates/times are proposed in America/Chicago. The fixed NYE reservations opening is November 18, 2026 at 9am Central.
 
 Use the same core caption on Facebook and Instagram. Facebook gets the direct event-page link below; on Instagram, replace the last paragraph with the supplied bio CTA only after checking that destination. A plain-address fallback is in campaign.json. Stories are optional, shorter companions with a native link sticker. Do not paste duplicate text over artwork that already carries the message.
 
 **Emoji direction:** six captions use one relevant emoji, ten use none. No automatic hashtag block. The goal is natural event copy; this is not an algorithm or reach claim.
 
-**Art direction:** each occasion has a proposed headline and a different reason to book. Three occasions have existing art options; thirteen still need artwork. The headlines below are not a claim that the final layouts exist. Read [creative-brief.md](creative-brief.md) before making them.
+**Art direction:** each occasion has a proposed headline and a different reason to book. All 16 occasions now have matching feed and separately composed Story artwork prepared for review. Each dated folder supplies one recommended visual and the complete copy. Open [the dated posting folders](posting-dates/START-HERE.html) to review the complete campaign.
 
 Edit campaign.json post_copy_drafts, synchronize any prepared concept variants, and run node scripts/package-holiday-drip-copy.mjs from the repository to regenerate this file and the review page. The same copy appears in the prepared batch text files.
 
@@ -30,7 +30,7 @@ Reserve through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** 🎅. **Artwork:** Existing options; selection and review needed.
+**Emoji:** 🎅. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed October 23 announcement; pair with the chosen Santa hero and verify the event-specific bio link before using the primary Instagram CTA.
 
@@ -56,7 +56,7 @@ Save the opening date. NYE details at the New Year's Eve link in our bio.
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** 🪩. **Artwork:** Existing options; selection and review needed.
+**Emoji:** 🪩. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed October 28 kickoff. One mirrorball emoji at the end of the hook connects to the corrected hero; no other emoji. The recommended visual remains alternative 04, occupying this existing calendar occasion. Pre-opening only. Verify the bio destination before using the primary Instagram CTA. Draft for review, not approval or scheduling.
 
@@ -80,7 +80,7 @@ Reserve your family's lane through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed October 30 family-outing post; use approved real family-bowling imagery and keep the humor welcoming.
 
@@ -106,7 +106,7 @@ Choose your lane through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 6 package explainer; keep per-lane quantities explicit and show fries only as the VIP inclusion.
 
@@ -132,7 +132,7 @@ Find the details at the New Year's Eve link in our bio, and save the opening dat
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Existing options; selection and review needed.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 9. Historical sellout statement is supported by Jon; it makes no current scarcity or remaining-lane claim. No emoji: let the headline carry this reminder. Pre-opening only; verify the bio destination. Draft for review.
 
@@ -158,7 +158,7 @@ Reserve through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** 📷. **Artwork:** Pending.
+**Emoji:** 📷. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 13 Santa-photo post; the guest supplies the photo device and no exact Santa appearance time is promised.
 
@@ -170,7 +170,7 @@ Reserve through the Jingle Bowl link in our bio.
 
 Set the alarm. ⏰
 
-New Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Pick your people tonight, then choose your December 31 party when booking opens.
+New Year's Eve reservations open tomorrow, Wednesday, November 18, 2026 at 9am Central. Decide who's coming tonight, then choose your December 31 party when booking opens.
 
 Save this link for tomorrow: https://www.twistedpin.com/new-years-eve/
 
@@ -182,7 +182,7 @@ Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.
 
 **Native link sticker:** NYE details — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** ⏰. **Artwork:** Pending.
+**Emoji:** ⏰. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 17 at 6pm Central only. The single alarm emoji belongs at the end of the hook. Reword tomorrow/tonight if this date changes. Keep the absolute opening line on artwork as well. The Instagram CTA requires the NYE bio link to be correct before publication. Draft for review.
 
@@ -194,23 +194,23 @@ Save the date. Tomorrow, use the New Year's Eve link in our bio to reserve.
 
 NYE reservations are open.
 
-December 31 at Twisted Pin: bowling, pizza and your favorite people. Pick an earlier party with the kids, a later celebration with friends, or bring the whole crew along.
+Six party starts on December 31: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm Central. Each reservation covers the party time you choose.
 
-Choose your party time and reserve your lane online.
+Bring the family for an early celebration, or get the crew together for a later night. Bowling, pizza and a proper send-off at Twisted Pin.
 
-Reserve your New Year's Eve party: https://www.twistedpin.com/new-years-eve/
+Choose your party and reserve: https://www.twistedpin.com/new-years-eve/
 
 **Instagram:** Same body; replace the final paragraph with:
 
-Reserve through the New Year's Eve link in our bio.
+Choose your party through the New Year's Eve link in our bio.
 
 **Optional Story:** NYE reservations are open. December 31: bring your people, choose your party time and reserve your lane.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
-**Publisher note:** Fixed intended opening announcement November 18 at 9am Central, released only after public booking is confirmed open. No emoji: direct action takes priority. Check current party choices and the bio destination. The Facebook event's date is December 31, not November 18; event creation remains separately controlled. Draft for review.
+**Publisher note:** Proposed November 18 at 9am Central, only after public booking is confirmed open. The launch reveals six distinct party starts, not all-day admission. Verify current choices and the Instagram bio destination. Facebook event creation is separate and its event date is December 31.
 
 ## 9. Fri, Nov 20, 12:00 PM Central · Jingle Bowl
 
@@ -232,7 +232,7 @@ Make it your family's Sunday. Reserve through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** ☕. **Artwork:** Pending.
+**Emoji:** ☕. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 20 cocoa-and-cookies post; use the approved offering without depicting unconfirmed toppings, refills or extras.
 
@@ -246,7 +246,7 @@ The party essentials are covered.
 
 Every December 31 lane package includes bowling for your selected party time, shoes, one large pizza, one pitcher of soda and party favors. Choose your pizza and soda at checkout.
 
-Bring your family or friends, and let the rivalry begin. Reserve your NYE party online.
+Bring your family or friends, and let the rivalry begin.
 
 See the packages and reserve: https://www.twistedpin.com/new-years-eve/
 
@@ -258,7 +258,7 @@ See the packages and reserve through the New Year's Eve link in our bio.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 25. Concrete inclusion/convenience angle; per-lane quantities and selected-party duration are explicit. No all-inclusive, unlimited-food, decoration-service or entire-evening promise. Keep cocktails and other paid extras out of this inclusion-led image unless clearly labeled separate. Check availability and bio link before publication. Draft for review.
 
@@ -270,9 +270,9 @@ See the packages and reserve through the New Year's Eve link in our bio.
 
 Same Santa. Your kind of lane.
 
-Traditional lanes or the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.
+Traditional lanes or couch seating in the VIP suite? Choose your setting for Jingle Bowl on Sunday, December 6, 2026 at Twisted Pin. Both bring bowling, pizza and a visit with Santa. VIP also includes one basket of fries per lane.
 
-Pick your time and put Santa on the family calendar.
+Put Santa on the family calendar.
 
 Choose your December 6 reservation: https://www.twistedpin.com/jingle-bowl/
 
@@ -284,7 +284,7 @@ Choose your December 6 reservation through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed November 27 setting-and-reservation invitation. Use this comparison only while both settings are relevant to current availability; otherwise revise. No Black Friday offer or current scarcity claim. The suite is not private.
 
@@ -310,7 +310,7 @@ See available times and reserve through the Jingle Bowl link in our bio.
 
 **Native link sticker:** Reserve Jingle Bowl — https://www.twistedpin.com/jingle-bowl/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed December 4 final campaign post; verify that booking is still available, and never imply reservations close Friday.
 
@@ -322,23 +322,23 @@ See available times and reserve through the Jingle Bowl link in our bio.
 
 An early celebration or the midnight moment?
 
-On December 31, bring the family for bowling and pizza earlier in the day, or join our 10pm party to ring in 2027. Later parties bring more of a night-out feel, and families are still welcome.
+Bring the family for bowling and pizza earlier on December 31, or ring in 2027 with our 10pm–12:30am party at Twisted Pin.
 
-Choose the party that works for your people and reserve online.
+Only the 10pm party includes the midnight toast: champagne for guests 21 and over, or sparkling cider. Families are welcome at every party.
 
-Explore the current party choices: https://www.twistedpin.com/new-years-eve/
+Choose your NYE celebration: https://www.twistedpin.com/new-years-eve/
 
 **Instagram:** Same body; replace the final paragraph with:
 
-Explore the current party choices through the New Year's Eve link in our bio.
+Choose your NYE celebration through the New Year's Eve link in our bio.
 
 **Optional Story:** December 31: celebrate earlier or ring in 2027 with the 10pm party. Families welcome. Reserve online.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
-**Publisher note:** Proposed December 7. Different dayparts, with explicit family welcome for later parties and no invented age cutoff. The 10pm party runs through midnight; earlier parties do not. Publish this particular time invitation only if the 10pm party remains bookable; otherwise revise to actual choices. Verify bio link. Draft for review.
+**Publisher note:** Proposed December 7. Publish the 10pm invitation only while that party remains bookable; otherwise revise to current choices. The 10pm–12:30am party alone includes the midnight toast, champagne for 21+ or sparkling cider. Families are welcome at every party. Verify bio destination.
 
 ## 14. Wed, Dec 16, 12:00 PM Central · New Year's Eve
 
@@ -350,8 +350,6 @@ Your people. Your kind of NYE.
 
 Traditional lanes or couch seating in the VIP suite? Choose your setting for December 31 at Twisted Pin. Both include bowling and shoes, plus one large pizza, one soda pitcher and party favors per lane.
 
-See the current choices, pick your party time and reserve online.
-
 Choose your NYE party and lane option: https://www.twistedpin.com/new-years-eve/
 
 **Instagram:** Same body; replace the final paragraph with:
@@ -362,7 +360,7 @@ Choose your party and lane option through the New Year's Eve link in our bio.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed December 16. Couch seating is a sourced VIP feature. No private-suite, suite-possession, guest-capacity or generic pair-selling claim. Publish a two-setting comparison only while both options are relevant to current choices; otherwise adapt accurately. Verify bio link. Draft for review.
 
@@ -376,7 +374,7 @@ Give the group chat an actual plan. 🥂
 
 December 31 at Twisted Pin: bowling, pizza and time with your family or friends. Add a cocktail from the bar (sold separately), and make a night of it.
 
-Our NYE parties usually sell out. Check the current choices and reserve.
+Our NYE parties usually sell out.
 
 Make the plan here: https://www.twistedpin.com/new-years-eve/
 
@@ -388,7 +386,7 @@ Make the plan through the New Year's Eve link in our bio.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** 🥂. **Artwork:** Pending.
+**Emoji:** 🥂. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed December 23. One cheers emoji at the end of the hook supports the night-out angle without implying an included drink. The caption explicitly states the cocktail is sold separately. Historical sellouts are not current scarcity. Check availability and bio destination before publication. Draft for review.
 
@@ -400,9 +398,9 @@ Make the plan through the New Year's Eve link in our bio.
 
 New Year's Eve is this Thursday.
 
-If December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and time with your people. Celebrate earlier with the family or make it a later night.
+If December 31 still needs a plan, check Twisted Pin's current party choices for bowling, pizza and a little friendly competition. Celebrate earlier with the family or make it a later night.
 
-Choose an available party and reserve your lane online. Then get to work on that victory dance.
+Then get to work on that victory dance.
 
 Check current NYE availability: https://www.twistedpin.com/new-years-eve/
 
@@ -414,6 +412,6 @@ Check current availability through the New Year's Eve link in our bio.
 
 **Native link sticker:** Reserve NYE — https://www.twistedpin.com/new-years-eve/
 
-**Emoji:** None. **Artwork:** Pending.
+**Emoji:** None. **Artwork:** Prepared for review; recommended files supplied.
 
 **Publisher note:** Proposed December 28 only; December 31, 2026 is Thursday. Final planned sales invitation requires a fresh availability check. If sold out, do not post this version: replace with verified guest-preparation information. No last-few, last-chance or inventory-count claim. Verify bio link. Draft for review.

@@ -1,0 +1,1328 @@
+{
+  "event": "nye-2026",
+  "status": "Prepared complete artwork pairs for user review; no scheduling/publication.",
+  "source_template": {
+    "path": "Context/marketing/holiday-drip-2026/series/nye/artwork/series.html",
+    "sha256": "8c4d8f7ecc3ccce844cd1ea80d001fd7362d43296c2d20cfac5f35697bcfa9f9",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "renderer": {
+    "path": "scripts/render-holiday-series-nye.mjs",
+    "sha256": "d8794559a520b41cea9a4844c1bd29b68423b56f80ce02286c2bbb7095261647",
+    "hashNormalization": "UTF-8 text with LF line endings"
+  },
+  "toolVersions": {
+    "node": "v24.15.0",
+    "playwright": "1.49.1",
+    "sharp": "0.34.5",
+    "browser": "131.0.6778.33",
+    "browserChannel": "bundled-chromium"
+  },
+  "sourceAssets": [
+    {
+      "token": "LOGO_WHITE",
+      "path": "public/logo/twisted-pin-horizontal-white.png",
+      "sha256": "fa0a29cfbb3526b156bbfb04ea18d08a3187490909e39d89fb390409b69c6ba7",
+      "bytes": 7281,
+      "width": 360,
+      "height": 154
+    },
+    {
+      "token": "LOGO_INDIGO",
+      "path": "public/logo/twisted-pin-horizontal-indigo.png",
+      "sha256": "cd28a4ead2a11661a0716f162699d4565d535b3f0032499ef2ca8233682a2d4c",
+      "bytes": 36857,
+      "width": 2101,
+      "height": 901
+    },
+    {
+      "token": "GROUP",
+      "path": "public/snap/nye-reserve-hero-1600.webp",
+      "sha256": "d3f523c1e1969e004380f509701ec13b05f49cfb78ecd5ec0f1298f272d07f7d",
+      "bytes": 169422,
+      "width": 1600,
+      "height": 1067
+    },
+    {
+      "token": "TRADITIONAL",
+      "path": "public/snap/tile-trad-540.webp",
+      "sha256": "fa4daba0be5651daea695ac2f7f214520a1a8161cda1a26be1e8f3f5e06d5c5e",
+      "bytes": 27626,
+      "width": 540,
+      "height": 405
+    },
+    {
+      "token": "VIP",
+      "path": "public/snap/tile-vip-540.webp",
+      "sha256": "2fd537a24d11546ffd3b9427afc701ebcadd1948daeecf57e241d2c88a513367",
+      "bytes": 25958,
+      "width": 540,
+      "height": 405
+    },
+    {
+      "token": "COCKTAIL",
+      "path": "public/snap/cocktails-bg-900.webp",
+      "sha256": "ece502424849512bc48a9b38d08a5882c01ab325f543c549205d11fad7a02b35",
+      "bytes": 50608,
+      "width": 900,
+      "height": 1600
+    },
+    {
+      "token": "MIRRORBALL",
+      "path": "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png",
+      "sha256": "7a738b776e6194c1d0200f355d36a61c5ec4ea51820922e99d42b1c707e48eed",
+      "bytes": 2204698,
+      "width": 1122,
+      "height": 1402
+    },
+    {
+      "token": "DISPLAY_FONT",
+      "path": "node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-900-normal.woff2",
+      "sha256": "aa01966de3f608a765a172237a3ffc6161fe4c7e3870b1a904dc6437e54c4e24",
+      "bytes": 21968
+    },
+    {
+      "token": "UI_FONT",
+      "path": "node_modules/@fontsource/montserrat/files/montserrat-latin-700-normal.woff2",
+      "sha256": "f9d9e65b15372cebcafc3acd1e664a564c5c4b23278de4d5760de9a13c530371",
+      "bytes": 18824
+    },
+    {
+      "token": "BODY_FONT",
+      "path": "node_modules/@fontsource/roboto-slab/files/roboto-slab-latin-400-normal.woff2",
+      "sha256": "484e9925bb3045e88a8eec1103ab125e6dbe486172fb56b06fe6751c8b570839",
+      "bytes": 13968
+    }
+  ],
+  "source_provenance": {
+    "current_facts": [
+      "src/pages/new-years-eve.astro",
+      "src/config/nye-opening.ts",
+      "Context/marketing/holiday-drip-2026/creative-brief.md"
+    ],
+    "real_photography": [
+      "public/snap/nye-reserve-hero-1600.webp",
+      "public/snap/tile-trad-540.webp",
+      "public/snap/tile-vip-540.webp",
+      "public/snap/cocktails-bg-900.webp"
+    ],
+    "illustration": "Corrected generated mirrorball, reused unmodified from batch-02/artwork/nye-hero-v3-grip-corrected.png; not documentary venue photography.",
+    "original_asset_policy": "Local assets embedded unchanged. CSS layouts may scale/crop photographs; no raster retouching or invented venue/food imagery."
+  },
+  "reproduction": [
+    "From Website root: npm ci; npx playwright install chromium; node scripts/render-holiday-series-nye.mjs.",
+    "Optional HOLIDAY_RENDER_DEPS and HOLIDAY_RENDER_BROWSER_CHANNEL select compatible local dependencies/browser.",
+    "Renderer blocks page network requests and writes only series/nye exports, QA previews and this manifest; no app build, environment-file reads or production access."
+  ],
+  "qa": {
+    "outboundNetworkRequests": 0,
+    "export_count": 14,
+    "dimensions_fonts_bounds_and_max5MB": "passed",
+    "phone_proofs": [
+      "series/nye/qa/2026-11-17-phone-proof.png",
+      "series/nye/qa/2026-11-18-phone-proof.png",
+      "series/nye/qa/2026-11-25-phone-proof.png",
+      "series/nye/qa/2026-12-07-phone-proof.png",
+      "series/nye/qa/2026-12-16-phone-proof.png",
+      "series/nye/qa/2026-12-23-phone-proof.png",
+      "series/nye/qa/2026-12-28-phone-proof.png"
+    ],
+    "contact_sheet": "series/nye/qa/contact-sheet.png",
+    "actual_platform_preview": "Still required; house Story margins are not platform certification."
+  },
+  "publication_controls": [
+    "November17 tomorrow creative is date-specific; opening is November18 2026 9am Central, separate from December31 event.",
+    "November18 reservations-open graphic requires public opening confirmation; each reservation covers only its chosen party.",
+    "December7 specifically promotes10pm–12:30am; verify that party is bookable. Onlythatparty includes midnighttoast, champagne21+ or sparklingcider.",
+    "December16 comparison requires current traditional/VIP choices; does not imply exclusive suite possession.",
+    "All sales invitations need current availability check; no current scarcity asserted.",
+    "December28 thisThursday applies to December31 2026; if soldout replace with guest-service information."
+  ],
+  "records": [
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "recommended_content_id": "series-nye-2026-11-17",
+      "proposed_publication_date": "2026-11-17",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "before_reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-11-17-nye-feed.png",
+      "filename": "2026-11-17-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 226900,
+      "sha256": "ce803403f23deb74f82726d57bc8cc822eb25f6906f4c5b64b3895977008fa8c",
+      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 228,
+            "width": 928,
+            "height": 133.90625,
+            "text": "TOMORROW."
+          },
+          {
+            "element": "clock",
+            "x": 70,
+            "y": 380,
+            "width": 348.09375,
+            "height": 364.5,
+            "text": "9AM"
+          },
+          {
+            "element": "central",
+            "x": 84,
+            "y": 779,
+            "width": 242.1875,
+            "height": 42,
+            "text": "CENTRAL"
+          },
+          {
+            "element": "opening-date",
+            "x": 82,
+            "y": 912,
+            "width": 662.46875,
+            "height": 114.78125,
+            "text": "NEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026"
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1162,
+            "width": 928,
+            "height": 101.484375,
+            "text": "SAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "09-nye-opens-tomorrow",
+      "recommended_content_id": "series-nye-2026-11-17",
+      "proposed_publication_date": "2026-11-17",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "before_reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-11-17-nye-story.png",
+      "filename": "2026-11-17-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 298239,
+      "sha256": "d717895e6ebed0ed60185626494856dce047fa46ba0a0c205550a727f6989863",
+      "alt": "Twisted Pin NYE reminder in large mint type: Tomorrow, 9am Central. Reservations open Wednesday, November 18, 2026, for December 31, 2026. Save the opening at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "NYE details",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTOMORROW.\n\n9AM\n\nCENTRAL\n\nNEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026\n\nSAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 431,
+            "width": 916,
+            "height": 133.90625,
+            "text": "TOMORROW."
+          },
+          {
+            "element": "clock",
+            "x": 76,
+            "y": 597,
+            "width": 357.25,
+            "height": 384.296875,
+            "text": "9AM"
+          },
+          {
+            "element": "central",
+            "x": 84,
+            "y": 1035,
+            "width": 242.1875,
+            "height": 42,
+            "text": "CENTRAL"
+          },
+          {
+            "element": "opening-date",
+            "x": 82,
+            "y": 1170,
+            "width": 662.46875,
+            "height": 111.1875,
+            "text": "NEW YEAR'S EVE RESERVATIONS OPEN\nWEDNESDAY, NOVEMBER 18, 2026"
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1442,
+            "width": 916,
+            "height": 96.09375,
+            "text": "SAVE THE OPENING.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "recommended_content_id": "series-nye-2026-11-18",
+      "proposed_publication_date": "2026-11-18",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-11-18-nye-feed.png",
+      "filename": "2026-11-18-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 601836,
+      "sha256": "db461e199c771afb973f380735b3868bc08f7edd65f8125e11ba18e3ccaecdb5",
+      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/nye-reserve-hero-1600.webp"
+      ],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 207,
+            "width": 928,
+            "height": 204.59375,
+            "text": "RESERVATIONS\nARE OPEN."
+          },
+          {
+            "element": "schedule",
+            "x": 76,
+            "y": 702,
+            "width": 928,
+            "height": 288.09375,
+            "text": "DECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
+          },
+          {
+            "element": "schedule-note",
+            "x": 76,
+            "y": 1044,
+            "width": 928,
+            "height": 37.796875,
+            "text": "Your reservation covers the party time you choose."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1162,
+            "width": 928,
+            "height": 101.484375,
+            "text": "CHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "10-nye-reservations-open",
+      "recommended_content_id": "series-nye-2026-11-18",
+      "proposed_publication_date": "2026-11-18",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-11-18-nye-story.png",
+      "filename": "2026-11-18-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 672979,
+      "sha256": "a592b8779fa28f9ed43d090a6ea8bc6aabaced28f86ca4783b025ec973b251c5",
+      "alt": "NYE reservations are open at Twisted Pin for December 31, 2026. Six party start times, all Central: 11am, 1pm, 3pm, 5pm, 7:30pm and 10pm. Each reservation covers its chosen party. A real Twisted Pin bowling-party photograph. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/nye-reserve-hero-1600.webp"
+      ],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nRESERVATIONS\nARE OPEN.\n\nDECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm\n\nYour reservation covers the party time you choose.\n\nCHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 427,
+            "width": 916,
+            "height": 204.59375,
+            "text": "RESERVATIONS\nARE OPEN."
+          },
+          {
+            "element": "schedule",
+            "x": 82,
+            "y": 957,
+            "width": 916,
+            "height": 308.09375,
+            "text": "DECEMBER 31 PARTY STARTS · CENTRAL\n\n11am\n1pm\n3pm\n5pm\n7:30pm\n10pm"
+          },
+          {
+            "element": "schedule-note",
+            "x": 82,
+            "y": 1320,
+            "width": 916,
+            "height": 36.390625,
+            "text": "Your reservation covers the party time you choose."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1451,
+            "width": 916,
+            "height": 96.09375,
+            "text": "CHOOSE YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "recommended_content_id": "series-nye-2026-11-25",
+      "proposed_publication_date": "2026-11-25",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-11-25-nye-feed.png",
+      "filename": "2026-11-25-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 68222,
+      "sha256": "49e0d6c2726dccd9cfbf17df21b6f17fe989f4f286b99387ae8a819cb0ffcd30",
+      "alt": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHE PARTY ESSENTIALS\nARE COVERED.\n\nINCLUDED WITH EVERY RESERVED LANE\n\nBOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS\n\nCocktails and other extras are separate.\n\nBRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHE PARTY ESSENTIALS\nARE COVERED.\n\nINCLUDED WITH EVERY RESERVED LANE\n\nBOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS\n\nCocktails and other extras are separate.\n\nBRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.765625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 205,
+            "width": 928,
+            "height": 193.4375,
+            "text": "THE PARTY ESSENTIALS\nARE COVERED."
+          },
+          {
+            "element": "kicker",
+            "x": 76,
+            "y": 445,
+            "width": 577,
+            "height": 32.5,
+            "text": "INCLUDED WITH EVERY RESERVED LANE"
+          },
+          {
+            "element": "essentials-list",
+            "x": 76,
+            "y": 514,
+            "width": 928,
+            "height": 556,
+            "text": "BOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS"
+          },
+          {
+            "element": "extras-note",
+            "x": 76,
+            "y": 1092,
+            "width": 928,
+            "height": 35,
+            "text": "Cocktails and other extras are separate."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1190,
+            "width": 928,
+            "height": 92.09375,
+            "text": "BRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "19-nye-party-essentials",
+      "recommended_content_id": "series-nye-2026-11-25",
+      "proposed_publication_date": "2026-11-25",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-11-25-nye-story.png",
+      "filename": "2026-11-25-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 71781,
+      "sha256": "6190d83ebf1937ef9a41e9031cdfb3116ca0a186d46593bf09a8883d624e0dd2",
+      "alt": "A warm off-white NYE package card for Twisted Pin, December 31, 2026. Each reserved lane includes bowling for the selected party time, shoes, one large pizza, one pitcher of soda and party favors. Cocktails and other extras are separate. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHE PARTY ESSENTIALS\nARE COVERED.\n\nINCLUDED WITH EVERY RESERVED LANE\n\nBOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS\n\nCocktails and other extras are separate.\n\nBRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHE PARTY ESSENTIALS\nARE COVERED.\n\nINCLUDED WITH EVERY RESERVED LANE\n\nBOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS\n\nCocktails and other extras are separate.\n\nBRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 105.0625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 430,
+            "width": 916,
+            "height": 195.28125,
+            "text": "THE PARTY ESSENTIALS\nARE COVERED."
+          },
+          {
+            "element": "kicker",
+            "x": 82,
+            "y": 670,
+            "width": 577,
+            "height": 32.5,
+            "text": "INCLUDED WITH EVERY RESERVED LANE"
+          },
+          {
+            "element": "essentials-list",
+            "x": 82,
+            "y": 742,
+            "width": 916,
+            "height": 568,
+            "text": "BOWLING + SHOES\nFor your selected party time\n1\nLARGE PIZZA\n1\nPITCHER OF SODA\nPARTY FAVORS"
+          },
+          {
+            "element": "extras-note",
+            "x": 82,
+            "y": 1340,
+            "width": 922,
+            "height": 35,
+            "text": "Cocktails and other extras are separate."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1462,
+            "width": 916,
+            "height": 90.796875,
+            "text": "BRING YOUR PEOPLE. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "recommended_content_id": "series-nye-2026-12-07",
+      "proposed_publication_date": "2026-12-07",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-12-07-nye-feed.png",
+      "filename": "2026-12-07-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 985100,
+      "sha256": "b5e67df14aa0382ec76b13089e63deb365164104492cbc6abe4a92a5f2bfc7fe",
+      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/nye-reserve-hero-1600.webp",
+        "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png"
+      ],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 210,
+            "width": 928,
+            "height": 230.625,
+            "text": "EARLIER OR\nMIDNIGHT?"
+          },
+          {
+            "element": "panel-label",
+            "x": 76,
+            "y": 908,
+            "width": 450,
+            "height": 127.078125,
+            "text": "EARLIER PARTIES\n\nCelebrate with the family."
+          },
+          {
+            "element": "panel-label",
+            "x": 554,
+            "y": 908,
+            "width": 450,
+            "height": 127.078125,
+            "text": "10PM–12:30AM\n\nDec 31–Jan 1 · Central"
+          },
+          {
+            "element": "toast-note",
+            "x": 76,
+            "y": 1050,
+            "width": 928,
+            "height": 132.5625,
+            "text": "MIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1211,
+            "width": 928,
+            "height": 86.1875,
+            "text": "FIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "14-nye-december-invitation",
+      "recommended_content_id": "series-nye-2026-12-07",
+      "proposed_publication_date": "2026-12-07",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-12-07-nye-story.png",
+      "filename": "2026-12-07-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 928988,
+      "sha256": "12fd9cd2831432c3c9414542dd7ecbbabb295f5fae7603e4ebe83989ea9c377c",
+      "alt": "Earlier or midnight? Twisted Pin NYE, December 31, 2026. A real bowling-party photograph represents earlier family celebrations; an illustrative mirrorball represents the 10pm December 31 to 12:30am January 1 party, Central. Only the 10pm party includes the midnight toast: champagne for guests 21 and over or sparkling cider. Families welcome at every party. www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/nye-reserve-hero-1600.webp",
+        "Context/marketing/holiday-drip-2026/batch-02/artwork/nye-hero-v3-grip-corrected.png"
+      ],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nEARLIER OR\nMIDNIGHT?\nEARLIER PARTIES\n\nCelebrate with the family.\n\n10PM–12:30AM\n\nDec 31–Jan 1 · Central\n\nMIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party.\n\nFIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 430,
+            "width": 916,
+            "height": 230.625,
+            "text": "EARLIER OR\nMIDNIGHT?"
+          },
+          {
+            "element": "panel-label",
+            "x": 82,
+            "y": 1108,
+            "width": 444,
+            "height": 127.078125,
+            "text": "EARLIER PARTIES\n\nCelebrate with the family."
+          },
+          {
+            "element": "panel-label",
+            "x": 554,
+            "y": 1108,
+            "width": 444,
+            "height": 127.078125,
+            "text": "10PM–12:30AM\n\nDec 31–Jan 1 · Central"
+          },
+          {
+            "element": "toast-note",
+            "x": 82,
+            "y": 1257,
+            "width": 916,
+            "height": 132.5625,
+            "text": "MIDNIGHT TOAST: 10PM PARTY ONLY\nChampagne for guests 21+ or sparkling cider.\nFamilies welcome at every party."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1462,
+            "width": 916,
+            "height": 86.1875,
+            "text": "FIND YOUR PARTY. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "recommended_content_id": "series-nye-2026-12-16",
+      "proposed_publication_date": "2026-12-16",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-12-16-nye-feed.png",
+      "filename": "2026-12-16-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 645210,
+      "sha256": "d050fa5c46ee7daef74731667bd4e48057f1a0945f5e19a573bf40d702eb6c4a",
+      "alt": "Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nYOUR PEOPLE.\nYOUR KIND OF NYE.\nTRADITIONAL\nLANES\n\nThe classic bowling setup.\n\nVIP\nSUITE\n\nCouch seating for your party.\n\nSame party essentials. Two ways to bowl.\n\nCHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/tile-trad-540.webp",
+        "public/snap/tile-vip-540.webp"
+      ],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nYOUR PEOPLE.\nYOUR KIND OF NYE.\nTRADITIONAL\nLANES\n\nThe classic bowling setup.\n\nVIP\nSUITE\n\nCouch seating for your party.\n\nSame party essentials. Two ways to bowl.\n\nCHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 222,
+            "width": 928,
+            "height": 200.875,
+            "text": "YOUR PEOPLE.\nYOUR KIND OF NYE."
+          },
+          {
+            "element": "room-copy",
+            "x": 76,
+            "y": 843,
+            "width": 450,
+            "height": 189.78125,
+            "text": "TRADITIONAL\nLANES\n\nThe classic bowling setup."
+          },
+          {
+            "element": "room-copy",
+            "x": 554,
+            "y": 843,
+            "width": 450,
+            "height": 189.78125,
+            "text": "VIP\nSUITE\n\nCouch seating for your party."
+          },
+          {
+            "element": "rooms-note",
+            "x": 76,
+            "y": 1060,
+            "width": 928,
+            "height": 40.59375,
+            "text": "Same party essentials. Two ways to bowl."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1162,
+            "width": 928,
+            "height": 101.484375,
+            "text": "CHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "15-nye-choose-your-party",
+      "recommended_content_id": "series-nye-2026-12-16",
+      "proposed_publication_date": "2026-12-16",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-12-16-nye-story.png",
+      "filename": "2026-12-16-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 608383,
+      "sha256": "1c22037c316ed28de5697523f5896870c03f0fa4d55715e60c4c40b9a02d7e83",
+      "alt": "Real photographs of Twisted Pin traditional lanes and couch seating in its VIP suite. Your people. Your kind of NYE. December 31, 2026. Same party essentials, two ways to bowl. Choose the current setting and party time at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nYOUR PEOPLE.\nYOUR KIND OF NYE.\nTRADITIONAL\nLANES\n\nThe classic bowling setup.\n\nVIP\nSUITE\n\nCouch seating for your party.\n\nSame party essentials. Two ways to bowl.\n\nCHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/tile-trad-540.webp",
+        "public/snap/tile-vip-540.webp"
+      ],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nYOUR PEOPLE.\nYOUR KIND OF NYE.\nTRADITIONAL\nLANES\n\nThe classic bowling setup.\n\nVIP\nSUITE\n\nCouch seating for your party.\n\nSame party essentials. Two ways to bowl.\n\nCHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 429,
+            "width": 916,
+            "height": 204.59375,
+            "text": "YOUR PEOPLE.\nYOUR KIND OF NYE."
+          },
+          {
+            "element": "room-copy",
+            "x": 582,
+            "y": 733,
+            "width": 416,
+            "height": 272,
+            "text": "TRADITIONAL\nLANES\n\nThe classic bowling setup."
+          },
+          {
+            "element": "room-copy",
+            "x": 582,
+            "y": 1032,
+            "width": 416,
+            "height": 272,
+            "text": "VIP\nSUITE\n\nCouch seating for your party."
+          },
+          {
+            "element": "rooms-note",
+            "x": 82,
+            "y": 1347,
+            "width": 916,
+            "height": 37.796875,
+            "text": "Same party essentials. Two ways to bowl."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1464,
+            "width": 916,
+            "height": 96.09375,
+            "text": "CHOOSE YOUR SETTING. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "recommended_content_id": "series-nye-2026-12-23",
+      "proposed_publication_date": "2026-12-23",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-12-23-nye-feed.png",
+      "filename": "2026-12-23-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 1318523,
+      "sha256": "65ec8a99d2869bb08b65da8c975bcbb6e05dbaa49b57f90856a2b42f2c6ae63e",
+      "alt": "A real Twisted Pin cocktail photograph accompanies the message Give the group chat an actual plan. December 31, 2026. Bowling, pizza and your people. Cocktails and additional food and drinks are separate from the lane package. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nGIVE THE\nGROUP CHAT\nAN ACTUAL PLAN.\n\nBOWLING. PIZZA.\nYOUR PEOPLE.\n\nCocktails and additional food and drinks\nare separate from your lane package.\n\nMAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/cocktails-bg-900.webp"
+      ],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nGIVE THE\nGROUP CHAT\nAN ACTUAL PLAN.\n\nBOWLING. PIZZA.\nYOUR PEOPLE.\n\nCocktails and additional food and drinks\nare separate from your lane package.\n\nMAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 246,
+            "width": 704,
+            "height": 292.921875,
+            "text": "GIVE THE\nGROUP CHAT\nAN ACTUAL PLAN."
+          },
+          {
+            "element": "support",
+            "x": 76,
+            "y": 738,
+            "width": 345.640625,
+            "height": 123.1875,
+            "text": "BOWLING. PIZZA.\nYOUR PEOPLE."
+          },
+          {
+            "element": "paid-note",
+            "x": 76,
+            "y": 1018,
+            "width": 928,
+            "height": 78.375,
+            "text": "Cocktails and additional food and drinks\nare separate from your lane package."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1162,
+            "width": 928,
+            "height": 101.484375,
+            "text": "MAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "20-nye-group-chat",
+      "recommended_content_id": "series-nye-2026-12-23",
+      "proposed_publication_date": "2026-12-23",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-12-23-nye-story.png",
+      "filename": "2026-12-23-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 1407174,
+      "sha256": "4fa908f5b53ad4457fc994543f1846a44a9288885eb972dd8bacb5d2c0579ca1",
+      "alt": "A real Twisted Pin cocktail photograph accompanies the message Give the group chat an actual plan. December 31, 2026. Bowling, pizza and your people. Cocktails and additional food and drinks are separate from the lane package. Reserve at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nGIVE THE\nGROUP CHAT\nAN ACTUAL PLAN.\n\nBOWLING. PIZZA.\nYOUR PEOPLE.\n\nCocktails and additional food and drinks\nare separate from your lane package.\n\nMAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [
+        "public/snap/cocktails-bg-900.webp"
+      ],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nGIVE THE\nGROUP CHAT\nAN ACTUAL PLAN.\n\nBOWLING. PIZZA.\nYOUR PEOPLE.\n\nCocktails and additional food and drinks\nare separate from your lane package.\n\nMAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 460,
+            "width": 760,
+            "height": 306.890625,
+            "text": "GIVE THE\nGROUP CHAT\nAN ACTUAL PLAN."
+          },
+          {
+            "element": "support",
+            "x": 82,
+            "y": 1010,
+            "width": 327.125,
+            "height": 116.59375,
+            "text": "BOWLING. PIZZA.\nYOUR PEOPLE."
+          },
+          {
+            "element": "paid-note",
+            "x": 82,
+            "y": 1294,
+            "width": 916,
+            "height": 75.59375,
+            "text": "Cocktails and additional food and drinks\nare separate from your lane package."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1460,
+            "width": 916,
+            "height": 96.09375,
+            "text": "MAKE THE PLAN. RESERVE YOUR PARTY.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "recommended_content_id": "series-nye-2026-12-28",
+      "proposed_publication_date": "2026-12-28",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "feed",
+      "path": "series/nye/exports/2026-12-28-nye-feed.png",
+      "filename": "2026-12-28-nye-feed.png",
+      "width": 1080,
+      "height": 1350,
+      "bytes": 53816,
+      "sha256": "bd24a5dcc0ebcafd261932e7a720219e9bbfa4512dfa018d505fc4e373c6a2b7",
+      "alt": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHIS THURSDAY.\n\n31\n\nDECEMBER 2026\n\nBOWLING. PIZZA. NEW YEAR’S EVE.\n\nCHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHIS THURSDAY.\n\n31\n\nDECEMBER 2026\n\nBOWLING. PIZZA. NEW YEAR’S EVE.\n\nCHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 76,
+            "y": 47,
+            "width": 235,
+            "height": 100.515625,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 737.4375,
+            "y": 80,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 76,
+            "y": 228,
+            "width": 928,
+            "height": 120.890625,
+            "text": "THIS THURSDAY."
+          },
+          {
+            "element": "big-date",
+            "x": 70,
+            "y": 365,
+            "width": 940,
+            "height": 477,
+            "text": "31"
+          },
+          {
+            "element": "month",
+            "x": 76,
+            "y": 900,
+            "width": 928,
+            "height": 40.796875,
+            "text": "DECEMBER 2026"
+          },
+          {
+            "element": "sendoff",
+            "x": 76,
+            "y": 1006,
+            "width": 928,
+            "height": 69.296875,
+            "text": "BOWLING. PIZZA. NEW YEAR’S EVE."
+          },
+          {
+            "element": "footer",
+            "x": 76,
+            "y": 1162,
+            "width": 928,
+            "height": 101.484375,
+            "text": "CHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    },
+    {
+      "calendar_id": "21-nye-this-thursday",
+      "recommended_content_id": "series-nye-2026-12-28",
+      "proposed_publication_date": "2026-12-28",
+      "event_date": "2026-12-31",
+      "timezone": "America/Chicago",
+      "phase": "reservations_open",
+      "format": "story",
+      "path": "series/nye/exports/2026-12-28-nye-story.png",
+      "filename": "2026-12-28-nye-story.png",
+      "width": 1080,
+      "height": 1920,
+      "bytes": 54950,
+      "sha256": "f0a00b53987a8b6ec26d501e095aa4d71bea952d68ab8930265dff74b8fb0366",
+      "alt": "An oversized mint 31 marks New Year’s Eve this Thursday, December 31, 2026 at Twisted Pin. Bowling. Pizza. New Year’s Eve. Check current party choices and reserve online at www.twistedpin.com/new-years-eve/.",
+      "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHIS THURSDAY.\n\n31\n\nDECEMBER 2026\n\nBOWLING. PIZZA. NEW YEAR’S EVE.\n\nCHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+      "status": "prepared-for-review-not-scheduled-or-published",
+      "source_assets": [],
+      "suggested_link_sticker_area": {
+        "x": 250,
+        "y": 1640,
+        "width": 580,
+        "height": 120
+      },
+      "link_sticker_label": "Book NYE lanes",
+      "checks": {
+        "fonts": true,
+        "overflow": false,
+        "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026\n\nTHIS THURSDAY.\n\n31\n\nDECEMBER 2026\n\nBOWLING. PIZZA. NEW YEAR’S EVE.\n\nCHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/",
+        "bounds": [
+          {
+            "element": "logo",
+            "x": 82,
+            "y": 247,
+            "width": 245,
+            "height": 104.796875,
+            "text": "Twisted Pin"
+          },
+          {
+            "element": "identity",
+            "x": 731.4375,
+            "y": 280,
+            "width": 266.5625,
+            "height": 71.296875,
+            "text": "NYE. DONE RIGHT.\nDECEMBER 31, 2026"
+          },
+          {
+            "element": "H1",
+            "x": 82,
+            "y": 431,
+            "width": 916,
+            "height": 117.171875,
+            "text": "THIS THURSDAY."
+          },
+          {
+            "element": "big-date",
+            "x": 76,
+            "y": 608,
+            "width": 928,
+            "height": 504,
+            "text": "31"
+          },
+          {
+            "element": "month",
+            "x": 76,
+            "y": 1178,
+            "width": 928,
+            "height": 42,
+            "text": "DECEMBER 2026"
+          },
+          {
+            "element": "sendoff",
+            "x": 76,
+            "y": 1285,
+            "width": 928,
+            "height": 68.1875,
+            "text": "BOWLING. PIZZA. NEW YEAR’S EVE."
+          },
+          {
+            "element": "footer",
+            "x": 82,
+            "y": 1470,
+            "width": 916,
+            "height": 96.09375,
+            "text": "CHECK CURRENT PARTIES. RESERVE ONLINE.\n\nwww.twistedpin.com/new-years-eve/"
+          }
+        ]
+      }
+    }
+  ]
+}

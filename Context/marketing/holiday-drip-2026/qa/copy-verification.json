@@ -1,10 +1,10 @@
 {
-  "checked_at": "2026-10-22T21:43:55.166Z",
-  "copy_revision": "series-copy-v1",
-  "source_sha256_lf": "e84fed84691f08ebca337e54dd0449b885fdf94f306ec119a61bc1dba45fa3b0",
+  "checked_at": "2026-10-22T22:27:30.223Z",
+  "copy_revision": "series-copy-v2",
+  "source_sha256_lf": "0ecf26422adc3ff47db0e553abe03a3c9ce760e923e7fdb74d4e4b423b86d7ce",
   "draft_count": 16,
   "emoji_count": 6,
-  "art_pending": 13,
+  "art_pending": 0,
   "checks": {
     "all_meta_calendar_rows_have_copy": true,
     "prepared_concept_captions_synchronized": true,
@@ -40,7 +40,7 @@
     }
   ],
   "limitations": [
-    "Editorial drafts, not approved copy. Thirteen occasions still need artwork.",
+    "Prepared for review, not scheduling approval. 0 occasions still need artwork.",
     "No actual platform crop, inventory, bio destination, account schedule, publication or send was tested."
   ]
 }

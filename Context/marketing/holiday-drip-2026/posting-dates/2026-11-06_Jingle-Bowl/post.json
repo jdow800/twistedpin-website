@@ -1,0 +1,60 @@
+{
+  "calendar_id": "05-jingle-whats-included",
+  "folder": "2026-11-06_Jingle-Bowl",
+  "event": "jingle-bowl-2026",
+  "event_name": "Jingle Bowl",
+  "event_date": "2026-12-06",
+  "headline": "Bowling. Pizza. Santa. Sunday handled.",
+  "proposed_publish_at": "2026-11-06T12:00:00-06:00",
+  "proposed_publish_at_utc": "2026-11-06T18:00:00.000Z",
+  "timezone": "America/Chicago",
+  "phase": "reservations_open",
+  "url": "https://www.twistedpin.com/jingle-bowl/",
+  "copy_revision": "series-copy-v2",
+  "status": "prepared_for_review",
+  "recommended_concept_id": "series-05-jingle-whats-included",
+  "assets": {
+    "feed": {
+      "filename": "01-FEED-Facebook-and-Instagram.png",
+      "width": 1080,
+      "height": 1350,
+      "sha256": "1047e2478858cbc4558401e654e9afb47a7bf36baf8b26cf772750f280d854dc",
+      "alt_text": "Cream and cranberry typographic package composition; no food or guest imagery. Printed text: BOWLING. PIZZA. SANTA. Sunday handled. 90MINUTES OF BOWLING Shoes included ONE PIZZA. ONE PITCHER. One large pizza + one pitcher of soda per lane. COOKIES & COCOA. Cookie & cocoa bar access with your lane package. A VISIT WITH SANTA. Your Santa photo, on your own device. VIP adds one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-06-05-jingle-whats-included-feed.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-05-jingle-whats-included"
+    },
+    "story": {
+      "filename": "02-OPTIONAL-STORY.png",
+      "width": 1080,
+      "height": 1920,
+      "sha256": "cdcd1d5baf981eb769ad3a9d6167015fb2f1f6b5c7e29e829b396138aca1916a",
+      "alt_text": "Cream and cranberry typographic package composition; no food or guest imagery. Printed text: BOWLING. PIZZA. SANTA. Sunday handled. 90MINUTES OF BOWLING Shoes included ONE PIZZA. ONE PITCHER. One large pizza + one pitcher of soda per lane. COOKIES & COCOA. Cookie & cocoa bar access with your lane package. A VISIT WITH SANTA. Your Santa photo, on your own device. VIP adds one basket of fries per lane. JINGLE BOWL SUNDAY, DECEMBER 6, 2026 RESERVE YOUR LANE twistedpin.com/jingle-bowl/",
+      "source": "series/jingle/exports/2026-11-06-05-jingle-whats-included-story.png",
+      "source_manifest": "series/jingle/manifest.json",
+      "concept_id": "series-05-jingle-whats-included"
+    }
+  },
+  "copy_file": "RECOMMENDED-COPY.txt",
+  "captions": {
+    "facebook": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: https://www.twistedpin.com/jingle-bowl/",
+    "instagram": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane through the Jingle Bowl link in our bio.",
+    "instagram_without_verified_bio": "Bowling. Pizza. Santa. Sunday handled.\n\nHere's what comes with each Jingle Bowl lane at Twisted Pin on Sunday, December 6, 2026: 90 minutes of bowling, shoe rental, one large pizza, one pitcher of soda, cookie & cocoa bar access, and a photo with Santa on your own device.\n\nVIP lanes also include one basket of fries per lane.\n\nChoose your lane and reserve: twistedpin.com/jingle-bowl/"
+  },
+  "story": {
+    "message": "Bowling, pizza & Santa. Jingle Bowl, Sunday, December 6. See the lane packages and reserve.",
+    "link_sticker": {
+      "label": "Reserve Jingle Bowl",
+      "url": "https://www.twistedpin.com/jingle-bowl/"
+    },
+    "optional": true
+  },
+  "publishing_note": "Proposed November 6 package explainer; keep per-lane quantities explicit and show fries only as the VIP inclusion.",
+  "approved_by": null,
+  "approved_at": null,
+  "selected_channels": [],
+  "scheduled_at": null,
+  "published_at": null,
+  "platform_ids": {},
+  "platform_urls": {}
+}
