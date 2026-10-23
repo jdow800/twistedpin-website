@@ -55,10 +55,10 @@ export function resolvedCheckoutUrl(href: string): string {
 export function recoveryMessage(status: CheckoutRecovery["status"]): string {
   switch (status) {
     case "processing": return "Your payment is still processing. Check its status before starting another reservation.";
-    case "needs_review": return "This payment needs our team's review. Please call (815) 782-7790 before making another payment.";
+    case "needs_review": return "This payment needs our team's review. Please email contactus@twistedpin.com before making another payment.";
     case "refund_requested": return "A refund has been requested. We’re waiting for confirmation; please check again before starting another reservation.";
     case "refunded": return "Your refund is confirmed. You can now review your details and start a new reservation.";
-    case "refund_failed": return "We couldn't complete the refund. Please call (815) 782-7790 so our team can help with this payment.";
+    case "refund_failed": return "We couldn't complete the refund. Please email contactus@twistedpin.com so our team can help with this payment.";
     case "cancelled": return "This payment was cancelled. You can now edit your reservation.";
     default: return "Your payment details are saved in this tab. Check or continue this payment before editing your reservation.";
   }

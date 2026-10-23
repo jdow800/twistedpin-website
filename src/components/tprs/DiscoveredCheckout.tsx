@@ -13,7 +13,7 @@ interface Props {
   onClear: () => void;
   onNewReservation: () => void;
 }
-const incompleteCheckoutMessage = "This saved checkout is missing required booking details or terms acceptance. Please check its payment status or call (815) 782-7790 before making another payment. An unpaid payment can be cancelled below.";
+const incompleteCheckoutMessage = "This saved checkout is missing required booking details or terms acceptance. Please check its payment status or email contactus@twistedpin.com before making another payment. An unpaid payment can be cancelled below.";
 
 /** Recovery without a browser draft uses only the server's accepted snapshot. */
 export default function DiscoveredCheckout(props: Props) {
@@ -51,7 +51,7 @@ function RecoveredPayment(props: Props) {
     if (["confirmed", "needs_review", "refund_requested", "refund_failed", "refunded", "cancelled"].includes(status.status)) return;
     if (!attempt.clientSecret || !attempt.paymentIntentId) {
       const discovered = await getActiveCheckoutAttempt();
-      if (!discovered || discovered.attemptId !== attempt.attemptId) throw new Error("We couldn't resolve this saved payment. Please check again or call (815) 782-7790.");
+      if (!discovered || discovered.attemptId !== attempt.attemptId) throw new Error("We couldn't resolve this saved payment. Please check again or email contactus@twistedpin.com.");
       attempt = retain(discovered);
       if (!attempt.clientSecret || !attempt.paymentIntentId || attempt.status !== "prepared") return;
     }
@@ -60,7 +60,7 @@ function RecoveredPayment(props: Props) {
     if (provider.error || !provider.paymentIntent) throw new Error("We couldn't check your payment. Your original reservation is still saved.");
     if (provider.paymentIntent.status === "succeeded") {
       if (!attempt.paymentReady) {
-        setError("Your payment was received, but the saved reservation is missing required booking details or terms acceptance. Please call (815) 782-7790 so our team can help finish it. Do not make another payment.");
+        setError("Your payment was received, but the saved reservation is missing required booking details or terms acceptance. Please email contactus@twistedpin.com so our team can help finish it. Do not make another payment.");
         return;
       }
       const result = await convertCheckout({ ...attempt.originalOrder, ...identity, paymentIntentId: attempt.paymentIntentId });
@@ -94,7 +94,7 @@ function RecoveredPayment(props: Props) {
       const status = refund === "requested" ? "refund_requested" : refund === "succeeded" ? "refunded" : refund === "failed" ? "refund_failed" : refund === "needs_review" ? "needs_review" : null;
       if (status) { try { retain({ ...active.current, status }); } catch { /* keep the known attempt */ } }
       setError(status ? recoveryMessage(status) : err instanceof TprsCheckoutError && err.code === "form_answer_invalid"
-        ? "Your saved reservation needs our team's help with its booking details. Please call (815) 782-7790 before making another payment."
+        ? "Your saved reservation needs our team's help with its booking details. Please email contactus@twistedpin.com before making another payment."
         : err instanceof Error ? err.message : "We couldn't check your payment. Please try again.");
     } finally { running.current = false; setBusy(false); }
   }

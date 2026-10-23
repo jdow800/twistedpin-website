@@ -200,10 +200,10 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
         if (!(err instanceof TprsCheckoutError && err.status === 404 && !damagedStorage && !returningPayment)) throw err;
       }
       if (existing) { setDiscovered(existing); saveDiscoveredCheckout(sessionStorage, existing); }
-      else if (damagedStorage) setRecoveryError("We couldn't read your saved payment details. Please call (815) 782-7790 before making another payment.");
-      else if (returningPayment) setRecoveryError("We found a returning payment without its saved reservation details. Please call (815) 782-7790 so we can check it before you make another payment.");
+      else if (damagedStorage) setRecoveryError("We couldn't read your saved payment details. Please email contactus@twistedpin.com before making another payment.");
+      else if (returningPayment) setRecoveryError("We found a returning payment without its saved reservation details. Please email contactus@twistedpin.com so we can check it before you make another payment.");
     } catch {
-      setRecoveryError("We couldn't check for a saved payment. Please try again before starting another reservation, or call (815) 782-7790.");
+      setRecoveryError("We couldn't check for a saved payment. Please try again before starting another reservation, or email contactus@twistedpin.com.");
     } finally { setRecoveryLoaded(true); }
   }, [reserveBrowseFirst]);
   useEffect(() => { void initializeRecovery(); }, [initializeRecovery]);
@@ -221,7 +221,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
   }, [pendingProduct, recoveryLoaded, recoveryError, discovered, recovery, state.checkoutLocked, state.step]);
   const discoverAcceptedCheckout = useCallback(async () => {
     const existing = await getActiveCheckoutAttempt();
-    if (!existing) throw new Error("We couldn't locate this saved payment. Please check again or call (815) 782-7790.");
+    if (!existing) throw new Error("We couldn't locate this saved payment. Please check again or email contactus@twistedpin.com.");
     saveDiscoveredCheckout(sessionStorage, existing);
     setDiscovered(existing);
   }, []);

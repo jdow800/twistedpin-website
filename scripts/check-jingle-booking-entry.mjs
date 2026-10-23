@@ -41,6 +41,13 @@ window.fetch=async(url,options)=>{
      arcade:{id:id(122),code:122},guests:{traditional:5,vip:6},maxLanes:6}),{status:200});
  }
  if(target.pathname==='/fixture-api/api/checkout/attempt-active'&&settings.discoveryFailure)return new Response('{}',{status:503});
+ if(['/fixture-api/api/products','/fixture-api/api/cart/session'].includes(target.pathname)
+   &&settings.restoreFailure===target.pathname){
+   // Keep the read in the existing fixture's request log, but simulate the
+   // transient transport failure that interrupted a returning guest.
+   await nativeFixtureFetch(url,options);
+   return new Response('{}',{status:503});
+ }
  return nativeFixtureFetch(url,options);
 };
 createRoot(document.getElementById('root')).render(settings.nye
@@ -177,6 +184,40 @@ try{
   await page.getByRole('button',{name:'Check this selection',exact:true}).click();await heading(page,'Add arcade play.');
   assert.deepEqual((await calls(page,'/api/cart/replace'))[1].body,original);await page.context().close();
  });
+ for(const path of ['/api/products','/api/cart/session'])await scenario(`Returning from arcade after transient ${path} failure retries without changing the saved selection or starting payment`,async()=>{
+  const page=await fresh('?lane=traditional');await heading(page,'Choose your time.');
+  await page.getByRole('button',{name:'More',exact:true}).click();
+  await timeAndHold(page);await heading(page,'Add arcade play.');
+  await page.waitForFunction(key=>JSON.parse(sessionStorage.getItem(key)).step==='arcade',draftKey);
+  const saved=await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey);
+  const held=(await state(page)).cart;
+  const writes=(await calls(page,'/api/cart/replace')).length;
+  await page.evaluate(path=>window.configure({restoreFailure:`/fixture-api${path}`}),path);
+  await page.reload();await heading(page,'Let’s try that again.');
+  await page.getByText('We could not load your reservation. Please try again.',{exact:true}).waitFor();
+  const retry=page.getByRole('button',{name:'Try again',exact:true});
+  assert.match(await retry.getAttribute('class'),/\bprimary\b/);
+  assert.equal(await page.getByRole('link',{name:'contactus@twistedpin.com',exact:true}).getAttribute('href'),'mailto:contactus@twistedpin.com');
+  assert.equal(await page.locator('a[href^="tel:"]').count(),0);
+  assert.doesNotMatch(await page.locator('body').innerText(),/avoid starting another payment|could not safely restore/i);
+  assert.deepEqual(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey),saved,'A failed restore must retain the complete prepayment draft');
+  assert.deepEqual((await state(page)).cart,held);
+  const failureReads=(await calls(page,path)).length;
+  for(const width of [320,390]){
+   await page.setViewportSize({width,height:844});await page.evaluate(()=>document.fonts.ready);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`Retry state fits ${width}px`);
+   await page.screenshot({path:resolve(output,`restore-${path.endsWith('products')?'catalog':'session'}-${width}.png`),fullPage:true});
+  }
+  await page.evaluate(()=>window.configure({restoreFailure:null}));await retry.click();
+  await heading(page,'Add arcade play.');
+  assert.ok((await calls(page,path)).length>failureReads,'Try again reissues the failed read');
+  assert.deepEqual(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey),saved,'Successful retry restores the same room, count, time and step');
+  assert.deepEqual((await state(page)).cart,held,'Retry does not replace the cart or extend its hold');
+  assert.equal((await calls(page,'/api/cart/replace')).length,writes);
+  for(const forbidden of ['/api/checkout/payment-intents','/api/checkout/convert','stripe:submit','stripe:confirm'])assert.equal((await calls(page,forbidden)).length,0);
+  assert.equal(await page.getByLabel('Synthetic card',{exact:true}).count(),0);
+  await page.context().close();
+ });
  await scenario('Readiness and release switch stop new sales while ordinary accepted discovery still wins',async()=>{
   for(const settings of [{bookingReady:false},{enabled:false}]){
    const page=await fresh('?lane=vip',settings);await page.getByText('Reservations are not available right now.',{exact:true}).waitFor();
@@ -189,7 +230,7 @@ try{
  });
  await scenario('Broken discovery, returning payment and wrong catalog UUID block fresh hinted selection',async()=>{
   for(const [query,settings] of [['?lane=vip',{discoveryFailure:true}],['?lane=vip&payment_intent_client_secret=synthetic-return',{}],['?lane=vip',{wrongProductId:true}]]){
-   const page=await fresh(query,settings);await heading(page,'Let’s check your reservation.');assert.equal(await page.locator('.time-choice').count(),0);assert.equal((await calls(page,'/api/cart/replace')).length,0);assert.equal((await calls(page,'/api/checkout/payment-intents')).length,0);await page.context().close();
+   const page=await fresh(query,settings);await heading(page,'Let’s try that again.');assert.equal(await page.locator('.time-choice').count(),0);assert.equal((await calls(page,'/api/cart/replace')).length,0);assert.equal((await calls(page,'/api/checkout/payment-intents')).length,0);await page.context().close();
   }
  });
  await scenario('Invalid bootstrap has no synthetic fallback and an explicit retry can recover',async()=>{

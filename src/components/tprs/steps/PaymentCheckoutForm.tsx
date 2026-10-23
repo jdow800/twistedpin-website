@@ -57,7 +57,7 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
     // failure stops payment; never proceed with an un-recoverable new charge.
     try { props.onRecovery(value); }
     catch {
-      throw new Error("We couldn't save your payment details in this tab. Please allow browser storage or call (815) 782-7790 before continuing.");
+      throw new Error("We couldn't save your payment details in this tab. Please allow browser storage or email contactus@twistedpin.com before continuing.");
     }
     active.current = value;
     props.onLock(!!value);
@@ -205,7 +205,7 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
       const record = active.current;
       if (err instanceof TprsCheckoutError && err.code === "payment_recovery_required" && !record?.payment && props.onDiscover) {
         try { await props.onDiscover(); }
-        catch { setError("We couldn't recover the saved payment yet. Check its status again, or call (815) 782-7790 before making another payment."); }
+        catch { setError("We couldn't recover the saved payment yet. Check its status again, or email contactus@twistedpin.com before making another payment."); }
         return;
       }
       if (err instanceof TprsCheckoutError && !record?.payment && (reviewCodes.has(err.code ?? "") || rejectedBeforePayment.has(err.code ?? "") || !!props.preAcquiredSelection && !!selectionErrors[err.code ?? ""]) && !err.rewardDetails.refundStatus) {
@@ -267,7 +267,7 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
       if (!canReleaseCheckout(resolved.status)) {
         resolved = await ensureIntent(resolved);
         const identity = attemptIdentity(resolved);
-        if (!identity) { setError("Please call (815) 782-7790 to cancel this saved payment before starting another reservation."); return; }
+        if (!identity) { setError("Please email contactus@twistedpin.com to cancel this saved payment before starting another reservation."); return; }
         resolved = applyStatus(resolved, await cancelCheckoutAttempt(identity));
       }
       if (canReleaseCheckout(resolved.status)) {

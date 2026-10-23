@@ -3110,6 +3110,12 @@ Jingle page remains protected; staffed/session arrays and booking-ready flags
 remain empty/false. See the dated Roy special-events handoff for evidence and
 maintenance instructions. Marketing greeting choices are still proposals.
 
+## 2026-10-23 — Retry-first event restoration and email support
+
+Jon reported returning to Jingle Bowl, probably from the arcade step before payment, and seeing the generic restoration failure referring to another payment and asking him to call. That catch covers network, catalog, storage and cart restoration failures as well as payment discovery; it does not establish that a payment happened. Event restoration now asks the guest to try again, with contactus@twistedpin.com as secondary support. Checkout help messages use email instead of the phone while retaining warnings for actual accepted payments and refunds. Retry continues the existing recovery checks; it does not clear payment evidence, abandon unresolved cart changes or start a new payment. The screenshot does not establish the underlying failure; no restoration, hold or payment logic is changed in this release.
+
+Validation: the 12-group isolated Jingle entry suite passes, including two new catalog/session failure cases after an arcade-step reload. Retry retains the complete saved draft and held cart/expiry, issues no new hold or payment, and the existing accepted-payment cases remain protected. The checkout-recovery suite, full TypeScript check, nine prebuild checks and production build pass. Error-state screenshots fit at 320px and 390px. Independent diff review confirms only runtime wording/help markup changes. Rollback is a code-only revert; the pre-release production is `dpl_5BhrsCEVNfUnRrVm2FTk83gzcjWj` (`e1bed4e`), which includes the ordinary reserve speed restoration.
+
 ## 2026-10-22 — Ordinary reserve browsing separate from event checkout
 
 Jon prioritizes initial package speed on `/reserve/` and explicitly accepts different browsing behavior from Jingle Bowl and NYE. The earlier month-first and parallel experiments retained policy envelopes and a blocking saved-payment lookup, so neither faithfully restored the older package-loading path. This supersedes the experiment's use of time-grid readiness alone as its release criterion.

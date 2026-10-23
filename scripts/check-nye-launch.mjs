@@ -106,7 +106,7 @@ try {
     await page.evaluate(() => window.releaseFirstDiscovery());
     await page.waitForTimeout(100);
     assert.equal(await rooms(page).isVisible(), true, 'late closed bootstrap must not strand the open checkout');
-    assert.equal(await page.getByText(/could not safely restore/).count(), 0);
+    assert.equal(await page.getByText(/could not load your reservation/).count(), 0);
     await noPurchase(page); await context.close();
   });
 

@@ -16,10 +16,10 @@ export function pointsRewardMessage(details: PointsRewardDetails): string {
 
 export function pointsRecoveryMessage(status: PointsRewardDetails['refundStatus']): string {
   switch(status) {
-    case 'requested': return 'Your reservation was not completed. A refund has been requested. Please start a new booking, or call (815) 782-7790.';
-    case 'succeeded': return 'Your reservation was not completed. The payment provider has confirmed the refund. Please start a new booking, or call (815) 782-7790.';
-    case 'awaiting_payment': return 'Your reservation was not completed. Your payment is still processing. Please call (815) 782-7790 before trying another payment.';
-    case 'failed': return 'Your reservation was not completed, and the refund failed. Please call (815) 782-7790 before trying another payment.';
-    default: return 'We could not confirm the payment or refund outcome. Please call (815) 782-7790 before trying another payment.';
+    case 'requested': return 'Your reservation was not completed. A refund has been requested. Please start a new booking, or email contactus@twistedpin.com.';
+    case 'succeeded': return 'Your reservation was not completed. The payment provider has confirmed the refund. Please start a new booking, or email contactus@twistedpin.com.';
+    case 'awaiting_payment': return 'Your reservation was not completed. Your payment is still processing. Please email contactus@twistedpin.com before trying another payment.';
+    case 'failed': return 'Your reservation was not completed, and the refund failed. Please email contactus@twistedpin.com before trying another payment.';
+    default: return 'We could not confirm the payment or refund outcome. Please email contactus@twistedpin.com before trying another payment.';
   }
 }

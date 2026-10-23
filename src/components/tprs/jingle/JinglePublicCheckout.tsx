@@ -32,12 +32,12 @@ export default function JinglePublicCheckout({enabled=false}:{enabled?:boolean})
     <a href="/jingle-bowl/" aria-label="About Jingle Bowl"><img src="/logo/twisted-pin-horizontal-white.webp" width="178" height="70" alt="Twisted Pin" /></a>
     <h1 id="jingle-booking-title">Jingle Bowl</h1>
     <p>Reservations are not available right now.</p>
-    <p><a href="/jingle-bowl/">Explore the lane packages</a> or call <a href="tel:+18157827790">(815) 782-7790</a>.</p>
+    <p><a href="/jingle-bowl/">Explore the lane packages</a> or email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.</p>
   </section>;
   if(!config)return <section className="jingle-booking-message" aria-labelledby="jingle-loading-title">
     <h1 id="jingle-loading-title">Jingle Bowl</h1>
     <p role={error?'alert':'status'}>{error?'We could not load booking right now. Your saved reservation details have not been changed.':'Getting your reservation ready…'}</p>
-    {error&&<><button type="button" onClick={()=>setRetry(value=>value+1)}>Try again</button><p>If you already started a payment, retry here or call <a href="tel:+18157827790">(815) 782-7790</a> before paying again.</p></>}
+    {error&&<><button type="button" onClick={()=>setRetry(value=>value+1)}>Try again</button><p>Still having trouble? Email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.</p></>}
     <p><a href="/jingle-bowl/">Back to Jingle Bowl</a></p>
   </section>;
   // Closed sales must not conceal an accepted payment. The shared wizard

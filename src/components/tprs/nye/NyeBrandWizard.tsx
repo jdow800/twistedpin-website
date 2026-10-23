@@ -288,7 +288,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
         }
       }
       entryChoiceUsed.current=true;
-    }catch {if(isCurrent())setLoadError('We could not safely restore your reservation. Try again, or call (815) 782-7790 before making another payment.');}
+    }catch {if(isCurrent())setLoadError('We could not load your reservation. Please try again.');}
     finally{if(isCurrent())setInitializedSalesMode(salesOpen);}
   },[controller,salesOpen,eventConfig]);
   useEffect(()=>{void initialize();return()=>{initialization.current++;};},[initialize]);
@@ -530,7 +530,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     const retained=controller.readPending();
     if(retained.kind==='blocked'){setLoadError('We could not read the saved lane selection. Please allow browser storage before continuing.');setInitializedSalesMode(salesOpen);return;}
     if(retained.kind==='pending'&&!sessionStorage.getItem(DRAFT_KEY)){
-      setLoadError('Your saved lane change needs review. Please call (815) 782-7790 before starting another reservation.');setInitializedSalesMode(salesOpen);return;
+      setLoadError('We could not restore your saved lane change. Please try again.');setInitializedSalesMode(salesOpen);return;
     }
     const raw=sessionStorage.getItem(DRAFT_KEY);
     if(retained.kind==='empty'&&discovered?.status==='confirmed')sessionStorage.removeItem(DRAFT_KEY);
@@ -555,12 +555,12 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   // runs. Discovery failure still blocks any checkout; it does not turn the
   // countdown into an alarming empty reservation screen.
   if(!salesOpen&&!recovery&&!discovered&&!draft.booking&&closedContent&&(!loaded||loadError))return <>
-    {loadError&&<div className="nye-public-recovery-note" role="alert"><p>We couldn't check for a saved payment. Try again, or call (815) 782-7790 before making another payment.</p><button type="button" onClick={()=>void initialize()}>Try again</button></div>}
+    {loadError&&<div className="nye-public-recovery-note" role="alert"><p>We could not load your reservation. Please try again.</p><button type="button" onClick={()=>void initialize()}>Try again</button><p>Still having trouble? Email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.</p></div>}
     {closedContent}
   </>;
   if(!loaded||loadError)return <BrandShell eventDate={EVENT_DATE} identity={eventConfig.identity} previewNotice={eventConfig.reviewNotice} step="lanes" summary={{caption:eventConfig.identity.name.toUpperCase(),value:labels.monthDay,note:`${labels.year} · Plainfield, IL`}} locked onNavigate={()=>{}} canNavigate={()=>false}>
-    <h2 className="page-heading" tabIndex={-1}>{loadError?'Let’s check your reservation.':'Getting your party ready.'}</h2><p role="status">{loadError??'Checking for a saved payment and loading your party choices…'}</p>
-    {loadError&&<button className="primary" onClick={()=>void initialize()}>Try again</button>}</BrandShell>;
+    <h2 className="page-heading" tabIndex={-1}>{loadError?'Let’s try that again.':'Getting your party ready.'}</h2><p role="status">{loadError??'Loading your reservation…'}</p>
+    {loadError&&<><button className="primary" onClick={()=>void initialize()}>Try again</button><p>Still having trouble? Email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.</p></>}</BrandShell>;
   if(discovered)return <div className={`nye-brand ${eventConfig.identity.theme==='jingle'?'jingle-booking':''}`}><div className="flow" style={{maxWidth:760,margin:'0 auto',minHeight:'100vh'}}>
     <img src="/logo/twisted-pin-horizontal-white.webp" alt="Twisted Pin" width="178" height="70"/>
     <h1 className="page-heading">Your saved reservation.</h1>
