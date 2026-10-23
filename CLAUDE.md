@@ -101,6 +101,7 @@ Voice, the wording bans and the `/playbook` exemption live in `../CLAUDE.md` and
 
 ## Traps (the ones that have bitten)
 
+- **Reservation loading has a separate browsing trade-off.** Before changing `/reserve/` availability, read `Context/session-handoffs/2026-10-23-reserve-availability-closeout.md`: current behavior, rejected experiments, measurement limits, payment guards and rollback. Earlier performance handoffs are historical. General venue phone versus technical email support is governed by `Context/voice.md`.
 - **Never hardcode a booking/inquiry platform URL in prose.** "Plan an Event" resolves through `PLAN_EVENT_URL` in `src/lib/links.ts` (`AVERY_ON_URL` = Zite / `AVERY_OFF_URL` = Heyflow); one line flips ~19 CTAs. Blog posts and `public/llms.txt` link **`/events/`**, whose closing CTA carries the live toggle — a hardcoded URL bypasses the switch and mis-routes real leads (2026-06-12).
 - **`public/email/` is load-bearing.** Gmail renders images only from a public URL, so the 8 signature PNGs serve from `twistedpin.com/email/*` — never Drive / Dropbox / Docs (blocked). Filenames are stable, so swapping an icon needs no re-paste.
 - **THE MOBILE TRAP (signatures).** Gmail's phone app does **not** scale a too-wide message down — it forces the table to the column width and lets cells fight. Table `max-width:100%`, **no width on the logo cell** (logo `max-width:100%`, rides 200px→45px), `white-space:nowrap` on name / title / contact. **Do not re-add a width to that cell.** No media queries — Gmail strips `<style>` from pasted signatures.

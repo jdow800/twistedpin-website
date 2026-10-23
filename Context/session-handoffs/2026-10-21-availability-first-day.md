@@ -1,5 +1,7 @@
 # Initial availability: selected day first
 
+> For the current ordinary reserve loading decision and performance evidence, read the [October 23 closeout](2026-10-23-reserve-availability-closeout.md). The selected-day behavior below remains a historical release receipt and is not the final `/reserve/` browsing design.
+
 > Historical release receipt restored from 4b17292. The opening and Jingle work described as separately owned or protected below subsequently shipped. Use the [events closeout](2026-10-22-events-closeout.md) for current status; the recorded timing samples remain single observations, not current benchmarks.
 
 Jon authorized implementation and deployment after reviewing the source audit.

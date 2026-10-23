@@ -10,6 +10,12 @@ entries — they're the baseline.
 
 ---
 
+## 2026-10-23 — Reservation availability journey closeout
+
+**URL:** `https://www.twistedpin.com/reserve/`. These are booking-journey and API measurements, not Lighthouse scores. The [canonical closeout](session-handoffs/2026-10-23-reserve-availability-closeout.md) records the source/deployment regression, rejected monthly/parallel experiments, accepted package-first restoration, TPRS guard reuse, separate cold/server-warm/browser-cache results, validation and future work.
+
+The accepted product trade-off is faster package browsing with a possible additional wait for exact times. Do not compare unmatched cache states or treat the browser-clock daytime samples as actual daytime traffic. The current handoff supersedes earlier proposed performance priorities; the older entries remain historical evidence.
+
 ## 2026-05-17 (evening) — Per-page audit pass: /menu/ LCP fix (transform animation gates Chrome's LCP register)
 
 **URL:** `https://www.twistedpin.com/menu/`

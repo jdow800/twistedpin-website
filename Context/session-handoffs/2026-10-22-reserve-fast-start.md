@@ -1,5 +1,7 @@
 # Ordinary reserve availability release and rollback
 
+> Historical first release. Ordinary browsing was subsequently restored with a separate flag and a different accepted trade-off. Read the [October 23 closeout](2026-10-23-reserve-availability-closeout.md) for current behavior, results and rollback. The deployment rollback targets below belong to this earlier release boundary.
+
 Jon authorized a first improvement to `/reserve/` after the cross-repository
 availability investigation and independent Claude Opus 5.5 Ultra Code review.
 This release removes a request stage from the common no-times-today journey and
