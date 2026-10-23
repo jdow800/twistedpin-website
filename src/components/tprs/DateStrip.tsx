@@ -102,6 +102,26 @@ export default function DateStrip({
     // A deliberate event-date selection must not jump to an ordinary day.
     if (selected && specialDateLabel(specialDates, selected, today)) return;
 
+    if (availability.reserveFastStart) {
+      // The shortcut and month search share one decision owner. A chosen
+      // future date, a positive today, or a manual pick must never be replaced.
+      if ((selected && selected !== today) || availability.isAvailable(today)) {
+        forwardedFor.current = probeKey;
+        return;
+      }
+      if (availability.isPending(today)) return;
+      const suggested = availability.suggestedDate;
+      if (suggested && !specialDateLabel(specialDates, suggested, today)) {
+        forwardedFor.current = probeKey;
+        setForwardNote({ fromToday: true, to: suggested });
+        onPick(suggested);
+        return;
+      }
+      // First positive tomorrow may reveal before its other reads finish.
+      // Until then, do not let an explicitly opened month win this race.
+      if (availability.checkingNextDay) return;
+    }
+
     // Decide-on-first: walk the horizon months IN ORDER and jump to the first
     // open day in the first month that has one — reaching into the next month
     // ONLY if this one loaded empty. So a product open this month costs ONE
@@ -155,6 +175,7 @@ export default function DateStrip({
 
   // A deliberate pick dismisses the auto-forward note (the guest took over).
   const manualPick = (date: string) => {
+    if (availability.reserveFastStart) forwardedFor.current = probeKey;
     setForwardNote(null);
     onPick(date);
   };
@@ -260,7 +281,9 @@ export default function DateStrip({
 
       {forwardNote && (
         <p className="tprs-datestrip-note" role="status">
-          {forwardNote.fromToday
+          {availability.reserveFastStart
+            ? forwardNote.fromToday ? "No more online times today" : "No online times on that date"
+            : forwardNote.fromToday
             ? "Today's booked out online"
             : "That date's booked out online"}{" "}
           — next opening is <strong>{formatDateLong(forwardNote.to)}</strong>.

@@ -42,6 +42,7 @@ export const getAvailabilityDetails = async (id,date) => { if(current().fail) th
 const built = await build({
   stdin: { contents:source, resolveDir:site, sourcefile:'booking-policy-fixture.tsx', loader:'tsx' },
   bundle:true, platform:'browser', format:'iife', write:false, jsx:'automatic',
+  define:{'import.meta.env.DEV':'false'},
   plugins:[{name:'isolated-api',setup(b){
     b.onResolve({filter:/tprs\/client$/},()=>({path:'fixture-client',namespace:'fixture'}));
     b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:clientFixture,loader:'js'}));

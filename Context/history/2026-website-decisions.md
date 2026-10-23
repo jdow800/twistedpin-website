@@ -1,3 +1,20 @@
+## 2026-10-22 - Ordinary reserve availability: smaller request chain
+
+Jon authorized a first production improvement scoped to `/reserve/`, with safe
+fallbacks and rollback. Opt only that page into grouped-catalog ID reuse, selected
+day priority without the 1.2-second month overlap, one direct tomorrow check when
+today is conclusively unavailable, and removal of the seven-date detail prefetch.
+Packages still require an authoritative exact-day response. A deliberate date
+choice owns the selection; unknown-date clicking is deferred from this release.
+The existing monthly search remains the fallback and full-calendar source.
+
+Keep the existing payment recovery barrier, availability policies, booking caps,
+holds and checkout validation. No backend, database, cache TTL, birthday, Jingle
+or NYE flow changes. `PUBLIC_RESERVE_FAST_START=false` plus redeploy selects the
+retained old path; the prior deployment and a release-commit revert provide the
+hosting/source rollback. Validation and release evidence belong in
+`Context/session-handoffs/2026-10-22-reserve-fast-start.md`.
+
 ## 2026-10-22 - Dated school-break pricing and Penny exclusions
 
 Jon requested the remaining public holiday-pricing work and confirmed December 6

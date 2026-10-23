@@ -38,6 +38,7 @@ const SLOTS_VISIBLE = 6;
 const DESC_SENTENCES = 3;
 
 interface Props {
+  reserveFastStart?: boolean;
   date: string;
   specialDates?: Readonly<Record<string, string>>;
   category: BookableCategory | null;
@@ -76,6 +77,7 @@ interface Props {
 }
 
 export default function DetailStep({
+  reserveFastStart = false,
   date,
   specialDates,
   category,
@@ -186,13 +188,13 @@ export default function DetailStep({
   // per day. Bounded (7 days, available-only — skips days whose month verdict
   // hasn't loaded), and re-fires are absorbed by the cache.
   useEffect(() => {
-    if (!slots) return;
+    if (reserveFastStart || !slots) return;
     for (let i = 1, d = addDays(date, 1); i <= 7; i++, d = addDays(d, 1)) {
       if (availability.isAvailable(d)) {
         void loadDaySlots(product.id, d).catch(() => {});
       }
     }
-  }, [slots, date, product.id, availability]);
+  }, [reserveFastStart, slots, date, product.id, availability]);
 
   // Available-only, and for today drop past times (belt-and-suspenders on the
   // backend's lead-time rule — a stale slot can't sneak through).

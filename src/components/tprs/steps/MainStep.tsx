@@ -22,8 +22,11 @@ import {
   type BookingPageConfig,
 } from "../../../tprs/pageConfig";
 import { laneMaxFor } from "../state";
+import { specialDateLabel } from "../calendarDestinations";
 
 interface Props {
+  /** Opted in only by the ordinary /reserve entry. */
+  reserveFastStart?: boolean;
   productCodes?: number[];
   specialDates?: Readonly<Record<string, string>>;
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
@@ -83,6 +86,7 @@ function durationLabel(mins: number | null): string | null {
 }
 
 export default function MainStep({
+  reserveFastStart = false,
   productCodes,
   specialDates,
   defaultDate,
@@ -114,10 +118,35 @@ export default function MainStep({
   // when NOTHING on the page is bookable (union); the grid below scopes to
   // what's bookable on the SELECTED day.
   const expectedProductIds = useMemo(() => categories?.flatMap(cat => cat.products.map(product => product.id)), [categories]);
-  const availability = useDayAvailability(productCodes, undefined, {
+  const catalogComplete = !!categories && (!productCodes?.length || productCodes.every(code =>
+    categories.some(category => category.products.some(product => product.code === code))));
+  const dayAvailability = useDayAvailability(productCodes, undefined, {
     priorityDate: prioritizeDay ? day : undefined,
     expectedProductIds: productCodes?.length ? expectedProductIds : undefined,
+    reserveFastStart,
+    // The complete grouped catalog already carries the exact IDs. Admin can
+    // legitimately remove a package from this view; retain the existing flat
+    // lookup and cross-check for that case instead of blocking the whole page.
+    catalogProductIds: reserveFastStart
+      ? categories === null || error ? null : catalogComplete ? expectedProductIds ?? null : undefined
+      : undefined,
+    skipNextDayProbe: !catalogComplete || !!specialDateLabel(specialDates, addDays(today, 1), today),
   });
+  // A failed grouped catalog has already failed, not kept loading.
+  // Both retry controls restart that one catalog source; no fallback probe may
+  // interpret a failed catalog request as a fully unavailable day.
+  const availability = reserveFastStart && error ? {
+    ...dayAvailability,
+    loadingProbe: false,
+    isPending: () => false,
+    errorFor: () => error,
+    retry: () => setCatalogAttempt(attempt => attempt + 1),
+  } : reserveFastStart && categories !== null && !catalogComplete ? {
+    ...dayAvailability,
+    // Refresh both catalog views after a fallback mismatch: the grouped
+    // loading state resets the hook, which resolves the flat catalog again.
+    retry: () => setCatalogAttempt(attempt => attempt + 1),
+  } : dayAvailability;
   const probeKey =
     productCodes && productCodes.length > 0
       ? `codes:${productCodes.join(",")}`
@@ -160,13 +189,16 @@ export default function MainStep({
               .filter((c) => c.products.length > 0)
           : res.categories,
       )
-      .then((cats) => { if (!ctrl.signal.aborted) setCategories(cats); })
+      .then((cats) => {
+        if (ctrl.signal.aborted) return;
+        setCategories(cats);
+      })
       .catch(() => {
         if (ctrl.signal.aborted) return;
         setError("We couldn't load the packages. Please try again.");
       });
     return () => ctrl.abort();
-  }, [productCodes, catalogAttempt]);
+  }, [productCodes, catalogAttempt, reserveFastStart]);
 
   // PREFETCH the selected day's time slots for the page's products while the
   // guest is still choosing a card — by the time they tap one, DetailStep's
@@ -382,7 +414,7 @@ export default function MainStep({
       {!error && categories === null && (
         <p className="tprs-loading">{selectionCopy?.loading ?? "Loading lanes…"}</p>
       )}
-      {categories?.length === 0 && (
+      {categories?.length === 0 && !(reserveFastStart && error) && (
         <p className="tprs-empty">
           {selectionCopy?.empty ?? "No lanes are bookable online right now."}
         </p>

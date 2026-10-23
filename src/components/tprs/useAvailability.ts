@@ -21,7 +21,7 @@ import {
   type BookingDatePolicy,
 } from "../../tprs/client";
 import type { AvailabilitySlot } from "../../tprs/schemas";
-import { todayIso, monthOf, shiftMonth } from "./format";
+import { addDays, todayIso, monthOf, shiftMonth } from "./format";
 
 // ── Module-level availability cache ──────────────────────────────────────────
 // Shared across every hook instance and surviving DetailStep unmount/remount.
@@ -129,6 +129,12 @@ export interface DayAvailability {
   errorFor?: (isoDate: string) => string | null;
   retry?: () => void;
   requestCalendar?: () => void;
+  /** Ordinary /reserve opt-in for selected-day priority and its next-day hint. */
+  reserveFastStart?: boolean;
+  /** Exact tomorrow availability found after an exhausted initial today. */
+  suggestedDate?: string | null;
+  /** Prevent month-based forwarding while the exact tomorrow probe is pending. */
+  checkingNextDay?: boolean;
 }
 
 export interface DayAvailabilityOptions {
@@ -136,6 +142,12 @@ export interface DayAvailabilityOptions {
   priorityDate?: string;
   /** Already-rendered grouped catalog detects inconsistent/partial probe reads. */
   expectedProductIds?: readonly string[];
+  /** Only the /reserve entry opts in; other booking pages retain their behavior. */
+  reserveFastStart?: boolean;
+  /** undefined = resolve as before; null = wait for the grouped catalog. */
+  catalogProductIds?: readonly string[] | null;
+  /** Do not auto-select an event destination as an ordinary lane alternative. */
+  skipNextDayProbe?: boolean;
 }
 export const DAY_PRIORITY_BUDGET_MS = 1_200;
 type DayRead = { details?: DayDetails; failed?: boolean };
@@ -148,6 +160,10 @@ export function useDayAvailability(
 ): DayAvailability {
   const today = useMemo(todayIso, []);
   const priorityDate = options?.priorityDate;
+  const reserveFastStart = options?.reserveFastStart === true;
+  const skipNextDayProbe = options?.skipNextDayProbe === true;
+  const catalogProductIds = options?.catalogProductIds;
+  const catalogKey = catalogProductIds === undefined ? "resolve" : catalogProductIds === null ? "loading" : catalogProductIds.join(",");
   const scope = productId ?? `codes:${productCodes?.join(",") ?? "catalog"}`;
   const [resolvedScope, setResolvedScope] = useState("");
   const [ids, setProbeIds] = useState<string[] | undefined>(undefined);
@@ -166,6 +182,9 @@ export function useDayAvailability(
   const [releasedPriority, setReleasedPriority] = useState("");
   const calendarRequested = useRef(false);
   const [calendarVersion, setCalendarVersion] = useState(0);
+  const initialToday = useRef(priorityDate === today);
+  const tomorrowAttempted = useRef(false);
+  const [nextDay, setNextDay] = useState<{ key: string; date: string | null; pending: boolean }>({ key: "", date: null, pending: false });
 
   useEffect(() => {
     const version = ++generation.current;
@@ -175,6 +194,10 @@ export function useDayAvailability(
     setMonthErrors({});
     requested.current = new Set();
     if (productId) { setProbeIds([productId]); return; }
+    if (reserveFastStart && catalogProductIds !== undefined) {
+      setProbeIds(catalogProductIds === null ? undefined : [...catalogProductIds]);
+      return;
+    }
     const ctrl = new AbortController();
     setProbeIds(undefined);
     const resolve = productCodes?.length
@@ -194,17 +217,19 @@ export function useDayAvailability(
     });
     return () => ctrl.abort();
     // The stable scope captures product IDs/codes without reloading on array identity.
-  }, [scope, productId, probeRetry]);
+  }, [scope, productId, probeRetry, reserveFastStart, catalogKey]);
 
   useEffect(() => {
+    if (priorityDate !== today) initialToday.current = false;
     if (!priorityDate || !probeIds) return;
     let stale = false;
     setDayReads({ key: priorityKey, byId: {} });
     setReleasedPriority("");
+    setNextDay({ key: priorityKey, date: null, pending: false });
     const release = () => { if (!stale) setReleasedPriority(priorityKey); };
-    // Prefer a bounded set of day reads. A slow day cannot hold the rest of
-    // the calendar indefinitely; explicit calendar browsing bypasses this.
-    const timer = setTimeout(release, DAY_PRIORITY_BUDGET_MS);
+    // Ordinary /reserve waits for these bounded reads rather than starting
+    // competing month requests after a timer. Explicit browsing still bypasses.
+    const timer = reserveFastStart ? undefined : setTimeout(release, DAY_PRIORITY_BUDGET_MS);
     const reads = probeIds.map(async pid => {
       let result: DayRead;
       try { result = { details: await loadDayAvailability(pid, priorityDate) }; }
@@ -213,10 +238,43 @@ export function useDayAvailability(
         key: priorityKey,
         byId: { ...(prev.key === priorityKey ? prev.byId : {}), [pid]: result },
       }));
+      return result;
     });
-    void Promise.all(reads).then(() => { clearTimeout(timer); release(); });
+    void Promise.all(reads).then(async results => {
+      clearTimeout(timer);
+      if (stale) return;
+      if (!reserveFastStart) { release(); return; }
+      // Let the complete selected-day group settle before starting calendar
+      // work. Failure stays unknown and cannot trigger an exact alternative.
+      const unavailable = results.length > 0 && results.every(result =>
+        result.details && (result.details.policy || !result.details.slots.some(slot => slot.available)));
+      if (!unavailable) { release(); return; }
+      if (!initialToday.current || priorityDate !== today || tomorrowAttempted.current
+        || skipNextDayProbe || results.some(result => result.details?.policy)) { release(); return; }
+
+      // One exact near-term alternative, not a day-by-day range scan. The
+      // first verified positive is safe to suggest, and the normal priority
+      // read then reuses this same cache/promise. Failed/empty tomorrow reads
+      // fall back to the existing monthly search without inventing a sellout.
+      tomorrowAttempted.current = true;
+      const tomorrow = addDays(today, 1);
+      let foundOpening = false;
+      setNextDay({ key: priorityKey, date: null, pending: true });
+      await Promise.all(probeIds.map(async pid => {
+        try {
+          const details = await loadDayAvailability(pid, tomorrow);
+          if (!details.policy && details.slots.some(slot => slot.available)) {
+            foundOpening = true;
+            if (!stale) setNextDay({ key: priorityKey, date: tomorrow, pending: true });
+          }
+        } catch { /* A failed alternative stays unknown; month search may continue. */ }
+      }));
+      if (stale) return;
+      setNextDay({ key: priorityKey, date: foundOpening ? tomorrow : null, pending: false });
+      release();
+    });
     return () => { stale = true; clearTimeout(timer); };
-  }, [probeIds, priorityDate, priorityKey, retryVersion]);
+  }, [probeIds, priorityDate, priorityKey, retryVersion, reserveFastStart, skipNextDayProbe, today]);
 
   const ensureMonth = useCallback((month: string) => {
     queuedMonths.current.add(month);
@@ -308,6 +366,15 @@ export function useDayAvailability(
     Array.isArray(probeIds) && probeIds.every(pid => !!months[month]?.[pid]),
   [probeIds, months]);
 
+  // The last today result may render before Promise.all starts the tomorrow
+  // work. Keep month-based forwarding paused across that scheduling boundary.
+  const awaitingNextDayProbe = reserveFastStart && initialToday.current && priorityDate === today
+    && !tomorrowAttempted.current && !skipNextDayProbe && !!probeIds?.length
+    && probeIds.every(pid => {
+      const details = priorityRead(pid, today)?.details;
+      return details && !details.policy && !details.slots.some(slot => slot.available);
+    });
+
   return {
     isAvailable, isPending, isProductAvailable, nextOpenFor, productPriceFor,
     productPolicyFor, priceFor, ensureMonth, isMonthLoaded,
@@ -326,5 +393,8 @@ export function useDayAvailability(
       setRetryVersion(n => n + 1);
     },
     requestCalendar: () => { calendarRequested.current = true; setCalendarVersion(n => n + 1); },
+    reserveFastStart,
+    suggestedDate: nextDay.key === priorityKey ? nextDay.date : null,
+    checkingNextDay: awaitingNextDayProbe || (nextDay.key === priorityKey && nextDay.pending),
   };
 }

@@ -60,9 +60,11 @@ interface Props {
   /** The page's config (ADR-0025 §1) — `productCodes` curates a page (e.g.
    *  /nye); absent = full bookable catalog. Same wizard, different config. */
   config?: BookingPageConfig;
+  /** Staged ordinary /reserve/ read scheduling; other booking pages stay opt-out. */
+  reserveFastStart?: boolean;
 }
 
-export default function BookingWizard({ config = bookingPageConfig }: Props) {
+export default function BookingWizard({ config = bookingPageConfig, reserveFastStart = false }: Props) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
   const [recovery, setRecovery] = useState<CheckoutRecovery | null>(null);
   const [discovered, setDiscovered] = useState<ActiveCheckoutAttempt | null>(null);
@@ -656,6 +658,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
         <div className="tprs-main">
       {state.step === "main" && (
         <MainStep
+          reserveFastStart={reserveFastStart}
           productCodes={config.productCodes}
           specialDates={specialDates}
           defaultDate={config.defaultDate}
@@ -679,6 +682,7 @@ export default function BookingWizard({ config = bookingPageConfig }: Props) {
 
       {state.step === "detail" && state.date && state.product && (
         <DetailStep
+          reserveFastStart={reserveFastStart}
           onClearSlot={() => dispatch({ type: "CLEAR_SLOT" })}
           date={state.date}
           specialDates={specialDates}
