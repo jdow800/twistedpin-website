@@ -39,6 +39,7 @@ const DESC_SENTENCES = 3;
 
 interface Props {
   reserveFastStart?: boolean;
+  reserveBrowseFirst?: boolean;
   date: string;
   specialDates?: Readonly<Record<string, string>>;
   category: BookableCategory | null;
@@ -78,6 +79,7 @@ interface Props {
 
 export default function DetailStep({
   reserveFastStart = false,
+  reserveBrowseFirst = false,
   date,
   specialDates,
   category,
@@ -112,7 +114,9 @@ export default function DetailStep({
 
   // The detail calendar probes THIS product — its availability + per-day
   // pricing — so days/prices match exactly what the slot grid will offer.
-  const availability = useDayAvailability(undefined, product.id);
+  // Reuse Main's advisory calendar summaries. The time grid below still
+  // requires its exact policy-bearing day response before offering a time.
+  const availability = useDayAvailability(undefined, product.id, { reserveBrowseFirst });
 
   // Long copy capped to ~3 sentences with a loud "Read more" (D). The card
   // carries the short one-liner; the detail screen carries the full pitch.

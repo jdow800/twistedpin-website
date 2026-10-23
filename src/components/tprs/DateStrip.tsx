@@ -102,7 +102,7 @@ export default function DateStrip({
     // A deliberate event-date selection must not jump to an ordinary day.
     if (selected && specialDateLabel(specialDates, selected, today)) return;
 
-    if (availability.reserveFastStart) {
+    if (availability.reserveFastStart || availability.reserveBrowseFirst) {
       // The shortcut and month search share one decision owner. A chosen
       // future date, a positive today, or a manual pick must never be replaced.
       if ((selected && selected !== today) || availability.isAvailable(today)) {
@@ -133,7 +133,11 @@ export default function DateStrip({
     for (let i = 0; i < FORWARD_HORIZON_MONTHS; i++, m = shiftMonth(m, 1)) {
       availability.ensureMonth(m);
       if (!availability.isMonthLoaded(m)) return; // wait for THIS month, then re-run
-      firstOpen = firstOpenDay(m, today, availability.isAvailable);
+      // An automatic ordinary-date suggestion must never enter a separately
+      // sold event. Explicitly picking its labeled date still opens the handoff.
+      firstOpen = firstOpenDay(m, today, date =>
+        !(availability.reserveBrowseFirst && specialDateLabel(specialDates, date, today))
+        && availability.isAvailable(date));
       if (firstOpen) break; // found it — don't fetch further months
       // month loaded but empty → fall through to the next one
     }
@@ -175,7 +179,7 @@ export default function DateStrip({
 
   // A deliberate pick dismisses the auto-forward note (the guest took over).
   const manualPick = (date: string) => {
-    if (availability.reserveFastStart) forwardedFor.current = probeKey;
+    if (availability.reserveFastStart || availability.reserveBrowseFirst) forwardedFor.current = probeKey;
     setForwardNote(null);
     onPick(date);
   };

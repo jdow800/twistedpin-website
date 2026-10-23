@@ -23,7 +23,7 @@ import { useQuote } from "./useQuote";
 import { useOptInReward } from "./useOptInReward";
 import { consentLanguageFor } from "./consentCopy";
 import { useStepHistory } from "./useStepHistory";
-import { loadCheckoutRecovery, saveCheckoutRecovery, loadDiscoveredCheckout, saveDiscoveredCheckout, type CheckoutRecovery } from "./checkoutRecovery";
+import { loadCheckoutRecovery, saveCheckoutRecovery, loadDiscoveredCheckout, saveDiscoveredCheckout, CHECKOUT_RECOVERY_KEY, DISCOVERED_CHECKOUT_KEY, type CheckoutRecovery } from "./checkoutRecovery";
 import { toIsoWithOffset } from "./format";
 import type {
   CheckoutItem,
@@ -32,6 +32,8 @@ import type {
   QuoteRequest,
   QuoteResponse,
   ActiveCheckoutAttempt,
+  BookableCategory,
+  CustomerProduct,
 } from "../../tprs/schemas";
 import { getProductForms, getSlotMaxUnits, getActiveCheckoutAttempt, TprsCheckoutError } from "../../tprs/client";
 import DiscoveredCheckout from "./DiscoveredCheckout";
@@ -62,18 +64,25 @@ interface Props {
   config?: BookingPageConfig;
   /** Staged ordinary /reserve/ read scheduling; other booking pages stay opt-out. */
   reserveFastStart?: boolean;
+  /** Ordinary packages may browse while clean-tab payment discovery runs. */
+  reserveBrowseFirst?: boolean;
 }
 
-export default function BookingWizard({ config = bookingPageConfig, reserveFastStart = false }: Props) {
+export default function BookingWizard({ config = bookingPageConfig, reserveFastStart = false, reserveBrowseFirst = false }: Props) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
   const [recovery, setRecovery] = useState<CheckoutRecovery | null>(null);
   const [discovered, setDiscovered] = useState<ActiveCheckoutAttempt | null>(null);
   const [acceptedQuote, setAcceptedQuote] = useState<QuoteResponse | null>(null);
   const [recoveryLoaded, setRecoveryLoaded] = useState(false);
   const [recoveryError, setRecoveryError] = useState<string | null>(null);
-  const acceptedOrderOwnsFlow = !recoveryLoaded || !!discovered || !!recovery || state.checkoutLocked || state.step === "confirmation";
+  const [cleanLocalRecovery, setCleanLocalRecovery] = useState(false);
+  const [pendingProduct, setPendingProduct] = useState<{ category: BookableCategory; product: CustomerProduct; laneQty?: number } | null>(null);
+  // A failed discovery is still unresolved, even after its request settled.
+  // This gates effects as well as rendering; browsing must never unlock writes.
+  const acceptedOrderOwnsFlow = !recoveryLoaded || !!recoveryError || !!discovered || !!recovery || state.checkoutLocked || state.step === "confirmation";
   const [handoffDate, setHandoffDate] = useState<string | null>(null);
-  const handoffQueryChecked = useRef(false);
+  const [handoffQueryChecked, setHandoffQueryChecked] = useState(false);
+  const [entryDateQuery] = useState(() => typeof location === "undefined" ? null : new URLSearchParams(location.search).get("date"));
   const [currentDate, setCurrentDate] = useState(bookingVenueDate);
   const nyePhase = nyeOpeningState().phase;
   useEffect(() => {
@@ -98,6 +107,12 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
   }, [config.nyeDateHandoff, config.eventDateHandoffs, currentDate, nyePhase]);
   const destination = destinationForDate(handoffDate);
   const showEventHandoff = !!destination && !acceptedOrderOwnsFlow;
+  const pendingEventQuery = reserveBrowseFirst && !handoffQueryChecked && !!destinationForDate(entryDateQuery);
+  // The only early surface is the ordinary package picker. Detail, checkout
+  // and event destinations wait for discovery; accepted payments always win.
+  const canBrowsePending = reserveBrowseFirst && cleanLocalRecovery && !recoveryLoaded
+    && !recoveryError && !discovered && !recovery && !state.checkoutLocked
+    && state.step === "main" && !pendingProduct && !handoffDate && !pendingEventQuery;
   const specialDates = useMemo(() => {
     const dates: Record<string, string> = {};
     for (const route of config.eventDateHandoffs ?? []) {
@@ -120,7 +135,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
   }, [acceptedOrderOwnsFlow]);
 
   const pickDate = useCallback((date: string) => {
-    if (acceptedOrderOwnsFlow) return;
+    if (acceptedOrderOwnsFlow && !canBrowsePending) return;
     if (destinationForDate(date)) {
       // This is a destination choice. Never overwrite the ordinary draft's
       // date, time, quantity, arcade choices or guest details to show it.
@@ -131,11 +146,14 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
       return;
     }
     dispatch({ type: "SET_DATE", date });
-  }, [acceptedOrderOwnsFlow, destinationForDate]);
+  }, [acceptedOrderOwnsFlow, canBrowsePending, destinationForDate]);
 
   useEffect(() => {
-    if (!recoveryLoaded || handoffQueryChecked.current) return;
-    handoffQueryChecked.current = true;
+    if (!recoveryLoaded || recoveryError || handoffQueryChecked) return;
+    // In browse-first mode a failed check must not consume the direct event
+    // destination before a successful retry can resolve it.
+    if (reserveBrowseFirst && acceptedOrderOwnsFlow) return;
+    setHandoffQueryChecked(true);
     if (acceptedOrderOwnsFlow) return;
     const date = new URLSearchParams(location.search).get("date");
     if (destinationForDate(date)) {
@@ -143,7 +161,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
       catch { /* The date query still resolves without History API access. */ }
       setHandoffDate(date);
     }
-  }, [recoveryLoaded, acceptedOrderOwnsFlow, destinationForDate]);
+  }, [recoveryLoaded, recoveryError, acceptedOrderOwnsFlow, destinationForDate, handoffQueryChecked, reserveBrowseFirst]);
 
   useEffect(() => {
     const onPop = (event: PopStateEvent) => setHandoffDate(typeof event.state?.eventDateHandoff === 'string' ? event.state.eventDateHandoff : event.state?.nyeDateHandoff === true ? NYE_EVENT_DATE : null);
@@ -151,7 +169,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
     return () => window.removeEventListener("popstate", onPop);
   }, []);
   const initializeRecovery = useCallback(async () => {
-    setRecoveryLoaded(false); setRecoveryError(null);
+    setRecoveryLoaded(false); setRecoveryError(null); setCleanLocalRecovery(false);
     let damagedStorage = false;
     const returningPayment = new URLSearchParams(location.search).has("payment_intent_client_secret");
     try {
@@ -164,7 +182,14 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
           dispatch({ type: "RESTORE_CHECKOUT", state: saved.draft });
           return;
         }
+        // The legacy loaders treat an empty stored string as absent. Early
+        // browsing requires truly absent records, not an unreadable remnant.
+        if (reserveBrowseFirst && (sessionStorage.getItem(DISCOVERED_CHECKOUT_KEY) !== null
+          || sessionStorage.getItem(CHECKOUT_RECOVERY_KEY) !== null)) damagedStorage = true;
       } catch { damagedStorage = true; }
+      // Both synchronous records were absent and readable. This permits only
+      // public browsing while the cookie-backed accepted-order check runs.
+      setCleanLocalRecovery(!damagedStorage && !returningPayment);
       // The cart cookie can recover an accepted order even when this tab lost
       // its original request. Do this before allowing any fresh payment flow.
       let existing: ActiveCheckoutAttempt | null = null;
@@ -174,14 +199,26 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
         // safe to keep its legacy fresh flow only without any active evidence.
         if (!(err instanceof TprsCheckoutError && err.status === 404 && !damagedStorage && !returningPayment)) throw err;
       }
-      if (existing) { saveDiscoveredCheckout(sessionStorage, existing); setDiscovered(existing); }
+      if (existing) { setDiscovered(existing); saveDiscoveredCheckout(sessionStorage, existing); }
       else if (damagedStorage) setRecoveryError("We couldn't read your saved payment details. Please call (815) 782-7790 before making another payment.");
       else if (returningPayment) setRecoveryError("We found a returning payment without its saved reservation details. Please call (815) 782-7790 so we can check it before you make another payment.");
     } catch {
       setRecoveryError("We couldn't check for a saved payment. Please try again before starting another reservation, or call (815) 782-7790.");
     } finally { setRecoveryLoaded(true); }
-  }, []);
+  }, [reserveBrowseFirst]);
   useEffect(() => { void initializeRecovery(); }, [initializeRecovery]);
+  useEffect(() => {
+    if (!pendingProduct) return;
+    if (discovered || recovery || state.checkoutLocked || state.step === "confirmation") {
+      setPendingProduct(null);
+      return;
+    }
+    if (!recoveryLoaded || recoveryError) return;
+    // Delay SELECT_PRODUCT itself so pending discovery cannot push a detail
+    // history entry. A successful retry continues the same local selection.
+    dispatch({ type: "SELECT_PRODUCT", ...pendingProduct });
+    setPendingProduct(null);
+  }, [pendingProduct, recoveryLoaded, recoveryError, discovered, recovery, state.checkoutLocked, state.step]);
   const discoverAcceptedCheckout = useCallback(async () => {
     const existing = await getActiveCheckoutAttempt();
     if (!existing) throw new Error("We couldn't locate this saved payment. Please check again or call (815) 782-7790.");
@@ -564,7 +601,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
   }, [state.step, state.guest, formInvalidIds]);
 
   const handleNext = useCallback(() => {
-    if (showEventHandoff) return;
+    if (acceptedOrderOwnsFlow || showEventHandoff) return;
     // The payment step owns its own Pay action (Stripe confirm → convert →
     // CONVERTED), so there's no sticky-bar "next" out of it.
     if (state.step === "payment") return;
@@ -591,7 +628,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
     if (idx < STEP_ORDER.length - 1) {
       dispatch({ type: "GO_STEP", step: STEP_ORDER[idx + 1] });
     }
-  }, [state.step, noAddOns, guestStepInvalidIds, showEventHandoff]);
+  }, [state.step, noAddOns, guestStepInvalidIds, showEventHandoff, acceptedOrderOwnsFlow]);
 
   const handleBack = useCallback(() => {
     // Unify the in-wizard Back with the browser/OS Back: both go through history
@@ -609,7 +646,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
     [],
   );
 
-  if (!recoveryLoaded) return <p role="status">Checking your reservation…</p>;
+  if ((!recoveryLoaded && !canBrowsePending) || (!acceptedOrderOwnsFlow && (pendingProduct || pendingEventQuery))) return <p role="status">Checking your reservation…</p>;
   if (recoveryError) return <div className="tprs-pay-error" role="alert"><p>{recoveryError}</p><button type="button" className="tprs-btn tprs-btn--ghost" onClick={() => void initializeRecovery()}>Check saved payment</button></div>;
   if (discovered) return <DiscoveredCheckout attempt={discovered}
     onSave={(attempt) => { saveDiscoveredCheckout(sessionStorage, attempt); setDiscovered(attempt); }}
@@ -659,6 +696,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
       {state.step === "main" && (
         <MainStep
           reserveFastStart={reserveFastStart}
+          reserveBrowseFirst={reserveBrowseFirst}
           productCodes={config.productCodes}
           specialDates={specialDates}
           defaultDate={config.defaultDate}
@@ -674,15 +712,17 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
           onPartySize={(size) => dispatch({ type: "SET_PARTY_SIZE", size })}
           selectedDate={state.date}
           onPickDate={pickDate}
-          onSelectProduct={(category, product, laneQty) =>
-            dispatch({ type: "SELECT_PRODUCT", category, product, laneQty })
-          }
+          onSelectProduct={(category, product, laneQty) => {
+            if (canBrowsePending) setPendingProduct({ category, product, laneQty });
+            else if (!acceptedOrderOwnsFlow) dispatch({ type: "SELECT_PRODUCT", category, product, laneQty });
+          }}
         />
       )}
 
       {state.step === "detail" && state.date && state.product && (
         <DetailStep
           reserveFastStart={reserveFastStart}
+          reserveBrowseFirst={reserveBrowseFirst}
           onClearSlot={() => dispatch({ type: "CLEAR_SLOT" })}
           date={state.date}
           specialDates={specialDates}

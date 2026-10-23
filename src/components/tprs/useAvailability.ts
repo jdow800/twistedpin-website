@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import {
   getBookableProducts,
   getProducts,
+  getMonthAvailability,
   getMonthAvailabilityDetails,
   getAvailabilityDetails,
   type BookingDatePolicy,
@@ -37,13 +38,17 @@ type MonthDetails = { map: MonthMap; policiesByDate: Record<string, BookingDateP
 const monthCache = new Map<string, { at: number; details: MonthDetails }>();
 const monthInflight = new Map<string, Promise<MonthDetails>>();
 
-function loadMonth(productId: string, month: string): Promise<MonthDetails> {
-  const key = `${productId}:${month}`;
+function loadMonth(productId: string, month: string, includePolicy: boolean): Promise<MonthDetails> {
+  // Summary reads are advisory browsing data. Never let their missing policy
+  // metadata satisfy a consumer that explicitly requested the policy envelope.
+  const key = `${productId}:${month}:${includePolicy ? "policy" : "summary"}`;
   const hit = monthCache.get(key);
   if (hit && Date.now() - hit.at < MONTH_TTL_MS) return Promise.resolve(hit.details);
   const existing = monthInflight.get(key);
   if (existing) return existing;
-  const p = getMonthAvailabilityDetails(productId, month)
+  const read = includePolicy ? getMonthAvailabilityDetails(productId, month)
+    : getMonthAvailability(productId, month).then(days => ({ days, policiesByDate: {} as Record<string, BookingDatePolicy> }));
+  const p = read
     .then(({ days, policiesByDate }) => {
       const map: MonthMap = new Map(
         days.filter((d) => d.available && !policiesByDate[d.date]).map((d) => [d.date, d.priceCents]),
@@ -122,7 +127,7 @@ export interface DayAvailability {
   productPriceFor: (productId: string, isoDate: string) => number | null;
   productPolicyFor: (productId: string, isoDate: string) => BookingDatePolicy | null;
   ensureMonth: (month: string) => void;
-  /** All probe members loaded successfully, including their policy metadata. */
+  /** All probe members loaded successfully in this hook's requested mode. */
   isMonthLoaded: (month: string) => boolean;
   loadingProbe: boolean;
   /** Optional additions preserve existing calendar fixtures/callers. */
@@ -131,6 +136,8 @@ export interface DayAvailability {
   requestCalendar?: () => void;
   /** Ordinary /reserve opt-in for selected-day priority and its next-day hint. */
   reserveFastStart?: boolean;
+  /** Ordinary summary browsing; exact time reads still include policy. */
+  reserveBrowseFirst?: boolean;
   /** Exact tomorrow availability found after an exhausted initial today. */
   suggestedDate?: string | null;
   /** Prevent month-based forwarding while the exact tomorrow probe is pending. */
@@ -144,6 +151,8 @@ export interface DayAvailabilityOptions {
   expectedProductIds?: readonly string[];
   /** Only the /reserve entry opts in; other booking pages retain their behavior. */
   reserveFastStart?: boolean;
+  /** Use advisory month summaries; do not share them with policy-aware months. */
+  reserveBrowseFirst?: boolean;
   /** undefined = resolve as before; null = wait for the grouped catalog. */
   catalogProductIds?: readonly string[] | null;
   /** Do not auto-select an event destination as an ordinary lane alternative. */
@@ -161,10 +170,12 @@ export function useDayAvailability(
   const today = useMemo(todayIso, []);
   const priorityDate = options?.priorityDate;
   const reserveFastStart = options?.reserveFastStart === true;
+  const reserveBrowseFirst = options?.reserveBrowseFirst === true;
   const skipNextDayProbe = options?.skipNextDayProbe === true;
   const catalogProductIds = options?.catalogProductIds;
   const catalogKey = catalogProductIds === undefined ? "resolve" : catalogProductIds === null ? "loading" : catalogProductIds.join(",");
-  const scope = productId ?? `codes:${productCodes?.join(",") ?? "catalog"}`;
+  const scope = (productId ?? `codes:${productCodes?.join(",") ?? "catalog"}`)
+    + (reserveBrowseFirst ? ":summary" : "");
   const [resolvedScope, setResolvedScope] = useState("");
   const [ids, setProbeIds] = useState<string[] | undefined>(undefined);
   const probeIds = resolvedScope === scope ? ids : undefined;
@@ -284,7 +295,7 @@ export function useDayAvailability(
       const key = `${pid}:${month}`;
       if (requested.current.has(key)) continue;
       requested.current.add(key);
-      loadMonth(pid, month).then(details => {
+      loadMonth(pid, month, !reserveBrowseFirst).then(details => {
         if (version !== generation.current) return;
         setMonths(prev => ({ ...prev, [month]: { ...prev[month], [pid]: details } }));
       }).catch(() => {
@@ -293,7 +304,7 @@ export function useDayAvailability(
         if (version === generation.current) setMonthErrors(prev => ({ ...prev, [key]: true }));
       });
     }
-  }, [probeIds, priorityDate, priorityKey, releasedPriority, calendarVersion, retryVersion]);
+  }, [probeIds, priorityDate, priorityKey, releasedPriority, calendarVersion, retryVersion, reserveBrowseFirst]);
   useEffect(() => { queuedMonths.current.forEach(ensureMonth); }, [ensureMonth]);
 
   const priorityRead = useCallback((pid: string, date: string): DayRead | undefined =>
@@ -394,6 +405,7 @@ export function useDayAvailability(
     },
     requestCalendar: () => { calendarRequested.current = true; setCalendarVersion(n => n + 1); },
     reserveFastStart,
+    reserveBrowseFirst,
     suggestedDate: nextDay.key === priorityKey ? nextDay.date : null,
     checkingNextDay: awaitingNextDayProbe || (nextDay.key === priorityKey && nextDay.pending),
   };

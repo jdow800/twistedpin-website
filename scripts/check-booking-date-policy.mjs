@@ -36,6 +36,7 @@ const clientFixture = `
 const current = () => window.fixture;
 export const getBookableProducts = async () => ({categories:current().categories});
 export const getProducts = async () => ({products:current().categories.flatMap(c=>c.products)});
+export const getMonthAvailability = async () => [{date:current().date,available:true,priceCents:3000}];
 export const getMonthAvailabilityDetails = async (id,month) => ({days:[{date:current().date,available:true,priceCents:3000}],policiesByDate:id==='one' && current().policy?{[current().date]:current().policy}:{}});
 export const getAvailabilityDetails = async (id,date) => { if(current().fail) throw Error('offline'); return {slots:current().slots,policy:id==='one'?current().policy:null}; };
 `;

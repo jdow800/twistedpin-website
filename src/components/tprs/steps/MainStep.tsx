@@ -27,6 +27,7 @@ import { specialDateLabel } from "../calendarDestinations";
 interface Props {
   /** Opted in only by the ordinary /reserve entry. */
   reserveFastStart?: boolean;
+  reserveBrowseFirst?: boolean;
   productCodes?: number[];
   specialDates?: Readonly<Record<string, string>>;
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
@@ -87,6 +88,7 @@ function durationLabel(mins: number | null): string | null {
 
 export default function MainStep({
   reserveFastStart = false,
+  reserveBrowseFirst = false,
   productCodes,
   specialDates,
   defaultDate,
@@ -121,9 +123,12 @@ export default function MainStep({
   const catalogComplete = !!categories && (!productCodes?.length || productCodes.every(code =>
     categories.some(category => category.products.some(product => product.code === code))));
   const dayAvailability = useDayAvailability(productCodes, undefined, {
-    priorityDate: prioritizeDay ? day : undefined,
+    // Ordinary summary browsing restores the month-based package decision.
+    // Exact policy-bearing times are warmed below and remain Detail's gate.
+    priorityDate: prioritizeDay && !reserveBrowseFirst ? day : undefined,
     expectedProductIds: productCodes?.length ? expectedProductIds : undefined,
     reserveFastStart,
+    reserveBrowseFirst,
     // The complete grouped catalog already carries the exact IDs. Admin can
     // legitimately remove a package from this view; retain the existing flat
     // lookup and cross-check for that case instead of blocking the whole page.
