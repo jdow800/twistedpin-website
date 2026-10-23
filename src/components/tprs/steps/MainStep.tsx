@@ -27,6 +27,8 @@ import { specialDateLabel } from "../calendarDestinations";
 interface Props {
   /** Opted in only by the ordinary /reserve entry. */
   reserveFastStart?: boolean;
+  /** Let ordinary cards use month truth while selected-date reads run. */
+  reserveMonthFirst?: boolean;
   productCodes?: number[];
   specialDates?: Readonly<Record<string, string>>;
   /** Render each card's short-description line (pageConfig.cardDescriptions). */
@@ -87,6 +89,7 @@ function durationLabel(mins: number | null): string | null {
 
 export default function MainStep({
   reserveFastStart = false,
+  reserveMonthFirst = false,
   productCodes,
   specialDates,
   defaultDate,
@@ -124,6 +127,7 @@ export default function MainStep({
     priorityDate: prioritizeDay ? day : undefined,
     expectedProductIds: productCodes?.length ? expectedProductIds : undefined,
     reserveFastStart,
+    reserveMonthFirst,
     // The complete grouped catalog already carries the exact IDs. Admin can
     // legitimately remove a package from this view; retain the existing flat
     // lookup and cross-check for that case instead of blocking the whole page.
@@ -141,7 +145,8 @@ export default function MainStep({
     isPending: () => false,
     errorFor: () => error,
     retry: () => setCatalogAttempt(attempt => attempt + 1),
-  } : reserveFastStart && categories !== null && !catalogComplete ? {
+  } : reserveFastStart && categories !== null && !catalogComplete
+    && (!reserveMonthFirst || dayAvailability.catalogRetryRequired) ? {
     ...dayAvailability,
     // Refresh both catalog views after a fallback mismatch: the grouped
     // loading state resets the hook, which resolves the flat catalog again.
@@ -207,7 +212,9 @@ export default function MainStep({
   // catalog is too broad to warm blindly), available-products only, and
   // re-fires are absorbed by the loadDaySlots cache.
   useEffect(() => {
-    if (!dateScoped || !categories) return;
+    // The parallel-read hook already loads the selected date and applies
+    // settled exact negative/policy/error results to these cards.
+    if (reserveMonthFirst || !dateScoped || !categories) return;
     for (const cat of categories) {
       for (const p of cat.products) {
         if (availability.isProductAvailable(p.id, day) === true) {
@@ -215,7 +222,7 @@ export default function MainStep({
         }
       }
     }
-  }, [dateScoped, categories, day, availability]);
+  }, [dateScoped, categories, day, availability, reserveMonthFirst]);
 
   // Party-size mode: the page does the lane math. ceil(guests ÷ per-lane
   // capacity) per category; over the threshold the grid yields to the events

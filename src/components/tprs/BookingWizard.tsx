@@ -62,9 +62,11 @@ interface Props {
   config?: BookingPageConfig;
   /** Staged ordinary /reserve/ read scheduling; other booking pages stay opt-out. */
   reserveFastStart?: boolean;
+  /** Ordinary /reserve can display month verdicts while exact times load. */
+  reserveMonthFirst?: boolean;
 }
 
-export default function BookingWizard({ config = bookingPageConfig, reserveFastStart = false }: Props) {
+export default function BookingWizard({ config = bookingPageConfig, reserveFastStart = false, reserveMonthFirst = false }: Props) {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
   const [recovery, setRecovery] = useState<CheckoutRecovery | null>(null);
   const [discovered, setDiscovered] = useState<ActiveCheckoutAttempt | null>(null);
@@ -659,6 +661,7 @@ export default function BookingWizard({ config = bookingPageConfig, reserveFastS
       {state.step === "main" && (
         <MainStep
           reserveFastStart={reserveFastStart}
+          reserveMonthFirst={reserveMonthFirst}
           productCodes={config.productCodes}
           specialDates={specialDates}
           defaultDate={config.defaultDate}

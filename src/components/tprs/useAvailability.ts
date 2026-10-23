@@ -127,10 +127,14 @@ export interface DayAvailability {
   loadingProbe: boolean;
   /** Optional additions preserve existing calendar fixtures/callers. */
   errorFor?: (isoDate: string) => string | null;
+  /** Retry must resolve the catalog before availability can be trusted. */
+  catalogRetryRequired?: boolean;
   retry?: () => void;
   requestCalendar?: () => void;
   /** Ordinary /reserve opt-in for selected-day priority and its next-day hint. */
   reserveFastStart?: boolean;
+  /** Ordinary cards may use month truth while exact selected-date reads run. */
+  reserveMonthFirst?: boolean;
   /** Exact tomorrow availability found after an exhausted initial today. */
   suggestedDate?: string | null;
   /** Prevent month-based forwarding while the exact tomorrow probe is pending. */
@@ -144,6 +148,8 @@ export interface DayAvailabilityOptions {
   expectedProductIds?: readonly string[];
   /** Only the /reserve entry opts in; other booking pages retain their behavior. */
   reserveFastStart?: boolean;
+  /** Load months and the selected date together; either may reveal a card. */
+  reserveMonthFirst?: boolean;
   /** undefined = resolve as before; null = wait for the grouped catalog. */
   catalogProductIds?: readonly string[] | null;
   /** Do not auto-select an event destination as an ordinary lane alternative. */
@@ -161,6 +167,7 @@ export function useDayAvailability(
   const today = useMemo(todayIso, []);
   const priorityDate = options?.priorityDate;
   const reserveFastStart = options?.reserveFastStart === true;
+  const reserveMonthFirst = options?.reserveMonthFirst === true;
   const skipNextDayProbe = options?.skipNextDayProbe === true;
   const catalogProductIds = options?.catalogProductIds;
   const catalogKey = catalogProductIds === undefined ? "resolve" : catalogProductIds === null ? "loading" : catalogProductIds.join(",");
@@ -178,6 +185,10 @@ export function useDayAvailability(
   const queuedMonths = useRef(new Set<string>());
   const [monthErrors, setMonthErrors] = useState<Record<string, boolean>>({});
   const [dayReads, setDayReads] = useState<{ key: string; byId: Record<string, DayRead> }>({ key: "", byId: {} });
+  // Retain settled failures until explicit retry. Later month responses must
+  // not repeatedly refetch a failed exact date in the background.
+  const monthFirstReads = useRef(new Map<string, Promise<DayRead>>());
+  const monthFirstReadKey = useRef("");
   const priorityKey = `${scope}:${priorityDate ?? ""}`;
   const [releasedPriority, setReleasedPriority] = useState("");
   const calendarRequested = useRef(false);
@@ -193,6 +204,9 @@ export function useDayAvailability(
     setMonths({});
     setMonthErrors({});
     requested.current = new Set();
+    monthFirstReads.current = new Map();
+    monthFirstReadKey.current = "";
+    if (reserveMonthFirst) setDayReads({ key: "", byId: {} });
     if (productId) { setProbeIds([productId]); return; }
     if (reserveFastStart && catalogProductIds !== undefined) {
       setProbeIds(catalogProductIds === null ? undefined : [...catalogProductIds]);
@@ -217,9 +231,10 @@ export function useDayAvailability(
     });
     return () => ctrl.abort();
     // The stable scope captures product IDs/codes without reloading on array identity.
-  }, [scope, productId, probeRetry, reserveFastStart, catalogKey]);
+  }, [scope, productId, probeRetry, reserveFastStart, reserveMonthFirst, catalogKey]);
 
   useEffect(() => {
+    if (reserveMonthFirst) return;
     if (priorityDate !== today) initialToday.current = false;
     if (!priorityDate || !probeIds) return;
     let stale = false;
@@ -274,11 +289,42 @@ export function useDayAvailability(
       release();
     });
     return () => { stale = true; clearTimeout(timer); };
-  }, [probeIds, priorityDate, priorityKey, retryVersion, reserveFastStart, skipNextDayProbe, today]);
+  }, [probeIds, priorityDate, priorityKey, retryVersion, reserveFastStart, reserveMonthFirst, skipNextDayProbe, today]);
+
+  useEffect(() => {
+    if (!reserveMonthFirst || !priorityDate || !probeIds) return;
+    let stale = false;
+    // Revisited dates go through the shared loader's TTL, not a forever-held
+    // successful promise from an earlier selection in this hook.
+    if (monthFirstReadKey.current !== priorityKey) {
+      monthFirstReadKey.current = priorityKey;
+      monthFirstReads.current = new Map();
+    }
+    setDayReads(prev => prev.key === priorityKey ? prev : { key: priorityKey, byId: {} });
+    for (const pid of probeIds) {
+      const key = `${priorityKey}:${pid}`;
+      let read = monthFirstReads.current.get(key);
+      if (!read) {
+        read = loadDayAvailability(pid, priorityDate)
+          .then(details => ({ details }), () => ({ failed: true }));
+        monthFirstReads.current.set(key, read);
+      }
+      void read.then(result => {
+        if (stale) return;
+        setDayReads(prev => ({
+          key: priorityKey,
+          byId: { ...(prev.key === priorityKey ? prev.byId : {}), [pid]: result },
+        }));
+      });
+    }
+    // Month results do not restart these reads. An old selected date's
+    // completion must never change the new date's cards.
+    return () => { stale = true; };
+  }, [reserveMonthFirst, probeIds, priorityDate, priorityKey, retryVersion]);
 
   const ensureMonth = useCallback((month: string) => {
     queuedMonths.current.add(month);
-    if (!probeIds || (priorityDate && releasedPriority !== priorityKey && !calendarRequested.current)) return;
+    if (!probeIds || (!reserveMonthFirst && priorityDate && releasedPriority !== priorityKey && !calendarRequested.current)) return;
     const version = generation.current;
     for (const pid of probeIds) {
       const key = `${pid}:${month}`;
@@ -293,7 +339,7 @@ export function useDayAvailability(
         if (version === generation.current) setMonthErrors(prev => ({ ...prev, [key]: true }));
       });
     }
-  }, [probeIds, priorityDate, priorityKey, releasedPriority, calendarVersion, retryVersion]);
+  }, [probeIds, priorityDate, priorityKey, releasedPriority, calendarVersion, retryVersion, reserveMonthFirst]);
   useEffect(() => { queuedMonths.current.forEach(ensureMonth); }, [ensureMonth]);
 
   const priorityRead = useCallback((pid: string, date: string): DayRead | undefined =>
@@ -304,14 +350,23 @@ export function useDayAvailability(
     if (date < today) return false;
     if (resolvedScope !== scope || !probeIds) return undefined;
     if (date === priorityDate) {
-      const details = priorityRead(pid, date)?.details;
+      const read = priorityRead(pid, date);
+      const details = read?.details;
+      if (reserveMonthFirst) {
+        // A newer month policy must not be undone by a cached exact positive.
+        const month = months[monthOf(date)]?.[pid];
+        if (month?.policiesByDate[date]) return false;
+        if (read?.failed) return month && !month.map.has(date) ? false : undefined;
+        if (details) return !details.policy && details.slots.some(slot => slot.available);
+        return month ? month.map.has(date) : undefined;
+      }
       // A failed or pending day remains unknown even when an older month
       // response says open. The complete day result owns this date.
       return details ? !details.policy && details.slots.some(slot => slot.available) : undefined;
     }
     const details = months[monthOf(date)]?.[pid];
     return details ? details.map.has(date) : undefined;
-  }, [today, resolvedScope, scope, probeIds, priorityDate, priorityRead, months]);
+  }, [today, resolvedScope, scope, probeIds, priorityDate, priorityRead, months, reserveMonthFirst]);
 
   const isAvailable = useCallback((date: string): boolean =>
     date >= today && (probeIds?.some(pid => isProductAvailable(pid, date) === true) ?? false),
@@ -322,9 +377,15 @@ export function useDayAvailability(
     if (!probeIds) return !probeError;
     // Positive union members reveal progressively; unavailable needs all.
     if (isAvailable(date)) return false;
-    return probeIds.some(pid => date === priorityDate
-      ? !priorityRead(pid, date)
-      : !months[monthOf(date)]?.[pid] && !monthErrors[`${pid}:${monthOf(date)}`]);
+    return probeIds.some(pid => {
+      if (date === priorityDate) {
+        // A monthly negative cannot move the guest away from today while an
+        // exact read could still reveal an opening. Positive union members
+        // already returned above, so monthly-positive cards remain usable.
+        return !priorityRead(pid, date);
+      }
+      return !months[monthOf(date)]?.[pid] && !monthErrors[`${pid}:${monthOf(date)}`];
+    });
   }, [today, probeIds, probeError, isAvailable, priorityDate, priorityRead, months, monthErrors]);
 
   const nextOpenFor = useCallback((pid: string, fromIso: string): string | null => {
@@ -339,19 +400,28 @@ export function useDayAvailability(
   }, [today, months]);
 
   const productPriceFor = useCallback((pid: string, date: string): number | null => {
+    if (reserveMonthFirst && months[monthOf(date)]?.[pid]?.policiesByDate[date]) return null;
     if (date === priorityDate) {
-      const details = priorityRead(pid, date)?.details;
-      const prices = details?.policy ? [] : details?.slots.filter(slot => slot.available).map(slot => slot.priceCents) ?? [];
-      return prices.length ? Math.min(...prices) : null;
+      const read = priorityRead(pid, date);
+      if (!reserveMonthFirst || read) {
+        const details = read?.details;
+        const prices = details?.policy ? [] : details?.slots.filter(slot => slot.available).map(slot => slot.priceCents) ?? [];
+        return prices.length ? Math.min(...prices) : null;
+      }
     }
     const price = months[monthOf(date)]?.[pid]?.map.get(date);
     return typeof price === "number" ? price : null;
-  }, [months, priorityDate, priorityRead]);
+  }, [months, priorityDate, priorityRead, reserveMonthFirst]);
 
-  const productPolicyFor = useCallback((pid: string, date: string): BookingDatePolicy | null =>
-    date === priorityDate ? priorityRead(pid, date)?.details?.policy ?? null
-      : months[monthOf(date)]?.[pid]?.policiesByDate[date] ?? null,
-  [months, priorityDate, priorityRead]);
+  const productPolicyFor = useCallback((pid: string, date: string): BookingDatePolicy | null => {
+    const monthPolicy = months[monthOf(date)]?.[pid]?.policiesByDate[date];
+    if (reserveMonthFirst && monthPolicy) return monthPolicy;
+    if (date === priorityDate) {
+      const details = priorityRead(pid, date)?.details;
+      if (details || !reserveMonthFirst) return details?.policy ?? null;
+    }
+    return monthPolicy ?? null;
+  }, [months, priorityDate, priorityRead, reserveMonthFirst]);
 
   const priceFor = useCallback((date: string): number | null => {
     let min: number | null = null;
@@ -368,7 +438,7 @@ export function useDayAvailability(
 
   // The last today result may render before Promise.all starts the tomorrow
   // work. Keep month-based forwarding paused across that scheduling boundary.
-  const awaitingNextDayProbe = reserveFastStart && initialToday.current && priorityDate === today
+  const awaitingNextDayProbe = !reserveMonthFirst && reserveFastStart && initialToday.current && priorityDate === today
     && !tomorrowAttempted.current && !skipNextDayProbe && !!probeIds?.length
     && probeIds.every(pid => {
       const details = priorityRead(pid, today)?.details;
@@ -379,22 +449,39 @@ export function useDayAvailability(
     isAvailable, isPending, isProductAvailable, nextOpenFor, productPriceFor,
     productPolicyFor, priceFor, ensureMonth, isMonthLoaded,
     loadingProbe: probeIds === undefined && !probeError,
+    catalogRetryRequired: probeError || missingProbe,
     errorFor: date => {
       if (probeError) return "We couldn't check availability. Please try again.";
       if (missingProbe) return "Some packages couldn't be checked. Please try again.";
-      if (probeIds?.some(pid => date === priorityDate ? priorityRead(pid, date)?.failed
-        : monthErrors[`${pid}:${monthOf(date)}`])) return "Some availability couldn't be checked. Please try again.";
+      if (probeIds?.some(pid => {
+        if (date !== priorityDate) return monthErrors[`${pid}:${monthOf(date)}`];
+        const read = priorityRead(pid, date);
+        const month = months[monthOf(date)]?.[pid];
+        // A failed exact check cannot prove an opening, but an independent
+        // successful monthly negative can still rule this product out safely.
+        const negativeFallback = reserveMonthFirst && month && !month.map.has(date);
+        return (read?.failed && !negativeFallback)
+          || (reserveMonthFirst && !read?.details && monthErrors[`${pid}:${monthOf(date)}`]);
+      })) return "Some availability couldn't be checked. Please try again.";
       return null;
     },
     retry: () => {
       if (probeError || missingProbe) setProbeRetry(n => n + 1);
+      if (reserveMonthFirst && dayReads.key === priorityKey) {
+        for (const [pid, read] of Object.entries(dayReads.byId)) {
+          if (read.failed) monthFirstReads.current.delete(`${priorityKey}:${pid}`);
+        }
+        // Keep the failed card disabled until retry succeeds, and retain
+        // successful negative/policy reads for every other package.
+      }
       Object.keys(monthErrors).forEach(key => requested.current.delete(key));
       setMonthErrors({});
       setRetryVersion(n => n + 1);
     },
     requestCalendar: () => { calendarRequested.current = true; setCalendarVersion(n => n + 1); },
     reserveFastStart,
-    suggestedDate: nextDay.key === priorityKey ? nextDay.date : null,
-    checkingNextDay: awaitingNextDayProbe || (nextDay.key === priorityKey && nextDay.pending),
+    reserveMonthFirst,
+    suggestedDate: !reserveMonthFirst && nextDay.key === priorityKey ? nextDay.date : null,
+    checkingNextDay: !reserveMonthFirst && (awaitingNextDayProbe || (nextDay.key === priorityKey && nextDay.pending)),
   };
 }

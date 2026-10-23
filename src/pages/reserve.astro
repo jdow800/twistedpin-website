@@ -26,6 +26,8 @@ const { uxCopy, heroImage } = bookingPageConfig;
 // Build-time off switch: set PUBLIC_RESERVE_FAST_START=false and redeploy.
 // Only this page opts in; reverting the release also restores the old path.
 const reserveFastStart = import.meta.env.PUBLIC_RESERVE_FAST_START !== "false";
+// Disable only month-first display to restore the October 22 exact-day path.
+const reserveMonthFirst = reserveFastStart && import.meta.env.PUBLIC_RESERVE_MONTH_FIRST !== "false";
 ---
 <Base
   title="Reserve a Lane Online — Twisted Pin Plainfield"
@@ -92,7 +94,7 @@ const reserveFastStart = import.meta.env.PUBLIC_RESERVE_FAST_START !== "false";
       (/reserve-preview/vip-suite, /reserve-preview/birthdays) are copies of this
       file importing their own pageConfig with productCodes set. */}
   <div class="tprs-mount">
-    <BookingWizard client:only="react" config={bookingPageConfig} reserveFastStart={reserveFastStart} />
+    <BookingWizard client:only="react" config={bookingPageConfig} reserveFastStart={reserveFastStart} reserveMonthFirst={reserveMonthFirst} />
   </div>
 </Base>
 
