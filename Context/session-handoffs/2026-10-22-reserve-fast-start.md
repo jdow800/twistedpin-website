@@ -113,6 +113,45 @@ same selected date and product after release, including cache headers and both
 timing intervals. Daytime success and exhausted-today are tested with controlled
 clocks locally; an evening live run cannot establish real daytime performance.
 
+## Production acceptance
+
+Runtime release `99440c398215b05eb72d8f34e2cb3fe7bd615daf` was pushed to main
+and deployed successfully as `dpl_B1qQoUVSSPRgD4AgyhYvHf9jg1UH` at
+`twistedpin-website-po2iwbomg-jon-9416s-projects.vercel.app`. GitHub's exact-commit
+Vercel status is successful; the public domain points to that deployment, and
+the actual `/reserve/` HTML opts into the feature. Acceptance occurred October
+22 evening Chicago time, October 23 UTC.
+
+Three fresh mobile contexts repeated the same untouched startup and first
+enabled package click against the deployed page. All advanced to October 23.
+
+| Sample | Navigation to usable package | Booking-request start to usable package | Package to times | API requests |
+| --- | ---: | ---: | ---: | ---: |
+| 1 | 4,680 ms | 4,222 ms | 64 ms | 15 |
+| 2 | 3,599 ms | 3,299 ms | 55 ms | 12 |
+| 3 | 3,601 ms | 3,303 ms | 74 ms | 12 |
+
+Median booking-request-to-first-choice fell from 4,320 to 3,303 ms, approximately
+24%; median navigation-to-first-choice fell from 4,694 to 3,601 ms. API requests
+fell from 23 to 12–15. Clicking before all tomorrow reads settle unmounts MainStep
+before its four background month calls; DetailStep then needs only its selected
+product's month, explaining the observed count range. Each run has one grouped
+catalog and eight exact day reads; none triggers the seven-date detail prefetch.
+
+All 39 post-release journey requests returned HTTP 200 and settled; there were
+no page errors. All 30 availability responses reported backend cache misses.
+The first and third selected VIP two-hour; the second selected VIP one-hour,
+which became usable first. These are small observational samples of first-choice
+readiness, not a controlled same-product benchmark or a future speed guarantee.
+No time, quantity, Continue, hold or payment action was taken. Raw receipts are
+the investigation worktree's ignored `reserve-after*-20261022.json` files.
+
+Live December 6 and December 31 query-date handoffs resolve to Jingle and NYE,
+respectively, with no availability requests, browser errors or mobile overflow.
+Birthday, NYE reserve and Jingle booking pages return HTTP 200 and do not opt into
+the new reserve flag. The known remaining wait is backend availability work;
+this release does not establish a sub-two-second booking experience.
+
 ## Rollback
 
 The old runtime path is retained and tested. Set the Vercel production build
