@@ -53,6 +53,10 @@ Use the cocktail aside at most once per page. Brian's credential belongs in a co
 
 Avery's narrower suite naming, no-em-dash rule, quoting and booking-state rules remain in her own maintained sources. Website guidance does not override them.
 
+## Guest questions and technical support
+
+Jon's ruling, October 23, 2026: the venue phone is for general questions, such as pizza size or venue information. Front-desk staff cannot troubleshoot internet/browser problems, website errors, online reservations or payment issues. Across ordinary reservations, NYE and Jingle Bowl, offer the supported retry or payment-status check first and route further technical help to **contactus@twistedpin.com**. Use a clickable email link where the UI allows it. Do not send those problems to the front desk or suggest booking by phone as a browser-error fallback. Known unresolved payments still keep their recovery instructions; retry must not mean starting a second payment. A generic loading/restoration failure does not establish that any payment was attempted.
+
 ## Live information and visual references
 
 Hours: Google Business Profile through /api/hours/. Prices/products/availability: current reservation system. Food, cocktails and taps: current menus. Programs and policies: current records and operational owner. Do not copy seasonal details into an evergreen voice guide.
