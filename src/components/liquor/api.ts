@@ -2626,11 +2626,16 @@ export interface TeacherGroupUpload {
   issues: TeacherGroupIssue[];
   /** Choices the sheet left out (wing size, sauce), for staff to ask at the lane. */
   confirms?: string[];
+  /** Whole accepted night, including retained shifts from earlier uploads. */
+  teamNotes?: { kind: "pending" | "no_order" | "absent"; text: string }[];
+  sourceAccepted?: boolean;
+  packetDelivery?: { status: "queued" | "superseded"; message: string } | null;
   /** What staff added on top of their doc; `applied` is what was done (null = nothing yet). */
   instructions?: { n: number; text: string; applied: string | null; needsPerson?: boolean }[];
   /** Exact issued-packet summary. Missing on older uploads/backends. */
   packetReview?: {
     foodDecisionCount: number;
+    arrivalChoiceCount?: number;
     managerLines: string[];
     reservationStatus: "checked" | "needs_review" | "not_checked";
   } | null;
@@ -2701,6 +2706,11 @@ export async function uploadTeacherGroupSheet(args: {
 
 export async function getTeacherGroupUpload(id: string): Promise<TeacherGroupUpload> {
   return gatedJson<TeacherGroupUpload>(`/admin/bar/teacher-group/uploads/${id}`);
+}
+
+/** Retry delivery from the accepted checkpoint; the server serializes this upload's retry. */
+export async function retryTeacherGroupPacket(id: string): Promise<void> {
+  await gatedJson<{ uploadId: string; status: "pending" }>(`/admin/bar/teacher-group/uploads/${encodeURIComponent(id)}/retry`, jsonBody({}));
 }
 
 export async function listTeacherGroupUploads(): Promise<TeacherGroupUploadSummary[]> {
