@@ -3175,3 +3175,11 @@ Jon resumed event launch work and parked further availability optimization. The 
 The combined branch passes 23 actual-route opening scenarios, 175 shared opening checks, 23 complete NYE flow groups, 23 selected-day availability groups, 22 finite-read checks, 14 NYE handoff scenarios, checkout recovery, booking date policy, 16 review-auth checks and 7 emitted-middleware checks. Strict TypeScript passes across both the public NYE and ordinary booking dependency graphs. All six prebuild suites and the complete production Astro/Vercel build pass. Installing the locked dependencies into this worktree as ordinary files removes the previous local junction-packaging limitation; no dependency or lockfile change was needed. The unconfigured local GoTab/Untappd menu fallbacks emitted their existing warnings; their live credentials were not used.
 
 The local Astro route rehearsal ran on `127.0.0.1:4358` with `/fixture-api`, controlled browser clocks and blocked external browser requests. Its JSON receipt records zero unexpected API calls and zero browser errors. Generated 390px checkout, 390/1280px landing and narrow regular/birthday screenshots were visually checked; no horizontal overflow was found. Receipts and regenerable screenshots remain under ignored `.astro/nye-launch/`, `.astro/nye-brand-flow/` and `.astro/availability-first-day/`. No production probes, bookings, holds, payments, messages, push or deployment were performed for this integration. Production release verification remains owned by the NYE root.
+
+## 2026-10-24 — Invitations: real-phone look preview; Send RSVP lands on its result
+
+tprs #481 changed two things:
+- The host dashboard's look preview now lays the invitation out at a true phone width and scales it to fit.
+- After Send RSVP, guests land on their confirmation or on the form's error instead of the top of the page.
+
+The invitations manual records both. The sideways-phone header fix was deferred.
