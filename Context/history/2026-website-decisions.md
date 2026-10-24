@@ -1,3 +1,26 @@
+## 2026-10-24 - Teacher Group accepted-source recovery and staff tasks
+
+Jon approved shipping the Teacher Group shared-spare and food-check changes.
+The COGS result screen now distinguishes a queued email from an older packet
+superseded by a newer accepted night or changed reservations. Historical status
+uses the API's delivery explanation, including delivery stopped after queuing;
+it does not assume no email was ever queued. An accepted upload whose packet failed
+offers Retry packet on the same upload; it keeps accepted orders and reservation
+results and does not create another upload or reread the source. Unaccepted
+failed reads retain the existing edit-and-resubmit flow. Pending food orders and
+routine arrival choices use the accepted whole-night API projection, including
+retained shifts from partial uploads. Older responses keep conservative fallbacks.
+
+Validation: 30 mocked browser checks passed, including same-upload retry,
+double-click prevention, concurrent/lost-response reconciliation, permission
+failures, preserved unaccepted drafts, retained partial-upload tasks, historical
+delivery reasons and fallback text, and
+320/390/1280px layouts. The full prebuild/Astro build passed without production
+credentials. COGS strict types passed with ES2023 libraries; its checked-in
+ES2020 config has existing unrelated at/replaceAll/findLastIndex diagnostics.
+No real email or staff/production record change occurred. Release receipts
+remain pending.
+
 ## 2026-10-22 - Ordinary reserve availability: smaller request chain
 
 Jon authorized a first production improvement scoped to `/reserve/`, with safe

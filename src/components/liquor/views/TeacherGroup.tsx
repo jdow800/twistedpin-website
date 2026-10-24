@@ -2,11 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { teacherGroupReview } from "../teacher-group-review";
 import {
   BarApiError,
+  ForbiddenError,
   MAX_TEACHER_GROUP_FILES,
   NotAuthedError,
   TEACHER_GROUP_EMAIL_DOMAIN,
   getTeacherGroupUpload,
   listTeacherGroupUploads,
+  retryTeacherGroupPacket,
   teacherGroupPdfUrl,
   uploadTeacherGroupSheet,
   type TeacherGroupLaneOutcome,
@@ -312,6 +314,31 @@ export default function TeacherGroup({ onDone }: { onDone: () => void }) {
 function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void; onRetry?: () => void }) {
   const [u, setU] = useState<TeacherGroupUpload | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
+  const [refresh, setRefresh] = useState(0);
+  const retryInFlight = useRef(false);
+
+  async function retryPacket() {
+    if (retryInFlight.current || !u?.sourceAccepted || u.status !== "failed") return;
+    retryInFlight.current = true;
+    setRetrying(true);
+    setRetryError(null);
+    try {
+      await retryTeacherGroupPacket(id);
+      setU((previous) => previous ? { ...previous, status: "pending", error: null } : previous);
+    } catch (error) {
+      if (error instanceof NotAuthedError) setRetryError("Log back in to retry this packet. The accepted orders and reservation results are saved.");
+      else if (error instanceof ForbiddenError) setRetryError("You don't have permission to retry packets. Ask a staff member with upload access.");
+      else if (!(error instanceof BarApiError && error.status === 409)) setRetryError("Couldn't confirm the retry. Checking this upload's current status; its accepted orders and reservation results are saved.");
+      // A concurrent retry or a lost response must be reconciled by reading
+      // this upload again, never by creating a new upload or repeating a POST.
+    } finally {
+      retryInFlight.current = false;
+      setRetrying(false);
+      setRefresh((value) => value + 1);
+    }
+  }
 
   useEffect(() => {
     let alive = true;
@@ -326,7 +353,7 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
       } catch (e) {
         if (!alive) return;
         if (e instanceof NotAuthedError) {
-          setLoadError("You've been logged out. Log back in to see this. The packet still goes out by email.");
+          setLoadError("You've been logged out. Log back in to check this upload's processing and email status.");
           return;
         }
         setLoadError("Couldn't reach TPRS. Still trying…");
@@ -338,7 +365,7 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
       alive = false;
       clearTimeout(timer);
     };
-  }, [id]);
+  }, [id, refresh]);
 
   if (!u) {
     return loadError ? (
@@ -357,11 +384,14 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
   const holding = u.issues.filter((i) => i.blocks.length > 0);
   const toSettle = u.issues.filter((i) => i.blocks.length === 0);
   const confirms = u.confirms ?? [];
+  const pendingOrders = (u.teamNotes ?? []).filter((note) => note.kind === "pending");
   const instructions = u.instructions ?? [];
   const files = [...new Set(u.lines.map((l) => l.file))];
   const missed = u.lines.filter(unplaced).length;
   const lanesMoved = u.laneOutcomes.some((o) => o.status === "applied");
   const review = teacherGroupReview(u);
+  const superseded = u.packetDelivery?.status === "superseded";
+  const arrivals = u.packetReview?.arrivalChoiceCount;
 
   return (
     <div className="lq-invd lq-tg">
@@ -375,14 +405,16 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
         Uploaded {timeLabel(u.createdAt)} · <span className={`lq-badge lq-tg-st-${u.status}`}>{STATUS_LABEL[u.status]}</span>
       </p>
       {loadError && <p className="lq-muted" role="status">{loadError}</p>}
+      {retryError && <p className="lq-error" role="alert">{retryError}</p>}
 
       {working && (
         <div className="lq-tg-box" role="status">
           <p>
-            <strong>Reading their sheet.</strong> Two separate reads, then the checks, the lanes and the packet. This
-            usually takes a minute or two.
+            {u.sourceAccepted
+              ? <><strong>Preparing the packet.</strong> The accepted orders and reservation results are saved. The source is not being reread.</>
+              : <><strong>Reading their sheet.</strong> Two separate reads, then the checks, the lanes and the packet. This usually takes a minute or two.</>}
           </p>
-          <p className="lq-muted">You can leave this screen. The packet still goes to {u.emailTo.join(", ")}.</p>
+          <p className="lq-muted">You can leave this screen. Check this upload again for the packet and email status.</p>
         </div>
       )}
 
@@ -390,7 +422,9 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
         <div className="lq-tg-box lq-tg-box-warn" role="alert">
           <p className="lq-error">{u.error ?? "Something went wrong."}</p>
           <p className="lq-muted">
-            {lanesMoved
+            {u.sourceAccepted
+              ? "The accepted orders and reservation results are saved. Retry the packet below; the source will not be reread."
+              : lanesMoved
               ? "The lanes below were updated before it stopped, but no packet was emailed."
               : "No lanes were changed and nothing was emailed."}
           </p>
@@ -398,12 +432,17 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
       )}
 
       {u.status === "done" && (
-        <section className={`lq-tg-box${review.needsReview ? " lq-tg-box-warn" : ""}`} aria-label="Packet review status">
-          <p><strong>PDF:</strong> {u.pdfReady ? "Created" : "Not available"}{u.runnerTickets ? ". Runner tickets included." : "."}</p>
+        <section className={`lq-tg-box${review.needsReview || superseded ? " lq-tg-box-warn" : ""}`} aria-label="Packet review status">
+          <p><strong>PDF:</strong> {u.pdfReady ? superseded ? "Historical copy" : "Created" : "Not available"}{u.runnerTickets ? ". Runner tickets included." : "."}</p>
           <p><strong>Food decisions:</strong> {review.food}.</p>
+          {Number.isSafeInteger(arrivals) && arrivals! >= 0 && <p><strong>Routine arrival choices:</strong> {arrivals} for staff to collect at the lane.</p>}
           <p><strong>Lane reservations:</strong> {review.reservations}.</p>
           {review.managerLines.length > 0 && <ul className="lq-tg-list lq-tg-bullets">{review.managerLines.map((line) => <li key={line}>{line}</li>)}</ul>}
-          <p className="lq-muted">Email queued to {u.emailTo.join(", ")}, with a copy to Jon.</p>
+          <p className="lq-muted">{superseded
+            ? u.packetDelivery?.message?.trim() || "This packet is kept for history. Review the current orders and reservations before using it."
+            : u.packetDelivery?.status === "queued"
+              ? `Email queued to ${u.emailTo.join(", ")}, with a copy to Jon.`
+              : "Email status was not recorded for this older upload."}</p>
         </section>
       )}
 
@@ -439,12 +478,18 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
         </section>
       )}
 
+      {pendingOrders.length > 0 && (
+        <section className="lq-tg-section" aria-label="Pending food orders">
+          <h3 className="lq-tg-h3">Pending food orders</h3>
+          <ul className="lq-tg-list lq-tg-bullets">{pendingOrders.map((note, index) => <li key={index}>{note.text}</li>)}</ul>
+        </section>
+      )}
+
       {confirms.length > 0 && (
         <section className="lq-tg-section">
-          <h3 className="lq-tg-h3">Confirm at the lane</h3>
+          <h3 className="lq-tg-h3">Routine arrival choices</h3>
           <p className="lq-muted lq-tg-help">
-            Their sheet didn't say. Staff ask the team, not the organizer. These print on the kitchen and POS pages
-            with a spot to circle the answer.
+            Staff collect these choices at the lane and tell the kitchen and register. Record the answers on the cover sheet.
           </p>
           <ul className="lq-tg-list lq-tg-bullets">
             {confirms.map((c, k) => (
@@ -517,8 +562,13 @@ function UploadResult({ id, onBack, onRetry }: { id: string; onBack: () => void;
           </button>
           {u.pdfReady ? (
             <a className="lq-btn lq-btn-primary lq-tg-linkbtn" href={teacherGroupPdfUrl(u.id)} target="_blank" rel="noopener">
-              Open the packet (PDF)
+              {superseded ? "Open historical packet (PDF)" : "Open the packet (PDF)"}
             </a>
+          ) : null}
+          {u.status === "failed" && u.sourceAccepted ? (
+            <button type="button" className="lq-btn lq-btn-primary" disabled={retrying} onClick={retryPacket}>
+              {retrying ? "Retrying…" : "Retry packet"}
+            </button>
           ) : u.status === "failed" && onRetry ? (
             <button type="button" className="lq-btn lq-btn-primary" onClick={onRetry}>
               Fix it and send again
