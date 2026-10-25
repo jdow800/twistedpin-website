@@ -93,13 +93,14 @@ export const VIP_THREE_HOUR_FLOOR = 49;
 export const TRADITIONAL_ONLY_FLOOR = 76;
 /** 76–80: VIP chip greyed with "sometimes possible at this size — ask us." */
 export const VIP_ASK_CEILING = 80;
-export const MIN_LEAD_DAYS = 3;
+export const MIN_LEAD_DAYS = 1;
 /** Under 10 days out the total is shown without the word "deposit" (KB short-lead rule). */
 export const DEPOSIT_LEAD_DAYS = 10;
 export const MAX_LEAD_DAYS = 365;
 export const STEP_MINUTES = 30;
 export const EARLIEST_START_AFTER_OPEN = 30;
 export const AVERY_PHONE_DISPLAY = "779-303-0261";
+export const VENUE_PHONE_DISPLAY = "(815) 782-7790";
 
 /**
  * Venue hours the page's time list is built from (brief §1), minutes from
@@ -345,7 +346,7 @@ export const MESSAGES = {
   bad_guests: "Tell us how many guests to plan for.",
   under_min: `Groups under ${MIN_GUESTS} book lanes directly at twistedpin.com/reserve/.`,
   too_large: `For groups over ${MAX_GUESTS}, send your picks over and we'll build it by hand.`,
-  too_soon: `For dates this close, text us at ${AVERY_PHONE_DISPLAY} and we'll build it with you.`,
+  too_soon: `Online estimates start with tomorrow. For a same-day event, call us at ${VENUE_PHONE_DISPLAY}.`,
   too_far: `We book events up to a year out. For anything later, text us at ${AVERY_PHONE_DISPLAY}.`,
   outside_hours: "That start time is outside our regular hours for that day.",
   closed: (label: string) => `We're closed on ${label}. Pick another date.`,

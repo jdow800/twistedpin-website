@@ -42,7 +42,9 @@ import {
   rateProbeConfigs,
 } from "../src/lib/estimate/engine.ts";
 import { LANE_COUNT_IN_LABEL, neighborEntries, roundTo5, shapeOption } from "../src/lib/estimate/shape.ts";
-import { originAllowed, rateLimited } from "../src/lib/estimate/http.ts";
+import { CACHE_OK, estimateCacheControl, originAllowed, rateLimited } from "../src/lib/estimate/http.ts";
+import { getEstimateResponse } from "../src/pages/api/estimate/index.ts";
+import { getMenuResponse } from "../src/pages/api/estimate/menu.ts";
 
 let failures = 0;
 let passes = 0;
@@ -128,7 +130,15 @@ check("optionSpec trad_3h", eq(optionSpec("trad_3h"), { lane_type: "traditional"
 console.log("query validation (now = Sun 2026-08-30 CT)");
 const NOW = new Date("2026-08-30T15:00:00-05:00");
 const q = (s) => validateEstimateQuery(new URLSearchParams(s), NOW);
-check("tomorrow → too_soon", q("d=2026-08-31&t=18:00&g=40&f=stars_strikes").code === "too_soon");
+for (const [date, days] of [["2026-08-31", 1], ["2026-09-01", 2], ["2026-09-02", 3], ["2026-09-08", 9]]) {
+  const result = q("d=" + date + "&t=18:00&g=40&f=stars_strikes");
+  check("day +" + days + " prices without deposit instructions", result.ok && result.req.days_out === days && result.req.deposit_shown === false);
+}
+check("same day -> too_soon with venue phone", q("d=2026-08-30&t=18:00&g=40&f=stars_strikes").code === "too_soon" && q("d=2026-08-30&t=18:00&g=40&f=stars_strikes").message.includes("(815) 782-7790"));
+check("past date -> too_soon", q("d=2026-08-29&t=18:00&g=40&f=stars_strikes").code === "too_soon");
+check("nonexistent date -> invalid", q("d=2026-02-30&t=18:00&g=40&f=stars_strikes").code === "invalid");
+check("spring DST counts civil days", daysOut("2026-03-09", new Date("2026-03-08T00:01:00-06:00")) === 1);
+check("fall DST counts civil days", daysOut("2026-11-02", new Date("2026-11-01T00:01:00-05:00")) === 1);
 const three = q("d=2026-09-02&t=18:00&g=40&f=stars_strikes");
 check("3 days out is allowed", three.ok === true);
 check("3 days out hides the deposit", three.ok && three.req.deposit_shown === false);
@@ -242,6 +252,135 @@ check("rate limiter lets 60 through then blocks", (() => {
   for (let i = 0; i < 61; i++) blocked = rateLimited("test-ip", 1_000_000);
   return blocked;
 })());
+
+console.log("estimate cache and request rollover (mocked engine, no network)");
+const cacheSeconds = (header) => Number(/(?:^|, )s-maxage=(\d+)/.exec(header)?.[1] ?? 0);
+for (const [instant, seconds] of [
+  ["2026-10-23T23:59:58-05:00", 2],
+  ["2026-10-23T23:59:59.500-05:00", 0],
+  ["2026-10-24T00:00:00-05:00", 86400],
+  ["2026-03-08T00:00:00-06:00", 82800],
+  ["2026-11-01T00:00:00-05:00", 86400],
+  ["2026-11-01T01:30:00-05:00", 84600],
+  ["2026-11-01T01:30:00-06:00", 81000],
+]) {
+  const header = estimateCacheControl(new Date(instant));
+  check("cache lifetime at " + instant, cacheSeconds(header) === seconds, header);
+  check("cache forbids stale serving at " + instant, !header.includes("stale-") && (header === "no-store" || header.includes("must-revalidate")));
+}
+check("menu rate-card cache unchanged", CACHE_OK === "public, s-maxage=86400, stale-while-revalidate=3600");
+
+let requestCounter = 0;
+function requestContext(query) {
+  const url = new URL("https://www.twistedpin.com/api/estimate/?" + query);
+  const request = new Request(url, { headers: { "x-real-ip": "offline-estimate-" + ++requestCounter } });
+  return { url, request };
+}
+function mockedQuotes(configs) {
+  return configs.map((config) => {
+    const quote = structuredClone(sample);
+    quote.aihub_breakdown.bowling_lanes.lane_type = config.lane_type;
+    quote.aihub_breakdown.food.package = config.food_package;
+    return quote;
+  });
+}
+const fixedNow = new Date("2026-10-23T10:00:00-05:00");
+for (const food of FOOD_PACKAGES) {
+  const { request, url } = requestContext("d=2026-10-24&t=18:00&g=40&f=" + food + "&b=15&bq=30&a=traditional_wings:2,cheese_curds:1");
+  let configsSeen;
+  const response = await getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => fixedNow,
+    quote: async (_url, configs) => { configsSeen = configs; return mockedQuotes(configs); },
+  });
+  const body = await response.json();
+  check("tomorrow " + food + ": successful total, short-notice policy", response.status === 200 && body.days_out === 1 && body.deposit_shown === false);
+  check("tomorrow " + food + ": both lanes and durations retained", Object.values(body.options).length === 4 && Object.values(body.options).every((option) => option && option.total === sample.avery_total.estimated_total && option.lines.reduce((sum, line) => sum + line.amount, 0) === option.total));
+  check("tomorrow " + food + ": engine inputs preserved", configsSeen.length === 4 && configsSeen.every((config) => config.food_package === food && config.event_date === "2026-10-24" && config.bar_selection === "15_card" && config.bar_qty === 30 && config.add_ons.length === 2));
+}
+for (const [date, food, time, guests, expected] of [
+  ["2026-10-23", "stars_strikes", "18:00", 40, "too_soon"],
+  ["2026-10-22", "stars_strikes", "18:00", 40, "too_soon"],
+  ["2026-02-30", "stars_strikes", "18:00", 40, "invalid"],
+  ["2026-12-25", "stars_strikes", "18:00", 40, "closed"],
+  ["2026-11-21", "pizza_pop", "18:00", 40, "invalid"],
+  ["2026-10-24", "stars_strikes", "10:00", 40, "outside_hours"],
+  ["2026-10-24", "stars_strikes", "18:00", 101, "too_large"],
+]) {
+  const { request, url } = requestContext("d=" + date + "&t=" + time + "&g=" + guests + "&f=" + food);
+  let calls = 0;
+  const response = await getEstimateResponse(request, url, { engineUrl: "mock://engine", now: () => fixedNow, quote: async () => { calls++; return []; } });
+  check("route rejects " + expected + ": " + date + " " + food + " " + time + " g=" + guests, response.status === 422 && (await response.json()).code === expected && calls === 0 && response.headers.get("cache-control") === "no-store");
+}
+
+const beforeMidnight = new Date("2026-10-23T23:59:58-05:00");
+const afterMidnight = new Date("2026-10-24T00:00:01-05:00");
+for (const date of ["2026-10-24", "2026-11-02"]) {
+  const { request, url } = requestContext("d=" + date + "&t=18:00&g=40&f=stars_strikes");
+  const response = await getEstimateResponse(request, url, { engineUrl: "mock://engine", now: () => beforeMidnight, quote: async (_url, configs) => mockedQuotes(configs) });
+  const body = await response.json();
+  const expires = Date.parse(response.headers.get("date")) + cacheSeconds(response.headers.get("cache-control")) * 1000;
+  check("cached " + date + " success expires by midnight", response.status === 200 && expires === Date.parse("2026-10-24T00:00:00-05:00") && expires <= afterMidnight.getTime());
+  check("cached " + date + " has original day policy", body.days_out === (date === "2026-10-24" ? 1 : 10) && body.deposit_shown === (date === "2026-11-02"));
+
+  let clock = beforeMidnight;
+  let completeEngine;
+  let calls = 0;
+  const pending = getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => clock,
+    quote: (_url, configs) => { calls++; return new Promise((resolve) => { completeEngine = () => resolve(mockedQuotes(configs)); }); },
+  });
+  check(date + " engine started before midnight", calls === 1 && typeof completeEngine === "function");
+  clock = afterMidnight;
+  completeEngine();
+  const finished = await pending;
+  const result = await finished.json();
+  if (date === "2026-10-24") {
+    check("in-flight tomorrow becomes same-day: reject without price/cache", finished.status === 422 && result.code === "too_soon" && !result.options && finished.headers.get("cache-control") === "no-store");
+  } else {
+    check("in-flight day +10 becomes +9: same total, deposit hidden", finished.status === 200 && result.days_out === 9 && result.deposit_shown === false && result.options.vip_2h.total === sample.avery_total.estimated_total);
+    check("in-flight +9 cache derives from the new day", cacheSeconds(finished.headers.get("cache-control")) === 86399 && finished.headers.get("date") === afterMidnight.toUTCString());
+  }
+  check(date + " is never repriced for policy rollover", calls === 1);
+}
+
+// The optional neighbor batch must finish before the final policy check too.
+{
+  const { request, url } = requestContext("d=2026-11-02&t=18:00&g=40&f=stars_strikes&n=1");
+  let clock = beforeMidnight;
+  let completeNeighbors;
+  let calls = 0;
+  const pending = getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => clock,
+    quote: async (_url, configs) => {
+      calls++;
+      if (calls === 1) return mockedQuotes(configs);
+      return new Promise((resolve) => { completeNeighbors = () => resolve(mockedQuotes(configs)); });
+    },
+  });
+  clock = afterMidnight;
+  completeNeighbors();
+  const body = await (await pending).json();
+  check("late neighbor batch uses current policy and preserves neighbors", calls === 2 && body.days_out === 9 && body.deposit_shown === false && body.neighbors.length === 2);
+}
+
+console.log("menu date restriction (mocked rates, no network)");
+const mockRates = { ...FALLBACK_RATES, source: "engine" };
+for (const tier of ["es", "el", "elevated"]) {
+  for (const time of ["", "&t=18:00", "&t=10:00"]) {
+    for (const [date, message] of [["2026-12-25", "Christmas Day"], ["2026-12-24", "Christmas Eve"], ["2026-12-31", "new-years-eve"]]) {
+      const { request, url } = requestContext("d=" + date + "&tier=" + tier + time);
+      const response = await getMenuResponse(request, url, { getRateCard: async () => mockRates });
+      const body = await response.json();
+      check("menu date restriction independent of tier/time: " + date + " " + tier + time, response.status === 200 && body.date === date && body.date_restriction?.code === "closed" && body.date_restriction.message.includes(message));
+      check("menu keeps its rate-card cache: " + date + " " + tier + time, response.headers.get("cache-control") === CACHE_OK);
+    }
+  }
+}
+for (const [date, expectedDate] of [["2026-10-24", "2026-10-24"], ["2026-02-30", null], ["", null]]) {
+  const { request, url } = requestContext("d=" + date + "&tier=el");
+  const body = await (await getMenuResponse(request, url, { getRateCard: async () => mockRates })).json();
+  check("menu nonrestricted/malformed date: " + date, body.date === expectedDate && body.date_restriction === null && body.pizza_pop.reason === "link_tier");
+}
 
 // ---------------------------------------------------------------------------
 if (process.argv.includes("--live")) {

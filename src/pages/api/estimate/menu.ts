@@ -84,9 +84,19 @@ async function getRates(engineUrl: string | undefined): Promise<RateCard> {
   return ratesInflight;
 }
 
-export const GET: APIRoute = async ({ request, url }) => {
+interface MenuDependencies {
+  engineUrl?: string;
+  allowedOrigins?: string;
+  getRateCard?: typeof getRates;
+}
+
+export async function getMenuResponse(
+  request: Request,
+  url: URL,
+  { engineUrl, allowedOrigins, getRateCard = getRates }: MenuDependencies,
+): Promise<Response> {
   const origin = request.headers.get("origin");
-  if (!originAllowed(origin, parseAllowedOrigins(import.meta.env.ESTIMATE_ALLOWED_ORIGINS))) {
+  if (!originAllowed(origin, parseAllowedOrigins(allowedOrigins))) {
     return jsonResponse({ ok: false, code: "forbidden", message: MESSAGES.forbidden }, 403, CACHE_NONE);
   }
   if (rateLimited(clientIp(request))) {
@@ -96,6 +106,15 @@ export const GET: APIRoute = async ({ request, url }) => {
   const tier = (url.searchParams.get("tier") ?? "").trim().toLowerCase();
   const date = parseDateKey(url.searchParams.get("d"));
   const start = parseClock(url.searchParams.get("t"));
+  // Closures apply to every package and manual inquiry, including elevated
+  // links and requests without a regular start time. Do not infer this from
+  // pizza_pop.reason, whose link-tier/no-time branches take precedence.
+  const closure = date ? closureFor(date.key) : null;
+  const dateRestriction = closure ? {
+    code: "closed",
+    message: closure.type === "escalate" ? MESSAGES.christmas_eve
+      : closure.type === "nye" ? MESSAGES.nye : MESSAGES.closed(closure.label),
+  } : null;
 
   let pizzaPop: { offered: boolean; reason: "no_date_time" | "link_tier" | "not_at_that_time" | "closed" | null };
   if (tier === "el" || tier === "elevated") {
@@ -111,11 +130,13 @@ export const GET: APIRoute = async ({ request, url }) => {
   }
 
   const packages: FoodPackage[] = FOOD_PACKAGES.filter((p) => p !== "pizza_pop" || pizzaPop.offered);
-  const rates = await getRates(import.meta.env.GAS_PRICING_URL as string | undefined);
+  const rates = await getRateCard(engineUrl);
 
   return jsonResponse(
     {
       ok: true,
+      date: date?.key ?? null,
+      date_restriction: dateRestriction,
       packages,
       labels: FOOD_LABELS,
       pizza_pop: pizzaPop,
@@ -147,4 +168,9 @@ export const GET: APIRoute = async ({ request, url }) => {
     200,
     rates.source === "engine" ? CACHE_OK : "public, s-maxage=300",
   );
-};
+}
+
+export const GET: APIRoute = ({ request, url }) => getMenuResponse(request, url, {
+  engineUrl: import.meta.env.GAS_PRICING_URL,
+  allowedOrigins: import.meta.env.ESTIMATE_ALLOWED_ORIGINS,
+});

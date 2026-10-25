@@ -9,12 +9,14 @@
  * The Origin check is a fence against other sites embedding the estimator,
  * not a security boundary — nothing here is secret.
  *
- * Cache: successful estimates are edge-cached for a day (a repeated
- * combination never reaches the engine; the 4 AM rebuild purges). Errors are
- * never cached, so a transient engine failure can't be pinned to a URL.
+ * Cache: successful estimates expire by the next Central midnight, when
+ * eligibility and deposit visibility change. The menu rate card retains its
+ * separate day-long cache. Errors are never cached.
  *
  * Pure module: no env, no `astro:*` imports.
  */
+
+import { addDaysKey, ctDateKey, ctInstant } from "../recurrence.ts";
 
 export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = [
   "https://menu.twistedpin.com",
@@ -25,8 +27,18 @@ export const DEFAULT_ALLOWED_ORIGINS: readonly string[] = [
 /** Zite hosts previews and unpublished builds on its own domains. */
 export const ALLOWED_ORIGIN_SUFFIXES: readonly string[] = [".zite.so", ".zite.com"];
 
+/** Menu rate-card cache only; event estimates use estimateCacheControl(). */
 export const CACHE_OK = "public, s-maxage=86400, stale-while-revalidate=3600";
 export const CACHE_NONE = "no-store";
+
+/** Never reuse yesterday's date eligibility or deposit policy, even on a DST day. */
+export function estimateCacheControl(now: Date): string {
+  const midnight = ctInstant(addDaysKey(ctDateKey(now), 1), 0, 0);
+  const seconds = Math.min(86_400, Math.floor((midnight.getTime() - now.getTime()) / 1_000));
+  if (seconds <= 0) return CACHE_NONE;
+  // Browsers revalidate; shared caches must stop at the boundary. No stale grace.
+  return `public, max-age=0, s-maxage=${seconds}, must-revalidate`;
+}
 
 export function parseAllowedOrigins(env: string | undefined): string[] {
   return (env ?? "")

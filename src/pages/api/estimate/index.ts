@@ -16,7 +16,7 @@ import { EngineError, buildConfig, callEngine, type EngineQuote } from "../../..
 import { describeFailure, neighborEntries, shapeOption, type EstimateOption } from "../../../lib/estimate/shape.ts";
 import {
   CACHE_NONE,
-  CACHE_OK,
+  estimateCacheControl,
   clientIp,
   corsHeaders,
   jsonResponse,
@@ -44,22 +44,33 @@ import {
  */
 export const OPTIONS: APIRoute = () => new Response(null, { status: 204, headers: corsHeaders() });
 
-export const GET: APIRoute = async ({ request, url }) => {
+interface EstimateDependencies {
+  engineUrl?: string;
+  allowedOrigins?: string;
+  now?: () => Date;
+  quote?: typeof callEngine;
+}
+
+/** Clock and engine injection keep full request-boundary checks offline. */
+export async function getEstimateResponse(
+  request: Request,
+  url: URL,
+  { engineUrl, allowedOrigins, now = () => new Date(), quote = callEngine }: EstimateDependencies,
+): Promise<Response> {
   const origin = request.headers.get("origin");
-  if (!originAllowed(origin, parseAllowedOrigins(import.meta.env.ESTIMATE_ALLOWED_ORIGINS))) {
+  if (!originAllowed(origin, parseAllowedOrigins(allowedOrigins))) {
     return jsonResponse({ ok: false, code: "forbidden", message: MESSAGES.forbidden }, 403, CACHE_NONE);
   }
   if (rateLimited(clientIp(request))) {
     return jsonResponse({ ok: false, code: "rate_limited", message: MESSAGES.rate_limited }, 429, CACHE_NONE);
   }
 
-  const v = validateEstimateQuery(url.searchParams);
+  const v = validateEstimateQuery(url.searchParams, now());
   if (!v.ok) {
     return jsonResponse({ ok: false, code: v.code, message: v.message }, v.status, CACHE_NONE);
   }
-  const req = v.req;
+  let req = v.req;
 
-  const engineUrl = import.meta.env.GAS_PRICING_URL as string | undefined;
   if (!engineUrl) {
     console.error("[estimate] GAS_PRICING_URL is not set");
     return jsonResponse(
@@ -98,8 +109,8 @@ export const GET: APIRoute = async ({ request, url }) => {
   let neighborQuotes: EngineQuote[] = [];
   try {
     [main, neighborQuotes] = await Promise.all([
-      callEngine(engineUrl, mainConfigs, sourceMessage),
-      neighborConfigs.length ? callEngine(engineUrl, neighborConfigs, `${sourceMessage} neighbors`) : Promise.resolve([]),
+      quote(engineUrl, mainConfigs, sourceMessage),
+      neighborConfigs.length ? quote(engineUrl, neighborConfigs, `${sourceMessage} neighbors`) : Promise.resolve([]),
     ]);
   } catch (err) {
     const detail = err instanceof EngineError ? `${err.message} ${JSON.stringify(err.detail ?? "")}` : String(err);
@@ -110,6 +121,16 @@ export const GET: APIRoute = async ({ request, url }) => {
       CACHE_NONE,
     );
   }
+
+  // The engine (including optional neighbors) may finish on the next Central
+  // day. Recheck eligibility and refresh policy fields before emitting a price.
+  // The configuration is unchanged, so an eligible request needs no re-quote.
+  const responseNow = now();
+  const current = validateEstimateQuery(url.searchParams, responseNow);
+  if (!current.ok) {
+    return jsonResponse({ ok: false, code: current.code, message: current.message }, current.status, CACHE_NONE);
+  }
+  req = current.req;
 
   const options: Record<OptionKey, EstimateOption | null> = {
     vip_2h: null,
@@ -163,6 +184,12 @@ export const GET: APIRoute = async ({ request, url }) => {
       engine_version: engineVersion ?? null,
     },
     200,
-    CACHE_OK,
+    estimateCacheControl(responseNow),
+    { Date: responseNow.toUTCString() },
   );
-};
+}
+
+export const GET: APIRoute = ({ request, url }) => getEstimateResponse(request, url, {
+  engineUrl: import.meta.env.GAS_PRICING_URL,
+  allowedOrigins: import.meta.env.ESTIMATE_ALLOWED_ORIGINS,
+});
