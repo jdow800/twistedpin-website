@@ -7,6 +7,7 @@ import NextSchedule from './NextSchedule';
 import WeeklyOverview from './WeeklyOverview';
 import {questionIsActive,questionNeedsResponse,reviewProgress} from './review-progress';
 import DemandSurgeQuestion from './DemandSurgeQuestion';
+import OutcomeReviewQuestion from './OutcomeReviewQuestion';
 import DraftChangeQuestion from './DraftChangeQuestion';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
@@ -65,7 +66,7 @@ export default function ReviewPilot() {
         {review.packet.recommendationStatus==='incomplete'?<p className="lr-small">Some checks are still pending, so only supported ideas are shown.</p>:null}
         {review.questions.map((q, index) => {
           const key=`${review.id}:${q.id}:${q.revision}`,props={number:index+1,question:q,review,onSaved:(r:LaborReview)=>{setReview(r);setList(old=>old.map(x=>x.id===r.id?{...x,open:r.questions.filter(questionNeedsResponse).length}:x));}};
-          return q.demandSurge&&questionIsActive(q)?<DemandSurgeQuestion key={key} {...props}/>:q.proposal&&questionIsActive(q)?<ProposalCard key={key} {...props}/>:q.draftChange&&questionIsActive(q)?<DraftChangeQuestion key={key} {...props}/>:<Question key={key} {...props}/>;
+          return q.outcomeReview&&questionIsActive(q)?<OutcomeReviewQuestion key={key} {...props}/>:q.demandSurge&&questionIsActive(q)?<DemandSurgeQuestion key={key} {...props}/>:q.proposal&&questionIsActive(q)?<ProposalCard key={key} {...props}/>:q.draftChange&&questionIsActive(q)?<DraftChangeQuestion key={key} {...props}/>:<Question key={key} {...props}/>;
         })}
       </section>
       <section className="lr-week-numbers" aria-label="The week's labor">

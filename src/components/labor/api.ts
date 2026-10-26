@@ -91,6 +91,18 @@ export interface DemandSurge {
   knownOperatingExplanation?:string;
 }
 export interface ReviewShift {key:string;label:string;role:string;startMinute:number;endMinute:number;eventPost:boolean;sourceId?:string}
+export interface OutcomeReview {
+  comparisonKey:string;date:string;period:{startMinute:number;endMinute:number;label:string};
+  draft:{week:string;origin:string;version:number;sha256:string;madeAt:string};
+  reason:'applied_feedback'|'routine_sample';appliedAdjustmentIds:string[];baselineSha256:string|null;
+  staffing:Record<'dataBaseline'|'finalIssued'|'published'|'recorded',{
+    status:'complete'|'provisional'|'partial'|'unavailable';capturedAt:string|null;
+    shifts:{department:'desk'|'kitchen'|'bar'|'event'|'management'|'other';role:string;startMinute:number;endMinute:number}[];
+  }>;
+  metrics:{metric:Exclude<DemandMetric,'desk_interactions'>;forecastValue:number|null;actualValue:number|null;unit:'cents'}[];
+  eventContext:{complete:boolean;affected:boolean};sourceRefs:string[];capturedAt:string;
+  operationalOutcomeStatus:'unknown';payrollSavingsCents:null;
+}
 export interface ReviewWorkedShift extends ReviewShift {personKey:string;scheduledKey?:string}
 export interface StaffingProposal {
   id:string;version:number;department:"desk"|"kitchen"|"bar";basisLabel:string;summary:string;
@@ -121,7 +133,7 @@ export interface ReviewQuestion {
   followUpDate: string; revision: number; response: ReviewResponse | null; canUndo: boolean;
   history: {revision:number;createdAt:string;kind:"save"|"undo";response:ReviewResponse|null}[];
   followUp?:{reviewId:string;questionId:string;originalDecision:"adjust"|"consider";observation:string;observedDate?:string;previousTrial?:ReviewResponse["trial"]};
-  proposal?:StaffingProposal;draftChange?:DraftChange;demandSurge?:DemandSurge;knownContext?:RememberedContext[];reopenedBecause?:string;
+  proposal?:StaffingProposal;draftChange?:DraftChange;demandSurge?:DemandSurge;outcomeReview?:OutcomeReview;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
 export interface ProvisionalLabor {unapprovedPunchCount:number;hourlyWagesCents:number}
 export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[];provisional?:ProvisionalLabor}

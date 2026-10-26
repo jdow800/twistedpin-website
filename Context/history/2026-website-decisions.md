@@ -1,3 +1,27 @@
+## 2026-10-26 - Service outcomes for adaptive labor drafts
+
+Reuse the existing service answer, revision and undo controls for routine and
+applied-feedback outcome checks. The new card distinguishes data baseline,
+final issued AI positions, published roster at read time and recorded spans,
+including unavailable, partial and provisional evidence. Management stays
+separate from hourly totals. A pending team check remains unanswered; no new
+anticipation question, approval step or question budget is introduced.
+Legacy unexpected-demand cards retain their original behavior. This is the
+compatible UI companion to the backend outcome contract; validation and release
+evidence are recorded by the release coordinator. No real response or message
+is created by implementation or testing.
+
+Validation: 31 focused labor checks, strict TypeScript for the review component
+and its imports, and mocked-browser save/reload/edit/undo/conflict checks pass.
+The final card was reviewed at 320, 390 and 1280px. Empty partial sources show
+Unavailable, while complete/provisional known-zero coverage remains zero;
+shorter half-hour periods retain exact coverage. All prebuild checks and the
+full Astro/Vercel build pass from a byte-matched, apostrophe-free local source
+copy with dependencies installed from the committed lockfile. The copy avoids
+Windows path/junction packaging issues in the original worktree; it does not
+change production configuration. Source remains local until the coordinated
+release; no commit, push or deployment was performed by this implementation.
+
 - **2026-10-25 — short-notice event estimates start tomorrow; acceptance stays with staff.** Implements the Website slice of the reviewed Avery plan dated October 23. MIN_LEAD_DAYS changes from 3 to 1 Central calendar day; today/past dates remain rejected, and same-day copy points to the venue at (815) 782-7790. The 10-day deposit-display threshold and existing engine, package/time/count restrictions, rounded totals and response shape stay unchanged. Successful estimate caching is capped at the next Central midnight (and at 24 hours), with no stale grace and immediate browser revalidation; the independent menu rate-card cache is unchanged. A request that crosses midnight while awaiting the engine rechecks eligibility and refreshes days_out / deposit_shown before responding, without another quote. Offline request tests mock the engine and cover tomorrow, all four packages/options, rejected dates/selections, DST, cache expiry and in-flight +1 to same-day / +10 to +9 boundaries. The menu endpoint also exposes additive date / date_restriction fields, independently of package tier and start time, so manual inquiries can enforce existing closures without duplicating the closure calendar in Zite. **Validation:** all prebuild checks passed, including 222 estimator assertions; Astro server/client compilation and prerendering completed. The final Vercel packaging hook hit the pre-existing Windows EPERM creating a React dependency symlink, as recorded on October 21. No live pricing calls, commit, push or deployment performed by this implementation step; release is coordinated with the additive Avery backend and Zite client.
 
 ## 2026-10-24 - Teacher Group accepted-source recovery and staff tasks
