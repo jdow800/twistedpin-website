@@ -3208,3 +3208,34 @@ tprs #481 changed two things:
 - After Send RSVP, guests land on their confirmation or on the form's error instead of the top of the page.
 
 The invitations manual records both. The sideways-phone header fix was deferred.
+
+## 2026-10-26 — Invoice purchase categories (authorized release)
+
+Jon approved replacing the one-off supplies action with four radio choices:
+Inventory item, Supplies & cleaning, Smallwares and Equipment. Choices remain
+local until Save answer. Inventory keeps the existing search, new-item setup,
+size confirmation and cost questions. Noninventory purchases retain their dollars
+and show the saved category in invoice details with Change answer. Corrections
+can choose another category or return the product to inventory. Supplier memory
+is presented separately when a historical purchase's category differs from the
+supplier's current answer. Tax, quantity, price and delivery questions remain.
+
+The new controls require the API's explicit category capability; old APIs retain
+the previous interface and never receive a new label as an implicit supplies
+save. Category and inventory corrections send the line and supplier category
+state present when the answer began. Stale answers stay unsaved. A confirmed POST
+updates the visible category even if the following invoice refresh fails.
+
+Validation: 18 category DOM scenarios, all 116 existing invoice DOM scenarios,
+strict COGS TypeScript with ES2023 library declarations, required prebuild checks
+and the complete Astro/Vercel build. The repository's ES2020 COGS config has
+existing `at`, `replaceAll` and `findLastIndex` diagnostics outside this change;
+the library override checks the complete COGS graph without editing that config.
+The local build retains existing unconfigured GoTab menu warnings. Native
+Chromium flows pass at 320, 390 and 1280px: all categories, explicit saves and
+corrections, return to inventory, stale replies, failed refresh and older APIs.
+Radio targets fit at 44px or taller, no horizontal overflow occurs, and external
+browser requests are blocked. Phone screenshots were inspected. Fixtures are
+fictional; no invoice records or supplier assignments were changed. Regenerable
+screenshots stay in ignored `scripts/qa-liquor-bottle-sizes/dist/category-shots/`.
+The corresponding TPRS API must be live before the Website release.

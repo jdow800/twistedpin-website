@@ -20,6 +20,8 @@ import {
   type InvoiceSummary,
   type InvoiceDetail,
   type InvoiceLine,
+  type NonInventoryCategory,
+  type MatchCardState,
   type BarInvoiceStatus,
   type BarSkuItem,
   awaitingIn,
@@ -165,7 +167,7 @@ export default function Invoices({
     setDetail((d) => {
       if (!d) return d;
       const lines = d.lines.map((x) =>
-        x.id === lineId ? { ...x, matchedName: name, ...(hold ?? {}) } : x,
+        x.id === lineId ? { ...x, matchedName: name, nonInventory: false, nonInventoryCategory: null, ...(hold ?? {}) } : x,
       );
       syncHeldCount(d.invoice.id, lines);
       return { ...d, invoice: confirmed ? { ...d.invoice, status: "confirmed" } : d.invoice, lines };
@@ -343,7 +345,7 @@ export default function Invoices({
                 {l.lineType !== "product" && <span className="lq-invd-tag">{l.lineType}</span>}
                 {l.matchedName ? (
                   <span>{l.rawDescription}</span>
-                ) : l.nonInventory ? <span>Expense · supplies</span> : l.lineType === "product" ? (
+                ) : l.nonInventory ? <span>{l.nonInventoryCategory === undefined ? "Expense · supplies" : `${NON_INVENTORY_LABEL[l.nonInventoryCategory ?? "supplies"]} · Not counted`}</span> : l.lineType === "product" ? (
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
                 {l.sizeText && <span>· {l.sizeText}</span>}
@@ -355,12 +357,22 @@ export default function Invoices({
               {!!l.lineTax && <p className="lq-muted">Printed row total: {money(l.printedLineTotal ?? null)}; line tax: {money(l.lineTax)}. Product amount above excludes tax.</p>}
               {reviewReasonsFor(l).includes("amount") && <p className="lq-invd-unmatched">Check the printed price, quantity and tax. The line amount does not reconcile.</p>}
               {reviewReasonsFor(l).includes("quantity") && <p className="lq-invd-unmatched">Check the billed quantity and case columns on the original invoice.</p>}
-              {!inv.duplicateOf && inv.status !== "pending" && reviewReasonsFor(l).includes("identity") && (
-                <>
-                <MatchControl invoiceId={detail.invoice.id} line={l} catalog={catalog} catalogState={catalogState}
-                  onRetryCatalog={() => setCatalogAttempt(n => n + 1)} onMatched={handleMatched} />
-                <ExpenseControl invoiceId={detail.invoice.id} line={l} onResolved={() => void refreshBuckets(inv.id)} />
-                </>
+              {canAnswer && l.lineType === "product" && (reviewReasonsFor(l).includes("identity") || l.nonInventory) && (
+                <TrackingControl invoiceId={inv.id} line={l} catalog={catalog} catalogState={catalogState}
+                  categories={detail.nonInventoryCategories}
+                  onRetryCatalog={() => setCatalogAttempt(n => n + 1)} onMatched={handleMatched}
+                  onRefresh={() => refreshBuckets(inv.id)} onSaved={category => {
+                    setSavedAnswer(`Saved ${l.rawDescription || "this item"} as ${NON_INVENTORY_LABEL[category]}. Purchase retained; not counted.`);
+                    // The POST confirmed this exact category. Keep that fact on
+                    // screen even if the following detail read loses connection.
+                    setDetail(current => current && current.invoice.id === inv.id ? { ...current,
+                      lines: current.lines.map(item => {
+                        if (item.id !== l.id) return item;
+                        const reasons = reviewReasonsFor(item).filter(reason => reason !== "identity");
+                        return { ...item, nonInventory: true, nonInventoryCategory: category,
+                          supplierNonInventoryCategory: category, costHoldReason: null, reviewReasons: reasons, needsReview: reasons.length > 0 };
+                      }) } : current);
+                  }} />
               )}
               {!inv.duplicateOf && inv.status !== "pending" && l.costHoldReason && (
                 <CostHoldControl invoiceId={detail.invoice.id} line={l} sku={catalog.find(sku => sku.id === l.matchedSkuId)} onApplied={handleCostApplied} />
@@ -810,7 +822,94 @@ function DiscontinuedControl({ invoiceId, line, onResolved }: { invoiceId: strin
   </div>;
 }
 
-function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {
+const NON_INVENTORY_LABEL: Record<NonInventoryCategory, string> = {
+  supplies: "Supplies & cleaning", smallwares: "Smallwares", equipment: "Equipment",
+};
+const TRACKING_OPTIONS = [
+  { value: "inventory", label: "Inventory item", example: "Food, drinks, paper and items we count" },
+  { value: "supplies", label: NON_INVENTORY_LABEL.supplies, example: "Cleaners and other operating supplies" },
+  { value: "smallwares", label: NON_INVENTORY_LABEL.smallwares, example: "Pans, Cambros, covers and reusable utensils" },
+  { value: "equipment", label: NON_INVENTORY_LABEL.equipment, example: "Mixers, refrigerators and larger equipment" },
+] as const;
+
+function TrackingControl({ invoiceId, line, catalog, catalogState, categories, onRetryCatalog, onMatched, onRefresh, onSaved }: {
+  invoiceId: string; line: InvoiceLine; catalog: BarSkuItem[]; catalogState: "loading" | "ready" | "error";
+  categories?: NonInventoryCategory[]; onRetryCatalog: () => void;
+  onMatched: React.ComponentProps<typeof MatchControl>["onMatched"];
+  onRefresh: () => Promise<void>; onSaved: (category: NonInventoryCategory) => void;
+}) {
+  const supported = ["supplies", "smallwares", "equipment"].every(category => categories?.includes(category as NonInventoryCategory));
+  const savedCategory = line.nonInventory ? line.nonInventoryCategory ?? "supplies" : null;
+  const [editing, setEditing] = useState(false);
+  const [choice, setChoice] = useState<"inventory" | NonInventoryCategory | "">(savedCategory ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [stale, setStale] = useState(false);
+  const startedFrom = useStartedFrom(matchCardState({ ...line, nonInventoryCategory: savedCategory,
+    supplierNonInventoryCategory: line.supplierNonInventoryCategory ?? null }));
+  const cancel = () => { setEditing(false); setChoice(savedCategory ?? ""); setError(""); setStale(false); startedFrom.reset(); };
+  async function save() {
+    if (busy || !supported || !choice || choice === "inventory" || !line.vendorCode) return;
+    setBusy(true); setError("");
+    try {
+      const result = await expenseInvoiceLine(invoiceId, line.id, { category: choice, shown: startedFrom.state });
+      if (!result.resolved || result.nonInventoryCategory !== choice) {
+        setError("The saved category could not be confirmed. Reload this item to check it."); setStale(true); return;
+      }
+      onSaved(choice); await onRefresh(); cancel();
+    } catch (err) {
+      const changed = isStaleAnswer(err);
+      setStale(changed);
+      setError(changed ? "This item changed while you were answering. Reload it to see the latest answer."
+        : err instanceof BarApiError && refusalCode(err) === "bucket_would_change"
+          ? `This supplier product is already filed${line.ourBucket || line.supplierBucket ? ` under ${BUCKET_LABEL[line.ourBucket ?? line.supplierBucket!] ?? (line.ourBucket ?? line.supplierBucket)}` : " under another cost category"}. No category change was saved. Check its existing category before changing it.`
+          : "Could not save. Your choice is kept; try Save again.");
+    } finally { setBusy(false); }
+  }
+  // Old API deployments cannot distinguish these categories. Keep inventory
+  // matching usable, but never send a new label to the legacy supplies route.
+  if (!supported) return savedCategory ? null : <>
+    <MatchControl invoiceId={invoiceId} line={line} catalog={catalog} catalogState={catalogState}
+      onRetryCatalog={onRetryCatalog} onMatched={onMatched} />
+    <LegacyExpenseControl invoiceId={invoiceId} line={line} onResolved={() => void onRefresh()} />
+  </>;
+  if (savedCategory && !editing) return <div className="lq-invd-tracking-saved">
+    <p className="lq-muted">Purchase retained. {line.supplierNonInventoryCategory === savedCategory
+      ? "Future orders of this supplier product use the same category."
+      : line.supplierNonInventoryCategory
+        ? `Future orders use ${NON_INVENTORY_LABEL[line.supplierNonInventoryCategory]}, the current supplier category.`
+        : "This is the category saved for this purchase."}</p>
+    <button type="button" className="lq-linkbtn" onClick={() => { setChoice(savedCategory); startedFrom.edited(); setEditing(true); }}>Change answer</button>
+  </div>;
+  return <div className="lq-invd-tracking">
+    <fieldset disabled={busy}>
+      <legend>How should we track this?</legend>
+      <div className="lq-invd-tracking-options">
+        {TRACKING_OPTIONS.map(option => <label key={option.value} className="lq-invd-tracking-option">
+          <input type="radio" name={`invoice-category-${invoiceId}-${line.id}`} value={option.value}
+            checked={choice === option.value} onChange={() => { startedFrom.edited(); setChoice(option.value); setError(""); }} />
+          <span><strong>{option.label}</strong><small>{option.example}</small></span>
+        </label>)}
+      </div>
+    </fieldset>
+    {choice === "inventory" ? <MatchControl invoiceId={invoiceId} line={line} catalog={catalog} catalogState={catalogState}
+      onRetryCatalog={onRetryCatalog} shown={startedFrom.state} confirmAnswer onBusyChange={setBusy}
+      onMatched={(...args) => { cancel(); onMatched(...args); }} /> : <>
+      {choice && <div className="lq-invd-tracking-note">
+        <p>Keep this purchase in <strong>{NON_INVENTORY_LABEL[choice]}</strong>. Leave it off inventory counts.</p>
+        <p className="lq-muted">{line.vendorCode ? "Remember this choice for the same supplier product." : "This item needs a supplier product code before its category can be remembered. Reopen the invoice to check the reading."}</p>
+      </div>}
+      <button type="button" className="lq-btn" disabled={busy || !choice || !line.vendorCode || stale || startedFrom.moved} onClick={() => void save()}>{busy ? "Saving…" : "Save answer"}</button>
+    </>}
+    {savedCategory && <button type="button" className="lq-linkbtn" disabled={busy} onClick={cancel}>Cancel</button>}
+    {(stale || startedFrom.moved) && <p className="lq-muted">Your choice has not been applied. <button type="button" className="lq-linkbtn" disabled={busy}
+      onClick={async () => { setBusy(true); await onRefresh(); cancel(); setBusy(false); }}>Reload item</button></p>}
+    {error && <p className="lq-error" role="alert">{error}</p>}
+  </div>;
+}
+
+/** Compatibility only while an older backend is serving this screen. */
+function LegacyExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; line: InvoiceLine; onResolved: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   if (!line.vendorCode) return null;
@@ -820,9 +919,7 @@ function ExpenseControl({ invoiceId, line, onResolved }: { invoiceId: string; li
     catch (err) { setError(isStaleAnswer(err) ? STALE_ANSWER_MESSAGE : "Could not save. Reopen the invoice and check this item."); setBusy(false); }
   }
   return <div className="lq-invd-hold">
-    <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>
-      {busy ? "Saving…" : "Expense as supplies (not counted)"}
-    </button>
+    <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => void save()}>{busy ? "Saving…" : "Expense as supplies (not counted)"}</button>
     {error && <p className="lq-error" role="alert">{error}</p>}
   </div>;
 }
@@ -1180,6 +1277,9 @@ function MatchControl({
   catalogState = "ready",
   onRetryCatalog,
   onMatched,
+  shown,
+  confirmAnswer = false,
+  onBusyChange,
 }: {
   invoiceId: string;
   line: InvoiceLine;
@@ -1187,6 +1287,9 @@ function MatchControl({
   /** The item list loads beside the invoice. Until it lands, say so rather than "No items found". */
   catalogState?: "loading" | "ready" | "error";
   onRetryCatalog?: () => void;
+  shown?: MatchCardState;
+  confirmAnswer?: boolean;
+  onBusyChange?: (busy: boolean) => void;
   onMatched: (
     lineId: string,
     name: string,
@@ -1196,6 +1299,8 @@ function MatchControl({
 }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
+  const [selected, setSelected] = useState<BarSkuItem | null>(null);
+  useEffect(() => { onBusyChange?.(busy); }, [busy, onBusyChange]);
   const [err, setErr] = useState<string | null>(null);
   const [newMode, setNewMode] = useState(false);
   const [sizeMismatch, setSizeMismatch] = useState<BarSkuItem | null>(null);
@@ -1227,10 +1332,12 @@ function MatchControl({
   }, [sameProduct, proposedSize]);
   const otherSizes = sameProduct.filter((s) => s.sizeMl != null && s.sizeMl !== proposedSize);
 
-  // Nothing here needs a started-from pin (useStartedFrom): this picker is only
-  // drawn while the line has no match and is not an expense (the "identity"
-  // reason), so anything another person does to the line withdraws it, typed
-  // search and all, and the card state sent below is always unmatched/not-expense.
+  // The category picker supplies the state at the first radio selection, so
+  // changing an existing expense cannot overwrite a later supplier answer.
+  function select(skuId: string, name: string) {
+    if (!confirmAnswer) return void pick(skuId, name);
+    setSelected(catalog.find(s => s.id === skuId) ?? null); setNewMode(false); setSizeMismatch(null); setErr(null);
+  }
   async function pick(skuId: string, name: string, confirmSize = false) {
     const chosen = catalog.find((s) => s.id === skuId);
     if (!confirmSize && invoiceSize != null && chosen?.sizeMl != null && chosen.sizeMl !== invoiceSize) {
@@ -1241,7 +1348,7 @@ function MatchControl({
     setBusy(true);
     setErr(null);
     try {
-      const r = await matchInvoiceLine(invoiceId, line.id, skuId, matchCardState(line));
+      const r = await matchInvoiceLine(invoiceId, line.id, skuId, shown ?? matchCardState(line));
       onMatched(line.id, r.matchedName || name, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.matchedSkuId,
@@ -1264,7 +1371,7 @@ function MatchControl({
     try {
       const n = Number(newSize);
       const sizeMl = newSize.trim() && Number.isFinite(n) && n > 0 ? Math.round(n) : null;
-      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, matchCardState(line));
+      const r = await newSkuFromLine(invoiceId, line.id, nm, sizeMl, { section: newSection, countUnit: newCountUnit, cogsBucket: newBucket }, shown ?? matchCardState(line));
       onMatched(line.id, r.matchedName, r.invoiceConfirmed, {
         costHoldReason: r.costHeld,
         matchedSkuId: r.skuId,
@@ -1293,7 +1400,7 @@ function MatchControl({
         <div className="lq-rev-choices">
           <span className="lq-muted lq-rev-hint">Did you mean</span>
           {suggestions.map((c) => (
-            <button key={c.sku.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(c.sku.id, c.sku.name)}>
+            <button key={c.sku.id} type="button" className="lq-chip" disabled={busy} onClick={() => select(c.sku.id, c.sku.name)}>
               {c.sku.name}{c.sku.sizeMl != null ? ` · ${c.sku.sizeMl}ml` : ""}
             </button>
           ))}
@@ -1310,12 +1417,17 @@ function MatchControl({
           onChange={(e) => setQ(e.target.value)}
         />
         {hits.map((s) => (
-          <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => pick(s.id, s.name)}>
+          <button key={s.id} type="button" className="lq-chip" disabled={busy} onClick={() => select(s.id, s.name)}>
             {invoiceItemLabel(s)}
           </button>
         ))}
       </div>
       {q.trim() && hits.length === 0 && catalogState === "ready" && <p className="lq-muted" role="status">No items found in either inventory. Try part of the name, or add an item below.</p>}
+      {confirmAnswer && !newMode && <div className="lq-invd-tracking-note">
+        <p role="status">{selected ? <>Match to <strong>{invoiceItemLabel(selected)}</strong>.</> : "Choose an existing item, or add a new one below."}</p>
+        <button type="button" className="lq-btn" disabled={busy || !selected || !!sizeMismatch}
+          onClick={() => { if (selected) void pick(selected.id, selected.name); }}>{busy ? "Saving…" : "Save answer"}</button>
+      </div>}
       {sizeMismatch && (
         <div className="lq-newsku-dup">
           <p className="lq-newsku-dup-warn">
@@ -1333,7 +1445,7 @@ function MatchControl({
         </div>
       )}
       {!newMode ? (
-        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(true)}>
+        <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => { setSelected(null); setNewMode(true); }}>
           + New item (not in the list)
         </button>
       ) : (
@@ -1396,7 +1508,7 @@ function MatchControl({
           )}
           <div className="lq-newsku-actions">
             <button type="button" className="lq-btn lq-btn-primary" disabled={busy || !newName.trim() || !newSection || !newBucket || !newCountUnit} onClick={createNew}>
-              {dupes.length === 1 ? "Match existing item" : dupes.length > 1 ? "Add anyway" : "Create + match"}
+              {busy ? "Saving…" : confirmAnswer ? "Save answer" : dupes.length === 1 ? "Match existing item" : dupes.length > 1 ? "Add anyway" : "Create + match"}
             </button>
             <button type="button" className="lq-linkbtn" disabled={busy} onClick={() => setNewMode(false)}>cancel</button>
           </div>

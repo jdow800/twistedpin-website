@@ -1,5 +1,23 @@
 # Bottle-size UI verification
 
+## Invoice purchase categories
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/serve.mjs --invoices --build-only
+node scripts/qa-liquor-bottle-sizes/check-invoice-categories.mjs
+node scripts/qa-liquor-bottle-sizes/check-invoice-categories-native.mjs
+```
+
+The category suite uses the real invoice screen and API client with fictional
+responses. It checks explicit saves for supplies, smallwares and equipment,
+corrections between categories and back to inventory, unchanged purchase dollars,
+independent radios, stale line and supplier answers, retained amount questions,
+failed saves and failed readback, historical supplier changes, missing codes and
+older APIs without category support. Native Chromium runs at 320, 390 and 1280px,
+blocks external requests, checks touch targets and overflow, and captures each
+selection, saved answer and correction in ignored `dist/category-shots/`.
+`INVOICE_QA_CHROME` overrides the installed Windows Chrome executable.
+
 ## Food and non-alcoholic waste log
 
 ```powershell

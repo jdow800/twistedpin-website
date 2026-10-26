@@ -1338,6 +1338,7 @@ export interface InvoiceSummary {
   duplicateOf?: string | null;
   landedOf?: string | null;
 }
+export type NonInventoryCategory = "supplies" | "smallwares" | "equipment";
 export interface InvoiceLine {
   id: string;
   /** The vendor's own item number — SUPC on Sysco. The supplier identity half. */
@@ -1370,6 +1371,8 @@ export interface InvoiceLine {
   needsReview: boolean;
   reviewReasons?: ("identity" | "amount" | "quantity")[];
   nonInventory?: boolean;
+  nonInventoryCategory?: NonInventoryCategory | null;
+  supplierNonInventoryCategory?: NonInventoryCategory | null;
   printedLineTotal?: string | null;
   lineTax?: string | null;
   printedUnitPrice?: string | null;
@@ -1524,6 +1527,8 @@ export async function rejectInvoicePackageSourceCheck(id: string, evidenceHash: 
   await gatedJson(`/admin/bar/invoices/${id}/source-check/reject`, jsonBody({ evidenceHash }));
 }
 export interface InvoiceDetail {
+  /** Enables explicit category writes only after the corresponding API is live. */
+  nonInventoryCategories?: NonInventoryCategory[];
   copyReviews?: InvoiceCopyReview[];
   explanationToken?: string;
   depositResolution?: InvoiceDepositResolution | null;
@@ -1582,9 +1587,16 @@ export async function getInvoiceDetail(id: string): Promise<InvoiceDetail> {
  *  expensed line has no match either, so the pair is what tells them apart. A
  *  re-match retires the supplier's saved case size, so the server refuses
  *  (409 match_changed) when someone else has changed the line since. */
-export interface MatchCardState { matchedSkuId: string | null; nonInventory: boolean }
-export function matchCardState(line: Pick<InvoiceLine, "matchedSkuId" | "nonInventory">): MatchCardState {
-  return { matchedSkuId: line.matchedSkuId ?? null, nonInventory: line.nonInventory === true };
+export interface MatchCardState { matchedSkuId: string | null; nonInventory: boolean;
+  nonInventoryCategory?: NonInventoryCategory | null; supplierNonInventoryCategory?: NonInventoryCategory | null }
+export function matchCardState(line: Pick<InvoiceLine, "matchedSkuId" | "nonInventory" | "nonInventoryCategory" | "supplierNonInventoryCategory">): MatchCardState {
+  return { matchedSkuId: line.matchedSkuId ?? null, nonInventory: line.nonInventory === true,
+    ...(line.nonInventoryCategory !== undefined ? { nonInventoryCategory: line.nonInventoryCategory,
+      supplierNonInventoryCategory: line.supplierNonInventoryCategory ?? null } : {}) };
+}
+function categoryExpectations(shown: MatchCardState) {
+  return shown.nonInventoryCategory !== undefined ? { expectedNonInventoryCategory: shown.nonInventoryCategory,
+    expectedSupplierNonInventoryCategory: shown.supplierNonInventoryCategory ?? null } : {};
 }
 /** Confirm a needs-review invoice line → a SKU. Learns the vendor alias + refreshes
  *  the SKU cost server-side; returns whether the whole invoice is now confirmed. */
@@ -1603,7 +1615,7 @@ export async function matchInvoiceLine(
   matchedSkuId: string | null;
   matchedCountUnit: string | null;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/match`, jsonBody({ skuId, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory, ...categoryExpectations(shown) }));
 }
 
 /** The part of a line a price or package answer is checked against: the item,
@@ -1639,8 +1651,11 @@ export async function applyHeldCost(
       expectedPackageKey: line.packageKey ?? null, costPerCountUnit }),
   );
 }
-export async function expenseInvoiceLine(invoiceId: string, lineId: string): Promise<{ resolved: boolean }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/expense`, jsonBody({}));
+export async function expenseInvoiceLine(invoiceId: string, lineId: string,
+  answer?: { category: NonInventoryCategory; shown: MatchCardState },
+): Promise<{ resolved: boolean; nonInventoryCategory?: NonInventoryCategory }> {
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/expense`, jsonBody(answer
+    ? { category: answer.category, ...categoryExpectations(answer.shown) } : {}));
 }
 export async function rememberInvoiceUnit(invoiceId: string, line: AnswerBasis, unitsPerBilledUnit: number): Promise<{ resolved: boolean }> {
   return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${line.id}/remember-unit`, jsonBody({
@@ -1747,7 +1762,7 @@ export async function newSkuFromLine(
    *  it names the denominator of the dollar figure a human then authorises. */
   countUnit: string;
 }> {
-  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory }));
+  return gatedJson(`/admin/bar/invoices/${invoiceId}/lines/${lineId}/new-sku`, jsonBody({ name, sizeMl, ...settings, expectedMatchedSkuId: shown.matchedSkuId, expectedNonInventory: shown.nonInventory, ...categoryExpectations(shown) }));
 }
 /** Same-origin URL for an invoice page image — the <img>/link request carries the
  *  session cookie (the staffer is already authed), so no header is needed. */

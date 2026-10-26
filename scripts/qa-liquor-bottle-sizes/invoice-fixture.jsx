@@ -56,6 +56,20 @@ if(['amount','expense','remember-unit','remember-failure','remember-error','reme
   if(mode.startsWith('remember')||mode.startsWith('stale-remember')||mode.endsWith('-apply')) Object.assign(line,{matchedSkuId:'demo',matchedName:'Example food',matchedCountUnit:'pack',needsReview:false,
     reviewReasons:[],costHoldReason:'possible unit mismatch',canRememberUnit:!mode.endsWith('-apply'),packageKey:'2|5LB|'});
 }
+if(mode.startsWith('category-')) {
+  invoice.status='extracted';invoice.reviewNotes=[];invoice.handwrittenNotes=[];
+  detail.nonInventoryCategories=['supplies','smallwares','equipment'];
+  Object.assign(line,{lineType:'product',vendorCode:'DEMO-TOOL',rawDescription:'Example kitchen cover',needsReview:true,
+    reviewReasons:['identity'],qtyUnits:'1',sizeText:null,unitCost:'50',extendedAmount:'50',nonInventory:false,
+    nonInventoryCategory:null,supplierNonInventoryCategory:null});
+  if(['category-saved','category-legacy-saved','category-correction-refresh-failure','category-historical'].includes(mode)) Object.assign(line,{needsReview:false,reviewReasons:[],nonInventory:true,
+    nonInventoryCategory:mode==='category-legacy-saved'?null:'smallwares',supplierNonInventoryCategory:mode==='category-legacy-saved'?'supplies':mode==='category-historical'?'equipment':'smallwares'});
+  if(mode==='category-missing-code')line.vendorCode=null;
+  if(mode==='category-amount')line.reviewReasons=['identity','amount'];
+  if(mode==='category-bucket-conflict')line.supplierBucket='paper';
+  if(mode==='category-unsupported')delete detail.nonInventoryCategories;
+  if(mode==='category-two')detail.lines.push({...line,id:'second-tool',rawDescription:'Example mixer',vendorCode:'DEMO-MIXER'});
+}
 // Refresh-while-editing (independent review 2026-10-09). One invoice, six lines: a delivery box (no question,
 // so it stays put), one with a count already on file, a one-time price hold, a package hold, an unmatched line
 // with no Expense button, and an Expense line whose answer re-reads the whole invoice. window.__qaOther changes
@@ -243,7 +257,22 @@ window.fetch=async(url,options={})=>{
     const section=new URL(url,location.href).searchParams.get('section')||'bar';
     return json({items:catalog.filter(item=>item.section===section)});
   }
-  if(path.endsWith('/expense')) {const target=lineFor(path);target.nonInventory=true;target.needsReview=false;target.reviewReasons=[];return json({resolved:true});}
+  if(path.endsWith('/expense')) {
+    const target=lineFor(path),body=JSON.parse(options.body);
+    if(mode==='category-stale')return json({error:'line_changed'},409);
+    if(mode==='category-supplier-stale')return json({error:'supplier_item_changed'},409);
+    if(mode==='category-failure')return json({error:'internal'},500);
+    if(mode==='category-bucket-conflict')return json({error:'bucket_would_change'},409);
+    if(mode==='category-unconfirmed')return json({resolved:true});
+    if(mode.startsWith('category-')&&body.category) {
+      if(body.expectedNonInventoryCategory!==(target.nonInventoryCategory??(target.nonInventory?'supplies':null)))return json({error:'line_changed'},409);
+      if(body.expectedSupplierNonInventoryCategory!==(target.supplierNonInventoryCategory??null))return json({error:'supplier_item_changed'},409);
+      target.nonInventoryCategory=target.supplierNonInventoryCategory=body.category;
+      target.reviewReasons=target.reviewReasons.filter(reason=>reason!=='identity');
+    }else target.reviewReasons=[];
+    target.nonInventory=true;target.needsReview=target.reviewReasons.length>0;
+    return json({resolved:true,...(body.category?{nonInventoryCategory:body.category}:{})});
+  }
   // The three stale checks below mirror the server's (tprs bar.ts apply-cost / received, bar-invoice-answers.ts
   // remember-unit): the answer is refused when the line is no longer what the card was drawn against.
   if(path.endsWith('/apply-cost')) {
@@ -324,6 +353,7 @@ window.fetch=async(url,options={})=>{
   if(path.endsWith('/match')||path.endsWith('/new-sku')) {
     if(mode==='stale-match')return json({error:'match_changed'},409);
     const body=JSON.parse(options.body); line.needsReview=false;line.discontinued=null;line.matchedName=body.name||catalog.find(s=>s.id===body.skuId)?.name;
+    if(mode.startsWith('category-')) {line.nonInventory=false;line.nonInventoryCategory=null;line.supplierNonInventoryCategory=null;line.reviewReasons=[];}
     line.costHoldReason='possible unit mismatch';line.matchedCountUnit='pack';line.matchedSkuId=body.skuId||'new';
     return json({matchedName:line.matchedName,matchedSkuId:body.skuId||'new',skuId:body.skuId||'new',invoiceConfirmed:false,costHeld:'possible unit mismatch',matchedCountUnit:'pack',countUnit:body.countUnit});
   }
@@ -334,6 +364,7 @@ window.fetch=async(url,options={})=>{
     ...(mode==='clarity'?[{...invoice,id:'completed-copy',status:'flagged',duplicateOf:'DEMO-COPY',vendorText:'Example completed copy',needsAttention:false}]:[])
   ]});
   if(path.endsWith('/invoices/test-invoice')) {
+    if(mode.includes('category-')&&mode.endsWith('refresh-failure')&&audit.some(row=>row.startsWith('POST')))return json({error:'refresh failed'},500);
     if(mode==='refresh-failure'&&line.receivedQty==='0')return json({error:'refresh failed'},500);
     return json(detail);
   }
