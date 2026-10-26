@@ -3372,6 +3372,22 @@
 .lq-invd .lq-invd-desc { font-size: 18px; line-height: 1.35; font-weight: 700; overflow-wrap: anywhere; }
 .lq-invd .lq-invd-amt { font-size: 16px; font-variant-numeric: tabular-nums; }
 .lq-invd .lq-invd-line-sub { font-size: 12px; line-height: 1.5; margin-top: 6px; gap: 4px; overflow-wrap: anywhere; }
+.lq-invd-tracking { margin-top: 18px; }
+.lq-invd-tracking fieldset { min-width: 0; padding: 0; margin: 0; border: 0; }
+.lq-invd-tracking legend { padding: 0; margin-bottom: 12px; font-size: 17px; font-weight: 600; }
+.lq-invd-tracking-options { display: grid; gap: 8px; }
+.lq-invd-tracking-option { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 12px; border: 1px solid var(--lq-line-strong); border-radius: 7px; cursor: pointer; }
+.lq-invd-tracking-option:has(input:checked) { border-color: var(--lq-glow); background: var(--lq-panel-2); }
+.lq-invd-tracking-option:has(input:focus-visible) { outline: 2px solid var(--lq-glow); outline-offset: 2px; }
+.lq-invd-tracking-option input { flex: 0 0 auto; width: 18px; height: 18px; margin: 0; accent-color: var(--lq-glow); }
+.lq-invd-tracking-option strong { display: block; font-size: 16px; font-weight: 600; }
+.lq-invd-tracking-option small { display: block; margin-top: 2px; color: var(--lq-muted); font-size: 13px; line-height: 1.4; }
+.lq-invd-tracking-note { margin: 16px 0; font-size: 15px; }
+.lq-invd-tracking-note p { margin: 8px 0; }
+.lq-invd-tracking-note .lq-muted, .lq-invd-tracking-saved p { font-size: 14px; }
+.lq-invd-tracking > .lq-btn { margin-top: 16px; }
+.lq-invd-tracking > .lq-btn, .lq-invd-tracking .lq-match .lq-btn { width: 100%; }
+.lq-invd-tracking .lq-linkbtn, .lq-invd-tracking-saved .lq-linkbtn { min-height: 44px; padding: 10px 2px; white-space: normal; }
 .lq-invd .lq-invd-hold { border-top: 1px solid var(--lq-line); padding-top: 16px; margin-top: 16px; display: block; }
 .lq-invd-question-label { color: #ffcf5c; font-size: 13px; font-weight: 700; margin: 0 0 10px; }
 .lq-invd .lq-invd-hold-edit label { display: block; font-size: 17px; line-height: 1.4; font-weight: 600; margin: 0 0 8px; }
