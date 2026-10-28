@@ -116,8 +116,7 @@ export const SEASONAL_ITEMS: SeasonalNavItem[] = [
    * January for post-holiday follow-ups. NYE drawer window
    * (Nov 15 → Jan 2) overlaps; both surface with distinct icons
    * (tree-pine vs sparkles) and distinct labels — no clash.
-   * December books fast — drawer surfacing in Sep gives ~3 months
-   * of lead time before the venue starts losing dates.
+   * Planning a December or January party? Send us your preferred date, approximate headcount and occasion.
    */
   {
     label: "Holiday Parties",

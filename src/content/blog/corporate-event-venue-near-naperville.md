@@ -61,14 +61,13 @@ What they're not great for: any event where you need a non-dining
 activity, breakout space, AV beyond a single screen, or a room that
 isn't a side room of a working restaurant.
 
-## Twisted Pin — the 6-lane VIP suite
+## Twisted Pin — the semi-private VIP suite
 
-What it is: a [6-lane VIP suite](/vip-suite/) set apart from the
+What it is: a [semi-private VIP suite](/vip-suite/) set apart from the
 venue's traditional lanes by a wall. AV hookups for
 slideshows and walk-in music, in-house catering from the kitchen,
 billiards-style group dynamics, and bar billing you control on a tab
-or drink tickets — your call. Set apart, semi-private, and when you
-book all six lanes, the whole suite is yours during your event time.
+or drink tickets — your call. Set apart and semi-private. Reserve part of the suite, or ask to reserve the whole suite. Other groups may share the suite unless your booking reserves the whole suite. When your booking reserves the whole suite, it is yours during your event time.
 
 The bar program is a load-bearing piece. It was curated by Brian Van
 Flandern, who Food Network calls *America's Top Mixologist* — the kind
@@ -92,9 +91,9 @@ which arrangement fits.
 
 ## Holiday parties for Naperville teams
 
-December books fast. If the office holiday party is still on the
+Planning a December or January party? Send us your preferred date, approximate headcount and occasion. If the office holiday party is still on the
 "we should figure that out" list, now's the time. The
-[6-lane VIP suite](/vip-suite/) brings bowling, in-house catering,
+[semi-private VIP suite](/vip-suite/) brings bowling, in-house catering,
 and a bar tab or drink tickets you control into the same event. Tell
 us your headcount and plans, and we'll discuss the suite or a full-venue
 buyout. Dates, food and the rest live on our
@@ -122,8 +121,7 @@ A short list, and the answers we give for the VIP suite:
 1. **What setup works for our headcount and event format?** — Share
    your guest list, seating needs, and plans for bowling. We'll discuss
    the arrangement before you book.
-2. **Is the space exclusive to my group or shared?** — When you book
-   all six lanes, the whole suite is yours during your event time.
+2. **Is the space exclusive to my group or shared?** — Reserve part of the suite, or ask to reserve the whole suite. Other groups may share the suite unless your booking reserves the whole suite. When your booking reserves the whole suite, it is yours during your event time.
    Bar and arcade access is shared with the rest of the venue
    (semi-private).
 3. **What's the AV setup?** — Hookups for slideshows and walk-in music.

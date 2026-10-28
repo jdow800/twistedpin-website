@@ -132,7 +132,7 @@ export const BUFFET_VIDEO: VideoEntry = {
   slug: "buffet",
   name: "Group Events — Catering at Twisted Pin",
   description:
-    "A buffet of catering options laid out for a group event in the 6-lane VIP suite at Twisted Pin in Plainfield, IL. Chafing dishes, charcuterie and a bar setup for the occasion.",
+    "A buffet of catering options laid out for a group event in the semi-private VIP suite at Twisted Pin in Plainfield, IL. Chafing dishes, charcuterie and a bar setup for the occasion.",
   thumbnailPath: "/snap/buffet-poster.avif",
   contentPath: "/snap/buffet-mobile-h264-1080.mp4",
   durationSeconds: 8,
@@ -142,9 +142,9 @@ export const BUFFET_VIDEO: VideoEntry = {
 
 export const VIP_LANES_VIDEO: VideoEntry = {
   slug: "vip-lanes",
-  name: "The 6-Lane VIP Suite",
+  name: "The semi-private VIP suite",
   description:
-    "A walkthrough of the 6-lane VIP suite at Twisted Pin in Plainfield, IL — set apart from the traditional lanes by a wall, with couch seating, AV hookups and in-house catering. Reserve two lanes, four, or all six for your event.",
+    "A walkthrough of the semi-private VIP suite at Twisted Pin in Plainfield, IL — set apart from the traditional lanes by a wall, with couch seating, AV hookups and in-house catering. Reserve part of the suite, or ask to reserve the whole suite.",
   thumbnailPath: "/snap/vip-lanes-poster.avif",
   contentPath: "/snap/vip-lanes-mobile-h264-1080.mp4",
   durationSeconds: 12,
@@ -180,7 +180,7 @@ export const NYE_VIDEO: VideoEntry = {
   slug: "nye",
   name: "New Year's Eve at Twisted Pin",
   description:
-    "Atmospheric clip for New Year's Eve at Twisted Pin in Plainfield, IL. The bar, the 28-tap self-serve wall, the 6-lane VIP suite — done right.",
+    "Atmospheric clip for New Year's Eve at Twisted Pin in Plainfield, IL. The bar, the 28-tap self-serve wall, the semi-private VIP suite — done right.",
   thumbnailPath: "/snap/nye-poster.avif",
   contentPath: "/snap/nye-mobile-h264-1080.mp4",
   durationSeconds: 8,

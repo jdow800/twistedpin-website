@@ -75,84 +75,38 @@ export interface Promo {
  * during an overlap window.
  */
 export const PROMOS: readonly Promo[] = [
-  // Leagues first. Two reasons:
-  //   1. Aug 7-14 it runs alone (the kids promo was pulled early — see
-  //      below), so it is the whole bar.
-  //   2. Aug 15-31 it rotates with holiday-parties, and it is by far the
-  //      more time-sensitive of the two: Monday IBT's organizational
-  //      meeting is Aug 31 and Tuesday's is Sept 8, versus a December
-  //      party that books months out. First position = entry beat.
-  // Expires Aug 31, so it never coexists with NYE (opens Nov 15) — the
-  // NYE-vs-holiday ordering below is unaffected by sitting under this.
-  {
-    id: "leagues-fall-2026",
-    message: "Leagues Now Forming!",
-    href: "/leagues/",
-    showUntil: "2026-08-31",
-    homepageOnly: true,
-  },
-  // Karaoke takes the bar the day leagues expires (Sept 1), per Jon
-  // 2026-08-27. Split into a launch beat and a season beat for two reasons:
-  //   1. The copy genuinely differs — "starts Sept 10" is news, "every
-  //      Thursday" is a standing fact.
-  //   2. Dismissal is stored per `id`, so one id spanning nine months would
-  //      mean a single X-tap kills karaoke on that device until June. The
-  //      split gives the season promo a fresh id partway through. Bump
-  //      `karaoke-thursdays-2026` to `-2027` in January if it needs another
-  //      re-show; the copy can stay identical.
-  // Both point at /upcoming-events/, which auto-hides the bar on that page.
-  {
-    id: "karaoke-launch-2026",
-    message: "Karaoke Thursdays start Sept 10",
-    href: "/upcoming-events/",
-    showFrom: "2026-09-01",
-    showUntil: "2026-09-10",
-    homepageOnly: true,
-  },
-  // Singo music bingo launch beat (Jon 2026-09-04) — same two-beat shape as
-  // karaoke. Sits BEHIND the karaoke launch (Sept 10 lands first, so it
-  // gets the entry beat) and AHEAD of the Q4 revenue promos for its nine
-  // days, because "starts Sunday" is news and December is not yet. No
-  // showFrom: live on the next deploy. Expires the night it launches.
-  {
-    id: "singo-launch-2026",
-    message: "Music bingo Sundays start Sept 13",
-    href: "/upcoming-events/",
-    showUntil: "2026-09-13",
-    homepageOnly: true,
-  },
-  // NYE now owns the homepage lead from Dec 7 through the shared campaign
+  // Expired beats removed 2026-10-28 (Jon-approved v4). Do not restore them:
+  // leagues-fall-2026 (through Aug 31), karaoke-launch-2026 (through Sept 10),
+  // singo-launch-2026 (through Sept 13).
+  // NYE owns the homepage lead from Dec 7 through the shared campaign
   // selector. Do not add a second NYE bar or a separate November start here.
-  // Holiday parties — picks up the day after the kids promo expires so the
-  // bar never goes dark into the season (Jon-approved copy 2026-08-01).
   {
     id: "holiday-parties-2026",
-    message: "Holiday parties — December books fast",
+    message: "December or January party? Plan it.",
     href: "/holiday-parties/",
     showFrom: "2026-08-15",
     showUntil: "2026-12-15",
     homepageOnly: true,
   },
-  // Season beat, LAST in the array on purpose. Sept 11 → the end of the
-  // run, so it deliberately sits behind holiday-parties and NYE during Q4:
-  // those two are the revenue promos in the corporate-ramp window, and this
-  // one is a free weekly night that will still be there next Thursday.
-  // From Dec 16 (holiday-parties expires) through the spring it runs alone.
+  // Season beat sits behind holiday-parties during Q4: that one is the
+  // revenue promo, and this is a free weekly night. From Dec 16
+  // (holiday-parties expires) through the spring it runs alone.
+  // Bump the id to karaoke-thursdays-2027 in January if it needs another
+  // re-show; the copy can stay identical.
   {
     id: "karaoke-thursdays-2026",
-    message: "Free karaoke every Thursday, 7pm",
+    message: "Free karaoke every Thursday at 7 PM",
     href: "/upcoming-events/",
     showFrom: "2026-09-11",
     showUntil: "2027-05-27",
     homepageOnly: true,
   },
-  // Singo season beat, very last — same reasoning as karaoke's: a free
-  // weekly night that will still be there next Sunday yields to NYE and
-  // holiday parties during the corporate ramp. Ends with the trial run
+  // Singo season beat, very last. A free weekly night yields to holiday
+  // parties during the corporate ramp. Ends with the trial run
   // (singo-sundays.md `until`); if Jon extends the program, move BOTH.
   {
     id: "singo-sundays-2026",
-    message: "Free music bingo every Sunday, 7pm",
+    message: "Free Singo music bingo every Sunday at 7 PM",
     href: "/upcoming-events/",
     showFrom: "2026-09-14",
     showUntil: "2026-11-29",
@@ -160,11 +114,9 @@ export const PROMOS: readonly Promo[] = [
   },
   // NOTE: the Free-Kids-Bowling promo ("Free Bowling For Kids — through
   // August 14", id kbf-summer-2026-aug14) was PULLED EARLY on Jon's call
-  // 2026-08-07, a week before its own Aug 14 expiry, to give the bar to
-  // leagues. It is deliberately gone, not lost — the Aug-15 handoff
-  // choreography described in CLAUDE.md expects a kids→holiday-parties
-  // baton pass, and this is why that baton now starts at leagues instead.
-  // The /free-kids-bowling PAGE is untouched: it still flips itself to
+  // 2026-08-07. The leagues beat that took its place expired and was
+  // removed with the other expired bars on 2026-10-28. The
+  // /free-kids-bowling PAGE is untouched: it still flips itself to
   // 2027-waitlist mode at midnight CT Aug 15 via its own build-time date
   // gate, which never depended on this bar.
 ];

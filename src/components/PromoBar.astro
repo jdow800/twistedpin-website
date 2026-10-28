@@ -2,8 +2,10 @@
 /**
  * PromoBar — site-wide "attention" overlay for time-bounded campaigns.
  *
- * Server-side selection from src/config/promos.ts. Renders every active
- * promo in ONE bar, or nothing. A single promo renders static; two or more
+ * Server-side selection from src/config/promos.ts. Expired entries are
+ * omitted when the site builds, including on the homepage. Not-yet-started
+ * homepage entries stay in the markup so the date-aware controller can
+ * reveal them. A single promo renders static; two or more
  * rotate in place — cross-fade every ~7s, paused while hovered/focused so
  * the link can't swap out from under a cursor mid-click. The bar's height
  * sizes to the tallest message (slides overlay in a shared grid cell), so
@@ -60,7 +62,16 @@ const currentPath = Astro.url.pathname.endsWith("/")
 
 // Per-promo page gates: hide a promo on its own landing page, and hide
 // homepage-only promos everywhere but `/`. The rest keep rotating.
-const promos = (homepageManaged ? PROMOS : getActivePromos()).filter((promo) => {
+// Homepage mode used to emit every promo, including expired ones, and
+// hide them in the browser. Drop expired entries here so a rebuild is
+// what takes them out of the HTML. Future-dated entries stay for the
+// homepage controller. Other pages already use getActivePromos().
+const buildToday = new Date().toISOString().slice(0, 10);
+const candidates = homepageManaged
+  ? PROMOS.filter((promo) => !(promo.showUntil && buildToday > promo.showUntil))
+  : getActivePromos();
+
+const promos = candidates.filter((promo) => {
   const targetPath = promo.hideOnPath ?? promo.href;
   const targetPathNormalized = targetPath.endsWith("/")
     ? targetPath

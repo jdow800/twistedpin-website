@@ -82,10 +82,8 @@ driving and parking on top of the night. The casual places are too
 familiar to feel like an occasion.
 
 The third option is a [VIP suite reservation](/vip-suite/) for a
-milestone night. The six-lane suite is set apart from the traditional
-lanes, with the same cocktail program and kitchen. Reservations come
-in pairs of two, four, or six lanes. When you book all six lanes, the
-whole suite is yours during your event time. Tell us the occasion
+milestone night. The semi-private VIP suite is set apart from the traditional
+lanes, with the same cocktail program and kitchen. Reserve part of the suite, or ask to reserve the whole suite. Other groups may share the suite unless your booking reserves the whole suite. When your booking reserves the whole suite, it is yours during your event time. Tell us the occasion
 and what you have in mind, and we'll talk through the setup.
 
 For most anniversaries and milestones, the simpler version of the
