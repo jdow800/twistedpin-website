@@ -357,6 +357,8 @@ export const MESSAGES = {
     "Pizza & Pop isn't offered at that day and time. Pick another package, or a different time.",
   bad_bar: "That drink option isn't one we offer.",
   bad_addon: "One of those add-ons isn't on our list.",
+  bad_addon_quantity: (item: string, max: number) =>
+    `Use a whole number from 1 to ${max} for ${item.replaceAll("_", " ")}.`,
   engine_unavailable:
     "Our pricing engine didn't answer. Try again in a moment — or send your picks over and we'll price it for you.",
   forbidden: "This estimate service is only available from twistedpin.com.",
@@ -415,21 +417,33 @@ export function parseBar(raw: string | null | undefined): { bar: BarSelection; b
   }
 }
 
-/** `a=traditional_wings:2,cheese_curds:1` → validated list, or null on any bad entry. */
-export function parseAddOns(raw: string | null | undefined): AddOn[] | null {
+type AddOnValidation = { ok: true; items: AddOn[] } | { ok: false; message: string };
+
+function validateAddOns(raw: string | null | undefined): AddOnValidation {
   const s = (raw ?? "").trim();
-  if (!s) return [];
+  if (!s) return { ok: true, items: [] };
   const out: AddOn[] = [];
   for (const part of s.split(",")) {
     const p = part.trim();
     if (!p) continue;
     const [item, qtyStr = "1"] = p.split(":");
-    if (!ADD_ON_ITEMS.has(item)) return null;
+    if (!ADD_ON_ITEMS.has(item)) return { ok: false, message: MESSAGES.bad_addon };
+    // Per-guest extras must cover the whole group. Match the builder's
+    // submission contract (300); retain the existing guard for other items.
+    const maxQty = item === "arcade_cards" || item === "goodie_bags" ? 300 : 50;
     const qty = Number(qtyStr);
-    if (!Number.isInteger(qty) || qty < 1 || qty > 50) return null;
+    if (!Number.isInteger(qty) || qty < 1 || qty > maxQty) {
+      return { ok: false, message: MESSAGES.bad_addon_quantity(item, maxQty) };
+    }
     out.push({ item, qty });
   }
-  return out;
+  return { ok: true, items: out };
+}
+
+/** `a=traditional_wings:2,cheese_curds:1` → validated list, or null on any bad entry. */
+export function parseAddOns(raw: string | null | undefined): AddOn[] | null {
+  const result = validateAddOns(raw);
+  return result.ok ? result.items : null;
 }
 
 /**
@@ -478,8 +492,8 @@ export function validateEstimateQuery(params: URLSearchParams, now: Date = new D
     bar_qty = Math.min(300, Math.max(1, Number(bqRaw)));
   }
 
-  const add_ons = parseAddOns(params.get("a"));
-  if (!add_ons) return fail("invalid", MESSAGES.bad_addon);
+  const addOns = validateAddOns(params.get("a"));
+  if (!addOns.ok) return fail("invalid", addOns.message);
 
   return {
     ok: true,
@@ -492,7 +506,7 @@ export function validateEstimateQuery(params: URLSearchParams, now: Date = new D
       bar: bar.bar,
       bar_raw: bar.bar_raw,
       bar_qty: bar.bar === "none" ? 0 : bar_qty,
-      add_ons,
+      add_ons: addOns.items,
       days_out: out,
       deposit_shown: out >= DEPOSIT_LEAD_DAYS,
     },

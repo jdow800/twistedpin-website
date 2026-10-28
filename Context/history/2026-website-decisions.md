@@ -1,3 +1,20 @@
+## 2026-10-28 - Event estimates accept group-sized arcade cards and goodie bags
+
+The estimate API rejected 60 arcade cards before calling the pricing engine:
+its blanket 50-per-add-on guard treated per-guest extras like food trays.
+Arcade cards and goodie bags now allow 1-300, matching the existing builder
+submission contract; other add-ons retain their 1-50 guard. Quantities stay
+intact through every pricing option. Invalid quantities identify the item
+and supported range instead of claiming the item is missing from the menu.
+Unknown items still fail closed. Guest-count and booking rules are unchanged.
+
+Regression coverage includes the failing 60-card selection with both drink
+choices, 100-person arcade/goodie quantities, bounds, and unchanged food limits.
+Validation: the existing code failed 28 new assertions; the fix passes all
+246 estimator assertions, all nine prebuild checks and the full Astro/Vercel
+build. Independent review found no blocker. Live verification uses anonymous
+estimate requests, without submitting or changing any customer's event.
+
 ## 2026-10-26 - Service outcomes for adaptive labor drafts
 
 Reuse the existing service answer, revision and undo controls for routine and

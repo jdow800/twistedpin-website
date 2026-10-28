@@ -162,6 +162,18 @@ const notSure = q("d=2026-10-10&t=18:00&g=40&f=stars_strikes&b=interested");
 check("'interested' prices as none but is remembered", notSure.ok && notSure.req.bar === "none" && notSure.req.bar_raw === "interested" && notSure.req.bar_qty === 0);
 check("parseBar rejects junk", parseBar("20") === null);
 check("parseAddOns empty ok", eq(parseAddOns(""), []));
+for (const item of ["arcade_cards", "goodie_bags"]) {
+  for (const qty of [50, 51, 60, 75, 100, 300]) {
+    check(`${item}: ${qty} accepted without changing quantity`, eq(parseAddOns(`${item}:${qty}`), [{ item, qty }]));
+  }
+  for (const qty of [0, -1, 1.5, 301, "NaN", "Infinity"]) {
+    const result = q(`d=2026-10-10&t=18:00&g=60&f=italiano&a=${item}:${qty}`);
+    check(`${item}: invalid quantity ${qty} is actionable`, result.code === "invalid" && result.message?.includes("1 to 300") && result.message.includes(item.replaceAll("_", " ")));
+  }
+}
+check("food add-on limit remains 50", eq(parseAddOns("traditional_wings:50"), [{ item: "traditional_wings", qty: 50 }]) && parseAddOns("traditional_wings:51") === null);
+check("food quantity error identifies the quantity", q("d=2026-10-10&t=18:00&g=60&f=italiano&a=traditional_wings:51").message?.includes("1 to 50"));
+check("unknown add-on still identifies the selection", q("d=2026-10-10&t=18:00&g=60&f=italiano&a=bogus:60").message === "One of those add-ons isn't on our list.");
 check("start_hhmm zero-padded", full.ok && full.req.start_hhmm === "18:00");
 
 console.log("engine config");
@@ -285,6 +297,35 @@ function mockedQuotes(configs) {
   });
 }
 const fixedNow = new Date("2026-10-23T10:00:00-05:00");
+// The failing holiday-party selection: 60 arcade cards alongside food trays.
+// Both drink choices were tried; all options must preserve every add-on.
+for (const bar of ["individual&bq=0", "15_card&bq=60"]) {
+  const addOns = [
+    { item: "arcade_cards", qty: 60 },
+    { item: "boneless_wings", qty: 2 },
+    { item: "cheese_curds", qty: 1 },
+    { item: "tiramisu", qty: 1 },
+    { item: "tortilla_chips", qty: 1 },
+  ];
+  const { request, url } = requestContext("d=2027-01-16&t=18:00&g=60&f=italiano&b=" + bar + "&a=" + addOns.map(({ item, qty }) => `${item}:${qty}`).join(","));
+  let configsSeen = [];
+  const response = await getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => fixedNow,
+    quote: async (_url, configs) => { configsSeen = configs; return mockedQuotes(configs); },
+  });
+  const body = await response.json();
+  check("60-card holiday estimate succeeds: " + bar, response.status === 200 && body.ok && Object.values(body.options).every(Boolean));
+  check("60 cards reach every engine option unchanged: " + bar, configsSeen.length === 4 && configsSeen.every((config) => eq(config.add_ons, addOns)));
+}
+{
+  const { request, url } = requestContext("d=2027-01-16&t=18:00&g=100&f=italiano&a=arcade_cards:100,goodie_bags:100");
+  let configsSeen = [];
+  const response = await getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => fixedNow,
+    quote: async (_url, configs) => { configsSeen = configs; return mockedQuotes(configs); },
+  });
+  check("largest online group prices both per-guest extras", response.status === 200 && configsSeen.length === 2 && configsSeen.every((config) => eq(config.add_ons, [{ item: "arcade_cards", qty: 100 }, { item: "goodie_bags", qty: 100 }])));
+}
 for (const food of FOOD_PACKAGES) {
   const { request, url } = requestContext("d=2026-10-24&t=18:00&g=40&f=" + food + "&b=15&bq=30&a=traditional_wings:2,cheese_curds:1");
   let configsSeen;
