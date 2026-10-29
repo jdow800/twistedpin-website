@@ -1,3 +1,20 @@
+## 2026-10-29 - Make Jingle Bowl lane capacity prominent
+
+Jon confirmed Jingle Bowl's operational package limits: five guests per
+traditional lane and six per VIP lane. The package comparison now puts each
+limit in a full-width gold callout immediately beneath its heading and price,
+with a large numeral and explicit "Guests max" / "per lane" wording. Both
+cards explain that non-bowlers count, matching the existing booking flow.
+A dedicated FAQ repeats both limits. This owner-requested package information
+does not change general event-capacity marketing, pricing or booking rules.
+
+Validation: all normal prebuild checks and the full Astro/Vercel build passed.
+Browser checks at 320, 390, 600, 768, 1280 and 1697px found both correct limits,
+no horizontal overflow or page errors, and a working capacity FAQ. Mobile
+and desktop screenshots were visually reviewed. Independent source review
+found no blockers. Existing checkout repeats the same limits through selection,
+quantity totals and payment review; checkout code is unchanged.
+
 ## 2026-10-29 - Weekly labor includes ordinary pending timecards
 
 The weekly labor display accepts additive financial-resolution metadata from
