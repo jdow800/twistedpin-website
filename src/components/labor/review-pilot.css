@@ -35,6 +35,7 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
 .lr-metric-value { display: block; margin: 13px 0 5px; font-size: 44px; line-height: 1.1; letter-spacing: -.04em; }
 .lr-pilot .lr-metric p { margin: 4px 0; font-size: 13px; }
 .lr-pilot .lr-metric-note { color: #c8bedf; font-size: 12px; }
+.lr-metric-note a { color: inherit; text-decoration: underline; }
 .lr-badge { display: inline-block; border-radius: 5px; background: #f0eafa; color: #574574; padding: 4px 8px; font-size: 11px; font-weight: 700; line-height: 1.4; white-space: nowrap; }
 .lr-badge-dark { background: #3a266d; color: #ddd4ee; font-weight: 400; }
 .lr-badge-saved { background: #e2f3eb; color: #236342; }

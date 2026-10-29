@@ -136,7 +136,15 @@ export interface ReviewQuestion {
   proposal?:StaffingProposal;draftChange?:DraftChange;demandSurge?:DemandSurge;outcomeReview?:OutcomeReview;knownContext?:RememberedContext[];reopenedBecause?:string;
 }
 export interface ProvisionalLabor {unapprovedPunchCount:number;hourlyWagesCents:number}
-export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;issues:string[];provisional?:ProvisionalLabor}
+export interface FinancialResolution {
+  version:1;
+  resolvedHourlyWagesCents:number;
+  includedUnapprovedPunchCount:number;
+  estimatedOvertimeAdjustmentCents:number;
+  estimateBasis:('unapproved_punches'|'overtime_adjustment')[];
+  unresolved:{date:string;punchId?:number;code:string;reason:string}[];
+}
+export interface DailyLaborMetric {date:string;percent:number|null;salesCents:number|null;hourlyWagesCents:number|null;managementSalaryCents:number|null;laborCents:number|null;salesReady:boolean;laborReady:boolean;hourlyReady?:boolean;salaryReady?:boolean;amountsReady?:boolean;issues:string[];provisional?:ProvisionalLabor;financialResolution?:FinancialResolution}
 export interface LaborReview {
   id: string;
   packet: {version:1|2;mode?:"review"|"report";pendingReviews?:PendingReview[];forwardFeedback?:ForwardFeedback;weekStart:string;basisNotes:string;generatedAt:string;recommendationStatus?:"ready"|"incomplete";preparationIssues?:string[];previousReview?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};trend?:{weeks:number;percent:number|null;note:string}};
@@ -146,7 +154,7 @@ export interface LaborReview {
   withdrawnQuestionCount?:number;
   previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
-  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null;provisional?:ProvisionalLabor};
+  metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null;hourlyWagesCents?:number|null;managementSalaryCents?:number|null;salesReady?:boolean;laborReady?:boolean;hourlyReady?:boolean;salaryReady?:boolean;amountsReady?:boolean;provisional?:ProvisionalLabor;financialResolution?:FinancialResolution};
   questions: ReviewQuestion[];
   recap?:{completedAt:string;dueAt:string;state:"pending"|"cancelled"|"enqueued";emailOutboxId:string|null}|null;
   recapDeliveryEnabled?:boolean;

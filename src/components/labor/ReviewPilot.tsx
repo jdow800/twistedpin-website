@@ -9,6 +9,7 @@ import {questionIsActive,questionNeedsResponse,reviewProgress} from './review-pr
 import DemandSurgeQuestion from './DemandSurgeQuestion';
 import OutcomeReviewQuestion from './OutcomeReviewQuestion';
 import DraftChangeQuestion from './DraftChangeQuestion';
+import {hasPendingAmounts,hasUnresolvedWages,hourlyAmountReady,salaryAmountReady,includedEstimateNote,includesEstimate,percentDisplay,wageCheckSummary} from './financial-display';
 
 const contexts = [["training", "Training"], ["crew_support", "Crew support"], ["experienced_crew", "Experienced crew"], ["weather", "Weather"], ["event", "Party / event"], ["building_activity", "Other building activity"], ["other", "Other"]];
 const decisions: [ReviewResponse["decision"], string][] = [["keep", "Keep this coverage"], ["adjust", "Try an adjustment"], ["consider","Maybe, with a condition"], ["data_wrong", "The comparison is wrong"], ["ask_owner", "I need Jon’s input"]];
@@ -19,12 +20,16 @@ const shortWeek = (start: string) => { const end = new Date(`${start}T12:00:00Z`
 
 /** Jon Oct15 TLDR: the number, the dollars and one provisional line. Definitions live under "How it's measured". */
 export function WeeklyLaborMetric({metric}:{metric:LaborReview["metric"]}) {
-  const unapproved=metric.provisional?.unapprovedPunchCount??0;
+  const pending=hasPendingAmounts(metric),note=includedEstimateNote(metric),check=wageCheckSummary(metric);
+  const partial=hasUnresolvedWages(metric)?metric.financialResolution!.resolvedHourlyWagesCents:null;
+  const showComponents=pending&&(metric.hourlyWagesCents!==undefined||metric.managementSalaryCents!==undefined||partial!==null);
   return <section className="lr-metric" aria-label="Weekly labor percentage">
-    <div className="lr-metric-top"><span>Labor / sales</span><span className="lr-badge lr-badge-dark">{unapproved>0?"Provisional":metric.percent===null?"Data checks pending":metric.estimate?"Estimated":"Verified inputs"}</span></div>
-    <strong className="lr-metric-value">{metric.percent===null?"Pending":`${metric.percent.toFixed(1)}%`}</strong>
+    <div className="lr-metric-top"><span>Labor / sales</span><span className="lr-badge lr-badge-dark">{pending?"Data checks pending":includesEstimate(metric)?"Provisional":metric.estimate?"Estimated":"Verified inputs"}</span></div>
+    <strong className="lr-metric-value">{percentDisplay(metric)}</strong>
     <p>{metric.laborCents===null&&metric.salesCents===null?"Amounts are still being checked.":`${money(metric.laborCents)} labor on ${money(metric.salesCents)} building sales`}</p>
-    {unapproved>0?<p className="lr-metric-note">{unapproved} {unapproved===1?'timecard':'timecards'} not approved yet.</p>:null}
+    {showComponents?<p>{partial!==null?`Partial hourly wages ${money(partial)}`:`Hourly wages ${money(hourlyAmountReady(metric)?metric.hourlyWagesCents!:null)}`} · Manager salary {money(salaryAmountReady(metric)?metric.managementSalaryCents!:null)}</p>:null}
+    {note?<p className="lr-metric-note">{note}</p>:null}
+    {check?<p className="lr-metric-note">{check} <a href="#labor-calculation" onClick={()=>document.getElementById('labor-calculation')?.setAttribute('open','')}>Details</a></p>:null}
   </section>;
 }
 
@@ -73,11 +78,12 @@ export default function ReviewPilot() {
         <WeeklyLaborMetric metric={review.metric}/>
         {review.packet.trend?.percent!=null?<p className="lr-small">4-week labor: {review.packet.trend.percent.toFixed(1)}%</p>:null}
         <WeeklyOverview days={review.daily??[]}/>
-        <details className="lr-calculation">
+        <details className="lr-calculation" id="labor-calculation">
           <summary>How it's measured</summary>
           <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>
             <dl className="lr-totals"><div><dt>Earned labor inputs</dt><dd>{money(review.metric.laborCents)}</dd></div><div><dt>Reported sales inputs</dt><dd>{money(review.metric.salesCents)}</dd></div></dl>
             {review.metric.issues.length ? <details><summary>View source checks ({review.metric.issues.length})</summary><ul>{review.metric.issues.map(i => <li key={i}>{i}</li>)}</ul></details> : null}
+            {review.metric.financialResolution?.unresolved.length?<details><summary>View wage checks ({review.metric.financialResolution.unresolved.length})</summary><ul>{review.metric.financialResolution.unresolved.map((check,index)=><li key={`${check.date}:${check.punchId??index}:${check.code}`}>{date(check.date)}: {check.reason}</li>)}</ul></details>:null}
             <p className="lr-small">Snapshot prepared {new Date(review.packet.generatedAt).toLocaleString()}.</p>
           </div>
         </details>
