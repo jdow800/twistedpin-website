@@ -1,3 +1,25 @@
+## 2026-10-29 - Weekly labor includes ordinary pending timecards
+
+The weekly labor display accepts additive financial-resolution metadata from
+the backend. Included unapproved timecards and estimated overtime are labelled
+as estimates, including overtime estimates on days with no pending timecards.
+Real unresolved costs take status precedence. Known hourly wages and management
+salary remain visible independently; an incomplete hourly subtotal is explicitly
+partial, and no incomplete total or labor percentage is presented as complete.
+One concise dated wage-check explanation links to the existing source disclosure.
+Older packets remain supported. Question and answer behavior is unchanged.
+
+Validation: 48 focused labor checks and strict TypeScript for the review
+components pass. The actual review renders cleanly at 320, 390 and 1280px for
+included, partial, overtime-only and unavailable fixtures; the Details link
+opens the existing disclosure. The normal prebuild gate now includes all 17
+new and legacy financial-rendering checks. All ten prebuild steps pass. The full
+Astro/Vercel build passes from a byte-matched, apostrophe-free local source copy
+with dependencies installed from the committed lockfile. The copy avoids
+Astro's Windows path-quoting issue without changing production code. Release
+receipts are maintained by the release coordinator. Implementation and local
+fixtures do not send reports or change live records.
+
 ## 2026-10-28 - Event estimates accept group-sized arcade cards and goodie bags
 
 The estimate API rejected 60 arcade cards before calling the pricing engine:

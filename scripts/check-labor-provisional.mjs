@@ -18,7 +18,7 @@ try {
   const input={...metric,provisional:{unapprovedPunchCount:18,hourlyWagesCents:12345}},before=structuredClone(input);
   const html=renderMetric(input);
   assert.match(html,/>Provisional<\/span>/);assert.match(html,/28\.2%/);
-  assert.match(html,/\$282 labor on \$1,000 building sales/);assert.match(html,/18 timecards not approved yet\./);
+  assert.match(html,/\$282 labor on \$1,000 building sales/);assert.match(html,/Includes 18 unapproved timecards\./);
   assert.doesNotMatch(html,/>Verified inputs<|>Estimated</);assert.deepEqual(input,before);
  });
  test('legacy weekly responses preserve estimated, verified and pending states',()=>{
@@ -31,15 +31,15 @@ try {
  });
  test('one provisional entry uses singular copy while blocked totals remain pending',()=>{
   const html=renderMetric({...metric,percent:null,laborCents:null,provisional:{unapprovedPunchCount:1,hourlyWagesCents:1500}});
-  assert.match(html,/>Provisional<\/span>/);assert.match(html,/>Pending<\/strong>/);
-  assert.match(html,/1 timecard not approved yet\./);assert.doesNotMatch(html,/28\.2%/);
+  assert.match(html,/>Data checks pending<\/span>/);assert.match(html,/>Pending<\/strong>/);
+  assert.match(html,/Includes 1 unapproved timecard\./);assert.doesNotMatch(html,/28\.2%|>Provisional</);
  });
  test('provisional days remain plotted and marked, and no day is ranked',()=>{
   const days=[daily('2026-10-05',60000,{unapprovedPunchCount:3,hourlyWagesCents:25000}),daily('2026-10-06',25000),daily('2026-10-07',20000)],before=structuredClone(days);
   const html=renderDays(days);
   assert.match(html,/Mon: 60\.0% hourly wages plus 5\.0% salary; provisional/);
   assert.match(html,/<span>65\.0%\*<\/span><\/div>/);
-  assert.match(html,/\* has unapproved timecards/);
+  assert.match(html,/\* Includes estimates/);
   assert.doesNotMatch(html,/Highest|highest|lr-high-share|#c38526/);
   // Jon Oct15: "I like the table - visual elements are good." The daily table is shown, not tucked under a tap.
   assert.doesNotMatch(html,/<details|<summary/);
@@ -49,8 +49,8 @@ try {
  test('all provisional days never invent missing amounts',()=>{
   const blocked={...daily('2026-10-05',20000,{unapprovedPunchCount:1,hourlyWagesCents:5000}),percent:null,hourlyWagesCents:null,laborCents:null,laborReady:false};
   const html=renderDays([blocked]);
-  assert.match(html,/Mon: pending inputs; provisional/);assert.match(html,/<span>Pending\*<\/span>/);
-  assert.match(html,/<td>Pending\*<\/td>/);assert.doesNotMatch(html,/\$200|20\.0%/);
+  assert.match(html,/Mon: pending inputs; provisional/);assert.match(html,/<span>Pending<\/span>/);
+  assert.match(html,/<td>Pending<\/td><td>\$50<\/td>/);assert.doesNotMatch(html,/\$200|20\.0%|Pending\*/);
  });
  test('legacy daily responses keep numbers without provisional marks',()=>{
   const html=renderDays([daily('2026-10-05',30000),daily('2026-10-06',20000)]);
