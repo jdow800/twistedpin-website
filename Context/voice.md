@@ -4,7 +4,7 @@ Positioning and reusable language: ../../Twisted Pin Full System/Marketing/Brand
 
 ## Positioning and voice
 
-Twisted Pin is Plainfield's night out: a serious cocktail program, a 28-tap self-serve beer and wine wall, from-scratch food, 17 traditional lanes and one 6-lane VIP suite. Keep the bar-led creative direction. Make bowling clear where it answers the guest's intent.
+Twisted Pin is Plainfield's night out: a serious cocktail program, a 28-tap self-serve beer and wine wall, food built to share, 17 traditional lanes and a semi-private VIP suite. Keep the bar-led creative direction. Make bowling clear where it answers the guest's intent.
 
 Adults-first and family-welcome. Different hours can have different energy; do not invent an age cutoff. Keep the welcome beneath the dry joke. Never lead with family-friendly. Adult quality is the lever; family welcome is the permission slip. The live FAQ answer to “Can I bring my kids?” uses bedtime as the conversational dividing line, not a new age policy.
 
@@ -23,8 +23,8 @@ These mirror the maintained reference. Preserve the wording and existing layout 
 | Approved homepage closing band; not currently placed | You can keep doing dinner-and-a-movie. Or you can do this. |
 | Cocktail long form, desktop | Cocktails this serious aren't supposed to live at bowling alleys. Menu curated by Brian Van Flandern, America's Top Mixologist. |
 | Cocktail short form, mobile | Curated by America's Top Mixologist. / (their words, not ours) |
-| Bowl, mobile | 17 traditional lanes plus a 6-lane VIP suite. / (yes, you can take it over) |
-| Bowl, desktop EBG card | 17 lanes plus a 6-lane VIP suite. |
+| Bowl, mobile | 17 traditional lanes plus a semi-private VIP suite. |
+| Bowl, desktop EBG card | 17 traditional lanes plus a semi-private VIP suite. |
 | Food statement / aside | Real kitchen. / (built to share) |
 | Events statement / invitation | Events That Don't Suck / Take over the suite. Run the night your way. |
 | Arcade aside | (don't pretend you don't want the giant bear) |
@@ -35,9 +35,7 @@ The tap-wall fact is 28 self-serve taps. The old “only wall in the area” asi
 
 ## Claims and scope
 
-- Lanes: 17 traditional lanes plus one 6-lane VIP suite. Suite reservations sell in pairs: 2, 4 or 6.
-- Whole-suite possession applies only to all six and only for the booked event time. Before secured booking: “When you book all six lanes, the whole suite is yours during your event time.”
-- Guest capacity (Jon, October 21, 2026): do not publish explicit attendance ceilings or group-size bands in website marketing copy, FAQs, metadata, schema, video descriptions or public AI summaries. Lead with the suite's features and invite guests to discuss headcount, occasion and setup with the event team. Do not infer that a larger group requires a buyout or promise every group will fit. Lane counts, package quantities and operational booking limits retain their own scope.
+- Lane phrasing (canonical): "17 traditional lanes plus a semi-private VIP suite." Never state the suite's lane count or size in any copy, metadata, schema, alt text, Spanish copy or llms.txt. On public website surfaces, omit explicit attendance ceilings and group-size bands, including in FAQs, metadata, schema, video descriptions and public AI summaries. Broad venue-scale messaging permitted by the brand guide remains available for other marketing. Operational booking limits and quantities remain unchanged. In copy, say "reserve part of the suite, or ask to reserve the whole suite." Where guests need it, add: "Other groups may share the suite unless your booking reserves the whole suite."
 - Do not describe the suite, bar or venue as private in guest copy. Use VIP suite, semi-private when useful, or a factual description.
 - Cocktails: “Curated by Brian Van Flandern, America's Top Mixologist (Food Network).” Short: “Curated by America's Top Mixologist.”
 - Brian is a consultant, not staff or an owner. Do not imply availability, partnership, venue endorsement or an appearance. No built/designed/backed/headed/run by Brian. Use his credential only in a cocktail/bar context.

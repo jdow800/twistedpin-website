@@ -23,7 +23,7 @@ const serviceSchema = {
   name: "Company Holiday Parties",
   url: PAGE_URL,
   description:
-    "Company holiday parties, staff appreciation events and end-of-year celebrations at Twisted Pin in Plainfield, IL. In-house catering, craft cocktails, a semi-private six-lane VIP suite and full-venue buyout options. Share your headcount and plans to discuss the right setup. Holiday gatherings for friends, families and community groups are also welcome.",
+    "Company holiday parties, staff appreciation events and end-of-year celebrations at Twisted Pin in Plainfield, IL. In-house catering, craft cocktails, a semi-private VIP suite and full-venue buyout options. Share your headcount and plans to discuss the right setup. Holiday gatherings for friends, families and community groups are also welcome.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Holiday party hosting",
   areaServed: ["Plainfield, IL", "Romeoville, IL", "Shorewood, IL", "Naperville, IL", "Joliet, IL", "Bolingbrook, IL"].map((name) => ({ "@type": "City", name })),
@@ -33,11 +33,11 @@ const serviceSchema = {
 const faqs = [
   {
     q: "How far in advance should we book a holiday party?",
-    answer: "For December parties, reach out by October if you can. Share your preferred date and any alternatives so the team can check availability. Weeknight or January celebrations are worth asking about, too.",
+    answer: "Planning a December or January party? Send us your preferred date, approximate headcount and occasion, plus any alternative dates, so the team can check availability.",
   },
   {
     q: "How do we choose the right holiday party setup?",
-    answer: "Share your headcount, date and plans for food, drinks and bowling. The event team will talk through the semi-private six-lane VIP suite and full-venue buyout options to help determine the right space and setup for your party.",
+    answer: "Share your headcount, date and plans for food, drinks and bowling. The event team will talk through the semi-private VIP suite and full-venue buyout options to help determine the right space and setup for your party.",
   },
   {
     q: "What does a company holiday party cost?",
@@ -53,7 +53,7 @@ const faqs = [
   },
   {
     q: "Can we book the whole VIP suite?",
-    answer: "For the whole suite, ask to reserve all six lanes for your group. We’ll confirm availability and specify your reserved space, party time and setup arrangements. The suite is semi-private and set apart from the traditional lanes.",
+    answer: "For the whole suite, ask us to reserve it for your group. Other groups may share the suite unless your booking reserves the whole suite. We’ll confirm availability and specify your reserved space, party time and setup arrangements. The suite is semi-private and set apart from the traditional lanes.",
   },
 ];
 
@@ -117,7 +117,7 @@ const faqSchema = {
           loop
           playsinline
           poster="/snap/vip-lanes-poster.avif"
-          aria-label="The six-lane VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall"
+          aria-label="The semi-private VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall"
         >
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4"  type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
@@ -128,7 +128,7 @@ const faqSchema = {
       <div class="holiday-section-copy">
         <p class="t-eyebrow">The Room</p>
         <h2 class="t-display holiday-section-title" id="holiday-room-h2">
-          Your team. A six-lane VIP suite.
+          Your team. A semi-private VIP suite.
         </h2>
         <p class="holiday-section-body">
           Bowling for the competitive ones. Couch seating for the catch-up
@@ -136,12 +136,12 @@ const faqSchema = {
           set apart from the traditional lanes.
         </p>
         <ul class="holiday-section-list">
-          <li>Semi-private six-lane VIP suite</li>
+          <li>Semi-private VIP suite</li>
           <li>Full-venue buyout options</li>
           <li>LED video wall and AV options for toasts or a year-in-review reel</li>
         </ul>
         <p class="holiday-section-body">
-          Ask about reserving all six lanes for your team. Your event plan
+          Ask about reserving the whole suite for your team. Other groups may share the suite unless your booking reserves the whole suite. Your event plan
           confirms the space, party time and setup arrangements included.
         </p>
         <p class="holiday-section-body holiday-region">
@@ -268,8 +268,7 @@ const faqSchema = {
   </section>
 
   {/* ============================================================
-      CLOSING CTA BAND — urgency as headline (rare; earned because
-      the constraint is real — December genuinely books fast).
+      CLOSING CTA BAND — date, headcount and occasion.
       Same lifted-indigo treatment as /corporate-events for the
       conversion-moment family visual consistency.
       ============================================================ */}
@@ -277,12 +276,10 @@ const faqSchema = {
     <div class="holiday-cta-inner">
       <p class="t-eyebrow">Start with your date and headcount</p>
       <h2 class="t-display holiday-cta-title" id="holiday-cta-h2">
-        December books fast.
+        Planning a December or January party?
       </h2>
       <p class="holiday-cta-body">
-        Share your preferred date, approximate headcount and occasion.
-        Our event team will check availability, help with catering and bar
-        arrangements, and provide a quote for your party.
+        Send us your preferred date, approximate headcount and occasion.
       </p>
       <a class="btn btn-solid holiday-cta-btn" href={PLAN_EVENT_URL} target="_blank" rel="noopener">
         Plan My Holiday Party

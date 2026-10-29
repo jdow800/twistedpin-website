@@ -94,7 +94,7 @@ Before launch:
 ### H1 Suggestions
 
 - **Homepage:** *"Premium Bowling, Elevated Dining & Craft Cocktails in Plainfield, IL"* (covers bowling, dining, bar, location — replaces the misleading "Ultimate Dining Destination")
-- **Bowling:** *"Bowling in Plainfield, IL — 23 Lanes Including a 6-Lane VIP Suite"* (17 traditional + 6 VIP)
+- **Bowling:** *"Bowling in Plainfield, IL — Traditional Lanes and a Semi-Private VIP Suite"*
 - **VIP Suite:** *"VIP Bowling Suite & Group Events in Plainfield"* — do not publish guest-capacity numbers (Jon, 2026-10-21).
 - **Dining:** *"From-Scratch Food in Plainfield — Eat at Twisted Pin"*
 - **Bar:** *"Craft Cocktails & a 28-Tap Self-Serve Beer Wall"*
@@ -135,7 +135,7 @@ These also replace the messy footer city links the brand report flagged.
 - **Unique `<title>`** — under 60 chars including the brand suffix. Budget for `" | Twisted Pin"` (15 chars) — that leaves ~45 chars for the actual title. The current site has 12 pages with titles over 70 chars; many got there by appending the brand to an already-long phrase. Don't repeat that.
 - **Unique meta description** — 140–155 chars, include keyword, include a CTA verb (Reserve, Book, Plan). The current site has 5 pages sharing the exact same meta description (*"Upscale bowling, craft cocktails, inspired menu & catered events in Plainfield, IL"*) — every page must have its own.
 - **Exactly one H1 per page.** The current `/bowling/` page has **21 H1 tags** — that's a CMS template problem and it tanks ranking. The new build's component library must enforce one H1, period. Other headings cascade as H2/H3.
-- **Descriptive alt text on every image.** The current site has 60 pages with at least one image missing alt text — the homepage alone has 13. Build alt text into the image-upload workflow so it's not optional. *"6-lane VIP bowling suite at Twisted Pin Plainfield"* — not *"image1.jpg"* and not blank.
+- **Descriptive alt text on every image.** The current site has 60 pages with at least one image missing alt text — the homepage alone has 13. Build alt text into the image-upload workflow so it's not optional. *"semi-private VIP suite at Twisted Pin Plainfield"* — not *"image1.jpg"* and not blank.
 - **Internal links** — every page should link to 2–3 related pages with descriptive anchor text (not "click here"). The current site's audit found near-zero internal linking detected — the new build should have a deliberate internal link strategy (related-pages component, breadcrumbs, contextual in-body links).
 - **Mobile-first** — most visitors are on a phone. Design and test mobile before desktop.
 
@@ -171,8 +171,8 @@ The voice rules in `voice.md` are the law. SEO doesn't override voice — it inf
 - **Use the keyword naturally in the first 100 words.** Not stuffed — just present.
 - **Write for the search intent.** Someone searching `corporate event venue near me` wants to know capacity, packages, and how to book — not a brand story. Lead with what they came for, then layer in the brand voice.
 - **Include city names naturally.** "5 minutes from Naperville" beats "naperville naperville naperville" repeated.
-- **Use H2s as questions** when the topic matches voice search: *"Can I take over the VIP suite for a corporate event?"*, *"How many lanes does the VIP suite have?"* — these capture featured snippets. (Note: avoid "private" per voice.md — the venue has no fully-private space.)
-- **Use specific features.** *"17 traditional lanes,"* *"6-lane VIP suite,"* *"28 self-serve taps."* Do not publish guest-capacity numbers or group-size bands; invite guests to discuss their event setup (Jon, 2026-10-21).
+- **Use H2s as questions** when the topic matches voice search: *"Can I take over the VIP suite for a corporate event?"* — these capture featured snippets. (Note: avoid "private" per voice.md — the venue has no fully-private space. Do not ask or answer how many lanes the suite has.)
+- **Use specific features.** *"17 traditional lanes,"* *"semi-private VIP suite,"* *"28 self-serve taps."* Do not publish guest-capacity numbers or group-size bands; invite guests to discuss their event setup (Jon, 2026-10-21).
 - **Write a real FAQ section.** Pull from actual GBP Q&A, lead form questions, and front-of-house common questions. Wrap in FAQ schema.
 
 ### Don't
@@ -197,15 +197,17 @@ These work because they include search-friendly nouns while staying on-brand:
 - *"Craft cocktails and a 28-tap self-serve beer wall"*
 - *"Corporate event venue near Naperville"*
 - *"Adult birthday parties — done right"*
-- *"6-lane VIP bowling suite"*
+- *"semi-private VIP suite"*
 - *"From-scratch food, not bowling alley food"*
+
+Lane phrasing (canonical): "17 traditional lanes plus a semi-private VIP suite." Never state the suite's lane count or size in any copy, metadata, schema, alt text, Spanish copy or llms.txt. On public website surfaces, omit explicit attendance ceilings and group-size bands, including in FAQs, metadata, schema, video descriptions and public AI summaries. Broad venue-scale messaging permitted by the brand guide remains available for other marketing. Operational booking limits and quantities remain unchanged. In copy, say "reserve part of the suite, or ask to reserve the whole suite." Where guests need it, add: "Other groups may share the suite unless your booking reserves the whole suite."
 
 ### Concrete specs to use (these convert and rank)
 
 Specifics beat adjectives. These are real, verifiable details — use them in copy, alt text, FAQs, and schema:
 
-- **Bowling:** 23 total lanes — 17 traditional + a 6-lane VIP suite
-- **VIP Suite:** 6 lanes, giant LED video wall, AV hookups, 28-tap beer wall access, couch seating; event setup confirmed with the event team
+- **Bowling:** 17 traditional lanes plus a semi-private VIP suite
+- **VIP Suite:** semi-private, giant LED video wall, AV hookups, 28-tap beer wall access, couch seating; event setup confirmed with the event team
 - **Tap Wall:** 28 self-serve taps, beer & wine, pay by the ounce
 - **Bar:** Craft cocktails curated by **mixologist Brian Van Flandern** (real differentiator — top-tier mixology pedigree)
 - **Arcade:** VR, pinball, ticket games & redemption prizes

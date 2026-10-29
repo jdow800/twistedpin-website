@@ -34,7 +34,7 @@ Van Flandern, America's Top Mixologist (Food Network). Add something
 from the [food menu](/menu/food/) to share. Bowling can settle who picks
 the next date. Or who claims to have let the other person win.
 
-Twisted Pin has [17 traditional lanes + a 6-lane VIP suite](/bowl/).
+Twisted Pin has [17 traditional lanes plus a semi-private VIP suite](/bowl/).
 You can make bowling the plan or spend the evening at the bar. A lane
 reservation isn't required to come in for food and drinks.
 
@@ -54,7 +54,7 @@ settle in together.
 
 ## For adult birthdays and company outings
 
-The [six-lane semi-private VIP suite](/vip-suite/) is set apart from
+The [semi-private VIP suite](/vip-suite/) is set apart from
 the traditional lanes by a wall. Share your headcount, occasion, and
 plans for the event so we can discuss the suite or a full-venue buyout.
 The event team confirms your reserved space, party time, layout,

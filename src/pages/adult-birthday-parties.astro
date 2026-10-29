@@ -21,7 +21,7 @@ const serviceSchema = {
   "@id": BUSINESS_URL + "/#adult-birthday-parties",
   name: "Adult Birthday Parties",
   url: PAGE_URL,
-  description: "Adult and 21st birthday celebrations at Twisted Pin in Plainfield, IL, with a semi-private six-lane VIP suite, in-house catering and craft cocktails. Up to 80 guests in the suite or up to 200 with a full-venue buyout.",
+  description: "Adult and 21st birthday celebrations at Twisted Pin in Plainfield, IL, with a semi-private VIP suite, in-house catering and craft cocktails. Share your headcount and we'll suggest the right setup.",
   serviceType: "Adult birthday party hosting",
   provider: { "@id": BUSINESS_ENTITY_ID },
   areaServed: ["Plainfield, IL", "Romeoville, IL", "Shorewood, IL", "Naperville, IL", "Joliet, IL", "Bolingbrook, IL"].map((name) => ({ "@type": "City", name })),
@@ -39,11 +39,11 @@ const birthdayFaqs = [
   },
   {
     q: "How many guests can you host?",
-    answer: "The semi-private six-lane VIP suite accommodates up to 80 guests. Full-venue buyouts accommodate up to 200. Share your headcount when planning so we can confirm the space and setup for your party.",
+    answer: "Celebrate in the semi-private VIP suite, on the traditional lanes, or with a full-venue buyout. Share your headcount when planning so we can confirm the space and setup for your party.",
   },
   {
     q: "Can we reserve the whole VIP suite?",
-    answer: "Ask about reserving all six lanes for your group. Your event plan will confirm the space and party time included, subject to availability.",
+    answer: "Ask about reserving the whole suite for your group. Other groups may share the suite unless your booking reserves the whole suite. Your event plan will confirm the space and party time included, subject to availability.",
   },
   {
     q: "Can I bring a birthday cake or decorations?",
@@ -63,7 +63,7 @@ const faqSchema = {
   title="Adult Birthday Parties in Plainfield, IL | Twisted Pin"
   description="Plan a 21st or milestone birthday in Plainfield, IL. Semi-private VIP bowling, in-house catering and craft cocktails. Tell us about your party."
   ogImage="/og/og-vip-suite.jpg"
-  ogImageAlt="The six-lane VIP suite at Twisted Pin in Plainfield, IL"
+  ogImageAlt="The semi-private VIP suite at Twisted Pin in Plainfield, IL"
   lcpPreloadHref="/snap/vip-lanes-poster.avif"
 >
   <section class="svc-hero adult-hero" data-hero aria-labelledby="adult-hero-h1">
@@ -87,7 +87,7 @@ const faqSchema = {
       <div class="svc-section-frame adult-frame">
         <video class="adult-video" data-section-video preload="none" muted loop playsinline
           poster="/snap/vip-lanes-poster.avif"
-          aria-label="The six-lane VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall">
+          aria-label="The semi-private VIP suite at Twisted Pin, with bowling lanes, couch seating and an LED video wall">
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-av1-540.mp4" type="video/mp4; codecs=av01.0.05M.08" />
           <source media="(max-width: 480px)" data-src="/snap/vip-lanes-mobile-h264-540.mp4" type="video/mp4" />
           <source media="(min-width: 481px)" data-src="/snap/vip-lanes-mobile-av1-1080.mp4" type="video/mp4; codecs=av01.0.05M.08" />
@@ -96,17 +96,17 @@ const faqSchema = {
       </div>
       <div class="svc-section-copy adult-copy">
         <p class="t-eyebrow">The Birthday Setting</p>
-        <h2 class="t-display svc-section-title" id="adult-room-h2">Six lanes. Your favorite people.</h2>
+        <h2 class="t-display svc-section-title" id="adult-room-h2">The VIP suite. Your favorite people.</h2>
         <p class="svc-section-body">
           Celebrate in the <a href="/vip-suite/">semi-private VIP suite</a>.
-          Six bowling lanes sit behind a wall, set apart from the traditional
+          The semi-private VIP suite sits behind a wall, set apart from the traditional
           lanes, with couch seating for the catching-up between turns.
         </p>
         <ul class="svc-section-list">
-          <li>Up to 80 guests in the suite</li>
+          <li>Tell us your headcount and we'll suggest the right setup</li>
           <li>LED video wall and AV hookups for birthday photos and slideshows</li>
           <li>In-house catering and bar options for your group</li>
-          <li>Full-venue buyouts for celebrations of up to 200</li>
+          <li>Full-venue buyouts for bigger celebrations</li>
         </ul>
         <p class="svc-section-body">
           Tell us your headcount and the kind of party you have in mind.
