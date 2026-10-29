@@ -1,3 +1,33 @@
+## 2026-10-29 - Count everyone attending Jingle Bowl
+
+Jon approved hardening the common "five bowling, nine coming" case. The gold
+package bands now say "People total" and "Everyone coming counts. Bowling or
+just hanging out." A prominent example and FAQ explain that nine people need
+two lanes even when only five bowl: lane space is for the whole group.
+
+Jingle checkout requires the total number attending, including non-bowlers.
+It calculates the minimum lanes from that total and the chosen lane type,
+and prevents progressing with insufficient lanes. The total survives reload
+and is sent as attendeeCount in the new payment request. Accepted requests
+retain their original immutable attendance through retries and recovery.
+This is Jingle-specific; NYE and ordinary booking behavior stay unchanged.
+The companion TPRS release validates new Jingle attempts before payment and
+stores the count on the booking without a database migration. Deploy this
+compatible frontend before the backend begins requiring the field.
+
+Validation: all normal prebuild checks and the full Astro/Vercel build passed.
+The real-component browser suites passed 10 attendance scenarios, 12 Jingle
+entry/recovery scenarios and 23 existing NYE scenarios, with mocked APIs and
+payments. The payment recovery suite also passed, including a frozen nine-person
+request surviving a lost response, reload and changed UI props. New count
+validation covers both lane boundaries, room changes, alternatives, invalid
+input, older drafts and accepted payments without a count. Landing checks passed
+at 320, 390, 600, 768, 1280 and 1697px; checkout at 320, 390 and 1280px.
+Mobile and desktop screenshots were visually reviewed. Historical connected
+rehearsal scripts gained the required input but were not run because their
+separate fixture is unavailable. Backend companion: TPRS PR #497; release
+verification is recorded in its operational handoff.
+
 ## 2026-10-29 - Make Jingle Bowl lane capacity prominent
 
 Jon confirmed Jingle Bowl's operational package limits: five guests per

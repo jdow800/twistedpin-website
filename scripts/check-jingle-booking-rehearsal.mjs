@@ -29,6 +29,7 @@ try{
       const config=await page.evaluate(async()=>{const r=await fetch('/jingle-bowl/rehearsal-api/rehearsal/config/');if(!r.ok)throw Error('configuration unavailable');return r.json();});
       assert.equal(config.provider,'FakeRail');assert.equal(config.paymentMode,'simulation');
       assert.equal(await page.locator('.room-choice').count(),2);
+      await page.getByLabel('How many people are coming, including non-bowlers?',{exact:true}).fill('5');
       await page.locator('.room-choice').filter({hasText:room}).click();
       await page.getByRole('button',{name:'More',exact:true}).click();
       const primary=()=>page.locator('.brand-continue');

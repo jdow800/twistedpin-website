@@ -84,8 +84,8 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
           <article class="jb-room">
             <div class="jb-room-photo"><picture><source srcset="/snap/tile-trad-540.avif" type="image/avif" /><img src="/snap/tile-trad-540.webp" width="540" height="405" loading="lazy" decoding="async" alt="Traditional bowling lanes and tables at Twisted Pin" /></picture><span>01 / Traditional</span></div>
             <div class="jb-room-heading"><h3>Traditional lanes</h3><p class="jb-room-price"><span>Base price / lane</span><strong>$149.95</strong></p></div>
-            <div class="jb-room-capacity"><strong>5</strong><span>Guests max<small>per traditional lane</small></span></div>
-            <p class="jb-capacity-note">Count everyone attending, including non-bowlers.</p>
+            <div class="jb-room-capacity"><strong>5</strong><span>People total<small>per traditional lane</small></span></div>
+            <p class="jb-capacity-note">Everyone coming counts. Bowling or just hanging out.</p>
             <ul class="jb-room-inclusions" aria-label="Included with each Traditional lane"><li>90 minutes of bowling</li><li>Shoe rental included</li><li>One large pizza per lane</li><li>One pitcher of soda per lane</li><li>Access to cookie &amp; cocoa bar</li><li>Photo with Santa on your device</li></ul>
             <p class="jb-room-note">Pitcher refills are not included.</p>
             {bookingEnabled && <a class="jb-button jb-room-cta" href={jingleBookingHref('traditional')}>Book Traditional <span aria-hidden="true">↗</span></a>}
@@ -93,13 +93,14 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
           <article class="jb-room">
             <div class="jb-room-photo"><picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" width="540" height="405" loading="lazy" decoding="async" alt="Couch seating and bowling lanes in the Twisted Pin VIP suite" /></picture><span>02 / VIP suite</span></div>
             <div class="jb-room-heading"><h3>VIP suite lanes</h3><p class="jb-room-price"><span>Base price / lane</span><strong>$189.95</strong></p></div>
-            <div class="jb-room-capacity"><strong>6</strong><span>Guests max<small>per VIP lane</small></span></div>
-            <p class="jb-capacity-note">Count everyone attending, including non-bowlers.</p>
+            <div class="jb-room-capacity"><strong>6</strong><span>People total<small>per VIP lane</small></span></div>
+            <p class="jb-capacity-note">Everyone coming counts. Bowling or just hanging out.</p>
             <ul class="jb-room-inclusions" aria-label="Included with each VIP lane"><li>90 minutes of bowling</li><li>Shoe rental included</li><li>One large pizza per lane</li><li>One pitcher of soda per lane</li><li>Access to cookie &amp; cocoa bar</li><li>Photo with Santa on your device</li><li class="jb-vip-extra">One basket of fries per lane</li></ul>
             <p class="jb-room-note">Enjoy the suite’s couch seating. Pitcher refills are not included.</p>
             {bookingEnabled && <a class="jb-button jb-room-cta" href={jingleBookingHref('vip')}>Book VIP <span aria-hidden="true">↗</span></a>}
           </article>
         </div>
+        <p class="jb-group-note"><strong>9 people coming? You’ll need 2 lanes.</strong> Even if only 5 are bowling. Your reservation covers lane space for your whole group.</p>
         <p class="jb-price-note">Base lane prices are shown above. A 10% Online Booking Fee and applicable tax are added at checkout.</p>
       </div>
     </section>
@@ -109,7 +110,8 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
         <div><p class="jb-label">Before the big guy arrives</p><h2 id="jb-faq-title">Good to<br /><em>know.</em></h2><p>We’ll keep the practical stuff as clear as the holiday plan.</p></div>
         <div class="jb-questions">
           <details open><summary>When is Jingle Bowl?<span aria-hidden="true">+</span></summary><p>Sunday, December 6, 2026, at Twisted Pin in Plainfield. The five 90-minute reservation starts are 1:45pm, 2pm, 2:30pm, 3:30pm and 3:45pm, all Central time. Jingle Bowl activities end at 5:15pm. The venue closes at 5:30pm, and all guests must depart by then.</p></details>
-          <details><summary>How many guests fit on each lane?<span aria-hidden="true">+</span></summary><p>For Jingle Bowl, each traditional lane holds up to <strong>5 guests</strong> and each VIP lane holds up to <strong>6 guests</strong>. Everyone attending counts toward the limit, including non-bowlers. Reserve enough lanes for your whole group.</p></details>
+          <details><summary>How many guests fit on each lane?<span aria-hidden="true">+</span></summary><p>For Jingle Bowl, each traditional lane holds up to <strong>5 people total</strong> and each VIP lane holds up to <strong>6 people total</strong>. Everyone coming counts. Bowling or just hanging out.</p></details>
+          <details><summary>What if some people aren’t bowling?<span aria-hidden="true">+</span></summary><p>Your reservation covers lane space for your whole group, including anyone who’s just watching. <strong>9 people coming? You’ll need 2 lanes, even if only 5 are bowling.</strong></p></details>
           <details><summary>When should we arrive?<span aria-hidden="true">+</span></summary><p>Arrive on time for your reservation. Bowling starts and ends at your reserved times, even if you arrive late. If you arrive early, your lane may still be in use or being prepared.</p></details>
           <details><summary>Can we stay after our bowling time?<span aria-hidden="true">+</span></summary><p>Please clear your booked lane, seats and belongings at your reserved end time. Afterward, you can enjoy the arcade or an available waiting area until 5:30pm, when the venue closes and all guests must depart.</p></details>
           <details><summary>Can I book a regular lane that day?<span aria-hidden="true">+</span></summary><p>December 6 is Jingle Bowl only through close. Regular lane reservations will not be offered that day, including before or after Jingle Bowl.</p></details>
@@ -213,6 +215,8 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
   .jb-room-capacity > span { font: 900 30px/1 var(--font-display); text-transform: uppercase; }
   .jb-room-capacity small { display: block; margin-top: 6px; font: 700 12px/1.5 var(--font-ui); }
   .jb-room > .jb-capacity-note { margin-top: 10px; font: 600 14px/1.5 var(--font-ui); }
+  .jb-group-note { margin-top: 32px; padding: 20px; border: 2px solid var(--jb-gold); font: 500 16px/1.6 var(--font-ui); }
+  .jb-group-note strong { display: block; margin-bottom: 6px; color: var(--jb-gold); font-weight: 700; }
   .jb-room-inclusions { display: grid; gap: 10px; padding: 17px 0 0; margin: 18px 0 0; list-style: none; border-top: 1px solid var(--jb-line); font: 500 15px/1.5 var(--font-ui); }
   .jb-room-inclusions li { position: relative; padding-left: 20px; }
   .jb-room-inclusions li::before { content: "✓"; position: absolute; left: 0; color: var(--jb-gold); font-weight: 700; }

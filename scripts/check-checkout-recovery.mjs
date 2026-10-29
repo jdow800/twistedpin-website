@@ -29,7 +29,7 @@ import assert from 'node:assert/strict';
 import {product,customer,quote,items,request,payment,booking,discovered,incomplete,id} from 'fixture';
 import {initialState,wizardReducer} from './src/components/tprs/state.ts';
 import {saveCheckoutRecovery,loadCheckoutRecovery,saveDiscoveredCheckout,loadDiscoveredCheckout,canReleaseCheckout,resolvedCheckoutUrl,CHECKOUT_RECOVERY_KEY,DISCOVERED_CHECKOUT_KEY} from './src/components/tprs/checkoutRecovery.ts';
-import {paymentIntentCreateResponseSchema,quoteResponseSchema} from './src/tprs/schemas/checkout.ts';
+import {paymentIntentCreateRequestSchema,paymentIntentCreateResponseSchema,quoteResponseSchema} from './src/tprs/schemas/checkout.ts';
 const draft={...initialState,step:'payment',date:request.eventDate,product,slot:{time:'12:30',priceCents:11995,available:true},guest:customer,checkoutLocked:true};
 const record={version:1,draft,quote,request,payment,cartToken:'synthetic-cart',confirmStarted:true,status:'processing'};
 const map=new Map();const storage={getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};
@@ -38,6 +38,10 @@ saveDiscoveredCheckout(storage,discovered);assert.deepEqual(loadDiscoveredChecko
 storage.setItem(DISCOVERED_CHECKOUT_KEY,JSON.stringify({...discovered,paymentReady:undefined}));assert.equal(loadDiscoveredCheckout(storage).paymentReady,false);
 saveDiscoveredCheckout(storage,incomplete);assert.equal(loadDiscoveredCheckout(storage).originalRequest.acceptedTerms,undefined);assert.equal(loadDiscoveredCheckout(storage).originalOrder.acceptedTerms,false);
 assert.deepEqual(restored.request,request);assert.deepEqual(restored.payment,payment);
+assert.equal(paymentIntentCreateRequestSchema.parse({...request,attendeeCount:9}).attendeeCount,9);
+for(const attendeeCount of [0,-1,1.5,'9',1001])assert.equal(paymentIntentCreateRequestSchema.safeParse({...request,attendeeCount}).success,false);
+saveCheckoutRecovery(storage,{...record,request:{...request,attendeeCount:9}});
+assert.equal(loadCheckoutRecovery(storage).request.attendeeCount,9);
 for(const action of [{type:'SET_LANE_QTY',qty:2},{type:'REMOVE_LANE'},{type:'GO_STEP',step:'main'},{type:'SET_DATE',date:'2098-11-24'},{type:'RESET'},{type:'SET_FORM_ANSWERS',answers:[]}])assert.equal(wizardReducer(draft,action),draft);
 const confirmed=wizardReducer({...draft,laneQty:2},{type:'CONVERTED',booking});
 for(const action of [{type:'SET_LANE_QTY',qty:1},{type:'SET_CHECKOUT_LOCK',locked:false},{type:'CLEAR_SLOT'},{type:'SET_FORM_ANSWERS',answers:[]}])assert.equal(wizardReducer(confirmed,action),confirmed);
@@ -143,6 +147,7 @@ function Harness(){
  customer={customer} cartHoldItems={[{...items[0],startTime:request.startTime}]} checkoutItems={setting().preheld?heldItems:items} eventDate={request.eventDate} startTime={request.startTime}
  {...(setting().preheld?{preAcquiredSelection:{items:heldItems,coverage:[{cartLineRef:'lane',count:1,poolId:product.id,startTime:request.startTime,endTime:'2098-11-23T20:30:00.000Z'}]},couponsEnabled:false,onSelectionLost:()=>{log('selection-lost',{});dispatch({type:'GO_STEP',step:'detail'});}}:{})}
  salesCutoffMinutesBefore={45} couponResult={null} onCouponCode={()=>{}} onCouponResult={()=>{}} formAnswers={request.formAnswers} termsText="Synthetic booking terms."
+ attendeeCount={setting().attendeeCount}
  totalCents={saved?.quote.totalIncludingTax??q.totalIncludingTax} onRetryPricing={()=>setQuote({...quote,reviewToken:'review-two',totalIncludingTax:12995})}
  onConverted={setConfirmed} onFindNewTime={()=>dispatch({type:'GO_STEP',step:'detail'})}/>}
  <StickySummary state={state} quote={saved?.quote??q} quoteLoading={false} quoteUnavailable={false} onBack={()=>dispatch({type:'GO_STEP',step:'guest'})} onNext={()=>{}} onLaneQty={qty=>dispatch({type:'SET_LANE_QTY',qty})} onAddOnQty={()=>{}} onRemoveLane={()=>dispatch({type:'REMOVE_LANE'})}/>
@@ -215,7 +220,7 @@ try{
  assert.equal(await count('/api/checkout/payment-intents'),0);assert.equal(await count('confirm'),0);assert.equal(await page.getByRole('checkbox').isChecked(),false);
  await start();await page.evaluate(()=>{const original=Storage.prototype.setItem;Storage.prototype.setItem=function(key,value){if(key==='tprs:checkout:active:v1')throw new Error('Synthetic unavailable storage');return original.call(this,key,value);};});
  await pay();await page.getByText(/couldn't save your payment details/).waitFor();assert.equal(await count('/api/checkout/payment-intents'),0);assert.equal(await count('confirm'),0);
- for(const eligibilityReject of ['outside_venue_hours','advance_booking_window_exceeded']){
+ for(const eligibilityReject of ['outside_venue_hours','advance_booking_window_exceeded','form_answer_invalid']){
   await start({eligibilityReject});await pay();await page.getByText('This date needs another look before payment.').waitFor();
   assert.equal(await saved(),null);assert.equal(await count('confirm'),0);assert.equal(await page.getByRole('button',{name:'Edit',exact:true}).isDisabled(),false);
  }
@@ -224,11 +229,15 @@ try{
  await page.getByRole('button',{name:/Review current total/}).click();assert.equal(await count('confirm'),0);await pay();await page.getByText('Confirmed TP-TEST').waitFor();assert.equal(await count('confirm'),1);
  const created=await page.evaluate(()=>window.calls.filter(c=>c.kind==='/api/checkout/payment-intents').map(c=>c.payload));
  assert.equal(created[1].reviewToken,'review-two');assert.equal(created[1].acceptedTerms,true);assert.deepEqual(created[1].formAnswers,[{formFieldId:'00000000-0000-4000-8000-000000000008',value:'Original choice'}]);
+ assert.equal('attendeeCount' in created[1],false,'ordinary checkout does not add event attendance');
 
- await start({creationDrop:true});await pay();await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();
+ await start({creationDrop:true,attendeeCount:9});await pay();await page.getByRole('button',{name:'Check payment status',exact:true}).waitFor();
  const original=await saved();assert.ok(original.request.attemptKey);assert.equal(await count('confirm'),0);
+ assert.equal(original.request.attendeeCount,9,'new event request freezes total attendees');
+ await page.evaluate(()=>window.configure({attendeeCount:12}));
  await page.reload();await page.getByRole('button',{name:/Continue payment/}).waitFor();assert.equal(await count('confirm'),0);
  const retried=await page.evaluate(()=>window.calls.filter(c=>c.kind==='/api/checkout/payment-intents').map(c=>c.payload));assert.deepEqual(retried[0],retried[1]);
+ assert.equal(retried[1].attendeeCount,9,'retry preserves accepted count despite newer UI props');
  assert.equal(await page.getByRole('button',{name:'Edit',exact:true}).isDisabled(),true);
  await page.getByRole('button',{name:/Cancel payment and edit/}).click();await page.getByText('Editing reservation').waitFor();assert.equal(await saved(),null);
 

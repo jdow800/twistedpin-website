@@ -37,6 +37,7 @@ try{
     assert.equal(product.addOnProducts[0].defaultPriceCents,1500);
     assert.equal(product.addOnProducts[0].isRequired,false);
   }
+  await page.getByLabel('How many people are coming, including non-bowlers?',{exact:true}).fill('5');
   await page.locator('.room-choice').filter({hasText:'Traditional'}).click();
   await primary().click();
   await page.getByRole('heading',{name:'Choose your time.',exact:true}).waitFor();

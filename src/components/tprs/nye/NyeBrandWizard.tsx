@@ -5,6 +5,7 @@ import { createCartSelectionController, exactSelectionHeld, type CartSelectionRe
 import { type PartyChoice, eventSelection, choiceFromDraft, compatibleAddOns, answersAfterChange, validNyeDefinitions, nyeAnswersComplete } from './selection';
 import { packageDetailsChanged as compareEventPackages, resolveCatalogChoice as resolveEventCatalogChoice } from './selectionCatalog';
 import { eventDateLabels, nyeEventConfig, type EventBookingConfig } from './eventConfig';
+import { attendeesFitChoice, minimumAttendeeLanes, parseAttendeeCount } from './attendance';
 import * as api from '../../../tprs/client';
 import { availabilitySlotSchema, customerProductSchema, formAnswerInputSchema, checkoutAttemptActiveResponseSchema,
   type CustomerProduct, type AvailabilitySlot, type CartState, type FormDefinition, type QuoteResponse, type ActiveCheckoutAttempt } from '../../../tprs/schemas';
@@ -32,6 +33,7 @@ const savedSchema = z.object({ version: z.literal(1), step: z.enum(['lanes','tim
   catalogHeldSelection: z.object({choice:choiceSchema,addOns:z.record(z.number().int().nonnegative())}).nullable().default(null),
   guest: z.object({ firstName:z.string(),lastName:z.string(),email:z.string(),phone:z.string(),zip:z.string() }),
   marketingOptIn: z.boolean().optional(),
+  attendeeInput: z.string().default(''),
   pending: z.object({choice:choiceSchema,addOns:z.record(z.number().int().nonnegative()),next:z.enum(['arcade','food'])}).nullable(),
 });
 type PendingProposal = NonNullable<z.infer<typeof savedSchema>['pending']>;
@@ -52,6 +54,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const freshDraft=():WizardState=>({...initialState,date:EVENT_DATE,guest:{...(eventConfig.initialGuest??initialState.guest)}});
   const codes=useMemo(()=>[eventConfig.traditionalCode,eventConfig.vipCode],[eventConfig]);
   const marketingEnabled=eventConfig.marketingEnabled!==false;
+  const requiresAttendees=eventConfig.id==='jingle';
   const labels=eventDateLabels(eventConfig);
   const helpTextOverrides=eventConfig.helpTextOverrides;
   const {roomName,guestsPerLane,onlineMax,partyStart,partyDuration,partyRange,laneCoverage,selectionItems,safeAlternativeQuantity}=useMemo(()=>eventSelection(eventConfig),[eventConfig]);
@@ -69,6 +72,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const [draft,setDraft] = useState<WizardState>(freshDraft);
   const [step,setStep] = useState<BrandStep>('lanes');
   const [roomCode,setRoomCode] = useState<number|null>(null), [quantity,setQuantity] = useState(1), [time,setTime] = useState<string|null>(null);
+  const [attendeeInput,setAttendeeInput] = useState('');
   const [cart,setCart] = useState<CartState|null>(null), [busy,setBusy] = useState(false), busyRef=useRef(false);
   const [notice,setNotice] = useState<string|null>(null), [now,setNow] = useState(Date.now());
   const [recovery,setRecovery] = useState<CheckoutRecovery|null>(null), [discovered,setDiscovered] = useState<ActiveCheckoutAttempt|null>(null);
@@ -91,6 +95,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const entryChoiceUsed = useRef(false);
   const locked = busy || !!recovery || !!discovered || draft.checkoutLocked;
   const product = products.find(p=>p.code===roomCode) ?? null;
+  const attendeeCount=parseAttendeeCount(attendeeInput);
+  const minimumLanes=product?minimumAttendeeLanes(attendeeCount,product,eventConfig):1;
+  const attendanceValid=attendeesFitChoice(attendeeCount,product?{product,quantity}:null,eventConfig);
+  const fitsAttendees=(choice:Pick<PartyChoice,'product'|'quantity'>|null)=>attendeesFitChoice(attendeeCount,choice,eventConfig);
   const slot = product && time ? grid[product.id]?.find(s=>s.time===time) ?? null : null;
   const requested:PartyChoice|null = product && slot ? {product,slot,quantity} : null;
   const heldChoice = choiceFromDraft(draft);
@@ -128,7 +136,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   }
   function save(nextPending:PendingProposal|null = pending, nextDraft=draft, nextStep=step) {
     if (nextStep === 'confirmation') return;
-    sessionStorage.setItem(DRAFT_KEY,JSON.stringify({version:1,step:nextStep,choice:choiceFromDraft(nextDraft),roomCode,quantity,time,
+    sessionStorage.setItem(DRAFT_KEY,JSON.stringify({version:1,step:nextStep,choice:choiceFromDraft(nextDraft),roomCode,quantity,time,attendeeInput,
       addOns:nextDraft.addOnQtys,stagedAddOns:addOns,answers:nextDraft.formAnswers,guest:nextDraft.guest,marketingOptIn:nextDraft.marketingOptIn,pending:nextPending,catalogReviewRequired,catalogHeldSelection}));
   }
   function pendingProposalMatches(proposal:PendingProposal) {
@@ -164,18 +172,18 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     const nextDraft={...base,date:EVENT_DATE,product:fresh.product,slot:fresh.slot,laneQty:fresh.quantity,
       addOnQtys:proposal.addOns,formAnswers:answersAfterChange(base,fresh,definitions)};
     const stillHeld=exactSelectionHeld(current,selectionItems(proposal.choice,proposal.addOns),laneCoverage(proposal.choice));
-    const nextStep=requiresReview||!stillHeld?'time':proposal.next;
+    const nextStep=!attendeesFitChoice(base.partySize,fresh,eventConfig)?'lanes':requiresReview||!stillHeld?'time':proposal.next;
     const heldEvidence=requiresReview?{choice:proposal.choice,addOns:proposal.addOns}:null;
     // Write the accepted proposal's room/time/count, not the render's older
     // requested controls. A failed write leaves the prior proposal recoverable.
     sessionStorage.setItem(DRAFT_KEY,JSON.stringify({version:1,step:nextStep,choice:fresh,
-      roomCode:fresh.product.code,quantity:fresh.quantity,time:fresh.slot.time,
+      roomCode:fresh.product.code,quantity:fresh.quantity,time:fresh.slot.time,attendeeInput:requiresAttendees?(base.partySize?.toString()??''):attendeeInput,
       addOns:proposal.addOns,stagedAddOns:proposal.addOns,answers:nextDraft.formAnswers,guest:nextDraft.guest,marketingOptIn:nextDraft.marketingOptIn,pending:null,catalogReviewRequired:requiresReview,catalogHeldSelection:heldEvidence}));
     setProducts(catalog.products);setGrid(catalog.grid);setCatalogReviewRequired(requiresReview);setCatalogHeldSelection(heldEvidence);
     setCart(current);setDraft(nextDraft);setAddOns(proposal.addOns);setPending(null);setReview(null);
     setRoomCode(fresh.product.code as number);setQuantity(fresh.quantity);setTime(fresh.slot.time);
     setStep(nextStep);setNotice(!stillHeld?'The lane hold has ended. Your answers are saved; review your party choice again.':requiresReview?'Your lanes are held; package details changed. Please review before continuing.':null);
-    return !requiresReview&&stillHeld;
+    return nextStep===proposal.next;
   }
   const initialize = useCallback(async()=>{
     // Opening, a retry or unmount may supersede a slow discovery/restoration.
@@ -200,6 +208,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
           saveDiscoveredCheckout(sessionStorage,original);setDiscovered(original);return;
         }
         setRecovery(recovered);setAcceptedQuote(recovered.quote);setDraft(recovered.draft);
+        if(requiresAttendees)setAttendeeInput(recovered.draft.partySize?.toString()??'');
         setRoomCode(recovered.draft.product.code as number);setTime(recovered.draft.slot?.time??null);
         setQuantity(recovered.draft.laneQty);setAddOns(recovered.draft.addOnQtys);setStep('pay');return;
       }
@@ -216,9 +225,9 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       if(saved){
         if(saved.choice && !codes.includes(saved.choice.product.code)) throw new Error('wrong product');
         if(saved.pending && !codes.includes(saved.pending.choice.product.code)) throw new Error('wrong pending product');
-        setRoomCode(saved.roomCode);setQuantity(saved.quantity);setTime(saved.time);setPending(saved.pending);setAddOns(saved.stagedAddOns??saved.addOns);setCatalogReviewRequired(saved.catalogReviewRequired);setCatalogHeldSelection(saved.catalogHeldSelection);
+        setRoomCode(saved.roomCode);setQuantity(saved.quantity);setTime(saved.time);setAttendeeInput(saved.attendeeInput);setPending(saved.pending);setAddOns(saved.stagedAddOns??saved.addOns);setCatalogReviewRequired(saved.catalogReviewRequired);setCatalogHeldSelection(saved.catalogHeldSelection);
         restoredDraft={...initialState,date:EVENT_DATE,product:saved.choice?.product??null,slot:saved.choice?.slot??null,laneQty:saved.choice?.quantity??1,
-          addOnQtys:saved.addOns,formAnswers:saved.answers,guest:saved.guest,marketingOptIn:saved.marketingOptIn};
+          partySize:requiresAttendees?parseAttendeeCount(saved.attendeeInput):null,addOnQtys:saved.addOns,formAnswers:saved.answers,guest:saved.guest,marketingOptIn:saved.marketingOptIn};
         setDraft(restoredDraft);setStep(saved.catalogReviewRequired?'time':saved.step);
       }
       const retained=controller.readPending();
@@ -307,7 +316,22 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   useEffect(()=>{
     if(!salesOpen||!loaded||loadError||recovery||discovered||draft.booking)return;
     try{save();}catch{setLoadError('Please allow browser storage before continuing. Your existing held lanes have not been changed.');}
-  },[salesOpen,loaded,draft,step,roomCode,quantity,time,pending,addOns,catalogReviewRequired,catalogHeldSelection]);
+  },[salesOpen,loaded,draft,step,roomCode,quantity,time,attendeeInput,pending,addOns,catalogReviewRequired,catalogHeldSelection]);
+  useEffect(()=>{
+    if(!requiresAttendees||!loaded||loadError||locked||pending||draft.booking||!product||attendeeCount===null)return;
+    // A new landing link or an older saved choice may select a smaller lane
+    // type. Adjust requested controls only; replacing held lanes stays explicit.
+    setQuantity(q=>Math.min(onlineMax(product),Math.max(q,minimumLanes)));
+  },[requiresAttendees,loaded,loadError,locked,pending,draft.booking,product,attendeeCount,minimumLanes]);
+  useEffect(()=>{
+    // Legacy drafts must answer the total-attendance question before a new
+    // payment. Reconcile retained mutations/payments before editing anything.
+    if(!requiresAttendees||!salesOpen||!loaded||loadError||locked||pending||draft.booking||step==='lanes')return;
+    if(!fitsAttendees(step==='time'?(product?{product,quantity}:null):heldChoice)){
+      setReview(null);setStep('lanes');
+      setNotice('Enter everyone attending, including non-bowlers, and reserve enough lanes for your group.');
+    }
+  },[requiresAttendees,salesOpen,loaded,loadError,locked,pending,draft.booking,step,attendeeCount,product,quantity,heldChoice?.product.id,heldChoice?.quantity]);
   useEffect(()=>{
     if(!salesOpen||!loaded||loadError||recovery||discovered||draft.booking||draft.checkoutLocked||pending||!products.length)return;
     const previous=choiceFromDraft(draft);
@@ -356,21 +380,30 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       if(next==='time'&&!product)next='lanes';
       if(['arcade','food','pay'].includes(next)&&(!heldChoice||!requestedMatchesHeld||!ownHold))next='time';
       if(next==='pay'&&(!forms||!draft.product||!nyeAnswersComplete(forms,draft.product.code,draft.formAnswers,draft.laneQty,codes)||guestInvalidFields(draft.guest).length))next='food';
+      if(next!=='lanes'&&!fitsAttendees(next==='time'?(product?{product,quantity}:null):heldChoice))next='lanes';
       setReview(null);setStep(next);
     };
     window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop);
-  },[locked,pending,draft,step,requestedMatchesHeld,ownHold,forms,product]);
+  },[locked,pending,draft,step,requestedMatchesHeld,ownHold,forms,product,quantity,attendeeCount]);
   function navigate(next:BrandStep){
     if(locked||pending)return;
+    if(next!=='lanes'&&!fitsAttendees(next==='time'?(product?{product,quantity}:null):heldChoice))next='lanes';
     setReview(null);setNotice(null);setSubmitAttempt(0);setStep(next);history.pushState({[eventConfig.historyKey]:next},'');
     requestAnimationFrame(()=>{rootRef.current?.scrollIntoView({block:'start'});rootRef.current?.querySelector<HTMLElement>('h2')?.focus();});
   }
   const onAnswers=useCallback((answers:WizardState['formAnswers'])=>setDraft(d=>({...d,formAnswers:answers})),[]);
-  function chooseRoom(p:CustomerProduct){if(locked||pending)return;setRoomCode(p.code as number);setTime(null);setReview(null);setNotice(null);}
-  function changeQuantity(q:number){if(locked||pending)return;setQuantity(Math.min(product?onlineMax(product):eventConfig.maxLanes,Math.max(1,q)));setReview(null);setNotice(null);}
+  function chooseRoom(p:CustomerProduct){if(locked||pending)return;setRoomCode(p.code as number);if(requiresAttendees)setQuantity(q=>Math.min(onlineMax(p),Math.max(q,minimumAttendeeLanes(attendeeCount,p,eventConfig))));setTime(null);setReview(null);setNotice(null);}
+  function changeQuantity(q:number){if(locked||pending)return;setQuantity(Math.min(product?onlineMax(product):eventConfig.maxLanes,Math.max(minimumLanes,q)));setReview(null);setNotice(null);}
+  function changeAttendees(value:string){
+    if(locked||pending)return;
+    const count=parseAttendeeCount(value);
+    setAttendeeInput(value);setDraft(d=>({...d,partySize:count}));
+    if(product&&count!==null)setQuantity(q=>Math.min(onlineMax(product),Math.max(q,minimumAttendeeLanes(count,product,eventConfig))));
+    setReview(null);setNotice(null);setAlternatives([]);alternativesRun.current++;
+  }
 
   async function findAlternatives(){
-    if(!requested||alternativesBusy)return;
+    if(!requested||alternativesBusy||!fitsAttendees(requested))return;
     setAlternativesBusy(true);setNotice(null);setAlternatives([]);
     const original=requested;
     const key=requestedKey, run=++alternativesRun.current;
@@ -379,12 +412,12 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       .sort((a,b)=>Math.abs(Date.parse(partyStart(a.time))-Date.parse(partyStart(original.slot.time)))-Math.abs(Date.parse(partyStart(b.time))-Date.parse(partyStart(original.slot.time)))||a.time.localeCompare(b.time));
     const target=other&&(grid[other.id]??[]).find(s=>s.available&&s.time===original.slot.time);
     const options:PartyChoice[]=[...nearby.map(s=>({product:original.product,slot:s,quantity:original.quantity})),
-      ...(other&&target?[{product:other,slot:target,quantity:safeAlternativeQuantity(original,other)}]:[])];
+      ...(other&&target?[{product:other,slot:target,quantity:safeAlternativeQuantity(original,other,requiresAttendees?attendeeCount??undefined:undefined)}]:[])];
     const verified:PartyChoice[]=[];
     // Bounded checks: one nearest time that fits, and the other room at this time.
     for(const candidate of options){
       if(key!==requestedKeyRef.current||run!==alternativesRun.current){setAlternativesBusy(false);return;}
-      if(candidate.quantity>onlineMax(candidate.product)||verified.some(v=>v.product.id===candidate.product.id))continue;
+      if(candidate.quantity>onlineMax(candidate.product)||!fitsAttendees(candidate)||verified.some(v=>v.product.id===candidate.product.id))continue;
       try{
         const availability=await api.getSlotMaxUnits(candidate.product.id,EVENT_DATE,candidate.slot.time);
         if(availability.maxUnits<candidate.quantity)continue;
@@ -397,8 +430,9 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     if(!verified.length)setNotice('No verified alternatives right now. Try checking again, or choose another party time.');
   }
   async function openReview(choice:PartyChoice, extras=compatibleAddOns({...draft,addOnQtys:addOns},choice.product)){
+    if(!fitsAttendees(choice)){setStep('lanes');setNotice('Reserve enough lanes for everyone attending, including non-bowlers.');return;}
     const baselineCapacity=Math.max(heldChoice?heldChoice.quantity*guestsPerLane(heldChoice.product):0,requested?requested.quantity*guestsPerLane(requested.product):0);
-    const lowerCapacity=choice.quantity*guestsPerLane(choice.product)<baselineCapacity;
+    const lowerCapacity=!requiresAttendees&&choice.quantity*guestsPerLane(choice.product)<baselineCapacity;
     setHeadcount('');setNotice(null);setReview({choice,addOns:extras,quote:null,error:null,lowerCapacity});
     try{
       const availability=await api.getSlotMaxUnits(choice.product.id,EVENT_DATE,choice.slot.time);
@@ -449,6 +483,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   }
   async function commit(choice:PartyChoice,extras:Record<string,number>,next:'arcade'|'food'){
     if(!cart||busyRef.current||recovery||discovered)return;
+    if(!fitsAttendees(choice)){setStep('lanes');setNotice('Reserve enough lanes for everyone attending, including non-bowlers.');return;}
     const proposal={choice,addOns:extras,next};
     busyRef.current=true;setBusy(true);setNotice(null);
     try{
@@ -484,6 +519,9 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   }
   function continueFlow(){
     if(locked||pending)return;
+    if(!fitsAttendees(step==='lanes'||step==='time'?(product?{product,quantity}:null):heldChoice)){
+      setStep('lanes');setNotice('Enter everyone attending, including non-bowlers, and reserve enough lanes for your group.');return;
+    }
     if(step==='lanes'){if(product)navigate('time');return;}
     if(step==='time'&&requested){
       if(catalogReviewRequired){void openReview(requested);return;}
@@ -537,7 +575,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     else if(raw){const saved=savedSchema.parse(JSON.parse(raw));if(!saved.pending)sessionStorage.setItem(DRAFT_KEY,JSON.stringify({...saved,step:'time'}));}
     setDiscovered(null);setRecovery(null);setAcceptedQuote(null);
     if(!sessionStorage.getItem(DRAFT_KEY)){
-      setDraft(freshDraft());setStep('lanes');setRoomCode(null);setTime(null);setQuantity(1);setPending(null);setAddOns({});setCatalogReviewRequired(false);setCatalogHeldSelection(null);
+      setDraft(freshDraft());setStep('lanes');setRoomCode(null);setTime(null);setQuantity(1);setAttendeeInput('');setPending(null);setAddOns({});setCatalogReviewRequired(false);setCatalogHeldSelection(null);
     }else{setDraft(d=>({...d,checkoutLocked:false,booking:null}));setStep('time');}
     void initialize();
   }
@@ -547,7 +585,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     note:eventConfig.pricingSummaryNote??(displayedQuote?'Includes taxes & service fee':'Taxes & service fee extra')};
   const headcountValid=!review?.lowerCapacity || (/^\d+$/.test(headcount)&&Number(headcount)>0&&Number(headcount)<=review.choice.quantity*guestsPerLane(review.choice.product));
   let primary=step==='pay'||step==='confirmation'?undefined:{label:step==='lanes'?(product?`Choose a ${roomName(product)} time`:'Choose a lane type'):step==='time'?(shortage?'Review other options':`Continue with ${quantity} ${product?roomName(product)+' ':''}${quantity===1?'lane':'lanes'}`):step==='arcade'?'Continue to food & details':'Review & pay',
-    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&!product)||(step==='time'&&(!requested||!currentProbe||currentProbe.error))||(step==='food'&&(!forms||formsError)),busy};
+    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&(!product||!attendanceValid))||(step==='time'&&(!requested||!currentProbe||currentProbe.error||!attendanceValid))||(step==='food'&&(!forms||formsError)),busy};
   if(review)primary={label:'Use this party',onClick:()=>{if(review.quote&&headcountValid)void commit(review.choice,review.addOns,'arcade');},disabled:locked||!!pending||!review.quote||!headcountValid,busy};
   if(primary&&busy)primary={...primary,label:'Checking your selection…'};
   const noticeContent=<>{notice&&<p role="status">{notice}</p>}{pending&&<button className="link" type="button" disabled={busy} onClick={()=>void retryPending()}>Check this selection</button>}</>;
@@ -577,17 +615,27 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     {step==='lanes'&&<>
       <div className="date-stamp"><span className="date-number">{labels.day}</span><div><span className="month">{labels.monthYear}</span><span className="day">{labels.weekday} · {eventConfig.identity.name}</span></div></div>
       <h2 className="page-heading" tabIndex={-1}>Choose your lanes.</h2><p className="intro">{eventConfig.intro.map((line,i)=><FragmentLine key={i} text={line} last={i===eventConfig.intro.length-1}/>)}</p>
+      {requiresAttendees&&<div className="jingle-attendance">
+        <label htmlFor="jingle-attendees">How many people are coming, including non-bowlers?</label>
+        <p id="jingle-attendees-help">Count every adult and child attending, even if they are only watching.</p>
+        <input id="jingle-attendees" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" required value={attendeeInput} disabled={locked||!!pending}
+          aria-invalid={attendeeInput!==''&&attendeeCount===null} aria-describedby="jingle-attendees-help jingle-attendees-status" onChange={e=>changeAttendees(e.target.value)}/>
+        <p id="jingle-attendees-status" role="status">{attendeeInput!==''&&attendeeCount===null?'Enter a whole number of people, at least 1.':attendeeCount!==null&&product?
+          minimumLanes>onlineMax(product)?`This reservation supports up to ${onlineMax(product)*guestsPerLane(product)} people in ${roomName(product)} lanes. Your group needs ${minimumLanes} lanes; choose another lane type or make separate reservations for your group.`:
+          `${attendeeCount} ${attendeeCount===1?'person':'people'} coming: at least ${minimumLanes} ${roomName(product)} ${minimumLanes===1?'lane':'lanes'} required.`:'Enter your total, then choose your lane type.'}</p>
+      </div>}
       <div className="room-list" aria-label="Choose lane type">{codes.map(code=>products.find(p=>p.code===code)).filter((p):p is CustomerProduct=>!!p).map(p=><button type="button" key={p.id} className={`room-choice ${roomCode===p.code?'selected':''}`} aria-pressed={roomCode===p.code} disabled={locked||!!pending} onClick={()=>chooseRoom(p)}>
         <span className="room-photo"><img src={`/snap/tile-${p.code===eventConfig.vipCode?'vip':'trad'}-540.webp`} alt="" width="540" height="300"/><span className="radio-mark" aria-hidden="true">{roomCode===p.code?'✓':''}</span></span>
-        <span className="room-copy"><span className="room-name">{p.code===eventConfig.vipCode?'VIP suite':'Traditional'}<br/>lanes</span><span className="capacity">Up to <strong>{guestsPerLane(p)} guests</strong><br/>per lane</span><span className="room-detail">{p.code===eventConfig.vipCode?'Lanes in our semi-private suite.':'The classic bowling setup.'}</span>
+        <span className="room-copy"><span className="room-name">{p.code===eventConfig.vipCode?'VIP suite':'Traditional'}<br/>lanes</span><span className="capacity">Up to <strong>{guestsPerLane(p)} {requiresAttendees?'people total':'guests'}</strong><br/>per lane</span><span className="room-detail">{p.code===eventConfig.vipCode?'Lanes in our semi-private suite.':'The classic bowling setup.'}</span>
         <span className="price">From <strong>{formatUsd(grid[p.id]?.length?Math.min(...grid[p.id].map(s=>s.priceCents)):p.defaultPriceCents)}</strong> / lane</span><span className="room-cta">{roomCode===p.code?'Selected':'Choose'} {roomName(p)}</span></span></button>)}</div>
       <p className="selection-note">Tap <strong>Traditional</strong> or <strong>VIP</strong> to choose your lanes.</p>
-      <div className="quantity-box"><div className="qty-line"><h3 className="section-heading">How many lanes?</h3><Quantity value={quantity} max={product?onlineMax(product):eventConfig.maxLanes} disabled={locked||!!pending} onChange={changeQuantity}/></div><p className="qty-caption">{product&&<strong>Up to {quantity*guestsPerLane(product)} guests total.<br/></strong>}Count everyone, including non-bowlers and spectators.</p></div>
+      <div className="quantity-box"><div className="qty-line"><h3 className="section-heading">How many lanes?</h3><Quantity value={quantity} min={minimumLanes} max={product?onlineMax(product):eventConfig.maxLanes} disabled={locked||!!pending} onChange={changeQuantity}/></div><p className="qty-caption">{product&&<strong>Up to {quantity*guestsPerLane(product)} {requiresAttendees?'people':'guests'} total.<br/></strong>}Count everyone, including non-bowlers and spectators.</p></div>
       <div className="included"><p className="included-title">Every lane includes</p><div className="included-list">{eventConfig.included.map(item=><span key={item}>{item}</span>)}</div><details><summary>The full package</summary><p>{eventConfig.packageDescription}</p></details></div>
     </>}
     {step==='time'&&product&&<>
       <h2 className="page-heading" tabIndex={-1}>Choose your time.</h2><p className="intro">{labels.full} · Chicago time</p>
-      <div className="time-request"><div><strong>{roomName(product)} lanes</strong><p>Up to {guestsPerLane(product)} guests per lane</p></div><Quantity value={quantity} max={onlineMax(product)} disabled={locked||!!pending} onChange={changeQuantity}/></div>
+      <div className="time-request"><div><strong>{roomName(product)} lanes</strong><p>Up to {guestsPerLane(product)} {requiresAttendees?'people total':'guests'} per lane</p>{requiresAttendees&&<p>{attendeeCount} people attending · {minimumLanes} {minimumLanes===1?'lane':'lanes'} minimum</p>}</div><Quantity value={quantity} min={minimumLanes} max={onlineMax(product)} disabled={locked||!!pending} onChange={changeQuantity}/></div>
+      {requiresAttendees&&<button className="link" type="button" disabled={locked||!!pending} onClick={()=>navigate('lanes')}>Edit total people attending</button>}
       {(shortage||currentProbe?.error||review||alternativesBusy||alternatives.length>0)&&<section className="recovery-panel" aria-label="Other party options">
         {!review&&<><h3>{shortage&&currentProbe?.max?`Only ${currentProbe.max} ${roomName(product)} ${currentProbe.max===1?'lane is':'lanes are'} available at ${formatTime12h(time!)}.`:currentProbe?.error?'We could not check these lanes.':'Let’s find your party.'}</h3>
           <p>You asked for <strong>{quantity} {roomName(product)} {quantity===1?'lane':'lanes'}</strong>{time?` at ${formatTime12h(time)}`:''}. Your requested number has not changed.</p>
@@ -615,7 +663,7 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       })}</div>
       {!grid[product.id]?.length&&<p role="status">Party times are not available right now. <button className="link" onClick={()=>void initialize()}>Check again</button></p>}
       {currentProbe?.error&&<button type="button" className="link" onClick={()=>setProbeRetry(n=>n+1)}>Check availability again</button>}
-      {ownHold&&heldChoice&&!catalogReviewRequired&&<button type="button" className="link" onClick={()=>{
+      {ownHold&&heldChoice&&!catalogReviewRequired&&fitsAttendees(heldChoice)&&<button type="button" className="link" onClick={()=>{
         setRoomCode(heldChoice.product.code as number);setQuantity(heldChoice.quantity);setTime(heldChoice.slot.time);navigate('food');
       }}>Keep my held lanes</button>}
     </>}
@@ -642,15 +690,16 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
       {formsError?<p role="alert">We could not load your required food choices. <button type="button" className="link" onClick={()=>setFormsRetry(n=>n+1)}>Try again</button></p>:!forms?<p role="status">Loading your food choices…</p>:<FormRenderer key={draft.product!.id} hideTitle definitions={forms} helpTextOverrides={helpTextOverrides} pairedPresentation={eventConfig.pairedPresentation} pairedProductCodes={codes} productId={draft.product!.id} productCode={draft.product!.code} answers={draft.formAnswers} onAnswersChange={onAnswers} onInvalidIdsChange={setInvalidIds} submitAttempt={submitAttempt} unitQuantities={{guest_count:0,lane_count:draft.laneQty}}/>}
       <GuestDetailsStep showBookingForms={false} showMarketingConsent={marketingEnabled} contactNotice={eventConfig.contactNotice} guest={draft.guest} onGuestField={(field,value)=>setDraft(d=>({...d,guest:{...d.guest,[field]:value}}))} marketingOptIn={draft.marketingOptIn} onMarketingOptIn={value=>setDraft(d=>({...d,marketingOptIn:value}))} productId={draft.product!.id} productCode={draft.product!.code} formAnswers={draft.formAnswers} onFormAnswers={onAnswers} onFormInvalidIds={setInvalidIds} submitAttempt={submitAttempt} formInvalidCount={invalidIds.length} rewardAmountCents={null} unitQuantities={{guest_count:0,lane_count:draft.laneQty}}/>
     </>}
-    {step==='pay'&&heldChoice&&<><h2 className="page-heading" tabIndex={-1}>Review &amp; pay.</h2><div className="reservation-ticket"><strong>{draft.laneQty} {roomName(heldChoice.product)} {draft.laneQty===1?'lane':'lanes'}</strong><p>{labels.full}<br/>{partyRange(heldChoice)}</p><p>Up to {draft.laneQty*guestsPerLane(heldChoice.product)} guests · Shoes included</p><p>{draft.laneQty} large {draft.laneQty===1?'pizza':'pizzas'} + {draft.laneQty} soda {draft.laneQty===1?'pitcher':'pitchers'}</p>
+    {step==='pay'&&heldChoice&&(recovery||fitsAttendees(heldChoice))&&<><h2 className="page-heading" tabIndex={-1}>Review &amp; pay.</h2><div className="reservation-ticket"><strong>{draft.laneQty} {roomName(heldChoice.product)} {draft.laneQty===1?'lane':'lanes'}</strong><p>{labels.full}<br/>{partyRange(heldChoice)}</p><p>Up to {draft.laneQty*guestsPerLane(heldChoice.product)} guests · Shoes included</p>{requiresAttendees&&draft.partySize!==null&&<p><strong>{draft.partySize} people attending, including non-bowlers.</strong></p>}<p>{draft.laneQty} large {draft.laneQty===1?'pizza':'pizzas'} + {draft.laneQty} soda {draft.laneQty===1?'pitcher':'pitchers'}</p>
       <div className="summary-food"><div className="summary-food-heading"><h3>Your pizza &amp; soda</h3><button type="button" className="link" disabled={locked||!!pending} onClick={()=>navigate('food')}>Edit pizza &amp; soda</button></div>{Array.from({length:draft.laneQty},(_,i)=><p key={i}><strong>{eventConfig.pairedPresentation?.unitLabel??'Pizza & pitcher'} {i+1}:</strong> {draft.formAnswers.filter(a=>a.unitIndex===i+1).map(a=>a.value==='Cheese'?'Cheese only':a.value).join(' · ')}</p>)}</div>
       {draft.product!.addOnProducts.filter(a=>(draft.addOnQtys[a.id]??0)>0).map(a=><p key={a.id}>{draft.addOnQtys[a.id]} × <Markdown text={a.name} inline/></p>)}<p>{draft.guest.firstName} {draft.guest.lastName}<br/>{draft.guest.email}</p></div>
       {quote&&<div className="ledger"><p><span>Packages &amp; arcade</span><strong>{formatUsd(quote.subtotalExcludingTax-quote.fees.reduce((n,f)=>n+f.amountCents,0))}</strong></p>{quote.fees.map((f,i)=><p key={i}><span>{f.name}</span><strong>{formatUsd(f.amountCents)}</strong></p>)}<p><span>Sales tax</span><strong>{formatUsd(quote.taxBreakdown.totalTax)}</strong></p><p><span>Total</span><strong>{formatUsd(quote.totalIncludingTax)}</strong></p></div>}
       <PaymentComponent draft={{...draft,step:'payment'}} quote={quote} recovery={recovery} onRecovery={handleRecovery} onDiscover={discover} onLock={value=>setDraft(d=>({...d,checkoutLocked:value}))}
+        attendeeCount={requiresAttendees?draft.partySize??undefined:undefined}
         customer={{...draft.guest,...(marketingEnabled && draft.marketingOptIn !== undefined && {smsMarketingOptIn:draft.marketingOptIn,consentLanguage:consentLanguageFor(null)})}} cartHoldItems={heldItems} checkoutItems={heldItems} eventDate={EVENT_DATE} startTime={partyStart(heldChoice.slot.time)} salesCutoffMinutesBefore={heldChoice.product.salesCutoffMinutesBefore}
         salesClosedMessage={eventConfig.salesClosedMessage}
         couponsEnabled={false} couponResult={null} onCouponCode={()=>{}} onCouponResult={()=>{}} formAnswers={draft.formAnswers}
-        formStale={!recovery&&(!forms||!nyeAnswersComplete(forms,draft.product!.code,draft.formAnswers,draft.laneQty,codes))}
+        formStale={!recovery&&(!fitsAttendees(heldChoice)||!forms||!nyeAnswersComplete(forms,draft.product!.code,draft.formAnswers,draft.laneQty,codes))}
         preAcquiredSelection={{items:heldItems,coverage:heldCoverage}} onSelectionLost={()=>{setStep('time');setNotice('Review your party choice to reserve available lanes again.');}}
         onFindNewTime={()=>navigate('time')} termsText={eventConfig.termsText} totalCents={quote?.totalIncludingTax??0} pricingPending={!recovery&&(pricing.loading||!quote)} pricingError={recovery?null:pricing.error} onRetryPricing={pricing.retry}
         onConverted={booking=>{setAcceptedQuote(quote);setDraft(d=>({...d,booking,checkoutLocked:false}));setStep('confirmation');sessionStorage.removeItem(DRAFT_KEY);}}/>

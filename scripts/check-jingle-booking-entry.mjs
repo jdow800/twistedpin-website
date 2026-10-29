@@ -84,7 +84,21 @@ let browser;
 const draftKey='tprs:jingle:booking-draft:v1';
 const state=page=>page.evaluate(()=>window.fixtureState());
 const calls=async(page,path)=>(await state(page)).calls.filter(c=>c.path===path);
-const heading=(page,name)=>page.getByRole('heading',{name,exact:true}).waitFor();
+async function heading(page,name){
+ // Fresh Jingle links now preselect the lane type but require total attendance
+ // before time browsing. These entry/recovery scenarios use one person unless
+ // their persisted draft already answered it; attendance edge cases have their
+ // own check-jingle-attendance.mjs harness.
+ if(name==='Choose your time.'){
+  await page.getByRole('heading',{name:/^Choose your (lanes|time)\.$/}).waitFor();
+  const count=page.getByLabel('How many people are coming, including non-bowlers?',{exact:true});
+  if(await count.isVisible()){
+   if(await count.inputValue()==='')await count.fill('1');
+   await page.locator('.brand-continue:enabled').click();
+  }
+ }
+ await page.getByRole('heading',{name,exact:true}).waitFor();
+}
 async function scenario(name,run){await run();results.push(name);console.log(`PASS ${name}`);}
 try{
  browser=await chromium.launch({headless:true,...(process.env.PLAYWRIGHT_EXECUTABLE?{executablePath:process.env.PLAYWRIGHT_EXECUTABLE}:{})});
@@ -99,7 +113,7 @@ try{
   await page.locator('.time-choice').nth(1).click();await page.locator('.brand-continue:enabled').waitFor();
   await page.locator('.brand-continue').click();
  }
- await scenario('Each fresh lane link opens its time step with quantity one, no selected time, no hold or payment',async()=>{
+ await scenario('Each fresh lane link reaches times after total attendance, with quantity one and no hold or payment',async()=>{
   for(const lane of ['traditional','vip']){
    const page=await fresh(`?lane=${lane}`);await heading(page,'Choose your time.');
    assert.match(await page.locator('.time-request').innerText(),lane==='vip'?/VIP lanes/:/Traditional lanes/);
