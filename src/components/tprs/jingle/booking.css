@@ -30,12 +30,6 @@
 .jingle-booking .alternative:hover:not(:disabled) {background: #28553f;}
 .jingle-booking .date-number {color: #e8c78b;}
 .jingle-booking .included {border-top: 3px solid #e8c78b;}
-.jingle-booking .jingle-attendance {margin: 22px 0; padding: 20px; border: 2px solid var(--glow); border-radius: 8px; background: var(--night);}
-.jingle-booking .jingle-attendance label {display: block; color: var(--paper); font: 700 18px/1.4 var(--ui);}
-.jingle-booking .jingle-attendance p {margin: 10px 0 0; color: var(--brand-soft); font-size: 14px; line-height: 1.5;}
-.jingle-booking .jingle-attendance input {display: block; width: 110px; margin-top: 14px; padding: 12px; border: 1px solid var(--brand-outline); border-radius: 6px; background: var(--brand-field); color: var(--paper); font: 700 24px/1.2 var(--ui);}
-.jingle-booking .jingle-attendance input:focus-visible {outline: 3px solid var(--glow); outline-offset: 3px;}
-.jingle-booking .jingle-attendance input[aria-invalid="true"] {border-color: #ffb4b4;}
 .jingle-booking .arcade-art {border: 1px solid var(--line); border-radius: 8px;}
 .jingle-booking .arcade-art::after {background: linear-gradient(90deg,#09291f,transparent);}
 .jingle-booking .tprs-nye-pair {border-color: #55735e;}

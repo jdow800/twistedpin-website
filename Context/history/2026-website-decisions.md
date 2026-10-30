@@ -1,4 +1,22 @@
-## 2026-10-29 - Count everyone attending Jingle Bowl
+## 2026-10-29 - Keep Jingle warnings; remove checkout attendance enforcement
+
+Jon reported a reservation-loading error and chose to keep the first-page
+warnings instead of the new checkout attendance requirement. Restore the
+checkout components, payment contract and related tests exactly to 42f23b0.
+Keep the landing page's "People total" banners, everyone-counts explanation,
+nine-people/two-lanes example and FAQs. Roy's matching explanation remains live.
+The pending backend attendeeCount requirement (TPRS PR #497) was never merged
+or deployed and is withdrawn. The prior entry below records the superseded
+implementation, not the current checkout behavior.
+
+A fresh unmocked production checkout returned 200 for bootstrap, discovery,
+session, catalog and availability, so the reported loading error was not
+reproduced in that fresh session. The pending backend change only affected
+payment preparation and would not have fixed initial reservation loading.
+Rollback validation: the checkout source matches 42f23b0 exactly, all 12
+booking-entry/recovery scenarios pass, and the full Astro/Vercel build passes.
+
+## 2026-10-29 - Count everyone attending Jingle Bowl (checkout superseded above)
 
 Jon approved hardening the common "five bowling, nine coming" case. The gold
 package bands now say "People total" and "Everyone coming counts. Bowling or

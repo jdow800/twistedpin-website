@@ -252,7 +252,6 @@ export default function PaymentCheckoutForm(props: PaymentProps) {
         version: 1, draft: { ...props.draft, step: "payment", booking: null, checkoutLocked: true }, quote: props.quote!, cartToken: verified?.cartToken ?? cartToken,
         request: { customer: props.customer, eventDate: props.eventDate, startTime: props.startTime, items: props.checkoutItems,
           attemptKey: crypto.randomUUID(), couponCode: props.couponCode, formAnswers: props.formAnswers, acceptedTerms: true,
-          ...(props.attendeeCount !== undefined ? { attendeeCount: props.attendeeCount } : {}),
           ...(props.quote!.reviewToken ? { checkoutContractVersion: 1, reviewToken: props.quote!.reviewToken } : {}) },
         confirmStarted: false, status: "creating",
       };

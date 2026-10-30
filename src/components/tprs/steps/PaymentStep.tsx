@@ -64,8 +64,6 @@ export interface PaymentProps {
   onCouponCode: (code: string) => void;
   onCouponResult: (result: CouponPreviewResponse | null) => void;
   formAnswers: FormAnswerInput[];
-  /** Jingle Bowl total attendees, including non-bowlers. Frozen for new payment attempts. */
-  attendeeCount?: number;
   /** True when a per-lane (per_unit_select) answer count no longer matches the
    *  chosen lanes — the guest changed lane count after picking. Blocks Pay so a
    *  guaranteed convert 400 (form_answer_invalid) can't charge-then-fail. Only

@@ -99,8 +99,6 @@ export const paymentIntentCreateRequestSchema = z.object({
   reviewToken: z.string().max(2048).optional(),
   acceptedTerms: z.boolean().optional(),
   formAnswers: z.array(formAnswerInputSchema).max(200).optional(),
-  /** Required by the server for new Jingle Bowl attempts; older accepted requests remain valid. */
-  attendeeCount: z.number().int().positive().max(1000).optional(),
   customer: checkoutCustomerPayloadSchema,
   eventDate: eventDateSchema,
   startTime: startTimeSchema,
