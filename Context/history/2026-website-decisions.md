@@ -1,3 +1,24 @@
+## 2026-10-29 - NYE admission includes everyone, bowling or not
+
+Jon confirmed NYE's paid reservation limit applies to every attendee: five
+people per Traditional lane or six per VIP lane, including all spectators.
+Party favors are planned for the guests included in those lane reservations.
+Make the landing page and future booking lane choices visually explicit with
+large people-total bands and an unconditional admission warning. Repeat the
+policy at review and payment; nine people need two lanes even if only five bowl.
+
+The live TPRS forms already place a required capacity checkbox first for both
+products (126 Traditional, 124 VIP); missing/unchecked acknowledgment blocks
+new payment. This is acknowledgment, not a measured attendee count. No new
+headcount field, state, payment payload or inventory rule is introduced here.
+The November 18, 9am Central opening gate remains unchanged.
+
+Validation: all 23 existing NYE booking scenario groups and all 12 Jingle
+entry/recovery groups pass with synthetic APIs/payments. The landing page
+passes seven viewport widths (320–1440px) and before/open/ended gate checks.
+Mobile and desktop previews were visually inspected, and all normal prebuild
+checks plus the full Astro/Vercel build pass. No live hold or payment was made.
+
 ## 2026-10-29 - Keep Jingle warnings; remove checkout attendance enforcement
 
 Jon reported a reservation-loading error and chose to keep the first-page

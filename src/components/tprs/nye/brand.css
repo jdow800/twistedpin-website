@@ -312,3 +312,23 @@ body:has(.nye-brand)::before { display: none; }
   .nye-brand .room-cta { padding: 11px 1px; font-size: 12px; font-weight: 600; letter-spacing: -.025em; white-space: nowrap; }
   .nye-brand .room-choice .price { font-size: 12px; letter-spacing: -.025em; white-space: nowrap; }
 }
+
+/* NYE admission copy only. No attendance controls or checkout state. */
+.nye-brand .nye-admission-capacity { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 14px; padding: 12px; background: #4eecc4; color: #100b23; }
+.nye-brand .nye-admission-capacity > strong { font: 900 64px/.85 var(--display); }
+.nye-brand .nye-admission-capacity > span { font: 900 25px/1 var(--display); text-transform: uppercase; }
+.nye-brand .nye-admission-capacity small { display: block; margin-top: 6px; font: 700 12px/1.4 var(--ui); }
+.nye-brand .nye-admission-notice { border: 2px solid #4eecc4; padding: 20px; margin: 20px 0; background: #1c1434; color: var(--paper); }
+.nye-brand .nye-admission-notice h3 { margin: 0 0 12px; color: #4eecc4; font: 900 34px/1 var(--display); text-transform: uppercase; }
+.nye-brand .nye-admission-notice p { font: 400 16px/1.6 var(--ui); }
+.nye-brand .nye-admission-notice strong { font-weight: 700; }
+.nye-brand .nye-admission-notice .nye-admission-example { padding-top: 12px; border-top: 1px solid #514562; }
+.nye-brand .nye-admission-notice .nye-admission-favors { font-size: 14px; color: var(--brand-soft); }
+@media (max-width: 760px) {
+  .nye-brand .nye-admission-capacity { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 8px; }
+  .nye-brand .nye-admission-capacity > strong { font-size: 56px; }
+  .nye-brand .nye-admission-capacity > span { font-size: 24px; }
+  .nye-brand .nye-admission-capacity small { font-size: 12px; }
+  .nye-brand .nye-admission-notice { padding: 16px; }
+  .nye-brand .nye-admission-notice h3 { font-size: 32px; }
+}

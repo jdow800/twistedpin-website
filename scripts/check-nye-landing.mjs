@@ -12,6 +12,8 @@ const results = [];
 const visibleCount = (page, selector) => page.locator(selector).evaluateAll(nodes => nodes.filter(node => node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden').length);
 async function assertPhase(page, phase) {
   assert.equal(await page.locator('[data-nye-opening]').getAttribute('data-nye-state'), phase);
+  assert.equal(await visibleCount(page, '.nye-capacity'), 2, `${phase}: both lane capacity notices remain visible`);
+  assert.equal(await visibleCount(page, '.nye-attendance'), 1, `${phase}: paid attendance notice remains visible`);
   assert.equal(await visibleCount(page, '.nye-times-section'), phase === 'open' ? 1 : 0, `${phase}: full schedule is only available during sales`);
   assert.equal(await visibleCount(page, '.nye-from'), phase === 'open' ? 2 : 0, `${phase}: room starting prices are only available during sales`);
   assert.equal(await visibleCount(page, '[data-nye-open-only]'), phase === 'open' ? await page.locator('[data-nye-open-only]').count() : 0, `${phase}: all sales-only content follows the same gate`);
@@ -40,6 +42,16 @@ try {
     assert.equal(await page.locator('.nye-times tbody tr').count(), 6);
     assert.equal(await page.locator('.nye-times tbody td').count(), 12);
     assert.equal(await page.locator('.nye-times tbody td').first().evaluate(el => getComputedStyle(el).fontSize), '16px');
+    assert.deepEqual(await page.locator('.nye-capacity > strong').allTextContents(), ['5', '6']);
+    for (const capacity of await page.locator('.nye-capacity').all()) {
+      assert.match(await capacity.innerText(), /People total\s*Maximum per lane/i);
+      assert.ok(await capacity.locator(':scope > strong').evaluate(el => parseFloat(getComputedStyle(el).fontSize)) >= 64, `prominent capacity ${width}`);
+    }
+    const attendance = page.locator('.nye-attendance');
+    assert.equal(await attendance.getByRole('heading', { name: 'Spectators count. Everyone counts.' }).count(), 1);
+    assert.match(await attendance.innerText(), /Every person attending must be included in a paid lane reservation, whether bowling, watching or just hanging out\./);
+    assert.match(await attendance.innerText(), /Extra attendees beyond your paid lane capacity will not be admitted\./);
+    assert.equal(await attendance.getByText('5 bowlers + 4 spectators = 9 people. Book 2 lanes.', { exact: true }).isVisible(), true);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `overflow ${width}`);
     if (width >= 1025) {
       const bounds = await page.evaluate(() => {
@@ -54,10 +66,16 @@ try {
     await assertPhase(page, 'before');
     await page.screenshot({ path: new URL(`after-${width}.png`, out).pathname.replace(/^\/(.:)/, '$1'), fullPage: true });
     if (width === 390 || width === 1440) {
-      for (const section of ['hero', 'rooms', 'faq']) await page.locator(`.nye-${section}`).screenshot({ path: new URL(`${section}-${width}.png`, out).pathname.replace(/^\/(.:)/, '$1') });
+      // Section captures can exceed the viewport; hide fixed chrome only in
+      // these images so it does not obscure content halfway down the capture.
+      for (const section of ['hero', 'rooms', 'faq']) await page.locator(`.nye-${section}`).screenshot({
+        path: new URL(`${section}-${width}.png`, out).pathname.replace(/^\/(.:)/, '$1'),
+        style: section === 'hero' ? undefined : '.site-header, .site-header *, .nye-mobile-bar, .nye-mobile-bar * { visibility: hidden !important; }',
+      });
     }
     await page.getByText('How many lanes should we book?', { exact: true }).click();
-    assert.equal(await page.getByText('Example: 5 bowlers + 3 spectators = 8 guests. Book 2 lanes.', { exact: true }).isVisible(), true);
+    assert.equal(await page.getByText('Example: 5 bowlers + 4 spectators = 9 people. Book 2 lanes.', { exact: true }).isVisible(), true);
+    assert.match(await page.locator('.nye-faq details').first().innerText(), /Extra attendees beyond your paid lane capacity will not be admitted\./);
     assert.equal(await page.locator('.nye-contact').getAttribute('href'), 'tel:+18157827790');
     await page.clock.setSystemTime(new Date('2026-11-18T15:00:00Z'));
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
@@ -82,5 +100,5 @@ try {
   assert.equal(await ordinary.locator('[data-reservation-action]').getAttribute('href'), '/reserve/');
   await ordinary.close();
   await writeFile(new URL('render-results.json', out), JSON.stringify({ base, results, ordinaryHeaderPreserved: true, productionBookingActions: false }, null, 2));
-  console.log('NYE landing passed: seven widths, hidden pre-opening schedule/prices/actions, exact simple opening copy, automatic opening/end visibility, header bounds, no overflow, 16px prices, six parties/twelve prices, FAQ, phone, ordinary header unchanged. No production requests.');
+  console.log('NYE landing passed: seven widths, prominent 5/6 total-person limits and paid-attendance notice in all sales phases, hidden pre-opening schedule/prices/actions, exact simple opening copy, automatic opening/end visibility, header bounds, no overflow, 16px prices, six parties/twelve prices, FAQ, phone, ordinary header unchanged. No production requests.');
 } finally { await browser.close(); }

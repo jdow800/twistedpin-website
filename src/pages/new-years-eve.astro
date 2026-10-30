@@ -55,7 +55,7 @@ const sessions = [
           <li><strong>Bowling + shoes</strong><span>For your party time</span></li>
           <li><strong>1 large pizza</strong><span>Choose at checkout</span></li>
           <li><strong>1 pitcher of soda</strong><span>Choose at checkout</span></li>
-          <li><strong>Party favors</strong><span>It is New Year's Eve.</span></li>
+          <li><strong>Party favors</strong><span>For the guests included in your reservation.</span></li>
         </ul>
         <p class="nye-food-example"><strong>Two lanes? Two pizzas and two pitchers.</strong> Choose each separately or keep them the same.</p>
       </div>
@@ -66,14 +66,20 @@ const sessions = [
         <div class="nye-room-grid">
           <article class="nye-room-card">
             <picture><source srcset="/snap/tile-trad-540.avif" type="image/avif" /><img src="/snap/tile-trad-540.webp" alt="Traditional bowling lanes at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
-            <div class="nye-room-copy"><h3>Traditional lanes</h3><p class="nye-capacity">Up to <strong>5 guests per lane</strong></p><p>Our traditional lanes, with all the NYE essentials included.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].traditional}</strong> / lane</p></div>
+            <div class="nye-room-copy"><h3>Traditional lanes</h3><p class="nye-capacity"><strong>5</strong><span><span class="nye-capacity-label">People total</span><span class="nye-capacity-limit">Maximum per lane</span></span></p><p>Our traditional lanes, with all the NYE essentials included.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].traditional}</strong> / lane</p></div>
           </article>
           <article class="nye-room-card">
             <picture><source srcset="/snap/tile-vip-540.avif" type="image/avif" /><img src="/snap/tile-vip-540.webp" alt="Couch seating in the VIP bowling suite at Twisted Pin" width="540" height="304" loading="lazy" /></picture>
-            <div class="nye-room-copy"><h3>VIP suite lanes</h3><p class="nye-capacity">Up to <strong>6 guests per lane</strong></p><p>Couch seating in our semi-private VIP suite, set apart from the traditional lanes.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].vip}</strong> / lane</p></div>
+            <div class="nye-room-copy"><h3>VIP suite lanes</h3><p class="nye-capacity"><strong>6</strong><span><span class="nye-capacity-label">People total</span><span class="nye-capacity-limit">Maximum per lane</span></span></p><p>Couch seating in our semi-private VIP suite, set apart from the traditional lanes.</p><p class="nye-from" data-nye-open-only hidden>From <strong>${sessions[0].vip}</strong> / lane</p></div>
           </article>
         </div>
-        <p class="nye-room-note"><strong>Count everyone, including non-bowlers and spectators.</strong> VIP reservations may share the suite with other groups unless your booking reserves the whole suite for the same party time.</p>
+        <aside class="nye-attendance" aria-labelledby="nye-attendance-title">
+          <h3 id="nye-attendance-title">Spectators count. Everyone counts.</h3>
+          <p>Every person attending must be included in a <strong>paid lane reservation</strong>, whether bowling, watching or just hanging out.</p>
+          <p>Extra attendees beyond your paid lane capacity will not be admitted.</p>
+          <p class="nye-attendance-example"><strong>5 bowlers + 4 spectators = 9 people. Book 2 lanes.</strong></p>
+        </aside>
+        <p class="nye-room-note">VIP reservations may share the suite with other groups unless your booking reserves the whole suite for the same party time.</p>
         <p class="nye-secondary" data-nye-open-only hidden>Starting prices are for the 11am party, before tax and the online booking fee.</p>
       </div>
     </section>
@@ -102,7 +108,7 @@ const sessions = [
     <section class="nye-section nye-faq" aria-labelledby="nye-faq-title">
       <div class="nye-inner nye-times-inner">
         <p class="nye-eyebrow">A few things to know</p><h2 id="nye-faq-title">Before the confetti.</h2>
-        <details><summary>How many lanes should we book?</summary><p>Each Traditional lane holds up to <strong>5 total guests</strong>; each VIP lane holds up to <strong>6</strong>. Everyone counts, even if they aren't bowling.</p><p><strong>Example: 5 bowlers + 3 spectators = 8 guests. Book 2 lanes.</strong></p></details>
+        <details><summary>How many lanes should we book?</summary><p>Each Traditional lane allows a maximum of <strong>5 people total</strong>; each VIP lane allows <strong>6</strong>. Every person attending must be included in a paid lane reservation, including anyone watching or just hanging out. Extra attendees beyond your paid lane capacity will not be admitted.</p><p><strong>Example: 5 bowlers + 4 spectators = 9 people. Book 2 lanes.</strong></p></details>
         <details><summary>How do we choose our pizza and soda?</summary><p>Choose one pizza and one pitcher of soda for each lane during checkout. Pick from the listed options; every pizza already includes cheese. Food substitutions aren't available for NYE packages.</p><p>You can review and edit your choices before paying. Need a correction afterward? Reply to your confirmation email or email <a href="mailto:contactus@twistedpin.com">contactus@twistedpin.com</a>.</p></details>
         <details><summary>Can we bowl near friends who book separately?</summary><p>Choose the <strong>same party time and lane type</strong>. At checkout, enter the full name on the other group's reservation in the optional bowl-near request.</p><p>We'll do our best, but requests aren't guaranteed. Traditional and VIP groups are in separate areas, and groups booked at different times cannot bowl together.</p></details>
         <details><summary>When should we arrive, and what should we bring?</summary><p>Arrive about <strong>5 minutes before your party time</strong>. Your lanes shut off at the end of that time.</p><p>For check-in, the cardholder must be present with the card used to book and their driver's license. Outside food, drinks and party décor aren't permitted.</p></details>
@@ -163,10 +169,18 @@ const sessions = [
   .nye-room-copy { padding: 22px; }
   .nye-room-copy h3 { font: 700 24px/1.2 var(--font-ui); margin: 0 0 12px; }
   .nye-room-copy p { font-size: 16px; }
-  .nye-room-copy .nye-capacity { font-family: var(--font-ui); }
+  .nye-room-copy .nye-capacity { display: flex; align-items: center; gap: 14px; padding: 15px 16px; margin: 18px 0; background: #4eecc4; color: #100b23; border-radius: 6px; font-family: var(--font-ui); }
+  .nye-capacity > strong { flex: 0 0 auto; font: 900 72px/.9 var(--font-display); }
+  .nye-capacity-label, .nye-capacity-limit { display: block; }
+  .nye-capacity-label { font: 800 17px/1.25 var(--font-ui); text-transform: uppercase; }
+  .nye-capacity-limit { margin-top: 5px; font: 700 14px/1.35 var(--font-ui); }
   .nye-room-copy .nye-from { margin: 20px 0 0; font-family: var(--font-ui); }
   .nye-from strong { font-size: 24px; }
-  .nye-room-note { margin-top: 22px !important; font-size: 16px; }
+  .nye-attendance { margin-top: 24px; padding: 22px; border: 2px solid #4eecc4; border-radius: 10px; background: #1a2733; }
+  .nye-attendance h3 { margin: 0 0 16px; color: #4eecc4; font: 900 clamp(30px, 6vw, 38px)/1.05 var(--font-display); text-transform: uppercase; }
+  .nye-attendance p { max-width: 820px; font: 400 16px/1.6 var(--font-ui); }
+  .nye-attendance .nye-attendance-example { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid #4b7a73; }
+  .nye-room-note { margin-top: 22px !important; color: #cbc5db; font: 400 14px/1.6 var(--font-ui); }
   .nye-secondary { color: #cbc5db; font: 400 14px/1.6 var(--font-ui); }
   .nye-times-section { background: #1a1036; scroll-margin-top: 90px; }
   .nye-times-inner { max-width: 800px; }
