@@ -40,6 +40,13 @@
  * and NOT framed around "free/cheap bowling" (seo.md negative keywords).
  * Target is branded + local intent, not deal-hunters. SEO body copy below
  * the form keeps the page off the thin-content list.
+ *
+ * CODE STAYS OFF THIS PAGE (2026-10-31, Jon): the $10 is the reward for
+ * opting in to marketing texts, so the online code is never printed here.
+ * That covers the copy, the meta description and the success panel, which
+ * ships in the static HTML even while hidden. The welcome text carries the
+ * code. Terms per Jon: good on lane time or shoes, at the desk or on a
+ * regular online lane reservation; not on birthday parties or catered events.
  */
 import Base from "../layouts/Base.astro";
 import SnapFooter from "../components/snap/SnapFooter.astro";
@@ -67,11 +74,11 @@ const CONSENT_TEXT =
 const FAQ = [
   {
     q: "How do I get my $10 lane credit?",
-    a: "Drop your name and mobile number in the form above. We text you the $10 lane credit within a few minutes — use code SAVE10 to book open bowling online, or just show the text at the front desk in Plainfield.",
+    a: "Drop your name and mobile number in the form above. We text you the $10 lane credit within a few minutes, with everything you need to use it online or at the front desk in Plainfield.",
   },
   {
     q: "What can I use it on?",
-    a: "Bowling — open bowling or the VIP suite, walk-in or reserved online with code SAVE10. It comes off your lane time; lane shoes and anything from the bar or kitchen run on a normal tab.",
+    a: "Lane time or shoe rental — open bowling or the VIP suite, walk-in or on a regular online lane reservation. It doesn't apply to birthday parties or catered events, and anything from the bar or kitchen runs on a normal tab.",
   },
   {
     q: "Does the $10 credit expire?",
@@ -79,13 +86,13 @@ const FAQ = [
   },
   {
     q: "Can I use it on an online reservation?",
-    a: "Yes — apply code SAVE10 when you reserve a lane online, and the $10 comes off your booking total. Or use it on a walk-in visit at the desk.",
+    a: "Yes — your welcome text shows you how to apply it when you reserve a lane online, and the $10 comes off your booking total. It works on regular lane reservations, not birthday parties or catered events. Or use it on a walk-in visit at the desk.",
   },
 ];
 ---
 <Base
   title="$10 Lane Credit in Plainfield, IL | Twisted Pin"
-  description="Sign up and we'll text you a $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL — good on a walk-in visit or with code SAVE10 online."
+  description="Sign up and we'll text you a $10 lane credit toward open bowling at Twisted Pin in Plainfield, IL — good on a walk-in visit or an online lane reservation."
   ogImage="/og/og-bowl.jpg"
   ogImageAlt="Bowling at Twisted Pin in Plainfield, IL"
 >
@@ -101,8 +108,7 @@ const FAQ = [
       </h1>
       <p class="t2-hero-sub hero-fade" data-delay-ms="320">
         Drop your number below and we'll text you a $10 lane credit good on
-        open bowling in Plainfield, IL — use it on a walk-in visit, or with
-        code SAVE10 on a
+        open bowling in Plainfield, IL — use it on a walk-in visit, or on a
         <a href="/reserve/" target="_blank" rel="noopener">lane reservation online</a>.
       </p>
     </div>
@@ -192,9 +198,9 @@ const FAQ = [
         <h3 class="cp-panel-title">Check your phone.</h3>
         <p class="cp-panel-body">
           We just texted your $10 lane credit<span id="cp-success-phone"></span>.
-          Use code <strong>SAVE10</strong> to
-          <a href="/reserve/" target="_blank" rel="noopener">book open bowling online</a>,
-          or show the text at the front desk. It's good for 21 days, so
+          The text has everything you need to
+          <a href="/reserve/" target="_blank" rel="noopener">book open bowling online</a>
+          or use it at the front desk. It's good for 21 days, so
           don't wait too long.
         </p>
       </div>
@@ -226,7 +232,7 @@ const FAQ = [
       <p class="t2-section-body">
         Sign up and we text the $10 lane credit to your phone. Walk in and
         show it at the front desk and we apply it to your bowling tab — or
-        use code <strong>SAVE10</strong> on a
+        use it on a
         <a href="/reserve/" target="_blank" rel="noopener">lane reservation online</a>
         and the $10 comes off your booking total. Use it on
         <a href="/bowl/">open bowling</a> or take over the
@@ -235,14 +241,15 @@ const FAQ = [
       </p>
 
       <p class="t-eyebrow" style="margin-top: 36px;">What the $10 covers</p>
-      <h2 class="t-display cp-info-title">Lane time. Not the rest of the night.</h2>
+      <h2 class="t-display cp-info-title">Lanes and shoes. Not the rest of the night.</h2>
       <p class="t2-section-body">
-        The credit comes off your lane time. Lane rentals at Twisted Pin run
-        by the hour — see <a href="/pricing/">walk-in pricing</a> for the rate
-        that applies the night you're coming in (Wednesday is different than
-        Saturday). Lane shoes, food, and drinks order separately on a normal
-        tab. If your lane time runs over $10 you pay the difference; we don't
-        apply leftover credit to food, drinks, or arcade play.
+        The credit comes off your lane time or shoe rental. Lane rentals at
+        Twisted Pin run by the hour — see <a href="/pricing/">walk-in pricing</a>
+        for the rate that applies the night you're coming in (Wednesday is
+        different than Saturday). It works on regular lane time, not birthday
+        parties or catered events. Food and drinks order separately on a
+        normal tab. If your bowling runs over $10 you pay the difference; we
+        don't apply leftover credit to food, drinks, or arcade play.
       </p>
 
       <p class="t-eyebrow" style="margin-top: 36px;">More than the $10</p>

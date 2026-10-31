@@ -3419,3 +3419,22 @@ browser requests are blocked. Phone screenshots were inspected. Fixtures are
 fictional; no invoice records or supplier assignments were changed. Regenerable
 screenshots stay in ignored `scripts/qa-liquor-bottle-sizes/dist/category-shots/`.
 The corresponding TPRS API must be live before the Website release.
+
+## 2026-10-31 — Coupon code kept off the public page
+
+Jon's reasoning: the $10 is the reward for opting in to marketing texts. So
+`/coupon/` no longer prints the online code anywhere: not in the copy, the meta
+description or the success panel, which ships in the static HTML even while
+hidden. The welcome text still carries the code.
+
+The page's terms now match Jon's: the credit is good on lane time or shoes, at
+the desk or on a regular online lane reservation, and not on birthday parties
+or catered events. The old copy said lane shoes ran on a normal tab.
+
+This narrows exposure but does not make the code member-only:
+- TPRS still accepts a typed code from anyone, once per guest.
+- Google's cached snippet of the old description shows it until a recrawl.
+- Members can share it.
+
+Jon ruled on 2026-08-26 that the code not being tied to membership online is
+fine. Gating it in TPRS stays a separate decision.
