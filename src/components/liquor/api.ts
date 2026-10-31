@@ -1987,6 +1987,78 @@ export async function getCountVariance(id: string): Promise<VarianceReport | nul
     throw e;
   }
 }
+
+// Frozen evidence for the same window and grading rules as the summary email.
+// Older reports may retain the headline only; never rebuild it from live counts.
+export interface GradeLocation {
+  skuId: string; skuName: string; zoneName: string; bottles: number; source: string;
+}
+export interface GradeReceipt {
+  skuId: string; invoiceId: string; invoiceNumber: string | null; vendor: string | null;
+  at: string; bottles: number;
+}
+export interface GradeSaleSource {
+  productId: string; name: string; quantity: number; attributedOz: number;
+  options: { label: string; quantity: number }[];
+  recipe: { name: string; oz: number }[];
+}
+export interface GradeEvidenceLine extends VarianceLine {
+  memberSkuIds: string[];
+  status: "graded" | "drift" | "found" | "excluded";
+  openingLocations: GradeLocation[]; closingLocations: GradeLocation[];
+  receipts: GradeReceipt[]; sales: GradeSaleSource[];
+  batchOpeningOz: number; batchClosingOz: number;
+}
+export interface DiscardSummary {
+  start: string; end: string; status: string;
+  servedOz: number; openedBottles: number; wholeBottles: number;
+  expectedDiscardOz: number | null; poolCost: number | null;
+  effectiveCostPerOz: number | null; coveredDays: number; skippedDays: number;
+  days: { date: string; servedOz: number | null; openedBottles: number | null;
+    expectedDiscardOz: number | null; status: string; reason: string | null }[];
+}
+export interface RisataEvidence {
+  skuId: string; name: string; observedUsedOz: number | null; servedOz: number;
+  expectedDiscardOz: number | null; residualOz: number | null; residualCost: number | null;
+  period: DiscardSummary | null; month: DiscardSummary | null; message: string;
+}
+export interface GradePublishedSummary {
+  gradePct: number | null; letter: string | null; netMissingCost: number;
+  windowStart: string; windowEnd: string; windowDays: number;
+  capturedAt: string; counterName: string | null;
+}
+export interface GradeRollup {
+  gradePct: number | null; letter: "A" | "B" | "C" | "D" | "F" | null;
+  netMissingCost: number;
+  classes: { className: string; usedDollars: number; soldDollars: number;
+    netDollars: number; ratingPct: number | null }[];
+  swaps: { className: string; overName: string; underName: string; matchedOz: number;
+    dollarDelta: number; kind: "flavor_swap" | "substitution" }[];
+  wholeBottleGaps: { skuId: string; name: string; lossOz: number; missingCost: number }[];
+  found: { name: string; foundOz: number; dollars: number }[];
+  drift: { name: string; driftOz: number; bottles: number; dollars: number;
+    persistent: boolean; trailingBottles: number | null }[];
+  gradedLines: number; excludedLines: number;
+}
+export interface GradeSnapshot extends GradePublishedSummary {
+  version: 1; openingCountId: string; endingCountId: string;
+  lines: GradeEvidenceLine[]; graded: GradeRollup; caveats: string[];
+  driftDays: number | null; trailingUnsoldBottles: [string, number][] | null;
+  risata: RisataEvidence | null;
+}
+export interface GradeCorrection {
+  sessionId: string; at: string; by: string | null; reason: string;
+  changes: { skuName: string; zoneName: string; before: number | null; after: number | null }[];
+  afterPublication: boolean;
+}
+export interface GradeDetailResponse {
+  status: "frozen" | "legacy" | "unavailable";
+  published: GradePublishedSummary | null; snapshot: GradeSnapshot | null;
+  corrections: GradeCorrection[]; message: string | null;
+}
+export async function getCountGradeDetail(id: string): Promise<GradeDetailResponse> {
+  return gatedJson<GradeDetailResponse>(`/admin/bar/counts/${id}/grade-detail`);
+}
 /** Freeze a DRAFT variance report. The server RECOMPUTES from the count lines
  *  as they stand now, then locks — so fix any wrong lines FIRST; after this
  *  there is no second chance (409 = already final). */

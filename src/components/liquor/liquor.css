@@ -2,6 +2,60 @@
    targets, dark brand surface, no dependence on marketing chrome. Falls back
    gracefully if a global design token is missing. */
 
+/* Published grade evidence stays separate from the adjacent-count report. */
+.lq-grade { margin: 20px 0; padding: 16px; border: 1px solid var(--lq-line-strong); border-radius: 12px; background: var(--lq-panel); overflow-wrap: anywhere; }
+.lq-grade p { margin: 8px 0; line-height: 1.5; font-size: 14px; }
+.lq-grade h3, .lq-grade h4, .lq-grade h5 { margin: 0; line-height: 1.35; }
+.lq-grade h3 { font-size: 19px; }
+.lq-grade h4 { font-size: 16px; }
+.lq-grade h5 { font-size: 14px; }
+.lq-grade-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.lq-grade-heading > div { min-width: 0; }
+.lq-grade-score { display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0; color: var(--lq-glow); font-size: 36px; line-height: 1; }
+.lq-grade-score span { font-size: 16px; margin-top: 7px; }
+.lq-grade-note { padding: 12px; margin: 12px 0; border-left: 3px solid #e6b43c; border-radius: 0 6px 6px 0; background: rgba(230,180,60,.07); font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
+.lq-grade-note p { margin: 6px 0; }
+.lq-grade summary { cursor: pointer; min-height: 44px; padding: 12px 0; font-size: 14px; line-height: 1.5; }
+.lq-grade summary:focus-visible { outline: 2px solid var(--lq-glow); outline-offset: 3px; border-radius: 4px; }
+.lq-grade-section, .lq-grade-method { border-top: 1px solid var(--lq-line); margin-top: 16px; padding-top: 16px; }
+.lq-grade-method { padding-top: 0; }
+.lq-grade-line { border: 1px solid var(--lq-line); border-radius: 8px; margin-top: 8px; background: var(--lq-bg); }
+.lq-grade-line > summary { display: block; padding: 12px; }
+.lq-grade-line > summary::-webkit-details-marker { display: none; }
+.lq-grade-line-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.lq-grade-line-title > strong { min-width: 0; font-size: 16px; }
+.lq-grade-line-title > span { text-align: right; flex: 0 0 91px; font-variant-numeric: tabular-nums; font-size: 16px; font-weight: 700; }
+.lq-grade-line-title small { display: block; font-size: 12px; font-weight: 400; color: var(--lq-muted); }
+.lq-grade-short { color: var(--lq-danger); }
+.lq-grade-surplus { color: var(--lq-text); }
+.lq-grade-line-meta { color: var(--lq-muted); font-size: 12px; margin-top: 6px; }
+.lq-grade-line-meta span { display: block; }
+.lq-grade-open { display: block; margin-top: 8px; color: var(--lq-glow); font-size: 12px; }
+.lq-grade-open::before { content: "+ "; }
+.lq-grade-line[open] .lq-grade-open::before { content: "− "; }
+.lq-grade-line-body { padding: 0 12px 12px; border-top: 1px solid var(--lq-line); }
+.lq-grade-math { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 10px; margin: 14px 0; }
+.lq-grade-math div { min-width: 0; }
+.lq-grade-math dt { color: var(--lq-muted); font-size: 12px; }
+.lq-grade-math dd { margin: 4px 0 0; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.lq-grade-evidence-group { margin-top: 14px; }
+.lq-grade ul { margin: 8px 0; padding-left: 18px; font-size: 12px; line-height: 1.6; }
+.lq-grade li + li { margin-top: 8px; }
+.lq-grade li p { font-size: 12px; margin: 3px 0; }
+.lq-grade a { color: var(--lq-glow); }
+.lq-grade-more { width: 100%; margin-top: 12px; }
+.lq-grade-classes span, .lq-grade-swaps span, .lq-grade-days span { display: block; }
+.lq-grade-classes span, .lq-grade-swaps span { color: var(--lq-muted); }
+.lq-grade-month { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--lq-line); }
+.lq-grade-cost { font-size: 22px !important; font-weight: 700; color: var(--lq-glow); }
+.lq-grade-cost span { font-size: 12px; font-weight: 400; color: var(--lq-muted); }
+.lq-grade-model-days { margin-top: 8px; }
+.lq-grade-correction + .lq-grade-correction { border-top: 1px solid var(--lq-line); margin-top: 10px; padding-top: 8px; }
+@media (min-width: 540px) {
+  .lq-grade { padding: 20px; }
+  .lq-grade-math { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 .lq-app {
   --lq-bg: var(--indigo-deep, #0e0a1f);
   --lq-panel: #191430;

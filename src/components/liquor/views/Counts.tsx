@@ -5,15 +5,18 @@ import {
   getKegCountHistory,
   getKegCountDetail,
   getCountVariance,
+  getCountGradeDetail,
   finalizeCountReport,
   type CountSummary,
   type CountDetail,
   type KegCountSummary,
   type KegCountDetail,
   type VarianceReport,
+  type GradeDetailResponse,
   type Section,
 } from "../api";
 import { VarianceLines } from "../VarianceLines";
+import { GradeEvidence, gradeDate } from "../GradeEvidence";
 import { CorrectionEditor, CorrectionHistory } from "../CountCorrections";
 import { formatQty } from "../quantity";
 
@@ -60,12 +63,22 @@ export default function Counts({
   const [detail, setDetail] = useState<Detail>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [variance, setVariance] = useState<VarianceReport | null>(null);
+  const [gradeDetail, setGradeDetail] = useState<GradeDetailResponse | null>(null);
+  const [gradeError, setGradeError] = useState(false);
   const [showVarianceLines, setShowVarianceLines] = useState(false);
   const [finalizing, setFinalizing] = useState(false);
   const [correcting, setCorrecting] = useState(false);
   const [finalizeError, setFinalizeError] = useState<string | null>(null);
 
   const openedDeepLink = useRef(false);
+  const detailRequest = useRef(0);
+
+  function closeDetail() {
+    detailRequest.current++;
+    setDetail(null);
+    setDetailLoading(false);
+    setFinalizing(false);
+  }
 
   useEffect(() => {
     let live = true;
@@ -93,30 +106,42 @@ export default function Counts({
   }, []);
 
   async function openLiquor(id: string) {
+    const request = ++detailRequest.current;
     setDetailLoading(true);
     setVariance(null);
+    setGradeDetail(null);
+    setGradeError(false);
     setFinalizeError(null);
     setShowVarianceLines(false);
     setCorrecting(false);
     try {
       const d = await getCountDetail(id);
-      const v = (d.session.section ?? section) === "bar" && d.session.status !== "draft" ? await getCountVariance(id).catch(() => null) : null;
+      const barReport = (d.session.section ?? section) === "bar" && d.session.status !== "draft";
+      const [v, grade] = await Promise.all([
+        barReport ? getCountVariance(id).catch(() => null) : null,
+        barReport && d.session.isFullCount ? getCountGradeDetail(id).catch(() => null) : null,
+      ]);
+      if (request !== detailRequest.current) return;
       setDetail({ kind: "liquor", data: d });
       setVariance(v);
+      setGradeDetail(grade);
+      setGradeError(barReport && d.session.isFullCount && !grade);
     } catch {
       /* keep list */
     } finally {
-      setDetailLoading(false);
+      if (request === detailRequest.current) setDetailLoading(false);
     }
   }
   async function openKeg(id: string) {
+    const request = ++detailRequest.current;
     setDetailLoading(true);
     try {
-      setDetail({ kind: "kegs", data: await getKegCountDetail(id) });
+      const data = await getKegCountDetail(id);
+      if (request === detailRequest.current) setDetail({ kind: "kegs", data });
     } catch {
       /* keep list */
     } finally {
-      setDetailLoading(false);
+      if (request === detailRequest.current) setDetailLoading(false);
     }
   }
 
@@ -136,7 +161,7 @@ export default function Counts({
     let lastZone: string | null = null;
     return (
       <div className="lq-invd">
-        <button type="button" className="lq-back" onClick={() => setDetail(null)}>‹ All counts</button>
+        <button type="button" className="lq-back" onClick={closeDetail}>‹ All counts</button>
         <h2 className="lq-h2" style={{ textAlign: "left" }}>{s.isFullCount ? "Full inventory" : "Partial count"}</h2>
         {s.status === "draft" && <p className="lq-muted" role="status">Draft · read only</p>}
         <p className="lq-muted lq-invd-meta">
@@ -166,6 +191,12 @@ export default function Counts({
         {foodCount && s.isFullCount && s.status !== "draft" && <div className="lq-bv-row">
           <a className="lq-btn" href={`?view=foodcost&section=food&count=${encodeURIComponent(s.id)}`}>Food cost for this count</a>
           <a className="lq-btn" href={`?view=foodvariance&section=food&count=${encodeURIComponent(s.id)}`}>Food variance for this count</a>
+        </div>}
+
+        {!foodCount && s.isFullCount && s.status !== "draft" && gradeDetail && <GradeEvidence key={s.id} detail={gradeDetail} />}
+        {!foodCount && s.isFullCount && gradeError && <div className="lq-grade-note" role="status">
+          <p>Couldn't load the published grade evidence. The count-to-count report below is a separate comparison.</p>
+          <button type="button" className="lq-btn lq-btn-ghost" disabled={detailLoading} onClick={() => void openLiquor(s.id)}>{detailLoading ? "Loading…" : "Retry grade evidence"}</button>
         </div>}
 
         {!foodCount && s.isFullCount && s.status !== "draft" && (
@@ -198,6 +229,7 @@ export default function Counts({
                       disabled={finalizing}
                       style={{ padding: "5px 12px", fontSize: 13 }}
                       onClick={async () => {
+                        const request = detailRequest.current;
                         setFinalizing(true);
                         setFinalizeError(null);
                         try {
@@ -205,11 +237,17 @@ export default function Counts({
                           // Re-fetch rather than patching state: the recompute
                           // may have CHANGED the grade, and showing the draft's
                           // numbers under a "final" badge would be a lie.
-                          setVariance(await getCountVariance(s.id));
+                          const [refreshedVariance, refreshedGrade] = await Promise.all([
+                            getCountVariance(s.id), getCountGradeDetail(s.id).catch(() => null),
+                          ]);
+                          if (request !== detailRequest.current) return;
+                          setVariance(refreshedVariance);
+                          setGradeDetail(refreshedGrade);
+                          setGradeError(!refreshedGrade);
                         } catch {
-                          setFinalizeError("Couldn't lock the report. Try again.");
+                          if (request === detailRequest.current) setFinalizeError("Couldn't lock the report. Try again.");
                         } finally {
-                          setFinalizing(false);
+                          if (request === detailRequest.current) setFinalizing(false);
                         }
                       }}
                     >
@@ -221,7 +259,7 @@ export default function Counts({
               )}
               <div className="lq-pw-head">
                 <span className="lq-invrow-vendor">
-                  Variance grade{" "}
+                  Count-to-count raw variance{" "}
                   <span className="lq-pw-pct" style={{ fontSize: 18 }}>
                     {variance.report.gradePct != null ? `${formatQty(variance.report.gradePct)}%` : "—"}
                   </span>
@@ -234,6 +272,10 @@ export default function Counts({
                 >
                   {showVarianceLines ? "Hide bottles" : "All bottles"}
                 </button>
+              </div>
+              <div className="lq-pw-sub lq-muted">
+                {variance.periodStart && variance.periodEnd && <>{gradeDate(variance.periodStart)} – {gradeDate(variance.periodEnd)}. </>}
+                This comparison uses the two adjacent counts and raw variance rules; it is separate from the published bar grade above.
               </div>
               <div className="lq-pw-sub lq-muted">
                 Missing ${variance.report.totals?.missingCost.toFixed(2) ?? "0.00"} · underpour $
@@ -253,6 +295,7 @@ export default function Counts({
           )
         )}
 
+        {gradeDetail?.snapshot && <h3 className="lq-cap-title">Current count by location</h3>}
         {detail.data.lines.length === 0 ? (
           <p className="lq-muted">No lines recorded.</p>
         ) : (
@@ -302,7 +345,7 @@ export default function Counts({
     const total = detail.data.lines.reduce((n, l) => n + l.qty, 0);
     return (
       <div className="lq-invd">
-        <button type="button" className="lq-back" onClick={() => setDetail(null)}>‹ All counts</button>
+        <button type="button" className="lq-back" onClick={closeDetail}>‹ All counts</button>
         <h2 className="lq-h2" style={{ textAlign: "left" }}>Backup kegs</h2>
         <p className="lq-muted lq-invd-meta">
           {when(s.submittedAt || s.startedAt)}{s.countedBy ? ` · ${s.countedBy}` : ""} · {total} keg{total === 1 ? "" : "s"}

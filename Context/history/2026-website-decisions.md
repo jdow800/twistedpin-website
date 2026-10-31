@@ -1,3 +1,34 @@
+## 2026-10-30 - Published liquor grade evidence and Risata discard
+
+Jon approved shipping an explanation of the bar grade and expected Risata
+discard after reviewing the October 30 count. The existing count deep link
+now opens the published grade's own saved window and evidence: dollar-ranked
+product differences, opening and ending locations, receipts, and POS/recipe
+attribution. Later count corrections are shown separately. Historical grades
+without saved detail say that the matching evidence is unavailable; the UI
+does not silently rebuild their original basis from today's data.
+
+The adjacent-count panel is explicitly labeled as raw variance with its own
+dates, separate from the published class-netted grade. Potential substitutions
+remain review leads, with full discrepancies still visible. Risata shows
+modeled daily discard, coverage gaps, remaining difference, and a weighted
+monthly shared ingredient cost across all linked recipes and measured pours,
+including the 2 oz wine portions. It is not a single-cocktail cost estimate.
+The backend uses verified GoTab fiscal-day bounds; any actual coverage gaps
+remain explicit. Unknown discard stays unknown. Financial grade rules,
+physical recipe quantities and cocktail prices are unchanged.
+
+Validation: nine frozen/legacy/correction/discard/date render checks, three
+Counts deep-link/failure/finalize integration scenarios, and interactive
+Playwright checks at 320, 390, 768 and 1280px pass. Mobile screenshots were
+visually inspected. The normal prebuild checks and Astro/Vercel build pass;
+the clean checkout uses the existing missing-menu-credential fallbacks.
+The changed React components and their imports pass strict TypeScript checking
+using the compiler already installed in the sibling backend worktree. The
+site-wide `npm run typecheck` remains unavailable because its `@astrojs/check`
+dependency is not installed; that prompt is not counted as a check. Synthetic
+QA sends no live messages or mutations.
+
 ## 2026-10-29 - NYE admission includes everyone, bowling or not
 
 Jon confirmed NYE's paid reservation limit applies to every attendee: five
