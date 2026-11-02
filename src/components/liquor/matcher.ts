@@ -107,6 +107,32 @@ export function matchSkus(transcript: string, catalog: BarSkuItem[], limit = 4):
   return scored.filter((c) => c.score >= 0.2).slice(0, limit);
 }
 
+/** "Did you mean" for an invoice line. A supplier description is long, so matchSkus' Jaccard buries the one word
+ *  that matters: "KOPPERT GREEN MICRO SHISO LEAVES GRN SHLG100 REMOTE-STOCK 1 (OUT)" scored 0.08 against "Shiso
+ *  (fresh)", no suggestion showed, and "New item" made a second shiso item (Sysco 924612767, 2026-10-20). So an item
+ *  also qualifies when the description carries a word of at least four letters that only one or two catalog items use
+ *  AND covers at least half of the item's own name ("Shiso (fresh)" 1 of 2; "Pepper, Bell, Green" sharing only "green"
+ *  is 1 of 3 and does not), ranked by that coverage. matchSkus' own candidates come first. */
+export function suggestInvoiceItems(description: string, catalog: BarSkuItem[], limit = 3): SkuCandidate[] {
+  const desc = new Set(tokenize(description));
+  if (desc.size === 0) return [];
+  const names = catalog.map((sku) => new Set(tokenize(sku.name)));
+  const uses = new Map<string, number>();
+  for (const name of names) for (const t of name) uses.set(t, (uses.get(t) ?? 0) + 1);
+  const rare: SkuCandidate[] = [];
+  catalog.forEach((sku, i) => {
+    const name = names[i]!;
+    if (name.size === 0) return;
+    const shared = [...name].filter((t) => desc.has(t));
+    if (!shared.some((t) => t.length >= 4 && (uses.get(t) ?? 0) <= 2) || shared.length * 2 < name.size) return;
+    rare.push({ sku, score: Math.round((shared.length / name.size) * 100) / 100 });
+  });
+  rare.sort((a, b) => b.score - a.score);
+  const out = matchSkus(description, catalog, limit);
+  for (const c of rare) if (out.length < limit && !out.some((o) => o.sku.id === c.sku.id)) out.push(c);
+  return out;
+}
+
 /** Best-effort parse of a full "brand + number" utterance for the count grid. */
 export function parseCountUtterance(
   transcript: string,

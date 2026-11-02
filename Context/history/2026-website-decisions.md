@@ -1,3 +1,14 @@
+## 2026-11-02 - /cogs invoices: an out-of-stock line is not counted, and "Did you mean" finds the item by its rare word
+
+Jon: "out of stock items we don't really need to inventory or create line items for - as.... we aint counting it."
+
+On 10/20 the invoice screen offered "+ New item" on Sysco 924612767's not-shipped Koppert shiso line ("… REMOTE-STOCK 1 (OUT)"), with no "Did you mean". The long supplier description buried "shiso": `matchSkus` scored it 0.08 against "Shiso (fresh)", below its 0.2 cutoff. A second shiso item was made. It has since been merged on Jon's go (tprs audit `4469514b`).
+
+- A line the API marks `outOfStock` (tprs #503) reads "Out of stock · not delivered, not counted". It has no review reason, no match card, no category choice and no "+ New item", even when an older read left an identity flag on it. An older API without the field behaves as before.
+- The invoice match card's "Did you mean" uses the new `suggestInvoiceItems`. It adds an item when the description carries a word of four or more letters that only one or two catalog items use, and that word covers at least half of the item's own name. The KOPPERT line now suggests exactly "Shiso (fresh)". `matchSkus` is unchanged for voice counting and pour mapping, and its own candidates still come first.
+
+QA: `check-invoice-out-of-stock.mjs` has 2 scenarios on the real invoice screen; each fails without its change. `check-invoice-categories` (18) and `check-invoices` (116) still pass. The liquor tsconfig reports nothing in the changed files; the Astro build compiles (the local Vercel packaging step needs a symlink this worktree cannot make).
+
 ## 2026-10-30 - Published liquor grade evidence and Risata discard
 
 Jon approved shipping an explanation of the bar grade and expected Risata

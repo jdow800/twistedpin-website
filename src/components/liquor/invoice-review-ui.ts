@@ -3,7 +3,8 @@ import { currentCountDefinition, normalizeCountUnit } from "./count-definition";
 
 export const reviewAnnotationFor = (line: InvoiceLine) =>
   line.reviewAnnotation === undefined ? line.annotation : line.reviewAnnotation;
-export const reviewReasonsFor = (line: InvoiceLine) => line.reviewReasons ??
+// An out-of-stock line delivered nothing and is not counted: nothing to match, price or check (Jon, 2026-11-02).
+export const reviewReasonsFor = (line: InvoiceLine) => line.outOfStock ? [] : line.reviewReasons ??
   (line.needsReview && line.lineType === "product" ? [line.matchedSkuId || line.nonInventory ? "amount" : "identity"] : []);
 export const lineNeedsAnswer = (line: InvoiceLine) => !!line.costHoldReason || reviewReasonsFor(line).length > 0
   || (!!reviewAnnotationFor(line) && line.receivedQty == null)
