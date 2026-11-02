@@ -52,6 +52,34 @@ const googleReviewCount = liveReviews?.reviewCount ?? GOOGLE_REVIEW_COUNT;
 const googleRatingLabel = googleRating.toFixed(1);
 const googleReviewCountLabel = googleReviewCount.toLocaleString("en-US");
 
+// Yelp is not on the Places snapshot. The rating stays a fixed capture;
+// the count is the current public total (updated 2026-11-02).
+const YELP_RATING = 4.1;
+const yelpRatingLabel = YELP_RATING.toFixed(1);
+
+/** Solid-star layer width, in the 0–100 viewBox. 4.1 → 82, 4.5 → 90. */
+function starFill(rating: number): number {
+  if (!Number.isFinite(rating)) return 0;
+  const clamped = Math.min(5, Math.max(0, rating));
+  return (clamped / 5) * 100;
+}
+
+// Five equal stars that span the viewBox, so a clip at rating/5 lands on
+// the star shapes (a font glyph's side bearings were swallowing the partial).
+const STAR_POINTS = [0, 1, 2, 3, 4].map((slot) => {
+  const outer = 10.2;
+  const inner = outer * 0.42;
+  const cx = 10 + slot * 20;
+  const cy = 10 + outer * 0.0955;
+  const pts: string[] = [];
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? outer : inner;
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    pts.push(`${(cx + r * Math.cos(a)).toFixed(2)},${(cy + r * Math.sin(a)).toFixed(2)}`);
+  }
+  return pts.join(" ");
+});
+
 /** Build a DayWindow from live data (preferred) or static (fallback). null = closed all day. */
 function windowFor(day: DayKey): DayWindow | null {
   if (liveHours) {
@@ -210,22 +238,33 @@ const EXPLORE_LINKS = [
         <p class="proof-eyebrow">Don't take our word for it.</p>
         <p class="proof-sub">Everyone's been talking.</p>
         <div class="proof-cards">
-          <a class="proof-card" href={MAPS_VENUE_URL} target="_blank" rel="noopener">
-            <p class="proof-source">Google</p>
-            <p class="proof-rating">
-              <span class="proof-stars" aria-hidden="true">★★★★★</span>
-              <span class="proof-num">{googleRatingLabel}</span>
-            </p>
-            <p class="proof-meta">{googleReviewCountLabel} reviews</p>
-          </a>
-          <a class="proof-card" href="https://www.yelp.com/biz/twisted-pin-plainfield" target="_blank" rel="noopener">
-            <p class="proof-source">Yelp</p>
-            <p class="proof-rating">
-              <span class="proof-stars" aria-hidden="true">★★★★★</span>
-              <span class="proof-num">4.1</span>
-            </p>
-            <p class="proof-meta">99 reviews</p>
-          </a>
+          {[
+            { id: "google", source: "Google", href: MAPS_VENUE_URL, rating: googleRating, label: googleRatingLabel, meta: `${googleReviewCountLabel} reviews` },
+            { id: "yelp", source: "Yelp", href: "https://www.yelp.com/biz/twisted-pin-plainfield", rating: YELP_RATING, label: yelpRatingLabel, meta: "100 reviews" },
+          ].map((card) => (
+            <a class="proof-card" href={card.href} target="_blank" rel="noopener">
+              <p class="proof-source">{card.source}</p>
+              <p class="proof-rating">
+                <span class="proof-stars" role="img" aria-label={`${card.label} out of 5 stars`}>
+                  <svg viewBox="0 0 100 20" aria-hidden="true">
+                    <defs>
+                      <clipPath id={`proof-star-${card.id}`}>
+                        <rect x="0" y="-2" width={starFill(card.rating)} height="24" />
+                      </clipPath>
+                    </defs>
+                    <g class="proof-stars-base">
+                      {STAR_POINTS.map((points) => <polygon points={points} />)}
+                    </g>
+                    <g class="proof-stars-fill" clip-path={`url(#proof-star-${card.id})`}>
+                      {STAR_POINTS.map((points) => <polygon points={points} />)}
+                    </g>
+                  </svg>
+                </span>
+                <span class="proof-num" aria-hidden="true">{card.label}</span>
+              </p>
+              <p class="proof-meta">{card.meta}</p>
+            </a>
+          ))}
         </div>
       </div>
     </div>
@@ -671,10 +710,35 @@ const EXPLORE_LINKS = [
     font-weight: 700;
     margin: 0;
   }
+  /* Outline stars, with solid stars clipped to rating/5 of the row.
+     The viewBox is 100 wide and the stars fill it, so the clip width is
+     the rating as a percentage of five. */
   .proof-stars {
+    display: inline-block;
+    width: 66px;
+    height: 13px;
     color: var(--glow);
-    letter-spacing: 0.04em;
-    font-size: 13px;
+  }
+  .proof-stars svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+  .proof-stars-base,
+  .proof-stars-fill {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .proof-stars-base {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.35;
+  }
+  .proof-stars-fill {
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.35;
   }
   .proof-num {
     color: var(--warm-white);
