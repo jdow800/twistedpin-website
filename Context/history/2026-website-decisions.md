@@ -12,7 +12,10 @@ They sit last, so every named redirect wins first. A path must end in a real
 character before the punctuation, so `/`, `/.`, assets and `/api/` are
 untouched. `scripts/test-trailing-punct-redirects.mjs` compiles the rules with
 path-to-regexp 6.1.0, the matcher Vercel uses (red without the rules, 16/0
-with them).
+with them). It also runs Vercel's own config check, `new RegExp(source)` on
+every redirect: the first push wrote the `)` rule unescaped, and Vercel refused
+that deploy as `invalid-route-source-pattern` (production stayed on the previous
+build). That is why it reads `{\\)}+`.
 
  and "Did you mean" finds the item by its rare word
 

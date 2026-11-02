@@ -11,8 +11,15 @@ try { ptr = require('path-to-regexp'); } catch { ptr = require('../../Website/no
 const { pathToRegexp } = ptr;
 
 const cfg = JSON.parse(fs.readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
-const rules = cfg.redirects.filter((r) => /\{[.,!)]\}\+/.test(r.source));
+const rules = cfg.redirects.filter((r) => /\{\\?[.,!)]\}\+/.test(r.source));
 if (!rules.length) { console.log('FAIL no trailing-punctuation rules in vercel.json'); process.exit(1); }
+// Vercel's config check runs `new RegExp(source)` on every redirect source (a bare ")" fails the deploy) and
+// path-to-regexp with its options; mirror both so a bad pattern fails here instead of on Vercel.
+let invalid = 0;
+cfg.redirects.forEach((r, i) => {
+  try { new RegExp(r.source); pathToRegexp(r.source, [], { strict: true, sensitive: true, delimiter: '/' }); }
+  catch (e) { invalid++; console.log('FAIL redirect ' + i + ' source "' + r.source + '" is invalid for Vercel: ' + e.message); }
+});
 
 function resolve(path) {
   for (const r of cfg.redirects) {
@@ -54,5 +61,6 @@ t('/api/hours/', null);
 t('/.', null);
 t('/', null);
 
+fail += invalid;
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
