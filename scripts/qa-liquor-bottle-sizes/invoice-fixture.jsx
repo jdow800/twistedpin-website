@@ -101,6 +101,13 @@ if(mode==='food') {
   invoice.status='extracted'; invoice.vendorText='Example Sysco';
   line.rawDescription='SLICED PEPPERONI'; line.sizeText='10LB';
 }
+// Sysco 924612767 (2026-10-20): a not-shipped line, still carrying an old identity flag, and the same product shipped.
+if(mode==='out-of-stock'||mode==='suggest-shiso') {
+  invoice.status='extracted'; invoice.vendorText='Example Sysco'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
+  Object.assign(line,{lineType:'product',needsReview:true,reviewReasons:['identity'],vendorCode:'7056937',sizeText:'100 CT',unitCost:'44.64',
+    rawDescription:'KOPPERT GREEN MICRO SHISO LEAVES GRN SHLG100 REMOTE-STOCK 1 (OUT)',qtyUnits:'0',extendedAmount:'0.00',outOfStock:mode==='out-of-stock'});
+  if(mode==='suggest-shiso') Object.assign(line,{rawDescription:'KOPPERT GREEN MICRO SHISO LEAVES GRN SHLG100',qtyUnits:'1',extendedAmount:'44.64'});
+}
 if(mode==='linked'||mode==='linked-stale') {
   invoice.duplicateOf='DEMO-1'; invoice.landedOf='test-original';
   detail.copyReviews=[{originalId:'test-original',copyId:'test-invoice',invoiceNumber:'DEMO-1',
@@ -114,6 +121,8 @@ const catalog=[{id:'titos',name:"Tito's Vodka",section:'bar',sizeMl:750,countUni
   {id:'pepperoni',name:'Peperoni Sliced',section:'food',sizeMl:null,countUnit:'pack'},
   {id:'sausage',name:'Italian Sausage',section:'food',sizeMl:null,countUnit:'lb'},
   {id:'wings',name:'Chicken Wings Boneless',section:'food',sizeMl:null,countUnit:'case'}];
+if(mode==='out-of-stock'||mode==='suggest-shiso') catalog.push({id:'shiso',name:'Shiso (fresh)',section:'food',sizeMl:null,countUnit:'pack'},
+  {id:'mint',name:'Mint (fresh)',section:'food',sizeMl:null,countUnit:'pack'},{id:'green-pepper',name:'Pepper, Bell, Green',section:'food',sizeMl:null,countUnit:'pack'});
 if (mode.startsWith('clarity')) {
   invoice.status='extracted'; invoice.vendorText='Example Food Supplier'; invoice.reviewNotes=[]; invoice.handwrittenNotes=[];
   Object.assign(line,{lineType:'product',vendorCode:'DEMO-CAN',rawDescription:'VENDOR ABBREV SODA',matchedName:'Example sparkling drink',

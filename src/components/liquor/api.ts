@@ -1403,6 +1403,9 @@ export interface InvoiceLine {
    *  question, never a hold: "we carry it again", or "that's <replacement>"
    *  (a rematch). Either answer makes it null. */
   discontinued?: { since: string; replacedBySkuId: string | null; replacementName: string | null } | null;
+  /** The supplier marked it not shipped (tprs isOutOfStockLine): nothing arrived, so it is not counted and no item is
+   *  matched or made for it (Jon, 2026-11-02). Absent from an older API. */
+  outOfStock?: boolean;
 }
 export interface InvoiceImageRef {
   id: string;

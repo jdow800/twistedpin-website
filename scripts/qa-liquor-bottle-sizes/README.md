@@ -1,5 +1,16 @@
 # Bottle-size UI verification
 
+## Invoice out-of-stock lines and "Did you mean"
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/serve.mjs --invoices --build-only
+node scripts/qa-liquor-bottle-sizes/check-invoice-out-of-stock.mjs
+```
+
+Two scenarios on the real invoice screen, from Sysco 924612767 (2026-10-20). A not-shipped line still carrying an old
+identity flag says "Out of stock · not delivered, not counted" and offers no match, category or new item. A shipped
+"KOPPERT GREEN MICRO SHISO LEAVES" line suggests exactly "Shiso (fresh)" from its one rare word.
+
 ## Invoice purchase categories
 
 ```powershell

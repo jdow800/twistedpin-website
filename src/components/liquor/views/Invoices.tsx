@@ -33,7 +33,7 @@ import {
   NotAuthedError,
 } from "../api";
 import { countUnitLabel, pluralUnit, parsePackageAnswer, lineNeedsAnswer, invoiceNeedsAttention, detailNeedsAttention } from "../invoice-review-ui";
-import { matchSkus } from "../matcher";
+import { suggestInvoiceItems } from "../matcher";
 import { searchInvoiceItems, invoiceItemLabel } from "../invoice-catalog";
 import InvoiceCopies from "./InvoiceCopies";
 import InvoiceAutomaticAnswers from "./InvoiceAutomaticAnswers";
@@ -343,8 +343,11 @@ export default function Invoices({
               </div>
               <div className="lq-invd-line-sub lq-muted">
                 {l.lineType !== "product" && <span className="lq-invd-tag">{l.lineType}</span>}
-                {l.matchedName ? (
+                {l.matchedName && !l.outOfStock ? (
                   <span>{l.rawDescription}</span>
+                ) : l.outOfStock ? (
+                  // Not shipped: nothing arrived and it is not counted (Jon, 2026-11-02). No match, no new item.
+                  <span>{l.matchedName ? `${l.rawDescription} · ` : ""}Out of stock · not delivered, not counted</span>
                 ) : l.nonInventory ? <span>{l.nonInventoryCategory === undefined ? "Expense · supplies" : `${NON_INVENTORY_LABEL[l.nonInventoryCategory ?? "supplies"]} · Not counted`}</span> : l.lineType === "product" ? (
                   <span className="lq-invd-unmatched">{l.needsReview ? "needs match" : "unmatched"}</span>
                 ) : null}
@@ -357,7 +360,7 @@ export default function Invoices({
               {!!l.lineTax && <p className="lq-muted">Printed row total: {money(l.printedLineTotal ?? null)}; line tax: {money(l.lineTax)}. Product amount above excludes tax.</p>}
               {reviewReasonsFor(l).includes("amount") && <p className="lq-invd-unmatched">Check the printed price, quantity and tax. The line amount does not reconcile.</p>}
               {reviewReasonsFor(l).includes("quantity") && <p className="lq-invd-unmatched">Check the billed quantity and case columns on the original invoice.</p>}
-              {canAnswer && l.lineType === "product" && (reviewReasonsFor(l).includes("identity") || l.nonInventory) && (
+              {canAnswer && l.lineType === "product" && !l.outOfStock && (reviewReasonsFor(l).includes("identity") || l.nonInventory) && (
                 <TrackingControl invoiceId={inv.id} line={l} catalog={catalog} catalogState={catalogState}
                   categories={detail.nonInventoryCategories}
                   onRetryCatalog={() => setCatalogAttempt(n => n + 1)} onMatched={handleMatched}
@@ -1314,9 +1317,9 @@ function MatchControl({
   });
   const invoiceSize = parseSizeMl(line.sizeText);
   const suggestions = useMemo(
-    () => matchSkus(line.rawDescription ?? "", catalog.filter((s) =>
+    () => suggestInvoiceItems(line.rawDescription ?? "", catalog.filter((s) =>
       invoiceSize == null || s.sizeMl == null || s.sizeMl === invoiceSize,
-    )).slice(0, 3),
+    ), 3),
     [line.rawDescription, catalog, invoiceSize],
   );
   const hits = useMemo(() => searchInvoiceItems(q, catalog), [q, catalog]);
