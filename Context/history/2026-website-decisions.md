@@ -1,4 +1,20 @@
-## 2026-11-02 - /cogs invoices: an out-of-stock line is not counted, and "Did you mean" finds the item by its rare word
+## 2026-11-02 - A link that picked up the sentence's period still lands
+
+Avery emailed Hanna "booked online at https://twistedpin.com/nye." and the
+link carried the period, so it 404'd. Avery's email linkifier is fixed (Marketing
+Avery WF2.changelog.md, same day). This is the backstop for every other path:
+SMS autolinkers, copy-paste, staff emails.
+
+`vercel.json` ends the redirect list with four rules: any path ending in one or
+more `.` / `,` / `!` / `)` (with or without the trailing slash) 301s to the same
+path without it, so `/nye.` goes to `/nye/` and from there to `/new-years-eve/`.
+They sit last, so every named redirect wins first. A path must end in a real
+character before the punctuation, so `/`, `/.`, assets and `/api/` are
+untouched. `scripts/test-trailing-punct-redirects.mjs` compiles the rules with
+path-to-regexp 6.1.0, the matcher Vercel uses (red without the rules, 16/0
+with them).
+
+ and "Did you mean" finds the item by its rare word
 
 Jon: "out of stock items we don't really need to inventory or create line items for - as.... we aint counting it."
 

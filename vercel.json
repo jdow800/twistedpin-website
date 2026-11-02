@@ -180,7 +180,12 @@
     { "source": "/thu{/}?", "destination": "/pricing/#thu", "permanent": true },
     { "source": "/fri{/}?", "destination": "/pricing/#fri", "permanent": true },
     { "source": "/sat{/}?", "destination": "/pricing/#sat", "permanent": true },
-    { "source": "/sun{/}?", "destination": "/pricing/#sun", "permanent": true }
+    { "source": "/sun{/}?", "destination": "/pricing/#sun", "permanent": true },
+
+    { "source": "/:path(.*[^.,!\\)/]){/}?{.}+{/}?", "destination": "/:path/", "permanent": true },
+    { "source": "/:path(.*[^.,!\\)/]){/}?{,}+{/}?", "destination": "/:path/", "permanent": true },
+    { "source": "/:path(.*[^.,!\\)/]){/}?{!}+{/}?", "destination": "/:path/", "permanent": true },
+    { "source": "/:path(.*[^.,!\\)/]){/}?{)}+{/}?", "destination": "/:path/", "permanent": true }
   ],
   "headers": [
     {
