@@ -1,6 +1,7 @@
 export const prerender = false;
 
 import type { APIRoute } from "astro";
+import { ctInstant } from "../../../lib/recurrence.ts";
 import {
   MAX_GUESTS,
   MESSAGES,
@@ -184,7 +185,7 @@ export async function getEstimateResponse(
       engine_version: engineVersion ?? null,
     },
     200,
-    estimateCacheControl(responseNow),
+    estimateCacheControl(responseNow, ctInstant(req.date.key, Math.floor(req.start / 60), req.start % 60)),
     { Date: responseNow.toUTCString() },
   );
 }

@@ -25,7 +25,7 @@
  * Pure module: no env, no `astro:*` imports. scripts/check-estimate.mjs runs
  * it directly under Node (type-stripped), exactly like check-recurrence.mjs.
  */
-import { ctDateKey } from "../recurrence.ts";
+import { ctDateKey, ctInstant } from "../recurrence.ts";
 
 export type LaneType = "vip" | "traditional";
 export type FoodPackage = "pizza_pop" | "stars_strikes" | "italiano" | "burrito_bowl";
@@ -93,7 +93,7 @@ export const VIP_THREE_HOUR_FLOOR = 49;
 export const TRADITIONAL_ONLY_FLOOR = 76;
 /** 76–80: VIP chip greyed with "sometimes possible at this size — ask us." */
 export const VIP_ASK_CEILING = 80;
-export const MIN_LEAD_DAYS = 1;
+export const MIN_LEAD_DAYS = 0;
 /** Under 10 days out the total is shown without the word "deposit" (KB short-lead rule). */
 export const DEPOSIT_LEAD_DAYS = 10;
 export const MAX_LEAD_DAYS = 365;
@@ -346,7 +346,7 @@ export const MESSAGES = {
   bad_guests: "Tell us how many guests to plan for.",
   under_min: `Groups under ${MIN_GUESTS} book lanes directly at twistedpin.com/reserve/.`,
   too_large: `For groups over ${MAX_GUESTS}, send your picks over and we'll build it by hand.`,
-  too_soon: `Online estimates start with tomorrow. For a same-day event, call us at ${VENUE_PHONE_DISPLAY}.`,
+  too_soon: "Choose today or a later date with a start time that hasn't passed.",
   too_far: `We book events up to a year out. For anything later, text us at ${AVERY_PHONE_DISPLAY}.`,
   outside_hours: "That start time is outside our regular hours for that day.",
   closed: (label: string) => `We're closed on ${label}. Pick another date.`,
@@ -474,6 +474,9 @@ export function validateEstimateQuery(params: URLSearchParams, now: Date = new D
 
   const start = parseClock(params.get("t"));
   if (start === null) return fail("invalid", MESSAGES.bad_time);
+  if (ctInstant(date.key, Math.floor(start / 60), start % 60).getTime() <= now.getTime()) {
+    return fail("too_soon", MESSAGES.too_soon);
+  }
   // Valid for at least the 2-hour length; the 3-hour options drop out
   // individually when the window can't hold them (see the route).
   if (!isValidStart(date.dow, start, 2)) return fail("outside_hours", MESSAGES.outside_hours);

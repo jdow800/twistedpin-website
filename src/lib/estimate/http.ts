@@ -32,9 +32,10 @@ export const CACHE_OK = "public, s-maxage=86400, stale-while-revalidate=3600";
 export const CACHE_NONE = "no-store";
 
 /** Never reuse yesterday's date eligibility or deposit policy, even on a DST day. */
-export function estimateCacheControl(now: Date): string {
+export function estimateCacheControl(now: Date, eventStart?: Date): string {
   const midnight = ctInstant(addDaysKey(ctDateKey(now), 1), 0, 0);
-  const seconds = Math.min(86_400, Math.floor((midnight.getTime() - now.getTime()) / 1_000));
+  const boundary = Math.min(midnight.getTime(), eventStart?.getTime() ?? Infinity);
+  const seconds = Math.min(86_400, Math.floor((boundary - now.getTime()) / 1_000));
   if (seconds <= 0) return CACHE_NONE;
   // Browsers revalidate; shared caches must stop at the boundary. No stale grace.
   return `public, max-age=0, s-maxage=${seconds}, must-revalidate`;

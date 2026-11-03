@@ -1,3 +1,9 @@
+## 2026-11-02 - Short-notice catered requests (implementation draft)
+
+Owner-approved policy: the calculator may price same-day future starts for every catered package. Pizza & Pop alone can proceed through Avery without a short-notice staff approval when it is otherwise eligible; on the same day the booking/link must be created at least six hours before the start. Other catered packages within nine Chicago calendar days still need staff approval. Every accepted short-notice catered booking requires full payment and final headcount. The seasonal Pizza & Pop gate remains unchanged.
+
+The estimate API preserves `deposit_shown = days_out >= 10` and the existing 50% numeric deposit field; clients display the total for full payment. Same-day estimates expire from cache by the event start. The public terms acknowledge the short-notice payment exception without changing refund policy. Zite draft sources and reproduction notes are retained with this change. Nothing is published by this entry.
+
 ## 2026-11-02 - The event page waits 14 seconds for a price, not 8
 
 At 4:23pm on Nov 2 (event E-6026879) a Calculate on the event page came back

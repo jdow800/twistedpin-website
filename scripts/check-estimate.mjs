@@ -130,11 +130,13 @@ check("optionSpec trad_3h", eq(optionSpec("trad_3h"), { lane_type: "traditional"
 console.log("query validation (now = Sun 2026-08-30 CT)");
 const NOW = new Date("2026-08-30T15:00:00-05:00");
 const q = (s) => validateEstimateQuery(new URLSearchParams(s), NOW);
-for (const [date, days] of [["2026-08-31", 1], ["2026-09-01", 2], ["2026-09-02", 3], ["2026-09-08", 9]]) {
+for (const [date, days] of [["2026-08-30", 0], ["2026-08-31", 1], ["2026-09-01", 2], ["2026-09-02", 3], ["2026-09-03", 4], ["2026-09-08", 9]]) {
   const result = q("d=" + date + "&t=18:00&g=40&f=stars_strikes");
   check("day +" + days + " prices without deposit instructions", result.ok && result.req.days_out === days && result.req.deposit_shown === false);
 }
-check("same day -> too_soon with venue phone", q("d=2026-08-30&t=18:00&g=40&f=stars_strikes").code === "too_soon" && q("d=2026-08-30&t=18:00&g=40&f=stars_strikes").message.includes("(815) 782-7790"));
+check("same day under six hours still prices for staff review", q("d=2026-08-30&t=18:00&g=40&f=stars_strikes").ok);
+check("same-day elapsed start rejected", q("d=2026-08-30&t=14:00&g=40&f=pizza_pop").code === "too_soon");
+check("same-day exact start rejected", q("d=2026-08-30&t=15:00&g=40&f=pizza_pop").code === "too_soon");
 check("past date -> too_soon", q("d=2026-08-29&t=18:00&g=40&f=stars_strikes").code === "too_soon");
 check("nonexistent date -> invalid", q("d=2026-02-30&t=18:00&g=40&f=stars_strikes").code === "invalid");
 check("spring DST counts civil days", daysOut("2026-03-09", new Date("2026-03-08T00:01:00-06:00")) === 1);
@@ -339,7 +341,7 @@ for (const food of FOOD_PACKAGES) {
   check("tomorrow " + food + ": engine inputs preserved", configsSeen.length === 4 && configsSeen.every((config) => config.food_package === food && config.event_date === "2026-10-24" && config.bar_selection === "15_card" && config.bar_qty === 30 && config.add_ons.length === 2));
 }
 for (const [date, food, time, guests, expected] of [
-  ["2026-10-23", "stars_strikes", "18:00", 40, "too_soon"],
+  ["2026-10-23", "stars_strikes", "10:00", 40, "too_soon"],
   ["2026-10-22", "stars_strikes", "18:00", 40, "too_soon"],
   ["2026-02-30", "stars_strikes", "18:00", 40, "invalid"],
   ["2026-12-25", "stars_strikes", "18:00", 40, "closed"],
@@ -351,6 +353,18 @@ for (const [date, food, time, guests, expected] of [
   let calls = 0;
   const response = await getEstimateResponse(request, url, { engineUrl: "mock://engine", now: () => fixedNow, quote: async () => { calls++; return []; } });
   check("route rejects " + expected + ": " + date + " " + food + " " + time + " g=" + guests, response.status === 422 && (await response.json()).code === expected && calls === 0 && response.headers.get("cache-control") === "no-store");
+}
+
+// Same-day pricing is independent of autonomy: under six hours still needs a price for staff review.
+for (const food of FOOD_PACKAGES) for (const time of ["15:30", "16:00"]) {
+  const { request, url } = requestContext("d=2026-10-23&t=" + time + "&g=40&f=" + food);
+  const response = await getEstimateResponse(request, url, {
+    engineUrl: "mock://engine", now: () => fixedNow,
+    quote: async (_url, configs) => mockedQuotes(configs),
+  });
+  const body = await response.json();
+  check("same-day " + food + " " + time + " keeps full total and original deposit field", response.status === 200 && body.days_out === 0 && body.deposit_shown === false && body.options.vip_2h.deposit < body.options.vip_2h.total);
+  check("same-day " + food + " " + time + " cache expires at start", cacheSeconds(response.headers.get("cache-control")) === (time === "16:00" ? 6 : 5.5) * 3600);
 }
 
 const beforeMidnight = new Date("2026-10-23T23:59:58-05:00");
@@ -376,7 +390,8 @@ for (const date of ["2026-10-24", "2026-11-02"]) {
   const finished = await pending;
   const result = await finished.json();
   if (date === "2026-10-24") {
-    check("in-flight tomorrow becomes same-day: reject without price/cache", finished.status === 422 && result.code === "too_soon" && !result.options && finished.headers.get("cache-control") === "no-store");
+    check("in-flight tomorrow becomes same-day: price remains valid", finished.status === 200 && result.days_out === 0 && result.deposit_shown === false && result.options.vip_2h.total === sample.avery_total.estimated_total);
+    check("same-day cache ends at event start", cacheSeconds(finished.headers.get("cache-control")) === 18 * 3600 - 1);
   } else {
     check("in-flight day +10 becomes +9: same total, deposit hidden", finished.status === 200 && result.days_out === 9 && result.deposit_shown === false && result.options.vip_2h.total === sample.avery_total.estimated_total);
     check("in-flight +9 cache derives from the new day", cacheSeconds(finished.headers.get("cache-control")) === 86399 && finished.headers.get("date") === afterMidnight.toUTCString());
