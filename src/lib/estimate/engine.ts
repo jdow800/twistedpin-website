@@ -161,7 +161,10 @@ export async function callEngine(
   if (quotes.length > ENGINE_BATCH_MAX) {
     throw new EngineError(`batch of ${quotes.length} exceeds the engine cap of ${ENGINE_BATCH_MAX}`);
   }
-  const timeoutMs = opts.timeoutMs ?? 8_000;
+  // 14 s since 2026-11-02 (was 8): a Calculate was cut off at 8 s although the engine had finished pricing
+  // about 2.5 s in; the slow part was Apps Script handing the answer back. The page has no timeout of its
+  // own and the function limit is 300 s, so a slow price beats showing the guest an error.
+  const timeoutMs = opts.timeoutMs ?? 14_000;
   const retryIfFailedWithinMs = opts.retryIfFailedWithinMs ?? 2_500;
   const fetchImpl = opts.fetchImpl ?? fetch;
   const body = JSON.stringify({

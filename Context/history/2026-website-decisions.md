@@ -1,3 +1,39 @@
+## 2026-11-02 - The event page waits 14 seconds for a price, not 8
+
+At 4:23pm on Nov 2 (event E-6026879) a Calculate on the event page came back
+"pricing unavailable" after 8.2 seconds. The Vercel log reads `[estimate]
+engine call failed: engine unreachable "This operation was aborted"`, which is
+`callEngine`'s 8-second limit. The Apps Script engine's own log shows it had
+priced all four options and written its log rows about 2.5 seconds in. The
+answer then took more than 5.5 seconds to come back from Google. The guest's
+Retry priced in 7.1 seconds, they sent the request, and Avery quoted the same
+$1,730.
+
+`callEngine`'s default per-attempt limit is now 14 seconds
+(`src/lib/estimate/engine.ts`).
+- The page has no timeout of its own, so this is the only clock between a guest
+  and the engine.
+- The worst case, a fast network failure retried once, is about 16.5 seconds.
+  The project runs Fluid compute with a 300-second function limit.
+- The trade-off: an answer that takes 8–14 seconds is now a slow price instead
+  of an error, so it no longer triggers the pricing alert email.
+
+Unchanged:
+- The menu route's rate-card probe keeps 8 seconds. On a timeout it falls back
+  to the built-in rates.
+- The n8n lane look-ups (Builder Submit, Calc Note) keep their own 8 seconds.
+  They are best-effort and never block a Send.
+
+Jon chose this over moving the page's pricing to TPRS for now. That move is
+evaluated and parked in Marketing Avery `pricing engine/tprs-quote-cutover/`:
+- money identical on 128,781 option prices offline;
+- two input/output mismatches to fix first.
+
+The incident record is Marketing Avery
+`incidents/2026-11-02-event-page-pricing-timeout.md`.
+
+QA: `node scripts/check-estimate.mjs` 246 passed, 0 failed.
+
 ## 2026-11-02 - A link that picked up the sentence's period still lands
 
 Avery emailed Hanna "booked online at https://twistedpin.com/nye." and the
