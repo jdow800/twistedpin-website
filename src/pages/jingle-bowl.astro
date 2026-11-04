@@ -64,8 +64,16 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
 
     <section class="jb-intro" id="the-event" aria-labelledby="jb-intro-title">
       <div class="jb-inner jb-intro-grid">
-        <div><p class="jb-label">The holiday plan</p><h2 id="jb-intro-title">A little less mall.<br />A lot more <em>bowl.</em></h2></div>
+        <div class="jb-intro-head"><p class="jb-label">The holiday plan</p><h2 id="jb-intro-title">A little less mall.<br />A lot more <em>bowl.</em></h2></div>
         <div class="jb-intro-body"><p>Enjoy 90 minutes of bowling, pizza and holiday fun, plus a visit with Santa for photos on your device. Our team will let you know when it’s your group’s turn.</p><p>Bring your people to Twisted Pin on <strong>Sunday, December 6</strong>. The whole day is reserved for Jingle Bowl, with no regular lane reservations before or afterward.</p><div class="jb-date-line"><span>Save the date</span><time datetime="2026-12-06">12.06.26</time></div></div>
+        <figure class="jb-recap">
+          <div class="jb-recap-frame">
+            <!-- Silent on purpose: the ad cut's music is licensed for Facebook and Instagram only. -->
+            <video class="jb-recap-video" width="540" height="960" muted loop playsinline controls preload="none" poster="/jingle-bowl/jingle-2025-recap-poster.webp" aria-label="Video from last year’s Jingle Bowl at Twisted Pin: Santa and Mrs. Claus at the photo arch, the lanes lit up for Christmas, the arcade and Santa greeting young guests."><source src="/jingle-bowl/jingle-2025-recap.mp4" type="video/mp4" /></video>
+            <button class="jb-recap-toggle" type="button" aria-label="Play video" data-state="paused" hidden><svg class="jb-icon-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 4.5v15l12.5-7.5z" fill="currentColor"/></svg><svg class="jb-icon-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M6.5 4.5h4v15h-4zM13.5 4.5h4v15h-4z" fill="currentColor"/></svg></button>
+          </div>
+          <figcaption>Last year’s Jingle Bowl</figcaption>
+        </figure>
       </div>
     </section>
 
@@ -131,6 +139,35 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
   </div>
 </Base>
 
+<script>
+  // Last year's recap: muted loop that plays only while on screen. Native controls stay
+  // for no-JS visitors; with JS a single play/pause button replaces them (WCAG 2.2.2).
+  // Reduced motion never autoplays.
+  const recap = document.querySelector<HTMLVideoElement>(".jb-recap-video");
+  const toggle = document.querySelector<HTMLButtonElement>(".jb-recap-toggle");
+  if (recap && toggle) {
+    recap.muted = true;
+    recap.removeAttribute("controls");
+    toggle.hidden = false;
+    let held = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let visible = false;
+    const sync = () => {
+      const playing = !recap.paused;
+      toggle.dataset.state = playing ? "playing" : "paused";
+      toggle.setAttribute("aria-label", playing ? "Pause video" : "Play video");
+    };
+    const run = () => {
+      if (visible && !held && !document.hidden) recap.play().catch(() => {});
+      else if (!recap.paused) recap.pause();
+    };
+    recap.addEventListener("play", sync);
+    recap.addEventListener("pause", sync);
+    toggle.addEventListener("click", () => { held = !recap.paused; if (!held) visible = true; run(); });
+    document.addEventListener("visibilitychange", run);
+    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; run(); }, { threshold: .4 }).observe(recap);
+  }
+</script>
+
 <style>
   /* This normal-scrolling campaign does not need the homepage's paired gutters.
      Removing them here also keeps its fixed mobile header within the viewport. */
@@ -179,6 +216,14 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
   .jb-date-line { margin-top: 28px; padding-top: 15px; border-top: 1px solid #103b2c40; display: flex; justify-content: space-between; align-items: center; gap: 20px; }
   .jb-date-line span { font: 700 10px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; }
   .jb-date-line time { font: 900 35px/1 var(--font-display); color: #962b3c; }
+  .jb-recap { width: min(280px, 78%); margin: 10px auto 0; }
+  .jb-recap-frame { position: relative; aspect-ratio: 9/16; overflow: hidden; background: var(--jb-deep); border: 1px solid #d3ad6b; box-shadow: 0 16px 38px #103b2c40; }
+  .jb-recap-video { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .jb-recap-toggle { position: absolute; right: 10px; bottom: 10px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid #e8c78b99; border-radius: 50%; background: #09291fcc; color: var(--jb-cream); cursor: pointer; }
+  .jb-recap-toggle[hidden] { display: none; }
+  .jb-recap-toggle:focus-visible { outline: 3px solid var(--jb-gold); outline-offset: 3px; }
+  .jb-recap-toggle[data-state="playing"] .jb-icon-play, .jb-recap-toggle[data-state="paused"] .jb-icon-pause { display: none; }
+  .jb-recap figcaption { margin-top: 13px; text-align: center; font: 700 12px/1.5 var(--font-ui); letter-spacing: .12em; text-transform: uppercase; color: #962b3c; }
   .jb-package, .jb-rooms, .jb-faq { padding: 66px 0; }
   .jb-package { background: var(--jb-cranberry); }
   .jb-section-head { display: grid; gap: 25px; margin-bottom: 36px; }
@@ -277,8 +322,10 @@ const eventJsonLd = eventEntry ? { "@context": "https://schema.org", ...eventSch
     .jb-hero-art { aspect-ratio: 1; }
     .jb-hero-bottom { padding-block: 20px; font-size: 10px; }
     .jb-intro { margin-top: 60px; padding-block: 88px; }
-    .jb-intro-grid { grid-template-columns: 1.15fr 1fr; gap: 90px; align-items: center; }
-    .jb-intro-body { font-size: 16px; }
+    .jb-intro-grid { grid-template-columns: 1fr 300px; grid-template-areas: "head recap" "body recap"; column-gap: 90px; row-gap: 34px; align-items: center; }
+    .jb-intro-head { grid-area: head; align-self: end; }
+    .jb-intro-body { grid-area: body; align-self: start; font-size: 16px; max-width: 600px; }
+    .jb-recap { grid-area: recap; width: 300px; margin: 0; }
     .jb-package, .jb-rooms, .jb-faq { padding-block: 92px; }
     .jb-section-head { grid-template-columns: 1fr .65fr; align-items: end; gap: 90px; margin-bottom: 45px; }
     .jb-inclusions { grid-template-columns: repeat(4, 1fr); gap: 26px; border-bottom: 1px solid var(--jb-line); }

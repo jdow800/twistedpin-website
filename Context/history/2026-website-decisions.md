@@ -3510,3 +3510,24 @@ This narrows exposure but does not make the code member-only:
 
 Jon ruled on 2026-08-26 that the code not being tied to membership online is
 fine. Gating it in TPRS stays a separate decision.
+
+## 2026-11-04 — Jingle Bowl: last year's video on the event page
+
+Jon approved this on Nov 3. The social team's 2025 Jingle Bowl recap now sits in
+the `/jingle-bowl/` intro, captioned "Last year's Jingle Bowl." The page said
+"Jingle Bowl returns" with only illustrated art; the clip shows the real event.
+
+- **Source:** `Context/jingle-bowl-2026/video/jingle-bowl-2025-recap-source.mp4`
+  (720x1280, 12.5s, no audio track). The burned-in "LINK IN BIO!" line on the
+  last shot is removed (`delogo` from frame 284); "reservations are open" stays.
+  The web file is 540x960 H.264 at CRF 30 (1.2 MB) with a 53 KB WebP poster.
+- **Silent on purpose:** the Meta ad cut carries "Merry Merry" from Meta's Sound
+  Collection, which is licensed for Facebook and Instagram, not this site.
+- **Loading:** nothing loads until it plays (`preload="none"`). It plays muted
+  only while 40% on screen, behind one 44px play/pause button (WCAG 2.2.2).
+  Reduced motion never autoplays, and visitors without JavaScript get native
+  controls. It is off the LCP path; the hero art stays the preload.
+- **Layout:** on desktop the heading and body stack on the left and the 300px
+  clip sits on the right. On mobile the clip follows the body at 280px.
+- **Ad version:** the Meta ad cut and its build script are in
+  `Twisted Pin Full System/Marketing/Advertising/2026-10-31-ai-ad-platforms/video-build/build-jingle.sh`.

@@ -8,6 +8,8 @@ Start with [the final closeout handoff](../session-handoffs/2026-10-22-jingle-cl
 
 Use `facebook/Jingle-Bowl-Facebook-Event-Cover-1920x1005.png` for the Facebook event cover, `public/jingle-bowl/jingle-square.png` for square posts, and `led/` for the 1920x1080 QR video/static delivery. The Desktop folder is a delivery copy, not the editable source. Publication, physical LED playback and a saved public Facebook crop have not been verified by this work.
 
+Last year's recap video (the social team's 2025 cut) lives in `video/`. Its web derivative is `public/jingle-bowl/jingle-2025-recap.mp4`, shown silent in the page intro; see the 2026-11-04 entry in `Context/history/2026-website-decisions.md`.
+
 ## Historical preview notes — superseded by the closeout above
 
 The following records the protected-review stage. Its pending-launch statements and route restrictions describe that earlier stage, not current production. Preserve it as implementation history; do not undo the public launch to match these notes.
