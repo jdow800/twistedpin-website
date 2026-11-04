@@ -3531,3 +3531,9 @@ the `/jingle-bowl/` intro, captioned "Last year's Jingle Bowl." The page said
   clip sits on the right. On mobile the clip follows the body at 280px.
 - **Ad version:** the Meta ad cut and its build script are in
   `Twisted Pin Full System/Marketing/Advertising/2026-10-31-ai-ad-platforms/video-build/build-jingle.sh`.
+- **Trap:** `src/lib/jingle-review-auth.ts` lets only an exact list of files under
+  `/jingle-bowl/` through. The first push (99aaa5a) left the video and poster off
+  that list, so production returned 401 for both until the follow-up added them
+  (along with `check-jingle-review-auth` and `check-routing-middleware`). Local
+  dev serves `public/` before middleware, so it can't catch this. Any new
+  `/jingle-bowl/` asset needs the allowlist line in the same commit.

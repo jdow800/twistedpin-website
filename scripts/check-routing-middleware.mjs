@@ -63,7 +63,7 @@ try {
   assert.equal(calls[1].init.redirect, "manual");
   pass("ordinary API POST body, query and manual redirects remain intact");
 
-  for (const path of ['/jingle-bowl', '/jingle-bowl/', '/%6aingle-bowl/', '/jingle-bowl/jingle-square.png', '/jingle-bowl/jingle-square.webp', '/jingle-bowl/jingle-wide.png', '/jingle-bowl/jingle-wide.webp', '/jingle-bowl/santa-entrance.webp', '/%6aingle-bowl/jingle-wide.webp']) {
+  for (const path of ['/jingle-bowl', '/jingle-bowl/', '/%6aingle-bowl/', '/jingle-bowl/jingle-square.png', '/jingle-bowl/jingle-square.webp', '/jingle-bowl/jingle-wide.png', '/jingle-bowl/jingle-wide.webp', '/jingle-bowl/santa-entrance.webp', '/jingle-bowl/jingle-2025-recap.mp4', '/jingle-bowl/jingle-2025-recap-poster.webp', '/%6aingle-bowl/jingle-wide.webp']) {
     for (const method of ['GET', 'HEAD']) {
       const response = await middleware(new Request('https://preview.example' + path, {method}));
       assert.equal(response.headers.get('x-middleware-next'), '1');

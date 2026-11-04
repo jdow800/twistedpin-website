@@ -11,7 +11,7 @@ const env = { JINGLE_REVIEW_PASSWORD: "synthetic-review-password", JINGLE_REVIEW
 const now = Date.parse("2026-10-21T20:00:00Z");
 const origin = "https://review.example.test";
 const reviewPage = "/jingle-bowl-concepts/";
-const publicPaths = ["/jingle-bowl", "/jingle-bowl/", "/jingle-bowl/booking", "/jingle-bowl/booking/", "/jingle-bowl/jingle-square.png", "/jingle-bowl/jingle-square.webp", "/jingle-bowl/jingle-wide.png", "/jingle-bowl/jingle-wide.webp", "/jingle-bowl/santa-entrance.webp"];
+const publicPaths = ["/jingle-bowl", "/jingle-bowl/", "/jingle-bowl/booking", "/jingle-bowl/booking/", "/jingle-bowl/jingle-square.png", "/jingle-bowl/jingle-square.webp", "/jingle-bowl/jingle-wide.png", "/jingle-bowl/jingle-wide.webp", "/jingle-bowl/santa-entrance.webp", "/jingle-bowl/jingle-2025-recap.mp4", "/jingle-bowl/jingle-2025-recap-poster.webp"];
 const get = (path, cookie) => new Request(origin + path, { headers: cookie ? { Cookie: cookie } : {} });
 const post = (path, password = env.JINGLE_REVIEW_PASSWORD, headers = {}) => new Request(origin + path, {
   method: "POST", headers: { Origin: origin, "Content-Type": "application/x-www-form-urlencoded", "X-Forwarded-For": "192.0.2.10", ...headers },

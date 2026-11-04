@@ -13,6 +13,7 @@ const PUBLIC_PATHS = new Set([
   "/jingle-bowl/jingle-square.png", "/jingle-bowl/jingle-square.webp",
   "/jingle-bowl/jingle-wide.png", "/jingle-bowl/jingle-wide.webp",
   "/jingle-bowl/santa-entrance.webp",
+  "/jingle-bowl/jingle-2025-recap.mp4", "/jingle-bowl/jingle-2025-recap-poster.webp",
 ]);
 const PREFIXES = ["/jingle-bowl", "/jingle-bowl-concepts", "/review/jingle-calendar", "/nye-homepage-concepts"];
 type ReviewEnv = { JINGLE_REVIEW_PASSWORD?: string; JINGLE_REVIEW_SESSION_SECRET?: string };
