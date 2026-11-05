@@ -3537,3 +3537,31 @@ the `/jingle-bowl/` intro, captioned "Last year's Jingle Bowl." The page said
   (along with `check-jingle-review-auth` and `check-routing-middleware`). Local
   dev serves `public/` before middleware, so it can't catch this. Any new
   `/jingle-bowl/` asset needs the allowlist line in the same commit.
+
+## 2026-11-05 — Event-inquiry tracking: Meta Lead only on a real submit; booking-page links carry the source
+
+Jon approved this on Nov 5, out of the SEO/Ads deep dive
+(`Twisted Pin Full System/Marketing/Advertising/2026-11-05-seo-ads-deep-dive/FINDINGS.md`).
+
+- **Meta Lead stops firing on the click.** `track-clicks.client.ts` fired Meta's
+  standard `Lead` when anyone clicked a Plan an Event button. The Zite form
+  already fires `Lead` on the same pixel (106774361588990) when an inquiry is
+  actually submitted (`useTracking.ts` `fireLeadConversion`), so every real
+  inquiry counted twice and every abandoned click counted once. The click now
+  sends a custom `PlanEventClick` (`trackCustom`). GA4's `plan_event_click` is
+  unchanged. Expect Meta's Lead count to drop; that drop is the correction, not
+  a loss.
+- **Booking-wizard event links get the source.** The six "plan your event"
+  links in the `/reserve` wizard (`CUSTOM_EVENT_URL`) are drawn by React after
+  `gclid-passthrough.client.ts` decorates the page, so those inquiries reached
+  Zite with no `tp_ref`, `tp_lp`, UTMs or gclid (15 form rows since 10/12). The
+  passthrough now also decorates inquiry links at click time (capture-phase
+  `click` + `auxclick`), which covers any link a client component renders.
+- **Not changed here:** WF1 still files untagged inquiries as `direct` and
+  ignores `tp_ref`; Zite's `hearAboutUs` is hardcoded `"Form"`. Both are queued
+  in FINDINGS.md. The Google Business Profile link was re-tagged with
+  `utm_campaign=gbp` the same day (it had been plain on Google).
+- **Verify after deploy:** open `/reserve/?utm_source=test&utm_campaign=wizard`
+  and click a "plan your event" link; the Zite URL should carry both. In Meta
+  Events Manager → Test Events, a Plan an Event click shows `PlanEventClick`,
+  and a submitted test inquiry shows `Lead` from twistedevents.zite.so.

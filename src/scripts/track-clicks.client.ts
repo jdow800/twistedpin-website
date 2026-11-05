@@ -6,8 +6,9 @@
  *   - GA4: custom event name (mark as Conversion in GA4 admin → auto-imports
  *     to Google Ads as conversion goal)
  *   - Meta Pixel: standard event vocabulary (Meta documents these for
- *     ad campaign optimization — PageView/Contact/Lead/InitiateCheckout/
- *     FindLocation are all in their official catalog)
+ *     ad campaign optimization — PageView/Contact/InitiateCheckout/
+ *     FindLocation are all in their official catalog), except Plan an Event,
+ *     which is a custom event because the Zite form owns Meta's "Lead"
  *
  * The actual gtag.js + fbevents.js scripts are deferred-loaded by Base.astro
  * (see "queue-immediately, fetch-late" comment there). Click events fired
@@ -34,6 +35,9 @@ function trackEvent(
   ga4Event: string,
   fbEvent: string,
   params: GtagParams = {},
+  // "trackCustom" for events outside Meta's standard catalog, so a click
+  // can't masquerade as a standard conversion (see Plan an Event below).
+  fbMethod: "track" | "trackCustom" = "track",
 ) {
   // Defensive typeof checks — the stubs are set up in Base.astro head, so
   // these should always be defined by the time any click fires. But if
@@ -43,7 +47,7 @@ function trackEvent(
     window.gtag("event", ga4Event, params);
   }
   if (typeof window.fbq === "function") {
-    window.fbq("track", fbEvent, params);
+    window.fbq(fbMethod, fbEvent, params);
   }
 }
 
@@ -79,7 +83,12 @@ export function initClickTracking() {
       );
     });
 
-  // Plan an Event clicks → "plan_event_click" (GA4) / "Lead" (Meta).
+  // Plan an Event clicks → "plan_event_click" (GA4) / "PlanEventClick" (Meta,
+  // custom). Meta's "Lead" is NOT fired here: the Zite form fires Lead on the
+  // same pixel (106774361588990) when an inquiry is actually submitted
+  // (useTracking.ts fireLeadConversion). Firing Lead on the click too counted
+  // every submitted inquiry twice and every abandoned click as a lead
+  // (2026-11-05).
   // PLAN_EVENT_URL (src/lib/links.ts) toggles between:
   //   - event.twistedpin.com  (Avery OFF / Heyflow)
   //   - twistedevents.zite.so (Avery ON / Zite)
@@ -90,7 +99,7 @@ export function initClickTracking() {
     )
     .forEach((el) => {
       el.addEventListener("click", () =>
-        trackEvent("plan_event_click", "Lead"),
+        trackEvent("plan_event_click", "PlanEventClick", {}, "trackCustom"),
       );
     });
 

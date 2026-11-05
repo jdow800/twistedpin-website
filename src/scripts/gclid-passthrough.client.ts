@@ -20,6 +20,8 @@
  *   2. Rewrite every inquiry-destination anchor to carry the stored params,
  *      placed correctly *before* any `#hash` (the URL API handles ordering,
  *      so `event.twistedpin.com/#start` → `event.twistedpin.com/?gclid=…#start`).
+ *      Anchors present at load are rewritten immediately; ones a client
+ *      component renders later are rewritten when clicked.
  *   3. Also carry the visit's first touch: `tp_ref` (the referrer host the
  *      visitor arrived from) and `tp_lp` (the first page they landed on).
  *      Click ids + UTMs only exist when the inbound link was tagged; organic
@@ -142,26 +144,27 @@ function captureFirstTouch(): Record<string, string> {
   return { tp_ref: touch.ref, tp_lp: touch.lp };
 }
 
-function decorateLinks(params: Record<string, string>): void {
-  const keys = Object.keys(params);
-  if (keys.length === 0) return;
+function decorateAnchor(a: HTMLAnchorElement, params: Record<string, string>): void {
+  let url: URL;
+  try {
+    url = new URL(a.href, window.location.origin);
+  } catch {
+    return;
+  }
+  if (!INQUIRY_HOSTS.has(url.hostname)) return;
+  for (const key of Object.keys(params)) {
+    // Don't clobber a param the link already declares intentionally.
+    if (!url.searchParams.has(key)) url.searchParams.set(key, params[key]);
+  }
+  // URL.toString() keeps the query string before the #hash automatically.
+  a.href = url.toString();
+}
 
-  const anchors = document.querySelectorAll<HTMLAnchorElement>("a[href]");
-  anchors.forEach((a) => {
-    let url: URL;
-    try {
-      url = new URL(a.href, window.location.origin);
-    } catch {
-      return;
-    }
-    if (!INQUIRY_HOSTS.has(url.hostname)) return;
-    for (const key of keys) {
-      // Don't clobber a param the link already declares intentionally.
-      if (!url.searchParams.has(key)) url.searchParams.set(key, params[key]);
-    }
-    // URL.toString() keeps the query string before the #hash automatically.
-    a.href = url.toString();
-  });
+function decorateLinks(params: Record<string, string>): void {
+  if (Object.keys(params).length === 0) return;
+  document
+    .querySelectorAll<HTMLAnchorElement>("a[href]")
+    .forEach((a) => decorateAnchor(a, params));
 }
 
 export function initGclidPassthrough(): void {
@@ -169,10 +172,20 @@ export function initGclidPassthrough(): void {
   const params = { ...captureFirstTouch(), ...captureParams() };
   // Runs once at module execution (deferred, after DOM parse), decorating the
   // inquiry-host anchors that are server-rendered and present at that instant.
-  // Sufficient today: there is no Astro ClientRouter / View Transitions in the
-  // repo, so every navigation is a full page load that re-runs this module. If
-  // a future CTA is injected by client JS, or View Transitions get adopted,
-  // re-invoke decorateLinks(captureParams()) on `astro:page-load` or wire a
-  // MutationObserver — otherwise that anchor would ship without the gclid.
+  // There is no Astro ClientRouter / View Transitions in the repo, so every
+  // navigation is a full page load that re-runs this module.
   decorateLinks(params);
+  // Anchors rendered later by client JS — the /reserve booking wizard's
+  // "plan your event" links (CUSTOM_EVENT_URL in src/tprs/pageConfig.ts) are
+  // drawn by React after this runs — get decorated at click time instead.
+  // Capture phase, so the href is set before the browser follows it. Before
+  // 2026-11-05 those inquiries arrived with no tp_ref, UTMs or gclid.
+  if (Object.keys(params).length === 0) return;
+  const decorateOnActivate = (e: Event) => {
+    const a = e.target instanceof Element ? e.target.closest("a[href]") : null;
+    if (a instanceof HTMLAnchorElement) decorateAnchor(a, params);
+  };
+  document.addEventListener("click", decorateOnActivate, true);
+  // Middle-click / "open in new tab" fires auxclick, not click.
+  document.addEventListener("auxclick", decorateOnActivate, true);
 }
