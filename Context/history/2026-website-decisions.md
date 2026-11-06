@@ -1,3 +1,12 @@
+## 2026-11-05 - Food count check asks "more than we've ever had?"
+
+TPRS (tprs PR on branch `feat/food-precheck-outside-usual`) adds a food-only pre-submit finding, `outside_usual`: a product's total, every shelf summed, above 1.25x its history ceiling (the most ever counted plus the biggest delivery, the same ceiling the food voice reader uses). It needs no prior count, so it also speaks on an item's first count and on the baseline walk, where nothing else can see a typo. It is never sent beside `impossible` or `first_count` for the same product.
+
+- `api.ts` adds `outside_usual` to `PrecheckFinding.kind` and the optional `usualMax` (the ceiling, count units).
+- `FindingSummary.tsx` titles it "More than we've ever had. A typo?", shows Counted beside "Most we've had" (not Last count / Delivered, which are placeholders here), and keeps the server's sentence in view because it carries the likely fix ("Did you mean 1.4?"). Details holds the per-shelf rows.
+- `CountFood.tsx` needs no change: every finding already gets the per-shelf Details rows, the live Counted after an edit, "Open on count screen" and Recheck, the same as `impossible` and `first_count`. The phone QA (`check-food-review.mjs`, `?outside-usual` fixture) proves it at 320, 360 and 412px.
+- Ships BEFORE the tprs PR so the finding never renders untitled.
+
 ## 2026-11-05 - Food variance names bar produce as shared with the bar
 
 TPRS (tprs #514) now flags a graded food-variance line `bar_shared` when the item is a bar consumable (limes, lemons, oranges, purees): the bar's drinks use most of it and only food recipes are in theoretical, so October's read showed $411 of lime and lemon "over" that was bar usage. The flag works like the others: listed with its reason, left out of every total.

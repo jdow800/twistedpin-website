@@ -48,7 +48,11 @@ const hash=rows=>{const canonical=JSON.stringify(rows.map(l=>[l.zoneId,l.skuId,N
 const finding=(skuId,counted,extra={})=>({kind:'big_gain',skuId,name:catalog.find(s=>s.id===skuId).name,
   counted,prior:1,purchased:0,used:null,unitsPerCase:catalog.find(s=>s.id===skuId).unitsPerCase,dollars:100,
   detail:'Check the shelf count and package label.',...extra});
-const findings=[finding('dough',14.125),finding('crust',12),finding('flatbread',20),finding('packed',8),finding('tomato',0)];
+const findings=params.has('outside-usual')
+  // TPRS 2026-11-05: counted far above the history ceiling, server-owned words.
+  ?[finding('dough',14.125,{kind:'outside_usual',prior:0,usualMax:4,dollars:202.5,
+    detail:'Counted 14.13 in all. Even right after a delivery, we have never had more than about 4. Did you mean 1.41?'})]
+  :[finding('dough',14.125),finding('crust',12),finding('flatbread',20),finding('packed',8),finding('tomato',0)];
 const unplaced=params.has('locations')?[{skuId:'alternate',name:'Sample Alternate Dough',countUnit:'pack',unitsPerCase:24,
   unitLabel:null,lastBoughtAt:'2026-10-01',lastVendor:'Fictional vendor',inRecipe:true,reason:'both'}]:[];
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});
