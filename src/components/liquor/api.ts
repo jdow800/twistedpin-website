@@ -2088,7 +2088,8 @@ export type FoodVarianceFlag =
   | "no_cost"
   | "negative_used"
   | "negative_theoretical"
-  | "purchase_unconverted";
+  | "purchase_unconverted"
+  | "bar_shared";
 export type FoodVarianceBand = "normal" | "watch" | "look";
 export interface FoodVarianceLine {
   skuId: string;

@@ -25,6 +25,7 @@ export const FLAG_TEXT: Record<FoodVarianceFlag, string> = {
   negative_used: "more at the end than the start plus deliveries",
   negative_theoretical: "more voided than sold",
   purchase_unconverted: "a delivery couldn't be converted",
+  bar_shared: "the bar uses it too, so the food recipes can't account for it",
 };
 
 const BAND_TEXT = { normal: "Normal", watch: "Watch", look: "Look" } as const;

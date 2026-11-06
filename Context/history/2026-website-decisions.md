@@ -1,3 +1,10 @@
+## 2026-11-05 - Food variance names bar produce as shared with the bar
+
+TPRS (tprs #514) now flags a graded food-variance line `bar_shared` when the item is a bar consumable (limes, lemons, oranges, purees): the bar's drinks use most of it and only food recipes are in theoretical, so October's read showed $411 of lime and lemon "over" that was bar usage. The flag works like the others: listed with its reason, left out of every total.
+
+- `api.ts` adds `bar_shared` to `FoodVarianceFlag`; `FoodVarianceReport.tsx` FLAG_TEXT reads "the bar uses it too, so the food recipes can't account for it".
+- Ships BEFORE tprs #514 so no report ever renders a blank reason.
+
 ## 2026-11-02 - Short-notice catered requests (implementation draft)
 
 Owner-approved policy: the calculator may price same-day future starts for every catered package. Pizza & Pop alone can proceed through Avery without a short-notice staff approval when it is otherwise eligible; on the same day the booking/link must be created at least six hours before the start. Other catered packages within nine Chicago calendar days still need staff approval. Every accepted short-notice catered booking requires full payment and final headcount. The seasonal Pizza & Pop gate remains unchanged.
