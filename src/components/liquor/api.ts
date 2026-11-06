@@ -588,7 +588,15 @@ export interface PrecheckFinding {
      *  another size went down (TPRS 2026-10-03): a bottle counted under the
      *  wrong size, or a delivery logged under the wrong one. The 10-02 count's
      *  open rail liter, saved as 1.2 of a 750. `skuId` is `family:<key>`. */
-    | "size_mixup";
+    | "size_mixup"
+    /** FOOD ONLY (TPRS 2026-11-05). This count's total, every shelf summed,
+     *  is above 1.25x the product's history ceiling (`usualMax`: the most ever
+     *  counted plus the biggest delivery, the same ceiling the voice reader
+     *  uses). Needs no prior count, so it also speaks on an item's FIRST count,
+     *  where nothing else can see a typo. Never sent beside `impossible` or
+     *  `first_count` for the same product. `prior`/`purchased` are 0
+     *  placeholders; `detail` carries the likely fix ("Did you mean 1.4?"). */
+    | "outside_usual";
   skuId: string;
   /** The SKU identities involved in a paired variety or bottle-size finding. */
   relatedSkuIds?: string[];
@@ -606,6 +614,8 @@ export interface PrecheckFinding {
   purchased: number;
   used: number | null;
   unitsPerCase: number | null;
+  /** outside_usual only: the history ceiling, in count units. */
+  usualMax?: number;
   dollars: number;
   detail: string;
 }
