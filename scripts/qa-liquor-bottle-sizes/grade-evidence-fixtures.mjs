@@ -43,6 +43,29 @@ export const frozen = {status: 'frozen', published: snapshot, snapshot, message:
 ]};
 export const legacy = {status: 'legacy', published: snapshot, snapshot: null, corrections: frozen.corrections, message: 'Historical headline retained.'};
 export const unavailable = {status: 'unavailable', published: null, snapshot: null, corrections: [], message: 'No published grade retained.'};
+// Grades frozen from 2026-11-06 add the cause sort and parked count-ups.
+const lead = (kind, name, overrides = {}) => ({kind, name, partnerName: null, gapOz: 12.7, gapBottles: .5, dollars: 24.1,
+  rungPct: null, recentGapOz: null, detail: null, ...overrides});
+export const causes = {
+  version: 1, windowStart: '2026-09-11T18:00:00Z', windowEnd: '2026-10-30T18:00:00Z', windowDays: 49, recentDays: 28, checked: 112,
+  leads: [
+    lead('substitution', 'Crown Royal Regal Apple', {partnerName: 'Crown Royal', gapOz: 16.6, gapBottles: .66, dollars: 18.2, recentGapOz: 3.4}),
+    lead('overpour', 'Tito\'s Handmade', {rungPct: 86, gapOz: 41.3, gapBottles: 1.63, dollars: 31.4, recentGapOz: -.02}),
+    lead('unrung', 'Hennessy VS', {detail: 'nothing_rung', gapOz: 12.7, gapBottles: .5, dollars: 24.1}),
+    lead('unrung', 'Jameson', {rungPct: 61, gapOz: 20.2, gapBottles: .8, dollars: 16.9, recentGapOz: 9.8}),
+    lead('setup', 'Falernum', {detail: 'cocktail_under', rungPct: 40, gapOz: 15, gapBottles: .59, dollars: 9.4, recentGapOz: 6}),
+    lead('setup', 'Luxardo Maraschino', {detail: 'rung_over', rungPct: 140, gapOz: -9.1, gapBottles: -.36, dollars: -11.2, recentGapOz: -4}),
+  ],
+  evenedOut: [{name: 'Belvedere', gradeGapBottles: .3, longGapBottles: .02, gradeDollars: 9.8},
+    {name: 'Grey Goose', gradeGapBottles: .25, longGapBottles: -.04, gradeDollars: 7.1}],
+};
+export const countUps = [{name: 'Bulleit Rye', upOz: 3.4, bottles: .13, dollars: 2.9}, {name: 'Aperol', upOz: 2.5, bottles: .1, dollars: 1.2}];
+export const withCauses = structuredClone(frozen);
+withCauses.snapshot.causes = causes;
+withCauses.snapshot.graded.countUps = countUps;
+export const quietCauses = structuredClone(frozen);
+quietCauses.snapshot.causes = {...causes, recentDays: null, leads: [], evenedOut: []};
+quietCauses.snapshot.graded.countUps = [];
 export const incompleteAttribution = structuredClone(frozen);
 incompleteAttribution.snapshot.risata.period.days.push(daily('2026-10-29', null, null, null, 'unavailable', 'Attribution is unknown.'));
 incompleteAttribution.snapshot.risata.period.skippedDays++;

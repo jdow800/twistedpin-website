@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
-import {frozen, legacy, unavailable, incompleteAttribution} from './grade-evidence-fixtures.mjs';
+import {frozen, legacy, unavailable, incompleteAttribution, withCauses, quietCauses} from './grade-evidence-fixtures.mjs';
 
 const require = createRequire(new URL('../../package.json', import.meta.url));
 const {build} = require('esbuild');
@@ -97,6 +97,53 @@ check('an opening-count correction is identified without changing the ending-cou
   assert.match(markup, /Review the opening-count corrections separately/);
   assert.ok(!markup.includes('Current ending-count rows below include later corrections'));
   assert.match(html(frozen), /Ending count · Oct 30, 2026/);
+});
+check('grades frozen before the cause sort render exactly as before', () => {
+  const markup = html(frozen);
+  assert.ok(!markup.includes('What the counts point to'));
+  assert.ok(!markup.includes('Read a tick fuller'));
+  const empty = structuredClone(frozen);
+  empty.snapshot.causes = null;
+  empty.snapshot.graded.countUps = [];
+  assert.equal(html(empty), markup);
+});
+check('cause sort mirrors the email: order, wording, recent window and evened-out list', () => {
+  const markup = html(withCauses);
+  assert.match(markup, /<h4>What the counts point to<\/h4>/);
+  assert.match(markup, /Each product judged over 49 days \(Sep 11, 2026 – Oct 30, 2026\), first count to latest/);
+  const at = text => markup.indexOf(text);
+  const order = ['How this grade is calculated', 'Poured one bottle, rang another', 'Heavy pours', 'Poured with nothing rung',
+    'Recipe or button fixes', 'Follow the dollars'].map(at);
+  assert.ok(order.every((n, i) => n >= 0 && (i === 0 || n > order[i - 1])), `section order ${order}`);
+  assert.match(markup, /<strong>Crown Royal Regal Apple<\/strong> poured, <strong>Crown Royal<\/strong> rung<span>About 17 oz \(0\.7 bottle\) · last 28 days: \+3\.4 oz<\/span>/);
+  assert.match(markup, /Rung for 86% of what was poured · 41 oz, \$31\.40 · last 28 days: 0 oz/);
+  assert.match(markup, /<strong>Hennessy VS<\/strong><span>0\.5 bottle, nothing rung · \$24\.10<\/span>/);
+  assert.match(markup, /0\.8 bottle, rung for 61% of what was poured · \$16\.90 · last 28 days: \+9\.8 oz/);
+  assert.match(markup, /Recipes account for 40% of what was poured\. Check the recipe ounces or a missing ingredient · \$9\.40<\/span>/);
+  assert.match(markup, /Rung for 140% of what was poured\. A recipe calls for too much, or a button credits it for another bottle · \$11\.20<\/span>/);
+  assert.ok(!markup.includes('−4 oz'), 'setup rows carry no recent window, as in the email');
+  assert.match(markup, /Evened out, counting only:<\/strong> Belvedere · Grey Goose\. Off in the 14-day grade, normal over 49 days\./);
+  assert.ok(!markup.includes('Nothing beyond normal counting'));
+  const noRecent = structuredClone(withCauses);
+  noRecent.snapshot.causes.recentDays = null;
+  assert.ok(!html(noRecent).includes('last 28 days'));
+});
+check('a quiet cause window says so and lists no empty sections', () => {
+  const markup = html(quietCauses);
+  assert.match(markup, /Nothing beyond normal counting and pouring differences over 49 days\./);
+  for (const title of ['Poured one bottle, rang another', 'Heavy pours', 'Poured with nothing rung', 'Recipe or button fixes', 'Evened out', 'Read a tick fuller']) {
+    assert.ok(!markup.includes(title), title);
+  }
+});
+check('count-ups are listed as parked after the product differences, never as leads', () => {
+  const markup = html(withCauses);
+  assert.match(markup, /<h4>Read a tick fuller, nothing sold<\/h4><p class="lq-muted">Listed, not graded · \$4\.10<\/p><p class="lq-muted">Bulleit Rye \+3\.4 oz · Aperol \+2\.5 oz<\/p>/);
+  assert.ok(markup.indexOf('Read a tick fuller') > markup.indexOf('Follow the dollars'));
+  assert.ok(markup.indexOf('Read a tick fuller') < markup.indexOf('Possible substitution or ring-in mismatch'));
+  const upsOnly = structuredClone(frozen);
+  upsOnly.snapshot.graded.countUps = withCauses.snapshot.graded.countUps;
+  assert.ok(!html(upsOnly).includes('What the counts point to'));
+  assert.match(html(upsOnly), /Read a tick fuller, nothing sold/);
 });
 console.log(`${passed} grade-evidence checks passed`);
 process.exit(0);

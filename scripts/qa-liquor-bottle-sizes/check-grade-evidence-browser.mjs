@@ -12,11 +12,11 @@ const {chromium} = require('playwright');
 const {outputFiles} = await build({
   stdin: {contents: `import React from 'react'; import {createRoot} from 'react-dom/client';
     import {GradeEvidence} from './src/components/liquor/GradeEvidence';
-    import {frozen, legacy, unavailable, line} from './scripts/qa-liquor-bottle-sizes/grade-evidence-fixtures.mjs';
+    import {frozen, legacy, unavailable, withCauses, line} from './scripts/qa-liquor-bottle-sizes/grade-evidence-fixtures.mjs';
     const extra = Array.from({length: 6}, (_, i) => line('extra-'+i, 'Long product name with multiple bottle sizes and a sufficiently descriptive qualifier '+i, {missingCost: .1}));
     frozen.snapshot.lines.push(...extra);
-    window.renderGrade = (mode) => createRoot(document.getElementById('root')).render(<div className="lq-app"><main className="lq-main"><GradeEvidence detail={mode === 'legacy' ? legacy : mode === 'unavailable' ? unavailable : frozen}/></main></div>);
-    window.renderGrade('frozen');`, resolveDir: root, loader: 'tsx'},
+    window.renderGrade = (mode) => createRoot(document.getElementById('root')).render(<div className="lq-app"><main className="lq-main"><GradeEvidence detail={mode === 'legacy' ? legacy : mode === 'unavailable' ? unavailable : mode === 'causes' ? withCauses : frozen}/></main></div>);
+    window.renderGrade(document.body.dataset.mode || 'frozen');`, resolveDir: root, loader: 'tsx'},
   bundle: true, write: false, platform: 'browser', format: 'iife', jsx: 'automatic',
   define: {'import.meta.env': '{}', 'process.env.NODE_ENV': '"production"'},
 });
@@ -52,6 +52,25 @@ try {
       await page.screenshot({path: join(out, 'grade-mobile-risata.png')});
     }
     console.log(`PASS ${width}px: evidence and daily controls work; no horizontal overflow`);
+  }
+  // Grades frozen from 2026-11-06: cause sort and parked count-ups.
+  for (const width of [320, 390, 768, 1280]) {
+    await page.setViewportSize({width, height: 900});
+    await page.setContent(`<html><head><style>body{margin:0}${css}</style></head><body data-mode="causes"><div id="root"></div></body></html>`);
+    await page.addScriptTag({content: outputFiles[0].text});
+    await page.getByRole('heading', {name: 'What the counts point to'}).waitFor();
+    for (const name of ['Poured one bottle, rang another', 'Heavy pours', 'Poured with nothing rung', 'Recipe or button fixes', 'Read a tick fuller, nothing sold']) {
+      assert.equal(await page.getByRole('heading', {name}).isVisible(), true, name);
+    }
+    const overflow = await page.evaluate(() => ({viewport: innerWidth, page: document.documentElement.scrollWidth,
+      offenders: [...document.querySelectorAll('.lq-grade *')].filter(el => el.getBoundingClientRect().right > innerWidth + 1).map(el => el.tagName)}));
+    assert.ok(overflow.page <= width && overflow.offenders.length === 0, `causes overflow at ${width}: ${JSON.stringify(overflow)}`);
+    await page.screenshot({path: join(out, `grade-causes-${width}.png`), fullPage: true});
+    if (width === 390) {
+      await page.getByRole('heading', {name: 'What the counts point to'}).scrollIntoViewIfNeeded();
+      await page.screenshot({path: join(out, 'grade-causes-mobile.png')});
+    }
+    console.log(`PASS ${width}px: cause sort and count-ups render; no horizontal overflow`);
   }
   assert.deepEqual(errors, []);
   console.log(`Grade evidence screenshots: ${out}`);

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { DiscardSummary, GradeDetailResponse, GradeEvidenceLine, GradeLocation, RisataEvidence } from "./api";
+import type { DiscardSummary, GradeCauseLead, GradeCauseReport, GradeDetailResponse, GradeEvidenceLine, GradeLocation, RisataEvidence } from "./api";
 
 const number = (n: number | null, digits = 1) => n == null || !Number.isFinite(n)
   ? "Unavailable" : n.toLocaleString("en-US", { maximumFractionDigits: digits });
@@ -128,6 +128,46 @@ function RisataModel({ evidence }: { evidence: RisataEvidence }) {
   </section>;
 }
 
+// Same order and wording as the grade email (tprs bar-variance-report.eta).
+const CAUSE_SECTIONS = [
+  { kind: "substitution", title: "Poured one bottle, rang another", note: "Usually a missing or wrong POS button." },
+  { kind: "overpour", title: "Heavy pours", note: "Busy bottles rung for less than 92% of what was poured." },
+  { kind: "unrung", title: "Poured with nothing rung", note: "Not explained by a related bottle, a recipe or steady heavy pours. Worth a look." },
+  { kind: "setup", title: "Recipe or button fixes", note: "These point at the POS setup, not at people." },
+] as const;
+const signedOz = (n: number) => Math.abs(n) < 0.05 ? "0 oz" : `${n > 0 ? "+" : "−"}${number(Math.abs(n))} oz`;
+
+function CauseRow({ lead, recentDays }: { lead: GradeCauseLead; recentDays: number | null }) {
+  const gap = `${number(Math.abs(lead.gapOz), 0)} oz`, bottles = number(Math.abs(lead.gapBottles));
+  const dollars = money(Math.abs(lead.dollars));
+  const recent = lead.recentGapOz != null && recentDays ? ` · last ${recentDays} days: ${signedOz(lead.recentGapOz)}` : "";
+  if (lead.kind === "substitution") return <li><strong>{lead.name}</strong> poured, <strong>{lead.partnerName}</strong> rung
+    <span>About {gap} ({bottles} bottle){recent}</span></li>;
+  if (lead.kind === "overpour") return <li><strong>{lead.name}</strong>
+    <span>Rung for {lead.rungPct}% of what was poured · {gap}, {dollars}{recent}</span></li>;
+  if (lead.kind === "unrung") return <li><strong>{lead.name}</strong>
+    <span>{bottles} bottle, {lead.detail === "nothing_rung" || lead.rungPct == null ? "nothing rung" : `rung for ${lead.rungPct}% of what was poured`} · {dollars}{recent}</span></li>;
+  return <li><strong>{lead.name}</strong>
+    <span>{lead.detail === "rung_over"
+      ? `${lead.rungPct != null ? `Rung for ${lead.rungPct}% of what was poured` : "Rung, with no measurable pour"}. A recipe calls for too much, or a button credits it for another bottle`
+      : `Recipes account for ${lead.rungPct ?? 0}% of what was poured. Check the recipe ounces or a missing ingredient`} · {dollars}</span></li>;
+}
+
+function CauseSort({ causes, gradeDays }: { causes: GradeCauseReport; gradeDays: number }) {
+  const sections = CAUSE_SECTIONS.map(s => ({ ...s, leads: causes.leads.filter(l => l.kind === s.kind) })).filter(s => s.leads.length);
+  return <section className="lq-grade-section" aria-label="What the counts point to">
+    <h4>What the counts point to</h4>
+    <p className="lq-muted">Each product judged over {causes.windowDays} days ({gradeDate(causes.windowStart)} – {gradeDate(causes.windowEnd)}), first count to latest, so a misread tenth in between cancels out. Normal counting and pouring differences are left out.</p>
+    {sections.map(s => <div className="lq-grade-evidence-group" key={s.kind}>
+      <h5 className={s.kind === "setup" ? undefined : "lq-grade-short"}>{s.title}</h5>
+      <p className="lq-muted">{s.note}</p>
+      <ul className="lq-grade-causes">{s.leads.map((l, i) => <CauseRow key={`${l.name}:${i}`} lead={l} recentDays={causes.recentDays} />)}</ul>
+    </div>)}
+    {sections.length === 0 && <p>Nothing beyond normal counting and pouring differences over {causes.windowDays} days.</p>}
+    {causes.evenedOut.length > 0 && <p className="lq-muted"><strong>Evened out, counting only:</strong> {causes.evenedOut.map(e => e.name).join(" · ")}. Off in the {gradeDays}-day grade, normal over {causes.windowDays} days.</p>}
+  </section>;
+}
+
 export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
   const [showAll, setShowAll] = useState(false);
   const snapshot = detail.status === "frozen" ? detail.snapshot : null;
@@ -136,6 +176,9 @@ export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
   const endingCorrected = laterCorrections.some(c => !snapshot || c.sessionId === snapshot.endingCountId);
   const lines = rankedGradeLines(snapshot?.lines ?? []);
   const visibleLines = showAll ? lines : lines.slice(0, 8);
+  // Both absent on grades frozen before 2026-11-06; those render as before.
+  const causes = snapshot?.causes?.version === 1 ? snapshot.causes : null;
+  const countUps = snapshot?.graded.countUps ?? [];
 
   return <section className="lq-grade" aria-labelledby="lq-grade-title">
     <div className="lq-grade-heading">
@@ -168,6 +211,7 @@ export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
         </li>)}</ul>
         {snapshot.caveats.length > 0 && <ul>{snapshot.caveats.map((c, i) => <li key={i}>{c}</li>)}</ul>}
       </details>
+      {causes && <CauseSort causes={causes} gradeDays={snapshot.windowDays} />}
       <section className="lq-grade-section" aria-label="Product differences">
         <h4>Follow the dollars</h4>
         <p className="lq-muted">Largest differences first, including parked and excluded products. Open a product for the counts, receipts and sales behind it.</p>
@@ -175,6 +219,11 @@ export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
         {lines.length === 0 && <p className="lq-muted">No product evidence in this snapshot.</p>}
         {lines.length > 8 && <button type="button" className="lq-btn lq-btn-ghost lq-grade-more" onClick={() => setShowAll(v => !v)}>{showAll ? "Show largest 8" : `Show all ${lines.length} products`}</button>}
       </section>
+      {countUps.length > 0 && <section className="lq-grade-section" aria-label="Read a tick fuller">
+        <h4>Read a tick fuller, nothing sold</h4>
+        <p className="lq-muted">Listed, not graded · {money(countUps.reduce((a, u) => a + u.dollars, 0))}</p>
+        <p className="lq-muted">{countUps.map(u => `${u.name} +${number(u.upOz)} oz`).join(" · ")}</p>
+      </section>}
       {snapshot.graded.swaps.length > 0 && <section className="lq-grade-section" aria-label="Possible substitutions">
         <h4>Possible substitution or ring-in mismatch</h4>
         <p className="lq-muted">Opposing differences are review leads. Recheck counts, recipes and POS links before treating a pair as a verified pour.</p>

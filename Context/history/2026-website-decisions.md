@@ -3626,3 +3626,27 @@ closing band at the bottom.
   the source parameters and the click sends `plan_event_click` / `PlanEventClick`.
 - **Read:** the Nov 23 Holiday Events inquiry read annotates this date.
   The change affects all three ads equally, so the A/B/C comparison still holds.
+
+## 2026-11-06 — /cogs grade evidence: "What the counts point to" and count-ups
+
+TPRS #523 (merge `3a97e85b`) froze two new optional fields into the liquor
+grade evidence: `causes` (each product judged over ~8 weeks and sorted by likely
+cause) and `graded.countUps` (unsold bottles that read up to 0.2 bottle fuller,
+parked like unsold drift). The published-grade panel on `/cogs` now shows both,
+read-only, with the email's wording and order.
+
+- **Cause sort:** after "How this grade is calculated" and before "Follow the
+  dollars". Sub-sections appear only when they have rows, in this order:
+  substitution, heavy pours, poured with nothing rung, recipe or button fixes.
+  Rows add the recent-window gap where the email does, then the "Evened out,
+  counting only" line. An empty sort says "Nothing beyond normal counting and
+  pouring differences over N days."
+- **Count-ups:** "Read a tick fuller, nothing sold · listed, not graded", right
+  after "Follow the dollars". Parked drift has no separate list on this page;
+  it shows inline there as "Parked · count drift", and count-up lines carry the
+  same status.
+- **Deliberately NOT done:** the email drops its per-product, swap and by-class
+  sections when causes exist. This page keeps all of them, because it is the
+  evidence surface. Grades frozen before Nov 6 have neither field and render
+  byte-for-byte as before. That was checked against origin/main's component on
+  the frozen, legacy, unavailable and incomplete-attribution fixtures.

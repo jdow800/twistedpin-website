@@ -2051,13 +2051,33 @@ export interface GradeRollup {
   found: { name: string; foundOz: number; dollars: number }[];
   drift: { name: string; driftOz: number; bottles: number; dollars: number;
     persistent: boolean; trailingBottles: number | null }[];
+  /** Unsold bottles that read up to 0.2 bottle fuller: parked, not graded.
+   *  Absent on grades frozen before 2026-11-06. */
+  countUps?: { name: string; upOz: number; bottles: number; dollars: number }[];
   gradedLines: number; excludedLines: number;
+}
+/** One product's difference over the long cause window (tprs variance-causes.ts).
+ *  gapOz/gapBottles/dollars are poured − rung: positive = poured more than rung. */
+export interface GradeCauseLead {
+  kind: "substitution" | "overpour" | "unrung" | "setup"; name: string;
+  /** substitution: the bottle RUNG while `name` was poured */
+  partnerName: string | null;
+  gapOz: number; gapBottles: number; dollars: number;
+  rungPct: number | null; recentGapOz: number | null;
+  detail: "cocktail_under" | "rung_over" | "nothing_rung" | null;
+}
+export interface GradeCauseReport {
+  version: 1; windowStart: string; windowEnd: string; windowDays: number;
+  recentDays: number | null; checked: number; leads: GradeCauseLead[];
+  evenedOut: { name: string; gradeGapBottles: number; longGapBottles: number; gradeDollars: number }[];
 }
 export interface GradeSnapshot extends GradePublishedSummary {
   version: 1; openingCountId: string; endingCountId: string;
   lines: GradeEvidenceLine[]; graded: GradeRollup; caveats: string[];
   driftDays: number | null; trailingUnsoldBottles: [string, number][] | null;
   risata: RisataEvidence | null;
+  /** Differences sorted by likely cause over ~8 weeks; absent before 2026-11-06. */
+  causes?: GradeCauseReport | null;
 }
 export interface GradeCorrection {
   sessionId: string; at: string; by: string | null; reason: string;

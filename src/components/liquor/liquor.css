@@ -44,8 +44,8 @@
 .lq-grade li p { font-size: 12px; margin: 3px 0; }
 .lq-grade a { color: var(--lq-glow); }
 .lq-grade-more { width: 100%; margin-top: 12px; }
-.lq-grade-classes span, .lq-grade-swaps span, .lq-grade-days span { display: block; }
-.lq-grade-classes span, .lq-grade-swaps span { color: var(--lq-muted); }
+.lq-grade-classes span, .lq-grade-swaps span, .lq-grade-causes span, .lq-grade-days span { display: block; }
+.lq-grade-classes span, .lq-grade-swaps span, .lq-grade-causes span { color: var(--lq-muted); }
 .lq-grade-month { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--lq-line); }
 .lq-grade-cost { font-size: 22px !important; font-weight: 700; color: var(--lq-glow); }
 .lq-grade-cost span { font-size: 12px; font-weight: 400; color: var(--lq-muted); }
