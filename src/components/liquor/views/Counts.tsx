@@ -162,7 +162,7 @@ export default function Counts({
     return (
       <div className="lq-invd">
         <button type="button" className="lq-back" onClick={closeDetail}>‹ All counts</button>
-        <h2 className="lq-h2" style={{ textAlign: "left" }}>{s.isFullCount ? "Full inventory" : "Partial count"}</h2>
+        <h2 className="lq-h2" style={{ textAlign: "left" }}>{s.isFullCount ? "Full inventory" : foodCount ? "Spot check" : "Partial count"}</h2>
         {s.status === "draft" && <p className="lq-muted" role="status">Draft · read only</p>}
         <p className="lq-muted lq-invd-meta">
           {when(s.submittedAt || s.startedAt)}{s.countedBy ? ` · ${s.countedBy}` : ""} · {detail.data.lines.length} line{detail.data.lines.length === 1 ? "" : "s"}
@@ -391,7 +391,7 @@ export default function Counts({
           liquor.map((c) => (
             <button key={c.id} type="button" className="lq-invrow" onClick={() => openLiquor(c.id)} disabled={detailLoading}>
               <div className="lq-invrow-main">
-                <span className="lq-invrow-vendor">{c.isFullCount ? "Full inventory" : "Partial count"}</span>
+                <span className="lq-invrow-vendor">{c.isFullCount ? "Full inventory" : section === "food" ? "Spot check" : "Partial count"}</span>
                 <span className="lq-badge lq-badge-confirmed">{c.lineCount} line{c.lineCount === 1 ? "" : "s"}</span>
               </div>
               <div className="lq-invrow-sub lq-muted">{when(c.submittedAt)}{c.countedBy ? ` · ${c.countedBy}` : ""}</div>
