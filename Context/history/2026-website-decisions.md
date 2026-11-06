@@ -1,3 +1,12 @@
+## 2026-11-06 - Fundraisers run 5 to 10pm, not 5 to 9
+
+Jon's ruling (2026-11-06): fundraiser nights now run Thursdays 5–10pm. The old 9pm end (kitchen closes 9, bar 9:30) is retired everywhere.
+
+- `/fundraisers`: hero h2, How It Works list, three FAQ answers (window, "between 5pm and 10pm", raffle "long gone by 10pm"), meta description and Service schema description. `/events` fundraiser line and the `vip-suite.astro` header comment match.
+- `Context/seo.md` canonical fundraiser fact updated.
+- `public/invite-previews/*--fundraiser.html`: the internal sample renders now show 5:00–10:00 PM. Live invitations read the booking's own times from TPRS.
+- Same day, same change: TPRS `FUNDRAISER_END_HOUR` 21 → 22 (new bookings and the 10-lanes-free check cover 5–10), Avery KB + prompts, Roy's KB, the Zite inquiry form's Fundraiser option, and the donation-request auto-reply. Already-booked fundraisers keep their booked times (Jon: existing bookings don't really matter).
+
 ## 2026-11-05 - Food count check asks "more than we've ever had?"
 
 TPRS (tprs PR on branch `feat/food-precheck-outside-usual`) adds a food-only pre-submit finding, `outside_usual`: a product's total, every shelf summed, above 1.25x its history ceiling (the most ever counted plus the biggest delivery, the same ceiling the food voice reader uses). It needs no prior count, so it also speaks on an item's first count and on the baseline walk, where nothing else can see a typo. It is never sent beside `impossible` or `first_count` for the same product.

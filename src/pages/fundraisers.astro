@@ -7,7 +7,7 @@
  * earlier plan to redirect /fundraiser/ → /events/#fundraiser — the
  * mechanics here are operationally specific enough to warrant a
  * dedicated URL with full SEO chrome:
- *   - Thursdays 5–9pm only (recurring window)
+ *   - Thursdays 5–10pm only (recurring window)
  *   - Traditional lanes only — NOT the VIP suite
  *   - Customers must mention the fundraiser at check-in
  *   - 50% of bowling, shoe, AND front-desk arcade-card spend back to host (not just bowling;
@@ -19,7 +19,7 @@
  *     register — confident-and-specific, not corporate-cheerful
  *   - "private" hard-banned — VIP suite is for "booked group events,"
  *     fundraisers run "on the traditional lanes"
- *   - Specifics > adjectives — Thursdays 5–9pm, 50% of bowling/shoe/arcade,
+ *   - Specifics > adjectives — Thursdays 5–10pm, 50% of bowling/shoe/arcade,
  *     all ages, 28-tap self-serve wall
  *
  * Same skeleton as /events (rule of seven — .pillar-* CSS hoist is
@@ -62,7 +62,7 @@ const serviceSchema = {
   name: "Fundraiser Program",
   url: PAGE_URL,
   description:
-    "Twisted Pin returns 50% of supporters' bowling, shoe rental, and front-desk arcade-card spend to host organizations. Thursday nights 5–9pm. Schools, churches, sports teams, charities, community groups in Plainfield, IL and surrounding Will County.",
+    "Twisted Pin returns 50% of supporters' bowling, shoe rental, and front-desk arcade-card spend to host organizations. Thursday nights 5–10pm. Schools, churches, sports teams, charities, community groups in Plainfield, IL and surrounding Will County.",
   provider: { "@id": BUSINESS_ENTITY_ID },
   serviceType: "Fundraiser hosting",
   areaServed: {
@@ -78,7 +78,7 @@ const serviceSchema = {
 const fundraiserFaqs = [
   {
     q: "How does a bowling fundraiser at Twisted Pin work?",
-    answer: "We host, you promote. Pick an open Thursday and spread the word. Every supporter who bowls between 5pm and 9pm and tells the front desk they’re there for your organization sends 50% of their bowling, shoe rental and front-desk arcade cards back to your cause. The more people you get through the door, the more you raise.",
+    answer: "We host, you promote. Pick an open Thursday and spread the word. Every supporter who bowls between 5pm and 10pm and tells the front desk they’re there for your organization sends 50% of their bowling, shoe rental and front-desk arcade cards back to your cause. The more people you get through the door, the more you raise.",
   },
   {
     q: "What does it cost to host?",
@@ -98,7 +98,7 @@ const fundraiserFaqs = [
   },
   {
     q: "Can we hold a raffle or 50/50?",
-    answer: "Yes, as long as the fundraiser has a tax ID. Tell us ahead of time and we’ll set out a table; one rep on site all night helps. Draw winners after the event and announce them online, because the families who came at 5pm are long gone by 9pm.",
+    answer: "Yes, as long as the fundraiser has a tax ID. Tell us ahead of time and we’ll set out a table; one rep on site all night helps. Draw winners after the event and announce them online, because the families who came at 5pm are long gone by 10pm.",
   },
   {
     q: "When and how do we get paid?",
@@ -106,7 +106,7 @@ const fundraiserFaqs = [
   },
   {
     q: "Which Thursdays are open?",
-    answer: "Fundraisers run Thursdays only, 5pm to 9pm, one organization per night. We skip holidays and school days off. Tell us the month you’re eyeing and we’ll send back the open Thursdays.",
+    answer: "Fundraisers run Thursdays only, 5pm to 10pm, one organization per night. We skip holidays and school days off. Tell us the month you’re eyeing and we’ll send back the open Thursdays.",
   },
   {
     q: "How do we get the word out?",
@@ -124,7 +124,7 @@ const faqSchema = {
 ---
 <Base
   title="Bowling Fundraisers in Plainfield, IL | Twisted Pin"
-  description="Bowling fundraisers, Thursdays 5–9pm: 50% of your supporters' bowling, shoes and front-desk arcade cards back to your cause. Plainfield, IL."
+  description="Bowling fundraisers, Thursdays 5–10pm: 50% of your supporters' bowling, shoes and front-desk arcade cards back to your cause. Plainfield, IL."
   lcpPreloadHref="/snap/summer-pass-poster.avif"
   lcpPreloadMedia="(max-width: 1024px)"
 >
@@ -176,7 +176,7 @@ const faqSchema = {
       <div class="fundraiser-section-copy">
         <p class="t-eyebrow">How It Works</p>
         <h2 class="t-display fundraiser-section-title" id="fundraiser-how-h2">
-          Thursdays, 5–9pm. We host. You promote.
+          Thursdays, 5–10pm. We host. You promote.
         </h2>
         <p class="fundraiser-section-aside">(no setup fee, no minimums)</p>
 
@@ -195,7 +195,7 @@ const faqSchema = {
         </p>
 
         <ul class="fundraiser-section-list">
-          <li>Pick an open Thursday, 5pm to 9pm</li>
+          <li>Pick an open Thursday, 5pm to 10pm</li>
           <li>Promote it to your supporters</li>
           <li>Supporters bowl, eat, drink, play arcade</li>
           <li>They say your organization's name at the front desk — for bowling and arcade cards</li>
