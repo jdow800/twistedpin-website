@@ -3565,3 +3565,22 @@ Jon approved this on Nov 5, out of the SEO/Ads deep dive
   and click a "plan your event" link; the Zite URL should carry both. In Meta
   Events Manager → Test Events, a Plan an Event click shows `PlanEventClick`,
   and a submitted test inquiry shows `Lead` from twistedevents.zite.so.
+
+## 2026-11-05 — /corporate-events/ wording back to "Corporate Events & Team Outings"
+
+Jon chose this on Nov 5 (option B) over keeping GrokBot's 10/17 "Team building
+near Naperville" rewrite. It reapplies PR #93's wording on current main; #93 was
+closed because its branch predated the lane-phrasing rule and its meta said
+"six-lane".
+
+- **Changed:** title "Corporate Events & Team Outings in Plainfield, IL | Twisted
+  Pin", meta, eyebrow "Team Outings · Corporate Events", H1 "Not your average
+  team outing.", intro, and the Service JSON-LD name. The meta has no lane count
+  or capacity.
+- **Kept:** the Naperville links, regional copy and the Naperville blog guide in
+  the body.
+- **A wording call, not a data one.** PR #93 said company-event inquiries fell
+  from about six a week to none after 10/17. The 11/5 deep dive found one zero
+  week (10/19), then 3 and 6. Corporate leads mostly enter on the homepage, and
+  this page gets almost no organic clicks either way. The Team Outings ad
+  headline ("Team Outings in Plainfield") now matches its landing page again.
