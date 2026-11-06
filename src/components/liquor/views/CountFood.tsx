@@ -330,11 +330,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // is the whole point of offering it.
   const [locAnswer, setLocAnswer] = useState<Record<string, "added" | "kept">>({});
   // What this walk WAS. Asked at Finish, because that is when the counter
-  // knows. Defaults to a trial: a shakedown of a few zones is the common
-  // case early on, and the expensive mistake runs the other way — a partial
-  // walk recorded as a full count becomes the bracket baseline and every
-  // unwalked zone reads as stock that vanished.
-  const [fullCount, setFullCount] = useState(false);
+  // knows. Defaults to the whole kitchen since the 11/5 baseline (Jon
+  // 2026-11-06: "we just need to graduate out of trial"): a real inventory
+  // left on the old trial default started no period and sent no food cost
+  // email. A spot check of a few shelves stays one tap away, and the
+  // unvisited-shelves warning below still guards the opposite mistake, a
+  // partial walk recorded as a full count.
+  const [fullCount, setFullCount] = useState(true);
   // Answers to "you didn't count these", keyed by sku.
   const [missedAnswer, setMissedAnswer] = useState<Record<string, "archived" | "counting">>({});
   // "None left" on a discontinued row (tprs 0196), keyed by sku. Archived rows
@@ -1464,7 +1466,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       setAdded({});
       setSearch("");
       setQueuedZone(null);
-      setFullCount(false);
+      setFullCount(true);
       setScanNote(true);
       setReview(null);
       appliedVoiceRowsRef.current = new WeakSet();
@@ -2648,22 +2650,22 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
               <input
                 type="radio"
                 name="countkind"
-                checked={!fullCount}
-                onChange={() => setFullCount(false)}
+                checked={fullCount}
+                onChange={() => setFullCount(true)}
               />
               <span>
-                <strong>Trial / partial count</strong><br />Saved for reference. Does not start an inventory period.
+                <strong>Whole kitchen</strong><br />Every shelf checked. Starts the inventory period and sends the food cost email.
               </span>
             </label>
             <label className="lq-fc-kind-opt">
               <input
                 type="radio"
                 name="countkind"
-                checked={fullCount}
-                onChange={() => setFullCount(true)}
+                checked={!fullCount}
+                onChange={() => setFullCount(false)}
               />
               <span>
-                <strong>Whole kitchen</strong><br />Every shelf checked. Starts the inventory period.
+                <strong>Spot check</strong><br />A few shelves, to catch problems. Saved for reference. Does not start an inventory period.
               </span>
             </label>
             {/* ⚠ THE ONLY CHECK THAT KNOWS ABOUT SHELVES NOBODY VISITED.
