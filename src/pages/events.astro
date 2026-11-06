@@ -19,7 +19,8 @@
  *
  * Same skeleton as /bar /eat /vip-suite (rule of four — .pillar-* CSS
  * hoist is now overdue):
- *   - Hero: typography-led title section (no image)
+ *   - Hero: typography-led title section (no image), with a "Plan an event"
+ *     button since 2026-11-06 (it was only in the closing band before)
  *   - Two long-scroll editorial sections (image + copy, alternating)
  *   - Closing CTA band (NEW pattern for this page — single dominant
  *     "Plan an event" CTA → Zite)
@@ -100,6 +101,9 @@ const eventVenueSchema = {
         Take over the semi-private VIP suite. In-house catering. The bar program
         your guests will text you about the next morning.
       </p>
+      <div class="events-hero-actions">
+        <a class="btn btn-solid" href={PLAN_EVENT_URL} target="_blank" rel="noopener">Plan an event</a>
+      </div>
     </div>
   </section>
 
@@ -346,6 +350,17 @@ const eventVenueSchema = {
   }
 
   /* .hero-fade hoisted to global.css (2026-05-08 LCP fix). */
+
+  /* Hero "Plan an event" (2026-11-06): same pattern as /holiday-parties.
+     Meta's Holiday Events ads land 72% of their clicks here, and on 11/6
+     0 of 232 visits reached the form, whose only button sat at the bottom.
+     No hero-fade on the button, so it is visible immediately. */
+  .events-hero-actions { margin-top: 24px; }
+  .events-hero-actions .btn {
+    max-width: 100%;
+    white-space: normal;
+    text-align: center;
+  }
 
   /* ============================================================
      section pattern (same shape as .vip-section etc.)

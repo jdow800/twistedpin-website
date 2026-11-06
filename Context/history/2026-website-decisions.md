@@ -3609,3 +3609,20 @@ closed because its branch predated the lane-phrasing rule and its meta said
   week (10/19), then 3 and 6. Corporate leads mostly enter on the homepage, and
   this page gets almost no organic clicks either way. The Team Outings ad
   headline ("Team Outings in Plainfield") now matches its landing page again.
+
+## 2026-11-06 — /events/: "Plan an event" button in the hero
+
+Jon approved this on Nov 6. The day-7 review of Meta's Holiday Events ads
+(`Twisted Pin Full System/Marketing/Advertising/2026-11-06-meta-review/HOLIDAY-EVENTS-DAY7.md`)
+found the ads healthy at $0.32–0.40 per landing-page view. But after the click,
+0 of 232 visits reached the inquiry form, and visits averaged about 3 seconds.
+`/events/` takes 72% of that traffic, and its only form button sat in the
+closing band at the bottom.
+
+- **Change:** a "Plan an event" button under the hero sub, using the
+  `/holiday-parties/` hero pattern. It has no `hero-fade`, so it shows at once.
+  The closing band stays.
+- **Tracking:** the button points at `PLAN_EVENT_URL`, so the passthrough adds
+  the source parameters and the click sends `plan_event_click` / `PlanEventClick`.
+- **Read:** the Nov 23 Holiday Events inquiry read annotates this date.
+  The change affects all three ads equally, so the A/B/C comparison still holds.
