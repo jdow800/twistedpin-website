@@ -154,6 +154,8 @@ export interface LaborReview {
   withdrawnQuestionCount?:number;
   previousReviewStatus?:{id:string;weekStart:string;answered:number;unanswered:number;ownerRequests:number};
   daily?:DailyLaborMetric[];
+  /** Jon 2026-11-08: the Thursday email's catered-party lines, computed by TPRS (empty or absent without parties). */
+  eventLaborLines?:string[];
   metric: {percent:number|null;estimate:boolean;label:string;exclusions:string;issues:string[];salesCents:number|null;laborCents:number|null;hourlyWagesCents?:number|null;managementSalaryCents?:number|null;salesReady?:boolean;laborReady?:boolean;hourlyReady?:boolean;salaryReady?:boolean;amountsReady?:boolean;provisional?:ProvisionalLabor;financialResolution?:FinancialResolution};
   questions: ReviewQuestion[];
   recap?:{completedAt:string;dueAt:string;state:"pending"|"cancelled"|"enqueued";emailOutboxId:string|null}|null;

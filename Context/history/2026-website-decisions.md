@@ -1,3 +1,13 @@
+## 2026-11-08 - /labor shows the catered-party lines from the Thursday email
+
+Jon asked to show event labor on the `/labor` review page too ("would you add it there"). TPRS (tprs #530) now finds the labor behind each catered party and adds up to two lines under the Thursday email's daily table. Those lines report the event labor found and the regular-business labor %, plus an absorbed, incomplete or unresolved flag when needed. Its `readReview` returns the same lines as `eventLaborLines`.
+
+- `api.ts` adds the optional `eventLaborLines`.
+- `WeeklyOverview.tsx` renders them under the daily table, one per line (`.lr-event-labor`, `review-pilot.css`). `ReviewPilot.tsx` passes them through.
+- The lines are TPRS's own text, so the page and the email can't drift apart. Without parties, or before tprs #530 deploys, nothing renders.
+- Each Thursday question already shows its full text, so its "Also booked: …" line (tprs #528/#532) appears on the page with no change.
+- Checked locally: the changed components typecheck, and a server render shows both lines under the table and nothing without them.
+
 ## 2026-11-06 - Fundraisers run 5 to 10pm, not 5 to 9
 
 Jon's ruling (2026-11-06): fundraiser nights now run Thursdays 5–10pm. The old 9pm end (kitchen closes 9, bar 9:30) is retired everywhere.
