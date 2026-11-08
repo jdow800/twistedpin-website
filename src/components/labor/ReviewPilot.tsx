@@ -77,7 +77,7 @@ export default function ReviewPilot() {
       <section className="lr-week-numbers" aria-label="The week's labor">
         <WeeklyLaborMetric metric={review.metric}/>
         {review.packet.trend?.percent!=null?<p className="lr-small">4-week labor: {review.packet.trend.percent.toFixed(1)}%</p>:null}
-        <WeeklyOverview days={review.daily??[]}/>
+        <WeeklyOverview days={review.daily??[]} eventLaborLines={review.eventLaborLines??[]}/>
         <details className="lr-calculation" id="labor-calculation">
           <summary>How it's measured</summary>
           <div className="lr-detail-body"><p>{review.metric.label}. {review.metric.exclusions}</p><p>{review.packet.basisNotes}</p>

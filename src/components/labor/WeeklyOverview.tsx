@@ -4,7 +4,7 @@ const day=(date:string)=>new Date(date+'T12:00:00Z').toLocaleDateString('en-US',
 const money=(value:number|null,ready=true)=>value===null||!ready?'Pending':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(value/100);
 /** Jon Oct15: cut the paragraphs, keep the visuals ("I like the table - visual elements are good").
  * One bar per day, then the daily dollar table. Shares are comparison points, not daily targets, so no day is ranked. */
-export default function WeeklyOverview({days}:{days:DailyLaborMetric[]}){
+export default function WeeklyOverview({days,eventLaborLines=[]}:{days:DailyLaborMetric[];eventLaborLines?:string[]}){
  if(!days.length)return null;
  const available=days.filter(d=>!hasPendingAmounts(d)&&d.salesCents!>0&&hourlyAmountReady(d)&&salaryAmountReady(d));
  const hasProvisional=days.some(includesEstimate);
@@ -21,5 +21,6 @@ export default function WeeklyOverview({days}:{days:DailyLaborMetric[]}){
    const partial=hasUnresolvedWages(d)?d.financialResolution!.resolvedHourlyWagesCents:null;
    return <tr key={d.date}><th scope="row">{day(d.date)}</th><td>{money(d.salesCents,d.salesReady)}</td><td>{partial!==null?<>{money(partial)}{mark(d)}<small>Partial</small></>:<>{money(d.hourlyWagesCents,hourlyAmountReady(d))}{hourlyAmountReady(d)?mark(d):''}</>}</td><td>{money(d.managementSalaryCents,salaryAmountReady(d))}</td><td>{money(d.laborCents,d.laborReady&&!hasUnresolvedWages(d))}{d.laborReady&&!hasUnresolvedWages(d)?mark(d):''}<small>{percentDisplay(d)}{!hasPendingAmounts(d)?mark(d):''}</small></td></tr>;
   })}</tbody></table></div>
+  {eventLaborLines.length?<p className="lr-event-labor" aria-label="Catered parties">{eventLaborLines.map(line=><span key={line}>{line}</span>)}</p>:null}
  </section>;
 }
