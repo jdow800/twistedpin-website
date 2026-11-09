@@ -30,11 +30,12 @@ try{
       assert.equal(config.provider,'FakeRail');assert.equal(config.paymentMode,'simulation');
       assert.equal(await page.locator('.room-choice').count(),2);
       await page.locator('.room-choice').filter({hasText:room}).click();
-      await page.getByRole('button',{name:'More',exact:true}).click();
       const primary=()=>page.locator('.brand-continue');
       await primary().click();await page.getByRole('heading',{name:'Choose your time.',exact:true}).waitFor();
       assert.equal(await page.locator('.time-choice').count(),5);
+      // The lane count opens under the chosen time.
       await page.locator('.time-choice').nth(room==='VIP'?0:1).click();
+      await page.getByRole('button',{name:'More',exact:true}).click();
       await page.waitForFunction(()=>{const b=document.querySelector('.brand-continue');return b&&!b.disabled;});
       await primary().click();
       await page.getByRole('heading',{name:/Choose your pizza & soda\.|Add arcade play\./}).waitFor();

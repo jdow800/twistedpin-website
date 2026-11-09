@@ -136,10 +136,10 @@ export const AVAILABILITY_READ_TIMEOUT_MS = 8_000;
 
 // Only disposable browsing reads get a deadline. Cart reads, payment status,
 // discovery and every mutation retain their existing recovery semantics.
-async function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
+async function getJson(path: string, signal?: AbortSignal, cache?: RequestCache): Promise<unknown> {
   const bounded = /^\/api\/products(?:\?|\/bookable(?:\?|$))/.test(path)
     || /^\/api\/availability(?:\?|\/)/.test(path);
-  if (!bounded) return readJsonResponse(path, signal);
+  if (!bounded) return readJsonResponse(path, signal, cache);
   const controller = new AbortController();
   const onAbort = () => controller.abort(signal?.reason);
   signal?.addEventListener("abort", onAbort, { once: true });
@@ -154,14 +154,14 @@ async function getJson(path: string, signal?: AbortSignal): Promise<unknown> {
   try {
     // Keep the deadline through body parsing, not just response headers. Racing
     // also settles callers when a transport does not promptly honour abort.
-    return await Promise.race([readJsonResponse(path, controller.signal), deadline]);
+    return await Promise.race([readJsonResponse(path, controller.signal, cache), deadline]);
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
   }
 }
 
-async function readJsonResponse(path: string, signal?: AbortSignal): Promise<unknown> {
+async function readJsonResponse(path: string, signal?: AbortSignal, cache?: RequestCache): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(buildUrl(path), {
@@ -169,6 +169,8 @@ async function readJsonResponse(path: string, signal?: AbortSignal): Promise<unk
       // Carry the cart-token cookie when it exists (Slice 2); harmless on reads.
       credentials: "include",
       signal,
+      // An explicit recheck must not reuse the browser's stale-while-revalidate copy.
+      ...(cache && { cache }),
     });
   } catch (err) {
     throw new TprsApiError(
@@ -380,16 +382,19 @@ export async function getMonthAvailability(
   );
 }
 
-/** GET /api/availability — per-slot price + boolean availability for one date. */
+/** GET /api/availability — per-slot price + boolean availability for one date.
+ * `fresh` revalidates with the server instead of reusing the browser's copy. */
 export async function getAvailability(
   productId: string,
   date: string, // YYYY-MM-DD
   signal?: AbortSignal,
+  options?: { fresh?: boolean },
 ): Promise<AvailabilityResponse> {
   return availabilityResponseSchema.parse(
     await getJson(
       `/api/availability?product_id=${productId}&date=${date}`,
       signal,
+      options?.fresh ? "no-cache" : undefined,
     ),
   );
 }

@@ -72,13 +72,16 @@ try{
   const primary=page=>page.locator('.brand-continue');
   const state=page=>page.evaluate(()=>window.fixtureState());
   const count=async(page,path)=>(await state(page)).calls.filter(c=>c.path===path).length;
+  // Polls from Node: waitForFunction re-checks through eval, which this page's CSP forbids.
+  async function until(check,label){for(let n=0;n<100;n++){if(await check())return;await new Promise(r=>setTimeout(r,100));}throw new Error(`Timed out waiting: ${label}`);}
   async function ready(page){await page.locator('.brand-continue:enabled').waitFor();}
+  // Lane type, then time, then the lane count that opens under the chosen time.
   async function choose(page,room=126,quantity=1,time='15:00'){
     await page.locator('.room-choice').filter({hasText:room===124?'VIP suite':'Traditional'}).click();
-    for(let n=1;n<quantity;n++)await page.getByRole('button',{name:'More',exact:true}).click();
-    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),String(quantity));
     await primary(page).click();await page.getByRole('heading',{name:'Choose your time.',exact:true}).waitFor();
     await page.locator('.time-choice').nth(parties.findIndex(([t])=>t===time)).click();await ready(page);
+    for(let n=1;n<quantity;n++)await page.getByRole('button',{name:'More',exact:true}).click();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),String(quantity));await ready(page);
   }
   async function hold(page){await primary(page).click();await page.getByRole('heading',{name:'Add arcade play.',exact:true}).waitFor();}
   async function food(page){await page.getByRole('button',{name:'Continue without arcade',exact:true}).click();await page.getByRole('heading',{name:'Choose your pizza & soda.',exact:true}).waitFor();}
@@ -261,15 +264,154 @@ try{
       assert.deepEqual(request.customer,originalDraft.guest);await page.context().close();
     }
   });
-  await scenario('Partial inventory preserves two requested lanes and offers choices without a false sold-out stamp',async()=>{
-    const page=await fresh({capacity:{'126/15:00':1}});await choose(page);await page.getByRole('button',{name:'More',exact:true}).click();
-    await page.getByRole('heading',{name:'Only 1 Traditional lane is available at 3:00 PM.',exact:true}).waitFor();
-    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');assert.equal(await page.getByText(/sold out/i).count(),0);
-    assert.match(await primary(page).innerText(),/^Review other options/);await primary(page).click();await page.locator('.alternative').first().waitFor();
-    assert.equal(await count(page,'/api/cart/replace'),0);await screenshot(page,'shortage',390);await screenshot(page,'shortage',320);await page.context().close();
+  await scenario('Lane count stops at the lanes left, says so, prices only what can be reserved and rechecks on every change',async()=>{
+    const page=await fresh({capacity:{'126/15:00':1}});await choose(page);
+    assert.equal(await page.getByRole('button',{name:'More',exact:true}).isDisabled(),true,'The count cannot pass the lanes left');
+    await page.getByText("That's the last Traditional lane at 3:00 PM.",{exact:true}).waitFor();
+    assert.equal(await page.getByText(/sold out/i).count(),0);assert.equal(await page.locator('.recovery-panel').count(),0);
+    assert.match(await primary(page).innerText(),/^Continue with 1 Traditional lane/);assert.match(await page.locator('.checkout-footer').innerText(),/\$149\.95/);
+    assert.match(await page.locator('.time-lanes').innerText(),/Up to 5 guests total/);assert.equal(await page.getByText(/Need more room/).count(),0);
+    assert.equal(await count(page,'/api/cart/replace'),0);await screenshot(page,'lane-cap',390);await screenshot(page,'lane-cap',320);
+    await page.evaluate(()=>window.configure({capacity:{'126/15:00':3}}));
+    await page.locator('.time-choice').nth(1).click();await ready(page);await page.locator('.time-choice').nth(2).click();await ready(page);
+    const probes=await count(page,'/api/availability/slot');
+    await page.getByRole('button',{name:'More',exact:true}).click();await page.getByRole('button',{name:'More',exact:true}).click();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');await ready(page);
+    await until(async()=>await count(page,'/api/availability/slot')>=probes+2,'a recheck per count change');
+    assert.equal(await page.getByRole('button',{name:'More',exact:true}).isDisabled(),true);await page.context().close();
+  });
+  await scenario('A carried-over count above a time\'s lanes left is kept, never priced, and lowered only by the guest or the fit review',async()=>{
+    const page=await fresh({capacity:{'124/17:00':2}});await choose(page,124,4);
+    await page.locator('.time-choice').nth(3).click();
+    await page.getByText('Only 2 VIP lanes are left at 5:00 PM. You have 4 selected.',{exact:true}).waitFor();
+    await until(()=>page.evaluate(()=>{const box=document.querySelector('.time-lanes')?.getBoundingClientRect(),bar=document.querySelector('.checkout-footer')?.getBoundingClientRect();
+      return !!box&&!!bar&&box.bottom<=bar.top&&box.top>=0;}),'lane box clear of the footer');
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4','The request is never lowered for the guest');
+    const footer=await page.locator('.checkout-footer').innerText();assert.match(footer,/Only 2 left/);assert.doesNotMatch(footer,/\$\d/,'No price for lanes that are not there');
+    assert.equal(await page.locator('.recovery-panel').count(),0,'The note under the time carries this case');
+    assert.match(await primary(page).innerText(),/^Review other options/);await screenshot(page,'lane-over',390);
+    await page.getByRole('button',{name:'Use 2 VIP lanes',exact:true}).click();await page.getByRole('heading',{name:'Review your change.',exact:true}).waitFor();
+    const headcount=page.locator('.change-review input[type=number]');await headcount.waitFor();
+    assert.equal(await primary(page).isDisabled(),true,'Fewer lanes wait for the group-fit answer');
+    await headcount.fill('13');assert.equal(await primary(page).isDisabled(),true);await headcount.fill('12');await ready(page);
+    await page.getByRole('button',{name:'Keep my original choice',exact:true}).click();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4');
+    await page.getByRole('button',{name:'Fewer',exact:true}).click();assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');
+    await page.getByRole('button',{name:'Fewer',exact:true}).click();assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');
+    await page.getByText("That's every VIP lane left at 5:00 PM.",{exact:true}).waitFor();await ready(page);
+    assert.match(await page.locator('.checkout-footer').innerText(),/\$399\.90/);assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
+  });
+  await scenario('A restored draft keeps its count when lanes left dropped, without pricing it',async()=>{
+    const page=await fresh();await choose(page,124,4);
+    await until(()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')??'{}').quantity===4),'draft saved');
+    await page.evaluate(()=>window.configure({capacity:{'124/15:00':2}}));await page.reload();
+    await page.getByText('Only 2 VIP lanes are left at 3:00 PM. You have 4 selected.',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4');assert.doesNotMatch(await page.locator('.checkout-footer').innerText(),/\$\d/);
+    assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).quantity),4);
+    assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
+  });
+  await scenario('Returning to the tab and Check again refresh held times and lanes left',async()=>{
+    const page=await fresh({unavailable:['126/13:00'],unavailableReasons:{'126/13:00':'held'}});await choose(page);
+    await page.locator('.time-recheck').waitFor();assert.equal(await page.locator('.time-choice').nth(1).isDisabled(),true);
+    const probes=await count(page,'/api/availability/slot'),grids=await count(page,'/api/availability');
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await until(async()=>await count(page,'/api/availability/slot')>probes&&await count(page,'/api/availability')>grids,'tab-return recheck');
+    await page.evaluate(()=>window.configure({unavailable:[]}));
+    await page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true}).click();
+    await page.locator('.time-choice').nth(1).and(page.locator(':enabled')).waitFor();
+    assert.equal(await page.locator('.time-recheck').count(),0,'No recheck once nothing can reopen');await page.context().close();
+  });
+  await scenario('A chosen time that fills while open goes straight to options from the footer',async()=>{
+    const page=await fresh();await choose(page,124,2);
+    await page.evaluate(()=>window.configure({unavailable:['124/15:00'],unavailableReasons:{'124/15:00':'sold_out'},capacity:{'124/15:00':0}}));
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await page.getByRole('heading',{name:'3:00 PM is no longer available.',exact:true}).waitFor();
+    assert.equal(await page.locator('.time-lanes').count(),0);assert.doesNotMatch(await page.locator('.checkout-footer').innerText(),/\$\d/);
+    await ready(page);assert.match(await primary(page).innerText(),/^Review other options/);await primary(page).click();
+    await page.locator('.alternative').first().waitFor();assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
+  });
+  await scenario('A slower lower lanes-left answer never lets a hold use the superseded one; a failed check keeps the request',async()=>{
+    const page=await fresh();await choose(page,126,1);
+    await page.evaluate(()=>window.configure({capacity:{'126/15:00':2},delayProbeMs:1200}));
+    await page.getByRole('button',{name:'More',exact:true}).click();await page.getByRole('button',{name:'More',exact:true}).click();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');
+    assert.equal(await primary(page).isDisabled(),true,'Continue waits for the answer to this count');
+    await page.getByText('Only 2 Traditional lanes are left at 3:00 PM. You have 3 selected.',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');assert.equal(await count(page,'/api/cart/replace'),0);
+    await page.evaluate(()=>window.configure({delayProbeMs:0,unknown:['126/15:00']}));
+    await page.getByRole('button',{name:'Fewer',exact:true}).click();
+    await page.getByText('We could not check the lanes left at this time.',{exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');assert.equal(await primary(page).isDisabled(),true);
+    await page.evaluate(()=>window.configure({unknown:[]}));
+    await page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true}).click();await ready(page);
+    assert.match(await primary(page).innerText(),/^Continue with 2 Traditional lanes/);assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
+  });
+  await scenario('Grid refreshes apply only the latest; a failing room keeps its last times and says so',async()=>{
+    const page=await fresh({unavailable:['126/13:00'],unavailableReasons:{'126/13:00':'held'}});await choose(page);
+    const recheck=page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true});
+    await page.evaluate(()=>window.configure({availabilityDelays:[1500,1500]}));await recheck.click();
+    await page.evaluate(()=>window.configure({unavailable:[]}));await recheck.click();
+    await page.locator('.time-choice').nth(1).and(page.locator(':enabled')).waitFor();await page.waitForTimeout(2000);
+    assert.equal(await page.locator('.time-choice').nth(1).isDisabled(),false,'An older, slower refresh never overwrites a newer one');
+    await page.evaluate(()=>window.configure({unavailable:['126/11:00'],failAvailabilityFor:[124]}));
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await page.getByText(/We could not refresh every time just now/).waitFor();
+    assert.equal(await page.locator('.time-choice').nth(0).isDisabled(),true,'The healthy room still applies');
+    await page.evaluate(()=>window.configure({unavailable:[],failAvailabilityFor:[124,126]}));
+    await page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true}).click();await page.waitForTimeout(700);
+    assert.equal(await page.locator('.time-choice').nth(0).isDisabled(),true,'Both rooms failing keeps the last times');
+    await page.getByText(/We could not refresh every time just now/).waitFor();await page.context().close();
+  });
+  await scenario('A sold-out time that reopens comes back on Check availability again',async()=>{
+    const page=await fresh({unavailable:['126/13:00'],unavailableReasons:{'126/13:00':'sold_out'}});await choose(page);
+    assert.match(await page.locator('.time-choice').nth(1).innerText(),/SOLD OUT/);
+    await page.evaluate(()=>window.configure({unavailable:[]}));
+    await page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true}).click();
+    await page.locator('.time-choice').nth(1).and(page.locator(':enabled')).waitFor();
+    assert.equal(await page.getByText('SOLD OUT',{exact:true}).count(),0);await page.context().close();
+  });
+  await scenario('Accepting "Use 2 VIP lanes" through the fit review holds exactly 2 lanes',async()=>{
+    const page=await fresh({capacity:{'124/17:00':2}});await choose(page,124,4);
+    await page.locator('.time-choice').nth(3).click();await page.getByRole('button',{name:'Use 2 VIP lanes',exact:true}).click();
+    await page.locator('.change-review input[type=number]').fill('12');await ready(page);await primary(page).click();
+    await page.getByRole('heading',{name:'Add arcade play.',exact:true}).waitFor();
+    const cart=(await state(page)).cart;assert.equal(cart.items[0].quantity,2);assert.equal(cart.items[0].startTime,'2026-12-31T17:00:00-06:00');await page.context().close();
+  });
+  await scenario('A delayed refresh while lanes are held leaves the mutation, deadline and food answers unchanged',async()=>{
+    const page=await fresh({},'America/Chicago',1440);await choose(page,126,2);await hold(page);await food(page);await fillFood(page,2);
+    const prior=(await state(page)).cart,writes=await count(page,'/api/cart/replace'),answers=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).answers);
+    await page.evaluate(()=>window.configure({availabilityDelays:[1200,1200],unavailable:['126/17:00']}));
+    await page.getByRole('navigation',{name:'Booking steps'}).getByRole('button',{name:'Party time',exact:true}).click();
+    await page.getByRole('heading',{name:'Choose your time.',exact:true}).waitFor();
+    await page.locator('.time-choice').nth(3).and(page.locator(':disabled')).waitFor();
+    assert.deepEqual((await state(page)).cart,prior);assert.equal(await count(page,'/api/cart/replace'),writes);
+    assert.deepEqual(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).answers),answers);
+    await page.getByRole('button',{name:'Keep my held lanes',exact:true}).click();await page.locator('.tprs-nye-pair').first().waitFor();
+    assert.equal(await page.getByRole('radio',{checked:true}).count(),2);await page.context().close();
+  });
+  await scenario('Only a confirmed sellout is stamped SOLD OUT; held, closed and unexplained times stay neutral and cannot be chosen',async()=>{
+    const page=await fresh({unavailable:['126/11:00','126/13:00','126/17:00','126/19:30'],unavailableReasons:{'126/11:00':'sold_out','126/13:00':'held','126/17:00':'closed'}});
+    await page.locator('.room-choice').filter({hasText:'Traditional'}).click();await primary(page).click();await page.getByRole('heading',{name:'Choose your time.',exact:true}).waitFor();
+    const rows=page.locator('.time-choice');await rows.nth(5).waitFor();
+    assert.equal(await page.getByText('SOLD OUT',{exact:true}).count(),1);assert.match(await rows.nth(0).innerText(),/SOLD OUT/);
+    for(const [n,label] of [[1,'Currently held'],[3,'Online booking closed'],[4,'Unavailable right now']]){
+      assert.match(await rows.nth(n).innerText(),new RegExp(label));assert.doesNotMatch(await rows.nth(n).innerText(),/SOLD OUT/);
+    }
+    for(const n of [0,1,3,4]){assert.equal(await rows.nth(n).isDisabled(),true);assert.doesNotMatch(await rows.nth(n).innerText(),/\$/,'No price on a time that cannot be booked');}
+    assert.equal(await page.locator('.time-lanes').count(),0,'No lane count before a time is chosen');assert.match(await primary(page).innerText(),/^Choose a time/);
+    assert.equal(await page.locator('.time-recheck').getByRole('button',{name:'Check availability again',exact:true}).count(),1,'Sold-out, held and unexplained times can be rechecked');
+    assert.equal(await primary(page).isDisabled(),true);
+    for(const width of [320,390,1440])await screenshot(page,'time-states',width);
+    await rows.nth(2).click();await ready(page);assert.equal(await page.locator('.time-lanes').count(),1);await page.context().close();
   });
   await scenario('Four VIP lanes convert to a capacity-safe five Traditional only after explicit review and acceptance',async()=>{
-    const page=await fresh({capacity:{'124/15:00':2}});await choose(page,124,4);await primary(page).click();
+    // A time that empties after the guest chose it is the remaining shortage path.
+    const page=await fresh();await choose(page,124,4);await page.evaluate(()=>window.configure({capacity:{'124/15:00':0}}));
+    await page.locator('.time-choice').nth(1).click();await ready(page);await page.locator('.time-choice').nth(2).click();
+    await page.getByRole('heading',{name:'No VIP lanes are open at 3:00 PM right now.',exact:true}).waitFor();
+    assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4','No lanes left never lowers the request');
+    assert.equal(await page.getByText(/sold out/i).count(),0);await screenshot(page,'shortage',390);await screenshot(page,'shortage',320);
+    assert.match(await primary(page).innerText(),/^Review other options/);await primary(page).click();
     const alternative=page.locator('.alternative').filter({hasText:'5 Traditional lanes'});await alternative.waitFor();await alternative.click();
     await page.getByRole('heading',{name:'Review your change.',exact:true}).waitFor();await ready(page);
     assert.equal(await count(page,'/api/cart/replace'),0);assert.equal(await page.locator('.change-review input[type=number]').count(),0);
@@ -293,7 +435,10 @@ try{
   });
   await scenario('Unknown alternative capacity never becomes a false sellout or a claim that nothing fits',async()=>{
     const unknown=parties.filter(([time])=>time!=='15:00').map(([time])=>`124/${time}`).concat('126/15:00');
-    const page=await fresh({capacity:{'124/15:00':2},unknown});await choose(page,124,4);await primary(page).click();
+    const page=await fresh({unknown});await choose(page,124,4);await page.evaluate(()=>window.configure({capacity:{'124/15:00':0}}));
+    await page.locator('.time-choice').nth(1).click();await page.getByRole('heading',{name:'We could not check these lanes.',exact:true}).waitFor();
+    await page.locator('.time-choice').nth(2).click();await page.getByRole('heading',{name:'No VIP lanes are open at 3:00 PM right now.',exact:true}).waitFor();
+    await ready(page);await primary(page).click();
     await page.getByText('No verified alternatives right now. Try checking again, or choose another party time.',{exact:true}).waitFor();
     assert.equal(await page.getByText(/sold out|No other party currently fits/i).count(),0);assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
   });

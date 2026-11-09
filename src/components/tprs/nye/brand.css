@@ -269,6 +269,35 @@ body:has(.nye-brand)::before { display: none; }
 .nye-brand .time-list > .time-choice > span:last-child { grid-column: 3; color: var(--brand-soft); font-size: 12px; line-height: 1.5; text-align: right; max-width: 100px; }
 .nye-brand .time-list > .time-choice > span:last-child > strong { display: block; font-size: 17px; color: var(--paper); }
 .nye-brand .time-list > .time-choice > span:last-child > span { display: block; margin-top: 5px; }
+/* A time that can't be booked reads as closed at a glance: no radio, a quieter
+   time, and a SOLD OUT stamp (only when TPRS confirms it) or a short state where
+   the price was. The lane count opens under the chosen time. */
+.nye-brand { --sold-stamp: #ffad66; --sold-stamp-bg: transparent; }
+.nye-brand .time-list > .time-choice:disabled { cursor: not-allowed; }
+.nye-brand .time-list > .time-choice.is-unavailable::before { visibility: hidden; }
+.nye-brand .time-list > .time-choice.is-unavailable > span:first-child > strong { color: var(--brand-soft); font-weight: 500; }
+.nye-brand .time-list > .time-choice > span:last-child > .sold-stamp { display: inline-block; margin: 0; padding: 4px 8px; font-size: 21px; color: var(--sold-stamp); border-color: var(--sold-stamp); background: var(--sold-stamp-bg); }
+.nye-brand .time-list > .time-choice > span:last-child > .time-state { display: block; margin: 0; font-size: 14px; line-height: 1.45; }
+.nye-brand .time-list > .time-choice.selected:has(+ .time-lanes) { border-bottom-color: transparent; }
+/* Scrolled into view clear of the fixed footer when a time is chosen. */
+.nye-brand .time-lanes { padding: 2px 12px 18px 44px; background: var(--brand-selected); box-shadow: inset 2px 0 0 var(--paper); border-bottom: 1px solid var(--line); scroll-margin-bottom: var(--footer-space, 150px); }
+.nye-brand .time-lanes-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.nye-brand .time-lanes .section-heading { margin: 0; font: 600 16px/1.4 var(--ui); }
+/* Type rubric: 16px for what the guest decides on, 14px for status. */
+.nye-brand .time-lanes p { margin: 12px 0 0; font-size: 14px; line-height: 1.55; color: var(--brand-soft); }
+.nye-brand .time-lanes .time-lanes-capacity { font-size: 16px; }
+.nye-brand .time-lanes p strong { color: var(--paper); font-weight: 600; }
+.nye-brand .time-lanes .time-lanes-note { color: var(--paper); }
+.nye-brand .time-lanes .time-lanes-note:empty { display: none; }
+.nye-brand .time-lanes .link { display: inline-block; min-height: 44px; margin-top: 4px; font-size: 14px; text-align: left; }
+.nye-brand .time-list > .time-choice.is-unavailable > span:last-child { max-width: 120px; }
+.nye-brand .time-recheck { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: var(--brand-soft); }
+.nye-brand .time-recheck .link { min-height: 44px; font-size: 14px; }
+@media (hover: hover) { .nye-brand .time-list > .time-choice:disabled:hover { background: none; } }
+@media (max-width: 760px) {
+  .nye-brand .time-lanes { padding: 2px 8px 16px 38px; }
+  .nye-brand .time-list > .time-choice > span:last-child > .sold-stamp { padding: 4px 6px; font-size: 19px; }
+}
 .nye-brand .time-request > div > p { font-size: 13px; line-height: 1.5; color: var(--brand-soft); margin-top: 3px; }
 .nye-brand .recovery-panel > p, .nye-brand .recovery-panel > :not(.recovery-options) > p { font-size: 14px; line-height: 1.6; color: var(--brand-soft); margin-bottom: 14px; }
 .nye-brand .recovery-options { margin: 16px 0 8px; }

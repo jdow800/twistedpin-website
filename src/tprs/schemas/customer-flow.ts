@@ -137,6 +137,14 @@ export const availabilitySlotSchema = z.object({
   priceCents: z.number().int(),
   /** Boolean only — never exposes remaining-count (AH-7; privacy + Roller pattern). */
   available: z.boolean(),
+  /**
+   * Why an unavailable time can't be booked (TPRS, 2026-11-08). Present only
+   * when `available` is false: `sold_out` = committed inventory fills it even
+   * ignoring other guests' carts; `held` = only other carts hold it (it can
+   * reopen); `closed` = past the online sales cutoff. Absent from an older
+   * backend, so the UI stays neutral without it.
+   */
+  unavailableReason: z.enum(["sold_out", "held", "closed"]).optional(),
 });
 export type AvailabilitySlot = z.infer<typeof availabilitySlotSchema>;
 

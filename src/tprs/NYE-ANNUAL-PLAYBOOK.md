@@ -41,7 +41,10 @@ definitions come from the backend catalog/forms, not this document.
 The Brand flow acquires lane selection and uses atomic cart replacements.
 Pending or accepted payment evidence must survive reloads, lost responses and
 opening transitions. A temporary hold, cutoff, failed read or zero available
-units must not be turned into an unsupported permanent "sold out" claim.
+units must not be turned into an unsupported permanent "sold out" claim. Since
+November 8, 2026 a time row is stamped SOLD OUT only when TPRS returns
+`unavailableReason: 'sold_out'`; held, closed and unexplained times stay
+neutral. The lane count opens under the chosen time, capped at its lanes left.
 
 The checkout disables coupon entry and opt-in reward lookup/offer. It retains
 plain optional SMS marketing consent, initially unchecked, with its selected

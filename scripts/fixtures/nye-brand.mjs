@@ -76,12 +76,24 @@ export function installFixture() {
     if(path==='/api/products')return respond({products:products.map(product=>settings().catalogDurationMinutes?{...product,durationOverrides:product.durationOverrides.map(d=>d.startTime==='15:00'?{...d,durationMinutes:settings().catalogDurationMinutes}:d)}:product)});
     if(path==='/api/availability') {
       const product=products.find(p=>p.id===target.searchParams.get('product_id'));
-      return respond(parties.map(([time])=>({time,priceCents:product.defaultPriceCents,available:!(settings().unavailable??[]).includes(`${product.code}/${time}`)})));
+      // `unavailableReasons` mirrors TPRS's optional reason; omit it to model an older backend.
+      // The grid is read at request time, so a delayed (`availabilityDelays`, one entry per
+      // call) response carries the older state, as a slow network would.
+      const rows=parties.map(([time])=>{
+        const key=`${product.code}/${time}`,available=!(settings().unavailable??[]).includes(key),reason=settings().unavailableReasons?.[key];
+        return {time,priceCents:product.defaultPriceCents,available,...(!available&&reason?{unavailableReason:reason}:{})};
+      });
+      const failing=(settings().failAvailabilityFor??[]).includes(product.code);
+      const delays=settings().availabilityDelays??[];
+      if(delays.length){window.configure({availabilityDelays:delays.slice(1)});await new Promise(resolve=>setTimeout(resolve,delays[0]));}
+      return failing?respond({error:'Synthetic grid outage.'},503):respond(rows);
     }
     if(path==='/api/availability/slot') {
       const product=products.find(p=>p.id===target.searchParams.get('product_id')),time=target.searchParams.get('time'),key=`${product.code}/${time}`;
-      if((settings().unknown??[]).includes(key))return respond({error:'Synthetic availability unavailable.'},503);
-      return respond({maxUnits:settings().capacity?.[key]??(product.code===124?6:16)});
+      const unknown=(settings().unknown??[]).includes(key),maxUnits=settings().capacity?.[key]??(product.code===124?6:16);
+      if(settings().delayProbeMs)await new Promise(resolve=>setTimeout(resolve,settings().delayProbeMs));
+      if(unknown)return respond({error:'Synthetic availability unavailable.'},503);
+      return respond({maxUnits});
     }
     if(/^\/api\/products\/.+\/forms$/.test(path)) {
       const product=products.find(p=>p.id===path.split('/')[3]);

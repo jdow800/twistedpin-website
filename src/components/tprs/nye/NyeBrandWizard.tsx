@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type ComponentType, type ComponentProps } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode, type ComponentType, type ComponentProps } from 'react';
 import { z } from 'zod';
 import BrandShell, { type BrandStep } from './BrandShell';
 import { createCartSelectionController, exactSelectionHeld, type CartSelectionResult } from './cartSelection';
@@ -76,7 +76,9 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const [forms,setForms] = useState<FormDefinition[]|null>(null), [formsError,setFormsError] = useState(false), [formsRetry,setFormsRetry] = useState(0);
   const [invalidIds,setInvalidIds] = useState<string[]>([]), [submitAttempt,setSubmitAttempt] = useState(0);
   const [addOns,setAddOns] = useState<Record<string,number>>({});
-  const [probe,setProbe] = useState<{key:string;max:number|null;error:boolean}|null>(null), [probeRetry,setProbeRetry] = useState(0);
+  const [probe,setProbe] = useState<{key:string;max:number|null;error:boolean;check:string}|null>(null), [probeRetry,setProbeRetry] = useState(0);
+  const [timesStale,setTimesStale] = useState(false);
+  const laneBoxRef = useRef<HTMLDivElement>(null), panelRef = useRef<HTMLElement>(null);
   const [alternatives,setAlternatives] = useState<PartyChoice[]>([]), [alternativesBusy,setAlternativesBusy] = useState(false);
   const [review,setReview] = useState<Review|null>(null), [headcount,setHeadcount] = useState('');
   const [pending,setPending] = useState<PendingProposal|null>(null);
@@ -97,8 +99,21 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const requestedKey = requested ? `${requested.product.id}/${requested.slot.time}/${requested.quantity}` : '';
   const requestedKeyRef = useRef(requestedKey);requestedKeyRef.current=requestedKey;
   const alternativesRun = useRef(0);
-  const currentProbe = probe?.key === requestedKey ? probe : null;
-  const shortage = !!requested && !!currentProbe && currentProbe.max !== null && currentProbe.max < quantity;
+  // Lanes left at a time don't depend on how many the guest asks for, so one
+  // check per room and time backs every step of the lane count.
+  const probeKey = product && slot ? `${product.id}/${slot.time}` : '';
+  const currentProbe = probe?.key === probeKey ? probe : null;
+  const lanesLeft = currentProbe && !currentProbe.error ? currentProbe.max : null;
+  // The answer on screen may be the last one for this room and time; only the
+  // answer to the latest check (count and recheck included) may start a hold.
+  const checkKey = `${probeKey}#${quantity}#${probeRetry}`;
+  const verified = lanesLeft !== null && currentProbe?.check === checkKey;
+  // A chosen time that filled or closed since it was picked.
+  const timeGone = !!requested && !requested.slot.available;
+  // The count never offers more lanes than the time has left, so the subtotal
+  // always prices a party the guest can actually reserve.
+  const laneLimit = product ? Math.min(onlineMax(product), lanesLeft ?? onlineMax(product)) : eventConfig.maxLanes;
+  const shortage = !!requested && lanesLeft !== null && lanesLeft < quantity;
   const heldItems = heldChoice ? selectionItems(heldChoice,draft.addOnQtys) : [];
   const heldCoverage = heldChoice ? laneCoverage(heldChoice) : [];
   const requestedMatchesHeld = !catalogReviewRequired&&!!requested&&!!heldChoice&&requested.product.id===heldChoice.product.id&&requested.slot.time===heldChoice.slot.time&&requested.quantity===heldChoice.quantity;
@@ -338,15 +353,54 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     }).catch(()=>{if(!ctrl.signal.aborted)setFormsError(true);});
     return()=>ctrl.abort();
   },[salesOpen,draft.product?.id,formsRetry,recovery]);
+  useEffect(()=>{setAlternatives([]);},[salesOpen,requestedKey,probeRetry,locked]);
+  // Recheck lanes left on every count change, on entering the time step, on
+  // returning to the tab, a minute after the last answer, and on request. The
+  // last answer for this room and time stays on screen while the fresh one
+  // loads, so the count never flickers; only the fresh one unlocks Continue.
+  const onTimeStep=step==='time';
   useEffect(()=>{
-    setAlternatives([]);
     if(!salesOpen||!requested||locked)return;
-    const ctrl=new AbortController();const key=requestedKey;
+    const ctrl=new AbortController();const key=probeKey,check=checkKey;
     api.getSlotMaxUnits(requested.product.id,EVENT_DATE,requested.slot.time,ctrl.signal).then(r=>{
-      if(!ctrl.signal.aborted)setProbe({key,max:r.maxUnits,error:false});
-    }).catch(()=>{if(!ctrl.signal.aborted)setProbe({key,max:null,error:true});});
+      if(!ctrl.signal.aborted)setProbe({key,max:r.maxUnits,error:false,check});
+    }).catch(()=>{if(!ctrl.signal.aborted)setProbe({key,max:null,error:true,check});});
     return()=>ctrl.abort();
-  },[salesOpen,requestedKey,probeRetry,locked]);
+  },[salesOpen,probeKey,quantity,probeRetry,locked]);
+  useEffect(()=>{
+    if(!onTimeStep||!requested||!currentProbe)return;
+    const id=setTimeout(()=>setProbeRetry(n=>n+1),60000);
+    return()=>clearTimeout(id);
+  },[onTimeStep,requestedKey,currentProbe]);
+  // Held and sold-out times can reopen (a hold lapses, a booking cancels), so
+  // recheck the times themselves, bypassing the browser's copy of the grid. Only
+  // the latest refresh may change the grid; a room that fails keeps its last
+  // times and says so.
+  const refreshRun=useRef(0);
+  const refreshTimes=useCallback(async()=>{
+    if(!products.length)return;
+    const run=++refreshRun.current;
+    const fresh=await Promise.allSettled(products.map(async p=>[p.id,await api.getAvailability(p.id,EVENT_DATE,undefined,{fresh:true})] as const));
+    if(run!==refreshRun.current)return;
+    setGrid(current=>({...current,...Object.fromEntries(fresh.flatMap(r=>r.status==='fulfilled'?[r.value]:[]))}));
+    setTimesStale(fresh.some(r=>r.status==='rejected'));
+  },[products,EVENT_DATE]);
+  const wasOnTimeStep=useRef(false);
+  useEffect(()=>{
+    if(onTimeStep&&!wasOnTimeStep.current&&salesOpen){setProbeRetry(n=>n+1);void refreshTimes();}
+    wasOnTimeStep.current=onTimeStep;
+  },[onTimeStep]);
+  // A guest returning to the tab sees current times and lanes left.
+  const lastReturn=useRef(0);
+  useEffect(()=>{
+    if(!onTimeStep||!salesOpen)return;
+    const back=()=>{
+      if(document.visibilityState!=='visible'||Date.now()-lastReturn.current<5000)return;
+      lastReturn.current=Date.now();setProbeRetry(n=>n+1);void refreshTimes();
+    };
+    window.addEventListener('focus',back);document.addEventListener('visibilitychange',back);
+    return()=>{window.removeEventListener('focus',back);document.removeEventListener('visibilitychange',back);};
+  },[onTimeStep,salesOpen,refreshTimes]);
   // Browser Back uses the same guarded navigation; a retained payment owns the flow.
   useEffect(()=>{
     const pop=(event:PopStateEvent)=>{
@@ -367,7 +421,15 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   }
   const onAnswers=useCallback((answers:WizardState['formAnswers'])=>setDraft(d=>({...d,formAnswers:answers})),[]);
   function chooseRoom(p:CustomerProduct){if(locked||pending)return;setRoomCode(p.code as number);setTime(null);setReview(null);setNotice(null);}
-  function changeQuantity(q:number){if(locked||pending)return;setQuantity(Math.min(product?onlineMax(product):eventConfig.maxLanes,Math.max(1,q)));setReview(null);setNotice(null);}
+  // Adding stops at the lanes left; removing is always the guest's own call, so a
+  // count carried over from another time is never lowered for them.
+  function changeQuantity(q:number){if(locked||pending)return;setQuantity(Math.max(1,q>quantity?Math.min(laneLimit,q):q));setReview(null);setNotice(null);}
+  function chooseTime(at:string){
+    setTime(at);setReview(null);setNotice(null);
+    requestAnimationFrame(()=>laneBoxRef.current?.scrollIntoView({block:'nearest'}));
+  }
+  // The options panel sits above the times; bring it into view when it opens.
+  function showPanel(){requestAnimationFrame(()=>panelRef.current?.scrollIntoView({block:'start'}));}
 
   async function findAlternatives(){
     if(!requested||alternativesBusy)return;
@@ -487,8 +549,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     if(step==='lanes'){if(product)navigate('time');return;}
     if(step==='time'&&requested){
       if(catalogReviewRequired){void openReview(requested);return;}
-      if(!currentProbe||currentProbe.error||currentProbe.max===null||!slot?.available){setProbeRetry(n=>n+1);return;}
-      if(shortage){void findAlternatives();return;}
+      // A time that filled or closed since it was chosen, or that has fewer
+      // lanes than asked, goes to options; otherwise only a fresh answer holds.
+      if(timeGone||shortage){void findAlternatives();showPanel();return;}
+      if(!verified){setProbeRetry(n=>n+1);return;}
       if(heldChoice&&(heldChoice.product.id!==requested.product.id||heldChoice.slot.time!==requested.slot.time||heldChoice.quantity!==requested.quantity))void openReview(requested);
       else void commit(requested,compatibleAddOns({...draft,addOnQtys:addOns},requested.product),'arcade');
       return;
@@ -545,12 +609,40 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const displayedQuote=review?.quote??(step==='lanes'||step==='time'?null:quote);
   const summary={caption:displayedQuote?'TOTAL':priceChoice?'PACKAGE SUBTOTAL':'YOUR PARTY',value:displayedQuote?formatUsd(displayedQuote.totalIncludingTax):['arcade','food','pay'].includes(step)&&pricing.loading?'Checking total…':priceChoice?formatUsd(priceChoice.quantity*priceChoice.slot.priceCents):'Choose your party',
     note:eventConfig.pricingSummaryNote??(displayedQuote?'Includes taxes & service fee':'Taxes & service fee extra')};
+  // On the time step, price only a party the chosen time can hold: never an
+  // unchecked count, and never more lanes than are left.
+  if(step==='time'&&requested&&!review){
+    if(timeGone)Object.assign(summary,{caption:'YOUR PARTY',value:'Choose another time',note:'This time is no longer available'});
+    else if(!currentProbe)Object.assign(summary,{caption:'YOUR PARTY',value:'Checking lanes…'});
+    else if(currentProbe.error)Object.assign(summary,{caption:'YOUR PARTY',value:'Choose your party'});
+    else if(shortage)Object.assign(summary,{caption:'YOUR PARTY',value:lanesLeft?`Only ${lanesLeft} left`:'No lanes left',note:'Lower your lanes or choose another time'});
+  }
+  const needsOptions=shortage||timeGone;
   const headcountValid=!review?.lowerCapacity || (/^\d+$/.test(headcount)&&Number(headcount)>0&&Number(headcount)<=review.choice.quantity*guestsPerLane(review.choice.product));
-  let primary=step==='pay'||step==='confirmation'?undefined:{label:step==='lanes'?(product?`Choose a ${roomName(product)} time`:'Choose a lane type'):step==='time'?(shortage?'Review other options':`Continue with ${quantity} ${product?roomName(product)+' ':''}${quantity===1?'lane':'lanes'}`):step==='arcade'?'Continue to food & details':'Review & pay',
-    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&!product)||(step==='time'&&(!requested||!currentProbe||currentProbe.error))||(step==='food'&&(!forms||formsError)),busy};
+  let primary=step==='pay'||step==='confirmation'?undefined:{label:step==='lanes'?(product?`Choose a ${roomName(product)} time`:'Choose a lane type'):step==='time'?(!requested?'Choose a time':needsOptions?'Review other options':`Continue with ${quantity} ${product?roomName(product)+' ':''}${quantity===1?'lane':'lanes'}`):step==='arcade'?'Continue to food & details':'Review & pay',
+    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&!product)||(step==='time'&&(!requested||(!needsOptions&&!verified)))||(step==='food'&&(!forms||formsError)),busy};
   if(review)primary={label:'Use this party',onClick:()=>{if(review.quote&&headcountValid)void commit(review.choice,review.addOns,'arcade');},disabled:locked||!!pending||!review.quote||!headcountValid,busy};
   if(primary&&busy)primary={...primary,label:'Checking your selection…'};
   const noticeContent=<>{notice&&<p role="status">{notice}</p>}{pending&&<button className="link" type="button" disabled={busy} onClick={()=>void retryPending()}>Check this selection</button>}</>;
+  // The lane count sits under the chosen time, capped at what that time has
+  // left, with the party's guest capacity restated beside it. A count carried
+  // over from another time stays as asked when it no longer fits: the guest
+  // lowers it, or takes the fit review that checks the group still fits.
+  const laneCount=(p:CustomerProduct,at:string)=>{
+    const lanes=(n:number)=>`${n} ${roomName(p)} ${n===1?'lane':'lanes'}`;
+    const over=lanesLeft!==null&&lanesLeft>0&&quantity>lanesLeft;
+    const atCap=lanesLeft!==null&&lanesLeft>0&&quantity===lanesLeft&&lanesLeft<onlineMax(p);
+    const note=lanesLeft===null?(currentProbe?.error?'We could not check the lanes left at this time.':`Checking lanes left at ${formatTime12h(at)}…`)
+      :lanesLeft<1?'No lanes are open at this time right now. Choose another time.'
+      :over?`Only ${lanes(lanesLeft)} ${lanesLeft===1?'is':'are'} left at ${formatTime12h(at)}. You have ${quantity} selected.`
+      :atCap?(lanesLeft===1?`That's the last ${roomName(p)} lane at ${formatTime12h(at)}.`:`That's every ${roomName(p)} lane left at ${formatTime12h(at)}.`):'';
+    return <div className="time-lanes" ref={laneBoxRef}>
+      <div className="time-lanes-line"><h3 className="section-heading">How many lanes?</h3><Quantity value={quantity} max={Math.max(1,laneLimit)} disabled={locked||!!pending||lanesLeft===null||lanesLeft<1} onChange={changeQuantity}/></div>
+      <p className="time-lanes-capacity"><strong>Up to {quantity*guestsPerLane(p)} guests total.</strong> Count everyone, including non-bowlers and spectators.</p>
+      <p className="time-lanes-note" role="status">{note}</p>
+      {over&&requested&&<button type="button" className="link" disabled={locked||!!pending} onClick={()=>{void openReview({...requested,quantity:lanesLeft!});showPanel();}}>Use {lanes(lanesLeft!)}</button>}
+    </div>;
+  };
   // A first-time visitor can read the opening date while recovery discovery
   // runs. Discovery failure still blocks any checkout; it does not turn the
   // countdown into an alarming empty reservation screen.
@@ -583,18 +675,20 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
         <span className="price">From <strong>{formatUsd(grid[p.id]?.length?Math.min(...grid[p.id].map(s=>s.priceCents)):p.defaultPriceCents)}</strong> / lane</span><span className="room-cta">{roomCode===p.code?'Selected':'Choose'} {roomName(p)}</span></span></button>)}</div>
       <p className="selection-note">Tap <strong>Traditional</strong> or <strong>VIP</strong> to choose your lanes.</p>
       {eventConfig.id==='nye'&&<NyeAdmissionNotice example/>}
-      <div className="quantity-box"><div className="qty-line"><h3 className="section-heading">How many lanes?</h3><Quantity value={quantity} max={product?onlineMax(product):eventConfig.maxLanes} disabled={locked||!!pending} onChange={changeQuantity}/></div><p className="qty-caption">{product&&<strong>Up to {quantity*guestsPerLane(product)} guests total.<br/></strong>}Count everyone, including non-bowlers and spectators.</p></div>
       <div className="included"><p className="included-title">Every lane includes</p><div className="included-list">{eventConfig.included.map(item=><span key={item}>{item}</span>)}</div><details><summary>The full package</summary><p>{eventConfig.packageDescription}</p></details></div>
     </>}
     {step==='time'&&product&&<>
       <h2 className="page-heading" tabIndex={-1}>Choose your time.</h2><p className="intro">{labels.full} · Chicago time</p>
-      <div className="time-request"><div><strong>{roomName(product)} lanes</strong><p>{eventConfig.id==='nye'?<>Maximum {guestsPerLane(product)} people total per lane, including spectators.</>:<>Up to {guestsPerLane(product)} guests per lane</>}</p></div><Quantity value={quantity} max={onlineMax(product)} disabled={locked||!!pending} onChange={changeQuantity}/></div>
-      {(shortage||currentProbe?.error||review||alternativesBusy||alternatives.length>0)&&<section className="recovery-panel" aria-label="Other party options">
-        {!review&&<><h3>{shortage&&currentProbe?.max?`Only ${currentProbe.max} ${roomName(product)} ${currentProbe.max===1?'lane is':'lanes are'} available at ${formatTime12h(time!)}.`:currentProbe?.error?'We could not check these lanes.':'Let’s find your party.'}</h3>
+      <div className="time-request"><div><strong>{roomName(product)} lanes</strong><p>{eventConfig.id==='nye'?<>Maximum {guestsPerLane(product)} people total per lane, including spectators.</>:<>Up to {guestsPerLane(product)} guests per lane</>}</p></div></div>
+      {/* A count above what is left is handled under the time; the panel opens
+          when the guest asks for options, or when the time has no lanes left or
+          is no longer available. */}
+      {((shortage&&!lanesLeft)||timeGone||currentProbe?.error||review||alternativesBusy||alternatives.length>0)&&<section ref={panelRef} className="recovery-panel" aria-label="Other party options">
+        {!review&&<><h3>{timeGone?`${formatTime12h(time!)} is no longer available.`:shortage&&lanesLeft?`Only ${lanesLeft} ${roomName(product)} ${lanesLeft===1?'lane is':'lanes are'} available at ${formatTime12h(time!)}.`:shortage?`No ${roomName(product)} lanes are open at ${formatTime12h(time!)} right now.`:currentProbe?.error?'We could not check these lanes.':'Let’s find your party.'}</h3>
           <p>You asked for <strong>{quantity} {roomName(product)} {quantity===1?'lane':'lanes'}</strong>{time?` at ${formatTime12h(time)}`:''}. Your requested number has not changed.</p>
           <div className="recovery-options">{alternatives.map(a=><button type="button" className="alternative" key={`${a.product.id}/${a.slot.time}`} disabled={locked} onClick={()=>void openReview(a)}><strong>{a.product.id===product.id?`Keep ${roomName(product)}`:`Keep ${formatTime12h(time!)}`}</strong><span>{a.quantity} {roomName(a.product)} {a.quantity===1?'lane':'lanes'} · {partyRange(a)}</span><span>Up to {a.quantity*guestsPerLane(a.product)} guests · {formatUsd(a.quantity*a.slot.priceCents)} + taxes &amp; fee</span><span>Review this option →</span></button>)}</div>
           <button className="link" type="button" disabled={alternativesBusy||locked} onClick={()=>void findAlternatives()}>{alternativesBusy?'Checking other parties…':'Check other party options'}</button>
-          {shortage&&!!currentProbe?.max&&requested&&<button className="link" type="button" onClick={()=>void openReview({...requested,quantity:currentProbe.max!})}>Use fewer lanes</button>}
+          {shortage&&!!lanesLeft&&requested&&<button className="link" type="button" onClick={()=>void openReview({...requested,quantity:lanesLeft})}>Use fewer lanes</button>}
           {shortage&&requested&&product.code===eventConfig.vipCode&&products.some(p=>p.code===eventConfig.traditionalCode&&(grid[p.id]??[]).some(s=>s.time===time&&s.available))&&<button className="link" type="button" onClick={()=>{
             const traditional=products.find(p=>p.code===eventConfig.traditionalCode)!;
             void openReview({product:traditional,slot:grid[traditional.id].find(s=>s.time===time)!,quantity});
@@ -611,11 +705,18 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
         </div>}
       </section>}
       <div className="time-list" aria-label="Party times">{(grid[product.id]??[]).map(s=>{
-        const choice={product,slot:s,quantity};return <button type="button" key={s.time} className={`time-choice ${time===s.time?'selected':''}`} aria-pressed={time===s.time} disabled={locked||!!pending||!s.available} onClick={()=>{setTime(s.time);setReview(null);setNotice(null);}}>
-          <span><strong>{partyRange(choice)}</strong><span>{partyDuration(choice)} minutes{s.time===eventConfig.midnightToastTime?' · Midnight toast':''}</span></span><span><strong>{formatUsd(s.priceCents)}</strong> / lane{!s.available&&<span>Unavailable right now</span>}</span></button>;
+        const choice={product,slot:s,quantity},chosen=time===s.time;
+        return <Fragment key={s.time}><button type="button" className={`time-choice${chosen?' selected':''}${s.available?'':' is-unavailable'}`} aria-pressed={chosen} disabled={locked||!!pending||!s.available} onClick={()=>chooseTime(s.time)}>
+          <span><strong>{partyRange(choice)}</strong><span>{partyDuration(choice)} minutes{s.time===eventConfig.midnightToastTime?' · Midnight toast':''}</span></span>
+          {s.available?<span><strong>{formatUsd(s.priceCents)}</strong> / lane</span>:<span><TimeState reason={s.unavailableReason}/></span>}</button>
+          {chosen&&s.available&&laneCount(product,s.time)}
+        </Fragment>;
       })}</div>
+      {/* Held, sold-out and unexplained times can reopen (a hold lapses, a booking
+          cancels), so they keep a neutral recheck that promises nothing. Only a
+          time past its booking cutoff stays closed. */}
+      {(timesStale||currentProbe?.error||(grid[product.id]??[]).some(s=>!s.available&&s.unavailableReason!=='closed'))&&<p className="time-recheck" role={timesStale?'status':undefined}>{timesStale&&<>We could not refresh every time just now. </>}<button type="button" className="link" disabled={locked||!!pending} onClick={()=>{setProbeRetry(n=>n+1);void refreshTimes();}}>Check availability again</button></p>}
       {!grid[product.id]?.length&&<p role="status">Party times are not available right now. <button className="link" onClick={()=>void initialize()}>Check again</button></p>}
-      {currentProbe?.error&&<button type="button" className="link" onClick={()=>setProbeRetry(n=>n+1)}>Check availability again</button>}
       {ownHold&&heldChoice&&!catalogReviewRequired&&<button type="button" className="link" onClick={()=>{
         setRoomCode(heldChoice.product.code as number);setQuantity(heldChoice.quantity);setTime(heldChoice.slot.time);navigate('food');
       }}>Keep my held lanes</button>}
@@ -671,6 +772,13 @@ function NyeAdmissionNotice({example=false}:{example?:boolean}){
     {example&&<p className="nye-admission-example"><strong>5 bowlers + 4 spectators = 9 people. Book 2 lanes.</strong></p>}
     <p className="nye-admission-favors">Party favors are for the guests included in your reservation.</p>
   </aside>;
+}
+
+/** Only the server's sold-out reason earns the stamp. A hold, a cutoff or an
+ * unexplained "no" stays neutral, because those times can open up again. */
+function TimeState({reason}:{reason?:AvailabilitySlot['unavailableReason']}){
+  if(reason==='sold_out')return <span className="sold-stamp">SOLD OUT</span>;
+  return <span className="time-state">{reason==='held'?'Currently held':reason==='closed'?'Online booking closed':'Unavailable right now'}</span>;
 }
 
 function Quantity({value,onChange,min=1,max=6,disabled=false}:{value:number;onChange:(value:number)=>void;min?:number;max?:number;disabled?:boolean}){

@@ -1,3 +1,35 @@
+## 2026-11-08 - Event checkout: sold-out times say SOLD OUT, and the lane count opens under the chosen time
+
+Jon, on the live Jingle VIP page: the "Unavailable right now" times looked choosable, and the count above the times let a guest ask for 3 lanes when 2 were left, which priced 3 and raised the "Only 2 VIP lanes" panel. He asked for a real sold-out look, borrowing the SOLD OUT stamp from the approved October 20 NYE Brand design (never wired, because TPRS only said yes/no), and for the count to come after the time.
+
+- The shared event wizard (`NyeBrandWizard.tsx`, NYE and Jingle) now:
+  - stamps SOLD OUT only when TPRS sends `unavailableReason: 'sold_out'`. `held` reads "Currently held", `closed` "Online booking closed", no reason "Unavailable right now". None of them shows a radio or a price, and all stay disabled. Every unavailable time except a closed one keeps a neutral "Check availability again", since a hold lapses and a booking can cancel. It re-reads the grid past the browser's stale copy (`getAvailability(..., {fresh:true})`, `cache: 'no-cache'`). Only the latest refresh may change the grid; a room whose refresh fails keeps its last times and says "We could not refresh every time just now." The grid is also re-read on entering the time step and on returning to the tab.
+  - drops the count from the lanes step and the time-step header. Choosing a time opens "How many lanes?" under it and scrolls it clear of the fixed footer (`--footer-space`). "Up to N guests total" is restated at 16px. Adding stops at that time's lanes left (`/api/availability/slot`, keyed by room and time). It is rechecked on every count change, on entering the step, on returning to the tab, a minute after the last answer, and on request. The last answer stays on screen while a fresh one loads, but only the answer to the latest check unlocks Continue. At the cap it says "That's every VIP lane left at 2:00 PM."
+  - sends a chosen time that filled or closed since it was picked ("3:00 PM is no longer available.") straight to options from the footer's "Review other options".
+  - never lowers a count for the guest. A count carried over from another time (or restored from a draft) that no longer fits stays as asked: "Only 2 VIP lanes are left at 5:00 PM. You have 4 selected." The footer shows "Only 2 left" instead of a price, the guest lowers it themselves or taps "Use 2 VIP lanes" (the existing review with its "how many guests are coming?" fit check), and Continue becomes "Review other options". While a new time is being checked the footer says "Checking lanes…".
+  - keeps the recovery panel for a time that empties after it was chosen, titled "No VIP lanes are open at 3:00 PM right now." (never "sold out": an empty check can be other carts), and for the options a guest asks for.
+- `src/tprs/schemas/customer-flow.ts` mirrors TPRS's new optional `unavailableReason` (tprs branch `claude/slot-unavailable-reason-20261108`). Sequencing: this ships first and stays neutral without the field. TPRS ships the reasons ONLY together with its lane-math fix, so a time is never stamped SOLD OUT on the old overlap sum.
+- Jingle's stamp is cream on the palette's berry (`--sold-stamp`, `--sold-stamp-bg` in `jingle/booking.css`); NYE keeps the approved orange.
+- Review: GPT-6 Astra (Ultra), two rounds; it agreed to apply this to NYE as well as Jingle. Round 1 found five problems, all fixed:
+  - auto-lowering the count;
+  - a "Need more room? See Traditional" link that kept the lane count (2 VIP lanes hold 12, 2 Traditional 10); the link is gone;
+  - a stale lanes-left answer;
+  - a price showing for an unchecked count;
+  - type under the 16/14 rubric.
+
+  Round 2 found three more, also fixed:
+  - "Review other options" could not open options for a time that filled after it was chosen;
+  - a superseded or out-of-order answer could still unlock Continue or overwrite the grid;
+  - sold-out times had no recheck.
+- Checks, on the final bytes:
+  - `check-nye-brand-flow.mjs` 33/33. New scenarios: confirmed vs neutral states; a carried-over count kept and only lowered by the guest or the fit review (accepted and cancelled), with the box clear of the footer; a restored draft; tab-return and recheck refreshes; a chosen time that fills; a slower lower lanes-left answer that never unlocks a hold; out-of-order and failing grid refreshes; a sold-out time reopening; a refresh while lanes are held leaving the cart, deadline and food answers alone. The shortage scenarios were rebuilt around a time that empties.
+  - `check-jingle-booking-entry.mjs` 13/13. New: Dec 6 VIP as the corrected lane math reports it, 1:45/3:30/3:45 SOLD OUT and 2:00/2:30 open, at 320/390.
+  - `check-nye-launch.mjs` 23/23 on a real local Astro route.
+  - `check-nye-public-page.mjs`, `check-jingle-public-build.mjs` (30 assertions), `npm run build` and strict tsc all pass.
+  - `check-jingle-booking-rehearsal.mjs` follows the new order but needs the loopback backend, so it was not run.
+- Found: TPRS added up every booking that overlaps a time instead of the most lanes in use at once, so Dec 6 VIP 2:30 read full though 2 lanes physically fit (the 1:45 party is gone before the 3:30 party arrives). Jon: "that needs a fix". The TPRS branch above carries it, narrowed to event days with per-start caps. Until it deploys, the Website shows 2:30 as "Unavailable right now" (neutral), not SOLD OUT.
+- Astra's approval (round 3) carried one non-blocking follow-up, deliberately not done in this release so the reviewed bytes ship unchanged. `refreshTimes()` calls are ordered against each other (`refreshRun`), but a full catalog reload (`initialize`, the empty-products effect, `acceptHeldProposal`) doesn't bump `refreshRun`. An in-flight time refresh could therefore land after a newer catalog. No hold, payment or quantity harm was found; bump `refreshRun.current` wherever `setGrid(catalog.grid)` runs.
+
 ## 2026-11-08 - /labor shows the catered-party lines from the Thursday email
 
 Jon asked to show event labor on the `/labor` review page too ("would you add it there"). TPRS (tprs #530) now finds the labor behind each catered party and adds up to two lines under the Thursday email's daily table. Those lines report the event labor found and the regular-business labor %, plus an absorbed, incomplete or unresolved flag when needed. Its `readReview` returns the same lines as `eventLaborLines`.

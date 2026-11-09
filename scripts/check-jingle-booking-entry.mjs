@@ -95,17 +95,19 @@ try{
   const page=await context.newPage();page.setDefaultTimeout(8000);page.on('pageerror',error=>errors.push(error.message));
   await page.goto(`${origin}/${search}`);return page;
  }
- async function timeAndHold(page){
+ // Time first; the lane count opens under it.
+ async function timeAndHold(page,quantity=1){
   await page.locator('.time-choice').nth(1).click();await page.locator('.brand-continue:enabled').waitFor();
-  await page.locator('.brand-continue').click();
+  for(let n=1;n<quantity;n++)await page.getByRole('button',{name:'More',exact:true}).click();
+  await page.locator('.brand-continue:enabled').waitFor();await page.locator('.brand-continue').click();
  }
  await scenario('Each fresh lane link opens its time step with quantity one, no selected time, no hold or payment',async()=>{
   for(const lane of ['traditional','vip']){
    const page=await fresh(`?lane=${lane}`);await heading(page,'Choose your time.');
    assert.match(await page.locator('.time-request').innerText(),lane==='vip'?/VIP lanes/:/Traditional lanes/);
-   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'1');
+   assert.equal(await page.locator('.time-lanes').count(),0,'The lane count opens only under a chosen time');
    assert.equal(await page.locator('.time-choice[aria-pressed="true"]').count(),0);
-   assert.equal(await page.locator('.brand-continue').isDisabled(),true);
+   assert.equal(await page.locator('.brand-continue').isDisabled(),true);assert.match(await page.locator('.brand-continue').innerText(),/Choose a time/);
    assert.equal((await calls(page,'/api/cart/replace')).length,0);assert.equal((await calls(page,'/api/checkout/payment-intents')).length,0);
    await page.evaluate(()=>document.fonts.ready);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -121,15 +123,17 @@ try{
  await scenario('Explicit lane links replace browsing choices in both directions, including an empty draft',async()=>{
   for(const [original,next] of [['','vip'],['?lane=traditional','vip'],['?lane=vip','traditional']]){
    const page=await fresh(original);await heading(page,original?'Choose your time.':'Choose your lanes.');
-   if(original){await page.getByRole('button',{name:'More',exact:true}).click();await page.locator('.time-choice').nth(1).click();}
+   if(original){await page.locator('.time-choice').nth(1).click();await page.getByRole('button',{name:'More',exact:true}).click();}
    await page.waitForFunction(key=>sessionStorage.getItem(key)!==null,draftKey);
    await page.goto(`${origin}/?lane=${next}`);await heading(page,'Choose your time.');
    assert.match(await page.locator('.time-request').innerText(),next==='vip'?/VIP lanes/:/Traditional lanes/);
-   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),original?'2':'1');
+   assert.equal(await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)).quantity,draftKey),original?2:1,'The requested count survives the room switch');
+   assert.equal(await page.locator('.time-lanes').count(),0);
    assert.equal(await page.locator('.time-choice[aria-pressed="true"]').count(),0);
    assert.equal(await page.locator('.brand-continue').isDisabled(),true);
    assert.equal((await calls(page,'/api/cart/replace')).length,0);
    await page.locator('.time-choice').nth(2).click();
+   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),original?'2':'1');
    await page.waitForFunction(key=>JSON.parse(sessionStorage.getItem(key)).time==='14:30',draftKey);
    await page.reload();await heading(page,'Choose your time.');
    assert.equal(await page.locator('.time-choice').nth(2).getAttribute('aria-pressed'),'true');
@@ -174,7 +178,7 @@ try{
  });
  await scenario('Accepted cart with lost response retains exact pending proposal and retries only on request',async()=>{
   const page=await fresh('?lane=traditional',{dropNextReplaceResponse:true});await heading(page,'Choose your time.');
-  await page.getByRole('button',{name:'More',exact:true}).click();await timeAndHold(page);
+  await timeAndHold(page,2);
   await page.getByRole('button',{name:'Check this selection',exact:true}).and(page.locator(':enabled')).waitFor();
   const saved=await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey);
   const original=(await calls(page,'/api/cart/replace'))[0].body;
@@ -186,8 +190,7 @@ try{
  });
  for(const path of ['/api/products','/api/cart/session'])await scenario(`Returning from arcade after transient ${path} failure retries without changing the saved selection or starting payment`,async()=>{
   const page=await fresh('?lane=traditional');await heading(page,'Choose your time.');
-  await page.getByRole('button',{name:'More',exact:true}).click();
-  await timeAndHold(page);await heading(page,'Add arcade play.');
+  await timeAndHold(page,2);await heading(page,'Add arcade play.');
   await page.waitForFunction(key=>JSON.parse(sessionStorage.getItem(key)).step==='arcade',draftKey);
   const saved=await page.evaluate(key=>JSON.parse(sessionStorage.getItem(key)),draftKey);
   const held=(await state(page)).cart;
@@ -217,6 +220,26 @@ try{
   for(const forbidden of ['/api/checkout/payment-intents','/api/checkout/convert','stripe:submit','stripe:confirm'])assert.equal((await calls(page,forbidden)).length,0);
   assert.equal(await page.getByLabel('Synthetic card',{exact:true}).count(),0);
   await page.context().close();
+ });
+ // Dec 6 VIP as TPRS reports it once the lane math counts lanes in use at once:
+ // 1:45, 3:30 and 3:45 are paid out; 2:00 and 2:30 each still have 2 lanes.
+ await scenario('Jingle VIP: confirmed sellouts are stamped, and the count under 2:00 PM stops at the two lanes left',async()=>{
+  const sold=['124/13:45','124/15:30','124/15:45'];
+  const page=await fresh('?lane=vip',{unavailable:sold,unavailableReasons:Object.fromEntries(sold.map(key=>[key,'sold_out'])),capacity:{'124/14:00':2,'124/14:30':2}});
+  await heading(page,'Choose your time.');await page.locator('.time-choice').nth(4).waitFor();
+  assert.equal(await page.getByText('SOLD OUT',{exact:true}).count(),3);assert.equal(await page.locator('.time-choice:disabled').count(),3);
+  assert.equal(await page.locator('.time-choice').nth(2).isDisabled(),false,'2:30 PM is bookable');
+  assert.equal(await page.getByRole('button',{name:'Check availability again',exact:true}).count(),1,'A sellout can reopen after a cancellation');
+  const shot=async name=>{for(const width of [320,390]){await page.setViewportSize({width,height:844});await page.evaluate(()=>document.fonts.ready);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${name} fits ${width}px`);await page.screenshot({path:resolve(output,`${name}-${width}.png`),fullPage:true});}};
+  await shot('vip-sold-out');
+  await page.locator('.time-choice').nth(1).click();await page.locator('.brand-continue:enabled').waitFor();
+  await page.getByRole('button',{name:'More',exact:true}).click();
+  assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');assert.equal(await page.getByRole('button',{name:'More',exact:true}).isDisabled(),true);
+  await page.getByText("That's every VIP lane left at 2:00 PM.",{exact:true}).waitFor();
+  assert.match(await page.locator('.time-lanes').innerText(),/Up to 12 guests total/);
+  assert.match(await page.locator('.brand-continue').innerText(),/Continue with 2 VIP lanes/);assert.match(await page.locator('.checkout-footer').innerText(),/\$379\.90/);
+  await shot('vip-lane-cap');assert.equal((await calls(page,'/api/cart/replace')).length,0);await page.context().close();
  });
  await scenario('Readiness and release switch stop new sales while ordinary accepted discovery still wins',async()=>{
   for(const settings of [{bookingReady:false},{enabled:false}]){

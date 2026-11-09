@@ -14,6 +14,9 @@
   --tw-bg: #103b2c;
   --tw-surface: #12382c;
   --tw-text: #fff4df;
+  /* Holiday-red stamp from the palette's berry, instead of NYE orange. */
+  --sold-stamp: #fff4df;
+  --sold-stamp-bg: #641e2d;
 }
 .jingle-booking .identity {background: #09291f; border-right-color: #55735e;}
 .jingle-booking .identity::after {background: linear-gradient(180deg,#09291f3d,#09291fe8 70%);}
