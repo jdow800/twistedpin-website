@@ -67,7 +67,7 @@ Every night, for each paused contact, the job releases it to Avery only if ALL o
 
 The guest is sent nothing. An API label removal on a closed thread fires no Missive rule and no WF3 (10/20 experiment), which is why the job un-pauses by SQL itself. Once released:
 - a new form goes to Avery as a fresh start or a returning-guest opener (0250 + the 11/7 WF1 upgrade);
-- a text into the old thread is answered by Avery (WF2 only needs Needs Attention off).
+- a text into the old thread reaches WF2 (it only needs Needs Attention off), but Avery answers only if that inquiry had activity in the last 60 days. Older than that, WF2's own staleness gate (`Pick Latest Event`, `STALE_DAYS = 60`) treats the text as cold: Avery stays silent, and Needs Attention goes back on with a staff note. That is by design and safe. At launch every release was 90+ days quiet, so in practice the win is new FORMS and campaigns, not old-thread texts (corrected by the 11/9 review).
 
 **Pace.** It reads up to 40 candidates a night, least-recently-checked first (workflow static data, so held ones never block the line), and releases at most 10. That cap is `maxUnpausePerDay`, shared with the disarmed reconcile.
 
@@ -136,5 +136,19 @@ The guest is sent nothing. An API label removal on a closed thread fires no Miss
 - **WATCH the first armed nights (11/10 onward):** the first email, the first real Needs Attention removal (about 1 in 8 releases), and that no released guest gets an unexpected campaign text.
 - The 6 `campaign_due` guests stay paused while `expiryAllowCampaigns` is false. Jon could allow them later; a fundraiser invite-back or a rebook is arguably good marketing.
 - The reconcile (30 min) and the label purge remain disarmed and parked (10/20).
+- **Jon's call, from the 11/9 review: the opt-out hold.** 15 paused contacts are never released because of `do_not_market` (14) or a loyalty-program SMS opt-out (1). The guard came from the 10/20 review, before Jon's 11/2 ruling that opt-outs never stop Avery and a new form re-opts the guest in. Every sender already has its own consent gate, so dropping the hold would only change who answers their next form. Not changed.
+- **Jon's call: the "replied, no date" guests** (about 20 to 25 once the backlog is scanned). They stay paused for good, and nobody is prompted to look: the nightly email only reports releases and failures. Options: release after a long quiet stretch, or list them in a weekly email.
+- **Loyalty marketing rejoins.** Loyalty's delivery-hold gate (Loyalty db/103, db/110) skips any phone with a paused customer row. Released guests who opted in to loyalty texts become eligible for birthday, lane-rebook and long-gap sends again. Expected, but neither review listed it.
+
+## 9. Independent review (Fable 5.2, 2026-11-09 night)
+Checked against production, with no data changed:
+- **Database writes.** `avery_campaign_log` has no check constraints, `log_id` is unique, the system actor exists, and n8n logs in as the table owner. The `customer` view is updatable for `ai_status` and `updated_at`.
+- **The two write statements** (pending row, settle) ran through n8n's own credential against the real tables with an unknown contact: they bind, type-check and write nothing. `brain/hygiene/probe-bound-writes.mjs` now covers them (7/7).
+- **Message classifier on live SMS.** Missive SMS senders carry `username` (no `phone_number`); Avery's sends show the venue number there and classify as ours. The preview's two "replied, no date" verdicts were real guest replies.
+- **Missive PATCH shape** matches the docs: a top-level `conversations` array with one object per id in the URL. The docs say label rules run on a PATCH; the 10/20 experiment saw none fire on a closed thread. If one does fire, the read-back sees the thread reopened and the row goes `failed`.
+- **No nightly job bumps `customers.updated_at`** (paused rows were last touched between 8am and 10pm), so the "pause under an hour" hold cannot stall a 3:20am run.
+- **Live equals main.** The installer's dry plan says "no change" at `912ec0d5`, armed.
+- **The first night makes no label change.** The 10 oldest candidates carry no Needs Attention, so night one proves the database path only. The first real label removal comes a few nights later: watch that email.
+- **What to expect on 11/10:** an email "Avery conversation hygiene: 10 pauses expired". No email means the run did not happen or released nobody: check the n8n executions of `PPDisBJedrTTgSZt` at 3:20am.
 - tprs BACKLOG 2.15 (change the customer on a booking) is recorded, not built.
 - The 10/20 handoff `2026-10-20-stale-pauses-and-needs-attention.md` exists only in the local Website checkout (never committed). The facts it holds are mirrored in `Marketing Avery/brain/hygiene/PLAN.md` and the hygiene changelog.
