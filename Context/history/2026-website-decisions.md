@@ -1,3 +1,11 @@
+## 2026-11-08 - NYE playbook: VIP lanes no longer listed as pairs
+
+Jon (11/8): "Jingle / NYE doesn't need pairs on VIP". The NYE playbook still said "VIP sells in pairs of 2, 4 or 6".
+
+- `src/tprs/NYE-ANNUAL-PLAYBOOK.md`: both rooms allow 1-6 lanes and a single VIP lane is fine. The setup checklist says "VIP singles" where it said "VIP pairs".
+- Doc only. The checkout and TPRS already allowed 1-6 VIP lanes (`maxLanes: 6`, no pairs step), and a real 1-lane Jingle VIP booking came in 11/8.
+- The rule that VIP sells in pairs still governs Avery and private-event quoting. It drops only for the NYE and Jingle ticketed checkouts.
+
 ## 2026-11-08 - Event checkout: room card stamped SOLD OUT when a room is full all day
 
 Jon on NYE: showing a room as sold out once it's fully sold is "not a bad idea". This is the room-card part of the approved October 20 NYE Brand design, which had never been built.

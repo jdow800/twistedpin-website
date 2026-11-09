@@ -28,7 +28,8 @@ boundary. Server rules still govern whether another purchase is allowed.
 
 The event configuration fixes December 31, product codes 126 Traditional and
 124 VIP, the event draft/history keys, food presentation and policy copy.
-Traditional reservations allow 1-6 lanes; VIP sells in pairs of 2, 4 or 6.
+Traditional and VIP reservations both allow 1-6 lanes. VIP does not need to
+sell in pairs; a single VIP lane is fine (Jon, 2026-11-08).
 Operational guest limits are five per Traditional lane and six per VIP lane.
 These booking limits do not authorize attendance-capacity claims in marketing.
 
@@ -97,7 +98,7 @@ Publishing a page or copying that pack does not publish social posts or messages
    Coordinate the preceding campaign, final purchase cutoff, reduced-motion
    behavior and normal homepage fallback. Review seasonal navigation, calendar,
    landing page/schema, opening labels and ordinary date handoff together.
-6. Recheck required pizza/soda counts after lane changes, VIP pairs, inventory
+6. Recheck required pizza/soda counts after lane changes, VIP singles, inventory
    alternatives, coupon exclusions, plain consent and all payment-recovery
    paths. Do not infer availability or policy from a local fixture.
 7. Review guest confirmation, receipt, calendar and staff/export output with the
