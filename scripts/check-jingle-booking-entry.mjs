@@ -236,7 +236,7 @@ try{
   await page.locator('.time-choice').nth(1).click();await page.locator('.brand-continue:enabled').waitFor();
   await page.getByRole('button',{name:'More',exact:true}).click();
   assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');assert.equal(await page.getByRole('button',{name:'More',exact:true}).isDisabled(),true);
-  await page.getByText("That's every VIP lane left at 2:00 PM.",{exact:true}).waitFor();
+  await page.locator('.lanes-alert').filter({hasText:'Only 2 lanes left'}).waitFor();
   assert.match(await page.locator('.time-lanes').innerText(),/Up to 12 guests total/);
   assert.match(await page.locator('.brand-continue').innerText(),/Continue with 2 VIP lanes/);assert.match(await page.locator('.checkout-footer').innerText(),/\$379\.90/);
   await shot('vip-lane-cap');assert.equal((await calls(page,'/api/cart/replace')).length,0);await page.context().close();

@@ -1,3 +1,12 @@
+## 2026-11-08 - Event checkout: "Only N lanes left" alert badge
+
+Jon, on the live Jingle page: "That's the last VIP lane at 2:00 PM." should be "more visually alerting", with "a small alert sign 'Only 1 lane left'".
+
+- At the cap, the lane box now shows an alert badge: a warning triangle plus "Only 1 lane left" or "Only 2 lanes left". It uses the SOLD OUT stamp's colours (berry on Jingle, orange on NYE), so inventory warnings read as one family. The icon is decorative; the text carries the meaning.
+- A count above what's left shows the same badge, plus "You have 4 selected." and the "Use 2 VIP lanes" link.
+- Fixed while testing: the box grows when its first answer lands, and Chrome's `scrollIntoView({block:'nearest'})` won't scroll while the box itself is on screen, even with the fixed footer covering it. Two scrolls in a row also fought, because the page root scrolls smoothly. The box now scrolls once, after the answer and the footer's re-measure (two frames), using an explicit edge; `end` honours `scroll-margin-bottom: var(--footer-space)`.
+- Checks: `check-nye-brand-flow` 33/33 (badge, decorative icon, footer clearance with the taller box), `check-jingle-booking-entry` 13/13, `check-nye-launch` 23/23, `check-jingle-public-build` 30, build, strict tsc.
+
 ## 2026-11-08 - Event checkout: sold-out times say SOLD OUT, and the lane count opens under the chosen time
 
 Jon, on the live Jingle VIP page: the "Unavailable right now" times looked choosable, and the count above the times let a guest ask for 3 lanes when 2 were left, which priced 3 and raised the "Only 2 VIP lanes" panel. He asked for a real sold-out look, borrowing the SOLD OUT stamp from the approved October 20 NYE Brand design (never wired, because TPRS only said yes/no), and for the count to come after the time.

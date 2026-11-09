@@ -287,8 +287,13 @@ body:has(.nye-brand)::before { display: none; }
 .nye-brand .time-lanes p { margin: 12px 0 0; font-size: 14px; line-height: 1.55; color: var(--brand-soft); }
 .nye-brand .time-lanes .time-lanes-capacity { font-size: 16px; }
 .nye-brand .time-lanes p strong { color: var(--paper); font-weight: 600; }
-.nye-brand .time-lanes .time-lanes-note { color: var(--paper); }
-.nye-brand .time-lanes .time-lanes-note:empty { display: none; }
+/* Lanes-left alert: the same colours as the SOLD OUT stamp, so inventory warnings
+   read as one family (berry on Jingle, orange on NYE). */
+.nye-brand .time-lanes-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-top: 12px; }
+.nye-brand .time-lanes-status:empty { display: none; }
+.nye-brand .lanes-alert { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 9px; border: 1.5px solid var(--sold-stamp); border-radius: 999px; background: var(--sold-stamp-bg); color: var(--sold-stamp); font: 700 14px/1.25 var(--ui); }
+.nye-brand .lanes-alert svg { flex: none; }
+.nye-brand .time-lanes .time-lanes-note { font-size: 14px; line-height: 1.5; color: var(--paper); }
 .nye-brand .time-lanes .link { display: inline-block; min-height: 44px; margin-top: 4px; font-size: 14px; text-align: left; }
 .nye-brand .time-list > .time-choice.is-unavailable > span:last-child { max-width: 120px; }
 .nye-brand .time-recheck { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: var(--brand-soft); }

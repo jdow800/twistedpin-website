@@ -424,10 +424,27 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   // Adding stops at the lanes left; removing is always the guest's own call, so a
   // count carried over from another time is never lowered for them.
   function changeQuantity(q:number){if(locked||pending)return;setQuantity(Math.max(1,q>quantity?Math.min(laneLimit,q):q));setReview(null);setNotice(null);}
-  function chooseTime(at:string){
-    setTime(at);setReview(null);setNotice(null);
-    requestAnimationFrame(()=>laneBoxRef.current?.scrollIntoView({block:'nearest'}));
-  }
+  // The lane box reaches its final size (alert, notes, a taller footer) only
+  // when its first lanes-left answer lands, so it is brought into view once,
+  // then. Two smooth scrolls in a row (the page root scrolls smoothly) fight.
+  const revealLaneBox=useRef(false);
+  function chooseTime(at:string){setTime(at);setReview(null);setNotice(null);revealLaneBox.current=true;}
+  useEffect(()=>{
+    if(!revealLaneBox.current||!currentProbe||step!=='time')return;
+    revealLaneBox.current=false;
+    // Two frames: the footer can grow with this answer, and BrandShell's
+    // ResizeObserver updates --footer-space after this frame's rAF callbacks.
+    // Chrome's block:'nearest' won't scroll while the box itself is on screen,
+    // even when the fixed footer covers it, so choose the edge explicitly;
+    // 'end' honours the box's scroll-margin-bottom (the footer's height).
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      const box=laneBoxRef.current;if(!box)return;
+      const footer=box.closest('.nye-brand')?.querySelector('.checkout-footer');
+      const {top,bottom}=box.getBoundingClientRect(),limit=footer?footer.getBoundingClientRect().top:innerHeight;
+      if(bottom>limit)box.scrollIntoView({block:'end'});
+      else if(top<0)box.scrollIntoView({block:'start'});
+    }));
+  },[currentProbe,step]);
   // The options panel sits above the times; bring it into view when it opens.
   function showPanel(){requestAnimationFrame(()=>panelRef.current?.scrollIntoView({block:'start'}));}
 
@@ -632,14 +649,15 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     const lanes=(n:number)=>`${n} ${roomName(p)} ${n===1?'lane':'lanes'}`;
     const over=lanesLeft!==null&&lanesLeft>0&&quantity>lanesLeft;
     const atCap=lanesLeft!==null&&lanesLeft>0&&quantity===lanesLeft&&lanesLeft<onlineMax(p);
+    // Scarcity reads as an alert badge (Jon, 2026-11-08: "Only 1 lane left").
+    const alert=lanesLeft!==null&&lanesLeft>0&&(over||atCap)?`Only ${lanesLeft} ${lanesLeft===1?'lane':'lanes'} left`:'';
     const note=lanesLeft===null?(currentProbe?.error?'We could not check the lanes left at this time.':`Checking lanes left at ${formatTime12h(at)}…`)
       :lanesLeft<1?'No lanes are open at this time right now. Choose another time.'
-      :over?`Only ${lanes(lanesLeft)} ${lanesLeft===1?'is':'are'} left at ${formatTime12h(at)}. You have ${quantity} selected.`
-      :atCap?(lanesLeft===1?`That's the last ${roomName(p)} lane at ${formatTime12h(at)}.`:`That's every ${roomName(p)} lane left at ${formatTime12h(at)}.`):'';
+      :over?`You have ${quantity} selected.`:'';
     return <div className="time-lanes" ref={laneBoxRef}>
       <div className="time-lanes-line"><h3 className="section-heading">How many lanes?</h3><Quantity value={quantity} max={Math.max(1,laneLimit)} disabled={locked||!!pending||lanesLeft===null||lanesLeft<1} onChange={changeQuantity}/></div>
       <p className="time-lanes-capacity"><strong>Up to {quantity*guestsPerLane(p)} guests total.</strong> Count everyone, including non-bowlers and spectators.</p>
-      <p className="time-lanes-note" role="status">{note}</p>
+      <div className="time-lanes-status" role="status">{alert&&<span className="lanes-alert"><AlertIcon/>{alert}</span>}{note&&<span className="time-lanes-note">{note}</span>}</div>
       {over&&requested&&<button type="button" className="link" disabled={locked||!!pending} onClick={()=>{void openReview({...requested,quantity:lanesLeft!});showPanel();}}>Use {lanes(lanesLeft!)}</button>}
     </div>;
   };
@@ -772,6 +790,11 @@ function NyeAdmissionNotice({example=false}:{example?:boolean}){
     {example&&<p className="nye-admission-example"><strong>5 bowlers + 4 spectators = 9 people. Book 2 lanes.</strong></p>}
     <p className="nye-admission-favors">Party favors are for the guests included in your reservation.</p>
   </aside>;
+}
+
+/** Warning triangle for the lanes-left badge; the badge text carries the meaning. */
+function AlertIcon(){
+  return <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" focusable="false"><path d="M8 1.6 15 14.2H1z" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M8 6.2v3.9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><circle cx="8" cy="12.1" r=".95" fill="currentColor"/></svg>;
 }
 
 /** Only the server's sold-out reason earns the stamp. A hold, a cutoff or an

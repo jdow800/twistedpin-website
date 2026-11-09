@@ -267,7 +267,8 @@ try{
   await scenario('Lane count stops at the lanes left, says so, prices only what can be reserved and rechecks on every change',async()=>{
     const page=await fresh({capacity:{'126/15:00':1}});await choose(page);
     assert.equal(await page.getByRole('button',{name:'More',exact:true}).isDisabled(),true,'The count cannot pass the lanes left');
-    await page.getByText("That's the last Traditional lane at 3:00 PM.",{exact:true}).waitFor();
+    await page.locator('.lanes-alert').filter({hasText:'Only 1 lane left'}).waitFor();
+    assert.equal(await page.locator('.lanes-alert svg[aria-hidden="true"]').count(),1,'The alert sign is decorative; the text carries it');
     assert.equal(await page.getByText(/sold out/i).count(),0);assert.equal(await page.locator('.recovery-panel').count(),0);
     assert.match(await primary(page).innerText(),/^Continue with 1 Traditional lane/);assert.match(await page.locator('.checkout-footer').innerText(),/\$149\.95/);
     assert.match(await page.locator('.time-lanes').innerText(),/Up to 5 guests total/);assert.equal(await page.getByText(/Need more room/).count(),0);
@@ -283,9 +284,10 @@ try{
   await scenario('A carried-over count above a time\'s lanes left is kept, never priced, and lowered only by the guest or the fit review',async()=>{
     const page=await fresh({capacity:{'124/17:00':2}});await choose(page,124,4);
     await page.locator('.time-choice').nth(3).click();
-    await page.getByText('Only 2 VIP lanes are left at 5:00 PM. You have 4 selected.',{exact:true}).waitFor();
-    await until(()=>page.evaluate(()=>{const box=document.querySelector('.time-lanes')?.getBoundingClientRect(),bar=document.querySelector('.checkout-footer')?.getBoundingClientRect();
-      return !!box&&!!bar&&box.bottom<=bar.top&&box.top>=0;}),'lane box clear of the footer');
+    await page.locator('.lanes-alert').filter({hasText:'Only 2 lanes left'}).waitFor();await page.getByText('You have 4 selected.',{exact:true}).waitFor();
+    const clearance=()=>page.evaluate(()=>{const box=document.querySelector('.time-lanes')?.getBoundingClientRect(),bar=document.querySelector('.checkout-footer')?.getBoundingClientRect();
+      return box&&bar?{top:Math.round(box.top),bottom:Math.round(box.bottom),footerTop:Math.round(bar.top),scrollY:Math.round(scrollY),maxScroll:document.documentElement.scrollHeight-innerHeight}:null;});
+    await until(async()=>{const g=await clearance();return !!g&&g.bottom<=g.footerTop&&g.top>=0;},`lane box clear of the footer ${JSON.stringify(await clearance())}`);
     assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4','The request is never lowered for the guest');
     const footer=await page.locator('.checkout-footer').innerText();assert.match(footer,/Only 2 left/);assert.doesNotMatch(footer,/\$\d/,'No price for lanes that are not there');
     assert.equal(await page.locator('.recovery-panel').count(),0,'The note under the time carries this case');
@@ -298,14 +300,15 @@ try{
     assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4');
     await page.getByRole('button',{name:'Fewer',exact:true}).click();assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');
     await page.getByRole('button',{name:'Fewer',exact:true}).click();assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'2');
-    await page.getByText("That's every VIP lane left at 5:00 PM.",{exact:true}).waitFor();await ready(page);
+    await page.locator('.lanes-alert').filter({hasText:'Only 2 lanes left'}).waitFor();await ready(page);
+    assert.equal(await page.getByText(/You have \d+ selected/).count(),0,'At the cap the badge alone remains');
     assert.match(await page.locator('.checkout-footer').innerText(),/\$399\.90/);assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
   });
   await scenario('A restored draft keeps its count when lanes left dropped, without pricing it',async()=>{
     const page=await fresh();await choose(page,124,4);
     await until(()=>page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')??'{}').quantity===4),'draft saved');
     await page.evaluate(()=>window.configure({capacity:{'124/15:00':2}}));await page.reload();
-    await page.getByText('Only 2 VIP lanes are left at 3:00 PM. You have 4 selected.',{exact:true}).waitFor();
+    await page.locator('.lanes-alert').filter({hasText:'Only 2 lanes left'}).waitFor();await page.getByText('You have 4 selected.',{exact:true}).waitFor();
     assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'4');assert.doesNotMatch(await page.locator('.checkout-footer').innerText(),/\$\d/);
     assert.equal(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('tprs:nye:brand-draft:v1')).quantity),4);
     assert.equal(await count(page,'/api/cart/replace'),0);await page.context().close();
@@ -336,7 +339,7 @@ try{
     await page.getByRole('button',{name:'More',exact:true}).click();await page.getByRole('button',{name:'More',exact:true}).click();
     assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');
     assert.equal(await primary(page).isDisabled(),true,'Continue waits for the answer to this count');
-    await page.getByText('Only 2 Traditional lanes are left at 3:00 PM. You have 3 selected.',{exact:true}).waitFor();
+    await page.locator('.lanes-alert').filter({hasText:'Only 2 lanes left'}).waitFor();await page.getByText('You have 3 selected.',{exact:true}).waitFor();
     assert.equal(await page.getByLabel('Quantity',{exact:true}).innerText(),'3');assert.equal(await count(page,'/api/cart/replace'),0);
     await page.evaluate(()=>window.configure({delayProbeMs:0,unknown:['126/15:00']}));
     await page.getByRole('button',{name:'Fewer',exact:true}).click();
