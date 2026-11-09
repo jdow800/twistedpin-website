@@ -33,7 +33,7 @@ A returning guest's new inquiry went to staff instead of Avery because her conta
 ## 3. What shipped
 | What | Where | Version |
 |---|---|---|
-| PAUSE EXPIRY route (nightly 3:20am CT, own flag `armedExpiry`) | n8n `PPDisBJedrTTgSZt` | `7d22f296` -> `c5b333c2` (installed disarmed) -> `02acdbb0` (review fixes, disarmed) -> **`912ec0d5` ARMED**. The other jobs stay `armedReconcile: false`, `armedPurge: false`. |
+| PAUSE EXPIRY route (nightly 3:20am CT, own flag `armedExpiry`) | n8n `PPDisBJedrTTgSZt` | `7d22f296` -> `c5b333c2` (installed disarmed) -> `02acdbb0` (review fixes, disarmed) -> `912ec0d5` ARMED -> **`de1e1436` ARMED** (opt-outs no longer hold a pause, later the same night). The other jobs stay `armedReconcile: false`, `armedPurge: false`. |
 | Source | `Marketing Avery/brain/hygiene/{sql,policy,workflow}.mjs`, installer `brain/deploy/install-conversation-hygiene.mjs` | PR #40, merge `b478f50` |
 | Scope, numbers, both review dispositions | `Marketing Avery/brain/hygiene/PAUSE-EXPIRY-SCOPE.md` (v2) | |
 | Changelog of record | `Marketing Avery/n8n/workflows/ConversationHygiene.changelog.md` (the top entries) | |
@@ -49,8 +49,7 @@ Every night, for each paused contact, the job releases it to Avery only if ALL o
 3. **Nothing happened on any of their Missive conversations for 7+ days.**
 4. **Every thread with Needs Attention is CLOSED.** An open flagged thread is never touched.
 5. **No hold applies:**
-   - do_not_market or an Avery SMS opt-out (a loyalty opt-out alone does not hold, per Jon 11/2);
-   - a manual hold;
+   - a manual hold (an opt-out is NOT a hold: see the ruling below);
    - a pause under an hour old;
    - an assigned thread;
    - Larger Quote or Pricing Engine FAILURE;
@@ -122,7 +121,7 @@ The guest is sent nothing. An API label removal on a closed thread fires no Miss
   ```
   install-conversation-hygiene.mjs --rollback <snapshot>
   ```
-  Snapshots `hygiene-before-{7d22f296,c5b333c2,02acdbb0}-...json` (each with its `.meta.json`) are in `Marketing Avery/brain/deploy/.emit/` and in the worktree `.worktrees/pause-expiry-20261109/brain/deploy/.emit/`. Restoring `02acdbb0`'s snapshot means "this code, disarmed".
+  Snapshots `hygiene-before-{7d22f296,c5b333c2,02acdbb0,912ec0d5}-...json` (each with its `.meta.json`) are in `Marketing Avery/brain/deploy/.emit/` and in the worktree `.worktrees/pause-expiry-20261109/brain/deploy/.emit/`. Restoring `02acdbb0`'s snapshot means "this code, disarmed".
 - **Missive rate limits:** the job paces its reads (3 per 0.7s) and PATCHes (1 per second) on the shared token. A 429 on a PATCH settles the contact as `failed`, not released.
 
 ## 7. Facts worth knowing next time
@@ -136,7 +135,11 @@ The guest is sent nothing. An API label removal on a closed thread fires no Miss
 - **WATCH the first armed nights (11/10 onward):** the first email, the first real Needs Attention removal (about 1 in 8 releases), and that no released guest gets an unexpected campaign text.
 - The 6 `campaign_due` guests stay paused while `expiryAllowCampaigns` is false. Jon could allow them later; a fundraiser invite-back or a rebook is arguably good marketing.
 - The reconcile (30 min) and the label purge remain disarmed and parked (10/20).
-- **Jon's call, from the 11/9 review: the opt-out hold.** 15 paused contacts are never released because of `do_not_market` (14) or a loyalty-program SMS opt-out (1). The guard came from the 10/20 review, before Jon's 11/2 ruling that opt-outs never stop Avery and a new form re-opts the guest in. Every sender already has its own consent gate, so dropping the hold would only change who answers their next form. Not changed.
+- **RULED AND SHIPPED the same night: an opt-out never holds a pause.** Jon: "you can opt out that is fine, but, if you fill out the event form again - you are opting back in to be contacted".
+  - The hold (inherited from the 10/20 review) is gone from the nightly job and from the disarmed reconcile. Live `de1e1436`, Avery PR #43.
+  - It is safe because a pause decides who answers, not whether we may message: WF1 already answers a form from an opted-out guest (it stands down only when an Avery STOP came at or after the form), and every campaign checks consent itself.
+  - Correction: the review first counted "15 opted-out guests". 13 of them are merge tombstones, dead rows left by the duplicate-customer merges, whose notes start `[merged-into:`. Only 2 are real guests: one staff-set do-not-market and one loyalty STOP. No paused contact carries an Avery STOP.
+  - Cosmetic leftover: 14 of the 201 paused rows are tombstones. They never release, and 13 show under "no conversation" in a preview email. A filter on the notes prefix in `EXPIRY_CANDIDATES_SQL` would hide them; not done.
 - **Jon's call: the "replied, no date" guests** (about 20 to 25 once the backlog is scanned). They stay paused for good, and nobody is prompted to look: the nightly email only reports releases and failures. Options: release after a long quiet stretch, or list them in a weekly email.
 - **Loyalty marketing rejoins.** Loyalty's delivery-hold gate (Loyalty db/103, db/110) skips any phone with a paused customer row. Released guests who opted in to loyalty texts become eligible for birthday, lane-rebook and long-gap sends again. Expected, but neither review listed it.
 
@@ -147,7 +150,7 @@ Checked against production, with no data changed:
 - **Message classifier on live SMS.** Missive SMS senders carry `username` (no `phone_number`); Avery's sends show the venue number there and classify as ours. The preview's two "replied, no date" verdicts were real guest replies.
 - **Missive PATCH shape** matches the docs: a top-level `conversations` array with one object per id in the URL. The docs say label rules run on a PATCH; the 10/20 experiment saw none fire on a closed thread. If one does fire, the read-back sees the thread reopened and the row goes `failed`.
 - **No nightly job bumps `customers.updated_at`** (paused rows were last touched between 8am and 10pm), so the "pause under an hour" hold cannot stall a 3:20am run.
-- **Live equals main.** The installer's dry plan says "no change" at `912ec0d5`, armed.
+- **Live equals main.** The installer's dry plan says "no change" at `de1e1436`, armed (it said the same at `912ec0d5` before the opt-out change).
 - **The first night makes no label change.** The 10 oldest candidates carry no Needs Attention, so night one proves the database path only. The first real label removal comes a few nights later: watch that email.
 - **What to expect on 11/10:** an email "Avery conversation hygiene: 10 pauses expired". No email means the run did not happen or released nobody: check the n8n executions of `PPDisBJedrTTgSZt` at 3:20am.
 - tprs BACKLOG 2.15 (change the customer on a booking) is recorded, not built.
