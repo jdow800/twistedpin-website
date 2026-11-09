@@ -241,6 +241,15 @@ try{
   assert.match(await page.locator('.brand-continue').innerText(),/Continue with 2 VIP lanes/);assert.match(await page.locator('.checkout-footer').innerText(),/\$379\.90/);
   await shot('vip-lane-cap');assert.equal((await calls(page,'/api/cart/replace')).length,0);await page.context().close();
  });
+ await scenario('Jingle: a VIP room full at every time is stamped SOLD OUT on its card in the holiday colours',async()=>{
+  const all=['13:45','14:00','14:30','15:30','15:45'].map(t=>`124/${t}`);
+  const page=await fresh('',{unavailable:all,unavailableReasons:Object.fromEntries(all.map(k=>[k,'sold_out']))});
+  await heading(page,'Choose your lanes.');const vip=page.locator('.room-choice').filter({hasText:'VIP suite'});
+  await vip.and(page.locator(':disabled')).waitFor();assert.match(await vip.innerText(),/Sold out all day/);
+  for(const width of [320,390]){await page.setViewportSize({width,height:844});await page.evaluate(()=>document.fonts.ready);
+   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:resolve(output,`room-sold-out-${width}.png`),fullPage:true});}
+  await page.context().close();
+ });
  await scenario('Readiness and release switch stop new sales while ordinary accepted discovery still wins',async()=>{
   for(const settings of [{bookingReady:false},{enabled:false}]){
    const page=await fresh('?lane=vip',settings);await page.getByText('Reservations are not available right now.',{exact:true}).waitFor();

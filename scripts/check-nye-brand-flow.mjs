@@ -365,6 +365,40 @@ try{
     assert.equal(await page.locator('.time-choice').nth(0).isDisabled(),true,'Both rooms failing keeps the last times');
     await page.getByText(/We could not refresh every time just now/).waitFor();await page.context().close();
   });
+  await scenario('A room full at every party is stamped SOLD OUT on its card; both full reads Sold out; a recheck reopens',async()=>{
+    const vipAll=parties.map(([t])=>`124/${t}`),tradAll=parties.map(([t])=>`126/${t}`);
+    const soldOut=keys=>({unavailable:keys,unavailableReasons:Object.fromEntries(keys.map(k=>[k,'sold_out']))});
+    const page=await fresh(soldOut(vipAll));
+    const vip=page.locator('.room-choice').filter({hasText:'VIP suite'}),trad=page.locator('.room-choice').filter({hasText:'Traditional'});
+    assert.equal(await vip.isDisabled(),true);assert.match(await vip.innerText(),/SOLD OUT/);assert.match(await vip.innerText(),/Sold out all day/);
+    assert.equal(await trad.isDisabled(),false,'One full room never blocks the other');
+    for(const width of [320,390])await screenshot(page,'room-sold-out',width);
+    await page.evaluate(s=>window.configure(s),{...soldOut([...vipAll,...tradAll])});
+    await page.getByRole('button',{name:'Check availability again',exact:true}).click();
+    await trad.and(page.locator(':disabled')).waitFor();
+    assert.match(await page.locator('.checkout-footer').innerText(),/Sold out/);assert.equal(await primary(page).isDisabled(),true);
+    await page.getByText('Every time is full right now.',{exact:true}).waitFor();await screenshot(page,'event-sold-out',390);
+    // One held time is not a sellout: the room card stays choosable.
+    await page.evaluate(s=>window.configure(s),{unavailable:vipAll,unavailableReasons:{...Object.fromEntries(vipAll.map(k=>[k,'sold_out'])),'124/13:00':'held'}});
+    await page.getByRole('button',{name:'Check availability again',exact:true}).click();
+    await vip.and(page.locator(':enabled')).waitFor();assert.doesNotMatch(await vip.innerText(),/SOLD OUT/);await page.context().close();
+  });
+  await scenario('A failed room-screen recheck says so and keeps the last stamps; tab return and a later recheck reopen',async()=>{
+    const vipAll=parties.map(([t])=>`124/${t}`);
+    const page=await fresh({unavailable:vipAll,unavailableReasons:Object.fromEntries(vipAll.map(k=>[k,'sold_out']))});
+    const vip=page.locator('.room-choice').filter({hasText:'VIP suite'});await vip.and(page.locator(':disabled')).waitFor();
+    await page.evaluate(()=>window.configure({failAvailabilityFor:[124,126]}));
+    await page.getByRole('button',{name:'Check availability again',exact:true}).click();
+    await page.getByText(/We could not refresh every time just now/).waitFor();
+    assert.equal(await page.locator('.time-recheck[role="status"]').count(),1,'The failure is announced');
+    assert.match(await vip.innerText(),/SOLD OUT/,'The last verified stamp stays, explained');
+    await page.evaluate(()=>window.configure({failAvailabilityFor:[],unavailable:[]}));
+    await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
+    await vip.and(page.locator(':enabled')).waitFor();
+    assert.equal(await page.getByText(/We could not refresh every time just now/).count(),0,'A healthy refresh clears the notice');
+    assert.equal(await page.getByRole('button',{name:'Check availability again',exact:true}).count(),0,'Nothing left to recheck');
+    await page.context().close();
+  });
   await scenario('A sold-out time that reopens comes back on Check availability again',async()=>{
     const page=await fresh({unavailable:['126/13:00'],unavailableReasons:{'126/13:00':'sold_out'}});await choose(page);
     assert.match(await page.locator('.time-choice').nth(1).innerText(),/SOLD OUT/);

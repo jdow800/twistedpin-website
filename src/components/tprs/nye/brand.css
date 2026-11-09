@@ -297,6 +297,9 @@ body:has(.nye-brand)::before { display: none; }
 .nye-brand .time-lanes .link { display: inline-block; min-height: 44px; margin-top: 4px; font-size: 14px; text-align: left; }
 .nye-brand .time-list > .time-choice.is-unavailable > span:last-child { max-width: 120px; }
 .nye-brand .time-recheck { margin: 0 0 14px; font-size: 14px; line-height: 1.55; color: var(--brand-soft); }
+/* Room card SOLD OUT (the Oct 20 design): the stamp takes the theme's colours. */
+.nye-brand .room-photo .sold-stamp { color: var(--sold-stamp); border-color: var(--sold-stamp); }
+.nye-brand.jingle-booking .room-photo .sold-stamp { background: var(--sold-stamp-bg); }
 .nye-brand .time-recheck .link { min-height: 44px; font-size: 14px; }
 @media (hover: hover) { .nye-brand .time-list > .time-choice:disabled:hover { background: none; } }
 @media (max-width: 760px) {

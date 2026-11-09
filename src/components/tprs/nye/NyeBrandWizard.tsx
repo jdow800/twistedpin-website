@@ -110,6 +110,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
   const verified = lanesLeft !== null && currentProbe?.check === checkKey;
   // A chosen time that filled or closed since it was picked.
   const timeGone = !!requested && !requested.slot.available;
+  // A room is stamped SOLD OUT on its card only when TPRS confirms every one of
+  // its times sold out (the Oct 20 design); one full time never stamps a room.
+  const roomSoldOut = (p:CustomerProduct) => { const s=grid[p.id]??[]; return s.length>0&&s.every(x=>!x.available&&x.unavailableReason==='sold_out'); };
+  const eventSoldOut = products.length>0 && products.every(roomSoldOut);
   // The count never offers more lanes than the time has left, so the subtotal
   // always prices a party the guest can actually reserve.
   const laneLimit = product ? Math.min(onlineMax(product), lanesLeft ?? onlineMax(product)) : eventConfig.maxLanes;
@@ -385,22 +389,25 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     setGrid(current=>({...current,...Object.fromEntries(fresh.flatMap(r=>r.status==='fulfilled'?[r.value]:[]))}));
     setTimesStale(fresh.some(r=>r.status==='rejected'));
   },[products,EVENT_DATE]);
-  const wasOnTimeStep=useRef(false);
+  // Both choosing steps show availability (room-card stamps, time rows), so
+  // entering either one re-reads the times; the time step also rechecks lanes.
+  const onPickStep=step==='lanes'||onTimeStep;
+  const lastStep=useRef<BrandStep|null>(null);
   useEffect(()=>{
-    if(onTimeStep&&!wasOnTimeStep.current&&salesOpen){setProbeRetry(n=>n+1);void refreshTimes();}
-    wasOnTimeStep.current=onTimeStep;
-  },[onTimeStep]);
+    if(onPickStep&&step!==lastStep.current&&salesOpen){if(onTimeStep)setProbeRetry(n=>n+1);void refreshTimes();}
+    lastStep.current=step;
+  },[step]);
   // A guest returning to the tab sees current times and lanes left.
   const lastReturn=useRef(0);
   useEffect(()=>{
-    if(!onTimeStep||!salesOpen)return;
+    if(!onPickStep||!salesOpen)return;
     const back=()=>{
       if(document.visibilityState!=='visible'||Date.now()-lastReturn.current<5000)return;
-      lastReturn.current=Date.now();setProbeRetry(n=>n+1);void refreshTimes();
+      lastReturn.current=Date.now();if(onTimeStep)setProbeRetry(n=>n+1);void refreshTimes();
     };
     window.addEventListener('focus',back);document.addEventListener('visibilitychange',back);
     return()=>{window.removeEventListener('focus',back);document.removeEventListener('visibilitychange',back);};
-  },[onTimeStep,salesOpen,refreshTimes]);
+  },[onPickStep,onTimeStep,salesOpen,refreshTimes]);
   // Browser Back uses the same guarded navigation; a retained payment owns the flow.
   useEffect(()=>{
     const pop=(event:PopStateEvent)=>{
@@ -635,9 +642,10 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     else if(shortage)Object.assign(summary,{caption:'YOUR PARTY',value:lanesLeft?`Only ${lanesLeft} left`:'No lanes left',note:'Lower your lanes or choose another time'});
   }
   const needsOptions=shortage||timeGone;
+  if(step==='lanes'&&eventSoldOut)Object.assign(summary,{caption:eventConfig.identity.name.toUpperCase(),value:'Sold out',note:'Every time is full'});
   const headcountValid=!review?.lowerCapacity || (/^\d+$/.test(headcount)&&Number(headcount)>0&&Number(headcount)<=review.choice.quantity*guestsPerLane(review.choice.product));
-  let primary=step==='pay'||step==='confirmation'?undefined:{label:step==='lanes'?(product?`Choose a ${roomName(product)} time`:'Choose a lane type'):step==='time'?(!requested?'Choose a time':needsOptions?'Review other options':`Continue with ${quantity} ${product?roomName(product)+' ':''}${quantity===1?'lane':'lanes'}`):step==='arcade'?'Continue to food & details':'Review & pay',
-    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&!product)||(step==='time'&&(!requested||(!needsOptions&&!verified)))||(step==='food'&&(!forms||formsError)),busy};
+  let primary=step==='pay'||step==='confirmation'?undefined:{label:step==='lanes'?(eventSoldOut?'Sold out':product&&!roomSoldOut(product)?`Choose a ${roomName(product)} time`:'Choose a lane type'):step==='time'?(!requested?'Choose a time':needsOptions?'Review other options':`Continue with ${quantity} ${product?roomName(product)+' ':''}${quantity===1?'lane':'lanes'}`):step==='arcade'?'Continue to food & details':'Review & pay',
+    onClick:continueFlow,disabled:locked||!!pending||(step==='lanes'&&(!product||roomSoldOut(product)))||(step==='time'&&(!requested||(!needsOptions&&!verified)))||(step==='food'&&(!forms||formsError)),busy};
   if(review)primary={label:'Use this party',onClick:()=>{if(review.quote&&headcountValid)void commit(review.choice,review.addOns,'arcade');},disabled:locked||!!pending||!review.quote||!headcountValid,busy};
   if(primary&&busy)primary={...primary,label:'Checking your selection…'};
   const noticeContent=<>{notice&&<p role="status">{notice}</p>}{pending&&<button className="link" type="button" disabled={busy} onClick={()=>void retryPending()}>Check this selection</button>}</>;
@@ -687,11 +695,16 @@ export default function NyeBrandWizard({salesOpen=true,closedContent,eventConfig
     {step==='lanes'&&<>
       <div className="date-stamp"><span className="date-number">{labels.day}</span><div><span className="month">{labels.monthYear}</span><span className="day">{labels.weekday} · {eventConfig.identity.name}</span></div></div>
       <h2 className="page-heading" tabIndex={-1}>Choose your lanes.</h2><p className="intro">{eventConfig.intro.map((line,i)=><FragmentLine key={i} text={line} last={i===eventConfig.intro.length-1}/>)}</p>
-      <div className="room-list" aria-label="Choose lane type">{codes.map(code=>products.find(p=>p.code===code)).filter((p):p is CustomerProduct=>!!p).map(p=><button type="button" key={p.id} className={`room-choice ${roomCode===p.code?'selected':''}`} aria-pressed={roomCode===p.code} disabled={locked||!!pending} onClick={()=>chooseRoom(p)}>
-        <span className="room-photo"><img src={`/snap/tile-${p.code===eventConfig.vipCode?'vip':'trad'}-540.webp`} alt="" width="540" height="300"/><span className="radio-mark" aria-hidden="true">{roomCode===p.code?'✓':''}</span></span>
+      <div className="room-list" aria-label="Choose lane type">{codes.map(code=>products.find(p=>p.code===code)).filter((p):p is CustomerProduct=>!!p).map(p=>{
+        const soldOut=roomSoldOut(p),chosen=roomCode===p.code&&!soldOut;
+        return <button type="button" key={p.id} className={`room-choice ${chosen?'selected':''}`} aria-pressed={chosen} disabled={locked||!!pending||soldOut} onClick={()=>chooseRoom(p)}>
+        <span className="room-photo"><img src={`/snap/tile-${p.code===eventConfig.vipCode?'vip':'trad'}-540.webp`} alt="" width="540" height="300"/>{soldOut?<span className="sold-stamp">SOLD OUT</span>:<span className="radio-mark" aria-hidden="true">{chosen?'✓':''}</span>}</span>
         <span className="room-copy"><span className="room-name">{p.code===eventConfig.vipCode?'VIP suite':'Traditional'}<br/>lanes</span>{eventConfig.id==='nye'?<span className="nye-admission-capacity"><strong>{guestsPerLane(p)}</strong><span>People total<small>Maximum per lane</small></span></span>:<span className="capacity">Up to <strong>{guestsPerLane(p)} guests</strong><br/>per lane</span>}<span className="room-detail">{p.code===eventConfig.vipCode?'Lanes in our semi-private suite.':'The classic bowling setup.'}</span>
-        <span className="price">From <strong>{formatUsd(grid[p.id]?.length?Math.min(...grid[p.id].map(s=>s.priceCents)):p.defaultPriceCents)}</strong> / lane</span><span className="room-cta">{roomCode===p.code?'Selected':'Choose'} {roomName(p)}</span></span></button>)}</div>
-      <p className="selection-note">Tap <strong>Traditional</strong> or <strong>VIP</strong> to choose your lanes.</p>
+        <span className="price">From <strong>{formatUsd(grid[p.id]?.length?Math.min(...grid[p.id].map(s=>s.priceCents)):p.defaultPriceCents)}</strong> / lane</span><span className="room-cta">{soldOut?'Sold out all day':`${chosen?'Selected':'Choose'} ${roomName(p)}`}</span>{soldOut&&<span className="room-status">Every time is full.</span>}</span></button>;
+      })}</div>
+      <p className="selection-note">{eventSoldOut?'Every time is full right now.':<>Tap <strong>Traditional</strong> or <strong>VIP</strong> to choose your lanes.</>}</p>
+      {/* A full room can reopen after a cancellation; the recheck promises nothing. */}
+      {(products.some(roomSoldOut)||timesStale)&&<p className="time-recheck" role={timesStale?'status':undefined}>{timesStale&&<>We could not refresh every time just now. </>}<button type="button" className="link" disabled={locked||!!pending} onClick={()=>void refreshTimes()}>Check availability again</button></p>}
       {eventConfig.id==='nye'&&<NyeAdmissionNotice example/>}
       <div className="included"><p className="included-title">Every lane includes</p><div className="included-list">{eventConfig.included.map(item=><span key={item}>{item}</span>)}</div><details><summary>The full package</summary><p>{eventConfig.packageDescription}</p></details></div>
     </>}

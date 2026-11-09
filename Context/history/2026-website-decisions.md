@@ -1,3 +1,16 @@
+## 2026-11-08 - Event checkout: room card stamped SOLD OUT when a room is full all day
+
+Jon on NYE: showing a room as sold out once it's fully sold is "not a bad idea". This is the room-card part of the approved October 20 NYE Brand design, which had never been built.
+
+- Step 1 now stamps a lane type's card SOLD OUT (the tilted stamp on a greyed photo) only when TPRS confirms EVERY one of its times `sold_out`. The card is disabled, reads "Sold out all day" and "Every time is full.", and loses its selection circle. One full time, or a held one, never stamps the card.
+- The other room stays choosable.
+- When both rooms are fully sold out, the footer reads "<EVENT> / Sold out / Every time is full", Continue is disabled ("Sold out"), and the note reads "Every time is full right now."
+- A neutral "Check availability again" appears under the cards whenever a room is fully sold out, since cancellations can reopen times.
+- Stamp colours follow the theme: orange on NYE, berry on Jingle.
+- Checks: `check-nye-brand-flow` 34/34 (new: one room full, both full, a held time keeps the card choosable, recheck reopens), `check-jingle-booking-entry` 14/14 (new: Jingle VIP card at 320/390), `check-nye-launch` 23/23, `check-jingle-public-build`, build, strict tsc.
+- Related TPRS change, shipping separately: NYE Traditional holds lane 17 back as a whole-party reserve block. A reserve covering a party's whole guest time now counts as certainly unavailable, so a party whose 16 sellable lanes are booked reads `sold_out` instead of neutral. Releasing the reserve reopens it from live data.
+- Considered, not built: Jon floated a "Space running low" badge on a card at about 50% sold, "unsure how warranted". The time-step "Only N lanes left" badge already covers the moment a guest picks. A card-level version needs a TPRS flag, since the grid deliberately carries no counts (AH-7). Left for after the NYE opening week shows whether it's needed.
+
 ## 2026-11-08 - Event checkout: "Only N lanes left" alert badge
 
 Jon, on the live Jingle page: "That's the last VIP lane at 2:00 PM." should be "more visually alerting", with "a small alert sign 'Only 1 lane left'".
