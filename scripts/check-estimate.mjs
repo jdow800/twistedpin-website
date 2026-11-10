@@ -219,7 +219,7 @@ if (opt) {
     check("no lane number in any label", !opt.lines.some((l) => /\b\d+ lanes?\b/.test(l.label)));
   }
   check("food label carries the request count", opt.lines[1].label === "Food — Stars & Strikes, planned for up to 40", opt.lines[1].label);
-  check("drinks label", opt.lines[2].label === "Drinks — 40 × $10 beer wall cards", opt.lines[2].label);
+  check("drinks label", opt.lines[2].label === "Drinks — 40 × $10 drink cards", opt.lines[2].label);
   check("add-on items named", eq(opt.lines[3].items, ["2 × 50 Traditional Wings"]));
 }
 const floorSample = JSON.parse(JSON.stringify(sample));
