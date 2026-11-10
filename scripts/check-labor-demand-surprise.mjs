@@ -5,7 +5,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 import {questionNeedsResponse,reviewProgress} from '../src/components/labor/review-progress.ts';
-import {serviceResponse} from '../src/components/labor/service-feedback.ts';
+import {answerLabel,serviceResponse,typedNote} from '../src/components/labor/service-feedback.ts';
 import {fixture} from './labor-demand-surprise-fixture.mjs';
 const feedback=overall=>({overall,affectedDepartments:['kitchen'],managerHelp:'yes',extraStaffingAnticipated:'unknown'});
 
@@ -27,16 +27,24 @@ test('surge and legacy server-rendered cards keep evidence and answer styles sep
   const {Question}=await server.ssrLoadModule('/src/components/labor/ReviewPilot.tsx');
   const r=fixture(),q=r.questions[0],render=question=>renderToStaticMarkup(createElement(Card,{number:1,question,review:r,onSaved:()=>assert.fail('Rendering must not save')}));
   const before=structuredClone(r),html=render(q);
-  for(const text of ['Food net sales: $1,500 expected → $2,000 actual (+33%)','Biggest jump: 6pm-7pm','Published','captured after the fact','Added 0 staff-hours','How did the crew handle it?','Did a manager step in?','What happened?','Original question:',q.prompt])assert.ok(html.includes(text),text);
-  // Jon Oct15 TLDR: the form is open on the card, nothing is preselected, and Save needs no confirm step.
-  assert.ok(html.indexOf('expected →')<html.indexOf('How did the crew handle it?'));assert.doesNotMatch(html,/Keep this coverage|Try an adjustment|Maybe, with a condition|walk-in|proven capacity|Nothing is saved until you confirm|Review answer|checked=""/);assert.equal((html.match(/type="radio"/g)||[]).length,4);assert.deepEqual(r,before);
+  for(const text of ['Food net sales: $1,500 expected → $2,000 actual (+33%)','Biggest jump: 6pm-7pm','Published','captured after the fact','Added 0 staff-hours','Did the crew keep up?','>Kept up</button>','>Stretched</button>','>Fell behind</button>','One tap saves it.','Original question:',q.prompt])assert.ok(html.includes(text),text);
+  // Jon Nov 9 ("give him some buttons ... quick painless"): three one-tap answers under the facts. Nothing is
+  // preselected and nothing has to be typed or picked from a list before answering.
+  assert.ok(html.indexOf('expected →')<html.indexOf('Did the crew keep up?'));assert.doesNotMatch(html,/Keep this coverage|Try an adjustment|Maybe, with a condition|walk-in|proven capacity|Nothing is saved until you confirm|Review answer|checked=""|aria-pressed="true"/);
+  assert.equal((html.match(/<button type="button" aria-pressed="false">/g)||[]).length,3);assert.doesNotMatch(html,/type="radio"|<form|<textarea|<select|required|How did the crew handle it\?|Did a manager step in\?|Was the extra coverage planned/);assert.deepEqual(r,before);
   const desk=structuredClone(q);Object.assign(desk.demandSurge,{primaryMetric:'desk_interactions',metrics:[{metric:'desk_interactions',unit:'interactions',forecastValue:40,actualValue:60,increaseValue:20,increasePercent:50}],hotHours:[]});
   const deskHtml=render(desk);assert.match(deskHtml,/Desk interactions: 40 expected → 60 actual \(\+50%\)/);assert.doesNotMatch(deskHtml,/\$40|\$60|Building sales/);
   const longKnown={...q,demandSurge:{...q.demandSurge,knownOperatingExplanation:'Synthetic explanation '.repeat(30)+'<script>not HTML</script>'}};
   const knownHtml=render(longKnown);assert.match(knownHtml,/Saved operating explanation/);assert.match(knownHtml,/&lt;script&gt;not HTML&lt;\/script&gt;/);assert.doesNotMatch(knownHtml,/<script>/);assert.match(knownHtml,/Already noted:[\s\S]*…<\/p>/);
   const saved={...q,response:serviceResponse('Synthetic desk and kitchen queues.',feedback('strained'),q.followUpDate),revision:1,canUndo:true};
-  const savedHtml=render(saved);assert.match(savedHtml,/Strained, but kept up/);assert.match(savedHtml,/Manager stepped in/);assert.match(savedHtml,/>Edit<\/button>/);assert.match(savedHtml,/>Undo<\/button>/);assert.doesNotMatch(savedHtml,/<form/);assert.doesNotMatch(savedHtml,/Your decision|Try an adjustment/);
-  saved.response=serviceResponse('Synthetic pending team check.',feedback('need_to_check'),q.followUpDate);assert.match(render(saved),/this stays open until then/);
+  const savedHtml=render(saved);assert.match(savedHtml,/<h3>Stretched<\/h3>/);assert.match(savedHtml,/Where:<\/strong> Kitchen/);assert.match(savedHtml,/Manager stepped in/);assert.match(savedHtml,/Synthetic desk and kitchen queues\./);
+  for(const label of ['Add detail','Change','Undo'])assert.match(savedHtml,new RegExp('>'+label+'</button>'));assert.doesNotMatch(savedHtml,/<form|<textarea|Did the crew keep up/);assert.doesNotMatch(savedHtml,/Your decision|Try an adjustment/);
+  // A one-tap answer saves the button's own words as its note; the card shows them once, with no guessed detail.
+  const tapped={...q,response:serviceResponse(answerLabel('handled'),{overall:'handled',affectedDepartments:[],managerHelp:'unknown',extraStaffingAnticipated:'unknown'},q.followUpDate),revision:1,canUndo:true};
+  assert.equal(tapped.response.note,'Kept up');assert.equal(typedNote(tapped.response.note),'');assert.equal(typedNote('The crew handled it'),'');assert.equal(typedNote(' Line cooks were buried. '),'Line cooks were buried.');
+  const tappedHtml=render(tapped);assert.equal((tappedHtml.match(/Kept up/g)||[]).length,1);assert.doesNotMatch(tappedHtml,/Manager stepped in|Where:|Extra coverage/);
+  // A saved "need to check" is still open: the three buttons come back with a line saying so.
+  saved.response=serviceResponse('Synthetic pending team check.',feedback('need_to_check'),q.followUpDate);const pendingHtml=render(saved);assert.match(pendingHtml,/this stays open until then/);assert.match(pendingHtml,/>Kept up<\/button>/);
   const withdrawn={...q,disposition:{status:'withdrawn',source:'owner',reason:'Synthetic withdrawal.',withdrawnAt:'2026-10-28T18:00:00Z'}};
   const withdrawnHtml=renderToStaticMarkup(createElement(Question,{number:1,question:withdrawn,review:r,onSaved:()=>assert.fail('Withdrawal must not save')}));assert.match(withdrawnHtml,/No response required/);assert.doesNotMatch(withdrawnHtml,/<button|<form|<input|<textarea/);
  }finally{await server.close();}

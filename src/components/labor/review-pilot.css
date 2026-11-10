@@ -320,6 +320,15 @@ html:has(.lq-pilot-app) { scrollbar-gutter: auto; background: #f3f1f6; }
 .lr-pilot .lr-change-answer .lr-actions { margin-top: 10px; }
 .lr-pilot .lr-alt-answers { margin: 10px 0 0; font-size: 13px; color: #6c627b; }
 .lr-pilot .lr-alt-answers .lr-text-button { font-size: 13px; }
+/* One-tap service answer (Jon 2026-11-09): three thumb-sized buttons; detail is optional and comes after. */
+.lr-pilot .lr-quick-ask { margin: 14px 0 8px; font-size: 16px; font-weight: 700; color: #200f53; }
+.lr-quick { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.lr-pilot .lr-quick button { min-height: 52px; padding: 10px 6px; font-size: 15px; font-weight: 700; border-color: #715990; color: #200f53; }
+.lr-pilot .lr-quick button:hover, .lr-pilot .lr-quick button[aria-pressed=true] { background: #ece5f8; box-shadow: inset 0 0 0 1px #715990; }
+.lr-pilot .lr-quick-answer > .lr-small { margin: 8px 0 0; }
+.lr-pilot .lr-quick-detail { margin-top: 12px; }
+.lr-pilot .lr-quick-detail .lr-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 400; cursor: pointer; }
+.lr-pilot .lr-quick-detail .lr-check input { width: 20px; height: 20px; margin: 0; }
 .lr-change-question .lr-saved { margin-top: 14px; padding: 14px 16px; }
 .lr-pilot .lr-change-question .lr-saved p { margin: 0; }
 .lr-change-question .lr-saved .lr-actions { margin-top: 10px; }
