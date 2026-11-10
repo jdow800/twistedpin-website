@@ -1,3 +1,12 @@
+## 2026-11-09 - Three photos for the event page's Drinks step (public/zite)
+
+Jon picked the photos for the Drinks step of the event page (the Zite builder at menu.twistedpin.com): BeerWallHeyFlow for the tap wall, framed like the reference crop he sent; AIV07143 for cocktails; and AIV07031 (the back bar shelves), which he asked to see as the cocktail panel's photo before deciding.
+
+- `public/zite/builder-drinks-wall-1200x900.webp`, `builder-drinks-cocktail-1200x900.webp` and `builder-drinks-backbar-1200x900.webp`: 4:3 crops at 1200x900, 56 to 136 KB.
+- `public/zite/` is the folder the event page loads its own images from. The Zite app references these filenames (`apps/menu-selector/src/components/builder/DrinksSection.tsx`), so renaming or deleting one breaks a tile on the event page. No page on this site uses them.
+- The back bar file is hosted but not shown yet; the cocktail panel keeps the pour photo until Jon picks.
+- No page, copy, schema or redirect changed. The event page had been borrowing `snap/menu-hub-taps-720` and `snap/cocktails-bg-900`; it no longer does.
+
 ## 2026-11-09 - /labor service questions are answered with one tap
 
 Jon asked why John V never answered the "how did the crew handle the rush" question: "How easy are we making his answers and how TLDR are they ... K.I.S.S". The form needed two or three picks and a typed note about a night five days earlier. He had answered 3 of 3 one-box schedule questions within the hour and 0 of 1 of these, with both on the same page on Oct 22. Jon then: "give him some buttons and/or a longer response if needed ... quick painless ... ship both".
