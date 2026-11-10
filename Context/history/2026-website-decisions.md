@@ -1,3 +1,18 @@
+## 2026-11-09 - /labor service questions are answered with one tap
+
+Jon asked why John V never answered the "how did the crew handle the rush" question: "How easy are we making his answers and how TLDR are they ... K.I.S.S". The form needed two or three picks and a typed note about a night five days earlier. He had answered 3 of 3 one-box schedule questions within the hour and 0 of 1 of these, with both on the same page on Oct 22. Jon then: "give him some buttons and/or a longer response if needed ... quick painless ... ship both".
+
+- `DemandSurgeQuestion.tsx` (`ServiceAnswer`, shared with `OutcomeReviewQuestion.tsx`): "Did the crew keep up?" with three buttons, **Kept up / Stretched / Fell behind**. One tap saves.
+  - Nothing has to be typed. With no note, the button's own words are saved as the note, so TPRS needs no change.
+  - After Stretched or Fell behind, an optional block opens: where it was tight (desk, kitchen, bar), "A manager stepped in", and a note. Skip closes it. After Kept up there is an "Add detail" button.
+  - Change and Undo stay. An answer saved earlier as "need to check with the team" is still open and shows the buttons again.
+  - The required "Did a manager step in?" pick and the "Was the extra coverage planned for this?" pick are gone. A manager is recorded only when he says so; otherwise it stays unknown.
+- The page remounts a card after every save (its key carries the revision), so the optional block is opened from the saved answer, not from state set after the tap.
+- `service-feedback.ts`: the labels are now the button words; `typedNote` hides a note that only repeats them.
+- `review-pilot.css`: `lr-quick*` styles for three thumb-sized buttons.
+- Checks: `check-labor-demand-surprise.mjs` and `check-labor-outcomes.mjs` assert the new card and fail on the old form. Both browser roundtrips (`labor-demand-surprise-ui-qa.mjs`, `labor-outcome-ui-qa.mjs`, mocked API) pass at 320, 390 and 960/1280 px with no overflow.
+- The matching email wording is tprs (same day): one question line, "Did the crew keep up? One tap answers: Kept up, Stretched or Fell behind."
+
 ## 2026-11-08 - NYE playbook: VIP lanes no longer listed as pairs
 
 Jon (11/8): "Jingle / NYE doesn't need pairs on VIP". The NYE playbook still said "VIP sells in pairs of 2, 4 or 6".
