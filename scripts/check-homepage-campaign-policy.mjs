@@ -6,7 +6,7 @@ const check = (actual, expected, label) => { assert.deepEqual(actual, expected, 
 const start = Date.parse('2026-12-07T06:00:00Z'), end = Date.parse('2027-01-01T03:30:00Z');
 const nye = HOMEPAGE_CAMPAIGNS.find(c => c.id === 'nye-mirrorball-2026');
 const jingle = HOMEPAGE_CAMPAIGNS.find(c => c.id === 'jingle-2026');
-const jingleStart = Date.parse('2026-10-22T05:00:00Z'), jingleEnd = Date.parse('2026-12-06T21:15:00Z');
+const jingleStart = Date.parse('2026-10-22T05:00:00Z'), jingleEnd = Date.parse('2026-12-06T20:55:00Z');
 check(nye.startsAt, '2026-12-07T06:00:00Z', 'Dec 7 midnight Chicago');
 check(nye.endsAt, '2027-01-01T03:30:00Z', 'Dec 31 9:30pm Chicago, final current VIP purchase cutoff');
 for (const zone of ['UTC', 'America/Los_Angeles', 'Asia/Tokyo', 'America/Chicago']) {
@@ -26,7 +26,7 @@ check(homepagePromotions(start).promos, [], 'one campaign owns the promotion are
 check(homepagePromotions(start - 1).nextChange, start, 'timer targets exact campaign start');
 check(homepagePromotions(end - 1).nextChange, end, 'timer targets exact campaign retirement');
 check(homepagePromotions(end).promos.map(p => p.id), ['karaoke-thursdays-2026'], 'retirement cannot revive expired holiday or Singo bars');
-check(jingle, { id: 'jingle-2026', enabled: true, publicPageReady: true, startsAt: '2026-10-22T05:00:00Z', endsAt: '2026-12-06T21:15:00Z', href: '/jingle-bowl/', priority: 10 }, 'approved public landing, never checkout or a concept route');
+check(jingle, { id: 'jingle-2026', enabled: true, publicPageReady: true, startsAt: '2026-10-22T05:00:00Z', endsAt: '2026-12-06T20:55:00Z', href: '/jingle-bowl/', priority: 10 }, 'approved public landing, never checkout or a concept route');
 check(homepagePromotions(jingleStart).promos, [], 'Jingle owns the one promotion area');
 check(homepagePromotions(jingleEnd - 1).nextChange, jingleEnd, 'mounted timer targets the final Jingle cutoff');
 check(homepagePromotions(jingleEnd).promos.length > 0, true, 'generic promotion returns between Jingle and NYE');

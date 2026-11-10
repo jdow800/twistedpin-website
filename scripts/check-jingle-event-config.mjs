@@ -22,7 +22,7 @@ assert.equal(event.marketingEnabled,false);assert.equal(event.midnightToastTime,
 assert.match(event.reviewNotice,/approved prices and schedule/);
 assert.ok(event.termsText.includes('$149.95 Traditional and $189.95 VIP'));
 assert.match(event.termsText,/approved 39-reservation schedule/);
-assert.match(event.termsText,/30-minute booking cutoff/);
+assert.match(event.termsText,/50-minute booking cutoff/);
 assert.ok(event.termsText.includes('10% Online Booking Fee and applicable tax'));
 assert.ok(event.termsText.includes('untaxed test amounts without that fee'));
 assert.ok(event.termsText.includes('Cancellations must be made at least 72 hours before your reservation to avoid forfeiting payment.'));

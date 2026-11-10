@@ -29,17 +29,17 @@ match(jingle.event.sales_open_answer, /booking page is ready/);
 eq(jingle.event.booking_status, 'verified');
 eq(jingle.event.sessions_status, 'verified');
 eq(jingle.event.sessions.map(({starts_at, booking_closes_at}) => ({starts_at, booking_closes_at})), [
-  { starts_at: '2026-12-06T19:45:00Z', booking_closes_at: '2026-12-06T19:15:00Z' },
-  { starts_at: '2026-12-06T20:00:00Z', booking_closes_at: '2026-12-06T19:30:00Z' },
-  { starts_at: '2026-12-06T20:30:00Z', booking_closes_at: '2026-12-06T20:00:00Z' },
-  { starts_at: '2026-12-06T21:30:00Z', booking_closes_at: '2026-12-06T21:00:00Z' },
-  { starts_at: '2026-12-06T21:45:00Z', booking_closes_at: '2026-12-06T21:15:00Z' },
+  { starts_at: '2026-12-06T19:45:00Z', booking_closes_at: '2026-12-06T18:55:00Z' },
+  { starts_at: '2026-12-06T20:00:00Z', booking_closes_at: '2026-12-06T19:10:00Z' },
+  { starts_at: '2026-12-06T20:30:00Z', booking_closes_at: '2026-12-06T19:40:00Z' },
+  { starts_at: '2026-12-06T21:30:00Z', booking_closes_at: '2026-12-06T20:40:00Z' },
+  { starts_at: '2026-12-06T21:45:00Z', booking_closes_at: '2026-12-06T20:55:00Z' },
 ]);
-eq(jingle.event.sessions.every(s => Date.parse(s.starts_at) - Date.parse(s.booking_closes_at) === 30 * 60_000), true);
+eq(jingle.event.sessions.every(s => Date.parse(s.starts_at) - Date.parse(s.booking_closes_at) === 50 * 60_000), true);
 eq(ask('Jingle Bowl', 'reservations', at('2026-10-22T15:29:59Z')).event.booking_status, 'not_open');
 eq(ask('Jingle Bowl', 'reservations', at('2026-10-22T15:30:00Z')).event.booking_status, 'verified');
-eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T19:15:00Z')).event.sessions.map(s => s.booking_status), ['cutoff_passed', 'before_cutoff', 'before_cutoff', 'before_cutoff', 'before_cutoff']);
-eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T21:15:00Z')).event.booking_status, 'ended');
+eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T18:55:00Z')).event.sessions.map(s => s.booking_status), ['cutoff_passed', 'before_cutoff', 'before_cutoff', 'before_cutoff', 'before_cutoff']);
+eq(ask('Jingle Bowl', 'reservations', at('2026-12-06T20:55:00Z')).event.booking_status, 'ended');
 eq(jingle.service_cutoffs_must_confirm, true);
 match(jingle.answer, /Jingle Bowl.*Sunday, December 6, 2026.*event reservations only all day/);
 match(jingle.answer, /Regular visits aren't available/);

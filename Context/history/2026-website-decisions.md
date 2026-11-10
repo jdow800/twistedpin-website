@@ -1,3 +1,22 @@
+## 2026-11-10 - Jingle Bowl booking closes 50 minutes before each start (was 30)
+
+Jon moved the Jingle Bowl booking cutoff from 30 to 50 minutes on 2026-11-10 (tprs PR 544; both product rows read 50), so the 1:45pm start stops selling at 12:55pm and the day-of staff print a little after 1pm is final for it. He approved the page change the same day ("you can change it to 50 minutes").
+
+Everything on the site that states or pins the cutoff moved with it:
+
+- `/jingle-bowl/` FAQ "How late can we reserve?": 50 minutes.
+- `src/data/special-events-2026.json`: each Jingle session's `booking_closes_at` is 50 minutes before its start (12:55, 1:10, 1:40, 2:40 and 2:55pm Central). `/api/visit-date/` and Roy speak these as the reservation cutoff.
+- `src/config/homepage-campaigns.ts`: the homepage Jingle promotion retires at 2:55pm Central on Dec 6, the last start's cutoff (was 3:15pm).
+- The owner rehearsal terms text (`src/components/tprs/jingle/config.ts`) and the `/jingle-bowl-concepts/` review page say 50.
+- Checks follow the data: `check-special-events.mjs` (134 pass) and `check-homepage-campaign-policy.mjs` (58 pass); the pinned time in `check-homepage-campaign.mjs` and the wording in `check-jingle-event-config.mjs` were updated to match.
+
+Not done / to know:
+
+- `scripts/check-jingle-event-config.mjs` already fails on main before this change (`import.meta.env.DEV` is undefined when the script bundles `jingleBookingDateRoute`), so it could not confirm the new wording. Left as found.
+- `scripts/check-homepage-campaign.mjs` (the browser check) was not run.
+- `approved_on` and `source_version` in the special-events file are unchanged.
+- The trap behind this: any Jingle setting edited in the TPRS admin closes Jingle Bowl sales until the code agrees. See tprs `BUILD_NOTES.md`, 2026-11-10.
+
 ## 2026-11-09 - Event estimate: the drinks line says "drink cards"
 
 Jon renamed the pre-ordered cards on the event page from "Beer Wall Cards" to "Drink Cards" (2026-11-09: "'Drink Cards' is fine - yes"), because a card also trades for a cocktail and the old name hid that. The event page already shows "drink cards" whatever this API sends; this makes the pricing response say the same thing.

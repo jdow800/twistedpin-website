@@ -10,7 +10,7 @@ await mkdir(out, { recursive: true });
 const output = name => fileURLToPath(new URL(name, out));
 const browser = await chromium.launch();
 const start = Date.parse('2026-12-07T06:00:00Z'), end = Date.parse('2027-01-01T03:30:00Z');
-const jingleStart = Date.parse('2026-10-22T05:00:00Z'), jingleEnd = Date.parse('2026-12-06T21:15:00Z');
+const jingleStart = Date.parse('2026-10-22T05:00:00Z'), jingleEnd = Date.parse('2026-12-06T20:55:00Z');
 let checks = 0;
 const errors = [], blocked = [], captures = [];
 const check = (actual, expected, label) => { assert.deepEqual(actual, expected, label); checks++; };

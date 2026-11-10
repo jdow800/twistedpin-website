@@ -19,11 +19,11 @@
       "booking_ready_verified": true,
       "session_cutoffs_verified": true,
       "sessions": [
-        { "starts_at": "2026-12-06T19:45:00Z", "booking_closes_at": "2026-12-06T19:15:00Z" },
-        { "starts_at": "2026-12-06T20:00:00Z", "booking_closes_at": "2026-12-06T19:30:00Z" },
-        { "starts_at": "2026-12-06T20:30:00Z", "booking_closes_at": "2026-12-06T20:00:00Z" },
-        { "starts_at": "2026-12-06T21:30:00Z", "booking_closes_at": "2026-12-06T21:00:00Z" },
-        { "starts_at": "2026-12-06T21:45:00Z", "booking_closes_at": "2026-12-06T21:15:00Z" }
+        { "starts_at": "2026-12-06T19:45:00Z", "booking_closes_at": "2026-12-06T18:55:00Z" },
+        { "starts_at": "2026-12-06T20:00:00Z", "booking_closes_at": "2026-12-06T19:10:00Z" },
+        { "starts_at": "2026-12-06T20:30:00Z", "booking_closes_at": "2026-12-06T19:40:00Z" },
+        { "starts_at": "2026-12-06T21:30:00Z", "booking_closes_at": "2026-12-06T20:40:00Z" },
+        { "starts_at": "2026-12-06T21:45:00Z", "booking_closes_at": "2026-12-06T20:55:00Z" }
       ],
       "approved_staffed_intervals": []
     },
