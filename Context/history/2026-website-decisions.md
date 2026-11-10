@@ -1,3 +1,14 @@
+## 2026-11-10 - FAQ "final guest count comes in lower": food is planned by group size, not per head
+
+Jon approved this the same day, after the pay page changed to "Guests: Up to 15" (tprs PR 545). The `/faq/` answer said "we update your total to your real count", which tells a prospect they pay per head. They do not: catering is billed by group size, so 18 guests pay for 20 and a guest or two fewer usually changes nothing.
+
+- `src/pages/faq.astro`, "What if our final guest count comes in lower than we planned?": both the visible answer and the schema text now say the final payment is set from the count confirmed seven days out, that food is planned by group size and not per head, and that a full size smaller brings the total down. "Seven days" and the plan-around-your-maximum advice are unchanged.
+- No numbers on purpose. The group sizes (steps of five, package minimums) stay off public pages, per the Claims and scope rule in `Context/voice.md`. Avery gives them in the thread.
+
+Not changed: the cancellation answer below it ("we update your total") and Terms section 10 ("the total is updated to reflect it"). Both are accurate and neither says per head.
+
+Not run: a local build. The edit is text inside two existing strings. The live page was read after the deploy.
+
 ## 2026-11-10 - Jingle Bowl booking closes 50 minutes before each start (was 30)
 
 Jon moved the Jingle Bowl booking cutoff from 30 to 50 minutes on 2026-11-10 (tprs PR 544; both product rows read 50), so the 1:45pm start stops selling at 12:55pm and the day-of staff print a little after 1pm is final for it. He approved the page change the same day ("you can change it to 50 minutes").
