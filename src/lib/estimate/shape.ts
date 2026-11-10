@@ -127,7 +127,7 @@ export function shapeOption(
   if (barExact > 0) {
     const qty = num(a.bar?.qty);
     const price = num(a.bar?.price_per_person);
-    lines.push({ key: "drinks", label: `Drinks — ${qty} × $${price} beer wall cards`, amount: roundTo5(barExact) });
+    lines.push({ key: "drinks", label: `Drinks — ${qty} × $${price} drink cards`, amount: roundTo5(barExact) });
   }
   if (addonsExact > 0) {
     const items = [...(a.food_add_ons?.line_items ?? []), ...(a.non_food_add_ons?.line_items ?? [])]

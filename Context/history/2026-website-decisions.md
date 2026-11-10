@@ -1,3 +1,11 @@
+## 2026-11-09 - Event estimate: the drinks line says "drink cards"
+
+Jon renamed the pre-ordered cards on the event page from "Beer Wall Cards" to "Drink Cards" (2026-11-09: "'Drink Cards' is fine - yes"), because a card also trades for a cocktail and the old name hid that. The event page already shows "drink cards" whatever this API sends; this makes the pricing response say the same thing.
+
+- `src/lib/estimate/shape.ts`: the drinks line label is now `Drinks — N × $P drink cards` (was `beer wall cards`). The amount, the key (`drinks`) and every other line are unchanged.
+- `scripts/check-estimate.mjs`: the label check follows.
+- Readers of the label: the event page (Zite `EstimatePanel`), which accepts either wording. Avery's replies still say "beer wall cards"; that is her own copy, not this API.
+
 ## 2026-11-09 - Three photos for the event page's Drinks step (public/zite)
 
 Jon picked the photos for the Drinks step of the event page (the Zite builder at menu.twistedpin.com): BeerWallHeyFlow for the tap wall, framed like the reference crop he sent; AIV07143 for cocktails; and AIV07031 (the back bar shelves), which he asked to see as the cocktail panel's photo before deciding.
