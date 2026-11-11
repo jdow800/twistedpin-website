@@ -81,6 +81,28 @@ A split is by dollars. There is no per-line-item payment: the guest reads the it
 - "Not booked" is wording over a booking the system still treats as deposit-paid. The pay page, emails, Avery's signal, the reminder, the GM alert and the booking page were changed. Other staff screens that list deposit-paid events (front-desk board, reports) were not audited and may show it as a normal event.
 - Plain Full payment more than 9 days out still splits with the old "Your date's held" wording.
 
+## Outside review after merge (GPT-6-Astra, max, 2026-11-11)
+Asked for after both PRs were live, because the second commit of #550 (the eight fixes) had no independent review. Read-only against main `8d5fe187`. Verdict: **"fix before the first real use"**, with this reason: ordinary staff edits can confirm an unpaid event early or leave a fully covered event unconfirmed.
+
+**Clean (the part that mattered most):** no way found for a captured payment to go unrecorded or be recorded twice; the two savepoints are real savepoints on the same connection; first, middle and last part, overpayment and replay all end in the right status; no booking without the option can split now that could not before; the new `outstandingCents` field leaks nothing; clearing the option at full payment loses nothing else from the saved input.
+
+**Findings, each checked against the code by this session. NONE ARE FIXED as of this writing. Jon decides.**
+
+| # | What happens | How likely | Checked |
+|---|---|---|---|
+| 1 | **Part paid, then staff lower the total to at or below what was paid.** A staff edit never promotes a deposit-paid booking to fully paid (true for every booking; `staff-direct-booking.ts` step 10b). For a split event the guest was told nothing at part one, so they never get any confirmation and Avery is never told. | Plausible on a booking whose count is still moving. | Yes |
+| 2 | **Switching the option ON for an event that was already confirmed** (paid in full, then guests added, then staff allow a split for the extra). The guest and staff see "NOT booked yet" on a booked event. The clear-at-full-payment fix does not cover a staff re-enable. | Rare, but it is the natural move when a confirmed group wants the extra on two cards. | Yes |
+| 3 | **Switching the option OFF after part one.** The event is then treated as an ordinary deposit-paid booking (reminder and kitchen alert fire) though the guest never got a confirmation. | Needs a deliberate staff action. | Yes |
+| 4 | **Event more than 12 days out, option on, first part early, rest inside 12 days.** The kitchen's short-notice alert keys on the FIRST payment date, so it never fires for that event. | Only for the option used far out, which is not what it is for. | Yes |
+| 5 | **Event more than 9 days out, option on, Avery changes headcount before payment.** Avery's edit turns full payment into a 50% deposit (it always did that to staff pay-in-full events). A deposit then books it the ordinary way. | Same: only far out. | Yes |
+| 6 | **Part paid, then the event is moved EARLIER.** The link was extended to the old event end and is not pulled back (`reclampExpiryToEventEnd` only handles unpaid bookings; this was already true of balance links). | Rare, low cost. | Yes |
+| 7 | A link being opened at the same instant a part payment settles can deadlock. The payment still records; the worst case is the page errors once or the link keeps its shorter life. | Contrived. | Yes (verify does lock the token on every open) |
+| 8 | The two crons rebuild the invoice total from two separate reads; a payment landing between them can fool the far-out case. | Contrived. | Read only |
+
+**This session's recommendation (not yet agreed):** one small follow-up that (a) makes "not booked until it is all paid" apply only to last-minute events, the only place the one-payment rule exists, which removes 4, 5 and 8; (b) remembers whether the guest has ever been told they are booked, which fixes 2; (c) announces full payment when a staff edit leaves a part-paid split event with nothing owed, which fixes 1. Record 3, 6 and 7. Until then, the workaround for 1 is manual: if the total drops to what is already paid, email the receipt from the booking page.
+
+The reviewer's full text was at `%TEMP%\tprs-astra-review\astra-review.md` on Jon's PC (not committed).
+
 ## Open
 - **This guest:** waiting on their reply. Needs an email and a confirmed count and time (20 at 5pm sent, 15 at 5:30pm calculated, 18 on the form). Shanna knows the option exists.
 - **First real use of the split option has not happened.** After part one, expect the "not booked yet" email, a NOT BOOKED YET alert, and no `booking.deposit_paid` row.
