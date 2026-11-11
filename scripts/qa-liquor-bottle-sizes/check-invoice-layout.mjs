@@ -61,7 +61,7 @@ try {
       const typeInto = (selector, value) => evaluate(`(() => { const el = document.querySelector(${JSON.stringify(selector)}); Object.getOwnPropertyDescriptor(el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype, 'value').set.call(el, ${JSON.stringify(value)}); el.dispatchEvent(new Event('input', { bubbles: true })); })()`);
       const settle = () => evaluate(`new Promise(resolve => setTimeout(resolve, 60))`);
       await typeInto('#invoice-deposit-kegs', '999'); await settle();
-      assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with a count above the kegs billed`);
+      assert.equal(await evaluate(`document.documentElement.scrollWidth > innerWidth + 1`), false, `${width}px ${mode}: overflow with a count over the limit`);
       await writeFile(join(dist, `invoice-${mode}-over-${width}.png`), Buffer.from((await send('Page.captureScreenshot', { format: 'png' })).data, 'base64'));
       await typeInto('#invoice-deposit-kegs', '1'); await settle();
       await evaluate(`[...document.querySelectorAll('#invoice-explanation button')].find(b => b.textContent.trim() === 'Describe something else').click()`); await settle();

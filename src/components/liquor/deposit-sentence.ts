@@ -73,13 +73,20 @@ export function depositPlan(lines: readonly DepositLineFacts[], originalTotal: s
 export const countPlan = (lines: readonly DepositLineFacts[], printedTotal: string | number | null | undefined, answered: boolean): DepositPlan | null =>
   answered || hasDepositCredit(lines) ? null : depositPlan(lines, printedTotal);
 
-/** The typed count: a whole number from 1 up to the kegs billed a deposit. Never above; an invoice cannot credit more than it billed. */
-export function parseKegCount(text: string, kegsBilled: number): KegCount {
+/**
+ * The most empties one credit can cover: as many as fit inside the original bill, since the server refuses a credit larger than
+ * the bill. NOT the kegs billed a deposit. The shells that go back came from earlier deliveries, so a delivery that billed three
+ * deposits can take five empties back (Brew City BCIL-10774, 2026-11-11: "SE-150", five shells at $30 on three kegs billed).
+ */
+export const maxKegsCredited = (plan: DepositPlan): number => Math.floor(plan.originalCents / plan.rateCents);
+
+/** The typed count: a whole number from 1 up to `maxKegs` (maxKegsCredited). */
+export function parseKegCount(text: string, maxKegs: number): KegCount {
   const trimmed = text.trim();
   if (!/^\d{1,3}$/.test(trimmed)) return { invalid: true };
   const kegs = Number(trimmed);
   if (kegs < 1) return { invalid: true };
-  return kegs > kegsBilled ? { over: kegs } : { kegs };
+  return kegs > maxKegs ? { over: kegs } : { kegs };
 }
 
 export const depositAmounts = (kegs: number, rateCents: number, originalCents: number) =>
@@ -141,8 +148,11 @@ export function rejectionMessage(question: string, answer: string, plan: Deposit
   return hasCannedDollars(question) ? doesNotAddUpMessage(plan) : question;
 }
 
-/** Under the number box when what is typed cannot be recorded. */
-export function rangeHint(count: Exclude<KegCount, { kegs: number }>, kegsBilled: number): string {
-  if ("over" in count) return `A deposit was billed on ${kegsBilled} keg${kegsBilled === 1 ? "" : "s"}, so no more than ${kegsBilled} can be credited.`;
-  return kegsBilled === 1 ? "Enter 1." : `Enter a number from 1 to ${kegsBilled}.`;
+/**
+ * Under the number box when what is typed cannot be recorded. Only a credit bigger than the bill is too many; the kegs billed
+ * a deposit are no limit (see maxKegsCredited). An over count is always 2 or more, so "kegs" is always plural.
+ */
+export function rangeHint(count: Exclude<KegCount, { kegs: number }>, plan: DepositPlan): string {
+  if ("over" in count) return `${count.over} kegs at ${formatMoney(plan.rateCents)} is ${formatMoney(count.over * plan.rateCents)}, more than the ${formatMoney(plan.originalCents)} bill.`;
+  return "Enter a number of kegs, 1 or more.";
 }
