@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { BarApiError, explainInvoice, STALE_ANSWER_MESSAGE, type InvoiceDetail } from "../api";
 import {
   composeDepositSentence, countPlan, depositAmounts, depositPlan, exampleText, formatMoney, hasCannedDollars, hasDepositCredit,
-  parseKegCount, printedTotalRead, rangeHint, rejectionMessage, savedSummaryWords,
+  maxKegsCredited, parseKegCount, printedTotalRead, rangeHint, rejectionMessage, savedSummaryWords,
 } from "../deposit-sentence";
 
 export default function InvoiceExplanation({ detail, onRefresh }: { detail: InvoiceDetail; onRefresh: () => void }) {
@@ -35,9 +35,10 @@ export default function InvoiceExplanation({ detail, onRefresh }: { detail: Invo
   const showForm = editing || (!saved && inv.status === "flagged" && (inv.reviewNotes ?? inv.handwrittenNotes ?? []).some(note => /\bempt(?:y|ies)\b/i.test(note)));
   const showCount = showForm && !!byCount;
   const showWords = showForm && (!byCount || describe);
-  const count = byCount ? parseKegCount(kegsText, byCount.kegsBilled) : null;
+  // The box starts at the kegs billed a deposit (a swap), but more can go back: shells come from earlier deliveries.
+  const count = byCount ? parseKegCount(kegsText, maxKegsCredited(byCount)) : null;
   const amounts = byCount && count && "kegs" in count ? depositAmounts(count.kegs, byCount.rateCents, byCount.originalCents) : null;
-  const countError = byCount && count && !("kegs" in count) ? rangeHint(count, byCount.kegsBilled) : null;
+  const countError = byCount && count && !("kegs" in count) ? rangeHint(count, byCount) : null;
 
   // `answer` is the composed sentence from the count box, or what was typed in the words box.
   async function send(answer: string, from: "count" | "words") {

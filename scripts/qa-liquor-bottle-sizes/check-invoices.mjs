@@ -723,8 +723,25 @@ await run('changing the number updates the credit line and the button','kegs-wer
   assert.ok(button('Record $30.00 credit'));assert.ok(!button('Record $60.00 credit'));
   await enter(dom,kegsInput(doc),'2');assert.equal(doc.getElementById('invoice-deposit-preview').textContent,WERK_LINE);
 });
-await run('a count of zero, none, a fraction or more than the kegs billed cannot be recorded, and the box keeps what was typed','kegs-werk',async({doc,dom,button,log})=>{
-  for(const [typed,says] of [['3',/billed on 2 kegs.*no more than 2/],['0',/Enter a number from 1 to 2\./],['',/Enter a number from 1 to 2\./],['1.5',/Enter a number from 1 to 2\./],['two',/Enter a number from 1 to 2\./]]) {
+// Brew City BCIL-10774 (2026-11-11): five shells went back on a delivery that billed three deposits. Empties come from earlier
+// deliveries, so the kegs billed are no limit; only a credit bigger than the bill is.
+await run('more empties than the kegs billed a deposit can be recorded, up to what the bill can credit','kegs-werk',async({doc,dom,click,button,log})=>{
+  await enter(dom,kegsInput(doc),'5');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $150.00. Amount due becomes $120.00 (was $270.00).');
+  assert.equal(kegsInput(doc).getAttribute('aria-invalid'),null);
+  await enter(dom,kegsInput(doc),'9');
+  assert.equal(doc.getElementById('invoice-deposit-preview').textContent,'Credit $270.00. Amount due becomes $0.00 (was $270.00).');
+  assert.ok(!button('Record $270.00 credit').disabled,'a credit equal to the bill is allowed');
+  await enter(dom,kegsInput(doc),'5');
+  await click('Record $150.00 credit');
+  await until(()=>doc.body.textContent.includes('Answer recorded'));
+  const posts=explanationPosts(log);
+  assert.equal(posts.length,1);
+  assert.ok(posts[0].endsWith(' '+JSON.stringify({token:TOKEN,text:'Returned 5 empty kegs. Deposit credit $150; total due $120.'})),posts[0]);
+  assert.match(sectionOf(doc).textContent,/Original bill \$270\.00.*\$150\.00.*\$120\.00 due/);
+});
+await run('a count of zero, none, a fraction or a credit bigger than the bill cannot be recorded, and the box keeps what was typed','kegs-werk',async({doc,dom,button,log})=>{
+  for(const [typed,says] of [['10',/^10 kegs at \$30\.00 is \$300\.00, more than the \$270\.00 bill\.$/],['0',/^Enter a number of kegs, 1 or more\.$/],['',/^Enter a number of kegs, 1 or more\.$/],['1.5',/^Enter a number of kegs, 1 or more\.$/],['two',/^Enter a number of kegs, 1 or more\.$/]]) {
     await enter(dom,kegsInput(doc),typed);
     assert.equal(kegsInput(doc).value,typed,`the box keeps "${typed}"`);
     assert.ok(button('Record credit').disabled,`"${typed}" is not recordable`);

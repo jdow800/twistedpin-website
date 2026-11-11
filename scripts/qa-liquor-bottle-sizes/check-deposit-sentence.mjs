@@ -121,7 +121,21 @@ test('printedTotalRead: null, empty, zero and junk are not a read total', () => 
   for (const unread of [null, undefined, '', '0', '0.00', 0, 'x']) assert.equal(m.printedTotalRead(unread), false, String(unread));
   for (const read of ['270', '270.00', 589.95, '0.01']) assert.equal(m.printedTotalRead(read), true, String(read));
 });
-test('the typed count: whole numbers from 1 to the kegs billed', () => {
+// Brew City BCIL-10774 (2026-11-11): three kegs billed a $30 deposit on a printed $520, and "SE-150" circled: five shells back.
+const BREW_CITY = { rateCents: 3000, kegsBilled: 3, originalCents: 52000 };
+test('the most kegs a credit can cover is what fits inside the bill, not the kegs billed a deposit', () => {
+  assert.equal(m.maxKegsCredited(BREW_CITY), 17);
+  assert.equal(m.maxKegsCredited({ rateCents: 3000, kegsBilled: 2, originalCents: 27000 }), 9);
+  assert.equal(m.maxKegsCredited({ rateCents: 2750, kegsBilled: 2, originalCents: 58995 }), 21);
+  assert.equal(m.maxKegsCredited({ rateCents: 3000, kegsBilled: 5, originalCents: 15000 }), 5, 'a credit equal to the bill is allowed');
+});
+test('Brew City: five empties back on a delivery that billed three deposits records $150 and leaves $370 due', () => {
+  assert.deepEqual(m.parseKegCount('5', m.maxKegsCredited(BREW_CITY)), { kegs: 5 });
+  assert.deepEqual(m.depositAmounts(5, 3000, 52000), { creditCents: 15000, dueCents: 37000 });
+  assert.equal(m.composeDepositSentence(5, 3000, 52000), 'Returned 5 empty kegs. Deposit credit $150; total due $370.');
+  assert.deepEqual(m.parseKegCount('18', m.maxKegsCredited(BREW_CITY)), { over: 18 });
+});
+test('the typed count: whole numbers from 1 to the most the bill can credit', () => {
   assert.deepEqual(m.parseKegCount('2', 2), { kegs: 2 });
   assert.deepEqual(m.parseKegCount(' 1 ', 2), { kegs: 1 });
   assert.deepEqual(m.parseKegCount('02', 2), { kegs: 2 });
@@ -182,11 +196,12 @@ test('the example paragraph for the text box', () => {
   assert.equal(m.exampleText(null),
     'Say how many empty kegs went back, the deposit credit in dollars and the total due after it. This records the credit. If a full keg was missing, record that on its item below.');
 });
-test('the range lines name the kegs billed', () => {
-  assert.equal(m.rangeHint({ invalid: true }, 2), 'Enter a number from 1 to 2.');
-  assert.equal(m.rangeHint({ invalid: true }, 1), 'Enter 1.');
-  assert.equal(m.rangeHint({ over: 3 }, 2), 'A deposit was billed on 2 kegs, so no more than 2 can be credited.');
-  assert.equal(m.rangeHint({ over: 2 }, 1), 'A deposit was billed on 1 keg, so no more than 1 can be credited.');
+test('the range lines: too many is a credit bigger than the bill, and never mention the kegs billed', () => {
+  assert.equal(m.rangeHint({ invalid: true }, WERK), 'Enter a number of kegs, 1 or more.');
+  assert.equal(m.rangeHint({ over: 10 }, WERK), '10 kegs at $30.00 is $300.00, more than the $270.00 bill.');
+  assert.equal(m.rangeHint({ over: 18 }, BREW_CITY), '18 kegs at $30.00 is $540.00, more than the $520.00 bill.');
+  assert.equal(m.rangeHint({ over: 999 }, BREW_CITY), '999 kegs at $30.00 is $29,970.00, more than the $520.00 bill.');
+  for (const hint of [m.rangeHint({ invalid: true }, BREW_CITY), m.rangeHint({ over: 18 }, BREW_CITY)]) assert.ok(!/billed|no more than/.test(hint), hint);
 });
 test('a saved answer is worded as a bill minus a credit, except an automatic settle from a written total, which has no printed bill', () => {
   const sentence = (saved) => { const w = m.savedSummaryWords(saved); return `${w.bill} $268.00 − ${w.credit} $30.00 = $238.00${w.due}${w.after}`; };
