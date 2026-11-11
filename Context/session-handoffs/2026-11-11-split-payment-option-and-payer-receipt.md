@@ -86,7 +86,9 @@ Asked for after both PRs were live, because the second commit of #550 (the eight
 
 **Clean (the part that mattered most):** no way found for a captured payment to go unrecorded or be recorded twice; the two savepoints are real savepoints on the same connection; first, middle and last part, overpayment and replay all end in the right status; no booking without the option can split now that could not before; the new `outstandingCents` field leaks nothing; clearing the option at full payment loses nothing else from the saved input.
 
-**Findings, each checked against the code by this session. NONE ARE FIXED as of this writing. Jon decides.**
+**RULING (Jon, 2026-11-11, on findings 1 and 2): "#1 is never happening. #2 is also never happening." No follow-up was built. The review is CLOSED and nothing below is fixed, on purpose. Do not re-pitch these fixes, or the scoping idea further down, unless one of them actually happens to a real booking.** The table stays as a map for whoever debugs it if one does.
+
+**Findings, each checked against the code by this session:**
 
 | # | What happens | How likely | Checked |
 |---|---|---|---|
@@ -99,7 +101,7 @@ Asked for after both PRs were live, because the second commit of #550 (the eight
 | 7 | A link being opened at the same instant a part payment settles can deadlock. The payment still records; the worst case is the page errors once or the link keeps its shorter life. | Contrived. | Yes (verify does lock the token on every open) |
 | 8 | The two crons rebuild the invoice total from two separate reads; a payment landing between them can fool the far-out case. | Contrived. | Read only |
 
-**This session's recommendation (not yet agreed):** one small follow-up that (a) makes "not booked until it is all paid" apply only to last-minute events, the only place the one-payment rule exists, which removes 4, 5 and 8; (b) remembers whether the guest has ever been told they are booked, which fixes 2; (c) announces full payment when a staff edit leaves a part-paid split event with nothing owed, which fixes 1. Record 3, 6 and 7. Until then, the workaround for 1 is manual: if the total drops to what is already paid, email the receipt from the booking page.
+**What this session proposed, and Jon declined (kept only so the shape of a fix is on record):** one small follow-up that (a) makes "not booked until it is all paid" apply only to last-minute events, the only place the one-payment rule exists, which removes 4, 5 and 8; (b) remembers whether the guest has ever been told they are booked, which fixes 2; (c) announces full payment when a staff edit leaves a part-paid split event with nothing owed, which fixes 1. Record 3, 6 and 7. Until then, the workaround for 1 is manual: if the total drops to what is already paid, email the receipt from the booking page.
 
 The reviewer's full text was at `%TEMP%\tprs-astra-review\astra-review.md` on Jon's PC (not committed).
 
