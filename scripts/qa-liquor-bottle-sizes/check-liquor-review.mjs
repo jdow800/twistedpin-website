@@ -807,6 +807,26 @@ try{
     await check('Guessed lines only, with no not-accounted-for words',`${soft}.querySelectorAll('.lq-soft-guessed').length===2&&!${softText}.includes('Not accounted for')&&!${softText}.includes('not accounted for')`);
     note('zones_not_counted: no unaccounted section');
   });
+  await run('W4 (12): 11/13 a possible mix-up alone opens the pre-submit screen as one soft line that asks nothing',async()=>{
+    await load('?backstock&soft=mixup');await finish();
+    await check('Opened on its own, heading and Submit unchanged',`${heading}==='Ready to submit'&&!${submitButton('Submit the count')}.disabled&&!!${soft}`);
+    const mixupLines=await js(`[...${soft}.querySelectorAll('.lq-soft-mixup')].map(e=>[...e.children].map(s=>s.textContent.trim()))`);
+    assert.deepEqual(mixupLines,[["Seagram's 7 looks about 0.8 short and Captain Morgan Original Spiced Rum about 0.7 over on Speedrails. One may have been called the other.",
+      "Speedrails, last count to now: Seagram's 7 1.3 → 0.4, Captain Morgan Original Spiced Rum 1.3 → 2.1."]]);
+    await check('A statement: no button, no question mark, never the red finding style',`!${soft}.querySelector('button')&&!${softText}.includes('?')&&!document.querySelector('.lq-confirm .lq-precheck-row')`);
+    await check('412px: no sideways scroll, Submit visible',`document.documentElement.scrollWidth<=innerWidth+1&&(r=>r.top>=0&&r.bottom<=innerHeight+1)(${submitButton('Submit the count')}.getBoundingClientRect())`);
+    await shot('w4-soft-mixup-412');
+    await b.send('Emulation.setDeviceMetricsOverride',{width:320,height:915,deviceScaleFactor:1,mobile:true});
+    try{
+      await load('?backstock&soft=mixup');await finish();
+      await check('320px: no sideways scroll, Submit visible',`document.documentElement.scrollWidth<=innerWidth+1&&(r=>r.top>=0&&r.bottom<=innerHeight+1)(${submitButton('Submit the count')}.getBoundingClientRect())`);
+      await shot('w4-soft-mixup-320');
+    }finally{await b.send('Emulation.setDeviceMetricsOverride',{width:412,height:915,deviceScaleFactor:1,mobile:true});}
+    await button(/^Submit the count$/);await until("document.body.textContent.includes('Count submitted')");
+    await load('?backstock&soft=mixup-skipped');await button(/^Finish count$/);await until("document.body.textContent.includes('Count submitted')");
+    await check('A shelf nobody counted: the line is not shown and the count submits straight through',`!document.querySelector('.lq-confirm')`);
+    note('11/13 shape: one statement and the shelf numbers; opens the dialog alone; hidden when a shelf was skipped');
+  });
   await run('W4 (11): decision 6: a guessed re-say keeps its own 1 beside the removed number\'s chips; nothing fills itself',async()=>{
     await amarettoPair('x');
     await check('Guessed bar and line, the box still 1, the chips only offered',`(c=>c.classList.contains('lq-rev-guessed')&&c.querySelector('.lq-rev-guess-note')&&c.querySelector('input').value==='1'&&!!c.querySelector('.lq-rev-restore'))(${revCard(0)})`);

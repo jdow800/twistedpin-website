@@ -8,6 +8,29 @@ Jon, on the Nov 13 grade email: "why is it over the last 56 days. Ideally we nee
 
 **Deliberately NOT done:** no change to the per-product evidence, the Risata block or the corrections list. Publish after tprs #553 is live; the page reads the new field only when the backend sends it.
 
+## 2026-11-13 - /cogs liquor count: "one may have been called the other" before Submit, and "six boxes" stays with its case
+
+Jon approved both on 2026-11-13 after that day's liquor count ("We should fix all that"). Record: Alcohol Pricing `incidents/2026-11-13/liquor-audit/` (`count-checks/`); tprs `BUILD_NOTES.md`, 2026-11-13.
+
+**A bottle called by another bottle's name.** The Seagram's 7 on the first speed rail was recorded as "Captain Morgan, point seven" and nothing said so before Submit. The pre-submit check now returns `possibleMixups` (tprs branch `feat/liquor-count-mixup-boxes-20261113`), and the amber "Numbers to glance at" block shows one line per pair with the shelf's two numbers under it:
+
+> Seagram's 7 looks about 0.8 short and Captain Morgan Original Spiced Rum about 0.7 over on Speedrails. One may have been called the other.
+
+- `src/components/liquor/views/CountLiquor.tsx` (`SoftSummary`), `api.ts` (`PossibleMixup`), `liquor.css` (`.lq-soft-mixup-shelf`).
+- Soft, like the two lists beside it (Jon 10/5, 10/16, 10/17): a statement, not a question; no button; never the red finding style; Submit and the heading are unchanged. It opens the pre-submit screen on its own, as a bottle not accounted for does. `?softcheck=0` turns it off with the rest of the block, and it is not shown when a shelf was skipped (`unaccountedSkipped`).
+- Deploy order does not matter: a server without the field shows nothing, and this server with the old screen changes nothing.
+
+**"Cranberry juice, one case, six boxes." saved 12.** The recording was whole. `voiceCarry.ts` did not have "boxes" among liquor's quantity words, so "six boxes." read as a bottle name waiting for its number and was held back from its own item: the server was asked about "Cranberry juice, one case," and, at Stop, about "six boxes." alone. box, container and jar (singular and plural) are now quantity words. All six were already in food's `NOT_A_FOOD_NAME`, so food's rule reads the same set. A count-first "Six boxes," still waits for its name, as "Two bottles," does. The number itself stays amber on the server, as before.
+
+Checks:
+
+- `check-voice-carry.mjs`: 83 pass (82 before, unchanged, plus the 11/13 take as its three pieces arrived). The new check fails on the old code with production's own split.
+- `check-liquor-review.mjs` (native Chromium): 78 scenarios, 238 assertions, no failures. New W4 (12): the line alone opens the screen as "Ready to submit", exact text, no button and no question mark, fits 320px and 412px, hidden when a shelf was skipped. W4 (7), an older server, is unchanged.
+- `tsc -p tsconfig.liquor.json --noEmit` clean.
+- The phone's carry rule replayed before and after over every real liquor take since 10/9 (157 takes, 308 pieces): the requests change on the 11/13 Beer Cooler take only.
+
+Not done: no change to food's carry, to the review sheet or to any finding. A local `astro build` was not run.
+
 ## 2026-11-10 - FAQ "final guest count comes in lower": food is planned by group size, not per head
 
 Jon approved this the same day, after the pay page changed to "Guests: Up to 15" (tprs PR 545). The `/faq/` answer said "we update your total to your real count", which tells a prospect they pay per head. They do not: catering is billed by group size, so 18 guests pay for 20 and a guest or two fewer usually changes nothing.
