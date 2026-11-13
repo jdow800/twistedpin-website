@@ -189,6 +189,33 @@ if (params.has('walk')) {
   zones[1].memberSkuIds = ['circles','gloves','rice'];
   zones.push({id:'walkin', name:'Walk in Cooler', walkOrder:3, memberSkuIds:[]});
 }
+// The count guard (2026-11-12): 11/12's slips on fictional ids. Yellow onion
+// comes in a case of 10 bags and the last count was 1.3 bags; sugar is 25 lb
+// bags with a pounds conversion (0.04 bag a pound) and 1 bag last time; lids
+// are counted by the piece, 2,500 a case, and a partial case is normal.
+// `ceilings` is what GET /counts/:id/shelf-ceilings answers (null: it fails).
+const guard = params.has('guard');
+if (guard) {
+  const answer = (countUnit, unitsPerCase, extra) => ({countUnit, unitsPerCase, confirmedBy:'QA fixture', confirmedAt:'2026-11-12', ...extra});
+  catalog.push(
+    {id:'onion', name:'Onion, Yellow', countUnit:'each', unitsPerCase:10, countDefinition:answer('each',10,{unitLabel:'bag',spokenUnits:{case:10,bag:1}})},
+    {id:'sugar', name:'Sugar, Granulated, Extra Fine', countUnit:'each', unitsPerCase:null,
+      countDefinition:answer('each',null,{unitLabel:'bag',spokenUnits:{bag:1,lb:0.04}}), foodUnitRatios:{bag:{numerator:'1',denominator:'1'},lb:{numerator:'1',denominator:'25'}}},
+    {id:'lids', name:'Lid, Dome, 16 oz', countUnit:'each', unitsPerCase:2500, countDefinition:answer('each',2500,{unitLabel:'lid',spokenUnits:{case:2500,lid:1}})},
+    {id:'mozz', name:'Cheese, Mozzarella', countUnit:'each', unitsPerCase:6, countDefinition:answer('each',6,{unitLabel:'bag',spokenUnits:{case:6,bag:1}})},
+  );
+  for (const s of catalog.slice(-4)) Object.assign(s, {category:'Kitchen', sizeMl:null, trackingMode:'stock_count', wacCost:null});
+  zones.length = 0;
+  zones.push({id:'walkin', name:'Walk-In Cooler (Kitchen)', walkOrder:1, memberSkuIds:['onion','lids','mozz']},
+    {id:'pizza', name:'Pizza Line', walkOrder:2, memberSkuIds:['sugar']},
+    {id:'fryer', name:'Fryer Line', walkOrder:3, memberSkuIds:['onion']});
+}
+const ceilings = guard && !params.has('guard-down') ? {asOf:'2026-11-19T15:00:00.000Z', priorCountId:'food-1112', slack:0.5, ceilings:{
+  onion:{prior:1.3, bought:0, possible:1.3, usualMax:6},
+  sugar:{prior:1, bought:0, possible:1, usualMax:5},
+  lids:{prior:4500, bought:2500, possible:7000, usualMax:10000},
+  mozz:{prior:null, bought:0, possible:null, usualMax:50},
+}} : null;
 const unplaced = params.has('walk') ? [
   {skuId:'guac',name:'Guacamole',countUnit:'pack',unitLabel:null,unitsPerCase:12,lastBoughtAt:'2026-10-02T17:00:00.000Z',lastVendor:'Sysco',inRecipe:true,reason:'both'},
   {skuId:'cookies',name:'Cookies, Chocolate Chip, 1 oz',countUnit:'each',unitLabel:null,unitsPerCase:null,lastBoughtAt:null,lastVendor:null,inRecipe:true,reason:'recipe'},
@@ -205,7 +232,7 @@ const initialLines = fixtureOverride?.lines ?? (params.has('walkin-existing') ? 
   : params.has('frozen') ? [{skuId:'dough',zoneId:'freezer',qtyUnits:'24',source:'voice',enteredCases:'2',caseSizeAtEntry:12}]
   : existing ? [{skuId:'dough', zoneId:'freezer', qtyUnits:'1', source:'grid', enteredCases:null, caseSizeAtEntry:null}] : []);
 const qa = window.foodQa = {calls:[], extracts:[], lines:initialLines, recorder:null, memberFail:false, zoneFail:false,
-  catalog,zones};
+  catalog,zones, events:[]};
 qa.failSave = params.has('save-fails');
 // ?save-outdated: TPRS refuses this page's food saves as out of date.
 qa.saveOutdated = params.has('save-outdated');
@@ -251,8 +278,11 @@ window.fetch = async (input, init = {}) => {
       return json({error:'draft_changed', lines:[line('dough','1.000'), line('pretzel','3.000')], linesHash:'server2'}, 409);
     }
     qa.lines = body.lines;
+    // Line events (count guard answers) ride the save; the server keeps each id once.
+    for (const e of body.events ?? []) if (!qa.events.some(x => x.id === e.id)) qa.events.push(e);
     return json({ok:true, ...(params.has('stale') ? {linesHash:'saved'} : {})});
   }
+  if (path.endsWith('/shelf-ceilings')) return ceilings ? json(ceilings) : json({error:'unavailable'}, 503);
   // ?check-fails: the check itself cannot run. ?many-findings: eight
   // findings, six in `findings` and two in `more`.
   if (path.endsWith('/precheck')) {

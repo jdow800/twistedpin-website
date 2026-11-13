@@ -41,7 +41,7 @@ const zeroLine = (key) => ({key, ...totals(0, 0, 0), cogsPerDayCents: 0, byBucke
 const BRUNSWICK = 'Brunswick front-desk food has no reader yet: about 4.7% of F&B, roughly 1.4 points on a 30% line.';
 
 /** A bracket's report; `fixed` = after the carnitas and salsa were revalued. */
-const report = ({fixed = false, rebatesKnown = false, pct = 30.71, usarPct = 29.46, extraReasons = [], reasons = []} = {}) => {
+const report = ({fixed = false, rebatesKnown = false, pct = 30.71, usarPct = 29.46, extraReasons = [], reasons = [], aboveCount} = {}) => {
   const carnitas = fixed
     ? {...carnitasJump, closing: {qty: 10, cents: 4392, pricedCents: 4392}, usedCents: -142, unitCost: {opening: 4.25, closing: 4.39, purchased: null}, flags: [], excluded: false}
     : carnitasJump;
@@ -59,7 +59,7 @@ const report = ({fixed = false, rebatesKnown = false, pct = 30.71, usarPct = 29.
       food_na: {key: 'food_na', ...totals(52000, 150000, 30000), cogsPerDayCents: 24571,
         byBucket: {food: totals(20000, 110000, 8250), na_beverage: totals(32000, 40000, 21750)},
         purchases: {matched: 140000, vendorItem: 5000, estimated: 3000, freight: 2500, discounts: -500, flaggedCents: 4000},
-        items: [fries, carnitas, salsa, syrup], reasons: foodReasons},
+        items: [fries, carnitas, salsa, syrup], reasons: foodReasons, ...(aboveCount ? {aboveCount} : {})},
       paper: {key: 'paper', ...totals(10000, 5000, 7000), cogsPerDayCents: 1143, byBucket: {paper: totals(10000, 5000, 7000)},
         purchases: {matched: 5000, vendorItem: 0, estimated: 0, freight: 0, discounts: 0, flaggedCents: 0}, items: [napkins], reasons: []},
       supplies: {...zeroLine('supplies'), ...totals(0, 2500, 0), cogsPerDayCents: 357,
@@ -87,7 +87,11 @@ const basis = {engine: 1, computedAt: at.B, window: {start: at.A, end: at.B},
 const v = (version, p) => ({version, priorSessionId: A, periodStart: at.A, periodEnd: at.B, status: 'final', catchUp: false,
   trigger: 'sweep', report: report(), basis, reason: null, computedBy: null, createdAt: at.B, finalizedAt: '2026-10-13T18:00:00.000Z', ...p});
 let versionsB = [
-  v(3, {trigger: 'cleared', report: report({fixed: true, rebatesKnown: true, pct: 31.02, usarPct: 29.79}), reason: 'Brunswick read for 2026-10-08, 2026-10-09.',
+  // Count guard (TPRS 2026-11-12): two counts above what was possible, left out and named.
+  v(3, {trigger: 'cleared', report: report({fixed: true, rebatesKnown: true, pct: 31.02, usarPct: 29.79, aboveCount: [
+    {skuId: 'sugar', name: 'Sugar, Granulated, Extra Fine', unit: 'bag', opening: 1, purchased: 0, closing: 17, usedQty: -16, cents: -38160},
+    {skuId: 'onion', name: 'Onion, Yellow', unit: 'bag', opening: 1.3, purchased: 0, closing: 11, usedQty: -9.7, cents: -4928},
+  ]}), reason: 'Brunswick read for 2026-10-08, 2026-10-09.',
     createdAt: '2026-10-16T14:00:00.000Z', finalizedAt: '2026-10-16T14:00:00.000Z'}),
   v(2, {trigger: 'revalue', report: report({fixed: true, pct: 31.02, usarPct: 29.79}), reason: 'case price frozen as a pound price',
     computedBy: 'Jon Dow', createdAt: '2026-10-15T14:00:00.000Z', finalizedAt: '2026-10-15T14:00:00.000Z'}),

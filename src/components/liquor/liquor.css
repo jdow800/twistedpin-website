@@ -4171,3 +4171,47 @@
 .lq-fw-modal .lq-btn { align-self: flex-start; min-height: 48px; }
 .lq-fw-modal img { width: 100%; max-height: calc(100dvh - 90px); object-fit: contain; }
 @media (prefers-reduced-motion: reduce) { .lq-fw-pulse::after { animation: none; left: 0; width: 100%; opacity: .65; } }
+
+/* The count guard at the shelf (2026-11-12): a count higher than possible, or
+   than ever, asks right under the row as it is typed, with one Keep. Amber,
+   never red: it is a question, and Keep is a fine answer. */
+.lq-fc-guard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 6px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--lq-warn, #c9922e);
+  background: rgba(201, 146, 46, 0.12);
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.lq-fc-guard-text {
+  flex: 1 1 100%;
+  color: var(--lq-warn, #c9922e);
+  font-weight: 600;
+}
+.lq-fc-guard-hint {
+  flex: 1 1 auto;
+  color: var(--lq-muted);
+  font-size: 12px;
+}
+.lq-fc-guard-keep {
+  min-height: 36px;
+  padding: 4px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--lq-warn, #c9922e);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.lq-fc-q-check .lq-fc-guard-text {
+  font-size: 13px;
+}
+.lq-fc-q-check .lq-fc-guard-hint {
+  margin: 0;
+}

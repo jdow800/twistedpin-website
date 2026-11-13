@@ -101,6 +101,13 @@ export function reasonText(r: FoodCostReason): string {
   }
 }
 
+/** Count guard (TPRS 2026-11-12): counts higher than the last count plus
+ *  deliveries are left out of the line, and named, never netted away. */
+export function aboveCountText(items: NonNullable<FoodCostLine["aboveCount"]>): string {
+  const cents = items.reduce((s, a) => s + a.cents, 0);
+  return `Left out: ${items.length === 1 ? "1 count" : `${items.length} counts`} higher than the last count plus deliveries (${list(items.map((a) => a.name))}). Left in, ${items.length === 1 ? "it" : "they"} would lower the cost by ${money(-cents)}. Check ${items.length === 1 ? "it" : "them"} on the next count.`;
+}
+
 /** Which way a percentage sits against the target: under it is good, past the
  *  band is a problem, between them is a watch. */
 function pctClass(p: number | null, target: number, high: number): string {
@@ -159,6 +166,7 @@ function LineBlock({ line, report }: { line: FoodCostLine; report: FoodCostRepor
         {line.reasons.map((r, k) => (
           <div key={k} className="lq-pw-sub lq-fv-why">{reasonText(r)}</div>
         ))}
+        {(line.aboveCount?.length ?? 0) > 0 && <div className="lq-pw-sub lq-fv-why">{aboveCountText(line.aboveCount!)}</div>}
       </summary>
       <div className="lq-fv-detail">
         <div className="lq-muted">{LINE_NOTE[line.key]}</div>

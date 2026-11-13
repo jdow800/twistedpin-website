@@ -6,6 +6,7 @@ import {
   getCatalog,
   getOpenCount,
   getZones,
+  getShelfCeilings,
   precheckCount,
   setSkuActive,
   setSkuDiscontinued,
@@ -26,6 +27,7 @@ import {
   type OpenCount,
   type PrecheckFinding,
   type RetiringSku,
+  type ShelfCeilings,
   type UnplacedItem,
   type VoiceExtractItem,
 } from "../api";
@@ -48,6 +50,13 @@ import FoodReviewCountRow, { foodSearchMatch } from "../FoodReviewCountRow";
 import FoodVoiceReviewRow from "../FoodVoiceReviewRow";
 import type { FoodCountChoice } from "../FoodCountRecovery";
 import { normalizeCountUnit } from "../count-definition";
+import { shelfConcern, shelfConcernAnswered, type ShelfConcern } from "../food-shelf-check";
+import { foodPoundsFactor, foodPoundsOf, withFoodPounds } from "../food-pounds";
+import { createLineEventQueue, type LineEventQueue } from "../lineEvents";
+
+/** How often the shelf ceilings are read again during a walk (independent
+ *  review 2026-11-12, M2): a delivery read in the meantime raises them. */
+const SHELF_CEILING_REFRESH_MS = 10 * 60_000;
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -135,12 +144,14 @@ type PlaceQ = {
   zone: string | null;
   cases: string;
   units: string;
+  /** The pounds box, on items with a pounds conversion (food-pounds.ts). */
+  lb?: string;
   busy?: boolean;
   /** The settled answer, shown in place of the buttons. */
   done?: string;
   err?: string;
 };
-const EMPTY_Q: PlaceQ = { pick: null, zone: null, cases: "", units: "" };
+const EMPTY_Q: PlaceQ = { pick: null, zone: null, cases: "", units: "", lb: "" };
 
 /** "Bought from Sysco Oct 2 · in a recipe · not in any zone yet" */
 function whyUnplaced(u: UnplacedItem): string {
@@ -359,7 +370,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   // ── where things live (Jon, 2026-10-03) ──
   /** Leaving a counted zone with listed items left blank. `skuIds` is frozen
    *  when it opens, so an answered item keeps its tick on the sheet. */
-  const [leaving, setLeaving] = useState<{ from: string; to: string; skuIds: string[] } | null>(null);
+  /** `checks` (count guard, 2026-11-12): this shelf's counts that look
+   *  higher than possible or than ever, unanswered when the sheet opened. */
+  const [leaving, setLeaving] = useState<{ from: string; to: string; skuIds: string[]; checks: string[] } | null>(null);
   /** Zones the counter skipped past once. Skipping is an answer: the same
    *  zone does not ask again this walk, and Finish lists them anyway. */
   const skippedLeaving = useRef<Set<string>>(new Set());
@@ -382,14 +395,36 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** Saves built on the draft this screen last saw, so a stale screen merges
    *  instead of overwriting an edit made elsewhere (draftSync.ts). */
   const [merged, setMerged] = useState(false);
+  /** The count guard's answers (Keep, or a number changed after the shelf
+   *  asked), as bar_count_line_event rows riding the next save (TPRS 0226/0227;
+   *  the route stores them for any section). Food counts sent none before
+   *  2026-11-12, so nobody could tell whether a warning was seen. */
+  const eventsRef = useRef<LineEventQueue | null>(null);
+  if (!eventsRef.current) eventsRef.current = createLineEventQueue();
+  /** Numbers changed after the shelf asked, until the change is saved: one
+   *  event per cell, its "after" following the counter's typing (10 → 0 → 1
+   *  is recorded as 10 → 1), so a keystroke in between is never the answer. */
+  const changedRef = useRef(new Map<string, { zid: string; kind: ShelfConcern["kind"]; before: number }>());
   const saverRef = useRef<ReturnType<typeof createDraftSaver> | null>(null);
   if (!saverRef.current) {
     saverRef.current = createDraftSaver({
       beforeSave: () => { if (correctionConflictsRef.current.length) throw new DraftMergePausedError("Review the changed correction first."); },
       save: async (lines, baseHash) => {
         const sid = sessionIdRef.current!;
-        try { return await saveCountLines(sid, lines, true, "food", baseHash); }
+        const events = eventsRef.current!;
+        const batch = events.take();
+        const ids = batch.map((e) => e.id);
+        try {
+          const saved = await saveCountLines(sid, lines, true, "food", baseHash, batch);
+          events.ack(ids);
+          return saved;
+        }
         catch (error) {
+          // A refused or lost save puts its answers back; the next save sends
+          // the same ids, which the server stores once. The readback below
+          // proves the lines, never the answers, so it does not acknowledge
+          // them (independent review 2026-11-12, M3).
+          events.release(ids);
           // A lost response can follow an accepted write. Only an exact,
           // bounded readback certifies it; mismatches keep the usual retry.
           if ((error instanceof BarApiError && (error.status === 0 || error.status >= 500)) || error instanceof SyntaxError) {
@@ -401,6 +436,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
       },
       current: () => flatten(countsRef.current),
       saved: (lines) => {
+        // A saved change is settled; any later typing is an ordinary edit.
+        changedRef.current.clear();
         const saved = new Map(lines.map((line) => [foodLineKey(line), line]));
         const current = new Map(flatten(countsRef.current).map((line) => [foodLineKey(line), line]));
         pendingCorrectionsRef.current = pendingCorrectionsRef.current.filter((c) => !c.keys.every((key) => sameDraftCell(saved.get(key), current.get(key))));
@@ -448,6 +485,84 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   const skuById = useMemo(() => new Map(catalog.map((s) => [s.id, s])), [catalog]);
   const zone = zones.find((z) => z.id === zoneId);
   const zoneNames = useMemo(() => Object.fromEntries(zones.map((z) => [z.id, z.name])), [zones]);
+
+  // ── the count guard at the shelf (2026-11-12, food-shelf-check.ts) ──
+  /** What each item's count is judged against, read once per walk and again
+   *  every few minutes and when the phone wakes. Null (not loaded, or the read
+   *  failed): no shelf questions, and Finish still asks as before. */
+  const [ceilings, setCeilings] = useState<ShelfCeilings | null>(null);
+  /** Keep answers, by item, for the walk total they were given at. */
+  const [keptHigh, setKeptHigh] = useState<Record<string, { total: number }>>({});
+  useEffect(() => {
+    eventsRef.current!.clear();
+    setKeptHigh({});
+    if (!sessionId) { setCeilings(null); return; }
+    let live = true;
+    const load = () => { getShelfCeilings(sessionId).then((c) => { if (live) setCeilings(c); }, () => { /* fail quiet: Finish still checks */ }); };
+    load();
+    const timer = setInterval(load, SHELF_CEILING_REFRESH_MS);
+    const onVisible = () => { if (document.visibilityState === "visible") load(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { live = false; clearInterval(timer); document.removeEventListener("visibilitychange", onVisible); };
+  }, [sessionId]);
+
+  /** The question for an item counted on a shelf, or null: its total over
+   *  every shelf of this walk against the ceilings. */
+  function concernAt(zid: string, skuId: string, all: Counts): ShelfConcern | null {
+    if (!ceilings) return null;
+    const cell = all[zid]?.[skuId];
+    if (!cell || !(cell.qty > 0)) return null;
+    const sku = skuById.get(skuId);
+    if (cell.foodQuantity && sku && !sameFoodQuantityBasis(cell.foodQuantity, foodQuantityBasis(sku))) return null;
+    let total = 0;
+    let others = false;
+    for (const [z, cells] of Object.entries(all)) {
+      const q = cells[skuId]?.qty ?? 0;
+      if (q > 0) { total += q; if (z !== zid) others = true; }
+    }
+    return shelfConcern({ sku, total: roundQty(total), ceiling: ceilings.ceilings[skuId], slack: ceilings.slack,
+      caseEntry: cell.cases ? { cases: cell.cases, caseSize: cell.caseSize } : null, otherShelves: others });
+  }
+  /** An unanswered question, as the screen shows it now. */
+  const openConcern = (zid: string, skuId: string, all: Counts = counts) => {
+    const c = concernAt(zid, skuId, all);
+    return c && !shelfConcernAnswered(c, keptHigh[skuId]) ? c : null;
+  };
+  /** "Keep": the number stands. Recorded with the next save, which this asks for. */
+  function keepHigh(zid: string, c: ShelfConcern) {
+    const cell = countsRef.current[zid]?.[c.skuId];
+    setKeptHigh((prev) => ({ ...prev, [c.skuId]: { total: c.total } }));
+    eventsRef.current!.push({ zoneId: zid, skuId: c.skuId, kind: "grid_set", editedBy: "keep_high", findingKind: c.kind,
+      beforeQty: cell?.qty ?? null, afterQty: cell?.qty ?? null, afterCases: cell?.cases ?? null, caseSize: cell?.caseSize ?? null });
+    scheduleSave();
+  }
+  /** "Change": a number the shelf asked about was changed and the question
+   *  went away. One event per cell until it is saved (changedRef), with the
+   *  shelf's number before the change and as it now stands. */
+  const askedRef = useRef(new Map<string, { zid: string; total: number; cellQty: number; kind: ShelfConcern["kind"] }>());
+  useEffect(() => {
+    if (!ceilings) return;
+    const now = new Map<string, { zid: string; total: number; cellQty: number; kind: ShelfConcern["kind"] }>();
+    for (const [zid, cells] of Object.entries(counts)) {
+      for (const skuId of Object.keys(cells)) {
+        const c = openConcern(zid, skuId);
+        if (c && !now.has(skuId)) now.set(skuId, { zid, total: c.total, cellQty: cells[skuId]!.qty, kind: c.kind });
+      }
+    }
+    for (const [skuId, was] of askedRef.current) {
+      if (now.has(skuId) || keptHigh[skuId] || changedRef.current.has(skuId)) continue;
+      const total = roundQty(Object.values(counts).reduce((s, cells) => s + Math.max(0, cells[skuId]?.qty ?? 0), 0));
+      if (Math.abs(total - was.total) < 1e-9) continue; // a delivery arrived, not a change
+      changedRef.current.set(skuId, { zid: was.zid, kind: was.kind, before: was.cellQty });
+    }
+    for (const [skuId, ch] of changedRef.current) {
+      if (now.has(skuId)) continue; // asked again: the next answer is the one that counts
+      const cell = counts[ch.zid]?.[skuId];
+      eventsRef.current!.pushGrid({ zoneId: ch.zid, skuId, kind: "grid_set", editedBy: "typed", findingKind: ch.kind,
+        beforeQty: ch.before, afterQty: cell?.qty ?? 0, afterCases: cell?.cases ?? null, caseSize: cell?.caseSize ?? null });
+    }
+    askedRef.current = now;
+  }, [counts, ceilings, keptHigh]);
 
   // Keep an existing draft pending, with no active session/autosave until chosen.
   useEffect(() => {
@@ -702,6 +817,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (!cur?.foodQuantity || value == null) return;
     const foodQuantity = replaceFoodLoose(cur.foodQuantity, index, value);
     writeCell(skuId, { foodQuantity, units: foodLooseQty(foodQuantity), none: value === 0 && !cur.cases && !cur.packs }, dest);
+  }
+  /** The pounds box (food-pounds.ts): saved as a pounds part, the way a
+   *  spoken "17 lb" is, beside the cell's cases and count-unit amounts. */
+  function editPounds(skuId: string, raw: string, dest = zoneId) {
+    const value = readFoodNumber(raw), sku = skuById.get(skuId);
+    if (value == null || !sku) return;
+    const cur = countsRef.current[dest]?.[skuId];
+    const foodQuantity = withFoodPounds(sku, cur?.foodQuantity, cur?.units ?? null, value);
+    if (!foodQuantity) return;
+    writeCell(skuId, { foodQuantity, units: foodLooseQty(foodQuantity), none: false }, dest);
   }
   function editLegacyLoose(skuId: string, raw: string, dest = zoneId) {
     const cur = countsRef.current[dest]?.[skuId], value = readFoodNumber(raw);
@@ -1567,10 +1692,14 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     const read = (raw: string) => (raw.trim() === "" ? null : Number(raw));
     const cases = hasCaseBox(s) ? read(q.cases) : null;
     const units = read(q.units);
-    if (cases == null && units == null) return null;
-    if ([cases, units].some((n) => n != null && (!Number.isFinite(n) || n < 0))) return null;
-    const cell: Cell = { cases, units, packs: null, packSize: null, caseSize: hasCaseBox(s) ? foodCaseSize(s) : null,
-      qty: 0, source: "grid", none: false };
+    const lb = foodPoundsFactor(s) != null ? read(q.lb ?? "") : null;
+    if (cases == null && units == null && lb == null) return null;
+    if ([cases, units, lb].some((n) => n != null && (!Number.isFinite(n) || n < 0))) return null;
+    // Pounds save as a pounds part beside the count-unit amount (food-pounds.ts).
+    const foodQuantity = lb == null ? undefined : withFoodPounds(s, undefined, units ?? 0, lb) ?? undefined;
+    if (lb != null && !foodQuantity) return null;
+    const cell: Cell = { cases, units: foodQuantity ? foodLooseQty(foodQuantity) : units, packs: null, packSize: null,
+      caseSize: hasCaseBox(s) ? foodCaseSize(s) : null, ...(foodQuantity ? { foodQuantity } : {}), qty: 0, source: "grid", none: false };
     cell.qty = cellQty(cell);
     return Number.isFinite(cell.qty) && cell.qty >= 0 ? cell : null;
   }
@@ -1620,11 +1749,15 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     if (review?.length || retryTranscript) { setQueuedZone(target); return; }
     setQueuedZone(null);
     const touched = Object.keys(countsRef.current[zoneId] ?? {}).length > 0;
-    const missing = touched && !skippedLeaving.current.has(zoneId)
-      ? unansweredMembers(zoneId)
+    const asked = touched && !skippedLeaving.current.has(zoneId);
+    const missing = asked ? unansweredMembers(zoneId) : [];
+    // The count guard: this shelf's counts that look wrong, asked before moving on.
+    const checks = asked
+      ? Object.keys(countsRef.current[zoneId] ?? {}).filter((id) => openConcern(zoneId, id, countsRef.current))
+        .sort((a, b) => (skuById.get(a)?.name ?? "").localeCompare(skuById.get(b)?.name ?? ""))
       : [];
-    if (missing.length === 0) return goZoneId(target);
-    setLeaving({ from: zoneId, to: target, skuIds: missing });
+    if (missing.length === 0 && checks.length === 0) return goZoneId(target);
+    setLeaving({ from: zoneId, to: target, skuIds: missing, checks });
   }
   useEffect(() => {
     if (queuedZone && !voicePending && !retryTranscript && !startingFresh && !checking && !submitting && !submissionUnknown && !leaving) {
@@ -1644,6 +1777,28 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   }
 
   const leaveKey = (from: string, skuId: string) => `leave:${from}:${skuId}`;
+
+  const checkKey = (from: string, skuId: string) => `check:${from}:${skuId}`;
+  /** Count guard "Keep" on the sheet. */
+  function checkKeep(from: string, s: BarSkuItem) {
+    const c = concernAt(from, s.id, countsRef.current);
+    if (c) keepHigh(from, c);
+    setQ(checkKey(from, s.id), { pick: "yes", done: "Kept as counted", err: undefined });
+  }
+  /** Count guard "Change": the shelf's number for the item, replaced. If the
+   *  new number still looks wrong, the question stays open. */
+  function checkChange(from: string, s: BarSkuItem) {
+    const key = checkKey(from, s.id);
+    const cell = typedCell(s, placeQ[key] ?? EMPTY_Q);
+    if (!cell) return;
+    putCell(from, s.id, cell);
+    const still = concernAt(from, s.id, countsRef.current);
+    if (still && !shelfConcernAnswered(still, keptHigh[s.id])) {
+      setQ(key, { err: `Still ${still.kind === "shelf_impossible" ? "more than possible" : "more than we've ever had"}. Keep it, or change it again.` });
+      return;
+    }
+    setQ(key, { done: `Changed to ${cellText(s, cell)}`, err: undefined });
+  }
 
   /** "None left": a zero on the zone being left, the same as "none here". */
   function leaveNone(from: string, s: BarSkuItem) {
@@ -1821,6 +1976,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: ${unitLabel(s, 2)}`}
             value={q.units} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { units: e.target.value })} />
         </label>
+        {foodPoundsFactor(s) != null && (
+          <label>
+            <span>pounds</span>
+            <input type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: pounds`}
+              value={q.lb ?? ""} onFocus={centre} onKeyDown={onEnter} onChange={(e) => setQ(key, { lb: e.target.value })} />
+          </label>
+        )}
         <button type="button" className="lq-btn lq-fc-q-save" disabled={!ready} onClick={onSave}>
           {q.busy ? "Saving…" : "Save"}
         </button>
@@ -2275,7 +2437,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           const physical = singleFoodLoose(c?.foodQuantity);
           const physicalParts = c?.foodQuantity?.loose.map((part, index) => ({ part, index })) ?? [];
           const basisChanged = !!c?.foodQuantity && !sameFoodQuantityBasis(c.foodQuantity, foodQuantityBasis(s));
-          const looseInputs = physicalParts.length ? [...physicalParts, ...(Number(c!.foodQuantity!.legacyQtyUnits) > 0 ? [{ part: null, index: -1 }] : [])] : [{ part: null, index: -1 }];
+          // Pounds (count guard, 2026-11-12): an item with a pounds conversion
+          // always shows its count-unit box AND a pounds box, typed or not.
+          // The pounds part lives in its own box, so typing never swaps inputs.
+          const lbFactor = foodPoundsFactor(s);
+          const looseParts = lbFactor != null ? physicalParts.filter(({ part }) => normalizeCountUnit(part.unit) !== "lb") : physicalParts;
+          const looseInputs = looseParts.length ? [...looseParts, ...(Number(c!.foodQuantity!.legacyQtyUnits) > 0 || lbFactor != null ? [{ part: null, index: -1 }] : [])] : [{ part: null, index: -1 }];
+          const guard = openConcern(zoneId, s.id);
           const simplePhysicalTotal = physical && !(c?.cases ?? 0) && !(c?.packs ?? 0);
           const [head, rest] = splitDisplayName(s.name);
           const leftover = !!s.discontinuedAt;
@@ -2347,6 +2515,13 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 {!!c?.packs && <span className="lq-muted">Includes {formatQty(c.packs)} packs × {formatQty(c.packSize)}, plus the quantities below.</span>}
                 {!!c?.foodQuantity?.loose.length && !simplePhysicalTotal && <span className="lq-muted lq-fc-physical-count">Counted: {c!.foodQuantity!.loose.map(part => `${part.quantity} ${foodPhysicalUnit(part)}`).join(" + ")}{Number(c!.foodQuantity!.legacyQtyUnits) > 0 ? `; plus ${c!.foodQuantity!.legacyQtyUnits} ${unitLabel(s, Number(c!.foodQuantity!.legacyQtyUnits))} already counted` : ""}</span>}
                 {basisChanged && <span className="lq-error">The counting unit changed. Clear this amount and recount it.</span>}
+                {guard && (
+                  <span className="lq-fc-guard" role="status">
+                    <span className="lq-fc-guard-text">{guard.text}</span>
+                    <span className="lq-fc-guard-hint">{guard.hint} Or change the number.</span>
+                    <button type="button" className="lq-fc-guard-keep" onClick={() => keepHigh(zoneId, guard)}>Keep</button>
+                  </span>
+                )}
               </div>
               <div className="lq-fc-row-inputs">
                 {c?.packSize != null && <div className="lq-fc-row-box">
@@ -2385,7 +2560,10 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 )}
                 {looseInputs.map(({ part, index }) => {
                   const looseLabel = part && normalizeCountUnit(part.unit) !== normalizeCountUnit(s.countUnit ?? "each") ? foodPhysicalUnit({ ...part, quantity: "2" }) : unitLabel(s, 2);
-                  const value = part ? Number(part.quantity) : c?.foodQuantity ? Number(c.foodQuantity.legacyQtyUnits) < 0 ? undefined : Number(c.foodQuantity.legacyQtyUnits) : c?.units;
+                  // Beside a pounds entry, an untyped count-unit box stays blank rather than reading "0".
+                  const value = part ? Number(part.quantity) : c?.foodQuantity
+                    ? Number(c.foodQuantity.legacyQtyUnits) < 0 || (lbFactor != null && physicalParts.length > 0 && Number(c.foodQuantity.legacyQtyUnits) === 0) ? undefined : Number(c.foodQuantity.legacyQtyUnits)
+                    : c?.units;
                   const duplicateUnit = part && physicalParts.filter(p => p.part.unit === part.unit).length > 1;
                   const inputLabel = `${s.name}: loose ${looseLabel}${duplicateUnit ? ` (${part!.numerator}/${part!.denominator})` : ""}`;
                   const change = (raw: string) => part ? editPhysicalLoose(s.id, index, raw) : editLegacyLoose(s.id, raw);
@@ -2409,6 +2587,16 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                   </div>
                 </div>;
                 })}
+                {lbFactor != null && (
+                  <div className="lq-fc-row-box lq-fc-row-lb">
+                    <span className="lq-fc-row-lab">{caseSize != null && s.countUnit !== "case" ? "Loose lb" : "lb"}</span>
+                    <div className="lq-fc-stepper">
+                      <FoodNumberInput type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: pounds`}
+                        value={foodPoundsOf(c?.foodQuantity) ?? undefined} disabled={basisChanged || checking || submitting} onFocus={keepInView}
+                        onRaw={(raw) => editPounds(s.id, raw)} />
+                    </div>
+                  </div>
+                )}
               </div>
               </fieldset>
             </div>
@@ -2780,7 +2968,9 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         const fromIdx = zones.findIndex((z) => z.id === leaving.from);
         const from = zones[fromIdx];
         const toIdx = zones.findIndex((z) => z.id === leaving.to);
-        const left = leaving.skuIds.filter((id) => !placeQ[leaveKey(leaving.from, id)]?.done).length;
+        const uncounted = leaving.skuIds.filter((id) => !placeQ[leaveKey(leaving.from, id)]?.done).length;
+        const checksLeft = leaving.checks.filter((id) => !placeQ[checkKey(leaving.from, id)]?.done).length;
+        const left = uncounted + checksLeft;
         const go = toIdx === fromIdx + 1 ? "next zone ›" : `on to ${zones[toIdx]?.name ?? "the next zone"} ›`;
         return (
           <div className="lq-fc-sheetback" inert={checking || submitting || submissionUnknown}>
@@ -2789,10 +2979,58 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                 <span className="lq-fc-sheet-zone-k">Leaving zone {fromIdx + 1} of {zones.length}</span>
                 <span className="lq-fc-sheet-zone-n">{from?.name}</span>
               </div>
-              <h3 className="lq-fc-sheet-h">
-                {left > 0 ? `${left} ${left === 1 ? "item wasn’t" : "items weren’t"} counted` : "All answered"}
-              </h3>
-              <p className="lq-muted lq-fc-sheet-sub">They&rsquo;re on this zone&rsquo;s list. One tap each.</p>
+              {leaving.checks.length > 0 && (
+                <>
+                  <h3 className="lq-fc-sheet-h">
+                    {checksLeft > 0 ? `${checksLeft} ${checksLeft === 1 ? "count looks" : "counts look"} too high` : "Counts checked"}
+                  </h3>
+                  <p className="lq-muted lq-fc-sheet-sub">Check the box you used. Keep it if it&rsquo;s right.</p>
+                  {leaving.checks.map((id) => {
+                    const s = skuById.get(id);
+                    if (!s) return null;
+                    const key = checkKey(leaving.from, id);
+                    const q = placeQ[key] ?? EMPTY_Q;
+                    const c = concernAt(leaving.from, id, counts);
+                    return (
+                      <div key={key} className="lq-fc-q lq-fc-q-check">
+                        {qName(s.name)}
+                        {q.done ? (
+                          <p className="lq-fc-q-done">✓ {q.done}</p>
+                        ) : (
+                          <>
+                            {c && <p className="lq-fc-q-why lq-fc-guard-text">{c.text}</p>}
+                            {c && <p className="lq-muted lq-fc-guard-hint">{c.hint}</p>}
+                            <div className="lq-fc-choices">
+                              <button type="button" className={choice(false)} disabled={q.busy} onClick={() => checkKeep(leaving.from, s)}>
+                                Keep
+                              </button>
+                              <button type="button" className={choice(q.pick === "count")} aria-pressed={q.pick === "count"}
+                                disabled={q.busy} onClick={() => setQ(key, { pick: "count", err: undefined })}>
+                                Change
+                              </button>
+                            </div>
+                            {q.pick === "count" && (
+                              <>
+                                <p className="lq-fc-q-ask">How many are on this shelf?</p>
+                                {qtyBoxes(key, s, q, () => checkChange(leaving.from, s))}
+                              </>
+                            )}
+                            {q.err && <p className="lq-error">{q.err}</p>}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+              {leaving.skuIds.length > 0 && (
+                <>
+                  <h3 className="lq-fc-sheet-h">
+                    {uncounted > 0 ? `${uncounted} ${uncounted === 1 ? "item wasn’t" : "items weren’t"} counted` : "All answered"}
+                  </h3>
+                  <p className="lq-muted lq-fc-sheet-sub">They&rsquo;re on this zone&rsquo;s list. One tap each.</p>
+                </>
+              )}
               {leaving.skuIds.map((id) => {
                 const s = skuById.get(id);
                 if (!s) return null;
