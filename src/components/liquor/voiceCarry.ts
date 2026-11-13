@@ -11,10 +11,19 @@
  * Liquor's rule. Food says "we have five boxes of gloves", product last, so
  * this rhythm would hold back every food phrase; food uses splitFoodTail.
  */
+// 2026-11-13: "Cranberry juice, one case, six boxes." reached the phone whole,
+// and "boxes" was not here. "six boxes" read as a bottle's name waiting for its
+// number, so it was held back from its own item: the request ended "Cranberry
+// juice, one case," (saved 12) and Stop sent "six boxes." alone, which names
+// nothing. box, container and jar are the containers a count can end on. The
+// server reads containers and jars the same way and keeps a number said in
+// boxes amber (TPRS liquor-voice-quantity.ts LOOSE, COUNTISH). All six words
+// were already in NOT_A_FOOD_NAME below, so food's rule reads the same set.
 const QUANTITY_WORDS = new Set(
   ("zero oh one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen " +
    "seventeen eighteen nineteen twenty thirty forty fifty sixty seventy eighty ninety hundred thousand point " +
-   "half a an and quarter quarters case cases cs bottle bottles can cans each").split(" "),
+   "half a an and quarter quarters case cases cs bottle bottles can cans each " +
+   "box boxes container containers jar jars").split(" "),
 );
 
 /** Held text longer than this goes out anyway, so a run with no punctuation

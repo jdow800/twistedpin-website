@@ -677,6 +677,11 @@ export interface PrecheckResult {
   /** Set when the list was skipped because a bar walk shelf has no line at
    *  all ("zones_not_counted"); unaccounted is then []. */
   unaccountedSkipped?: "zones_not_counted";
+  /** One product short and another brand over by about the same share of a
+   *  bottle, on a shelf where the first went down and the second went up
+   *  (TPRS 2026-11-13, bar/possible-mixups.ts), at most 2. Soft, outside
+   *  findings. Absent from an older server, which shows nothing. */
+  possibleMixups?: PossibleMixup[];
   /** What this check looked at (TPRS 2026-10-03). Hand both back to submit,
    *  which refuses a count that moved since, so it gets checked again. */
   linesHash?: string;
@@ -723,6 +728,28 @@ export interface UnaccountedBottle {
   purchased: number;
   sold: number;
   zones: UnaccountedZone[];
+}
+/** One side of a possible mix-up (TPRS MixupSide). Every number is in bottles
+ *  of the product's smallest size. */
+export interface MixupSide {
+  /** A bottle, or `family:<key>` for a product in sizes. */
+  skuId: string;
+  relatedSkuIds: string[];
+  name: string;
+  /** How much of a bottle it is short, or over. Always positive. */
+  bottles: number;
+  /** On the shared shelf, at the last full count and now. */
+  prior: number;
+  counted: number;
+}
+/** Two bottles one of which may have been called the other (TPRS
+ *  PossibleMixup): `short` went down on the shelf and reads short after sales
+ *  and deliveries, `over` went up there and reads over. */
+export interface PossibleMixup {
+  zoneId: string;
+  zoneName: string;
+  short: MixupSide;
+  over: MixupSide;
 }
 export interface UnplacedItem {
   skuId: string;

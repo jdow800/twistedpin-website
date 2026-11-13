@@ -27,6 +27,7 @@ import {
   type RetiringSku,
   type LineEditedBy,
   type QuantityHeard,
+  type PossibleMixup,
   type UnaccountedBottle,
   type UnprovedLine,
   type VoiceExtractItem,
@@ -282,6 +283,9 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
      *  Submit. Empty from an older server and with ?softcheck=0. */
     unproved: UnprovedLine[];
     unaccounted: UnaccountedBottle[];
+    /** Two bottles one of which may have been called the other (TPRS
+     *  `possibleMixups`, 2026-11-13). Soft like the two above. */
+    mixups: PossibleMixup[];
   } | null>(null);
   // "Show N more" on the review's two capped lists. Each opening starts short.
   const [showAllFindings, setShowAllFindings] = useState(false);
@@ -1345,6 +1349,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
     let retiring: RetiringSku[] = [];
     let unproved: UnprovedLine[] = [];
     let unaccounted: UnaccountedBottle[] = [];
+    let mixups: PossibleMixup[] = [];
     let checkFailed = false;
     try {
       // Flush FIRST — the check runs server-side against saved lines, so an
@@ -1375,6 +1380,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       if (softCheck) {
         unproved = (res.unproved ?? []).filter((u) => u.qty > 0);
         unaccounted = res.unaccountedSkipped ? [] : res.unaccounted ?? [];
+        mixups = res.unaccountedSkipped ? [] : res.possibleMixups ?? [];
       }
       // What it looked at: submit hands these back (finish).
       checkedRef.current = { linesHash: res.linesHash, batchesHash: res.batchesHash };
@@ -1403,7 +1409,11 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
       // or a bottle not accounted for. Not-clearly-heard numbers alone never
       // do; they are listed when the screen opens for anything else.
       unproved.some((u) => u.quantityHeard === "guessed") ||
-      unaccounted.length > 0
+      unaccounted.length > 0 ||
+      // One bottle that may have been called another (11/13: the Seagram's 7
+      // on the first rail was recorded as Captain Morgan). Soft, like the two
+      // above: it opens the screen and asks nothing.
+      mixups.length > 0
     ) {
       setShowAllFindings(false);
       setShowAllDoubles(false);
@@ -1418,6 +1428,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
         checkFailed,
         unproved,
         unaccounted,
+        mixups,
       });
       return;
     }
@@ -2344,7 +2355,7 @@ export default function CountLiquor({ onDone }: { onDone: () => void }) {
             {/* The soft summary (W4, Jon 10/16-10/17): after the findings and
                 before the retiring list. Amber, never the red finding style;
                 it asks nothing and changes neither the heading nor Submit. */}
-            <SoftSummary unproved={confirmSubmit.unproved} unaccounted={confirmSubmit.unaccounted}
+            <SoftSummary unproved={confirmSubmit.unproved} unaccounted={confirmSubmit.unaccounted} mixups={confirmSubmit.mixups}
               disabled={checking || submitting}
               onOpen={(u) => openOnCountScreen(zones.some((z) => z.id === u.zoneId) ? u.zoneId : zoneId, skuById.get(u.skuId)?.name ?? u.name)} />
             {confirmSubmit.retiring.length > 0 && (
@@ -2811,16 +2822,21 @@ function ReviewRow({
  *    count appears here only, never on the review sheet (Jon 10/16-10/17). A
  *    guessed product that is also short says so on its own line.
  *  - Not clearly heard: a count, with the rows behind "Show".
+ *  - One may have been called the other (TPRS `possibleMixups`, 11/13): one
+ *    line per pair, the shelf's two numbers under it. A statement, never a
+ *    question (this block asks nothing). No button: either bottle may be the
+ *    wrong one, so there is no single row to open.
  *  - Not accounted for (TPRS `unaccounted`; Jon 10/16: never a backstock-to-
  *    rail move, which nets to zero server-side; a truly missing bottle may
  *    get a soft line): one compact line per product not already listed, the
  *    numbers behind "Details".
  *
- * Renders nothing when all three are empty (an older server, ?softcheck=0).
+ * Renders nothing when all four are empty (an older server, ?softcheck=0).
  */
-function SoftSummary({ unproved, unaccounted, disabled, onOpen }: {
+function SoftSummary({ unproved, unaccounted, mixups, disabled, onOpen }: {
   unproved: UnprovedLine[];
   unaccounted: UnaccountedBottle[];
+  mixups: PossibleMixup[];
   disabled: boolean;
   onOpen: (u: UnprovedLine) => void;
 }) {
@@ -2832,7 +2848,7 @@ function SoftSummary({ unproved, unaccounted, disabled, onOpen }: {
   // Each product once: a guessed line already says it is short.
   const said = new Set(guessed.map((u) => gapFor(u.skuId)).filter((g): g is UnaccountedBottle => !!g));
   const others = unaccounted.filter((g) => !said.has(g));
-  if (guessed.length === 0 && unclear.length === 0 && others.length === 0) return null;
+  if (guessed.length === 0 && unclear.length === 0 && others.length === 0 && mixups.length === 0) return null;
   return (
     <div className="lq-soft" role="group" aria-label="Numbers to glance at">
       <p className="lq-soft-title">Numbers to glance at. Nothing is held.</p>
@@ -2868,6 +2884,17 @@ function SoftSummary({ unproved, unaccounted, disabled, onOpen }: {
           )}
         </div>
       )}
+      {mixups.map((m) => (
+        <div key={`${m.zoneId}:${m.short.skuId}:${m.over.skuId}`} className="lq-soft-line lq-soft-mixup">
+          <span className="lq-soft-detail">
+            <strong>{m.short.name}</strong> looks about {fmt1(m.short.bottles)} short and <strong>{m.over.name}</strong> about {fmt1(m.over.bottles)} over
+            on {m.zoneName}. One may have been called the other.
+          </span>
+          <span className="lq-soft-mixup-shelf">
+            {m.zoneName}, last count to now: {m.short.name} {fmt1(m.short.prior)} → {fmt1(m.short.counted)}, {m.over.name} {fmt1(m.over.prior)} → {fmt1(m.over.counted)}.
+          </span>
+        </div>
+      ))}
       {others.length > 0 && (
         <div className="lq-soft-line lq-soft-gaps">
           <span className="lq-soft-detail">Not accounted for after sales, deliveries and every shelf:</span>

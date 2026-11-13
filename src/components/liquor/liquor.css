@@ -1531,6 +1531,13 @@
   line-height: 1.4;
   color: var(--lq-muted);
 }
+/* The shelf's two numbers under a "could one have been called the other?" line. */
+.lq-soft-mixup-shelf {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--lq-muted);
+  overflow-wrap: anywhere;
+}
 
 /* invoice history */
 .lq-invlist,

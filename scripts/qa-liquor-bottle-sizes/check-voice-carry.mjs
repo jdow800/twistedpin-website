@@ -213,6 +213,35 @@ check('carry: a count-first count stays with its name; a name-first number stays
   ]) assert.deepEqual(m.splitUnfinished(text), {head,tail}, text);
 });
 
+// 2026-11-13, Beer Cooler: "Cranberry juice, one case, six boxes." saved 12.
+// The piece arrived whole, but "boxes" was not a quantity word, so "six boxes."
+// was held back as a bottle name waiting for its number: the request ended
+// "Cranberry juice, one case," and Stop sent "six boxes." alone, which names
+// nothing (Alcohol Pricing incidents/2026-11-13/liquor-audit).
+check('carry: a remainder said in boxes, jars or containers stays with its case count (11/13 cranberry)', () => {
+  const piece = 'Cans. Pineapple juice, three cases, five cans. Pomegranate, three bottles. Cranberry juice, one case, six boxes.';
+  assert.deepEqual(m.splitUnfinished(piece), {head: piece, tail: ''});
+  for (const tail of ['one case, two jars.', 'two cases, three containers.', 'six boxes.']) {
+    const text = `Pomegranate, three bottles. Cranberry juice, ${tail}`;
+    assert.deepEqual(m.splitUnfinished(text), {head: text, tail: ''}, text);
+  }
+  // The take as its three pieces arrived: one request each, nothing left for Stop.
+  const sent = []; const carry = m.createCarry((text, index) => sent.push([index, text]));
+  carry.add("Risata Moscato D'Asti, sixteen. Black cherry soda, two cases, one bottle. Fireball, one. Bloody Mary, three bottles. Peach puree,", 0);
+  carry.add('Three. Passion Fuques Puree. Three. Strawberry Puree. Four. Red Bull. One case. Nine bottles. Sugarfree Red Bull. One case. Fifteen.', 1);
+  carry.add(piece, 2);
+  assert.equal(carry.flush(99), false);
+  assert.deepEqual(sent, [
+    [0, "Risata Moscato D'Asti, sixteen. Black cherry soda, two cases, one bottle. Fireball, one. Bloody Mary, three bottles."],
+    [1, 'Peach puree, Three. Passion Fuques Puree. Three. Strawberry Puree. Four. Red Bull. One case. Nine bottles. Sugarfree Red Bull. One case. Fifteen.'],
+    [2, piece],
+  ]);
+  // A count-first count in boxes waits for its name, as "Two bottles," does.
+  assert.deepEqual(m.splitUnfinished('Captain Morgan, two. Six boxes,'), {head: 'Captain Morgan, two.', tail: 'Six boxes,'});
+  // A name with one of these words in it is still a name waiting for its number.
+  assert.deepEqual(m.splitUnfinished("Tito's, two. Black Box,"), {head: "Tito's, two.", tail: 'Black Box,'});
+});
+
 // Seam join (2026-10-16 count review, Alcohol Pricing incidents/2026-10-16/
 // liquor-count-review/piece-split-number). A cut between a bottle and its
 // number: "…Belvedere." | "Two Tito's twenty" saved Belvedere 1 for 2.

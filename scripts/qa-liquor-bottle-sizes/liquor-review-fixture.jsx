@@ -75,7 +75,9 @@ const lines = [
 // ?soft-findings. Shapes: 1016 (2 guessed, 19 unclear, 4 not accounted for,
 // with no swap credit per Jon 10/17), unclear (unclear only), guessed (the 2
 // guessed only), gaps (not accounted for only), skipped (2 guessed and
-// unaccountedSkipped beside a list), none (an older server with a clean check: no fields).
+// unaccountedSkipped beside a list), none (an older server with a clean check: no fields),
+// mixup (TPRS 2026-11-13 `possibleMixups` only: that count's Seagram's 7 and
+// Captain Morgan on Speedrails), mixup-skipped (the same beside unaccountedSkipped).
 const soft = params.get('soft');
 const unprovedLine = (zoneId,zoneName,skuId,name,qty,quantityHeard,spoken,lastCount) => ({zoneId,zoneName,skuId,name,qty,
   quantityHeard,heardQty:qty,spoken,quantityWords:quantityHeard==='guessed'?'':null,lastCount,lastCountAll:lastCount});
@@ -105,7 +107,12 @@ const gaps1016 = [
   gap('amaretto','Amaretto Luxardo di Saschira',1,29.09,2.4,1.4,0,[['speed','Backstock Room',2,1],['giant','Giant Bottle Shelf',0.4,0.4]]),
   gap('bulleit','Bulleit Bourbon',0.9,23.79,25.6,24.6,0.1,[['speed','Backstock Room',24,23],['giant','Giant Bottle Shelf',1,1],['speedrails','Speedrails',0.6,0.6]]),
 ];
+const mixup1113 = [{zoneId:'speedrails',zoneName:'Speedrails',
+  short:{skuId:'seagrams',relatedSkuIds:['seagrams'],name:"Seagram's 7",bottles:0.8,prior:1.3,counted:0.4},
+  over:{skuId:'captain',relatedSkuIds:['captain'],name:'Captain Morgan Original Spiced Rum',bottles:0.7,prior:1.3,counted:2.1}}];
 const softFields = !soft || soft==='none' ? {} : soft==='unclear' ? {unproved:unclear1016,unaccounted:[]}
+  : soft==='mixup' ? {unproved:[],unaccounted:[],possibleMixups:mixup1113}
+  : soft==='mixup-skipped' ? {unproved:[],unaccounted:[],unaccountedSkipped:'zones_not_counted',possibleMixups:mixup1113}
   // A guessed cell left at 0 (T4 lists by the fold alone) is no number to glance at.
   : soft==='guessed' ? {unproved:[...guessed1016,unprovedLine('speed','Backstock Room','frangelico','Frangelico',0,'guessed','Frangelico',1)],unaccounted:[]}
   : soft==='gaps' ? {unproved:[],unaccounted:gaps1016}
