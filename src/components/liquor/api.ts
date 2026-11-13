@@ -742,6 +742,28 @@ export interface UnplacedItem {
 export async function precheckCount(sessionId: string): Promise<PrecheckResult> {
   return gatedJson<PrecheckResult>(`/admin/bar/counts/${sessionId}/precheck`);
 }
+
+/** The count guard (TPRS 2026-11-12, bar/food-shelf-ceiling.ts): per food
+ *  item, what the pre-submit check's `impossible` and `outside_usual` compare
+ *  against, so the count screen can ask at the shelf as a number is typed.
+ *  `possible` = last full count + deliveries since, count units; `usualMax` =
+ *  the history ceiling with its margin. Absent or null: no question. */
+export interface ShelfCeiling {
+  prior: number | null;
+  bought: number;
+  possible: number | null;
+  usualMax: number | null;
+}
+export interface ShelfCeilings {
+  asOf: string;
+  priorCountId: string | null;
+  /** Above `possible` by more than this many count units is not possible. */
+  slack: number;
+  ceilings: Record<string, ShelfCeiling>;
+}
+export async function getShelfCeilings(sessionId: string): Promise<ShelfCeilings> {
+  return gatedJson<ShelfCeilings>(`/admin/bar/counts/${sessionId}/shelf-ceilings`);
+}
 /**
  * Close a count.
  *
@@ -2301,6 +2323,11 @@ export interface FoodCostLine extends FoodCostTotals {
   purchases: { matched: number; vendorItem: number; estimated: number; freight: number; discounts: number; flaggedCents: number };
   items: FoodCostItem[];
   reasons: FoodCostReason[];
+  /** Count guard (TPRS 2026-11-12): items counted higher than the last count
+   *  plus deliveries, left out of this line's totals. `cents` is negative.
+   *  Absent on reports written before then. */
+  aboveCount?: { skuId: string; name: string; unit: string | null; opening: number | null; purchased: number | null;
+    closing: number | null; usedQty: number | null; cents: number }[];
 }
 export interface FoodCostReportBody {
   period: { start: string; end: string; days: number };

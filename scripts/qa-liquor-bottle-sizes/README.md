@@ -1,5 +1,21 @@
 # Bottle-size UI verification
 
+## Food count guard at the shelf (2026-11-12)
+
+```powershell
+node scripts/qa-liquor-bottle-sizes/serve.mjs --food-voice --build-only
+node scripts/qa-liquor-bottle-sizes/check-food-count-guard.mjs
+```
+
+Nine scenarios on the real count screen with `?guard` (11/12's slips on fictional ids; TPRS's
+`/shelf-ceilings` is mocked). A whole "1" in onion's cases box asks at the row ("1 case = 10 bags. 10 bags
+is more than possible: last count was 1.3 bags and nothing came in."); a partial case of lids never asks;
+fixing the number records one change event (10 → 1) with the next save; Keep is saved as an answer and a
+different number asks again; sugar's pounds box saves 17 lb as 0.68 bag, a pounds part; leaving the shelf
+asks with Keep and Change; a total across shelves says so; "more than ever" where the last count cannot be
+compared; and with the ceilings read failing, nothing asks and the count still saves. `?guard-down`
+fails the read. The fixture's open draft is continued first.
+
 ## Invoice out-of-stock lines and "Did you mean"
 
 ```powershell

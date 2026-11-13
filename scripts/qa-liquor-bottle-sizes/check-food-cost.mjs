@@ -314,4 +314,12 @@ await run('itemsToPrice groups an item\'s shelves, skips an empty unpriced line,
   ]);
 });
 
+await run('count guard: counts higher than possible are named on their line as left out, with what they would have done', async t => {
+  await t.openRow(/^Oct 6 → Oct 13/);
+  assert.match(t.text(), /Left out: 2 counts higher than the last count plus deliveries \(Sugar, Granulated, Extra Fine and Onion, Yellow\)\. Left in, they would lower the cost by \$430\.88\. Check them on the next count\./);
+  // A report written before the rule names nothing.
+  await t.click('Original');
+  assert.ok(!t.text().includes('Left out:'), 'the original has no such line');
+});
+
 console.log(`\n${passed} food cost scenarios passed`);
