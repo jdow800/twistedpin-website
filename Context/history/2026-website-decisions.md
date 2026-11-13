@@ -1,3 +1,13 @@
+## 2026-11-13 - /cogs grade details: since last count first, then the longer look
+
+Jon, on the Nov 13 grade email: "why is it over the last 56 days. Ideally we need a 'what happened between the last two inventories'. Then sure I am ok with a bigger magnifying glass of like the last month as an example." The email change is tprs #553; this is the details page it links to (`GradeEvidence.tsx`).
+
+- A grade frozen with `sinceLastCount` (tprs #553 and later) shows **Since last count** over the grade window, the evened-out line, then **Last N days** (about a month). Each row carries the same gap over the other window: "last 28 days" on a since-last-count row, "since last count" on a longer-look row. Recipe and button rows carry it too.
+- Grades frozen before that (Nov 6 and Nov 13 as published, and everything earlier) render exactly as before: one "What the counts point to" section, or none.
+- `check-grade-evidence.mjs`: 14 checks pass (13 unchanged, 1 new).
+
+**Deliberately NOT done:** no change to the per-product evidence, the Risata block or the corrections list. Publish after tprs #553 is live; the page reads the new field only when the backend sends it.
+
 ## 2026-11-10 - FAQ "final guest count comes in lower": food is planned by group size, not per head
 
 Jon approved this the same day, after the pay page changed to "Guests: Up to 15" (tprs PR 545). The `/faq/` answer said "we update your total to your real count", which tells a prospect they pay per head. They do not: catering is billed by group size, so 18 guests pay for 20 and a guest or two fewer usually changes nothing.

@@ -137,10 +137,18 @@ const CAUSE_SECTIONS = [
 ] as const;
 const signedOz = (n: number) => Math.abs(n) < 0.05 ? "0 oz" : `${n > 0 ? "+" : "−"}${number(Math.abs(n))} oz`;
 
-function CauseRow({ lead, recentDays }: { lead: GradeCauseLead; recentDays: number | null }) {
+/** Which cause section this is. "legacy" is the single section grades frozen
+ *  before 2026-11-13 carry; the email of that day tells "since" first, then
+ *  "longer" (tprs bar-variance-report.eta). */
+type CauseView = "legacy" | "since" | "longer";
+
+function CauseRow({ lead, recentDays, view }: { lead: GradeCauseLead; recentDays: number | null; view: CauseView }) {
   const gap = `${number(Math.abs(lead.gapOz), 0)} oz`, bottles = number(Math.abs(lead.gapBottles));
   const dollars = money(Math.abs(lead.dollars));
-  const recent = lead.recentGapOz != null && recentDays ? ` · last ${recentDays} days: ${signedOz(lead.recentGapOz)}` : "";
+  // The same gap over the other window, so a row says one-off or still adding up.
+  const recent = lead.recentGapOz == null ? ""
+    : view === "longer" ? ` · since last count: ${signedOz(lead.recentGapOz)}`
+    : recentDays ? ` · last ${recentDays} days: ${signedOz(lead.recentGapOz)}` : "";
   if (lead.kind === "substitution") return <li><strong>{lead.name}</strong> poured, <strong>{lead.partnerName}</strong> rung
     <span>About {gap} ({bottles} bottle){recent}</span></li>;
   if (lead.kind === "overpour") return <li><strong>{lead.name}</strong>
@@ -150,21 +158,28 @@ function CauseRow({ lead, recentDays }: { lead: GradeCauseLead; recentDays: numb
   return <li><strong>{lead.name}</strong>
     <span>{lead.detail === "rung_over"
       ? `${lead.rungPct != null ? `Rung for ${lead.rungPct}% of what was poured` : "Rung, with no measurable pour"}. A recipe calls for too much, or a button credits it for another bottle`
-      : `Recipes account for ${lead.rungPct ?? 0}% of what was poured. Check the recipe ounces or a missing ingredient`} · {dollars}</span></li>;
+      : `Recipes account for ${lead.rungPct ?? 0}% of what was poured. Check the recipe ounces or a missing ingredient`} · {dollars}{view === "legacy" ? "" : recent}</span></li>;
 }
 
-function CauseSort({ causes, gradeDays }: { causes: GradeCauseReport; gradeDays: number }) {
+function CauseSort({ causes, gradeDays, view, evenedOut }: { causes: GradeCauseReport; gradeDays: number; view: CauseView;
+  /** Differences that are counting noise over the longer look; told under the first section. */
+  evenedOut: { names: string[]; longerDays: number } | null }) {
   const sections = CAUSE_SECTIONS.map(s => ({ ...s, leads: causes.leads.filter(l => l.kind === s.kind) })).filter(s => s.leads.length);
-  return <section className="lq-grade-section" aria-label="What the counts point to">
-    <h4>What the counts point to</h4>
-    <p className="lq-muted">Each product judged over {causes.windowDays} days ({gradeDate(causes.windowStart)} – {gradeDate(causes.windowEnd)}), first count to latest, so a misread tenth in between cancels out. Normal counting and pouring differences are left out.</p>
+  const range = `${gradeDate(causes.windowStart)} – ${gradeDate(causes.windowEnd)}`;
+  const title = view === "since" ? "Since last count" : view === "longer" ? `Last ${causes.windowDays} days` : "What the counts point to";
+  const intro = view === "since" ? `What moved between the last two counts (${range}), beyond normal counting and pouring differences.`
+    : view === "longer" ? `The bigger look (${range}): each product from that count to today, so a misread tenth in between cancels out. This is where a habit shows.`
+    : `Each product judged over ${causes.windowDays} days (${range}), first count to latest, so a misread tenth in between cancels out. Normal counting and pouring differences are left out.`;
+  return <section className="lq-grade-section" aria-label={title}>
+    <h4>{title}</h4>
+    <p className="lq-muted">{intro}</p>
     {sections.map(s => <div className="lq-grade-evidence-group" key={s.kind}>
       <h5 className={s.kind === "setup" ? undefined : "lq-grade-short"}>{s.title}</h5>
       <p className="lq-muted">{s.note}</p>
-      <ul className="lq-grade-causes">{s.leads.map((l, i) => <CauseRow key={`${l.name}:${i}`} lead={l} recentDays={causes.recentDays} />)}</ul>
+      <ul className="lq-grade-causes">{s.leads.map((l, i) => <CauseRow key={`${l.name}:${i}`} lead={l} recentDays={causes.recentDays} view={view} />)}</ul>
     </div>)}
-    {sections.length === 0 && <p>Nothing beyond normal counting and pouring differences over {causes.windowDays} days.</p>}
-    {causes.evenedOut.length > 0 && <p className="lq-muted"><strong>Evened out, counting only:</strong> {causes.evenedOut.map(e => e.name).join(" · ")}. Off in the {gradeDays}-day grade, normal over {causes.windowDays} days.</p>}
+    {sections.length === 0 && <p>Nothing beyond normal counting and pouring differences {view === "since" ? "since the last count" : `over ${causes.windowDays} days`}.</p>}
+    {evenedOut && evenedOut.names.length > 0 && <p className="lq-muted"><strong>Evened out, counting only:</strong> {evenedOut.names.join(" · ")}. {view === "since" ? "Off since the last count" : `Off in the ${gradeDays}-day grade`}, normal over {evenedOut.longerDays} days.</p>}
   </section>;
 }
 
@@ -178,6 +193,11 @@ export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
   const visibleLines = showAll ? lines : lines.slice(0, 8);
   // Both absent on grades frozen before 2026-11-06; those render as before.
   const causes = snapshot?.causes?.version === 1 ? snapshot.causes : null;
+  // From 2026-11-13: the same sort since the last count, told first.
+  const since = snapshot?.sinceLastCount?.version === 1 ? snapshot.sinceLastCount : null;
+  // A product told as a since-last-count lead is not also listed as evened out.
+  const sinceNames = new Set((since?.leads ?? []).flatMap(l => l.partnerName ? [l.name, l.partnerName] : [l.name]));
+  const evenedOut = causes ? { names: causes.evenedOut.map(e => e.name).filter(n => !sinceNames.has(n)), longerDays: causes.windowDays } : null;
   const countUps = snapshot?.graded.countUps ?? [];
 
   return <section className="lq-grade" aria-labelledby="lq-grade-title">
@@ -211,7 +231,8 @@ export function GradeEvidence({ detail }: { detail: GradeDetailResponse }) {
         </li>)}</ul>
         {snapshot.caveats.length > 0 && <ul>{snapshot.caveats.map((c, i) => <li key={i}>{c}</li>)}</ul>}
       </details>
-      {causes && <CauseSort causes={causes} gradeDays={snapshot.windowDays} />}
+      {since && <CauseSort causes={since} gradeDays={snapshot.windowDays} view="since" evenedOut={evenedOut} />}
+      {causes && <CauseSort causes={causes} gradeDays={snapshot.windowDays} view={since ? "longer" : "legacy"} evenedOut={since ? null : evenedOut} />}
       <section className="lq-grade-section" aria-label="Product differences">
         <h4>Follow the dollars</h4>
         <p className="lq-muted">Largest differences first, including parked and excluded products. Open a product for the counts, receipts and sales behind it.</p>

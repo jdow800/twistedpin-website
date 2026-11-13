@@ -2098,8 +2098,13 @@ export interface GradeSnapshot extends GradePublishedSummary {
   lines: GradeEvidenceLine[]; graded: GradeRollup; caveats: string[];
   driftDays: number | null; trailingUnsoldBottles: [string, number][] | null;
   risata: RisataEvidence | null;
-  /** Differences sorted by likely cause over ~8 weeks; absent before 2026-11-06. */
+  /** Differences sorted by likely cause over the longer look behind the grade:
+   *  ~8 weeks from 2026-11-06, about a month from 2026-11-13, when its
+   *  recentGapOz became the grade window's gap. Absent before 2026-11-06. */
   causes?: GradeCauseReport | null;
+  /** The same sort over the grade window itself, "since last count"; its
+   *  recentGapOz is the longer look's gap. Absent before 2026-11-13. */
+  sinceLastCount?: GradeCauseReport | null;
 }
 export interface GradeCorrection {
   sessionId: string; at: string; by: string | null; reason: string;
