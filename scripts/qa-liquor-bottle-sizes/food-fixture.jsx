@@ -224,7 +224,10 @@ const unplacedMore = params.has('many') ? [
   {skuId:'unknown',name:'Unknown Package',countUnit:'pack',unitLabel:null,unitsPerCase:null,lastBoughtAt:'2026-09-20T17:00:00.000Z',lastVendor:'Webstaurant',inRecipe:false,reason:'bought'},
 ] : [];
 const usualLine = (skuId, zoneId, qtyUnits) => ({skuId, zoneId, qtyUnits, source:'grid', enteredCases:null, caseSizeAtEntry:null});
-const initialLines = fixtureOverride?.lines ?? (params.has('walkin-existing') ? [usualLine('garlic-parm','freezer','2')]
+// ?guard-oldlb: sugar already holds 10 lb saved when a pound was 1/20 bag (an older pound size).
+const initialLines = fixtureOverride?.lines ?? (params.has('guard-oldlb') ? [{skuId:'sugar', zoneId:'pizza', qtyUnits:'0.5', source:'voice', enteredCases:null, caseSizeAtEntry:null,
+    foodQuantity:{version:1, countUnit:'each', unitLabel:'bag', legacyQtyUnits:'0', loose:[{quantity:'10', unit:'lb', numerator:'1', denominator:'20'}]}}]
+  : params.has('walkin-existing') ? [usualLine('garlic-parm','freezer','2')]
   : params.has('usual-counted') ? [
     usualLine('cookies','cooler','144'), usualLine('beans','freezer','6'), usualLine('beans','cooler','3'), usualLine('dough','cooler','2')]
   : params.has('legacy-crust') ? [{skuId:'cauliflower',zoneId:'freezer',qtyUnits:'18',source:'voice',enteredCases:'1',caseSizeAtEntry:12}]

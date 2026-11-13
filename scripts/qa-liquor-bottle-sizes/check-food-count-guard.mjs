@@ -180,4 +180,39 @@ await run('no ceilings (the read failed): no questions at the shelf, and the cou
   assert.deepEqual(plain(qa.events), []);
 }, 'guard&guard-down');
 
+await run('a fix on the second shelf is recorded on that shelf (review round 2)', async ({qa, type, next, sheet, click, saved, line}) => {
+  await type('Onion, Yellow: loose bags', '1');
+  await next();
+  if (sheet()) await click(/^Skip|^Next zone|^On to/, sheet());
+  await next();
+  if (sheet()) await click(/^Skip|^Next zone|^On to/, sheet());
+  await type('Onion, Yellow: loose bags', '10');
+  await type('Onion, Yellow: loose bags', '0.5');
+  await saved(() => qa.events.length > 0 && Number(line('onion', 'fryer')?.qtyUnits) === 0.5, 'The fix saved');
+  assert.deepEqual(plain(qa.events).map(e => [e.zoneId, e.editedBy, e.beforeQty, e.afterQty]), [['fryer', 'typed', 10, 0.5]]);
+});
+
+await run('a change after an earlier Keep is recorded, and the Keep stays recorded (review round 2)', async ({qa, type, click, guardOf, saved, line}) => {
+  await type('Onion, Yellow: cases', '1');
+  await click('Keep', guardOf('Onion, Yellow'));
+  await type('Onion, Yellow: cases', '2');
+  assert.ok(guardOf('Onion, Yellow'), '20 bags asks again');
+  await type('Onion, Yellow: cases', '0');
+  await type('Onion, Yellow: loose bags', '1');
+  await saved(() => qa.events.length >= 2 && Number(line('onion')?.qtyUnits) === 1, 'Both saved');
+  assert.deepEqual(plain(qa.events).map(e => [e.editedBy, e.beforeQty, e.afterQty]), [['keep_high', 10, 10], ['typed', 20, 1]]);
+});
+
+await run('pounds saved at an older pound size keep their own box; the lb box adds at today\'s (review round 2)', async ({type, saved, line, next, doc}) => {
+  await next();
+  const labels = [...doc.querySelectorAll('input')].map(e => e.getAttribute('aria-label')).filter(l => l?.startsWith('Sugar'));
+  assert.ok(labels.includes('Sugar, Granulated, Extra Fine: loose lb'), 'The older 10 lb has its own box');
+  assert.ok(labels.includes('Sugar, Granulated, Extra Fine: pounds'), 'The lb box');
+  await type('Sugar, Granulated, Extra Fine: pounds', '5');
+  // 10 lb at 1/20 = 0.5 bag stays; 5 lb at 1/25 = 0.2 bag adds.
+  await saved(() => Number(line('sugar')?.qtyUnits) === 0.7, '0.5 + 0.2 bag');
+  assert.deepEqual(plain(line('sugar').foodQuantity.loose).map(p => [p.quantity, p.numerator, p.denominator]).sort(),
+    [['10', '1', '20'], ['5', '1', '25']]);
+}, 'guard&guard-oldlb');
+
 console.log(`${passed} count guard scenarios passed`);

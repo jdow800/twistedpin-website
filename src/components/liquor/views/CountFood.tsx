@@ -51,12 +51,14 @@ import FoodVoiceReviewRow from "../FoodVoiceReviewRow";
 import type { FoodCountChoice } from "../FoodCountRecovery";
 import { normalizeCountUnit } from "../count-definition";
 import { shelfConcern, shelfConcernAnswered, type ShelfConcern } from "../food-shelf-check";
-import { foodPoundsFactor, foodPoundsOf, withFoodPounds } from "../food-pounds";
+import { foodPoundsFactor, foodPoundsOf, isCurrentPoundsPart, withFoodPounds } from "../food-pounds";
 import { createLineEventQueue, type LineEventQueue } from "../lineEvents";
 
 /** How often the shelf ceilings are read again during a walk (independent
  *  review 2026-11-12, M2): a delivery read in the meantime raises them. */
 const SHELF_CEILING_REFRESH_MS = 10 * 60_000;
+/** Past this since the last good read, the shelf stops asking. */
+const SHELF_CEILING_STALE_MS = 30 * 60_000;
 
 /**
  * The FOOD count — a kitchen walk, zone by zone (BUILD-SPEC §8 P1, milestone M1).
@@ -404,7 +406,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
   /** Numbers changed after the shelf asked, until the change is saved: one
    *  event per cell, its "after" following the counter's typing (10 → 0 → 1
    *  is recorded as 10 → 1), so a keystroke in between is never the answer. */
-  const changedRef = useRef(new Map<string, { zid: string; kind: ShelfConcern["kind"]; before: number }>());
+  const changedRef = useRef(new Map<string, { zid: string; skuId: string; kind: ShelfConcern["kind"]; before: number }>());
   const saverRef = useRef<ReturnType<typeof createDraftSaver> | null>(null);
   if (!saverRef.current) {
     saverRef.current = createDraftSaver({
@@ -414,6 +416,8 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         const events = eventsRef.current!;
         const batch = events.take();
         const ids = batch.map((e) => e.id);
+        // A change handed to a save is settled; later typing is an ordinary edit.
+        for (const e of batch) if (e.editedBy === "typed") changedRef.current.delete(`${e.zoneId}:${e.skuId}`);
         try {
           const saved = await saveCountLines(sid, lines, true, "food", baseHash, batch);
           events.ack(ids);
@@ -498,7 +502,17 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     setKeptHigh({});
     if (!sessionId) { setCeilings(null); return; }
     let live = true;
-    const load = () => { getShelfCeilings(sessionId).then((c) => { if (live) setCeilings(c); }, () => { /* fail quiet: Finish still checks */ }); };
+    let loadedAt = 0;
+    // A failed re-read keeps the last numbers for a while (a walk-in has dead
+    // spots), but never past SHELF_CEILING_STALE_MS: a delivery read since
+    // could make a question false, so then the shelf stops asking and Finish
+    // checks as before (review 2026-11-12, round 2).
+    const load = () => {
+      getShelfCeilings(sessionId).then(
+        (c) => { if (live) { loadedAt = Date.now(); setCeilings(c); } },
+        () => { if (live && Date.now() - loadedAt > SHELF_CEILING_STALE_MS) setCeilings(null); },
+      );
+    };
     load();
     const timer = setInterval(load, SHELF_CEILING_REFRESH_MS);
     const onVisible = () => { if (document.visibilityState === "visible") load(); };
@@ -537,29 +551,49 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
     scheduleSave();
   }
   /** "Change": a number the shelf asked about was changed and the question
-   *  went away. One event per cell until it is saved (changedRef), with the
-   *  shelf's number before the change and as it now stands. */
-  const askedRef = useRef(new Map<string, { zid: string; total: number; cellQty: number; kind: ShelfConcern["kind"] }>());
+   *  went away. The question is about the item's total, so it remembers every
+   *  shelf's number, and the event goes to the shelf whose number changed
+   *  (review round 2: a fix on the second shelf was filed under the first).
+   *  One event per cell until it is saved (changedRef), with the shelf's
+   *  number before the change and as it now stands. A Keep given at another
+   *  total does not hide a later change (review round 2). */
+  type Asked = { total: number; kind: ShelfConcern["kind"]; cells: Record<string, number> };
+  const askedRef = useRef(new Map<string, Asked>());
   useEffect(() => {
     if (!ceilings) return;
-    const now = new Map<string, { zid: string; total: number; cellQty: number; kind: ShelfConcern["kind"] }>();
+    const now = new Map<string, Asked>();
     for (const [zid, cells] of Object.entries(counts)) {
       for (const skuId of Object.keys(cells)) {
+        if (now.has(skuId)) continue;
         const c = openConcern(zid, skuId);
-        if (c && !now.has(skuId)) now.set(skuId, { zid, total: c.total, cellQty: cells[skuId]!.qty, kind: c.kind });
+        if (!c) continue;
+        const shelves: Record<string, number> = {};
+        for (const [z, cs] of Object.entries(counts)) if (cs[skuId]) shelves[z] = cs[skuId]!.qty;
+        now.set(skuId, { total: c.total, kind: c.kind, cells: shelves });
       }
     }
     for (const [skuId, was] of askedRef.current) {
-      if (now.has(skuId) || keptHigh[skuId] || changedRef.current.has(skuId)) continue;
+      if (now.has(skuId)) continue;
+      const kept = keptHigh[skuId];
+      if (kept && Math.abs(kept.total - was.total) < 1e-9) continue; // answered with Keep
       const total = roundQty(Object.values(counts).reduce((s, cells) => s + Math.max(0, cells[skuId]?.qty ?? 0), 0));
       if (Math.abs(total - was.total) < 1e-9) continue; // a delivery arrived, not a change
-      changedRef.current.set(skuId, { zid: was.zid, kind: was.kind, before: was.cellQty });
+      const shelves = new Set([...Object.keys(was.cells), ...Object.keys(counts).filter((z) => counts[z]?.[skuId])]);
+      for (const zid of shelves) {
+        const before = was.cells[zid] ?? 0, after = counts[zid]?.[skuId]?.qty ?? 0;
+        const key = `${zid}:${skuId}`;
+        if (Math.abs(before - after) > 1e-9 && !changedRef.current.has(key)) changedRef.current.set(key, { zid, skuId, kind: was.kind, before });
+      }
     }
-    for (const [skuId, ch] of changedRef.current) {
-      if (now.has(skuId)) continue; // asked again: the next answer is the one that counts
-      const cell = counts[ch.zid]?.[skuId];
-      eventsRef.current!.pushGrid({ zoneId: ch.zid, skuId, kind: "grid_set", editedBy: "typed", findingKind: ch.kind,
-        beforeQty: ch.before, afterQty: cell?.qty ?? 0, afterCases: cell?.cases ?? null, caseSize: cell?.caseSize ?? null });
+    const queue = eventsRef.current!;
+    for (const ch of changedRef.current.values()) {
+      if (now.has(ch.skuId)) continue; // asked again: the next answer is the one that counts
+      const cell = counts[ch.zid]?.[ch.skuId];
+      const event = { zoneId: ch.zid, skuId: ch.skuId, kind: "grid_set" as const, editedBy: "typed" as const, findingKind: ch.kind,
+        beforeQty: ch.before, afterQty: cell?.qty ?? 0, afterCases: cell?.cases ?? null, caseSize: cell?.caseSize ?? null };
+      // Typing merges into this cell's unsent change, never into a Keep.
+      const last = queue.pending().filter((e) => e.zoneId === ch.zid && e.skuId === ch.skuId).at(-1);
+      if (last?.editedBy === "keep_high") queue.push(event); else queue.pushGrid(event);
     }
     askedRef.current = now;
   }, [counts, ceilings, keptHigh]);
@@ -1634,6 +1668,12 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
         setSubmitting(false);
         return;
       }
+      // The shelf answers (Keep / changed) still waiting, when the save above
+      // was proved only by reading the count back: one more try to send them.
+      // Never a reason to stop Submit: an answer record must not cost the
+      // count (line-events.ts), so if this fails too they are not stored.
+      // Before the changed-count guard below, so a merge it brings in is caught.
+      if (eventsRef.current!.pending().length) await doSave();
       if (reviewDirtyRef.current || correctionConflictsRef.current.length) {
         setSubmitting(false);
         setSubmitErr("Count changed while saving. Recheck before submitting.");
@@ -2441,7 +2481,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
           // always shows its count-unit box AND a pounds box, typed or not.
           // The pounds part lives in its own box, so typing never swaps inputs.
           const lbFactor = foodPoundsFactor(s);
-          const looseParts = lbFactor != null ? physicalParts.filter(({ part }) => normalizeCountUnit(part.unit) !== "lb") : physicalParts;
+          const looseParts = lbFactor != null ? physicalParts.filter(({ part }) => !isCurrentPoundsPart(part, s)) : physicalParts;
           const looseInputs = looseParts.length ? [...looseParts, ...(Number(c!.foodQuantity!.legacyQtyUnits) > 0 || lbFactor != null ? [{ part: null, index: -1 }] : [])] : [{ part: null, index: -1 }];
           const guard = openConcern(zoneId, s.id);
           const simplePhysicalTotal = physical && !(c?.cases ?? 0) && !(c?.packs ?? 0);
@@ -2592,7 +2632,7 @@ export default function CountFood({ onDone }: { onDone: () => void }) {
                     <span className="lq-fc-row-lab">{caseSize != null && s.countUnit !== "case" ? "Loose lb" : "lb"}</span>
                     <div className="lq-fc-stepper">
                       <FoodNumberInput type="number" inputMode="decimal" min={0} step="any" aria-label={`${s.name}: pounds`}
-                        value={foodPoundsOf(c?.foodQuantity) ?? undefined} disabled={basisChanged || checking || submitting} onFocus={keepInView}
+                        value={foodPoundsOf(c?.foodQuantity, s) ?? undefined} disabled={basisChanged || checking || submitting} onFocus={keepInView}
                         onRaw={(raw) => editPounds(s.id, raw)} />
                     </div>
                   </div>

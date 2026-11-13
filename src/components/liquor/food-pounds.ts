@@ -1,6 +1,6 @@
 import type { BarSkuItem } from "./api";
 import { currentCountDefinition, definedUnitMultiplier, normalizeCountUnit } from "./count-definition";
-import { legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, foodQuantityBasis, type FoodQuantity } from "./food-quantity";
+import { legacyFoodQuantity, mergeFoodQuantity, physicalFoodQuantity, foodQuantityBasis, type FoodLooseQuantity, type FoodQuantity } from "./food-quantity";
 
 /**
  * POUNDS IN THE TYPED BOXES (count guard, 2026-11-12).
@@ -28,9 +28,23 @@ export function foodPoundsFactor(sku: BarSkuItem | undefined): number | null {
   return Number.isFinite(exact) && Math.abs(exact - factor) <= Math.max(1, factor) * 1e-12 ? factor : null;
 }
 
-/** The cell's pounds part, as typed: a number, or null when it has none. */
-export function foodPoundsOf(q: FoodQuantity | undefined): number | null {
-  const part = q?.loose.find((p) => normalizeCountUnit(p.unit) === "lb");
+/** A pounds part saved at the catalog's ratio today: the one the pounds box
+ *  owns. A pounds part frozen at an older ratio (a spoken "17 lb" before the
+ *  pound size changed) is a different entry and keeps its own box, so typing
+ *  in the pounds box never rescales or drops it (review 2026-11-12, round 2). */
+export function isCurrentPoundsPart(part: FoodLooseQuantity, sku: BarSkuItem | undefined): boolean {
+  const ratio = sku?.foodUnitRatios?.lb;
+  if (!ratio || normalizeCountUnit(part.unit) !== "lb") return false;
+  try {
+    return BigInt(part.numerator) * BigInt(ratio.denominator) === BigInt(ratio.numerator) * BigInt(part.denominator);
+  } catch {
+    return false;
+  }
+}
+
+/** The cell's pounds-box amount: its current-ratio pounds part, or null. */
+export function foodPoundsOf(q: FoodQuantity | undefined, sku: BarSkuItem | undefined): number | null {
+  const part = q?.loose.find((p) => isCurrentPoundsPart(p, sku));
   return part ? Number(part.quantity) : null;
 }
 
@@ -42,7 +56,7 @@ export function withFoodPounds(sku: BarSkuItem, current: FoodQuantity | undefine
   if (factor == null || !Number.isFinite(pounds) || pounds < 0) return null;
   const basis = foodQuantityBasis(sku);
   const base = current ?? legacyFoodQuantity(legacyUnits ?? 0, basis);
-  const rest: FoodQuantity = { ...base, loose: base.loose.filter((p) => normalizeCountUnit(p.unit) !== "lb") };
+  const rest: FoodQuantity = { ...base, loose: base.loose.filter((p) => !isCurrentPoundsPart(p, sku)) };
   const lb = physicalFoodQuantity(pounds, "lb", factor, sku.foodUnitRatios, basis);
   // physicalFoodQuantity falls back to a plain count when the ratio is not the
   // catalog's; foodPoundsFactor already required it, so this is a pounds part.
